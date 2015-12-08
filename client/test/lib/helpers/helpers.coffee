@@ -19,7 +19,9 @@ module.exports =
 
     @doLogin browser, user
 
-    browser.execute 'KD.isTesting = true;'
+    browser.execute ->
+      window.KD ?= {}
+      window.KD.isTesting = yes
 
     return user
 
@@ -30,7 +32,9 @@ module.exports =
     browser.url(url)
     browser.maximizeWindow()
 
-    browser.execute 'KD.isTesting = true;'
+    browser.execute ->
+      window.KD ?= {}
+      window.KD.isTesting = yes
 
     @attemptLogin(browser, user)
 

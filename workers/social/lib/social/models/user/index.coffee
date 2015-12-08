@@ -937,7 +937,7 @@ module.exports = class JUser extends jraphical.Module
 
   @verifyEnrollmentEligibility = (options, callback) ->
 
-    { email, invitationToken, groupName } = options
+    { email, invitationToken, groupName, skipAllowedDomainCheck } = options
 
     # this is legacy but still in use, just checks if registeration is enabled or not
     JRegistrationPreferences = require '../registrationpreferences'
@@ -947,6 +947,9 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err
       unless prefs.isRegistrationEnabled
         return callback new Error 'Registration is currently disabled!'
+
+      # return without checking domain if skipAllowedDomainCheck is true
+      return callback null, { isEligible : yes }  if skipAllowedDomainCheck
 
       # check if email domain is in allowed domains
       return checkWithDomain groupName, email, callback  unless invitationToken
@@ -964,10 +967,13 @@ module.exports = class JUser extends jraphical.Module
         return checkWithDomain groupName, email, callback
 
 
-  @addToGroup = (account, slug, email, invitation, callback) ->
+  @addToGroup = (account, slug, email, invitation, options, callback) ->
 
-    options = { email: email, groupName: slug }
-    options.invitationToken = invitation.code if invitation?.code
+    [options, callback] = [{}, options]  unless callback
+
+    options.email           = email
+    options.groupName       = slug
+    options.invitationToken = invitation.code  if invitation?.code
 
     JUser.verifyEnrollmentEligibility options, (err, res) ->
       return callback err  if err
@@ -992,12 +998,14 @@ module.exports = class JUser extends jraphical.Module
           }, callback
 
 
-  @addToGroups = (account, slugs, email, invitation, callback) ->
+  @addToGroups = (account, slugs, email, invitation, options, callback) ->
+
+    [options, callback] = [{}, options]  unless callback
 
     slugs.push invitation.groupName if invitation?.groupName
     slugs = uniq slugs # clean up slugs
     queue = slugs.map (slug) => =>
-      @addToGroup account, slug, email, invitation, (err) ->
+      @addToGroup account, slug, email, invitation, options, (err) ->
         return callback err  if err
         queue.fin()
 
@@ -1289,27 +1297,6 @@ module.exports = class JUser extends jraphical.Module
     daisy queue
 
 
-  verifyEnrollmentEligibility = (options, callback) ->
-
-    { email, client, invitationToken } = options
-
-    # check if user can register to regarding group
-    _options =
-      email           : email
-      groupName       : client.context.group
-      invitationToken : invitationToken
-
-    JUser.verifyEnrollmentEligibility _options, (err, res) ->
-      return callback err  if err
-
-      { isEligible, invitation } = res
-
-      if not isEligible
-        return callback new Error "you can not register to #{client.context.group}"
-
-      callback null, invitation
-
-
   createUser = (options, callback) ->
 
     { userInfo } = options
@@ -1468,7 +1455,7 @@ module.exports = class JUser extends jraphical.Module
 
   validateConvert = (options, callback) ->
 
-    { client, userFormData, foreignAuthType } = options
+    { client, userFormData, foreignAuthType, skipAllowedDomainCheck } = options
     { slug, email, invitationToken, recaptcha, disableCaptcha } = userFormData
 
     invitation = null
@@ -1482,10 +1469,18 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        params = { email, client, invitationToken }
-        verifyEnrollmentEligibility params, (err, invitation_) ->
+        params = {
+          groupName : client.context.group
+          invitationToken, skipAllowedDomainCheck, email
+        }
+
+        JUser.verifyEnrollmentEligibility params, (err, res) ->
           return callback err  if err
-          invitation = invitation_
+
+          { isEligible, invitation } = res
+
+          if not isEligible
+            return callback new Error "you can not register to #{client.context.group}"
           queue.next()
 
 
@@ -1498,7 +1493,8 @@ module.exports = class JUser extends jraphical.Module
 
   processConvert = (options, callback) ->
 
-    { ip, country, region, client, invitation, userFormData } = options
+    { ip, country, region, client, invitation
+      userFormData, skipAllowedDomainCheck } = options
     { sessionToken : clientId } = client
     { referrer, email, username, password,
     emailFrequency, firstName, lastName } = userFormData
@@ -1536,8 +1532,8 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         groupNames = [client.context.group, 'koding']
-
-        JUser.addToGroups account, groupNames, user.email, invitation, (err) ->
+        options    = { skipAllowedDomainCheck }
+        JUser.addToGroups account, groupNames, user.email, invitation, options, (err) ->
           error = err
           queue.next()
 
@@ -1556,15 +1552,18 @@ module.exports = class JUser extends jraphical.Module
 
 
 
-  @convert = secure (client, userFormData, callback) ->
+  @convert = secure (client, userFormData, options, callback) ->
+
+    [options, callback] = [{}, options]  unless callback
 
     { slug, email, agree, username, lastName, referrer,
       password, firstName, recaptcha, emailFrequency,
       invitationToken, passwordConfirm, disableCaptcha } = userFormData
 
-    { clientIP, connection }    = client
-    { delegate : account }      = connection
-    { nickname : oldUsername }  = account.profile
+    { skipAllowedDomainCheck } = options
+    { clientIP, connection }   = client
+    { delegate : account }     = connection
+    { nickname : oldUsername } = account.profile
 
     # if firstname is not received use username as firstname
     userFormData.firstName = username  unless firstName
@@ -1608,13 +1607,17 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        validateConvert { client, userFormData, foreignAuthType }, (err, data) ->
+        options = { client, userFormData, foreignAuthType, skipAllowedDomainCheck }
+        validateConvert options, (err, data) ->
           return callback err  if err
           { invitation } = data
           queue.next()
 
       ->
-        params = { ip, country, region, client, invitation, userFormData }
+        params = {
+          ip, country, region, client, invitation
+          userFormData, skipAllowedDomainCheck
+        }
         processConvert params, (err, data) ->
           return callback err  if err
           { error, newToken, user, account } = data

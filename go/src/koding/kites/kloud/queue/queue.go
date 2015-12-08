@@ -138,6 +138,11 @@ func (q *Queue) CheckKodingUsage(m *koding.Machine) error {
 
 	// Hasta la vista, baby!
 	q.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
+
+	if err := m.MarkAsStoppedWithReason("Machine is going to be stopped due inactivity"); err != nil {
+		q.Log.Warning("[%s] ======> STOP state couldn't be saved (closing inactive machine: %s)<======", m.Id.Hex(), err)
+	}
+
 	if err := m.StopMachine(ctx); err != nil {
 		// returning is ok, because Kloud will mark it anyways as stopped if
 		// Klient is not rechable anymore with the `info` method

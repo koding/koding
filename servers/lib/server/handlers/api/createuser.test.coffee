@@ -126,24 +126,6 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         done()
 
 
-  it 'should send HTTP 400 if given email is not in allowed domains', (done) ->
-
-    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
-    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
-
-      username = generateRandomUsername()
-      createUserRequestParams = generateCreateUserRequestParams
-        headers  : { Authorization : "Bearer #{apiToken.code}" }
-        body     : { username, email : generateRandomEmail 'yandex.com' }
-
-      expectedBody = 'Your email domain is not in allowed domains for this group'
-      request.post createUserRequestParams, (err, res, body) ->
-        expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 400
-        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidEmailDomain }
-        done()
-
-
   it 'should send HTTP 403 if group.isApiEnabled is not true', (done) ->
 
     options = { createGroup : yes, groupData : { isApiEnabled : yes } }
@@ -299,6 +281,25 @@ runTests = -> describe 'server.handlers.api.createuser', ->
           expect(res.statusCode).to.be.equal 200
           expect(body).to.contain suggestedUsername
           done()
+
+
+    it 'should send HTTP 200 even if given email is not in allowed domains', (done) ->
+
+      groupData = { allowedDomains : [], isApiEnabled : yes }
+      options = { createGroup : yes, groupData }
+      withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
+        username = generateRandomUsername()
+        createUserRequestParams = generateCreateUserRequestParams
+          headers  : { Authorization : "Bearer #{apiToken.code}" }
+          body     : { username, email : generateRandomEmail() }
+
+        request.post createUserRequestParams, (err, res, body) ->
+          expect(err?.message).to.not.exist
+          expect(JSON.parse body).to.be.deep.equal { data : { username } }
+          expect(res.statusCode).to.be.equal 200
+          done()
+
 
 
 beforeTests()
