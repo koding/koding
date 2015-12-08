@@ -160,10 +160,8 @@ module.exports = CollaborationController =
 
     return  unless @stateMachine?.state is 'Active'
 
-    {sessionId} = data.collaborator
-
-    {targetUser} =
-      realtimeHelpers.getTargetUser @participants, 'sessionId', sessionId
+    { sessionId }  = data.collaborator
+    { targetUser } = realtimeHelpers.getTargetUser @participants, 'sessionId', sessionId
 
     unless targetUser
       return kd.warn 'Unknown user in collaboration, we should handle this case...'
@@ -171,7 +169,7 @@ module.exports = CollaborationController =
     @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
 
-    if @amIHost
+    if @amIHost and targetUser isnt nick()
       @ensureMachineShare [targetUser], (err) =>
         return throwError err  if err
 
