@@ -88,7 +88,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return errors.New("permitted users list is empty")
 	}
 
-	user, err := modelhelper.GetOwner(machine.Users)
+	user, err := modelhelper.GetPermittedUser(machine.Users)
 	if err != nil {
 		return err
 	}
