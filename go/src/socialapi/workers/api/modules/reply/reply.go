@@ -15,8 +15,17 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage, c *models.C
 		return response.NewBadRequest(err)
 	}
 
+	// fetch the parent message
+	parent, err := models.Cache.Message.ById(parentId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	// first create reply as a message
 	reply.TypeConstant = models.ChannelMessage_TYPE_REPLY
+
+	// set initial channel id for message creation
+	reply.InitialChannelId = parent.InitialChannelId
 
 	if reply.AccountId == 0 {
 		reply.AccountId = c.Client.Account.Id
@@ -26,15 +35,6 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage, c *models.C
 		// todo this should be internal server error
 		return response.NewBadRequest(err)
 	}
-
-	// fetch parent
-	parent, err := models.Cache.Message.ById(parentId)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	// set reply message's inital channel id from parent's
-	reply.InitialChannelId = parent.InitialChannelId
 
 	// then add this message as a reply to a parent message
 	mr := models.NewMessageReply()
