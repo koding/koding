@@ -276,7 +276,7 @@ If this problem persists, please contact us at: support@koding.com
 
 // CheckAllFailureOrMessagef runs CheckAllWithResponse and if there is a failure,
 // returns that status message. If CheckAllWithResponse returns ok, the formatted
-// message is returned. This *does not* print successful messages.
+// message is returned. This *does not* print success messages.
 //
 // This is a shorthand for informing the user about an error. There already was an
 // error, we're just trying to inform the user what it was about. For comparison,
