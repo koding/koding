@@ -7,16 +7,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/kite"
 )
-
-type kiteInfo struct {
-	IP           string
-	VMName       string
-	Hostname     string
-	MachineLabel string
-	MountedPaths []string
-	Teams        []string
-}
 
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
@@ -24,35 +16,26 @@ func ListCommand(c *cli.Context) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to %s: '%s'", KlientName, err,
+			"Error connectionting to %s: '%s'", KlientName, err,
 		))
 		return 1
 	}
 
-	if err = k.Dial(); err != nil {
+	if err := k.Dial(); err != nil {
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
 			"Error connecting to %s: '%s'", KlientName, err,
 		))
 		return 1
 	}
 
-	res, err := k.Tell("remote.list")
+	infos, err := getListOfMachines(k)
 	if err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error fetching list of machines from %s: '%s'", KlientName, err,
-		))
+		fmt.Print(err)
 		return 1
-	}
-
-	var infos []kiteInfo
-	if err := res.Unmarshal(&infos); err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error fetching list of machines from %s: '%s'", KlientName, err,
-		))
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tMACHINE NAME\tTEAM\tLABEL\tMACHINE IP\tHOSTNAME\tMOUNTED PATHS\n")
+	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tMOUNTED PATHS\n")
 	for i, info := range infos {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
@@ -63,10 +46,37 @@ func ListCommand(c *cli.Context) int {
 			team = "koding.com"
 		}
 
-		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
-			i+1, info.VMName, team, info.MachineLabel, info.IP, info.Hostname, strings.Join(info.MountedPaths, ", "))
+		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\n",
+			i+1, team, info.MachineLabel, info.IP, info.VMName, strings.Join(info.MountedPaths, ", "))
 	}
 	w.Flush()
 
 	return 0
+}
+
+type kiteInfo struct {
+	IP           string
+	VMName       string
+	Hostname     string
+	MachineLabel string
+	MountedPaths []string
+	Teams        []string
+}
+
+func getListOfMachines(kite *kite.Client) ([]kiteInfo, error) {
+	res, err := kite.Tell("remote.list")
+	if err != nil {
+		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error fetching list of machines from %s: '%s'", KlientName, err,
+		))
+	}
+
+	var infos []kiteInfo
+	if err := res.Unmarshal(&infos); err != nil {
+		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error fetching list of machines from %s: '%s'", KlientName, err,
+		))
+	}
+
+	return infos, nil
 }

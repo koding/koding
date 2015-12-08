@@ -10,7 +10,6 @@ import (
 	"syscall"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/fuseklient"
 )
 
 // ErrNotInMount happens when command is run from outside a mount.
@@ -42,12 +41,12 @@ func RunCommandFactory(c *cli.Context) int {
 	)
 
 	res, err := r.runOnRemote(localPath, cmdWithArgsStr)
-	if err != nil && err != fuseklient.ErrNotInMount {
+	if err != nil && err != ErrNotInMount {
 		fmt.Printf("Error running command: '%s'\n", err)
 		return 1
 	}
 
-	if err == fuseklient.ErrNotInMount {
+	if err == ErrNotInMount {
 		fmt.Println("Running on local:", cmdWithArgsStr)
 		return r.runOnLocal(cmdWithArgs)
 	}
@@ -94,7 +93,7 @@ func NewRunCommand() (*RunCommand, error) {
 }
 
 func (r *RunCommand) runOnRemote(localPath string, cmdWithArgsStr string) (*ExecRes, error) {
-	machine, err := fuseklient.GetMachineMountedForPath(localPath)
+	machine, err := GetMachineMountedForPath(localPath)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +132,7 @@ func (r *RunCommand) runOnMachine(machine, fullCmdPath string, cmdWithArgsStr st
 // getCmdRemotePath return the path on remote machine where the command should
 // be run.
 func (r *RunCommand) getCmdRemotePath(machine, localPath string) (string, error) {
-	relativePath, err := fuseklient.GetRelativeMountPath(localPath)
+	relativePath, err := GetRelativeMountPath(localPath)
 	if err != nil {
 		return "", err
 	}
