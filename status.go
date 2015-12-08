@@ -90,76 +90,12 @@ func (e ErrHealthNoKontrolHTTPResponse) Error() string { return e.Message }
 // but incoming klient functionality will obviously be limited. So by
 // checking, we can inform the user.
 func StatusCommand(c *cli.Context) int {
-	if err := defaultHealthChecker.CheckLocal(); err != nil {
-		// TODO: Enable debug logs
-		// log.Print(err.Error())
+	res, ok := defaultHealthChecker.CheckAllWithResponse()
 
-		// Print a friendly message for each of the given health responses.
-		switch err.(type) {
-		case ErrHealthNoHTTPReponse:
-			fmt.Printf(
-				`Error: The %s does not appear to be running. Please run
-the following command to start it:
-
-    sudo kd start
-`,
-				KlientName)
-
-		case ErrHealthUnexpectedResponse:
-			fmt.Printf(`Error: The %s is not running properly. Please run the
-following command to restart it:
-
-    sudo kd restart
-`,
-				KlientName)
-
-		case ErrHealthUnreadableKiteKey:
-			fmt.Printf(`Error: The authorization file for the %s is malformed
-or missing. Please run the following command:
-
-    sudo kd install
-`,
-				KlientName)
-
-		// TODO: What are some good steps for the user to take if dial fails?
-		case ErrHealthDialFailed:
-			fmt.Printf(`Error: The %s does not appear to be running properly.
-Please run the following command:
-
-    sudo kd restart
-`,
-				KlientName)
-
-		default:
-			fmt.Println("Unknown local healthcheck error:", err.Error())
-		}
-
+	fmt.Println(res)
+	if !ok {
 		return 1
 	}
-
-	if err := defaultHealthChecker.CheckRemote(); err != nil {
-		// TODO: Enable debug logs
-		// log.Print(err.Error())
-
-		// Print a friendly message for each of the given health responses.
-		switch err.(type) {
-		case ErrHealthNoInternet:
-			fmt.Println(`Error: You do not appear to have a properly working internet connection.`)
-
-		case ErrHealthNoKontrolHTTPResponse:
-			fmt.Printf(`Error: koding.com does not appear to be responding.
-If this problem persists, please contact us at: support@koding.com
-`)
-
-		default:
-			fmt.Println("Unknown remote healthcheck error:", err.Error())
-		}
-
-		return 1
-	}
-
-	fmt.Printf("The %s appears to be running and is healthy\n",
-		KlientName)
 
 	return 0
 }
@@ -261,6 +197,109 @@ func (c *HealthChecker) CheckRemote() error {
 	// since we've been having problems with echoip.net failing.
 
 	return nil
+}
+
+// CheckAllWithResponse checks local and remote, and parses the response to a
+// user-friendly response. Because a response may be good or bad, a bool is also
+// returned. If true, the response is good _(ie, positive, not an problem)_, and
+// if it is false the response represents a problem.
+//
+// TODO: Enable debug logs
+// log.Print(err.Error())
+func (c *HealthChecker) CheckAllWithResponse() (res string, ok bool) {
+	if err := defaultHealthChecker.CheckLocal(); err != nil {
+		switch err.(type) {
+		case ErrHealthNoHTTPReponse:
+			res = fmt.Sprintf(
+				`Error: The %s does not appear to be running. Please run
+the following command to start it:
+
+    sudo kd start
+`,
+				KlientName)
+
+		case ErrHealthUnexpectedResponse:
+			res = fmt.Sprintf(`Error: The %s is not running properly. Please run the
+following command to restart it:
+
+    sudo kd restart
+`,
+				KlientName)
+
+		case ErrHealthUnreadableKiteKey:
+			res = fmt.Sprintf(`Error: The authorization file for the %s is malformed
+or missing. Please run the following command:
+
+    sudo kd install
+`,
+				KlientName)
+
+		// TODO: What are some good steps for the user to take if dial fails?
+		case ErrHealthDialFailed:
+			res = fmt.Sprintf(`Error: The %s does not appear to be running properly.
+Please run the following command:
+
+    sudo kd restart
+`,
+				KlientName)
+
+		default:
+			res = fmt.Sprintf("Unknown local healthcheck error: %s", err.Error())
+		}
+
+		return res, false
+	}
+
+	if err := defaultHealthChecker.CheckRemote(); err != nil {
+		switch err.(type) {
+		case ErrHealthNoInternet:
+			res = fmt.Sprintf(`Error: You do not appear to have a properly working internet connection.`)
+
+		case ErrHealthNoKontrolHTTPResponse:
+			res = fmt.Sprintf(`Error: koding.com does not appear to be responding.
+If this problem persists, please contact us at: support@koding.com
+`)
+
+		default:
+			res = fmt.Sprintf("Unknown remote healthcheck error: %s", err.Error())
+		}
+
+		return res, false
+	}
+
+	res = fmt.Sprintf(
+		"The %s appears to be running and is healthy\n", KlientName,
+	)
+
+	return res, true
+}
+
+// CheckAllFailureOrMessagef runs CheckAllWithResponse and if there is a failure,
+// returns that status message. If CheckAllWithResponse returns ok, the formatted
+// message is returned. This *does not* print success messages.
+//
+// This is a shorthand for informing the user about an error. There already was an
+// error, we're just trying to inform the user what it was about. For comparison,
+// here is the syntax that this method provides:
+//
+//     fmt.Println(defaultHealthChecker.FailureResponseOrMessagef(
+//       "Error connecting to %s: '%s'\n", KlientName, err,
+//     ))
+//
+// And here is the syntax we're avoiding:
+//
+//     s, ok := defaultHealthChecker.CheckAllWithResponse()
+//     if ok {
+//       fmt.Printf("Error connecting to %s: '%s'\n", KlientName, err)
+//     } else {
+//       fmt.Println(s)
+//     }
+func (c *HealthChecker) CheckAllFailureOrMessagef(f string, i ...interface{}) string {
+	if s, ok := c.CheckAllWithResponse(); !ok {
+		return s
+	}
+
+	return fmt.Sprintf(f, i...)
 }
 
 // IsKlientRunning does a quick check against klient's http server

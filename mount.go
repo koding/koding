@@ -75,12 +75,16 @@ func MountCommand(c *cli.Context) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Printf("Error connecting to remote machine: %s\n", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to remote machine: '%s'", err,
+		))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to remote machine: %s\n", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to remote machine: '%s'", err,
+		))
 		return 1
 	}
 
@@ -96,14 +100,18 @@ func MountCommand(c *cli.Context) int {
 
 		resp, err = k.Tell("remote.mountFolder", mountRequest)
 		if err != nil {
-			fmt.Printf("Error mounting: %s\n", err)
+			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+				"Error mounting: %s\n", err,
+			))
 			return 1
 		}
 	}
 
 	// catch errors other than klientctlerrors.IsExistingMountErr
 	if err != nil {
-		fmt.Printf("Error mounting: %s\n", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error mounting: %s\n", err,
+		))
 		return 1
 	}
 
