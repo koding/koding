@@ -15,6 +15,11 @@ import (
 	"github.com/koding/fuseklient/transport"
 )
 
+var (
+	// folderSeparator is the OS specific separator between files and folders.
+	folderSeparator = string(os.PathSeparator)
+)
+
 // KodingNetworkFS implements `fuse.FileSystem` to let users mount folders on
 // their Koding VMs to their local machine.
 //
@@ -167,10 +172,6 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 // Mount mounts an specified folder on user VM using Fuse in the specificed
 // local path.
 func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
-	if err := Lock(k.MountPath, k.MountConfig.FSName); err != nil {
-		return nil, err
-	}
-
 	server := fuseutil.NewFileSystemServer(k)
 	return fuse.Mount(k.MountPath, server, k.MountConfig)
 }
@@ -178,10 +179,6 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
-	if err := Unlock(k.MountPath); err != nil {
-		return err
-	}
-
 	return Unmount(k.MountPath)
 }
 
