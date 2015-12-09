@@ -31,8 +31,8 @@ userData =
   runcmd:
     - echo 127.0.0.1 `hostname` >> /etc/hosts
     - echo 127.0.0.1 freegeoip.net >> /etc/hosts
-    - cd /opt/koding
     - ip -s -s neigh flush all
+    - cd /opt/koding
     - #{git_fetch}
     - #{git_checkout}
     - git submodule update --recursive
