@@ -1125,6 +1125,7 @@ module.exports = class JAccount extends jraphical.Module
 
         @fetchUser (err, user) ->
           return callback err  if err
+          return callback new KodingError 'User not found'  unless user
 
           userId = user._id
 
@@ -1291,20 +1292,22 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchFromUser: secure (client, key, callback) ->
     { delegate } = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @fetchUser (err, user) ->
-        return callback err  if err
-        if Array.isArray key
-          results = {}
-          for k in key
-            results[k] = user.getAt k
+    isMine       = @equals delegate
 
-          callback null, results
-        else
-          callback null, user.getAt key
-    else
-      callback new KodingError 'Access denied'
+    return callback new KodingError 'Access denied'  unless isMine
+
+    @fetchUser (err, user) ->
+      return callback err  if err
+      return callback new KodingError 'User not found'  unless user
+
+      if Array.isArray key
+        results = {}
+        for k in key
+          results[k] = user.getAt k
+
+        callback null, results
+      else
+        callback null, user.getAt key
 
   isAuthorized: secure (client, name, callback) ->
     @fetchOAuthInfo client, (err, response) ->
