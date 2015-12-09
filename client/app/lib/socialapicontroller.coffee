@@ -754,6 +754,7 @@ module.exports = class SocialApiController extends KDController
         endPoint : "/api/social/privatechannel/search"
       , callback
 
+    revive               : mapActivity
 
 
   # message:
@@ -832,7 +833,7 @@ module.exports = class SocialApiController extends KDController
   #     validateOptionsWith: ["name"]
   #     mapperFn           : mapChannel
 
-  #   revive               : mapActivity
+
 
     fetchDataFromEmbedly : (args...) ->
       remote.api.SocialMessage.fetchDataFromEmbedly args...
