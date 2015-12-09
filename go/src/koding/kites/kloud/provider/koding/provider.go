@@ -51,7 +51,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	// really doesn't exist or if there is an assignee which is a different
 	// thing. (Because findAndModify() also returns "not found" for the case
 	// where the id exist but someone else is the assignee).
-	machine := &Machine{}
+	machine := NewMachine()
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(&machine.Machine)
 	}); err == mgo.ErrNotFound {
