@@ -44,7 +44,7 @@ module.exports = class Sidebar extends bongo.Base
 
       machineUIds = machines.map (machine) -> machine.uid
       workspaces = []
-      queue = machineUIds.map (machineUId) ->->
+      queue = machineUIds.map (machineUId) -> ->
 
         options = { limit : 5 }
         JWorkspace.some { machineUId: machineUId }, options, (err, workspaces_) ->
