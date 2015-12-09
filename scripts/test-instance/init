@@ -2,7 +2,7 @@
 
 set -o errexit
 
-HOST=$(ec2metadata | grep public-hostname | FS=':' awk '{print $2}')
+HOST=$(ec2metadata | grep public-ipv4 | FS=':' awk '{print $2}')
 
 export HOME=/root/
 export DISPLAY=:99
