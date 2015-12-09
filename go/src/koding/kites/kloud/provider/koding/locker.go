@@ -10,7 +10,7 @@ import (
 )
 
 func (p *Provider) Lock(id string) error {
-	machine := &Machine{}
+	machine := NewMachine()
 	err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
 		// we use findAndModify() to get a unique lock from the DB. That means only
 		// one instance should be responsible for this action. We will update the
