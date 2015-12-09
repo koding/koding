@@ -4,6 +4,7 @@ AppController              = require 'app/appcontroller'
 AdminAPIView               = require './views/api/adminapiview'
 AdminAppView               = require './views/customviews/adminappview'
 TeamInviteView             = require './views/koding-admin/teaminviteview'
+TeamManageView             = require './views/koding-admin/teammanageview'
 AdminMembersView           = require './views/members/adminmembersview'
 AdministrationView         = require './views/koding-admin/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
@@ -49,6 +50,7 @@ module.exports = class AdminAppController extends AppController
     koding     :
       title    : 'Koding Administration'
       items    : [
+        { slug : 'TeamManage',     title : 'Manage teams',      viewClass : TeamManageView           }
         { slug : 'Blocked',        title : 'Blocked Users',     viewClass : GroupsBlockedUserView    }
         { slug : 'Widgets',        title : 'Custom Views',      viewClass : CustomViewsManager       }
         { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView      }
