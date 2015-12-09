@@ -1,7 +1,8 @@
-{ Base, secure, signature, daisy } = require 'bongo'
+{ Base, secure, signature } = require 'bongo'
 KodingError = require '../../error'
 
 { argv }    = require 'optimist'
+{ series }  = require 'async'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 teamutils   = require './teamutils'
 konstraints = require 'konstraints'
@@ -232,7 +233,7 @@ module.exports = class ComputeProvider extends Base
       # provided in template's machines array ~ GG
       template.machines?.forEach (machineInfo) ->
 
-        queue.push ->
+        queue.push (next) ->
 
           # Set the stack as newly create JComputeStack
           machineInfo.stack         = stack
@@ -252,7 +253,7 @@ module.exports = class ComputeProvider extends Base
             ComputeProvider.create client, machineInfo, (err, machine) ->
               results.machines.push { err, obj: machine }
 
-              return queue.next()  unless machine
+              return next()  unless machine
 
               # Create default workspace for the machine
               JWorkspace.createDefault client, machine.uid, (err) ->
@@ -261,7 +262,7 @@ module.exports = class ComputeProvider extends Base
                   console.log \
                     'Failed to create default workspace', machine.uid, err
 
-                queue.next()
+                next()
 
           # This is optional, since for koding group for example
           # we don't want to add our admins into users machines ~ GG
@@ -284,11 +285,8 @@ module.exports = class ComputeProvider extends Base
             else
               create machineInfo
 
-      queue.push ->
 
-        callback null, { stack, results }
-
-      daisy queue
+      series queue, -> callback null, { stack, results }
 
 
   # Just takes the plan name and the stack template content generates rules
@@ -330,14 +328,16 @@ module.exports = class ComputeProvider extends Base
 
     queue = []
 
-    stackTemplates.forEach (stackTemplateId) -> queue.push ->
+    stackTemplates.forEach (stackTemplateId) -> queue.push (next) ->
       ComputeProvider.validateTemplate client, stackTemplateId, group, (err) ->
         return callback err  if err
-        queue.next()
+        next()
 
-    queue.push -> callback null
+    series queue, -> callback null
 
-    daisy queue
+
+
+
 
 
   # Auto create stack operations ###
@@ -415,17 +415,17 @@ module.exports = class ComputeProvider extends Base
 
     { template, account, group } = {}
 
-    daisy queue = [
+    series [
 
-      ->
+      (next) ->
         fetchGroupStackTemplate client, (err, _res) ->
           return callback err  if err
 
           { template, account, group } = res = _res
 
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         instanceCount = template.machines?.length or 0
         change        = 'increment'
 
@@ -435,23 +435,23 @@ module.exports = class ComputeProvider extends Base
 
           return callback err  if err
 
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         checkTemplateUsage template, account, (err) ->
           return callback err  if err
 
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         account.addStackTemplate template, (err) ->
           return callback err  if err
 
           res.client = client
 
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
           if err
             # swallowing errors for followings since we need the real error ~GG
