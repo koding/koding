@@ -262,28 +262,7 @@ func (d *Dir) RemoveEntry(name string) (Node, error) {
 	d.Lock()
 	defer d.Unlock()
 
-	entry, err := d.findEntry(name)
-	if err != nil {
-		return nil, err
-	}
-
-	req := struct {
-		Path      string
-		Recursive bool
-	}{
-		Path:      path.Join(d.RemotePath, name),
-		Recursive: true,
-	}
-	var res bool
-	if err := d.Trip("fs.remove", req, &res); err != nil {
-		return nil, err
-	}
-
-	if _, err := d.removeChild(name); err != nil {
-		return nil, err
-	}
-
-	return entry, nil
+	return d.removeEntry(name)
 }
 
 ///// Node interface
@@ -344,6 +323,31 @@ func (d *Dir) Reset() error {
 
 ///// Private helpers
 
+func (d *Dir) removeEntry(name string) (Node, error) {
+	entry, err := d.findEntry(name)
+	if err != nil {
+		return nil, err
+	}
+
+	req := struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      path.Join(d.RemotePath, name),
+		Recursive: true,
+	}
+	var res bool
+	if err := d.Trip("fs.remove", req, &res); err != nil {
+		return nil, err
+	}
+
+	if _, err := d.removeChild(name); err != nil {
+		return nil, err
+	}
+
+	return entry, nil
+}
+
 func (d *Dir) findEntry(name string) (Node, error) {
 	child, ok := d.EntriesList[name]
 	if !ok {
@@ -354,12 +358,19 @@ func (d *Dir) findEntry(name string) (Node, error) {
 }
 
 func (d *Dir) updateEntriesFromRemote() error {
+	var prevEntries = make(map[string]bool, len(d.Entries))
+	for _, e := range d.Entries {
+		prevEntries[e.Name] = false
+	}
+
 	entries, err := d.getEntriesFromRemote()
 	if err != nil {
 		return err
 	}
 
 	for _, e := range entries {
+		prevEntries[e.Name] = true
+
 		localEntry, err := d.findEntry(e.Name)
 		if err != nil {
 			if _, err := d.initializeChild(e); err != nil {
@@ -370,6 +381,14 @@ func (d *Dir) updateEntriesFromRemote() error {
 
 		attrs := d.initializeAttrs(e)
 		localEntry.SetAttrs(attrs)
+	}
+
+	// remove entries not in recently fetched list, ie they've been
+	// deleted since last seen
+	for entryName, wasSeen := range prevEntries {
+		if !wasSeen {
+			d.removeEntry(entryName)
+		}
 	}
 
 	return nil
