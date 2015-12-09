@@ -31,7 +31,7 @@ type Meta struct {
 // Machine represents a single MongodDB document that represents a Koding
 // Provider from the jMachines collection.
 type Machine struct {
-	*models.Machine
+	models.Machine
 
 	// internal fields, not availabile in MongoDB schema
 	Username string                 `bson:"-"`
@@ -45,13 +45,6 @@ type Machine struct {
 	// cleanFuncs are a list of functions that are called when after a method
 	// is finished
 	cleanFuncs []func()
-}
-
-// NewMachine gives new Machine value.
-func NewMachine() *Machine {
-	return &Machine{
-		Machine: &models.Machine{},
-	}
 }
 
 func (m *Machine) GetMeta() (*Meta, error) {
