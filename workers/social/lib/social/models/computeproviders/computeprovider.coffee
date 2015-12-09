@@ -49,6 +49,8 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchPlans        :
           (signature Function)
+        fetchTeamPlans    :
+          (signature Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
@@ -170,6 +172,12 @@ module.exports = class ComputeProvider extends Base
   @fetchPlans = permit 'create machines',
     success: (client, callback) ->
       callback null, PLANS
+
+
+  @fetchTeamPlans = permit
+    advanced : [{ permission: 'sudoer', superadmin: yes }]
+    success  : (client, callback) ->
+      callback null, teamutils.TEAMPLANS
 
 
   @update = secure revive
