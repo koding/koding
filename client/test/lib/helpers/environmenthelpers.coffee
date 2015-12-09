@@ -313,13 +313,15 @@ module.exports =
     proceedSelector         = '.kdmodal.with-buttons .kdbutton.red'
     terminatedLabelSelector = '.kdmodal.env-modal .state-label.terminated'
     vmSelector              = '.sidebar-machine-box'
+    vmStateModal            = '.env-machine-state .kdmodal-content'
 
     browser
       .waitForElementVisible  terminateSelector, 20000
       .click                  terminateSelector
       .waitForElementVisible  proceedSelector, 20000
       .click                  proceedSelector
-      .waitForElementVisible  vmSelector + ' .vm.terminating', 200000
+      .waitForElementVisible  vmSelector   + ' .vm.terminating', 200000
+      .waitForElementVisible  vmStateModal + ' .terminating', 20000
       .waitForElementVisible  terminatedLabelSelector, 200000
       .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
 
