@@ -47,6 +47,13 @@ type Machine struct {
 	cleanFuncs []func()
 }
 
+// NewMachine gives new Machine value.
+func NewMachine() *Machine {
+	return &Machine{
+		Machine: &models.Machine{},
+	}
+}
+
 func (m *Machine) GetMeta() (*Meta, error) {
 	var mt Meta
 	if err := mapstructure.Decode(m.Meta, &mt); err != nil {
