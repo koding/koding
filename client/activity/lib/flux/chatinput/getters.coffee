@@ -96,10 +96,9 @@ emojiSelectBoxQuery = (stateId) -> [
 frequentlyUsedEmojis = [
   EmojiUsageCountsStore
   (usageCounts) ->
-    { FREQUENTLY_USED_EMOJIS_MIN_USAGE_COUNT, FREQUENTLY_USED_EMOJIS_MAX_LIST_SIZE } = Constants
+    { FREQUENTLY_USED_EMOJIS_MAX_LIST_SIZE } = Constants
 
     usageCounts
-      .filter (count, emoji) -> count >= FREQUENTLY_USED_EMOJIS_MIN_USAGE_COUNT
       .sort (count1, count2) -> count2 - count1
       .take FREQUENTLY_USED_EMOJIS_MAX_LIST_SIZE
       .map (count, emoji) -> emoji
@@ -197,7 +196,8 @@ emojiSelectBoxSelectedItem = (stateId) -> [
 
 
 # Returns current tab index of emoji selectbox by specified stateId
-# If tab index doesn't exist in the store, returns 0
+# If tab index doesn't exist in the store, returns default index = 0,
+# i.e. first tab is selected by default
 emojiSelectBoxTabIndex = (stateId) -> [
   EmojiSelectBoxTabIndexStore
   (tabIndexes) -> tabIndexes.get(stateId) ? 0

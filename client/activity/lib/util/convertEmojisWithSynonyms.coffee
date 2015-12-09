@@ -4,8 +4,8 @@ getEmojiSynonyms = require 'activity/util/getEmojiSynonyms'
  * This function finds emojis with synonyms, converts them
  * to the first synonym and removes duplicate synonyms
  *
- * @param {Immatable.List} emojis
- * @return {Immatable.List}
+ * @param {Immutable.List} emojis
+ * @return {Immutable.List}
 ###
 module.exports = convertEmojisWithSynonyms = (emojis) ->
 
