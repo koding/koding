@@ -1,3 +1,4 @@
+async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
 
@@ -230,7 +231,7 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         transferOwnership:
           (signature String, Function)
-        remove:
+        destroy:
           (signature Function)
         addSubscription:
           (signature String, Function)
@@ -1343,61 +1344,70 @@ module.exports = class JGroup extends Module
       if err then callback err
       else oldAddOwner.call this, target, options, callback
 
-  remove_ = @::remove
-  remove: secure (client, callback) ->
-    JName = require '../name'
+  destroy    : permit
+    advanced : [
+      { permission: 'edit own groups', validateWith : Validators.own }
+      { permission: 'edit groups',     superadmin   : yes }
+    ]
+    success  : (client, callback) ->
 
-    @fetchOwner (err, owner) =>
-      return callback err if err
-      unless owner.getId().equals client.connection.delegate.getId()
-        return callback new KodingError 'You must be the owner to perform this action!'
+      removeHelper = (model, err, callback, next) ->
+        return callback err  if err
+        return next()  unless model
 
-      removeHelper = (model, err, callback, queue) ->
-        return callback err if err
-        return queue.next() unless model
         model.remove (err) ->
           return callback err if err
-          queue.next()
+          next()
 
-      removeHelperMany = (klass, models, err, callback, queue) ->
-        return callback err if err
-        return queue.next() if not models or models.length < 1
+      removeHelperMany = (klass, models, err, callback, next) ->
+        return callback err  if err
+        return next()  if not models or models.length < 1
+
         ids = (model._id for model in models)
         klass.remove ({ _id: { $in: ids } }), (err) ->
-          return callback err if err
-          queue.next()
+          return callback err  if err
+          next()
 
-      daisy queue = [
-        => JName.one { name:@slug }, (err, name) ->
-          removeHelper name, err, callback, queue
+      JName = require '../name'
 
-        => @fetchPermissionSet (err, permSet) ->
-          removeHelper permSet, err, callback, queue
+      async.series [
+        (next) =>
+          JName.one { name: @slug }, (err, name) ->
+            removeHelper name, err, callback, next
 
-        => @fetchDefaultPermissionSet (err, permSet) ->
-          removeHelper permSet, err, callback, queue
+        (next) =>
+          @fetchPermissionSet (err, permSet) ->
+            removeHelper permSet, err, callback, next
 
-        => @fetchMembershipPolicy (err, policy) ->
-          removeHelper policy, err, callback, queue
+        (next) =>
+          @fetchDefaultPermissionSet (err, permSet) ->
+            removeHelper permSet, err, callback, next
 
-        => @fetchInvitations (err, requests) ->
-          JInvitation = require '../invitation'
-          removeHelperMany JInvitation, requests, err, callback, queue
+        (next) =>
+          @fetchMembershipPolicy (err, policy) ->
+            removeHelper policy, err, callback, next
 
-        => @fetchTags (err, tags) ->
-          JTag = require '../tag'
-          removeHelperMany JTag, tags, err, callback, queue
+        (next) =>
+          @fetchInvitations (err, requests) ->
+            JInvitation = require '../invitation'
+            removeHelperMany JInvitation, requests, err, callback, next
 
-        =>
+        (next) =>
+          @fetchTags (err, tags) ->
+            JTag = require '../tag'
+            removeHelperMany JTag, tags, err, callback, next
+
+        (next) =>
           @constructor.emit 'GroupDestroyed', this
-          queue.next()
+          next()
 
-        => remove_.call this, (err) ->
-          return callback err if err
-          queue.next()
-
+        (next) =>
+          @remove (err) ->
+            return callback err if err
+            next()
+      ],
         -> callback null
-      ]
+
 
   sendNotificationToAdmins: (event, contents) ->
     @fetchAdmins (err, admins) =>
