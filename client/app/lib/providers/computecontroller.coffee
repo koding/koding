@@ -345,6 +345,40 @@ module.exports = class ComputeController extends KDController
           callback plans
 
 
+  fetchTeamPlans: (callback = kd.noop) ->
+
+    if @teamplans
+      kd.utils.defer => callback @teamplans
+    else
+      remote.api.ComputeProvider.fetchTeamPlans (err, plans) =>
+        # If there is an error at least return a simple plan
+        # which includes only 'default' plan
+        if err? or not plans?
+          kd.warn err
+          callback
+            default              :
+              member             : 1  # max number, can be overwritten in group data
+                                      # by a super-admin (an admin in Koding group)
+              validFor           : 0  # no expire date
+              instancePerMember  : 1  # allows one instance per member
+              allowedInstances   : [ 't2.micro' ]
+              maxInstance        : 1  # maximum instance count for this group (total)
+              storagePerInstance : 5  # means 5GB storage for this plan in total (max).
+                                      # 1 member x 1 instancePerMember = 1 instance
+                                      # 5GB per instance x 1 instances = 5GB in total
+              restrictions       :
+                supports         : [ 'provider', 'resource' ]
+                provider         : [ 'aws' ]
+                resource         : [ 'aws_instance' ]
+                custom           :
+                  ami            : no
+                  tags           : no
+                  user_data      : yes
+        else
+          @teamplans = plans
+          callback plans
+
+
   fetchRewards: (options, callback)->
 
     {unit} = options
