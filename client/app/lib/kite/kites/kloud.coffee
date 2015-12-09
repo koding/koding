@@ -7,7 +7,7 @@ globals = require 'globals'
 
 module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
-  SUPPORTED_PROVIDERS = ['koding', 'aws']
+  SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer']
 
   getProvider = (machineId)->
     kd.singletons.computeController.machinesById[machineId]?.provider

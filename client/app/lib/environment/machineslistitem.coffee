@@ -143,7 +143,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
       #{unless isKoding() then '<div>{{> @sidebarToggle}}</div>' else ''}
     """
 
-  PROVIDERS      =
+  PROVIDERS         =
     Azure           : url: 'https://azure.microsoft.com/en-us'
     HPCloud         : url: 'http://www.hpcloud.com'
     Joyent          : url: 'https://www.joyent.com/'
@@ -157,3 +157,4 @@ module.exports = class MachinesListItem extends kd.ListItemView
     # handle `jMachine.provider` field.
     aws             : url: 'http://aws.amazon.com'
     koding          : url: 'http://aws.amazon.com', logo: 'aws'
+    softlayer       : url: 'http://softlayer.com',  logo: 'softlayer'

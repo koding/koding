@@ -55,7 +55,7 @@ func (l *LongRunning) Process() {
 		}
 
 		data := &StopData{
-			id:         machine.Id,
+			id:         machine.ObjectId,
 			instanceId: instanceId,
 			domain:     machine.Domain,
 			ipAddress:  machine.IpAddress,

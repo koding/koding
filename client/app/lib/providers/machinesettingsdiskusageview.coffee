@@ -53,7 +53,9 @@ module.exports = class MachineSettingsDiskUsageView extends KDView
         <span>#{format usage} of #{format total}</span>
       """
 
-    if not @getData().isManaged() and isKoding()
+    { provider } = @getData()
+
+    if isKoding() and provider not in ['softlayer', 'managed']
       @addSubView new KDCustomHTMLView
         cssClass : 'footline'
         partial  : """

@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/provider/generic"
 	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
@@ -238,7 +238,7 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	}
 
 	for _, m := range machines {
-		if err := modelhelper.DeleteMachine(m.Id); err != nil {
+		if err := modelhelper.DeleteMachine(m.ObjectId); err != nil {
 			return err
 		}
 	}
@@ -463,7 +463,7 @@ func fetchStack(stackId string) (*Stack, error) {
 	}, nil
 }
 
-func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, error) {
+func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -474,7 +474,7 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, erro
 		mongodbIds[i] = bson.ObjectIdHex(id)
 	}
 
-	machines := make([]*generic.Machine, 0)
+	machines := make([]*models.Machine, 0)
 	if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"_id": bson.M{"$in": mongodbIds}}).All(&machines)
 	}); err != nil {
@@ -489,7 +489,7 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, erro
 			if perm.Sudo && perm.Owner {
 				allowedIds[i] = perm.Id
 			} else {
-				return nil, fmt.Errorf("machine '%s' is not valid. Aborting apply", machine.Id.Hex())
+				return nil, fmt.Errorf("machine '%s' is not valid. Aborting apply", machine.ObjectId.Hex())
 			}
 		}
 	}
@@ -514,16 +514,18 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*generic.Machine, erro
 	return nil, fmt.Errorf("machine is only allowed for users: %v. But have: %s", allowedUsers, req.Username)
 }
 
-func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Machine) error {
+func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Machine) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
 	}
 
 	for _, machine := range jMachines {
-		label := machine.GetMetaValue("assignedLabel")
-		if label == "" {
-			label = machine.Label
+		label := machine.Label
+		if l, ok := machine.Meta["assignedLabel"]; ok {
+			if ll, ok := l.(string); ok {
+				label = ll
+			}
 		}
 
 		tf, err := data.WithLabel(label)
@@ -540,7 +542,7 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 
 		if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
-				machine.Id,
+				machine.ObjectId,
 				bson.M{"$set": bson.M{
 					"provider":          tf.Provider,
 					"meta.region":       tf.Region,

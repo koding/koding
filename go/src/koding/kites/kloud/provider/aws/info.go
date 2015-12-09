@@ -10,8 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 )
 
 func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
@@ -33,8 +31,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
 				resultState, reason)
 
-			if err := m.checkAndUpdateState(resultState); err != nil {
-				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+			if err := modelhelper.CheckAndUpdateState(m.ObjectId, resultState); err != nil {
+				m.Log.Debug("Info decision: Error while updating the machine %q state. Err: %v", m.ObjectId, err)
 			}
 		}
 	}()
@@ -59,7 +57,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// Terminated. Because we still have the machine document, mark it as
 	// Terminated so the client side knows what to do
 	if resultState == machinestate.Terminated || resultState == machinestate.Terminating {
-		if err := modelhelper.ChangeMachineState(m.Id, machinestate.Terminated.String()); err != nil {
+		if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine was terminated in last one hour span",
+			machinestate.Terminated); err != nil {
 			return nil, err
 		}
 	}
@@ -98,30 +97,4 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	return map[string]string{
 		"State": resultState.String(),
 	}, nil
-}
-
-// CheckAndUpdate state updates only if the given machine id is not used by
-// anyone else
-func (m *Machine) checkAndUpdateState(state machinestate.State) error {
-	m.Log.Info("storage state update request to state %v", state)
-	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Update(
-			bson.M{
-				"_id": m.Id,
-				"assignee.inProgress": false, // only update if it's not locked by someone else
-			},
-			bson.M{
-				"$set": bson.M{
-					"status.state":      state.String(),
-					"status.modifiedAt": time.Now().UTC(),
-				},
-			},
-		)
-	})
-
-	if err == mgo.ErrNotFound {
-		m.Log.Info("info can't update db state because lock is acquired by someone else")
-	}
-
-	return err
 }

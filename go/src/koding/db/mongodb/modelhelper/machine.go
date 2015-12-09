@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/models"
+	"koding/kites/kloud/machinestate"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -336,13 +337,35 @@ func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 	return Mongo.Run(MachinesColl, query)
 }
 
-func ChangeMachineState(machineId bson.ObjectId, state string) error {
+func ChangeMachineState(machineId bson.ObjectId, reason string, state machinestate.State) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(
 			bson.M{"_id": machineId},
 			bson.M{
 				"$set": bson.M{
-					"status.state":      state,
+					"status.state":      state.String(),
+					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     reason,
+				},
+			},
+		)
+	}
+
+	return Mongo.Run(MachinesColl, query)
+}
+
+// CheckAndUpdate state updates only if the given machine id is not used by
+// anyone else
+func CheckAndUpdateState(machineId bson.ObjectId, state machinestate.State) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{
+				"_id": machineId,
+				"assignee.inProgress": false, // only update if it's not locked by someone else
+			},
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state.String(),
 					"status.modifiedAt": time.Now().UTC(),
 				},
 			},

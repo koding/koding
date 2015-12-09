@@ -2,6 +2,7 @@ package koding
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
@@ -10,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 )
 
 // Info returns the current State of the given Machine. As an optiminzation,
@@ -35,6 +34,11 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		}, nil
 	}
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
 	// On Defer, update db state if the up-to-date state from the
 	// provider is different than the state stored in the database.
 	defer func() {
@@ -51,9 +55,9 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		// This ensures that the machine will never store Stopped in the
 		// database, while still running on the provider.
 		if resultState == machinestate.Stopped {
-			if m.Meta.AlwaysOn {
+			if meta.AlwaysOn {
 				m.Log.Info("Info decision was to stop the machine, but it is an AlwaysOn machine. Ignoring decision. (username: %s, instanceId: %s, region: %s)",
-					m.Username, m.Meta.InstanceId, m.Meta.Region,
+					m.Username, meta.InstanceId, meta.Region,
 				)
 				return
 			}
@@ -71,16 +75,16 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 
 				err := machine.Stop(ctx)
 				if err != nil {
-					machine.Log.Debug("Info decision: Error while Stopping machine. Err: %v",
-						machine.Id, err)
+					machine.Log.Debug("Info decision: Error while Stopping machine %q. Err: %v",
+						machine.ObjectId, err)
 				}
 				machine.Log.Info("======> STOP finished (inconsistent state)<======")
 			}(m)
 			return
 		}
 
-		if err := m.checkAndUpdateState(resultState); err != nil {
-			m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+		if err := modelhelper.CheckAndUpdateState(m.ObjectId, resultState); err != nil {
+			m.Log.Debug("Info decision: Error while updating the machine %q state. Err: %v", m.ObjectId, err)
 		}
 	}()
 
@@ -135,7 +139,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		// so mark and return as stopped.
 		resultState = machinestate.Stopped
 
-		if m.Meta.AlwaysOn {
+		if meta.AlwaysOn {
 			// machine is always-on. return as running
 			resultState = machinestate.Running
 		}
@@ -155,30 +159,4 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	return map[string]string{
 		"State": resultState.String(),
 	}, nil
-}
-
-// CheckAndUpdate state updates only if the given machine id is not used by
-// anyone else
-func (m *Machine) checkAndUpdateState(state machinestate.State) error {
-	m.Log.Info("storage state update request to state %v", state)
-	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Update(
-			bson.M{
-				"_id": m.Id,
-				"assignee.inProgress": false, // only update if it's not locked by someone else
-			},
-			bson.M{
-				"$set": bson.M{
-					"status.state":      state.String(),
-					"status.modifiedAt": time.Now().UTC(),
-				},
-			},
-		)
-	})
-
-	if err == mgo.ErrNotFound {
-		m.Log.Warning("info can't update db state because lock is acquired by someone else")
-	}
-
-	return err
 }

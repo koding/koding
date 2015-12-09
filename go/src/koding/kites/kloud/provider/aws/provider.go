@@ -3,25 +3,24 @@ package awsprovider
 import (
 	"errors"
 	"fmt"
-	"time"
 
-	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloudctl/command"
-	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/userdata"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
+	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
 	"labix.org/v2/mgo"
@@ -37,15 +36,6 @@ type Provider struct {
 	Userdata   *userdata.Userdata
 }
 
-type Credential struct {
-	Id         bson.ObjectId `bson:"_id" json:"-"`
-	Identifier string        `bson:"identifier"`
-	Meta       struct {
-		AccessKey string `bson:"access_key"`
-		SecretKey string `bson:"secret_key"`
-	} `bson:"meta"`
-}
-
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
@@ -58,7 +48,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	// where the id exist but someone else is the assignee).
 	machine := &Machine{}
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
+		return c.FindId(bson.ObjectIdHex(id)).One(&machine.Machine)
 	}); err == mgo.ErrNotFound {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
@@ -68,18 +58,23 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, errors.New("request context is not available")
 	}
 
-	if machine.Meta.Region == "" {
+	meta, err := machine.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
+	if meta.Region == "" {
 		return nil, errors.New("region is not set")
 	}
 
-	p.Log.Debug("Using region: %s", machine.Meta.Region)
+	p.Log.Debug("Using region: %s", meta.Region)
 
 	if err := p.AttachSession(ctx, machine); err != nil {
 		return nil, err
 	}
 
 	// check for validation and permission
-	if err := p.validate(machine, req); err != nil {
+	if err := helpers.ValidateUser(machine.User, machine.Users, req); err != nil {
 		return nil, err
 	}
 
@@ -93,29 +88,52 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return errors.New("permitted users list is empty")
 	}
 
-	user, err := p.getOwner(machine.Users)
+	user, err := modelhelper.GetPermittedUser(machine.Users)
 	if err != nil {
 		return err
 	}
 
-	creds, err := p.credential(machine.Credential)
+	meta, err := machine.GetMeta()
 	if err != nil {
-		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
+		return err
+	}
+
+	creds, err := modelhelper.GetCredentialDatasFromIdentifiers(machine.Credential)
+	if err != nil {
+		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err)
+	}
+
+	if len(creds) == 0 {
+		return fmt.Errorf("aws no credential data available for credential: %s", machine.Credential)
+	}
+
+	cred := creds[0] // there is only one, pick up the first one
+
+	var awsCred struct {
+		AccessKey string `mapstructure:"access_key"`
+		SecretKey string `mapstructure:"secret_key"`
+	}
+
+	if err := mapstructure.Decode(cred.Meta, &awsCred); err != nil {
+		return err
+	}
+
+	if structs.HasZero(awsCred) {
+		return fmt.Errorf("aws data is incomplete: %v", cred.Meta)
 	}
 
 	opts := &amazon.ClientOptions{
-		Credentials: credentials.NewStaticCredentials(creds.Meta.AccessKey, creds.Meta.SecretKey, ""),
-		Region:      machine.Meta.Region,
-		Log:         p.Log,
+		Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
+		Region:      meta.Region,
+		Log:         p.Log.New(fmt.Sprintf("user=%d, machine=%s", user.Uid, machine.ObjectId.Hex())),
 	}
 
-	amazonClient, err := amazon.NewWithOptions(structs.Map(machine.Meta), opts)
+	amazonClient, err := amazon.NewWithOptions(machine.Meta, opts)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
 
-	// attach user specific log
-	machine.Log = p.Log.New(machine.Id.Hex())
+	machine.Log = opts.Log // attach user specific log
 
 	sess := &session.Session{
 		DB:         p.DB,
@@ -142,115 +160,6 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	ev, ok := eventer.FromContext(ctx)
 	if ok {
 		machine.Session.Eventer = ev
-	}
-
-	return nil
-}
-
-// getOwner returns the owner of the machine, if it's not found it returns an
-// error.
-func (p *Provider) getOwner(users []models.Permissions) (*models.User, error) {
-	var ownerId bson.ObjectId
-
-	for _, user := range users {
-		if user.Sudo && user.Owner {
-			ownerId = user.Id
-		}
-	}
-
-	if !ownerId.Valid() {
-		return nil, errors.New("owner not found")
-	}
-
-	var user *models.User
-	err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
-		return c.FindId(users[0].Id).One(&user)
-	})
-
-	if err == mgo.ErrNotFound {
-		return nil, fmt.Errorf("User with Id not found: %s", ownerId.Hex())
-	}
-	if err != nil {
-		return nil, fmt.Errorf("username lookup error: %v", err)
-	}
-
-	return user, nil
-}
-
-func (p *Provider) validate(m *Machine, r *kite.Request) error {
-	m.Log.Debug("validating for method '%s'", r.Method)
-
-	// give access to kloudctl immediately
-	if r.Auth != nil {
-		if r.Auth.Key == command.KloudSecretKey {
-			return nil
-		}
-	}
-
-	if r.Username != m.User.Name {
-		return errors.New("username is not permitted to make any action")
-	}
-
-	// check for user permissions
-	if err := p.checkUser(m.User.ObjectId, m.Users); err != nil {
-		return err
-	}
-
-	if m.User.Status != "confirmed" {
-		return kloud.NewError(kloud.ErrUserNotConfirmed)
-	}
-
-	return nil
-}
-
-// checkUser checks whether the given username is available in the users list
-// and has permission
-func (p *Provider) checkUser(userId bson.ObjectId, users []models.Permissions) error {
-	// check if the incoming user is in the list of permitted user list
-	for _, u := range users {
-		if userId == u.Id && u.Owner {
-			return nil // ok he/she is good to go!
-		}
-	}
-
-	return fmt.Errorf("permission denied. user not in the list of permitted users")
-}
-
-func (p *Provider) credential(identifier string) (*Credential, error) {
-	credential := &Credential{}
-	// we neglect errors because credential is optional
-	err := p.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"identifier": identifier}).One(credential)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return credential, nil
-}
-
-func (m *Machine) ProviderName() string { return m.Provider }
-
-func (m *Machine) UpdateState(reason string, state machinestate.State) error {
-	m.Log.Debug("Updating state to '%v'", state)
-	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Update(
-			bson.M{
-				"_id": m.Id,
-			},
-			bson.M{
-				"$set": bson.M{
-					"status.state":      state.String(),
-					"status.modifiedAt": time.Now().UTC(),
-					"status.reason":     reason,
-				},
-			},
-		)
-	})
-
-	if err != nil {
-		return fmt.Errorf("Couldn't update state to '%s' for document: '%s' err: %s",
-			state, m.Id.Hex(), err)
 	}
 
 	return nil
