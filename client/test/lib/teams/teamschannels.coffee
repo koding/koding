@@ -21,3 +21,9 @@ module.exports =
     browser.end()
 
 
+  checkChannelList: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannelsAndCheckList(browser, user)
+    browser.end()
+
