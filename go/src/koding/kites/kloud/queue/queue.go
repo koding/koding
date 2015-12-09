@@ -39,7 +39,7 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 
 func (q *Queue) CheckKoding() {
 	machine := koding.NewMachine()
-	err := q.FetchProvider("koding", &machine.Machine)
+	err := q.FetchProvider("koding", machine.Machine)
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care

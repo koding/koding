@@ -53,7 +53,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	// where the id exist but someone else is the assignee).
 	machine := NewMachine()
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.FindId(bson.ObjectIdHex(id)).One(&machine.Machine)
+		return c.FindId(bson.ObjectIdHex(id)).One(machine.Machine)
 	}); err == mgo.ErrNotFound {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
