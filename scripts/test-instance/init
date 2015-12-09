@@ -17,6 +17,9 @@ ulimit -n 10240
 
 cd $REPOSITORY_PATH
 
+git config user.email 'sysops@koding.com'
+git config user.name 'Koding Bot'
+
 scripts/wercker/install-node-modules koding
 scripts/install-npm.sh -u
 
