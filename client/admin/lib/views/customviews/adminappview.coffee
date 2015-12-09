@@ -112,7 +112,7 @@ module.exports = class AdminAppView extends kd.ModalView
     items.forEach (item, i) =>
 
       { slug, title, action } = item
-      name           = slug or action
+      name           = title or slug or action
       hiddenHandle   = if action then yes
       parentTabTitle = item.parentTabTitle or null
 
