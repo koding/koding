@@ -16,7 +16,7 @@ func (m *Machine) deleteDomains() error {
 	// also get all domain aliases that belongs to this machine and unset
 	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for unseting err: %s", err.Error())
+		m.Log.Error("fetching domains for unseting err: %s", err)
 	}
 
 	for _, domain := range domains {
@@ -34,22 +34,22 @@ func (m *Machine) addDomains() error {
 	}
 
 	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
-		m.Log.Error("couldn't update machine domain: %s", err.Error())
+		m.Log.Error("couldn't update machine domain: %s", err)
 	}
 
 	m.push("Updating domain aliases", 72, machinestate.Building)
 	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for setting err: %s", err.Error())
+		m.Log.Error("fetching domains for setting err: %s", err)
 	}
 
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
-			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			m.Log.Error("couldn't update machine domain: %s", err)
 			continue
 		}
 		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
-			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			m.Log.Error("couldn't update machine domain: %s", err)
 		}
 	}
 	return nil
