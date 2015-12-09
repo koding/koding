@@ -45,8 +45,8 @@ params =
   InstanceType     : 'm3.large'
   MinCount         : argv.count
   MaxCount         : argv.count
-  SubnetId         : 'subnet-c05e3699' # subnet-1a-koding-external-servers
-  SecurityGroupIds : ['sg-d7eefcb3']   # sg-koding-external-servers-wercker
+  SubnetId         : 'subnet-6444f43d'
+  SecurityGroupIds : ['sg-27022f42']
   KeyName          : 'koding-test-instances-2015-06'
   UserData         : new Buffer(userData).toString 'base64'
 
