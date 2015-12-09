@@ -17,6 +17,7 @@ var WatchInterval = 5 * time.Second
 type Watcher interface {
 	Watch() (<-chan string, <-chan error)
 	AddTimedIgnore(string, time.Duration)
+	Close()
 }
 
 // FindWatcher implements Watcher interface. It runs `find` command on remote
@@ -38,6 +39,8 @@ type FindWatcher struct {
 	sync.RWMutex
 
 	ignoredPaths map[string]time.Time
+
+	closeChannel chan bool
 }
 
 // AddTimedIgnore ignores a specified path for specified duration of time.
@@ -63,24 +66,22 @@ func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 
 	go func() {
 		ticker := time.Tick(WatchInterval)
-		for _ = range ticker {
-			f.LastRan = time.Now().UTC()
-
-			entries, err := f.getChangedFiles()
-			if err != nil {
-				errChan <- err
-				continue
-			}
-
-			for _, e := range entries {
-				if !f.isPathIgnored(e) {
-					resChan <- e
-				}
+		for {
+			select {
+			case <-ticker:
+				f.tickerFn(resChan, errChan)
+			case <-f.closeChannel:
+				return
 			}
 		}
 	}()
 
 	return resChan, errChan
+}
+
+// Close closes watcher.
+func (f *FindWatcher) Close() {
+	f.closeChannel <- true
 }
 
 func (f *FindWatcher) isPathIgnored(path string) bool {
@@ -147,6 +148,7 @@ func NewFindWatcher(t transport.Transport, r string) *FindWatcher {
 		RemotePath:    r,
 		watchInterval: WatchInterval,
 		ignoredPaths:  map[string]time.Time{},
+		closeChannel:  make(chan bool, 1),
 	}
 }
 
@@ -176,6 +178,21 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 	}
 
 	return nil
+}
+
+func (f *FindWatcher) tickerFn(resChan chan string, errChan chan error) {
+	f.LastRan = time.Now().UTC()
+
+	entries, err := f.getChangedFiles()
+	if err != nil {
+		errChan <- err
+	}
+
+	for _, e := range entries {
+		if !f.isPathIgnored(e) {
+			resChan <- e
+		}
+	}
 }
 
 // TODO: how to remove '/' at end of find results cmd

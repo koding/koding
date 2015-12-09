@@ -179,6 +179,7 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
+	k.Watcher.Close()
 	return Unmount(k.MountPath)
 }
 
