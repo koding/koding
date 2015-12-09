@@ -41,56 +41,56 @@ module.exports = [
   ]
 
   [
-    { name : 'activity edit' }
-    { name : 'activity delete' }
+    { name: 'activity edit' }
+    { name: 'activity delete' }
   ]
 
   [
-    { name : 'unittests' }
-    { name : 'activity others' }
-    { name : 'account accountpage' }
+    { name: 'unittests' }
+    { name: 'activity others' }
+    { name: 'account accountpage' }
   ]
 
   [
-    { name : 'ide file' }
-    { name : 'ide folder' }
+    { name: 'ide file' }
+    { name: 'ide folder' }
   ]
 
   [
-    { name : 'ide search' }
-    { name : 'ide workspace' }
+    { name: 'ide search' }
+    { name: 'ide workspace' }
   ]
 
   [
-    { name : 'ide terminal' }
-    { name : 'pricing invalidCardDetails' }
+    { name: 'ide terminal' }
+    { name: 'pricing invalidCardDetails' }
   ]
 
   [
-    { name : 'ide general' }
-    { name : 'ide layout' }
+    { name: 'ide general' }
+    { name: 'ide layout' }
   ]
 
   [
-    { name : 'collaboration collaboration' }
-    { name : 'environments snapshot' }
-  ]
-
-  # [
-  #   { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
-
-  [
-    { name : 'environments vm' }
+    { name: 'collaboration collaboration' }
+    { name: 'environments snapshot' }
   ]
 
   [
-    { name : 'environments paidaccount' }
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'environments domain' }
-    { name : 'teams teams' }
+    { name: 'environments vm' }
+  ]
+
+  [
+    { name: 'environments paidaccount' }
+  ]
+
+  [
+    { name: 'environments domain' }
+    { name: 'teams teams' }
   ]
 
 ]

@@ -7,32 +7,53 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/db/mongodb"
-	"koding/kites/kloud/contexthelper/publickeys"
-	"koding/kites/kloud/pkg/multiec2"
-	"koding/kites/kloud/provider/koding"
 	"log"
 	"os"
+	"os/user"
+	"path/filepath"
 	"strings"
 	"sync"
 	"text/tabwriter"
 	"time"
 
-	"golang.org/x/crypto/ssh"
+	"koding/db/mongodb"
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/provider/koding"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/koding/multiconfig"
+	"golang.org/x/crypto/ssh"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-
-	"github.com/koding/multiconfig"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
 )
 
 type Config struct {
-	MongoURL   string `required:"true"`
-	AccessKey  string `required:"true"`
-	SecretKey  string `required:"true"`
-	HostedZone string `required:"true"`
+	MongoURL       string `required:"true"`
+	AccessKey      string `required:"true"`
+	SecretKey      string `required:"true"`
+	HostedZone     string `required:"true"`
+	PrivateKey     []byte
+	PrivateKeyPath string // default is $USER/.ssh/koding_rsa
+}
+
+func NewConfig(file string) (*Config, error) {
+	c := &Config{}
+	multiconfig.MustLoadWithPath(file, c)
+	if c.PrivateKey == nil {
+		if c.PrivateKeyPath == "" {
+			u, err := user.Current()
+			if err != nil {
+				return nil, err
+			}
+			c.PrivateKeyPath = filepath.Join(u.HomeDir, ".ssh", "koding_rsa")
+		}
+		p, err := ioutil.ReadFile(c.PrivateKeyPath)
+		if err != nil {
+			return nil, err
+		}
+		c.PrivateKey = p
+	}
+	return c, nil
 }
 
 func main() {
@@ -51,21 +72,20 @@ func main() {
 }
 
 func realMain() error {
-	conf := new(Config)
-	multiconfig.MustLoadWithPath("config.toml", conf)
-
-	db := mongodb.NewMongoDB(conf.MongoURL)
-	auth := aws.Auth{
-		AccessKey: conf.AccessKey,
-		SecretKey: conf.SecretKey,
+	conf, err := NewConfig("config.toml")
+	if err != nil {
+		return err
 	}
 
-	_ = multiec2.New(auth, []string{
-		"us-east-1",
-		"ap-southeast-1",
-		"us-west-2",
-		"eu-west-1",
-	})
+	db := mongodb.NewMongoDB(conf.MongoURL)
+	opts := &amazon.ClientOptions{
+		Credentials: credentials.NewStaticCredentials(conf.AccessKey, conf.SecretKey, ""),
+		Regions:     amazon.ProductionRegions,
+	}
+	_, err = amazon.NewClientPerRegion(opts)
+	if err != nil {
+		return err
+	}
 
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 10, 8, 0, '\t', 0)
@@ -166,7 +186,7 @@ func realMain() error {
 
 			done := make(chan string, 0)
 			go func() {
-				out, err := executeSSHCommand(ip, command)
+				out, err := executeSSHCommand(conf.PrivateKey, ip, command)
 				if err != nil {
 					return
 				}
@@ -189,7 +209,7 @@ func realMain() error {
 				}
 
 				fmt.Printf("[%s] version: %s updating\n", ip, out)
-				_, err := executeSSHCommand(ip, update)
+				_, err := executeSSHCommand(conf.PrivateKey, ip, update)
 				if err != nil {
 					log.Printf("[%s] updater err: %s\n", ip, err)
 					return
@@ -254,13 +274,8 @@ func (m *machines) Print(w io.Writer) {
 	fmt.Fprintf(w, "============= MongoDB ('%d' docs) ==========\n", len(m.docs))
 }
 
-type instance struct {
-	ec2    ec2.Instance
-	volume ec2.Volume
-}
-
-func executeSSHCommand(ipAddress, command string) (string, error) {
-	client, err := ConnectSSH(ipAddress)
+func executeSSHCommand(privateKey []byte, ipAddress, command string) (string, error) {
+	client, err := ConnectSSH(privateKey, ipAddress)
 	if err != nil {
 		return "", err
 	}
@@ -278,8 +293,8 @@ type SSHClient struct {
 	*ssh.Client
 }
 
-func ConnectSSH(ip string) (*SSHClient, error) {
-	signer, err := ssh.ParsePrivateKey([]byte(publickeys.DeployPrivateKey))
+func ConnectSSH(privateKey []byte, ip string) (*SSHClient, error) {
+	signer, err := ssh.ParsePrivateKey(privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("Error setting up SSH config: %s", err)
 	}

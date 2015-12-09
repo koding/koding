@@ -43,7 +43,7 @@ func (m *Machine) StopMachine(ctx context.Context) (err error) {
 	// also get all domain aliases that belongs to this machine and unset
 	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for unseting err: %s", err.Error())
+		m.Log.Error("fetching domains for unseting err: %s", err)
 	}
 
 	for _, domain := range domains {

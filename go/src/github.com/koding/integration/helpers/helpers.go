@@ -230,13 +230,6 @@ func GetSettings(token, rootPath string) (Settings, error) {
 	}
 
 	return event.Data.Setting, nil
-
-	// events, err := UnmarshalEvents(event.Data.Setting)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return events, nil
 }
 
 func UnmarshalEvents(s Settings) ([]string, error) {

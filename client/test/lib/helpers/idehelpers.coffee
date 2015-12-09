@@ -157,7 +157,7 @@ module.exports =
     fileContent or= 'Hello World from HTML by Koding'
     fileSelector  = "span[title='/home/#{user.username}/Web/#{fileName}']"
     fileNameSlug  = fileName.replace '.', ''
-    tabSelector   = ".kdtabpaneview.#{fileNameSlug}"
+    tabSelector   = ".kdtabpaneview.#{fileNameSlug}.active"
 
     helpers.openFolderContextMenu browser, user, 'Web'
 

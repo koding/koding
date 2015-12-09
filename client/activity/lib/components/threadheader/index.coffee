@@ -60,10 +60,6 @@ module.exports = class ThreadHeader extends React.Component
       title   : 'Update purpose'
       key     : 'updatepurpose'
       onClick : @bound 'onUpdatePurpose'
-    ,
-      title   : 'Notification settings'
-      key     : 'notificationsettings'
-      onClick : @props.onShowNotificationSettings
     ]
 
     # if channel isn't a team channel,
@@ -73,6 +69,13 @@ module.exports = class ThreadHeader extends React.Component
         title   : 'Leave channel'
         key     : 'leavechannel'
         onClick : @props.onLeaveChannel
+      }
+
+    unless channel.typeConstant is 'privatemessage'
+      result.push {
+        title   : 'Notification settings'
+        key     : 'notificationsettings'
+        onClick : @props.onShowNotificationSettings
       }
 
     return result

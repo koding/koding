@@ -135,7 +135,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 
 	m.push("Creating new snapshot", 40, machinestate.Pending)
 	m.Log.Info("creating new snapshot from volume id %s", oldVolumeId)
-	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
+	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", aws.StringValue(instance.InstanceId))
 	snapshot, err := a.CreateSnapshot(oldVolumeId, snapshotDesc)
 	if err != nil {
 		return err
@@ -184,12 +184,12 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 		if resErr != nil {
 			m.Log.Info("(an error occurred) detaching newly created volume volume %s ", newVolumeId)
 			if err := a.DetachVolume(newVolumeId); err != nil {
-				m.Log.Error("couldn't detach: %s", err.Error())
+				m.Log.Error("couldn't detach: %s", err)
 			}
 
 			m.Log.Info("(an error occurred) attaching back old volume %s", oldVolumeId)
 			if err = a.AttachVolume(oldVolumeId, a.Id(), "/dev/sda1"); err != nil {
-				m.Log.Error("couldn't attach: %s", err.Error())
+				m.Log.Error("couldn't attach: %s", err)
 			}
 		} else {
 			// if not just delete, it's not used anymore
@@ -255,25 +255,25 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	m.push("Updating domain", 85, machinestate.Pending)
 
 	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
-		m.Log.Error("couldn't update machine domain: %s", err.Error())
+		m.Log.Error("couldn't update machine domain: %s", err)
 	}
 	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
-		m.Log.Error("couldn't update machine domain: %s", err.Error())
+		m.Log.Error("couldn't update machine domain: %s", err)
 	}
 
 	m.push("Updating domain aliases", 87, machinestate.Pending)
 	// also get all domain aliases that belongs to this machine and unset
 	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for unsetting err: %s", err.Error())
+		m.Log.Error("fetching domains for unsetting err: %s", err)
 	}
 
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
-			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			m.Log.Error("couldn't update machine domain: %s", err)
 		}
 		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
-			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			m.Log.Error("couldn't update machine domain: %s", err)
 		}
 	}
 
@@ -297,6 +297,4 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 			}},
 		)
 	})
-
-	return nil
 }

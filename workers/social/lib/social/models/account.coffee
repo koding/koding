@@ -551,7 +551,7 @@ module.exports = class JAccount extends jraphical.Module
           if err then callback err
           else if account?
             { nickname } = account.profile
-            JName.claim nickname, 'JUser', 'username', (err, name) =>
+            JName.claim nickname, 'JUser', 'username', (err) =>
               count++
               if err then callback err
               else
@@ -672,7 +672,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ 'sinan', 'devrim', 'gokmen', 'fatihacet', 'arslan',
                   'sent-hil', 'cihangirsavas', 'leeolayvar', 'stefanbc',
-                  'szkl', 'nitin', 'usirin', 'kodinglearn', 'mulvad', 'rjeczalik' ] # kodinglearn is nitin's impersonation account
+                  'szkl', 'nitin', 'usirin', 'kodinglearn', 'rjeczalik' ] # kodinglearn is nitin's impersonation account
 
 
   isEmailVerified: (callback) ->

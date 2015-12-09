@@ -87,7 +87,7 @@ func (r *Route53) Upsert(domain string, newIP string) error {
 	}
 	_, err := r.ChangeResourceRecordSets(params)
 	if err != nil {
-		return r.errorf("could not upsert domain %q: ", domain, err)
+		return r.errorf("could not upsert domain %q: %v", domain, err)
 	}
 	return nil
 }
@@ -200,6 +200,11 @@ func (r *Route53) Delete(domain string) error {
 	// and IP
 	record, err := r.Get(domain)
 	if err != nil {
+		// domains can be removed via other bussiness logics, so this can
+		// happen
+		if err == ErrNoRecord {
+			return nil
+		}
 		return err
 	}
 	r.Log.Debug("deleting domain name: %s which was associated to following ip: %s", domain, record.IP)

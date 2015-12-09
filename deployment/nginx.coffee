@@ -314,18 +314,31 @@ module.exports.create = (KONFIG, environment)->
         resolver 8.8.8.8;
       }
 
-      location = /Hackathon {
+      # Hackathon2014 is the old hackathon page and served via webserver
+      # todo(cihangir) remove after hubspot integration
+      location = /Hackathon2014 {
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
 
         resolver 8.8.8.8;
         proxy_connect_timeout 10;
-        proxy_pass https://teams-koding.hs-sites.com;
+        proxy_pass http://webserver;
       }
 
-      # mac and windows are case insensitive
+      # mac and windows are case insensitive, redirect lowercased hackathon to
+      # Uppercase Hackathon
       location ~ "(?-i)/hackathon" {
         return 301 /Hackathon ;
+      }
+
+      # proxy all Hackathon subpages to hubspot
+      location ~^/Hackathon(.*) {
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        resolver 8.8.8.8;
+        proxy_connect_timeout 10;
+        proxy_pass https://teams-koding.hs-sites.com/Hackathon$1$is_args$args;
       }
 
 

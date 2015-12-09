@@ -19,7 +19,9 @@ module.exports =
 
     @doLogin browser, user
 
-    browser.execute 'KD.isTesting = true;'
+    browser.execute ->
+      window.KD ?= {}
+      window.KD.isTesting = yes
 
     return user
 
@@ -30,7 +32,9 @@ module.exports =
     browser.url(url)
     browser.maximizeWindow()
 
-    browser.execute 'KD.isTesting = true;'
+    browser.execute ->
+      window.KD ?= {}
+      window.KD.isTesting = yes
 
     @attemptLogin(browser, user)
 
@@ -111,9 +115,7 @@ module.exports =
     @attemptEnterEmailAndPasswordOnRegister(browser, user)
     @attemptEnterUsernameOnRegister(browser, user)
 
-    browser
-      .waitForElementVisible '[testpath=main-header]', 50000 # Assertion
-      .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
+    browser.waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
 
 
   postActivity: (browser, shouldBeginTest = yes) ->
@@ -336,9 +338,10 @@ module.exports =
       .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
       .clearValue              'li.selected .rename-container .hitenterview'
       .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
+      .pause                   3000 # wait for
       .setValue                'li.selected .rename-container .hitenterview', folderName + '\n'
-      .pause                    3000 # required
-      .waitForElementPresent    folderSelector, 50000 # Assertion
+      .pause                   3000 # required
+      .waitForElementPresent   folderSelector, 50000 # Assertion
 
     data = {
       name: folderName
@@ -474,10 +477,11 @@ module.exports =
       .waitForElementVisible   paymentModal + ' .cardname', 20000
       .click                   'input[name=cardName]'
       .clearValue              'input[name=cardName]'
-      .setValue                'input[name=cardName]', name  
+      .setValue                'input[name=cardName]', name
+
 
   submitForm: (browser, validCardDetails = yes) ->
-  
+
     upgradePlanButton = '.kdmodal-inner .green'
     planType          = 'developer'
 

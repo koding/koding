@@ -92,7 +92,7 @@ func (p *Provider) CleanDeletedVMs() error {
 		go func(m Machine) {
 			if err := deleteMachine(m); err != nil {
 				p.Log.Error("[%s] couldn't terminate user deleted machine: %s", m.ObjectId.Hex(),
-					err.Error())
+					err)
 			}
 		}(machine)
 	}

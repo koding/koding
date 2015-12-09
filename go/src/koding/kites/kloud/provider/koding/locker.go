@@ -46,7 +46,7 @@ func (p *Provider) Lock(id string) error {
 
 	// some other error, this shouldn't be happed
 	if err != nil {
-		p.Log.Error("Storage get error: %s", err.Error())
+		p.Log.Error("Storage get error: %s", err)
 		return kloud.NewError(kloud.ErrBadState)
 	}
 
