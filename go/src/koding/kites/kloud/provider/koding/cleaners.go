@@ -55,7 +55,7 @@ func (p *Provider) CleanDeletedVMs() error {
 			"userDeleted": true,
 		}
 
-		machine := NewMachine()
+		machine := &Machine{}
 		iter := c.Find(deletedMachines).Batch(50).Iter()
 		for iter.Next(machine) {
 			machines = append(machines, machine)

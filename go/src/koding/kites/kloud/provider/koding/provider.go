@@ -51,7 +51,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	// really doesn't exist or if there is an assignee which is a different
 	// thing. (Because findAndModify() also returns "not found" for the case
 	// where the id exist but someone else is the assignee).
-	machine := NewMachine()
+	var machine Machine
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(&machine.Machine)
 	}); err == mgo.ErrNotFound {
@@ -75,12 +75,12 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		p.Log.Debug("[%s] using region: %s", machine.ObjectId.Hex(), meta.Region)
 	}
 
-	if err := p.AttachSession(ctx, machine); err != nil {
+	if err := p.AttachSession(ctx, &machine); err != nil {
 		return nil, err
 	}
 
 	// check for validation and permission
-	if err := p.validate(machine, req); err != nil {
+	if err := p.validate(&machine, req); err != nil {
 		return nil, err
 	}
 

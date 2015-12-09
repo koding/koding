@@ -38,7 +38,7 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 }
 
 func (q *Queue) CheckKoding() {
-	machine := koding.NewMachine()
+	var machine koding.Machine
 	err := q.FetchProvider("koding", &machine.Machine)
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
@@ -54,7 +54,7 @@ func (q *Queue) CheckKoding() {
 	// Don't forget to set any important non-db related Machine values.
 	machine.Locker = q.KodingProvider
 
-	if err := q.CheckKodingUsage(machine); err != nil {
+	if err := q.CheckKodingUsage(&machine); err != nil {
 		// only log if it's something else
 		switch err {
 		case kite.ErrNoKitesAvailable,
