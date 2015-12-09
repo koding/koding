@@ -125,6 +125,12 @@ func (f *FindWatcher) getChangedFiles() ([]string, error) {
 		return nil, fmt.Errorf("exit status is not 0, err: %s", res.Stderr)
 	}
 
+	// if results is empty string or blank line, return
+	if stdout := strings.TrimSpace(res.Stdout); stdout == "" {
+		return []string{}, nil
+	}
+
+	// split results by newline and remove remote path prefix
 	splitStrs := strings.Split(res.Stdout, "\n")
 	for i, s := range splitStrs {
 		splitStrs[i] = trimPrefix(s, f.RemotePath)
@@ -156,12 +162,13 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 	for {
 		select {
 		case item := <-changes:
-			if item = strings.TrimSpace(item); item == "" {
-				continue
+			// since we remove remote path prefix, empty string is root dir in local
+			if item == "" {
+				dir.Expire()
 			}
 
-			if item, err := dir.FindEntryRecursive(item); err == nil {
-				item.Expire()
+			if entry, err := dir.FindEntryRecursive(item); err == nil {
+				entry.Expire()
 			}
 		case err := <-errs:
 			return err
@@ -173,5 +180,6 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 
 // TODO: how to remove '/' at end of find results cmd
 func trimPrefix(p, remotePath string) string {
-	return strings.TrimPrefix(p, remotePath+"/")
+	s := strings.TrimPrefix(p, remotePath+"/")
+	return strings.TrimSpace(s)
 }
