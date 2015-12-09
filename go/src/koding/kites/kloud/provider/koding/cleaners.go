@@ -48,16 +48,15 @@ func (p *Provider) RunCleaners(interval time.Duration) {
 // an ongoing (build, start, stop...) process. There will be a lock due Build
 // which will prevent to delete it.
 func (p *Provider) CleanDeletedVMs() error {
-	machines := make([]Machine, 0)
+	var machines []*Machine
 
 	query := func(c *mgo.Collection) error {
 		deletedMachines := bson.M{
 			"userDeleted": true,
 		}
 
-		machine := Machine{}
 		iter := c.Find(deletedMachines).Batch(50).Iter()
-		for iter.Next(&machine) {
+		for machine := NewMachine(); iter.Next(machine); machine = NewMachine() {
 			machines = append(machines, machine)
 		}
 
@@ -68,9 +67,9 @@ func (p *Provider) CleanDeletedVMs() error {
 		return err
 	}
 
-	deleteMachine := func(m Machine) error {
+	deleteMachine := func(m *Machine) error {
 		ctx := context.Background()
-		if err := p.AttachSession(ctx, &m); err != nil {
+		if err := p.AttachSession(ctx, m); err != nil {
 			return err
 		}
 
@@ -89,10 +88,10 @@ func (p *Provider) CleanDeletedVMs() error {
 	}
 
 	for _, machine := range machines {
-		go func(m Machine) {
+		go func(m *Machine) {
 			if err := deleteMachine(m); err != nil {
-				p.Log.Error("[%s] couldn't terminate user deleted machine: %s", m.ObjectId.Hex(),
-					err)
+				p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
+					m.ObjectId.Hex(), err)
 			}
 		}(machine)
 	}

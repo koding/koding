@@ -10,7 +10,8 @@ List                  = require 'app/components/list'
 module.exports = class EmojiSelectBoxList extends React.Component
 
   @defaultProps =
-    items        : immutable.List()
+    items            : immutable.List()
+    showEmptySection : no
 
 
   numberOfSections: ->
@@ -36,7 +37,11 @@ module.exports = class EmojiSelectBoxList extends React.Component
 
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
-    category = @props.items.getIn [sectionIndex, 'category']
+    { showEmptySection, items } = @props
+    category = items.getIn [sectionIndex, 'category']
+
+    return  unless items.getIn([sectionIndex, 'emojis']).size or showEmptySection
+
     <header id={@sectionId sectionIndex} className='EmojiSelectBox-categorySectionHeader'>
       {category}
     </header>
@@ -61,6 +66,7 @@ module.exports = class EmojiSelectBoxList extends React.Component
 
   renderEmptySectionAtIndex: (sectionIndex) ->
 
+    return  unless @props.showEmptySection
     <div className='EmojiSelectBox-emptyCategory'>No emoji found</div>
 
 

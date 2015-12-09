@@ -266,7 +266,7 @@ module.exports = class ChatInputWidget extends React.Component
       helpers.setCursorPosition textInput, cursorPosition
 
 
-  onSelectBoxItemConfirmed: (item) ->
+  onEmojiSelectBoxItemConfirmed: (item) ->
 
     { value } = @state
 
@@ -358,7 +358,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { emojiSelectBoxVisibility }
       selectedItem    = { emojiSelectBoxSelectedItem }
       tabIndex        = { emojiSelectBoxTabIndex }
-      onItemConfirmed = { @bound 'onSelectBoxItemConfirmed' }
+      onItemConfirmed = { @bound 'onEmojiSelectBoxItemConfirmed' }
       ref             = 'emojiSelectBox'
       stateId         = { @stateId }
     />

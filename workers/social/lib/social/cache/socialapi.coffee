@@ -15,7 +15,7 @@ module.exports = (options = {}, callback) ->
   fetchPopularPosts = (cb) ->
     opt =
       channelName : params?.section or 'Public'
-      limit       : 25
+      limit       : 10
 
     SocialChannel.fetchPopularPosts client, opt, cb
 

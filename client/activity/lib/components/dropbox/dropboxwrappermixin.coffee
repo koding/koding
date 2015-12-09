@@ -17,6 +17,8 @@ module.exports = DropboxWrapperMixin =
 
   confirmSelectedItem: ->
 
+    @handleSelectedItemConfirmation?()
+
     selectedValue = @formatSelectedValue()
     @props.onItemConfirmed? selectedValue
     @close()

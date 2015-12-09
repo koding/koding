@@ -43,6 +43,7 @@ module.exports = [
   [
     { name: 'activity edit' }
     { name: 'activity delete' }
+    { name: 'teams teamschannels' }
   ]
 
   [

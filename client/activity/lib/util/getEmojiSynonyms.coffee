@@ -8,6 +8,7 @@ EMOJI_SYNONYMS = [
   [ 'car', 'red_car' ]
   [ 'memo', 'pencil' ]
   [ 'exclamation', 'heavy_exclamation_mark' ]
+  [ 'laughing', 'satisfied' ]
 ]
 
 module.exports = getEmojiSynonyms = (emoji) ->

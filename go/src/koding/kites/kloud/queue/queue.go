@@ -38,8 +38,8 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 }
 
 func (q *Queue) CheckKoding() {
-	var machine koding.Machine
-	err := q.FetchProvider("koding", &machine.Machine)
+	machine := koding.NewMachine()
+	err := q.FetchProvider("koding", machine.Machine)
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care
@@ -54,7 +54,7 @@ func (q *Queue) CheckKoding() {
 	// Don't forget to set any important non-db related Machine values.
 	machine.Locker = q.KodingProvider
 
-	if err := q.CheckKodingUsage(&machine); err != nil {
+	if err := q.CheckKodingUsage(machine); err != nil {
 		// only log if it's something else
 		switch err {
 		case kite.ErrNoKitesAvailable,

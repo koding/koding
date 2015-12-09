@@ -132,25 +132,36 @@ module.exports = class ActivityInputWidget extends KDView
     return  if @locked
     return @reset yes  unless body = value.trim()
 
+    @lockSubmit()
+
+    timestamp       = Date.now()
+    clientRequestId = generateFakeIdentifier timestamp
+
+    if @embedBox.isFetching
+      @embedBox.once 'EmbedFetched', @lazyBound 'submitOnEmbedBoxReady', clientRequestId, body
+    else
+      @submitOnEmbedBoxReady clientRequestId, body
+
+    @emit 'SubmitStarted', body, clientRequestId
+
+
+  submitOnEmbedBoxReady: (clientRequestId, body) ->
+
     activity        = @getData()
     {app, channel}  = @getOptions()
     embedBoxPayload = @getEmbedBoxPayload()
 
     payload = _.assign {}, activity?.payload, embedBoxPayload
 
-    timestamp       = Date.now()
-    clientRequestId = generateFakeIdentifier timestamp
     channelId       = channel?.id
-
-    @lockSubmit()
 
     options = { channelId, body, payload, clientRequestId }
 
     if activity
-    then @update options, @bound 'submissionCallback'
-    else @create options, @bound 'submissionCallback'
-
-    @emit 'SubmitStarted', body, clientRequestId
+      @update options, @bound 'submissionCallback'
+    else
+      @create options, @bound 'submissionCallback'
+      @embedBox.close()
 
 
   submissionCallback: (err, activity) ->
