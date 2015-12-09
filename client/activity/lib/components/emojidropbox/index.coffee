@@ -10,11 +10,12 @@ EmojiDropboxItem     = require 'activity/components/emojidropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
+EmojiBoxWrapperMixin = require 'activity/components/emojiboxwrapper/mixin'
 
 
 module.exports = class EmojiDropbox extends React.Component
 
-  @include [ImmutableRenderMixin, DropboxWrapperMixin]
+  @include [ImmutableRenderMixin, DropboxWrapperMixin, EmojiBoxWrapperMixin]
 
 
   @defaultProps =
