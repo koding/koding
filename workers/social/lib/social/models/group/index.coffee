@@ -597,6 +597,12 @@ module.exports = class JGroup extends Module
       @sendNotification event, contents, callback
 
 
+  @someWithRelationship$ = permit
+    advanced : [{ permission: 'edit groups', superadmin: yes }]
+    success  : (client, query, options, callback) ->
+      @someWithRelationship client, query, options, callback
+
+
   broadcast:(message, event) ->
     @constructor.broadcast @slug, message, event
 
