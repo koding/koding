@@ -62,6 +62,10 @@ func UnmountCommand(c *cli.Context) int {
 }
 
 func unmount(kite *kite.Client, name, path string) error {
+	if err := Unlock(path); err != nil {
+		fmt.Printf("Warning: unlocking failed due to %s.", err)
+	}
+
 	req := struct{ Name, LocalPath string }{Name: name, LocalPath: path}
 
 	// currently there's no return response to care about
