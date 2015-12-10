@@ -193,7 +193,7 @@ module.exports = class ChatListItem extends React.Component
 
     messageId = @props.message.get '_id'
 
-    ActivityFlux.actions.message.setMessageEditMode messageId
+    ActivityFlux.actions.message.setMessageEditMode messageId, @props.channelId
 
 
   showDeletePostPromptModal: ->
@@ -247,7 +247,7 @@ module.exports = class ChatListItem extends React.Component
 
     messageId = @props.message.get '_id'
 
-    ActivityFlux.actions.message.unsetMessageEditMode messageId
+    ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
 
     ActivityFlux.actions.message.editMessage(
       @props.message.get('id')
@@ -261,7 +261,7 @@ module.exports = class ChatListItem extends React.Component
     return @closeDeletePostModal()  if @state.isDeleting
 
     messageId = @props.message.get '_id'
-    ActivityFlux.actions.message.unsetMessageEditMode messageId
+    ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
 
 
   onEditStarted: ->

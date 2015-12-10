@@ -115,3 +115,31 @@ describe 'ChannelFlagsStore', ->
 
       expect(storeState[42].lastSeenTime).to.eql timestamp
 
+
+  describe 'handleSetMessageEditMode', ->
+
+    it 'sets isMessageInEditMode flag to true', ->
+
+      @reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, {
+        messageId : 1
+        channelId : 1
+      }
+
+      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
+
+      expect(storeState[1].isMessageInEditMode).to.be.true
+
+
+  describe 'handleUnsetMessageEditMode', ->
+
+    it 'unsets isMessageInEditMode flag', ->
+
+      @reactor.dispatch actionTypes.UNSET_MESSAGE_EDIT_MODE, {
+        messageId : 1
+        channelId : 1
+      }
+
+      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
+
+      expect(storeState[1].isMessageInEditMode).to.be.false
+

@@ -21,6 +21,8 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
     @on actions.UNSET_ALL_MESSAGES_LOADED, @handleUnsetAllMessagesLoaded
     @on actions.SET_CHANNEL_SCROLL_POSITION, @handleSetScrollPosition
     @on actions.SET_CHANNEL_LAST_SEEN_TIME, @handleSetLastSeenTime
+    @on actions.SET_MESSAGE_EDIT_MODE, @handleSetMessageEditMode
+    @on actions.UNSET_MESSAGE_EDIT_MODE, @handleUnsetMessageEditMode
 
 
   handleLoadChannel: (channelFlags, { channelId }) ->
@@ -62,6 +64,18 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'lastSeenTime'], timestamp
+
+
+  handleSetMessageEditMode: (channelFlags, { channelId }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'isMessageInEditMode'], yes
+
+
+  handleUnsetMessageEditMode: (channelFlags, { channelId }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'isMessageInEditMode'], no
 
 
 helper =
