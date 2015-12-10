@@ -7,8 +7,29 @@ import (
 	"socialapi/models"
 )
 
-func CreatePost(channelId, accountId int64) (*models.ChannelMessage, error) {
-	return CreatePostWithBody(channelId, accountId, "create a message")
+func CreatePost(channelId, accountId int64, token string) (*models.ChannelMessage, error) {
+	return CreatePostWithBodyAndAuth(channelId, accountId, "create a message", token)
+}
+
+func CreatePostWithBodyAndAuth(channelId, accountId int64, body, token string) (*models.ChannelMessage, error) {
+	url := fmt.Sprintf("/channel/%d/message", channelId)
+	cm := models.NewChannelMessage()
+	cm.Body = body
+	cm.AccountId = accountId
+	res, err := marshallAndSendRequestWithAuth("POST", url, cm, token)
+	if err != nil {
+		return nil, err
+	}
+
+	container := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, container)
+	if err != nil {
+		return nil, err
+	}
+
+	return container.Message, nil
+
+	// return res.(*models.ChannelMessage), nil
 }
 
 func CreatePostWithBody(channelId, accountId int64, body string) (*models.ChannelMessage, error) {
@@ -47,17 +68,18 @@ func GetPostBySlug(slug string, accountId int64) (*models.ChannelMessageContaine
 	return cmI.(*models.ChannelMessageContainer), nil
 }
 
-func DeletePost(id int64, accountId int64, groupName string) error {
+func DeletePost(id int64, accountId int64, groupName, token string) error {
 	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
-	_, err := sendRequest("DELETE", url, nil)
+	_, err := sendRequestWithAuth("DELETE", url, nil, token)
 	return err
 }
 
-func UpdatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {
+func UpdatePost(cm *models.ChannelMessage, token string) (*models.ChannelMessage, error) {
 	cm.Body = "after update"
 
 	url := fmt.Sprintf("/message/%d", cm.Id)
-	cmI, err := sendModel("POST", url, cm)
+	// cmI, err := sendModel("POST", url, cm)
+	cmI, err := sendModelWithAuth("POST", url, cm, token)
 	if err != nil {
 		return nil, err
 	}
