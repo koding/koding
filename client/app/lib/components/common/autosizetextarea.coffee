@@ -47,9 +47,9 @@ module.exports = class AutoSizeTextarea extends React.Component
 
   render: ->
 
-    <textarea {...this.props}
+    <textarea {...@props}
       ref      ='textarea'
       onChange = { @bound 'onChange' }
       onInput  = { @bound 'updateSize' }>
-      {this.props.children}
+      {@props.children}
     </textarea>
