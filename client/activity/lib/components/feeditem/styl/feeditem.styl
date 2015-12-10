@@ -2,9 +2,10 @@ $base-padding               = 18px
 
 .FeedItem
   width                     100%
+  max-width                 600px
   background                $white
   border-radius             $border-radius
-  // border                    1px solid #EAEAEA
+  border                    1px solid #EAEAEA
   margin-bottom             10px
   padding                   0
   font-size                 $fs-regular
@@ -15,10 +16,26 @@ $base-padding               = 18px
 .FeedItem-header
   padding                   $base-padding $base-padding 0 $base-padding
 
+.FeedItem-headerContentWrapper
+  overflow                  hidden
+
+  .MediaObject-media
+    fl()
+
+  .FeedItem-authorName
+    dBlock()
+
+.FeedItem-messageDate
+  rel()
+  pointer()
+  color                     $gray-10
+  font-size                 12px
+  font-weight               400
+  line-height               20px
+
 .FeedItem-date
   font-size                 $fs-small
   color                     $color-light-text
-
 
 .FeedItem-date:before
   content                   ""
@@ -42,33 +59,93 @@ $base-padding               = 18px
   color                     $color-light-text
 
 .FeedItem-footer
-  dFlex()
-  border                    1px solid #EAEAEA
   bg                        color #FBFAF9
+  border-bottom             1px solid #EAEAEA
   border-radius             0 0 $border-radius $border-radius
-  padding                   $base-padding
 
 .FeedItem-summary
-  dFlex()
-  vendor                    flex, 6
-  vendor                    align-items, center
+  padding                   8px 18px
+  font-size                 14px
+  border-top                1px solid #EAEAEA
+  border-bottom             1px solid #EAEAEA
 
-.FeedItem-summaryItem
-  cite
-    font-weight             $fw-semibold
-    margin-right            3px
+  a
+    noTextDeco()
+    font-weight             600
+    color                   $gray-8
 
-.FeedItem-summaryItem~.FeedItem-summaryItem:before
-  content                   ""
-  display                   inline-block
-  size                      3px, 3px
-  rounded                   50%
-  background                $gray-5
-  margin                    0 6px
-  vertical-align            middle
+.FeedItem-comment
+  overflow                  hidden
+  padding                   16px 16px 16px 18px
+
+  .MediaObject-media
+    fl()
+    margin-right            8px
+
+  .ProfilePicture
+    width                   30px !important
+    height                  30px !important
+
+  .FeedItem-commentForm
+    fl()
+    rel()
+    width                   calc(100% \- 50px)
+
+    .FeedItem-commentInput
+      borderBox()
+      outline               none
+      border                1px solid #EAEAEA
+      resize                none
+      width                 100%
+      min-height            30px
+      padding               5px 55px 5px 5px
+      font-size             12px
+
+      &:hover
+        border              1px solid #dadada
+
+    button
+      abs                   0 4px 7px 0
+      bg                    color, $gray-18
+      color                 $gray-8
+      border                none
+      rounded               3px
+      size                  45px 22px
+      cursor                not-allowed
+      outline               none
+
+    button.green
+      pointer()
+      color                 $white
+      bg                    color, $green
+
+      &:hover
+        bg                  color, #2dbea1
 
 .FeedItem-footerActionContainer
-  dFlex()
-  vendor                    flex, 4
-  vendor                    justify-content, flex-end
+  padding                   5px 18px 10px
+  width                     100%
+  overflow                  hidden
+  bg                        color, $white
+  borderBox()
+
+  > a
+    fl()
+    pointer()
+    font-size               14px
+    color                   $gray-12
+    font-weight             400
+
+    &:first-child:before
+      hidden()
+
+    &:before
+      dIBlock()
+      content:                ""
+      size                    3px 3px
+      rounded                 50%
+      bg                      color, $gray-12
+      font-size               12px
+      margin                  0 8px
+      vertical-align          middle
 
