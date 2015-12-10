@@ -179,8 +179,8 @@ module.exports = class ChatPane extends React.Component
 
   render: ->
     <div className={kd.utils.curry 'ChatPane', @props.className}>
-      <section className="ChatPane-contentWrapper">
-        <section className="ChatPane-body" ref="ChatPaneBody">
+      <section className="Pane-contentWrapper">
+        <section className="Pane-body" ref="ChatPaneBody">
           {@renderBody()}
           {@props.children}
         </section>
