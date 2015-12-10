@@ -64,7 +64,7 @@ module.exports = class MessageBody extends React.Component
 
   transformChannelHashtags: (message) ->
 
-    return  if message.has('isFake')
+    return  if message.has('isFake') and not message.has('isPreview')
     return  unless message.has('body')
 
     transformTags message.get('body'), (transformed) =>
