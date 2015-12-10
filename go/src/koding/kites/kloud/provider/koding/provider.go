@@ -90,7 +90,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	// get user model which contains user ssh keys or the list of users that
 	// are allowed to use this machine
-	if len(machine.Users) == 0 {
+	if machine.Machine == nil || len(machine.Users) == 0 {
 		return errors.New("permitted users list is empty")
 	}
 
