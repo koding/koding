@@ -30,7 +30,8 @@ module.exports = class FeedItem extends React.Component
     super props
 
     @state =
-      comment      : ''
+      hasValue     : no
+      commentValue : ''
       focusOnInput : no
       isPopupOpen  : no
 
@@ -56,7 +57,7 @@ module.exports = class FeedItem extends React.Component
     body  = input.value
 
     ActivityFlux.actions.message.createComment @props.message.get('id'), body
-      .then => @setState { comment: '', hasValue: no }
+      .then => @setState { commentValue: '', hasValue: no }
 
 
   toggleSharePopupVisibility: (event) ->
@@ -67,9 +68,9 @@ module.exports = class FeedItem extends React.Component
 
 
   getPostButtonClassNames: -> classnames
-    'FeedItem-postComment': yes
-    'green' : @state.hasValue
-    'hidden': not @state.focusOnInput and not @state.hasValue
+    'FeedItem-postComment' : yes
+    'green'                : @state.hasValue
+    'hidden'               : not @state.focusOnInput and not @state.hasValue
 
 
   onFocus: (event) -> @setState focusOnInput: yes
@@ -83,12 +84,12 @@ module.exports = class FeedItem extends React.Component
     hasValue = no
     value    = event.target.value.trim()
     hasValue = yes  if value
-    @setState { hasValue: hasValue, comment: value }
+    @setState { hasValue: hasValue, commentValue: value }
 
 
   renderFeedItemSummary: (message) ->
 
-    actorsCount   = message.getIn ['interactions', 'like', 'actorsCount']
+    actorsCount = message.getIn ['interactions', 'like', 'actorsCount']
 
     return null  unless actorsCount
 
@@ -110,7 +111,7 @@ module.exports = class FeedItem extends React.Component
       inputValue = if textInput.value then "#{textInput.value} " else ""
       value      = "#{inputValue}@#{account.profile.nickname} "
 
-      @setState { comment: value, hasValue: yes }, ->
+      @setState { commentValue: value, hasValue: yes }, ->
         textInput.focus()
 
 
@@ -123,7 +124,7 @@ module.exports = class FeedItem extends React.Component
         onBlur      = { @bound 'onBlur' }
         placeholder = 'Type your comment'
         onChange    = { @bound 'handleCommentInputChange' }
-        value       = {@state.comment}
+        value       = {@state.commentValue}
         className   = 'FeedItem-commentInput'/>
       <button
         className={@getPostButtonClassNames()}
