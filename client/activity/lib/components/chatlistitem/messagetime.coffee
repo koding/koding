@@ -73,7 +73,7 @@ module.exports = class MessageTime extends React.Component
 
   render: ->
 
-    <time className='ChatItem-messageDate' {...@getItemProps()} ref='MessageDate'>
+    <time className=@props.className {...@getItemProps()} ref='MessageDate'>
       { @getTime @props.date }
       <Portal isOpened={ @state.isTooltipOpen }>
         <Tooltip text={ @getTooltipTitle @props.date, timeWithSecondsFormat } tooltipX={@state.tooltipX} tooltipY={@state.tooltipY}/>
