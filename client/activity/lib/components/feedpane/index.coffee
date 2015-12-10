@@ -4,9 +4,6 @@ ReactDOM             = require 'react-dom'
 FeedList             = require 'activity/components/feedlist'
 ActivityFlux         = require 'activity/flux'
 Scroller             = require 'app/components/scroller'
-ScrollerMixin        = require 'app/components/scroller/scrollermixin'
-ChannelInfoContainer = require 'activity/components/channelinfocontainer'
-scrollToTarget       = require 'app/util/scrollToTarget'
 FeedThreadHeader     = require 'activity/components/feedthreadheader'
 Encoder              = require 'htmlencode'
 whoami               = require 'app/util/whoami'
@@ -111,8 +108,14 @@ module.exports = class FeedPane extends React.Component
         onResize={ @bound 'onResize' }
         />
       <div className='FeedPaneHeader-buttonBar'>
-        <Button tabIndex={1} className='FeedPaneHeader-preview' onClick={ @bound 'toggleMarkdownPreviewMode' }></Button>
-        <Button tabIndex={0} className='FeedPaneHeader-send' onClick={ @bound 'onSubmit' }>SEND</Button>
+        <Button
+          tabIndex={1}
+          className='FeedPaneHeader-preview'
+          onClick={ @bound 'toggleMarkdownPreviewMode' } />
+        <Button
+          tabIndex={0}
+          className='FeedPaneHeader-send'
+          onClick={ @bound 'onSubmit' }>SEND</Button>
       </div>
     </header>
 
