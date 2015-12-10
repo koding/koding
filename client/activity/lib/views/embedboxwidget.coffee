@@ -50,7 +50,7 @@ module.exports = class EmbedBoxWidget extends KDView
     kallback    = (url) => @fetchEmbed url, {}, @bound 'populateEmbed'
 
     input.on ['paste', 'change', 'keyup'], =>
-      return  unless url = @checkInputForUrls()
+      return @close()  unless url = @checkInputForUrls()
       kd.utils.killWait timer  if timer
       if previousUrl is url
       then kallback url
@@ -64,6 +64,8 @@ module.exports = class EmbedBoxWidget extends KDView
       else
         if url = @checkInputForUrls()
           @fetchEmbed url, {}, @bound('populateEmbed')
+        else
+          @close()
 
 
   checkInputForUrls: ->
@@ -89,7 +91,7 @@ module.exports = class EmbedBoxWidget extends KDView
 
   getData: ->
 
-    return {}  if _.isEmpty @oembed
+    return { link_url : null, link_embed : null  }  if _.isEmpty @oembed
 
     data = @oembed
 
