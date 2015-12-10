@@ -204,15 +204,18 @@ module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
     when 'workspace'
       { params } = info
 
-      dataProvider.fetchMachine params.machineLabel, (machine) =>
+      dataProvider.fetchMachine params.machineLabel, (machine) ->
 
-        if machine
-          username = machine.getOwner()
-          data = machineUId: machine.uid, workspaceSlug: params.workspaceSlug
+        dataProvider.ensureDefaultWorkspace ->
 
-          dataProvider.fetchWorkspaceByMachineUId data, (workspace) =>
-            if workspace then loadIDE { machine, workspace, username }
-            else routeToMachineWorkspace machine
+          if machine
+            username = machine.getOwner()
+            data = machineUId: machine.uid, workspaceSlug: params.workspaceSlug
 
-        else
-          routeToLatestWorkspace()
+            dataProvider.fetchWorkspaceByMachineUId data, (workspace) =>
+              if workspace then loadIDE { machine, workspace, username }
+              else
+                routeToMachineWorkspace machine
+
+          else
+            routeToLatestWorkspace()
