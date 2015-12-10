@@ -3,6 +3,8 @@ JView                     = require 'app/jview'
 
 timeago                   = require 'timeago'
 showError                 = require 'app/util/showError'
+
+AdminAppView              = require 'admin/views/customviews/adminappview'
 ActivityItemMenuItem      = require 'activity/views/activityitemmenuitem'
 GroupsDangerModalView     = require 'admin/views/permissions/groupsdangermodalview'
 
@@ -44,6 +46,24 @@ module.exports = class TeamListItem extends kd.ListItemView
       title    : 'Change Team Plan'
       cssClass : 'solid compact'
       callback : -> console.log 'WIP', team
+
+    { appManager } = kd.singletons
+
+    @details.addSubView new kd.ButtonView
+      title    : 'Open Team Settings'
+      cssClass : 'solid compact'
+      callback : ->
+        appManager.tell 'Admin', 'fetchNavItems', (NAV_ITEMS) ->
+          new AdminAppView
+            title        : "Team Settings of #{team.slug}"
+            cssClass     : 'AppModal AppModal--admin team-settings'
+            width        : 1000
+            height       : '90%'
+            overlay      : yes
+            overlayClick : no
+            useRouter    : no
+            tabData      : NAV_ITEMS
+          , team
 
     @details.addSubView new kd.ButtonView
       title    : 'Destroy Team'
