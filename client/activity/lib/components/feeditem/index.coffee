@@ -20,6 +20,16 @@ module.exports = class FeedItem extends React.Component
   onConversationButtonClick: (event) ->
 
     kd.utils.stopDOMEvent event
+  postComment: (event) ->
+
+    kd.utils.stopDOMEvent event
+
+    input = ReactDOM.findDOMNode @refs.textInput
+    body  = input.value
+
+    ActivityFlux.actions.message.createComment @props.message.get('id'), body
+      .then => @setState { comment: '', hasValue: no }
+
 
     kd.singletons.router.handleRoute "/Channels/Public/summary/#{@props.message.get 'slug'}"
 
