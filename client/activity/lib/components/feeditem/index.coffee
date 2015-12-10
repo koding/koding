@@ -190,7 +190,8 @@ module.exports = class FeedItem extends React.Component
 
 
 makeProfileLink = (imAccount) ->
-  <ProfileLinkContainer origin={imAccount.toJS()}>
+
+  <ProfileLinkContainer key={imAccount.get 'id'} origin={imAccount.toJS()}>
     <ProfileText />
   </ProfileLinkContainer>
 
