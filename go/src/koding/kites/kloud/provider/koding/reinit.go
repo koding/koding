@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func (m *Machine) Reinit(ctx context.Context) (err error) {
-	if err := m.UpdateState("Machine is starting", machinestate.Starting); err != nil {
+	if err := m.UpdateState("Machine is starting", machinestate.Building); err != nil {
 		return err
 	}
 
@@ -25,7 +26,10 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 		}
 	}()
 
-	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
+	// try to destroy the instance, however if the instance is not available
+	// anymore just continue with the build and do not return
+	id := m.Session.AWSClient.Id()
+	if _, err := m.Session.AWSClient.TerminateInstance(id); err != nil && !amazon.IsNotFound(err) {
 		return err
 	}
 
@@ -38,14 +42,14 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 				"queryString":       "",
 				"meta.instanceId":   "",
 				"meta.instanceName": "",
-				"status.state":      machinestate.NotInitialized.String(),
+				"status.state":      machinestate.Building.String(),
 				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Reinit cleanup",
+				"status.reason":     "Reinit initialized",
 			}},
 		)
 	})
 	if err != nil {
-		return err
+		m.Log.Warning("couldn't update reinit db: %s", err)
 	}
 
 	// cleanup this too so "build" can continue with a clean setup
