@@ -35,6 +35,10 @@ func (m *Machine) Destroy(ctx context.Context) error {
 		m.Log.Warning("softlayer destroying returned false instead of true")
 	}
 
+	if err := m.deleteDomains(); err != nil {
+		m.Log.Warning("couldn't delete domains while stopping machine: %s", err)
+	}
+
 	// clean up these details, the instance doesn't exist anymore
 	m.Meta["id"] = 0
 	m.IpAddress = ""
