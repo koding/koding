@@ -59,6 +59,12 @@ module.exports = class FeedItem extends React.Component
       .then => @setState { comment: '', hasValue: no }
 
 
+  toggleSharePopupVisibility: (event) ->
+
+    kd.utils.stopDOMEvent event
+
+    @setState { isPopupOpen: not @state.isPopupOpen }
+
 
   render: ->
     { message } = @props
