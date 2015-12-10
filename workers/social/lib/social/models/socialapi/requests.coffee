@@ -139,7 +139,7 @@ fetchPopularPosts = (data, callback) ->
   if not data.groupName or not data.channelName
     return callback new KodingError 'Request is not valid for listing popular topics'
 
-  url = "#{socialProxyUrl}/popular/posts/#{data.channelName}"
+  url = "#{socialProxyUrl}/popular/posts/#{data.channelName}?limit=10"
   get url, data, callback
 
 fetchPinnedMessages = (data, callback) ->
