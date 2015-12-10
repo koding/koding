@@ -132,28 +132,58 @@ module.exports = class FeedItem extends React.Component
 
 
   render: ->
+
     { message } = @props
+    imAccount   = toImmutable({ id: whoami()._id, constructorName: 'JAccount'})
+
     <div className={kd.utils.curry 'FeedItem', @props.className}>
       <header className="FeedItem-header">
-        <div className="FeedItem-headerContentWrapper">
-          {makeProfileLink message.get 'account'}
-          {makeTimeAgo message.get 'createdAt'}
+        <div className="FeedItem-headerContentWrapper MediaObject">
+          <div className="MediaObject-media">
+            {makeAvatar message.get 'account'}
+          </div>
+          <div>
+            <span className="FeedItem-authorName">
+              {makeProfileLink message.get 'account'}
+            </span>
+            <MessageLink message={message}>
+              <TimeAgo from={message.get 'createdAt'} className='FeedItem-date'/>
+            </MessageLink>
+          </div>
         </div>
       </header>
       <section className="FeedItem-body">
         <div className="FeedItem-bodyContentWrapper">
-          <MessageBody source={message.get 'body'} />
+          <MessageBody message={message} />
         </div>
       </section>
       <footer className="FeedItem-footer">
-        <div className="FeedItem-summary">
-          {makeLikes message.getIn ['interactions', 'like', 'actorsCount']}
-          {makeComments message.get 'repliesCount'}
-        </div>
         <div className="FeedItem-footerActionContainer">
-          <button
-            onClick={@bound 'onConversationButtonClick'}
-            className="Button Button--info">View Conversation</button>
+          <ActivityLikeLink
+            tooltip={no}
+            messageId={message.get('id')}
+            interactions={message.get('interactions').toJS()}>
+            Like
+          </ActivityLikeLink>
+          <Link onClick={@bound 'sendComment'}>Comment</Link>
+          <Link onClick={@bound 'toggleSharePopupVisibility'}>Share</Link>
+          <ActivitySharePopup
+            url = "Activity/Post/#{message.get('slug')}"
+            className='FeedItem-sharePopup'
+            isOpened={@state.isPopupOpen}/>
+        </div>
+        {@renderFeedItemSummary(message)}
+        <div className='FeedItem-comment'>
+          <div className='FeedItem-commentList'>
+            <CommentList
+              repliesCount={ @props.message.get 'repliesCount' }
+              comments={ @props.message.get 'replies' }
+              onMentionClick={@bound 'onMentionClick'}/>
+          </div>
+          <div className="MediaObject-media">
+            {makeAvatar imAccount}
+          </div>
+          {@renderCommentForm()}
         </div>
       </footer>
     </div>
