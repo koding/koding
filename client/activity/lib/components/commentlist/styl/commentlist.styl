@@ -1,0 +1,56 @@
+.CommentListItem
+  margin-bottom             15px
+  > a
+    font-size               12px
+    font-weight             600
+
+.CommentListItem-body
+  padding-left              38px
+  font-size                 12px
+  color                     $gray-8
+
+.CommentListItem-footer
+  padding-left              38px
+
+  a
+    pointer()
+    dIBlock()
+    font-size               14px
+    color                   $gray-12
+    font-weight             400
+
+    &:before
+      dIBlock()
+      content:              ""
+      size                  3px 3px
+      rounded               50%
+      bg                    color, $gray-12
+      font-size             12px
+      margin                0 8px
+      vertical-align        middle
+
+.CommentListItem-likeCount
+  rel()
+  top                       -2px
+  height                    16px
+  line-height               16px
+  rounded                   2px
+  font-size                 11px
+  padding                   0 4px
+  margin-left               5px
+  bg                        color, $gray-16
+  color                     $gray-6
+
+.CommentList-showMoreComment
+  dBlock()
+  font-weight               600
+  font-size                 12px
+  margin-bottom             15px
+  bg                        color, $gray-18
+  text-align                center
+  line-height               32px
+  rounded                   3px
+
+  &:hover
+    noTextDeco()
+
