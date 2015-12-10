@@ -128,7 +128,7 @@ func TestChannelCreation(t *testing.T) {
 						So(channelContainer, ShouldNotBeNil)
 						So(channelContainer.UnreadCount, ShouldEqual, 0)
 
-						post, err := rest.CreatePost(channel1.Id, nonOwnerAccount.Id)
+						post, err := rest.CreatePost(channel1.Id, nonOwnerAccount.Id, ses.ClientId)
 						So(err, ShouldBeNil)
 						So(post, ShouldNotBeNil)
 

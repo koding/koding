@@ -47,7 +47,7 @@ func TestChannelHistory(t *testing.T) {
 						Convey("Create posts with created participant", func() {
 							channel := channel
 							for i := 0; i < 10; i++ {
-								post, err := rest.CreatePost(channel.Id, channelParticipant.AccountId)
+								post, err := rest.CreatePost(channel.Id, channelParticipant.AccountId, ses.ClientId)
 								So(err, ShouldBeNil)
 								So(post, ShouldNotBeNil)
 								So(post.Id, ShouldNotEqual, 0)
