@@ -509,10 +509,6 @@ module.exports = class ComputeController extends KDController
 
       @stopCollaborationSession()
 
-      @eventListener.triggerState machine,
-        status      : Machine.State.Terminating
-        percentage  : 0
-
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
       call = @getKloud().reinit { machineId: machine._id, snapshotId }
@@ -897,6 +893,7 @@ module.exports = class ComputeController extends KDController
       remote.api.JMachine.one machineId, (err, machine) =>
         if err? then kd.warn "Revive failed for #{machineId}: ", err
         else
+          @invalidateCache machine._id
           @emit "revive-#{machineId}", machine
           kd.info "Revive triggered for #{machineId}", machine
 
