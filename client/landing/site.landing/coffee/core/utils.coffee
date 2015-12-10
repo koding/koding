@@ -285,8 +285,13 @@ utils.extend utils,
 
   verifySlug : (name, callbacks = {}) ->
 
-    unless 2 < name.length and /^[a-z0-9][a-z0-9-]+$/.test name
+    name = name.toLowerCase()
+
+    unless 2 < name.length
       return callbacks.error 'Domain name should be longer than 2 characters!'
+
+    unless /^[a-z0-9][a-z0-9-]+$/.test name
+      return callbacks.error 'Domain name is not valid, please try another one.'
 
     $.ajax
       url         : "/-/teams/verify-domain"
