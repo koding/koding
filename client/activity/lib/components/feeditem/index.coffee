@@ -1,18 +1,38 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
+ReactDOM             = require 'react-dom'
 Avatar               = require 'app/components/profile/avatar'
 Link                 = require 'app/components/common/link'
 TimeAgo              = require 'app/components/common/timeago'
 immutable            = require 'immutable'
+classnames           = require 'classnames'
+MessageLink          = require 'activity/components/messagelink'
 MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
-FeedItemAction       = require './feeditemaction'
 MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
+toImmutable          = require 'app/util/toImmutable'
+ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+ActivityFlux         = require 'activity/flux'
+CommentList          = require 'activity/components/commentlist'
+fetchAccount         = require 'app/util/fetchAccount'
+whoami               = require 'app/util/whoami'
+ActivitySharePopup   = require 'activity/components/activitysharepopup'
 
 module.exports = class FeedItem extends React.Component
 
-  @defaultProps = message: immutable.Map()
+  @defaultProps =
+    message: immutable.Map()
+
+  constructor: (props) ->
+
+    super props
+
+    @state =
+      comment            : ''
+      focusOnInput       : no
+      isSharePopupOpened : no
 
   shouldComponentUpdate: (nextProps, nextState) ->
     return @props.message isnt nextProps.message
