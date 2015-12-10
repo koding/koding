@@ -7,6 +7,9 @@ module.exports = class TimeAgo extends React.Component
   @propTypes =
     from : React.PropTypes.string.isRequired
 
+  defaultProps =
+    className : ''
+
   constructor: (props) ->
 
     super props
@@ -28,6 +31,11 @@ module.exports = class TimeAgo extends React.Component
     kd.utils.killRepeat @_interval
 
 
-  render: -> <time>{timeago @state.from}</time>
+  render: ->
+
+    <span className={kd.utils.curry "u-color-light-text", @props.className}>
+      <time>{timeago @state.from}</time>
+    </span>
+
 
 
