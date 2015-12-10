@@ -71,6 +71,13 @@ module.exports = class FeedItem extends React.Component
     'green' : @state.hasValue
     'hidden': not @state.focusOnInput and not @state.hasValue
 
+
+  onFocus: (event) -> @setState focusOnInput: yes
+
+
+  onBlur: (event) -> @setState focusOnInput: no
+
+
   render: ->
     { message } = @props
     <div className={kd.utils.curry 'FeedItem', @props.className}>
