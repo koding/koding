@@ -1,6 +1,5 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
-TimeAgo              = require 'app/components/common/timeago'
 MessageBody          = require 'activity/components/common/messagebody'
 ButtonWithMenu       = require 'app/components/buttonwithmenu'
 ChatListItem         = require 'activity/components/chatlistitem'
