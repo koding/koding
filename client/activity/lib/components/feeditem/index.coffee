@@ -113,6 +113,24 @@ module.exports = class FeedItem extends React.Component
       @setState { comment: value, hasValue: yes }, ->
         textInput.focus()
 
+
+  renderCommentForm: ->
+
+    <div className='FeedItem-commentForm'>
+      <AutoSizeTextarea
+        ref         = 'textInput'
+        onFocus     = { @bound 'onFocus' }
+        onBlur      = { @bound 'onBlur' }
+        placeholder = 'Type your comment'
+        onChange    = { @bound 'handleCommentInputChange' }
+        value       = {@state.comment}
+        className   = 'FeedItem-commentInput'/>
+      <button
+        className={@getPostButtonClassNames()}
+        onClick={ @bound 'postComment' }>SEND</button>
+    </div>
+
+
   render: ->
     { message } = @props
     <div className={kd.utils.curry 'FeedItem', @props.className}>
