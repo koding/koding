@@ -50,7 +50,7 @@ func UnmountCommand(c *cli.Context) int {
 
 	// unmount using mount name
 	if err := unmount(k, name, ""); err != nil {
-		fmt.Printf(defaultHealthChecker.CheckAllFailureOrMessagef(
+		fmt.Print(defaultHealthChecker.CheckAllFailureOrMessagef(
 			"Error unmounting '%s': '%s'\n", name, err,
 		))
 		return 1
@@ -63,7 +63,7 @@ func UnmountCommand(c *cli.Context) int {
 
 func unmount(kite *kite.Client, name, path string) error {
 	if err := Unlock(path); err != nil {
-		fmt.Printf("Warning: unlocking failed due to %s.", err)
+		fmt.Printf("Warning: unlocking failed due to %s.\n", err)
 	}
 
 	req := struct{ Name, LocalPath string }{Name: name, LocalPath: path}
