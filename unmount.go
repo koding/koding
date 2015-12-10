@@ -40,7 +40,7 @@ func UnmountCommand(c *cli.Context) int {
 
 	// remove lock file
 	for _, info := range infos {
-		if strings.HasPrefix(info.VMName, name) {
+		if strings.HasPrefix(info.VMName, name) && len(info.MountedPaths) > 0 {
 			name = info.VMName
 			if err := Unlock(info.MountedPaths[0]); err != nil {
 				fmt.Printf("Warning: unlocking failed: %s", err)
@@ -50,7 +50,7 @@ func UnmountCommand(c *cli.Context) int {
 
 	// unmount using mount name
 	if err := unmount(k, name, ""); err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+		fmt.Print(defaultHealthChecker.CheckAllFailureOrMessagef(
 			"Error unmounting '%s': '%s'\n", name, err,
 		))
 		return 1
@@ -62,6 +62,10 @@ func UnmountCommand(c *cli.Context) int {
 }
 
 func unmount(kite *kite.Client, name, path string) error {
+	if err := Unlock(path); err != nil {
+		fmt.Printf("Warning: unlocking failed due to %s.\n", err)
+	}
+
 	req := struct{ Name, LocalPath string }{Name: name, LocalPath: path}
 
 	// currently there's no return response to care about
