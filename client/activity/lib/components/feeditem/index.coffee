@@ -30,9 +30,14 @@ module.exports = class FeedItem extends React.Component
     super props
 
     @state =
-      comment            : ''
-      focusOnInput       : no
-      isSharePopupOpened : no
+      comment      : ''
+      focusOnInput : no
+      isPopupOpen  : no
+
+  closeSharePopup: ->
+
+    @setState isPopupOpen: no
+
 
   shouldComponentUpdate: (nextProps, nextState) ->
 
