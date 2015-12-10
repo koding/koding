@@ -91,14 +91,14 @@
       border                  1px solid #dfdfdf
       bg                      color, $white !important
 
-  .ChatInputWidget-buttonBar
+  .FeedPaneHeader-buttonBar
     text-align                right
     padding                   8px
     border                    1px solid #dfdfdf
     border-top                none
     bg                        color, #f4f4f4
 
-    .ChatInputWidget-send
+    .FeedPaneHeader-send
       height                  26px
       line-height             13px
       width                   66px
@@ -106,15 +106,10 @@
       color                   $white
       bg                      color, $blue
 
-    .ChatInputWidget-preview
+    .FeedPaneHeader-preview
       outline                 none
       border                  none
       r-sprite                "activity", "markdown"
-
-  .ChatInputWidget > textarea:-ms-input-placeholder
-  .ChatInputWidget > textarea:-moz-placeholder
-  .ChatInputWidget > textarea::-webkit-input-placeholder
-    font-weight               100
 
 .FeedPane-previewWrapper
   max-width                   600px
@@ -171,6 +166,4 @@
     vertical-align        middle
     margin-left           7px
     vendor                transform, rotate(45deg)
-    // -73px -343px
-
 
