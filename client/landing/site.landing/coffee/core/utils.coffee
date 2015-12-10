@@ -285,8 +285,6 @@ utils.extend utils,
 
   verifySlug : (name, callbacks = {}) ->
 
-    name = name.toLowerCase()
-
     unless 2 < name.length
       return callbacks.error 'Domain name should be longer than 2 characters!'
 

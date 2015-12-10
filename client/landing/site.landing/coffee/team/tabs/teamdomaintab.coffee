@@ -22,6 +22,7 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
         track 'submitted domain form'
 
+        formData.slug = formData.slug.toLowerCase?()
         KD.utils.verifySlug formData.slug,
           success : =>
             track 'entered a valid domain'
