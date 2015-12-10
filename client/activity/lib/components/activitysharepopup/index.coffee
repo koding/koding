@@ -7,7 +7,7 @@ groupifyLink         = require 'app/util/groupifyLink'
 
 module.exports = class ActivitySharePopup extends React.Component
 
-  defaultProps=
+  @defaultProps=
     url      : ''
     onClose  : kd.noop
     isOpened : no

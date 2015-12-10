@@ -7,7 +7,7 @@ module.exports = class TimeAgo extends React.Component
   @propTypes =
     from : React.PropTypes.string.isRequired
 
-  defaultProps =
+  @defaultProps =
     className : ''
 
   constructor: (props) ->
