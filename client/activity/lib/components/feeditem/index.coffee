@@ -38,8 +38,14 @@ module.exports = class FeedItem extends React.Component
     return @props.message isnt nextProps.message
 
   onConversationButtonClick: (event) ->
+  sendComment: (event) ->
 
     kd.utils.stopDOMEvent event
+    textInput = ReactDOM.findDOMNode @refs.textInput
+    @setState hasValue: yes  if textInput.value.trim()
+    textInput.focus()
+
+
   postComment: (event) ->
 
     kd.utils.stopDOMEvent event
