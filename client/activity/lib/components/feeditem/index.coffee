@@ -96,6 +96,23 @@ module.exports = class FeedItem extends React.Component
       <MessageLikeSummary message={message} />
     </div>
 
+
+  onMentionClick: (reply) ->
+
+    kd.utils.stopDOMEvent event
+
+    account = reply.get 'account'
+    textInput = ReactDOM.findDOMNode @refs.textInput
+
+    fetchAccount account.toJS(), (err, account) =>
+      return  unless account
+
+      inputValue = if textInput.value then "#{textInput.value} " else ""
+      value      = "#{inputValue}@#{account.profile.nickname} "
+
+      @setState { comment: value, hasValue: yes }, ->
+        textInput.focus()
+
   render: ->
     { message } = @props
     <div className={kd.utils.curry 'FeedItem', @props.className}>
