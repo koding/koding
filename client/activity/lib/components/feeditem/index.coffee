@@ -189,26 +189,6 @@ module.exports = class FeedItem extends React.Component
     </div>
 
 
-makeComments = (count) ->
-  return null  unless count
-  <span className="FeedItem-summaryItem FeedItem-replyCount">
-    <cite>{count}</cite>
-    Comments
-  </span>
-
-makeLikes = (count) ->
-  return null  unless count
-  <span className="FeedItem-summaryItem FeedItem-likeCount">
-    <cite>{count}</cite>
-    Likes
-  </span>
-
-
-makeTimeAgo = (createdAt) ->
-  <Link className="FeedItem-date u-color-light-text">
-    <TimeAgo from={createdAt} />
-  </Link>
-
 makeProfileLink = (imAccount) ->
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <ProfileText />
@@ -218,6 +198,5 @@ makeAvatar = (imAccount) ->
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <Avatar className="FeedItem-Avatar" width={35} height={35} />
   </ProfileLinkContainer>
-
 
 
