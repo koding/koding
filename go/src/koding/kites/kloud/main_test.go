@@ -451,6 +451,63 @@ func TestTerraformStack(t *testing.T) {
 	}
 }
 
+func TestLocalProvisioning(t *testing.T) {
+	terraformTemplate := `{
+    "provider": {
+        "aws": {
+            "access_key": "${var.aws_access_key}",
+            "secret_key": "${var.aws_secret_key}"
+        }
+    },
+    "resource": {
+        "aws_instance": {
+            "example": {
+                "instance_type": "t2.micro",
+            }
+        }
+    },
+    "resource": {
+        "vagrantkite_build": {
+            "myfirstvm": {
+                "filePath": "%s",
+                "querystring": "%s",
+                "vagrantFile": "%s",
+            }
+        }
+    }
+}`
+
+	curdir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testQueryString := ""
+	testFilePath := filepath.Join(curdir, "localprovtest")
+	testVagrantFile := `# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.hostname = "vagrant"
+
+  config.vm.provider "virtualbox" do |vb|
+    # Use VBoxManage to customize the VM. For example to change memory:
+    vb.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "2"]
+  end
+end
+`
+
+	finalTemplate := fmt.Sprintf(terraformTemplate,
+		testFilePath,
+		testQueryString,
+		testVagrantFile,
+	)
+
+}
+
 func TestBuild(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
