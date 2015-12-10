@@ -25,9 +25,10 @@ summarizeLikes = (message) ->
   children = []
 
   previews.slice(0, linkCount).forEach (preview, index) ->
-    origin = originify preview
+
+    origin = originify preview, index
     children.push(
-      <ProfileLinkContainer key={preview} origin={origin}>
+      <ProfileLinkContainer key={index} origin={origin}>
         <ProfileText />
       </ProfileLinkContainer>
     )
@@ -60,4 +61,12 @@ getSeparator = (actorsCount, linkCount, index) ->
       ', '
 
 
-originify = (id) -> { constructorName: 'JAccount', id }
+originify = (preview, index) ->
+
+  origin = { constructorName: 'JAccount', id: index }
+
+  if preview
+    origin = preview.toJS()
+
+  return origin
+
