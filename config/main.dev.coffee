@@ -444,7 +444,15 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}                 --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
-        locations       : [ location: "/" ]
+        locations       : [
+          {
+            location    : "~ \/-\/api\/(.*)"
+            proxyPass   : "http://webserver/-/api/$1$is_args$args"
+          }
+          {
+            location    : "/"
+          }
+        ]
 
     socialworker        :
       group             : "webserver"
