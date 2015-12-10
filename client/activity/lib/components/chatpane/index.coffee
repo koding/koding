@@ -8,6 +8,7 @@ ScrollerMixin        = require 'app/components/scroller/scrollermixin'
 EmojiPreloaderMixin  = require 'activity/components/emojipreloadermixin'
 ChannelInfoContainer = require 'activity/components/channelinfocontainer'
 scrollToTarget       = require 'app/util/scrollToTarget'
+scrollerActions      = require 'app/components/scroller/scrolleractions'
 
 
 module.exports = class ChatPane extends React.Component
@@ -95,9 +96,19 @@ module.exports = class ChatPane extends React.Component
 
     { thread } = nextProps
 
-    isMessageBeingSubmitted = @flag 'isMessageBeingSubmitted'
+    { SCROLL_TO_BOTTOM, KEEP_POSITION, UPDATE } = scrollerActions
 
-    @shouldScrollToBottom = yes  if isMessageBeingSubmitted
+    isMessageBeingSubmitted = @flag 'isMessageBeingSubmitted'
+    willStopMessageEditing  = @flag('isMessageInEditMode') and not thread.getIn [ 'flags', 'isMessageInEditMode' ]
+
+    @scrollerAction = switch
+      when isMessageBeingSubmitted then SCROLL_TO_BOTTOM
+      when @isThresholdReached     then KEEP_POSITION
+      when willStopMessageEditing  then UPDATE
+      else @scrollerAction # keep the value calculated in ScrollerMixin
+
+
+  componentDidUpdate: -> @isThresholdReached = no
 
 
   onTopThresholdReached: (event) ->
