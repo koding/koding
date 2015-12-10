@@ -57,6 +57,11 @@ func (p *Provider) CleanDeletedVMs() error {
 
 		iter := c.Find(deletedMachines).Batch(50).Iter()
 		for machine := NewMachine(); iter.Next(machine); machine = NewMachine() {
+			if machine.Machine == nil {
+				// TODO(rjeczalik): m.DeleteDocument() here
+				p.Log.Warning("invalid jMachine encountered while cleaning: %+v", machine)
+				continue
+			}
 			machines = append(machines, machine)
 		}
 
