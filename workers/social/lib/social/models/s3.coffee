@@ -35,6 +35,8 @@ module.exports = class S3 extends Base
 
     { connection: { delegate } } = client
 
+    return callback new KodingError 'Delegate is not set'  unless delegate
+
     unless delegate.type is 'registered'
       return callback new KodingError 'Not allowed'
 

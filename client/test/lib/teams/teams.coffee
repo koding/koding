@@ -142,11 +142,5 @@ module.exports =
       .end()
 
 
-  createChannel: (browser) ->
-
-    user = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user)
-    browser.end()
-
 
 

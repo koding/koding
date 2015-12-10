@@ -336,3 +336,30 @@ module.exports =
       .setValue               chatInputSelector, chatMessage + '\n'
       .waitForElementVisible  chatItem, 20000
       .assert.containsText    '.ChatPane-body .ChatList', chatMessage
+
+
+  createChannelsAndCheckList: (browser, user) ->
+
+    channelHeader     = "#{sidebarSectionsSelector} .SidebarSection-header"
+    channelListModal  = '.ChannelList-Modal'
+    activeTabSelector = "#{channelListModal} .ChannelList-tab.active-tab"
+    listItemSelector  = "#{channelListModal} .ChannelListItem"
+    threadsContainer  = "#{channelListModal} .SidebarModalThreads"
+
+    channelName1 = @createChannel(browser, user)
+    channelName2 = @createChannel(browser, user)
+    channelName3 = @createChannel(browser, user)
+
+    browser
+      .waitForElementVisible  sidebarSectionsSelector, 20000
+      .waitForElementVisible  channelHeader, 20000
+      .click                  channelHeader
+      .waitForElementVisible  channelListModal, 20000
+      .waitForElementVisible  activeTabSelector, 20000
+      .assert.containsText    activeTabSelector, 'Your Channels'
+      .waitForElementVisible  listItemSelector, 20000
+      .assert.containsText    threadsContainer, channelName1
+      .assert.containsText    threadsContainer, channelName2
+      .assert.containsText    threadsContainer, channelName3
+
+    return [ channelName1, channelName2, channelName3 ]

@@ -27,12 +27,12 @@ type statePair struct {
 
 var states = map[string]*statePair{
 	"build":          &statePair{start: machinestate.Building, final: machinestate.Running},
+	"reinit":         &statePair{start: machinestate.Building, final: machinestate.Running},
 	"start":          &statePair{start: machinestate.Starting, final: machinestate.Running},
 	"stop":           &statePair{start: machinestate.Stopping, final: machinestate.Stopped},
 	"destroy":        &statePair{start: machinestate.Terminating, final: machinestate.Terminated},
 	"restart":        &statePair{start: machinestate.Rebooting, final: machinestate.Running},
 	"resize":         &statePair{start: machinestate.Pending, final: machinestate.Running},
-	"reinit":         &statePair{start: machinestate.Terminating, final: machinestate.Running},
 	"createSnapshot": &statePair{start: machinestate.Snapshotting, final: machinestate.Running},
 	"deleteSnapshot": &statePair{start: machinestate.Snapshotting, final: machinestate.Running},
 }

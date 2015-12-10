@@ -34,6 +34,10 @@ func (m *Machine) Start(ctx context.Context) error {
 		return err
 	}
 
+	if err := m.addDomains(); err != nil {
+		m.Log.Warning("couldn't update domains during start: %s", err)
+	}
+
 	m.push("Checking remote machine", 90, machinestate.Starting)
 	if !m.IsKlientReady() {
 		return errors.New("klient is not ready")
