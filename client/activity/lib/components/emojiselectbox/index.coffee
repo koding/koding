@@ -9,6 +9,7 @@ Tabs                  = require './tabs'
 Footer                = require './footer'
 formatEmojiName       = require 'activity/util/formatEmojiName'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
+EmojiBoxWrapperMixin = require 'activity/components/emojiboxwrapper/mixin'
 
 
 module.exports = class EmojiSelectBox extends React.Component
@@ -19,7 +20,7 @@ module.exports = class EmojiSelectBox extends React.Component
     selectedItem : ''
     query        : ''
     tabs         : immutable.List()
-    tabIndex     : -1
+    tabIndex     : 0
 
 
   updatePosition: (inputDimensions) ->
@@ -40,6 +41,8 @@ module.exports = class EmojiSelectBox extends React.Component
 
 
   onItemConfirmed: ->
+
+    @handleSelectedItemConfirmation()
 
     { selectedItem } = @props
     @props.onItemConfirmed? formatEmojiName selectedItem
@@ -104,5 +107,5 @@ module.exports = class EmojiSelectBox extends React.Component
     </Dropbox>
 
 
-EmojiSelectBox.include [ImmutableRenderMixin]
+EmojiSelectBox.include [ImmutableRenderMixin, EmojiBoxWrapperMixin]
 

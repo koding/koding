@@ -33,6 +33,7 @@ module.exports = class EmbedBoxWidget extends KDView
 
 
   addViews: ->
+
     @addSubView new KDButtonView
       cssClass  : 'hide-embed'
       icon      : yes
@@ -64,6 +65,7 @@ module.exports = class EmbedBoxWidget extends KDView
         if url = @checkInputForUrls()
           @fetchEmbed url, {}, @bound('populateEmbed')
 
+
   checkInputForUrls: ->
 
     input = @getDelegate()
@@ -83,6 +85,7 @@ module.exports = class EmbedBoxWidget extends KDView
 
 
   setImageIndex: (index) -> @imageIndex = index
+
 
   getData: ->
 
@@ -133,26 +136,12 @@ module.exports = class EmbedBoxWidget extends KDView
     @emit 'EmbedIsShown'
 
 
-  populateEmbed: (data, options = {}) ->
+  populateEmbed: (options = {}) ->
 
-    return  unless data
-    return  if data.url is @url
+    data = @oembed
 
-    # embedly uses the https://developers.google.com/safe-browsing/ API
-    # to stop phishing/malware sites from being embedded
-    if data.safe? and not (data.safe is yes or data.safe is 'true')
-      # In the case of unsafe data (most likely phishing), this should be used
-      # to log the user, the url and other data to our admins.
-      log 'There was unsafe content.', data, data.safe_type, data.safe_message
-      return @close()
+    return close()  unless data
 
-    # to log the user, the url and other data to our admins.
-    if data.error_message
-      log 'EmbedBoxWidget encountered an error!', data.error_type, data.error_message
-      return @close()
-
-    @oembed = data
-    @url    = data.url
     type    = getEmbedType data.type or 'link'
 
     return @hide()  if type is 'link' and not data.description
@@ -171,6 +160,11 @@ module.exports = class EmbedBoxWidget extends KDView
 
     # if there is no protocol, supply one! embedly doesn't support //
     url = "http://#{url}"  unless regexps.hasProtocol.test url
+    # add / at the end of url if it doesn't exist there - it will improve
+    # performance avoiding requests to the same url (embedly urls have / at the end)
+    url = "#{url}/"  unless url.lastIndexOf('/') is url.length - 1
+
+    return  if @url is url
 
     # prepare embed.ly options
     embedlyOptions = kd.utils.extend {
@@ -184,15 +178,47 @@ module.exports = class EmbedBoxWidget extends KDView
     # serve from cache if it's fetched already
     if @cache[url]
       kd.utils.defer =>
-        @emit 'EmbedFetched', @cache[url]
-        callback @cache[url], embedlyOptions
+        @processEmbedResponse @cache[url]
+        callback embedlyOptions
       return
 
     # fetch embed.ly data from the server api
     @isFetching = yes
     fetchDataFromEmbedly url, embedlyOptions, (err, oembed) =>
-      return console.warn 'Embedly error:', err   if err
       @isFetching = no
+
+      if err
+        @onFetchComplete err
+        return console.warn 'Embedly error:', err
+
       @cache[url] = oembed[0]
-      @emit 'EmbedFetched', @cache[url]
-      callback oembed[0], embedlyOptions
+      @processEmbedResponse oembed[0]
+      callback embedlyOptions
+
+
+  processEmbedResponse: (data) ->
+
+    return @onFetchComplete()  unless data
+
+    # embedly uses the https://developers.google.com/safe-browsing/ API
+    # to stop phishing/malware sites from being embedded
+    if data.safe? and not (data.safe is yes or data.safe is 'true')
+      # In the case of unsafe data (most likely phishing), this should be used
+      # to log the user, the url and other data to our admins.
+      log 'There was unsafe content.', data, data.safe_type, data.safe_message
+      return @onFetchComplete()
+
+    if data.error_message
+      log 'EmbedBoxWidget encountered an error!', data.error_type, data.error_message
+      @onFetchComplete()
+
+    @onFetchComplete null, data
+
+
+  onFetchComplete: (err, data) ->
+
+    @oembed = data
+    @url    = data?.url
+
+    @emit 'EmbedFetched', err, data
+

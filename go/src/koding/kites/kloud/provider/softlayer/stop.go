@@ -33,5 +33,9 @@ func (m *Machine) Stop(ctx context.Context) error {
 		return err
 	}
 
+	if err := m.deleteDomains(); err != nil {
+		m.Log.Warning("couldn't delete domains while stopping machine: %s", err)
+	}
+
 	return m.MarkAsStoppedWithReason("Machine is stopped")
 }

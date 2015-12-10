@@ -143,6 +143,10 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.QueryString = protocol.Kite{ID: kiteID}.String()
 	m.IpAddress = obj.PrimaryIpAddress
 
+	if err := m.addDomains(); err != nil {
+		m.Log.Warning("couldn't add domains during build: %s", err)
+	}
+
 	m.push("Waiting for Koding Service Connector", 80, machinestate.Building)
 
 	if !m.IsKlientReady() {
