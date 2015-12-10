@@ -85,6 +85,17 @@ module.exports = class FeedItem extends React.Component
     hasValue = yes  if value
     @setState { hasValue: hasValue, comment: value }
 
+
+  renderFeedItemSummary: (message) ->
+
+    actorsCount   = message.getIn ['interactions', 'like', 'actorsCount']
+
+    return null  unless actorsCount
+
+    <div className="FeedItem-summary">
+      <MessageLikeSummary message={message} />
+    </div>
+
   render: ->
     { message } = @props
     <div className={kd.utils.curry 'FeedItem', @props.className}>
