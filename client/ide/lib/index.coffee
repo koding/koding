@@ -632,7 +632,9 @@ class IDEAppController extends AppController
         switch event.status
           when Terminated then @handleMachineTerminated()
 
-      .on "reinit-#{machineItem._id}", @bound 'handleMachineReinit'
+      .on "reinit-#{machineItem._id}", (event) =>
+        @showStateMachineModal machineItem, event
+        @handleMachineReinit event
 
 
   handleMachineTerminated: ->
