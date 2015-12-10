@@ -509,10 +509,6 @@ module.exports = class ComputeController extends KDController
 
       @stopCollaborationSession()
 
-      @eventListener.triggerState machine,
-        status      : Machine.State.Terminating
-        percentage  : 0
-
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
       call = @getKloud().reinit { machineId: machine._id, snapshotId }
