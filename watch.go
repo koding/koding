@@ -65,12 +65,13 @@ func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 	errChan := make(chan error)
 
 	go func() {
-		ticker := time.Tick(WatchInterval)
+		ticker := time.NewTicker(WatchInterval)
 		for {
 			select {
-			case <-ticker:
+			case <-ticker.C:
 				f.tickerFn(resChan, errChan)
 			case <-f.closeChannel:
+				ticker.Stop()
 				return
 			}
 		}
