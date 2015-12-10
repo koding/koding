@@ -187,7 +187,7 @@ func checkThrottle(channelId, requesterId int64) error {
 	return nil
 }
 
-func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Delete(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -201,6 +201,10 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
+	}
+
+	if cm.AccountId != c.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
 	}
 
 	// if this is a reply no need to delete it's replies
@@ -229,10 +233,14 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return response.NewDeleted()
 }
 
-func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	if req.AccountId != c.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
 	}
 
 	body := req.Body
