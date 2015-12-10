@@ -7,6 +7,7 @@ classnames           = require 'classnames'
 transformTags        = require 'app/util/transformReactivityTags'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 renderEmojis         = require 'activity/util/renderEmojis'
+getNick = require 'app/util/nick'
 
 
 module.exports = class MessageBody extends React.Component
@@ -92,6 +93,11 @@ module.exports = class MessageBody extends React.Component
 
 
   helper =
+
+    prepareNickname: (nickname) ->
+
+      if nickname is getNick() then 'you' else "@#{nickname}"
+
 
     prepareDefaultBody: (options = {}) ->
 
