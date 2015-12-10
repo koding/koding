@@ -78,6 +78,13 @@ module.exports = class FeedItem extends React.Component
   onBlur: (event) -> @setState focusOnInput: no
 
 
+  handleCommentInputChange: (event) ->
+
+    hasValue = no
+    value    = event.target.value.trim()
+    hasValue = yes  if value
+    @setState { hasValue: hasValue, comment: value }
+
   render: ->
     { message } = @props
     <div className={kd.utils.curry 'FeedItem', @props.className}>
