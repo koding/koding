@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"koding/db/models"
 	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/cleaners/lookup"
@@ -34,9 +35,9 @@ type Cleaner struct {
 type Artifacts struct {
 	Instances        *lookup.MultiInstances
 	Volumes          *lookup.MultiVolumes
-	AlwaysOnMachines []lookup.MachineDocument
-	UsersMultiple    map[string][]lookup.MachineDocument
-	MongodbUsers     map[string]lookup.MachineDocument
+	AlwaysOnMachines []models.Machine
+	UsersMultiple    map[string][]models.Machine
+	MongodbUsers     map[string]models.Machine
 	IsPaid           func(string) bool
 }
 
@@ -192,8 +193,8 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 	wg.Add(5)
 
 	a := &Artifacts{
-		MongodbUsers:  make(map[string]lookup.MachineDocument, 0),
-		UsersMultiple: make(map[string][]lookup.MachineDocument, 0),
+		MongodbUsers:  make(map[string]models.Machine, 0),
+		UsersMultiple: make(map[string][]models.Machine, 0),
 	}
 
 	var collectErr error
@@ -228,9 +229,9 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 
 	go func() {
 		// users mapped to their machines
-		users := make(map[string][]lookup.MachineDocument, 0)
+		users := make(map[string][]models.Machine, 0)
 
-		iter := func(l lookup.MachineDocument) {
+		iter := func(l models.Machine) {
 			i, ok := l.Meta["instanceId"]
 			if !ok {
 				fmt.Println("instanceId doesn't exist")
@@ -254,7 +255,7 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 			username := l.Credential
 			machines, ok := users[username]
 			if !ok {
-				users[username] = []lookup.MachineDocument{l}
+				users[username] = []models.Machine{l}
 				return
 			}
 

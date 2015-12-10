@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 
@@ -14,7 +15,7 @@ import (
 )
 
 func (m *Machine) Start(ctx context.Context) (err error) {
-	if err := m.UpdateState("Machine is starting", machinestate.Starting); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is starting", machinestate.Starting); err != nil {
 		return err
 	}
 
@@ -38,7 +39,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	latestState := m.State()
 	defer func() {
 		if err != nil {
-			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
 
@@ -51,6 +52,11 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	m.push("Starting machine", 25, machinestate.Starting)
 
 	infoState := amazon.StatusToState(aws.StringValue(instance.State.Name))
+
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
 
 	// only start if the machine is stopped, stopping
 	if infoState.In(machinestate.Stopped, machinestate.Stopping) {
@@ -65,7 +71,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		}
 
 		m.IpAddress = aws.StringValue(instance.PublicIpAddress)
-		m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
+		meta.InstanceType = aws.StringValue(instance.InstanceType)
 	}
 
 	m.push("Checking remote machine", 75, machinestate.Starting)
@@ -75,12 +81,12 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         m.IpAddress,
-				"meta.instanceName": m.Meta.InstanceName,
-				"meta.instanceId":   m.Meta.InstanceId,
-				"meta.instanceType": m.Meta.InstanceType,
+				"meta.instanceName": meta.InstanceName,
+				"meta.instanceId":   meta.InstanceId,
+				"meta.instanceType": meta.InstanceType,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Machine is running",

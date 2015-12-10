@@ -12,43 +12,26 @@ import (
 	"time"
 
 	"github.com/koding/logging"
+	"github.com/mitchellh/mapstructure"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
+type Meta struct {
+	AlwaysOn     bool   `bson:"alwaysOn"`
+	InstanceId   string `structs:"instanceId" bson:"instanceId"`
+	InstanceType string `structs:"instance_type" bson:"instance_type"`
+	InstanceName string `structs:"instanceName" bson:"instanceName"`
+	Region       string `structs:"region" bson:"region"`
+	StorageSize  int    `structs:"storage_size" bson:"storage_size"`
+	SourceAmi    string `structs:"source_ami" bson:"source_ami"`
+	SnapshotId   string `structs:"snapshotId" bson:"snapshotId"`
+}
+
 // Machine represents a single MongodDB document that represents a Koding
 // Provider from the jMachines collection.
 type Machine struct {
-	Id          bson.ObjectId `bson:"_id" json:"-"`
-	Label       string        `bson:"label"`
-	Domain      string        `bson:"domain"`
-	QueryString string        `bson:"queryString"`
-	IpAddress   string        `bson:"ipAddress"`
-	Assignee    struct {
-		InProgress      bool      `bson:"inProgress"`
-		AssignedAt      time.Time `bson:"assignedAt"`
-		KlientMissingAt time.Time `bson:"klientMissingAt"`
-	} `bson:"assignee"`
-	Status struct {
-		State      string    `bson:"state"`
-		Reason     string    `bson:"reason"`
-		ModifiedAt time.Time `bson:"modifiedAt"`
-	} `bson:"status"`
-	Provider   string    `bson:"provider"`
-	Credential string    `bson:"credential"`
-	CreatedAt  time.Time `bson:"createdAt"`
-	Meta       struct {
-		AlwaysOn     bool   `bson:"alwaysOn"`
-		InstanceId   string `structs:"instanceId" bson:"instanceId"`
-		InstanceType string `structs:"instance_type" bson:"instance_type"`
-		InstanceName string `structs:"instanceName" bson:"instanceName"`
-		Region       string `structs:"region" bson:"region"`
-		StorageSize  int    `structs:"storage_size" bson:"storage_size"`
-		SourceAmi    string `structs:"source_ami" bson:"source_ami"`
-		SnapshotId   string `structs:"snapshotId" bson:"snapshotId"`
-	} `bson:"meta"`
-	Users  []models.Permissions `bson:"users"`
-	Groups []models.Permissions `bson:"groups"`
+	*models.Machine
 
 	// internal fields, not availabile in MongoDB schema
 	Username string                 `bson:"-"`
@@ -64,6 +47,22 @@ type Machine struct {
 	cleanFuncs []func()
 }
 
+// NewMachine gives new Machine value.
+func NewMachine() *Machine {
+	return &Machine{
+		Machine: &models.Machine{},
+	}
+}
+
+func (m *Machine) GetMeta() (*Meta, error) {
+	var mt Meta
+	if err := mapstructure.Decode(m.Meta, &mt); err != nil {
+		return nil, err
+	}
+
+	return &mt, nil
+}
+
 // runCleanupFunctions calls all cleanup functions and set the
 // list to nil. Once called any other call will not have any
 // effect.
@@ -77,10 +76,6 @@ func (m *Machine) runCleanupFunctions() {
 	}
 
 	m.cleanFuncs = nil
-}
-
-func (m *Machine) State() machinestate.State {
-	return machinestate.States[m.Status.State]
 }
 
 func (m *Machine) PublicIpAddress() string {
@@ -101,9 +96,9 @@ func (m *Machine) push(msg string, percentage int, state machinestate.State) {
 // switchAWSRegion switches to the given AWS region. This should be only used when
 // you know what to do, otherwiese never, never change the region of a machine.
 func (m *Machine) switchAWSRegion(region string) error {
-	m.Meta.InstanceId = "" // we neglect any previous instanceId
-	m.QueryString = ""     //
-	m.Meta.Region = "us-east-1"
+	m.Meta["instanceId"] = "" // we neglect any previous instanceId
+	m.Meta["region"] = "us-east-1"
+	m.QueryString = ""
 
 	client, err := m.Session.AWSClients.Region("us-east-1")
 	if err != nil {
@@ -113,7 +108,7 @@ func (m *Machine) switchAWSRegion(region string) error {
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"meta.instanceId": "",
 				"queryString":     "",
@@ -130,7 +125,7 @@ func (m *Machine) markAsNotInitialized() error {
 	m.Log.Warning("Instance is not available. Marking it as NotInitialized")
 	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         "",
 				"queryString":       "",
@@ -148,9 +143,9 @@ func (m *Machine) markAsNotInitialized() error {
 
 	m.IpAddress = ""
 	m.QueryString = ""
-	m.Meta.InstanceType = ""
-	m.Meta.InstanceName = ""
-	m.Meta.InstanceId = ""
+	m.Meta["instance_type"] = ""
+	m.Meta["instance_name"] = ""
+	m.Meta["instanceId"] = ""
 
 	// so any State() method can return the correct status
 	m.Status.State = machinestate.NotInitialized.String()
@@ -165,7 +160,7 @@ func (m *Machine) MarkAsStoppedWithReason(reason string) error {
 	m.Log.Debug("Marking instance as stopped")
 	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"status.state":      machinestate.Stopped.String(),
 				"status.modifiedAt": time.Now().UTC(),
@@ -184,7 +179,7 @@ func (m *Machine) MarkAsStoppedWithReason(reason string) error {
 func (m *Machine) updateStorageSize(size int) error {
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{"meta.storage_size": size}},
 		)
 	})
@@ -210,28 +205,28 @@ func (m *Machine) isKlientReady() bool {
 
 // Lock performs a Lock on this Machine
 func (m *Machine) Lock() error {
-	if !m.Id.Valid() {
+	if !m.ObjectId.Valid() {
 		return kloud.NewError(kloud.ErrMachineIdMissing)
 	}
 
 	if m.Locker == nil {
-		return fmt.Errorf("Machine '%s' missing Locker", m.Id.Hex())
+		return fmt.Errorf("Machine '%s' missing Locker", m.ObjectId.Hex())
 	}
 
-	return m.Locker.Lock(m.Id.Hex())
+	return m.Locker.Lock(m.ObjectId.Hex())
 }
 
 // Unlock performs an Unlock on this Machine instance
 func (m *Machine) Unlock() error {
-	if !m.Id.Valid() {
+	if !m.ObjectId.Valid() {
 		return kloud.NewError(kloud.ErrMachineIdMissing)
 	}
 
 	if m.Locker == nil {
-		return fmt.Errorf("Machine '%s' missing Locker", m.Id.Hex())
+		return fmt.Errorf("Machine '%s' missing Locker", m.ObjectId.Hex())
 	}
 
 	// Unlock does not return an error
-	m.Locker.Unlock(m.Id.Hex())
+	m.Locker.Unlock(m.ObjectId.Hex())
 	return nil
 }

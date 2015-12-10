@@ -10,42 +10,26 @@ import (
 	"time"
 
 	"github.com/koding/logging"
+	"github.com/mitchellh/mapstructure"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
+type Meta struct {
+	AlwaysOn     bool   `bson:"alwaysOn"`
+	InstanceId   string `structs:"instanceId" bson:"instanceId"`
+	InstanceType string `structs:"instance_type" bson:"instance_type"`
+	InstanceName string `structs:"instanceName" bson:"instanceName"`
+	Region       string `structs:"region" bson:"region"`
+	StorageSize  int    `structs:"storage_size" bson:"storage_size"`
+	SourceAmi    string `structs:"source_ami" bson:"source_ami"`
+	SnapshotId   string `structs:"snapshotId" bson:"-"`
+}
+
 // Machine represents a single MongodDB document from the jMachines
 // collection.
 type Machine struct {
-	Id          bson.ObjectId `bson:"_id" json:"-"`
-	Label       string        `bson:"label"`
-	Domain      string        `bson:"domain"`
-	QueryString string        `bson:"queryString"`
-	IpAddress   string        `bson:"ipAddress"`
-	Assignee    struct {
-		InProgress bool      `bson:"inProgress"`
-		AssignedAt time.Time `bson:"assignedAt"`
-	} `bson:"assignee"`
-	Status struct {
-		State      string    `bson:"state"`
-		Reason     string    `bson:"reason"`
-		ModifiedAt time.Time `bson:"modifiedAt"`
-	} `bson:"status"`
-	Provider   string    `bson:"provider"`
-	Credential string    `bson:"credential"`
-	CreatedAt  time.Time `bson:"createdAt"`
-	Meta       struct {
-		AlwaysOn     bool   `bson:"alwaysOn"`
-		InstanceId   string `structs:"instanceId" bson:"instanceId"`
-		InstanceType string `structs:"instance_type" bson:"instance_type"`
-		InstanceName string `structs:"instanceName" bson:"instanceName"`
-		Region       string `structs:"region" bson:"region"`
-		StorageSize  int    `structs:"storage_size" bson:"storage_size"`
-		SourceAmi    string `structs:"source_ami" bson:"source_ami"`
-		SnapshotId   string `structs:"snapshotId" bson:"-"`
-	} `bson:"meta"`
-	Users  []models.Permissions `bson:"users"`
-	Groups []models.Permissions `bson:"groups"`
+	*models.Machine
 
 	// internal fields, not availabile in MongoDB schema
 	Username string                 `bson:"-"`
@@ -58,6 +42,15 @@ type Machine struct {
 	// cleanFuncs are a list of functions that are called when after a method
 	// is finished
 	cleanFuncs []func()
+}
+
+func (m *Machine) GetMeta() (*Meta, error) {
+	var mt Meta
+	if err := mapstructure.Decode(m.Meta, &mt); err != nil {
+		return nil, err
+	}
+
+	return &mt, nil
 }
 
 // runCleanupFunctions calls all cleanup functions and set the
@@ -73,10 +66,6 @@ func (m *Machine) runCleanupFunctions() {
 	}
 
 	m.cleanFuncs = nil
-}
-
-func (m *Machine) State() machinestate.State {
-	return machinestate.States[m.Status.State]
 }
 
 func (m *Machine) PublicIpAddress() string {
@@ -119,7 +108,7 @@ func (m *Machine) MarkAsNotInitialized() error {
 	m.Log.Warning("Instance is not available. Marking it as NotInitialized")
 	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         "",
 				"queryString":       "",
@@ -137,11 +126,13 @@ func (m *Machine) MarkAsNotInitialized() error {
 
 	m.IpAddress = ""
 	m.QueryString = ""
-	m.Meta.InstanceType = ""
-	m.Meta.InstanceName = ""
-	m.Meta.InstanceId = ""
+	m.Meta["instance_type"] = ""
+	m.Meta["instance_name"] = ""
+	m.Meta["instanceId"] = ""
 
 	// so any State() method can return the correct status
 	m.Status.State = machinestate.NotInitialized.String()
 	return nil
 }
+
+func (m *Machine) ProviderName() string { return m.Provider }

@@ -17,6 +17,9 @@ fs.mkdir imagePath, null, ->
 module.exports = (req, res) ->
   { endpoint, grow, width, height, url } = req.query
 
+  unless url
+    return res.status(400).send 'Url is not set'
+
   fullUrl = "https://i.embed.ly/1/display/#{endpoint}?" +
              "width=#{width}&" +
              "height=#{height}&" +

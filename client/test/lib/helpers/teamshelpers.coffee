@@ -135,13 +135,51 @@ module.exports =
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
+    hasNotTeamAccessPage = '.main-wrapper .login-form .email'
 
     browser.url url
     browser.maximizeWindow()
 
-    @loginToTeam(browser, user)
+    browser.element 'css selector', hasNotTeamAccessPage, (result) =>
+      if result.status is 0
+        @getInvitationAndCreateTeam(browser)
+      else
+        @loginToTeam(browser, user)
 
     return user
+
+
+  getInvitationAndCreateTeam: (browser, user, callback) ->
+
+    modalSelector       = '.TeamsModal.TeamsModal--create'
+    emailSelector       = "#{modalSelector} input[name=email]"
+    companyNameSelector = "#{modalSelector} input[name=companyName]"
+    signUpButton        = "#{modalSelector} button[type=submit]"
+    user                = utils.getUser()
+    adminUser           =
+      username          : 'devrim'
+      password          : 'devrim'
+
+    helpers.beginTest(browser, adminUser)
+    browser.pause 5000 # wait for welcome modal
+
+    @createInvitation browser, user, (invitationLink) =>
+      browser.click '.close-icon.closeModal'
+
+      helpers.doLogout(browser)
+
+      browser
+        .url                   invitationLink
+        .waitForElementVisible modalSelector, 20000
+        .waitForElementVisible emailSelector, 20000
+        .waitForElementVisible companyNameSelector, 20000
+        .assert.valueContains  emailSelector, user.email
+        .setValue              companyNameSelector, user.teamSlug
+        .click                 signUpButton
+        .pause                 2500
+
+      @enterTeamURL(browser)
+      @fillUsernamePasswordForm(browser, user)
 
 
   createInvitation: (browser, user, callback) ->
@@ -298,3 +336,30 @@ module.exports =
       .setValue               chatInputSelector, chatMessage + '\n'
       .waitForElementVisible  chatItem, 20000
       .assert.containsText    '.ChatPane-body .ChatList', chatMessage
+
+
+  createChannelsAndCheckList: (browser, user) ->
+
+    channelHeader     = "#{sidebarSectionsSelector} .SidebarSection-header"
+    channelListModal  = '.ChannelList-Modal'
+    activeTabSelector = "#{channelListModal} .ChannelList-tab.active-tab"
+    listItemSelector  = "#{channelListModal} .ChannelListItem"
+    threadsContainer  = "#{channelListModal} .SidebarModalThreads"
+
+    channelName1 = @createChannel(browser, user)
+    channelName2 = @createChannel(browser, user)
+    channelName3 = @createChannel(browser, user)
+
+    browser
+      .waitForElementVisible  sidebarSectionsSelector, 20000
+      .waitForElementVisible  channelHeader, 20000
+      .click                  channelHeader
+      .waitForElementVisible  channelListModal, 20000
+      .waitForElementVisible  activeTabSelector, 20000
+      .assert.containsText    activeTabSelector, 'Your Channels'
+      .waitForElementVisible  listItemSelector, 20000
+      .assert.containsText    threadsContainer, channelName1
+      .assert.containsText    threadsContainer, channelName2
+      .assert.containsText    threadsContainer, channelName3
+
+    return [ channelName1, channelName2, channelName3 ]

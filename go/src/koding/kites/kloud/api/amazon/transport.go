@@ -53,8 +53,8 @@ func (tr *transportRetryer) MaxRetries() int {
 
 func (tr *transportRetryer) ShouldRetry(r *request.Request) bool {
 	doretry := isNetworkRecoverable(r.Error, true) || tr.DefaultRetryer.ShouldRetry(r)
-	tr.logf("request failed (RetryCount=%d, Operation=%+v, ShouldRetry=%t): %+v",
-		r.RetryCount, r.Operation, doretry, r.Error)
+	tr.logf("request failed (RetryCount=%d, Operation=%+v, ShouldRetry=%t): %q (%T)",
+		r.RetryCount, r.Operation, doretry, r.Error, r.Error)
 	return doretry
 }
 

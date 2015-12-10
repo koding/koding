@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -101,17 +100,12 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 }
 
 func (c *Cloudwatch) normalizeMeta(machine *models.Machine) (string, string, error) {
-	meta, ok := machine.Meta.(bson.M)
-	if !ok {
-		return "", "", errors.New("queued machine has no meta")
-	}
-
-	instanceId, ok := meta["instanceId"].(string)
+	instanceId, ok := machine.Meta["instanceId"].(string)
 	if !ok || isEmpty(instanceId) {
 		return "", "", errors.New("queued machine has no instanceId")
 	}
 
-	region, ok := meta["region"].(string)
+	region, ok := machine.Meta["region"].(string)
 	if !ok || isEmpty(region) {
 		return "", "", errors.New("queued machine has no region")
 	}
