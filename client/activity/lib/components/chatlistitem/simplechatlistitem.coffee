@@ -29,7 +29,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
       <div className={@getContentClassNames()}>
         <div className={@getMediaObjectClassNames()}>
           <MessageLink message={message}>
-            <MessageTime date={message.get 'createdAt'}/>
+            <MessageTime className='ChatItem-messageDate' date={message.get 'createdAt'}/>
           </MessageLink>
           <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           <div className="ChatItem-contentBody">
