@@ -66,6 +66,11 @@ module.exports = class FeedItem extends React.Component
     @setState { isPopupOpen: not @state.isPopupOpen }
 
 
+  getPostButtonClassNames: -> classnames
+    'FeedItem-postComment': yes
+    'green' : @state.hasValue
+    'hidden': not @state.focusOnInput and not @state.hasValue
+
   render: ->
     { message } = @props
     <div className={kd.utils.curry 'FeedItem', @props.className}>
