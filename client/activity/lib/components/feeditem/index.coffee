@@ -35,9 +35,10 @@ module.exports = class FeedItem extends React.Component
       isSharePopupOpened : no
 
   shouldComponentUpdate: (nextProps, nextState) ->
-    return @props.message isnt nextProps.message
 
-  onConversationButtonClick: (event) ->
+    return @props.message isnt nextProps.message or @state isnt nextState
+
+
   sendComment: (event) ->
 
     kd.utils.stopDOMEvent event
