@@ -593,7 +593,11 @@ module.exports = class JGroup extends Module
     callback null
 
 
-  sendNotification$: permit 'grant permissions',
+  sendNotification$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, event, contents, callback) ->
       @sendNotification event, contents, callback
 
@@ -607,7 +611,11 @@ module.exports = class JGroup extends Module
   broadcast:(message, event) ->
     @constructor.broadcast @slug, message, event
 
-  changeMemberRoles: permit 'grant permissions',
+  changeMemberRoles: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, targetId, roles, callback) ->
       remove = []
       revokedRoles = []
@@ -704,7 +712,11 @@ module.exports = class JGroup extends Module
 
     return domain in @allowedDomains
 
-  updatePermissions: permit 'grant permissions',
+  updatePermissions: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, permissions, callback = -> ) ->
       @fetchPermissionSet (err, permissionSet) =>
         return callback err if err
@@ -735,7 +747,11 @@ module.exports = class JGroup extends Module
           if err then callback err
           else callback null, defaultPermissionSet
 
-    fetchPermissions = permit 'grant permissions',
+    fetchPermissions = permit
+      advanced: [
+        { permission: 'grant permissions' }
+        { permission: 'grant permissions', superadmin: yes }
+      ]
       success:(client, callback) ->
         { permissionsByModule } = require '../../traits/protected'
         { delegate }            = client.connection
@@ -784,7 +800,11 @@ module.exports = class JGroup extends Module
   fetchMyRoles: secure (client, callback) ->
     @fetchRolesByAccount client.connection.delegate, callback
 
-  fetchUserRoles: permit 'grant permissions',
+  fetchUserRoles: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, ids, callback) ->
       [callback, ids] = [ids, callback]  unless callback
       @fetchRoles (err, roles) =>
@@ -802,14 +822,22 @@ module.exports = class JGroup extends Module
               if err then callback err
               else callback null, arr
 
-  fetchUserStatus: permit 'grant permissions',
+  fetchUserStatus: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, nicknames, callback) ->
       JUser    = require '../user'
       JUser.someData { username: { $in: nicknames } }, { status:1, username:1 }, (err, cursor) ->
         return callback err  if err
         cursor.toArray callback
 
-  fetchMembers$: permit 'list members',
+  fetchMembers$: permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method : @fetchMembers
@@ -817,7 +845,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchMembersWithEmail$: permit 'grant permissions',
+  fetchMembersWithEmail$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchMembers
@@ -826,7 +858,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchAdmins$: permit 'list members',
+  fetchAdmins$: permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method: @fetchAdmins
@@ -834,7 +870,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchAdminsWithEmail$: permit 'grant permissions',
+  fetchAdminsWithEmail$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchAdmins
@@ -843,7 +883,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchModerators$: permit 'list members',
+  fetchModerators$: permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method: @fetchModerators
@@ -851,7 +895,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchModeratorsWithEmail$: permit 'grant permissions',
+  fetchModeratorsWithEmail$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchModerators
@@ -860,7 +908,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchBlockedAccounts$: permit 'list members',
+  fetchBlockedAccounts$: permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method: @fetchBlockedAccounts
@@ -868,7 +920,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchBlockedAccountsWithEmail$: permit 'grant permissions',
+  fetchBlockedAccountsWithEmail$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchBlockedAccounts
@@ -1041,7 +1097,11 @@ module.exports = class JGroup extends Module
         else policy.update { $set: formData }, callback
 
 
-  toggleFeature: permit 'grant permissions',
+  toggleFeature: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, options, callback) ->
       if not options.feature or not options.role or not options.operation
         return callback new KodingError 'request is not valid'
@@ -1065,7 +1125,11 @@ module.exports = class JGroup extends Module
           return @update callback
 
 
-  canEditGroup: permit 'grant permissions',
+  canEditGroup: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, callback) ->
       callback null, yes
     failure: (client, callback) ->
@@ -1074,7 +1138,11 @@ module.exports = class JGroup extends Module
 
   @canReadGroupActivity = permit 'read group activity'
   canReadGroupActivity  : permit 'read group activity'
-  @canListMembers       = permit 'list members'
+  @canListMembers       = permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
 
   canOpenGroup: permit 'open group',
     failure:(client, callback) ->
@@ -1189,7 +1257,11 @@ module.exports = class JGroup extends Module
 
       dash queue, kallback
 
-  kickMember: permit 'grant permissions',
+  kickMember: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, accountId, callback) ->
 
       { connection: { delegate } } = client
@@ -1250,7 +1322,11 @@ module.exports = class JGroup extends Module
    * @param {String} accountId - Id of the account for unblocking.
    * @param {Function} callback - Callback.
   ###
-  unblockMember: permit 'grant permissions',
+  unblockMember: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, accountId, callback) ->
       JAccount = require '../account'
       JAccount.one { _id: accountId }, (err, account) =>
@@ -1259,7 +1335,11 @@ module.exports = class JGroup extends Module
         # removeBlockedAccount is generated by bongo
         @removeBlockedAccount account, callback
 
-  transferOwnership: permit 'grant permissions',
+  transferOwnership: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, accountId, callback) ->
       JAccount = require '../account'
 
