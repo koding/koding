@@ -34,10 +34,6 @@ module.exports = class FeedItem extends React.Component
       focusOnInput : no
       isPopupOpen  : no
 
-  closeSharePopup: ->
-
-    @setState isPopupOpen: no
-
 
   shouldComponentUpdate: (nextProps, nextState) ->
 
@@ -63,7 +59,6 @@ module.exports = class FeedItem extends React.Component
       .then => @setState { comment: '', hasValue: no }
 
 
-    kd.singletons.router.handleRoute "/Channels/Public/summary/#{@props.message.get 'slug'}"
 
   render: ->
     { message } = @props
