@@ -49,7 +49,7 @@ module.exports = class JGroup extends Module
         public                            : ['moderator', 'member']
         private                           : ['moderator', 'member']
       'read group activity'               :
-        public                            : ['guest', 'member', 'moderator']
+        public                            : ['member', 'moderator']
         private                           : ['member', 'moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
@@ -58,7 +58,7 @@ module.exports = class JGroup extends Module
       'update collection'                 : ['moderator']
       'assure collection'                 : ['moderator']
       'remove documents from collection'  : ['moderator']
-      'view readme'                       : ['guest', 'member', 'moderator']
+      'view readme'                       : ['member', 'moderator']
       'send invitations'                  : ['moderator']
 
       # those are for messages
@@ -78,7 +78,7 @@ module.exports = class JGroup extends Module
 
       # JTag related permissions
       'read tags'               :
-        public                  : ['guest', 'member', 'moderator']
+        public                  : ['member', 'moderator']
         private                 : ['member', 'moderator']
       'create tags'             : ['member', 'moderator']
       'freetag content'         : ['member', 'moderator']
