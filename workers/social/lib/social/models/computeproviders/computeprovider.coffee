@@ -419,11 +419,8 @@ module.exports = class ComputeProvider extends Base
 
       (next) ->
         fetchGroupStackTemplate client, (err, _res) ->
-          return callback err  if err
-
           { template, account, group } = res = _res
-
-          next()
+          next err
 
       (next) ->
         instanceCount = template.machines?.length or 0
@@ -432,24 +429,16 @@ module.exports = class ComputeProvider extends Base
         ComputeProvider.updateGroupResourceUsage {
           group, change, instanceCount
         }, (err) ->
-
-          return callback err  if err
-
-          next()
+          next err
 
       (next) ->
         checkTemplateUsage template, account, (err) ->
-          return callback err  if err
-
-          next()
+          next err
 
       (next) ->
         account.addStackTemplate template, (err) ->
-          return callback err  if err
-
           res.client = client
-
-          next()
+          next err
 
       (next) ->
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
@@ -458,10 +447,11 @@ module.exports = class ComputeProvider extends Base
             account.removeStackTemplate template, ->
               ComputeProvider.updateGroupResourceUsage {
                 group, change: 'decrement', instanceCount
-              }, -> callback err
+              }, -> next err
           else
-            callback null, stack
-    ]
+            next null, stack
+
+    ], callback
 
 
   do ->
