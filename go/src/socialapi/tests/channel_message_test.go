@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"socialapi/models"
 	"socialapi/request"
@@ -10,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/koding/runner"
-	"github.com/kr/pretty"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -62,7 +60,6 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 				So(post.InitialChannelId, ShouldNotEqual, topicChannel.Id)
-				fmt.Printf("post %# v", pretty.Formatter(post))
 				publicChannel, err := rest.GetChannelWithAccountId(post.InitialChannelId, account.Id)
 				So(err, ShouldBeNil)
 				So(publicChannel.TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)
