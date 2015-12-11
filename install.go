@@ -154,7 +154,7 @@ func InstallCommandFactory(c *cli.Context) int {
 	if err != nil {
 		// TODO: Log the error, or handle it somehow so it doesn't leak.
 		// log.Errorf("Error registering klient. %q", err)
-		fmt.Printf(`Error: Failed to authenticate the %s\n.
+		fmt.Printf(`Error: Failed to authenticate the %s.
 
 Please go back to Koding to get a new code and try again.
 `,
