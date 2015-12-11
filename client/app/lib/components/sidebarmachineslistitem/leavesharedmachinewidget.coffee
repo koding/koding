@@ -1,7 +1,7 @@
-kd      = require 'kd'
-React   = require 'kd-react'
-Popover = require 'app/components/common/popover'
-actions = require 'app/flux/environment/actions'
+React             = require 'kd-react'
+Popover           = require 'app/components/common/popover'
+actions           = require 'app/flux/environment/actions'
+InvitationWidget  = require './invitationwidget'
 
 
 module.exports = class LeaveSharedMachineWidget extends React.Component
@@ -17,10 +17,10 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
     then 'LEAVE SESSION'
     else 'LEAVE SHARED VM'
 
-    <Popover {...@props}>
-      <div>
-        <span>Shared with you by</span>
-      </div>
+    <InvitationWidget {...@props}>
+      <p className='InvitationWidget-Title'>Shared with you by</p>
       <div className="user-view"></div>
-      <button onClick={@bound 'onLeaveClicked'}>{buttonText}</button>
-    </Popover>
+      <button className='kdbutton solid medium red' onClick={@bound 'onLeaveClicked'}>
+        <span className='button-title'>{buttonText}</span>
+      </button>
+    </InvitationWidget>
