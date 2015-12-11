@@ -25,8 +25,9 @@ func MountCommand(c *cli.Context) int {
 		name       = c.Args()[0]
 		localPath  = c.Args()[1]
 		remotePath = c.String("remotepath") // note the lowercase of all chars
-		noIgnore   = c.Bool("noignore")
-		prefetch   = c.Bool("prefetch")
+		noIgnore   = c.Bool("noignore")     // note the lowercase of all chars
+		noPrefetch = c.Bool("noprefetch")   // note the lowercase of all chars
+		noWatch    = c.Bool("nowatch")      // note the lowercase of all chars
 	)
 
 	// allow scp like declaration, ie `<machine name>:/path/to/remote`
@@ -88,12 +89,14 @@ func MountCommand(c *cli.Context) int {
 		LocalPath  string `json:"localPath"`
 		RemotePath string `json:"remotePath"`
 		NoIgnore   bool   `json:"noIgnore"`
-		Prefetch   bool   `json:"prefetch"`
+		NoPrefetch bool   `json:"noPrefetch"`
+		NoWatch    bool   `json:"noWatch"`
 	}{
-		Name:      name,
-		LocalPath: localPath,
-		NoIgnore:  noIgnore,
-		Prefetch:  prefetch,
+		Name:       name,
+		LocalPath:  localPath,
+		NoIgnore:   noIgnore,
+		NoPrefetch: noPrefetch,
+		NoWatch:    noWatch,
 	}
 
 	// RemotePath is optional
