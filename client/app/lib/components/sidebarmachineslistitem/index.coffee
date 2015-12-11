@@ -107,6 +107,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   handleWorkspacesTitleClick: (event) ->
 
+    return null  unless @machine('type') is 'own'
+
     { computeController } = kd.singletons
 
     status  = @machine ['status', 'state']
