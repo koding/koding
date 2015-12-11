@@ -1,8 +1,13 @@
 kd                      = require 'kd'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 actions                 = require './actiontypes'
 getters                 = require './getters'
 Promise                 = require 'bluebird'
+Machine                 = require 'app/providers/machine'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
+sinkrow                 = require 'sinkrow'
+showError               = require 'app/util/showError'
+remote                  = require('app/remote').getInstance()
+
 
 _bindMachineEvents = (environmentData) ->
 
@@ -52,13 +57,20 @@ loadMachines = do (isPayloadUsed = no) ->->
         _bindMachineEvents data
 
     if environmentDataProvider.hasData() and not isPayloadUsed
-      isPayloadUsed = yes
+      isPayloadUsed   = yes
+      environmentData = environmentDataProvider.get()
+
+      # If there are any collaboration machines, fetch all machines data from server.
+      # Because `_globals` doesn't give workspace data of collaboration machines.
+      # Ping @senthil for the best solution.
+      if environmentData.collaboration.length
+        return environmentDataProvider.fetch (data) -> kallback null, data
+
       return kd.utils.defer ->
-        environmentData = environmentDataProvider.get()
         environmentDataProvider.revive()
         kallback null, environmentData
 
-    environmentDataProvider.fetch kallback
+    environmentDataProvider.fetch (data) -> kallback null, data
 
 
 loadStacks = ->
