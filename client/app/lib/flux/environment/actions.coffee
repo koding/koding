@@ -91,7 +91,83 @@ loadStacks = ->
         _bindStackEvents()
 
 
+rejectInvitation = (machine) ->
+
+  kd.singletons.machineShareManager.unset machine.get 'uid'
+
+  isApproved      = machine.get 'isApproved'
+  isPermanent     = machine.get 'isPermanent'
+  denyMachine     = switch machine.get 'type'
+    when 'shared'         then isPermanent
+    when 'collaboration'  then not isPermanent
+
+  queue = [
+    ->
+      if denyMachine
+      then remote.revive(machine.toJS()).deny (err) ->
+        return showError err  if err
+        queue.next()
+      else queue.next()
+    ->
+      return queue.next()  unless machine.get('type') is 'collaboration'
+
+      { channel } = kd.singletons.socialapi
+      workspace   = machine.get('workspaces').first()
+      method      = if isApproved then 'leave' else 'rejectInvite'
+
+      channel[method] { channelId: workspace.get 'channelId' }, (err) ->
+        showError err  if err
+        queue.next()
+    ->
+      if denyMachine
+        environmentDataProvider.getIDEFromUId(machine.get('uid'))?.quit()
+
+      actionType = if machine.get('type') is 'collaboration'
+      then 'COLLABORATION_INVITATION_REJECTED'
+      else 'SHARED_VM_INVITATION_REJECTED'
+
+      kd.singletons.reactor.dispatch actions[actionType], machine.get '_id'
+      queue.next()
+  ]
+
+  sinkrow.daisy queue
+
+
+acceptInvitation = (machine, channelId) ->
+
+  { router, machineShareManager, socialapi, reactor } = kd.singletons
+
+  machineShareManager.unset machine.get 'uid'
+
+  jMachine = remote.revive machine.toJS()
+
+  jMachine.approve (err) =>
+
+    return showError err  if err
+
+    kallback = (route, callback) ->
+
+      # Fetch all machines
+      loadMachines().then ->
+        callback()
+        router.handleRoute route
+
+
+    if machine.get('type') is 'collaboration'
+      if workspace = machine.get('workspaces')?.toList()?.first()
+        socialapi.channel.acceptInvite { channelId: workspace.get 'channelId' }, (err) ->
+          return showError err  if err
+
+          kallback "/IDE/#{workspace.get 'channelId'}", ->
+            reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+    else
+      kallback "/IDE/#{machine.get 'uid'}/my-workspace", ->
+        reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+
+
 module.exports = {
   loadMachines
   loadStacks
+  rejectInvitation
+  acceptInvitation
 }
