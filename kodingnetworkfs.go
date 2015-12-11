@@ -120,10 +120,6 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	rootDir := NewDir(rootEntry, NewIDGen())
 	watcher := NewFindWatcher(t, rootDir.RemotePath)
 
-	if !c.NoWatch {
-		go WatchForRemoteChanges(rootDir, watcher)
-	}
-
 	// update entries for root directory
 	if err := rootDir.Expire(); err != nil {
 		return nil, err
@@ -137,6 +133,12 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	ignoredFolderList := map[string]struct{}{}
 	ignoreFolders := []string{}
 
+	// watch for changes on remote optionally
+	if !c.NoWatch {
+		go WatchForRemoteChanges(rootDir, watcher)
+	}
+
+	// ignore fetching folders from remote optionally
 	if !c.NoIgnore {
 		ignoreFolders = append(DefaultFolderIgnoreList, c.IgnoreFolders...)
 
@@ -146,7 +148,8 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		}
 	}
 
-	if c.Prefetch {
+	// don't prefetch folder/file metadata optionally
+	if !c.NoPrefetch {
 		// remove entries fetched above or it'll have double entries
 		rootDir.Reset()
 
@@ -179,7 +182,11 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
-	k.Watcher.Close()
+	// watcher can be nil if Config.NoWatch was set to true
+	if k.Watcher != nil {
+		k.Watcher.Close()
+	}
+
 	return Unmount(k.MountPath)
 }
 
