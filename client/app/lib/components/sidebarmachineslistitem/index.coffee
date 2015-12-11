@@ -1,12 +1,24 @@
-kd                  = require 'kd'
-React               = require 'kd-react'
-toImmutable         = require 'app/util/toImmutable'
-Link                = require 'app/components/common/link'
-Machine             = require 'app/providers/machine'
-remote              = require('app/remote').getInstance()
-MoreWorkspacesModal = require 'app/activity/sidebar/moreworkspacesmodal'
+kd                              = require 'kd'
+Link                            = require 'app/components/common/link'
+React                           = require 'kd-react'
+remote                          = require('app/remote').getInstance()
+Machine                         = require 'app/providers/machine'
+ReactDOM                        = require 'react-dom'
+htmlencode                      = require 'htmlencode'
+toImmutable                     = require 'app/util/toImmutable'
+getMachineLink                  = require 'app/util/getMachineLink'
+isMachineRunning                = require 'app/util/isMachineRunning'
+MoreWorkspacesModal             = require 'app/activity/sidebar/moreworkspacesmodal'
+LeaveSharedMachineWidget        = require './leavesharedmachinewidget'
+isMachineSettingsIconEnabled    = require 'app/util/isMachineSettingsIconEnabled'
+SharingMachineInvitationWidget  = require './sharingmachineinvitationwidget'
+
 
 module.exports = class SidebarMachinesListItem extends React.Component
+
+  @defaultProps =
+    bindWorkspacesTitleClick  : yes
+
 
   constructor: (props) ->
 
@@ -16,7 +28,19 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     @state = {
       collapsed : status isnt Machine.State.Running and not @props.active
+      showLeaveSharedMachineWidget : yes
     }
+
+
+  componentWillReceiveProps: ->
+
+    sidebarListItem = ReactDOM.findDOMNode @refs.SidebarMachinesListItem
+    clientRect      = sidebarListItem.getBoundingClientRect()
+    coordinates     =
+      top           : clientRect.top
+      left          : clientRect.width + clientRect.left + 25
+
+    @setState { coordinates: coordinates }
 
 
   machine: (key) ->
@@ -30,6 +54,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     kd.utils.stopDOMEvent event
     @setState { collapsed: not @state.collapsed }
+
+    unless isMachineRunning @props.machine
+      kd.singletons.router.handleRoute getMachineLink @props.machine
 
 
   renderUnreadCount: ->
@@ -59,21 +86,58 @@ module.exports = class SidebarMachinesListItem extends React.Component
       <Link
         key={workspace.get '_id'}
         className='Workspace-link'
-        href={"/IDE/#{@machine 'slug'}/#{workspace.get 'slug'}"}
+        href={@getWorkspaceLink workspace}
         >
         <cite className='Workspace-icon' />
         <span className='Workspace-title'>{workspace.get 'name'}</span>
       </Link>
 
 
+  getWorkspaceLink: (workspace) ->
+
+    getMachineLink @props.machine, workspace
+
+
   renderWorkspaceSection: ->
 
     return null  if @state.collapsed
+    return null  unless @machine 'isApproved'
+    return null  unless isMachineRunning @props.machine
 
     <section className='Workspaces-section'>
       <h3 onClick={@bound 'handleWorkspacesTitleClick'}>WORKSPACES</h3>
       {@renderWorkspaces()}
     </section>
+
+
+  renderInvitationWidget: ->
+
+    return null  if @machine('type') is 'own'
+    return null  if @machine 'isApproved'
+
+    <SharingMachineInvitationWidget
+      coordinates={@state.coordinates}
+      machine={@props.machine}
+      />
+
+
+  renderLeaveSharedMachine: ->
+
+    return null  unless @state.showLeaveSharedMachineWidget
+    return null  if @machine('type') is 'own'
+    return null  unless @machine 'isApproved'
+
+    <LeaveSharedMachineWidget
+      coordinates={@state.coordinates}
+      machine={@props.machine}
+      isOpened={@state.showLeaveSharedMachineWidget}
+      onClose={@bound 'handlePopoverOnClose'}
+      />
+
+
+  handlePopoverOnClose: ->
+
+    @setState { showLeaveSharedMachineWidget : no }
 
 
   render: ->
@@ -85,20 +149,50 @@ module.exports = class SidebarMachinesListItem extends React.Component
       <Link
         className={"SidebarMachinesListItem--MainLink#{activeClass}"}
         # make this link dynamic pointing to latest open workspace
-        href={"/IDE/#{@machine 'slug'}"}
+        href='#'
         onClick={@bound 'handleMachineClick'}
+        ref='SidebarMachinesListItem'
         >
         <cite className={"SidebarListItem-icon"} title={"Machine status: #{status}"}/>
-        <span className='SidebarListItem-title'>{@machine 'label'}</span>
+        <span className='SidebarListItem-title'>{@getMachineLabel()}</span>
         {@renderUnreadCount()}
         {@renderProgressbar()}
       </Link>
-      <Link
-        className='MachineSettings'
-        href={"/Machines/#{@machine 'slug'}"}
-        />
+      {@renderMachineSettingsIcon()}
       {@renderWorkspaceSection()}
+      {@renderInvitationWidget()}
+      {@renderLeaveSharedMachine()}
     </div>
+
+
+  renderMachineSettingsIcon: ->
+
+    return null  unless @machine 'isApproved'
+    return null  unless @settingsEnabled()
+
+    <Link
+      className='MachineSettings'
+      onClick={@bound 'handleMachineSettingsClick'}
+      />
+
+
+  handleMachineSettingsClick: ->
+
+    if @machine('type') is 'own'
+      kd.singletons.router.handleRoute "/Machines/#{@machine 'slug'}"
+    else
+      @setState { showLeaveSharedMachineWidget : yes }
+
+
+  settingsEnabled: -> isMachineSettingsIconEnabled @props.machine.toJS()
+
+
+  getMachineLabel: ->
+
+    label  = "#{@machine 'label'}"
+    label += " (@#{@machine 'owner'})"  if @machine('type') isnt 'own'
+
+    return label
 
 
   #
