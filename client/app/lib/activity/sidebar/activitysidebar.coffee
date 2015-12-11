@@ -109,7 +109,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'GroupStacksInconsistent',   @bound 'addGroupStacksChangedWarning'
       .on 'GroupStacksConsistent',     @bound 'hideGroupStacksChangedWarning'
 
-
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
     environmentDataProvider.revive()

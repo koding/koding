@@ -18,6 +18,7 @@ _bindMachineEvents = (environmentData) ->
   machines.map (machine, id) ->
 
     computeController.on "public-#{id}", (event) ->
+
       reactor.dispatch actions.MACHINE_UPDATED, { id, event }
 
     computeController.on "revive-#{id}", (newMachine) ->
@@ -25,6 +26,9 @@ _bindMachineEvents = (environmentData) ->
       return loadMachines()  unless newMachine
 
       reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
+
+  # Try to catch collaboration and shared vm invitations on the fly.
+  computeController.on 'RenderMachines', -> loadMachines()
 
 
 _bindStackEvents = ->
