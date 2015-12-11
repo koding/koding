@@ -28,7 +28,7 @@ module.exports = class Scroller extends React.Component
     @props.onThresholdReached?()
 
 
-  update: -> @refs.scrollContainer.update()
+  _update: -> @refs.scrollContainer._update()
 
 
   render: ->

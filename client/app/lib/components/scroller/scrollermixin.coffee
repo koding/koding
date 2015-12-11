@@ -4,10 +4,31 @@ scrollerActions = require './scrolleractions'
 
 module.exports = ScrollerMixin =
 
+  componentDidMount: ->
+
+    @scrollerAction = null
+    window.addEventListener "resize", @bound 'onWindowResize'
+
+
   componentWillUpdate: ->
 
     { SCROLL_TO_BOTTOM } = scrollerActions
     @scrollerAction = SCROLL_TO_BOTTOM  if @shouldScrollToBottom()
+
+
+  componentDidUpdate: ->
+
+    @beforeScrollDidUpdate?()
+
+    @performScrollerAction @scrollerAction
+    @scrollerAction = null
+
+    @afterScrollDidUpdate?()
+
+
+  componentWillUnmount: ->
+
+    window.removeEventListener "resize", @bound 'onWindowResize'
 
 
   shouldScrollToBottom: ->
@@ -23,16 +44,6 @@ module.exports = ScrollerMixin =
     return @scrollHeight - (@scrollTop + offsetHeight) < 10
 
 
-  componentDidUpdate: ->
-
-    @beforeScrollDidUpdate?()
-
-    @performScrollerAction @scrollerAction
-    @scrollerAction = null
-
-    @afterScrollDidUpdate?()
-
-
   performScrollerAction: (action) ->
 
     return  unless @refs?.scrollContainer
@@ -46,21 +57,11 @@ module.exports = ScrollerMixin =
       when KEEP_POSITION
         element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
       when UPDATE
-        @refs.scrollContainer.update()
+        @refs.scrollContainer._update()
 
 
   onWindowResize: ->
 
     { SCROLL_TO_BOTTOM } = scrollerActions
     @performScrollerAction SCROLL_TO_BOTTOM  if @shouldScrollToBottom()
-
-
-  componentDidMount: ->
-
-    window.addEventListener "resize", @bound 'onWindowResize'
-
-
-  componentWillUnmount: ->
-
-    window.removeEventListener "resize", @bound 'onWindowResize'
 
