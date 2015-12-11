@@ -8,7 +8,7 @@ ThreadHeader         = require 'activity/components/threadheader'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
-
+getGroup             = require 'app/util/getGroup'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -43,7 +43,17 @@ module.exports = class ChannelThreadPane extends React.Component
   invitePeople: -> @refs.pane.onInviteOthers()
 
 
-  leaveChannel: -> actions.channel.unfollowChannel @channel 'id'
+  leaveChannel: ->
+
+    channelId = @channel 'id'
+
+    if @channel('typeConstant') is "privatemessage"
+      actions.channel.leavePrivateChannel channelId
+        .then ->
+          channelName = getGroup().slug
+          kd.singletons.router.handleRoute "/Channels/#{channelName}"
+    else
+      actions.channel.unfollowChannel channelId
 
 
   renderHeader: ->
