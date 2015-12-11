@@ -6,8 +6,8 @@ browserNotifications = require('browser-notifications')(Promise)
 ###*
  * Makes sure browser notifications are supported.
  *
- * @param {function} callback
- * @param {function|undefined} callback
+ * @param {Function} callback
+ * @return {Function|undefined} callback
 ###
 supported = (callback) ->
   return callback  if browserNotifications.isSupported()
@@ -15,6 +15,9 @@ supported = (callback) ->
 
 ###*
  * Makes sure that user has given us permissions to send desktop notifications.
+ *
+ * @param {Function} callback - to be called with err, and args object.
+ * @return {Function}
 ###
 permitted = (callback) -> (args...) ->
   browserNotifications
@@ -29,14 +32,14 @@ permitted = (callback) -> (args...) ->
 module.exports = class DesktopNotificationsController extends kd.Controller
 
   ###
-   * makes sure browser notifications are supported and permitted by user.
+   * Makes sure browser notifications are supported and permitted by user.
    *
    * NOTE: it curries given options object with the result of err from
    * `permitted` helper.
    *
-   * @param {object} options
-   * @param {string} options.title
-   * @param {string} options.message
+   * @param {Object} options
+   * @param {String} options.title
+   * @param {String} options.message
    * @return {Promise} a promise which will resolve if user clicks to notification.
   ###
   notify: supported permitted (err, options) ->
