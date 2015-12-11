@@ -14,6 +14,7 @@ export REVISION=${REVISION:0:7}
 run() {
   SUITE=$1
   SUBSUITE=$2
+  TESTNAME=$3
 
   if [ -z "$SUITE" ]; then
     for i in ./$BUILD_DIR/*;do
@@ -31,15 +32,17 @@ run() {
 
     if [ -z "$SUBSUITE" ]; then
       $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE
-    else
+    elif [ -z "$TESTNAME" ]; then
       $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js
+    else
+      $NIGHTWATCH_CMD --test ./$BUILD_DIR/$SUITE/$SUBSUITE.js --testcase $TESTNAME
     fi
   fi
 }
 
 make compile
 
-run $1 $2
+run $1 $2 $3
 
 CODE=$?
 
