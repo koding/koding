@@ -8,9 +8,14 @@ SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 
 module.exports = class SidebarStackSection extends React.Component
 
-  @defaultProps =
+  @defaultProps   =
     selectedId    : null
     stack         : immutable.Map()
+
+
+  componentDidMount: ->
+
+    @props.onStackRendered()
 
 
   renderMachines: ->
