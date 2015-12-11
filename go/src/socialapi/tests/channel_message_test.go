@@ -63,7 +63,7 @@ func TestChannelMessage(t *testing.T) {
 				So(post, ShouldNotBeNil)
 				So(post.InitialChannelId, ShouldNotEqual, topicChannel.Id)
 				fmt.Printf("post %# v", pretty.Formatter(post))
-				publicChannel, err := rest.GetChannel(post.InitialChannelId)
+				publicChannel, err := rest.GetChannelWithAccountId(post.InitialChannelId, account.Id)
 				So(err, ShouldBeNil)
 				So(publicChannel.TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)
 			})

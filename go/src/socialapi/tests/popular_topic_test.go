@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"socialapi/models"
 	"socialapi/rest"
@@ -23,29 +24,33 @@ func TestPopularTopic(t *testing.T) {
 		Convey("order should be preserved", t, func() {
 			groupName := models.RandomGroupName()
 			account := models.CreateAccountInBothDbsWithCheck()
+
 			groupChannel := models.CreateTypedGroupedChannelWithTest(
 				account.Id,
 				models.Channel_TYPE_GROUP,
 				groupName,
 			)
 
-			_, err := groupChannel.AddParticipant(account.Id)
+			ses, err := models.FetchOrCreateSession(account.Nick, groupChannel.GroupName)
+			So(err, ShouldBeNil)
+
+			_, err = groupChannel.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
 
 			for i := 0; i < 5; i++ {
-				post, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #5times")
+				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, account.Id, "create a message #5times", ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 			}
 
 			for i := 0; i < 4; i++ {
-				post, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #4times")
+				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, account.Id, "create a message #4times", ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 			}
 
 			for i := 0; i < 3; i++ {
-				post, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #3times")
+				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, account.Id, "create a message #3times", ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 			}
@@ -53,7 +58,8 @@ func TestPopularTopic(t *testing.T) {
 			//required for backgroud task to be finished
 			time.Sleep(1 * time.Second)
 
-			popularTopics, err := rest.FetchPopularTopics(account.Id, groupName)
+			popularTopics, err := rest.FetchPopularTopics(account.Id, groupName, ses.ClientId)
+			fmt.Println("POPULAR TOPIC,POPULAR TOPIC,POPULAR TOPIC:", popularTopics)
 
 			So(err, ShouldBeNil)
 			So(popularTopics, ShouldNotBeNil)
@@ -81,7 +87,7 @@ func TestPopularTopic(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(channelParticipant, ShouldNotBeNil)
 
-			popularTopics, err = rest.FetchPopularTopics(account.Id, groupName)
+			popularTopics, err = rest.FetchPopularTopics(account.Id, groupName, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(popularTopics, ShouldNotBeNil)
 			So(popularTopics[0].IsParticipant, ShouldBeTrue)
