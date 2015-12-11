@@ -13,6 +13,7 @@ module.exports = class CollaborationMachinesStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
+    @on actions.COLLABORATION_INVITATION_REJECTED, @rejectInvitation
 
 
   load: (machines, { collaboration }) ->
@@ -20,3 +21,10 @@ module.exports = class CollaborationMachinesStore extends KodingFluxStore
     machines.withMutations (machines) ->
       collaboration.forEach ({ machine }) ->
         machines.set machine._id, machine._id
+
+
+  rejectInvitation: (machines, id ) ->
+
+    return machines  unless machines.has id
+
+    machines.remove id
