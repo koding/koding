@@ -29,11 +29,11 @@ type Tags map[string]string
 func (t Tags) Matches(tags Tags) bool {
 	matches := make(map[string]struct{})
 	for k, v := range t {
-		if val, ok := tags[k]; ok && (v == "" || v == val) {
+		if val, ok := tags[k]; ok && (val == "" || v == "" || v == val) {
 			matches[k] = struct{}{}
 		}
 	}
-	return len(matches) == len(t)
+	return len(matches) == len(tags)
 
 }
 
@@ -165,5 +165,5 @@ func (t Templates) Filter(f *Filter) Templates {
 type byCreateDateDesc []*Template
 
 func (p byCreateDateDesc) Len() int           { return len(p) }
-func (p byCreateDateDesc) Less(i, j int) bool { return p[i].CreateDate.After(p[i].CreateDate) }
+func (p byCreateDateDesc) Less(i, j int) bool { return p[i].CreateDate.After(p[j].CreateDate) }
 func (p byCreateDateDesc) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }

@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"text/tabwriter"
 	"time"
 
 	"koding/kites/kloud/api/ibm"
 
 	slclient "github.com/maximilien/softlayer-go/client"
-	"github.com/maximilien/softlayer-go/softlayer"
 )
 
-var sl softlayer.Client
+var opts = &ibm.Options{}
 
 func init() {
 	os.Unsetenv("SL_GO_NON_VERBOSE")
 
-	sl = slclient.NewSoftLayerClient(
+	opts.SLClient = slclient.NewSoftLayerClient(
 		os.Getenv("KLOUD_TESTACCOUNT_SLUSERNAME"),
 		os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
 	)
@@ -42,9 +42,9 @@ func validate(t ibm.Templates) error {
 }
 
 func TestClient(t *testing.T) {
-	c := ibm.NewSoftlayer(sl)
+	c := ibm.NewSoftlayerWithOptions(opts)
 	f := &ibm.Filter{
-		Datacenter: "dal06",
+		Datacenter: "sjc01",
 	}
 	d := time.Now()
 	templates, err := c.TemplatesByFilter(f)
@@ -66,4 +66,25 @@ func TestClient(t *testing.T) {
 	if len(templates) != len(xtemplates) {
 		t.Fatalf("want len(templates)=%d == len(xtemplates)=%d\n", len(templates), len(xtemplates))
 	}
+}
+
+func TestLookupImage(t *testing.T) {
+	c := ibm.NewSoftlayerWithOptions(opts)
+	f := &ibm.Filter{
+		Tags: ibm.Tags{
+			"Name": "koding-stable",
+		},
+	}
+	images, err := c.TemplatesByFilter(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := &tabwriter.Writer{}
+	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	fmt.Fprintln(w, "ID\tGlobalID\tTags\tDatacenter\tDatacenters")
+	for _, image := range images {
+		fmt.Fprintf(w, "%d\t%s\t%s\t%v\t%v\n", image.ID, image.GlobalID,
+			image.Tags, image.Datacenter, image.Datacenters)
+	}
+	w.Flush()
 }

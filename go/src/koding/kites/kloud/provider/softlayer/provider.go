@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/api/ibm"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
@@ -22,22 +23,13 @@ import (
 	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-
-	"github.com/maximilien/softlayer-go/softlayer"
 )
-
-// DefaultImageID is a standard image template for sjc01 region.
-//
-// TODO(rjeczalik): this is going to be replaced by querying
-// Softlayer for image tagged production / testing depending
-// on the env kloud is started in (cmd line switch).
-const DefaultImageID = "a2f93d90-5df9-44ee-afb2-931a98186836"
 
 type Provider struct {
 	DB         *mongodb.MongoDB
 	Log        logging.Logger
 	Kite       *kite.Kite
-	SLClient   softlayer.Client
+	SLClient   *ibm.Softlayer
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
 	Userdata   *userdata.Userdata
@@ -80,12 +72,6 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		// http://www.softlayer.com/data-centers
 		machine.Meta["datacenter"] = "sjc01"
 		p.Log.Critical("[%s] datacenter is not set in. Fallback to sjc01", machine.ObjectId.Hex())
-	}
-
-	if meta.SourceImage == "" {
-		machine.Meta["sourceImage"] = DefaultImageID
-		p.Log.Critical("[%s] image template ID is not set, using default one: %q",
-			machine.ObjectId.Hex(), DefaultImageID)
 	}
 
 	p.Log.Debug("Using datacenter=%q, image=%q", meta.Datacenter, meta.SourceImage)

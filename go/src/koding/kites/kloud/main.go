@@ -19,6 +19,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/api/ibm"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
@@ -37,8 +38,6 @@ import (
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/multiconfig"
-
-	slclient "github.com/maximilien/softlayer-go/client"
 )
 
 var Name = "kloud"
@@ -78,6 +77,10 @@ type Config struct {
 
 	// Defines the default AMI Tag to use for koding provider
 	AMITag string
+
+	// Defines the default name tag value to lookup a Block Device Template
+	// for softlayer provider
+	SLTemplateTag string
 
 	// MaxResults limits the max items fetched per page for each
 	// AWS Describe* API calls.
@@ -180,6 +183,11 @@ func newKite(conf *Config) *kite.Kite {
 		koding.DefaultCustomAMITag = conf.AMITag
 	}
 
+	if conf.SLTemplateTag != "" {
+		k.Log.Warning("Default Template tag changed from %s to %s", softlayer.DefaultTemplateTag, conf.SLTemplateTag)
+		softlayer.DefaultTemplateTag = conf.SLTemplateTag
+	}
+
 	klientFolder := "development/latest"
 	checkInterval := time.Second * 5
 	if conf.ProdMode {
@@ -225,8 +233,6 @@ func newKite(conf *Config) *kite.Kite {
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
-	sl := slclient.NewSoftLayerClient(conf.SLUsername, conf.SLAPIKey)
-
 	/// KODING PROVIDER ///
 
 	kodingProvider := &koding.Provider{
@@ -260,6 +266,8 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	/// SOFTLAYER PROVIDER ///
+
+	sl := ibm.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
 
 	softlayerProvider := &softlayer.Provider{
 		DB:         db,

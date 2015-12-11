@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/api/ibm"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/scripts/softlayer/userdata"
@@ -20,9 +21,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-const (
+var (
 	// Go binary source code residues at go/src/koding/kites/kloud/scripts/softlayer
 	PostInstallScriptUri = "https://s3.amazonaws.com/kodingdev-softlayer/softlayer"
+
+	// Only lookup images that have this tag
+	DefaultTemplateTag = "koding-stable"
 )
 
 func (m *Machine) Build(ctx context.Context) (err error) {
@@ -93,6 +97,13 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
+	imageID, err := m.lookupImage(DefaultTemplateTag, meta.Datacenter)
+	if err != nil {
+		return err
+	}
+
+	m.Meta["sourceImage"] = imageID
+
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
 		Hostname:          m.Username,  // this is correct, we use the username as hostname
@@ -103,7 +114,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		HourlyBillingFlag: true,
 		LocalDiskFlag:     true,
 		BlockDeviceTemplateGroup: &datatypes.BlockDeviceTemplateGroup{
-			GlobalIdentifier: meta.SourceImage,
+			GlobalIdentifier: imageID,
 		},
 		UserData:             []datatypes.UserData{{Value: string(val)}},
 		PostInstallScriptUri: PostInstallScriptUri,
@@ -161,13 +172,39 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 				"queryString":       m.QueryString,
 				"meta.id":           obj.Id,
 				"meta.datacenter":   meta.Datacenter,
-				"meta.sourceImage":  meta.SourceImage,
+				"meta.sourceImage":  imageID,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Build finished",
 			}},
 		)
 	})
+}
+
+func (m *Machine) lookupImage(tag, datacenter string) (globalID string, err error) {
+	m.Log.Debug("Looking for a Koding Base Image with name=%q in datacenter=%q", tag, datacenter)
+
+	filter := &ibm.Filter{
+		Tags: ibm.Tags{
+			"Name": tag,
+		},
+	}
+
+	global, err := m.Session.SLClient.TemplatesByFilter(filter)
+	if err != nil {
+		return "", err
+	}
+
+	if regional := global.ByDatacenter(datacenter); len(regional) != 0 {
+		if len(regional) > 1 {
+			m.Log.Warning("more than one template found for tag=%q, datacener=%q - using latest", tag, datacenter)
+		}
+		return regional[0].GlobalID, nil
+	}
+
+	m.Log.Warning("no templates found for tag=%q, datacenter=%q - falling back to global", tag, datacenter)
+
+	return global[0].GlobalID, nil
 }
 
 func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string) error {
