@@ -226,7 +226,7 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
               queue.next()
 
           ->
-            options = generateDefaultOptions { queryString : 'invalidQueryString' }
+            options = generateDefaultOptions { queryString : '/1/2/3' }
             Managed.update client, options, (err) ->
               expect(err?.message).to.be.equal 'Provided queryString is not valid'
               queue.next()
