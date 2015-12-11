@@ -1,6 +1,6 @@
-_ = require 'lodash'
-kd = require 'kd'
-Promise = require 'bluebird'
+_                    = require 'lodash'
+kd                   = require 'kd'
+Promise              = require 'bluebird'
 browserNotifications = require('browser-notifications')(Promise)
 
 ###*
@@ -59,7 +59,7 @@ module.exports = class DesktopNotificationsController extends kd.Controller
 
 
 defaultNotificationOptions =
-  iconUrl: '/a/images/logos/share_logo.png'
-  title: ''
-  message: ''
+  iconUrl : '/a/images/logos/share_logo.png'
+  title   : ''
+  message : ''
 
