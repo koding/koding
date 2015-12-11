@@ -81,7 +81,7 @@ type Config struct {
 
 	// MaxResults limits the max items fetched per page for each
 	// AWS Describe* API calls.
-	MaxResults int `default:"500"`
+	MaxResults int `default:"100"`
 
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
