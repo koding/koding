@@ -6,6 +6,10 @@ InvitationWidget  = require './invitationwidget'
 
 module.exports = class LeaveSharedMachineWidget extends React.Component
 
+  @defaultProps =
+    className : '--Approved'
+
+
   onLeaveClicked: ->
 
     actions.rejectInvitation @props.machine
