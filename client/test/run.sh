@@ -46,8 +46,10 @@ run $1 $2 $3
 
 CODE=$?
 
-if [ $CODE -ne 0 ]; then
-  mv users.json users-$1-$2.json
+if [ "$(hostname)" == 'wercker-test-instance' ]; then
+  if [ $CODE -ne 0 ]; then
+    mv users.json users-$1-$2.json
+  fi
 fi
 
 exit $CODE
