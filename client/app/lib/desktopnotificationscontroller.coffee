@@ -9,7 +9,7 @@ browserNotifications = require('browser-notifications')(Promise)
  * @param {function|undefined} callback
 ###
 supported = (callback) ->
-  callback  if browserNotifications.isSupported()
+  return callback  if browserNotifications.isSupported()
 
 
 ###*
