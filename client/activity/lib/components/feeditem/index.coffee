@@ -82,8 +82,8 @@ module.exports = class FeedItem extends React.Component
   handleCommentInputChange: (event) ->
 
     hasValue = no
-    value    = event.target.value.trim()
-    hasValue = yes  if value
+    value    = event.target.value
+    hasValue = yes  if value.trim()
     @setState { hasValue: hasValue, commentValue: value }
 
 
@@ -136,6 +136,7 @@ module.exports = class FeedItem extends React.Component
 
     { message } = @props
     imAccount   = toImmutable({ id: whoami()._id, constructorName: 'JAccount'})
+    likeText = if message.getIn ['interactions', 'like',  'isInteracted'] then 'Unlike' else 'Like'
 
     <div className={kd.utils.curry 'FeedItem', @props.className}>
       <header className="FeedItem-header">
@@ -164,7 +165,7 @@ module.exports = class FeedItem extends React.Component
             tooltip={no}
             messageId={message.get('id')}
             interactions={message.get('interactions').toJS()}>
-            Like
+            {likeText}
           </ActivityLikeLink>
           <Link onClick={@bound 'sendComment'}>Comment</Link>
           <Link onClick={@bound 'toggleSharePopupVisibility'}>Share</Link>
