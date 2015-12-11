@@ -1,3 +1,4 @@
+_ = require 'lodash'
 kd = require 'kd'
 Promise = require 'bluebird'
 browserNotifications = require('browser-notifications')(Promise)
@@ -50,8 +51,10 @@ module.exports = class DesktopNotificationsController extends kd.Controller
     new Promise (resolve, reject) ->
       return reject err  if err
 
+      options = _.assign {}, defaultNotificationOptions, options
+
       return browserNotifications
-        .send options.title, options.message
+        .send options.title, options.message, options.iconUrl
         .then resolve
         .catch reject
 
