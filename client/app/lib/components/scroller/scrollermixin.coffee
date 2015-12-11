@@ -1,14 +1,16 @@
-React    = require 'kd-react'
-ReactDOM = require 'react-dom'
+React           = require 'kd-react'
+ReactDOM        = require 'react-dom'
+scrollerActions = require './scrolleractions'
 
 module.exports = ScrollerMixin =
 
   componentWillUpdate: ->
 
-    @shouldScrollToBottom = @shouldScrollBottom()
+    { SCROLL_TO_BOTTOM } = scrollerActions
+    @scrollerAction = SCROLL_TO_BOTTOM  if @shouldScrollToBottom()
 
 
-  shouldScrollBottom: ->
+  shouldScrollToBottom: ->
 
     return  unless @refs?.scrollContainer
 
@@ -25,35 +27,40 @@ module.exports = ScrollerMixin =
 
     @beforeScrollDidUpdate?()
 
-    return  unless @refs?.scrollContainer
-
-    element = ReactDOM.findDOMNode @refs.scrollContainer
-    if @shouldScrollToBottom
-      element.scrollTop = element.scrollHeight
-    else if @isThresholdReached
-      element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
-
-    @isThresholdReached = no
+    @performScrollerAction @scrollerAction
+    @scrollerAction = null
 
     @afterScrollDidUpdate?()
 
 
-  setScrollPosition: ->
+  performScrollerAction: (action) ->
 
     return  unless @refs?.scrollContainer
 
-    scrollContainer = ReactDOM.findDOMNode @refs.scrollContainer
+    { SCROLL_TO_BOTTOM, KEEP_POSITION, UPDATE } = scrollerActions
 
-    if @shouldScrollBottom()
-      scrollContainer.scrollTop = scrollContainer.scrollHeight
+    element = ReactDOM.findDOMNode @refs.scrollContainer
+    switch action
+      when SCROLL_TO_BOTTOM
+        element.scrollTop = element.scrollHeight
+      when KEEP_POSITION
+        element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
+      when UPDATE
+        @refs.scrollContainer.update()
+
+
+  onWindowResize: ->
+
+    { SCROLL_TO_BOTTOM } = scrollerActions
+    @performScrollerAction SCROLL_TO_BOTTOM  if @shouldScrollToBottom()
 
 
   componentDidMount: ->
 
-    window.addEventListener "resize", @bound 'setScrollPosition'
+    window.addEventListener "resize", @bound 'onWindowResize'
 
 
   componentWillUnmount: ->
 
-    window.removeEventListener "resize", @bound 'setScrollPosition'
+    window.removeEventListener "resize", @bound 'onWindowResize'
 
