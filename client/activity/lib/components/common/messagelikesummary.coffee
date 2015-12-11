@@ -23,6 +23,7 @@ summarizeLikes = (message) ->
     else previews.size
 
   children = []
+  counter = 0
 
   previews.slice(0, linkCount).forEach (preview, index) ->
 
@@ -34,9 +35,11 @@ summarizeLikes = (message) ->
     )
     children.push(
       <span>
-        {getSeparator actorsCount, linkCount, index}
+        {getSeparator actorsCount, linkCount, counter}
       </span>
     )
+
+    counter++
 
   if (diff = actorsCount - linkCount) > 0
     children.push(
