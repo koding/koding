@@ -18,16 +18,11 @@ supported = (callback) ->
 ###
 permitted = (callback) -> (args...) ->
   browserNotifications
-    # request permissions first
     .requestPermissions()
-    # get the selection of user
     .then (isPermitted) ->
       return if isPermitted
-      # if permitted there is no error, and call given callback with args.
       then callback null, args...
-      # if user hasn't permitted, call given callback with an error object.
       else callback { message: 'Browser notifications are not permitted' }
-    # if there is an error call given callback with error.
     .catch (err) -> callback err
 
 
