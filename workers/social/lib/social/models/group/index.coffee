@@ -49,7 +49,7 @@ module.exports = class JGroup extends Module
         public                            : ['moderator', 'member']
         private                           : ['moderator', 'member']
       'read group activity'               :
-        public                            : ['member', 'moderator']
+        public                            : ['guest', 'member', 'moderator']
         private                           : ['member', 'moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
