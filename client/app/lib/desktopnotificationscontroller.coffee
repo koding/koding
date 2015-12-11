@@ -56,3 +56,8 @@ module.exports = class DesktopNotificationsController extends kd.Controller
         .catch reject
 
 
+defaultNotificationOptions =
+  iconUrl: '/a/images/logos/share_logo.png'
+  title: ''
+  message: ''
+
