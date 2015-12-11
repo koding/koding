@@ -98,6 +98,7 @@ module.exports           = class MainController extends KDController
 
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
     kd.registerSingleton 'notificationController',    new NotificationController
+    kd.registerSingleton 'desktopNotifications',      new DesktopNotificationsController
     kd.registerSingleton 'linkController',            new LinkController
     kd.registerSingleton 'display',                   new ContentDisplayController
     kd.registerSingleton 'router',           router = new KodingRouter
