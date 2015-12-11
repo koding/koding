@@ -47,6 +47,8 @@ module.exports = class TeamManageView extends kd.View
 
     @addSubView @controller.getView()
 
+    @listView.on 'ReloadRequested', @bound 'search'
+
 
   search: ->
 

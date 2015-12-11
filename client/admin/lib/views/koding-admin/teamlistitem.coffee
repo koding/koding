@@ -32,7 +32,8 @@ module.exports = class TeamListItem extends kd.ListItemView
 
   createDetailsView: ->
 
-    team = @getData()
+    team     = @getData()
+    delegate = @getDelegate()
 
     @details = new kd.CustomHTMLView
       cssClass : 'hidden'
@@ -75,6 +76,7 @@ module.exports = class TeamListItem extends kd.ListItemView
           callback   : ->
             team.destroy (err) ->
               return  if showError err
+              delegate.emit 'ReloadRequested'
               modal.destroy()
         , team
 
