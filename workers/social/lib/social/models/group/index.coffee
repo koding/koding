@@ -1431,62 +1431,56 @@ module.exports = class JGroup extends Module
     ]
     success  : (client, callback) ->
 
-      removeHelper = (model, err, callback, next) ->
-        return callback err  if err
+      JName = require '../name'
+
+      removeHelper = (model, err, next) ->
+        return next err  if err
         return next()  unless model
 
-        model.remove (err) ->
-          return callback err if err
-          next()
+        model.remove (err) -> next err
 
-      removeHelperMany = (klass, models, err, callback, next) ->
-        return callback err  if err
-        return next()  if not models or models.length < 1
+      removeHelperMany = (klass, models, err, next) ->
+        return next err  if err
+        return next()    if not models or models.length < 1
 
         ids = (model._id for model in models)
-        klass.remove ({ _id: { $in: ids } }), (err) ->
-          return callback err  if err
-          next()
-
-      JName = require '../name'
+        klass.remove ({ _id: { $in: ids } }), (err) -> next err
 
       async.series [
         (next) =>
           JName.one { name: @slug }, (err, name) ->
-            removeHelper name, err, callback, next
+            removeHelper name, err, next
 
         (next) =>
           @fetchPermissionSet (err, permSet) ->
-            removeHelper permSet, err, callback, next
+            removeHelper permSet, err, next
 
         (next) =>
           @fetchDefaultPermissionSet (err, permSet) ->
-            removeHelper permSet, err, callback, next
+            removeHelper permSet, err, next
 
         (next) =>
           @fetchMembershipPolicy (err, policy) ->
-            removeHelper policy, err, callback, next
+            removeHelper policy, err, next
 
         (next) =>
-          @fetchInvitations (err, requests) ->
-            JInvitation = require '../invitation'
-            removeHelperMany JInvitation, requests, err, callback, next
+          JInvitation = require '../invitation'
+          JInvitation.remove { groupName: @slug }, (err) ->
+            next err
 
         (next) =>
           @fetchTags (err, tags) ->
             JTag = require '../tag'
-            removeHelperMany JTag, tags, err, callback, next
+            removeHelperMany JTag, tags, err, next
 
         (next) =>
           @constructor.emit 'GroupDestroyed', this
           next()
 
         (next) =>
-          @remove (err) ->
-            return callback err if err
-            next()
-      ],
-        -> callback null
+          @remove (err) -> next err
+
+      ], callback
 
 
   sendNotificationToAdmins: (event, contents) ->
