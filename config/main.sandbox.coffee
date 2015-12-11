@@ -430,8 +430,14 @@ Configuration = (options={}) ->
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : [
-          location      : "/"
-          auth          : yes
+          {
+            location    : "~ /-/api/(.*)"
+            proxyPass   : "http://webserver/-/api/$1$is_args$args"
+          }
+          {
+            location    : "/"
+            auth        : yes
+          }
         ]
 
     socialworker        :
