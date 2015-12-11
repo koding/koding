@@ -412,6 +412,7 @@ module.exports = class ComputeProvider extends Base
     options      ?= {}
     res           = {}
     instanceCount = 0
+    createdStack  = null
 
     { template, account, group } = {}
 
@@ -419,7 +420,8 @@ module.exports = class ComputeProvider extends Base
 
       (next) ->
         fetchGroupStackTemplate client, (err, _res) ->
-          { template, account, group } = res = _res
+          unless err
+            { template, account, group } = res = _res
           next err
 
       (next) ->
@@ -449,9 +451,11 @@ module.exports = class ComputeProvider extends Base
                 group, change: 'decrement', instanceCount
               }, -> next err
           else
-            next null, stack
+            createdStack = stack
+            next()
 
-    ], callback
+    ], (err) ->
+      callback err, createdStack
 
 
   do ->
