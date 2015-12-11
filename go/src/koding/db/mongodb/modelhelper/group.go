@@ -40,11 +40,8 @@ func GetGroupFieldsByIds(ids []string, fields []string) ([]*models.Group, error)
 			"_id": bson.M{"$in": objectIds},
 		}).Select(selects).Iter()
 
-		var group models.Group
-		for iter.Next(&group) {
-			var newGroup models.Group
-			newGroup = group
-			groups = append(groups, &newGroup)
+		for g := new(models.Group); iter.Next(g); g = new(models.Group) {
+			groups = append(groups, g)
 		}
 
 		return iter.Close()
