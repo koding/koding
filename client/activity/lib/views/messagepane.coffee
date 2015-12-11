@@ -339,7 +339,10 @@ module.exports = class MessagePane extends KDTabPaneView
     {id, typeConstant, name} = @getData()
 
     app  = appManager.get 'Activity'
-    item = app.getView().sidebar.selectedItem
+
+    # TODO: Add defensive checks here because `Teams` doesn't use old sidebar.
+    # So we have to give support to old codes.
+    item = app.getView()?.sidebar?.selectedItem
 
     return  unless item?.count
 
