@@ -30,5 +30,5 @@ module.exports = class Popover extends React.Component
   render: ->
 
     <Portal {...@props} className={kd.utils.curry 'Popover', @props.className}>
-      <div className="Popover--wrapper" ref='Popover'>{@props.children}</div>
+      <div className="Popover-Wrapper" ref='Popover'>{@props.children}</div>
     </Portal>
