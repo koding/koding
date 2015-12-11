@@ -14,7 +14,7 @@ describe 'ChannelFlagsStore', ->
 
   describe 'handleCreateMessageBegin', ->
 
-    it 'sets isMessageBeingSubmitted flag to true when a new message is being submitted in the channel', ->
+    it 'sets hasSubmittingMessage flag to true when a new message is being submitted in the channel', ->
 
       @reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, {
         channelId: 'mockChannelFlagsForBeginId'
@@ -22,43 +22,43 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState.mockChannelFlagsForBeginId.isMessageBeingSubmitted).to.eql yes
+      expect(storeState.mockChannelFlagsForBeginId.hasSubmittingMessage).to.eql yes
 
 
   describe 'handleCreateMessageEnd', ->
 
-    it 'sets isMessageBeingSubmitted flag to false when a new message has been successfully submitted', ->
+    it 'sets hasSubmittingMessage flag to false when a new message has been successfully submitted', ->
 
       @reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, {
         channelId: 'mockChannelFlagsForEndId'
       }
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-      expect(storeState.mockChannelFlagsForEndId.isMessageBeingSubmitted).to.eql yes
+      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).to.eql yes
 
       @reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, {
         channelId: 'mockChannelFlagsForEndId'
       }
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-      expect(storeState.mockChannelFlagsForEndId.isMessageBeingSubmitted).to.eql no
+      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).to.eql no
 
 
-    it 'sets isMessageBeingSubmitted flag to false when a new message has failed to submit', ->
+    it 'sets hasSubmittingMessage flag to false when a new message has failed to submit', ->
 
       @reactor.dispatch actionTypes.CREATE_MESSAGE_BEGIN, {
         channelId: 'mockChannelFlagsForEndId'
       }
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-      expect(storeState.mockChannelFlagsForEndId.isMessageBeingSubmitted).to.eql yes
+      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).to.eql yes
 
       @reactor.dispatch actionTypes.CREATE_MESSAGE_FAIL, {
         channelId: 'mockChannelFlagsForEndId'
       }
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-      expect(storeState.mockChannelFlagsForEndId.isMessageBeingSubmitted).to.eql no
+      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).to.eql no
 
 
   describe 'handleSetAllMessagesLoaded', ->
@@ -118,7 +118,7 @@ describe 'ChannelFlagsStore', ->
 
   describe 'handleSetMessageEditMode', ->
 
-    it 'sets isMessageInEditMode flag to true', ->
+    it 'sets hasEditingMessage flag to true', ->
 
       @reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, {
         messageId : 1
@@ -127,12 +127,12 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState[1].isMessageInEditMode).to.be.true
+      expect(storeState[1].hasEditingMessage).to.be.true
 
 
   describe 'handleUnsetMessageEditMode', ->
 
-    it 'unsets isMessageInEditMode flag', ->
+    it 'unsets hasEditingMessage flag', ->
 
       @reactor.dispatch actionTypes.UNSET_MESSAGE_EDIT_MODE, {
         messageId : 1
@@ -141,5 +141,5 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState[1].isMessageInEditMode).to.be.false
+      expect(storeState[1].hasEditingMessage).to.be.false
 

@@ -98,13 +98,13 @@ module.exports = class ChatPane extends React.Component
 
     { SCROLL_TO_BOTTOM, KEEP_POSITION, UPDATE } = scrollerActions
 
-    isMessageBeingSubmitted = @flag 'isMessageBeingSubmitted'
-    willStopMessageEditing  = @flag('isMessageInEditMode') and not thread.getIn [ 'flags', 'isMessageInEditMode' ]
+    hasSubmittingMessage   = @flag 'hasSubmittingMessage'
+    willStopMessageEditing = @flag('hasEditingMessage') and not thread.getIn [ 'flags', 'hasEditingMessage' ]
 
     @scrollerAction = switch
-      when isMessageBeingSubmitted then SCROLL_TO_BOTTOM
-      when @isThresholdReached     then KEEP_POSITION
-      when willStopMessageEditing  then UPDATE
+      when hasSubmittingMessage   then SCROLL_TO_BOTTOM
+      when @isThresholdReached    then KEEP_POSITION
+      when willStopMessageEditing then UPDATE
       else @scrollerAction # keep the value calculated in ScrollerMixin
 
 
