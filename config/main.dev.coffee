@@ -446,7 +446,7 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [
           {
-            location    : "~ \/-\/api\/(.*)"
+            location    : "~ /-/api/(.*)"
             proxyPass   : "http://webserver/-/api/$1$is_args$args"
           }
           {
