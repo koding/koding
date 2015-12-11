@@ -336,8 +336,48 @@ module.exports = class ComputeProvider extends Base
     series queue, -> callback null
 
 
+  # WARNING! This will destroy all the resources related with given group!
+  #
+  # We are just logging all errors in this flow, and not interrupting
+  # anything since this shouldn't prevent to destroy group operation ~ GG
+  #
+  @destroyGroupResources = (group, callback) ->
 
+    skip = (type, next) -> (err) ->
+      console.log "[#{type}] Failed to destroy group resource:", err  if err
+      next()
 
+    series [
+
+      # Remove all machines in the group
+      (next) ->
+        JMachine.remove {
+          groups: { $elemMatch: { id: group.getId() } }
+        }, skip 'JMachine', next
+
+      # Remove all stacks in the group
+      (next) ->
+        JComputeStack = require '../stack'
+        JComputeStack.remove {
+          group: group.slug
+        }, skip 'JComputeStack', next
+
+      # Remove all stack templates in the group
+      (next) ->
+        JStackTemplate.remove {
+          group: group.slug
+        }, skip 'JStackTemplate', next
+
+      # Remove all counters
+      (next) ->
+        JCounter = require '../counter'
+        JCounter.remove {
+          namespace: group.slug
+        }, skip 'JCounter', next
+
+    ], ->
+
+      callback null
 
 
   # Auto create stack operations ###

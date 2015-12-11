@@ -1474,6 +1474,10 @@ module.exports = class JGroup extends Module
             removeHelperMany JTag, tags, err, next
 
         (next) =>
+          ComputeProvider = require '../computeproviders/computeprovider'
+          ComputeProvider.destroyGroupResources this, -> next()
+
+        (next) =>
           @constructor.emit 'GroupDestroyed', this
           next()
 
