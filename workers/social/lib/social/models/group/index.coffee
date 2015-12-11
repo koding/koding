@@ -1447,6 +1447,7 @@ module.exports = class JGroup extends Module
         klass.remove ({ _id: { $in: ids } }), (err) -> next err
 
       async.series [
+
         (next) =>
           JName.one { name: @slug }, (err, name) ->
             removeHelper name, err, next
@@ -1476,6 +1477,12 @@ module.exports = class JGroup extends Module
         (next) =>
           ComputeProvider = require '../computeproviders/computeprovider'
           ComputeProvider.destroyGroupResources this, -> next()
+
+        (next) =>
+          JSession = require '../session'
+          @sendNotification 'GroupDestroyed', @slug, =>
+            JSession.remove { groupName: @slug }, (err) ->
+              next err
 
         (next) =>
           @constructor.emit 'GroupDestroyed', this
