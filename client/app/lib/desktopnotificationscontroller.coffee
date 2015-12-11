@@ -19,14 +19,15 @@ supported = (callback) ->
  * @param {Function} callback - to be called with err, and args object.
  * @return {Function}
 ###
-permitted = (callback) -> (args...) ->
-  browserNotifications
-    .requestPermissions()
-    .then (isPermitted) ->
-      return if isPermitted
-      then callback null, args...
-      else callback { message: 'Browser notifications are not permitted' }
-    .catch (err) -> callback err
+permitted = (callback) ->
+  return (args...) ->
+    browserNotifications
+      .requestPermissions()
+      .then (isPermitted) ->
+        return if isPermitted
+        then callback null, args...
+        else callback { message: 'Browser notifications are not permitted' }
+      .catch (err) -> callback err
 
 
 module.exports = class DesktopNotificationsController extends kd.Controller
