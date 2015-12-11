@@ -2,6 +2,7 @@ package fuseklient
 
 import (
 	"io"
+	"time"
 
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/transport"
@@ -129,6 +130,11 @@ func (f *File) Expire() error {
 	f.Lock()
 	defer f.Unlock()
 
+	// OH THE HORROR!
+	// If remote has a change where size of file hasn't changed, then Kernel
+	// doesn't invalidate the local cache, so we replace the InodeId.
+	f.ID = f.Parent.IDGen.Next()
+
 	return f.updateContentFromRemote()
 }
 
@@ -166,6 +172,8 @@ func (f *File) updateContentFromRemote() error {
 
 	f.Content = content
 	f.Attrs.Size = uint64(len(f.Content))
+	f.Attrs.Mtime = time.Now()
+	f.Attrs.Ctime = time.Now()
 
 	return nil
 }
