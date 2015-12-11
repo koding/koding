@@ -299,10 +299,8 @@ module.exports =
       .click                  reinitSelector
       .waitForElementVisible  proceedSelector, 20000
       .click                  proceedSelector
-      .waitForElementVisible  vmStateModal + ' .content-container .terminating', 20000
-      .waitForElementVisible  vmSelector   + ' .vm.terminating', 20000
-      .waitForElementVisible  vmSelector   + ' .vm.building', 200000
       .waitForElementVisible  vmStateModal + ' .content-container .building', 200000
+      .waitForElementVisible  vmSelector   + ' .vm.building', 200000
       .waitForElementVisible  vmSelector   + ' .vm.running', 600000
       .assert.containsText    vmSelector, 'koding-vm-0'
 
