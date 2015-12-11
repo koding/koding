@@ -1,18 +1,28 @@
-kd                     = require 'kd'
-React                  = require 'kd-react'
-ActivityFlux           = require 'activity/flux'
-EnvironmentFlux        = require 'app/flux/environment'
-KDReactorMixin         = require 'app/flux/base/reactormixin'
-SidebarChannelsSection = require 'app/components/sidebarchannelssection'
-SidebarMessagesSection = require 'app/components/sidebarmessagessection'
-SidebarStackSection    = require 'app/components/sidebarstacksection'
-Scroller               = require 'app/components/scroller'
+kd                            = require 'kd'
+React                         = require 'kd-react'
+ActivityFlux                  = require 'activity/flux'
+EnvironmentFlux               = require 'app/flux/environment'
+KDReactorMixin                = require 'app/flux/base/reactormixin'
+SidebarChannelsSection        = require 'app/components/sidebarchannelssection'
+SidebarMessagesSection        = require 'app/components/sidebarmessagessection'
+SidebarStackSection           = require 'app/components/sidebarstacksection'
+SidebarSharedMachinesSection  = require 'app/components/sidebarsharedmachinessection'
+Scroller                      = require 'app/components/scroller'
 
 module.exports = class Sidebar extends React.Component
 
   PREVIEW_COUNT = 10
 
   { getters, actions } = ActivityFlux
+
+
+  constructor: ->
+
+   super
+
+   @state =
+     renderedStacksCount : 0
+
 
   getDataBindings: ->
     return {
@@ -32,6 +42,11 @@ module.exports = class Sidebar extends React.Component
     actions.channel.loadFollowedPrivateChannels()
 
 
+  onStackRendered: ->
+
+    @setState { renderedStacksCount: @state.renderedStacksCount + 1 }
+
+
   renderStacks: ->
 
     stackSections = []
@@ -43,18 +58,24 @@ module.exports = class Sidebar extends React.Component
           selectedId={@state.selectedThreadId}
           stack={stack}
           machines={stack.get 'machines'}
+          onStackRendered={@bound 'onStackRendered'}
           />
 
     return stackSections
 
 
-  renderSharedVMs: ->
+  renderSharedMachines: ->
 
-    return null  if @state.sharedMachines.size is 0
+    machines =
+      shared        : @state.sharedMachines
+      collaboration : @state.collaborationMachines
 
-    <SidebarStackSection
+    return null  if machines.shared.size is 0 and machines.collaboration.size is 0
+
+    <SidebarSharedMachinesSection
       sectionTitle='Shared VMs'
-      titleLink='/SharedVms'
+      machines={machines}
+      renderedStacksCount={@state.renderedStacksCount}
       />
 
 
@@ -75,7 +96,7 @@ module.exports = class Sidebar extends React.Component
   render: ->
     <Scroller className={kd.utils.curry 'activity-sidebar', @props.className}>
       {@renderStacks()}
-      {@renderSharedVMs()}
+      {@renderSharedMachines()}
       {@renderChannels()}
       {@renderMessages()}
     </Scroller>
