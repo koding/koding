@@ -13,6 +13,7 @@ module.exports = class MachinesStore extends KodingFluxStore
 
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
     @on actions.MACHINE_UPDATED, @updateMachine
+    @on actions.INVITATION_ACCEPTED, @acceptInvitation
 
 
   load: (machines, { own, shared, collaboration }) ->
@@ -38,3 +39,8 @@ module.exports = class MachinesStore extends KodingFluxStore
         machine_ = toImmutable machine
 
       machines.set id, machine_
+
+
+  acceptInvitation: (machines, id ) ->
+
+    machines.setIn [id, 'isApproved'], yes
