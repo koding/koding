@@ -1,0 +1,54 @@
+.InvitationWidget
+  .Popover-Wrapper
+    padding                 20px
+    size                    210px auto
+    bg                      color, #FFFFFF
+    border                  1px solid #c1c1c1
+    shadow                  0 0 29px rgba(0,0,0,0.33)
+    rounded                 3px
+    font-family             adelleSans
+
+    &::before
+      content               ''
+      display               block
+      size                  0 0
+      abs()
+      top                   15px
+      left                  -10px
+      border-style          solid
+      border-width          10px 10px 10px 0
+      border-color          transparent #FFFFFF transparent transparent
+
+  .InvitationWidget-Link
+    dIBlock()
+
+    img
+      rounded               3px
+
+  .InvitationWidget-UserDetail
+     dIBlock()
+     margin-left            10px
+
+     span
+       font-size            13px
+       margin-bottom        5px
+       dBlock()
+
+     .InvitationWidget-FullName
+       color                #52a840
+
+     .InvitationWidget-Nickname
+       color                #626262
+
+  .InvitationWidget-Title
+    color                   #909090
+    font-size               14px
+    margin                  10px 0
+    line-height             20px
+
+  .kdbutton.green
+    fr()
+
+  &.--Approved
+    .kdbutton.red
+      width                 210px

@@ -37,8 +37,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
     sidebarListItem = ReactDOM.findDOMNode @refs.SidebarMachinesListItem
     clientRect      = sidebarListItem.getBoundingClientRect()
     coordinates     =
-      top           : clientRect.top
-      left          : clientRect.width + clientRect.left + 25
+      top           : clientRect.top - 15
+      left          : clientRect.width + clientRect.left + 15
 
     @setState { coordinates: coordinates }
 
