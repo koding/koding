@@ -9,13 +9,23 @@ module.exports = class SidebarSection extends React.Component
   @defaultProps =
     titleLink     : '#'
     title         : ''
-    secondaryLink : '#'
+    secondaryLink : ''
     unreadCount   : 0
 
   renderUnreadCount: ->
 
     if @props.unreadCount > 0
       <cite className="SidebarListItem-unreadCount --header">{@props.unreadCount}</cite>
+
+
+  renderSecondaryLink: ->
+
+    return null  unless @props.secondaryLink
+
+    <Link
+      className="SidebarSection-secondaryLink"
+      href={@props.secondaryLink} />
+
 
   renderHeader: ->
 
@@ -25,9 +35,7 @@ module.exports = class SidebarSection extends React.Component
           {@props.title}
         </h4>
       </Link>
-      <Link
-        className="SidebarSection-secondaryLink"
-        href={@props.secondaryLink} />
+      {@renderSecondaryLink()}
       {@renderUnreadCount()}
     </header>
 
