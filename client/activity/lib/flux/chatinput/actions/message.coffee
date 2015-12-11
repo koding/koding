@@ -18,6 +18,7 @@ setLastMessageEditMode = ->
   accountId = whoami()._id
   thread    = reactor.evaluate Getters.selectedChannelThread
   messages  = thread.get 'messages'
+  channelId = thread.get 'channelId'
 
   lastMessage = messages.findLast (message) ->
     message.getIn(['account', '_id']) is accountId and
@@ -25,7 +26,7 @@ setLastMessageEditMode = ->
 
   return  unless lastMessage
 
-  MessageActions.setMessageEditMode lastMessage.get '_id'
+  MessageActions.setMessageEditMode lastMessage.get('_id'), channelId
 
 
 module.exports = {
