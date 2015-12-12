@@ -8,7 +8,7 @@ Button               = require 'app/components/common/button'
 module.exports = class FeedThreadHeader extends React.Component
 
   @defaultProps =
-    thread                     : null
+    thread : null
 
   onClick: ->
 
