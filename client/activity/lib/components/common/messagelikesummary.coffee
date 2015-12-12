@@ -6,8 +6,15 @@ ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 module.exports = class MessageLikeSummary extends React.Component
 
   render: ->
-    <div className={kd.utils.curry 'MessageLikeSummary', @props.className}>
-      {summarizeLikes @props.message}
+
+    { message, className } = @props
+
+    actorsCount = message.getIn ['interactions', 'like', 'actorsCount']
+
+    return null  unless actorsCount
+
+    <div className={kd.utils.curry 'MessageLikeSummary', className}>
+      {summarizeLikes message}
     </div>
 
 
