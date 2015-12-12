@@ -1,12 +1,9 @@
-kd = require 'kd'
-React = require 'kd-react'
-ReactDOM = require 'react-dom'
-Link = require 'app/components/common/link'
-whoami = require 'app/util/whoami'
+kd                   = require 'kd'
+React                = require 'kd-react'
+whoami               = require 'app/util/whoami'
 AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 Avatar               = require 'app/components/profile/avatar'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
-ActivityFlux         = require 'activity/flux'
 classnames           = require 'classnames'
 
 module.exports = class CommentInputWidget extends React.Component
@@ -27,18 +24,18 @@ module.exports = class CommentInputWidget extends React.Component
 
   getPostButtonClassNames: -> classnames
     'FeedItem-postComment' : yes
-    'green'                : @state.hasValue
-    'hidden'               : not @state.focusOnInput and not @state.hasValue
+    'green'                : @props.hasValue
+    'hidden'               : not @state.focusOnInput and not @props.hasValue
 
 
   render: ->
 
     imAccount   = { id: whoami()._id, constructorName: 'JAccount'}
 
-    <div className='FeedItem-commentForm'>
+    <div className='CommentInputWidget'>
       <div className="MediaObject-media">
         <ProfileLinkContainer origin={imAccount}>
-          <Avatar className="FeedItem-Avatar" width={35} height={35} />
+          <Avatar width={35} height={35} />
         </ProfileLinkContainer>
       </div>
       <AutoSizeTextarea
@@ -48,7 +45,7 @@ module.exports = class CommentInputWidget extends React.Component
         placeholder = 'Type your comment'
         onChange    = { @props.handleCommentInputChange }
         value       = { @props.commentValue }
-        className   = 'FeedItem-commentInput'/>
+        className   = 'CommentInputWidget-input'/>
       <button
         className={@getPostButtonClassNames()}
         onClick={ @props.postComment }>SEND</button>
