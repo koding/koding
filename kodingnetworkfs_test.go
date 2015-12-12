@@ -735,7 +735,7 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	c := &Config{
 		LocalPath:     mountDir,
 		IgnoreFolders: []string{"node_modules"},
-		Prefetch:      false,
+		NoPrefetch:    true,
 		NoWatch:       true,
 	}
 	k, err := NewKodingNetworkFS(t, c)
