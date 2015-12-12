@@ -21,6 +21,7 @@ module.exports = class CommentList extends React.Component
 
     return null  unless repliesCount
     return null  if repliesCount <= @props.comments.size
+
     commentSize = @props.comments.size
     repliesText = ""
 
