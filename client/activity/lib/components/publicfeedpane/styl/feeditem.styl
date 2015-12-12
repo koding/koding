@@ -50,14 +50,6 @@ $base-padding               = 18px
 .FeedItem-body
   padding                   ($base-padding/2) $base-padding
 
-.FeedItemAction
-  float                     left
-  margin-right              0
-  font-size                 $fs-small
-
-.FeedItemAction a
-  color                     $color-light-text
-
 .FeedItem-footer
   bg                        color #FBFAF9
   border-bottom             1px solid #EAEAEA
@@ -66,7 +58,6 @@ $base-padding               = 18px
 .FeedItem-summary
   padding                   8px 18px
   font-size                 14px
-  border-top                1px solid #EAEAEA
   border-bottom             1px solid #EAEAEA
 
   a
@@ -74,9 +65,24 @@ $base-padding               = 18px
     font-weight             600
     color                   $gray-8
 
-.FeedItem-comment
+.CommentList
+  padding                   16px 16px 0
   overflow                  hidden
-  padding                   16px 16px 16px 18px
+
+.CommentListItem
+  .MediaObject-media
+    fl()
+    margin-right            8px
+
+  .ProfilePicture
+    width                   30px !important
+    height                  30px !important
+
+.FeedItem-commentForm
+  rel()
+  borderBox()
+  padding                   0 16px 16px 16px
+  width                     100%
 
   .MediaObject-media
     fl()
@@ -86,47 +92,44 @@ $base-padding               = 18px
     width                   30px !important
     height                  30px !important
 
-  .FeedItem-commentForm
-    fl()
-    rel()
-    width                   calc(100% \- 50px)
+  .FeedItem-commentInput
+    borderBox()
+    outline               none
+    border                1px solid #EAEAEA
+    resize                none
+    width                 100%
+    min-height            30px
+    padding               5px 55px 5px 5px
+    font-size             12px
+    width                 calc(100% \- 50px)
 
-    .FeedItem-commentInput
-      borderBox()
-      outline               none
-      border                1px solid #EAEAEA
-      resize                none
-      width                 100%
-      min-height            30px
-      padding               5px 55px 5px 5px
-      font-size             12px
+    &:hover
+      border              1px solid #dadada
 
-      &:hover
-        border              1px solid #dadada
+  button
+    abs                   0 32px 23px 0
+    bg                    color, $gray-18
+    color                 $gray-8
+    border                none
+    rounded               3px
+    size                  45px 22px
+    cursor                not-allowed
+    outline               none
 
-    button
-      abs                   0 4px 7px 0
-      bg                    color, $gray-18
-      color                 $gray-8
-      border                none
-      rounded               3px
-      size                  45px 22px
-      cursor                not-allowed
-      outline               none
+  button.green
+    pointer()
+    color                 $white
+    bg                    color, $green
 
-    button.green
-      pointer()
-      color                 $white
-      bg                    color, $green
-
-      &:hover
-        bg                  color, #2dbea1
+    &:hover
+      bg                  color, #2dbea1
 
 .FeedItem-footerActionContainer
   padding                   5px 18px 10px
   width                     100%
   overflow                  hidden
   bg                        color, $white
+  border-bottom             1px solid #EAEAEA
   borderBox()
 
   > a
