@@ -38,7 +38,7 @@ var log logging.Logger
 
 func main() {
 	var logWriter io.Writer
-	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0755)
+	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
 		// TODO: We may not want to log a logfile failure here, but it seems useful to
 		// give us some idea that the logs aren't being written.
