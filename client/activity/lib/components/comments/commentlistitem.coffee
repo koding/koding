@@ -9,6 +9,7 @@ MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+Encoder              = require 'htmlencode'
 
 module.exports = class CommentListItem extends React.Component
 
@@ -41,7 +42,7 @@ module.exports = class CommentListItem extends React.Component
         <ProfileText />
       </ProfileLinkContainer>
       <div className='CommentListItem-body'>
-        {comment.get 'body'}
+        <MessageBody message={comment} />
       </div>
       <div className='CommentListItem-footer'>
         <TimeAgo from={comment.get 'createdAt'} className='CommentListItem-date' />
