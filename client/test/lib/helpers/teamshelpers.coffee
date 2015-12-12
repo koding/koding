@@ -322,6 +322,7 @@ module.exports =
       .moveToElement          createChannelModalButtonSelector, 32, 12
       .click                  createChannelModalButtonSelector
       .waitForElementVisible  chatItem, 20000
+      .pause                  3000
       .assert.containsText    chatItem, user.username
       .waitForElementVisible  sidebarSectionsSelector, 20000
       .pause                  2000 # wait for side bar channel list
@@ -369,3 +370,36 @@ module.exports =
       .assert.containsText    threadsContainer, channelName3
 
     return [ channelName1, channelName2, channelName3 ]
+
+
+  leaveChannel: (browser) ->
+
+    channelHeaderPaneSelector = '.ChannelThreadPane-content .ChannelThreadPane-header'
+    buttonSelector            = "#{channelHeaderPaneSelector} .ButtonWithMenuWrapper"
+    channelActionsSelector    = '.ButtonWithMenuItemsList.ChannelThreadPane-menuItems'
+    leaveChannelSelector      = "#{channelActionsSelector} li:nth-child(2)"
+    followChannelBox          = '.ChannelThreadPane-body .FollowChannelBox'
+
+    browser
+      .waitForElementVisible  channelHeaderPaneSelector, 20000
+      .waitForElementVisible  buttonSelector, 20000
+      .click                  buttonSelector
+      .waitForElementVisible  channelActionsSelector, 20000
+      .moveToElement          leaveChannelSelector, 70, 12
+      .waitForElementVisible  leaveChannelSelector, 20000
+      .click                  leaveChannelSelector
+      .waitForElementVisible  followChannelBox, 20000 # Assertion
+
+
+  joinSession: (browser) ->
+
+    followChannelBox          = '.FollowChannelBox'
+    followChannelButton       = "#{followChannelBox} .Button-followChannel"
+
+    @leaveChannel(browser)
+
+    browser
+      .waitForElementVisible  followChannelBox, 20000
+      .waitForElementVisible  followChannelButton, 20000
+      # i will continue
+

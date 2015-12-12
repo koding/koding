@@ -44,3 +44,19 @@ module.exports =
       .assert.containsText    threadsContainer, channelNames[0]
       .end()
 
+
+  leaveChannelOnSidebar: (browser) ->
+
+    user        = teamsHelpers.loginTeam(browser)
+    channelName = teamsHelpers.createChannel(browser, user)
+
+    sidebarSectionsSelector      = '.activity-sidebar .SidebarSections'
+    channelLinkOnSidebarSelector = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName}']"
+
+    teamsHelpers.leaveChannel(browser)
+    teamsHelpers.createChannel(browser, user)
+
+    browser
+      .waitForElementVisible  sidebarSectionsSelector, 20000
+      .assert.containsText    channelLinkOnSidebarSelector, channelName
+      .end()
