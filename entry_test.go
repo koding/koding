@@ -129,7 +129,7 @@ func TestEntry(t *testing.T) {
 			entry := newEntryWithFolderResp()
 			So(entry.Attrs.Size, ShouldEqual, 0)
 
-			So(entry.updateAttrsFromRemote(), ShouldBeNil)
+			So(entry.UpdateAttrsFromRemote(), ShouldBeNil)
 			So(entry.Attrs.Size, ShouldEqual, 1)
 		})
 	})
