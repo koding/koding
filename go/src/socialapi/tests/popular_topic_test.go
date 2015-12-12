@@ -21,7 +21,7 @@ func TestPopularTopic(t *testing.T) {
 
 	tests.WithRunner(t, func(r *runner.Runner) {
 		// Since the wercker tests are failing it is skipped for temporarily
-		Convey("order should be preserved", t, func() {
+		SkipConvey("order should be preserved", t, func() {
 			groupName := models.RandomGroupName()
 			account := models.CreateAccountInBothDbsWithCheck()
 

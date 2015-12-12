@@ -27,7 +27,7 @@ func TestChannelMessageListFetchMessageChannels(t *testing.T) {
 
 				// add to first channel
 				_, err := c1.AddMessage(cm)
-				So(err, ShouldBeNil)
+				So(err, ShouldEqual, ErrMessageAlreadyInTheChannel)
 
 				// add to second channel
 				_, err = c2.AddMessage(cm)
