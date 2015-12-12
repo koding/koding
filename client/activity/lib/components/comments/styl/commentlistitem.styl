@@ -4,10 +4,22 @@
     font-size               12px
     font-weight             600
 
+  .MediaObject-media
+    fl()
+    margin-right            8px
+
+  .ProfilePicture
+    width                   30px !important
+    height                  30px !important
+
 .CommentListItem-body
   padding-left              38px
   font-size                 12px
   color                     $gray-8
+
+  .MessageBody p
+    padding                 0
+    font-size               12px
 
 .CommentListItem-footer
   padding-left              38px
@@ -40,19 +52,6 @@
   margin-left               5px
   bg                        color, $gray-16
   color                     $gray-6
-
-.CommentList-showMoreComment
-  dBlock()
-  font-weight               600
-  font-size                 12px
-  margin-bottom             15px
-  bg                        color, $gray-18
-  text-align                center
-  line-height               32px
-  rounded                   3px
-
-  &:hover
-    noTextDeco()
 
 .CommentListItem-date
   font-size                 $fs-small
