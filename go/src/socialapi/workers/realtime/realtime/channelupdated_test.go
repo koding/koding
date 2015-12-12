@@ -184,7 +184,8 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the list
-			cml, err := c.AddMessage(cm)
+			// but message is already added into channel
+			cml, err := c.EnsureMessage(cm, false)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -231,7 +232,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the list
-			cml, err := c.AddMessage(cm)
+			cml, err := c.EnsureMessage(cm, false)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -327,7 +328,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the list
-			cml, err := c.AddMessage(cm)
+			cml, err := c.EnsureMessage(cm, false)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
