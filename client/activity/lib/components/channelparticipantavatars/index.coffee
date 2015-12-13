@@ -165,19 +165,17 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     { participants, isNicknameVisible, shouldTooltipRender } = options
 
     participants.toList().map (participant) =>
-      <div key={participant.get 'id'} className='ChannelParticipantAvatars-singleBox'>
-        <ProfileLinkContainer account={participant.toJS()}>
-          <div>
-            <Avatar
-              className='ChannelParticipantAvatars-avatar'
-              width={30}
-              account={participant.toJS()}
-              height={30} />
-            {@renderNickname participant, isNicknameVisible }
-            {@renderTooltip participant, shouldTooltipRender}
-          </div>
-        </ProfileLinkContainer>
-      </div>
+      <ProfileLinkContainer key={participant.get '_id'} className='ChannelParticipantAvatars-singleBox' account={participant.toJS()}>
+        <div>
+          <Avatar
+            className='ChannelParticipantAvatars-avatar'
+            width={30}
+            account={participant.toJS()}
+            height={30} />
+          {@renderNickname participant, isNicknameVisible }
+          {@renderTooltip participant, shouldTooltipRender}
+        </div>
+      </ProfileLinkContainer>
 
 
   renderMoreCount: ->
