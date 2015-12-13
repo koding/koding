@@ -41,7 +41,7 @@ summarizeLikes = (message) ->
       </ProfileLinkContainer>
     )
     children.push(
-      <span>
+      <span key="seperator-#{index}">
         {getSeparator actorsCount, linkCount, counter}
       </span>
     )
@@ -50,13 +50,13 @@ summarizeLikes = (message) ->
 
   if (diff = actorsCount - linkCount) > 0
     children.push(
-      <a href="#">
+      <a href="#" key="suffix">
         <strong>{diff} other{if diff > 1 then 's' else ''}</strong>
       </a>
     )
 
   children.push(
-    <span> liked this.</span>
+    <span key="last-words"> liked this.</span>
   )
 
   return children
