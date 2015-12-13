@@ -289,20 +289,23 @@ module.exports =
 
   reinitVM: (browser) ->
 
-    reinitSelector  = '.kdmodal.AppModal .advanced .advanced.reinit'
-    proceedSelector = '.kdmodal.with-buttons .kdbutton.red'
-    vmStateModal    = '.env-machine-state .kdmodal-content'
-    vmSelector      = '.sidebar-machine-box'
+    reinitSelector   = '.kdmodal.AppModal .advanced .advanced.reinit'
+    proceedSelector  = '.kdmodal.with-buttons .kdbutton.red'
+    vmStateModal     = '.env-machine-state .kdmodal-content'
+    vmSelector       = '.sidebar-machine-box'
+    envModalSelector = ".env-modal.env-machine-state"
 
     browser
-      .waitForElementVisible  reinitSelector, 20000
-      .click                  reinitSelector
-      .waitForElementVisible  proceedSelector, 20000
-      .click                  proceedSelector
-      .waitForElementVisible  vmSelector   + ' .vm.building', 200000
-      .waitForElementVisible  vmStateModal + ' .content-container .building', 200000
-      .waitForElementVisible  vmSelector   + ' .vm.running', 600000
-      .assert.containsText    vmSelector, 'koding-vm-0'
+      .waitForElementVisible     reinitSelector, 20000
+      .click                     reinitSelector
+      .waitForElementVisible     proceedSelector, 20000
+      .click                     proceedSelector
+      .waitForElementVisible     vmSelector   + ' .vm.building', 200000
+      .waitForElementVisible     vmStateModal + ' .content-container .building', 200000
+      .waitForElementNotPresent  envModalSelector, 600000
+      .pause                     5000 # wait for sidebar redraw
+      .waitForElementVisible     vmSelector + ' .running.vm', 20000
+      .assert.containsText       vmSelector + ' .running.vm', 'koding-vm-0'
 
 
   terminateVM: (browser) ->
