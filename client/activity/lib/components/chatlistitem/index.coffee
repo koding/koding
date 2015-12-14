@@ -248,12 +248,7 @@ module.exports = class ChatListItem extends React.Component
     messageId = @props.message.get '_id'
 
     ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
-
-    ActivityFlux.actions.message.editMessage(
-      @props.message.get('id')
-      value
-      @props.message.get('payload').toJS()
-    )
+    ActivityFlux.actions.message.editMessage messageId, value
 
 
   cancelEdit: ->
@@ -262,6 +257,7 @@ module.exports = class ChatListItem extends React.Component
 
     messageId = @props.message.get '_id'
     ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
+    ActivityFlux.actions.message.resetEditedPayload messageId
 
 
   onEditStarted: ->
@@ -326,16 +322,11 @@ module.exports = class ChatListItem extends React.Component
 
   renderEmbedBox: ->
 
-    { message }   = @props
-    editedPayload = message.get('__editedPayload')?.toJS()
-    savedPayload  = message.get('link')?.toJS()
-
-    embedData = if editedPayload and editedPayload.link_url isnt savedPayload?.link_url
-    then editedPayload
-    else savedPayload
+    { message } = @props
+    embedData   = message.get 'link'
 
     if embedData
-      <EmbedBox data={embedData} type='chat' />
+      <EmbedBox data={embedData.toJS()} type='chat' />
 
 
   render: ->

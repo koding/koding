@@ -338,12 +338,18 @@ unlikeMessage = (messageId) ->
 ###
 editMessage = (messageId, body, payload) ->
 
-  payload = messageHelpers.sanitizePayload payload
-
   { socialapi } = kd.singletons
   { EDIT_MESSAGE_BEGIN
     EDIT_MESSAGE_SUCCESS
     EDIT_MESSAGE_FAIL } = actionTypes
+
+  unless payload
+    messages = kd.singletons.reactor.evaluate ['MessagesStore']
+    message  = messages.get messageId
+    payload  = message.get('__editedPayload') ? message.get 'payload'
+    payload  = payload.toJS()
+
+  payload = messageHelpers.sanitizePayload payload
 
   dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
@@ -351,7 +357,7 @@ editMessage = (messageId, body, payload) ->
     if payload and not embedPayload
       # if payload link has been removed, it's necessary
       # to clear link fields from message payload
-      embedPayload = { link_url : null, link_embed : null }
+      embedPayload = getEmptyEmbedPayload()
     payload = _.assign {}, payload, embedPayload
 
     socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
@@ -489,9 +495,10 @@ unsetMessageEditMode = (messageId, channelId) ->
 
 fetchEmbedPayload = (messageData, callback = kd.noop) ->
 
-  url = embedlyHelpers.extractUrl messageData.body
+  { body, payload } = messageData
+  url = embedlyHelpers.extractUrl body
   return callback()  unless url
-  return callback()  if messageData.payload?.link_url is url
+  return callback null, payload  if payload?.link_url is url
 
   fetchDataFromEmbedly url, callback
 
@@ -511,6 +518,12 @@ editEmbedPayloadByUrl = (messageId, url) ->
   fetchDataFromEmbedly url, (err, embedPayload) ->
     return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, { messageId }  if err
     dispatch EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+
+
+resetEditedPayload = (messageId) ->
+
+  { RESET_EDITED_MESSAGE_PAYLOAD } = actionTypes
+  dispatch RESET_EDITED_MESSAGE_PAYLOAD, { messageId }
 
 
 fetchDataFromEmbedly = (url, callback = kd.noop) ->
@@ -552,5 +565,6 @@ module.exports = {
   putLoaderMarker
   removeLoaderMarker
   editEmbedPayloadByUrl
+  resetEditedPayload
 }
 

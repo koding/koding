@@ -64,6 +64,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     @on actions.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, @handleEditMessageEmbedPayloadSuccess
     @on actions.EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, @handleEditMessageEmbedPayloadFail
+    @on actions.RESET_EDITED_MESSAGE_PAYLOAD, @handleResetEditedMessagePayload
 
 
   ###*
@@ -222,7 +223,6 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     message = messages.get messageId
     message = message.set '__isEditing', no
-    message = message.remove '__editedPayload'
 
     return addMessage messages, message
 
@@ -314,7 +314,10 @@ module.exports = class MessagesStore extends KodingFluxStore
 
   handleEditMessageEmbedPayloadSuccess: (messages, { messageId, embedPayload }) ->
 
-    payload = messages.getIn [messageId, 'payload']
+    message = messages.get messageId
+    return messages  unless message.get '__isEditing'
+
+    payload = message.get 'payload'
     payload = _.assign {}, payload.toJS(), embedPayload ? getEmptyEmbedPayload()
 
     return messages = messages.setIn [messageId, '__editedPayload'], toImmutable payload
@@ -326,4 +329,14 @@ module.exports = class MessagesStore extends KodingFluxStore
     payload = _.assign {}, payload.toJS(), getEmptyEmbedPayload()
 
     return messages = messages.setIn [messageId, '__editedPayload'], toImmutable payload
+
+
+  handleResetEditedMessagePayload: (messages, { messageId }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    message = message.remove '__editedPayload'
+
+    return addMessage messages, message
 
