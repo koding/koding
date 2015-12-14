@@ -165,7 +165,10 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     { participants, isNicknameVisible, shouldTooltipRender } = options
 
     participants.toList().map (participant) =>
-      <ProfileLinkContainer key={participant.get '_id'} className='ChannelParticipantAvatars-singleBox' account={participant.toJS()}>
+      <ProfileLinkContainer
+        key={participant.get '_id'}
+        account={participant.toJS()}
+        className='ChannelParticipantAvatars-singleBox'>
         <div>
           <Avatar
             className='ChannelParticipantAvatars-avatar'
@@ -189,7 +192,10 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     moreCount = Math.min moreCount, 99
 
     <div className='ChannelParticipantAvatars-singleBox'>
-      <div className='ChannelParticipantAvatars-moreCount' ref='showMoreButton' onClick={@bound 'onShowMoreParticipantButtonClick'}>
+      <div
+        ref='showMoreButton'
+        className='ChannelParticipantAvatars-moreCount'
+        onClick={@bound 'onShowMoreParticipantButtonClick'}>
         +{moreCount}
       </div>
     </div>
