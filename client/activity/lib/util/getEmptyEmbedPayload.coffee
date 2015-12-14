@@ -1,0 +1,1 @@
+module.exports = getEmptyEmbedPayload = -> { link_url : null, link_embed : null }

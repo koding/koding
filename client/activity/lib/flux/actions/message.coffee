@@ -7,6 +7,8 @@ messageHelpers         = require '../helpers/message'
 realtimeActionCreators = require './realtime/actioncreators'
 embedlyHelpers         = require '../helpers/embedly'
 Promise                = require 'bluebird'
+getEmptyEmbedPayload   = require 'activity/util/getEmptyEmbedPayload'
+
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -234,7 +236,7 @@ createMessage = (channelId, body, payload) ->
   channel = socialapi.retrieveCachedItemById channelId
   type = channel.typeConstant
 
-  fetchEmbedPayload { body, payload }, (embedPayload) ->
+  fetchEmbedPayload { body, payload }, (err, embedPayload) ->
     payload = _.assign {}, payload, embedPayload
 
     options = { channelId, clientRequestId, body, payload, type }
@@ -345,7 +347,7 @@ editMessage = (messageId, body, payload) ->
 
   dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
-  fetchEmbedPayload { body, payload }, (embedPayload) ->
+  fetchEmbedPayload { body, payload }, (err, embedPayload) ->
     if payload and not embedPayload
       # if payload link has been removed, it's necessary
       # to clear link fields from message payload
@@ -491,22 +493,45 @@ fetchEmbedPayload = (messageData, callback = kd.noop) ->
   return callback()  unless url
   return callback()  if messageData.payload?.link_url is url
 
+  fetchDataFromEmbedly url, callback
+
+
+editEmbedPayloadByUrl = (messageId, url) ->
+
+  { EDIT_MESSAGE_EMBED_PAYLOAD_BEGIN,
+    EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS,
+    EDIT_MESSAGE_EMBED_PAYLOAD_FAIL } = actionTypes
+
+  unless url
+    return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, {
+      messageId
+      embedPayload : getEmptyEmbedPayload()
+    }
+
+  fetchDataFromEmbedly url, (err, embedPayload) ->
+    return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, { messageId }  if err
+    dispatch EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+
+
+fetchDataFromEmbedly = (url, callback = kd.noop) ->
+
   options =
     maxWidth  : 600
     maxHeight : 450
     wmode     : 'transparent'
 
-  { fetchDataFromEmbedly } = kd.singletons.socialapi.message
+  { socialapi } = kd.singletons
 
-  fetchDataFromEmbedly url, options, (err, result) ->
+  socialapi.message.fetchDataFromEmbedly url, options, (err, result) ->
 
     if err
       kd.log 'Embed.ly error!', err
+      callback err
     else if result
       data    = result.first
       payload = embedlyHelpers.createMessagePayload data
 
-    callback payload
+    callback null, payload
 
 
 module.exports = {
@@ -526,5 +551,6 @@ module.exports = {
   changeSelectedMessageBySlug
   putLoaderMarker
   removeLoaderMarker
+  editEmbedPayloadByUrl
 }
 

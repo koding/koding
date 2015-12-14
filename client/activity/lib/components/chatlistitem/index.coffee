@@ -27,7 +27,7 @@ showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 EmbedBox              = require 'activity/components/embedbox'
 KeyboardKeys          = require 'app/util/keyboardKeys'
-ChatInputWidget       = require 'activity/components/chatinputwidget'
+ChatInputEmbedUpdater = require 'activity/components/chatinputembedupdater'
 Encoder               = require 'htmlencode'
 MessageLink           = require 'activity/components/messagelink'
 
@@ -302,7 +302,8 @@ module.exports = class ChatListItem extends React.Component
         <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
         <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
-      <ChatInputWidget
+      <ChatInputEmbedUpdater
+        messageId        = { message.get 'id' }
         channelId        = { @props.channelId }
         value            = { messageBody }
         onSubmit         = { @bound 'updateMessage' }
@@ -325,14 +326,20 @@ module.exports = class ChatListItem extends React.Component
 
   renderEmbedBox: ->
 
-    { message } = @props
-    embedData   = message.get 'link'
+    { message }   = @props
+    editedPayload = message.get('__editedPayload')?.toJS()
+    savedPayload  = message.get('link')?.toJS()
+
+    embedData = if editedPayload and editedPayload.link_url isnt savedPayload?.link_url
+    then editedPayload
+    else savedPayload
 
     if embedData
-      <EmbedBox data={embedData.toJS()} type='chat' />
+      <EmbedBox data={embedData} type='chat' />
 
 
   render: ->
+
     { message } = @props
     <div {...@getItemProps()}>
       <div className={@getContentClassNames()}>
@@ -352,9 +359,9 @@ module.exports = class ChatListItem extends React.Component
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
-          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
+        {@renderEmbedBox()}
         {@renderChatItemMenu()}
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?

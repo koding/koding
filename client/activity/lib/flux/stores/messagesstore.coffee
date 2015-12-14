@@ -1,9 +1,11 @@
+_                        = require 'lodash'
 whoami                   = require 'app/util/whoami'
 actions                  = require '../actions/actiontypes'
 chatinputActions         = require '../chatinput/actions/actiontypes'
 toImmutable              = require 'app/util/toImmutable'
 KodingFluxStore          = require 'app/flux/base/store'
 MessageCollectionHelpers = require '../helpers/messagecollection'
+getEmptyEmbedPayload     = require 'activity/util/getEmptyEmbedPayload'
 
 
 ###*
@@ -59,6 +61,9 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.CREATE_COMMENT_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_COMMENT_SUCCESS, @handleCreateCommentSuccess
     @on actions.CREATE_COMMENT_FAIL, @handleCreateMessageFail
+
+    @on actions.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, @handleEditMessageEmbedPayloadSuccess
+    @on actions.EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, @handleEditMessageEmbedPayloadFail
 
 
   ###*
@@ -213,7 +218,13 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###
   handleUnsetMessageEditMode: (messages, { messageId }) ->
 
-    return messages = messages.setIn [messageId, '__isEditing'], no
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    message = message.set '__isEditing', no
+    message = message.remove '__editedPayload'
+
+    return addMessage messages, message
 
 
   ###*
@@ -299,4 +310,20 @@ module.exports = class MessagesStore extends KodingFluxStore
     { removeMessage } = MessageCollectionHelpers
 
     return removeMessage messages, messageId
+
+
+  handleEditMessageEmbedPayloadSuccess: (messages, { messageId, embedPayload }) ->
+
+    payload = messages.getIn [messageId, 'payload']
+    payload = _.assign {}, payload.toJS(), embedPayload ? getEmptyEmbedPayload()
+
+    return messages = messages.setIn [messageId, '__editedPayload'], toImmutable payload
+
+
+  handleEditMessageEmbedPayloadFail: (messages, { messageId }) ->
+
+    payload = messages.getIn [messageId, 'payload']
+    payload = _.assign {}, payload.toJS(), getEmptyEmbedPayload()
+
+    return messages = messages.setIn [messageId, '__editedPayload'], toImmutable payload
 

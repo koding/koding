@@ -29,6 +29,8 @@ module.exports = class ChatInputWidget extends React.Component
     onReady          : kd.noop
     onResize         : kd.noop
     placeholder      : ''
+    onChange         : kd.noop
+
 
   getDataBindings: ->
 
@@ -143,8 +145,12 @@ module.exports = class ChatInputWidget extends React.Component
 
   setValue: (value) ->
 
+    return  if @state.value is value
+
     { channelId } = @props
+
     ChatInputFlux.actions.value.setValue channelId, @stateId, value
+    @props.onChange value
 
 
   resetValue: ->
