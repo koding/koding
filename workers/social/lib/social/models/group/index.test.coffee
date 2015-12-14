@@ -173,8 +173,8 @@ runTests = -> describe 'workers.social.group.index', ->
             ->
               # expecting to not be able to fetch members data
               group.searchMembers client, username, {}, (err, members) ->
-                expect(err).to.not.exist
-                expect(members.length).to.be.equal 0
+                expect(err?.message).to.be.equal 'Access denied'
+                expect(members).to.not.exist
                 queue.next()
 
             -> done()

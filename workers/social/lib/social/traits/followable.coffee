@@ -92,6 +92,7 @@ module.exports = class Followable
     JAccount = require '../models/account'
     unless client.connection.delegate instanceof JAccount
       return callback new KodingError 'Access denied'
+    followables ?= []
     Relationship.all
       sourceId  :
         $in     : (followable.getId() for followable in followables)

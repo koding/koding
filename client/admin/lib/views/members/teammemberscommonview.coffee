@@ -143,7 +143,7 @@ module.exports = class TeamMembersCommonView extends KDView
         roles = userRoles[member.getId()]
         member.roles = roles  if roles
 
-      @loggedInUserRoles = userRoles[myAccountId]
+      @loggedInUserRoles = userRoles[myAccountId] ? ['owner', 'admin', 'member']
 
       callback members
 
@@ -162,6 +162,9 @@ module.exports = class TeamMembersCommonView extends KDView
   listMembers: (members, filterForDefaultRole) ->
 
     { memberType, itemLimit, defaultMemberRole } = @getOptions()
+
+    group = @getData()
+    member._currentGroup = group for member in members
 
     if members.length is 0 and @listController.getItemCount() is 0
       @listController.lazyLoader.hide()

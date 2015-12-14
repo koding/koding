@@ -9,16 +9,16 @@ module.exports = class AdminAppView extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.testPath = 'groups-admin'
-    data           or= kd.singletons.groupsController.getCurrentGroup()
+    options.testPath   = 'groups-admin'
+    options.useRouter ?= yes
 
     super options, data
 
-    @addSubView @nav  = new kd.TabHandleContainer
-      cssClass: 'AppModal-nav'
-
-    @addSubView @tabs = new AdminMainTabPaneView
-      tabHandleContainer: @nav
+    @addSubView @nav     = new kd.TabHandleContainer
+      cssClass           : 'AppModal-nav'
+    @addSubView @tabs    = new AdminMainTabPaneView
+      tabHandleContainer : @nav
+      useRouter          : @getOption 'useRouter'
     , data
 
     @nav.unsetClass 'kdtabhandlecontainer'
@@ -64,15 +64,14 @@ module.exports = class AdminAppView extends kd.ModalView
 
   createTabs: ->
 
-    data         = @getData()
-    {tabData}    = @getOptions()
-    currentGroup = kd.singletons.groupsController.getCurrentGroup()
+    group        = @getData()
+    { tabData }  = @getOptions()
 
     items = []
 
     for own sectionKey, section of tabData
 
-      if sectionKey is 'koding' and currentGroup.slug isnt 'koding'
+      if sectionKey is 'koding' and group.slug isnt 'koding'
         continue
 
       for item in section.items
@@ -107,12 +106,12 @@ module.exports = class AdminAppView extends kd.ModalView
         cssClass : slug or action
         delegate : this
         action   : action
-      , data
+      , group
 
     items.forEach (item, i) =>
 
       { slug, title, action } = item
-      name           = slug or action
+      name           = title or slug or action
       hiddenHandle   = if action then yes
       parentTabTitle = item.parentTabTitle or null
 

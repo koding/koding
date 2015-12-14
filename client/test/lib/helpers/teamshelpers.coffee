@@ -185,7 +185,7 @@ module.exports =
   createInvitation: (browser, user, callback) ->
 
     adminLink      = '.avatararea-popup a[href="/Admin"]'
-    inviteLink     = '.teaminvite.AppModal-navItem'
+    inviteLink     = '.invite-teams.AppModal-navItem'
     teamInvitePage = '.TeamInvite'
     inviteButton   = "#{teamInvitePage} button"
     sendMailPage   = "#{teamInvitePage} .kdscrollview"
