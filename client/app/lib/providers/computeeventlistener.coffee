@@ -190,7 +190,7 @@ module.exports = class ComputeEventListener extends KDObject
 
       @addListener stateEvent, machine._id
 
-      if stateEvent in ["build", "destroy"] and followOthers
+      if stateEvent is 'build' and followOthers
         @addListener "reinit", machine._id
 
       return yes

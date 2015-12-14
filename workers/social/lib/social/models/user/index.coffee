@@ -457,7 +457,7 @@ module.exports = class JUser extends jraphical.Module
       =>
         @normalizeLoginId loginId, (err, username_) ->
           return callback err  if err
-          username = username_
+          username = username_.toLowerCase()
           queue.next()
 
       ->
