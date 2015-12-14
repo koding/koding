@@ -81,8 +81,6 @@ module.exports = class JTag extends jraphical.Module
           (signature Object, Function)
         fetchCount:
           (signature Function)
-        someWithRelationship:
-          (signature Object, Object, Function)
         byRelevance: [
           (signature String, Function)
           (signature String, Object, Function)

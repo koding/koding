@@ -1,17 +1,16 @@
-kd                 = require 'kd'
-KDController       = kd.Controller
-KDNotificationView = kd.NotificationView
+kd        = require 'kd'
 
-whoami             = require '../util/whoami'
-getGroup           = require '../util/getGroup'
-showError          = require '../util/showError'
+whoami    = require '../util/whoami'
+kookies   = require 'kookies'
+getGroup  = require '../util/getGroup'
+showError = require '../util/showError'
 
-remote             = require('../remote').getInstance()
-globals            = require 'globals'
-GroupData          = require './groupdata'
+remote    = require('../remote').getInstance()
+globals   = require 'globals'
+GroupData = require './groupdata'
 
 
-module.exports = class GroupsController extends KDController
+module.exports = class GroupsController extends kd.Controller
 
   constructor:(options = {}, data)->
 
@@ -29,6 +28,12 @@ module.exports = class GroupsController extends KDController
     mainController.ready =>
       { slug } = entryPoint  if entryPoint?.type is 'group'
       @changeGroup slug
+
+    @ready => @on 'GroupDestroyed', ->
+      # delete client id cookie, which is used for session authentication
+      kookies.expire 'clientId'
+      # send user to home page
+      global.location.href = '/'
 
 
   getCurrentGroup:->
@@ -86,6 +91,7 @@ module.exports = class GroupsController extends KDController
 
         @filterXssAndForwardEvents realtimeChan, [
           'StackTemplateChanged'
+          'GroupDestroyed'
         ]
 
         callback null
@@ -153,7 +159,7 @@ module.exports = class GroupsController extends KDController
     group.modifyMembershipPolicy formData, (err)->
       unless err
         policy.emit 'MembershipPolicyChangeSaved'
-        new KDNotificationView {title:"Membership policy has been updated."}
+        new kd.NotificationView { title: 'Membership policy has been updated.' }
       showError err
 
 

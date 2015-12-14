@@ -1,7 +1,8 @@
-{ Base, secure, signature, daisy } = require 'bongo'
+{ Base, secure, signature } = require 'bongo'
 KodingError = require '../../error'
 
 { argv }    = require 'optimist'
+{ series }  = require 'async'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 teamutils   = require './teamutils'
 konstraints = require 'konstraints'
@@ -48,6 +49,8 @@ module.exports = class ComputeProvider extends Base
         fetchUsage        :
           (signature Object, Function)
         fetchPlans        :
+          (signature Function)
+        fetchTeamPlans    :
           (signature Function)
         fetchProviders    :
           (signature Function)
@@ -172,6 +175,12 @@ module.exports = class ComputeProvider extends Base
       callback null, PLANS
 
 
+  @fetchTeamPlans = permit
+    advanced : [{ permission: 'sudoer', superadmin: yes }]
+    success  : (client, callback) ->
+      callback null, teamutils.TEAMPLANS
+
+
   @update = secure revive
 
 
@@ -224,7 +233,7 @@ module.exports = class ComputeProvider extends Base
       # provided in template's machines array ~ GG
       template.machines?.forEach (machineInfo) ->
 
-        queue.push ->
+        queue.push (next) ->
 
           # Set the stack as newly create JComputeStack
           machineInfo.stack         = stack
@@ -244,7 +253,7 @@ module.exports = class ComputeProvider extends Base
             ComputeProvider.create client, machineInfo, (err, machine) ->
               results.machines.push { err, obj: machine }
 
-              return queue.next()  unless machine
+              return next()  unless machine
 
               # Create default workspace for the machine
               JWorkspace.createDefault client, machine.uid, (err) ->
@@ -253,7 +262,7 @@ module.exports = class ComputeProvider extends Base
                   console.log \
                     'Failed to create default workspace', machine.uid, err
 
-                queue.next()
+                next()
 
           # This is optional, since for koding group for example
           # we don't want to add our admins into users machines ~ GG
@@ -276,11 +285,8 @@ module.exports = class ComputeProvider extends Base
             else
               create machineInfo
 
-      queue.push ->
 
-        callback null, { stack, results }
-
-      daisy queue
+      series queue, -> callback null, { stack, results }
 
 
   # Just takes the plan name and the stack template content generates rules
@@ -322,14 +328,56 @@ module.exports = class ComputeProvider extends Base
 
     queue = []
 
-    stackTemplates.forEach (stackTemplateId) -> queue.push ->
+    stackTemplates.forEach (stackTemplateId) -> queue.push (next) ->
       ComputeProvider.validateTemplate client, stackTemplateId, group, (err) ->
         return callback err  if err
-        queue.next()
+        next()
 
-    queue.push -> callback null
+    series queue, -> callback null
 
-    daisy queue
+
+  # WARNING! This will destroy all the resources related with given group!
+  #
+  # We are just logging all errors in this flow, and not interrupting
+  # anything since this shouldn't prevent to destroy group operation ~ GG
+  #
+  @destroyGroupResources = (group, callback) ->
+
+    skip = (type, next) -> (err) ->
+      console.log "[#{type}] Failed to destroy group resource:", err  if err
+      next()
+
+    series [
+
+      # Remove all machines in the group
+      (next) ->
+        JMachine.remove {
+          groups: { $elemMatch: { id: group.getId() } }
+        }, skip 'JMachine', next
+
+      # Remove all stacks in the group
+      (next) ->
+        JComputeStack = require '../stack'
+        JComputeStack.remove {
+          group: group.slug
+        }, skip 'JComputeStack', next
+
+      # Remove all stack templates in the group
+      (next) ->
+        JStackTemplate.remove {
+          group: group.slug
+        }, skip 'JStackTemplate', next
+
+      # Remove all counters
+      (next) ->
+        JCounter = require '../counter'
+        JCounter.remove {
+          namespace: group.slug
+        }, skip 'JCounter', next
+
+    ], ->
+
+      callback null
 
 
   # Auto create stack operations ###
@@ -404,56 +452,50 @@ module.exports = class ComputeProvider extends Base
     options      ?= {}
     res           = {}
     instanceCount = 0
+    createdStack  = null
 
     { template, account, group } = {}
 
-    daisy queue = [
+    series [
 
-      ->
+      (next) ->
         fetchGroupStackTemplate client, (err, _res) ->
-          return callback err  if err
+          unless err
+            { template, account, group } = res = _res
+          next err
 
-          { template, account, group } = res = _res
-
-          queue.next()
-
-      ->
+      (next) ->
         instanceCount = template.machines?.length or 0
         change        = 'increment'
 
         ComputeProvider.updateGroupResourceUsage {
           group, change, instanceCount
         }, (err) ->
+          next err
 
-          return callback err  if err
-
-          queue.next()
-
-      ->
+      (next) ->
         checkTemplateUsage template, account, (err) ->
-          return callback err  if err
+          next err
 
-          queue.next()
-
-      ->
+      (next) ->
         account.addStackTemplate template, (err) ->
-          return callback err  if err
-
           res.client = client
+          next err
 
-          queue.next()
-
-      ->
+      (next) ->
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
           if err
             # swallowing errors for followings since we need the real error ~GG
             account.removeStackTemplate template, ->
               ComputeProvider.updateGroupResourceUsage {
                 group, change: 'decrement', instanceCount
-              }, -> callback err
+              }, -> next err
           else
-            callback null, stack
-    ]
+            createdStack = stack
+            next()
+
+    ], (err) ->
+      callback err, createdStack
 
 
   do ->
