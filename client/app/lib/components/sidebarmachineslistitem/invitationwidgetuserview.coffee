@@ -1,12 +1,13 @@
-React = require 'kd-react'
-Link  = require 'app/components/common/link'
+React                 = require 'kd-react'
+Link                  = require 'app/components/common/link'
+Avatar                = require 'app/components/profile/avatar'
+ProfileText           = require 'app/components/profile/profiletext'
+ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
 
 
 module.exports = class InvitationWidgetUserView extends React.Component
 
   @defaultProps =
-    link      : '#'
-    source    : ''
     size      :
       width   : 30
       height  : 30
@@ -14,13 +15,14 @@ module.exports = class InvitationWidgetUserView extends React.Component
 
   render: ->
     <div className='InvitationWidget-UserView'>
-      <Link
-        className='InvitationWidget-Link'
-        href={@props.link}>
-        <img src={@props.source} width={@props.size.width} height={@props.size.height} />
-      </Link>
-      <div className='InvitationWidget-UserDetail'>
-        <span className='InvitationWidget-FullName'>Gokhan Turunc</span>
-          <span className='InvitationWidget-NickName'>@turunc</span>
-      </div>
+      <ProfileLinkContainer origin={@props.owner}>
+        <Avatar className="ChatItem-Avatar" width={@props.size.width} height={@props.size.height} />
+      </ProfileLinkContainer>
+
+      <ProfileLinkContainer origin={@props.owner} className='InvitationWidget-UserDetail'>
+        <ProfileText className='InvitationWidget-FullName' />
+        <div className='InvitationWidget-Nickname'>
+          @{@props.owner}
+        </div>
+      </ProfileLinkContainer>
     </div>
