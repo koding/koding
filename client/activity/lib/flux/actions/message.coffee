@@ -465,22 +465,24 @@ changeSelectedMessageBySlug = (slug) ->
  * Sets message edit mode
  *
  * @param {string} messageId
+ * @param {string} channelId
 ###
-setMessageEditMode = (messageId) ->
+setMessageEditMode = (messageId, channelId) ->
 
   { SET_MESSAGE_EDIT_MODE } = actionTypes
-  dispatch SET_MESSAGE_EDIT_MODE, { messageId }
+  dispatch SET_MESSAGE_EDIT_MODE, { messageId, channelId }
 
 
 ###*
  * Unsets message edit mode
  *
  * @param {string} messageId
+ * @param {string} channelId
 ###
-unsetMessageEditMode = (messageId) ->
+unsetMessageEditMode = (messageId, channelId) ->
 
   { UNSET_MESSAGE_EDIT_MODE } = actionTypes
-  dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
+  dispatch UNSET_MESSAGE_EDIT_MODE, { messageId, channelId }
 
 
 fetchEmbedPayload = (messageData, callback = kd.noop) ->
