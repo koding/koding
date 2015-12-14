@@ -50,7 +50,7 @@ module.exports = class AdminMembersView extends kd.View
     , data
 
 
-    if isKoding()
+    if isKoding data
       blocked.addSubView new GroupsBlockedUserView {}, data
     else
       blocked.addSubView @blockedView = new TeamMembersCommonView

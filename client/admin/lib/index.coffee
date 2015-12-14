@@ -4,6 +4,7 @@ AppController              = require 'app/appcontroller'
 AdminAPIView               = require './views/api/adminapiview'
 AdminAppView               = require './views/customviews/adminappview'
 TeamInviteView             = require './views/koding-admin/teaminviteview'
+TeamManageView             = require './views/koding-admin/teammanageview'
 AdminMembersView           = require './views/members/adminmembersview'
 AdministrationView         = require './views/koding-admin/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
@@ -34,7 +35,7 @@ module.exports = class AdminAppController extends AppController
         { slug : 'General',        title : 'General',           viewClass : GroupGeneralSettingsView }
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
-        # { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
+      # { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
         {
           slug      : 'Integrations'
           title     : 'Integrations'
@@ -45,10 +46,12 @@ module.exports = class AdminAppController extends AppController
           ]
         }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
-        { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }      ]
+        { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
+      ]
     koding     :
       title    : 'Koding Administration'
       items    : [
+        { slug : 'TeamManage',     title : 'Manage teams',      viewClass : TeamManageView           }
         { slug : 'Blocked',        title : 'Blocked Users',     viewClass : GroupsBlockedUserView    }
         { slug : 'Widgets',        title : 'Custom Views',      viewClass : CustomViewsManager       }
         { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView      }
@@ -116,3 +119,5 @@ module.exports = class AdminAppController extends AppController
       if previousRoutes.length > 0
       then router.handleRoute previousRoutes.last
       else router.handleRoute router.getDefaultRoute()
+
+  fetchNavItems: (cb) -> cb NAV_ITEMS
