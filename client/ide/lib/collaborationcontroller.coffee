@@ -9,6 +9,7 @@ KDModalView                   = kd.ModalView
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
+isKoding                      = require 'app/util/isKoding'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
@@ -22,6 +23,7 @@ environmentDataProvider       = require 'app/userenvironmentdataprovider'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
+actiontypes                   = require 'app/flux/environment/actiontypes'
 
 {warn} = kd
 
@@ -991,6 +993,9 @@ module.exports = CollaborationController =
     # TODO: fix explicit state checks.
     return  unless @stateMachine.state in ['Active', 'Ending']
 
+    unless isKoding() # Remove the machine from sidebar.
+      kd.singletons.reactor.dispatch actiontypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
+
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
       @chat.emit 'CollaborationEnded'
@@ -998,7 +1003,7 @@ module.exports = CollaborationController =
       @chat = null
       @statusBar.emit 'CollaborationEnded'
       @removeParticipant nick()
-      @removeMachineNode()  unless @mountedMachine.isPermanent()
+      @removeMachineNode()  if not @mountedMachine.isPermanent() and isKoding()
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       method = switch

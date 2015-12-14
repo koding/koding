@@ -12,6 +12,7 @@ Encoder                       = require 'htmlencode'
 Machine                       = require 'app/providers/machine'
 IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
+isKoding                      = require 'app/util/isKoding'
 showError                     = require 'app/util/showError'
 KDModalView                   = kd.ModalView
 KDSplitView                   = kd.SplitView
@@ -574,14 +575,16 @@ class IDEAppController extends AppController
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
 
-      if not machineItem.isMine() and not machineItem.isApproved()
+      # Don't run these lines on `Teams` scope.
+      # Because `Teams` uses new Sidebar with React + Flux
+      if isKoding() and not machineItem.isMine() and not machineItem.isApproved()
         { activitySidebar } = kd.singletons.mainView
         box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
         box.machineItem.showSharePopup sticky: yes, workspaceId: @workspaceData.getId()
+
         withFakeViews = yes
 
       @setMountedMachine machineItem
-
       @prepareIDE withFakeViews
 
       return no  if withFakeViews
