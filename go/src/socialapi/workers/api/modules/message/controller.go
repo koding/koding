@@ -3,6 +3,7 @@ package message
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/config"
@@ -21,9 +22,27 @@ var publicChannel *models.Channel
 
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
 
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
 	channelId, err := fetchInitialChannelId(u, c)
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	if err := ch.ById(channelId); err != nil {
+		return response.NewBadRequest(models.ErrChannelNotFound)
+	}
+
+	canOpen, err := ch.CanOpen(c.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
 	}
 
 	// override message type
@@ -33,9 +52,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 
 	req.InitialChannelId = channelId
 
-	if req.AccountId == 0 {
-		req.AccountId = c.Client.Account.Id
-	}
+	req.AccountId = c.Client.Account.Id
 
 	if req.Payload == nil {
 		req.Payload = gorm.Hstore{}
@@ -188,9 +205,17 @@ func checkThrottle(channelId, requesterId int64) error {
 }
 
 func Delete(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewAccessDenied(models.ErrNotLoggedIn)
+	}
+
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	if id == 0 {
+		return response.NewBadRequest(models.ErrMessageIdIsNotSet)
 	}
 
 	cm := models.NewChannelMessage()
@@ -203,8 +228,17 @@ func Delete(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, h
 		return response.NewBadRequest(err)
 	}
 
+	// Add isAdmin checking
+	// is user is admin, then can delete another user's message
 	if cm.AccountId != c.Client.Account.Id {
-		return response.NewBadRequest(models.ErrAccessDenied)
+		isAdmin, err := modelhelper.IsAdmin(c.Client.Account.Nick, c.GroupName)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if !isAdmin {
+			return response.NewBadRequest(models.ErrAccessDenied)
+		}
 	}
 
 	// if this is a reply no need to delete it's replies
@@ -234,6 +268,10 @@ func Delete(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, h
 }
 
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -267,7 +305,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 	return response.HandleResultAndError(cmc, cmc.Fetch(id, request.GetQuery(u)))
 }
 
-func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	cm, err := getMessageByUrl(u)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -276,6 +314,9 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 	if cm.Id == 0 {
 		return response.NewNotFound()
 	}
+
+	//fetch initial CHannel
+	// canopen ?
 
 	cmc := models.NewChannelMessageContainer()
 	return response.HandleResultAndError(cmc, cmc.Fetch(cm.Id, request.GetQuery(u)))
@@ -317,7 +358,7 @@ func getMessageByUrl(u *url.URL) (*models.ChannelMessage, error) {
 	return cm, nil
 }
 
-func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func GetWithRelated(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	cm, err := getMessageByUrl(u)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -325,6 +366,20 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 
 	if cm.Id == 0 {
 		return response.NewNotFound()
+	}
+
+	ch := models.NewChannel()
+	if err := ch.ById(cm.InitialChannelId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	accountId := 0
+	if ctx.IsLoggedIn() {
+		accountId = ctx.Client.Account.Id
+	}
+
+	if !ch.CanOpen(accountId) {
+		return response.NewAccessDenied(models.ErrCannotOpenChannel)
 	}
 
 	q := request.GetQuery(u)
@@ -339,7 +394,7 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
-func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func GetBySlug(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 
 	if q.Slug == "" {
@@ -352,6 +407,20 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	if err := ch.ById(cm.InitialChannelId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	accountId := 0
+	if ctx.IsLoggedIn() {
+		accountId = ctx.Client.Account.Id
+	}
+	// check if user can open
+	if !ch.CanOpen(ctx.Client.Account.Id) {
+		return response.NewAccessDenied(models.ErrCannotOpenChannel)
 	}
 
 	cmc := models.NewChannelMessageContainer()
