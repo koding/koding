@@ -483,5 +483,4 @@ Things to watch out while creating machines;
 
 
 # Project Management
-
 [Jira](https://koding.atlassian.net/)
