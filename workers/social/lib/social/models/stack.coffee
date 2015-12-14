@@ -302,16 +302,17 @@ module.exports = class JComputeStack extends jraphical.Module
 
           machineIds = (machineId for machineId in @machines)
 
-          JMachine.update {
-            _id  : { $in: machineIds }
-          }, {
-            $set : {
-              status : { state: 'Terminated' }
-              users  : [] # remove users from machines since
-                          # it's going to be terminated so users of this
-                          # machine won't be able to see it ~ GG
-            }
-          }, (err) =>
+          JMachine.update
+            _id   :
+              $in : machineIds
+          ,
+            $set  :
+              'status.state' : 'Terminated'
+              'users'        : [] # remove users from machines since it's going
+                                  # to be terminated so users of this
+                                  # machine won't be able to see it ~ GG
+          , { multi : yes }
+          , (err) =>
 
             if err
               console.warn 'Failed to mark stack machines as Terminated:', err

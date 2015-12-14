@@ -282,7 +282,7 @@ guessNextLabel = (options, callback) ->
   #  - provider must be equal to provided provider
   #  - user and group must be same and user must be owner of the machine
   #  - label needs to start with provider name and ends with "-vm-{0-9}" ~ GG
-  selector   =
+  selector       =
     provider     : provider
     users        :
       $elemMatch :
@@ -294,10 +294,10 @@ guessNextLabel = (options, callback) ->
         id       : group.getId()
     label        : ///^#{provider}-vm-[0-9]*$///
 
-  options    =
-    limit       : 1
-    sort        :
-      createdAt : -1
+  options        =
+    limit        : 1
+    sort         :
+      createdAt  : -1
 
   JMachine.one selector, options, (err, machine) ->
 
@@ -305,7 +305,6 @@ guessNextLabel = (options, callback) ->
     unless machine?
       callback null, "#{provider}-vm-0"
     else
-
       index = +(machine.label.split "#{provider}-vm-")[1]
       callback null, "#{provider}-vm-#{index+1}"
 
