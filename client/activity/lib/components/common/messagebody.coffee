@@ -7,6 +7,7 @@ classnames           = require 'classnames'
 transformTags        = require 'app/util/transformReactivityTags'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 renderEmojis         = require 'activity/util/renderEmojis'
+getNick = require 'app/util/nick'
 
 
 module.exports = class MessageBody extends React.Component
@@ -93,6 +94,11 @@ module.exports = class MessageBody extends React.Component
 
   helper =
 
+    prepareNickname: (nickname) ->
+
+      if nickname is getNick() then 'you' else "@#{nickname}"
+
+
     prepareDefaultBody: (options = {}) ->
 
       { addedBy, paneType, initialParticipants, action } = options
@@ -105,14 +111,18 @@ module.exports = class MessageBody extends React.Component
         return body  if initialParticipants.length is 0
 
         body = "#{body} and invited "
-        body = "#{body} @#{participant}," for participant in initialParticipants
+
+        for participant in initialParticipants
+          body = "#{body} #{helper.prepareNickname participant},"
 
         return body.slice 0, body.length - 1
 
       body = "has #{action} the #{paneType}"
 
-      # append who added the user
-      body = "#{body} from an invitation by @#{addedBy}"  if addedBy
+
+      if addedBy
+        # append who added the user
+        body = "#{body} from an invitation by #{helper.prepareNickname addedBy}"
 
       return body
 

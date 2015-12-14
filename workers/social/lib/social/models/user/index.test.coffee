@@ -9,6 +9,7 @@ Speakeasy = require 'speakeasy'
   expect
   withDummyClient
   generateUserInfo
+  withConvertedUser
   generateDummyClient
   generateCredentials
   generateRandomEmail
@@ -190,149 +191,126 @@ runTests = -> describe 'workers.social.user.index', ->
 
   describe '#login()', ->
 
-    it 'should be to able login user when data is valid', (done) ->
+    describe 'when request is valid', ->
 
-      # variables needed in the login method scope
-      session                = null
-      lastLoginDate          = null
-      # generating user info with random username and password
-      { username, password } = userInfo = generateUserInfo()
-      loginCredentials       = generateCredentials { username, password }
+      testLoginWithValidData = (options, callback) ->
 
-      queue = [
+        lastLoginDate = null
+        { loginCredentials, username } = options
+        username ?= loginCredentials.username
 
-        ->
-          # creating a new user
-          JUser.createUser userInfo, (err, user, account) ->
-            expect(err).to.not.exist
-            queue.next()
+        queue = [
 
-        ->
-          # expecting successful login
-          JUser.login null, loginCredentials, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+          ->
+            # expecting successful login
+            JUser.login null, loginCredentials, (err) ->
+              expect(err).to.not.exist
+              queue.next()
 
-        ->
-          # keeping last login date
-          JUser.one { username : loginCredentials.username }, (err, user) ->
-            expect(err).to.not.exist
-            lastLoginDate = user.lastLoginDate
-            queue.next()
+          ->
+            # keeping last login date
+            JUser.one { username }, (err, user) ->
+              expect(err).to.not.exist
+              lastLoginDate = user.lastLoginDate
+              queue.next()
 
-        ->
-          # expecting another successful login
-          JUser.login null, loginCredentials, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+          ->
+            # expecting another successful login
+            JUser.login null, loginCredentials, (err) ->
+              expect(err).to.not.exist
+              queue.next()
 
-        ->
-          # expecting last login date to be changed
-          JUser.one { username : loginCredentials.username }, (err, user) ->
-            expect(err)           .to.not.exist
-            expect(lastLoginDate) .not.to.be.equal user.lastLoginDate
-            queue.next()
+          ->
+            # expecting last login date to be changed
+            JUser.one { username }, (err, user) ->
+              expect(err)           .to.not.exist
+              expect(lastLoginDate) .not.to.be.equal user.lastLoginDate
+              queue.next()
 
-        -> done()
+          -> callback()
 
-      ]
+        ]
 
-      daisy queue
+        daisy queue
 
 
-    it 'should handle username normalizing correctly', (done) ->
+      it 'should be able to login user with lower case username', (done) ->
 
-      # generating user info with random username and password
-      { username, password, email } = userInfo = generateUserInfo()
-      loginCredentials              = generateCredentials { username, password }
+        # trying to login with username
+        withConvertedUser ({ userFormData : { username, password } }) ->
+          loginCredentials = generateCredentials { username, password }
+          testLoginWithValidData { loginCredentials }, done
 
-      queue = [
 
-        ->
-          # creating a new user
-          JUser.createUser userInfo, (err, user) ->
-            expect(err).to.not.exist
-            queue.next()
+      it 'should be able to login with uppercase username', (done) ->
+        # trying to login with username
+        withConvertedUser ({ userFormData : { username, password } }) ->
+          opts = { username : username.toUpperCase(), password }
+          loginCredentials = generateCredentials opts
+          testLoginWithValidData { loginCredentials, username }, done
 
-        ->
-          # expecting user to be able to login with username
-          JUser.login null, loginCredentials, (err) ->
-            expect(err).to.not.exist
-            queue.next()
 
-        ->
-          # expecting user to be able to login with email
-          loginCredentials.username = email
-          JUser.login null, loginCredentials, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+      it 'should handle username normalizing correctly', (done) ->
 
-        -> done()
-
-      ]
-
-      daisy queue
+        # trying to login with email instead of username
+        withConvertedUser ({ userFormData : { username, password, email } }) ->
+          loginCredentials = generateCredentials { username : email, password }
+          testLoginWithValidData { loginCredentials, username }, done
 
 
     it 'should handle two factor authentication correctly', (done) ->
 
-      tfcode                    = null
-      # generating user info with random username and password
-      { username, password }    = userInfo = generateUserInfo()
-      loginCredentials          = generateCredentials { username, password }
+      withConvertedUser ({ userFormData : { username, password } }) ->
 
-      queue = [
+        tfcode           = null
+        loginCredentials = generateCredentials { username, password }
 
-        ->
-          # creating a new user
-          JUser.createUser userInfo, (err, user) ->
-            expect(err).to.not.exist
-            queue.next()
+        queue = [
 
-        ->
-          # setting two factor authentication on by adding twofactorkey field
-          JUser.update { username }, { $set: { twofactorkey: 'somekey' } }, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+          ->
+            # setting two factor authentication on by adding twofactorkey field
+            JUser.update { username }, { $set: { twofactorkey: 'somekey' } }, (err) ->
+              expect(err).to.not.exist
+              queue.next()
 
-        ->
-          # trying to login with empty tf code
-          loginCredentials.tfcode = ''
-          JUser.login null, loginCredentials, (err) ->
-            expect(err.message).to.be.equal 'TwoFactor auth Enabled'
-            queue.next()
+          ->
+            # trying to login with empty tf code
+            loginCredentials.tfcode = ''
+            JUser.login null, loginCredentials, (err) ->
+              expect(err.message).to.be.equal 'TwoFactor auth Enabled'
+              queue.next()
 
-        ->
-          # trying to login with invalid tfcode
-          loginCredentials.tfcode = 'invalidtfcode'
-          JUser.login null, loginCredentials, (err) ->
-            expect(err.message).to.be.equal 'Access denied!'
-            queue.next()
+          ->
+            # trying to login with invalid tfcode
+            loginCredentials.tfcode = 'invalidtfcode'
+            JUser.login null, loginCredentials, (err) ->
+              expect(err.message).to.be.equal 'Access denied!'
+              queue.next()
 
-        ->
-          # generating a 2fa key and saving it in mongo
-          { base32 : tfcode } = Speakeasy.generate_key
-            length    : 20
-            encoding  : 'base32'
-          JUser.update { username }, { $set: { twofactorkey: tfcode } }, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+          ->
+            # generating a 2fa key and saving it in mongo
+            { base32 : tfcode } = Speakeasy.generate_key
+              length    : 20
+              encoding  : 'base32'
+            JUser.update { username }, { $set: { twofactorkey: tfcode } }, (err) ->
+              expect(err).to.not.exist
+              queue.next()
 
-        ->
-          # generating a verificationCode and expecting a successful login
-          verificationCode = Speakeasy.totp
-            key       : tfcode
-            encoding  : 'base32'
-          loginCredentials.tfcode = verificationCode
-          JUser.login null, loginCredentials, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+          ->
+            # generating a verificationCode and expecting a successful login
+            verificationCode = Speakeasy.totp
+              key       : tfcode
+              encoding  : 'base32'
+            loginCredentials.tfcode = verificationCode
+            JUser.login null, loginCredentials, (err) ->
+              expect(err).to.not.exist
+              queue.next()
 
-        -> done()
+          -> done()
 
-      ]
+        ]
 
-      daisy queue
+        daisy queue
 
 
     it 'should pass error if account is not found', (done) ->

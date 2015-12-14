@@ -33,13 +33,13 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
   handleCreateMessageBegin: (channelFlags, { channelId }) ->
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
-    return channelFlags.setIn [channelId, 'isMessageBeingSubmitted'], yes
+    return channelFlags.setIn [channelId, 'hasSubmittingMessage'], yes
 
 
   handleCreateMessageEnd: (channelFlags, { channelId }) ->
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
-    return channelFlags.setIn [channelId, 'isMessageBeingSubmitted'], no
+    return channelFlags.setIn [channelId, 'hasSubmittingMessage'], no
 
 
   handleSetAllMessagesLoaded: (channelFlags, { channelId }) ->
@@ -69,13 +69,13 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
   handleSetMessageEditMode: (channelFlags, { channelId }) ->
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
-    return channelFlags.setIn [channelId, 'isMessageInEditMode'], yes
+    return channelFlags.setIn [channelId, 'hasEditingMessage'], yes
 
 
   handleUnsetMessageEditMode: (channelFlags, { channelId }) ->
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
-    return channelFlags.setIn [channelId, 'isMessageInEditMode'], no
+    return channelFlags.setIn [channelId, 'hasEditingMessage'], no
 
 
 helper =
