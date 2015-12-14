@@ -1546,21 +1546,23 @@ class IDEAppController extends AppController
       delete @modal
 
 
-  quit: ->
+  quit: (destroy = yes) ->
 
     return  if @getView().isDestroyed
 
-    @emit 'IDEWillQuit'
+    @emit 'IDEWillQuit'  if destroy
 
     @mountedMachine?.getBaseKite(createIfNotExists = no).disconnect()
-
     @stopCollaborationSession()
-    kd.singletons.appManager.quit this
 
-    kd.utils.defer ->
-      kd.singletons.router.handleRoute '/IDE'
+    if destroy
+      kd.singletons.appManager.quit this
+      kd.utils.defer ->
+        kd.singletons.router.handleRoute '/IDE'
+      @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 
-    @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
+
+  beforeQuit: -> @quit no
 
 
   removeParticipantCursorWidget: (targetUser) ->
