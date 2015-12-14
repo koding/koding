@@ -73,7 +73,7 @@ module.exports = class Tracker extends bongo.Base
   @track$ = secure (client, subject, options = {}, callback) ->
 
     unless account = client?.connection?.delegate
-      return console.error "Account is not set!"
+      return console.error 'Account is not set!'
 
     { profile: { nickname } } = account
 
