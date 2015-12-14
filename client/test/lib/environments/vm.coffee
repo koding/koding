@@ -32,29 +32,6 @@ module.exports =
     browser.end()
 
 
-  terminateVMForNonPayingUserAndCreateNewOne: (browser) ->
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
-    environmentHelpers.openAdvancedSettings(browser)
-    environmentHelpers.terminateVM(browser)
-    environmentHelpers.createNewVMForNonPayingUsers(browser)
-
-    browser.end()
-
-
-  reinitVM: (browser) ->
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
-    environmentHelpers.openAdvancedSettings(browser)
-    environmentHelpers.reinitVM(browser)
-
-    browser.end()
-
-
   checkVMDiskUsage: (browser) ->
 
     diskUsageSelector  = modalSelector + ' .disk-usage'
@@ -97,15 +74,6 @@ module.exports =
     browser.pause 1000 #Doesn't work without it
     browser.end()
 
-  terminateVm: (browser) ->
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
-    environmentHelpers.openAdvancedSettings(browser)
-    environmentHelpers.terminateVM(browser)
-
-    browser.end()
 
 ### DISABLED - takes too long (10m 41s)
   resizeVm: (browser) ->
