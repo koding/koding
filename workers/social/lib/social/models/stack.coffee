@@ -311,7 +311,7 @@ module.exports = class JComputeStack extends jraphical.Module
               'users'        : [] # remove users from machines since it's going
                                   # to be terminated so users of this
                                   # machine won't be able to see it ~ GG
-          , multi : yes
+          , { multi : yes }
           , (err) =>
 
             if err
