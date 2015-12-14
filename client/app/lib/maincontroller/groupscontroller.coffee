@@ -192,7 +192,6 @@ module.exports = class GroupsController extends kd.Controller
         # Re-call create default stack flow to make sure it exists
         computeController.createDefaultStack yes
 
-
         if stackTemplate._updated
           id = currentGroup.socialApiDefaultChannelId
 

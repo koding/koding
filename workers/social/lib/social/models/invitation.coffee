@@ -291,10 +291,10 @@ module.exports = class JInvitation extends jraphical.Module
       return  if group.slug in ['guests', 'koding']
 
       member.fetchUser (err, user) ->
-        return log 'Failed to fetch member:', err  if err or not user
+        return console.log 'Failed to fetch member:', err  if err or not user
 
         JInvitation.remove {
           email     : user.email
           groupName : group.slug
         }, (err) ->
-          log 'Failed to remove existing invitations', err  if err
+          console.log 'Failed to remove existing invitations', err  if err

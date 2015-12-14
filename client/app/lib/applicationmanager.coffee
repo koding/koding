@@ -238,6 +238,7 @@ class ApplicationManager extends KDObject
   quit:(appInstance, callback = kd.noop)->
     view = appInstance.getView?()
     destroyer = if view? then view else appInstance
+    appInstance.beforeQuit?()
     destroyer.destroy()
     callback()
 
