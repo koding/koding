@@ -91,7 +91,7 @@ module.exports = class EmbedBoxWidget extends KDView
 
   getData: ->
 
-    return { link_url : null, link_embed : null  }  if _.isEmpty @oembed
+    return  if _.isEmpty @oembed
 
     data = @oembed
 

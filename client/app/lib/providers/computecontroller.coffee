@@ -1145,9 +1145,8 @@ module.exports = class ComputeController extends KDController
             new kd.NotificationView
               title : 'Stack reinitialized'
 
-            # We need to quit here to be able to re-load
-            # IDE with new machine stack, there might be better solution ~ GG
-            frontApp = kd.singletons.appManager.getFrontApp()
-            frontApp.quit()  if frontApp?.options.name is 'IDE'
+            kd.singletons.appManager.quitByName 'IDE'
+            kd.utils.defer ->
+              kd.singletons.router.handleRoute '/IDE'
 
           .createDefaultStack()

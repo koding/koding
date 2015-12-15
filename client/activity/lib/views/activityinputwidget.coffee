@@ -153,6 +153,10 @@ module.exports = class ActivityInputWidget extends KDView
 
     payload = _.assign {}, activity?.payload, embedBoxPayload
 
+    unless embedBoxPayload
+      delete payload.link_url
+      delete payload.link_embed
+
     channelId       = channel?.id
 
     options = { channelId, body, payload, clientRequestId }

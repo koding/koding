@@ -1,7 +1,7 @@
 kd = require 'kd'
 React = require 'kd-react'
 
-FeedItem = require 'activity/components/feeditem'
+FeedItem = require './feeditem'
 
 module.exports = class FeedList extends React.Component
 
