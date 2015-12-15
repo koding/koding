@@ -18,6 +18,11 @@ type ExitingCommand func(*cli.Context) int
 // Stdout. Useful for printig a message to the user in a convenient single-use way.
 type ExitingWithMessageCommand func(*cli.Context) (string, int)
 
+// closer is a small
+type closer interface {
+	Close() error
+}
+
 // sudoRequiredFor is the default list of commands that require sudo.
 // The actual handling of this list is done in the SudoRequired func.
 var sudoRequiredFor = []string{
@@ -37,12 +42,20 @@ var sudoRequiredFor = []string{
 var log logging.Logger
 
 func main() {
+	// The writer used for the logging output. Either a file, or /dev/null
 	var logWriter io.Writer
-	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+
+	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		// TODO: We may not want to log a logfile failure here, but it seems useful to
-		// give us some idea that the logs aren't being written.
-		fmt.Println("Warning: Unable to load logfile")
+		// Don't warn the user about failing to load the log file if we are installing.
+		if len(os.Args) > 1 && os.Args[1] != "install" {
+			// TODO: We may not want to log a logfile failure here, but it seems useful to
+			// give us some idea that the logs aren't being written.
+			fmt.Printf(
+				"Warning: Unable to load log file. Please reinstall %s.\n",
+				Name,
+			)
+		}
 		// Rather than exit `kd` because we are unable to log, we simple disable logging
 		// by writing to /dev/null. This also measn that even if we can't load the log
 		// file, the log instance is valid and doesn't have to be checked for being
@@ -56,9 +69,9 @@ func main() {
 		logWriter = f
 	}
 
+	// Create our logger instance.
 	log = logging.NewLogger("kd")
 	log.SetHandler(logging.NewWriterHandler(logWriter))
-
 	log.Infof("kd binary called with: %s", os.Args)
 
 	// Check if the command the user is giving requires sudo.

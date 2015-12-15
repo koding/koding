@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klientctl/logging"
 	"github.com/leeola/service"
 )
 
@@ -49,6 +50,24 @@ func InstallCommandFactory(c *cli.Context) int {
 		cli.ShowCommandHelp(c, "install")
 		return 1
 	}
+
+	// Create the log file early in the install process, so that we can log the
+	// install process and any troubles encountered.
+	err := createLogFiles(LogFilePath)
+	if err != nil {
+		fmt.Println(`Error: Unable to create log files.`)
+		return 1
+	}
+
+	// Now that we created the logfile, set our logger handler to use that newly created
+	// file, so that we can log errors during installation.
+	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println(`Error: Unable to open log files.`)
+		return 1
+	}
+	log.SetHandler(logging.NewWriterHandler(f))
+	log.Info("Installation created log file")
 
 	authToken := c.Args().Get(0)
 
@@ -212,4 +231,22 @@ Please go back to Koding to get a new code and try again.
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", KlientName)
 
 	return 0
+}
+
+// createLogFiles creates the logfile(s) as needed.
+func createLogFiles(kdLog string) error {
+	f, err := os.Create(kdLog)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Chmod the kd.log file to 666, so that everyone (even non-sudo) can
+	// write to it.
+	err = f.Chmod(0666)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
