@@ -100,8 +100,9 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleStackDelete: ->
 
-    { computeController } = kd.singletons
+    @getDelegate().emit 'ModalDestroyRequested'
 
+    { computeController } = kd.singletons
     computeController.ui.askFor 'deleteStack', {}, =>
       @getDelegate().emit 'StackDeleteRequested', @getData()
 

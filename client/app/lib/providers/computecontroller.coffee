@@ -677,12 +677,15 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @getKloud().buildStack { stackId: stack._id }
+    stackId = stack._id
+    call    = @getKloud().buildStack { stackId }
 
     .then (res) =>
 
+      (@findStackFromStackId stackId)?.status.state = 'Building'
+
       kd.log "build stack res:", res
-      @eventListener.addListener 'apply', stack._id
+      @eventListener.addListener 'apply', stackId
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
@@ -694,6 +697,13 @@ module.exports = class ComputeController extends KDController
   destroyStack: (stack, callback) ->
 
     return  unless stack
+
+    { state } = stack.status
+
+    if state in [ 'Building', 'Destroying' ]
+      return callback
+        name    : 'InProgress'
+        message : "This stack is currently #{state.toLowerCase()}."
 
     stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
