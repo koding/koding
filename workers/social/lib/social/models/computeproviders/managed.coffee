@@ -143,6 +143,3 @@ module.exports = class Managed extends ProviderInterface
     selector.provider = @providerSlug
     updateMachine selector, fieldsToUpdate, callback
 
-
-
-
