@@ -1,6 +1,7 @@
 package trollmode
 
 import (
+	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math"
@@ -80,9 +81,25 @@ func TestMarkedAsTroll(t *testing.T) {
 		res := rest.MarkAsTroll(trollUser)
 		So(res, ShouldBeNil)
 
+		models.CreateTypedGroupedChannelWithTest(
+			trollUser.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
+		// fetch troll user's session
+		trollSes, err := models.FetchOrCreateSession(trollUser.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(trollSes, ShouldNotBeNil)
+
 		// create normal user
 		normalUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(normalUser, err)
+
+		// fetch normal user's session
+		normalSes, err := models.FetchOrCreateSession(normalUser.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(trollSes, ShouldNotBeNil)
 
 		groupChannel, err := rest.CreateChannelByGroupNameAndType(
 			adminUser.Id,
@@ -135,27 +152,27 @@ func TestMarkedAsTroll(t *testing.T) {
 			// fetch from api, because we need to test system from there
 			privatemessageChannelId1, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId1, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId1.Id, ShouldBeGreaterThan, 0)
 
 			privatemessageChannelId2, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId2, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId2.Id, ShouldBeGreaterThan, 0)
 
 			So(controller.markChannels(trollUser, models.Safe), ShouldBeNil)
 
 			// fetch channel from db
 			c1 := models.NewChannel()
-			err = c1.ById(privatemessageChannelId1)
+			err = c1.ById(privatemessageChannelId1.Id)
 			So(err, ShouldBeNil)
-			So(c1.Id, ShouldEqual, privatemessageChannelId1)
+			So(c1.Id, ShouldEqual, privatemessageChannelId1.Id)
 			// check here
 			So(c1.MetaBits.Is(models.Troll), ShouldBeTrue)
 
 			// fetch channel from db
 			c2 := models.NewChannel()
-			err = c2.ById(privatemessageChannelId2)
+			err = c2.ById(privatemessageChannelId2.Id)
 			So(err, ShouldBeNil)
-			So(c2.Id, ShouldEqual, privatemessageChannelId2)
+			So(c2.Id, ShouldEqual, privatemessageChannelId2.Id)
 
 			// check here
 			So(c2.MetaBits.Is(models.Troll), ShouldBeTrue)
@@ -169,11 +186,11 @@ func TestMarkedAsTroll(t *testing.T) {
 			// fetch from api, because we need to test system from there
 			privatemessageChannelId1, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId1, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId1.Id, ShouldBeGreaterThan, 0)
 
 			privatemessageChannelId2, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId2, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId2.Id, ShouldBeGreaterThan, 0)
 
 			So(controller.markParticipations(trollUser, models.Safe), ShouldBeNil)
 
@@ -309,13 +326,13 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when a troll creates a channel, meta_bits should be set", func() {
 			privatemessageChannelId1, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId1, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId1.Id, ShouldBeGreaterThan, 0)
 
 			// fetch channel from db
 			c1 := models.NewChannel()
-			err = c1.ById(privatemessageChannelId1)
+			err = c1.ById(privatemessageChannelId1.Id)
 			So(err, ShouldBeNil)
-			So(c1.Id, ShouldEqual, privatemessageChannelId1)
+			So(c1.Id, ShouldEqual, privatemessageChannelId1.Id)
 
 			So(c1.MetaBits.Is(models.Troll), ShouldBeTrue)
 		})
@@ -324,12 +341,12 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when a troll is added to a channel as participant, meta_bits should be set", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
 
 			// fetch channel from db
 			cp := models.NewChannelParticipant()
 			cp.AccountId = trollUser.Id
-			cp.ChannelId = privatemessageChannelId
+			cp.ChannelId = privatemessageChannelId.Id
 
 			So(cp.FetchParticipant(), ShouldBeNil)
 			So(cp.AccountId, ShouldEqual, trollUser.Id)
@@ -341,16 +358,23 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when a troll content is added to a channel, meta_bits should be set", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(normalUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
+
+			_, err = privatemessageChannelId.AddParticipant(trollUser.Id)
+			So(err, ShouldBeNil)
 
 			// add a message from a troll user
-			post, err := rest.CreatePost(privatemessageChannelId, trollUser.Id, ses.ClientId)
+			post, err := rest.CreatePost(privatemessageChannelId.Id, trollUser.Id, trollSes.ClientId)
+			fmt.Println("ses user client id :", ses)
+			fmt.Println("troll user client id :", trollSes)
 			So(err, ShouldBeNil)
+			fmt.Println("err is:", err)
+			fmt.Println("post is:", post)
 			So(post, ShouldNotBeNil)
 
 			// fetch last message
 			c := models.NewChannel()
-			c.Id = privatemessageChannelId
+			c.Id = privatemessageChannelId.Id
 			ml, err := c.FetchMessageList(post.Id)
 			tests.ResultedWithNoErrorCheck(ml, err)
 
@@ -362,16 +386,19 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when a troll posts a status update, meta_bits should be set", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(normalUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
+
+			_, err = privatemessageChannelId.AddParticipant(trollUser.Id)
+			So(err, ShouldBeNil)
 
 			// add a message from a troll user
-			post, err := rest.CreatePost(privatemessageChannelId, trollUser.Id, ses.ClientId)
+			post, err := rest.CreatePost(privatemessageChannelId.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 
 			// fetch last message
 			c := models.NewChannel()
-			c.Id = privatemessageChannelId
+			c.Id = privatemessageChannelId.Id
 			lastMessage, err := c.FetchLastMessage()
 			tests.ResultedWithNoErrorCheck(lastMessage, err)
 
@@ -466,11 +493,11 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
 
 			// fetch participants of this channel
 			c := models.NewChannel()
-			c.Id = privatemessageChannelId
+			c.Id = privatemessageChannelId.Id
 			participants, err := c.FetchParticipantIds(&request.Query{ShowExempt: true})
 			tests.ResultedWithNoErrorCheck(participants, err)
 			So(len(participants), ShouldEqual, 2)
@@ -491,7 +518,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(sinan, ShouldBeGreaterThan, 0)
 
 			history, err := rest.GetHistory(
-				privatemessageChannelId,
+				privatemessageChannelId.Id,
 				&request.Query{
 					AccountId: sinan,
 				},
@@ -506,11 +533,11 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when a troll creates a private channel, normal user should not be able to see it with `ShowExempt` flag", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
 
 			// fetch participants of this channel
 			c := models.NewChannel()
-			c.Id = privatemessageChannelId
+			c.Id = privatemessageChannelId.Id
 			participants, err := c.FetchParticipantIds(&request.Query{ShowExempt: true})
 			tests.ResultedWithNoErrorCheck(participants, err)
 			So(len(participants), ShouldEqual, 2)
@@ -531,7 +558,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(ses, ShouldNotBeNil)
 
 			history, err := rest.GetHistory(
-				privatemessageChannelId,
+				privatemessageChannelId.Id,
 				&request.Query{
 					AccountId: sinan,
 				},
@@ -547,11 +574,11 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when a troll joins a channel, they should not be in the participant list for normal users", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
 
 			// fetch participants of this channel
 			c := models.NewChannel()
-			c.Id = privatemessageChannelId
+			c.Id = privatemessageChannelId.Id
 			participants, err := c.FetchParticipantIds(&request.Query{})
 			tests.ResultedWithNoErrorCheck(participants, err)
 			So(len(participants), ShouldEqual, 1)
@@ -571,11 +598,11 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when a troll joins a channel, they should not be in the participant list for troll users", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
 
 			// fetch participants of this channel
 			c := models.NewChannel()
-			c.Id = privatemessageChannelId
+			c.Id = privatemessageChannelId.Id
 			participants, err := c.FetchParticipantIds(&request.Query{ShowExempt: true})
 			tests.ResultedWithNoErrorCheck(participants, err)
 			So(len(participants), ShouldEqual, 2)
@@ -596,10 +623,13 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when an exempt content is added to a channel, they should not be listed in regarding channel", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(normalUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
+
+			_, err = privatemessageChannelId.AddParticipant(trollUser.Id)
+			So(err, ShouldBeNil)
 
 			// create post form a troll user
-			post, err := rest.CreatePost(privatemessageChannelId, trollUser.Id, ses.ClientId)
+			post, err := rest.CreatePost(privatemessageChannelId.Id, trollUser.Id, trollSes.ClientId)
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			ses, err := models.FetchOrCreateSession(
@@ -610,7 +640,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(ses, ShouldNotBeNil)
 
 			history, err := rest.GetHistory(
-				privatemessageChannelId,
+				privatemessageChannelId.Id,
 				&request.Query{
 					AccountId: normalUser.Id,
 				},
@@ -628,10 +658,13 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("when an exempt content is added to a channel, they should be listed in regarding channel for troll users", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
+
+			_, err = privatemessageChannelId.AddParticipant(normalUser.Id)
+			So(err, ShouldBeNil)
 
 			// create post form a troll user
-			post, err := rest.CreatePost(privatemessageChannelId, normalUser.Id, ses.ClientId)
+			post, err := rest.CreatePost(privatemessageChannelId.Id, normalUser.Id, normalSes.ClientId)
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			ses, err := models.FetchOrCreateSession(trollUser.Nick, groupName)
@@ -639,7 +672,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(ses, ShouldNotBeNil)
 
 			history, err := rest.GetHistory(
-				privatemessageChannelId,
+				privatemessageChannelId.Id,
 				&request.Query{
 					AccountId:  trollUser.Id,
 					ShowExempt: true,
@@ -667,7 +700,9 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(controller.MarkedAsTroll(trollUser), ShouldBeNil)
 
 			// try to get post with normal user
-			post11, err := rest.GetPost(post1.Id, normalUser.Id, groupChannel.GroupName)
+			post11, err := rest.GetPost(post1.Id, normalUser.Id, groupChannel.GroupName, normalSes.ClientId)
+			fmt.Println("err is:", err)
+			fmt.Println("post11 is:", post11)
 			So(err, ShouldNotBeNil)
 			So(post11, ShouldBeNil)
 		})
@@ -696,6 +731,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					AccountId: normalUser.Id,
 					GroupName: groupChannel.GroupName,
 				},
+				ses.ClientId,
 			)
 
 			// interactions should be set
@@ -752,6 +788,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					GroupName:  groupChannel.GroupName,
 					ShowExempt: true,
 				},
+				ses.ClientId,
 			)
 
 			So(err, ShouldBeNil)
@@ -780,6 +817,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					GroupName:  groupChannel.GroupName,
 					ShowExempt: true,
 				},
+				ses.ClientId,
 			)
 
 			So(err, ShouldBeNil)
@@ -808,6 +846,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					GroupName:  groupChannel.GroupName,
 					ShowExempt: false,
 				},
+				ses.ClientId,
 			)
 			So(err, ShouldBeNil)
 
@@ -838,6 +877,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					GroupName:  groupChannel.GroupName,
 					ShowExempt: true,
 				},
+				ses.ClientId,
 			)
 			So(err, ShouldBeNil)
 
@@ -854,7 +894,7 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("listing private messages should work for troll users", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
 
 			channelContainers, err := rest.GetPrivateChannels(
 				&request.Query{
@@ -870,7 +910,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			for _, container := range channelContainers {
 				So(container.Channel, ShouldNotBeNil)
 				So(container.Channel.Id, ShouldNotEqual, 0)
-				if container.Channel.Id == privatemessageChannelId {
+				if container.Channel.Id == privatemessageChannelId.Id {
 					found = true
 				}
 			}
@@ -882,11 +922,11 @@ func TestMarkedAsTroll(t *testing.T) {
 		Convey("listing private messages should work for normal users", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
 			So(err, ShouldBeNil)
-			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+			So(privatemessageChannelId.Id, ShouldBeGreaterThan, 0)
 
 			// fetch participants of this channel
 			c := models.NewChannel()
-			c.Id = privatemessageChannelId
+			c.Id = privatemessageChannelId.Id
 			participants, err := c.FetchParticipantIds(
 				&request.Query{
 					GroupName:  groupName,
@@ -920,7 +960,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			for _, container := range channelContainers {
 				So(container.Channel, ShouldNotBeNil)
 				So(container.Channel.Id, ShouldNotEqual, 0)
-				if container.Channel.Id == privatemessageChannelId {
+				if container.Channel.Id == privatemessageChannelId.Id {
 					found = true
 				}
 			}
@@ -936,7 +976,7 @@ func TestMarkedAsTroll(t *testing.T) {
 	})
 }
 
-func createPrivateMessageChannel(accountId int64, groupName string) (int64, error) {
+func createPrivateMessageChannel(accountId int64, groupName string) (*models.Channel, error) {
 	pmr := models.ChannelRequest{}
 	pmr.AccountId = accountId
 	pmr.Body = "this is a body for private message @sinan"
@@ -946,8 +986,8 @@ func createPrivateMessageChannel(accountId int64, groupName string) (int64, erro
 	// create first private channel
 	cmc, err := rest.SendPrivateChannelRequest(pmr)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return cmc.Channel.Id, nil
+	return cmc.Channel, nil
 }
