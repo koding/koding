@@ -67,7 +67,7 @@ func InstallCommandFactory(c *cli.Context) int {
 		return 1
 	}
 	log.SetHandler(logging.NewWriterHandler(f))
-	log.Info("Installation created log file")
+	log.Infof("Installation created log file")
 
 	authToken := c.Args().Get(0)
 
