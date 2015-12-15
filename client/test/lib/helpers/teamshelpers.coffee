@@ -391,7 +391,7 @@ module.exports =
       .waitForElementVisible  followChannelBox, 20000 # Assertion
 
 
-  joinSession: (browser) ->
+  joinChannel: (browser) ->
 
     followChannelBox          = '.FollowChannelBox'
     followChannelButton       = "#{followChannelBox} .Button-followChannel"

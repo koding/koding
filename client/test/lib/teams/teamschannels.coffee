@@ -47,24 +47,27 @@ module.exports =
 
   leaveChannelOnSidebar: (browser) ->
 
-    user        = teamsHelpers.loginTeam(browser)
-    channelName = teamsHelpers.createChannel(browser, user)
-
-    sidebarSectionsSelector      = '.activity-sidebar .SidebarSections'
-    channelLinkOnSidebarSelector = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName}']"
+    user                    = teamsHelpers.loginTeam(browser)
+    channelName1            = teamsHelpers.createChannel(browser, user)
+    sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
 
     teamsHelpers.leaveChannel(browser)
-    teamsHelpers.createChannel(browser, user)
+    channelName2                  = teamsHelpers.createChannel(browser, user)
+    channelLinkOnSidebarSelector2 = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName2}']"
 
     browser
       .waitForElementVisible  sidebarSectionsSelector, 20000
-      .assert.containsText    channelLinkOnSidebarSelector, channelName
+      .expect.element(sidebarSectionsSelector).text.to.not.contain(channelName1)
+
+    browser
+      .assert.containsText    channelLinkOnSidebarSelector2, channelName2
       .end()
-  joinSession: (browser) ->
+
+
+  joinChannel: (browser) ->
 
     user = teamsHelpers.loginTeam(browser)
     teamsHelpers.createChannel(browser, user)
     teamsHelpers.leaveChannel(browser)
     teamsHelpers.joinSession(browser)
     browser.end()
-
