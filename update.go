@@ -15,8 +15,7 @@ import (
 func UpdateCommand(c *cli.Context) int {
 	// Create the log file early in the install process, so that we can log the
 	// install process and any troubles encountered.
-	err := createLogFile(LogFilePath)
-	if err != nil {
+	if err := createLogFile(LogFilePath); err != nil {
 		fmt.Println(`Error: Unable to create log files.`)
 		return 1
 	}
