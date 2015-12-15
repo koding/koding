@@ -25,7 +25,7 @@ module.exports = class Tracker extends bongo.Base
       static:
         track: (signature String, Object, Function)
 
-  { forcedRecipient, defaultFromMail } = KONFIG.email
+  { forcedRecipientEmail, forcedRecipientUsername, defaultFromMail } = KONFIG.email
 
   EVENT_TYPE = 'api.mail_send'
 
@@ -56,10 +56,10 @@ module.exports = class Tracker extends bongo.Base
   @identify = (username, traits = {}) ->
     return  unless KONFIG.sendEventsToSegment
 
-    # use `forcedRecipient` for both username and email
-    if forcedRecipient
-      username     = forcedRecipient
-      traits.email = forcedRecipient
+    # use `forcedRecipientEmail` for both username and email
+    if forcedRecipientEmail
+      username     = forcedRecipientUsername
+      traits.email = forcedRecipientEmail
 
     traits = @addDefaults traits
     analytics.identify { userId: username, traits }
@@ -86,10 +86,10 @@ module.exports = class Tracker extends bongo.Base
 
     _.extend options, @properties[event.subject]
 
-    # use `forcedRecipient` for both username and email
-    if forcedRecipient
-      username = forcedRecipient
-      event.to  = forcedRecipient
+    # use `forcedRecipientEmail` for both username and email
+    if forcedRecipientEmail
+      username = forcedRecipientUsername
+      event.to  = forcedRecipientEmail
 
     event.from       or= defaultFromMail
     event.properties   = @addDefaults { options, username }
@@ -113,7 +113,7 @@ module.exports = class Tracker extends bongo.Base
 
     return  unless KONFIG.sendEventsToSegment
 
-    userId = KONFIG.forcedRecipient or userId
+    userId = KONFIG.forcedRecipientEmail or userId
 
     options = { userId, name, category, properties }
     @addDefaults options
@@ -124,7 +124,7 @@ module.exports = class Tracker extends bongo.Base
 
     return  unless KONFIG.sendEventsToSegment
 
-    userId = KONFIG.forcedRecipient or userId
+    userId = KONFIG.forcedRecipientEmail or userId
 
     options = { previousId, userId }
     @addDefaults options
