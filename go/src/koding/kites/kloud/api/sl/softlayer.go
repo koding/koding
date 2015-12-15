@@ -190,3 +190,26 @@ func (c *Softlayer) datacenters() []string {
 	}
 	return ProductionDatacenters
 }
+
+func (c *Softlayer) DeleteInstance(id int) error {
+	path := fmt.Sprintf("%s/%d", c.guest.GetName(), id)
+	p, err := c.DoRawHttpRequest(path, "DELETE", nullBuf)
+	if err != nil {
+		return err
+	}
+
+	if err := checkAPIError(p); err != nil {
+		return err
+	}
+
+	var ok bool
+	if err := json.Unmarshal(p, &ok); err != nil {
+		return err
+	}
+
+	if !ok {
+		return fmt.Errorf("failed to delete instance id=%d", id)
+	}
+
+	return nil
+}
