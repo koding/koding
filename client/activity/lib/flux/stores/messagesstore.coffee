@@ -5,7 +5,7 @@ chatinputActions         = require '../chatinput/actions/actiontypes'
 toImmutable              = require 'app/util/toImmutable'
 KodingFluxStore          = require 'app/flux/base/store'
 MessageCollectionHelpers = require '../helpers/messagecollection'
-getEmptyEmbedPayload     = require 'activity/util/getEmptyEmbedPayload'
+mergeEmbedPayload        = require 'activity/util/mergeEmbedPayload'
 
 
 ###*
@@ -312,25 +312,65 @@ module.exports = class MessagesStore extends KodingFluxStore
     return removeMessage messages, messageId
 
 
+  ###*
+   * Handler for `EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS` action.
+   * It updates message __editedPayload property with a new embed payload.
+   * It works if message is in edit mode only
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @param {Immutable.Map} payload.embedPayload
+   * @return {IMMessageCollection} nextState
+  ###
   handleEditMessageEmbedPayloadSuccess: (messages, { messageId, embedPayload }) ->
+
+    { addMessage } = MessageCollectionHelpers
 
     message = messages.get messageId
     return messages  unless message.get '__isEditing'
 
     payload = message.get 'payload'
-    payload = _.assign {}, payload.toJS(), embedPayload ? getEmptyEmbedPayload()
+    payload = mergeEmbedPayload payload?.toJS(), embedPayload
+    message = message.set '__editedPayload', toImmutable payload
 
-    return messages = messages.setIn [messageId, '__editedPayload'], toImmutable payload
+    return addMessage messages, message
 
 
+  ###*
+   * Handler for `EDIT_MESSAGE_EMBED_PAYLOAD_FAIL` action.
+   * It is called in case of fail when editing embed data in message and
+   * it clears embed payload in __editedPayload property.
+   * It works if message is in edit mode only
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @return {IMMessageCollection} nextState
+  ###
   handleEditMessageEmbedPayloadFail: (messages, { messageId }) ->
 
-    payload = messages.getIn [messageId, 'payload']
-    payload = _.assign {}, payload.toJS(), getEmptyEmbedPayload()
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    return messages  unless message.get '__isEditing'
+
+    payload = message.get 'payload'
+    payload = mergeEmbedPayload payload?.toJS(), null
+    message = message.set '__editedPayload', toImmutable payload
 
     return messages = messages.setIn [messageId, '__editedPayload'], toImmutable payload
 
 
+  ###*
+   * Handler for `RESET_EDITED_MESSAGE_PAYLOAD` action.
+   * It clears message __editedPayload property.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @return {IMMessageCollection} nextState
+  ###
   handleResetEditedMessagePayload: (messages, { messageId }) ->
 
     { addMessage } = MessageCollectionHelpers

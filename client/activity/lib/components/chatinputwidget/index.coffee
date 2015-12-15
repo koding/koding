@@ -77,7 +77,7 @@ module.exports = class ChatInputWidget extends React.Component
   componentDidMount: ->
 
     { value } = @props
-    @setValue value  if value
+    @setValue value, yes  if value
 
     textInput = ReactDOM.findDOMNode this.refs.textInput
     focusOnGlobalKeyDown textInput
@@ -143,14 +143,14 @@ module.exports = class ChatInputWidget extends React.Component
   getDropboxes: -> @getInputDropboxes().concat @refs.emojiSelectBox
 
 
-  setValue: (value) ->
+  setValue: (value, skipChangeEvent) ->
 
     return  if @state.value is value
 
     { channelId } = @props
 
     ChatInputFlux.actions.value.setValue channelId, @stateId, value
-    @props.onChange value
+    @props.onChange value  unless skipChangeEvent
 
 
   resetValue: ->

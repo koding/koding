@@ -1,35 +1,35 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-ReactDOM              = require 'react-dom'
-remote                = require('app/remote').getInstance()
-Avatar                = require 'app/components/profile/avatar'
-immutable             = require 'immutable'
-MessageBody           = require 'activity/components/common/messagebody'
-ProfileText           = require 'app/components/profile/profiletext'
-ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
-ButtonWithMenu        = require 'app/components/buttonwithmenu'
-ActivityPromptModal   = require 'app/components/activitypromptmodal'
-MarkUserAsTrollModal  = require 'app/components/markuserastrollmodal'
-BlockUserModal        = require 'app/components/blockusermodal'
-ActivityLikeLink      = require 'activity/components/chatlistitem/activitylikelink'
-MessageTime           = require 'activity/components/chatlistitem/messagetime'
-keycode               = require 'keycode'
-AppFlux               = require 'app/flux'
-ActivityFlux          = require 'activity/flux'
-classnames            = require 'classnames'
-Portal                = require 'react-portal'
-whoami                = require 'app/util/whoami'
-checkFlag             = require 'app/util/checkFlag'
-impersonate           = require 'app/util/impersonate'
-getMessageOwner       = require 'app/util/getMessageOwner'
-showErrorNotification = require 'app/util/showErrorNotification'
-showNotification      = require 'app/util/showNotification'
-ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-EmbedBox              = require 'activity/components/embedbox'
-KeyboardKeys          = require 'app/util/keyboardKeys'
-ChatInputEmbedUpdater = require 'activity/components/chatinputembedupdater'
-Encoder               = require 'htmlencode'
-MessageLink           = require 'activity/components/messagelink'
+kd                      = require 'kd'
+React                   = require 'kd-react'
+ReactDOM                = require 'react-dom'
+remote                  = require('app/remote').getInstance()
+Avatar                  = require 'app/components/profile/avatar'
+immutable               = require 'immutable'
+MessageBody             = require 'activity/components/common/messagebody'
+ProfileText             = require 'app/components/profile/profiletext'
+ProfileLinkContainer    = require 'app/components/profile/profilelinkcontainer'
+ButtonWithMenu          = require 'app/components/buttonwithmenu'
+ActivityPromptModal     = require 'app/components/activitypromptmodal'
+MarkUserAsTrollModal    = require 'app/components/markuserastrollmodal'
+BlockUserModal          = require 'app/components/blockusermodal'
+ActivityLikeLink        = require 'activity/components/chatlistitem/activitylikelink'
+MessageTime             = require 'activity/components/chatlistitem/messagetime'
+keycode                 = require 'keycode'
+AppFlux                 = require 'app/flux'
+ActivityFlux            = require 'activity/flux'
+classnames              = require 'classnames'
+Portal                  = require 'react-portal'
+whoami                  = require 'app/util/whoami'
+checkFlag               = require 'app/util/checkFlag'
+impersonate             = require 'app/util/impersonate'
+getMessageOwner         = require 'app/util/getMessageOwner'
+showErrorNotification   = require 'app/util/showErrorNotification'
+showNotification        = require 'app/util/showNotification'
+ImmutableRenderMixin    = require 'react-immutable-render-mixin'
+EmbedBox                = require 'activity/components/embedbox'
+KeyboardKeys            = require 'app/util/keyboardKeys'
+ChatInputEmbedExtractor = require 'activity/components/chatinputembedextractor'
+Encoder                 = require 'htmlencode'
+MessageLink             = require 'activity/components/messagelink'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -298,7 +298,7 @@ module.exports = class ChatListItem extends React.Component
         <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
         <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
-      <ChatInputEmbedUpdater
+      <ChatInputEmbedExtractor
         messageId        = { message.get 'id' }
         channelId        = { @props.channelId }
         value            = { messageBody }

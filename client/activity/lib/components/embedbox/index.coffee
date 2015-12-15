@@ -55,7 +55,7 @@ module.exports = class EmbedBox extends React.Component
   render: ->
 
     { data, type } = @props
-    return null  unless data
+    return null  unless data and data.link_embed
 
     { link_embed } = data
 

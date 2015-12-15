@@ -8,32 +8,29 @@ embedlyHelpers       = require 'activity/flux/helpers/embedly'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
-module.exports = class ChatInputEmbedUpdater extends React.Component
+module.exports = class ChatInputEmbedExtractor extends React.Component
 
   componentDidMount: ->
 
     { value }    = @props
     @previousUrl = embedlyHelpers.extractUrl value
     @timer       = null
-    @isReady     = yes
 
 
   onChange: (value) ->
-
-    return  unless @isReady
 
     kd.utils.killWait @timer  if @timer
     url = embedlyHelpers.extractUrl value
 
     if url is @previousUrl or not url
-      @editEmbed url
+      @editEmbedPayload url
     else
-      @timer = kd.utils.wait 1000, @lazyBound 'editEmbed', url
+      @timer = kd.utils.wait 1000, @lazyBound 'editEmbedPayload', url
 
     @previousUrl = url
 
 
-  editEmbed: (url) ->
+  editEmbedPayload: (url) ->
 
     ActivityFlux.actions.message.editEmbedPayloadByUrl @props.messageId, url
 
@@ -49,5 +46,5 @@ module.exports = class ChatInputEmbedUpdater extends React.Component
     <ChatInputWidget ref='input' {...@props} onChange={@bound 'onChange'} />
 
 
-ChatInputEmbedUpdater.include [ ImmutableRenderMixin ]
+ChatInputEmbedExtractor.include [ ImmutableRenderMixin ]
 

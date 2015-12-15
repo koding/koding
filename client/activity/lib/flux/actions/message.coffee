@@ -7,7 +7,7 @@ messageHelpers         = require '../helpers/message'
 realtimeActionCreators = require './realtime/actioncreators'
 embedlyHelpers         = require '../helpers/embedly'
 Promise                = require 'bluebird'
-getEmptyEmbedPayload   = require 'activity/util/getEmptyEmbedPayload'
+mergeEmbedPayload      = require 'activity/util/mergeEmbedPayload'
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -237,7 +237,7 @@ createMessage = (channelId, body, payload) ->
   type = channel.typeConstant
 
   fetchEmbedPayload { body, payload }, (err, embedPayload) ->
-    payload = _.assign {}, payload, embedPayload
+    payload = mergeEmbedPayload payload, embedPayload
 
     options = { channelId, clientRequestId, body, payload, type }
     socialapi.message.sendPrivateMessage options, (err, [channel]) ->
@@ -354,11 +354,7 @@ editMessage = (messageId, body, payload) ->
   dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
   fetchEmbedPayload { body, payload }, (err, embedPayload) ->
-    if payload and not embedPayload
-      # if payload link has been removed, it's necessary
-      # to clear link fields from message payload
-      embedPayload = getEmptyEmbedPayload()
-    payload = _.assign {}, payload, embedPayload
+    payload = mergeEmbedPayload payload, embedPayload
 
     socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
       if err
@@ -493,6 +489,15 @@ unsetMessageEditMode = (messageId, channelId) ->
   dispatch UNSET_MESSAGE_EDIT_MODE, { messageId, channelId }
 
 
+###*
+ * Fetches embed data by url extracted from message body
+ * and calls callback when fetch is done
+ * If extracted url and payload url are the same, fetch doesn't
+ * happen and callback is called with payload data
+ *
+ * @param {object} messageData
+ * @param {function} callback
+###
 fetchEmbedPayload = (messageData, callback = kd.noop) ->
 
   { body, payload } = messageData
@@ -503,29 +508,42 @@ fetchEmbedPayload = (messageData, callback = kd.noop) ->
   fetchDataFromEmbedly url, callback
 
 
+###*
+ * Fetches embed data by given url and updates
+ * edited message embed payload with received response
+ *
+ * @param {string} messageId
+ * @param {string} url
+###
 editEmbedPayloadByUrl = (messageId, url) ->
 
   { EDIT_MESSAGE_EMBED_PAYLOAD_BEGIN,
     EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS,
     EDIT_MESSAGE_EMBED_PAYLOAD_FAIL } = actionTypes
 
-  unless url
-    return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, {
-      messageId
-      embedPayload : getEmptyEmbedPayload()
-    }
+  return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId }  unless url
 
   fetchDataFromEmbedly url, (err, embedPayload) ->
-    return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, { messageId }  if err
+    return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, { messageId, err }  if err
     dispatch EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
 
 
+###*
+ * Resets edited message payload
+ *
+ * @param {string} messageId
+###
 resetEditedPayload = (messageId) ->
 
   { RESET_EDITED_MESSAGE_PAYLOAD } = actionTypes
   dispatch RESET_EDITED_MESSAGE_PAYLOAD, { messageId }
 
 
+###*
+ * Fetches data from embed.ly by given url, creates payload
+ * from received response and calls callback with payload
+ * or error if embed.ly request has failed
+###
 fetchDataFromEmbedly = (url, callback = kd.noop) ->
 
   options =
