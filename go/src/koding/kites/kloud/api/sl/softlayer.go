@@ -2,7 +2,7 @@
 //
 //   - Softlayer (wip)
 //
-package ibm
+package sl
 
 import (
 	"bytes"

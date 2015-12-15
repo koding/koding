@@ -1,4 +1,4 @@
-package ibm_test
+package sl_test
 
 import (
 	"fmt"
@@ -7,12 +7,12 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"koding/kites/kloud/api/ibm"
+	"koding/kites/kloud/api/sl"
 
 	slclient "github.com/maximilien/softlayer-go/client"
 )
 
-var opts = &ibm.Options{}
+var opts = &sl.Options{}
 
 func init() {
 	os.Unsetenv("SL_GO_NON_VERBOSE")
@@ -32,7 +32,7 @@ func nonil(err ...error) error {
 	return nil
 }
 
-func validate(t ibm.Templates) error {
+func validate(t sl.Templates) error {
 	for i, template := range t {
 		if template.GlobalID == "" {
 			return fmt.Errorf("template[%d].GlobalID is empty", i)
@@ -42,8 +42,8 @@ func validate(t ibm.Templates) error {
 }
 
 func TestClient(t *testing.T) {
-	c := ibm.NewSoftlayerWithOptions(opts)
-	f := &ibm.Filter{
+	c := sl.NewSoftlayerWithOptions(opts)
+	f := &sl.Filter{
 		Datacenter: "sjc01",
 	}
 	d := time.Now()
@@ -69,9 +69,9 @@ func TestClient(t *testing.T) {
 }
 
 func TestLookupImage(t *testing.T) {
-	c := ibm.NewSoftlayerWithOptions(opts)
-	f := &ibm.Filter{
-		Tags: ibm.Tags{
+	c := sl.NewSoftlayerWithOptions(opts)
+	f := &sl.Filter{
+		Tags: sl.Tags{
 			"Name": "koding-stable",
 		},
 	}

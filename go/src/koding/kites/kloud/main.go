@@ -19,7 +19,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/api/ibm"
+	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
@@ -267,7 +267,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	/// SOFTLAYER PROVIDER ///
 
-	sl := ibm.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
+	slClient := sl.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
 
 	softlayerProvider := &softlayer.Provider{
 		DB:         db,
@@ -275,7 +275,7 @@ func newKite(conf *Config) *kite.Kite {
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
-		SLClient:   sl,
+		SLClient:   slClient,
 		Userdata:   userdata,
 	}
 
@@ -296,7 +296,7 @@ func newKite(conf *Config) *kite.Kite {
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		AWSClients: ec2clients,
-		SLClient:   sl,
+		SLClient:   slClient,
 		Userdata:   userdata,
 		Log:        kloudLogger,
 	}

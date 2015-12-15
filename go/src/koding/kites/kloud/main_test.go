@@ -87,7 +87,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/api/ibm"
+	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -1326,7 +1326,7 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 	if err != nil {
 		panic(err)
 	}
-	slclient := ibm.NewSoftlayer(
+	slclient := sl.NewSoftlayer(
 		os.Getenv("KLOUD_TESTACCOUNT_SLUSERNAME"),
 		os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
 	)
