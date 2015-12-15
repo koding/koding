@@ -76,6 +76,10 @@ module.exports = class TeamListItem extends kd.ListItemView
           callback   : ->
             team.destroy (err) ->
               return  if showError err
+
+              new kd.NotificationView
+                title: 'Team has been destroyed!'
+
               delegate.emit 'ReloadRequested'
               modal.destroy()
         , team
