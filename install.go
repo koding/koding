@@ -53,7 +53,7 @@ func InstallCommandFactory(c *cli.Context) int {
 
 	// Create the log file early in the install process, so that we can log the
 	// install process and any troubles encountered.
-	err := createLogFiles(LogFilePath)
+	err := createLogFile(LogFilePath)
 	if err != nil {
 		fmt.Println(`Error: Unable to create log files.`)
 		return 1
@@ -233,8 +233,8 @@ Please go back to Koding to get a new code and try again.
 	return 0
 }
 
-// createLogFiles creates the logfile(s) as needed.
-func createLogFiles(kdLog string) error {
+// createLogFile creates the logfile(s) as needed.
+func createLogFile(kdLog string) error {
 	f, err := os.Create(kdLog)
 	if err != nil {
 		return err
