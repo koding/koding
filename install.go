@@ -243,10 +243,5 @@ func createLogFiles(kdLog string) error {
 
 	// Chmod the kd.log file to 666, so that everyone (even non-sudo) can
 	// write to it.
-	err = f.Chmod(0666)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return f.Chmod(0666)
 }
