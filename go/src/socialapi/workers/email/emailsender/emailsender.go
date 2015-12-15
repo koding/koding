@@ -2,12 +2,13 @@
 package emailsender
 
 import (
+	"fmt"
+	"socialapi/config"
 	"text/template"
 
 	"github.com/koding/bongo"
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
-	"github.com/koding/runner"
 	"github.com/streadway/amqp"
 )
 
@@ -15,20 +16,24 @@ var SendEmailEventName = "send"
 
 // Controller holds required instances for processing events
 type Controller struct {
-	log             logging.Logger
-	emailer         eventexporter.Exporter
-	forcedRecipient string
-	env             string
-	host            string
+	log                     logging.Logger
+	emailer                 eventexporter.Exporter
+	forcedRecipientUsername string
+	forcedRecipientEmail    string
+	env                     string
+	host                    string
 }
 
 // New Creates a new controller for mail worker
-func New(exporter eventexporter.Exporter, log logging.Logger, conf runner.Config) *Controller {
+// func New(exporter eventexporter.Exporter, log logging.Logger, conf runner.Config) *Controller {
+func New(exporter eventexporter.Exporter, log logging.Logger, conf *config.Config) *Controller {
 	return &Controller{
-		emailer: exporter,
-		log:     log,
-		env:     conf.Environment,
-		host:    conf.Hostname,
+		emailer:                 exporter,
+		log:                     log,
+		env:                     conf.Environment,
+		host:                    conf.Hostname,
+		forcedRecipientEmail:    conf.Email.ForcedRecipientEmail,
+		forcedRecipientUsername: conf.Email.ForcedRecipientUsername,
 	}
 }
 
@@ -45,8 +50,8 @@ func Send(m *Mail) error {
 func (c *Controller) Process(m *Mail) error {
 	var to = m.To
 
-	if isForceRecipient(c.forcedRecipient) {
-		to = c.forcedRecipient
+	if c.forcedRecipientEmail != "" {
+		to = c.forcedRecipientEmail
 	}
 
 	user := &eventexporter.User{Email: to}
@@ -55,6 +60,10 @@ func (c *Controller) Process(m *Mail) error {
 	}
 
 	user.Username = m.Properties.Username
+	if c.forcedRecipientUsername != "" {
+		user.Username = c.forcedRecipientUsername
+	}
+
 	m.SetOption("subject", m.Subject)
 
 	// set default properties
@@ -69,6 +78,10 @@ func (c *Controller) Process(m *Mail) error {
 		Properties: m.Properties.Options,
 	}
 
+	fmt.Println("FORCEDRECIPIENTFORCEDRECIPIENT:", c.forcedRecipientEmail)
+	fmt.Println("FORCEDRECIPIENTFORCEDRECIPIENT:", c.forcedRecipientUsername)
+	fmt.Println("FORCEDRECIPIENTFORCEDRECIPIENTtototototo:", to)
+	return nil
 	return c.emailer.Send(event)
 }
 
