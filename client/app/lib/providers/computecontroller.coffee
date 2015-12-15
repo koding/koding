@@ -677,12 +677,15 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @getKloud().buildStack { stackId: stack._id }
+    stackId = stack._id
+    call    = @getKloud().buildStack { stackId }
 
     .then (res) =>
 
+      (@findStackFromStackId stackId)?.status.state = 'Building'
+
       kd.log "build stack res:", res
-      @eventListener.addListener 'apply', stack._id
+      @eventListener.addListener 'apply', stackId
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
