@@ -12,16 +12,16 @@ KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 isValid = ({ ipAddress, queryString, storage }, callback) ->
 
   if ipAddress? and (ipAddress.split '.').length isnt 4
-    return callback new KodingError \
-      'Provided IP is not valid', 'WrongParameter'
+    callback new KodingError 'Provided IP is not valid', 'WrongParameter'
+    return no
 
   if queryString? and (queryString.split '/').length isnt 8
-    return callback new KodingError \
-      'Provided queryString is not valid', 'WrongParameter'
+    callback new KodingError 'Provided queryString is not valid', 'WrongParameter'
+    return no
 
   if storage? and isNaN +storage
-    return callback new KodingError \
-      'Provided storage is not valid', 'WrongParameter'
+    callback new KodingError 'Provided storage is not valid', 'WrongParameter'
+    return no
 
   return yes
 
@@ -142,7 +142,4 @@ module.exports = class Managed extends ProviderInterface
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }
     selector.provider = @providerSlug
     updateMachine selector, fieldsToUpdate, callback
-
-
-
 
