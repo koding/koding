@@ -69,5 +69,5 @@ module.exports =
     user = teamsHelpers.loginTeam(browser)
     teamsHelpers.createChannel(browser, user)
     teamsHelpers.leaveChannel(browser)
-    teamsHelpers.joinSession(browser)
+    teamsHelpers.joinChannel(browser)
     browser.end()
