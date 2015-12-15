@@ -304,7 +304,7 @@ module.exports =
         .click                  sidebarSectionsHeaderSelector
 
 
-  createChannel: (browser, user, channelName) ->
+  createChannel: (browser, user, channelName, isInvalid) ->
 
     createChannelModalNameSelector   = '.CreateChannel-Modal .CreateChannel-content .channelName input'
     createChannelModalButtonSelector = '.CreateChannel-Modal .Modal-buttons .Button--danger'
@@ -321,13 +321,21 @@ module.exports =
       .waitForElementVisible  createChannelModalButtonSelector, 20000
       .moveToElement          createChannelModalButtonSelector, 32, 12
       .click                  createChannelModalButtonSelector
-      .waitForElementVisible  chatItem, 20000
-      .pause                  3000
-      .assert.containsText    chatItem, user.username
-      .waitForElementVisible  sidebarSectionsSelector, 20000
-      .pause                  2000 # wait for side bar channel list
-      .waitForElementVisible  channelLinkOnSidebarSelector, 20000
-      .assert.containsText    sidebarSectionsSelector, channelName
+
+    if isInvalid
+      browser
+        .waitForElementVisible  '.channelName.invalid', 20000
+        .pause                   2000
+        .waitForElementVisible  '.CreateChannel-Modal', 20000
+    else
+      browser
+        .waitForElementVisible  chatItem, 20000
+        .pause                  3000
+        .assert.containsText    chatItem, user.username
+        .waitForElementVisible  sidebarSectionsSelector, 20000
+        .pause                  2000 # wait for side bar channel list
+        .waitForElementVisible  channelLinkOnSidebarSelector, 20000
+        .assert.containsText    sidebarSectionsSelector, channelName
 
     return channelName
 

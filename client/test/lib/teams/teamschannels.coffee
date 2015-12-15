@@ -71,3 +71,10 @@ module.exports =
     teamsHelpers.leaveChannel(browser)
     teamsHelpers.joinChannel(browser)
     browser.end()
+
+
+  createNewChannelWithInvalidName: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user, '{invalid-name}', yes)
+    browser.end()
