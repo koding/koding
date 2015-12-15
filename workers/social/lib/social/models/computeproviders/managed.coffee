@@ -9,21 +9,18 @@ Regions           = require 'koding-regions'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 
-isValid = ({ ipAddress, queryString, storage }, callback) ->
+isValid = ({ ipAddress, queryString, storage }) ->
 
   if ipAddress? and (ipAddress.split '.').length isnt 4
-    callback new KodingError 'Provided IP is not valid', 'WrongParameter'
-    return no
+    return new KodingError 'Provided IP is not valid', 'WrongParameter'
 
   if queryString? and (queryString.split '/').length isnt 8
-    callback new KodingError 'Provided queryString is not valid', 'WrongParameter'
-    return no
+    return new KodingError 'Provided queryString is not valid', 'WrongParameter'
 
   if storage? and isNaN +storage
-    callback new KodingError 'Provided storage is not valid', 'WrongParameter'
-    return no
+    return new KodingError 'Provided storage is not valid', 'WrongParameter'
 
-  return yes
+  return null
 
 getKiteIdOnly = (queryString) ->
   "///////#{queryString.split('/').reverse()[0]}"
@@ -43,7 +40,8 @@ module.exports = class Managed extends ProviderInterface
     { label, queryString, ipAddress } = options
     { r: { group, user, account } } = client
 
-    return  unless isValid { queryString, ipAddress }, callback
+    if err = isValid { queryString, ipAddress }
+      return callback err
 
     queryString = getKiteIdOnly queryString
     provider    = @providerSlug
@@ -125,7 +123,8 @@ module.exports = class Managed extends ProviderInterface
       return callback new KodingError \
         'A valid machineId and an update option is required.', 'WrongParameter'
 
-    return  unless isValid { ipAddress, queryString, storage }, callback
+    if err = isValid { ipAddress, queryString, storage }
+      return callback err
 
     fieldsToUpdate = {}
 
