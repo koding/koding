@@ -19,8 +19,13 @@ module.exports = class ChatInputEmbedExtractor extends React.Component
 
   onChange: (value) ->
 
-    kd.utils.killWait @timer  if @timer
     url = embedlyHelpers.extractUrl value
+
+    # if url is not changed and it is already processed, do nothing
+    return  if url is @previousUrl and not @timer
+
+    kd.utils.killWait @timer  if @timer
+    @timer = null
 
     if url is @previousUrl or not url
       @editEmbedPayload url
