@@ -703,7 +703,7 @@ module.exports = class ComputeController extends KDController
     if state in [ 'Building', 'Destroying' ]
       return callback
         name    : 'InProgress'
-        message : "This is stack is currently #{state.toLowerCase()}."
+        message : "This stack is currently #{state.toLowerCase()}."
 
     stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
