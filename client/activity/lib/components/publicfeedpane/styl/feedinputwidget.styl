@@ -1,0 +1,101 @@
+.FeedInputWidget
+  bg                        color #f2f2f2
+  padding-left              34px
+  max-width                 600px
+  rel()
+  > i
+    top                     18px
+    left                    50px
+    r-sprite                activity widget-icon
+    z-index                 2
+    abs()
+
+  textarea
+    dBlock()
+    borderBox()
+    padding                 16px 44px 14px !important
+    min-height              52px !important
+    max-height              60vh
+    margin-bottom           0
+    width                   100%
+    outline                 none
+    resize                  none
+    font-size               14px
+    border                  1px solid #dfdfdf
+    bg                      color, $white !important
+
+.FeedInputWidget-buttonBar
+  text-align                right
+  padding                   8px
+  border                    1px solid #dfdfdf
+  border-top                none
+  bg                        color, #f4f4f4
+
+  .FeedInputWidget-send
+    height                  26px
+    line-height             13px
+    width                   66px
+    margin-left             8px
+    color                   $white
+    bg                      color, $blue
+
+  .FeedInputWidget-preview
+    outline                 none
+    border                  none
+    r-sprite                "activity", "markdown"
+
+.FeedInputWidget-previewWrapper
+  max-width                   600px
+  margin                      10px 0 12px
+  rounded                     6px
+  padding                     18px
+  border                      2px dashed #cfcfcf
+  bg                          color, $white
+  overflow                    initial
+  rel()
+  borderBox()
+
+  &:before
+    content                   ''
+    size                      0 0
+    border                    10px solid transparent
+    border-bottom-color       #cfcfcf
+    abs                       0 89px 100% 0
+
+  &:after
+    content                   ''
+    size                      0 0
+    border                    10px solid transparent
+    border-bottom-color       $white
+    margin-bottom             -2px
+    abs                       0 89px 100% 0
+
+.FeedInputWidget-previewBody
+  padding-top                 12px
+  font-size                   14px
+  color                       $gray-8
+  overflow                    auto
+  max-height                  40vh
+
+.FeedInputWidget-previewDate
+  font-size                   12px
+
+.FeedInputWidget-previewDate:before
+  hidden()
+
+.FeedInputWidget-closePreview
+  cursor                  pointer
+  abs                     14px 14px 0 0
+  font-size               12px
+  line-height             16px
+
+  &:hover
+    noTextDeco()
+
+  &:after
+    content               ''
+    display               inline-block
+    r-sprite              activity, 'add-integration'
+    vertical-align        middle
+    margin-left           7px
+    vendor                transform, rotate(45deg)

@@ -5,22 +5,22 @@
   font-size                 $fs-regular
   line-height               $body-line-height
 
-.ChatPane-contentWrapper
-  bg                        color, #fcfcfc
-  kalc                      height, 100vh \- 40px
-  vendor                    flex-direction, column
+  .Pane-contentWrapper
+    bg                        color, #fcfcfc
+    kalc                      height, 100vh \- 40px
+    vendor                    flex-direction, column
 
-.ChatPane-body
-  padding                   0
-  vendor                    flex, 1
-  vendor                    flex-direction, column
-  vendor                    justify-content, flex-end
-  kalc                      height, 100% \- 70px
-  dFlex()
-  rel()
-  > .Scrollable
-    opacity                 0
-    vendor                  transition, opacity .3s ease
+  .Pane-body
+    padding                   0
+    vendor                    flex, 1
+    vendor                    flex-direction, column
+    vendor                    justify-content, flex-end
+    kalc                      height, 100% \- 70px
+    dFlex()
+    rel()
+    > .Scrollable
+      opacity                 0
+      vendor                  transition, opacity .3s ease
 
 .PublicChatPane-footer
 .PrivateChatPane-footer

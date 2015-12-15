@@ -1,6 +1,5 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
-TimeAgo              = require 'app/components/common/timeago'
 MessageBody          = require 'activity/components/common/messagebody'
 ButtonWithMenu       = require 'app/components/buttonwithmenu'
 ChatListItem         = require 'activity/components/chatlistitem'
@@ -29,7 +28,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
       <div className={@getContentClassNames()}>
         <div className={@getMediaObjectClassNames()}>
           <MessageLink message={message}>
-            <MessageTime date={message.get 'createdAt'}/>
+            <MessageTime className='ChatItem-messageDate' date={message.get 'createdAt'}/>
           </MessageLink>
           <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           <div className="ChatItem-contentBody">

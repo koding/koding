@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"koding/db/models"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/multierrors"
 	"sync"
@@ -48,7 +49,7 @@ func (p *Provider) RunCleaners(interval time.Duration) {
 // an ongoing (build, start, stop...) process. There will be a lock due Build
 // which will prevent to delete it.
 func (p *Provider) CleanDeletedVMs() error {
-	var machines []*Machine
+	var machines []*models.Machine
 
 	query := func(c *mgo.Collection) error {
 		deletedMachines := bson.M{
@@ -56,13 +57,9 @@ func (p *Provider) CleanDeletedVMs() error {
 		}
 
 		iter := c.Find(deletedMachines).Batch(50).Iter()
-		for machine := NewMachine(); iter.Next(machine); machine = NewMachine() {
-			if machine.Machine == nil {
-				// TODO(rjeczalik): m.DeleteDocument() here
-				p.Log.Warning("invalid jMachine encountered while cleaning: %+v", machine)
-				continue
-			}
-			machines = append(machines, machine)
+
+		for m := new(models.Machine); iter.Next(m); m = new(models.Machine) {
+			machines = append(machines, m)
 		}
 
 		return iter.Close()
@@ -98,7 +95,7 @@ func (p *Provider) CleanDeletedVMs() error {
 				p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
 					m.ObjectId.Hex(), err)
 			}
-		}(machine)
+		}(&Machine{Machine: machine})
 	}
 
 	return nil
