@@ -80,6 +80,7 @@
     "chokidar": "1.0.1",
     "coffee-reactify": "3.0.0",
     "coffee-script": "1.8.0",
+    "expect": "1.13.3",
     "express": "4.12.3",
     "mocha": "2.2.4",
     "nightwatch": "0.8.8",

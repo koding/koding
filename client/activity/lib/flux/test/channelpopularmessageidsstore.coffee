@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -25,7 +25,7 @@ describe 'ChannelPopularMessageIdsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelPopularMessageIdsStore']
 
-      expect(storeState.foo['bar']).to.eql 'bar'
-      expect(storeState.baz['qux']).to.eql 'qux'
+      expect(storeState.foo['bar']).toEqual 'bar'
+      expect(storeState.baz['qux']).toEqual 'qux'
 
 

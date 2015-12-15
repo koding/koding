@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -24,12 +24,12 @@ describe 'FilteredEmojiListQueryStore', ->
       @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, { stateId, query : query1 }
       query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
-      expect(query).to.equal query1
+      expect(query).toEqual query1
 
       @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, { stateId, query: query2 }
       query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
-      expect(query).to.equal query2
+      expect(query).toEqual query2
 
 
   describe '#unsetQuery', ->
@@ -42,10 +42,10 @@ describe 'FilteredEmojiListQueryStore', ->
       @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, { stateId, query : testQuery }
       query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
-      expect(query).to.equal testQuery
+      expect(query).toEqual testQuery
 
       @reactor.dispatch actions.UNSET_FILTERED_EMOJI_LIST_QUERY, { stateId }
       query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
-      expect(query).to.be.undefined
+      expect(query).toBe undefined
 

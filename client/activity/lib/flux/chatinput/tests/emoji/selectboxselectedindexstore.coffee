@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -23,7 +23,7 @@ describe 'EmojiSelectBoxSelectedIndexStore', ->
       @reactor.dispatch actions.SET_EMOJI_SELECTBOX_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['emojiSelectBoxSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
 
   describe '#resetIndex', ->
@@ -36,10 +36,10 @@ describe 'EmojiSelectBoxSelectedIndexStore', ->
       @reactor.dispatch actions.SET_EMOJI_SELECTBOX_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['emojiSelectBoxSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
       @reactor.dispatch actions.RESET_EMOJI_SELECTBOX_SELECTED_INDEX, { stateId }
       selectedIndex = @reactor.evaluate(['emojiSelectBoxSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.be.undefined
+      expect(selectedIndex).toBe undefined
 

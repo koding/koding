@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -19,6 +19,6 @@ describe 'EmojisStore', ->
 
       emojis = @reactor.evaluate ['emojis']
 
-      expect(emojis.indexOf emoji1).to.be.above -1
-      expect(emojis.indexOf emoji2).to.be.above -1
+      expect(emojis.indexOf emoji1).toBeGreaterThan -1
+      expect(emojis.indexOf emoji2).toBeGreaterThan -1
 

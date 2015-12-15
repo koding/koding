@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -25,10 +25,10 @@ describe 'ChatInputValueStore', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_VALUE, { channelId, stateId, value : testValue1 }
       value = @reactor.evaluate(['chatInputValue']).getIn [channelId, stateId]
 
-      expect(value).to.equal testValue1
+      expect(value).toEqual testValue1
 
       @reactor.dispatch actions.SET_CHAT_INPUT_VALUE, { channelId, stateId, value : testValue2 }
       value = @reactor.evaluate(['chatInputValue']).getIn [channelId, stateId]
 
-      expect(value).to.equal testValue2
+      expect(value).toEqual testValue2
 

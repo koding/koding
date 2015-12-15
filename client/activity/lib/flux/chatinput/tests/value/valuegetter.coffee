@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 ChatInputValueStore = require 'activity/flux/chatinput/stores/valuestore'
@@ -36,15 +36,15 @@ describe 'ChatInputValueGetter', ->
       @reactor.dispatch ActivityActions.SET_SELECTED_CHANNEL_THREAD, { channelId : channelId1 }
 
       value = @reactor.evaluate getters.currentValue stateId
-      expect(value).to.equal value1
+      expect(value).toEqual value1
 
       @reactor.dispatch ActivityActions.SET_SELECTED_CHANNEL_THREAD, { channelId : channelId2 }
 
       value = @reactor.evaluate getters.currentValue stateId
-      expect(value).to.equal value2
+      expect(value).toEqual value2
 
       @reactor.dispatch ActivityActions.SET_SELECTED_CHANNEL_THREAD, { channelId : emptyChannel }
 
       value = @reactor.evaluate getters.currentValue stateId
-      expect(value).to.equal ''
+      expect(value).toEqual ''
 
