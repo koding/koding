@@ -140,10 +140,7 @@ module.exports =
     @attemptEnterEmailAndPasswordOnRegister(browser, user)
     @attemptEnterUsernameOnRegister(browser, user)
 
-    unless HUBSPOT
-      browser.waitForElementVisible '[testpath=main-header]', 50000 # Assertion
-    else
-      browser.waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
+    browser.waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
 
 
   postActivity: (browser, shouldBeginTest = yes) ->
