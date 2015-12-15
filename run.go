@@ -55,10 +55,15 @@ func RunCommandFactory(c *cli.Context) int {
 
 	// write to standard out stream
 	// this stream can contain values even if exit status is not 0.
-	os.Stderr.WriteString(res.Stdout)
+	if res.Stdout != "" {
+		os.Stdout.WriteString(res.Stdout)
+	}
+
+	if res.Stderr != "" {
+		os.Stderr.WriteString(res.Stderr)
+	}
 
 	if res.ExitStatus != 0 {
-		os.Stderr.WriteString(res.Stderr)
 		return res.ExitStatus
 	}
 
@@ -183,5 +188,5 @@ func (r *RunCommand) runOnLocal(cmdWithArgs []string) int {
 		return exitErr.Sys().(syscall.WaitStatus).ExitStatus()
 	}
 
-	return 1
+	return 0
 }
