@@ -9,7 +9,7 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-func GetPostWithRelatedData(id int64, q *request.Query) (*models.ChannelMessageContainer, error) {
+func GetPostWithRelatedData(id int64, q *request.Query, token string) (*models.ChannelMessageContainer, error) {
 	v, err := query.Values(q)
 	if err != nil {
 		return nil, err
@@ -17,7 +17,7 @@ func GetPostWithRelatedData(id int64, q *request.Query) (*models.ChannelMessageC
 
 	url := fmt.Sprintf("/message/%d/related?%s", id, v.Encode())
 	cm := models.NewChannelMessageContainer()
-	cmI, err := sendModel("GET", url, cm)
+	cmI, err := sendModelWithAuth("GET", url, cm, token)
 	if err != nil {
 		return nil, err
 	}
