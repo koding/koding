@@ -36,6 +36,9 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 		return errors.New("instance is not available anymore.")
 	}
+	if err != nil {
+		return fmt.Errorf("failed to get instance %q: %q", m.Session.AWSClient.Builder.InstanceId, err)
+	}
 
 	// update the state to intiial state if something goes wrong, we are going
 	// to change latestate to a more safe state if we passed a certain step
