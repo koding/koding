@@ -36,7 +36,8 @@ Host            = "lvh.me:8090"
 Protocol        = "http:"
 DefaultFromMail = "hello@koding.com"
 DefaultFromName = "Koding"
-ForcedRecipient = "ctf@koding.com"
+ForcedRecipientEmail = "ctf@koding.com"
+ForcedRecipientUsername = "ctf"
 
 [sitemap]
 RedisDB = 2
