@@ -1,10 +1,12 @@
-kd                 = require 'kd'
-expect             = require 'expect'
-globals            = require 'globals'
-AppController      = require '../lib/appcontroller'
-registerAppClass   = require '../lib/util/registerAppClass'
-ApplicationManager = require '../lib/applicationmanager'
-appManager         = null
+kd                   = require 'kd'
+expect               = require 'expect'
+globals              = require 'globals'
+AppController        = require '../lib/appcontroller'
+registerAppClass     = require '../lib/util/registerAppClass'
+ApplicationManager   = require '../lib/applicationmanager'
+KodingAppsController = require '../lib/kodingappscontroller'
+
+appManager = null
 
 
 describe 'ApplicationManager', ->
@@ -85,7 +87,104 @@ describe 'ApplicationManager', ->
         createdAppInstance = appInstance
 
       kd.utils.defer ->
-        expect(isRegistered).toBe yes, 'isRegistered'
-        expect(isCallbackExecuted).toBe yes, 'isCallbackExecuted'
+        expect(isRegistered).toBe yes
+        expect(isCallbackExecuted).toBe yes
         expect(appManager.appControllers.FakeApp.instances).toInclude createdAppInstance
         done()
+
+
+  describe '::show', ->
+
+    it 'should show the app', (done) ->
+
+      isAppShown                   = no
+      isCallbackExecuted           = no
+      isAppIsShownCallbackExecuted = no
+
+      registerAppClass AppController, { name: 'FooApp' }
+      registerAppClass AppController, { name: 'BarApp' }
+      appManager.on 'AppIsBeingShown', -> isAppShown = yes
+      expect.spyOn appManager, 'setLastActiveIndex'
+
+      appManager.create 'FooApp'
+      appManager.create 'BarApp'
+
+      appManager.appControllers.FooApp.instances.first.appIsShown = ->
+        isAppIsShownCallbackExecuted = yes
+
+      expect(isAppShown).toBe no
+
+      appManager.show 'FooApp', {}, -> isCallbackExecuted = yes
+
+      kd.utils.defer ->
+        expect(isAppShown).toBe yes
+        expect(isCallbackExecuted).toBe yes
+        expect(isAppIsShownCallbackExecuted).toBe yes
+        expect(appManager.setLastActiveIndex).toHaveBeenCalled()
+        expect(appManager.getFrontApp().getOptions().name).toBe 'FooApp'
+
+        appManager.show 'BarApp', {}, ->
+          expect(appManager.getFrontApp().getOptions().name).toBe 'BarApp'
+          done()
+
+
+  describe '::quit', ->
+
+    it 'should quit the given app instance', (done) ->
+
+      isBeforeQuitCalled = no
+
+      registerAppClass AppController, { name: 'AwesomeApp' }
+      registerAppClass AppController, { name: 'BadApp'     }
+
+      appManager.create 'AwesomeApp'
+      appManager.create 'BadApp'
+
+      { appControllers } = appManager
+      awesomeInstances   = appControllers.AwesomeApp.instances
+      badInstances       = appControllers.BadApp.instances
+
+      expect(awesomeInstances.length).toBe 1
+      expect(badInstances.length).toBe 1
+
+      badInstance = badInstances.first
+      badInstance.beforeQuit = -> isBeforeQuitCalled = yes
+
+      appManager.quit badInstance, ->
+        expect(isBeforeQuitCalled).toBe yes
+        expect(badInstances.length).toBe 0
+        expect(appControllers.BadApp).toBe undefined
+
+        done()
+
+
+  describe '::quitAll', ->
+
+    it 'should quit all apps', ->
+
+      registerAppClass AppController, { name: 'AnotherApp'    }
+      registerAppClass AppController, { name: 'YetAnotherApp' }
+
+      appManager.create 'AnotherApp'
+      appManager.create 'YetAnotherApp'
+
+      expect(Object.keys(appManager.appControllers).length).toBe 2
+
+      appManager.quitAll()
+
+      expect(Object.keys(appManager.appControllers).length).toBe 0
+
+
+
+  describe '::quitByName', ->
+
+    it 'should quit an app by name', ->
+
+      registerAppClass AppController, { name: 'FooBarApp' }
+      appManager.create 'FooBarApp'
+
+      expect(Object.keys(appManager.appControllers).length).toBe 1
+
+      appManager.quitByName 'FooBarApp'
+
+      expect(Object.keys(appManager.appControllers).length).toBe 0
