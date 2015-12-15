@@ -48,10 +48,10 @@ func CreatePostWithHeader(channelId, accountId int64, header http.Header) (*mode
 	return createPostRequest(channelId, cm, header)
 }
 
-func GetPost(id int64, accountId int64, groupName string) (*models.ChannelMessage, error) {
+func GetPost(id int64, accountId int64, groupName, token string) (*models.ChannelMessage, error) {
 	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
 	cm := models.NewChannelMessage()
-	cmI, err := sendModel("GET", url, cm)
+	cmI, err := sendModelWithAuth("GET", url, cm, token)
 	if err != nil {
 		return nil, err
 	}
