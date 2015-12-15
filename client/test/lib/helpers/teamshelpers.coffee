@@ -399,7 +399,7 @@ module.exports =
     @leaveChannel(browser)
 
     browser
-      .waitForElementVisible  followChannelBox, 20000
-      .waitForElementVisible  followChannelButton, 20000
-      # i will continue
+      .waitForElementVisible     followChannelButton, 20000
+      .click                     followChannelButton
+      .waitForElementNotVisible  followChannelButton, 20000
 

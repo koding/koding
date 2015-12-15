@@ -60,3 +60,11 @@ module.exports =
       .waitForElementVisible  sidebarSectionsSelector, 20000
       .assert.containsText    channelLinkOnSidebarSelector, channelName
       .end()
+  joinSession: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
+    teamsHelpers.leaveChannel(browser)
+    teamsHelpers.joinSession(browser)
+    browser.end()
+
