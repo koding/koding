@@ -1,6 +1,9 @@
 package sl
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+)
 
 // Filter is used for querying Softlayer resources.
 type Filter struct {
@@ -25,13 +28,9 @@ type Filter struct {
 }
 
 // JSON returns the objectFilter JSON representation of the filter.
-func (f *Filter) JSON() string {
-	type Option struct {
-		Name  string      `json:"name,omitempty"`
-		Value interface{} `json:"value,omitempty"`
-	}
+func (f *Filter) JSON() (string, error) {
 	if f == nil {
-		return ""
+		return "", nil
 	}
 	m := make(map[string]interface{})
 	if f.Name != "" {
@@ -53,14 +52,14 @@ func (f *Filter) JSON() string {
 	}
 	// TODO(rjeczalik): research how to support tags
 	if len(m) == 0 {
-		return ""
+		return "", nil
 	}
 	m = map[string]interface{}{
 		"blockDeviceTemplateGroups": m,
 	}
 	p, err := json.Marshal(m)
 	if err != nil {
-		panic("error marshaling filter: " + err.Error())
+		return "", errors.New("error marshaling filter: " + err.Error())
 	}
-	return string(p)
+	return string(p), nil
 }

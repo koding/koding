@@ -267,7 +267,10 @@ func newKite(conf *Config) *kite.Kite {
 
 	/// SOFTLAYER PROVIDER ///
 
-	slClient := sl.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
+	slClient, err := sl.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
+	if err != nil {
+		panic(err)
+	}
 
 	softlayerProvider := &softlayer.Provider{
 		DB:         db,

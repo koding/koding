@@ -7,6 +7,7 @@ package sl
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"koding/kites/common"
 	"os"
@@ -17,23 +18,20 @@ import (
 	"github.com/maximilien/softlayer-go/softlayer"
 )
 
-var defaultLogger = common.NewLogger("softlayer", false)
+var (
+	defaultLogger = common.NewLogger("softlayer", false)
 
-// workaround for softlayer-go API
-var null = &bytes.Buffer{}
+	// workaround for softlayer-go API
+	nullBuf = &bytes.Buffer{}
 
-func init() {
-	// To suppress softlayer-go debug printfs...
-	os.Setenv("SL_GO_NON_VERBOSE", "YES")
-}
-
-// ProductionDatacenters describes Softlayer datacenters used in production.
-//
-// TODO(rjeczalik): This list is not complete nor confirmed, fix it.
-var ProductionDatacenters = []string{
-	"sjc01",
-	"dal01",
-}
+	// ProductionDatacenters describes Softlayer datacenters used in production.
+	//
+	// TODO(rjeczalik): This list is not complete nor confirmed, fix it.
+	ProductionDatacenters = []string{
+		"sjc01",
+		"dal01",
+	}
+)
 
 // Options specifies configuration for the IBM services.
 type Options struct {
@@ -45,6 +43,11 @@ type Options struct {
 
 	// Log specifies custom logger to use.
 	Log logging.Logger
+}
+
+func init() {
+	// To suppress softlayer-go debug printfs...
+	os.Setenv("SL_GO_NON_VERBOSE", "YES")
 }
 
 // Softlayer is a wrapper client for softlayer-go client.
@@ -62,7 +65,7 @@ type Softlayer struct {
 }
 
 // NewSoftlayer creates new Softlayer client for the given credentials.
-func NewSoftlayer(username, apiKey string) *Softlayer {
+func NewSoftlayer(username, apiKey string) (*Softlayer, error) {
 	client := client.NewSoftLayerClient(username, apiKey)
 	opts := &Options{
 		SLClient: client,
@@ -71,18 +74,18 @@ func NewSoftlayer(username, apiKey string) *Softlayer {
 }
 
 // NewSoftlayerWithOptions creates new Softlayer client for the given options.
-func NewSoftlayerWithOptions(opts *Options) *Softlayer {
+func NewSoftlayerWithOptions(opts *Options) (*Softlayer, error) {
 	account, err := opts.SLClient.GetSoftLayer_Account_Service()
 	if err != nil {
-		panic("invalid softlayer.Client: " + err.Error())
+		return nil, errors.New("invalid softlayer.Client: " + err.Error())
 	}
 	guest, err := opts.SLClient.GetSoftLayer_Virtual_Guest_Service()
 	if err != nil {
-		panic("invalid softlayer.Client: " + err.Error())
+		return nil, errors.New("invalid softlayer.Client: " + err.Error())
 	}
 	block, err := opts.SLClient.GetSoftLayer_Virtual_Guest_Block_Device_Template_Group_Service()
 	if err != nil {
-		panic("invalid softlayer.Client: " + err.Error())
+		return nil, errors.New("invalid softlayer.Client: " + err.Error())
 	}
 	return &Softlayer{
 		Client:  opts.SLClient,
@@ -90,7 +93,7 @@ func NewSoftlayerWithOptions(opts *Options) *Softlayer {
 		guest:   guest,
 		block:   block,
 		opts:    opts,
-	}
+	}, nil
 }
 
 // TemplatesByFilter fetches all templates and applies filter to the result set.
@@ -99,7 +102,7 @@ func NewSoftlayerWithOptions(opts *Options) *Softlayer {
 // If filter is nil, all templates are returned.
 func (c *Softlayer) TemplatesByFilter(filter *Filter) (Templates, error) {
 	path := fmt.Sprintf("%s/getBlockDeviceTemplateGroups.json", c.account.GetName())
-	p, err := c.DoRawHttpRequestWithObjectMask(path, TemplateMasks, "GET", null)
+	p, err := c.DoRawHttpRequestWithObjectMask(path, TemplateMasks, "GET", nullBuf)
 	if err != nil {
 		return nil, err
 	}
@@ -141,9 +144,13 @@ func (c *Softlayer) TemplatesByFilter(filter *Filter) (Templates, error) {
 //   https://github.com/softlayer/softlayer-python/blob/50c60bd/SoftLayer/utils.py#L71-L113
 //
 func (c *Softlayer) XTemplatesByFilter(filter *Filter) (Templates, error) {
+	objectFilter, err := filter.JSON()
+	if err != nil {
+		return nil, err
+	}
 	path := fmt.Sprintf("%s/getBlockDeviceTemplateGroups.json", c.account.GetName())
 	p, err := c.DoRawHttpRequestWithObjectFilterAndObjectMask(
-		path, TemplateMasks, filter.JSON(), "GET", null,
+		path, TemplateMasks, objectFilter, "GET", nullBuf,
 	)
 	if err != nil {
 		return nil, err

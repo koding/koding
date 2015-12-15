@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/api/ibm"
+	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
@@ -29,7 +29,7 @@ type Provider struct {
 	DB         *mongodb.MongoDB
 	Log        logging.Logger
 	Kite       *kite.Kite
-	SLClient   *ibm.Softlayer
+	SLClient   *sl.Softlayer
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
 	Userdata   *userdata.Userdata

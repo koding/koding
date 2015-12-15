@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/api/ibm"
+	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/scripts/softlayer/userdata"
@@ -184,8 +184,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 func (m *Machine) lookupImage(tag, datacenter string) (globalID string, err error) {
 	m.Log.Debug("Looking for a Koding Base Image with name=%q in datacenter=%q", tag, datacenter)
 
-	filter := &ibm.Filter{
-		Tags: ibm.Tags{
+	filter := &sl.Filter{
+		Tags: sl.Tags{
 			"Name": tag,
 		},
 	}

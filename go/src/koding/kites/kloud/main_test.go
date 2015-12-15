@@ -1326,10 +1326,14 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 	if err != nil {
 		panic(err)
 	}
-	slclient := sl.NewSoftlayer(
+
+	slclient, err := sl.NewSoftlayer(
 		os.Getenv("KLOUD_TESTACCOUNT_SLUSERNAME"),
 		os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	kdp := &koding.Provider{
 		DB:             db,

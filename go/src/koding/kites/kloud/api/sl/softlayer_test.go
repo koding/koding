@@ -42,7 +42,10 @@ func validate(t sl.Templates) error {
 }
 
 func TestClient(t *testing.T) {
-	c := sl.NewSoftlayerWithOptions(opts)
+	c, err := sl.NewSoftlayerWithOptions(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	f := &sl.Filter{
 		Datacenter: "sjc01",
 	}
@@ -69,7 +72,10 @@ func TestClient(t *testing.T) {
 }
 
 func TestLookupImage(t *testing.T) {
-	c := sl.NewSoftlayerWithOptions(opts)
+	c, err := sl.NewSoftlayerWithOptions(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
 	f := &sl.Filter{
 		Tags: sl.Tags{
 			"Name": "koding-stable",

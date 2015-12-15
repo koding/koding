@@ -3,7 +3,7 @@ package session
 import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/api/ibm"
+	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -32,7 +32,7 @@ type Session struct {
 	AWSClients *amazon.Clients
 
 	// Softlayer
-	SLClient *ibm.Softlayer
+	SLClient *sl.Softlayer
 }
 
 func FromContext(ctx context.Context) (*Session, bool) {
