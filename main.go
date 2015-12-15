@@ -18,11 +18,6 @@ type ExitingCommand func(*cli.Context) int
 // Stdout. Useful for printig a message to the user in a convenient single-use way.
 type ExitingWithMessageCommand func(*cli.Context) (string, int)
 
-// closer is a small
-type closer interface {
-	Close() error
-}
-
 // sudoRequiredFor is the default list of commands that require sudo.
 // The actual handling of this list is done in the SudoRequired func.
 var sudoRequiredFor = []string{

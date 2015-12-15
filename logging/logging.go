@@ -10,8 +10,11 @@ import (
 // implementing GoVet compliant log functions with the f character
 // appended. Eg, Infoff instead of Info.
 type Logger interface {
-	// Implement the rest of the koding/logging.Logger
-	logging.Logger
+	// SetHandler replaces the current handler for output. Default is logging.StderrHandler.
+	SetHandler(logging.Handler)
+
+	// New creates a new inerhited context logger with given prefixes.
+	New(prefixes ...interface{}) Logger
 
 	// Fatalf is equivalent to l.Criticalf followed by a call to os.Exit(1).
 	Fatalf(format string, args ...interface{})
@@ -56,6 +59,16 @@ func NewLogger(name string) Logger {
 // a single logging namespace, not needing to access the koding/logging namespace.
 func NewWriterHandler(w io.Writer) *logging.WriterHandler {
 	return logging.NewWriterHandler(w)
+}
+
+func (l *logger) New(prefixes ...interface{}) Logger {
+	return &logger{
+		Logger: l.Logger.New(prefixes...),
+	}
+}
+
+func (l *logger) SetHandler(h logging.Handler) {
+	l.Logger.SetHandler(h)
 }
 
 func (l *logger) Fatalf(f string, args ...interface{}) {
