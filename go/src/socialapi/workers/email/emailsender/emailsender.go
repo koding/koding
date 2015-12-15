@@ -2,7 +2,6 @@
 package emailsender
 
 import (
-	"fmt"
 	"socialapi/config"
 	"text/template"
 
@@ -78,10 +77,6 @@ func (c *Controller) Process(m *Mail) error {
 		Properties: m.Properties.Options,
 	}
 
-	fmt.Println("FORCEDRECIPIENTFORCEDRECIPIENT:", c.forcedRecipientEmail)
-	fmt.Println("FORCEDRECIPIENTFORCEDRECIPIENT:", c.forcedRecipientUsername)
-	fmt.Println("FORCEDRECIPIENTFORCEDRECIPIENTtototototo:", to)
-	return nil
 	return c.emailer.Send(event)
 }
 
