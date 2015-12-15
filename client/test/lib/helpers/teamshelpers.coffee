@@ -5,7 +5,7 @@ utils    = require '../utils/utils.js'
 teamsModalSelector      = '.TeamsModal--groupCreation'
 companyNameSelector     = '.login-form input[testpath=company-name]'
 sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
-chatItem                = '.ChatPane-body .ChatList .ChatItem'
+chatItem                = '.Pane-body .ChatList .ChatItem'
 
 module.exports =
 
@@ -185,7 +185,7 @@ module.exports =
   createInvitation: (browser, user, callback) ->
 
     adminLink      = '.avatararea-popup a[href="/Admin"]'
-    inviteLink     = '.teaminvite.AppModal-navItem'
+    inviteLink     = '.invite-teams.AppModal-navItem'
     teamInvitePage = '.TeamInvite'
     inviteButton   = "#{teamInvitePage} button"
     sendMailPage   = "#{teamInvitePage} .kdscrollview"
@@ -335,7 +335,7 @@ module.exports =
       .waitForElementVisible  chatInputSelector, 20000
       .setValue               chatInputSelector, chatMessage + '\n'
       .waitForElementVisible  chatItem, 20000
-      .assert.containsText    '.ChatPane-body .ChatList', chatMessage
+      .assert.containsText    '.Pane-body .ChatList', chatMessage
 
 
   createChannelsAndCheckList: (browser, user) ->

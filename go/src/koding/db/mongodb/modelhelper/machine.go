@@ -308,12 +308,8 @@ func findMachineFields(query bson.M, fields []string) ([]*models.Machine, error)
 
 		iter := q.Iter()
 
-		var machine models.Machine
-		for iter.Next(&machine) {
-			var newMachine models.Machine
-			newMachine = machine
-
-			machines = append(machines, &newMachine)
+		for m := new(models.Machine); iter.Next(m); m = new(models.Machine) {
+			machines = append(machines, m)
 		}
 
 		return iter.Close()

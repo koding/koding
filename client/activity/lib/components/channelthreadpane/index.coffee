@@ -4,11 +4,13 @@ KDReactorMixin       = require 'app/flux/base/reactormixin'
 ActivityFlux         = require 'activity/flux'
 immutable            = require 'immutable'
 ThreadSidebar        = require 'activity/components/threadsidebar'
-ThreadHeader         = require 'activity/components/threadheader'
+ChannelThreadHeader  = require 'activity/components/channelthreadheader'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
+PublicFeedPane       = require 'activity/components/publicfeedpane'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
-
+getGroup             = require 'app/util/getGroup'
+isFeedEnabled        = require 'app/util/isFeedEnabled'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -43,20 +45,43 @@ module.exports = class ChannelThreadPane extends React.Component
   invitePeople: -> @refs.pane.onInviteOthers()
 
 
-  leaveChannel: -> actions.channel.unfollowChannel @channel 'id'
+  leaveChannel: ->
+
+    channelId = @channel 'id'
+
+    if @channel('typeConstant') is "privatemessage"
+      actions.channel.leavePrivateChannel channelId
+        .then ->
+          channelName = getGroup().slug
+          kd.singletons.router.handleRoute "/Channels/#{channelName}"
+    else
+      actions.channel.unfollowChannel channelId
 
 
   renderHeader: ->
 
     return  unless thread = @state.channelThread
 
-    <ThreadHeader
-      className="ChannelThreadPane-header"
-      thread={thread}
-      onInvitePeople={@bound 'invitePeople'}
-      onLeaveChannel={@bound 'leaveChannel'}
-      onShowNotificationSettings={@bound 'showNotificationSettingsModal'}>
-    </ThreadHeader>
+    if not isFeedEnabled()
+      <ChannelThreadHeader
+        className="ChannelThreadPane-header"
+        thread={thread}
+        onInvitePeople={@bound 'invitePeople'}
+        onLeaveChannel={@bound 'leaveChannel'}
+        onShowNotificationSettings={@bound 'showNotificationSettingsModal'}>
+      </ChannelThreadHeader>
+
+
+  renderPaneByTypeConstant: (thread) ->
+
+    if isFeedEnabled()
+      <section className='ThreadPane-feedWrapper'>
+        <PublicFeedPane ref='pane' thread={thread}/>
+      </section>
+    else
+      <section className='ThreadPane-chatWrapper'>
+        <PublicChatPane ref='pane' thread={thread}/>
+      </section>
 
 
   renderBody: ->
@@ -64,9 +89,7 @@ module.exports = class ChannelThreadPane extends React.Component
     return null  unless thread = @state.channelThread
 
     <div className='ChannelThreadPane-body'>
-      <section className='ChannelThreadPane-chatWrapper'>
-        <PublicChatPane ref='pane' thread={thread}/>
-      </section>
+      {@renderPaneByTypeConstant(thread)}
     </div>
 
 

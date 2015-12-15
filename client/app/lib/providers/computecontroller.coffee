@@ -345,6 +345,40 @@ module.exports = class ComputeController extends KDController
           callback plans
 
 
+  fetchTeamPlans: (callback = kd.noop) ->
+
+    if @teamplans
+      kd.utils.defer => callback @teamplans
+    else
+      remote.api.ComputeProvider.fetchTeamPlans (err, plans) =>
+        # If there is an error at least return a simple plan
+        # which includes only 'default' plan
+        if err? or not plans?
+          kd.warn err
+          callback
+            default              :
+              member             : 1  # max number, can be overwritten in group data
+                                      # by a super-admin (an admin in Koding group)
+              validFor           : 0  # no expire date
+              instancePerMember  : 1  # allows one instance per member
+              allowedInstances   : [ 't2.micro' ]
+              maxInstance        : 1  # maximum instance count for this group (total)
+              storagePerInstance : 5  # means 5GB storage for this plan in total (max).
+                                      # 1 member x 1 instancePerMember = 1 instance
+                                      # 5GB per instance x 1 instances = 5GB in total
+              restrictions       :
+                supports         : [ 'provider', 'resource' ]
+                provider         : [ 'aws' ]
+                resource         : [ 'aws_instance' ]
+                custom           :
+                  ami            : no
+                  tags           : no
+                  user_data      : yes
+        else
+          @teamplans = plans
+          callback plans
+
+
   fetchRewards: (options, callback)->
 
     {unit} = options
@@ -508,10 +542,6 @@ module.exports = class ComputeController extends KDController
     startReinit = =>
 
       @stopCollaborationSession()
-
-      @eventListener.triggerState machine,
-        status      : Machine.State.Terminating
-        percentage  : 0
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
@@ -897,6 +927,7 @@ module.exports = class ComputeController extends KDController
       remote.api.JMachine.one machineId, (err, machine) =>
         if err? then kd.warn "Revive failed for #{machineId}: ", err
         else
+          @invalidateCache machine._id
           @emit "revive-#{machineId}", machine
           kd.info "Revive triggered for #{machineId}", machine
 
@@ -1114,9 +1145,8 @@ module.exports = class ComputeController extends KDController
             new kd.NotificationView
               title : 'Stack reinitialized'
 
-            # We need to quit here to be able to re-load
-            # IDE with new machine stack, there might be better solution ~ GG
-            frontApp = kd.singletons.appManager.getFrontApp()
-            frontApp.quit()  if frontApp?.options.name is 'IDE'
+            kd.singletons.appManager.quitByName 'IDE'
+            kd.utils.defer ->
+              kd.singletons.router.handleRoute '/IDE'
 
           .createDefaultStack()

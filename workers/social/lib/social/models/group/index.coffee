@@ -1,3 +1,4 @@
+async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
 
@@ -57,7 +58,7 @@ module.exports = class JGroup extends Module
       'update collection'                 : ['moderator']
       'assure collection'                 : ['moderator']
       'remove documents from collection'  : ['moderator']
-      'view readme'                       : ['guest', 'member', 'moderator']
+      'view readme'                       : ['member', 'moderator']
       'send invitations'                  : ['moderator']
 
       # those are for messages
@@ -77,7 +78,7 @@ module.exports = class JGroup extends Module
 
       # JTag related permissions
       'read tags'               :
-        public                  : ['guest', 'member', 'moderator']
+        public                  : ['member', 'moderator']
         private                 : ['member', 'moderator']
       'create tags'             : ['member', 'moderator']
       'freetag content'         : ['member', 'moderator']
@@ -230,7 +231,7 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         transferOwnership:
           (signature String, Function)
-        remove:
+        destroy:
           (signature Function)
         addSubscription:
           (signature String, Function)
@@ -592,15 +593,29 @@ module.exports = class JGroup extends Module
     callback null
 
 
-  sendNotification$: permit 'grant permissions',
+  sendNotification$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, event, contents, callback) ->
       @sendNotification event, contents, callback
+
+
+  @someWithRelationship$ = permit
+    advanced : [{ permission: 'edit groups', superadmin: yes }]
+    success  : (client, query, options, callback) ->
+      @someWithRelationship client, query, options, callback
 
 
   broadcast:(message, event) ->
     @constructor.broadcast @slug, message, event
 
-  changeMemberRoles: permit 'grant permissions',
+  changeMemberRoles: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, targetId, roles, callback) ->
       remove = []
       revokedRoles = []
@@ -697,7 +712,11 @@ module.exports = class JGroup extends Module
 
     return domain in @allowedDomains
 
-  updatePermissions: permit 'grant permissions',
+  updatePermissions: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, permissions, callback = -> ) ->
       @fetchPermissionSet (err, permissionSet) =>
         return callback err if err
@@ -728,7 +747,11 @@ module.exports = class JGroup extends Module
           if err then callback err
           else callback null, defaultPermissionSet
 
-    fetchPermissions = permit 'grant permissions',
+    fetchPermissions = permit
+      advanced: [
+        { permission: 'grant permissions' }
+        { permission: 'grant permissions', superadmin: yes }
+      ]
       success:(client, callback) ->
         { permissionsByModule } = require '../../traits/protected'
         { delegate }            = client.connection
@@ -777,7 +800,11 @@ module.exports = class JGroup extends Module
   fetchMyRoles: secure (client, callback) ->
     @fetchRolesByAccount client.connection.delegate, callback
 
-  fetchUserRoles: permit 'grant permissions',
+  fetchUserRoles: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, ids, callback) ->
       [callback, ids] = [ids, callback]  unless callback
       @fetchRoles (err, roles) =>
@@ -795,14 +822,22 @@ module.exports = class JGroup extends Module
               if err then callback err
               else callback null, arr
 
-  fetchUserStatus: permit 'grant permissions',
+  fetchUserStatus: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, nicknames, callback) ->
       JUser    = require '../user'
       JUser.someData { username: { $in: nicknames } }, { status:1, username:1 }, (err, cursor) ->
         return callback err  if err
         cursor.toArray callback
 
-  fetchMembers$: permit 'list members',
+  fetchMembers$: permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method : @fetchMembers
@@ -810,7 +845,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchMembersWithEmail$: permit 'grant permissions',
+  fetchMembersWithEmail$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchMembers
@@ -819,7 +858,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchAdmins$: permit 'list members',
+  fetchAdmins$: permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method: @fetchAdmins
@@ -827,7 +870,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchAdminsWithEmail$: permit 'grant permissions',
+  fetchAdminsWithEmail$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchAdmins
@@ -836,7 +883,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchModerators$: permit 'list members',
+  fetchModerators$: permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method: @fetchModerators
@@ -844,7 +895,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchModeratorsWithEmail$: permit 'grant permissions',
+  fetchModeratorsWithEmail$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchModerators
@@ -853,7 +908,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchBlockedAccounts$: permit 'list members',
+  fetchBlockedAccounts$: permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method: @fetchBlockedAccounts
@@ -861,7 +920,11 @@ module.exports = class JGroup extends Module
         rest
       }
 
-  fetchBlockedAccountsWithEmail$: permit 'grant permissions',
+  fetchBlockedAccountsWithEmail$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchBlockedAccounts
@@ -1034,7 +1097,11 @@ module.exports = class JGroup extends Module
         else policy.update { $set: formData }, callback
 
 
-  toggleFeature: permit 'grant permissions',
+  toggleFeature: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success:(client, options, callback) ->
       if not options.feature or not options.role or not options.operation
         return callback new KodingError 'request is not valid'
@@ -1058,7 +1125,11 @@ module.exports = class JGroup extends Module
           return @update callback
 
 
-  canEditGroup: permit 'grant permissions',
+  canEditGroup: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, callback) ->
       callback null, yes
     failure: (client, callback) ->
@@ -1067,7 +1138,11 @@ module.exports = class JGroup extends Module
 
   @canReadGroupActivity = permit 'read group activity'
   canReadGroupActivity  : permit 'read group activity'
-  @canListMembers       = permit 'list members'
+  @canListMembers       = permit
+    advanced: [
+      { permission: 'list members' }
+      { permission: 'list members', superadmin: yes }
+    ]
 
   canOpenGroup: permit 'open group',
     failure:(client, callback) ->
@@ -1182,7 +1257,11 @@ module.exports = class JGroup extends Module
 
       dash queue, kallback
 
-  kickMember: permit 'grant permissions',
+  kickMember: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, accountId, callback) ->
 
       { connection: { delegate } } = client
@@ -1243,7 +1322,11 @@ module.exports = class JGroup extends Module
    * @param {String} accountId - Id of the account for unblocking.
    * @param {Function} callback - Callback.
   ###
-  unblockMember: permit 'grant permissions',
+  unblockMember: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, accountId, callback) ->
       JAccount = require '../account'
       JAccount.one { _id: accountId }, (err, account) =>
@@ -1252,7 +1335,11 @@ module.exports = class JGroup extends Module
         # removeBlockedAccount is generated by bongo
         @removeBlockedAccount account, callback
 
-  transferOwnership: permit 'grant permissions',
+  transferOwnership: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
     success: (client, accountId, callback) ->
       JAccount = require '../account'
 
@@ -1337,61 +1424,75 @@ module.exports = class JGroup extends Module
       if err then callback err
       else oldAddOwner.call this, target, options, callback
 
-  remove_ = @::remove
-  remove: secure (client, callback) ->
-    JName = require '../name'
+  destroy    : permit
+    advanced : [
+      { permission: 'edit own groups', validateWith : Validators.own }
+      { permission: 'edit groups',     superadmin   : yes }
+    ]
+    success  : (client, callback) ->
 
-    @fetchOwner (err, owner) =>
-      return callback err if err
-      unless owner.getId().equals client.connection.delegate.getId()
-        return callback new KodingError 'You must be the owner to perform this action!'
+      JName = require '../name'
 
-      removeHelper = (model, err, callback, queue) ->
-        return callback err if err
-        return queue.next() unless model
-        model.remove (err) ->
-          return callback err if err
-          queue.next()
+      removeHelper = (model, err, next) ->
+        return next err  if err
+        return next()  unless model
 
-      removeHelperMany = (klass, models, err, callback, queue) ->
-        return callback err if err
-        return queue.next() if not models or models.length < 1
+        model.remove (err) -> next err
+
+      removeHelperMany = (klass, models, err, next) ->
+        return next err  if err
+        return next()    if not models or models.length < 1
+
         ids = (model._id for model in models)
-        klass.remove ({ _id: { $in: ids } }), (err) ->
-          return callback err if err
-          queue.next()
+        klass.remove ({ _id: { $in: ids } }), (err) -> next err
 
-      daisy queue = [
-        => JName.one { name:@slug }, (err, name) ->
-          removeHelper name, err, callback, queue
+      async.series [
 
-        => @fetchPermissionSet (err, permSet) ->
-          removeHelper permSet, err, callback, queue
+        (next) =>
+          JName.one { name: @slug }, (err, name) ->
+            removeHelper name, err, next
 
-        => @fetchDefaultPermissionSet (err, permSet) ->
-          removeHelper permSet, err, callback, queue
+        (next) =>
+          @fetchPermissionSet (err, permSet) ->
+            removeHelper permSet, err, next
 
-        => @fetchMembershipPolicy (err, policy) ->
-          removeHelper policy, err, callback, queue
+        (next) =>
+          @fetchDefaultPermissionSet (err, permSet) ->
+            removeHelper permSet, err, next
 
-        => @fetchInvitations (err, requests) ->
+        (next) =>
+          @fetchMembershipPolicy (err, policy) ->
+            removeHelper policy, err, next
+
+        (next) =>
           JInvitation = require '../invitation'
-          removeHelperMany JInvitation, requests, err, callback, queue
+          JInvitation.remove { groupName: @slug }, (err) ->
+            next err
 
-        => @fetchTags (err, tags) ->
-          JTag = require '../tag'
-          removeHelperMany JTag, tags, err, callback, queue
+        (next) =>
+          @fetchTags (err, tags) ->
+            JTag = require '../tag'
+            removeHelperMany JTag, tags, err, next
 
-        =>
+        (next) =>
+          ComputeProvider = require '../computeproviders/computeprovider'
+          ComputeProvider.destroyGroupResources this, -> next()
+
+        (next) =>
+          JSession = require '../session'
+          @sendNotification 'GroupDestroyed', @slug, =>
+            JSession.remove { groupName: @slug }, (err) ->
+              next err
+
+        (next) =>
           @constructor.emit 'GroupDestroyed', this
-          queue.next()
+          next()
 
-        => remove_.call this, (err) ->
-          return callback err if err
-          queue.next()
+        (next) =>
+          @remove (err) -> next err
 
-        -> callback null
-      ]
+      ], callback
+
 
   sendNotificationToAdmins: (event, contents) ->
     @fetchAdmins (err, admins) =>

@@ -1,0 +1,64 @@
+{
+  "variables": {
+    "aws_access_key": "AKIAJTAPKSDXI4FIXGJA",
+    "aws_secret_key": "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"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "us-west-1",
+      "vpc_id": "vpc-ef62eb8b",
+      "subnet_id": "subnet-6444f43d",
+      "security_group_id": "sg-27022f42",
+      "source_ami": "ami-f898f698",
+      "instance_type": "m4.large",
+      "ssh_username": "ubuntu",
+      "ami_name": "test-{{timestamp}}",
+      "launch_block_device_mappings": [
+        {
+          "device_name": "/dev/sda1",
+          "volume_size": 16,
+          "delete_on_termination": true
+        }
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": ".s3cfg",
+      "destination": "/home/ubuntu/.s3cfg"
+    },
+    {
+      "type": "file",
+      "source": ".ssh/",
+      "destination": "/home/ubuntu/.ssh/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "echo test-ami | sudo tee /etc/hostname",
+        "echo 127.0.1.1 test-ami | sudo tee -a /etc/hosts",
+        "sudo hostname -F /etc/hostname",
+        "chmod u+rw,go-rw /home/ubuntu/.ssh/id_rsa",
+        "sudo cp -rf /home/ubuntu/.ssh/* /root/.ssh"
+      ]
+    },
+    {
+      "type": "shell",
+      "script": "provision.sh",
+      "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "setup-koding.sh",
+      "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+      "environment_vars": [
+        "CI=true",
+        "wercker=true"
+      ]
+    }
+  ]
+}

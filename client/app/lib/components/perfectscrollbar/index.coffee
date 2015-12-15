@@ -63,7 +63,7 @@ module.exports = class PerfectScrollbar extends Component
     # FIXME: remove `wait` from here and make sure it handles each case.
     kd.utils.wait 500, -> Ps.update container
 
-    @addListener 'resize', @bound 'onResize'
+    @addListener 'resize', @bound '_update'
 
     if _.isFunction @props.onScrollY
       @addListener 'ps-scroll-y', @props.onScrollY
@@ -104,7 +104,7 @@ module.exports = class PerfectScrollbar extends Component
     @_listeners = {}
 
 
-  onResize: ->
+  _update: ->
 
     Ps.update ReactDOM.findDOMNode @refs.container
 

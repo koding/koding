@@ -28,6 +28,9 @@ module.exports = class Scroller extends React.Component
     @props.onThresholdReached?()
 
 
+  _update: -> @refs.scrollContainer._update()
+
+
   render: ->
 
     <PerfectScrollbar

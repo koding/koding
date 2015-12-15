@@ -297,8 +297,9 @@ func (p *Plan) userInstances(username string) ([]*ec2.Instance, error) {
 	filters := map[string][]string{
 		// Anything except "terminated" and "shutting-down"
 		"instance-state-name": {"pending", "running", "stopping", "stopped"},
-		"tag-value":           {username},
+		"tag:koding-user":     {username},
 	}
+
 	instances, err := p.AWSClient.InstancesByFilters(filters)
 	switch {
 	case amazon.IsNotFound(err):

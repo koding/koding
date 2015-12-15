@@ -285,3 +285,62 @@ module.exports =
       .waitForElementVisible  nicknameInput, 20000
       .clearValue             nicknameInput
       .setValue               nicknameInput, name + '\n'
+  
+
+  reinitVM: (browser) ->
+
+    reinitSelector   = '.kdmodal.AppModal .advanced .advanced.reinit'
+    proceedSelector  = '.kdmodal.with-buttons .kdbutton.red'
+    vmStateModal     = '.env-machine-state .kdmodal-content'
+    vmSelector       = '.sidebar-machine-box'
+    envModalSelector = ".env-modal.env-machine-state"
+
+    browser
+      .waitForElementVisible     reinitSelector, 20000
+      .click                     reinitSelector
+      .waitForElementVisible     proceedSelector, 20000
+      .click                     proceedSelector
+      .waitForElementVisible     vmSelector   + ' .vm.building', 200000
+      .waitForElementVisible     vmStateModal + ' .content-container .building', 200000
+      .waitForElementNotPresent  envModalSelector, 600000
+      .pause                     5000 # wait for sidebar redraw
+      .waitForElementVisible     vmSelector + ' .running.vm', 20000
+      .assert.containsText       vmSelector + ' .running.vm', 'koding-vm-0'
+
+
+  terminateVM: (browser) ->
+
+    terminateSelector       = '.kdmodal.AppModal .advanced .advanced.terminate'
+    proceedSelector         = '.kdmodal.with-buttons .kdbutton.red'
+    terminatedLabelSelector = '.kdmodal.env-modal .state-label.terminated'
+    vmSelector              = '.sidebar-machine-box'
+    vmStateModal            = '.env-machine-state .kdmodal-content'
+
+    browser
+      .waitForElementVisible  terminateSelector, 20000
+      .click                  terminateSelector
+      .waitForElementVisible  proceedSelector, 20000
+      .click                  proceedSelector
+      .waitForElementVisible  vmSelector   + ' .vm.terminating', 200000
+      .waitForElementVisible  vmStateModal + ' .terminating', 20000
+      .waitForElementVisible  terminatedLabelSelector, 200000
+      .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
+
+
+  createNewVMForNonPayingUsers: (browser) ->
+
+    createVMbutton    = '.content-container .kdbutton'
+    addKodingVmButton = '.environments-modal .kdbutton.add-vm-button'
+    vmSelector        = '.sidebar-machine-box .notinitialized'
+    vmStateModal      = '.env-machine-state .kdmodal-content'
+
+    browser
+      .waitForElementVisible  createVMbutton, 20000
+      .click                  createVMbutton
+      .waitForElementVisible  addKodingVmButton, 20000
+      .click                  addKodingVmButton
+      .waitForElementVisible  vmSelector, 20000
+      .assert.containsText    vmSelector, 'koding-vm-0'
+      .pause                   2500 # wait for correct pop-up to appear
+      .waitForElementVisible  vmStateModal + ' .turn-on', 50000
+      .assert.containsText    vmStateModal + ' .turn-on', 'TURN IT ON'

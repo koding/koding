@@ -1,14 +1,37 @@
-React    = require 'kd-react'
-ReactDOM = require 'react-dom'
+React           = require 'kd-react'
+ReactDOM        = require 'react-dom'
+scrollerActions = require './scrolleractions'
 
 module.exports = ScrollerMixin =
 
+  componentDidMount: ->
+
+    @scrollerAction = null
+    window.addEventListener "resize", @bound 'onWindowResize'
+
+
   componentWillUpdate: ->
 
-    @shouldScrollToBottom = @shouldScrollBottom()
+    { SCROLL_TO_BOTTOM } = scrollerActions
+    @scrollerAction = SCROLL_TO_BOTTOM  if @shouldScrollToBottom()
 
 
-  shouldScrollBottom: ->
+  componentDidUpdate: ->
+
+    @beforeScrollDidUpdate?()
+
+    @performScrollerAction @scrollerAction
+    @scrollerAction = null
+
+    @afterScrollDidUpdate?()
+
+
+  componentWillUnmount: ->
+
+    window.removeEventListener "resize", @bound 'onWindowResize'
+
+
+  shouldScrollToBottom: ->
 
     return  unless @refs?.scrollContainer
 
@@ -21,39 +44,24 @@ module.exports = ScrollerMixin =
     return @scrollHeight - (@scrollTop + offsetHeight) < 10
 
 
-  componentDidUpdate: ->
-
-    @beforeScrollDidUpdate?()
+  performScrollerAction: (action) ->
 
     return  unless @refs?.scrollContainer
+
+    { SCROLL_TO_BOTTOM, KEEP_POSITION, UPDATE } = scrollerActions
 
     element = ReactDOM.findDOMNode @refs.scrollContainer
-    if @shouldScrollToBottom
-      element.scrollTop = element.scrollHeight
-    else if @isThresholdReached
-      element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
-
-    @isThresholdReached = no
-
-    @afterScrollDidUpdate?()
-
-
-  setScrollPosition: ->
-
-    return  unless @refs?.scrollContainer
-
-    scrollContainer = ReactDOM.findDOMNode @refs.scrollContainer
-
-    if @shouldScrollBottom()
-      scrollContainer.scrollTop = scrollContainer.scrollHeight
+    switch action
+      when SCROLL_TO_BOTTOM
+        element.scrollTop = element.scrollHeight
+      when KEEP_POSITION
+        element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
+      when UPDATE
+        @refs.scrollContainer._update()
 
 
-  componentDidMount: ->
+  onWindowResize: ->
 
-    window.addEventListener "resize", @bound 'setScrollPosition'
-
-
-  componentWillUnmount: ->
-
-    window.removeEventListener "resize", @bound 'setScrollPosition'
+    { SCROLL_TO_BOTTOM } = scrollerActions
+    @performScrollerAction SCROLL_TO_BOTTOM  if @shouldScrollToBottom()
 

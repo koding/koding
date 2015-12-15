@@ -544,10 +544,13 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 
 // checkLimits checks whether the given buildData is valid to be used to create a new instance
 func (m *Machine) checkLimits(buildData *BuildData) error {
+
+	m.Log.Debug("Checking Total instances limits")
 	if err := m.Checker.Total(m.Username); err != nil {
 		return err
 	}
 
+	m.Log.Debug("Checking AlwaysOn requireement")
 	if err := m.Checker.AlwaysOn(m.Username); err != nil {
 		return err
 	}
@@ -560,8 +563,10 @@ func (m *Machine) checkLimits(buildData *BuildData) error {
 		buildData.EC2Data.InstanceType = aws.String(plans.T2Micro.String())
 	}
 
+	wantSize := int(aws.Int64Value(buildData.EC2Data.BlockDeviceMappings[0].Ebs.VolumeSize))
+	m.Log.Debug("Checking if user is eglible for a '%d' storage size", wantSize)
 	// check if the user is egligible to create a vm with this size
-	if err := m.Checker.Storage(int(aws.Int64Value(buildData.EC2Data.BlockDeviceMappings[0].Ebs.VolumeSize)), m.Username); err != nil {
+	if err := m.Checker.Storage(wantSize, m.Username); err != nil {
 		return err
 	}
 

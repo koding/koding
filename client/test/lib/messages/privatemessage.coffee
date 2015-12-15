@@ -113,12 +113,12 @@ module.exports =
     browser.end()
 
 
-  sendPrivateMessageWithImage: (browser) ->
+  # sendPrivateMessageWithImage: (browser) ->
 
-    image     = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png Hello World"
-    testUsers = [ @users[6] ]
+  #   image     = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png Hello World"
+  #   testUsers = [ @users[6] ]
 
-    helpers.beginTest(browser)
+  #   helpers.beginTest(browser)
 
-    messagesHelpers.startConversation(browser, testUsers, image)
-    browser.end()
+  #   messagesHelpers.startConversation(browser, testUsers, image)
+  #   browser.end()

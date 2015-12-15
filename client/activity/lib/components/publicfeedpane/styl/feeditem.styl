@@ -1,0 +1,95 @@
+$base-padding               = 18px
+
+.FeedItem
+  width                     100%
+  max-width                 600px
+  background                $white
+  border-radius             $border-radius
+  border                    1px solid #EAEAEA
+  margin-bottom             10px
+  padding                   0
+  font-size                 $fs-regular
+
+  &.is-disabled
+    opacity                 .5 !important
+
+.FeedItem-header
+  padding                   $base-padding $base-padding 0 $base-padding
+
+.FeedItem-headerContentWrapper
+  overflow                  hidden
+
+  .MediaObject-media
+    fl()
+
+  .FeedItem-authorName
+    dBlock()
+
+.FeedItem-messageDate
+  rel()
+  pointer()
+  color                     $gray-10
+  font-size                 12px
+  font-weight               400
+  line-height               20px
+
+.FeedItem-date
+  font-size                 $fs-small
+  color                     $color-light-text
+
+.FeedItem-date:before
+  content                   ""
+  display                   inline-block
+  size                      3px, 3px
+  rounded                   50%
+  background                $color-light-text
+  font-size                 8px
+  margin                    0 6px
+  vertical-align            middle
+
+.FeedItem-body
+  padding                   ($base-padding/2) $base-padding
+
+.FeedItem-footer
+  bg                        color #FBFAF9
+  border-bottom             1px solid #EAEAEA
+  border-radius             0 0 $border-radius $border-radius
+
+.FeedItem-summary
+  padding                   8px 18px
+  font-size                 14px
+  border-bottom             1px solid #EAEAEA
+
+  a
+    noTextDeco()
+    font-weight             600
+    color                   $gray-8
+
+.FeedItem-footerActionContainer
+  padding                   5px 18px 10px
+  width                     100%
+  overflow                  hidden
+  bg                        color, $white
+  border-bottom             1px solid #EAEAEA
+  borderBox()
+
+  > a
+    fl()
+    pointer()
+    font-size               14px
+    color                   $gray-12
+    font-weight             400
+
+    &:first-child:before
+      hidden()
+
+    &:before
+      dIBlock()
+      content:                ""
+      size                    3px 3px
+      rounded                 50%
+      bg                      color, $gray-12
+      font-size               12px
+      margin                  0 8px
+      vertical-align          middle
+

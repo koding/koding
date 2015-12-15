@@ -3,7 +3,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 EmbedBox         = require 'activity/views/embedbox'
 getEmbedType     = require 'app/util/getEmbedType'
 
-hasEmbed = (data) -> data.link? and Object.keys(data.link).length > 0
+hasEmbed = (data) -> data.link? and data.link.link_url and data.link.link_embed
 
 module.exports = updateEmbedBoxMixin = ->
 

@@ -1,6 +1,5 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
-whoami                 = require 'app/util/whoami'
 isKoding               = require 'app/util/isKoding'
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
@@ -80,7 +79,6 @@ module.exports = class MemberItemView extends kd.ListItemView
     buttons = buttonSet[@loggedInUserRole.slug][@memberRole.slug]
 
     buttons.forEach (button) =>
-      return if isKoding() and button.slug is 'kick'
 
       buttonView = new kd.ButtonView
         cssClass : kd.utils.curry 'solid compact outline', button.extraClass
@@ -145,7 +143,13 @@ module.exports = class MemberItemView extends kd.ListItemView
 
   kick: ->
 
-    kd.singletons.groupsController.getCurrentGroup().kickMember @getData().getId(), (err) =>
+    currentGroup = kd.singletons.groupsController.getCurrentGroup()
+    account      = @getData()
+    group        = account._currentGroup ? currentGroup
+
+    return  if isKoding group
+
+    group.kickMember account.getId(), (err) =>
 
       if err
         customErr = new Error 'Failed to kick user. Please try again.'

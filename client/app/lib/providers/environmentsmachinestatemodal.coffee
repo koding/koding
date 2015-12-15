@@ -160,7 +160,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         @switchToIDEIfNeeded()
 
       else if percentage is 100
-        initial = message is 'apply finished'
+        initial = message in [ 'apply finished', 'reinit finished' ]
         @completeCurrentProcess status, initial
 
       else if task is 'reinit'
