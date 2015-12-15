@@ -43,6 +43,7 @@ module.exports = [
   [
     { name: 'activity edit' }
     { name: 'activity delete' }
+    { name: 'teams teamschannels' }
   ]
 
   [
@@ -69,6 +70,7 @@ module.exports = [
   [
     { name: 'ide general' }
     { name: 'ide layout' }
+    { name: 'environments vm-advanced' }
   ]
 
   [

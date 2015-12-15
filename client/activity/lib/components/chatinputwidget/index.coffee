@@ -28,7 +28,7 @@ module.exports = class ChatInputWidget extends React.Component
     disabledFeatures : []
     onReady          : kd.noop
     onResize         : kd.noop
-
+    placeholder      : ''
 
   getDataBindings: ->
 
@@ -266,7 +266,7 @@ module.exports = class ChatInputWidget extends React.Component
       helpers.setCursorPosition textInput, cursorPosition
 
 
-  onSelectBoxItemConfirmed: (item) ->
+  onEmojiSelectBoxItemConfirmed: (item) ->
 
     { value } = @state
 
@@ -320,7 +320,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   onResize: ->
 
-    ChatPaneBody    = document.querySelector '.ChatPane-body'
+    ChatPaneBody    = document.querySelector '.Pane-body'
     scrollContainer = ChatPaneBody.querySelector '.Scrollable'
 
     { scrollTop, scrollHeight } = scrollContainer
@@ -358,7 +358,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { emojiSelectBoxVisibility }
       selectedItem    = { emojiSelectBoxSelectedItem }
       tabIndex        = { emojiSelectBoxTabIndex }
-      onItemConfirmed = { @bound 'onSelectBoxItemConfirmed' }
+      onItemConfirmed = { @bound 'onEmojiSelectBoxItemConfirmed' }
       ref             = 'emojiSelectBox'
       stateId         = { @stateId }
     />
@@ -446,6 +446,7 @@ module.exports = class ChatInputWidget extends React.Component
       { @renderCommandDropbox() }
       <AutoSizeTextarea
         ref           = 'textInput'
+        placeholder   = @props.placeholder
         value         = { @state.value }
         onChange      = { @bound 'onChange' }
         onKeyDown     = { @bound 'onKeyDown' }

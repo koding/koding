@@ -2,6 +2,7 @@ package awsprovider
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 
@@ -13,7 +14,7 @@ import (
 // Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
 // function but updates/deletes the MongoDB document once finished.
 func (m *Machine) Destroy(ctx context.Context) (err error) {
-	if err := m.UpdateState("Machine is termating", machinestate.Terminating); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is termating", machinestate.Terminating); err != nil {
 		return err
 	}
 
@@ -23,13 +24,18 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	latestState := m.State()
 	defer func() {
 		if err != nil {
-			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// try to destroy the instance, however if the instance is not available
 	// anymore just continue.
-	if m.Meta.InstanceId != "" {
+	if meta.InstanceId != "" {
 		m.Log.Debug("Destroying machine")
 		err := m.Session.AWSClient.Destroy(ctx, 10, 50)
 		if err != nil && !amazon.IsNotFound(err) {
@@ -43,12 +49,12 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
 		// if it's already deleted, for example because of a STOP, than we just
 		// log it here instead of returning the error
-		m.Log.Error("deleting domain during destroying err: %s", err.Error())
+		m.Log.Error("deleting domain during destroying err: %s", err)
 	}
 
-	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
+	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for unsetting err: %s", err.Error())
+		m.Log.Error("fetching domains for unsetting err: %s", err)
 	}
 
 	m.push("Deleting custom domain", 90, machinestate.Terminating)
@@ -59,16 +65,16 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 
 		err := m.Session.DNSStorage.UpdateMachine(domain.Name, "")
 		if err != nil {
-			m.Log.Error("couldn't unset machine domain: %s", err.Error())
+			m.Log.Error("couldn't unset machine domain: %s", err)
 		}
 	}
 
 	// try to release/delete a public elastic IP
 	// clean up these details, the instance doesn't exist anymore
-	m.Meta.InstanceId = ""
-	m.Meta.InstanceName = ""
 	m.IpAddress = ""
 	m.QueryString = ""
+	m.Meta["instanceName"] = ""
+	m.Meta["instanceId"] = ""
 
 	return m.DeleteDocument()
 }
@@ -77,11 +83,11 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 func (m *Machine) DeleteDocument() error {
 	m.Log.Debug("Deleting machine document")
 	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.RemoveId(m.Id)
+		return c.RemoveId(m.ObjectId)
 	})
 
 	if err != nil {
-		return fmt.Errorf("Couldn't delete document with id: %s err: %s", m.Id.Hex(), err)
+		return fmt.Errorf("Couldn't delete document with id: %s err: %s", m.ObjectId.Hex(), err)
 	}
 
 	return nil

@@ -67,6 +67,14 @@ module.exports = class ChatListItem extends React.Component
     @getAccountInfo()
 
 
+  componentDidUpdate: (prevProps, prevState) ->
+
+    isInEditMode  = @props.message.get '__isEditing'
+    wasInEditMode = prevProps.message.get '__isEditing'
+
+    @refs.editInput.focus()  if isInEditMode and not wasInEditMode
+
+
   getAccountInfo: ->
 
     { message } = @props
@@ -185,7 +193,7 @@ module.exports = class ChatListItem extends React.Component
 
     messageId = @props.message.get '_id'
 
-    ActivityFlux.actions.message.setMessageEditMode messageId
+    ActivityFlux.actions.message.setMessageEditMode messageId, @props.channelId
 
 
   showDeletePostPromptModal: ->
@@ -239,7 +247,7 @@ module.exports = class ChatListItem extends React.Component
 
     messageId = @props.message.get '_id'
 
-    ActivityFlux.actions.message.unsetMessageEditMode messageId
+    ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
 
     ActivityFlux.actions.message.editMessage(
       @props.message.get('id')
@@ -253,7 +261,7 @@ module.exports = class ChatListItem extends React.Component
     return @closeDeletePostModal()  if @state.isDeleting
 
     messageId = @props.message.get '_id'
-    ActivityFlux.actions.message.unsetMessageEditMode messageId
+    ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
 
 
   onEditStarted: ->
@@ -337,7 +345,7 @@ module.exports = class ChatListItem extends React.Component
               {makeProfileLink message.get 'account'}
             </span>
             <MessageLink message={message}>
-              <MessageTime date={message.get 'createdAt'}/>
+              <MessageTime className='ChatItem-messageDate' date={message.get 'createdAt'}/>
             </MessageLink>
             <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           </div>

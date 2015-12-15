@@ -29,9 +29,14 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 		}
 	}()
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// try to destroy the instance, however if the instance is not available
 	// anymore just continue.
-	if m.Meta.InstanceId != "" {
+	if meta.InstanceId != "" {
 		m.Log.Debug("Destroying machine")
 		err := m.Session.AWSClient.Destroy(ctx, 10, 50)
 		if err != nil && !amazon.IsNotFound(err) {
@@ -45,23 +50,23 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
 		// if it's already deleted, for example because of a STOP, than we just
 		// log it here instead of returning the error
-		m.Log.Error("deleting domain during destroying err: %s", err.Error())
+		m.Log.Error("deleting domain during destroying err: %s", err)
 	}
 
-	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
+	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for unsetting err: %s", err.Error())
+		m.Log.Error("fetching domains for unsetting err: %s", err)
 	}
 
 	m.push("Deleting custom domain", 90, machinestate.Terminating)
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Delete(domain.Name); err != nil {
-			m.Log.Error("couldn't delete domain: %s", err.Error())
+			m.Log.Error("couldn't delete domain: %s", err)
 		}
 
 		err := m.Session.DNSStorage.UpdateMachine(domain.Name, "")
 		if err != nil {
-			m.Log.Error("couldn't unset machine domain: %s", err.Error())
+			m.Log.Error("couldn't unset machine domain: %s", err)
 		}
 	}
 
@@ -76,8 +81,8 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	}
 
 	// clean up these details, the instance doesn't exist anymore
-	m.Meta.InstanceId = ""
-	m.Meta.InstanceName = ""
+	m.Meta["instanceName"] = ""
+	m.Meta["instanceId"] = ""
 	m.IpAddress = ""
 	m.QueryString = ""
 
@@ -88,11 +93,11 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 func (m *Machine) DeleteDocument() error {
 	m.Log.Debug("Deleting machine document")
 	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.RemoveId(m.Id)
+		return c.RemoveId(m.ObjectId)
 	})
 
 	if err != nil {
-		return fmt.Errorf("Couldn't delete document with id: %s err: %s", m.Id.Hex(), err)
+		return fmt.Errorf("Couldn't delete document with id: %s err: %s", m.ObjectId.Hex(), err)
 	}
 
 	return nil

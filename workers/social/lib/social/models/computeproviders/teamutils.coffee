@@ -95,4 +95,4 @@ generateConstraints = (plan) ->
   return rules
 
 
-module.exports = { generateConstraints, getPlanData }
+module.exports = { generateConstraints, getPlanData, TEAMPLANS }

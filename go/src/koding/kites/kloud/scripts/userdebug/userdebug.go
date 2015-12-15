@@ -1,22 +1,23 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
-	"koding/db/models"
-	"koding/db/mongodb"
-	"koding/kites/kloud/pkg/multiec2"
 	"os"
+	"strconv"
 	"text/tabwriter"
 	"time"
 
+	"koding/db/models"
+	"koding/db/mongodb"
+	"koding/kites/kloud/api/amazon"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/koding/multiconfig"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-
-	"github.com/koding/multiconfig"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
 )
 
 type Config struct {
@@ -73,17 +74,14 @@ func realMain() error {
 	multiconfig.MustLoadWithPath("config.toml", conf)
 
 	db := mongodb.NewMongoDB(conf.MongoURL)
-	auth := aws.Auth{
-		AccessKey: conf.AccessKey,
-		SecretKey: conf.SecretKey,
+	opts := &amazon.ClientOptions{
+		Credentials: credentials.NewStaticCredentials(conf.AccessKey, conf.SecretKey, ""),
+		Regions:     amazon.ProductionRegions,
 	}
-
-	ec2clients := multiec2.New(auth, []string{
-		"us-east-1",
-		"ap-southeast-1",
-		"us-west-2",
-		"eu-west-1",
-	})
+	ec2clients, err := amazon.NewClientPerRegion(opts)
+	if err != nil {
+		panic(err)
+	}
 
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 10, 8, 0, '\t', 0)
@@ -197,54 +195,46 @@ func (m *machines) Print(w io.Writer) {
 }
 
 type instance struct {
-	ec2    ec2.Instance
-	volume ec2.Volume
+	ec2    *ec2.Instance
+	status *ec2.InstanceStatus
+	volume *ec2.Volume
+}
+
+func (i *instance) volumeSize() string {
+	if i.volume != nil {
+		return strconv.FormatInt(aws.Int64Value(i.volume.Size), 10)
+	}
+	return "(no block devices attached)"
 }
 
 func (i *instance) Print(w io.Writer) {
 	fmt.Fprintf(w, "============= AWS ==========\n")
-	fmt.Fprintf(w, "InstanceId:\t%s\n", i.ec2.InstanceId)
-	fmt.Fprintf(w, "IP Address:\t%s\n", i.ec2.PublicIpAddress)
-	fmt.Fprintf(w, "State:\t%s\n", i.ec2.State.Name)
-	fmt.Fprintf(w, "Image Id:\t%s\n", i.ec2.ImageId)
-	fmt.Fprintf(w, "Availibility Zone:\t%s\n", i.ec2.AvailZone)
-	fmt.Fprintf(w, "Launch Time:\t%s\n", i.ec2.LaunchTime)
-	fmt.Fprintf(w, "Storage Size:\t%s\n", i.volume.Size)
+	fmt.Fprintf(w, "InstanceId:\t%s\n", aws.StringValue(i.ec2.InstanceId))
+	fmt.Fprintf(w, "IP Address:\t%s\n", aws.StringValue(i.ec2.PublicIpAddress))
+	fmt.Fprintf(w, "State:\t%s\n", aws.StringValue(i.ec2.State.Name))
+	fmt.Fprintf(w, "Image Id:\t%s\n", aws.StringValue(i.ec2.ImageId))
+	fmt.Fprintf(w, "Availibility Zone:\t%s\n", aws.StringValue(i.status.AvailabilityZone))
+	fmt.Fprintf(w, "Launch Time:\t%s\n", aws.TimeValue(i.ec2.LaunchTime))
+	fmt.Fprintf(w, "Storage Size:\t%s\n", i.volumeSize())
 }
 
-func awsData(client *ec2.EC2, instanceId string) (*instance, error) {
-	resp, err := client.Instances([]string{instanceId}, ec2.NewFilter())
+func awsData(client *amazon.Client, instanceId string) (i *instance, err error) {
+	i = &instance{}
+	i.ec2, err = client.InstanceByID(instanceId)
+	if err != nil {
+		return nil, err
+	}
+	i.status, err = client.InstanceStatusByID(instanceId)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(resp.Reservations) == 0 {
-		return nil, errors.New("resp.Reservation shouldn't be null")
-	}
-
-	instances := resp.Reservations[0]
-	if len(instances.Instances) == 0 {
-		return nil, errors.New("instances.Instances shouldn't be null")
-	}
-
-	i := instances.Instances[0]
-
-	var volume ec2.Volume
-	if len(i.BlockDevices) != 0 {
-		volResp, err := client.Volumes([]string{i.BlockDevices[0].VolumeId}, ec2.NewFilter())
+	if len(i.ec2.BlockDeviceMappings) != 0 {
+		i.volume, err = client.VolumeByID(aws.StringValue(i.ec2.BlockDeviceMappings[0].Ebs.VolumeId))
 		if err != nil {
 			return nil, err
 		}
-
-		if len(volResp.Volumes) == 0 {
-			return nil, errors.New("volResp.Volumes shouldn't be null")
-		}
-
-		volume = volResp.Volumes[0]
 	}
 
-	return &instance{
-		ec2:    i,
-		volume: volume,
-	}, nil
+	return i, nil
 }

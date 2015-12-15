@@ -171,11 +171,45 @@ setSelectBoxTabIndex = (stateId, tabIndex) ->
 
 
 ###*
- * Action to reset current tab index to initial value -1
+ * Action to reset current tab index to initial value 0
  *
  * @param {string} stateId
 ###
-resetSelectBoxTabIndex = (stateId) -> setSelectBoxTabIndex stateId, -1
+resetSelectBoxTabIndex = (stateId) -> setSelectBoxTabIndex stateId, 0
+
+
+getAppStorage = -> kd.singletons.appStorageController.storage 'Emoji', '1.0.0'
+
+
+###*
+ * Action to load emoji usage counts from app storage
+ * and update EmojiUsageCountsStore with storage data
+###
+loadUsageCounts = ->
+
+  { SET_EMOJI_USAGE_COUNT } = actionTypes
+
+  storage = getAppStorage()
+  storage.fetchStorage ->
+    counts = storage.getValue('usageCounts') ? {}
+    kd.singletons.reactor.batch ->
+      for emoji, count of counts
+        dispatch SET_EMOJI_USAGE_COUNT, { emoji, count }
+
+
+###*
+ * Action to increment emoji usage count
+ *
+ * @param {string} emoji
+###
+incrementUsageCount = (emoji) ->
+
+  { INCREMENT_EMOJI_USAGE_COUNT } = actionTypes
+
+  dispatch INCREMENT_EMOJI_USAGE_COUNT, { emoji }
+
+  usageCounts = kd.singletons.reactor.evaluateToJS [ 'EmojiUsageCountsStore' ]
+  getAppStorage().setValue 'usageCounts', usageCounts
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -195,5 +229,8 @@ module.exports = {
   resetSelectBoxSelectedIndex
   setSelectBoxVisibility
   setSelectBoxTabIndex
+
+  loadUsageCounts
+  incrementUsageCount
 }
 

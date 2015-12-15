@@ -74,8 +74,10 @@ module.exports = class MachineSettingsModal extends KDModalView
     machine                     = @getData()
     isMachineRunning            = machine.status.state is Machine.State.Running
     disabledTabsForNotRunningVM = [ 'Disk Usage', 'Domains', 'VM Sharing', 'Snapshots' ]
-    disabledTabsForManagedVM    = [ 'Specs', 'Domains', 'Snapshots' ]
     disabledTabsForTeams        = [ 'Domains', 'Advanced', 'Snapshots' ]
+    disabledTabsForProviders    =
+      managed                   : [ 'Specs', 'Domains', 'Snapshots' ]
+      softlayer                 : [ 'Snapshots' ]
 
     for item in PANE_CONFIG when item.title and item.viewClass
 
@@ -83,8 +85,8 @@ module.exports = class MachineSettingsModal extends KDModalView
       isDisabled = not isMachineRunning and disabledTabsForNotRunningVM.indexOf(item.title) > -1
       isManaged  = machine.isManaged()
 
-      if isManaged
-        isDisabled = disabledTabsForManagedVM.indexOf(item.title) > -1
+      if disabledTabs = disabledTabsForProviders[machine.provider]
+        isDisabled = disabledTabs.indexOf(item.title) > -1
 
       unless isKoding()
         isDisabled = disabledTabsForTeams.indexOf(item.title) > -1 and not isManaged

@@ -2,7 +2,7 @@
 
 set -o errexit
 
-HOST=$(ec2metadata | grep public-hostname | FS=':' awk '{print $2}')
+HOST=$(ec2metadata | grep public-ipv4 | FS=':' awk '{print $2}')
 
 export HOME=/root/
 export DISPLAY=:99
@@ -13,11 +13,12 @@ export WERCKER="true"
 
 export CONFIG_DEBUGMODE="true"
 
-service nginx stop
-
 ulimit -n 10240
 
 cd $REPOSITORY_PATH
+
+git config user.email 'sysops@koding.com'
+git config user.name 'Koding Bot'
 
 scripts/wercker/install-node-modules koding
 scripts/install-npm.sh -u
@@ -45,7 +46,7 @@ x11vnc -passwd secret -display $DISPLAY -N -forever &
 
 export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
 
-java -jar $TEST_VENDOR/selenium-server-standalone-2.46.0.jar \
+java -jar $TEST_VENDOR/selenium-server-standalone.jar \
      -host 0.0.0.0 \
      -port 42424 \
      -Dwebdriver.chrome.driver=$TEST_VENDOR/chromedriver/linux64/chromedriver &

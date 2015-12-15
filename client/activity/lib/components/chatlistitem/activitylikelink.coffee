@@ -7,6 +7,8 @@ ProfileText  = require 'app/components/profile/profiletext'
 
 module.exports = class ActivityLikeLink extends React.Component
 
+  @defaultProps =
+    tooltip : yes
 
   getClassName: ->
 
@@ -38,6 +40,8 @@ module.exports = class ActivityLikeLink extends React.Component
 
   renderTooltip: ->
 
+    return null  unless @props.tooltip
+
     { actorsCount } = @props.interactions.like
 
     return null  unless actorsCount
@@ -50,6 +54,7 @@ module.exports = class ActivityLikeLink extends React.Component
   render: ->
 
     <a className={@getClassName()} onClick={ @bound 'onClick' } >
+      {@props.children}
       {@renderTooltip()}
     </a>
 

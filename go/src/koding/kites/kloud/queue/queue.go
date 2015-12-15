@@ -38,8 +38,8 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 }
 
 func (q *Queue) CheckKoding() {
-	var machine *koding.Machine
-	err := q.FetchProvider("koding", &machine)
+	machine := koding.NewMachine()
+	err := q.FetchProvider("koding", machine.Machine)
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care
@@ -62,7 +62,7 @@ func (q *Queue) CheckKoding() {
 			klient.ErrDialingFailed:
 		default:
 			q.Log.Debug("[%s] check usage of klient kite [%s] err: %v",
-				machine.Id.Hex(), machine.IpAddress, err)
+				machine.ObjectId.Hex(), machine.IpAddress, err)
 		}
 	}
 }
@@ -72,11 +72,16 @@ func (q *Queue) CheckKoding() {
 // certain inactivity time.
 func (q *Queue) CheckKodingUsage(m *koding.Machine) error {
 	q.Log.Debug("Checking Koding machine\n%+v\n", m)
-	if m == nil {
+	if m == nil || m.Meta == nil {
 		return errors.New("checking machine. document is nil")
 	}
 
-	if m.Meta.Region == "" {
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
+	if meta.Region == "" {
 		return errors.New("region is not set in.")
 	}
 
@@ -111,7 +116,7 @@ func (q *Queue) CheckKodingUsage(m *koding.Machine) error {
 	// We successfully connected and communicated with Klient, clear the
 	// missing value.
 	if !m.Assignee.KlientMissingAt.IsZero() {
-		err := modelhelper.UnsetKlientMissingAt(m.Id)
+		err := modelhelper.UnsetKlientMissingAt(m.ObjectId)
 		if err != nil {
 			m.Log.Error("Defer Error: Call to klientIsNotMissing failed, %s", err.Error())
 		}
@@ -133,23 +138,23 @@ func (q *Queue) CheckKodingUsage(m *koding.Machine) error {
 		m.IpAddress, usg.InactiveDuration, m.Payment.Plan)
 
 	// lock so it doesn't interfere with others.
-	q.KodingProvider.Lock(m.Id.Hex())
-	defer q.KodingProvider.Unlock(m.Id.Hex())
+	q.KodingProvider.Lock(m.ObjectId.Hex())
+	defer q.KodingProvider.Unlock(m.ObjectId.Hex())
 
 	// Hasta la vista, baby!
-	q.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
+	q.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.ObjectId.Hex())
 
 	if err := m.MarkAsStoppedWithReason("Machine is going to be stopped due inactivity"); err != nil {
-		q.Log.Warning("[%s] ======> STOP state couldn't be saved (closing inactive machine: %s)<======", m.Id.Hex(), err)
+		q.Log.Warning("[%s] ======> STOP state couldn't be saved (closing inactive machine: %s)<======", m.ObjectId.Hex(), err)
 	}
 
 	if err := m.StopMachine(ctx); err != nil {
 		// returning is ok, because Kloud will mark it anyways as stopped if
 		// Klient is not rechable anymore with the `info` method
-		q.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", m.Id.Hex(), err)
+		q.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", m.ObjectId.Hex(), err)
 		return err
 	}
-	q.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
+	q.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.ObjectId.Hex())
 
 	// mark it as stopped, so client side shouldn't ask for any eventer
 	return m.MarkAsStoppedWithReason("Machine is stopped due inactivity")
@@ -214,7 +219,7 @@ func (q *Queue) StopIfKlientIsMissing(ctx context.Context, m *koding.Machine) er
 
 		return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
-				m.Id,
+				m.ObjectId,
 				bson.M{"$set": bson.M{"assignee.klientMissingAt": time.Now().UTC()}},
 			)
 		})
@@ -245,7 +250,7 @@ func (q *Queue) StopIfKlientIsMissing(ctx context.Context, m *koding.Machine) er
 	// timeout.
 	defer func(m *koding.Machine) {
 		if !m.Assignee.KlientMissingAt.IsZero() {
-			err := modelhelper.UnsetKlientMissingAt(m.Id)
+			err := modelhelper.UnsetKlientMissingAt(m.ObjectId)
 			if err != nil {
 				m.Log.Error("Defer Error: Call to klientIsNotMissing failed, %s", err.Error())
 			}
