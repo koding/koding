@@ -1,4 +1,5 @@
-bongo    = require 'bongo'
+bongo       = require 'bongo'
+KodingError = require '../error'
 
 { secure, signature } = bongo
 
@@ -72,7 +73,12 @@ module.exports = class Tracker extends bongo.Base
 
   @track$ = secure (client, subject, options = {}, callback) ->
 
-    { profile: { nickname } } = client.connection.delegate
+    unless account = client?.connection?.delegate
+      err = '[Tracker.track$] Account is not set!'
+      console.error err
+      return callback new KodingError err
+
+    { profile: { nickname } } = account
 
     event = { subject }
 
