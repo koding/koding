@@ -256,8 +256,7 @@ module.exports = class ChatListItem extends React.Component
     return @closeDeletePostModal()  if @state.isDeleting
 
     messageId = @props.message.get '_id'
-    ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
-    ActivityFlux.actions.message.resetEditedPayload messageId
+    ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId, yes
 
 
   onEditStarted: ->
@@ -325,8 +324,11 @@ module.exports = class ChatListItem extends React.Component
     { message } = @props
     embedData   = message.get 'link'
 
+    { disableEditedEmbedPayload } = ActivityFlux.actions.message
+    onClose = if message.get('__isEditing') then -> disableEditedEmbedPayload message.get('id')
+
     if embedData
-      <EmbedBox data={embedData.toJS()} type='chat' />
+      <EmbedBox data={embedData.toJS()} type='chat' onClose={onClose} />
 
 
   render: ->

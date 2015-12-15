@@ -91,6 +91,9 @@
       .ButtonWithMenuWrapper
         hidden()
 
+      .EmbedBox-container
+        margin-top          0px
+
     &.edited
       article
         p
@@ -177,13 +180,16 @@
     left                    63px
     padding                 5px
 
+  .EmbedBox-container
+    padding-left            0px
+
   &:hover
     .ChatItem-messageDate
       visible()
 
   &.editing
-    overflow                  hidden
-    padding                   0 25px 6px 73px !important
+    overflow                hidden
+    padding                 0 25px 6px 73px !important
 
     .ChatItem-updateMessageForm
       width                 calc(100% \- 20px)
@@ -192,8 +198,8 @@
       .ChatItem-authorName
         hidden()
 
-  .EmbedBox-container
-    padding-left              0px
+    .EmbedBox-container
+      padding-left          13px
 
 .ChatItem-editActions
   abs()

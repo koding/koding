@@ -323,7 +323,7 @@ describe 'MessagesStore', ->
       expect(message.getIn ['__editedPayload', 'link_embed']).to.be.undefined
 
 
-  describe '#handleResetEditedMessagePayload', ->
+  describe '#handleDisableEditedMessageEmbedPayload', ->
 
     messageId       = 'test'
     body            = 'Hello World'
@@ -331,14 +331,17 @@ describe 'MessagesStore', ->
     message         = MessageCollectionHelpers.createFakeMessage messageId, body
     embedPayload    = { link_url : 'http://www.test.ccom', link_embed : { body : 'test' } }
 
-    it 'It clears message __editedPayload property', ->
+    it 'sets __isEmbedPayloadDisabled property to yes and clears embed payload', ->
 
       reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, { messageId }
       reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
-      reactor.dispatch actionTypes.RESET_EDITED_MESSAGE_PAYLOAD, { messageId }
+      reactor.dispatch actionTypes.DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD, { messageId }
 
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.has '__editedPayload').to.be.false
+      expect(message.get '__isEmbedPayloadDisabled').to.be.true
+      expect(message.getIn ['__editedPayload', 'link_url']).to.be.undefined
+      expect(message.getIn ['__editedPayload', 'link_embed']).to.be.undefined
 

@@ -64,7 +64,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     @on actions.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, @handleEditMessageEmbedPayloadSuccess
     @on actions.EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, @handleEditMessageEmbedPayloadFail
-    @on actions.RESET_EDITED_MESSAGE_PAYLOAD, @handleResetEditedMessagePayload
+    @on actions.DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD, @handleDisableEditedMessageEmbedPayload
 
 
   ###*
@@ -192,6 +192,7 @@ module.exports = class MessagesStore extends KodingFluxStore
     message = messages.get messageId
     message = message.remove '__editedBody'
     message = message.remove '__editedPayload'
+    message = message.remove '__isEmbedPayloadDisabled'
 
     return addMessage messages, message
 
@@ -217,12 +218,16 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @param {string} payload.messageId
    * @return {IMMessageCollection} nextState
   ###
-  handleUnsetMessageEditMode: (messages, { messageId }) ->
+  handleUnsetMessageEditMode: (messages, { messageId, resetEditedPayload }) ->
 
     { addMessage } = MessageCollectionHelpers
 
     message = messages.get messageId
     message = message.set '__isEditing', no
+
+    if resetEditedPayload
+      message = message.remove '__editedPayload'
+      message = message.remove '__isEmbedPayloadDisabled'
 
     return addMessage messages, message
 
@@ -315,7 +320,7 @@ module.exports = class MessagesStore extends KodingFluxStore
   ###*
    * Handler for `EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS` action.
    * It updates message __editedPayload property with a new embed payload.
-   * It works if message is in edit mode only
+   * It works if message is in edit mode and embed payload isn't disabled
    *
    * @param {IMMessageCollection} messages
    * @param {object} payload
@@ -328,11 +333,9 @@ module.exports = class MessagesStore extends KodingFluxStore
     { addMessage } = MessageCollectionHelpers
 
     message = messages.get messageId
-    return messages  unless message.get '__isEditing'
+    return messages  if not message.get('__isEditing') or message.get '__isEmbedPayloadDisabled'
 
-    payload = message.get 'payload'
-    payload = mergeEmbedPayload payload?.toJS(), embedPayload
-    message = message.set '__editedPayload', toImmutable payload
+    message = helper.updateEditedEmbedPayload message, embedPayload
 
     return addMessage messages, message
 
@@ -341,7 +344,7 @@ module.exports = class MessagesStore extends KodingFluxStore
    * Handler for `EDIT_MESSAGE_EMBED_PAYLOAD_FAIL` action.
    * It is called in case of fail when editing embed data in message and
    * it clears embed payload in __editedPayload property.
-   * It works if message is in edit mode only
+   * It works if message is in edit mode and embed payload isn't disabled
    *
    * @param {IMMessageCollection} messages
    * @param {object} payload
@@ -353,30 +356,44 @@ module.exports = class MessagesStore extends KodingFluxStore
     { addMessage } = MessageCollectionHelpers
 
     message = messages.get messageId
-    return messages  unless message.get '__isEditing'
+    return messages  if not message.get('__isEditing') or message.get '__isEmbedPayloadDisabled'
 
-    payload = message.get 'payload'
-    payload = mergeEmbedPayload payload?.toJS(), null
-    message = message.set '__editedPayload', toImmutable payload
+    message = helper.updateEditedEmbedPayload message, null
 
-    return messages = messages.setIn [messageId, '__editedPayload'], toImmutable payload
+    return addMessage messages, message
 
 
   ###*
-   * Handler for `RESET_EDITED_MESSAGE_PAYLOAD` action.
-   * It clears message __editedPayload property.
+   * Handler for `DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD` action.
+   * it sets __isEmbedPayloadDisabled property to yes
+   * and clears embed payload
+   * It works if message is in edit mode
    *
    * @param {IMMessageCollection} messages
    * @param {object} payload
    * @param {string} payload.messageId
    * @return {IMMessageCollection} nextState
   ###
-  handleResetEditedMessagePayload: (messages, { messageId }) ->
+  handleDisableEditedMessageEmbedPayload: (messages, { messageId }) ->
 
     { addMessage } = MessageCollectionHelpers
 
     message = messages.get messageId
-    message = message.remove '__editedPayload'
+    return messages  unless message.get '__isEditing'
+
+    message = message.set '__isEmbedPayloadDisabled', yes
+    message = helper.updateEditedEmbedPayload message, null
 
     return addMessage messages, message
+
+
+  helper =
+
+    updateEditedEmbedPayload: (message, embedPayload) ->
+
+      payload = message.get('__editedPayload') ? message.get 'payload'
+      payload = mergeEmbedPayload payload?.toJS(), embedPayload
+      message = message.set '__editedPayload', toImmutable payload
+
+      return message
 
