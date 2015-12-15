@@ -1,6 +1,5 @@
 kd                 = require 'kd'
 expect             = require 'expect'
-sinon              = require 'sinon'
 globals            = require 'globals'
 AppController      = require '../lib/appcontroller'
 registerAppClass   = require '../lib/util/registerAppClass'
@@ -23,13 +22,13 @@ describe 'ApplicationManager', ->
 
       isRegistered = no
       appInstance  = new AppController name: 'FooApp'
-      sinon.spy(appManager, 'setListeners')
+      expect.spyOn appManager, 'setListeners'
 
       appManager.on 'AppRegistered', -> isRegistered = yes
       appManager.register appInstance
 
       expect(appManager.appControllers.FooApp.instances).toInclude appInstance
-      expect(appManager.setListeners.calledOnce).toBe yes
+      expect(appManager.setListeners).toHaveBeenCalled()
       expect(isRegistered).toBe yes
 
 
@@ -47,11 +46,11 @@ describe 'ApplicationManager', ->
 
     it 'should warn if there is no name', ->
 
-      sinon.spy(kd, 'warn')
+      expect.spyOn kd, 'warn'
 
       appManager.tell()
 
-      expect(kd.warn.calledOnce).toBe yes
+      expect(kd.warn).toHaveBeenCalled()
 
 
   describe '::create', ->
