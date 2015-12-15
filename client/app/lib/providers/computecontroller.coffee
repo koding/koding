@@ -924,6 +924,8 @@ module.exports = class ComputeController extends KDController
 
   triggerReviveFor: (machineId, asStack = no) ->
 
+    return  unless machineId
+
     kd.info "Reviving #{if asStack then 'stack' else 'machine'} #{machineId}..."
 
     @fetchStacks =>
@@ -937,7 +939,7 @@ module.exports = class ComputeController extends KDController
       remote.api.JMachine.one machineId, (err, machine) =>
         if err? then kd.warn "Revive failed for #{machineId}: ", err
         else
-          @invalidateCache machine._id
+          @invalidateCache machineId
           @emit "revive-#{machineId}", machine
           kd.info "Revive triggered for #{machineId}", machine
 
