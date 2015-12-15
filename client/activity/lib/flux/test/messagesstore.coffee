@@ -270,3 +270,75 @@ describe 'MessagesStore', ->
       message = storeState.get messageId
       expect(message.get '__isEditing').toEqual no
 
+
+  describe '#handleEditMessageEmbedPayloadSuccess', ->
+
+    messageId       = 'test'
+    body            = 'Hello World'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, body
+    embedPayload    = { link_url : 'http://www.test.ccom', link_embed : { body : 'test' } }
+
+    it 'skips message __editedPayload property update when message isn\'t in edit mode', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.get '__editedPayload').to.be.undefined
+
+    it 'updates message __editedPayload property with a new embed payload when message is in edit mode', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, { messageId }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.get('__editedPayload').toJS()).to.eql embedPayload
+
+
+  describe '#handleEditMessageEmbedPayloadFail', ->
+
+    messageId       = 'test'
+    body            = 'Hello World'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, body
+    embedPayload    = { link_url : 'http://www.test.ccom', link_embed : { body : 'test' } }
+
+    it 'clears embed payload in __editedPayload property', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, { messageId }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, { messageId }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.getIn ['__editedPayload', 'link_url']).to.be.undefined
+      expect(message.getIn ['__editedPayload', 'link_embed']).to.be.undefined
+
+
+  describe '#handleResetEditedMessagePayload', ->
+
+    messageId       = 'test'
+    body            = 'Hello World'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, body
+    embedPayload    = { link_url : 'http://www.test.ccom', link_embed : { body : 'test' } }
+
+    it 'It clears message __editedPayload property', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+      reactor.dispatch actionTypes.RESET_EDITED_MESSAGE_PAYLOAD, { messageId }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.has '__editedPayload').to.be.false
+
