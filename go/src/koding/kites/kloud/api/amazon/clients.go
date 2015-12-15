@@ -31,10 +31,6 @@ type ClientOptions struct {
 
 	// MaxResults sets the limit for Describe* calls.
 	MaxResults int64
-
-	// IgnoreAuthErr when true makes the transport not log
-	// AuthFailure errors.
-	IgnoreAuthErr bool
 }
 
 // Clients provides wrappers for a EC2 client per region.
