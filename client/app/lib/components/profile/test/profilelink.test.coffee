@@ -21,7 +21,7 @@ describe 'ProfileLink', ->
 
     [..., slug] = link.getDOMNode().href.split('/')
 
-    expect(slug).to.equal 'FooUser'
+    expect(slug).toEqual 'FooUser'
 
 
   it 'takes an optional callback as onClick handler', ->
@@ -40,7 +40,7 @@ describe 'ProfileLink', ->
 
     TestUtils.Simulate.click link
 
-    expect(flag).to.equal yes
+    expect(flag).toEqual yes
 
 
 

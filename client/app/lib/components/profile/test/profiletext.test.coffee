@@ -20,7 +20,7 @@ describe 'ProfileText', ->
 
     span = TestUtils.findRenderedDOMComponentWithTag profileText, 'span'
 
-    expect(span.getDOMNode().textContent).to.equal 'a koding user'
+    expect(span.getDOMNode().textContent).toEqual 'a koding user'
 
 
   it 'prints nickname if firstname or lastname not present', ->
@@ -33,7 +33,7 @@ describe 'ProfileText', ->
 
     span = TestUtils.findRenderedDOMComponentWithTag profileText, 'span'
 
-    expect(span.getDOMNode().textContent).to.equal 'foouser'
+    expect(span.getDOMNode().textContent).toEqual 'foouser'
 
 
   it 'adds a troll indicator if user is exempt', ->
@@ -48,6 +48,6 @@ describe 'ProfileText', ->
 
     isTroll = _.includes span.getDOMNode().textContent, '(T)'
 
-    expect(isTroll).to.equal yes
+    expect(isTroll).toEqual yes
 
 

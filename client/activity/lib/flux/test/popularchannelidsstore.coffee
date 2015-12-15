@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -25,12 +25,12 @@ describe 'PopularChannelIdsStore', ->
 
       storeState = @reactor.evaluate ['popularChannelIds']
 
-      expect(storeState.size).to.eql 2
+      expect(storeState.size).toEqual 2
 
       storeState = storeState.toJS()
 
-      expect(storeState.koding).to.eql 'koding'
-      expect(storeState.qwerty).to.eql 'qwerty'
+      expect(storeState.koding).toEqual 'koding'
+      expect(storeState.qwerty).toEqual 'qwerty'
 
       channel3 = { id : 'programming' }
       channel4 = { id : 'testing' }
@@ -40,9 +40,9 @@ describe 'PopularChannelIdsStore', ->
 
       storeState = @reactor.evaluate ['popularChannelIds']
 
-      expect(storeState.size).to.eql 4
+      expect(storeState.size).toEqual 4
 
       storeState = storeState.toJS()
 
-      expect(storeState.programming).to.eql 'programming'
-      expect(storeState.testing).to.eql 'testing'
+      expect(storeState.programming).toEqual 'programming'
+      expect(storeState.testing).toEqual 'testing'

@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 whoami = require 'app/util/whoami'
@@ -26,7 +26,7 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluateToJS ['messages']
 
-      expect(storeState['567']['body']).to.eql 'foo'
+      expect(storeState['567']['body']).toEqual 'foo'
 
 
   describe '#handleCreateMessageBegin', ->
@@ -39,8 +39,8 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has clientRequestId).to.equal yes
-      expect(storeState.getIn [clientRequestId, 'body']).to.equal body
+      expect(storeState.has clientRequestId).toEqual yes
+      expect(storeState.getIn [clientRequestId, 'body']).toEqual body
 
 
   describe '#handleCreateMessageSuccess', ->
@@ -61,10 +61,10 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has clientRequestId).to.equal no
-      expect(storeState.has messageId).to.equal yes
+      expect(storeState.has clientRequestId).toEqual no
+      expect(storeState.has messageId).toEqual yes
 
-      expect(storeState.getIn [messageId, 'body']).to.equal 'hello world'
+      expect(storeState.getIn [messageId, 'body']).toEqual 'hello world'
 
 
   describe '#handleCreateMessageFail', ->
@@ -79,7 +79,7 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has clientRequestId).to.equal no
+      expect(storeState.has clientRequestId).toEqual no
 
 
   describe '#handleEditMessageBegin', ->
@@ -96,8 +96,8 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.get '__editedBody').to.eql 'Hello World Edited'
-      expect(message.get('__editedPayload').toJS()).to.eql foo: 'bar'
+      expect(message.get '__editedBody').toEqual 'Hello World Edited'
+      expect(message.get('__editedPayload').toJS()).toEqual foo: 'bar'
 
 
   describe '#handleEditMessageSuccess', ->
@@ -116,9 +116,9 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.has '__editedBody').to.eql no
-      expect(message.has '__editedPayload').to.eql no
-      expect(message.get 'body').to.eql 'Hello World Edited'
+      expect(message.has '__editedBody').toEqual no
+      expect(message.has '__editedPayload').toEqual no
+      expect(message.get 'body').toEqual 'Hello World Edited'
 
 
   describe '#handleEditMessageFail', ->
@@ -136,9 +136,9 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.has '__editedBody').to.eql no
-      expect(message.has '__editedPayload').to.eql no
-      expect(message.get 'body').to.eql 'Hello World'
+      expect(message.has '__editedBody').toEqual no
+      expect(message.has '__editedPayload').toEqual no
+      expect(message.get 'body').toEqual 'Hello World'
 
 
   describe '#handleLoadCommentSuccess', ->
@@ -150,7 +150,7 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluateToJS ['messages']
 
-      expect(storeState['567']['body']).to.eql 'foo'
+      expect(storeState['567']['body']).toEqual 'foo'
 
 
   describe '#handleCreateCommentSuccess', ->
@@ -170,10 +170,10 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has clientRequestId).to.equal no
-      expect(storeState.has commentId).to.equal yes
+      expect(storeState.has clientRequestId).toEqual no
+      expect(storeState.has commentId).toEqual yes
 
-      expect(storeState.getIn [commentId, 'body']).to.equal 'hello world'
+      expect(storeState.getIn [commentId, 'body']).toEqual 'hello world'
 
 
   describe '#handleRemoveMessageBegin', ->
@@ -193,7 +193,7 @@ describe 'MessagesStore', ->
 
       msg = storeState.get messageId
 
-      expect(msg.get '__removed').to.equal yes
+      expect(msg.get '__removed').toEqual yes
 
 
   describe '#handleRemoveMessageFail', ->
@@ -214,7 +214,7 @@ describe 'MessagesStore', ->
 
       msg = storeState.get messageId
 
-      expect(msg.has '__removed').to.equal no
+      expect(msg.has '__removed').toEqual no
 
 
   describe '#handleRemoveMessageSuccess', ->
@@ -232,7 +232,7 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has messageId).to.equal no
+      expect(storeState.has messageId).toEqual no
 
 
   describe '#handleSetMessageEditMode', ->
@@ -250,7 +250,7 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
 
       message = storeState.get messageId
-      expect(message.get '__isEditing').to.equal yes
+      expect(message.get '__isEditing').toEqual yes
 
 
   describe '#handleUnsetMessageEditMode', ->
@@ -268,5 +268,5 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
 
       message = storeState.get messageId
-      expect(message.get '__isEditing').to.equal no
+      expect(message.get '__isEditing').toEqual no
 

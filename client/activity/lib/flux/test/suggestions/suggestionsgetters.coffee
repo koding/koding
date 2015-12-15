@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -30,7 +30,7 @@ describe 'SuggestionsGetters', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedIndex = @reactor.evaluate getters.currentSuggestionsSelectedIndex
-      expect(selectedIndex).to.equal -1
+      expect(selectedIndex).toEqual -1
 
 
     it 'gets the same index which was set by action', ->
@@ -47,7 +47,7 @@ describe 'SuggestionsGetters', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedIndex = @reactor.evaluate getters.currentSuggestionsSelectedIndex
-      expect(selectedIndex).to.equal 1
+      expect(selectedIndex).toEqual 1
 
 
     it 'handles negative store value', ->
@@ -66,7 +66,7 @@ describe 'SuggestionsGetters', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedIndex = @reactor.evaluate getters.currentSuggestionsSelectedIndex
-      expect(selectedIndex).to.equal 3
+      expect(selectedIndex).toEqual 3
 
 
     it 'handles store value bigger than suggestions size', ->
@@ -83,7 +83,7 @@ describe 'SuggestionsGetters', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedIndex = @reactor.evaluate getters.currentSuggestionsSelectedIndex
-      expect(selectedIndex).to.equal 2
+      expect(selectedIndex).toEqual 2
 
 
   describe '#currentSuggestionsSelectedItem', ->
@@ -102,5 +102,5 @@ describe 'SuggestionsGetters', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
 
       selectedItem = @reactor.evaluateToJS getters.currentSuggestionsSelectedItem
-      expect(selectedItem.id).to.equal '2'
+      expect(selectedItem.id).toEqual '2'
 

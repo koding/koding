@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -22,10 +22,10 @@ describe 'ChatInputSearchVisibilityStore', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_VISIBILITY, { stateId, visible : yes }
       visible = @reactor.evaluate(['chatInputSearchVisibility']).get stateId
 
-      expect(visible).to.be.true
+      expect(visible).toBe yes
 
       @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_VISIBILITY, { stateId, visible : no }
       visible = @reactor.evaluate(['chatInputSearchVisibility']).get stateId
 
-      expect(visible).to.be.false
+      expect(visible).toBe no
 
