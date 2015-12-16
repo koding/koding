@@ -2,9 +2,10 @@
     "variables": {
         "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
         "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
-        "softlayer_username": "{{env `SOFTLAYER_USERNAME`}}",
+        "softlayer_username": "{{env `SOFTLAYER_USER_NAME`}}",
         "softlayer_api_key": "{{env `SOFTLAYER_API_KEY`}}",
         "softlayer_private_key": "{{env `SOFTLAYER_PRIVATE_KEY`}}",
+        "softlayer_ssh_key_id": "{{env `SOFTLAYER_SSH_KEY_ID`}}",
         "template_dir": "website/",
         "bash_dir": "bash/",
         "screen_dir": "screen/",
@@ -48,6 +49,7 @@
             "instance_network_speed": 10,
             "instance_disk_capacity": 25,
             "ssh_private_key_file": "{{user `softlayer_private_key`}}",
+            "ssh_key_id": "{{user `softlayer_ssh_key_id`}}",
             "ssh_port": 22,
             "ssh_timeout": "15m",
             "instance_state_timeout": "25m"
