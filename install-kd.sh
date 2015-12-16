@@ -120,6 +120,14 @@ err=$?; if [ "$err" -ne 0 ]; then
 fi
 
 
+# Stop kd.
+# TODO: remove this
+if which kd > /dev/null; then
+  sudo kd stop      > /dev/null 2>&1
+  sudo kd uninstall > /dev/null 2>&1
+fi
+
+
 platform=`uname | tr '[:upper:]' '[:lower:]'`
 case "$platform" in
   darwin|linux)
@@ -161,14 +169,6 @@ EOF
     exit 2
     ;;
 esac
-
-
-# Stop kd.
-# TODO: remove this
-if which kd > /dev/null; then
-  sudo kd stop      > /dev/null 2>&1
-  sudo kd uninstall > /dev/null 2>&1
-fi
 
 
 kontrolFlag=""
