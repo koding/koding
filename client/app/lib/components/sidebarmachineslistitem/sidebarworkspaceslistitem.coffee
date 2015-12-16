@@ -3,6 +3,8 @@ Link                    = require 'app/components/common/link'
 React                   = require 'kd-react'
 actions                 = require 'app/flux/environment/actions'
 getMachineLink          = require 'app/util/getMachineLink'
+KDReactorMixin          = require 'app/flux/base/reactormixin'
+EnvironmentFlux         = require 'app/flux/environment'
 DeleteWorkspaceWidget   = require './deleteworkspacewidget'
 
 
@@ -12,6 +14,10 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
 
     @state =
       coordinates = {}
+
+
+  getDataBindings: ->
+    activeWorkspace : EnvironmentFlux.getters.activeWorkspace
 
 
   getWorkspaceLink: ->
@@ -49,9 +55,14 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
 
 
   render: ->
+
+    active = if @state.activeWorkspace is @props.workspace.get('_id')
+    then 'active'
+    else ''
+
     <div
       key={@props.workspace.get '_id'}
-      className='Workspace-item'>
+      className="Workspace-item #{active}">
       <cite className='Workspace-icon' />
       <Link className='Workspace-link' href={@getWorkspaceLink()} onClick={@bound 'handleLinkClick'}>
         <span className='Workspace-title'>{@props.workspace.get 'name'}</span>
@@ -62,3 +73,5 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
         />
       {@renderDeleteWorkspaceWidget()}
     </div>
+
+React.Component.include.call SidebarWorkspacesListItem, [KDReactorMixin]

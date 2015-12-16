@@ -194,4 +194,5 @@ module.exports = {
   acceptInvitation
   showAddWorkspaceView
   hideAddWorkspaceView
+  setSelectedWorkspaceId
 }
