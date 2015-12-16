@@ -15,6 +15,7 @@ module.exports =
 
 
   sendComment: (browser) ->
+    message = helpers.getFakeText()
 
     message = helpers.getFakeText()
 
@@ -82,6 +83,8 @@ module.exports =
 
 
   postLongMessage: (browser) ->
+    message  = ''
+    message += helpers.getFakeText() for [1..6]
 
     message  = ''
     message += helpers.getFakeText() for [1..6]
