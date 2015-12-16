@@ -875,12 +875,25 @@ module.exports = class SocialApiController extends KDController
         endPoint : "/api/social/channel/#{id}/delete"
         data     : options
       , callback
-
+# needs to be checked for create.. ~mehmetali
     create: (options, callback) ->
       doXhrRequest
         type     : 'POST'
         endPoint : "/api/social/channel/"
         data     : options
+      , callback
+
+    searchTopics: (options, callback) ->
+      { name } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/search"
+      , callback
+# client didnt use this endpoint.. check ~mehmetali
+    checkChannelParticipation: (options, callback) ->
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/checkparticipation"
       , callback
 
     byParticipants: (options, callback) ->
