@@ -493,6 +493,8 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 		}
 
 		// for others we need to be sure they are valid
+		// TODO(arslan): add custom type with custom methods for type
+		// []*Machineuser
 		for _, user := range machine.Users {
 			// we only going to select users that are allowed
 			if user.Sudo && user.Owner {
@@ -521,6 +523,8 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 	}
 
 	// we're going to need this helper function
+	// TODO(arslan): as for []*Machineuser we should have custom type for
+	// []*Machines to have helper methods of it.
 	machineFromUserId := func(id bson.ObjectId) *models.Machine {
 		for _, machine := range machines {
 			for _, user := range machine.Users {
