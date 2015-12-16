@@ -135,20 +135,47 @@ $transRed   = rgba(233, 72, 53, .25)
     &:hover
       color                 white
 
-  .Workspace-link
+  .Workspace-item
     borderBox()
-    color                   $gray-14
     display                 block
     ellipsis()
-    font-size               12px
-    line-height             23px
-    max-width               136px
-    noTextDeco()
     opacity                 1
-    overflow                hidden
     padding                 0 0 0 35px
     rel()
     size                    auto 22px
+
+    .Workspace-link
+      line-height           23px
+      font-size             12px
+      overflow              hidden
+      max-width             195px
+      noTextDeco()
+      color                 $gray-14
+
+    &:hover
+      .Workspace-settings
+        opacity             1
+
+  .Workspace-add
+    rel()
+    margin-top            5px
+    max-width             none
+
+    input
+      rounded               3px
+      size                  104px, 22px
+      padding               5px
+      font-size             12px
+      margin-left           35px
+
+    .Workspace-cancel
+      dIBlock()
+      r-sprite            'app', 'circle-plus-14'
+      vendor              transfor, rotate(45deg)
+      top                 2px
+      rel()
+      pointer()
+      margin-left         5px
 
   .Workspace-icon
     abs                     8px 0 0 23px

@@ -3,10 +3,11 @@ actions                 = require './actiontypes'
 getters                 = require './getters'
 Promise                 = require 'bluebird'
 Machine                 = require 'app/providers/machine'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 sinkrow                 = require 'sinkrow'
-showError               = require 'app/util/showError'
 remote                  = require('app/remote').getInstance()
+Promise                 = require 'bluebird'
+showError               = require 'app/util/showError'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 _bindMachineEvents = (environmentData) ->
@@ -169,9 +170,21 @@ acceptInvitation = (machine, channelId) ->
         reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
 
 
+showAddWorkspaceView = (machineId) ->
+
+  kd.singletons.reactor.dispatch actions.SHOW_ADD_WORKSPACE_VIEW, machineId
+
+
+hideAddWorkspaceView = (machineId) ->
+
+  kd.singletons.reactor.dispatch actions.HIDE_ADD_WORKSPACE_VIEW, machineId
+
+
 module.exports = {
   loadMachines
   loadStacks
   rejectInvitation
   acceptInvitation
+  showAddWorkspaceView
+  hideAddWorkspaceView
 }

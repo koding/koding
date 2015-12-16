@@ -102,7 +102,14 @@ module.exports = class SidebarMachinesListItem extends React.Component
     <section className='Workspaces-section'>
       <h3 onClick={@bound 'handleWorkspacesTitleClick'}>WORKSPACES</h3>
       {@renderWorkspaces()}
+      {@renderAddWorkspaceView()}
     </section>
+
+
+  renderAddWorkspaceView: ->
+    <AddWorkspaceView
+      machine={@props.machine}
+      />
 
 
   renderInvitationWidget: ->
@@ -165,6 +172,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return label
 
 
+  createAddWorkspaceInput: ->
+
+    actions.showAddWorkspaceView @machine '_id'
 
 
   render: ->
@@ -215,6 +225,4 @@ module.exports = class SidebarMachinesListItem extends React.Component
     modal = new MoreWorkspacesModal {}, workspaces
 
     # TODO: handle new workspace creation
-    # modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
-
-
+    modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
