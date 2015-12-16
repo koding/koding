@@ -29,7 +29,11 @@ module.exports = class Sidebar extends React.Component
     }
 
 
+  popoverNeeded: (machine) ->
 
+    return no  if machine.get('type') is 'own'
+    return no  if machine.get('isApproved')
+    machine.get('_id') is @state.activeInvitationMachineId
 
 
 
