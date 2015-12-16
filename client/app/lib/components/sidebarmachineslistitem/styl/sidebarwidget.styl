@@ -1,4 +1,4 @@
-.InvitationWidget
+.SidebarWidget
   .Popover-Wrapper
     padding                 20px
     size                    210px auto
@@ -19,13 +19,13 @@
       border-width          10px 10px 10px 0
       border-color          transparent #FFFFFF transparent transparent
 
-  .InvitationWidget-Link
+  .SidebarWidget-Link
     dIBlock()
 
     img
       rounded               3px
 
-  .InvitationWidget-UserDetail
+  .SidebarWidget-UserDetail
      text-decoration        none
      dIBlock()
      margin-left            10px
@@ -35,16 +35,16 @@
        margin-bottom        5px
        dBlock()
 
-     .InvitationWidget-FullName
+     .SidebarWidget-FullName
        color                #52a840
 
-     .InvitationWidget-Nickname
+     .SidebarWidget-Nickname
        color                #626262
 
        span
          dIBlock()
 
-  .InvitationWidget-Title
+  .SidebarWidget-Title
     color                   #909090
     font-size               14px
     margin                  10px 0
@@ -55,11 +55,38 @@
 
   &.--Approved
 
-    .InvitationWidget-Title
+    .SidebarWidget-Title
       margin-top            0
 
-    .InvitationWidget-UserView
+    .SidebarWidget-UserView
       margin-bottom         10px
 
     .kdbutton.red
       width                 210px
+
+  &.--DeleteWorkspace
+    .DeleteWorkspace-Guide
+      border-bottom         1px solid #e0e0e0
+
+      label
+        font-size           12px
+        line-height         20px
+        margin              0
+        font-weight         500
+        padding-left        3px
+        color               #a3a3a3
+
+      .DeleteWorkspace-Understading
+        font-size           14px
+        padding             0 0 9px 2px
+        text-decoration     underline
+        color               #909090
+        margin-top          5px
+        dBlock()
+
+    .DeleteWorkspace-Button
+      left                50%
+      width               180px
+      margin              12px 0 10px -90px
+      font-weight         600
+      bg                  color, #d43130
