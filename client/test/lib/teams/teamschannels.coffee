@@ -45,7 +45,7 @@ module.exports =
       .end()
 
 
-  leaveChannelOnSidebar: (browser) ->
+  leaveChannel: (browser) ->
 
     user                    = teamsHelpers.loginTeam(browser)
     channelName1            = teamsHelpers.createChannel(browser, user)
@@ -68,7 +68,6 @@ module.exports =
 
     user = teamsHelpers.loginTeam(browser)
     teamsHelpers.createChannel(browser, user)
-    teamsHelpers.leaveChannel(browser)
     teamsHelpers.joinChannel(browser)
     browser.end()
 
