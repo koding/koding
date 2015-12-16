@@ -10,11 +10,13 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
 
   onRejectClicked: ->
 
+    EnvironmentFlux.actions.setActiveInvitationMachineId null
     actions.rejectInvitation @props.machine
 
 
   onAcceptClicked: ->
 
+    EnvironmentFlux.actions.setActiveInvitationMachineId null
     actions.acceptInvitation @props.machine
 
 
