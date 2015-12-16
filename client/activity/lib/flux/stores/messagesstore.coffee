@@ -391,8 +391,13 @@ module.exports = class MessagesStore extends KodingFluxStore
     updateEditedEmbedPayload: (message, embedPayload) ->
 
       payload = message.get('__editedPayload') ? message.get 'payload'
-      payload = mergeEmbedPayload payload?.toJS(), embedPayload
-      message = message.set '__editedPayload', toImmutable payload
+
+      if embedPayload and embedPayload.link_embed
+        payload = payload.merge embedPayload
+      else
+        payload = payload.remove('link_url').remove('link_embed')
+
+      message = message.set '__editedPayload', payload
 
       return message
 
