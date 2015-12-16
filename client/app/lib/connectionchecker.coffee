@@ -1,28 +1,67 @@
 kd = require 'kd'
-KDObject = kd.Object
-$ = require 'jquery'
+$  = require 'jquery'
 
-class ConnectionChecker extends KDObject
+PING_URL = 'https://s3.amazonaws.com/koding-ping/ping.json'
 
-  constructor: (options, data)->
-    super options, data
+class ConnectionChecker extends kd.Object
 
-    @url  = @getData()
+  @globalNotification = do ->
 
-    {@fail, @jsonp} = @getOptions()
+    notification = null
 
-  ping: (callback) ->
-    {crossDomain} = @getOptions()
-    # if there are more than two consecutive crossDomain calls
-    # this window.jsonp will be overriden and it will cause errors - CtF
-    ConnectionChecker.jsonp = callback  if crossDomain
+    show: ->
+      notification   ?= new kd.NotificationView
+        title         : 'Looks like your Internet connection is down'
+        type          : 'tray'
+        closeManually : yes
+        duration      : 0
+        content       : """
+          <p>Koding will continue trying to reconnect but while your
+          connection is down, <br>
+          no changes you make will be saved back to your VM.
+          Please save your work locally as well.</p>
+        """
+
+    hide: ->
+      notification?.destroy()
+      notification = null
+
+
+  @listen = ->
+
+    global.connectionCheckerReponse = => @globalNotification.hide()
+
+    global.addEventListener 'online', =>
+      @globalNotification.hide()
+    , false
+
+    global.addEventListener 'offline', =>
+      @globalNotification.show()
+    , false
+
+    # Navigator online/offline events are working fine with Chrome
+    # but not ok with Safari and Firefox currently. So for FF and Safari
+    # we are also initiating traditional ping method to check connection ~ GG
+    unless /Chrome/.test global.navigator.userAgent
+      kd.utils.repeat 20000, => @ping()
+
+
+  @ping = (callback = kd.noop) ->
+
+    kallback = (state) =>
+      if state is 'online'
+        @globalNotification.hide()
+        callback()
+      else
+        @globalNotification.show()
 
     $.ajax
-      url     : @url
-      success : -> callback arguments...
-      jsonpCallback : @jsonp  if @jsonp
-      timeout : 5000
-      dataType: "jsonp"
-      error   : => @fail? arguments...
+      url           : PING_URL
+      success       : -> kallback 'online'
+      jsonpCallback : 'connectionCheckerReponse'
+      timeout       : 5000
+      dataType      : 'jsonp'
+      error         : -> kallback 'offline'
+
 
 module.exports = ConnectionChecker
