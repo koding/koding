@@ -48,6 +48,13 @@ module.exports = class SidebarMachinesListItem extends React.Component
     coordinates = getBoundingClientReact @refs.SidebarMachinesListItem
     @setState { coordinates: coordinates }
 
+
+  componentDidMount: ->
+
+    kd.utils.defer =>
+      actions.setMachineListItem @machine('_id'), this
+
+
   componentWillUnmount: ->
 
     kd.utils.defer =>
