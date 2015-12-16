@@ -8,10 +8,28 @@ import (
 	"path/filepath"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klientctl/logging"
 )
 
 // UpdateCommand updates this binary if there's an update available.
 func UpdateCommand(c *cli.Context) int {
+	// Create the log file early in the install process, so that we can log the
+	// install process and any troubles encountered.
+	if err := createLogFile(LogFilePath); err != nil {
+		fmt.Println(`Error: Unable to create log files.`)
+		return 1
+	}
+
+	// Now that we created the logfile, set our logger handler to use that newly created
+	// file, so that we can log errors during installation.
+	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println(`Error: Unable to open log files.`)
+		return 1
+	}
+	log.SetHandler(logging.NewWriterHandler(f))
+	log.Infof("Update created log file")
+
 	checkUpdate := NewCheckUpdate()
 
 	// by pass random checking to force checking for update
