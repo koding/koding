@@ -278,6 +278,13 @@ setActiveInvitationMachineId = (id) ->
   reactor.dispatch actions.SET_ACTIVE_INVITATION_MACHINE_ID, { id }
 
 
+setActiveLeavingSharedMachineId = (id) ->
+
+  { reactor, computeController } = kd.singletons
+
+  reactor.dispatch actions.SET_ACTIVE_LEAVING_SHARED_MACHINE_ID, { id }
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -297,4 +304,5 @@ module.exports = {
   setMachineListItem
   unsetMachineListItem
   setActiveInvitationMachineId
+  setActiveLeavingSharedMachineId
 }
