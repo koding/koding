@@ -212,6 +212,8 @@ class ApplicationManager extends KDObject
     appOptions  = getAppOptions name
     appInstance = @get name
 
+    return if appOptions.background
+
     appView     = appInstance.getView?()
     return unless appView
 
