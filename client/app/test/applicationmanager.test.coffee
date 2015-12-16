@@ -9,13 +9,15 @@ KodingAppsController = require '../lib/kodingappscontroller'
 appManager = null
 
 
-describe 'ApplicationManager', ->
+describe 'kd.singletons.appManager', ->
 
 
   beforeEach -> appManager = new ApplicationManager
 
 
-  it 'should work', -> expect(appManager).toBeA ApplicationManager
+  describe 'constructor', ->
+
+    it 'should be instantiated', -> expect(appManager).toBeA ApplicationManager
 
 
   describe '::register', ->
@@ -37,7 +39,8 @@ describe 'ApplicationManager', ->
   describe '::get', ->
 
     it 'should return null if there is no appControllers', ->
-      expect(appManager.get('foo')).toBe.null
+      expect(appManager.get('foo')).toBe null
+
 
     it 'should return app', ->
       appManager.register fooApp = new AppController name: 'FooApp'
@@ -90,6 +93,18 @@ describe 'ApplicationManager', ->
         expect(isRegistered).toBe yes
         expect(isCallbackExecuted).toBe yes
         expect(appManager.appControllers.FakeApp.instances).toInclude createdAppInstance
+        done()
+
+
+    it 'should load app', (done) ->
+
+      globals.config.apps.InternalApp = name: 'InternalApp'
+      expect.spyOn KodingAppsController, 'loadInternalApp'
+
+      appManager.create 'InternalApp', {}
+
+      kd.utils.defer ->
+        expect(KodingAppsController.loadInternalApp).toHaveBeenCalled()
         done()
 
 
@@ -173,7 +188,6 @@ describe 'ApplicationManager', ->
       appManager.quitAll()
 
       expect(Object.keys(appManager.appControllers).length).toBe 0
-
 
 
   describe '::quitByName', ->
