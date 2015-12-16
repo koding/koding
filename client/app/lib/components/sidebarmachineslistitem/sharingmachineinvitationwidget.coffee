@@ -18,6 +18,18 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
     actions.acceptInvitation @props.machine
 
 
+  setCoordinates: ->
+
+    listItemNode = ReactDOM.findDOMNode @props.listItem
+
+    if listItemNode
+      clientRect    = listItemNode.getBoundingClientRect()
+      { top, left, width } = clientRect
+      left = left + width
+      top  = top - 15
+      @coordinates = { top, left }
+
+
   render: ->
 
     type = if @props.machine.get('type') is 'collaboration'
