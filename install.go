@@ -145,7 +145,9 @@ func InstallCommandFactory(c *cli.Context) int {
 
 	cmd := exec.Command(klientBinPath, "-register",
 		"-token", authToken,
-		"--kontrol-url", kontrolURL, "--kite-home", KiteHome)
+		"--kontrol-url", kontrolURL,
+		"--kite-home", KiteHome,
+	)
 	// Note that we are *only* printing to Stdout. This is done because
 	// Klient logs error messages to Stderr, and we want to control the UX for
 	// that interaction.
