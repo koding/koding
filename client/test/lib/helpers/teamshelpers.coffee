@@ -1,5 +1,6 @@
 helpers  = require '../helpers/helpers.js'
 utils    = require '../utils/utils.js'
+HUBSPOT  = no
 
 
 teamsModalSelector      = '.TeamsModal--groupCreation'
@@ -119,6 +120,11 @@ module.exports =
 
 
   loginToTeam: (browser, user) ->
+
+    if HUBSPOT
+      browser
+        .waitForElementVisible  '.hero.block .container', 50000
+        .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
 
     browser
       .pause                  2000 # wait for login page
