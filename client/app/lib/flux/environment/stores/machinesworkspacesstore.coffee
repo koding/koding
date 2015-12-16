@@ -12,6 +12,8 @@ module.exports = class MachinesWorkspacesStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
+    @on actions.WORKSPACE_CREATED, @createWorkspace
+    @on actions.WORKSPACE_DELETED, @deleteWorkspace
 
 
   load: (machinesWorkspaces, { own, shared, collaboration }) ->
@@ -23,3 +25,20 @@ module.exports = class MachinesWorkspacesStore extends KodingFluxStore
         , workspaceMap
 
     return machinesWorkspaces
+
+
+  createWorkspace: (machinesWorkspaces, { machine, workspace }) ->
+
+    machinesWorkspaces.withMutations (machinesWorkspaces) ->
+
+      machine_ = machinesWorkspaces.get(machine._id).set workspace._id, workspace._id
+
+      machinesWorkspaces.set machine._id, machine_
+
+
+  deleteWorkspace: (machinesWorkspaces, { machine, workspace }) ->
+
+    machinesWorkspaces.withMutations (machinesWorkspaces) ->
+      machine_ = machinesWorkspaces.get(machine.get '_id').remove workspace.get '_id'
+
+      machinesWorkspaces.set machine.get('_id'), machine_
