@@ -42,15 +42,6 @@ func main() {
 
 	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		// Don't warn the user about failing to load the log file if we are installing.
-		if len(os.Args) > 1 && os.Args[1] != "install" {
-			// TODO: We may not want to log a logfile failure here, but it seems useful to
-			// give us some idea that the logs aren't being written.
-			fmt.Printf(
-				"Warning: Unable to load log file. Please reinstall %s.\n",
-				Name,
-			)
-		}
 		// Rather than exit `kd` because we are unable to log, we simple disable logging
 		// by writing to /dev/null. This also measn that even if we can't load the log
 		// file, the log instance is valid and doesn't have to be checked for being
