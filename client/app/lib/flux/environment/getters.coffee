@@ -1,19 +1,21 @@
 machineRuleChecker = require 'app/util/machinerulechecker'
 getMachineOwner    = require 'app/util/getmachineowner'
 
-StacksStore                   = ['StacksStore']
-MachinesStore                 = ['MachinesStore']
-WorkspacesStore               = ['WorkspacesStore']
-MachinesWorkspacesStore       = ['MachinesWorkspacesStore']
-OwnMachinesStore              = ['OwnMachinesStore']
-SharedMachinesStore           = ['SharedMachinesStore']
-CollaborationMachinesStore    = ['CollaborationMachinesStore']
-AddWorkspaceViewStore         = ['AddWorkspaceViewStore']
-ActiveWorkspaceStore          = ['ActiveWorkspaceStore']
-ActiveMachineStore            = ['ActiveMachineStore']
-DeleteWorkspaceWidgetStore    = ['DeleteWorkspaceWidgetStore']
-ConnectedManagedMachineStore  = ['ConnectedManagedMachineStore']
-
+StacksStore                       = ['StacksStore']
+MachinesStore                     = ['MachinesStore']
+WorkspacesStore                   = ['WorkspacesStore']
+MachinesWorkspacesStore           = ['MachinesWorkspacesStore']
+OwnMachinesStore                  = ['OwnMachinesStore']
+SharedMachinesStore               = ['SharedMachinesStore']
+CollaborationMachinesStore        = ['CollaborationMachinesStore']
+AddWorkspaceViewStore             = ['AddWorkspaceViewStore']
+ActiveWorkspaceStore              = ['ActiveWorkspaceStore']
+ActiveMachineStore                = ['ActiveMachineStore']
+DeleteWorkspaceWidgetStore        = ['DeleteWorkspaceWidgetStore']
+ConnectedManagedMachineStore      = ['ConnectedManagedMachineStore']
+sharedMachineListItems            = [['SharedMachineListItemsStore'], withEmptyMap]
+ActiveInvitationMachineIdStore    = ['ActiveInvitationMachineIdStore']
+ActiveLeavingSharedMachineIdStore = ['ActiveLeavingSharedMachineIdStore']
 
 machinesWithWorkspaces = [
   MachinesStore
@@ -78,14 +80,17 @@ stacks = [
 ]
 
 module.exports = {
+  stacks
   ownMachines
   sharedMachines
   collaborationMachines
   machinesWithWorkspaces
-  stacks
+  sharedMachineListItems
   addWorkspaceView : AddWorkspaceViewStore
   activeWorkspace : ActiveWorkspaceStore
   activeMachine : ActiveMachineStore
   deleteWorkspaceWidget : DeleteWorkspaceWidgetStore
   connectedManagedMachine : ConnectedManagedMachineStore
+  activeInvitationMachineId: ActiveInvitationMachineIdStore
+  activeLeavingSharedMachineId: ActiveLeavingSharedMachineIdStore
 }
