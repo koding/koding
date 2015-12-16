@@ -1,4 +1,3 @@
-_                        = require 'lodash'
 whoami                   = require 'app/util/whoami'
 actions                  = require '../actions/actiontypes'
 chatinputActions         = require '../chatinput/actions/actiontypes'

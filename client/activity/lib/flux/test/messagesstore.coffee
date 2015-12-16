@@ -287,7 +287,7 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.get '__editedPayload').to.be.undefined
+      expect(message.get '__editedPayload').toBeA 'undefined'
 
     it 'updates message __editedPayload property with a new embed payload when message is in edit mode', ->
 
@@ -298,7 +298,7 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.get('__editedPayload').toJS()).to.eql embedPayload
+      expect(message.get('__editedPayload').toJS()).toEqual embedPayload
 
 
   describe '#handleEditMessageEmbedPayloadFail', ->
@@ -319,8 +319,8 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.getIn ['__editedPayload', 'link_url']).to.be.undefined
-      expect(message.getIn ['__editedPayload', 'link_embed']).to.be.undefined
+      expect(message.getIn ['__editedPayload', 'link_url']).toBeA 'undefined'
+      expect(message.getIn ['__editedPayload', 'link_embed']).toBeA 'undefined'
 
 
   describe '#handleDisableEditedMessageEmbedPayload', ->
@@ -341,7 +341,7 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.get '__isEmbedPayloadDisabled').to.be.true
-      expect(message.getIn ['__editedPayload', 'link_url']).to.be.undefined
-      expect(message.getIn ['__editedPayload', 'link_embed']).to.be.undefined
+      expect(message.get '__isEmbedPayloadDisabled').toBe yes
+      expect(message.getIn ['__editedPayload', 'link_url']).toBeA 'undefined'
+      expect(message.getIn ['__editedPayload', 'link_embed']).toBeA 'undefined'
 
