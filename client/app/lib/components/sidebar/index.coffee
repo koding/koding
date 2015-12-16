@@ -15,6 +15,18 @@ module.exports = class Sidebar extends React.Component
 
   { getters, actions } = ActivityFlux
 
+  getDataBindings: ->
+    return {
+      publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
+      privateChannels              : getters.followedPrivateChannelThreads
+      selectedThreadId             : getters.selectedChannelThreadId
+      stacks                       : EnvironmentFlux.getters.stacks
+      sharedMachines               : EnvironmentFlux.getters.sharedMachines
+      collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
+      sharedMachineListItems       : EnvironmentFlux.getters.sharedMachineListItems
+      activeInvitationMachineId    : EnvironmentFlux.getters.activeInvitationMachineId
+      activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
+    }
 
   constructor: ->
 
@@ -24,15 +36,6 @@ module.exports = class Sidebar extends React.Component
      renderedStacksCount : 0
 
 
-  getDataBindings: ->
-    return {
-      publicChannels          : getters.followedPublicChannelThreadsWithSelectedChannel
-      privateChannels         : getters.followedPrivateChannelThreads
-      selectedThreadId        : getters.selectedChannelThreadId
-      stacks                  : EnvironmentFlux.getters.stacks
-      sharedMachines          : EnvironmentFlux.getters.sharedMachines
-      collaborationMachines   : EnvironmentFlux.getters.collaborationMachines
-    }
 
 
   componentDidMount: ->
