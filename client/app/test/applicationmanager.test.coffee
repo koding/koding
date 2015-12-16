@@ -43,6 +43,40 @@ describe 'kd.singletons.appManager', ->
       expect(isRegistered).toBe yes
 
 
+  describe '::unregister', ->
+
+
+    it 'should return no if there is no app for the given instance', ->
+
+      createApps [ 'TestApp' ], yes
+      expect(appManager.unregister new kd.View).toBe no
+
+
+    it 'should unregister the given app instance', ->
+
+      unregisteredAppName = null
+
+      createApps [ 'AppName1', 'AppName2' ], yes
+      appManager.create 'AppName2', { forceNew: yes }
+
+      appManager.on 'AppUnregistered', (name) -> unregisteredAppName = name
+
+      expect(appManager.appControllers.AppName2.instances.length).toBe 2
+
+      appManager.unregister appManager.get 'AppName1'
+      expect(appManager.appControllers.AppName1).toBe undefined
+      expect(unregisteredAppName).toBe 'AppName1'
+
+      appManager.unregister appManager.get 'AppName2'
+      expect(appManager.appControllers.AppName2.instances.length).toBe 1
+      expect(unregisteredAppName).toBe 'AppName2'
+      expect(appManager.appControllers.AppName2).toExist()
+
+      appManager.unregister appManager.get 'AppName2'
+      expect(appManager.appControllers.AppName2).toBe undefined
+      expect(unregisteredAppName).toBe 'AppName2'
+
+
   describe '::get', ->
 
     it 'should return null if there is no appControllers', ->
@@ -52,6 +86,37 @@ describe 'kd.singletons.appManager', ->
     it 'should return app', ->
       appManager.register fooApp = new AppController name: 'FooApp'
       expect(appManager.get('FooApp')).toEqual fooApp
+
+
+  describe '::getFrontApp', ->
+
+    it 'should return the front app instance', ->
+
+      createApps [ 'FrontApp', 'BackApp' ]
+
+      appManager.show 'FrontApp'
+      expect(appManager.getFrontApp().options.name).toBe 'FrontApp'
+
+      appManager.show 'BackApp'
+      expect(appManager.getFrontApp().options.name).toBe 'BackApp'
+
+
+  describe '::getByView', ->
+
+    it 'should return null if the given view doesnt belong to an app instance', ->
+
+      appInstance = appManager.getByView new kd.View
+      expect(appInstance).toBe null
+
+
+    it 'should return the app instance by given app view', ->
+
+      createApps [ 'MyApp' ], yes
+
+      [ appInstance ] = appManager.appControllers.MyApp.instances
+      appInstanceView = appInstance.getView()
+
+      expect(appManager.getByView appInstanceView).toBe appInstance
 
 
   describe '::tell', ->
