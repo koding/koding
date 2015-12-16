@@ -452,7 +452,7 @@ func TestTerraformStack(t *testing.T) {
 }
 
 func TestLocalProvisioning(t *testing.T) {
-	terraformTemplate := `{
+	localTemplate := `{
     "provider": {
         "aws": {
             "access_key": "${var.aws_access_key}",
@@ -500,11 +500,138 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 end
 `
 
-	finalTemplate := fmt.Sprintf(terraformTemplate,
+	terraformTemplate = fmt.Sprintf(localTemplate,
 		testFilePath,
 		testQueryString,
 		testVagrantFile,
 	)
+
+	username := "testuser"
+	groupname := "koding"
+
+	userData, err := createUser(username, groupname, testRegion, "aws")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	remote := userData.Remote
+
+	args := &kloud.TerraformBootstrapRequest{
+		Identifiers: userData.Identifiers,
+		GroupName:   groupname,
+	}
+
+	_, err = remote.Tell("bootstrap", args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		// now destroy them all
+		args.Destroy = true
+		_, err = remote.Tell("bootstrap", args)
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+
+	planArgs := &kloud.TerraformPlanRequest{
+		StackTemplateId: userData.StackTemplateId,
+		GroupName:       groupname,
+	}
+
+	resp, err := remote.Tell("plan", planArgs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var planResult *kloud.Machines
+	if err := resp.Unmarshal(&planResult); err != nil {
+		t.Fatal(err)
+	}
+
+	inLabels := func(label string) bool {
+		for _, l := range userData.MachineLabels {
+			if l == label {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, machine := range planResult.Machines {
+		if !inLabels(machine.Label) {
+			t.Errorf("plan label: have: %+v got: %s\n", userData.MachineLabels, machine.Label)
+		}
+
+		if machine.Region != testRegion {
+			t.Errorf("plan region: want: us-east-1 got: %s\n", machine.Region)
+		}
+	}
+
+	applyArgs := &kloud.TerraformApplyRequest{
+		StackId:   userData.StackId,
+		GroupName: groupname,
+	}
+
+	resp, err = remote.Tell("apply", applyArgs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
+		t.Error(err)
+	}
+
+	fmt.Printf("===> STARTED to start/stop the machine with id: %s\n", userData.MachineIds[0].Hex())
+
+	if err := stop(userData.MachineIds[0].Hex(), "aws", userData.Remote); err != nil {
+		t.Error(err)
+	}
+
+	if err := start(userData.MachineIds[0].Hex(), "aws", userData.Remote); err != nil {
+		t.Error(err)
+	}
+
+	destroyArgs := &kloud.TerraformApplyRequest{
+		StackId:   userData.StackId,
+		Destroy:   true,
+		GroupName: groupname,
+	}
+
+	resp, err = remote.Tell("apply", destroyArgs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	eArgs = kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Terminated, remote); err != nil {
+		t.Error(err)
+	}
 
 }
 
