@@ -212,6 +212,50 @@ describe 'kd.singletons.appManager', ->
           done()
 
 
+  describe '::showInstance', ->
+
+    it 'should show the given app instance', (done) ->
+
+      isCallbackExecuted           = no
+      isEventEmitted               = no
+      isAppIsShownCallbackExecuted = no
+
+      createApps [ 'App1', 'App2', 'App3' ], yes
+      appManager.on 'AppIsBeingShown', -> isEventEmitted = yes
+      expect.spyOn appManager, 'setLastActiveIndex'
+
+      expect(appManager.getFrontApp().options.name).toBe 'App3'
+
+      app2 = appManager.get 'App2'
+
+      appManager.appControllers.App2.instances.first.appIsShown = ->
+        isAppIsShownCallbackExecuted = yes
+
+      appManager.showInstance app2, -> isCallbackExecuted = yes
+
+      kd.utils.defer ->
+        expect(isCallbackExecuted).toBe yes
+        expect(isEventEmitted).toBe yes
+        expect(isAppIsShownCallbackExecuted).toBe yes
+        expect(appManager.setLastActiveIndex).toHaveBeenCalled()
+        done()
+
+    it 'should not show the app if it is a background app', ->
+
+      createApps [ 'MyApp1' ], yes
+      registerAppClass AppController, { name: 'BackgroundApp', background: yes }
+      appManager.create 'BackgroundApp'
+
+      appManager.show 'MyApp1'
+      expect(appManager.getFrontApp().options.name).toBe 'MyApp1'
+
+      appManager.showInstance appManager.appControllers.BackgroundApp.instances.first
+      expect(appManager.getFrontApp().options.name).toBe 'MyApp1'
+
+      appManager.show 'BackgroundApp'
+      expect(appManager.getFrontApp().options.name).toBe 'MyApp1'
+
+
   describe '::quit', ->
 
     it 'should quit the given app instance', (done) ->
@@ -266,3 +310,60 @@ describe 'kd.singletons.appManager', ->
       appManager.quitByName 'BarFooApp'
 
       expect(Object.keys(appManager.appControllers).length).toBe 0
+
+
+  describe '::isAppInternal', ->
+
+    it 'should return yes if app is internal', ->
+
+      globals.config.apps.MyAwesomeInternalApp = {}
+      expect(appManager.isAppInternal 'MyAwesomeInternalApp').toBe yes
+
+
+    it 'should return no if no such app', ->
+      expect(appManager.isAppInternal 'FooApp').toBe no
+
+
+    it 'should return no if no app name provided', ->
+      expect(appManager.isAppInternal()).toBe no
+
+
+  describe '::isAppLoaded', ->
+
+    it 'should return yes if app is already loaded', ->
+
+      globals.appClasses.DifferentApp = {}
+      expect(appManager.isAppLoaded 'DifferentApp').toBe yes
+
+
+    it 'should return no if no such app', ->
+      expect(appManager.isAppLoaded 'BazApp').toBe no
+
+
+    it 'should return no if no app name provided', ->
+      expect(appManager.isAppLoaded()).toBe no
+
+
+  describe '::shouldLoadApp', ->
+
+    it 'should return yes if app is internal and not loaded', ->
+      globals.config.apps.ICantFindANameAnymoreApp = {}
+
+      expect(appManager.shouldLoadApp('ICantFindANameAnymoreApp')).toBe yes
+
+
+    it 'should return no if app is not an internal app', ->
+
+      expect(appManager.shouldLoadApp('NotInternalApp')).toBe no
+
+
+    it 'should return no if app is an internal app but it is already loaded', ->
+
+      globals.config.apps.LoadedApp = {}
+      globals.appClasses.LoadedApp  = {}
+      expect(appManager.shouldLoadApp('LoadedApp')).toBe no
+
+
+    it 'should return no if no app name provided', ->
+      expect(appManager.shouldLoadApp()).toBe no
+
