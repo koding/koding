@@ -7,6 +7,13 @@ ApplicationManager   = require '../lib/applicationmanager'
 KodingAppsController = require '../lib/kodingappscontroller'
 
 appManager = null
+createApps = (appNames = [], shouldShow) ->
+
+  appNames.forEach (name) ->
+    registerAppClass AppController, { name }
+
+    appManager.create name
+    appManager.show   name  if shouldShow
 
 
 describe 'kd.singletons.appManager', ->
@@ -116,13 +123,10 @@ describe 'kd.singletons.appManager', ->
       isCallbackExecuted           = no
       isAppIsShownCallbackExecuted = no
 
-      registerAppClass AppController, { name: 'FooApp' }
-      registerAppClass AppController, { name: 'BarApp' }
+      createApps [ 'FooApp', 'BarApp' ]
+
       appManager.on 'AppIsBeingShown', -> isAppShown = yes
       expect.spyOn appManager, 'setLastActiveIndex'
-
-      appManager.create 'FooApp'
-      appManager.create 'BarApp'
 
       appManager.appControllers.FooApp.instances.first.appIsShown = ->
         isAppIsShownCallbackExecuted = yes
@@ -149,11 +153,7 @@ describe 'kd.singletons.appManager', ->
 
       isBeforeQuitCalled = no
 
-      registerAppClass AppController, { name: 'AwesomeApp' }
-      registerAppClass AppController, { name: 'BadApp'     }
-
-      appManager.create 'AwesomeApp'
-      appManager.create 'BadApp'
+      createApps [ 'AwesomeApp', 'BadApp' ]
 
       { appControllers } = appManager
       awesomeInstances   = appControllers.AwesomeApp.instances
@@ -177,11 +177,7 @@ describe 'kd.singletons.appManager', ->
 
     it 'should quit all apps', ->
 
-      registerAppClass AppController, { name: 'AnotherApp'    }
-      registerAppClass AppController, { name: 'YetAnotherApp' }
-
-      appManager.create 'AnotherApp'
-      appManager.create 'YetAnotherApp'
+      createApps [ 'AnotherApp', 'YetAnotherApp' ]
 
       expect(Object.keys(appManager.appControllers).length).toBe 2
 
@@ -194,11 +190,14 @@ describe 'kd.singletons.appManager', ->
 
     it 'should quit an app by name', ->
 
-      registerAppClass AppController, { name: 'FooBarApp' }
-      appManager.create 'FooBarApp'
+      createApps [ 'FooBarApp', 'BarFooApp' ]
+
+      expect(Object.keys(appManager.appControllers).length).toBe 2
+
+      appManager.quitByName 'FooBarApp'
 
       expect(Object.keys(appManager.appControllers).length).toBe 1
 
-      appManager.quitByName 'FooBarApp'
+      appManager.quitByName 'BarFooApp'
 
       expect(Object.keys(appManager.appControllers).length).toBe 0
