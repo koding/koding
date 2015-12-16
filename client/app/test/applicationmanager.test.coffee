@@ -6,6 +6,7 @@ registerAppClass     = require '../lib/util/registerAppClass'
 ApplicationManager   = require '../lib/applicationmanager'
 KodingAppsController = require '../lib/kodingappscontroller'
 
+spy        = null
 appManager = null
 createApps = (appNames = [], shouldShow) ->
 
@@ -19,7 +20,18 @@ createApps = (appNames = [], shouldShow) ->
 describe 'kd.singletons.appManager', ->
 
 
-  beforeEach -> appManager = new ApplicationManager
+  beforeEach ->
+
+    spy        = null
+    appManager = new ApplicationManager
+
+
+  afterEach ->
+
+    if spy
+      spy.restore()
+      expect.restoreSpies()
+      spy = null
 
 
   describe 'constructor', ->
@@ -33,7 +45,7 @@ describe 'kd.singletons.appManager', ->
 
       isRegistered = no
       appInstance  = new AppController name: 'FooApp'
-      expect.spyOn appManager, 'setListeners'
+      spy = expect.spyOn appManager, 'setListeners'
 
       appManager.on 'AppRegistered', -> isRegistered = yes
       appManager.register appInstance
@@ -123,10 +135,9 @@ describe 'kd.singletons.appManager', ->
 
     it 'should warn if there is no name', ->
 
-      expect.spyOn kd, 'warn'
+      spy = expect.spyOn kd, 'warn'
 
       appManager.tell()
-
       expect(kd.warn).toHaveBeenCalled()
 
 
@@ -213,7 +224,7 @@ describe 'kd.singletons.appManager', ->
     it 'should load app', (done) ->
 
       globals.config.apps.InternalApp = name: 'InternalApp'
-      expect.spyOn KodingAppsController, 'loadInternalApp'
+      spy = expect.spyOn KodingAppsController, 'loadInternalApp'
 
       appManager.create 'InternalApp', {}
 
@@ -233,7 +244,7 @@ describe 'kd.singletons.appManager', ->
       createApps [ 'FooApp', 'BarApp' ]
 
       appManager.on 'AppIsBeingShown', -> isAppShown = yes
-      expect.spyOn appManager, 'setLastActiveIndex'
+      spy = expect.spyOn appManager, 'setLastActiveIndex'
 
       appManager.appControllers.FooApp.instances.first.appIsShown = ->
         isAppIsShownCallbackExecuted = yes
@@ -264,7 +275,7 @@ describe 'kd.singletons.appManager', ->
 
       createApps [ 'App1', 'App2', 'App3' ], yes
       appManager.on 'AppIsBeingShown', -> isEventEmitted = yes
-      expect.spyOn appManager, 'setLastActiveIndex'
+      spy = expect.spyOn appManager, 'setLastActiveIndex'
 
       expect(appManager.getFrontApp().options.name).toBe 'App3'
 
