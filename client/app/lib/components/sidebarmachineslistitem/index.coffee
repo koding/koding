@@ -2,14 +2,17 @@ kd                              = require 'kd'
 Link                            = require 'app/components/common/link'
 React                           = require 'kd-react'
 remote                          = require('app/remote').getInstance()
+actions                         = require 'app/flux/environment/actions'
 Machine                         = require 'app/providers/machine'
 ReactDOM                        = require 'react-dom'
 htmlencode                      = require 'htmlencode'
 toImmutable                     = require 'app/util/toImmutable'
 getMachineLink                  = require 'app/util/getMachineLink'
+AddWorkspaceView                = require './addworkspaceview'
 isMachineRunning                = require 'app/util/isMachineRunning'
 MoreWorkspacesModal             = require 'app/activity/sidebar/moreworkspacesmodal'
 LeaveSharedMachineWidget        = require './leavesharedmachinewidget'
+SidebarWorkspacesListItem       = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled    = require 'app/util/isMachineSettingsIconEnabled'
 SharingMachineInvitationWidget  = require './sharingmachineinvitationwidget'
 
@@ -83,19 +86,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
   renderWorkspaces: ->
 
     @machine('workspaces').toList().map (workspace) =>
-      <Link
+      <SidebarWorkspacesListItem
         key={workspace.get '_id'}
-        className='Workspace-link'
-        href={@getWorkspaceLink workspace}
-        >
-        <cite className='Workspace-icon' />
-        <span className='Workspace-title'>{workspace.get 'name'}</span>
-      </Link>
-
-
-  getWorkspaceLink: (workspace) ->
-
-    getMachineLink @props.machine, workspace
+        machine={@props.machine}
+        workspace={workspace}
+        />
 
 
   renderWorkspaceSection: ->
@@ -140,31 +135,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
     @setState { showLeaveSharedMachineWidget : no }
 
 
-  render: ->
-
-    status      = @machine ['status', 'state']
-    activeClass = if @props.active then ' active' else ''
-
-    <div className="SidebarMachinesListItem #{status}">
-      <Link
-        className={"SidebarMachinesListItem--MainLink#{activeClass}"}
-        # make this link dynamic pointing to latest open workspace
-        href='#'
-        onClick={@bound 'handleMachineClick'}
-        ref='SidebarMachinesListItem'
-        >
-        <cite className={"SidebarListItem-icon"} title={"Machine status: #{status}"}/>
-        <span className='SidebarListItem-title'>{@getMachineLabel()}</span>
-        {@renderUnreadCount()}
-        {@renderProgressbar()}
-      </Link>
-      {@renderMachineSettingsIcon()}
-      {@renderWorkspaceSection()}
-      {@renderInvitationWidget()}
-      {@renderLeaveSharedMachine()}
-    </div>
-
-
   renderMachineSettingsIcon: ->
 
     return null  unless @machine 'isApproved'
@@ -193,6 +163,33 @@ module.exports = class SidebarMachinesListItem extends React.Component
     label += " (@#{@machine 'owner'})"  if @machine('type') isnt 'own'
 
     return label
+
+
+
+
+  render: ->
+
+    status      = @machine ['status', 'state']
+    activeClass = if @props.active then ' active' else ''
+
+    <div className="SidebarMachinesListItem #{status}">
+      <Link
+        className={"SidebarMachinesListItem--MainLink#{activeClass}"}
+        # make this link dynamic pointing to latest open workspace
+        href='#'
+        onClick={@bound 'handleMachineClick'}
+        ref='SidebarMachinesListItem'
+        >
+        <cite className={"SidebarListItem-icon"} title={"Machine status: #{status}"}/>
+        <span className='SidebarListItem-title'>{@getMachineLabel()}</span>
+        {@renderUnreadCount()}
+        {@renderProgressbar()}
+      </Link>
+      {@renderMachineSettingsIcon()}
+      {@renderWorkspaceSection()}
+      {@renderInvitationWidget()}
+      {@renderLeaveSharedMachine()}
+    </div>
 
 
   #
