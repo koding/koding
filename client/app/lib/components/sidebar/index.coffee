@@ -87,9 +87,8 @@ module.exports = class Sidebar extends React.Component
 
     <SidebarSharedMachinesSection
       sectionTitle='Shared VMs'
-      machines={machines}
-      renderedStacksCount={@state.renderedStacksCount}
-      />
+      activeLeavingSharedMachineId={@state.activeLeavingSharedMachineId}
+      machines={machines}/>
 
 
   renderChannels: ->
