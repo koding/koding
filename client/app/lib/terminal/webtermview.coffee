@@ -1,14 +1,15 @@
-kd = require 'kd'
+kd                   = require 'kd'
+globals              = require 'globals'
+KDCustomScrollView   = kd.CustomScrollView
+KDNotificationView   = kd.NotificationView
 KDButtonViewWithMenu = kd.ButtonViewWithMenu
-KDCustomScrollView = kd.CustomScrollView
-KDNotificationView = kd.NotificationView
-Machine = require '../providers/machine'
-Terminal = require './terminal'
-TerminalWrapper = require './terminalwrapper'
-WebTermMessagePane = require './webtermmessagepane'
-WebtermSettingsView = require './webtermsettingsview'
-settings = require './settings'
-globals = require 'globals'
+
+Machine              = require '../providers/machine'
+settings             = require './settings'
+Terminal             = require './terminal'
+TerminalWrapper      = require './terminalwrapper'
+WebTermMessagePane   = require './webtermmessagepane'
+WebtermSettingsView  = require './webtermsettingsview'
 
 
 module.exports = class WebTermView extends KDCustomScrollView
@@ -47,8 +48,8 @@ module.exports = class WebTermView extends KDCustomScrollView
         style     : 'editor-advanced-settings-menu'
         icon      : yes
         iconOnly  : yes
-        iconClass : "cog"
-        type      : "contextmenu"
+        iconClass : 'cog'
+        type      : 'contextmenu'
         delegate  : this
         itemClass : WebtermSettingsView
         click     : (pubInst, event)-> @contextMenu event
@@ -66,12 +67,12 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     @listenWindowResize()
 
-    @on "ReceivedClickElsewhere", =>
+    @on 'ReceivedClickElsewhere', =>
       @setFocus no
       kd.getSingleton('windowController').removeLayer this
 
 
-    @getElement().addEventListener "mousedown", (event) =>
+    @getElement().addEventListener 'mousedown', (event) =>
       @terminal.mousedownHappened = yes
     , yes
 
@@ -91,13 +92,13 @@ module.exports = class WebTermView extends KDCustomScrollView
         # If machine is stopped we need to invalidate current sessions
         # user can decide to create a new one or destroy this one.
         if event.status is Stopped
-          @messagePane.handleError message: "ErrNoSession"
+          @messagePane.handleError message: 'ErrNoSession'
 
     # Listen for resize events to show an error after a resize has
     # finished. This provides same UX as a stopped machine (above).
     computeController.on "resize-#{machineId}", (event) =>
       if event.percentage is 100
-        @messagePane.handleError message: "ErrNoSession"
+        @messagePane.handleError message: 'ErrNoSession'
 
     @setKeyView()
 
@@ -109,7 +110,7 @@ module.exports = class WebTermView extends KDCustomScrollView
     @messagePane.on 'DiscardSession', @lazyBound 'emit', 'WebTerm.terminated'
 
 
-  generateOptions:->
+  generateOptions: ->
 
     delegateOptions = @getDelegate().getOptions()
     myOptions       = @getOptions()
@@ -131,7 +132,7 @@ module.exports = class WebTermView extends KDCustomScrollView
   getKite: -> @getMachine().getBaseKite()
 
 
-  webtermConnect: (mode)->
+  webtermConnect: (mode) ->
 
     mode ?= if @_lastRemote? then 'resume' else 'create'
 
@@ -146,21 +147,21 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     kite.init().then =>
 
-      kite.webtermConnect(options).then (remote)=>
+      kite.webtermConnect(options).then (remote) =>
 
         return  unless remote?
 
         @_lastRemote = remote
 
-        @setOption "session", remote.session
+        @setOption 'session', remote.session
 
-        @terminal.eventHandler = (data)=>
-          @emit "WebTermEvent", data
+        @terminal.eventHandler = (data) =>
+          @emit 'WebTermEvent', data
 
         @terminal.server = remote
         @sessionId = remote.session
 
-        @emit "WebTermConnected", remote
+        @emit 'WebTermConnected', remote
 
         @_triedToReconnect = no
 
@@ -211,8 +212,8 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     kd.utils.killRepeat @checker
 
-    unless @status is "fail"
-      @emit "TerminalClosed",
+    unless @status is 'fail'
+      @emit 'TerminalClosed',
         machineId : @getMachine().uid
         sessionId : @getOptions().session
 
@@ -252,7 +253,7 @@ module.exports = class WebTermView extends KDCustomScrollView
     kd.getSingleton('windowController').addLayer this
     @setFocus()
     @emit 'KeyViewIsSet'
-    @once "ReceivedClickElsewhere", => @setFocus no
+    @once 'ReceivedClickElsewhere', => @setFocus no
 
   setFocus: (state = yes) ->
     @focused = state
@@ -293,7 +294,7 @@ module.exports = class WebTermView extends KDCustomScrollView
   listenFullscreen: (event)->
     requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13
     if requestFullscreen
-      mainView = kd.getSingleton "mainView"
+      mainView = kd.getSingleton 'mainView'
       mainView.toggleFullscreen()
       event.preventDefault()
 
