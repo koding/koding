@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -22,10 +22,10 @@ describe 'EmojiSelectBoxTabIndexStore', ->
       @reactor.dispatch actions.SET_EMOJI_SELECTBOX_TAB_INDEX, { stateId, tabIndex : 3 }
       tabIndex = @reactor.evaluate(['emojiSelectBoxTabIndex']).get stateId
 
-      expect(tabIndex).to.equal 3
+      expect(tabIndex).toEqual 3
 
       @reactor.dispatch actions.SET_EMOJI_SELECTBOX_TAB_INDEX, { stateId, tabIndex : -1 }
       tabIndex = @reactor.evaluate(['emojiSelectBoxTabIndex']).get stateId
 
-      expect(tabIndex).to.equal -1
+      expect(tabIndex).toEqual -1
 

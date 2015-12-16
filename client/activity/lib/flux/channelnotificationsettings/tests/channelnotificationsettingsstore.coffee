@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 actions = require 'activity/flux/channelnotificationsettings/actions/actiontypes'
@@ -27,10 +27,10 @@ describe 'ChannelNotificationSettingsStore', ->
 
       notificationSettings = @reactor.evaluate(['notificationSettings'])
 
-      expect(notificationSettings.getIn [channelId_1, 'isSuppressed']).to.equal yes
-      expect(notificationSettings.getIn [channelId_2, 'isSuppressed']).to.equal no
-      expect(notificationSettings.getIn [channelId_1, 'desktopSetting']).to.equal 'all'
-      expect(notificationSettings.getIn [channelId_2, 'mobileSetting']).to.equal 'all'
+      expect(notificationSettings.getIn [channelId_1, 'isSuppressed']).toEqual yes
+      expect(notificationSettings.getIn [channelId_2, 'isSuppressed']).toEqual no
+      expect(notificationSettings.getIn [channelId_1, 'desktopSetting']).toEqual 'all'
+      expect(notificationSettings.getIn [channelId_2, 'mobileSetting']).toEqual 'all'
 
 
   describe '#handleLoadFail', ->
@@ -46,9 +46,9 @@ describe 'ChannelNotificationSettingsStore', ->
 
       notificationSettings = @reactor.evaluate(['notificationSettings'])
 
-      expect(notificationSettings.getIn [channelId, 'isSuppressed']).to.equal no
-      expect(notificationSettings.getIn [channelId, 'isMuted']).to.equal no
-      expect(notificationSettings.getIn [channelId, 'desktopSetting']).to.equal 'all'
+      expect(notificationSettings.getIn [channelId, 'isSuppressed']).toEqual no
+      expect(notificationSettings.getIn [channelId, 'isMuted']).toEqual no
+      expect(notificationSettings.getIn [channelId, 'desktopSetting']).toEqual 'all'
 
 
   describe '#createSettings', ->
@@ -62,10 +62,10 @@ describe 'ChannelNotificationSettingsStore', ->
 
       notificationSettings = @reactor.evaluate(['notificationSettings'])
 
-      expect(notificationSettings.getIn [channelId, 'isMuted']).to.equal no
-      expect(notificationSettings.getIn [channelId, 'isSuppressed']).to.equal yes
-      expect(notificationSettings.getIn [channelId, 'desktopSetting']).to.equal 'all'
-      expect(notificationSettings.getIn [channelId, 'mobileSetting']).to.equal 'never'
+      expect(notificationSettings.getIn [channelId, 'isMuted']).toEqual no
+      expect(notificationSettings.getIn [channelId, 'isSuppressed']).toEqual yes
+      expect(notificationSettings.getIn [channelId, 'desktopSetting']).toEqual 'all'
+      expect(notificationSettings.getIn [channelId, 'mobileSetting']).toEqual 'never'
 
 
   describe '#deleteSettings', ->
@@ -83,8 +83,8 @@ describe 'ChannelNotificationSettingsStore', ->
 
       notificationSettings = @reactor.evaluate(['notificationSettings'])
 
-      expect(notificationSettings.getIn [channelId_2, 'isSuppressed']).to.equal no
-      expect(notificationSettings.get channelId_1).to.be.undefined
-      expect(notificationSettings.getIn [channelId_2, 'desktopSetting']).to.equal 'personal'
+      expect(notificationSettings.getIn [channelId_2, 'isSuppressed']).toEqual no
+      expect(notificationSettings.get channelId_1).toBe undefined
+      expect(notificationSettings.getIn [channelId_2, 'desktopSetting']).toEqual 'personal'
 
 

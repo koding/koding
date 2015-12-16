@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 actions = require 'activity/flux/createchannel/actions/actiontypes'
@@ -21,7 +21,7 @@ describe 'CreateNewChannelParticipantsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_CREATE_NEW_CHANNEL_PARTICIPANTS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate(['selectedIndex'])
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
 
   describe '#resetIndex', ->
@@ -34,12 +34,12 @@ describe 'CreateNewChannelParticipantsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_CREATE_NEW_CHANNEL_PARTICIPANTS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate(['selectedIndex'])
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
       @reactor.dispatch actions.RESET_CREATE_NEW_CHANNEL_PARTICIPANTS_SELECTED_INDEX
       selectedIndex = @reactor.evaluate(['selectedIndex'])
 
-      expect(selectedIndex).to.equal 0
+      expect(selectedIndex).toEqual 0
 
 
   describe '#moveToNextIndex', ->
@@ -52,12 +52,12 @@ describe 'CreateNewChannelParticipantsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_CREATE_NEW_CHANNEL_PARTICIPANTS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate(['selectedIndex'])
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
       @reactor.dispatch actions.MOVE_TO_NEXT_CREATE_NEW_CHANNEL_PARTICIPANT_INDEX
       selectedIndex = @reactor.evaluate(['selectedIndex'])
 
-      expect(selectedIndex).to.equal nextIndex
+      expect(selectedIndex).toEqual nextIndex
 
 
   describe '#moveToPrevIndex', ->
@@ -70,11 +70,11 @@ describe 'CreateNewChannelParticipantsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_CREATE_NEW_CHANNEL_PARTICIPANTS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate(['selectedIndex'])
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
       @reactor.dispatch actions.MOVE_TO_PREV_CREATE_NEW_CHANNEL_PARTICIPANT_INDEX
       selectedIndex = @reactor.evaluate(['selectedIndex'])
 
-      expect(selectedIndex).to.equal prevIndex
+      expect(selectedIndex).toEqual prevIndex
 
 

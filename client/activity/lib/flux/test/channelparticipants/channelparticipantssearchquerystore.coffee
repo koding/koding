@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -23,12 +23,12 @@ describe 'ChannelParticipantsSearchQueryStore', ->
       @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, query : query1
       query = @reactor.evaluate ['channelParticipantsSearchQuery']
 
-      expect(query).to.equal query1
+      expect(query).toEqual query1
 
       @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, query: query2
       query = @reactor.evaluate ['channelParticipantsSearchQuery']
 
-      expect(query).to.equal query2
+      expect(query).toEqual query2
 
 
   describe '#unsetQuery', ->
@@ -40,10 +40,10 @@ describe 'ChannelParticipantsSearchQueryStore', ->
       @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_QUERY, query : testQuery
       query = @reactor.evaluate ['channelParticipantsSearchQuery']
 
-      expect(query).to.equal testQuery
+      expect(query).toEqual testQuery
 
       @reactor.dispatch actions.UNSET_CHANNEL_PARTICIPANTS_QUERY
       query = @reactor.evaluate ['channelParticipantsSearchQuery']
 
-      expect(query).to.be.null
+      expect(query).toBe null
 

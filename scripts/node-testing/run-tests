@@ -1,6 +1,10 @@
 #!/usr/bin/env coffee
 # this file runs shell-scripts on the test instance(s) via ssh
 
+if process.env.DISABLE_TESTS
+  console.log "Tests are disabled"
+  return
+
 { exec }                          = require 'child_process'
 { getNthInstancePublicIpAddress } = require './helper'
 

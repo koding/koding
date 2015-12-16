@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -22,7 +22,7 @@ describe 'ChatInputSearchFlagsStore', ->
       @reactor.dispatch actions.CHAT_INPUT_SEARCH_BEGIN, { stateId }
       flags = @reactor.evaluate(['chatInputSearchFlags']).get stateId
 
-      expect(flags.get 'isLoading').to.be.true
+      expect(flags.get 'isLoading').toBe yes
 
 
   describe '#handleSearchEnd', ->
@@ -33,18 +33,18 @@ describe 'ChatInputSearchFlagsStore', ->
 
       @reactor.dispatch actions.CHAT_INPUT_SEARCH_BEGIN, { stateId }
       flags = @reactor.evaluate(['chatInputSearchFlags']).get stateId
-      expect(flags.get 'isLoading').to.be.true
+      expect(flags.get 'isLoading').toBe yes
 
       @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId }
       flags = @reactor.evaluate(['chatInputSearchFlags']).get stateId
-      expect(flags.get 'isLoading').to.be.false
+      expect(flags.get 'isLoading').toBe no
 
       @reactor.dispatch actions.CHAT_INPUT_SEARCH_BEGIN, { stateId }
       flags = @reactor.evaluate(['chatInputSearchFlags']).get stateId
-      expect(flags.get 'isLoading').to.be.true
+      expect(flags.get 'isLoading').toBe yes
 
       @reactor.dispatch actions.CHAT_INPUT_SEARCH_FAIL, { stateId }
       flags = @reactor.evaluate(['chatInputSearchFlags']).get stateId
-      expect(flags.get 'isLoading').to.be.false
+      expect(flags.get 'isLoading').toBe no
 
 

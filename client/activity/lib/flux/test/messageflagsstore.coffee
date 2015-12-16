@@ -1,4 +1,4 @@
-{ expect }        = require 'chai'
+expect            = require 'expect'
 Reactor           = require 'app/flux/base/reactor'
 actionTypes       = require '../actions/actiontypes'
 MessageFlagsStore = require '../stores/messageflagsstore'
@@ -22,7 +22,7 @@ describe 'MessageFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['MessageFlagsStore']
 
-      expect(storeState.test.isMessagesLoading).to.eql yes
+      expect(storeState.test.isMessagesLoading).toEqual yes
 
 
   describe 'handleLoadMessagesSuccess', ->
@@ -35,6 +35,6 @@ describe 'MessageFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['MessageFlagsStore']
 
-      expect(storeState.test.isMessagesLoading).to.eql no
+      expect(storeState.test.isMessagesLoading).toEqual no
 
 

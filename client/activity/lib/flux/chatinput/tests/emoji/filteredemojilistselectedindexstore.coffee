@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -23,7 +23,7 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
       @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
 
   describe '#moveToNextIndex', ->
@@ -37,12 +37,12 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
       @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
       
       @reactor.dispatch actions.MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX, { stateId }
       selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal nextIndex
+      expect(selectedIndex).toEqual nextIndex
 
 
   describe '#moveToPrevIndex', ->
@@ -56,12 +56,12 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
       @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
       
       @reactor.dispatch actions.MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX, { stateId }
       selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal prevIndex
+      expect(selectedIndex).toEqual prevIndex
 
 
   describe '#resetIndex', ->
@@ -74,10 +74,10 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
       @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
       @reactor.dispatch actions.RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId }
       selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.be.undefined
+      expect(selectedIndex).toBe undefined
 

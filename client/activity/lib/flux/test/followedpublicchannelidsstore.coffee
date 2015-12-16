@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -25,8 +25,8 @@ describe 'FollowedPublicChannelIdsStore', ->
 
       storeState = @reactor.evaluateToJS ['FollowedPublicChannelIdsStore']
 
-      expect(storeState.foo).to.eql 'foo'
-      expect(storeState.bar).to.eql 'bar'
+      expect(storeState.foo).toEqual 'foo'
+      expect(storeState.bar).toEqual 'bar'
 
 
   describe '#handleFollowChannelSuccess', ->
@@ -38,8 +38,8 @@ describe 'FollowedPublicChannelIdsStore', ->
 
       storeState = @reactor.evaluateToJS ['FollowedPublicChannelIdsStore']
 
-      expect(storeState.foo).to.eql 'foo'
-      expect(storeState.bar).to.eql 'bar'
+      expect(storeState.foo).toEqual 'foo'
+      expect(storeState.bar).toEqual 'bar'
 
 
   describe '#handleUnfollowChannelSuccess', ->
@@ -52,6 +52,6 @@ describe 'FollowedPublicChannelIdsStore', ->
 
       storeState = @reactor.evaluateToJS ['FollowedPublicChannelIdsStore']
 
-      expect(storeState.bar).to.eql 'bar'
-      expect(storeState.foo).to.eql undefined
+      expect(storeState.bar).toEqual 'bar'
+      expect(storeState.foo).toEqual undefined
 
