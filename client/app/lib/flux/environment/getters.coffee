@@ -9,6 +9,7 @@ OwnMachinesStore           = ['OwnMachinesStore']
 SharedMachinesStore        = ['SharedMachinesStore']
 CollaborationMachinesStore = ['CollaborationMachinesStore']
 AddWorkspaceViewStore      = ['AddWorkspaceViewStore']
+ActiveWorkspaceStore       = ['ActiveWorkspaceStore']
 
 machinesWithWorkspaces = [
   MachinesStore
@@ -79,3 +80,5 @@ module.exports = {
   machinesWithWorkspaces
   stacks
   addWorkspaceView : AddWorkspaceViewStore
+  activeWorkspace : ActiveWorkspaceStore
+}

@@ -180,6 +180,13 @@ hideAddWorkspaceView = (machineId) ->
   kd.singletons.reactor.dispatch actions.HIDE_ADD_WORKSPACE_VIEW, machineId
 
 
+
+
+setSelectedWorkspaceId = (id) ->
+
+  kd.singletons.reactor.dispatch actions.WORKSPACE_SELECTED, id
+
+
 module.exports = {
   loadMachines
   loadStacks
