@@ -70,7 +70,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   handleMachineClick: (event) ->
 
-    kd.utils.stopDOMEvent event
+    kd.utils.defer =>
+      actions.setActiveInvitationMachineId @props.machine.get '_id'
+      actions.setActiveLeavingSharedMachineId null
+
     @setState { collapsed: not @state.collapsed }
 
     unless isMachineRunning @props.machine
