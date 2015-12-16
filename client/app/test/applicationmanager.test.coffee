@@ -130,6 +130,48 @@ describe 'kd.singletons.appManager', ->
       expect(kd.warn).toHaveBeenCalled()
 
 
+    it 'should directly call the method of the app if app is created', ->
+
+      isMethodCalled = no
+      methodParam1   = null
+      methodParam2   = null
+
+      createApps [ 'TellApp' ], yes
+
+      AppController::someMethod = (p1, p2) ->
+        isMethodCalled = yes
+        methodParam1   = p1
+        methodParam2   = p2
+
+      appManager.tell 'TellApp', 'someMethod', 'FB', 1907
+
+      kd.utils.defer ->
+        expect(methodParam1).toBe 'FB'
+        expect(methodParam2).toBe 1907
+        expect(isMethodCalled).toBe yes
+
+
+    it 'should create app if app is not created', ->
+
+      isMethodCalled = no
+      methodParam1   = null
+      methodParam2   = null
+
+      registerAppClass AppController, { name: 'NotCreatedApp' }
+
+      AppController::someAnotherMethod = (p1, p2) ->
+        isMethodCalled = yes
+        methodParam1   = p1
+        methodParam2   = p2
+
+      appManager.tell 'NotCreatedApp', 'someAnotherMethod', 2011, '2014'
+
+      kd.utils.defer ->
+        expect(methodParam1).toBe 2011
+        expect(methodParam2).toBe '2014'
+        expect(isMethodCalled).toBe yes
+
+
   describe '::create', ->
 
     it 'should emit AppCouldntBeCreated event when app is not created', (done) ->
