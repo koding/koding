@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klientctl/logging"
 	"github.com/leeola/service"
 )
 
@@ -49,6 +50,16 @@ func InstallCommandFactory(c *cli.Context) int {
 		cli.ShowCommandHelp(c, "install")
 		return 1
 	}
+
+	// Now that we created the logfile, set our logger handler to use that newly created
+	// file, so that we can log errors during installation.
+	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Println(`Error: Unable to create log files.`)
+		return 1
+	}
+	log.SetHandler(logging.NewWriterHandler(f))
+	log.Infof("Installation created log file")
 
 	authToken := c.Args().Get(0)
 

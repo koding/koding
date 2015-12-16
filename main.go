@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klientctl/logging"
 	"github.com/koding/klientctl/util"
 )
 
@@ -26,7 +29,37 @@ var sudoRequiredFor = []string{
 	"update",
 }
 
+// log is used as a global loggger, for commands like ListCommand that
+// need refactoring to support instance based commands.
+//
+// TODO: Remove this after all commands have been refactored into structs. Ie, the
+// cli rewrite.
+var log logging.Logger
+
 func main() {
+	// The writer used for the logging output. Either a file, or /dev/null
+	var logWriter io.Writer
+
+	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		// Rather than exit `kd` because we are unable to log, we simple disable logging
+		// by writing to /dev/null. This also measn that even if we can't load the log
+		// file, the log instance is valid and doesn't have to be checked for being
+		// nil before every usage.
+		logWriter = ioutil.Discard
+	} else {
+		// TODO: Does defer get triggered on os.Exit? I think main() needs to be moved
+		// to an alternate func that we can actuall use defer. Eg, main() calls Main(),
+		// or something.
+		defer f.Close()
+		logWriter = f
+	}
+
+	// Create our logger instance.
+	log = logging.NewLogger("kd")
+	log.SetHandler(logging.NewWriterHandler(logWriter))
+	log.Infof("kd binary called with: %s", os.Args)
+
 	// Check if the command the user is giving requires sudo.
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
 		// In the event of an error, simply print the error to the user
