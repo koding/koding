@@ -38,16 +38,14 @@ module.exports = class Sidebar extends React.Component
     machine.get('_id') is @state.activeInvitationMachineId
 
 
+  componentWillMount: ->
 
-
-  componentDidMount: ->
     EnvironmentFlux.actions.loadStacks()
-    EnvironmentFlux.actions.loadMachines()
+    EnvironmentFlux.actions.loadMachines().then => @setActiveInvitationMachineId()
     actions.channel.loadFollowedPublicChannels()
     actions.channel.loadFollowedPrivateChannels()
 
 
-  onStackRendered: ->
   renderInvitationWidget: ->
 
     isRendered = no
