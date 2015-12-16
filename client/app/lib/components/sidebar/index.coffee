@@ -46,6 +46,13 @@ module.exports = class Sidebar extends React.Component
     actions.channel.loadFollowedPrivateChannels()
 
 
+  setActiveInvitationMachineId: ->
+
+    id = @getRequiredInvitationMachineId()
+
+    EnvironmentFlux.actions.setActiveInvitationMachineId id  if id
+
+
   renderInvitationWidget: ->
 
     isRendered = no
