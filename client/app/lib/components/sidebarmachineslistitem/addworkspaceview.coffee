@@ -53,7 +53,7 @@ module.exports = class AddWorkspaceView extends React.Component
 
   render: ->
 
-    return null  unless @state.addWorkspaceView.has @props.machine.get '_id'
+    return null  unless @state.addWorkspaceView is @props.machine.get('_id')
 
     <div
       onClick={@bound 'onClick'}
