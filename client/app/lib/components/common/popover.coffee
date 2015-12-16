@@ -8,7 +8,7 @@ module.exports = class Popover extends React.Component
 
   @defaultProps =
     isOpened            : yes
-    closeOnEsc          : no
+    closeOnEsc          : yes
     onClose             : kd.noop
     closeOnOutsideClick : yes
     coordinates         : { top: 0, left: 0 }
@@ -17,8 +17,10 @@ module.exports = class Popover extends React.Component
   setCoordinates: ->
 
     popover = ReactDOM.findDOMNode @refs.Popover
-    popover.style.top   = "#{@props.coordinates.top - 15}px"
-    popover.style.left  = "#{@props.coordinates.left + 15}px"
+
+    if popover
+      popover.style.top   = "#{@props.coordinates.top - 15}px"
+      popover.style.left  = "#{@props.coordinates.left + 15}px"
 
 
   componentDidUpdate: -> @setCoordinates()
