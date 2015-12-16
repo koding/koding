@@ -43,17 +43,9 @@ module.exports = class Sidebar extends bongo.Base
       return callback new KodingError err  if err
 
       machineUIds = machines.map (machine) -> machine.uid
-      workspaces = []
-      queue = machineUIds.map (machineUId) -> ->
+      JWorkspace.some { machineUId: { $in: machineUIds } }, {}, (err, workspaces) ->
 
-        options = { limit : 5 }
-        JWorkspace.some { machineUId: machineUId }, options, (err, workspaces_) ->
-
-          return callback new KodingError err  if err
-          workspaces = workspaces.concat workspaces_
-
-          queue.fin()
-      dash queue, ->
+        return callback new KodingError err  if err
 
         options = { client, user, machines, workspaces, callback }
         options.addOwnFn = makeEnvironmentNodeAdderFn data.own

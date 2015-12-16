@@ -56,7 +56,7 @@ module.exports = class SinglePlanView extends KDView
       cssClass : 'plan-price'
       title    : "
         <cite>#{if price is '0' then 'Free' else price}</cite>
-        <span class='interval-text'>MONTHLY</span>
+        <span class='interval-text'>PER MONTH</span>
       "
 
     @overflowHidden.addSubView @price
@@ -77,9 +77,9 @@ module.exports = class SinglePlanView extends KDView
         tagName  : 'dd'
         partial  : partial
 
-    @addSubView @buyButton = new KDButtonView
+    @overflowHidden.addSubView @buyButton = new KDButtonView
       style     : 'plan-buy-button'
-      title     : 'SELECT'
+      title     : 'Select'
       state     : { title, monthPrice, yearPrice }
       loader    : yes
       callback  : @bound 'select'
@@ -90,18 +90,15 @@ module.exports = class SinglePlanView extends KDView
     { title, monthPrice, yearPrice
       reducedMonth, discount } = @getOptions()
 
-    { planInterval } = @state
+    { planInterval }  = @state
+    planTitle         = title.toLowerCase()
+    parentView        = @getIndividualsView()
 
-    planTitle = title.toLowerCase()
-
-    { appManager } = kd.singletons
-    pricingView = appManager.get('Pricing').getView()
-
-    workflowStarted = PaymentConstants.events.WORKFLOW_STARTED
+    workflowStarted       = PaymentConstants.events.WORKFLOW_STARTED
     workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
 
-    pricingView.once workflowStarted, @buyButton.bound 'hideLoader'
-    pricingView.once workflowCouldNotStart, @buyButton.bound 'hideLoader'
+    parentView.once workflowStarted,        @buyButton.bound 'hideLoader'
+    parentView.once workflowCouldNotStart,  @buyButton.bound 'hideLoader'
 
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
@@ -126,7 +123,7 @@ module.exports = class SinglePlanView extends KDView
 
     @price.updatePartial "
       <cite>#{(price)}</cite>
-      <span class='interval-text'>MONTHLY</span>
+      <span class='interval-text'>PER MONTH</span>
     "
 
 
@@ -137,6 +134,9 @@ module.exports = class SinglePlanView extends KDView
       year  : @getOption 'reducedMonth'
 
     return price = priceMap[planInterval]
+
+
+  getIndividualsView: -> @parent.parent
 
 
   disable: (isCurrent = yes) ->

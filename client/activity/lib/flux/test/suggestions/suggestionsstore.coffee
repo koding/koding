@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -27,9 +27,9 @@ describe 'SuggestionsStore', ->
       @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, data : list
       suggestions = @reactor.evaluate ['currentSuggestions']
 
-      expect(suggestions.size).to.equal 2
-      expect(suggestions.get(0).get('body')).to.equal suggestionBody1
-      expect(suggestions.get(1).get('body')).to.equal suggestionBody2
+      expect(suggestions.size).toEqual 2
+      expect(suggestions.get(0).get('body')).toEqual suggestionBody1
+      expect(suggestions.get(1).get('body')).toEqual suggestionBody2
 
       list = [
         { id : '3', body : suggestionBody3 }
@@ -37,8 +37,8 @@ describe 'SuggestionsStore', ->
       @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_SUCCESS, data : list
       suggestions = @reactor.evaluate ['currentSuggestions']
 
-      expect(suggestions.size).to.equal 1
-      expect(suggestions.get(0).get('body')).to.equal suggestionBody3
+      expect(suggestions.size).toEqual 1
+      expect(suggestions.get(0).get('body')).toEqual suggestionBody3
 
 
   describe 'Suggestions reset', ->
@@ -57,7 +57,7 @@ describe 'SuggestionsStore', ->
       @reactor.dispatch actionTypes.SUGGESTIONS_DATA_RESET
       suggestions = @reactor.evaluate ['currentSuggestions']
 
-      expect(suggestions.size).to.equal 0
+      expect(suggestions.size).toEqual 0
 
     it 'handles fetch data failure', ->
 
@@ -66,5 +66,5 @@ describe 'SuggestionsStore', ->
       @reactor.dispatch actionTypes.FETCH_SUGGESTIONS_FAIL
       suggestions = @reactor.evaluate ['currentSuggestions']
 
-      expect(suggestions.size).to.equal 0
+      expect(suggestions.size).toEqual 0
 

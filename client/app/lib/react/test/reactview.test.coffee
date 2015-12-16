@@ -1,6 +1,6 @@
-kd         = require 'kd'
-{ expect } = require 'chai'
-React      = require 'react/addons'
+kd     = require 'kd'
+expect = require 'expect'
+React  = require 'react/addons'
 
 ReactView = require '../reactview'
 
@@ -20,7 +20,7 @@ describe 'ReactView', ->
 
   it 'works', ->
 
-    expect(new ReactView).to.be.ok
+    expect(new ReactView).toExist()
 
 
   it 'renders dom element with react', ->
@@ -34,5 +34,5 @@ describe 'ReactView', ->
 
     helloWorld = findRenderedDOMWithClassName foo, 'hello-world'
 
-    expect(helloWorld.textContent).to.equal 'Hello World'
+    expect(helloWorld.textContent).toEqual 'Hello World'
 

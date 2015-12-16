@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -23,7 +23,7 @@ describe 'ChatInputMentionsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_MENTIONS_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['chatInputMentionsSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
 
   describe '#moveToNextIndex', ->
@@ -37,12 +37,12 @@ describe 'ChatInputMentionsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_MENTIONS_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['chatInputMentionsSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
       
       @reactor.dispatch actions.MOVE_TO_NEXT_CHAT_INPUT_MENTIONS_INDEX, { stateId }
       selectedIndex = @reactor.evaluate(['chatInputMentionsSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal nextIndex
+      expect(selectedIndex).toEqual nextIndex
 
 
   describe '#moveToPrevIndex', ->
@@ -56,12 +56,12 @@ describe 'ChatInputMentionsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_MENTIONS_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['chatInputMentionsSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
       
       @reactor.dispatch actions.MOVE_TO_PREV_CHAT_INPUT_MENTIONS_INDEX, { stateId }
       selectedIndex = @reactor.evaluate(['chatInputMentionsSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal prevIndex
+      expect(selectedIndex).toEqual prevIndex
 
 
   describe '#resetIndex', ->
@@ -74,10 +74,10 @@ describe 'ChatInputMentionsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_MENTIONS_SELECTED_INDEX, { stateId, index }
       selectedIndex = @reactor.evaluate(['chatInputMentionsSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
       @reactor.dispatch actions.RESET_CHAT_INPUT_MENTIONS_SELECTED_INDEX, { stateId }
       selectedIndex = @reactor.evaluate(['chatInputMentionsSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.be.undefined
+      expect(selectedIndex).toBe undefined
 

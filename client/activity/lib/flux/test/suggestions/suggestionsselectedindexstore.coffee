@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -22,7 +22,7 @@ describe 'SuggestionsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
 
   describe '#moveToNextIndex', ->
@@ -35,12 +35,12 @@ describe 'SuggestionsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
       
       @reactor.dispatch actions.MOVE_TO_NEXT_SUGGESTIONS_INDEX
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
-      expect(selectedIndex).to.equal nextIndex
+      expect(selectedIndex).toEqual nextIndex
 
 
   describe '#moveToPrevIndex', ->
@@ -53,12 +53,12 @@ describe 'SuggestionsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
       
       @reactor.dispatch actions.MOVE_TO_PREV_SUGGESTIONS_INDEX
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
-      expect(selectedIndex).to.equal prevIndex
+      expect(selectedIndex).toEqual prevIndex
 
 
   describe '#resetIndex', ->
@@ -70,10 +70,10 @@ describe 'SuggestionsSelectedIndexStore', ->
       @reactor.dispatch actions.SET_SUGGESTIONS_SELECTED_INDEX, { index }
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
       @reactor.dispatch actions.RESET_SUGGESTIONS_SELECTED_INDEX
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
-      expect(selectedIndex).to.equal 0
+      expect(selectedIndex).toEqual 0
 

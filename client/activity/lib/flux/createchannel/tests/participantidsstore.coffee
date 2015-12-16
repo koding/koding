@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -23,7 +23,7 @@ describe 'CreateNewChannelParticipantIdsStore', ->
 
       participants = @reactor.evaluate(['participantIds'])
 
-      expect(participants.get testAccountId).to.equal testAccountId
+      expect(participants.get testAccountId).toEqual testAccountId
 
 
   describe '#handleRemoveParticipantFromNewChannel', ->
@@ -39,8 +39,8 @@ describe 'CreateNewChannelParticipantIdsStore', ->
 
       participants = @reactor.evaluate(['participantIds'])
 
-      expect(participants.get testAccountId_2).to.equal testAccountId_2
-      expect(participants.get testAccountId_1).to.be.undefined
+      expect(participants.get testAccountId_2).toEqual testAccountId_2
+      expect(participants.get testAccountId_1).toBe undefined
 
 
   describe '#handleRemoveAllParticipantsFromNewChannel', ->
@@ -56,6 +56,6 @@ describe 'CreateNewChannelParticipantIdsStore', ->
 
       participants = @reactor.evaluate(['participantIds'])
 
-      expect(participants.get testAccountId_1).to.be.undefined
-      expect(participants.get testAccountId_2).to.be.undefined
+      expect(participants.get testAccountId_1).toBe undefined
+      expect(participants.get testAccountId_2).toBe undefined
 

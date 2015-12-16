@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 whoami = require 'app/util/whoami'
@@ -25,7 +25,7 @@ describe 'ChannelThreadsStore', ->
 
       storeState = reactor.evaluateToJS ['channelThreads']
 
-      expect(storeState[channelId]['messages']['567']).to.eql '567'
+      expect(storeState[channelId]['messages']['567']).toEqual '567'
 
 
   describe '#handleCreateMessageBegin', ->
@@ -36,7 +36,7 @@ describe 'ChannelThreadsStore', ->
 
       storeState = reactor.evaluate ['channelThreads']
 
-      expect(storeState.has channelId).to.equal yes
+      expect(storeState.has channelId).toEqual yes
 
 
     it 'optimistically adds messageId to thread message list for channelId', ->
@@ -45,7 +45,7 @@ describe 'ChannelThreadsStore', ->
 
       storeState = reactor.evaluate ['channelThreads']
 
-      expect(storeState.hasIn [channelId, 'messages', clientRequestId]).to.equal yes
+      expect(storeState.hasIn [channelId, 'messages', clientRequestId]).toEqual yes
 
 
   describe '#handleCreateMessageFail', ->
@@ -58,7 +58,7 @@ describe 'ChannelThreadsStore', ->
 
       storeState = reactor.evaluate ['channelThreads']
 
-      expect(storeState.hasIn [channelId, 'messages', clientRequestId]).to.equal no
+      expect(storeState.hasIn [channelId, 'messages', clientRequestId]).toEqual no
 
 
   describe '#handleCreateMessageSuccess', ->
@@ -73,7 +73,7 @@ describe 'ChannelThreadsStore', ->
 
       storeState = reactor.evaluate ['channelThreads']
 
-      expect(storeState.hasIn [channelId, 'messages', clientRequestId]).to.equal no
+      expect(storeState.hasIn [channelId, 'messages', clientRequestId]).toEqual no
 
 
     it 'adds real message to store', ->
@@ -85,7 +85,7 @@ describe 'ChannelThreadsStore', ->
 
       storeState = reactor.evaluate ['channelThreads']
 
-      expect(storeState.hasIn [channelId, 'messages', 'mock']).to.equal yes
+      expect(storeState.hasIn [channelId, 'messages', 'mock']).toEqual yes
 
 
   describe '#addNewThread', ->
@@ -97,7 +97,7 @@ describe 'ChannelThreadsStore', ->
       }
 
       storeState = reactor.evaluateToJS ['channelThreads']
-      expect(storeState['123']).to.be.ok
+      expect(storeState['123']).toExist()
 
     it 'adds a new thread on followed private channel success', ->
       mockChannel = { id: '123' }
@@ -106,7 +106,7 @@ describe 'ChannelThreadsStore', ->
       }
 
       storeState = reactor.evaluateToJS ['channelThreads']
-      expect(storeState['123']).to.be.ok
+      expect(storeState['123']).toExist()
 
 
     it 'adds a new thread on regular message success', ->
@@ -116,7 +116,7 @@ describe 'ChannelThreadsStore', ->
       }
 
       storeState = reactor.evaluateToJS ['channelThreads']
-      expect(storeState['123']).to.be.ok
+      expect(storeState['123']).toExist()
 
 
 markAsFromServer = (message) ->

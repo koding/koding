@@ -46,7 +46,8 @@ module.exports = class EnvironmentsModal extends kd.ModalView
     { computeController, appManager } = kd.singletons
 
     listView.on 'StackDeleteRequested', (stack) =>
-      stack.delete (err) =>
+
+      computeController.destroyStack stack, (err) =>
         return  if showError err
 
         new kd.NotificationView

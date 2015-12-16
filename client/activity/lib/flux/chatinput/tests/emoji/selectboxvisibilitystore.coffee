@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -22,10 +22,10 @@ describe 'EmojiSelectBoxVisibilityStore', ->
       @reactor.dispatch actions.SET_EMOJI_SELECTBOX_VISIBILITY, { stateId, visible : yes }
       visible = @reactor.evaluate(['emojiSelectBoxVisibility']).get stateId
 
-      expect(visible).to.be.true
+      expect(visible).toBe yes
 
       @reactor.dispatch actions.SET_EMOJI_SELECTBOX_VISIBILITY, { stateId, visible : no }
       visible = @reactor.evaluate(['emojiSelectBoxVisibility']).get stateId
 
-      expect(visible).to.be.false
+      expect(visible).toBe no
 

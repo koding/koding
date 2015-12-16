@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -20,12 +20,12 @@ describe 'SuggestionsFlagsStore', ->
       @reactor.dispatch actionTypes.SET_SUGGESTIONS_VISIBILITY, visible : yes
       flags = @reactor.evaluate ['currentSuggestionsFlags']
 
-      expect(flags.get('visible')).to.equal yes
+      expect(flags.get('visible')).toEqual yes
 
       @reactor.dispatch actionTypes.SET_SUGGESTIONS_VISIBILITY, visible : no
       flags = @reactor.evaluate ['currentSuggestionsFlags']
 
-      expect(flags.get('visible')).to.equal no
+      expect(flags.get('visible')).toEqual no
 
 
   describe '#setAccessibility', ->
@@ -35,10 +35,10 @@ describe 'SuggestionsFlagsStore', ->
       @reactor.dispatch actionTypes.SET_SUGGESTIONS_ACCESSIBILITY, accessible : yes
       flags = @reactor.evaluate ['currentSuggestionsFlags']
 
-      expect(flags.get('accessible')).to.equal yes
+      expect(flags.get('accessible')).toEqual yes
 
       @reactor.dispatch actionTypes.SET_SUGGESTIONS_ACCESSIBILITY, accessible : no
       flags = @reactor.evaluate ['currentSuggestionsFlags']
 
-      expect(flags.get('accessible')).to.equal no
+      expect(flags.get('accessible')).toEqual no
 

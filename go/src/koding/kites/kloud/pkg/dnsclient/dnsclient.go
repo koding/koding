@@ -87,7 +87,7 @@ func (r *Route53) Upsert(domain string, newIP string) error {
 	}
 	_, err := r.ChangeResourceRecordSets(params)
 	if err != nil {
-		return r.errorf("could not upsert domain %q: %v", domain, err)
+		return r.errorf("could not upsert domain %q with %q IP: %q", domain, newIP, err)
 	}
 	return nil
 }
@@ -146,7 +146,7 @@ func (r *Route53) get(name string) ([]*route53.ResourceRecordSet, error) {
 	}
 	resp, err := r.ListResourceRecordSets(params)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch records for name %q: %s", name, err)
+		return nil, fmt.Errorf("could not fetch records for name %q: %q", name, err)
 	}
 	if len(resp.ResourceRecordSets) == 0 {
 		return nil, ErrNoRecord
@@ -189,7 +189,7 @@ func (r *Route53) Rename(oldDomain, newDomain string) error {
 		},
 	}
 	if _, err = r.ChangeResourceRecordSets(params); err != nil {
-		return r.errorf("could not rename domain %q to %q: %s", oldDomain, newDomain, err)
+		return r.errorf("could not rename domain %q to %q: %q", oldDomain, newDomain, err)
 	}
 	return nil
 }
@@ -226,7 +226,7 @@ func (r *Route53) Delete(domain string) error {
 		},
 	}
 	if _, err = r.ChangeResourceRecordSets(params); err != nil {
-		return r.errorf("could not delete domain %q: %s", domain, err)
+		return r.errorf("could not delete domain %q: %q", domain, err)
 	}
 	return nil
 }
@@ -243,24 +243,24 @@ func (r *Route53) Validate(domain, username string) error {
 	}
 
 	if domain == hostedZone {
-		return r.errorf("Domain '%s' can't be the same as top-level domain '%s'", domain, hostedZone)
+		return r.errorf("Domain %q can't be the same as top-level domain %q", domain, hostedZone)
 	}
 
 	if !strings.Contains(domain, hostedZone) {
-		return r.errorf("Domain doesn't contain hostedzone '%s'", hostedZone)
+		return r.errorf("Domain %q doesn't contain hostedzone %q", domain, hostedZone)
 	}
 
 	rest := strings.TrimSuffix(domain, "."+hostedZone)
 	if rest == domain {
-		return r.errorf("Domain is invalid (1) '%s'", domain)
+		return r.errorf("Domain %q is invalid (1)", domain)
 	}
 
 	if split := strings.Split(rest, "."); split[len(split)-1] != username {
-		return r.errorf("Domain doesn't contain username '%s'", username)
+		return r.errorf("Domain %q doesn't contain %q username (hostedZone=%q)", domain, username, hostedZone)
 	}
 
 	if !validator.IsValidDomain(domain) {
-		return r.errorf("Domain is invalid (2) '%s'", domain)
+		return r.errorf("Domain %q is invalid (2)", domain)
 	}
 
 	return nil
@@ -273,6 +273,10 @@ func (r *Route53) errorf(format string, v ...interface{}) error {
 }
 
 func (r *Route53) error(err error) error {
-	r.Log.Error(err.Error())
+	// Ignore ErrNoRecord errors, as they're expected
+	// and handled by the caller.
+	if err != ErrNoRecord {
+		r.Log.Error("%q", err)
+	}
 	return err
 }

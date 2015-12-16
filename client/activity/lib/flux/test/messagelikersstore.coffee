@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 Reactor = require 'app/flux/base/reactor'
 actions = require '../actions/actiontypes'
 MessageLikersStore = require '../stores/messagelikerssstore'
@@ -31,11 +31,11 @@ describe 'MessageLikersStore', ->
 
       likers = @reactor.evaluateToJS [MessageLikersStore.getterPath]
 
-      expect(likers.popular).to.eql {1: '1', 2: '2'}
-      expect(likers.message).to.eql {2: '2', 3: '3'}
-      expect(likers.comment).to.eql {1: '1'}
-      expect(likers.newMessage).to.eql {}
-      expect(likers.newComment).to.eql {}
+      expect(likers.popular).toEqual {1: '1', 2: '2'}
+      expect(likers.message).toEqual {2: '2', 3: '3'}
+      expect(likers.comment).toEqual {1: '1'}
+      expect(likers.newMessage).toEqual {}
+      expect(likers.newComment).toEqual {}
 
 
   describe 'individiual like operations', ->
@@ -57,9 +57,9 @@ describe 'MessageLikersStore', ->
       it "adds given userId to given message's likers map", ->
         likers = @reactor.evaluateToJS [MessageLikersStore.getterPath]
 
-        expect(likers.foo).to.eql {1: '1'}
-        expect(likers.bar).to.eql {1: '1'}
-        expect(likers.baz).to.eql {1: '1'}
+        expect(likers.foo).toEqual {1: '1'}
+        expect(likers.bar).toEqual {1: '1'}
+        expect(likers.baz).toEqual {1: '1'}
 
     describe '#removeLiker', ->
 
@@ -76,9 +76,9 @@ describe 'MessageLikersStore', ->
 
         likers = @reactor.evaluateToJS [MessageLikersStore.getterPath]
 
-        expect(likers.foo).to.eql {}
-        expect(likers.bar).to.eql {}
-        expect(likers.baz).to.eql {}
+        expect(likers.foo).toEqual {}
+        expect(likers.bar).toEqual {}
+        expect(likers.baz).toEqual {}
 
 
 messageWithLikers = (id, actorsPreview) ->

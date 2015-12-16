@@ -1,5 +1,9 @@
 #!/usr/bin/env coffee
 
+if process.env.DISABLE_TESTS
+  console.log "Tests are disabled"
+  return
+
 fs   = require 'fs'
 argv = require('minimist')(process.argv.slice(2))
 
