@@ -41,7 +41,7 @@ module.exports = class Sidebar extends React.Component
   componentWillMount: ->
 
     EnvironmentFlux.actions.loadStacks()
-    EnvironmentFlux.actions.loadMachines().then => @setActiveInvitationMachineId()
+    EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
     actions.channel.loadFollowedPublicChannels()
     actions.channel.loadFollowedPrivateChannels()
 
