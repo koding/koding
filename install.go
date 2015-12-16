@@ -51,18 +51,11 @@ func InstallCommandFactory(c *cli.Context) int {
 		return 1
 	}
 
-	// Create the log file early in the install process, so that we can log the
-	// install process and any troubles encountered.
-	if err := createLogFile(LogFilePath); err != nil {
-		fmt.Println(`Error: Unable to create log files.`)
-		return 1
-	}
-
 	// Now that we created the logfile, set our logger handler to use that newly created
 	// file, so that we can log errors during installation.
-	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND, 0666)
+	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println(`Error: Unable to open log files.`)
+		fmt.Println(`Error: Unable to create log files.`)
 		return 1
 	}
 	log.SetHandler(logging.NewWriterHandler(f))
@@ -230,17 +223,4 @@ Please go back to Koding to get a new code and try again.
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", KlientName)
 
 	return 0
-}
-
-// createLogFile creates the logfile(s) as needed.
-func createLogFile(kdLog string) error {
-	f, err := os.Create(kdLog)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	// Chmod the kd.log file to 666, so that everyone (even non-sudo) can
-	// write to it.
-	return f.Chmod(0666)
 }
