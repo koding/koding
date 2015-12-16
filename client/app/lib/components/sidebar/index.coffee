@@ -43,8 +43,18 @@ module.exports = class Sidebar extends React.Component
 
 
   onStackRendered: ->
+  renderInvitationWidget: ->
 
-    @setState { renderedStacksCount: @state.renderedStacksCount + 1 }
+    isRendered = no
+
+    (@state.sharedMachines.concat @state.collaborationMachines).map (machine) =>
+
+      if not isRendered and @popoverNeeded machine
+        isRendered = yes
+        item   = @state.sharedMachineListItems.get machine.get '_id'
+        <SharingMachineInvitationWidget
+          listItem={item}
+          machine={machine} />
 
 
   renderStacks: ->
@@ -94,11 +104,13 @@ module.exports = class Sidebar extends React.Component
 
 
   render: ->
+
     <Scroller className={kd.utils.curry 'activity-sidebar', @props.className}>
       {@renderStacks()}
       {@renderSharedMachines()}
       {@renderChannels()}
       {@renderMessages()}
+      {@renderInvitationWidget()}
     </Scroller>
 
 
