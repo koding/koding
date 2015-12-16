@@ -271,6 +271,13 @@ unsetMachineListItem = (id, machineListItem) ->
   reactor.dispatch actions.MACHINE_LIST_ITEM_DELETED, { id ,machineListItem }
 
 
+setActiveInvitationMachineId = (id) ->
+
+  { reactor, computeController } = kd.singletons
+
+  reactor.dispatch actions.SET_ACTIVE_INVITATION_MACHINE_ID, { id }
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -289,4 +296,5 @@ module.exports = {
   createWorkspace
   setMachineListItem
   unsetMachineListItem
+  setActiveInvitationMachineId
 }
