@@ -1,10 +1,8 @@
 kd                        = require 'kd'
 React                     = require 'kd-react'
 immutable                 = require 'immutable'
-SidebarList               = require 'app/components/sidebarlist'
 SidebarSection            = require 'app/components/sidebarsection'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
-
 
 module.exports = class SidebarStackSection extends React.Component
 
