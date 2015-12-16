@@ -1,12 +1,13 @@
-kd             = require 'kd'
-nick           = require 'app/util/nick'
-whoami         = require 'app/util/whoami'
-globals        = require 'globals'
-remote         = require('app/remote').getInstance()
-Machine        = require 'app/providers/machine'
-lazyrouter     = require 'app/lazyrouter'
-dataProvider   = require 'app/userenvironmentdataprovider'
-registerRoutes = require 'app/util/registerRoutes'
+kd              = require 'kd'
+nick            = require 'app/util/nick'
+whoami          = require 'app/util/whoami'
+remote          = require('app/remote').getInstance()
+actions         = require 'app/flux/environment/actions'
+globals         = require 'globals'
+Machine         = require 'app/providers/machine'
+lazyrouter      = require 'app/lazyrouter'
+dataProvider    = require 'app/userenvironmentdataprovider'
+registerRoutes  = require 'app/util/registerRoutes'
 
 
 selectWorkspaceOnSidebar = (data) ->
@@ -170,6 +171,7 @@ routeToLatestWorkspace = ->
   else if machineLabel and workspaceSlug
     dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) =>
       if machine and workspace
+        actions.setSelectedWorkspaceId worksace._id
         router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
       else if machine
         routeToMachineWorkspace machine
