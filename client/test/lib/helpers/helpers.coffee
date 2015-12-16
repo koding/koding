@@ -3,6 +3,7 @@ fail     = require '../utils/fail.js'
 register = require '../register/register.js'
 faker    = require 'faker'
 assert   = require 'assert'
+HUBSPOT  = no
 
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
@@ -11,7 +12,7 @@ module.exports =
 
   beginTest: (browser, user) ->
 
-    url   = @getUrl()
+    url = @getUrl()
     user ?= utils.getUser()
 
     browser.url url
@@ -44,9 +45,16 @@ module.exports =
 
   attemptLogin: (browser, user) ->
 
+    if HUBSPOT
+      browser
+        .waitForElementVisible  '.hero.block .container', 50000
+        .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
+    else
+      browser
+        .waitForElementVisible  '[testpath=main-header]', 50000
+        .click                  'nav:not(.mobile-menu) [testpath=login-link]'
+
     browser
-      .waitForElementVisible  '[testpath=main-header]', 50000
-      .click                  'nav:not(.mobile-menu) [testpath=login-link]'
       .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
@@ -73,31 +81,48 @@ module.exports =
       .click                  '[testpath=AvatarAreaIconLink]'
       .click                  '[testpath=logout-link]'
       .pause                  3000
-      .waitForElementVisible  '[testpath=main-header]', 30000 # Assertion
+      if HUBSPOT
+        browser.waitForElementVisible  '.hero.block .container', 20000
+      else
+        browser.waitForElementVisible  '[testpath=main-header]', 30000 # Assertion
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
 
-    browser
-      .url                    @getUrl()
-      .waitForElementVisible  '[testpath=main-header]', 30000
-      .setValue               '[testpath=register-form-email]', user.email
-      .setValue               'input[name=password]', user.password
-      .click                  '[testpath=signup-button]'
+    url = @getUrl()
+    browser.url url
+
+    homePageSelector = '.hero.block .container'
+
+    if HUBSPOT
+      browser
+        .waitForElementVisible  homePageSelector, 20000
+        .waitForElementVisible  "#{homePageSelector} a[href='/Register']", 20000
+        .click                  "#{homePageSelector} a[href='/Register']"
+        .pause 3000
+        .waitForElementVisible  '.form-area .main-part', 20000
+        .setValue               '.login-form .email input[name=email]', user.email
+        .setValue               '.login-form .password input[name=password]', user.password
+    else
+      browser
+        .setValue  'input[name=email]', user.email
+        .setValue  'input[name=password]', user.password
+
+    browser.click       '[testpath=signup-button]'
 
 
   attemptEnterUsernameOnRegister: (browser, user) ->
 
     modalSelector  = '.extra-info.password'
-    buttonSelector = 'button[type=submit]'
+    buttonSelector = "#{modalSelector} button[type=submit]"
 
     browser.waitForElementVisible modalSelector, 30000
 
     if user.gravatar
       browser
-        .assert.valueContains 'input[name=username]',  'kodingqa'
-        .assert.valueContains 'input[name=firstName]', 'Koding'
-        .assert.valueContains 'input[name=lastName]',  'Testuser'
+        .assert.valueContains "#{modalSelector} input[name=username]",  'kodingqa'
+        .assert.valueContains "#{modalSelector} input[name=firstName]", 'Koding'
+        .assert.valueContains "#{modalSelector} input[name=lastName]",  'Testuser'
     else
       browser
         .setValue '[testpath=register-form-username]', user.username
@@ -478,7 +503,6 @@ module.exports =
       .click                   'input[name=cardName]'
       .clearValue              'input[name=cardName]'
       .setValue                'input[name=cardName]', name
-
 
   submitForm: (browser, validCardDetails = yes) ->
 

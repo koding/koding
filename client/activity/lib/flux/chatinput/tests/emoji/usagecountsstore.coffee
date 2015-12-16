@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -24,12 +24,12 @@ describe 'EmojiUsageCountsStore', ->
       @reactor.dispatch actions.SET_EMOJI_USAGE_COUNT, { emoji, count : count1 }
       counts = @reactor.evaluateToJS(['emojiUsageCounts'])
 
-      expect(counts[emoji]).to.equal count1
+      expect(counts[emoji]).toEqual count1
 
       @reactor.dispatch actions.SET_EMOJI_USAGE_COUNT, { emoji, count : count2 }
       counts = @reactor.evaluateToJS(['emojiUsageCounts'])
 
-      expect(counts[emoji]).to.equal count2
+      expect(counts[emoji]).toEqual count2
 
 
   describe '#incrementUsageCount', ->
@@ -41,10 +41,10 @@ describe 'EmojiUsageCountsStore', ->
       @reactor.dispatch actions.INCREMENT_EMOJI_USAGE_COUNT, { emoji }
       counts = @reactor.evaluateToJS(['emojiUsageCounts'])
 
-      expect(counts[emoji]).to.equal 1
+      expect(counts[emoji]).toEqual 1
 
       @reactor.dispatch actions.INCREMENT_EMOJI_USAGE_COUNT, { emoji }
       counts = @reactor.evaluateToJS(['emojiUsageCounts'])
 
-      expect(counts[emoji]).to.equal 2
+      expect(counts[emoji]).toEqual 2
 

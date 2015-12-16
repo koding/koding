@@ -78,3 +78,4 @@ module.exports =
       .click                  selector
       .waitForElementVisible  sharePopupSelector, 20000
       .waitForElementVisible  sharePopupSelector + ' input.share-input', 20000 # Assertion
+      .end()

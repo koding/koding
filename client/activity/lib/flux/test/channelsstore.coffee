@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -27,7 +27,7 @@ describe 'ChannelsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelsStore']
 
-      expect(storeState.public).to.eql mockChannel
+      expect(storeState.public).toEqual mockChannel
 
 
     it 'loads channel when a private followed channel is loaded', ->
@@ -40,7 +40,7 @@ describe 'ChannelsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelsStore']
 
-      expect(storeState.bar).to.eql mockPrivateChannel
+      expect(storeState.bar).toEqual mockPrivateChannel
 
 
     it 'loads channel when a public followed channel is loaded', ->
@@ -54,7 +54,7 @@ describe 'ChannelsStore', ->
       storeState = @reactor.evaluateToJS ['ChannelsStore']
 
       mockPublicChannel.isParticipant = yes
-      expect(storeState.foo).to.eql mockPublicChannel
+      expect(storeState.foo).toEqual mockPublicChannel
 
 
   describe 'handleLoadChannelListSuccess', ->
@@ -69,8 +69,8 @@ describe 'ChannelsStore', ->
 
        storeState = @reactor.evaluateToJS ['ChannelsStore']
 
-       expect(storeState.programming).to.eql channel1
-       expect(storeState.testing).to.eql channel2
+       expect(storeState.programming).toEqual channel1
+       expect(storeState.testing).toEqual channel2
 
 
   describe 'handleFollowChannelSuccess', ->
@@ -84,7 +84,7 @@ describe 'ChannelsStore', ->
 
        storeState = @reactor.evaluate ['ChannelsStore']
 
-       expect(storeState.getIn ['koding', 'isParticipant']).to.equal yes
+       expect(storeState.getIn ['koding', 'isParticipant']).toEqual yes
 
 
   describe 'handleUnfollowChannelSuccess', ->
@@ -98,4 +98,4 @@ describe 'ChannelsStore', ->
 
        storeState = @reactor.evaluate ['ChannelsStore']
 
-       expect(storeState.getIn ['koding', 'isParticipant']).to.equal no
+       expect(storeState.getIn ['koding', 'isParticipant']).toEqual no

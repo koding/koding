@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -23,10 +23,10 @@ describe 'SuggestionsQueryStore', ->
       @reactor.dispatch actionTypes.SET_SUGGESTIONS_QUERY, query : query1
       query = @reactor.evaluate ['currentSuggestionsQuery']
 
-      expect(query).to.equal query1
+      expect(query).toEqual query1
 
       @reactor.dispatch actionTypes.SET_SUGGESTIONS_QUERY, query: query2
       query = @reactor.evaluate ['currentSuggestionsQuery']
 
-      expect(query).to.equal query2
+      expect(query).toEqual query2
 

@@ -1,5 +1,7 @@
 utils    = require '../utils/utils.js'
 helpers  = require '../helpers/helpers.js'
+HUBSPOT  = no
+
 
 module.exports =
 
@@ -50,10 +52,6 @@ module.exports =
   loginFromHomepageSignupForm: (browser) ->
 
     user = utils.getUser()
-    url  = helpers.getUrl()
-    browser
-      .url(url)
-      .maximizeWindow()
 
     helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
 
@@ -65,16 +63,23 @@ module.exports =
   loginFromSignupModal: (browser) ->
 
     user = utils.getUser()
-    url  = helpers.getUrl()
+    url = helpers.getUrl()
+
+    if HUBSPOT
+       url = "#{url}/Register"
+
     browser
       .url(url)
       .maximizeWindow()
 
+    unless HUBSPOT
+      browser
+        .waitForElementVisible  '[testpath=main-header]', 50000
+        .click                  'nav:not(.mobile-menu) [testpath=login-link]'
+        .waitForElementVisible  '[testpath=login-container]', 50000
+        .click                  '.login-footer .signup-link a.register'
+
     browser
-      .waitForElementVisible  '[testpath=main-header]', 50000
-      .click                  'nav:not(.mobile-menu) [testpath=login-link]'
-      .waitForElementVisible  '[testpath=login-container]', 50000
-      .click                  '.login-footer .signup-link a.register'
       .setValue               '.main-part [testpath=register-form-email]', user.email
       .setValue               '.main-part input[name=password]', user.password
       .click                  '.main-part [testpath=signup-button]'

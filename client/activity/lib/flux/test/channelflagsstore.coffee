@@ -1,7 +1,7 @@
-{ expect }               = require 'chai'
-Reactor                  = require 'app/flux/base/reactor'
-actionTypes              = require '../actions/actiontypes'
-ChannelFlagsStore        = require '../stores/channelflagsstore'
+expect            = require 'expect'
+Reactor           = require 'app/flux/base/reactor'
+actionTypes       = require '../actions/actiontypes'
+ChannelFlagsStore = require '../stores/channelflagsstore'
 
 
 describe 'ChannelFlagsStore', ->
@@ -22,7 +22,7 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState.mockChannelFlagsForBeginId.hasSubmittingMessage).to.eql yes
+      expect(storeState.mockChannelFlagsForBeginId.hasSubmittingMessage).toEqual yes
 
 
   describe 'handleCreateMessageEnd', ->
@@ -34,14 +34,14 @@ describe 'ChannelFlagsStore', ->
       }
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).to.eql yes
+      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).toEqual yes
 
       @reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, {
         channelId: 'mockChannelFlagsForEndId'
       }
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).to.eql no
+      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).toEqual no
 
 
     it 'sets hasSubmittingMessage flag to false when a new message has failed to submit', ->
@@ -51,14 +51,14 @@ describe 'ChannelFlagsStore', ->
       }
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).to.eql yes
+      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).toEqual yes
 
       @reactor.dispatch actionTypes.CREATE_MESSAGE_FAIL, {
         channelId: 'mockChannelFlagsForEndId'
       }
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).to.eql no
+      expect(storeState.mockChannelFlagsForEndId.hasSubmittingMessage).toEqual no
 
 
   describe 'handleSetAllMessagesLoaded', ->
@@ -71,7 +71,7 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).to.eql yes
+      expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).toEqual yes
 
 
   describe 'handleUnsetAllMessagesLoaded', ->
@@ -84,7 +84,7 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).to.eql no
+      expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).toEqual no
 
 
   describe 'handleSetScrollPosition', ->
@@ -98,7 +98,7 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState[42].scrollPosition).to.eql 177
+      expect(storeState[42].scrollPosition).toEqual 177
 
 
   describe 'handleSetLastSeenTime', ->
@@ -113,7 +113,7 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState[42].lastSeenTime).to.eql timestamp
+      expect(storeState[42].lastSeenTime).toEqual timestamp
 
 
   describe 'handleSetMessageEditMode', ->
@@ -127,7 +127,7 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState[1].hasEditingMessage).to.be.true
+      expect(storeState[1].hasEditingMessage).toEqual yes
 
 
   describe 'handleUnsetMessageEditMode', ->
@@ -141,5 +141,5 @@ describe 'ChannelFlagsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
-      expect(storeState[1].hasEditingMessage).to.be.false
+      expect(storeState[1].hasEditingMessage).toEqual no
 

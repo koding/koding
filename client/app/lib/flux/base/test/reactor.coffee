@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Store = require '../store'
 Reactor = require '../reactor'
@@ -20,6 +20,6 @@ describe 'KodingFluxReactor', ->
 
       reactor.dispatch 'test', { foo: 'test passed' }
 
-      expect(flag).to.equal 'test passed'
+      expect(flag).toEqual 'test passed'
 
 

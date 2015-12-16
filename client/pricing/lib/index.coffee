@@ -1,20 +1,24 @@
-kd = require 'kd'
-KDViewController = kd.ViewController
-PricingAppView = require './pricingappview'
-KodingAppsController = require 'app/kodingappscontroller'
-globals = require 'globals'
+kd                    = require 'kd'
+KDViewController      = kd.ViewController
+PricingAppView        = require './pricingappview'
+KodingAppsController  = require 'app/kodingappscontroller'
+globals               = require 'globals'
+
+
+require('./routehandler')()
 
 
 module.exports = class PricingAppController extends KDViewController
 
-  @options =
-    name  : 'Pricing'
-    route : '/:name?/Pricing'
+
+  @options = name : 'Pricing'
+
 
   constructor: (options = {}, data) ->
 
-    options.appInfo = title: "Pricing"
+    options.appInfo = title: 'Pricing'
     options.view    = new PricingAppView params: options.params
+
     super options, data
 
     stripeOptions =
@@ -33,7 +37,7 @@ module.exports = class PricingAppController extends KDViewController
         @emit 'ready'
 
     kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
-      @getView().loadPlan()  if app instanceof PricingAppController
+      @getView().emit 'LoadPlan'  if app instanceof PricingAppController
 
 
   initAppStorage: ->

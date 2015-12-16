@@ -1,5 +1,5 @@
 actions              = require '../../actions/actiontypes'
-{ expect }           = require 'chai'
+expect               = require 'expect'
 Reactor              = require 'app/flux/base/reactor'
 UsersStore           = require '../../stores/usersstore'
 generateDummyAccount = require 'app/util/generateDummyAccount'
@@ -20,7 +20,7 @@ describe 'UsersStore', ->
 
       storeState = @reactor.evaluateToJS [UsersStore.getterPath]
 
-      expect(storeState['123']).to.eql account
+      expect(storeState['123']).toEqual account
 
 
   describe '#handleLoadListSuccess', ->
@@ -35,8 +35,8 @@ describe 'UsersStore', ->
 
       storeState = @reactor.evaluateToJS [UsersStore.getterPath]
 
-      expect(storeState['123']).to.eql account1
-      expect(storeState['456']).to.eql account2
+      expect(storeState['123']).toEqual account1
+      expect(storeState['456']).toEqual account2
 
 
   describe '#handleMarkUserAsTrollSuccess', ->
@@ -50,7 +50,7 @@ describe 'UsersStore', ->
       storeState = @reactor.evaluate [UsersStore.getterPath]
 
       console.log 'storeState ', storeState
-      expect(storeState.getIn ['321', 'isExempt']).to.equal yes
+      expect(storeState.getIn ['321', 'isExempt']).toEqual yes
 
 
   describe '#handleUnmarkUserAsTrollSuccess', ->
@@ -66,6 +66,6 @@ describe 'UsersStore', ->
       storeState = @reactor.evaluate [UsersStore.getterPath]
 
       console.log 'storeState ', storeState
-      expect(storeState.getIn ['321', 'isExempt']).to.equal no
+      expect(storeState.getIn ['321', 'isExempt']).toEqual no
 
 
