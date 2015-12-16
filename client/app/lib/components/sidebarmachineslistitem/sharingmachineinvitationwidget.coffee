@@ -8,6 +8,10 @@ EnvironmentFlux           = require 'app/flux/environment'
 
 module.exports = class SharingMachineInvitationWidget extends React.Component
 
+  coordinates:
+    top : 0
+    left: 0
+
   onRejectClicked: ->
 
     EnvironmentFlux.actions.setActiveInvitationMachineId null
