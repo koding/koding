@@ -839,6 +839,67 @@ module.exports = class SocialApiController extends KDController
       remote.api.SocialMessage.fetchDataFromEmbedly args...
 
   channel:
+
+    byId: (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/#{id}"
+      , callback
+
+    byName: (options, callback) ->
+      { name } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/name/#{name}"
+      , callback
+
+    update: (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{id}/update"
+        data     : options
+      , callback
+
+    list: (options, callback) ->
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/"
+      , callback
+
+    delete: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{id}/delete"
+        data     : options
+      , callback
+
+    create: (options, callback) ->
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/"
+        data     : options
+      , callback
+
+    byParticipants: (options, callback) ->
+
+      serialized = options.participants
+        .map (id) -> "id=#{id}"
+        .join "&"
+
+      doXhrRequest
+        endPoint: "/api/social/channel/by/participants?#{serialized}"
+        type: 'GET'
+      , (err, result) ->
+        return callback err  if err
+        return callback null, mapChannels result
+
+
+
+
+  channel:
     byId                 : channelRequesterFn
       fnName             : 'byId'
       validateOptionsWith: ['id']
