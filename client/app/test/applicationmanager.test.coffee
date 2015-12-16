@@ -365,6 +365,92 @@ describe 'kd.singletons.appManager', ->
       expect(Object.keys(appManager.appControllers).length).toBe 0
 
 
+  describe '::open', ->
+
+    it 'should warn if open called with no name', ->
+
+      spy = expect.spyOn(kd, 'warn')
+      appManager.open()
+      expect(kd.warn).toHaveBeenCalled()
+
+
+    it 'should open app a registed but not created app', ->
+
+      registerAppClass AppController, { name: 'OpenApp' }
+      expect(appManager.appControllers.OpenApp).toBe undefined
+
+      appManager.open 'OpenApp'
+      expect(appManager.appControllers.OpenApp.instances.length).toBe 1
+
+
+    it 'should open an already created app', ->
+
+      createApps [ 'CreatedApp' ]
+
+      appManager.open 'CreatedApp'
+      expect(appManager.appControllers.CreatedApp.instances.length).toBe 1
+      expect(appManager.getFrontApp().getOptions().name).toBe 'CreatedApp'
+
+
+    it 'should open the another instance of the same app if forceNew option is true', (done) ->
+
+      isCallbackExecuted = no
+
+      createApps [ 'MultipleApp' ], yes
+      expect(appManager.appControllers.MultipleApp.instances.length).toBe 1
+      expect(appManager.getFrontApp().getOptions().name).toBe 'MultipleApp'
+
+      globals.appClasses.MultipleApp.options.multiple = yes
+      appManager.open 'MultipleApp', { forceNew: yes }, ->
+        isCallbackExecuted = yes
+
+      kd.utils.wait 333, ->
+        expect(appManager.appControllers.MultipleApp.instances.length).toBe 2
+        expect(isCallbackExecuted).toBe yes
+        done()
+
+
+    it 'should check pre condition of the app before opening it', (done) ->
+
+      isConditionExecuted = no
+
+      registerAppClass AppController,
+        name         : 'PreConditionApp'
+        preCondition :
+          condition  : (o, cb) ->
+            isConditionExecuted = yes
+            cb yes
+
+      appManager.open 'PreConditionApp'
+
+      kd.utils.wait 333, ->
+        expect(isConditionExecuted).toBe yes
+        expect(appManager.appControllers.PreConditionApp.instances.length).toBe 1
+        done()
+
+
+    it 'should call failure method and should not open app if pre condition fail', (done) ->
+
+      isConditionExecuted = no
+      isFailureExecuted   = no
+
+      registerAppClass AppController,
+        name: 'FailConditionApp'
+        preCondition:
+          condition: (o, cb) ->
+            isConditionExecuted = yes
+            cb no
+          failure: -> isFailureExecuted = yes
+
+      appManager.open 'FailConditionApp'
+
+      kd.utils.wait 333, ->
+        expect(isConditionExecuted).toBe yes
+        expect(isFailureExecuted).toBe yes
+        expect(appManager.appControllers.FailConditionApp).toBe undefined
+        done()
+
+
   describe '::isAppInternal', ->
 
     it 'should return yes if app is internal', ->
