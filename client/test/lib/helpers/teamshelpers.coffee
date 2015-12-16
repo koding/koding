@@ -7,6 +7,7 @@ teamsModalSelector      = '.TeamsModal--groupCreation'
 companyNameSelector     = '.login-form input[testpath=company-name]'
 sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
 chatItem                = '.Pane-body .ChatList .ChatItem'
+chatInputSelector       = '.ChatPaneFooter .ChatInputWidget textarea'
 
 module.exports =
 
@@ -291,7 +292,7 @@ module.exports =
 
     browser
       .waitForElementVisible    sidebarSectionsSelector, 20000
-      .moveToElement            sidebarSectionsSelector, 100, 7
+      .moveToElement            sidebarSectionsHeaderSelector, 100, 7
       .pause                    2000 # wait for side bar channel list
 
     if plus
@@ -301,7 +302,6 @@ module.exports =
         .click                  channelPlusSelector
     else if channelHeader
       browser
-        .waitForElementVisible  sidebarSectionsHeaderSelector, 20000
         .click                  sidebarSectionsHeaderSelector
 
 
@@ -343,8 +343,7 @@ module.exports =
 
   sendComment: (browser) ->
 
-    chatMessage       = helpers.getFakeText()
-    chatInputSelector = '.ChatPaneFooter .ChatInputWidget textarea'
+    chatMessage = helpers.getFakeText()
 
     browser
       .waitForElementVisible  chatItem, 20000
@@ -390,20 +389,21 @@ module.exports =
     followChannelBox          = '.ChannelThreadPane-body .FollowChannelBox'
 
     browser
-      .waitForElementVisible  channelHeaderPaneSelector, 20000
-      .waitForElementVisible  buttonSelector, 20000
-      .click                  buttonSelector
-      .waitForElementVisible  channelActionsSelector, 20000
-      .moveToElement          leaveChannelSelector, 70, 12
-      .waitForElementVisible  leaveChannelSelector, 20000
-      .click                  leaveChannelSelector
-      .waitForElementVisible  followChannelBox, 20000 # Assertion
+      .waitForElementVisible     channelHeaderPaneSelector, 20000
+      .waitForElementVisible     buttonSelector, 20000
+      .click                     buttonSelector
+      .waitForElementVisible     channelActionsSelector, 20000
+      .moveToElement             leaveChannelSelector, 70, 12
+      .waitForElementVisible     leaveChannelSelector, 20000
+      .click                     leaveChannelSelector
+      .waitForElementVisible     followChannelBox, 20000 # Assertion
+      .waitForElementNotVisible  chatInputSelector, 20000 # Assertion
 
 
   joinChannel: (browser) ->
 
-    followChannelBox          = '.FollowChannelBox'
-    followChannelButton       = "#{followChannelBox} .Button-followChannel"
+    followChannelBox    = '.FollowChannelBox'
+    followChannelButton = "#{followChannelBox} .Button-followChannel"
 
     @leaveChannel(browser)
 
