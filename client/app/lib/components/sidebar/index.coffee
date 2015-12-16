@@ -28,12 +28,8 @@ module.exports = class Sidebar extends React.Component
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
     }
 
-  constructor: ->
 
-   super
 
-   @state =
-     renderedStacksCount : 0
 
 
 
