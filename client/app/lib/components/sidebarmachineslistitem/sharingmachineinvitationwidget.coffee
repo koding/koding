@@ -1,10 +1,9 @@
-React                     = require 'kd-react'
-Popover                   = require 'app/components/common/popover'
-actions                   = require 'app/flux/environment/actions'
+React                    = require 'kd-react'
+ReactDOM                 = require 'react-dom'
+actions                  = require 'app/flux/environment/actions'
 SidebarWidget             = require './sidebarwidget'
-InvitationWidgetUserView  = require './invitationwidgetuserview'
-EnvironmentFlux           = require 'app/flux/environment'
-
+EnvironmentFlux          = require 'app/flux/environment'
+InvitationWidgetUserView = require './invitationwidgetuserview'
 
 module.exports = class SharingMachineInvitationWidget extends React.Component
 
