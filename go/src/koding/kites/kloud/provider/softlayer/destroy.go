@@ -41,7 +41,7 @@ func (m *Machine) Destroy(ctx context.Context) error {
 
 // IsNotFound returns true if the error is *NotFoundError.
 func isNotFound(err error) bool {
-	if slErr, ok := err.(*sl.APIError); ok {
+	if slErr, ok := err.(*sl.Error); ok {
 		if slErr.Code == "SoftLayer_Exception_NotFound" {
 			return true
 		}
