@@ -838,6 +838,7 @@ module.exports = class SocialApiController extends KDController
     fetchDataFromEmbedly : (args...) ->
       remote.api.SocialMessage.fetchDataFromEmbedly args...
 
+
   channel:
 
     byId: (options, callback) ->
@@ -865,7 +866,7 @@ module.exports = class SocialApiController extends KDController
     list: (options, callback) ->
       doXhrRequest
         type     : 'GET'
-        endPoint : "/api/social/channel/"
+        endPoint : "/api/social/channel"
       , callback
 
     delete: (options, callback) ->
@@ -875,11 +876,13 @@ module.exports = class SocialApiController extends KDController
         endPoint : "/api/social/channel/#{id}/delete"
         data     : options
       , callback
-# needs to be checked for create.. ~mehmetali
+# needs to be checked for create..
+# probably create is never used under client
+#~mehmetali
     create: (options, callback) ->
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/channel/"
+        endPoint : "/api/social/channel"
         data     : options
       , callback
 
@@ -890,11 +893,11 @@ module.exports = class SocialApiController extends KDController
         endPoint : "/api/social/channel/search"
       , callback
 # client didnt use this endpoint.. check ~mehmetali
-    checkChannelParticipation: (options, callback) ->
-      doXhrRequest
-        type     : 'GET'
-        endPoint : "/api/social/channel/checkparticipation"
-      , callback
+    # checkChannelParticipation: (options, callback) ->
+    #   doXhrRequest
+    #     type     : 'GET'
+    #     endPoint : "/api/social/channel/checkparticipation"
+    #   , callback
 
     byParticipants: (options, callback) ->
 
