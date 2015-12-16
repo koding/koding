@@ -5,8 +5,7 @@
   withConvertedUser
   generateDummyClient
   generateRandomString
-  checkBongoConnectivity }      = require '../../../testhelper'
-{ createOldAppStorageDocument } = require '../../../testhelper/models/accounthelper'
+  checkBongoConnectivity } = require '../../../testhelper'
 
 JUser            = require './user'
 JGroup           = require './group'
