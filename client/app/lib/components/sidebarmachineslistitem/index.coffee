@@ -256,3 +256,4 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
 React.Component.include.call SidebarMachinesListItem, [KDReactorMixin]
 
+
