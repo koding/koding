@@ -528,6 +528,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/channel/by/$1$is_args$args"
           }
           {
+            location    : "~ /api/social/channel/(.*)"
+            proxyPass   : "http://socialapi/channel/$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/channel/(.*)/notificationsetting"
             proxyPass   : "http://socialapi/channel/$1/notificationsetting$is_args$args"
           }
