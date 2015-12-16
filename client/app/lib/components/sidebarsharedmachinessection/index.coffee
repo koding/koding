@@ -20,14 +20,13 @@ module.exports = class SidebarSharedMachinesSection extends React.Component
         machine={machine}
         active={machine.get('_id') is @props.selectedId}
         renderedStacksCount={@props.renderedStacksCount}
-        />
+        activeLeavingSharedMachineId={@props.activeLeavingSharedMachineId} />
 
 
   render: ->
 
     <SidebarSection
       className={kd.utils.curry 'SidebarSharedMachinesSection', @props.className}
-      title={@props.sectionTitle}
-      >
+      title={@props.sectionTitle}>
       {@renderMachines()}
     </SidebarSection>
