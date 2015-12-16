@@ -286,7 +286,7 @@ module.exports =
 
   moveToSidebarHeader: (browser, plus, channelHeader) ->
 
-    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarSection-header"
+    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarChannelsSection .SidebarSection-header"
     channelPlusSelector           = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
 
     browser
@@ -296,6 +296,7 @@ module.exports =
 
     if plus
       browser
+        .moveToElement          channelPlusSelector, 8, 5
         .waitForElementVisible  channelPlusSelector, 20000
         .click                  channelPlusSelector
     else if channelHeader
