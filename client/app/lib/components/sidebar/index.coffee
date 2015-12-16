@@ -66,6 +66,21 @@ module.exports = class Sidebar extends React.Component
 
     return machineId
 
+
+  getInvitationWidgetCoordinates : (listItem) ->
+
+    coordinates   = { top: 0, left: 0 }
+
+    if listItem
+      domNode       = ReactDOM.findDOMNode listItem
+      clientRect    = domNode.getBoundingClientRect()
+      { top, left, width } = clientRect
+      left = left + width
+      coordinates   = { top, left }
+
+    return coordinates
+
+
   renderInvitationWidget: ->
 
     isRendered = no
