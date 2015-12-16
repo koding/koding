@@ -13,11 +13,6 @@ module.exports = class SidebarStackSection extends React.Component
     stack         : immutable.Map()
 
 
-  componentDidMount: ->
-
-    @props.onStackRendered()
-
-
   renderMachines: ->
 
     config = @props.stack.get 'config'
