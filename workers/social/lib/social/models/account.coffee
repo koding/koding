@@ -909,27 +909,14 @@ module.exports = class JAccount extends jraphical.Module
     { appId, version } = options
     return callback 'version and appId must be set!' unless appId and version
 
-    queue = [
+    query = { accountId : @getId() }
+    JCombinedAppStorage.one query, (err, storage) =>
+      return callback err            if err
+      return callback null, storage  if storage?.bucket?[appId]
 
-      =>
-        @migrateOldAppStorageIfExists { appId, version }, (err, storage) ->
-          return callback err            if err
-          return callback null, storage  if storage
-          queue.next()
-
-      =>
-        query = { accountId : @getId() }
-        JCombinedAppStorage.one query, (err, storage) =>
-          return callback err            if err
-          return callback null, storage  if storage?.bucket?[appId]
-
-          @createAppStorage options, (err, newStorage) ->
-            return callback err  if err
-            callback null, newStorage
-
-    ]
-
-    daisy queue
+      @createAppStorage options, (err, newStorage) ->
+        return callback err  if err
+        callback null, newStorage
 
 
   createAppStorage: (options, callback) ->
