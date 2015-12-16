@@ -155,9 +155,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
       />
 
 
-  handlePopoverOnClose: ->
-
-    @setState { showLeaveSharedMachineWidget : no }
 
 
   renderMachineSettingsIcon: ->
