@@ -20,8 +20,9 @@ SharingMachineInvitationWidget = require './sharingmachineinvitationwidget'
 module.exports = class SidebarMachinesListItem extends React.Component
 
   @defaultProps =
-    bindWorkspacesTitleClick  : yes
-    showInSidebar : yes
+    showInSidebar                : yes
+    bindWorkspacesTitleClick     : yes
+    activeLeavingSharedMachineId : null
 
 
   getDataBindings: ->
