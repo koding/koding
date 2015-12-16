@@ -18,6 +18,12 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
     actions.acceptInvitation @props.machine
 
 
+  componentDidUpdate: -> @setCoordinates()
+
+
+  componentWillMount: -> @setCoordinates()
+
+
   setCoordinates: ->
 
     listItemNode = ReactDOM.findDOMNode @props.listItem
