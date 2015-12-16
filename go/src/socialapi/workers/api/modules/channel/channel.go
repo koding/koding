@@ -3,6 +3,7 @@ package channel
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -77,12 +78,16 @@ func Create(u *url.URL, h http.Header, req *models.Channel, context *models.Cont
 }
 
 // List lists only topic channels
-func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
 	q := request.GetQuery(u)
 	// only list topic or linked topic channels
 	if q.Type != models.Channel_TYPE_LINKED_TOPIC {
 		q.Type = models.Channel_TYPE_TOPIC
+	}
+
+	if q.AccountId != context.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
 	}
 
 	// TODO refactor this function just to return channel ids
@@ -110,11 +115,16 @@ func handleChannelListResponse(channelList []models.Channel, q *request.Query) (
 
 // Search searchs database against given channel name
 // but only returns topic channels
-func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Search(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 	if q.Type != models.Channel_TYPE_LINKED_TOPIC {
 		q.Type = models.Channel_TYPE_TOPIC
 	}
+
+	if q.AccountId != context.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
 	channelList, err := models.NewChannel().Search(q)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -205,12 +215,16 @@ func ByParticipants(u *url.URL, h http.Header, _ interface{}, context *models.Co
 	return response.HandleResultAndError(cc, cc.Err())
 }
 
-func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 	q := request.GetQuery(u)
+
+	if q.AccountId != context.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
 
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {
@@ -306,7 +320,7 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 	return response.NewOK(res)
 }
 
-func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+func Delete(u *url.URL, h http.Header, req *models.Channel, context *models.Context) (int, http.Header, interface{}, error) {
 
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -320,6 +334,18 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	if req.TypeConstant == models.Channel_TYPE_GROUP {
 		return response.NewBadRequest(errors.New("You can not delete group channel"))
 	}
+
+	if req.CreatorId != context.Client.Account.Id {
+		isAdmin, err := modelhelper.IsAdmin(context.Client.Account.Nick, req.GroupName)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if !isAdmin {
+			return response.NewAccessDenied(models.ErrAccessDenied)
+		}
+	}
+
 	if err := req.Delete(); err != nil {
 		return response.NewBadRequest(err)
 	}
