@@ -145,13 +145,18 @@ func InstallCommandFactory(c *cli.Context) int {
 
 	cmd := exec.Command(klientBinPath, "-register",
 		"-token", authToken,
-		"--kontrol-url", kontrolURL, "--kite-home", KiteHome)
+		"--kontrol-url", kontrolURL,
+		"--kite-home", KiteHome,
+	)
+	// Note that we are *only* printing to Stdout. This is done because
+	// Klient logs error messages to Stderr, and we want to control the UX for
+	// that interaction.
+	//
+	// TODO: Logg Klient's Stderr message on error, if any.
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
-	err = cmd.Run()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		// TODO: Log the error, or handle it somehow so it doesn't leak.
 		// log.Errorf("Error registering klient. %q", err)
 		fmt.Printf(`Error: Failed to authenticate the %s.
