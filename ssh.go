@@ -107,7 +107,7 @@ func (s *SSHCommand) run(c *cli.Context) int {
 		return 1
 	}
 
-	cmd := exec.Command("ssh", "-i", s.privateKeyPath(), sshKey)
+	cmd := exec.Command("ssh", "-i", s.privateKeyPath(), sshKey, "-o", "ServerAliveInterval=300", "-o", "ServerAliveCountMax=3")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
