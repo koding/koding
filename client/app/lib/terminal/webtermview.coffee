@@ -56,8 +56,8 @@ module.exports = class WebTermView extends KDCustomScrollView
         menu      : @getAdvancedSettingsMenuItems.bind this
 
 
-    @terminal.sessionEndedCallback = (sessions) =>
-      @emit "WebTerm.terminated"
+    @terminal.sessionEndedCallback = =>
+      @emit 'WebTerm.terminated'  unless @_reconnectionInProgress
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
@@ -106,7 +106,17 @@ module.exports = class WebTermView extends KDCustomScrollView
       cssClass: 'hidden'
 
     @messagePane.on 'RequestNewSession', @lazyBound 'webtermConnect', 'create'
-    @messagePane.on 'RequestReconnect', @bound 'webtermConnect'
+    @messagePane.on 'RequestReconnect', =>
+
+      @_reconnectionInProgress = yes
+
+      currentKite = @getKite()
+      currentKite.off 'closed'
+
+      @getMachine().invalidateKiteCache()
+
+      kd.utils.defer @lazyBound 'webtermConnect', 'resume'
+
     @messagePane.on 'DiscardSession', @lazyBound 'emit', 'WebTerm.terminated'
 
 
@@ -165,7 +175,9 @@ module.exports = class WebTermView extends KDCustomScrollView
 
         @_triedToReconnect = no
 
-        kd.utils.wait 500, @messagePane.bound 'hide'
+        kd.utils.wait 500, =>
+          @messagePane.hide()
+          @_reconnectionInProgress = no
 
       .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
@@ -301,6 +313,7 @@ module.exports = class WebTermView extends KDCustomScrollView
   triggerFitToWindow: ->
 
     return  unless @terminal?.server?
+    return  if @_reconnectionInProgress
     # bc a hidden terminal has 1 col and 1 row
     # we assume that the terminal is hidden and do not trigger resize
     # maybe, better would be to check if the dom element is in the body - SY
