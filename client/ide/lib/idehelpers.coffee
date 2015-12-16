@@ -1,8 +1,11 @@
 kd                    = require 'kd'
 remote                = require('app/remote').getInstance()
 globals               = require 'globals'
+actions               = require 'app/flux/environment/actions'
 FSHelper              = require 'app/util/fs/fshelper'
+isKoding              = require 'app/util/isKoding'
 showError             = require 'app/util/showError'
+actiontypes           = require 'app/flux/environment/actiontypes'
 dataProvider          = require 'app/userenvironmentdataprovider'
 FilePermissionsModal  = require './views/modals/filepermissionsmodal'
 
@@ -37,9 +40,12 @@ module.exports = helpers =
   createWorkspace: (options) ->
 
     { name, machineUId, rootPath, machineLabel, eventObj } = options
-    { computeController, router } = kd.singletons
+    { computeController, router, reactor } = kd.singletons
 
-    if not name or not machineUId or not eventObj
+    unless eventObj
+      eventObj = emit : -> # Create an object which has emit method.
+
+    if not name or not machineUId
       err = message: 'Missing options to create a new workspace'
       return helpers.handleWorkspaceCreateError_ eventObj, err
 
@@ -88,6 +94,8 @@ module.exports = helpers =
               return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
               eventObj.emit 'WorkspaceCreated', workspace
+              kd.singletons.reactor.dispatch actiontypes.WORKSPACE_CREATED, { machine, workspace }
+              actions.hideAddWorkspaceView machine._id
 
               handleRoute(machine, workspace)
 
@@ -95,6 +103,8 @@ module.exports = helpers =
   handleWorkspaceCreateError_: (eventObj, error) ->
 
     eventObj.emit 'WorkspaceCreateFailed', error
+    kd.singletons.reactor.dispatch actiontypes.WORKSPACE_COULD_NOT_CREATE, error
+
     showError "Couldn't create your new workspace."
     kd.warn error
 
