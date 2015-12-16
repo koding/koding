@@ -32,12 +32,13 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
 
   render: ->
 
+    coordinates = @coordinates
     type = if @props.machine.get('type') is 'collaboration'
     then 'collaboration'
     else 'share'
     text = "wants to #{type} their VM with you."
 
-    <SidebarWidget {...@props}>
+    <SidebarWidget {...@props} coordinates={coordinates}>
       <InvitationWidgetUserView
         owner={@props.machine.get 'owner'}
        />
