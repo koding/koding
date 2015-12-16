@@ -171,12 +171,23 @@ module.exports = class SidebarMachinesListItem extends React.Component
       />
 
 
-  handleMachineSettingsClick: ->
+  handleMachineSettingsClick: (event) ->
+
+    kd.utils.stopDOMEvent event
 
     if @machine('type') is 'own'
       kd.singletons.router.handleRoute "/Machines/#{@machine 'slug'}"
     else
-      @setState { showLeaveSharedMachineWidget : yes }
+      sidebarListItem = ReactDOM.findDOMNode @refs.SidebarMachinesListItem
+      clientRect      = sidebarListItem.getBoundingClientRect()
+      coordinates     =
+        top           : clientRect.top - 15
+        left          : clientRect.width + clientRect.left + 15
+
+      @setState { coordinates: coordinates}
+
+      actions.setActiveInvitationMachineId @machine('_id')
+      actions.setActiveLeavingSharedMachineId @machine('_id')
 
 
   settingsEnabled: -> isMachineSettingsIconEnabled @props.machine.toJS()
