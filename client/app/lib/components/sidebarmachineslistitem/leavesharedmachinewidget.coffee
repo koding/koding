@@ -4,7 +4,6 @@ actions                   = require 'app/flux/environment/actions'
 SidebarWidget             = require './sidebarwidget'
 InvitationWidgetUserView  = require './invitationwidgetuserview'
 
-
 module.exports = class LeaveSharedMachineWidget extends React.Component
 
   @defaultProps =
@@ -31,3 +30,4 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
         <span className='button-title'>{buttonText}</span>
       </button>
     </SidebarWidget>
+
