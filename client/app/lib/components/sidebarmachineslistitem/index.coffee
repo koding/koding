@@ -143,18 +143,13 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderLeaveSharedMachine: ->
 
-    return null  unless @state.showLeaveSharedMachineWidget
+    return null  if @props.activeLeavingSharedMachineId isnt @machine('_id')
     return null  if @machine('type') is 'own'
     return null  unless @machine 'isApproved'
 
     <LeaveSharedMachineWidget
       coordinates={@state.coordinates}
-      machine={@props.machine}
-      isOpened={@state.showLeaveSharedMachineWidget}
-      onClose={@bound 'handlePopoverOnClose'}
-      />
-
-
+      machine={@props.machine} />
 
 
   renderMachineSettingsIcon: ->
