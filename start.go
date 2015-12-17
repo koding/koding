@@ -11,18 +11,24 @@ import (
 func StartCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
-		fmt.Printf("Error starting %s: '%s'\n", KlientName, err)
+		log.Errorf("Error creating Service. err:%s", err)
+		fmt.Println(GenericInternalErrorRetry)
 		return 1
 	}
 
 	if err := s.Start(); err != nil {
-		fmt.Printf("Error starting %s: '%s'\n", KlientName, err)
+		log.Errorf("Error starting Service. err:%s", err)
+		fmt.Println(FailedStartKlient)
 		return 1
 	}
 
 	fmt.Println("Waiting until started...")
 	if err := WaitUntilStarted(KlientAddress, 5, 1*time.Second); err != nil {
-		fmt.Printf("Error: The %s was unable to start properly.\n", KlientName)
+		log.Errorf(
+			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
+			5, err,
+		)
+		fmt.Printf(FailedStartKlient)
 		return 1
 	}
 

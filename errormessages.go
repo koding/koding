@@ -39,4 +39,8 @@ var (
 		"Error: Unable to verify the installation of %s.\n%s",
 		Name, retryNewCodeOrContactSupport,
 	)
+
+	FailedStartKlient = fmt.Sprintf(
+		"Error: Failed to start %s within the expected time.\n%s", KlientName, retryOrContactSupport,
+	)
 )
