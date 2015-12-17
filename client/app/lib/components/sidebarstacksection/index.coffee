@@ -34,6 +34,8 @@ module.exports = class SidebarStackSection extends React.Component
 
   render: ->
 
+    return null  unless @props.stack.get('machines').length
+
     <SidebarSection
       className={kd.utils.curry 'SidebarStackSection', @props.className}
       title={@props.stack.get 'title'}
