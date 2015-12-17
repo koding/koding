@@ -17,8 +17,8 @@ module.exports = class Popover extends React.Component
   setCoordinates: ->
 
     popover = ReactDOM.findDOMNode @refs.Popover
-    popover.style.top = "#{@props.coordinates.top}px"
-    popover.style.left = "#{@props.coordinates.left}px"
+    popover.style.top   = "#{@props.coordinates.top - 15}px"
+    popover.style.left  = "#{@props.coordinates.left + 15}px"
 
 
   componentDidUpdate: -> @setCoordinates()
