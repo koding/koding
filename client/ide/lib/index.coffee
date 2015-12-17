@@ -1193,7 +1193,10 @@ class IDEAppController extends AppController
       { mainView }  = kd.singletons
       data          = { machine, workspace: @workspaceData }
 
-      mainView.activitySidebar.selectWorkspace data
+      if isKoding()
+        mainView.activitySidebar.selectWorkspace data
+      else
+        actions.setSelectedWorkspaceId @workspaceData._id
 
       @emit 'IDEReady'
 
