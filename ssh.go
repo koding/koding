@@ -51,7 +51,8 @@ func SSHCommandFactory(c *cli.Context) int {
 	// TODO: Refactor SSHCommand instance to require no initialization,
 	// and thus avoid needing to log an error in a weird place.
 	if err != nil {
-		fmt.Printf("Error initializing ssh: '%s'\n", err)
+		log.Errorf("Error initializing ssh: %s", err)
+		fmt.Println(GenericInternalError)
 		return 1
 	}
 
@@ -93,17 +94,21 @@ func (s *SSHCommand) run(c *cli.Context) int {
 
 	sshKey, err := s.getSSHIp(c.Args()[0])
 	if err != nil {
-		fmt.Printf("Error getting ssh key: '%s'\n", err)
+		// TODO: Is this the right error?
+		log.Errorf("Error getting ssh key. err:%s", err)
+		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
 
 	if err := s.prepareForSSH(c.Args()[0]); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
-			fmt.Println("Currently unable to ssh into managed machines.")
+			log.Errorf("Cannot ssh into managed machines. err:%s", err)
+			fmt.Println(CannotSSHManaged)
 			return 1
 		}
 
-		fmt.Printf("Error getting ssh key: '%s'\n", err)
+		log.Errorf("Error getting ssh key. err:%s", err)
+		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
 
@@ -113,6 +118,7 @@ func (s *SSHCommand) run(c *cli.Context) int {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
+		log.Errorf("Running ssh command returned an error. err:%s", err)
 		return 1
 	}
 

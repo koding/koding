@@ -55,4 +55,12 @@ var (
 	FailedStopKlient = fmt.Sprintf(
 		"Error: Failed to stop the %s within the expected time.\n%s", KlientName, retryOrContactSupport,
 	)
+
+	// FailedGetSSHKey is used when we fail to get the ssh key
+	FailedGetSSHKey = fmt.Sprintf(
+		"Error: Failed to get ssh key.\n%s", retryOrContactSupport,
+	)
+
+	// CannotSSHManaged
+	CannotSSHManaged = "Error: Currently unable to ssh into managed machines."
 )
