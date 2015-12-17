@@ -47,6 +47,11 @@ var (
 		Name, retryNewCodeOrContactSupport,
 	)
 
+	// FailedUninstallingKlient is a generic uninstall error.
+	FailedUninstallingKlient = fmt.Sprintf(
+		"Error: Unable to uninstall %s\n%s", Name, retryOrContactSupport,
+	)
+
 	// FailedStartKlient is used when starting klient fails.
 	FailedStartKlient = fmt.Sprintf(
 		"Error: Failed to start the %s within the expected time.\n%s", KlientName, retryOrContactSupport,
@@ -101,4 +106,17 @@ Please unmount and try again, or contact support@koding.com if this issue persis
 	//
 	// TODO: What can we instruct the user to do here?
 	FailedToUnlockMount = "Warning: Failed to unlock mount."
+
+	// FailedToRemoveFiles is a generic failed to remove warning.
+	FailedToRemoveFilesWarn = fmt.Sprintf(
+		"Warning: Failed to remove %s files. This is not a critical issue.", Name,
+	)
+
+	// FailedToRemoveAuthFile for when we can't remove the kite key.
+	FailedToRemoveAuthFileWarn = "Warning: Failed to remove authorization file. This is not a critical issue."
+
+	// FailedToRemoveKlient for when we can't remove the klient binary.
+	FailedToRemoveKlientWarn = fmt.Sprintf(
+		"Warning: Failed to remove %s binary. This is not a critical issue.", Name,
+	)
 )
