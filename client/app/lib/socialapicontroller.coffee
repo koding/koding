@@ -839,7 +839,7 @@ module.exports = class SocialApiController extends KDController
       remote.api.SocialMessage.fetchDataFromEmbedly args...
 
 
-  channel:
+  channelv2:
 
     byId: (options, callback) ->
       { id } = options
@@ -877,29 +877,12 @@ module.exports = class SocialApiController extends KDController
         data     : options
       , callback
 
-# needs to be checked for create..
-# probably create is never used under client
-#~mehmetali
-    create: (options, callback) ->
-      doXhrRequest
-        type     : 'POST'
-        endPoint : "/api/social/channel"
-        data     : options
-      , callback
-
     searchTopics: (options, callback) ->
       { name } = options
       doXhrRequest
         type     : 'GET'
         endPoint : "/api/social/channel/search"
       , callback
-
-# client didnt use this endpoint.. check ~mehmetali
-    # checkChannelParticipation: (options, callback) ->
-    #   doXhrRequest
-    #     type     : 'GET'
-    #     endPoint : "/api/social/channel/checkparticipation"
-    #   , callback
 
     byParticipants: (options, callback) ->
 
@@ -1042,10 +1025,10 @@ module.exports = class SocialApiController extends KDController
       fnName             : 'fetchFollowedChannels'
       mapperFn           : mapChannels
 
-    searchTopics         : channelRequesterFn
-      fnName             : 'searchTopics'
-      validateOptionsWith: ['name']
-      mapperFn           : mapChannels
+    # searchTopics         : channelRequesterFn
+    #   fnName             : 'searchTopics'
+    #   validateOptionsWith: ['name']
+    #   mapperFn           : mapChannels
 
     fetchProfileFeed     : channelRequesterFn
       fnName             : 'fetchProfileFeed'
@@ -1060,10 +1043,10 @@ module.exports = class SocialApiController extends KDController
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
 
-    delete               : channelRequesterFn
-      fnName             : 'delete'
-      validateOptionsWith: ["channelId"]
-      successFn          : removeChannel
+    # delete               : channelRequesterFn
+    #   fnName             : 'delete'
+    #   validateOptionsWith: ["channelId"]
+    #   successFn          : removeChannel
 
     revive               : mapChannel
 
