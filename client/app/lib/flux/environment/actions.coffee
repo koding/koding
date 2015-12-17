@@ -107,7 +107,7 @@ loadStacks = (force = no) ->
         reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
         resolve stacks
         _bindStackEvents()
-    , yes
+    , force
 
 
 rejectInvitation = (machine) ->
