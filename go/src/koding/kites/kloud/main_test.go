@@ -452,6 +452,8 @@ func TestTerraformStack(t *testing.T) {
 }
 
 func TestLocalProvisioning(t *testing.T) {
+	// TODO(arslan): create a klient
+
 	localTemplate := `{
     "provider": {
         "aws": {
