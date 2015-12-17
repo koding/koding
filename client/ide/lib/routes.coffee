@@ -5,6 +5,7 @@ remote          = require('app/remote').getInstance()
 actions         = require 'app/flux/environment/actions'
 globals         = require 'globals'
 Machine         = require 'app/providers/machine'
+isKoding        = require 'app/util/isKoding'
 lazyrouter      = require 'app/lazyrouter'
 dataProvider    = require 'app/userenvironmentdataprovider'
 registerRoutes  = require 'app/util/registerRoutes'
@@ -18,7 +19,11 @@ selectWorkspaceOnSidebar = (data) ->
 
   return no if not machine or not workspace
 
-  kd.singletons.mainView.activitySidebar.selectWorkspace data
+  if isKoding()
+    kd.getSingleton('mainView').activitySidebar.selectWorkspace data
+  else
+    actions.setSelectedWorkspaceId workspace._id
+
   storage = kd.singletons.localStorageController.storage 'IDE'
 
   workspaceData    =
@@ -171,7 +176,7 @@ routeToLatestWorkspace = ->
   else if machineLabel and workspaceSlug
     dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) =>
       if machine and workspace
-        actions.setSelectedWorkspaceId worksace._id
+        actions.setSelectedWorkspaceId workspace._id
         router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
       else if machine
         routeToMachineWorkspace machine
@@ -243,9 +248,11 @@ routeHandler = (type, info, state, path, ctx) ->
 
         dataProvider.ensureDefaultWorkspace ->
 
-          if machine
-            username = machine.getOwner()
-            data = machineUId: machine.uid, workspaceSlug: params.workspaceSlug
+          dataProvider.fetchWorkspaceByMachineUId data, (workspace) =>
+            if workspace
+              loadIDE { machine, workspace, username }
+            else
+              routeToMachineWorkspace machine
 
             dataProvider.fetchWorkspaceByMachineUId data, (workspace) =>
               if workspace then loadIDE { machine, workspace, username }
