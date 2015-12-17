@@ -10,6 +10,9 @@ showError               = require 'app/util/showError'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
+_machineEventsCache = {}
+
+
 _bindMachineEvents = (environmentData) ->
 
   { reactor, computeController } = kd.singletons
@@ -17,6 +20,10 @@ _bindMachineEvents = (environmentData) ->
   machines = reactor.evaluate getters.machinesWithWorkspaces
 
   machines.map (machine, id) ->
+
+    return  if _machineEventsCache[id]
+
+    _machineEventsCache[id] = yes
 
     computeController.on "public-#{id}", (event) ->
 
