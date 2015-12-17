@@ -32,9 +32,9 @@ module.exports = class SidebarStackSection extends React.Component
 
     <SidebarSection
       className={kd.utils.curry 'SidebarStackSection', @props.className}
-      secondaryLink='/Settings/Stacks'
       title={@props.stack.get 'title'}
       titleLink='/Stacks'
+      secondaryLink='/Stacks'
       unreadCount={@props.stack.getIn [ '_revisionStatus', 'status', 'code' ]}
       >
       {@renderMachines()}
