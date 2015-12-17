@@ -144,7 +144,7 @@ func (t Templates) ByTags(tags Tags) Templates {
 	}
 	var tagged []*Template
 	for _, template := range t {
-		if tags.Matches(template.Tags) {
+		if template.Tags.Matches(tags) {
 			tagged = append(tagged, template)
 		}
 	}
