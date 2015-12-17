@@ -452,6 +452,10 @@ func (c *Client) InstanceStatusByID(id string) (*ec2.InstanceStatus, error) {
 	if len(statuses) > 1 {
 		c.Log.Warning("more than one instance status found with id=%s: %+v", id, statuses)
 	}
+	if len(statuses) == 0 {
+		return nil, newNotFoundError("InstanceStatus", fmt.Errorf("no instance status found with id=%q", id))
+	}
+
 	return statuses[0], nil
 }
 
