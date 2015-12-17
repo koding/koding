@@ -271,9 +271,16 @@ unsetMachineListItem = (id, machineListItem) ->
   reactor.dispatch actions.MACHINE_LIST_ITEM_DELETED, { id ,machineListItem }
 
 
-setActiveInvitationMachineId = (id) ->
+setActiveInvitationMachineId = (machine) ->
 
   { reactor, computeController } = kd.singletons
+
+  id = null
+
+  if machine
+    id = machine.get '_id'
+    id = null  if machine.get('type') is 'own'
+    id = null  if machine.get('isApproved')
 
   reactor.dispatch actions.SET_ACTIVE_INVITATION_MACHINE_ID, { id }
 
