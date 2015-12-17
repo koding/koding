@@ -10,6 +10,7 @@ isGroupChannel                = require 'app/util/isgroupchannel'
 searchListByQuery             = require 'activity/util/searchListByQuery'
 convertEmojisWithSynonyms     = require 'activity/util/convertEmojisWithSynonyms'
 Constants                     = require './constants'
+DropboxType                   = require './dropboxtype'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -41,6 +42,8 @@ CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList
 CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
 CommandsSelectedIndexStore          = [['ChatInputCommandsSelectedIndexStore'], withEmptyMap]
 CommandsVisibilityStore             = [['ChatInputCommandsVisibilityStore'], withEmptyMap]
+
+DropboxSettingsStore                = [['ChatInputDropboxSettingsStore'], withEmptyMap]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -461,6 +464,196 @@ commandsVisibility = (stateId) -> [
 ]
 
 
+##################### DROPBOX GETTERS #####################
+
+dropboxSettings = (stateId) -> [
+  DropboxSettingsStore
+  (settings) -> settings.get stateId
+]
+
+
+dropboxQuery = (stateId) -> [
+  dropboxSettings stateId
+  (settings) -> settings?.get 'query'
+]
+
+
+dropboxType = (stateId) -> [
+  dropboxSettings stateId
+  (settings) -> settings?.get 'type'
+]
+
+
+dropboxEmojis = (stateId) -> [
+  dropboxType stateId
+  dropboxQuery stateId
+  EmojisStore
+  (type, query, emojis) ->
+    return  unless type is DropboxType.EMOJI
+    return  unless query
+
+    emojis = searchListByQuery emojis, query
+    emojis.sort (emoji1, emoji2) ->
+        return -1  if emoji1.indexOf(query) is 0
+        return 1  if emoji2.indexOf(query) is 0
+        return 0
+]
+
+
+dropboxChannels = (stateId) -> [
+  dropboxType stateId
+  dropboxQuery stateId
+  ActivityFluxGetters.allChannels
+  ActivityFluxGetters.popularChannels
+  (type, query, allChannels, popularChannels) ->
+    return  unless type is DropboxType.CHANNEL
+    return popularChannels.toList()  unless query
+
+    query = query.toLowerCase()
+    allChannels.toList().filter (channel) ->
+      channelName = channel.get('name').toLowerCase()
+      return channelName.indexOf(query) is 0
+]
+
+
+dropboxUserMentions = (stateId) -> [
+  dropboxType stateId
+  dropboxQuery stateId
+  ActivityFluxGetters.allUsers
+  ActivityFluxGetters.selectedChannelParticipants
+  currentCommand stateId
+  ActivityFluxGetters.notSelectedChannelParticipants
+  (type, query, allUsers, participants, command, notParticipants) ->
+    return  unless type is DropboxType.MENTION
+
+    isInviteCommand = command?.name is '/invite'
+
+    unless query
+      map = if isInviteCommand then notParticipants else participants
+      return if map then map.toList() else immutable.List()
+
+    query  = query.toLowerCase()
+    map = if isInviteCommand then notParticipants else allUsers
+    map.toList().filter (user) ->
+      profile = user.get 'profile'
+      names = [
+        profile.get 'nickname'
+        profile.get 'firstName'
+        profile.get 'lastName'
+      ]
+      return findNameByQuery names, query
+]
+
+
+dropboxChannelMentions = (stateId) -> [
+  dropboxType stateId
+  dropboxQuery stateId
+  ChannelMentionsStore
+  currentCommand stateId
+  (type, query, mentions, command) ->
+    return  unless type is DropboxType.MENTION
+
+    return immutable.List()  if command?.name is '/invite'
+    return mentions  unless query
+
+    query = query.toLowerCase()
+    mentions.filter (mention) ->
+      return findNameByQuery mention.get('names').toJS(), query
+]
+
+
+dropboxMentions = (stateId) -> [
+  dropboxUserMentions stateId
+  dropboxChannelMentions stateId
+  (userMentions, channelMentions) ->
+    return  unless userMentions and channelMentions
+    return  { userMentions, channelMentions }
+]
+
+
+dropboxSearchItems = (stateId, disabledFeatures = []) -> [
+  dropboxType stateId
+  SearchStore
+  (settings, searchStore) ->
+    return  unless type is DropboxType.SEARCH
+    return  if disabledFeatures.indexOf('search') > -1
+
+    return searchStore.get stateId
+]
+
+
+dropboxCommands = (stateId, disabledFeatures = []) -> [
+  dropboxType stateId
+  dropboxQuery stateId
+  CommandsStore
+  ActivityFluxGetters.selectedChannelThread
+  (type, query, allCommands, selectedChannelThread) ->
+    return  unless type is DropboxType.COMMAND
+    return  if disabledFeatures.indexOf('commands') > -1 or not selectedChannelThread
+
+    ignoredFeatures  = []
+    selectedChannel  = selectedChannelThread.get('channel').toJS()
+    isPrivateChannel = selectedChannel.typeConstant is 'privatemessage'
+    ignoredFeatures.push 'search'  if isPrivateChannel
+    ignoredFeatures.push 'leave'   if isGroupChannel selectedChannel
+
+    ignoredFeatures = disabledFeatures.concat ignoredFeatures
+
+    availableCommands = allCommands.filterNot (command) ->
+      featureName = command.get('name').replace '/', ''
+      return ignoredFeatures.indexOf(featureName) > -1
+
+    return availableCommands  if query is '/'
+
+    availableCommands.filter (command) ->
+      commandName = command.get 'name'
+      return commandName.indexOf(query) is 0
+]
+
+
+dropboxItems = (stateId) -> [
+  dropboxChannels stateId
+  dropboxEmojis stateId
+  dropboxMentions stateId
+  dropboxSearchItems stateId
+  dropboxCommands stateId
+  (channels, emojis, mentions, searchItems, commands) ->
+    return channels ? emojis ? mentions ? searchItems ? commands
+]
+
+
+dropboxRawSelectedIndex = (stateId) -> [
+  dropboxSettings stateId
+  (settings) -> settings?.get 'index'
+]
+
+
+dropboxSelectedIndex = (stateId) -> [
+  dropboxType stateId
+  dropboxItems stateId
+  dropboxRawSelectedIndex stateId
+  (type, items, index) ->
+    if type is DropboxType.MENTION
+      { userMentions, channelMentions } = items
+      items = userMentions.concat channelMentions
+
+    return calculateListSelectedIndex items, index
+]
+
+
+dropboxSelectedItem = (stateId) -> [
+  dropboxType stateId
+  dropboxItems stateId
+  dropboxSelectedIndex stateId
+  (type, items, index) ->
+    if type is DropboxType.MENTION
+      { userMentions, channelMentions } = items
+      items = userMentions.concat channelMentions
+
+    return getListSelectedItem items, index
+]
+
+
 module.exports = {
   filteredEmojiList
   filteredEmojiListQuery
@@ -507,5 +700,12 @@ module.exports = {
   commandsSelectedIndex
   commandsSelectedItem
   commandsVisibility
+
+
+  dropboxType
+  dropboxQuery
+  dropboxItems
+  dropboxSelectedIndex
+  dropboxSelectedItem
 }
 
