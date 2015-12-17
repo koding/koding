@@ -18,8 +18,6 @@ module.exports = class ChatInputDropboxSettingsStore extends KodingFluxStore
     @on actions.SET_DROPBOX_SELECTED_INDEX, @setIndex
     @on actions.MOVE_TO_NEXT_DROPBOX_SELECTED_INDEX, @moveToNextIndex
     @on actions.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, @moveToPrevIndex
-    @on actions.MARK_DROPBOX_AS_HIDDEN, @markAsHidden
-    @on actions.UNMARK_DROPBOX_AS_HIDDEN, @unmarkAsHidden
     @on actions.RESET_DROPBOX, @reset
 
 
@@ -57,18 +55,6 @@ module.exports = class ChatInputDropboxSettingsStore extends KodingFluxStore
     currentState = currentState.setIn [ stateId, 'query' ], ''
     currentState = currentState.setIn [ stateId, 'type' ], ''
     currentState = currentState.setIn [ stateId, 'index' ], 0
-
-
-  markAsHidden: (currentState, { stateId }) ->
-
-    currentState = helper.ensureSettingsMap currentState, stateId
-    currentState.setIn [ stateId, 'hidden' ], yes
-
-
-  unmarkAsHidden: (currentState, { stateId }) ->
-
-    currentState = helper.ensureSettingsMap currentState, stateId
-    currentState.setIn [ stateId, 'hidden' ], no
 
 
   helper =
