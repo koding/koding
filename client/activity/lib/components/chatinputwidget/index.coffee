@@ -120,9 +120,9 @@ module.exports = class ChatInputWidget extends React.Component
     cursorPosition = helpers.getCursorPosition textInput
 
     ChatInputFlux.actions.value.setValue channelId, @stateId, value
-    onChange value  unless skipChangeEvent
-
     ChatInputFlux.actions.dropbox.checkForQuery @stateId, value, cursorPosition
+
+    onChange value  unless skipChangeEvent
 
 
   resetValue: ->

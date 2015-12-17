@@ -3,19 +3,15 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-formatEmojiName      = require 'activity/util/formatEmojiName'
-ChatInputFlux        = require 'activity/flux/chatinput'
 Dropbox              = require 'activity/components/dropbox/portaldropbox'
 EmojiDropboxItem     = require 'activity/components/emojidropboxitem'
-DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
-isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
 EmojiBoxWrapperMixin = require 'activity/components/emojiboxwrapper/mixin'
 
 
 module.exports = class EmojiDropbox extends React.Component
 
-  @include [ImmutableRenderMixin, DropboxWrapperMixin, EmojiBoxWrapperMixin]
+  @include [ImmutableRenderMixin, EmojiBoxWrapperMixin]
 
 
   @defaultProps =
@@ -25,63 +21,12 @@ module.exports = class EmojiDropbox extends React.Component
     query          : ''
 
 
-  formatSelectedValue: -> formatEmojiName @props.selectedItem
-
-
   getItemKey: (item) -> item
 
 
-  close: ->
+  updatePosition: (inputDimensions) ->
 
-    { stateId } = @props
-    ChatInputFlux.actions.emoji.unsetFilteredListQuery stateId
-
-
-  moveToNextPosition: (keyInfo) ->
-
-    if @hasSingleItem() and keyInfo.isRightArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.emoji.moveToNextFilteredListIndex stateId
-
-    return yes
-
-
-  moveToPrevPosition: (keyInfo) ->
-
-    if @hasSingleItem() and keyInfo.isLeftArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.emoji.moveToPrevFilteredListIndex stateId
-
-    return yes
-
-
-  checkTextForQuery: (textData) ->
-
-    { currentWord, value, position } = textData
-    return no  unless currentWord
-
-    matchResult = currentWord.match /^\:(.+)/
-    return no  unless matchResult
-    return no  if isWithinCodeBlock value, position
-
-    query = matchResult[1]
-    { stateId } = @props
-    ChatInputFlux.actions.emoji.setFilteredListQuery stateId, query
-    return yes
-
-
-  onItemSelected: (index) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.emoji.setFilteredListSelectedIndex stateId, index
+    @refs.dropbox.setInputDimensions inputDimensions
 
 
   renderList: ->
@@ -96,8 +41,8 @@ module.exports = class EmojiDropbox extends React.Component
         index       = { index }
         item        = { item }
         query       = { query }
-        onSelected  = { @bound 'onItemSelected' }
-        onConfirmed = { @bound 'confirmSelectedItem' }
+        onSelected  = { @props.onItemSelected }
+        onConfirmed = { @props.onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -105,12 +50,12 @@ module.exports = class EmojiDropbox extends React.Component
 
   render: ->
 
-    { query } = @props
+    { query, items } = @props
 
     <Dropbox
       className = 'EmojiDropbox'
-      visible   = { @isActive() }
-      onClose   = { @bound 'close' }
+      visible   = { items.size > 0 }
+      onClose   = { @props.onClose }
       type      = 'dropup'
       title     = 'Emojis matching '
       subtitle  = { ":#{query}" }

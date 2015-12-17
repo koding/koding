@@ -22,7 +22,7 @@ module.exports = helpers =
       continue  unless text
 
       matchResult = text.match regexp
-      return { type, value : matchResult[index] }  if matchResult
+      return { type, query : matchResult[index] }  if matchResult
 
 
   getLastWord: (text) ->

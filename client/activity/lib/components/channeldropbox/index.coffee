@@ -4,83 +4,26 @@ immutable            = require 'immutable'
 classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox/portaldropbox'
 ChannelDropboxItem   = require 'activity/components/channeldropboxitem'
-DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
-ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
-isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
 
 
 module.exports = class ChannelDropbox extends React.Component
 
-  @include [ImmutableRenderMixin, DropboxWrapperMixin]
+  @include [ImmutableRenderMixin]
 
 
   @defaultProps =
     items          : immutable.List()
-    visible        : no
     selectedIndex  : 0
     selectedItem   : null
-
-
-  formatSelectedValue: -> "##{@props.selectedItem.get 'name'}"
 
 
   getItemKey: (item) -> item.get 'id'
 
 
-  close: ->
+  updatePosition: (inputDimensions) ->
 
-    { stateId } = @props
-    ChatInputFlux.actions.channel.setVisibility stateId, no
-
-
-  moveToNextPosition: (keyInfo) ->
-
-    if keyInfo.isRightArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.channel.moveToNextIndex stateId
-
-    return yes
-
-
-  moveToPrevPosition: (keyInfo) ->
-
-    if keyInfo.isLeftArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.channel.moveToPrevIndex stateId
-
-    return yes
-
-
-  checkTextForQuery: (textData) ->
-
-    { currentWord, value, position } = textData
-    return no  unless currentWord
-
-    matchResult = currentWord.match /^#(.*)/
-
-    return no  unless matchResult
-    return no  if isWithinCodeBlock value, position
-
-    query = matchResult[1]
-    { stateId } = @props
-    ChatInputFlux.actions.channel.setQuery stateId, query
-    ChatInputFlux.actions.channel.setVisibility stateId, yes
-    return yes
-
-
-  onItemSelected: (index) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.channel.setSelectedIndex stateId, index
+    @refs.dropbox.setInputDimensions inputDimensions
 
 
   renderList: ->
@@ -94,8 +37,8 @@ module.exports = class ChannelDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @bound 'onItemSelected' }
-        onConfirmed = { @bound 'confirmSelectedItem' }
+        onSelected  = { @props.onItemSelected }
+        onConfirmed = { @props.onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -103,10 +46,12 @@ module.exports = class ChannelDropbox extends React.Component
 
   render: ->
 
+    { items } = @props
+
     <Dropbox
       className = 'ChannelDropbox'
-      visible   = { @isActive() }
-      onClose   = { @bound 'close' }
+      visible   = { items.size > 0 }
+      onClose   = { @props.onClose }
       type      = 'dropup'
       title     = 'Channels'
       ref       = 'dropbox'

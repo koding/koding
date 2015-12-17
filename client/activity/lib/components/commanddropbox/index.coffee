@@ -5,15 +5,12 @@ classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox/portaldropbox'
 CommandDropboxItem   = require 'activity/components/commanddropboxitem'
 ErrorDropboxItem     = require 'activity/components/errordropboxitem'
-DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
-ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
-isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
 
 
 module.exports = class CommandDropbox extends React.Component
 
-  @include [ImmutableRenderMixin, DropboxWrapperMixin]
+  @include [ImmutableRenderMixin]
 
 
   @defaultProps =
@@ -23,73 +20,12 @@ module.exports = class CommandDropbox extends React.Component
     selectedItem   : null
 
 
-  isActive: -> @props.visible
-
-
-  formatSelectedValue: ->
-
-    { selectedItem } = @props
-    return ''  unless selectedItem
-
-    return "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
-
-
   getItemKey: (item) -> item.get 'name'
 
 
-  close: ->
+  updatePosition: (inputDimensions) ->
 
-    { stateId } = @props
-    ChatInputFlux.actions.command.setVisibility stateId, no
-
-
-  moveToNextPosition: (keyInfo) ->
-
-    if keyInfo.isRightArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.command.moveToNextIndex stateId
-
-    return yes
-
-
-  moveToPrevPosition: (keyInfo) ->
-
-    if keyInfo.isLeftArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.command.moveToPrevIndex stateId
-
-    return yes
-
-
-  checkTextForQuery: (textData) ->
-
-    { currentWord, value, position } = textData
-    return no  unless currentWord
-
-    matchResult = value.match /^(\/[^\s]*)$/
-
-    return no  unless matchResult
-    return no  if isWithinCodeBlock value, position
-
-    query = matchResult[1]
-    { stateId } = @props
-    ChatInputFlux.actions.command.setQuery stateId, query
-    ChatInputFlux.actions.command.setVisibility stateId, yes
-    return yes
-
-
-  onItemSelected: (index) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.command.setSelectedIndex stateId, index
+    @refs.dropbox.setInputDimensions inputDimensions
 
 
   renderList: ->
@@ -103,8 +39,8 @@ module.exports = class CommandDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @bound 'onItemSelected' }
-        onConfirmed = { @bound 'confirmSelectedItem' }
+        onSelected  = { @props.onItemSelected }
+        onConfirmed = { @props.onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -127,8 +63,8 @@ module.exports = class CommandDropbox extends React.Component
 
     <Dropbox
       className = 'CommandDropbox'
-      visible   = { @isActive() }
-      onClose   = { @bound 'close' }
+      visible   = { query? }
+      onClose   = { @props.onClose }
       type      = 'dropup'
       title     = 'Commands matching'
       subtitle  = { query }

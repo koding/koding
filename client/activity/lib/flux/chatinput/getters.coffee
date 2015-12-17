@@ -11,6 +11,7 @@ searchListByQuery             = require 'activity/util/searchListByQuery'
 convertEmojisWithSynonyms     = require 'activity/util/convertEmojisWithSynonyms'
 Constants                     = require './constants'
 DropboxType                   = require './dropboxtype'
+isPublicChannel               = require 'app/util/isPublicChannel'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -511,8 +512,9 @@ dropboxChannels = (stateId) -> [
 
     query = query.toLowerCase()
     allChannels.toList().filter (channel) ->
-      channelName = channel.get('name').toLowerCase()
-      return channelName.indexOf(query) is 0
+      channel = channel.toJS()
+      name    = channel.name.toLowerCase()
+      return name.indexOf(query) is 0 and isPublicChannel channel
 ]
 
 
@@ -574,7 +576,7 @@ dropboxMentions = (stateId) -> [
 dropboxSearchItems = (stateId, disabledFeatures = []) -> [
   dropboxType stateId
   SearchStore
-  (settings, searchStore) ->
+  (type, searchStore) ->
     return  unless type is DropboxType.SEARCH
     return  if disabledFeatures.indexOf('search') > -1
 
