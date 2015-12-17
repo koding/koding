@@ -12,6 +12,8 @@ convertEmojisWithSynonyms     = require 'activity/util/convertEmojisWithSynonyms
 Constants                     = require './constants'
 DropboxType                   = require './dropboxtype'
 isPublicChannel               = require 'app/util/isPublicChannel'
+formatEmojiName               = require 'activity/util/formatEmojiName'
+
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -656,6 +658,30 @@ dropboxSelectedItem = (stateId) -> [
 ]
 
 
+dropboxFormattedSelectedItem = (stateId) -> [
+  dropboxType stateId
+  dropboxQuery stateId
+  dropboxSelectedItem stateId
+  (type, query, selectedItem) ->
+    return  unless selectedItem
+
+    switch type
+      when DropboxType.CHANNEL
+        return "##{selectedItem.get 'name'}"
+      when DropboxType.EMOJI
+        return formatEmojiName selectedItem
+      when DropboxType.MENTION
+        names = selectedItem.get('names')
+        if names
+          name = findNameByQuery(names.toJS(), query) ? names.first()
+        else
+          name = selectedItem.getIn ['profile', 'nickname']
+        return "@#{name}"
+      when DropboxType.COMMAND
+        return "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
+]
+
+
 module.exports = {
   filteredEmojiList
   filteredEmojiListQuery
@@ -709,5 +735,6 @@ module.exports = {
   dropboxItems
   dropboxSelectedIndex
   dropboxSelectedItem
+  dropboxFormattedSelectedItem
 }
 
