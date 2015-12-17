@@ -53,18 +53,7 @@ module.exports = class Sidebar extends React.Component
     EnvironmentFlux.actions.setActiveInvitationMachineId id  if id
 
 
-  getRequiredInvitationMachineId: ->
 
-    machineId = null
-    (@state.sharedMachines.concat @state.collaborationMachines).forEach (machine) ->
-
-      return  if machineId
-      return  if machine.get('type') is 'own'
-      return  if machine.get('isApproved')
-
-      machineId =  machine.get '_id'
-
-    return machineId
 
 
   renderInvitationWidget: ->
