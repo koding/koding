@@ -10,6 +10,7 @@ SharedMachinesStore           = ['SharedMachinesStore']
 CollaborationMachinesStore    = ['CollaborationMachinesStore']
 AddWorkspaceViewStore         = ['AddWorkspaceViewStore']
 ActiveWorkspaceStore          = ['ActiveWorkspaceStore']
+ActiveMachineStore            = ['ActiveMachineStore']
 DeleteWorkspaceWidgetStore    = ['DeleteWorkspaceWidgetStore']
 ConnectedManagedMachineStore  = ['ConnectedManagedMachineStore']
 
@@ -84,6 +85,7 @@ module.exports = {
   stacks
   addWorkspaceView : AddWorkspaceViewStore
   activeWorkspace : ActiveWorkspaceStore
+  activeMachine : ActiveMachineStore
   deleteWorkspaceWidget : DeleteWorkspaceWidgetStore
   connectedManagedMachine : ConnectedManagedMachineStore
 }

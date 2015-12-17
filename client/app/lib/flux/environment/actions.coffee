@@ -222,6 +222,11 @@ setSelectedWorkspaceId = (workspaceId) ->
   kd.singletons.reactor.dispatch actions.WORKSPACE_SELECTED, workspaceId
 
 
+setSelectedMachineId = (machineId) ->
+
+  kd.singletons.reactor.dispatch actions.MACHINE_SELECTED, machineId
+
+
 showDeleteWorkspaceWidget = (workspaceId) ->
 
   kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, workspaceId
@@ -251,6 +256,7 @@ module.exports = {
   hideAddWorkspaceView
   deleteWorkspace
   setSelectedWorkspaceId
+  setSelectedMachineId
   showDeleteWorkspaceWidget
   hideDeleteWorkspaceWidget
   showManagedMachineAddedModal

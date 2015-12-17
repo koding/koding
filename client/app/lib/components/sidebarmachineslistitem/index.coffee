@@ -8,6 +8,8 @@ ReactDOM                        = require 'react-dom'
 htmlencode                      = require 'htmlencode'
 toImmutable                     = require 'app/util/toImmutable'
 getMachineLink                  = require 'app/util/getMachineLink'
+KDReactorMixin                  = require 'app/flux/base/reactormixin'
+EnvironmentFlux                 = require 'app/flux/environment'
 AddWorkspaceView                = require './addworkspaceview'
 isMachineRunning                = require 'app/util/isMachineRunning'
 MoreWorkspacesModal             = require 'app/activity/sidebar/moreworkspacesmodal'
@@ -24,6 +26,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
   @defaultProps =
     bindWorkspacesTitleClick  : yes
     showInSidebar : yes
+
+
+  getDataBindings: ->
+    activeMachine : EnvironmentFlux.getters.activeMachine
 
 
   constructor: (props) ->
@@ -192,11 +198,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  unless @props.showInSidebar
 
     status      = @machine ['status', 'state']
-    activeClass = if @props.active then ' active' else ''
+    activeClass = if @state.activeMachine is @machine('_id') then ' active' else ''
 
-    <div className="SidebarMachinesListItem #{status}">
+    <div className="SidebarMachinesListItem #{status} #{activeClass}">
       <Link
-        className={"SidebarMachinesListItem--MainLink#{activeClass}"}
+        className={"SidebarMachinesListItem--MainLink"}
         href='#'
         onClick={@bound 'handleMachineClick'}
         ref='SidebarMachinesListItem'
@@ -238,3 +244,5 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     # TODO: handle new workspace creation
     modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
+
+React.Component.include.call SidebarMachinesListItem, [KDReactorMixin]
