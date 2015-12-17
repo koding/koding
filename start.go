@@ -12,7 +12,7 @@ func StartCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
 		log.Errorf("Error creating Service. err:%s", err)
-		fmt.Println(GenericInternalErrorRetry)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 

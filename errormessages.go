@@ -14,12 +14,12 @@ var (
 		"Error: Encountered an internal error.\n%s", retryOrContactSupport,
 	)
 
-	// GenericInternalErrorRetry is a generic error message. Typically used when we
+	// GenericInternalNewCodeError is a generic error message. Typically used when we
 	// don't want to reveal what exactly went wrong, like confusing implementation
 	// details.
 	//
 	// It instructs them to get a new code and try again.
-	GenericInternalErrorRetry = fmt.Sprintf(
+	GenericInternalNewCodeError = fmt.Sprintf(
 		"Error: Encountered an internal error.\n%s", retryNewCodeOrContactSupport,
 	)
 

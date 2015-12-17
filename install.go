@@ -82,7 +82,7 @@ func InstallCommandFactory(c *cli.Context) int {
 	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
 	if err != nil {
 		log.Errorf("Error creating klient.sh path: %s", err)
-		fmt.Println(GenericInternalErrorRetry)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
@@ -92,7 +92,7 @@ func InstallCommandFactory(c *cli.Context) int {
 			"Error creating klient binary path. path:%s, err:%s",
 			filepath.Join(KlientDirectory, "klient"), err,
 		)
-		fmt.Println(GenericInternalErrorRetry)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
@@ -210,14 +210,14 @@ func InstallCommandFactory(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
 		log.Errorf("Error creating Service. err:%s", err)
-		fmt.Println(GenericInternalErrorRetry)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
 	// Install the klient binary as a OS service
 	if err = s.Install(); err != nil {
 		log.Errorf("Error installing Service. err:%s", err)
-		fmt.Println(GenericInternalErrorRetry)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
