@@ -1171,7 +1171,7 @@ class IDEAppController extends AppController
 
     # when MachineStateModal calls this func, we need to rebind Klient.
     @bindKlientEvents machine
-    machine.getBaseKite().fetchTerminalSessions()
+    machine.getBaseKite()?.fetchTerminalSessions?()
 
     @fetchSnapshot (snapshot) =>
 
