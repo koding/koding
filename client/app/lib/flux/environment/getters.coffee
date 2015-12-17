@@ -64,6 +64,22 @@ collaborationMachines = [
         .set 'isPermanent', machineRuleChecker machine, ['permanent']
 ]
 
+requiredInvitationMachine = [
+  sharedMachines
+  collaborationMachines
+  (collaboration, shared) ->
+    _machine = null
+    (collaboration.concat shared).forEach (machine) ->
+
+      return  if _machine
+      return  if machine.get('type') is 'own'
+      return  if machine.get('isApproved')
+
+      _machine = machine
+
+    return _machine
+]
+
 stacks = [
   StacksStore
   machinesWithWorkspaces
@@ -84,6 +100,7 @@ module.exports = {
   ownMachines
   sharedMachines
   collaborationMachines
+  requiredInvitationMachine
   machinesWithWorkspaces
   sharedMachineListItems
   addWorkspaceView : AddWorkspaceViewStore

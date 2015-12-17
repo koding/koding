@@ -28,6 +28,7 @@ module.exports = class Sidebar extends React.Component
       sharedMachineListItems       : EnvironmentFlux.getters.sharedMachineListItems
       activeInvitationMachineId    : EnvironmentFlux.getters.activeInvitationMachineId
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
+      requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
     }
 
 
