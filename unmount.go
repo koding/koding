@@ -19,22 +19,23 @@ func UnmountCommand(c *cli.Context) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to remote machine: '%s'", err,
-		))
+		log.Errorf("Error creating klient client. err:%s", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to remote machine: '%s'", err,
-		))
+		log.Errorf("Error dialing klient client. err:%s", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	infos, err := getListOfMachines(k)
 	if err != nil {
-		fmt.Print(err)
+		log.Errorf("Failed to get list of machines on mount. err:%s", err)
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		fmt.Println(GenericInternalError)
 		return 1
 	}
 
@@ -50,9 +51,8 @@ func UnmountCommand(c *cli.Context) int {
 
 	// unmount using mount name
 	if err := unmount(k, name, ""); err != nil {
-		fmt.Print(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error unmounting '%s': '%s'\n", name, err,
-		))
+		log.Errorf("Error unmounting. err:%s", err)
+		fmt.Print(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
 		return 1
 	}
 
@@ -63,7 +63,8 @@ func UnmountCommand(c *cli.Context) int {
 
 func unmount(kite *kite.Client, name, path string) error {
 	if err := Unlock(path); err != nil {
-		fmt.Printf("Warning: unlocking failed due to %s.\n", err)
+		log.Warningf("Failed to unlock mount. err:%s", err)
+		fmt.Println(FailedToUnlockMount)
 	}
 
 	req := struct{ Name, LocalPath string }{Name: name, LocalPath: path}

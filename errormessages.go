@@ -94,6 +94,11 @@ var (
 
 	// FailedToLockMount instructs the user to unmount and mount again, since the
 	// actual mount likely succeeded, only the locking failed.
-	FailedToLockMount = `Error: Failed to lock the given directory.
+	FailedToLockMount = `Error: Failed to lock the mount.
 Please unmount and try again, or contact support@koding.com if this issue persists.`
+
+	// FailedToUnlockMount is when we fail to unlock the given directory.
+	//
+	// TODO: What can we instruct the user to do here?
+	FailedToUnlockMount = "Warning: Failed to unlock mount."
 )
