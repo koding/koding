@@ -1,16 +1,17 @@
 machineRuleChecker = require 'app/util/machinerulechecker'
 getMachineOwner    = require 'app/util/getmachineowner'
 
-StacksStore                = ['StacksStore']
-MachinesStore              = ['MachinesStore']
-WorkspacesStore            = ['WorkspacesStore']
-MachinesWorkspacesStore    = ['MachinesWorkspacesStore']
-OwnMachinesStore           = ['OwnMachinesStore']
-SharedMachinesStore        = ['SharedMachinesStore']
-CollaborationMachinesStore = ['CollaborationMachinesStore']
-AddWorkspaceViewStore      = ['AddWorkspaceViewStore']
-ActiveWorkspaceStore       = ['ActiveWorkspaceStore']
-DeleteWorkspaceWidgetStore = ['DeleteWorkspaceWidgetStore']
+StacksStore                   = ['StacksStore']
+MachinesStore                 = ['MachinesStore']
+WorkspacesStore               = ['WorkspacesStore']
+MachinesWorkspacesStore       = ['MachinesWorkspacesStore']
+OwnMachinesStore              = ['OwnMachinesStore']
+SharedMachinesStore           = ['SharedMachinesStore']
+CollaborationMachinesStore    = ['CollaborationMachinesStore']
+AddWorkspaceViewStore         = ['AddWorkspaceViewStore']
+ActiveWorkspaceStore          = ['ActiveWorkspaceStore']
+DeleteWorkspaceWidgetStore    = ['DeleteWorkspaceWidgetStore']
+ConnectedManagedMachineStore  = ['ConnectedManagedMachineStore']
 
 
 machinesWithWorkspaces = [
@@ -84,4 +85,5 @@ module.exports = {
   addWorkspaceView : AddWorkspaceViewStore
   activeWorkspace : ActiveWorkspaceStore
   deleteWorkspaceWidget : DeleteWorkspaceWidgetStore
+  connectedManagedMachine : ConnectedManagedMachineStore
 }

@@ -226,6 +226,16 @@ hideDeleteWorkspaceWidget = (workspaceId) ->
   kd.singletons.reactor.dispatch actions.HIDE_DELETE_WORKSPACE_WIDGET, workspaceId
 
 
+showManagedMachineAddedModal = (machineId) ->
+
+  kd.singletons.reactor.dispatch actions.SHOW_MANAGED_MACHINE_ADDED_MODAL, machineId
+
+
+hideManagedMachineAddedModal = (machineId) ->
+
+  kd.singletons.reactor.dispatch actions.HIDE_MANAGED_MACHINE_ADDED_MODAL, machineId
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -237,4 +247,6 @@ module.exports = {
   setSelectedWorkspaceId
   showDeleteWorkspaceWidget
   hideDeleteWorkspaceWidget
+  showManagedMachineAddedModal
+  hideManagedMachineAddedModal
 }
