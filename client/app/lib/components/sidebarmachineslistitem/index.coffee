@@ -23,6 +23,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   @defaultProps =
     bindWorkspacesTitleClick  : yes
+    visible : yes
 
 
   constructor: (props) ->
@@ -38,6 +39,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
 
   componentWillReceiveProps: ->
+
+    return  unless @refs.SidebarMachinesListItem
 
     coordinates = getBoundingClientReact @refs.SidebarMachinesListItem
     @setState { coordinates: coordinates }
@@ -185,6 +188,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
 
   render: ->
+
+    return null  unless @props.visible
 
     status      = @machine ['status', 'state']
     activeClass = if @props.active then ' active' else ''

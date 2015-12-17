@@ -20,11 +20,15 @@ module.exports = class SidebarStackSection extends React.Component
 
   renderMachines: ->
 
+    config = @props.stack.get 'config'
+
     @props.stack.get('machines').map (machine) =>
+      visible = config?.getIn [ 'sidebar', machine.get('uid'), 'visibility' ]
       <SidebarMachinesListItem
         key={machine.get '_id'}
         machine={machine}
         active={machine.get('_id') is @props.selectedId}
+        visible={visible}
         />
 
 
