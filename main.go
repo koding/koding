@@ -97,7 +97,7 @@ func main() {
 					Usage: "Full path of remote folder in machine to mount.",
 				},
 				cli.BoolFlag{
-					Name:  "noignore, n",
+					Name:  "noignore, i",
 					Usage: "Disable ignoring of default remote folders.",
 				},
 				cli.BoolFlag{

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -43,6 +44,9 @@ func MountCommand(c *cli.Context) int {
 			localPath = absoluteLocalPath
 		}
 	}
+
+	// remove trailing slashes in remote argument
+	remotePath = path.Clean(remotePath)
 
 	// Ask the user if they want the localPath created, if it does not exist.
 	if err := askToCreate(localPath, os.Stdin, os.Stdout); err != nil {

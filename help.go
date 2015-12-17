@@ -14,10 +14,11 @@ var cmdDescriptions = map[string]string{
 		fmt.Sprintf("Install the %s. sudo is required.", KlientName),
 	),
 	"mount": fmtDesc(
-		"<alias> </path/local/folder>",
+		"<alias> <local folder>",
 		fmt.Sprintf(`Mount folder from remote machine to local folder.
     Alias is the local identifer for machine in 'kd list'.
-    Local folder can be relative or absolute path.`),
+    Local folder can be relative or absolute path, if
+    folder doesn't exit, it'll be created.`),
 	),
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
