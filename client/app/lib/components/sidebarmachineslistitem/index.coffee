@@ -71,7 +71,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
   handleMachineClick: (event) ->
 
     kd.utils.defer =>
-      actions.setActiveInvitationMachineId @props.machine.get '_id'
+      actions.setActiveInvitationMachineId @props.machine
       actions.setActiveLeavingSharedMachineId null
 
     @setState { collapsed: not @state.collapsed }
@@ -178,7 +178,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
       @setState { coordinates: coordinates}
 
-      actions.setActiveInvitationMachineId @machine('_id')
+      actions.setActiveInvitationMachineId @props.machine
       actions.setActiveLeavingSharedMachineId @machine('_id')
 
 
