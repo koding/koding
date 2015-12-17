@@ -1,6 +1,8 @@
 kd              = require 'kd'
 whoami          = require 'app/util/whoami'
 globals         = require 'globals'
+actions         = require 'app/flux/environment/actions'
+isKoding        = require 'app/util/isKoding'
 CopyTooltipView = require 'app/components/common/copytooltipview'
 
 
@@ -51,7 +53,11 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   machineFoundCallback: (info, machine) ->
 
-    kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
+    if isKoding()
+      kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
+    else
+      actions.showManagedMachineAddedModal machine._id
+
     @destroy()
 
 
