@@ -41,6 +41,10 @@ var (
 	)
 
 	FailedStartKlient = fmt.Sprintf(
-		"Error: Failed to start %s within the expected time.\n%s", KlientName, retryOrContactSupport,
+		"Error: Failed to start the %s within the expected time.\n%s", KlientName, retryOrContactSupport,
+	)
+
+	FailedStopKlient = fmt.Sprintf(
+		"Error: Failed to stop the %s within the expected time.\n%s", KlientName, retryOrContactSupport,
 	)
 )

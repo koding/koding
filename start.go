@@ -28,7 +28,7 @@ func StartCommand(c *cli.Context) int {
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
 		)
-		fmt.Printf(FailedStartKlient)
+		fmt.Println(FailedStartKlient)
 		return 1
 	}
 

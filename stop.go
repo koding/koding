@@ -12,22 +12,27 @@ import (
 func StopCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
-		fmt.Printf("Error stopping service: '%s'\n", err)
+		log.Errorf("Error creating Service. err:%s", err)
+		fmt.Println(GenericInternalErrorRetry)
 		return 1
 	}
 
 	if err := s.Stop(); err != nil {
-		fmt.Printf("Error stopping service: '%s'\n", err)
+		log.Errorf("Error stopping Service. err:%s", err)
+		fmt.Println(FailedStopKlient)
 		return 1
 	}
 
 	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
-		fmt.Printf("Timed out waiting for the %s to stop\n", KlientName)
+		log.Errorf(
+			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
+			5, err,
+		)
+		fmt.Println(FailedStopKlient)
 		return 1
 	}
 
 	fmt.Printf("Successfully stopped %s\n", KlientName)
-
 	return 0
 }
 
