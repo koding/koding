@@ -47,7 +47,8 @@ _bindStackEvents = ->
 
     return  if _revisionStatus?.error? and not stack._revisionStatus.status
 
-    reactor.dispatch actions.STACK_UPDATED, stack
+    loadMachines().then ->
+      reactor.dispatch actions.STACK_UPDATED, stack
 
 
 
