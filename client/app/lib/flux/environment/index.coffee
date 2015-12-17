@@ -13,6 +13,7 @@ module.exports =
     require './stores/addworkspaceviewstore'
     require './stores/activeworkspacestore'
     require './stores/deleteworkspacewidgetstore'
+    require './stores/connectedmanagedmachinestore'
   ]
 
   register: (reactor) -> reactor.registerStores @stores
