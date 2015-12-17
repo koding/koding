@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 CollabStateMachine = require '../lib/collaboration/collaborationstatemachine'
 
@@ -26,7 +26,7 @@ describe 'CollaborationStateMachine', ->
   it 'tests Loading state transitions', ->
 
     machine = newSimpleMachine()
-    expect(machine.state).to.equal 'Loading'
+    expect(machine.state).toEqual 'Loading'
 
     legalStates = ['NotStarted', 'ErrorLoading', 'Resuming']
     illegalStates = [
@@ -162,7 +162,7 @@ assertLegalTransitions = (machineFactoryFn, states) ->
   states.forEach (state) ->
     machine = machineFactoryFn()
     machine.transition state
-    expect(machine.state).to.equal state
+    expect(machine.state).toEqual state
 
 assertIllegalTransitions = (machineFactoryFn, states) ->
   states.forEach (state) ->
