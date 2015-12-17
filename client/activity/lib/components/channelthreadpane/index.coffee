@@ -99,16 +99,16 @@ module.exports = class ChannelThreadPane extends React.Component
 
     return null  unless thread = @state.channelThread
 
-    if not isFeedEnabled()
+    if isFeedEnabled()
+      <aside className='FeedThreadPane-sidebar'>
+        <FeedThreadSidebar
+          channelThread={thread} />
+      </aside>
+    else
       <aside className='ChannelThreadPane-sidebar'>
         <ThreadSidebar
           channelThread={thread}
           channelParticipants={@state.channelParticipants} />
-      </aside>
-    else
-      <aside className='FeedThreadPane-sidebar'>
-        <FeedThreadSidebar
-          channelThread={thread} />
       </aside>
 
 
