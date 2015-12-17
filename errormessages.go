@@ -4,6 +4,7 @@ import "fmt"
 
 const (
 	retryOrContactSupport        = "Please try again, or contact support@koding.com"
+	waitRetryOrContactSupport    = "Please wait a moment and try again, or contact support@koding.com"
 	retryNewCodeOrContactSupport = `Please go back to Koding to get a new code and try again, or contact support@koding.com`
 )
 
@@ -61,6 +62,13 @@ var (
 		"Error: Failed to get ssh key.\n%s", retryOrContactSupport,
 	)
 
-	// CannotSSHManaged
+	// CannotSSHManaged is used when the managed machine has a different username
+	// than the current user. A temporary error, for a temporary limitation.
 	CannotSSHManaged = "Error: Currently unable to ssh into managed machines."
+
+	// FailedListMachines is a generic remote.list error. We include wait a moment
+	// to retry, since this is often connection related.
+	FailedListMachines = fmt.Sprintf(
+		"Error: Failed to list machines.\n%s", waitRetryOrContactSupport,
+	)
 )
