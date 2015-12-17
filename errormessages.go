@@ -119,4 +119,14 @@ Please unmount and try again, or contact support@koding.com if this issue persis
 	FailedToRemoveKlientWarn = fmt.Sprintf(
 		"Warning: Failed to remove %s binary. This is not a critical issue.", Name,
 	)
+
+	// FailedCheckingUpdateAvailable is used when checking if an update failed.
+	FailedCheckingUpdateAvailable = fmt.Sprintf(
+		"Error: Failed to check if an update is available.\n%s", retryOrContactSupport,
+	)
+
+	// FailedDownloadUpdate is when downloading the update from s3 failed.
+	FailedDownloadUpdate = fmt.Sprintf(
+		"Error: Failed to download the update.\n%s", retryOrContactSupport,
+	)
 )
