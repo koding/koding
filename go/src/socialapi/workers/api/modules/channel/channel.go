@@ -86,9 +86,7 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 		q.Type = models.Channel_TYPE_TOPIC
 	}
 
-	if q.AccountId != context.Client.Account.Id {
-		return response.NewBadRequest(models.ErrAccessDenied)
-	}
+	q.AccountId = context.Client.Account.Id
 
 	// TODO refactor this function just to return channel ids
 	// we cache wisely
@@ -121,9 +119,7 @@ func Search(u *url.URL, h http.Header, _ interface{}, context *models.Context) (
 		q.Type = models.Channel_TYPE_TOPIC
 	}
 
-	if q.AccountId != context.Client.Account.Id {
-		return response.NewBadRequest(models.ErrAccessDenied)
-	}
+	q.AccountId = context.Client.Account.Id
 
 	channelList, err := models.NewChannel().Search(q)
 	if err != nil {
@@ -222,9 +218,7 @@ func Get(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int
 	}
 	q := request.GetQuery(u)
 
-	if q.AccountId != context.Client.Account.Id {
-		return response.NewBadRequest(models.ErrAccessDenied)
-	}
+	q.AccountId = context.Client.Account.Id
 
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {
@@ -335,6 +329,8 @@ func Delete(u *url.URL, h http.Header, req *models.Channel, context *models.Cont
 		return response.NewBadRequest(errors.New("You can not delete group channel"))
 	}
 
+	// TO-DO
+	// add super-admin check here
 	if req.CreatorId != context.Client.Account.Id {
 		isAdmin, err := modelhelper.IsAdmin(context.Client.Account.Nick, req.GroupName)
 		if err != nil {
