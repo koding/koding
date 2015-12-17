@@ -211,19 +211,19 @@ deleteWorkspace = (params) ->
       resolve()
 
 
-setSelectedWorkspaceId = (id) ->
+setSelectedWorkspaceId = (workspaceId) ->
 
-  kd.singletons.reactor.dispatch actions.WORKSPACE_SELECTED, id
-
-
-showDeleteWorkspaceWidget = (id) ->
-
-  kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, id
+  kd.singletons.reactor.dispatch actions.WORKSPACE_SELECTED, workspaceId
 
 
-hideDeleteWorkspaceWidget = (id) ->
+showDeleteWorkspaceWidget = (workspaceId) ->
 
-  kd.singletons.reactor.dispatch actions.HIDE_DELETE_WORKSPACE_WIDGET, id
+  kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, workspaceId
+
+
+hideDeleteWorkspaceWidget = (workspaceId) ->
+
+  kd.singletons.reactor.dispatch actions.HIDE_DELETE_WORKSPACE_WIDGET, workspaceId
 
 
 module.exports = {
