@@ -15,7 +15,6 @@ module.exports =
 
 
   sendComment: (browser) ->
-    message = helpers.getFakeText()
 
     message = helpers.getFakeText()
 
@@ -83,8 +82,6 @@ module.exports =
 
 
   postLongMessage: (browser) ->
-    message  = ''
-    message += helpers.getFakeText() for [1..6]
 
     message  = ''
     message += helpers.getFakeText() for [1..6]
@@ -133,4 +130,3 @@ module.exports =
     teamsHelpers.createChannel(browser, user)
     teamsHelpers.sendComment(browser, messageWithEmoji, 'messageWithEmoji')
     browser.end()
-    
