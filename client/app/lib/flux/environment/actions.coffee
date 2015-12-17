@@ -187,11 +187,42 @@ hideAddWorkspaceView = (machineId) ->
   kd.singletons.reactor.dispatch actions.HIDE_ADD_WORKSPACE_VIEW, machineId
 
 
+deleteWorkspace = (params) ->
+
+  { machine, workspace, deleteRelatedFiles }  = params
+  { router, appManager, reactor }             = kd.singletons
+  { machineUId, rootPath, machineLabel, _id } = workspace.toJS()
+
+  new Promise (resolve, reject) ->
+
+    remote.api.JWorkspace.deleteById _id, (err) ->
+
+      if err
+        reactor.dispatch actions.WORKSPACE_DELETED_FAIL
+        reject err
+        return
+
+      if deleteRelatedFiles
+        methodName = 'deleteWorkspaceRootFolder'
+        appManager.tell 'IDE', methodName, machineUId, rootPath
+
+      reactor.dispatch actions.WORKSPACE_DELETED, { machine, workspace }
+      resolve()
 
 
 setSelectedWorkspaceId = (id) ->
 
   kd.singletons.reactor.dispatch actions.WORKSPACE_SELECTED, id
+
+
+showDeleteWorkspaceWidget = (id) ->
+
+  kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, id
+
+
+hideDeleteWorkspaceWidget = (id) ->
+
+  kd.singletons.reactor.dispatch actions.HIDE_DELETE_WORKSPACE_WIDGET, id
 
 
 module.exports = {
@@ -201,5 +232,8 @@ module.exports = {
   acceptInvitation
   showAddWorkspaceView
   hideAddWorkspaceView
+  deleteWorkspace
   setSelectedWorkspaceId
+  showDeleteWorkspaceWidget
+  hideDeleteWorkspaceWidget
 }

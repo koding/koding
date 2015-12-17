@@ -2,10 +2,13 @@ kd                      = require 'kd'
 Link                    = require 'app/components/common/link'
 React                   = require 'kd-react'
 actions                 = require 'app/flux/environment/actions'
+ReactDOM                = require 'react-dom'
 getMachineLink          = require 'app/util/getMachineLink'
 KDReactorMixin          = require 'app/flux/base/reactormixin'
 EnvironmentFlux         = require 'app/flux/environment'
 DeleteWorkspaceWidget   = require './deleteworkspacewidget'
+getBoundingClientReact  = require 'app/util/getBoundingClientReact'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class SidebarWorkspacesListItem extends React.Component
@@ -20,14 +23,15 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
     activeWorkspace : EnvironmentFlux.getters.activeWorkspace
 
 
+  componentWillReceiveProps: ->
+
+    coordinates = getBoundingClientReact @refs.WorkspaceItem
+    @setState { coordinates: coordinates }
+
+
   getWorkspaceLink: ->
 
     getMachineLink @props.machine, @props.workspace
-
-
-  handleWorkspaceSettingsClick: ->
-
-    # @setState { showDeleteWorkspaceWidget : yes }
 
 
   handleDeleteWorkspaceClick: (options) ->
@@ -35,23 +39,42 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
     { machine } = options
 
     actions.deleteWorkspace(options).then =>
-      # @setState { showDeleteWorkspaceWidget : no }
       kd.singletons.router.handleRoute "/IDE/#{machine.get 'machineLabel'}/my-workspace"
 
 
-  renderDeleteWorkspaceWidget: ->
+  handleWorkspaceSettingsClick: ->
 
+    actions.showDeleteWorkspaceWidget @props.workspace.get '_id'
+
+
+  handleDeleteWorkspaceOnClose: ->
+
+    actions.hideDeleteWorkspaceWidget @props.workspace.get '_id'
+
+
+  renderDeleteWorkspaceWidget: ->
     <DeleteWorkspaceWidget
       machine={@props.machine}
       workspace={@props.workspace}
-      coordinates={@state.coordinates}
       handleDeleteWorkspaceClick={@bound 'handleDeleteWorkspaceClick'}
+      onClose={@bound 'handleDeleteWorkspaceOnClose'}
+      coordinates={@state.coordinates}
       />
 
 
   handleLinkClick: ->
 
     actions.setSelectedWorkspaceId @props.workspace.get '_id'
+
+
+  renderWorkspaceSettingsIcon: ->
+
+    return null  if @props.workspace.get 'isDefault'
+
+    <cite
+      className='Workspace-settings'
+      onClick={@bound 'handleWorkspaceSettingsClick'}
+      />
 
 
   render: ->
@@ -62,15 +85,13 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
 
     <div
       key={@props.workspace.get '_id'}
+      ref='WorkspaceItem'
       className="Workspace-item #{active}">
       <cite className='Workspace-icon' />
       <Link className='Workspace-link' href={@getWorkspaceLink()} onClick={@bound 'handleLinkClick'}>
         <span className='Workspace-title'>{@props.workspace.get 'name'}</span>
       </Link>
-      <cite
-        className='Workspace-settings'
-        onClick={@bound 'handleWorkspaceSettingsClick'}
-        />
+      {@renderWorkspaceSettingsIcon()}
       {@renderDeleteWorkspaceWidget()}
     </div>
 
