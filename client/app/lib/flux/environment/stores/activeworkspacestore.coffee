@@ -16,6 +16,4 @@ module.exports = class ActiveWorkspaceStore extends KodingFluxStore
     @on actions.WORKSPACE_SELECTED, @setWorkspaceId
 
 
-  setWorkspaceId: (activeWorkspaceId, id) ->
-
-    return id
+  setWorkspaceId: (activeWorkspaceId, id) -> id
