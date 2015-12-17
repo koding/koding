@@ -71,4 +71,29 @@ var (
 	FailedListMachines = fmt.Sprintf(
 		"Error: Failed to list machines.\n%s", waitRetryOrContactSupport,
 	)
+
+	// CannotMountDirNotExist is used when the user chooses not to make the dir on
+	// mount. Can't mount to something that doesn't exist.
+	CannotMountDirNotExist = "Error: Cannot mount a directory that does not exist, exiting..."
+
+	// FailedToCreateMountDir is used when the user chose to create the dir, but it
+	// failed for some reason.
+	FailedToCreateMountDir = fmt.Sprintf(
+		"Error: Failed to create the given mount directory.\n%s", retryOrContactSupport,
+	)
+
+	// FailedToMount is a generic failed to mount error.
+	FailedToMount = fmt.Sprintf(
+		"Error: Failed to mount the given directory.\n%s", retryOrContactSupport,
+	)
+
+	// FailedToUnmount is a generic failed to unmount error.
+	FailedToUnmount = fmt.Sprintf(
+		"Error: Failed to unmount the given directory.\n%s", retryOrContactSupport,
+	)
+
+	// FailedToLockMount instructs the user to unmount and mount again, since the
+	// actual mount likely succeeded, only the locking failed.
+	FailedToLockMount = `Error: Failed to lock the given directory.
+Please unmount and try again, or contact support@koding.com if this issue persists.`
 )

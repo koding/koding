@@ -52,32 +52,34 @@ func MountCommand(c *cli.Context) int {
 	if err := askToCreate(localPath, os.Stdin, os.Stdout); err != nil {
 		// If the error is that the user cancelled, just return
 		if err == klientctlerrors.ErrUserCancelled {
-			fmt.Println("Cannot mount to a directory that does not exist, exiting..")
+			fmt.Println(CannotMountDirNotExist)
 			return 0
 		}
 
-		fmt.Printf("Error: Unable to create specified localPath '%s'", localPath)
+		log.Errorf("Error creating local mount path. err:%s", err)
+		fmt.Println(FailedToCreateMountDir)
 		return 1
 	}
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to remote machine: '%s'", err,
-		))
+		log.Errorf("Error creating klient client. err:%s", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to remote machine: '%s'", err,
-		))
+		log.Errorf("Error dialing klient client. err:%s", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	infos, err := getListOfMachines(k)
 	if err != nil {
-		fmt.Print(err)
+		log.Errorf("Failed to get list of machines on mount. err:%s", err)
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		fmt.Println(GenericInternalError)
 		return 1
 	}
 
@@ -114,30 +116,30 @@ func MountCommand(c *cli.Context) int {
 
 		// unmount using mount path
 		if err := unmount(k, "", localPath); err != nil {
-			fmt.Printf("Error unmounting: %s\n", err)
+			log.Errorf("Error unmounting (remounting). err:%s", err)
+			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
 			return 1
 		}
 
 		resp, err = k.Tell("remote.mountFolder", mountRequest)
 		if err != nil {
-			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-				"Error mounting: %s\n", err,
-			))
+			log.Errorf("Error mounting (remounting). err:%s", err)
+			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
 			return 1
 		}
 	}
 
 	// catch errors other than klientctlerrors.IsExistingMountErr
 	if err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error mounting: %s\n", err,
-		))
+		log.Errorf("Error mounting directory. err:%s", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
 		return 1
 	}
 
 	// response can be nil even when there's no err
 	if resp != nil {
 		var warning string
+		// TODO: Ignore the nil unmarshal error, but log others.
 		if err := resp.Unmarshal(&warning); err != nil {
 			return 0
 		}
@@ -148,7 +150,8 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	if err := Lock(localPath, name); err != nil {
-		fmt.Printf("Error locking: %s\n", err)
+		log.Errorf("Error locking. err:%s", err)
+		fmt.Println(FailedToLockMount)
 		return 1
 	}
 
