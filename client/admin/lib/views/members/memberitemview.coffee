@@ -106,7 +106,7 @@ module.exports = class MemberItemView extends kd.ListItemView
     newRoles.push 'admin'  if newRole is 'owner'
 
     group.changeMemberRoles jAccount.getId(), newRoles, (err, response) =>
-      return @handleError button  if err
+      return @handleError button, err  if err
 
       group.fetchUserRoles [ jAccount.getId() ], (err, roles) =>
 
@@ -137,7 +137,15 @@ module.exports = class MemberItemView extends kd.ListItemView
       return global.location.href = '/Activity'
 
     button.hideLoader()
-    message = err?.message or 'Failed to change user role. Please try again.'
+
+    message = switch
+      when err?.name is 'UserIsTheOnlyAdmin'
+        "Failed to change user role as you're the only admin of this team."
+      when err?.message
+        err.message
+      else
+        'Failed to change user role. Please try again.'
+
     return new kd.NotificationView title: message, duration: 5000
 
 
