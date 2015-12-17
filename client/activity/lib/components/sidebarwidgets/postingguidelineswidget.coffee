@@ -3,7 +3,7 @@ React      = require 'kd-react'
 Link       = require 'app/components/common/link'
 classnames = require 'classnames'
 
-module.exports = class ActivityGuideWidget extends React.Component
+module.exports = class PostingGuideLinesWidget extends React.Component
 
   constructor: (props) ->
 
@@ -44,7 +44,7 @@ module.exports = class ActivityGuideWidget extends React.Component
               href='http://learn.koding.com'
               target='_blank'>Koding University</a>
             &nbsp; in case your question is of the category
-            “how do I…” Chances are high that we already have a handy guide for you.
+            “how do I…” Chances are high that have a handy guide for you.
           </li>
           <li>
             Ask your questions in a way that would make it easy for others to answer.
