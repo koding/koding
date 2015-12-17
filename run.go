@@ -25,13 +25,15 @@ func RunCommandFactory(c *cli.Context) int {
 	// get the path where the command was run
 	localPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		fmt.Printf("Error running command: '%s'\n", err)
+		log.Errorf("Failed to create absolute directory. err:%s", err)
+		fmt.Println(GenericInternalError)
 		return 1
 	}
 
 	r, err := NewRunCommand()
 	if err != nil {
-		fmt.Printf("Error running command: '%s'\n", err)
+		log.Errorf("Failed to initialize command. err:%s", err)
+		fmt.Println(GenericInternalError)
 		return 1
 	}
 
@@ -42,7 +44,13 @@ func RunCommandFactory(c *cli.Context) int {
 
 	res, err := r.runOnRemote(localPath, cmdWithArgsStr)
 	if err != nil && err != ErrNotInMount {
-		fmt.Printf("Error running command: '%s'\n", err)
+		log.Errorf("Error running command. err:%s", err)
+		// Note that we're printing the error here to the user. This seems reasonable
+		// since their own command may have failed, and that information is meaningful
+		// to them.
+		//
+		// Eg, the binary is not executable, or not formatted for their os, or etc.
+		fmt.Println("Error running command: '%s'\n", err)
 		return 1
 	}
 
@@ -181,6 +189,12 @@ func (r *RunCommand) runOnLocal(cmdWithArgs []string) int {
 	if err := cmd.Run(); err != nil {
 		exitErr, ok := err.(*exec.ExitError)
 		if !ok {
+			log.Errorf("Error running command: %s", err)
+			// Note that we're printing the error here to the user. This seems reasonable
+			// since their own command may have failed, and that information is meaningful
+			// to them.
+			//
+			// Eg, the binary is not executable, or not formatted for their os, or etc.
 			fmt.Printf("Error running command: '%s'\n", err)
 			return 1
 		}
