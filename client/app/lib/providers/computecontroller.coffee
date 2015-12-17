@@ -193,9 +193,9 @@ module.exports = class ComputeController extends KDController
 
   fetchStacks: do (queue=[]) ->
 
-    (callback = kd.noop) -> kd.singletons.mainController.ready =>
+    (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
 
-      if @stacks.length > 0
+      if @stacks.length > 0 and not force
         callback null, @stacks
         kd.info "Stacks returned from cache."
         return

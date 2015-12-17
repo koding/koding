@@ -86,7 +86,7 @@ loadMachines = do (isPayloadUsed = no) ->->
     environmentDataProvider.fetch (data) -> kallback null, data
 
 
-loadStacks = ->
+loadStacks = (force = no) ->
 
   { reactor, computeController } = kd.singletons
 
@@ -102,6 +102,7 @@ loadStacks = ->
         reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
         resolve stacks
         _bindStackEvents()
+    , yes
 
 
 rejectInvitation = (machine) ->

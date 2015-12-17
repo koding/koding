@@ -1,5 +1,6 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
+actions                = require 'app/flux/environment/actions'
 isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require 'app/commonviews/kodingswitch'
@@ -93,15 +94,15 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     { computeController } = kd.singletons
 
-    stack = computeController.findStackFromMachineId machine._id
-
-
-    config = stack.config ?= {}
+    stack   = computeController.findStackFromMachineId machine._id
+    config  = stack.config ?= {}
 
     config.sidebar ?= {}
     config.sidebar[machine.uid] = { visibility: state }
 
     stack.modify { config }
+
+    actions.loadStacks yes  unless isKoding()
 
 
   pistachio: ->
