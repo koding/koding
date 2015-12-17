@@ -33,7 +33,8 @@ ownMachines = [
   OwnMachinesStore
   machinesWithWorkspaces
   (own, machines) -> own.map (id) ->
-    machines.get(id)
+    machine = machines.get(id)
+    machine
       .set 'type', 'own'
       .set 'isApproved', yes
       .set 'isManaged', machineRuleChecker machine, ['managed']
