@@ -11,6 +11,7 @@ getMachineLink                  = require 'app/util/getMachineLink'
 AddWorkspaceView                = require './addworkspaceview'
 isMachineRunning                = require 'app/util/isMachineRunning'
 MoreWorkspacesModal             = require 'app/activity/sidebar/moreworkspacesmodal'
+getBoundingClientReact          = require 'app/util/getBoundingClientReact'
 LeaveSharedMachineWidget        = require './leavesharedmachinewidget'
 SidebarWorkspacesListItem       = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled    = require 'app/util/isMachineSettingsIconEnabled'
@@ -37,12 +38,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   componentWillReceiveProps: ->
 
-    sidebarListItem = ReactDOM.findDOMNode @refs.SidebarMachinesListItem
-    clientRect      = sidebarListItem.getBoundingClientRect()
-    coordinates     =
-      top           : clientRect.top - 15
-      left          : clientRect.width + clientRect.left + 15
-
+    coordinates = getBoundingClientReact @refs.SidebarMachinesListItem
     @setState { coordinates: coordinates }
 
 
@@ -175,6 +171,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
   createAddWorkspaceInput: ->
 
     actions.showAddWorkspaceView @machine '_id'
+
 
 
   render: ->
