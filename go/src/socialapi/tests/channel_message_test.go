@@ -71,7 +71,7 @@ func TestChannelMessage(t *testing.T) {
 				So(post, ShouldNotBeNil)
 				err = rest.DeletePost(post.Id, account.Id, groupChannel.GroupName, ses.ClientId)
 				So(err, ShouldBeNil)
-				post2, err := rest.GetPost(post.Id, account.Id, groupChannel.GroupName)
+				post2, err := rest.GetPost(post.Id, account.Id, groupChannel.GroupName, ses.ClientId)
 				So(err, ShouldNotBeNil)
 				So(post2, ShouldBeNil)
 			})
@@ -113,6 +113,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: post.AccountId,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldBeNil)
@@ -140,6 +141,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: nonOwnerAccount.Id,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldBeNil)
@@ -182,6 +184,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: post.AccountId,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldBeNil)
@@ -202,6 +205,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: post.AccountId,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldBeNil)
@@ -231,6 +235,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: post.AccountId,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldBeNil)
@@ -280,6 +285,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: post.AccountId,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldBeNil)
@@ -310,6 +316,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: account.Id,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldBeNil)
@@ -355,6 +362,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: account.Id,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldBeNil)
@@ -386,6 +394,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: account.Id,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 				So(err, ShouldNotBeNil)
 				So(cmc, ShouldBeNil)
@@ -396,6 +405,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: account.Id,
 						GroupName: groupName,
 					},
+					ses.ClientId,
 				)
 
 				So(err, ShouldNotBeNil)
