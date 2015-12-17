@@ -72,6 +72,8 @@ bootup = ->
 
   mainController.tempStorage = {}
 
+  ConnectionChecker.listen()
+
   ###
   # CONNECTIVITY EVENTS
   ###
@@ -86,12 +88,12 @@ bootup = ->
     # $.cookie 'clientId', token
 
   status.on 'connected', ->
-    destroyCurrentNotif()
+    ConnectionChecker.globalNotification.hide()
     startAuthenticationInterval()
     kd.log 'kd remote connected'
 
   status.on 'reconnected', (options={})->
-    destroyCurrentNotif()
+    ConnectionChecker.globalNotification.hide()
     startAuthenticationInterval()
     kd.log "kd remote re-connected"
 
@@ -115,49 +117,6 @@ bootup = ->
   stopAuthenticationInterval = ->
     kd.utils.killRepeat authenticationInterval
     authenticationInterval = null
-
-  ###
-  # INTERNET CONNECTIVITIY
-  ###
-
-  smallDisconnectedNotif =->
-    currentNotif = new KDNotificationView
-      title         : "Looks like your Internet connection is down"
-      type          : "tray"
-      closeManually : yes
-      content       : """<p>Koding will continue trying to reconnect but while your connection is down, <br> no changes you make will be saved back to your VM. Please save your work locally as well.</p>"""
-      duration      : 0
-
-  modals =
-    small :
-      disconnected : smallDisconnectedNotif
-
-  showNotif = (size, state)->
-    destroyCurrentNotif()
-    modal = modals[size][state]
-    modal?()
-
-  destroyCurrentNotif =->
-    currentNotif?.destroy()
-    currentNotif = null
-
-  if global.navigator.onLine?
-    kd.utils.repeat 10000, ->
-      if global.navigator.onLine
-        destroyCurrentNotif()  if currentNotif
-      else
-        showNotif "small", "disconnected"  unless currentNotif
-  else
-    global.connectionCheckerReponse = ->
-
-    kd.utils.repeat 30000, ->
-      item = new ConnectionChecker
-        jsonp       : "connectionCheckerReponse"
-        crossDomain : yes
-        fail        : -> showNotif "small", "disconnected"  unless currentNotif
-      , "https://s3.amazonaws.com/koding-ping/ping.json"
-
-      item.ping -> destroyCurrentNotif()  if currentNotif
 
   return true
 

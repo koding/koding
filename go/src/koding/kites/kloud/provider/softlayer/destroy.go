@@ -2,6 +2,7 @@ package softlayer
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
@@ -15,24 +16,15 @@ func (m *Machine) Destroy(ctx context.Context) error {
 		return err
 	}
 
-	//Get the SoftLayer virtual guest service
-	svc, err := m.Session.SLClient.GetSoftLayer_Virtual_Guest_Service()
-	if err != nil {
-		return err
-	}
-
 	meta, err := m.GetMeta()
 	if err != nil {
 		return err
 	}
 
-	ok, err := svc.DeleteObject(meta.Id)
-	if err != nil {
+	err = m.Session.SLClient.DeleteInstance(meta.Id)
+	if err != nil && !isNotFound(err) {
+		// if it's something else return it, otherwise just continue
 		return err
-	}
-
-	if !ok {
-		m.Log.Warning("softlayer destroying returned false instead of true")
 	}
 
 	if err := m.deleteDomains(); err != nil {
@@ -45,4 +37,15 @@ func (m *Machine) Destroy(ctx context.Context) error {
 	m.QueryString = ""
 
 	return modelhelper.DeleteMachine(m.ObjectId)
+}
+
+// IsNotFound returns true if the error is *NotFoundError.
+func isNotFound(err error) bool {
+	if slErr, ok := err.(*sl.APIError); ok {
+		if slErr.Code == "SoftLayer_Exception_NotFound" {
+			return true
+		}
+	}
+
+	return false
 }

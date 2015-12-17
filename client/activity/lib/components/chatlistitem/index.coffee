@@ -1,35 +1,35 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-ReactDOM              = require 'react-dom'
-remote                = require('app/remote').getInstance()
-Avatar                = require 'app/components/profile/avatar'
-immutable             = require 'immutable'
-MessageBody           = require 'activity/components/common/messagebody'
-ProfileText           = require 'app/components/profile/profiletext'
-ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
-ButtonWithMenu        = require 'app/components/buttonwithmenu'
-ActivityPromptModal   = require 'app/components/activitypromptmodal'
-MarkUserAsTrollModal  = require 'app/components/markuserastrollmodal'
-BlockUserModal        = require 'app/components/blockusermodal'
-ActivityLikeLink      = require 'activity/components/chatlistitem/activitylikelink'
-MessageTime           = require 'activity/components/chatlistitem/messagetime'
-keycode               = require 'keycode'
-AppFlux               = require 'app/flux'
-ActivityFlux          = require 'activity/flux'
-classnames            = require 'classnames'
-Portal                = require 'react-portal'
-whoami                = require 'app/util/whoami'
-checkFlag             = require 'app/util/checkFlag'
-impersonate           = require 'app/util/impersonate'
-getMessageOwner       = require 'app/util/getMessageOwner'
-showErrorNotification = require 'app/util/showErrorNotification'
-showNotification      = require 'app/util/showNotification'
-ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-EmbedBox              = require 'activity/components/embedbox'
-KeyboardKeys          = require 'app/util/keyboardKeys'
-ChatInputWidget       = require 'activity/components/chatinputwidget'
-Encoder               = require 'htmlencode'
-MessageLink           = require 'activity/components/messagelink'
+kd                      = require 'kd'
+React                   = require 'kd-react'
+ReactDOM                = require 'react-dom'
+remote                  = require('app/remote').getInstance()
+Avatar                  = require 'app/components/profile/avatar'
+immutable               = require 'immutable'
+MessageBody             = require 'activity/components/common/messagebody'
+ProfileText             = require 'app/components/profile/profiletext'
+ProfileLinkContainer    = require 'app/components/profile/profilelinkcontainer'
+ButtonWithMenu          = require 'app/components/buttonwithmenu'
+ActivityPromptModal     = require 'app/components/activitypromptmodal'
+MarkUserAsTrollModal    = require 'app/components/markuserastrollmodal'
+BlockUserModal          = require 'app/components/blockusermodal'
+ActivityLikeLink        = require 'activity/components/chatlistitem/activitylikelink'
+MessageTime             = require 'activity/components/chatlistitem/messagetime'
+keycode                 = require 'keycode'
+AppFlux                 = require 'app/flux'
+ActivityFlux            = require 'activity/flux'
+classnames              = require 'classnames'
+Portal                  = require 'react-portal'
+whoami                  = require 'app/util/whoami'
+checkFlag               = require 'app/util/checkFlag'
+impersonate             = require 'app/util/impersonate'
+getMessageOwner         = require 'app/util/getMessageOwner'
+showErrorNotification   = require 'app/util/showErrorNotification'
+showNotification        = require 'app/util/showNotification'
+ImmutableRenderMixin    = require 'react-immutable-render-mixin'
+EmbedBox                = require 'activity/components/embedbox'
+KeyboardKeys            = require 'app/util/keyboardKeys'
+ChatInputEmbedExtractor = require 'activity/components/chatinputembedextractor'
+Encoder                 = require 'htmlencode'
+MessageLink             = require 'activity/components/messagelink'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -248,12 +248,7 @@ module.exports = class ChatListItem extends React.Component
     messageId = @props.message.get '_id'
 
     ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
-
-    ActivityFlux.actions.message.editMessage(
-      @props.message.get('id')
-      value
-      @props.message.get('payload').toJS()
-    )
+    ActivityFlux.actions.message.editMessage messageId, value
 
 
   cancelEdit: ->
@@ -261,7 +256,7 @@ module.exports = class ChatListItem extends React.Component
     return @closeDeletePostModal()  if @state.isDeleting
 
     messageId = @props.message.get '_id'
-    ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId
+    ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId, yes
 
 
   onEditStarted: ->
@@ -302,7 +297,8 @@ module.exports = class ChatListItem extends React.Component
         <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
         <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
-      <ChatInputWidget
+      <ChatInputEmbedExtractor
+        messageId        = { message.get 'id' }
         channelId        = { @props.channelId }
         value            = { messageBody }
         onSubmit         = { @bound 'updateMessage' }
@@ -328,11 +324,15 @@ module.exports = class ChatListItem extends React.Component
     { message } = @props
     embedData   = message.get 'link'
 
+    { disableEditedEmbedPayload } = ActivityFlux.actions.message
+    onClose = if message.get('__isEditing') then -> disableEditedEmbedPayload message.get('id')
+
     if embedData
-      <EmbedBox data={embedData.toJS()} type='chat' />
+      <EmbedBox data={embedData.toJS()} type='chat' onClose={onClose} />
 
 
   render: ->
+
     { message } = @props
     <div {...@getItemProps()}>
       <div className={@getContentClassNames()}>
@@ -352,9 +352,9 @@ module.exports = class ChatListItem extends React.Component
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
-          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
+        {@renderEmbedBox()}
         {@renderChatItemMenu()}
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
