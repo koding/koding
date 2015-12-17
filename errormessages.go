@@ -8,42 +8,50 @@ const (
 )
 
 var (
-	// InternalRetryError is typically used when the circumstances that caused the error
-	// are implementation details only and cannot be told to the user, and that they
-	// can't do anything to correct the error.
-	//
-	// The only thing left is to .. retry, or possibly report to support@koding.com?
+	// GenericInternalError is a generic error message. Typically used when we don't
+	// want to reveal what exactly went wrong, like confusing implementation details.
 	GenericInternalError = fmt.Sprintf(
 		"Error: Encountered an internal error.\n%s", retryOrContactSupport,
 	)
 
+	// GenericInternalErrorRetry is a generic error message. Typically used when we
+	// don't want to reveal what exactly went wrong, like confusing implementation
+	// details.
+	//
+	// It instructs them to get a new code and try again.
 	GenericInternalErrorRetry = fmt.Sprintf(
 		"Error: Encountered an internal error.\n%s", retryNewCodeOrContactSupport,
 	)
 
+	// FailedInstallingKlient is generic for when a klient install fails.
 	FailedInstallingKlient = fmt.Sprintf(
 		"Error: Unable to install the %s.\n%s", KlientName, retryNewCodeOrContactSupport,
 	)
 
+	// FailedDownloadingKlient is used when downloading klient fails.
 	FailedDownloadingKlient = fmt.Sprintf(
 		"Error: Unable to download the %s binary.\n%s",
 		KlientName, retryNewCodeOrContactSupport,
 	)
 
+	// FailedRegisteringKlient is used when registering klient to kontrol fails.
 	FailedRegisteringKlient = fmt.Sprintf(
 		"Error: Unable to authenticate %s to koding.com.\n%s",
 		Name, retryNewCodeOrContactSupport,
 	)
 
+	// FailedVerifyingInstall is used when verifying the install fails.
 	FailedVerifyingInstall = fmt.Sprintf(
 		"Error: Unable to verify the installation of %s.\n%s",
 		Name, retryNewCodeOrContactSupport,
 	)
 
+	// FailedStartKlient is used when starting klient fails.
 	FailedStartKlient = fmt.Sprintf(
 		"Error: Failed to start the %s within the expected time.\n%s", KlientName, retryOrContactSupport,
 	)
 
+	// FailedStopKlient is used when stopping klient fails.
 	FailedStopKlient = fmt.Sprintf(
 		"Error: Failed to stop the %s within the expected time.\n%s", KlientName, retryOrContactSupport,
 	)
