@@ -75,6 +75,15 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	eventId := r.Method + "-" + args.StackId
 	ev := k.NewEventer(eventId)
 
+	stack, err := modelhelper.GetComputeStack(args.StackId)
+	if err != nil {
+		return nil, err
+	}
+
+	if stack.State().InProgress() {
+		return nil, fmt.Errorf("State is currently %s. Please try again later", stack.State())
+	}
+
 	if args.Destroy {
 		ev.Push(&eventer.Event{
 			Message: r.Method + " started",
@@ -101,9 +110,11 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 		var err error
 		if args.Destroy {
-			modelhelper.SetStackState(args.StackId, "Stack destroying started", stackstate.Destroying)
+			modelhelper.SetStackState(args.StackId, "Stack destroying started",
+				stackstate.Destroying)
 
-			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
+			k.Log.New(args.StackId).Info("======> %s (destroy) started <======",
+				strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
 			err = destroy(ctx, r.Username, args.GroupName, args.StackId)
 		} else {
@@ -112,10 +123,12 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
 			err = apply(ctx, r.Username, args.GroupName, args.StackId)
 			if err != nil {
-				modelhelper.SetStackState(args.StackId, "Stack building failed", stackstate.NotInitialized)
+				modelhelper.SetStackState(args.StackId, "Stack building failed",
+					stackstate.NotInitialized)
 				finalEvent.Status = machinestate.NotInitialized
 			} else {
-				modelhelper.SetStackState(args.StackId, "Stack building finished", stackstate.Initialized)
+				modelhelper.SetStackState(args.StackId, "Stack building finished",
+					stackstate.Initialized)
 			}
 
 		}
