@@ -14,8 +14,9 @@ module.exports = class EmbedBox extends React.Component
 
 
   @defaultProps =
-    data : null
-    type : ''
+    data    : null
+    type    : ''
+    onClose : null
 
 
   renderEmbedBoxImage: ->
@@ -52,10 +53,18 @@ module.exports = class EmbedBox extends React.Component
       else               @renderEmbedBoxLinkDisplay()
 
 
+  renderCloseButton: ->
+
+    { onClose } = @props
+    return  unless onClose
+
+    <button className='close-button' onClick={onClose} />
+
+
   render: ->
 
     { data, type } = @props
-    return null  unless data
+    return null  unless data and data.link_embed
 
     { link_embed } = data
 
@@ -67,4 +76,5 @@ module.exports = class EmbedBox extends React.Component
 
     <div className='EmbedBox-container clearfix'>
       { @renderEmbedBoxContent embedType }
+      { @renderCloseButton() }
     </div>

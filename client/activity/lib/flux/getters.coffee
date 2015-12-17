@@ -117,7 +117,9 @@ channelThreads = [
         message = messages.get messageId
         if message.has('__editedBody')
           message = message.set 'body', message.get '__editedBody'
+        if message.has '__editedPayload'
           message = message.set 'payload', message.get '__editedPayload'
+          message = message.set 'link', message.get '__editedPayload'
         if loaderMarkers.hasIn [channelId, messageId]
           message = message.set 'loaderMarkers', loaderMarkers.getIn [channelId, messageId]
         return message

@@ -7,6 +7,8 @@ messageHelpers         = require '../helpers/message'
 realtimeActionCreators = require './realtime/actioncreators'
 embedlyHelpers         = require '../helpers/embedly'
 Promise                = require 'bluebird'
+mergeEmbedPayload      = require 'activity/util/mergeEmbedPayload'
+
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -234,8 +236,8 @@ createMessage = (channelId, body, payload) ->
   channel = socialapi.retrieveCachedItemById channelId
   type = channel.typeConstant
 
-  fetchEmbedPayload { body, payload }, (embedPayload) ->
-    payload = _.assign {}, payload, embedPayload
+  fetchEmbedPayload { body, payload }, (err, embedPayload) ->
+    payload = mergeEmbedPayload payload, embedPayload
 
     options = { channelId, clientRequestId, body, payload, type }
     socialapi.message.sendPrivateMessage options, (err, [channel]) ->
@@ -336,21 +338,26 @@ unlikeMessage = (messageId) ->
 ###
 editMessage = (messageId, body, payload) ->
 
-  payload = messageHelpers.sanitizePayload payload
-
   { socialapi } = kd.singletons
   { EDIT_MESSAGE_BEGIN
     EDIT_MESSAGE_SUCCESS
     EDIT_MESSAGE_FAIL } = actionTypes
 
+  messages = kd.singletons.reactor.evaluate ['MessagesStore']
+  message  = messages.get messageId
+
+  isEmbedPayloadDisabled = message.get '__isEmbedPayloadDisabled'
+
+  unless payload
+    payload = message.get('__editedPayload') ? message.get 'payload'
+    payload = payload.toJS()
+
+  payload = messageHelpers.sanitizePayload payload
+
   dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
-  fetchEmbedPayload { body, payload }, (embedPayload) ->
-    if payload and not embedPayload
-      # if payload link has been removed, it's necessary
-      # to clear link fields from message payload
-      embedPayload = { link_url : null, link_embed : null }
-    payload = _.assign {}, payload, embedPayload
+  callback = (err, embedPayload) ->
+    payload = mergeEmbedPayload payload, embedPayload
 
     socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
       if err
@@ -359,6 +366,11 @@ editMessage = (messageId, body, payload) ->
 
       realtimeActionCreators.bindMessageEvents message
       dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
+
+  if isEmbedPayloadDisabled
+    callback null, payload
+  else
+    fetchEmbedPayload { body, payload }, callback
 
 
 ###*
@@ -479,34 +491,91 @@ setMessageEditMode = (messageId, channelId) ->
  * @param {string} messageId
  * @param {string} channelId
 ###
-unsetMessageEditMode = (messageId, channelId) ->
+unsetMessageEditMode = (messageId, channelId, resetEditedPayload) ->
 
   { UNSET_MESSAGE_EDIT_MODE } = actionTypes
-  dispatch UNSET_MESSAGE_EDIT_MODE, { messageId, channelId }
+  dispatch UNSET_MESSAGE_EDIT_MODE, { messageId, channelId, resetEditedPayload }
 
 
+###*
+ * Fetches embed data by url extracted from message body
+ * and calls callback when fetch is done
+ * If extracted url and payload url are the same, fetch doesn't
+ * happen and callback is called with payload data
+ *
+ * @param {object} messageData
+ * @param {function} callback
+###
 fetchEmbedPayload = (messageData, callback = kd.noop) ->
 
-  url = embedlyHelpers.extractUrl messageData.body
+  { body, payload } = messageData
+  url = embedlyHelpers.extractUrl body
   return callback()  unless url
-  return callback()  if messageData.payload?.link_url is url
+  return callback null, payload  if payload?.link_url is url
+
+  fetchDataFromEmbedly url, callback
+
+
+###*
+ * Fetches embed data by given url and updates
+ * edited message embed payload with received response
+ * Does nothing if message is disabled for embed payload
+ *
+ * @param {string} messageId
+ * @param {string} url
+###
+editEmbedPayloadByUrl = (messageId, url) ->
+
+  { EDIT_MESSAGE_EMBED_PAYLOAD_BEGIN,
+    EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS,
+    EDIT_MESSAGE_EMBED_PAYLOAD_FAIL } = actionTypes
+
+  messages = kd.singletons.reactor.evaluate ['MessagesStore']
+  message  = messages.get messageId
+  return  if message.get '__isEmbedPayloadDisabled'
+
+  return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId }  unless url
+
+  fetchDataFromEmbedly url, (err, embedPayload) ->
+    return dispatch EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, { messageId, err }  if err
+    dispatch EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+
+
+###*
+ * Fetches data from embed.ly by given url, creates payload
+ * from received response and calls callback with payload
+ * or error if embed.ly request has failed
+###
+fetchDataFromEmbedly = (url, callback = kd.noop) ->
 
   options =
     maxWidth  : 600
     maxHeight : 450
     wmode     : 'transparent'
 
-  { fetchDataFromEmbedly } = kd.singletons.socialapi.message
+  { socialapi } = kd.singletons
 
-  fetchDataFromEmbedly url, options, (err, result) ->
+  socialapi.message.fetchDataFromEmbedly url, options, (err, result) ->
 
     if err
       kd.log 'Embed.ly error!', err
+      callback err
     else if result
       data    = result.first
       payload = embedlyHelpers.createMessagePayload data
 
-    callback payload
+    callback null, payload
+
+
+###*
+ * Disables embed payload for editing message
+ *
+ * @param {string} messageId
+###
+disableEditedEmbedPayload = (messageId) ->
+
+  { DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD } = actionTypes
+  dispatch DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD, { messageId }
 
 
 module.exports = {
@@ -526,5 +595,7 @@ module.exports = {
   changeSelectedMessageBySlug
   putLoaderMarker
   removeLoaderMarker
+  editEmbedPayloadByUrl
+  disableEditedEmbedPayload
 }
 
