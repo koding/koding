@@ -22,8 +22,8 @@ import (
 )
 
 var (
-	// Go binary source code residues at go/src/koding/kites/kloud/scripts/provisionklient
-	PostInstallScriptUri = "https://s3.amazonaws.com/kodingdev-provision/provisionklient"
+	// The script is located at go/src/koding/kites/kloud/provisioner.
+	PostInstallScriptUri = "https://s3.amazonaws.com/kodingdev-softlayer/softlayer-cloud-init.sh"
 
 	// Only lookup images that have this tag
 	DefaultTemplateTag = "koding-stable"
