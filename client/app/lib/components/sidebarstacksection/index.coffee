@@ -28,7 +28,7 @@ module.exports = class SidebarStackSection extends React.Component
         key={machine.get '_id'}
         machine={machine}
         active={machine.get('_id') is @props.selectedId}
-        visible={visible}
+        showInSidebar={visible}
         />
 
 

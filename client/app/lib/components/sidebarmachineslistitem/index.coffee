@@ -23,7 +23,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   @defaultProps =
     bindWorkspacesTitleClick  : yes
-    visible : yes
+    showInSidebar : yes
 
 
   constructor: (props) ->
@@ -189,7 +189,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   render: ->
 
-    return null  unless @props.visible
+    return null  unless @props.showInSidebar
 
     status      = @machine ['status', 'state']
     activeClass = if @props.active then ' active' else ''
@@ -197,7 +197,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
     <div className="SidebarMachinesListItem #{status}">
       <Link
         className={"SidebarMachinesListItem--MainLink#{activeClass}"}
-        # make this link dynamic pointing to latest open workspace
         href='#'
         onClick={@bound 'handleMachineClick'}
         ref='SidebarMachinesListItem'
