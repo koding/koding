@@ -644,7 +644,9 @@ module.exports = class JGroup extends Module
 
                 # check if the diff has admin role
                 if diff.indexOf('admin') > -1
-                  return callback new KodingError 'There should be at least one admin'
+                  errCode    = 'UserIsTheOnlyAdmin'
+                  errMessage = 'There should be at least one admin to make this change.'
+                  return callback new KodingError errMessage, errCode
 
                 queue.next()
 
