@@ -15,6 +15,7 @@ getBoundingClientReact          = require 'app/util/getBoundingClientReact'
 LeaveSharedMachineWidget        = require './leavesharedmachinewidget'
 SidebarWorkspacesListItem       = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled    = require 'app/util/isMachineSettingsIconEnabled'
+ConnectedManagedMachineWidget   = require './connectedmanagedmachinewidget'
 SharingMachineInvitationWidget  = require './sharingmachineinvitationwidget'
 
 
@@ -173,6 +174,15 @@ module.exports = class SidebarMachinesListItem extends React.Component
     actions.showAddWorkspaceView @machine '_id'
 
 
+  renderConnectedManagedMachineWidget: ->
+
+    return null  unless @machine('provider') is 'managed'
+
+    <ConnectedManagedMachineWidget
+      machine={@props.machine}
+      coordinates={@state.coordinates}
+      />
+
 
   render: ->
 
@@ -196,6 +206,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
       {@renderWorkspaceSection()}
       {@renderInvitationWidget()}
       {@renderLeaveSharedMachine()}
+      {@renderConnectedManagedMachineWidget()}
     </div>
 
 
