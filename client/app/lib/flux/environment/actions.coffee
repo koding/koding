@@ -10,7 +10,9 @@ showError               = require 'app/util/showError'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
-_machineEventsCache = {}
+_eventsCache =
+  machine    : {}
+  stack      : no
 
 
 _bindMachineEvents = (environmentData) ->
@@ -21,9 +23,9 @@ _bindMachineEvents = (environmentData) ->
 
   machines.map (machine, id) ->
 
-    return  if _machineEventsCache[id]
+    return  if _eventsCache.machine[id]
 
-    _machineEventsCache[id] = yes
+    _eventsCache.machine[id] = yes
 
     computeController.on "public-#{id}", (event) ->
 
@@ -41,6 +43,10 @@ _bindMachineEvents = (environmentData) ->
 
 _bindStackEvents = ->
 
+  return  if _eventsCache.stack is yes
+
+  _eventsCache.stack = yes
+
   { reactor, computeController } = kd.singletons
 
   computeController.on 'StackRevisionChecked', (stack) ->
@@ -49,7 +55,6 @@ _bindStackEvents = ->
 
     loadMachines().then ->
       reactor.dispatch actions.STACK_UPDATED, stack
-
 
 
 loadMachines = do (isPayloadUsed = no) ->->
