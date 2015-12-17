@@ -3,22 +3,22 @@ package softlayer
 import (
 	"encoding/json"
 	"errors"
+	"strings"
+	"time"
+
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/scripts/provisionklient/userdata"
-	"strings"
-	"time"
-
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite/protocol"
 	datatypes "github.com/maximilien/softlayer-go/data_types"
 	"github.com/maximilien/softlayer-go/softlayer"
 	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -60,29 +60,29 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	kiteID := uuid.NewV4().String()
 
-	kiteKey, err := m.Session.Userdata.Keycreator.Create(m.Username, kiteID)
+	cloudInitConfig := &userdata.CloudInitConfig{
+		Username:           m.Username,
+		Groups:             []string{"docker", "sudo"},
+		UserSSHKeys:        sshKeys,
+		Hostname:           m.Username, // no typo here. hostname = username
+		KiteId:             kiteID,
+		DisableEC2MetaData: true,
+		KodingSetup:        true,
+	}
+
+	cloudInit, err := m.Session.Userdata.Create(cloudInitConfig)
 	if err != nil {
 		return err
 	}
 
-	klientURL, err := m.Session.Userdata.Bucket.LatestDeb()
-	if err != nil {
-		return err
+	userdata := struct {
+		CloudInit []byte `json:"cloudInit,omitempty"`
+	}{
+		CloudInit: cloudInit,
 	}
-	klientURL = m.Session.Userdata.Bucket.URL(klientURL)
-
-	data := userdata.Value{
-		Username:        m.Username,
-		Groups:          []string{"sudo"},
-		SSHKeys:         sshKeys,
-		Hostname:        m.Username, // no typo here. hostname = username
-		KiteKey:         kiteKey,
-		LatestKlientURL: klientURL,
-	}
-
 	// pass the values as a json. Our script will unmarshall and use it inside
 	// the instance
-	val, err := json.Marshal(&data)
+	val, err := json.Marshal(&userdata)
 	if err != nil {
 		return err
 	}
