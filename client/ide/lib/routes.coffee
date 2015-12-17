@@ -63,6 +63,7 @@ loadIDE = (data) ->
 
   { machine, workspace, username, channelId } = data
   selectWorkspaceOnSidebar data
+  actions.setSelectedMachineId machine._id
 
   appManager = kd.getSingleton 'appManager'
   ideApps    = appManager.appControllers.IDE
