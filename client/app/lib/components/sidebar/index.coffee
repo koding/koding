@@ -48,7 +48,7 @@ module.exports = class Sidebar extends React.Component
     { setActiveInvitationMachineId } = EnvironmentFlux.actions
 
     if @state.requiredInvitationMachine
-      setActiveInvitationMachineId @state.requiredInvitationMachine
+      setActiveInvitationMachineId { machine : @state.requiredInvitationMachine }
 
 
   renderInvitationWidget: ->
