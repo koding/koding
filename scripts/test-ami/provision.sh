@@ -86,6 +86,7 @@ usermod -aG docker $PROVISION_USER
 
 apt-get install -y xvfb x11vnc xfonts-75dpi xfonts-100dpi xfonts-scalable xfonts-cyrillic
 apt-get install -y openjdk-7-jre-headless
+apt-get install -y firefox
 apt-get install -y google-chrome-stable
 
 npm install --global nightwatch
