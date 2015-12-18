@@ -12,6 +12,7 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/plans"
@@ -27,6 +28,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -37,10 +39,15 @@ import (
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 	"github.com/koding/klient/app"
+	"github.com/koding/logging"
+
+	// Klient uses vendored Kite, so we need to export it explicitly to make use of it
+	klKite "github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
 
 var (
 	kloudKite      *kite.Kite
+	klientKite     *klKite.Kite
 	kld            *kloud.Kloud
 	conf           *config.Config
 	kodingProvider *koding.Provider
@@ -49,12 +56,47 @@ var (
 )
 
 func main() {
+	// This is somehow overriden by one of the packages here. I've searched for
+	// hours with no luck. So I'm restoring it again back.
+	logging.DefaultHandler = logging.NewWriterHandler(os.Stderr)
+
 	if err := realMain(); err != nil {
 		log.Fatalln(err)
 	}
 }
 
 func realMain() error {
+	if err := startInstances(); err != nil {
+		return err
+	}
+
+	// now create a test kite which calls kloud or klient, respectively
+
+	queryString := klientKite.Kite().String()
+
+	userKite := kite.New("user", "0.0.1")
+	username := "fatih"
+	c := conf.Copy()
+	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
+	c.Username = username
+	userKite.Config = c
+
+	userKite.Log.Info("Searching for klient: %s", queryString)
+	klientRef, err := klient.NewWithTimeout(userKite, queryString, time.Minute*5)
+	if err != nil {
+		return err
+	}
+	defer klientRef.Close()
+
+	userKite.Log.Debug("Sending a ping message")
+	if err := klientRef.Ping(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func startInstances() error {
 	repoPath, err := currentRepoPath()
 	if err != nil {
 		return err
@@ -71,6 +113,7 @@ func realMain() error {
 	conf.KontrolKey = testkeys.Public
 	conf.KontrolUser = "koding"
 	conf.KiteKey = testutil.NewKiteKey().Raw
+	conf.Transport = config.XHRPolling
 
 	// Power up our own kontrol kite for self-contained tests
 	log.Println("Starting Kontrol Test Instance")
@@ -132,7 +175,7 @@ func realMain() error {
 		LocalStorePath: filepath.Join(repoPath, filepath.FromSlash("go/data/terraformer")),
 	}
 
-	t, err := terraformer.New(tConf, common.NewLogger("terraformer", false))
+	t, err := terraformer.New(tConf, common.NewLogger("terraformer", true))
 	if err != nil {
 		return fmt.Errorf("terraformer: %s", err)
 	}
@@ -155,10 +198,11 @@ func realMain() error {
 	log.SetOutput(ioutil.Discard)
 
 	log.Println("=== Starting Klient now!!!")
-	return startKlient()
+	startKlient()
+	return nil
 }
 
-func startKlient() error {
+func startKlient() {
 	dbPath := ""
 	u, err := user.Current()
 	if err == nil {
@@ -175,15 +219,15 @@ func startKlient() error {
 		Port:        56789,
 		RegisterURL: "localhost:56789",
 		KontrolURL:  conf.KontrolURL,
-		Debug:       true,
+		// Debug:       true,
 	}
 
 	a := app.NewKlient(klientConf)
-	defer a.Close()
+	klientKite = a.Kite()
 
 	// Run Forrest, Run!
-	a.Run()
-	return nil
+	go a.Run()
+	<-klientKite.ServerReadyNotify()
 }
 
 func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) {
