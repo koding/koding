@@ -92,6 +92,14 @@ module.exports = class Machine extends KDObject
     return label or ipAddress or uid or "one of #{nick()}'s machines"
 
 
+  invalidateKiteCache: ->
+
+    currentKite = @getBaseKite no
+    currentKite.disconnect()
+
+    kd.singletons.computeController.invalidateCache @_id
+
+
   getBaseKite: (createIfNotExists = yes)->
 
     { kontrol } = kd.singletons

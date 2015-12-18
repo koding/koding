@@ -157,7 +157,7 @@ module.exports =
     if editLink
       browser
         .setValue               "#{activitySelector}#{activityInputSelector}", finalLink + ' Hello Koding'
-        .waitForElementVisible  "#{activitySelector} .activity-input-widget .link-embed-box", 20000
+        .waitForElementVisible  "#{activitySelector} .activity-input-widget .link-embed-box", 50000
         .pause                  3000 #for image load
         .waitForElementVisible  doneButtonSelector, 20000
         .moveToElement          doneButtonSelector, 15, 10

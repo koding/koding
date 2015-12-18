@@ -4,6 +4,7 @@ chatinputActions         = require '../chatinput/actions/actiontypes'
 toImmutable              = require 'app/util/toImmutable'
 KodingFluxStore          = require 'app/flux/base/store'
 MessageCollectionHelpers = require '../helpers/messagecollection'
+mergeEmbedPayload        = require 'activity/util/mergeEmbedPayload'
 
 
 ###*
@@ -59,6 +60,10 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.CREATE_COMMENT_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_COMMENT_SUCCESS, @handleCreateCommentSuccess
     @on actions.CREATE_COMMENT_FAIL, @handleCreateMessageFail
+
+    @on actions.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, @handleEditMessageEmbedPayloadSuccess
+    @on actions.EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, @handleEditMessageEmbedPayloadFail
+    @on actions.DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD, @handleDisableEditedMessageEmbedPayload
 
 
   ###*
@@ -186,6 +191,7 @@ module.exports = class MessagesStore extends KodingFluxStore
     message = messages.get messageId
     message = message.remove '__editedBody'
     message = message.remove '__editedPayload'
+    message = message.remove '__isEmbedPayloadDisabled'
 
     return addMessage messages, message
 
@@ -211,9 +217,18 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @param {string} payload.messageId
    * @return {IMMessageCollection} nextState
   ###
-  handleUnsetMessageEditMode: (messages, { messageId }) ->
+  handleUnsetMessageEditMode: (messages, { messageId, resetEditedPayload }) ->
 
-    return messages = messages.setIn [messageId, '__isEditing'], no
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    message = message.set '__isEditing', no
+
+    if resetEditedPayload
+      message = message.remove '__editedPayload'
+      message = message.remove '__isEmbedPayloadDisabled'
+
+    return addMessage messages, message
 
 
   ###*
@@ -299,4 +314,91 @@ module.exports = class MessagesStore extends KodingFluxStore
     { removeMessage } = MessageCollectionHelpers
 
     return removeMessage messages, messageId
+
+
+  ###*
+   * Handler for `EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS` action.
+   * It updates message __editedPayload property with a new embed payload.
+   * It works if message is in edit mode and embed payload isn't disabled
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @param {Immutable.Map} payload.embedPayload
+   * @return {IMMessageCollection} nextState
+  ###
+  handleEditMessageEmbedPayloadSuccess: (messages, { messageId, embedPayload }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    return messages  if not message.get('__isEditing') or message.get '__isEmbedPayloadDisabled'
+
+    message = helper.updateEditedEmbedPayload message, embedPayload
+
+    return addMessage messages, message
+
+
+  ###*
+   * Handler for `EDIT_MESSAGE_EMBED_PAYLOAD_FAIL` action.
+   * It is called in case of fail when editing embed data in message and
+   * it clears embed payload in __editedPayload property.
+   * It works if message is in edit mode and embed payload isn't disabled
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @return {IMMessageCollection} nextState
+  ###
+  handleEditMessageEmbedPayloadFail: (messages, { messageId }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    return messages  if not message.get('__isEditing') or message.get '__isEmbedPayloadDisabled'
+
+    message = helper.updateEditedEmbedPayload message, null
+
+    return addMessage messages, message
+
+
+  ###*
+   * Handler for `DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD` action.
+   * it sets __isEmbedPayloadDisabled property to yes
+   * and clears embed payload
+   * It works if message is in edit mode
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @return {IMMessageCollection} nextState
+  ###
+  handleDisableEditedMessageEmbedPayload: (messages, { messageId }) ->
+
+    { addMessage } = MessageCollectionHelpers
+
+    message = messages.get messageId
+    return messages  unless message.get '__isEditing'
+
+    message = message.set '__isEmbedPayloadDisabled', yes
+    message = helper.updateEditedEmbedPayload message, null
+
+    return addMessage messages, message
+
+
+  helper =
+
+    updateEditedEmbedPayload: (message, embedPayload) ->
+
+      payload = message.get('__editedPayload') ? message.get 'payload'
+      isEmpty = not payload or payload.isEmpty()
+
+      if embedPayload and embedPayload.link_embed
+        payload = if isEmpty then toImmutable embedPayload else payload.merge embedPayload
+      else if not isEmpty
+        payload = payload.remove('link_url').remove('link_embed')
+
+      message = message.set '__editedPayload', payload
+
+      return message
 

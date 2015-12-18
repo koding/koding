@@ -34,9 +34,9 @@ module.exports = class SimpleChatListItem extends ChatListItem
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
-          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
+        {@renderEmbedBox()}
         {@renderChatItemMenu()}
         <div className='clearfix'></div>
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>

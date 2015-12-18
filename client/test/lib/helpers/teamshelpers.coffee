@@ -7,6 +7,7 @@ teamsModalSelector      = '.TeamsModal--groupCreation'
 companyNameSelector     = '.login-form input[testpath=company-name]'
 sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
 chatItem                = '.Pane-body .ChatList .ChatItem'
+chatInputSelector       = '.ChatPaneFooter .ChatInputWidget textarea'
 
 module.exports =
 
@@ -286,25 +287,25 @@ module.exports =
 
   moveToSidebarHeader: (browser, plus, channelHeader) ->
 
-    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarSection-header"
+    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarChannelsSection .SidebarSection-header"
     channelPlusSelector           = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
 
     browser
       .waitForElementVisible    sidebarSectionsSelector, 20000
-      .moveToElement            sidebarSectionsSelector, 100, 7
+      .moveToElement            sidebarSectionsHeaderSelector, 100, 7
       .pause                    2000 # wait for side bar channel list
 
     if plus
       browser
+        .moveToElement          channelPlusSelector, 8, 5
         .waitForElementVisible  channelPlusSelector, 20000
         .click                  channelPlusSelector
     else if channelHeader
       browser
-        .waitForElementVisible  sidebarSectionsHeaderSelector, 20000
         .click                  sidebarSectionsHeaderSelector
 
 
-  createChannel: (browser, user, channelName) ->
+  createChannel: (browser, user, channelName, isInvalid) ->
 
     createChannelModalNameSelector   = '.CreateChannel-Modal .CreateChannel-content .channelName input'
     createChannelModalButtonSelector = '.CreateChannel-Modal .Modal-buttons .Button--danger'
@@ -321,27 +322,64 @@ module.exports =
       .waitForElementVisible  createChannelModalButtonSelector, 20000
       .moveToElement          createChannelModalButtonSelector, 32, 12
       .click                  createChannelModalButtonSelector
-      .waitForElementVisible  chatItem, 20000
-      .assert.containsText    chatItem, user.username
-      .waitForElementVisible  sidebarSectionsSelector, 20000
-      .pause                  2000 # wait for side bar channel list
-      .waitForElementVisible  channelLinkOnSidebarSelector, 20000
-      .assert.containsText    sidebarSectionsSelector, channelName
+
+    if isInvalid
+      browser
+        .waitForElementVisible  '.channelName.invalid', 20000
+        .pause                   2000
+        .waitForElementVisible  '.CreateChannel-Modal', 20000
+    else
+      browser
+        .waitForElementVisible  chatItem, 20000
+        .pause                  3000
+        .assert.containsText    chatItem, user.username
+        .waitForElementVisible  sidebarSectionsSelector, 20000
+        .pause                  2000 # wait for side bar channel list
+        .waitForElementVisible  channelLinkOnSidebarSelector, 20000
+        .assert.containsText    sidebarSectionsSelector, channelName
 
     return channelName
 
 
-  sendComment: (browser) ->
+  sendComment: (browser, message, messageType) ->
 
-    chatMessage       = helpers.getFakeText()
-    chatInputSelector = '.ChatPaneFooter .ChatInputWidget textarea'
+    chatInputSelector     = '.ChatPaneFooter .ChatInputWidget textarea'
+    imageSelector         = '.EmbedBox-container .EmbedBoxImage'
+    imageTextSelector     = '.Pane-body .ChatList .ChatItem .ChatItem-contentBody:nth-of-type(1)'
+    linkTextSelector      = '.EmbedBoxLinkContent .EmbedBoxLinkContent-description'
+    emojiSelector         = '.ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ChatItem-contentBody '
+    emojiSmileySelector   = "#{emojiSelector} .emoji-smiley"
+    emojiThumbsUpSelector = "#{emojiSelector} .emoji-thumbsup"
+    messageWithShortCode  = "console.log('123456789')"
+    textAreaSelector      = '.Pane-body .ChatList'
 
     browser
       .waitForElementVisible  chatItem, 20000
       .waitForElementVisible  chatInputSelector, 20000
-      .setValue               chatInputSelector, chatMessage + '\n'
+      .setValue               chatInputSelector, message + '\n'
       .waitForElementVisible  chatItem, 20000
-      .assert.containsText    '.Pane-body .ChatList', chatMessage
+
+    if not messageType
+      browser
+        .assert.containsText      textAreaSelector, message
+
+    switch messageType
+      when 'messageWithCode'
+        browser
+          .assert.containsText    "#{textAreaSelector} .ChatItem .SimpleChatListItem", messageWithShortCode
+      when 'messageWithImage'
+        browser
+          .waitForElementVisible  imageSelector, 20000
+          .assert.containsText    imageTextSelector, message
+      when 'messageWithLink'
+        browser
+          .waitForElementVisible  linkTextSelector, 20000
+          .assert.containsText    linkTextSelector, 'The Free Encyclopedia'
+      when 'messageWithEmoji'
+        browser
+          .waitForElementVisible  emojiSmileySelector, 20000
+          .assert.elementPresent  emojiSmileySelector
+          .assert.elementPresent  emojiThumbsUpSelector
 
 
   createChannelsAndCheckList: (browser, user) ->
@@ -369,3 +407,37 @@ module.exports =
       .assert.containsText    threadsContainer, channelName3
 
     return [ channelName1, channelName2, channelName3 ]
+
+
+  leaveChannel: (browser) ->
+
+    channelHeaderPaneSelector = '.ChannelThreadPane-content .ChannelThreadPane-header'
+    buttonSelector            = "#{channelHeaderPaneSelector} .ButtonWithMenuWrapper"
+    channelActionsSelector    = '.ButtonWithMenuItemsList.ChannelThreadPane-menuItems'
+    leaveChannelSelector      = "#{channelActionsSelector} li:nth-child(2)"
+    followChannelBox          = '.ChannelThreadPane-body .FollowChannelBox'
+
+    browser
+      .waitForElementVisible     channelHeaderPaneSelector, 20000
+      .waitForElementVisible     buttonSelector, 20000
+      .click                     buttonSelector
+      .waitForElementVisible     channelActionsSelector, 20000
+      .moveToElement             leaveChannelSelector, 70, 12
+      .waitForElementVisible     leaveChannelSelector, 20000
+      .click                     leaveChannelSelector
+      .waitForElementVisible     followChannelBox, 20000 # Assertion
+      .waitForElementNotVisible  chatInputSelector, 20000 # Assertion
+
+
+  joinChannel: (browser) ->
+
+    followChannelBox    = '.FollowChannelBox'
+    followChannelButton = "#{followChannelBox} .Button-followChannel"
+
+    @leaveChannel(browser)
+
+    browser
+      .waitForElementVisible     followChannelButton, 20000
+      .click                     followChannelButton
+      .waitForElementNotVisible  followChannelButton, 20000
+
