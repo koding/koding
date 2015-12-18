@@ -49,8 +49,8 @@ boxes =
       you need to go to your IDE and build your stack.
     </p>
     <div class="button-bar">
-      <a href='/IDE' data-handler='#{HANDLERS.readMe}'>Go to IDE</a>
-      <a href='#' class="button" data-handler='#{HANDLERS.skip}'>NEXT</a>
+      <a href='#' data-handler='#{HANDLERS.skip}'>Skip This</a>
+      <a href='/IDE' class="button">START</a>
     </div>
     """
 
