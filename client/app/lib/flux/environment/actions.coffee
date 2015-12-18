@@ -37,8 +37,10 @@ _bindMachineEvents = (environmentData) ->
 
       reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
 
-  # Try to catch collaboration and shared vm invitations on the fly.
-  computeController.on 'RenderMachines', -> loadMachines()
+  kd.singletons.notificationController
+
+    .on 'SharedMachineInvitation', (machine) -> handleSharedMachineInvitation machine
+    .on 'CollaborationInvitation', (machine) -> handleSharedMachineInvitation machine
 
 
 _bindStackEvents = ->
