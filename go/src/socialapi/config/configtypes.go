@@ -65,14 +65,15 @@ type (
 
 	// Email holds Email Workers' config
 	Email struct {
-		Host            string `env:"key=KONFIG_SOCIALAPI_EMAIL_HOST                     required"`
-		Protocol        string `env:"key=KONFIG_SOCIALAPI_EMAIL_PROTOCOL                 required"`
-		DefaultFromMail string `env:"key=KONFIG_SOCIALAPI_EMAIL_DEFAULTFROMMAIL          required"`
-		DefaultFromName string `env:"key=KONFIG_SOCIALAPI_EMAIL_DEFAULTFROMNAME          required"`
-		ForcedRecipient string `env:"key=KONFIG_SOCIALAPI_EMAIL_FORCEDRECIPIENT"`
-		Username        string `env:"key=KONFIG_SOCIALAPI_EMAIL_USERNAME                 required"`
-		Password        string `env:"key=KONFIG_SOCIALAPI_EMAIL_PASSWORD                 required"`
-		TemplateRoot    string `env:"key=KONFIG_SOCIALAPI_EMAIL_TEMPLATEROOT 	        default=workers/sitemap/files/"`
+		Host                    string `env:"key=KONFIG_SOCIALAPI_EMAIL_HOST                     required"`
+		Protocol                string `env:"key=KONFIG_SOCIALAPI_EMAIL_PROTOCOL                 required"`
+		DefaultFromMail         string `env:"key=KONFIG_SOCIALAPI_EMAIL_DEFAULTFROMMAIL          required"`
+		DefaultFromName         string `env:"key=KONFIG_SOCIALAPI_EMAIL_DEFAULTFROMNAME          required"`
+		ForcedRecipientEmail    string `env:"key=KONFIG_SOCIALAPI_EMAIL_FORCEDRECIPIENTEMAIL"`
+		ForcedRecipientUsername string `env:"key=KONFIG_SOCIALAPI_EMAIL_FORCEDRECIPIENTUSERNAME"`
+		Username                string `env:"key=KONFIG_SOCIALAPI_EMAIL_USERNAME                 required"`
+		Password                string `env:"key=KONFIG_SOCIALAPI_EMAIL_PASSWORD                 required"`
+		TemplateRoot            string `env:"key=KONFIG_SOCIALAPI_EMAIL_TEMPLATEROOT 	        default=workers/sitemap/files/"`
 	}
 
 	// Sitemap holds Sitemap Workers' config

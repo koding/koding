@@ -494,20 +494,38 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 		return nil, err
 	}
 
-	allowedIds := make([]bson.ObjectId, len(machines))
+	validUsers := make(map[string]models.MachineUser, 0)
+	validMachines := make(map[string]*models.Machine, 0)
 
-	for i, machine := range machines {
-		for _, perm := range machine.Users {
-			// we only going to fetch users that are allowed
-			if perm.Sudo && perm.Owner {
-				allowedIds[i] = perm.Id
+	for _, machine := range machines {
+		// machines with empty users are supposed to allowed by default
+		// (gokmen)
+		if machine.Users == nil || len(machine.Users) == 0 {
+			validMachines[machine.ObjectId.Hex()] = machine
+			continue
+		}
+
+		// for others we need to be sure they are valid
+		// TODO(arslan): add custom type with custom methods for type
+		// []*Machineuser
+		for _, user := range machine.Users {
+			// we only going to select users that are allowed
+			if user.Sudo && user.Owner {
+				validUsers[user.Id.Hex()] = user
 			} else {
-				return nil, fmt.Errorf("machine '%s' is not valid. Aborting apply", machine.ObjectId.Hex())
+				// return early, we don't tolerate nonvalid inputs to apply
+				return nil, fmt.Errorf("machine '%s' is not valid. Aborting apply",
+					machine.ObjectId.Hex())
 			}
 		}
 	}
 
-	allowedUsers, err := modelhelper.GetUsersById(allowedIds...)
+	allowedIds := make([]bson.ObjectId, len(validUsers))
+	for _, user := range validUsers {
+		allowedIds = append(allowedIds, user.Id)
+	}
+
+	users, err := modelhelper.GetUsersById(allowedIds...)
 	if err != nil {
 		return nil, err
 	}
@@ -517,14 +535,41 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 		return nil, errors.New("request context is not passed")
 	}
 
+	// we're going to need this helper function
+	// TODO(arslan): as for []*Machineuser we should have custom type for
+	// []*Machines to have helper methods of it.
+	machineFromUserId := func(id bson.ObjectId) *models.Machine {
+		for _, machine := range machines {
+			for _, user := range machine.Users {
+				if user.Id.Hex() == id.Hex() {
+					return machine
+				}
+			}
+		}
+		return nil
+	}
+
 	// now check if the requested user is inside the allowed users list
-	for _, u := range allowedUsers {
-		if u.Name == req.Username {
-			return machines, nil
+	for _, u := range users {
+		if u.Name != req.Username {
+			continue
+		}
+
+		if m := machineFromUserId(u.ObjectId); m != nil {
+			validMachines[m.ObjectId.Hex()] = m
 		}
 	}
 
-	return nil, fmt.Errorf("machine is only allowed for users: %v. But have: %s", allowedUsers, req.Username)
+	if len(validMachines) == 0 {
+		return nil, fmt.Errorf("no valid machines found for the user: %s", req.Username)
+	}
+
+	finalMachines := make([]*models.Machine, 0)
+	for _, m := range validMachines {
+		finalMachines = append(finalMachines, m)
+	}
+
+	return finalMachines, nil
 }
 
 func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Machine) error {
