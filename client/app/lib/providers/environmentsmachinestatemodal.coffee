@@ -419,7 +419,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @createStateButton()
     else if @state in [ Starting, Building, Pending, Stopping,
                         Terminating, Updating, Rebooting ]
+
       percentage = response?.percentage
+      percentage = 100  if not isKoding() and @state is Stopping
+
       @createProgressBar percentage
       @triggerEventTimer percentage
       @showRandomMarketingSnippet()  if @state is Starting
