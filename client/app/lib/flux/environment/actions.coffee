@@ -7,6 +7,7 @@ sinkrow                 = require 'sinkrow'
 remote                  = require('app/remote').getInstance()
 Promise                 = require 'bluebird'
 showError               = require 'app/util/showError'
+toImmutable             = require 'app/util/toImmutable'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -57,6 +58,16 @@ _bindStackEvents = ->
 
     loadMachines().then ->
       reactor.dispatch actions.STACK_UPDATED, stack
+
+
+handleSharedMachineInvitation = (sharedMachine)->
+
+  { machineUId } = sharedMachine
+
+  fetchMachineByUId machineUId, (machine) ->
+    machine = toImmutable machine
+    setActiveInvitationMachineId { machine, forceUpdate: yes }
+    setActiveLeavingSharedMachineId null
 
 
 fetchMachineByUId = (machineUId, callback) ->
