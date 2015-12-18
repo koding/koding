@@ -661,6 +661,11 @@ class IDEAppController extends AppController
     machineItem.getBaseKite( no ).disconnect()
 
     if @machineStateModal
+
+      if not isKoding() and event.status is Stopping
+        event.percentage = 100 - event.percentage
+        @machineStateModal.unsetClass 'full'
+
       @machineStateModal.updateStatus event
     else
       {state}   = machineItem.status
@@ -675,8 +680,12 @@ class IDEAppController extends AppController
 
     { state, container, machineItem, initial } = options
 
-    container   ?= @getView()
-    modalOptions = { state, container, initial }
+    container            ?= @getView()
+    modalOptions          = { state, container, initial }
+
+    if not isKoding() and state is Stopping
+      modalOptions.cssClass = 'env-machine-state team full'
+
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
