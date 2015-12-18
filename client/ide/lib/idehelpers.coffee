@@ -99,7 +99,8 @@ module.exports = helpers =
                 actions.createWorkspace machine, workspace
                 actions.hideAddWorkspaceView machine._id
 
-              handleRoute(machine, workspace)
+              dataProvider.fetch ->
+                handleRoute(machine, workspace)
 
 
   handleWorkspaceCreateError_: (eventObj, error) ->
