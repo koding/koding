@@ -1,3 +1,4 @@
+kd              = require 'kd'
 React           = require 'kd-react'
 Popover         = require 'app/components/common/popover'
 actions         = require 'app/flux/environment/actions'
@@ -23,14 +24,21 @@ module.exports = class DeleteWorkspaceWidget extends React.Component
       workspace          : @props.workspace
       deleteRelatedFiles : no
 
-    @props.handleDeleteWorkspaceClick options
+    actions.deleteWorkspace(options).then =>
+      kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'machineLabel'}/my-workspace"
+
+
+  handleOnClose: ->
+
+    kd.utils.defer =>
+      actions.hideDeleteWorkspaceWidget @props.workspace.get '_id'
 
 
   render: ->
 
     return null  unless @state.deleteWorkspaceWidget is @props.workspace.get('_id')
 
-    <SidebarWidget {...@props}>
+    <SidebarWidget {...@props} onClose={@bound 'handleOnClose'}>
       <div className='DeleteWorkspace-Guide'>
         <label>Related Guides</label>
         <a

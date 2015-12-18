@@ -34,30 +34,15 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
     getMachineLink @props.machine, @props.workspace
 
 
-  handleDeleteWorkspaceClick: (options) ->
-
-    { machine } = options
-
-    actions.deleteWorkspace(options).then =>
-      kd.singletons.router.handleRoute "/IDE/#{machine.get 'machineLabel'}/my-workspace"
-
-
   handleWorkspaceSettingsClick: ->
 
     actions.showDeleteWorkspaceWidget @props.workspace.get '_id'
-
-
-  handleDeleteWorkspaceOnClose: ->
-
-    actions.hideDeleteWorkspaceWidget @props.workspace.get '_id'
 
 
   renderDeleteWorkspaceWidget: ->
     <DeleteWorkspaceWidget
       machine={@props.machine}
       workspace={@props.workspace}
-      handleDeleteWorkspaceClick={@bound 'handleDeleteWorkspaceClick'}
-      onClose={@bound 'handleDeleteWorkspaceOnClose'}
       coordinates={@state.coordinates}
       />
 
