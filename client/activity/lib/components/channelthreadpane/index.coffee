@@ -21,6 +21,7 @@ module.exports = class ChannelThreadPane extends React.Component
   getDataBindings: ->
     return {
       channelThread       : getters.selectedChannelThread
+      popularChannels     : getters.popularChannels
       channelParticipants : getters.selectedChannelParticipants
     }
 
@@ -102,7 +103,7 @@ module.exports = class ChannelThreadPane extends React.Component
     if isFeedEnabled()
       <aside className='FeedThreadPane-sidebar'>
         <FeedThreadSidebar
-          channelThread={thread} />
+          popularChannels={@state.popularChannels} />
       </aside>
     else
       <aside className='ChannelThreadPane-sidebar'>
