@@ -38,6 +38,13 @@ _bindMachineEvents = (environmentData) ->
 
       reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
 
+
+  # TODO: when a machine shared/collaborate, SharedMachineInvitation and
+  # CollaborationInvitation event listeners trigger two times.
+  # szkl can you check it why trigger these events two times?
+  # When we fix it this problem, gokhansongul will create a new pr for deleting
+  # forceUpdate parameter from ActiveInvitationMachineIdStore setMachineId event handler
+
   kd.singletons.notificationController
 
     .on 'SharedMachineInvitation', (machine) -> handleSharedMachineInvitation machine
