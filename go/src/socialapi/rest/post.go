@@ -40,12 +40,12 @@ func CreatePostWithBody(channelId, accountId int64, body string) (*models.Channe
 	return createPostRequest(channelId, cm, http.Header{})
 }
 
-func CreatePostWithHeader(channelId, accountId int64, header http.Header) (*models.ChannelMessage, error) {
+func CreatePostWithHeader(channelId, accountId int64, header http.Header, token string) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Body = "Text1Text2"
 	cm.AccountId = accountId
 
-	return createPostRequest(channelId, cm, header)
+	return createPostRequestWithAuth(channelId, cm, header, token)
 }
 
 func GetPost(id int64, accountId int64, groupName, token string) (*models.ChannelMessage, error) {
@@ -93,18 +93,34 @@ type PayloadRequest struct {
 	Payload   map[string]interface{} `json:"payload"`
 }
 
-func CreatePostWithPayload(channelId, accountId int64, payload map[string]interface{}) (*models.ChannelMessage, error) {
+func CreatePostWithPayload(channelId, accountId int64, payload map[string]interface{}, token string) (*models.ChannelMessage, error) {
 	pr := PayloadRequest{}
 	pr.Body = "message with payload"
 	pr.AccountId = accountId
 	pr.Payload = payload
 
-	return createPostRequest(channelId, pr, http.Header{})
+	return createPostRequestWithAuth(channelId, pr, http.Header{}, token)
 }
 
 func createPostRequest(channelId int64, model interface{}, h http.Header) (*models.ChannelMessage, error) {
 	url := fmt.Sprintf("/channel/%d/message", channelId)
 	res, err := marshallAndSendRequestWithHeader("POST", url, model, h)
+	if err != nil {
+		return nil, err
+	}
+
+	container := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, container)
+	if err != nil {
+		return nil, err
+	}
+
+	return container.Message, nil
+}
+
+func createPostRequestWithAuth(channelId int64, model interface{}, h http.Header, token string) (*models.ChannelMessage, error) {
+	url := fmt.Sprintf("/channel/%d/message", channelId)
+	res, err := marshallAndSendRequestWithHeaderAndAuth("POST", url, model, h, token)
 	if err != nil {
 		return nil, err
 	}
