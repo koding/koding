@@ -251,6 +251,10 @@ reinitStack = (stackId) ->
 
   kd.singletons.reactor.dispatch actions.REINIT_STACK, stackId
 
+createWorkspace = (machine, workspace) ->
+
+  kd.singletons.reactor.dispatch actions.WORKSPACE_CREATED, { machine, workspace }
+
 
 module.exports = {
   loadMachines
@@ -267,4 +271,5 @@ module.exports = {
   showManagedMachineAddedModal
   hideManagedMachineAddedModal
   reinitStack
+  createWorkspace
 }
