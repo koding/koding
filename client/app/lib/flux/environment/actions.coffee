@@ -247,6 +247,11 @@ hideManagedMachineAddedModal = (machineId) ->
   kd.singletons.reactor.dispatch actions.HIDE_MANAGED_MACHINE_ADDED_MODAL, machineId
 
 
+reinitStack = (stackId) ->
+
+  kd.singletons.reactor.dispatch actions.REINIT_STACK, stackId
+
+
 module.exports = {
   loadMachines
   loadStacks
@@ -261,4 +266,5 @@ module.exports = {
   hideDeleteWorkspaceWidget
   showManagedMachineAddedModal
   hideManagedMachineAddedModal
+  reinitStack
 }

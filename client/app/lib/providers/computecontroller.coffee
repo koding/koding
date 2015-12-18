@@ -11,6 +11,7 @@ isKoding             = require 'app/util/isKoding'
 FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
+actions              = require 'app/flux/environment/actions'
 
 remote               = require('../remote').getInstance()
 Machine              = require './machine'
@@ -722,6 +723,7 @@ module.exports = class ComputeController extends KDController
     .then (res) =>
 
       stack.destroy callback
+      actions.reinitStack stack._id
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
