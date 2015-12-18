@@ -59,6 +59,15 @@ _bindStackEvents = ->
       reactor.dispatch actions.STACK_UPDATED, stack
 
 
+fetchMachineByUId = (machineUId, callback) ->
+
+  remote.api.JMachine.one machineUId, (err, machine)->
+    if err
+      showError err
+    else if machine?
+      callback machine
+
+
 loadMachines = do (isPayloadUsed = no) ->->
 
   { reactor } = kd.singletons
