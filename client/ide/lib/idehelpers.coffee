@@ -94,8 +94,10 @@ module.exports = helpers =
               return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
               eventObj.emit 'WorkspaceCreated', workspace
-              kd.singletons.reactor.dispatch actiontypes.WORKSPACE_CREATED, { machine, workspace }
-              actions.hideAddWorkspaceView machine._id
+
+              unless isKoding()
+                actions.createWorkspace machine, workspace
+                actions.hideAddWorkspaceView machine._id
 
               handleRoute(machine, workspace)
 
@@ -103,7 +105,10 @@ module.exports = helpers =
   handleWorkspaceCreateError_: (eventObj, error) ->
 
     eventObj.emit 'WorkspaceCreateFailed', error
-    kd.singletons.reactor.dispatch actiontypes.WORKSPACE_COULD_NOT_CREATE, error
+
+    unless isKoding()
+      { reactor } = kd.singletons
+      reactor.dispatch actiontypes.WORKSPACE_COULD_NOT_CREATE, error
 
     showError "Couldn't create your new workspace."
     kd.warn error
