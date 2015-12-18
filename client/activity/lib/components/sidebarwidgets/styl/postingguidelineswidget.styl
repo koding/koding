@@ -6,11 +6,17 @@
   vendor                  transition, height .177s ease
   borderBox()
 
-  &.expand
+  &.expanded
     height                auto
 
     ol, li, h4
       dBlock()
+
+    .ActivityGuideWidget-readMore
+      hidden()
+
+    .ActivityGuideWidget-hideInfo
+      visible()
 
   h3
     font-weight           600
@@ -55,13 +61,6 @@
 
       li ~ li
         margin-top        1px
-
-  &.expand
-    .ActivityGuideWidget-readMore
-      hidden()
-
-    .ActivityGuideWidget-hideInfo
-      visible()
 
 .ActivityGuideWidget-readMore
 .ActivityGuideWidget-hideInfo

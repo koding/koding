@@ -9,25 +9,25 @@ module.exports = class PostingGuideLinesWidget extends React.Component
 
     super
 
-    @state = expand : no
+    @state = { isExpanded: no }
 
 
   showMoreClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
-    @setState expand: yes
+    @setState isExpanded: yes
 
 
   hideInfoClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
-    @setState expand: no
+    @setState isExpanded: no
 
 
   getWrapperClassName: -> classnames
-    'expand'                 : @state.expand
+    'expanded'               : @state.isExpanded
     'ActivityGuideWidget'    : yes
     'ActivitySidebar-widget' : yes
 
