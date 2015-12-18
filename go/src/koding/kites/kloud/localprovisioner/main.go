@@ -43,6 +43,7 @@ import (
 
 	// Klient uses vendored Kite, so we need to export it explicitly to make use of it
 	klKite "github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	klKiteConf "github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
 )
 
 var (
@@ -58,7 +59,9 @@ var (
 func main() {
 	// This is somehow overriden by one of the packages here. I've searched for
 	// hours with no luck. So I'm restoring it again back.
-	logging.DefaultHandler = logging.NewWriterHandler(os.Stderr)
+	handler := logging.NewWriterHandler(os.Stderr)
+	handler.Colorize = true
+	logging.DefaultHandler = handler
 
 	if err := realMain(); err != nil {
 		log.Fatalln(err)
@@ -71,7 +74,6 @@ func realMain() error {
 	}
 
 	// now create a test kite which calls kloud or klient, respectively
-
 	queryString := klientKite.Kite().String()
 
 	userKite := kite.New("user", "0.0.1")
@@ -82,13 +84,13 @@ func realMain() error {
 	userKite.Config = c
 
 	userKite.Log.Info("Searching for klient: %s", queryString)
-	klientRef, err := klient.NewWithTimeout(userKite, queryString, time.Minute*5)
+	klientRef, err := klient.NewWithTimeout(userKite, queryString, time.Minute*1)
 	if err != nil {
 		return err
 	}
 	defer klientRef.Close()
 
-	userKite.Log.Debug("Sending a ping message")
+	userKite.Log.Info("Sending a ping message")
 	if err := klientRef.Ping(); err != nil {
 		return err
 	}
@@ -102,17 +104,13 @@ func startInstances() error {
 		return err
 	}
 
-	conf = config.New()
-	conf.Username = "koding"
-
+	conf = testutil.NewConfig() // username is "testuser"
+	conf.Environment = "localhost-env"
+	conf.Region = "localhost-region"
 	conf.KontrolURL = os.Getenv("KLOUD_KONTROL_URL")
 	if conf.KontrolURL == "" {
 		conf.KontrolURL = "http://localhost:4099/kite"
 	}
-
-	conf.KontrolKey = testkeys.Public
-	conf.KontrolUser = "koding"
-	conf.KiteKey = testutil.NewKiteKey().Raw
 	conf.Transport = config.XHRPolling
 
 	// Power up our own kontrol kite for self-contained tests
@@ -217,13 +215,24 @@ func startKlient() {
 		DBPath:      dbPath,
 		IP:          "",
 		Port:        56789,
-		RegisterURL: "localhost:56789",
+		RegisterURL: "http://localhost:56789/kite",
 		KontrolURL:  conf.KontrolURL,
 		// Debug:       true,
 	}
 
 	a := app.NewKlient(klientConf)
 	klientKite = a.Kite()
+	klientKite.Config = &klKiteConf.Config{
+		Username:    conf.Username,
+		Environment: conf.Environment,
+		Region:      conf.Region,
+		Id:          conf.Id,
+		KiteKey:     conf.KiteKey,
+		Transport:   klKiteConf.Transports[conf.Transport.String()],
+		KontrolURL:  conf.KontrolURL,
+		KontrolKey:  conf.KontrolKey,
+		KontrolUser: conf.KontrolUser,
+	}
 
 	// Run Forrest, Run!
 	go a.Run()
