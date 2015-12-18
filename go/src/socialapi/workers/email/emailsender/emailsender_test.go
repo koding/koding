@@ -1,8 +1,8 @@
 package emailsender
 
 import (
-	"testing"
 	"socialapi/config"
+	"testing"
 
 	"github.com/koding/eventexporter"
 	"github.com/koding/runner"
@@ -34,9 +34,9 @@ func TestBongoName(t *testing.T) {
 func TestNew(t *testing.T) {
 	r := startRunner()
 	defer r.Close()
-        
-        appConfig := config.MustRead(r.Conf.Path)
-        
+
+	appConfig := config.MustRead(r.Conf.Path)
+
 	Convey("Given an exporter client", t, func() {
 		Convey("Then it should call it", func() {
 			mail := &Mail{
@@ -48,7 +48,7 @@ func TestNew(t *testing.T) {
 			}
 
 			exporter := eventexporter.NewFakeExporter()
-			c := New(exporter, r.Log, appConfig.Config)
+			c := New(exporter, r.Log, appConfig)
 
 			err := c.Process(mail)
 			So(err, ShouldBeNil)
