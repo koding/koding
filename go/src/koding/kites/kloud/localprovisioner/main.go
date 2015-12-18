@@ -24,6 +24,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -35,6 +36,7 @@ import (
 	"github.com/koding/kite/kontrol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
+	"github.com/koding/klient/app"
 )
 
 var (
@@ -151,6 +153,36 @@ func realMain() error {
 
 	// hashicorp.terraform outputs many logs, discard them
 	log.SetOutput(ioutil.Discard)
+
+	log.Println("=== Starting Klient now!!!")
+	return startKlient()
+}
+
+func startKlient() error {
+	dbPath := ""
+	u, err := user.Current()
+	if err == nil {
+		dbPath = filepath.Join(u.HomeDir, "/.config/koding/klient.bolt")
+	}
+
+	klientConf := &app.KlientConfig{
+		Name:        "klient",
+		Environment: "localhost",
+		Region:      "localhost",
+		Version:     "0.0.1",
+		DBPath:      dbPath,
+		IP:          "",
+		Port:        56789,
+		RegisterURL: "localhost:56789",
+		KontrolURL:  conf.KontrolURL,
+		Debug:       true,
+	}
+
+	a := app.NewKlient(klientConf)
+	defer a.Close()
+
+	// Run Forrest, Run!
+	a.Run()
 	return nil
 }
 
