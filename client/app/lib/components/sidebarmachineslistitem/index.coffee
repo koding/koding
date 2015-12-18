@@ -1,6 +1,7 @@
 kd                             = require 'kd'
 Link                           = require 'app/components/common/link'
 React                          = require 'kd-react'
+ReactDOM                       = require 'react-dom'
 remote                         = require('app/remote').getInstance()
 actions                        = require 'app/flux/environment/actions'
 Machine                        = require 'app/providers/machine'
@@ -130,17 +131,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
       />
 
 
-  renderInvitationWidget: ->
-
-    return null  if @machine('type') is 'own'
-    return null  if @machine 'isApproved'
-
-    <SharingMachineInvitationWidget
-      coordinates={@state.coordinates}
-      machine={@props.machine}
-      />
-
-
   renderLeaveSharedMachine: ->
 
     return null  if @props.activeLeavingSharedMachineId isnt @machine('_id')
@@ -229,7 +219,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
       </Link>
       {@renderMachineSettingsIcon()}
       {@renderWorkspaceSection()}
-      {@renderInvitationWidget()}
       {@renderLeaveSharedMachine()}
       {@renderConnectedManagedMachineWidget()}
     </div>

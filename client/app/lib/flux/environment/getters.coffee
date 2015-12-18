@@ -1,6 +1,8 @@
 machineRuleChecker = require 'app/util/machinerulechecker'
 getMachineOwner    = require 'app/util/getmachineowner'
 
+withEmptyMap       = (storeData) -> storeData or immutable.Map()
+
 StacksStore                       = ['StacksStore']
 MachinesStore                     = ['MachinesStore']
 WorkspacesStore                   = ['WorkspacesStore']
