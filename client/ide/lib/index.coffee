@@ -7,6 +7,7 @@ remote                        = require('app/remote').getInstance()
 KDView                        = kd.View
 whoami                        = require 'app/util/whoami'
 globals                       = require 'globals'
+actions                       = require 'app/flux/environment/actions'
 kookies                       = require 'kookies'
 Encoder                       = require 'htmlencode'
 Machine                       = require 'app/providers/machine'
