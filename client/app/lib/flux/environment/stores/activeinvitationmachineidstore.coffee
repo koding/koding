@@ -14,8 +14,9 @@ module.exports = class ActiveInvitationMachineIdStore extends KodingFluxStore
     @on actions.SET_ACTIVE_INVITATION_MACHINE_ID, @setMachineId
 
 
-  setMachineId: (activeMachineId, { id }) ->
+  setMachineId: (activeMachineId, { id, forceUpdate }) ->
 
+    return id  if forceUpdate
     return null  if activeMachineId is id
     return id
 
