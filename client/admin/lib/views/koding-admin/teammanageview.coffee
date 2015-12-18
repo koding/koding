@@ -31,10 +31,7 @@ module.exports = class TeamManageView extends kd.View
       tagName     : 'span'
       partial     : 'clear'
       cssClass    : 'clear-search hidden'
-      click       : =>
-        @searchInput.setValue ''
-        @searchClear.hide()
-        @search()
+      click       : @bound 'clearSearch'
 
 
   createTeamListView: ->
@@ -47,7 +44,14 @@ module.exports = class TeamManageView extends kd.View
 
     @addSubView @controller.getView()
 
-    @listView.on 'ReloadRequested', @bound 'search'
+    @listView.on 'ReloadRequested', @bound 'clearSearch'
+
+
+  clearSearch: ->
+    @lastQuery = null
+    @searchInput.setValue ''
+    @searchClear.hide()
+    @search()
 
 
   search: ->

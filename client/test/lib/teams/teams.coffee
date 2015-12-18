@@ -140,7 +140,3 @@ module.exports =
       .waitForElementVisible  pendingMemberView, 20000
       .assert.containsText    pendingMemberView, userEmail
       .end()
-
-
-
-

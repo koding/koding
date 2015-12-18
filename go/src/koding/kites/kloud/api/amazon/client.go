@@ -452,6 +452,10 @@ func (c *Client) InstanceStatusByID(id string) (*ec2.InstanceStatus, error) {
 	if len(statuses) > 1 {
 		c.Log.Warning("more than one instance status found with id=%s: %+v", id, statuses)
 	}
+	if len(statuses) == 0 {
+		return nil, newNotFoundError("InstanceStatus", fmt.Errorf("no instance status found with id=%q", id))
+	}
+
 	return statuses[0], nil
 }
 
@@ -550,7 +554,7 @@ func (c *Client) instances(params *ec2.DescribeInstancesInput) (instances []*ec2
 	}
 	var page int
 	return instances, c.EC2.DescribeInstancesPages(params, func(resp *ec2.DescribeInstancesOutput, _ bool) bool {
-		respInstances := collectInstances(resp.Reservations)
+		respInstances := c.collectInstances(resp.Reservations)
 		page++
 		c.Log.Debug("received %d instances (page=%d)", len(respInstances), page)
 		instances = append(instances, respInstances...)
@@ -558,10 +562,17 @@ func (c *Client) instances(params *ec2.DescribeInstancesInput) (instances []*ec2
 	})
 }
 
-func collectInstances(reservations []*ec2.Reservation) (instances []*ec2.Instance) {
+func (c *Client) collectInstances(reservations []*ec2.Reservation) (instances []*ec2.Instance) {
 	for _, r := range reservations {
-		for _, i := range r.Instances {
-			instances = append(instances, i)
+		for _, instance := range r.Instances {
+			if instance == nil {
+				// Don't collect nil instances - if none were collected, it means
+				// we received empty response (e.g. http://git.io/v02mS), and
+				// we will fail with *NotFoundError outside here.
+				c.Log.Debug("received nil instance: %+v", reservations)
+				continue
+			}
+			instances = append(instances, instance)
 		}
 	}
 	return instances

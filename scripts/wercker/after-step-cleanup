@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -n "$DISABLE_TESTS" ]; then
+    echo "Tests are disabled"
+    exit 0
+fi
+
 INSTANCE_DATA_FILE=$1
 
 if [ "$WERCKER_RESULT" = "failed" ]; then

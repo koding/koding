@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -20,10 +20,10 @@ describe 'ChannelParticipantsDropdownVisibilityStore', ->
       @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_DROPDOWN_VISIBILITY, { visible : yes }
       visible = @reactor.evaluate ['channelParticipantsDropdownVisibility']
 
-      expect(visible).to.be.true
+      expect(visible).toBe yes
 
       @reactor.dispatch actions.SET_CHANNEL_PARTICIPANTS_DROPDOWN_VISIBILITY, { visible : no }
       visible = @reactor.evaluate ['channelParticipantsDropdownVisibility']
 
-      expect(visible).to.be.false
+      expect(visible).toBe no
 

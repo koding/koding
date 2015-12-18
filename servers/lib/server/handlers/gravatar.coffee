@@ -5,6 +5,8 @@ module.exports = (req, res) ->
 
   { email } = req.body
 
+  return res.status(400).send 'Email is not set'  unless email
+
   _hash     = (crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex')).toString()
   _url      = "https://www.gravatar.com/#{_hash}.json"
   _request  =

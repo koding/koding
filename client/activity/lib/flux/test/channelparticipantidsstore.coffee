@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -23,7 +23,7 @@ describe 'ChannelParticipantIdsStore', ->
 
       storeState = @reactor.evaluateToJS [ChannelParticipantIdsStore.getterPath]
 
-      expect(storeState.foo).to.eql {}
+      expect(storeState.foo).toEqual {}
 
 
   describe '#handleLoadBegin', ->
@@ -44,7 +44,7 @@ describe 'ChannelParticipantIdsStore', ->
 
       storeState = @reactor.evaluateToJS [ChannelParticipantIdsStore.getterPath]
 
-      expect(storeState.qux).to.eql {'foo', 'bar'}
+      expect(storeState.qux).toEqual {'foo', 'bar'}
 
 
   describe '#handleLoadSuccess', ->
@@ -57,7 +57,7 @@ describe 'ChannelParticipantIdsStore', ->
 
       storeState = @reactor.evaluateToJS [ChannelParticipantIdsStore.getterPath]
 
-      expect(storeState.foo).to.eql {'bar'}
+      expect(storeState.foo).toEqual {'bar'}
 
 
   describe '#handleFollowChannelSuccess', ->
@@ -70,7 +70,7 @@ describe 'ChannelParticipantIdsStore', ->
 
       storeState = @reactor.evaluateToJS [ChannelParticipantIdsStore.getterPath]
 
-      expect(storeState.foo).to.eql {'bar'}
+      expect(storeState.foo).toEqual {'bar'}
 
 
   describe '#handleUnfollowChannelSuccess', ->
@@ -91,6 +91,6 @@ describe 'ChannelParticipantIdsStore', ->
 
       storeState = @reactor.evaluateToJS [ChannelParticipantIdsStore.getterPath]
 
-      expect(storeState.testchannel_2).to.eql {'testAccount_2'}
-      expect(storeState.testchannel_1).to.eql {}
+      expect(storeState.testchannel_2).toEqual {'testAccount_2'}
+      expect(storeState.testchannel_1).toEqual {}
 

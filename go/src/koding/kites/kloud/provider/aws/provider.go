@@ -123,10 +123,9 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	opts := &amazon.ClientOptions{
-		Credentials:   credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
-		Region:        meta.Region,
-		Log:           p.Log.New(machine.ObjectId.Hex()),
-		IgnoreAuthErr: true, // do not log user credential validations failures
+		Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
+		Region:      meta.Region,
+		Log:         p.Log.New(machine.ObjectId.Hex()),
 	}
 
 	amazonClient, err := amazon.NewWithOptions(machine.Meta, opts)

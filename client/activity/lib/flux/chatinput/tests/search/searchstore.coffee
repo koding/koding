@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -29,9 +29,9 @@ describe 'ChatInputSearchStore', ->
       @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
       searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
-      expect(searchItems.size).to.equal items.length
-      expect(searchItems.get(0).get('body')).to.equal message1
-      expect(searchItems.get(1).get('body')).to.equal message2
+      expect(searchItems.size).toEqual items.length
+      expect(searchItems.get(0).get('body')).toEqual message1
+      expect(searchItems.get(1).get('body')).toEqual message2
 
       items = [
         { id : '3', body : message3 }
@@ -39,8 +39,8 @@ describe 'ChatInputSearchStore', ->
       @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
       searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
-      expect(searchItems.size).to.equal items.length
-      expect(searchItems.get(0).get('body')).to.equal message3
+      expect(searchItems.size).toEqual items.length
+      expect(searchItems.get(0).get('body')).toEqual message3
 
 
   describe '#handleReset', ->
@@ -60,7 +60,7 @@ describe 'ChatInputSearchStore', ->
       @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { stateId }
       searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
-      expect(searchItems).to.be.undefined
+      expect(searchItems).toBe undefined
 
     it 'handles fetch data failure', ->
 
@@ -69,5 +69,5 @@ describe 'ChatInputSearchStore', ->
       @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { stateId }
       searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
-      expect(searchItems).to.be.undefined
+      expect(searchItems).toBe undefined
 

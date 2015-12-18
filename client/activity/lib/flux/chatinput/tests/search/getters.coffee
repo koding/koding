@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -30,7 +30,7 @@ describe 'ChatInputSearchGetters', ->
       @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
 
       selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).to.equal -1
+      expect(selectedIndex).toEqual -1
 
 
     it 'gets the same index which was set by action', ->
@@ -47,7 +47,7 @@ describe 'ChatInputSearchGetters', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
       selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).to.equal index
+      expect(selectedIndex).toEqual index
 
 
     it 'handles negative store value', ->
@@ -66,14 +66,14 @@ describe 'ChatInputSearchGetters', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
       selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).to.equal (index % items.length) + items.length
+      expect(selectedIndex).toEqual (index % items.length) + items.length
 
       index = -9
 
       @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
       selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).to.equal (index % items.length) + items.length
+      expect(selectedIndex).toEqual (index % items.length) + items.length
 
 
     it 'handles store value bigger than list size', ->
@@ -90,14 +90,14 @@ describe 'ChatInputSearchGetters', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
       selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).to.equal index % items.length
+      expect(selectedIndex).toEqual index % items.length
 
       index = 8
 
       @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
       selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).to.equal index % items.length
+      expect(selectedIndex).toEqual index % items.length
 
 
   describe '#chatInputSelectedItem', ->
@@ -118,5 +118,5 @@ describe 'ChatInputSearchGetters', ->
       @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
       selectedItem = @reactor.evaluateToJS getters.searchSelectedItem stateId
-      expect(selectedItem.id).to.equal items[index].id
+      expect(selectedItem.id).toEqual items[index].id
 

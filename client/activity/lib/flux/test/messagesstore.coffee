@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 whoami = require 'app/util/whoami'
@@ -26,7 +26,7 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluateToJS ['messages']
 
-      expect(storeState['567']['body']).to.eql 'foo'
+      expect(storeState['567']['body']).toEqual 'foo'
 
 
   describe '#handleCreateMessageBegin', ->
@@ -39,8 +39,8 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has clientRequestId).to.equal yes
-      expect(storeState.getIn [clientRequestId, 'body']).to.equal body
+      expect(storeState.has clientRequestId).toEqual yes
+      expect(storeState.getIn [clientRequestId, 'body']).toEqual body
 
 
   describe '#handleCreateMessageSuccess', ->
@@ -61,10 +61,10 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has clientRequestId).to.equal no
-      expect(storeState.has messageId).to.equal yes
+      expect(storeState.has clientRequestId).toEqual no
+      expect(storeState.has messageId).toEqual yes
 
-      expect(storeState.getIn [messageId, 'body']).to.equal 'hello world'
+      expect(storeState.getIn [messageId, 'body']).toEqual 'hello world'
 
 
   describe '#handleCreateMessageFail', ->
@@ -79,7 +79,7 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has clientRequestId).to.equal no
+      expect(storeState.has clientRequestId).toEqual no
 
 
   describe '#handleEditMessageBegin', ->
@@ -96,8 +96,8 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.get '__editedBody').to.eql 'Hello World Edited'
-      expect(message.get('__editedPayload').toJS()).to.eql foo: 'bar'
+      expect(message.get '__editedBody').toEqual 'Hello World Edited'
+      expect(message.get('__editedPayload').toJS()).toEqual foo: 'bar'
 
 
   describe '#handleEditMessageSuccess', ->
@@ -116,9 +116,9 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.has '__editedBody').to.eql no
-      expect(message.has '__editedPayload').to.eql no
-      expect(message.get 'body').to.eql 'Hello World Edited'
+      expect(message.has '__editedBody').toEqual no
+      expect(message.has '__editedPayload').toEqual no
+      expect(message.get 'body').toEqual 'Hello World Edited'
 
 
   describe '#handleEditMessageFail', ->
@@ -136,9 +136,9 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
       message = storeState.get messageId
 
-      expect(message.has '__editedBody').to.eql no
-      expect(message.has '__editedPayload').to.eql no
-      expect(message.get 'body').to.eql 'Hello World'
+      expect(message.has '__editedBody').toEqual no
+      expect(message.has '__editedPayload').toEqual no
+      expect(message.get 'body').toEqual 'Hello World'
 
 
   describe '#handleLoadCommentSuccess', ->
@@ -150,7 +150,7 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluateToJS ['messages']
 
-      expect(storeState['567']['body']).to.eql 'foo'
+      expect(storeState['567']['body']).toEqual 'foo'
 
 
   describe '#handleCreateCommentSuccess', ->
@@ -170,10 +170,10 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has clientRequestId).to.equal no
-      expect(storeState.has commentId).to.equal yes
+      expect(storeState.has clientRequestId).toEqual no
+      expect(storeState.has commentId).toEqual yes
 
-      expect(storeState.getIn [commentId, 'body']).to.equal 'hello world'
+      expect(storeState.getIn [commentId, 'body']).toEqual 'hello world'
 
 
   describe '#handleRemoveMessageBegin', ->
@@ -193,7 +193,7 @@ describe 'MessagesStore', ->
 
       msg = storeState.get messageId
 
-      expect(msg.get '__removed').to.equal yes
+      expect(msg.get '__removed').toEqual yes
 
 
   describe '#handleRemoveMessageFail', ->
@@ -214,7 +214,7 @@ describe 'MessagesStore', ->
 
       msg = storeState.get messageId
 
-      expect(msg.has '__removed').to.equal no
+      expect(msg.has '__removed').toEqual no
 
 
   describe '#handleRemoveMessageSuccess', ->
@@ -232,7 +232,7 @@ describe 'MessagesStore', ->
 
       storeState = reactor.evaluate ['messages']
 
-      expect(storeState.has messageId).to.equal no
+      expect(storeState.has messageId).toEqual no
 
 
   describe '#handleSetMessageEditMode', ->
@@ -250,7 +250,7 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
 
       message = storeState.get messageId
-      expect(message.get '__isEditing').to.equal yes
+      expect(message.get '__isEditing').toEqual yes
 
 
   describe '#handleUnsetMessageEditMode', ->
@@ -268,5 +268,80 @@ describe 'MessagesStore', ->
       storeState = reactor.evaluate ['messages']
 
       message = storeState.get messageId
-      expect(message.get '__isEditing').to.equal no
+      expect(message.get '__isEditing').toEqual no
+
+
+  describe '#handleEditMessageEmbedPayloadSuccess', ->
+
+    messageId       = 'test'
+    body            = 'Hello World'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, body
+    embedPayload    = { link_url : 'http://www.test.ccom', link_embed : { body : 'test' } }
+
+    it 'skips message __editedPayload property update when message isn\'t in edit mode', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.get '__editedPayload').toBeA 'undefined'
+
+    it 'updates message __editedPayload property with a new embed payload when message is in edit mode', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, { messageId }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.get('__editedPayload').toJS()).toEqual embedPayload
+
+
+  describe '#handleEditMessageEmbedPayloadFail', ->
+
+    messageId       = 'test'
+    body            = 'Hello World'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, body
+    embedPayload    = { link_url : 'http://www.test.ccom', link_embed : { body : 'test' } }
+
+    it 'clears embed payload in __editedPayload property', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, { messageId }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_FAIL, { messageId }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.getIn ['__editedPayload', 'link_url']).toBeA 'undefined'
+      expect(message.getIn ['__editedPayload', 'link_embed']).toBeA 'undefined'
+
+
+  describe '#handleDisableEditedMessageEmbedPayload', ->
+
+    messageId       = 'test'
+    body            = 'Hello World'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, body
+    embedPayload    = { link_url : 'http://www.test.ccom', link_embed : { body : 'test' } }
+
+    it 'sets __isEmbedPayloadDisabled property to yes and clears embed payload', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, { messageId }
+      reactor.dispatch actionTypes.EDIT_MESSAGE_EMBED_PAYLOAD_SUCCESS, { messageId, embedPayload }
+      reactor.dispatch actionTypes.DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD, { messageId }
+
+      storeState = reactor.evaluate ['messages']
+      message = storeState.get messageId
+
+      expect(message.get '__isEmbedPayloadDisabled').toBe yes
+      expect(message.getIn ['__editedPayload', 'link_url']).toBeA 'undefined'
+      expect(message.getIn ['__editedPayload', 'link_embed']).toBeA 'undefined'
 

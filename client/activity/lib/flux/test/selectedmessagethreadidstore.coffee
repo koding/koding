@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 Reactor = require 'app/flux/base/reactor'
 
@@ -18,12 +18,12 @@ describe 'SelectedMessageThreadsIdStore', ->
       @reactor.dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, messageId: '1'
       selectedId = @reactor.evaluate ['selectedThreadId']
 
-      expect(selectedId).to.equal '1'
+      expect(selectedId).toEqual '1'
 
       @reactor.dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, messageId: '2'
       selectedId = @reactor.evaluate ['selectedThreadId']
 
-      expect(selectedId).to.equal '2'
+      expect(selectedId).toEqual '2'
 
 
 

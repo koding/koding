@@ -106,7 +106,7 @@ module.exports = class PricingPlansView extends KDView
     reducedMonth : '0'
     yearPrice    : '0'
     discount     : '0'
-    description  : 'Best for tinkering with and learning new technologies'
+    description  : 'Great for tinkering with and learning new technologies'
     cssClass     : 'free'
     planFeatures : [
       { partial: '1 VM'           , cssClass: 'vm-count' }
@@ -124,7 +124,7 @@ module.exports = class PricingPlansView extends KDView
     reducedMonth : '9.95'
     yearPrice    : '119.40'
     discount     : 255
-    description  : 'Best for expanded learning or for running a small blog/website'
+    description  : 'Great for expanded learning or running a small blog/site'
     cssClass     : 'hobbyist'
     planFeatures : [
       { partial: '1 VM '           , cssClass: 'vm-count' }

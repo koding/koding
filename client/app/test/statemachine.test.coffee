@@ -1,4 +1,4 @@
-{ expect } = require 'chai'
+expect = require 'expect'
 
 StateMachine = require '../lib/statemachine'
 
@@ -23,7 +23,7 @@ describe 'StateMachine', ->
 
     machine = new FooMachine
 
-    expect(machine.states['Loading']).to.be.ok
+    expect(machine.states['Loading']).toExist()
 
 
   it 'reads stateHandlers from options to connect state transitions with outside', ->
@@ -45,19 +45,19 @@ describe 'StateMachine', ->
       onFooTerminated  : -> flags['terminated'] = yes
 
       model = new FooModel
-      expect(flags.loading).to.equal yes
+      expect(flags.loading).toEqual yes
 
       model.machine.transition 'Activating'
-      expect(flags.activating).to.equal yes
+      expect(flags.activating).toEqual yes
 
       model.machine.transition 'Active'
-      expect(flags.active).to.equal yes
+      expect(flags.active).toEqual yes
 
       model.machine.transition 'Terminating'
-      expect(flags.terminating).to.equal yes
+      expect(flags.terminating).toEqual yes
 
       model.machine.transition 'Terminated'
-      expect(flags.terminated).to.equal yes
+      expect(flags.terminated).toEqual yes
 
 
   describe '#transition', ->
@@ -66,15 +66,15 @@ describe 'StateMachine', ->
 
       machine = new FooMachine
 
-      expect(machine.state).to.equal 'Loading'
+      expect(machine.state).toEqual 'Loading'
       # expect(-> machine.transition 'Terminating').to.throw /illegal/
-      expect(machine.state).to.equal 'Loading'
+      expect(machine.state).toEqual 'Loading'
 
       machine.transition 'Activating'
-      expect(machine.state).to.equal 'Activating'
+      expect(machine.state).toEqual 'Activating'
 
       # expect(-> machine.transition 'Terminated').to.throw /illegal/
-      expect(machine.state).to.equal 'Activating'
+      expect(machine.state).toEqual 'Activating'
 
 
 

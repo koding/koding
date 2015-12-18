@@ -1,5 +1,5 @@
 _                     = require 'lodash'
-{ expect }            = require 'chai'
+expect                = require 'expect'
 actions               = require '../actions/actiontypes'
 MessageThreadsStore   = require '../stores/messagethreadssstore'
 { createFakeMessage } = require '../helpers/messagecollection'
@@ -21,7 +21,7 @@ describe 'MessageThreadsStore', ->
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
 
-      expect(storeState['123'].messageId).to.eql '123'
+      expect(storeState['123'].messageId).toEqual '123'
 
     it 'doesnt create a new thread if there is already a one', ->
 
@@ -35,7 +35,7 @@ describe 'MessageThreadsStore', ->
 
       secondStoreState = @reactor.evaluate ['MessageThreadsStore']
 
-      expect(firstStoreState).to.equal secondStoreState
+      expect(firstStoreState).toEqual secondStoreState
 
 
   describe '#handleLoadSuccess', ->
@@ -47,7 +47,7 @@ describe 'MessageThreadsStore', ->
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
 
-      expect(storeState['567']['comments']['123']).to.eql '123'
+      expect(storeState['567']['comments']['123']).toEqual '123'
 
 
   describe '#handleCreateBegin', ->
@@ -59,7 +59,7 @@ describe 'MessageThreadsStore', ->
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
 
-      expect(storeState['123']['comments']['567']).to.eql '567'
+      expect(storeState['123']['comments']['567']).toEqual '567'
 
 
   describe '#handleCreateFail', ->
@@ -72,7 +72,7 @@ describe 'MessageThreadsStore', ->
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
 
-      expect(storeState['123']['comments']['567']).to.be.undefined
+      expect(storeState['123']['comments']['567']).toEqual undefined
 
 
   describe '#handleCreateSuccess', ->
@@ -84,13 +84,13 @@ describe 'MessageThreadsStore', ->
       @reactor.dispatch actions.CREATE_COMMENT_BEGIN, payload
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
-      expect(storeState['123']['comments']['567']).to.eql '567'
+      expect(storeState['123']['comments']['567']).toEqual '567'
 
       successPayload = _.assign {}, payload, { comment }
       @reactor.dispatch actions.CREATE_COMMENT_SUCCESS, successPayload
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
-      expect(storeState['123']['comments']['567']).to.be.undefined
+      expect(storeState['123']['comments']['567']).toEqual undefined
 
 
     it 'adds successful comment to list', ->
@@ -103,7 +103,7 @@ describe 'MessageThreadsStore', ->
       @reactor.dispatch actions.CREATE_COMMENT_SUCCESS, successPayload
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
-      expect(storeState['123']['comments']['007']).to.eql '007'
+      expect(storeState['123']['comments']['007']).toEqual '007'
 
 
   describe '#handleRemoveMessageSuccess', ->
@@ -114,10 +114,10 @@ describe 'MessageThreadsStore', ->
       @reactor.dispatch actions.CREATE_COMMENT_SUCCESS, { comment, messageId: '123' }
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
-      expect(storeState['123']['comments']['007']).to.eql '007'
+      expect(storeState['123']['comments']['007']).toEqual '007'
 
       @reactor.dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: comment.id }
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
-      expect(storeState['123']['comments']['007']).to.be.undefined
+      expect(storeState['123']['comments']['007']).toEqual undefined
 

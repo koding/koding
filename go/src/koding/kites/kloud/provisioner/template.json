@@ -39,7 +39,7 @@
             "datacenter_name": "sjc01",
             "base_os_code": "UBUNTU_14_64",
             "image_name": "koding-base-latest-{{timestamp}}",
-            "image_description": "Koding Base Image",
+            "image_description": "{}",
             "image_type": "standard",
             "instance_name": "koding-base-latest-{{timestamp}}",
             "instance_domain": "koding.com",

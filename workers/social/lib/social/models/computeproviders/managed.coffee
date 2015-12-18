@@ -9,21 +9,18 @@ Regions           = require 'koding-regions'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 
-isValid = ({ ipAddress, queryString, storage }, callback) ->
+validate = ({ ipAddress, queryString, storage }) ->
 
   if ipAddress? and (ipAddress.split '.').length isnt 4
-    return callback new KodingError \
-      'Provided IP is not valid', 'WrongParameter'
+    return { err : new KodingError 'Provided IP is not valid', 'WrongParameter' }
 
   if queryString? and (queryString.split '/').length isnt 8
-    return callback new KodingError \
-      'Provided queryString is not valid', 'WrongParameter'
+    return { err : new KodingError 'Provided queryString is not valid', 'WrongParameter' }
 
   if storage? and isNaN +storage
-    return callback new KodingError \
-      'Provided storage is not valid', 'WrongParameter'
+    return { err : new KodingError 'Provided storage is not valid', 'WrongParameter' }
 
-  return yes
+  return { err : null }
 
 getKiteIdOnly = (queryString) ->
   "///////#{queryString.split('/').reverse()[0]}"
@@ -43,7 +40,8 @@ module.exports = class Managed extends ProviderInterface
     { label, queryString, ipAddress } = options
     { r: { group, user, account } } = client
 
-    return  unless isValid { queryString, ipAddress }, callback
+    { err } = validate { queryString, ipAddress }
+    return callback err  if err
 
     queryString = getKiteIdOnly queryString
     provider    = @providerSlug
@@ -125,7 +123,8 @@ module.exports = class Managed extends ProviderInterface
       return callback new KodingError \
         'A valid machineId and an update option is required.', 'WrongParameter'
 
-    return  unless isValid { ipAddress, queryString, storage }, callback
+    { err } = validate { ipAddress, queryString, storage }
+    return callback err  if err
 
     fieldsToUpdate = {}
 
@@ -142,7 +141,4 @@ module.exports = class Managed extends ProviderInterface
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }
     selector.provider = @providerSlug
     updateMachine selector, fieldsToUpdate, callback
-
-
-
 

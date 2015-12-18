@@ -25,8 +25,7 @@ var transportParams = &httputil.ClientConfig{
 func NewTransport(opts *ClientOptions) *aws.Config {
 	cfg := aws.NewConfig().WithHTTPClient(httputil.NewClient(transportParams))
 	retryer := &transportRetryer{
-		MaxTries:      3,
-		IgnoreAuthErr: opts.IgnoreAuthErr,
+		MaxTries: 3,
 	}
 	if opts.Log != nil {
 		retryer.Log = opts.Log.New("transport")
@@ -44,9 +43,8 @@ func NewTransport(opts *ClientOptions) *aws.Config {
 // caused by a timeout.
 type transportRetryer struct {
 	client.DefaultRetryer
-	MaxTries      int
-	Log           logging.Logger
-	IgnoreAuthErr bool
+	MaxTries int
+	Log      logging.Logger
 }
 
 func (tr *transportRetryer) MaxRetries() int {
@@ -55,21 +53,15 @@ func (tr *transportRetryer) MaxRetries() int {
 
 func (tr *transportRetryer) ShouldRetry(r *request.Request) bool {
 	doretry := isNetworkRecoverable(r.Error, true) || tr.DefaultRetryer.ShouldRetry(r)
-	if !tr.ignored(r.Error) {
-		tr.logf("request failed (RetryCount=%d, Operation=%+v, ShouldRetry=%t): %q (%T)",
-			r.RetryCount, r.Operation, doretry, r.Error, r.Error)
-	}
+	tr.debugf("request failed (RetryCount=%d, Operation=%+v, ShouldRetry=%t): %q (%T)",
+		r.RetryCount, r.Operation, doretry, r.Error, r.Error)
 	return doretry
 }
 
-func (tr *transportRetryer) logf(format string, args ...interface{}) {
+func (tr *transportRetryer) debugf(format string, args ...interface{}) {
 	if tr.Log != nil {
-		tr.Log.Warning(format, args...)
+		tr.Log.Debug(format, args...)
 	}
-}
-
-func (tr *transportRetryer) ignored(err error) bool {
-	return tr.IgnoreAuthErr && IsErrCode(err, "AuthFailure")
 }
 
 func isNetworkRecoverable(err error, initial bool) bool {
