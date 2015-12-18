@@ -37,7 +37,6 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
       clientRect    = listItemNode.getBoundingClientRect()
       { top, left, width } = clientRect
       left = left + width
-      top  = top - 15
       @coordinates = { top, left }
 
 
