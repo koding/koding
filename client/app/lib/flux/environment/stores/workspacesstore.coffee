@@ -12,8 +12,8 @@ module.exports = class WorkspacesStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
-    @on actions.WORKSPACE_CREATED, @create
-    @on actions.WORKSPACE_DELETED, @delete
+    @on actions.WORKSPACE_CREATED, @createWorkspace
+    @on actions.WORKSPACE_DELETED, @deleteWorkspace
 
 
   load: (workspaces_, { own, shared, collaboration }) ->
@@ -26,12 +26,12 @@ module.exports = class WorkspacesStore extends KodingFluxStore
           workspaces_.set workspace._id, toImmutable workspace
 
 
-  create: (workspaces, { workspace }) ->
+  createWorkspace: (workspaces, { workspace }) ->
 
     workspaces.set workspace._id, toImmutable workspace
 
 
-  delete: (workspaces, { workspace }) ->
+  deleteWorkspace: (workspaces, { workspace }) ->
 
     workspaces.withMutations (workspaces) ->
       workspaces.remove workspace.get '_id'
