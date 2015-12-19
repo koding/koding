@@ -57,8 +57,9 @@ var (
 )
 
 func main() {
-	// This is somehow overriden by one of the packages here. I've searched for
-	// hours with no luck. So I'm restoring it again back.
+	// The default hanlder somehow overriden by one of the imported packages
+	// here. I've searched for hours with no luck. So I'm restoring it again
+	// back.
 	handler := logging.NewWriterHandler(os.Stderr)
 	handler.Colorize = true
 	logging.DefaultHandler = handler
@@ -227,6 +228,7 @@ func startKlient() {
 		Environment: conf.Environment,
 		Region:      conf.Region,
 		Id:          conf.Id,
+		Port:        klientConf.Port,
 		KiteKey:     conf.KiteKey,
 		Transport:   klKiteConf.Transports[conf.Transport.String()],
 		KontrolURL:  conf.KontrolURL,
