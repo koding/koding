@@ -20,6 +20,13 @@ module.exports = class FeedPaneTabContainer extends React.Component
     @handleRoute 'Liked'
 
 
+  showMostRecentMessages: (event) ->
+
+    kd.utils.stopDOMEvent event
+
+    ActivityFlux.actions.channel.setShowPopularMessagesFlag null
+
+    @handleRoute '/'
 
   render: ->
 
