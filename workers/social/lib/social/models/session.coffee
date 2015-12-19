@@ -123,5 +123,3 @@ module.exports = class JSession extends Model
 
     JSession.update { clientId: clientId }, { $set: { clientIP: ipAddress } }, (err) ->
       callback err
-
-
