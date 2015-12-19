@@ -39,6 +39,8 @@ MessageLikersStore              = [['MessageLikersStore'], withEmptyMap]
 SidebarPublicChannelsQueryStore = ['SidebarPublicChannelsQueryStore']
 SidebarPublicChannelsTabStore   = ['SidebarPublicChannelsTabStore']
 
+ShowPopularMessagesFlagStore = ['ShowPopularMessagesFlagStore']
+
 FollowedPublicChannelIdsStore = [
   FollowedPublicChannelIdsStore
   (ids) ->
@@ -190,15 +192,29 @@ allFollowedChannels = [
   (publics, privates) -> publics.concat privates
 ]
 
+selectedChannelPopularMessages = [
+  channelPopularMessages
+  selectedChannelThreadId
+  (messages, id) -> messages.get id
+]
+
 # Returns the selected thread mapped with selected channel instance.
 selectedChannelThread = [
   channelThreads
   selectedChannel
   MessageLikersStore
+  selectedChannelPopularMessages
+  ShowPopularMessagesFlagStore
   allUsers
-  (threads, channel, likers, users) ->
+  (threads, channel, likers, popularMessages, showPopularMessagesFlag, users) ->
     return null  unless channel
     thread = threads.get channel.get('id')
+    thread = thread.set 'channel', channel
+
+    if showPopularMessagesFlag
+      popularMessages = popularMessages or immutable.Map()
+      thread = thread.set 'messages', popularMessages
+
     thread = thread.update 'messages', (messages) ->
       messages.map (msg) ->
         msg.update 'body', (body) ->
@@ -213,7 +229,7 @@ selectedChannelThread = [
               .set 'actorsCount', messageLikers.size
               .set 'isInteracted', messageLikers.contains whoami()._id
 
-    return thread.set 'channel', channel
+    return thread
 ]
 
 channelByName = (name, types = ['topic', 'group', 'announcement']) ->
@@ -267,12 +283,6 @@ followedPrivateChannelThreads = [
     channels.map (channel) ->
       thread = threads.get channel.get('id')
       return thread.set 'channel', channel
-]
-
-selectedChannelPopularMessages = [
-  channelPopularMessages
-  selectedChannelThreadId
-  (messages, id) -> messages.get id
 ]
 
 selectedMessageThreadId = SelectedMessageThreadIdStore
@@ -460,5 +470,6 @@ module.exports = {
   sidebarPublicChannels
 
   allFollowedChannels
+  showPopularMessagesFlag : ShowPopularMessagesFlagStore
 }
 
