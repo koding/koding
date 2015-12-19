@@ -13,6 +13,7 @@ changeToChannel   = require 'activity/util/changeToChannel'
 
 PublicChannelNotificationSettingsRoute = require './publicchannelnotificationsettings'
 SingleMessageRoute = require './singlemessage'
+PublicChannelPopularMessages = require './publicchannelpopularmessages'
 
 module.exports = class SingleChannelRoute
 
@@ -21,6 +22,7 @@ module.exports = class SingleChannelRoute
     @path = ':channelName'
     @childRoutes = [
       new PublicChannelNotificationSettingsRoute
+      new PublicChannelPopularMessages
       new SingleMessageRoute
     ]
 
@@ -35,6 +37,7 @@ module.exports = class SingleChannelRoute
   onEnter: (nextState, replaceState, done) ->
 
     messageActions.changeSelectedMessage null
+    channelActions.setShowPopularMessagesFlag null
 
     { channelName } = nextState.params
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
