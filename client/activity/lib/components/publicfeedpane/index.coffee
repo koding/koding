@@ -9,8 +9,9 @@ ScrollerMixin  = require 'app/components/scroller/scrollermixin'
 module.exports = class PublicFeedPane extends React.Component
 
   @defaultProps =
-    thread   : immutable.Map()
-    messages : immutable.List()
+    thread              : immutable.Map()
+    messages            : immutable.List()
+    showPopularMessages : no
 
 
   channel: (keyPath...) -> @props.thread?.getIn ['channel'].concat keyPath
@@ -31,8 +32,12 @@ module.exports = class PublicFeedPane extends React.Component
 
     return  unless (messages = @props.thread.get 'messages').size
 
-    ActivityFlux.actions.message.loadMessages @channel('id'),
-      from: messages.first().get 'createdAt'
+    if @props.showPopularMessages
+      from = messages.last().get 'createdAt'
+      ActivityFlux.actions.message.loadPopularMessages @channel('id'), { from }
+    else
+      from = messages.first().get 'createdAt'
+      ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
   onThresholdReached: (event) ->
@@ -57,5 +62,6 @@ module.exports = class PublicFeedPane extends React.Component
       key={@props.thread.get 'channelId'}
       thread={@props.thread}
       onLoadMore={@bound 'onLoadMore'}
+      showPopularMessages={@props.showPopularMessages}
     />
 

@@ -12,11 +12,12 @@ FeedInputWidget      = require './feedinputwidget'
 module.exports = class FeedPane extends React.Component
 
   @defaultProps =
-    title          : null
-    messages       : null
-    isDataLoading  : no
-    onInviteOthers : kd.noop
-    showItemMenu   : yes
+    title               : null
+    messages            : null
+    isDataLoading       : no
+    onInviteOthers      : kd.noop
+    showItemMenu        : yes
+    showPopularMessages : no
 
 
   componentDidMount: ->
@@ -63,7 +64,9 @@ module.exports = class FeedPane extends React.Component
         className="FeedThreadPane-header"
         thread={@props.thread} />
       <FeedInputWidget thread={@props.thread} />
-      <FeedPaneTabContainer thread={@props.thread} />
+      <FeedPaneTabContainer
+        thread={@props.thread}
+        showPopularMessages={@props.showPopularMessages} />
       <FeedList
         isMessagesLoading={@isThresholdReached}
         messages={@getMessages()} />
