@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
@@ -384,6 +385,11 @@ func (k *Klient) Run() {
 }
 
 func (k *Klient) startUpdater() {
+	if runtime.GOOS == "darwin" {
+		k.log.Warning("Updater is disabled on darwin")
+		return
+	}
+
 	if k.config.UpdateInterval < time.Minute {
 		k.log.Warning("Update interval can't be less than one minute. Setting to one minute.")
 		k.config.UpdateInterval = time.Minute
