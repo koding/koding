@@ -36,11 +36,10 @@ module.exports =
     require './stores/channelparticipants/channelparticipantssearchquerystore'
     require './stores/channelparticipants/channelparticipantsdropdownvisibilitystore'
     require './stores/channelparticipants/channelparticipantsselectedindexstore'
-
     require './stores/channelmessageloadermarkersstore'
-
     require './stores/sidebarchannels/sidebarpublicchannelsquerystore'
     require './stores/sidebarchannels/sidebarpublicchannelstabstore'
+    require './stores/showpopularmessagesflagstore'
   ]
   # module stores
   .concat ChatInputModule.stores
