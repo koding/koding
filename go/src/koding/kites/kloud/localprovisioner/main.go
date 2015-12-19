@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
@@ -14,11 +15,13 @@ import (
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
+	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/userdata"
 	"koding/kites/terraformer"
 	"log"
@@ -27,8 +30,12 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
 
@@ -36,6 +43,7 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol"
+	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 	"github.com/koding/klient/app"
@@ -56,6 +64,27 @@ var (
 	slProvider     *softlayer.Provider
 )
 
+type singleUser struct {
+	MachineIds      []bson.ObjectId
+	MachineLabels   []string
+	StackId         string
+	StackTemplateId string
+	PrivateKey      string
+	PublicKey       string
+	AccountId       bson.ObjectId
+	Identifiers     []string
+	Remote          *kite.Client
+}
+
+type createUserOptions struct {
+	Username     string
+	Groupname    string
+	Region       string
+	Provider     string
+	Template     string
+	MachineCount int
+}
+
 func main() {
 	// The default hanlder somehow overriden by one of the imported packages
 	// here. I've searched for hours with no luck. So I'm restoring it again
@@ -74,6 +103,21 @@ func realMain() error {
 		return err
 	}
 
+	if err := sendPingToKlient(); err != nil {
+		return err
+	}
+
+	log.Println("Setting up Vagrant provisioning ")
+	if err := applyVagrantCommand(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// sendPingToKlient connects to klient by searching for it via Kontrol and
+// sends a ping message to it. Handy to debug klient if needed
+func sendPingToKlient() error {
 	// now create a test kite which calls kloud or klient, respectively
 	queryString := klientKite.Kite().String()
 
@@ -83,7 +127,7 @@ func realMain() error {
 	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
 	c.Username = username
 	userKite.Config = c
-	// userKite.SetLogLevel(kite.DEBUG)
+	// userKite.SetLogLevel(kite.DEBUG) // enable if needed
 
 	userKite.Log.Info("Searching for klient: %s", queryString)
 	klientRef, err := klient.NewWithTimeout(userKite, queryString, time.Minute*1)
@@ -100,6 +144,102 @@ func realMain() error {
 	return nil
 }
 
+func applyVagrantCommand() error {
+	localTemplate := `{
+    "resource": {
+        "vagrantkite_build": {
+            "myfirstvm": {
+                "filePath": "%s",
+                "querystring": "%s",
+                "vagrantFile": "%s",
+            }
+        }
+    }
+}`
+
+	curdir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	testQueryString := klientKite.Kite().String()
+	testFilePath := filepath.Join(curdir, "localprovtest")
+	testVagrantFile := `# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.hostname = "vagrant"
+
+  config.vm.provider "virtualbox" do |vb|
+    # Use VBoxManage to customize the VM. For example to change memory:
+    vb.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "2"]
+  end
+end
+`
+
+	terraformTemplate := fmt.Sprintf(localTemplate,
+		testFilePath,
+		testQueryString,
+		testVagrantFile,
+	)
+
+	groupname := "koding"
+
+	opts := &createUserOptions{
+		Username:     "arslan",
+		Groupname:    groupname,
+		Region:       "testRegion",
+		Provider:     "vagrant",
+		Template:     terraformTemplate,
+		MachineCount: 1,
+	}
+
+	userData, err := createUser(opts)
+	if err != nil {
+		return err
+	}
+	remote := userData.Remote
+
+	applyArgs := &kloud.TerraformApplyRequest{
+		StackId:   userData.StackId,
+		GroupName: groupname,
+	}
+
+	resp, err := remote.Tell("apply", applyArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Terminated, remote); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// startInstances startes the following applications in order:
+// 1. kontrol
+// 2. kloud
+// 3. terraformer
+// 4. klient
+//
+// All applications register themself to kontrol.
 func startInstances() error {
 	repoPath, err := currentRepoPath()
 	if err != nil {
@@ -195,7 +335,7 @@ func startInstances() error {
 	log.Println("=== Test instances are up and ready!")
 
 	// hashicorp.terraform outputs many logs, discard them
-	log.SetOutput(ioutil.Discard)
+	// log.SetOutput(ioutil.Discard)
 
 	log.Println("=== Starting Klient now!!!")
 	startKlient()
@@ -432,4 +572,252 @@ func currentRepoPath() (string, error) {
 		return "", err
 	}
 	return string(bytes.TrimSpace(p)), nil
+}
+
+// createUser creates a test user in jUsers and a single jMachine document.
+func createUser(opts *createUserOptions) (*singleUser, error) {
+	username := opts.Username
+	groupname := opts.Groupname
+	region := opts.Region
+	provider := opts.Provider
+	template := opts.Template
+	machineCount := opts.MachineCount
+
+	privateKey, publicKey, err := sshutil.TemporaryKey()
+	if err != nil {
+		return nil, err
+	}
+
+	db := awsProvider.DB
+
+	// cleanup old document
+	db.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"username": username})
+	})
+
+	db.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"profile.nickname": username})
+	})
+
+	db.Run("jGroups", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"slug": groupname})
+	})
+
+	// jAccounts
+	accountId := bson.NewObjectId()
+	account := &models.Account{
+		Id: accountId,
+		Profile: models.AccountProfile{
+			Nickname: username,
+		},
+	}
+
+	if err := db.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Insert(&account)
+	}); err != nil {
+		return nil, err
+	}
+
+	// jGroups
+	groupId := bson.NewObjectId()
+	group := &models.Group{
+		Id:    groupId,
+		Title: groupname,
+		Slug:  groupname,
+	}
+
+	if err := db.Run("jGroups", func(c *mgo.Collection) error {
+		return c.Insert(&group)
+	}); err != nil {
+		return nil, err
+	}
+
+	// add relation between use and group
+	relationship := &models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   accountId,
+		TargetName: "JAccount",
+		SourceId:   groupId,
+		SourceName: "JGroup",
+		As:         "member",
+	}
+
+	if err := db.Run("relationships", func(c *mgo.Collection) error {
+		return c.Insert(&relationship)
+	}); err != nil {
+		return nil, err
+	}
+
+	// jUsers
+	userId := bson.NewObjectId()
+	user := &models.User{
+		ObjectId:      userId,
+		Email:         username + "@" + username + ".com",
+		LastLoginDate: time.Now().UTC(),
+		RegisteredAt:  time.Now().UTC(),
+		Name:          username, // bson equivelant is username
+		Password:      "somerandomnumbers",
+		Status:        "confirmed",
+		SshKeys: []struct {
+			Title string `bson:"title"`
+			Key   string `bson:"key"`
+		}{
+			{Key: publicKey},
+		},
+	}
+
+	if err := db.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Insert(&user)
+	}); err != nil {
+		return nil, err
+	}
+
+	// jComputeStack and jStackTemplates
+	stackTemplateId := bson.NewObjectId()
+	stackTemplate := &models.StackTemplate{
+		Id: stackTemplateId,
+	}
+	stackTemplate.Template.Content = template
+
+	if err := db.Run("jStackTemplates", func(c *mgo.Collection) error {
+		return c.Insert(&stackTemplate)
+	}); err != nil {
+		return nil, err
+	}
+
+	// later we can add more users with "Owner:false" to test sharing capabilities
+	users := []models.MachineUser{
+		{Id: userId, Sudo: true, Owner: true},
+	}
+
+	machineLabels := make([]string, machineCount)
+	machineIds := make([]bson.ObjectId, machineCount)
+
+	for i := 0; i < machineCount; i++ {
+		label := "example." + strconv.Itoa(i)
+		if machineCount == 1 {
+			label = "example"
+		}
+
+		machineId := bson.NewObjectId()
+		machine := &models.Machine{
+			ObjectId:   machineId,
+			Label:      label,
+			Domain:     username + ".dev.koding.io",
+			Provider:   provider,
+			CreatedAt:  time.Now().UTC(),
+			Users:      users,
+			Meta:       make(bson.M, 0),
+			Groups:     make([]models.MachineGroup, 0),
+			Credential: username,
+		}
+
+		machine.Meta["region"] = region
+		machine.Meta["instanceType"] = "t2.micro"
+		machine.Meta["storage_size"] = 3
+		machine.Meta["alwaysOn"] = false
+		machine.Assignee.InProgress = false
+		machine.Assignee.AssignedAt = time.Now().UTC()
+		machine.Status.State = machinestate.NotInitialized.String()
+		machine.Status.ModifiedAt = time.Now().UTC()
+
+		machineLabels[i] = machine.Label
+		machineIds[i] = machine.ObjectId
+
+		if err := db.Run("jMachines", func(c *mgo.Collection) error {
+			return c.Insert(&machine)
+		}); err != nil {
+			return nil, err
+		}
+	}
+
+	computeStackId := bson.NewObjectId()
+	computeStack := &models.ComputeStack{
+		Id:          computeStackId,
+		BaseStackId: stackTemplateId,
+		Machines:    machineIds,
+	}
+
+	if err := db.Run("jComputeStacks", func(c *mgo.Collection) error {
+		return c.Insert(&computeStack)
+	}); err != nil {
+		return nil, err
+	}
+
+	userKite := kite.New("user", "0.0.1")
+	c := conf.Copy()
+	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
+	c.Username = username
+	userKite.Config = c
+
+	kloudQuery := &protocol.KontrolQuery{
+		Username:    "testuser",
+		Environment: c.Environment,
+		Name:        "kloud",
+	}
+	kites, err := userKite.GetKites(kloudQuery)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the caller
+	remote := kites[0]
+	if err := remote.Dial(); err != nil {
+		log.Fatal(err)
+	}
+
+	identifiers := []string{}
+
+	return &singleUser{
+		MachineIds:      machineIds,
+		MachineLabels:   machineLabels,
+		StackId:         computeStackId.Hex(),
+		StackTemplateId: stackTemplate.Id.Hex(),
+		PrivateKey:      privateKey,
+		PublicKey:       publicKey,
+		AccountId:       accountId,
+		Identifiers:     identifiers,
+		Remote:          remote,
+	}, nil
+}
+
+// listenEvent calls the event method of kloud with the given arguments until
+// the desiredState is received. It times out if the desired state is not
+// reached in 10 miunuts.
+func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *kite.Client) error {
+	tryUntil := time.Now().Add(time.Minute * 10)
+	for {
+		resp, err := remote.Tell("event", args)
+		if err != nil {
+			return err
+		}
+
+		var events []kloud.EventResponse
+		if err := resp.Unmarshal(&events); err != nil {
+			return err
+		}
+
+		e := events[0]
+		if e.Error != nil {
+			return e.Error
+		}
+
+		// fmt.Printf("e = %+v\n", e)
+
+		event := e.Event
+		if event.Error != "" {
+			return fmt.Errorf("%s: %s", args[0].Type, event.Error)
+		}
+
+		if event.Status == desiredState {
+			return nil
+		}
+
+		if time.Now().After(tryUntil) {
+			return fmt.Errorf("Timeout while waiting for state %s", desiredState)
+		}
+
+		time.Sleep(2 * time.Second)
+		continue // still pending
+	}
 }
