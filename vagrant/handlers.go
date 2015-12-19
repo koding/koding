@@ -33,6 +33,13 @@ type Info struct {
 	State string
 }
 
+type VagrantCreateOptions struct {
+	Hostname string
+	Box      string
+	Memory   int
+	Cpus     int
+}
+
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
 
 // withPath is a helper function which check if the given vagrantFunc can be
@@ -111,7 +118,19 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 			return nil, errors.New("vagrantfile argument is empty")
 		}
 
-		if err := v.Create(params.Vagrantfile); err != nil {
+		opts := &VagrantCreateOptions{
+			Box:      "ubuntu/trusty64",
+			Hostname: "arslan",
+			Memory:   2048,
+			Cpus:     2,
+		}
+
+		vagrantFile, err := createTemplate(opts)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := v.Create(vagrantFile); err != nil {
 			return nil, err
 		}
 
