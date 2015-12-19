@@ -150,8 +150,8 @@ func applyVagrantCommand() error {
         "vagrantkite_build": {
             "myfirstvm": {
                 "filePath": "%s",
-                "querystring": "%s",
-                "vagrantFile": "%s",
+                "queryString": "%s",
+                "cpus": 2
             }
         }
     }
@@ -164,26 +164,10 @@ func applyVagrantCommand() error {
 
 	testQueryString := klientKite.Kite().String()
 	testFilePath := filepath.Join(curdir, "localprovtest")
-	testVagrantFile := `# -*- mode: ruby -*-
-# vi: set ft=ruby :
-
-VAGRANTFILE_API_VERSION = "2"
-
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "ubuntu/trusty64"
-  config.vm.hostname = "vagrant"
-
-  config.vm.provider "virtualbox" do |vb|
-    # Use VBoxManage to customize the VM. For example to change memory:
-    vb.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "2"]
-  end
-end
-`
 
 	terraformTemplate := fmt.Sprintf(localTemplate,
 		testFilePath,
 		testQueryString,
-		testVagrantFile,
 	)
 
 	groupname := "koding"
@@ -253,13 +237,13 @@ func startInstances() error {
 	conf.Region = "localhost-region"
 	conf.KontrolURL = os.Getenv("KLOUD_KONTROL_URL")
 	if conf.KontrolURL == "" {
-		conf.KontrolURL = "http://localhost:4099/kite"
+		conf.KontrolURL = "http://localhost:4444/kite"
 	}
 	conf.Transport = config.XHRPolling
 
 	// Power up our own kontrol kite for self-contained tests
 	log.Println("Starting Kontrol Test Instance")
-	kontrol.DefaultPort = 4099
+	kontrol.DefaultPort = 4444
 	kntrl := kontrol.New(conf.Copy(), "0.1.0")
 	p := kontrol.NewPostgres(nil, kntrl.Kite.Log)
 	kntrl.SetKeyPairStorage(p)
@@ -337,7 +321,7 @@ func startInstances() error {
 	log.Println("=== Test instances are up and ready!")
 
 	// hashicorp.terraform outputs many logs, discard them
-	// log.SetOutput(ioutil.Discard)
+	log.SetOutput(ioutil.Discard)
 
 	log.Println("=== Starting Klient now!!!")
 	startKlient()
