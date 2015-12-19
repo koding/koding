@@ -84,6 +84,7 @@ module.exports = [
 
   [
     { name: 'environments vm' }
+    { name: 'teams teamspostwith' }
   ]
 
   [

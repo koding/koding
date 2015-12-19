@@ -11,7 +11,6 @@ module.exports =
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
 
     environmentHelpers.clickAddVMButton(browser)
 
