@@ -28,6 +28,15 @@ module.exports = class FeedPaneTabContainer extends React.Component
 
     @handleRoute '/'
 
+
+  handleRoute: (route) ->
+
+    channelName = @props.thread.getIn ['channel', 'name']
+    route       = "/Channels/#{channelName}/#{route}"
+
+    kd.singletons.router.handleRoute route
+
+
   render: ->
 
     return null  unless @props.thread
