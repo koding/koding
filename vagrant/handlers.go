@@ -29,8 +29,8 @@ func NewHandlers() *Handlers {
 
 // Info is returned when the Status() or List() methods are called.
 type Info struct {
-	Path  string
-	State string
+	FilePath string
+	State    string
 }
 
 type VagrantCreateOptions struct {
@@ -46,7 +46,7 @@ type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, err
 // executed with a valid path.
 func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error) {
 	var params struct {
-		Path string
+		FilePath string
 	}
 
 	if r.Args == nil {
@@ -58,23 +58,23 @@ func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error
 		return nil, err
 	}
 
-	if params.Path == "" {
-		return nil, errors.New("path is missing")
+	if params.FilePath == "" {
+		return nil, errors.New("[filePath] is missing")
 	}
 
 	// check if it was added previously, if not create a new vagrantUtil
 	// instance
 	h.pathsMu.Lock()
-	v, ok := h.paths[params.Path]
+	v, ok := h.paths[params.FilePath]
 	h.pathsMu.Unlock()
 	if !ok {
-		v, err = vagrantutil.NewVagrant(params.Path)
+		v, err = vagrantutil.NewVagrant(params.FilePath)
 		if err != nil {
 			return nil, err
 		}
 
 		h.pathsMu.Lock()
-		h.paths[params.Path] = v
+		h.paths[params.FilePath] = v
 		h.pathsMu.Unlock()
 	}
 
@@ -92,8 +92,8 @@ func (h *Handlers) List(r *kite.Request) (interface{}, error) {
 		response := make([]Info, len(vagrants))
 		for i, vg := range vagrants {
 			response[i] = Info{
-				Path:  vg.VagrantfilePath,
-				State: vg.State,
+				FilePath: vg.VagrantfilePath,
+				State:    vg.State,
 			}
 		}
 
@@ -103,7 +103,7 @@ func (h *Handlers) List(r *kite.Request) (interface{}, error) {
 	return h.withPath(r, fn)
 }
 
-// Create creates the Vagrantfile source inside the specified path
+// Create creates the Vagrantfile source inside the specified file path
 func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
 		var params struct {
@@ -130,6 +130,9 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Println("----------------------------Vagrantfile")
+		fmt.Println(vagrantFile)
 
 		if err := v.Create(vagrantFile); err != nil {
 			return nil, err
@@ -182,8 +185,8 @@ func (h *Handlers) Status(r *kite.Request) (interface{}, error) {
 		}
 
 		return Info{
-			Path:  v.VagrantfilePath,
-			State: status.String(),
+			FilePath: v.VagrantfilePath,
+			State:    status.String(),
 		}, nil
 	}
 	return h.withPath(r, fn)
