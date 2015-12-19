@@ -118,6 +118,7 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 			return nil, errors.New("vagrantfile argument is empty")
 		}
 
+		// TODO(arslan): this should come through params
 		opts := &VagrantCreateOptions{
 			Box:      "ubuntu/trusty64",
 			Hostname: "arslan",
