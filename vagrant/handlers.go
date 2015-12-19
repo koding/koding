@@ -106,27 +106,34 @@ func (h *Handlers) List(r *kite.Request) (interface{}, error) {
 // Create creates the Vagrantfile source inside the specified file path
 func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		var params struct {
-			Vagrantfile string
-		}
-
 		if r.Args == nil {
 			return nil, errors.New("arguments are not passed")
 		}
 
-		if r.Args.One().Unmarshal(&params) != nil || params.Vagrantfile == "" {
-			return nil, errors.New("vagrantfile argument is empty")
+		var params VagrantCreateOptions
+		if err := r.Args.One().Unmarshal(&params); err != nil {
+			return nil, err
 		}
 
-		// TODO(arslan): this should come through params
-		opts := &VagrantCreateOptions{
-			Box:      "ubuntu/trusty64",
-			Hostname: "arslan",
-			Memory:   2048,
-			Cpus:     2,
+		if params.Box == "" {
+			params.Box = "ubuntu/trusty64"
 		}
 
-		vagrantFile, err := createTemplate(opts)
+		if params.Hostname == "" {
+			params.Hostname = r.LocalKite.Config.Username
+		}
+
+		if params.Memory == 0 {
+			params.Memory = 1024
+		}
+
+		if params.Cpus == 0 {
+			params.Cpus = 1
+		}
+
+		fmt.Printf("params = %+v\n", params)
+
+		vagrantFile, err := createTemplate(&params)
 		if err != nil {
 			return nil, err
 		}
