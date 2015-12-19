@@ -83,6 +83,7 @@ func realMain() error {
 	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
 	c.Username = username
 	userKite.Config = c
+	// userKite.SetLogLevel(kite.DEBUG)
 
 	userKite.Log.Info("Searching for klient: %s", queryString)
 	klientRef, err := klient.NewWithTimeout(userKite, queryString, time.Minute*1)
