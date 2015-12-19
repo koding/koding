@@ -32,6 +32,6 @@ resource "vagrantkite_build" "myfirstvm" {
     queryString = "///////8c396fd6-c91c-4454-45c2-5c461ad32645"
 	box = "ubuntu/trusty64"
 	cpus = 2
-	memory = 2024
+	memory = 2048
 }
 ```

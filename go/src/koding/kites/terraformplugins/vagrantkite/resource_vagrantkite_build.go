@@ -1,16 +1,12 @@
 package vagrantkite
 
 import (
-	"fmt"
 	"koding/kites/kloud/klient"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/koding/kite"
 )
-
-const klientFuncName = "vagrant.create"
 
 type vagrantCreateReq struct {
 	FilePath string
@@ -75,7 +71,11 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		Cpus:     d.Get("cpus").(int),
 	}
 
-	if err := sendCommand(klientFuncName, queryString, args); err != nil {
+	if err := sendCommand("vagrant.create", queryString, args); err != nil {
+		return err
+	}
+
+	if err := sendCommand("vagrant.up", queryString, args); err != nil {
 		return err
 	}
 
