@@ -1,14 +1,24 @@
-kd        = require 'kd'
-React     = require 'kd-react'
-ReactDOM  = require 'react-dom'
-immutable = require 'immutable'
-Link      = require 'app/components/common/link'
-
+kd           = require 'kd'
+React        = require 'kd-react'
+ReactDOM     = require 'react-dom'
+immutable    = require 'immutable'
+Link         = require 'app/components/common/link'
+classnames   = require 'classnames'
+ActivityFlux = require 'activity/flux'
 
 module.exports = class FeedPaneTabContainer extends React.Component
 
   @defaultProps=
-    thread = immutable.Map()
+    thread              : immutable.Map()
+    showPopularMessages : no
+
+
+  showPopularMessages: (event) ->
+
+    kd.utils.stopDOMEvent event
+
+    @handleRoute 'Liked'
+
 
 
   render: ->
