@@ -6,6 +6,7 @@ import (
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/session"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
@@ -31,11 +32,11 @@ type S3Fetcher struct {
 func (s *S3Fetcher) Downloader() *s3manager.Downloader {
 	config := &aws.Config{
 		Credentials: credentials.AnonymousCredentials,
-		Region:      s.Region,
+		Region:      aws.String(s.Region),
 	}
 
-	client := s3.New(config)
-	return s3manager.NewDownloader(&s3manager.DownloadOptions{S3: client})
+	sess := session.New(config)
+	return s3manager.NewDownloader(sess)
 }
 
 func (s *S3Fetcher) GetFileName() string {

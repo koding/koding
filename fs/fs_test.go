@@ -102,7 +102,7 @@ func BenchmarkReadDirectory10000(b *testing.B) {
 }
 
 func TestReadDirectory(t *testing.T) {
-	testDir := "."
+	testDir := "testdata"
 
 	files, err := ioutil.ReadDir(testDir)
 	if err != nil {
@@ -148,6 +148,71 @@ func TestReadDirectory(t *testing.T) {
 
 	if !reflect.DeepEqual(respFiles, currentFiles) {
 		t.Error("got %+v, expected %+v", respFiles, currentFiles)
+	}
+}
+
+func TestReadDirectoryRecursive(t *testing.T) {
+	testDir := "testdata"
+	nestedDir := filepath.Join(testDir, "exampleDir")
+
+	files, err := ioutil.ReadDir(testDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	currentFiles := make(map[string]struct{}, len(files))
+	for _, f := range files {
+		currentFiles[f.Name()] = struct{}{}
+	}
+
+	nestedFiles, err := ioutil.ReadDir(nestedDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, f := range nestedFiles {
+		currentFiles[f.Name()] = struct{}{}
+	}
+
+	resp, err := remote.Tell("readDirectory", struct {
+		Path      string
+		OnChange  dnode.Function
+		Recursive bool
+	}{
+		Path:      testDir,
+		OnChange:  dnode.Function{},
+		Recursive: true,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := resp.Map()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := f["files"].SliceOfLength(len(currentFiles))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(entries) != len(currentFiles) {
+		t.Errorf("Expected results to have %d count, has %d.",
+			len(entries), len(currentFiles),
+		)
+	}
+
+	for _, e := range entries {
+		f := &FileEntry{}
+		if err := e.Unmarshal(f); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, ok := currentFiles[f.Name]; !ok {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -389,6 +454,102 @@ func TestWriteFile(t *testing.T) {
 	ap := string(content) + string(content)
 	if !reflect.DeepEqual(buf, []byte(ap)) {
 		t.Errorf("content is wrong. got '%s' expected '%s'", string(buf), ap)
+	}
+
+	// Write foo, which has a hash of: acbd18db4cc2f85cedef654fccc4a4d8
+	expectedHash := "acbd18db4cc2f85cedef654fccc4a4d8"
+	err = ioutil.WriteFile(testFile.Name(), []byte("foo"), 0666)
+	if err != nil {
+		t.Fatal("Failed to write test file contents")
+	}
+
+	t.Log("writeFile try to write with an invalid expectedHash")
+	_, err = remote.Tell("writeFile", struct {
+		Path            string
+		Content         []byte
+		LastContentHash string
+	}{
+		Path:            testFile.Name(),
+		Content:         []byte("bar"),
+		LastContentHash: "fakehash",
+	})
+
+	if err == nil {
+		t.Errorf(
+			"writeFile accepted a hash of %q for contents %q, where %q should have been required.",
+			"fakehash",
+			"foo",
+			expectedHash,
+		)
+	}
+
+	t.Log("writeFile try to write with a correct expectedHash")
+	_, err = remote.Tell("writeFile", struct {
+		Path            string
+		Content         []byte
+		LastContentHash string
+	}{
+		Path:            testFile.Name(),
+		Content:         []byte("bar"),
+		LastContentHash: expectedHash,
+	})
+
+	if err != nil {
+		t.Errorf(
+			"writeFile was given the correct hash of %q but still returned error: %s",
+			expectedHash,
+			err.Error(),
+		)
+	}
+
+	buf, err = ioutil.ReadFile(testFile.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedContents := []byte("bar")
+	if !reflect.DeepEqual(buf, expectedContents) {
+		t.Errorf(
+			"content is wrong. got '%s' expected '%s'",
+			string(buf), string(expectedContents),
+		)
+	}
+
+	t.Log("writeFile try to append with a correct expectedHash")
+	// bar is the current content, hash: 37b51d194a7513e45b56f6524f2d51f2
+	expectedHash = "37b51d194a7513e45b56f6524f2d51f2"
+
+	_, err = remote.Tell("writeFile", struct {
+		Path            string
+		Content         []byte
+		Append          bool
+		LastContentHash string
+	}{
+		Path:            testFile.Name(),
+		Content:         []byte("baz"),
+		Append:          true,
+		LastContentHash: expectedHash,
+	})
+
+	if err != nil {
+		t.Errorf(
+			"writeFile was given the correct hash of %q but still returned error: %s",
+			expectedHash,
+			err.Error(),
+		)
+	}
+
+	buf, err = ioutil.ReadFile(testFile.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedContents = []byte("barbaz")
+	if !reflect.DeepEqual(buf, expectedContents) {
+		t.Errorf(
+			"content is wrong. got '%s' expected '%s'",
+			string(buf), string(expectedContents),
+		)
 	}
 }
 

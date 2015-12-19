@@ -27,6 +27,7 @@ import (
 	"github.com/koding/klient/terminal"
 	klienttunnel "github.com/koding/klient/tunnel"
 	"github.com/koding/klient/usage"
+	"github.com/koding/klient/vagrant"
 )
 
 var (
@@ -49,6 +50,9 @@ type Klient struct {
 
 	// terminal provides wmethods
 	terminal *terminal.Terminal
+
+	// vagrant handlers
+	vagrant *vagrant.Handlers
 
 	// docker provides the docker related methods.
 	// docker *docker.Docker
@@ -148,6 +152,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
 		tunnelclient: klienttunnel.NewClient(db),
+		vagrant:      vagrant.NewHandlers(),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,
@@ -227,6 +232,16 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("fs.createDirectory", fs.CreateDirectory)
 	k.kite.HandleFunc("fs.move", fs.Move)
 	k.kite.HandleFunc("fs.copy", fs.Copy)
+
+	// Vagrant
+	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)
+	k.kite.HandleFunc("vagrant.provider", k.vagrant.Provider)
+	k.kite.HandleFunc("vagrant.list", k.vagrant.List)
+	k.kite.HandleFunc("vagrant.up", k.vagrant.Up)
+	k.kite.HandleFunc("vagrant.halt", k.vagrant.Halt)
+	k.kite.HandleFunc("vagrant.destroy", k.vagrant.Destroy)
+	k.kite.HandleFunc("vagrant.status", k.vagrant.Status)
+	k.kite.HandleFunc("vagrant.version", k.vagrant.Version)
 
 	// Docker
 	// k.kite.HandleFunc("docker.create", k.docker.Create)

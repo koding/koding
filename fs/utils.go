@@ -1,10 +1,11 @@
 package fs
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -35,15 +36,40 @@ func NewFileEntry(name string, fullPath string) *FileEntry {
 	}
 }
 
-func readDirectory(p string) ([]*FileEntry, error) {
-	files, err := ioutil.ReadDir(p)
-	if err != nil {
-		return nil, err
+func readDirectory(p string, recursive bool, ignoreFolders []string) ([]*FileEntry, error) {
+	ls := make([]*FileEntry, 0)
+	walkerFn := func(path string, f os.FileInfo, err error) error {
+		// no use in returning root level directory that's being traversed
+		if path == p {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		// skip ignored folders
+		if f.IsDir() {
+			for _, ignore := range ignoreFolders {
+				// adding / is required to prevent partial matching
+				if strings.Contains(path, "/"+ignore+"/") {
+					return filepath.SkipDir
+				}
+			}
+		}
+
+		fileInfo := makeFileEntry(path, f)
+		ls = append(ls, fileInfo)
+
+		if !recursive && f.IsDir() {
+			return filepath.SkipDir
+		}
+
+		return nil
 	}
 
-	ls := make([]*FileEntry, len(files))
-	for i, info := range files {
-		ls[i] = makeFileEntry(path.Join(p, info.Name()), info)
+	if err := filepath.Walk(p, walkerFn); err != nil {
+		return nil, err
 	}
 
 	return ls, nil
@@ -70,8 +96,8 @@ func readFile(path string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	if fi.Size() > 10*1024*1024 {
-		return nil, fmt.Errorf("File larger than 10MiB.")
+	if fi.Size() > 50*1024*1024 {
+		return nil, fmt.Errorf("File larger than 50MiB.")
 	}
 
 	buf := make([]byte, fi.Size())
@@ -82,7 +108,34 @@ func readFile(path string) (map[string]interface{}, error) {
 	return map[string]interface{}{"content": buf}, nil
 }
 
-func writeFile(filename string, data []byte, doNotOverwrite, Append bool) (int, error) {
+// compareFileWithHash reads from the given file, comparing it with te given hash.
+// If the given hash and the hashed contents of the file do not match, an error is
+// returned. If there is any problem reading, an error is also returned.
+func compareFileWithHash(f string, h string) error {
+	file, err := os.OpenFile(f, os.O_RDONLY, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Grab the current hash, and compare it to the expectedHash
+	hash := md5.New()
+	_, err = io.Copy(hash, file)
+	if err != nil {
+		return err
+	}
+
+	if h != hex.EncodeToString(hash.Sum(nil)) {
+		return errors.New(fmt.Sprintf(
+			"expected %q's contents to match the %q hash, it does not.",
+			file.Name(), h,
+		))
+	}
+
+	return nil
+}
+
+func writeFile(filename string, data []byte, doNotOverwrite, Append bool, lastHash string) (int, error) {
 	flags := os.O_RDWR | os.O_CREATE
 	if doNotOverwrite {
 		flags |= os.O_EXCL
@@ -92,6 +145,17 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool) (int, 
 		flags |= os.O_TRUNC
 	} else {
 		flags |= os.O_APPEND
+	}
+
+	// if lastHash isn't empty, the caller is requesting to compare it to a hash before
+	// being modified. Nothing to do.
+	//
+	// Only hash the file if doNotOverwrite is false. If we're not able to overwrite
+	// it there's no point in comparing hashes since no damage can be done.
+	if lastHash != "" && !doNotOverwrite {
+		if err := compareFileWithHash(filename, lastHash); err != nil {
+			return 0, err
+		}
 	}
 
 	file, err := os.OpenFile(filename, flags, 0666)

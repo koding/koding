@@ -3,7 +3,7 @@ package convey
 import (
 	"fmt"
 
-	"github.com/jtolds/gls"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/jtolds/gls"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/smartystreets/goconvey/convey/reporting"
 )
 
