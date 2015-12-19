@@ -1637,6 +1637,7 @@ module.exports = class JUser extends jraphical.Module
           currentPeriodEnd   : date
 
         queue.next()
+        
 
       ->
         args = { user, account, subscription, pin, oldUsername }
