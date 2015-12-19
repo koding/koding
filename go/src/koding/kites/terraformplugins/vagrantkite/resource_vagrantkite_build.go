@@ -1,18 +1,23 @@
 package vagrantkite
 
 import (
+	"fmt"
 	"koding/kites/kloud/klient"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/koding/kite"
 )
 
-const klientFuncName = "vagrant.build"
+const klientFuncName = "vagrant.create"
 
-type vagrantKiteReq struct {
-	VagrantFile string
-	FilePath    string
+type vagrantCreateReq struct {
+	FilePath string
+	Hostname string
+	Box      string
+	Memory   int
+	Cpus     int
 }
 
 func resourceVagrantKiteBuild() *schema.Resource {
@@ -29,15 +34,30 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Required:    true,
 				Description: "Kite Query string for finding which klient to send the commands",
 			},
-			"vagrantFile": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Content of the Vagrantfile that will be used while creating the vagrant machine",
-			},
 			"filePath": &schema.Schema{
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "Full path of the file for Vagrantfile",
+			},
+			"box": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Box type of underlying Vagrant machine. By default ubuntu/trusty64",
+			},
+			"hostname": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Hostname of the Vagrant machine. Defaults to klient's username",
+			},
+			"memory": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Memory(MB) of the underlying Vagrant box. Defaults to 1024",
+			},
+			"cpus": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Number of CPU's to be used for the underlying Vagrant box. Defaults to 1",
 			},
 		},
 	}
@@ -45,12 +65,14 @@ func resourceVagrantKiteBuild() *schema.Resource {
 
 // resourceMachineCreate creates a new vagrant machine in remote klient host
 func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
-
 	queryString := d.Get("queryString").(string)
 
-	args := &vagrantKiteReq{
-		VagrantFile: d.Get("vagrantFile").(string),
-		FilePath:    d.Get("filePath").(string),
+	args := &vagrantCreateReq{
+		FilePath: d.Get("filePath").(string),
+		Box:      d.Get("box").(string),
+		Hostname: d.Get("hostname").(string),
+		Memory:   d.Get("memory").(int),
+		Cpus:     d.Get("cpus").(int),
 	}
 
 	if err := sendCommand(klientFuncName, queryString, args); err != nil {
