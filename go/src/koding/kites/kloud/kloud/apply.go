@@ -474,6 +474,8 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 		mongodbIds[i] = bson.ObjectIdHex(id)
 	}
 
+	sess.Log.Debug("Fetching machines with IDs: %+v", mongodbIds)
+
 	machines := make([]*models.Machine, 0)
 	if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"_id": bson.M{"$in": mongodbIds}}).All(&machines)
@@ -507,11 +509,12 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 		}
 	}
 
-	allowedIds := make([]bson.ObjectId, len(validUsers))
+	allowedIds := make([]bson.ObjectId, 0)
 	for _, user := range validUsers {
 		allowedIds = append(allowedIds, user.Id)
 	}
 
+	sess.Log.Debug("Fetching users with allowed IDs: %+v", allowedIds)
 	users, err := modelhelper.GetUsersById(allowedIds...)
 	if err != nil {
 		return nil, err
