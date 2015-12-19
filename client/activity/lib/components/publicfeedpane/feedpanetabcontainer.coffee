@@ -37,13 +37,27 @@ module.exports = class FeedPaneTabContainer extends React.Component
     kd.singletons.router.handleRoute route
 
 
+  getMostRecentTabClassNames: -> classnames
+    'FeedPane-tab' : yes
+    'active'       : not @props.showPopularMessages
+
+
+  getMostLikedTabClassNames: -> classnames
+    'FeedPane-tab' : yes
+    'active'       : @props.showPopularMessages
+
+
   render: ->
 
     return null  unless @props.thread
 
     <div className='FeedPane-tabContainer'>
-      <Link className='FeedPane-tab'>Most Liked</Link>
-      <Link className='FeedPane-tab active'>Most Recent</Link>
+      <Link
+        onClick={@bound 'showPopularMessages'}
+        className={@getMostLikedTabClassNames()}>Most Liked</Link>
+      <Link
+        onClick={@bound 'showMostRecentMessages'}
+        className={@getMostRecentTabClassNames()}>Most Recent</Link>
       <div>
         <input className='FeedPane-searchInput' placeholder='Search...'/>
         <i className='FeedPane-searchIcon'/>
