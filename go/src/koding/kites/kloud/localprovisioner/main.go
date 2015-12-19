@@ -122,7 +122,7 @@ func sendPingToKlient() error {
 	queryString := klientKite.Kite().String()
 
 	userKite := kite.New("user", "0.0.1")
-	username := "fatih"
+	username := "testuser"
 	c := conf.Copy()
 	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
 	c.Username = username
@@ -201,6 +201,8 @@ end
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("userData = %+v\n", userData)
 	remote := userData.Remote
 
 	applyArgs := &kloud.TerraformApplyRequest{
