@@ -125,7 +125,11 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 				return nil, err
 			}
 
-			if resourceType != "instance" {
+			if resourceType == "instance" && provider != "aws" {
+				continue
+			}
+
+			if resourceType == "build" && provider != "vagrantkite" {
 				continue
 			}
 
@@ -209,30 +213,33 @@ func parseResource(resource string) (string, string, string, error) {
 	return provider, resourceType, label, nil
 }
 
-func injectKodingData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
+func injectAWSData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
 	}
 
+	awsFound := false
 	awsOutput := &AwsBootstrapOutput{}
 	for _, cred := range data.Creds {
 		if cred.Provider != "aws" {
 			continue
 		}
 
+		awsFound = true
+
 		if err := mapstructure.Decode(cred.Data, &awsOutput); err != nil {
 			return nil, err
 		}
+
+		if structs.HasZero(awsOutput) {
+			return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
+		}
 	}
 
-	if structs.HasZero(awsOutput) {
-		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
-	}
-
-	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..
-	if err := template.injectKodingVariables(data.KodingData); err != nil {
-		return nil, err
+	if !awsFound {
+		sess.Log.Debug("No AWS data found to be injected")
+		return nil, nil
 	}
 
 	var resource struct {
@@ -349,14 +356,8 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 		return nil, err
 	}
 
-	out, err := template.jsonOutput()
-	if err != nil {
-		return nil, err
-	}
-
 	b := &buildData{
-		Template: out,
-		KiteIds:  kiteIds,
+		KiteIds: kiteIds,
 	}
 
 	return b, nil

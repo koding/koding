@@ -180,7 +180,6 @@ func applyVagrantCommand() error {
 		Username:     "arslan",
 		Label:        label,
 		Groupname:    groupname,
-		Region:       "testRegion",
 		Provider:     "vagrant",
 		Template:     terraformTemplate,
 		MachineCount: 1,
@@ -217,7 +216,7 @@ func applyVagrantCommand() error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Terminated, remote); err != nil {
+	if err := listenEvent(eArgs, machinestate.Running, remote); err != nil {
 		return err
 	}
 
@@ -569,7 +568,6 @@ func currentRepoPath() (string, error) {
 func createUser(opts *createUserOptions) (*singleUser, error) {
 	username := opts.Username
 	groupname := opts.Groupname
-	region := opts.Region
 	provider := opts.Provider
 	template := opts.Template
 	machineCount := opts.MachineCount
@@ -704,10 +702,6 @@ func createUser(opts *createUserOptions) (*singleUser, error) {
 			Credential: username,
 		}
 
-		machine.Meta["region"] = region
-		machine.Meta["instanceType"] = "t2.micro"
-		machine.Meta["storage_size"] = 3
-		machine.Meta["alwaysOn"] = false
 		machine.Assignee.InProgress = false
 		machine.Assignee.AssignedAt = time.Now().UTC()
 		machine.Status.State = machinestate.NotInitialized.String()
