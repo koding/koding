@@ -34,7 +34,7 @@ func resourceVagrantKiteBuild() *schema.Resource {
 		Delete: resourceMachineNoop,
 
 		Schema: map[string]*schema.Schema{
-			// Full path of the file for Vagrantfile
+			// Required configuration files
 			"queryString": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
@@ -45,6 +45,8 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Required:    true,
 				Description: "Full path of the file for Vagrantfile",
 			},
+
+			// Optional configuration fields
 			"box": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -54,11 +56,6 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Hostname of the Vagrant machine. Defaults to klient's username",
-			},
-			"url": &schema.Schema{
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "URL of the remote Vagrant box",
 			},
 			"ipAddress": &schema.Schema{
 				Type:        schema.TypeString,
@@ -74,6 +71,13 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Number of CPU's to be used for the underlying Vagrant box. Defaults to 1",
+			},
+
+			// Computes fields
+			"hostURL": &schema.Schema{
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "URL of the Host machine where the Vagrant box residues",
 			},
 		},
 	}
@@ -142,7 +146,11 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	<-done
 
 	d.SetId(queryString)
-	d.Set("url", klientRef.URL())
+	d.Set("hostURL", klientRef.URL())
+	d.Set("hostname", args.Hostname)
+	d.Set("box", args.Box)
+	d.Set("cpus", args.Cpus)
+	d.Set("memory", args.Memory)
 
 	ipAddress, err := klientRef.IpAddress()
 	if err == nil {
