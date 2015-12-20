@@ -15,6 +15,11 @@ Optional fields:
 - memory: Memory(MB) of the underlying Vagrant box. Defaults to 1024
 - cpus: Number of CPU's to be used for the underlying Vagrant box. Defaults to 1
 
+Computed fields:
+
+- url: URL of the Vagrant box.
+- ipAddresss: IP Address of the Vagrant box.
+
 # Example
 
 ```
