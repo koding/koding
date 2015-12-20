@@ -17,8 +17,7 @@ Optional fields:
 
 Computed fields:
 
-- url: URL of the Vagrant box.
-- ipAddresss: IP Address of the Vagrant box.
+- hostURL: URL of the Host machine where the Vagrant box residues.
 
 # Example
 

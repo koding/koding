@@ -14,11 +14,12 @@ import (
 const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
 
 type vagrantCreateReq struct {
-	FilePath string
-	Hostname string
-	Box      string
-	Memory   int
-	Cpus     int
+	FilePath      string
+	ProvisionData string
+	Hostname      string
+	Box           string
+	Memory        int
+	Cpus          int
 }
 
 type vagrantUpReq struct {
@@ -117,11 +118,12 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	defer klientRef.Close()
 
 	args := &vagrantCreateReq{
-		FilePath: d.Get("filePath").(string),
-		Box:      d.Get("box").(string),
-		Hostname: d.Get("hostname").(string),
-		Memory:   d.Get("memory").(int),
-		Cpus:     d.Get("cpus").(int),
+		FilePath:      d.Get("filePath").(string),
+		ProvisionData: d.Get("provisionData").(string),
+		Box:           d.Get("box").(string),
+		Hostname:      d.Get("hostname").(string),
+		Memory:        d.Get("memory").(int),
+		Cpus:          d.Get("cpus").(int),
 	}
 
 	resp, err := klientRef.Client.Tell("vagrant.create", args)
