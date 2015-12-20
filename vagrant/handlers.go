@@ -13,6 +13,8 @@ import (
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/vagrantutil"
 )
 
+const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
+
 // Handlers define a set of kite handlers which is responsible of managing
 // vagrant boxes on multiple different paths.
 type Handlers struct {
@@ -34,10 +36,11 @@ type Info struct {
 }
 
 type VagrantCreateOptions struct {
-	Hostname string
-	Box      string
-	Memory   int
-	Cpus     int
+	Hostname      string
+	Box           string
+	Memory        int
+	Cpus          int
+	ProvisionData string
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
@@ -131,8 +134,6 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 			params.Cpus = 1
 		}
 
-		fmt.Printf("params = %+v\n", params)
-
 		vagrantFile, err := createTemplate(&params)
 		if err != nil {
 			return nil, err
@@ -145,7 +146,7 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		return true, nil
+		return params, nil
 	}
 
 	return h.withPath(r, fn)
@@ -236,11 +237,14 @@ func watchCommand(r *kite.Request, fn func() (<-chan *vagrantutil.CommandOutput,
 		for out := range output {
 			if out.Error != nil {
 				params.Watch.Call(fmt.Sprintf("%s failed: %s", r.Method, out.Error.Error()))
+				params.Watch.Call(magicEnd)
 				return
 			}
 
 			params.Watch.Call(out.Line)
 		}
+
+		params.Watch.Call(magicEnd)
 	}()
 
 	return true, nil
