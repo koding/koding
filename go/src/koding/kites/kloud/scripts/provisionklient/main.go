@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/kites/kloud/scripts/softlayer/userdata"
+	"koding/kites/kloud/scripts/provisionklient/userdata"
 	"log"
 	"net/http"
 	"os"

@@ -10,7 +10,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
-	pUser "koding/kites/kloud/scripts/softlayer/userdata"
+	pUser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/userdata"
 	"strconv"
 	"strings"
