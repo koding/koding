@@ -1,3 +1,7 @@
+// package provisionklient provisions a machine based on two things. If no
+// -data flag is passed it assumes it's inside a Softlayer Virtual Machine and
+// tries to get the metadata from the internal service. If a -data flag is
+// passed it assumes that it is a base64 encoded JSON and uses it directly
 package main
 
 import (
