@@ -95,7 +95,6 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 
 		return err
 	}
-
 	defer klientRef.Close()
 
 	args := &vagrantCreateReq{
@@ -106,7 +105,7 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		Cpus:     d.Get("cpus").(int),
 	}
 
-	if _, err = klientRef.Client.Tell("vagrant.create", queryString, args); err != nil {
+	if _, err = klientRef.Client.Tell("vagrant.create", args); err != nil {
 		return err
 	}
 
@@ -125,7 +124,7 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		Watch:    watch,
 	}
 
-	if _, err = klientRef.Client.Tell("vagrant.up", queryString, upArgs); err != nil {
+	if _, err = klientRef.Client.Tell("vagrant.up", upArgs); err != nil {
 		return err
 	}
 
