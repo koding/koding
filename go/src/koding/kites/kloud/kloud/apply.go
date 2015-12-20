@@ -220,11 +220,22 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
-	buildData, err := injectKodingData(ctx, template, username, data)
+	// inject koding variables, in the form of koding_user_foo,
+	// koding_group_name, etc..
+	if err := template.injectKodingVariables(data.KodingData); err != nil {
+		return err
+	}
+
+	if _, err := injectAWSData(ctx, template, username, data); err != nil {
+		return err
+	}
+
+	out, err := template.jsonOutput()
 	if err != nil {
 		return err
 	}
-	stack.Template = buildData.Template
+
+	stack.Template = out
 
 	sess.Log.Debug("Calling terraform.destroy method with context:")
 	sess.Log.Debug(stack.Template)
@@ -341,11 +352,23 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
-	buildData, err := injectKodingData(ctx, template, username, data)
+	sess.Log.Debug("Injecting Koding data")
+	// inject koding variables, in the form of koding_user_foo,
+	// koding_group_name, etc..
+	if err := template.injectKodingVariables(data.KodingData); err != nil {
+		return err
+	}
+
+	buildData, err := injectAWSData(ctx, template, username, data)
 	if err != nil {
 		return err
 	}
-	stack.Template = buildData.Template
+
+	out, err := template.jsonOutput()
+	if err != nil {
+		return err
+	}
+	stack.Template = out
 
 	done := make(chan struct{})
 
@@ -394,9 +417,11 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	sess.Log.Debug("Checking total '%d' klients", len(buildData.KiteIds))
-	if err := checkKlients(ctx, buildData.KiteIds); err != nil {
-		return err
+	if buildData.KiteIds != nil {
+		sess.Log.Debug("Checking total '%d' klients", len(buildData.KiteIds))
+		if err := checkKlients(ctx, buildData.KiteIds); err != nil {
+			return err
+		}
 	}
 
 	output, err := machinesFromState(state)
@@ -406,9 +431,12 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 
 	sess.Log.Debug("Machines from state: %+v", output)
 	sess.Log.Debug("Build region: %+v", region)
-	sess.Log.Debug("Build data kiteIDS: %+v", buildData.KiteIds)
 	output.AppendRegion(region)
-	output.AppendQueryString(buildData.KiteIds)
+
+	if buildData.KiteIds != nil {
+		sess.Log.Debug("Build data kiteIDS: %+v", buildData.KiteIds)
+		output.AppendQueryString(buildData.KiteIds)
+	}
 
 	d, err := json.MarshalIndent(output, "", " ")
 	if err != nil {
@@ -563,11 +591,6 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 }
 
 func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Machine) error {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return errors.New("session context is not passed")
-	}
-
 	for _, machine := range jMachines {
 		label := machine.Label
 		if l, ok := machine.Meta["assignedLabel"]; ok {
@@ -581,34 +604,77 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Mac
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
-		size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
-		if err != nil {
-			return err
+		switch tf.Provider {
+		case "aws":
+			if err := updateAWS(ctx, tf, machine.ObjectId); err != nil {
+				return err
+			}
+		case "vagrantkite":
+			if err := updateVagrantKite(ctx, tf, machine.ObjectId); err != nil {
+				return err
+			}
 		}
 
-		ipAddress := tf.Attributes["public_ip"]
-
-		if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				machine.ObjectId,
-				bson.M{"$set": bson.M{
-					"provider":          tf.Provider,
-					"meta.region":       tf.Region,
-					"queryString":       tf.QueryString,
-					"ipAddress":         ipAddress,
-					"meta.instanceId":   tf.Attributes["id"],
-					"meta.instanceType": tf.Attributes["instance_type"],
-					"meta.source_ami":   tf.Attributes["ami"],
-					"meta.storage_size": size,
-					"status.state":      machinestate.Running.String(),
-					"status.modifiedAt": time.Now().UTC(),
-					"status.reason":     "Created with kloud.apply",
-				}},
-			)
-		}); err != nil {
-			return err
-		}
 	}
 
 	return nil
+}
+
+func updateAWS(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId) error {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return errors.New("session context is not passed")
+	}
+
+	size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
+	if err != nil {
+		return err
+	}
+
+	ipAddress := tf.Attributes["public_ip"]
+
+	return sess.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			machineId,
+			bson.M{"$set": bson.M{
+				"provider":          tf.Provider,
+				"meta.region":       tf.Region,
+				"queryString":       tf.QueryString,
+				"ipAddress":         ipAddress,
+				"meta.instanceId":   tf.Attributes["id"],
+				"meta.instanceType": tf.Attributes["instance_type"],
+				"meta.source_ami":   tf.Attributes["ami"],
+				"meta.storage_size": size,
+				"status.state":      machinestate.Running.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     "Created with kloud.apply",
+			}},
+		)
+	})
+}
+
+func updateVagrantKite(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId) error {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return errors.New("session context is not passed")
+	}
+
+	return sess.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			machineId,
+			bson.M{"$set": bson.M{
+				"provider":          tf.Provider,
+				"queryString":       tf.QueryString,
+				"ipAddress":         tf.Attributes["ipAddress"],
+				"meta.memory":       tf.Attributes["memory"],
+				"meta.cpus":         tf.Attributes["cpus"],
+				"meta.box":          tf.Attributes["box"],
+				"meta.hostname":     tf.Attributes["hostname"],
+				"meta.hostURL":      tf.Attributes["hostURL"],
+				"status.state":      machinestate.Running.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     "Created with kloud.apply",
+			}},
+		)
+	})
 }
