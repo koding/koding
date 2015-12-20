@@ -5,6 +5,7 @@ package klient
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
@@ -143,6 +144,19 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 		Client:   remoteKite,
 		Username: remoteKite.Username,
 	}, nil
+}
+
+func (k *Klient) URL() string {
+	return k.Client.URL
+}
+
+func (k *Klient) IpAddress() (string, error) {
+	u, err := url.Parse(k.Client.URL)
+	if err != nil {
+		return "", err
+	}
+
+	return u.Host, nil
 }
 
 func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
