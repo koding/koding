@@ -79,6 +79,7 @@ type singleUser struct {
 type createUserOptions struct {
 	Username     string
 	Groupname    string
+	Label        string
 	Region       string
 	Provider     string
 	Template     string
@@ -148,10 +149,11 @@ func applyVagrantCommand() error {
 	localTemplate := `{
     "resource": {
         "vagrantkite_build": {
-            "myfirstvm": {
+            "%s": {
                 "filePath": "%s",
                 "queryString": "%s",
-                "cpus": 2
+                "cpus": 2,
+                "memory": 2048
             }
         }
     }
@@ -162,10 +164,12 @@ func applyVagrantCommand() error {
 		return err
 	}
 
+	label := "myfirstvm"
 	testQueryString := klientKite.Kite().String()
 	testFilePath := filepath.Join(curdir, "localprovtest")
 
 	terraformTemplate := fmt.Sprintf(localTemplate,
+		label,
 		testFilePath,
 		testQueryString,
 	)
@@ -174,6 +178,7 @@ func applyVagrantCommand() error {
 
 	opts := &createUserOptions{
 		Username:     "arslan",
+		Label:        label,
 		Groupname:    groupname,
 		Region:       "testRegion",
 		Provider:     "vagrant",
@@ -321,7 +326,7 @@ func startInstances() error {
 	log.Println("=== Test instances are up and ready!")
 
 	// hashicorp.terraform outputs many logs, discard them
-	log.SetOutput(ioutil.Discard)
+	// log.SetOutput(ioutil.Discard)
 
 	log.Println("=== Starting Klient now!!!")
 	startKlient()
@@ -568,6 +573,7 @@ func createUser(opts *createUserOptions) (*singleUser, error) {
 	provider := opts.Provider
 	template := opts.Template
 	machineCount := opts.MachineCount
+	label := opts.Label
 
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
@@ -680,15 +686,15 @@ func createUser(opts *createUserOptions) (*singleUser, error) {
 	machineIds := make([]bson.ObjectId, machineCount)
 
 	for i := 0; i < machineCount; i++ {
-		label := "example." + strconv.Itoa(i)
+		machineLabel := label + strconv.Itoa(i)
 		if machineCount == 1 {
-			label = "example"
+			machineLabel = label
 		}
 
 		machineId := bson.NewObjectId()
 		machine := &models.Machine{
 			ObjectId:   machineId,
-			Label:      label,
+			Label:      machineLabel,
 			Domain:     username + ".dev.koding.io",
 			Provider:   provider,
 			CreatedAt:  time.Now().UTC(),
