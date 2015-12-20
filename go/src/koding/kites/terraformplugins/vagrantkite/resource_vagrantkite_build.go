@@ -45,6 +45,11 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Required:    true,
 				Description: "Full path of the file for Vagrantfile",
 			},
+			"provisionData": &schema.Schema{
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "JSON data encoded as base64 needed for provisioning the Vagrant box",
+			},
 
 			// Optional configuration fields
 			"box": &schema.Schema{
@@ -119,7 +124,16 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		Cpus:     d.Get("cpus").(int),
 	}
 
-	if _, err = klientRef.Client.Tell("vagrant.create", args); err != nil {
+	resp, err := klientRef.Client.Tell("vagrant.create", args)
+	if err != nil {
+		return err
+	}
+
+	// the "vagrant.create" method returns the same paramaters back. However if
+	// we previously passed empty options, such as hostname, it returns the
+	// final result
+	var result vagrantCreateReq
+	if err := resp.Unmarshal(&result); err != nil {
 		return err
 	}
 
@@ -147,10 +161,10 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(queryString)
 	d.Set("hostURL", klientRef.URL())
-	d.Set("hostname", args.Hostname)
-	d.Set("box", args.Box)
-	d.Set("cpus", args.Cpus)
-	d.Set("memory", args.Memory)
+	d.Set("hostname", result.Hostname)
+	d.Set("box", result.Box)
+	d.Set("cpus", result.Cpus)
+	d.Set("memory", result.Memory)
 
 	ipAddress, err := klientRef.IpAddress()
 	if err == nil {
