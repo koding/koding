@@ -55,6 +55,16 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Optional:    true,
 				Description: "Hostname of the Vagrant machine. Defaults to klient's username",
 			},
+			"url": &schema.Schema{
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "URL of the remote Vagrant box",
+			},
+			"ipAddress": &schema.Schema{
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "IP Address of the remote Vagrant box",
+			},
 			"memory": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,
@@ -132,6 +142,15 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	<-done
 
 	d.SetId(queryString)
+	d.Set("url", klientRef.URL())
+
+	ipAddress, err := klientRef.IpAddress()
+	if err == nil {
+		// do not return on error if the IpAddress is not parsable. If we
+		// couldn't extract the IpAddress from the URL there is nothing to do.
+		// We only save if it's parsable
+		d.Set("ipAddress", ipAddress)
+	}
 
 	return nil
 }
