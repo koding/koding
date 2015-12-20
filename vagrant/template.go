@@ -14,9 +14,9 @@ VAGRANTFILE_API_VERSION = "2"
 $script = <<SCRIPT
 echo I am provisioning...
 date > /etc/vagrant_provisioned_at
-wget "https://s3.amazonaws.com/kodingdev-softlayer/softlayer"
-chmod +x softlayer
-./softlayer -data {{ .ProvisionData }}
+wget "https://s3.amazonaws.com/kodingdev-provision/provisionklient"
+chmod +x provisionklient
+./provisionklient -data {{ .ProvisionData }}
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
