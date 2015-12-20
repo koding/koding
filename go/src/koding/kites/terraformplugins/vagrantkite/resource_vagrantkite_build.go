@@ -2,11 +2,16 @@ package vagrantkite
 
 import (
 	"koding/kites/kloud/klient"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
+
+// this signals the end of a watch command when we listen from Klient
+const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
 
 type vagrantCreateReq struct {
 	FilePath string
@@ -14,6 +19,11 @@ type vagrantCreateReq struct {
 	Box      string
 	Memory   int
 	Cpus     int
+}
+
+type vagrantUpReq struct {
+	FilePath string
+	Watch    dnode.Function
 }
 
 func resourceVagrantKiteBuild() *schema.Resource {
@@ -61,39 +71,16 @@ func resourceVagrantKiteBuild() *schema.Resource {
 
 // resourceMachineCreate creates a new vagrant machine in remote klient host
 func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
-	queryString := d.Get("queryString").(string)
-
-	args := &vagrantCreateReq{
-		FilePath: d.Get("filePath").(string),
-		Box:      d.Get("box").(string),
-		Hostname: d.Get("hostname").(string),
-		Memory:   d.Get("memory").(int),
-		Cpus:     d.Get("cpus").(int),
-	}
-
-	if err := sendCommand("vagrant.create", queryString, args); err != nil {
-		return err
-	}
-
-	if err := sendCommand("vagrant.up", queryString, args); err != nil {
-		return err
-	}
-
-	d.SetId(queryString)
-
-	return nil
-}
-
-// sendCommand sends given command with given args to the kite is specified with
-// queryString, each command timeouts in 10 seconds
-func sendCommand(command string, queryString string, args interface{}) error {
+	// TODO(arslan): cache the client, it reads from kite.key every single time
+	// it tries to populate the config
 	c, err := NewClient()
 	if err != nil {
 		return err
 	}
 	defer c.Close()
 
-	// Get the klient.
+	queryString := d.Get("queryString").(string)
+
 	klientRef, err := klient.ConnectTimeout(c.Kite, queryString, time.Second*10)
 	if err != nil {
 		if err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable {
@@ -108,10 +95,46 @@ func sendCommand(command string, queryString string, args interface{}) error {
 
 		return err
 	}
+
 	defer klientRef.Close()
 
-	_, err = klientRef.Client.Tell(command, args)
-	return err
+	args := &vagrantCreateReq{
+		FilePath: d.Get("filePath").(string),
+		Box:      d.Get("box").(string),
+		Hostname: d.Get("hostname").(string),
+		Memory:   d.Get("memory").(int),
+		Cpus:     d.Get("cpus").(int),
+	}
+
+	if _, err = klientRef.Client.Tell("vagrant.create", queryString, args); err != nil {
+		return err
+	}
+
+	done := make(chan bool)
+
+	watch := dnode.Callback(func(r *dnode.Partial) {
+		msg := r.One().MustString()
+		log.Println("[DEBUG] Vagrant up msg:", msg)
+		if msg == magicEnd {
+			close(done)
+		}
+	})
+
+	upArgs := &vagrantUpReq{
+		FilePath: d.Get("filePath").(string),
+		Watch:    watch,
+	}
+
+	if _, err = klientRef.Client.Tell("vagrant.up", queryString, upArgs); err != nil {
+		return err
+	}
+
+	// TODO(arslan): timeout with a select statement
+	<-done
+
+	d.SetId(queryString)
+
+	return nil
 }
 
 func resourceMachineNoop(d *schema.ResourceData, meta interface{}) error { return nil }
