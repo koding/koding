@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -21,8 +23,12 @@ const (
 	outputFile = "/var/log/koding-setup.txt"
 )
 
-// output defines the log and command execution outputs
-var output io.Writer = os.Stderr
+var (
+	flagData = flag.String("data", "", "Data to be used for provisioning. Must be JSON encoded in base64")
+
+	// output defines the log and command execution outputs
+	output io.Writer = os.Stderr
+)
 
 func main() {
 	file, err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -40,9 +46,26 @@ func main() {
 }
 
 func realMain() error {
-	val, err := metadata()
-	if err != nil {
-		return err
+	flag.Parse()
+
+	var val *userdata.Value
+	var err error
+	if *flagData == "" {
+		// get data from metadata if nothing is passed as arguments
+		// used by softlayer instances
+		val, err = metadata()
+		if err != nil {
+			return err
+		}
+	} else {
+		data, err := base64.StdEncoding.DecodeString(*flagData)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(data, &val); err != nil {
+			return err
+		}
 	}
 
 	log.Println("---- Metadata ----")
@@ -70,6 +93,7 @@ func realMain() error {
 
 	return nil
 }
+
 func createUser(username string, groups []string) error {
 	var args = []string{"--disabled-password", "--shell", "/bin/bash", "--gecos", "Koding", username}
 	adduser := newCommand("adduser", args...)
