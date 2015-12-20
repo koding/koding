@@ -230,6 +230,10 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		return err
 	}
 
+	if _, err := injectVagrantData(ctx, template, username); err != nil {
+		return err
+	}
+
 	out, err := template.jsonOutput()
 	if err != nil {
 		return err
@@ -359,9 +363,28 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		return err
 	}
 
-	buildData, err := injectAWSData(ctx, template, username, data)
+	kiteIds := make(map[string]string)
+
+	awsData, err := injectAWSData(ctx, template, username, data)
 	if err != nil {
 		return err
+	}
+
+	if awsData != nil && awsData.KiteIds != nil {
+		for label, id := range awsData.KiteIds {
+			kiteIds[label] = id
+		}
+	}
+
+	vagrantData, err := injectVagrantData(ctx, template, username)
+	if err != nil {
+		return err
+	}
+
+	if vagrantData != nil && vagrantData.KiteIds != nil {
+		for label, id := range vagrantData.KiteIds {
+			kiteIds[label] = id
+		}
 	}
 
 	out, err := template.jsonOutput()
@@ -409,6 +432,8 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		return err
 	}
 
+	fmt.Printf("state = %+v\n", state)
+
 	close(done)
 
 	ev.Push(&eventer.Event{
@@ -417,9 +442,9 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	if buildData.KiteIds != nil {
-		sess.Log.Debug("Checking total '%d' klients", len(buildData.KiteIds))
-		if err := checkKlients(ctx, buildData.KiteIds); err != nil {
+	if len(kiteIds) != 0 {
+		sess.Log.Debug("Checking total '%d' klients", len(kiteIds))
+		if err := checkKlients(ctx, kiteIds); err != nil {
 			return err
 		}
 	}
@@ -433,9 +458,9 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	sess.Log.Debug("Build region: %+v", region)
 	output.AppendRegion(region)
 
-	if buildData.KiteIds != nil {
-		sess.Log.Debug("Build data kiteIDS: %+v", buildData.KiteIds)
-		output.AppendQueryString(buildData.KiteIds)
+	if len(kiteIds) != 0 {
+		sess.Log.Debug("Build data kiteIDS: %+v", kiteIds)
+		output.AppendQueryString(kiteIds)
 	}
 
 	d, err := json.MarshalIndent(output, "", " ")

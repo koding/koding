@@ -1,6 +1,8 @@
 package kloud
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/models"
@@ -8,6 +10,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
+	pUser "koding/kites/kloud/scripts/softlayer/userdata"
 	"koding/kites/kloud/userdata"
 	"strconv"
 	"strings"
@@ -211,6 +214,75 @@ func parseResource(resource string) (string, string, string, error) {
 	label := resourceSplitted[1]        // foo.bar
 
 	return provider, resourceType, label, nil
+}
+
+func injectVagrantData(ctx context.Context, template *terraformTemplate, username string) (*buildData, error) {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	var resource struct {
+		VagrantBuild map[string]map[string]interface{} `hcl:"vagrantkite_build"`
+	}
+
+	if err := template.DecodeResource(&resource); err != nil {
+		return nil, err
+	}
+
+	if len(resource.VagrantBuild) == 0 {
+		sess.Log.Debug("No Vagrant build available")
+		return nil, nil
+	}
+
+	kiteIds := make(map[string]string)
+
+	for resourceName, box := range resource.VagrantBuild {
+		kiteID := uuid.NewV4().String()
+
+		kiteKey, err := sess.Userdata.Keycreator.Create(username, kiteID)
+		if err != nil {
+			return nil, err
+		}
+
+		klientURL, err := sess.Userdata.Bucket.LatestDeb()
+		if err != nil {
+			return nil, err
+		}
+		klientURL = sess.Userdata.Bucket.URL(klientURL)
+
+		data := pUser.Value{
+			Username:        username,
+			Groups:          []string{"sudo"},
+			Hostname:        username, // no typo here. hostname = username
+			KiteKey:         kiteKey,
+			LatestKlientURL: klientURL,
+		}
+
+		// pass the values as a JSON encoded as bae64. Our script will decode
+		// and unmarshall and use it inside the Vagrant box
+		val, err := json.Marshal(&data)
+		if err != nil {
+			return nil, err
+		}
+
+		kiteIds[resourceName] = kiteID
+		encoded := base64.StdEncoding.EncodeToString(val)
+		box["provisionData"] = encoded
+		resource.VagrantBuild[resourceName] = box
+	}
+
+	template.Resource["vagrantkite_build"] = resource.VagrantBuild
+
+	if err := template.hclUpdate(); err != nil {
+		return nil, err
+	}
+
+	b := &buildData{
+		KiteIds: kiteIds,
+	}
+
+	return b, nil
 }
 
 func injectAWSData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
