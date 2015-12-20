@@ -366,7 +366,8 @@ module.exports =
     switch messageType
       when 'messageWithCode'
         browser
-          .assert.containsText    "#{textAreaSelector} .ChatItem .SimpleChatListItem", messageWithShortCode
+          .pause                  2000
+          .assert.containsText    "#{textAreaSelector} .ChatItem:nth-of-type(3)", messageWithShortCode
       when 'messageWithImage'
         browser
           .waitForElementVisible  imageSelector, 20000
