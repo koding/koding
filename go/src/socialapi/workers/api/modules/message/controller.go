@@ -315,6 +315,19 @@ func Get(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, ht
 		return response.NewNotFound()
 	}
 
+	ch, err := models.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
+		response.NewBadRequest(err)
+	}
+
+	canOpen, err := ch.CanOpen(ctx.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewAccessDenied(models.ErrCannotOpenChannel)
+	}
 	//fetch initial CHannel
 	// canopen ?
 
