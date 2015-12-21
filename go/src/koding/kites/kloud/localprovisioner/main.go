@@ -153,7 +153,9 @@ func applyVagrantCommand() error {
                 "filePath": "%s",
                 "queryString": "%s",
                 "cpus": 2,
-                "memory": 2048
+                "memory": 2048,
+                "registerURL": "http://127.0.0.1:56790/kite",
+                "kontrolURL": "http://10.0.2.2:4444/kite"
             }
         }
     }
