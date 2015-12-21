@@ -251,12 +251,30 @@ func injectVagrantData(ctx context.Context, template *terraformTemplate, usernam
 		}
 		klientURL = sess.Userdata.Bucket.URL(klientURL)
 
+		// get the registerURL if passed via template
+		var registerURL string
+		if r, ok := box["registerURL"]; ok {
+			if ru, ok := r.(string); ok {
+				registerURL = ru
+			}
+		}
+
+		// get the kontrolURL if passed via template
+		var kontrolURL string
+		if k, ok := box["kontrolURL"]; ok {
+			if ku, ok := k.(string); ok {
+				kontrolURL = ku
+			}
+		}
+
 		data := pUser.Value{
 			Username:        username,
 			Groups:          []string{"sudo"},
 			Hostname:        username, // no typo here. hostname = username
 			KiteKey:         kiteKey,
 			LatestKlientURL: klientURL,
+			RegisterURL:     registerURL,
+			KontrolURL:      kontrolURL,
 		}
 
 		// pass the values as a JSON encoded as bae64. Our script will decode
