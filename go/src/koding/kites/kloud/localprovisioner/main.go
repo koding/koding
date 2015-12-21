@@ -147,6 +147,11 @@ func sendPingToKlient() error {
 
 func applyVagrantCommand() error {
 	localTemplate := `{
+    "variable": {
+        "username": {
+            "default": "fatih"
+        }
+    },
     "resource": {
         "vagrantkite_build": {
             "%s": {
@@ -155,7 +160,8 @@ func applyVagrantCommand() error {
                 "cpus": 2,
                 "memory": 2048,
                 "registerURL": "http://127.0.0.1:56790/kite",
-                "kontrolURL": "http://10.0.2.2:4444/kite"
+                "kontrolURL": "http://10.0.2.2:4444/kite",
+                "customScript": "sudo apt-get install sl -y\ntouch /tmp/${var.username}.txt"
             }
         }
     }
@@ -179,7 +185,7 @@ func applyVagrantCommand() error {
 	groupname := "koding"
 
 	opts := &createUserOptions{
-		Username:     "arslan",
+		Username:     "testuser",
 		Label:        label,
 		Groupname:    groupname,
 		Provider:     "vagrant",
