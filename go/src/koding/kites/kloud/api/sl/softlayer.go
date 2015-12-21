@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"koding/kites/common"
 	"os"
 	"sort"
 
@@ -24,8 +23,6 @@ import (
 // as the client-side filtering does not scale.
 
 var (
-	defaultLogger = common.NewLogger("softlayer", false)
-
 	// workaround for softlayer-go API
 	nullBuf = &bytes.Buffer{}
 
@@ -355,18 +352,4 @@ func (c *Softlayer) DeleteInstance(id int) error {
 	}
 
 	return nil
-}
-
-func (c *Softlayer) log() logging.Logger {
-	if c.opts.Log != nil {
-		return c.opts.Log
-	}
-	return defaultLogger
-}
-
-func (c *Softlayer) datacenters() []string {
-	if len(c.opts.Datacenters) != 0 {
-		return c.opts.Datacenters
-	}
-	return ProductionDatacenters
 }
