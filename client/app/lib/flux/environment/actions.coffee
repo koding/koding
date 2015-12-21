@@ -288,22 +288,22 @@ createWorkspace = (machine, workspace) ->
 
 setMachineListItem = (id, machineListItem) ->
 
-  { reactor, computeController } = kd.singletons
+  { reactor } = kd.singletons
 
   reactor.dispatch actions.MACHINE_LIST_ITEM_CREATED, { id ,machineListItem }
 
 
 unsetMachineListItem = (id, machineListItem) ->
 
-  { reactor, computeController } = kd.singletons
+  { reactor } = kd.singletons
 
   reactor.dispatch actions.MACHINE_LIST_ITEM_DELETED, { id ,machineListItem }
 
 
 setActiveInvitationMachineId = (options={}) ->
 
-  { machine, forceUpdate }       = options
-  { reactor, computeController } = kd.singletons
+  { machine, forceUpdate }  = options
+  { reactor }               = kd.singletons
 
   id = null
 
@@ -317,7 +317,7 @@ setActiveInvitationMachineId = (options={}) ->
 
 setActiveLeavingSharedMachineId = (id) ->
 
-  { reactor, computeController } = kd.singletons
+  { reactor } = kd.singletons
 
   reactor.dispatch actions.SET_ACTIVE_LEAVING_SHARED_MACHINE_ID, { id }
 
