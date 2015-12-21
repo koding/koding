@@ -3,12 +3,7 @@ React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
 $                    = require 'jquery'
 AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
-EmojiDropbox         = require 'activity/components/emojidropbox'
-ChannelDropbox       = require 'activity/components/channeldropbox'
-MentionDropbox       = require 'activity/components/mentiondropbox'
-EmojiSelectBox       = require 'activity/components/emojiselectbox'
-SearchDropbox        = require 'activity/components/searchdropbox'
-CommandDropbox       = require 'activity/components/commanddropbox'
+DropboxContainer     = require 'activity/components/dropbox/dropboxcontainer'
 ActivityFlux         = require 'activity/flux'
 ChatInputFlux        = require 'activity/flux/chatinput'
 KDReactorMixin       = require 'app/flux/base/reactormixin'
@@ -18,34 +13,65 @@ Link                 = require 'app/components/common/link'
 helpers              = require './helpers'
 focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 parseStringToCommand = require 'activity/util/parseStringToCommand'
-DropboxType          = require 'activity/flux/chatinput/dropboxtype'
 
+ChannelToken         = require './tokens/channeltoken'
+EmojiToken           = require './tokens/emojitoken'
+MentionToken         = require './tokens/mentiontoken'
+SearchToken          = require './tokens/searchtoken'
+CommandToken         = require './tokens/commandtoken'
 
 module.exports = class ChatInputWidget extends React.Component
 
   { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
   @defaultProps =
-    disabledFeatures : []
-    onReady          : kd.noop
-    onResize         : kd.noop
-    placeholder      : ''
-    onChange         : kd.noop
+    onReady     : kd.noop
+    onResize    : kd.noop
+    placeholder : ''
+    onChange    : kd.noop
+    tokens      : [ChannelToken, EmojiToken, MentionToken, SearchToken, CommandToken]
 
 
   getDataBindings: ->
 
-    { getters }          = ChatInputFlux
-    { disabledFeatures } = @props
+    { getters } = ChatInputFlux
 
     return {
-      value                          : getters.currentValue @stateId
-      dropboxType                    : getters.dropboxType @stateId
-      dropboxQuery                   : getters.dropboxQuery @stateId
-      dropboxItems                   : getters.dropboxItems @stateId, disabledFeatures
-      dropboxSelectedIndex           : getters.dropboxSelectedIndex @stateId
-      dropboxSelectedItem            : getters.dropboxSelectedItem @stateId
-      dropboxFormattedSelectedItem   : getters.dropboxFormattedSelectedItem @stateId
+      value                      : getters.currentValue @stateId
+
+      emojiSelectBoxItems        : getters.emojiSelectBoxItems @stateId
+      emojiSelectBoxTabs         : getters.emojiSelectBoxTabs
+      emojiSelectBoxQuery        : getters.emojiSelectBoxQuery @stateId
+      emojiSelectBoxSelectedItem : getters.emojiSelectBoxSelectedItem @stateId
+      emojiSelectBoxVisibility   : getters.emojiSelectBoxVisibility @stateId
+      emojiSelectBoxTabIndex     : getters.emojiSelectBoxTabIndex @stateId
+
+      dropboxQuery               : getters.dropboxQuery @stateId
+      dropboxConfig              : getters.dropboxConfig @stateId
+
+      dropboxChannels            : getters.dropboxChannels @stateId
+      channelsSelectedIndex      : getters.channelsSelectedIndex @stateId
+      channelsSelectedItem       : getters.channelsSelectedItem @stateId
+      channelsFormattedItem      : getters.channelsFormattedItem @stateId
+
+      dropboxEmojis              : getters.dropboxEmojis @stateId
+      emojisSelectedIndex        : getters.emojisSelectedIndex @stateId
+      emojisSelectedItem         : getters.emojisSelectedItem @stateId
+      emojisFormattedItem        : getters.emojisFormattedItem @stateId
+
+      dropboxMentions            : getters.dropboxMentions @stateId
+      mentionsSelectedIndex      : getters.mentionsSelectedIndex @stateId
+      mentionsSelectedItem       : getters.mentionsSelectedItem @stateId
+      mentionsFormattedItem      : getters.mentionsFormattedItem @stateId
+
+      dropboxSearchItems         : getters.dropboxSearchItems @stateId
+      searchSelectedIndex        : getters.searchSelectedIndex @stateId
+      searchSelectedItem         : getters.searchSelectedItem @stateId
+
+      dropboxCommands            : getters.dropboxCommands @stateId
+      commandsSelectedIndex      : getters.commandsSelectedIndex @stateId
+      commandsSelectedItem       : getters.commandsSelectedItem @stateId
+      commandsFormattedItem      : getters.commandsFormattedItem @stateId
     }
 
 
@@ -108,19 +134,16 @@ module.exports = class ChatInputWidget extends React.Component
     @refs.dropbox?.updatePosition inputDimensions
 
 
-  isFeatureDisabled: (feature) -> @props.disabledFeatures.indexOf(feature) > -1
-
-
   setValue: (value, skipChangeEvent) ->
 
     return  if @state.value is value
 
-    { channelId, onChange } = @props
+    { channelId, onChange, tokens } = @props
     textInput      = ReactDOM.findDOMNode @refs.textInput
     cursorPosition = helpers.getCursorPosition textInput
 
     ChatInputFlux.actions.value.setValue channelId, @stateId, value
-    ChatInputFlux.actions.dropbox.checkForQuery @stateId, value, cursorPosition
+    ChatInputFlux.actions.dropbox.checkForQuery @stateId, value, cursorPosition, tokens
 
     onChange value  unless skipChangeEvent
 
@@ -179,7 +202,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   onNextPosition: (event, keyInfo) ->
 
-    if @refs.dropbox
+    if @state.dropboxConfig
       ChatInputFlux.actions.dropbox.moveToNextIndex @stateId
       kd.utils.stopDOMEvent event
 
@@ -187,7 +210,7 @@ module.exports = class ChatInputWidget extends React.Component
   onPrevPosition: (event, keyInfo) ->
 
     if event.target.value
-      if @refs.dropbox
+      if @state.dropboxConfig
         ChatInputFlux.actions.dropbox.moveToPrevIndex @stateId
         kd.utils.stopDOMEvent event
     else
@@ -205,16 +228,18 @@ module.exports = class ChatInputWidget extends React.Component
 
   onDropboxClose: ->
 
-    ChatInputFlux.actions.dropbox.reset @stateId  if @state.dropboxType
+    ChatInputFlux.actions.dropbox.reset @stateId  if @state.dropboxConfig
 
 
   confirmSelectedItem: ->
 
-    { dropboxFormattedSelectedItem } = @state
+    { dropboxConfig } = @state
+    return  unless dropboxConfig
 
-    textInput = ReactDOM.findDOMNode @refs.textInput
+    formattedItem = @state[dropboxConfig.getIn ['getters', 'formattedItem']]
+    textInput     = ReactDOM.findDOMNode @refs.textInput
 
-    { value, cursorPosition } = helpers.insertDropboxItem textInput, dropboxFormattedSelectedItem + ' '
+    { value, cursorPosition } = helpers.insertDropboxItem textInput, formattedItem + ' '
     @setValue value
     @onDropboxClose()
 
@@ -285,31 +310,6 @@ module.exports = class ChatInputWidget extends React.Component
     @props.onResize()
 
 
-  renderDropbox: ->
-
-    { dropboxType, dropboxQuery, dropboxItems, dropboxSelectedIndex, dropboxSelectedItem } = @state
-
-    Component = switch dropboxType
-      when DropboxType.EMOJI then EmojiDropbox
-      when DropboxType.CHANNEL then ChannelDropbox
-      when DropboxType.MENTION then MentionDropbox
-      when DropboxType.SEARCH then SearchDropbox
-      when DropboxType.COMMAND then CommandDropbox
-
-    return  unless Component
-
-    <Component
-      ref             = 'dropbox'
-      query           = { dropboxQuery }
-      items           = { dropboxItems }
-      selectedIndex   = { dropboxSelectedIndex }
-      selectedItem    = { dropboxSelectedItem }
-      onItemSelected  = { @bound 'onItemSelected' }
-      onItemConfirmed = { @bound 'confirmSelectedItem' }
-      onClose         = { @bound 'onDropboxClose' }
-    />
-
-
   renderEmojiSelectBox: ->
 
     { emojiSelectBoxItems, emojiSelectBoxTabs, emojiSelectBoxQuery } = @state
@@ -330,8 +330,10 @@ module.exports = class ChatInputWidget extends React.Component
 
   render: ->
 
+    Dropbox = DropboxContainer @state
+
     <div className={kd.utils.curry "ChatInputWidget", @props.className}>
-      { @renderDropbox() }
+      <Dropbox ref='dropbox' />
       <AutoSizeTextarea
         ref           = 'textInput'
         placeholder   = @props.placeholder

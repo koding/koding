@@ -1,5 +1,5 @@
-kd          = require 'kd'
-actionTypes = require './actiontypes'
+kd             = require 'kd'
+actionTypes    = require './actiontypes'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 

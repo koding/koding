@@ -21,73 +21,17 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 
 EmojisStore                         = [['EmojisStore'], withEmptyList]
 EmojiCategoriesStore                = [['EmojiCategoriesStore'], withEmptyList]
-FilteredEmojiListQueryStore         = [['FilteredEmojiListQueryStore'], withEmptyMap]
-FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], withEmptyMap]
 EmojiSelectBoxQueryStore            = [['EmojiSelectBoxQueryStore'], withEmptyMap]
 EmojiSelectBoxSelectedIndexStore    = [['EmojiSelectBoxSelectedIndexStore'], withEmptyMap]
 EmojiSelectBoxVisibilityStore       = [['EmojiSelectBoxVisibilityStore'], withEmptyMap]
 EmojiSelectBoxTabIndexStore         = [['EmojiSelectBoxTabIndexStore'], withEmptyMap]
 EmojiUsageCountsStore               = [['EmojiUsageCountsStore'], withEmptyMap]
-ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
-ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
-ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
-MentionsQueryStore                  = [['ChatInputMentionsQueryStore'], withEmptyMap]
-MentionsSelectedIndexStore          = [['ChatInputMentionsSelectedIndexStore'], withEmptyMap]
-MentionsVisibilityStore             = [['ChatInputMentionsVisibilityStore'], withEmptyMap]
 ChannelMentionsStore                = [['ChatInputChannelMentionsStore'], withEmptyList]
-SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyMap]
-SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
-SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
 SearchStore                         = [['ChatInputSearchStore'], withEmptyMap]
 SearchFlagsStore                    = [['ChatInputSearchFlagsStore'], withEmptyMap]
 ValueStore                          = [['ChatInputValueStore'], withEmptyMap]
 CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList]
-CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
-CommandsSelectedIndexStore          = [['ChatInputCommandsSelectedIndexStore'], withEmptyMap]
-CommandsVisibilityStore             = [['ChatInputCommandsVisibilityStore'], withEmptyMap]
-
 DropboxSettingsStore                = [['ChatInputDropboxSettingsStore'], withEmptyMap]
-
-
-filteredEmojiListQuery = (stateId) -> [
-  FilteredEmojiListQueryStore
-  (queries) -> queries.get stateId
-]
-
-
-# Returns a list of emojis filtered by current query
-filteredEmojiList = (stateId) -> [
-  EmojisStore
-  filteredEmojiListQuery stateId
-  (emojis, query) ->
-    return immutable.List()  unless query
-
-    emojis = searchListByQuery emojis, query
-    emojis.sort (emoji1, emoji2) ->
-        return -1  if emoji1.indexOf(query) is 0
-        return 1  if emoji2.indexOf(query) is 0
-        return 0
-]
-
-
-filteredEmojiListRawIndex = (stateId) -> [
-  FilteredEmojiListSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
-filteredEmojiListSelectedIndex = (stateId) -> [
-  filteredEmojiList stateId
-  filteredEmojiListRawIndex stateId
-  calculateListSelectedIndex
-]
-
-
-filteredEmojiListSelectedItem = (stateId) -> [
-  filteredEmojiList stateId
-  filteredEmojiListSelectedIndex stateId
-  getListSelectedItem
-]
 
 
 # Returns emoji selectbox query by given stateId
@@ -210,184 +154,6 @@ emojiSelectBoxTabIndex = (stateId) -> [
 ]
 
 
-channelsQuery = (stateId) -> [
-  ChannelsQueryStore
-  (queries) -> queries.get stateId
-]
-
-
-# Returns a list of channels depending on the current query
-# If query if empty, returns popular channels
-# Otherwise, returns channels filtered by query
-channels = (stateId) -> [
-  ActivityFluxGetters.allChannels
-  ActivityFluxGetters.popularChannels
-  channelsQuery stateId
-  (allChannels, popularChannels, query) ->
-    return popularChannels.toList()  unless query
-
-    query = query.toLowerCase()
-    allChannels.toList().filter (channel) ->
-      channelName = channel.get('name').toLowerCase()
-      return channelName.indexOf(query) is 0
-]
-
-
-channelsRawIndex = (stateId) -> [
-  ChannelsSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
-channelsSelectedIndex = (stateId) -> [
-  channels stateId
-  channelsRawIndex stateId
-  calculateListSelectedIndex
-]
-
-
-channelsSelectedItem = (stateId) -> [
-  channels stateId
-  channelsSelectedIndex stateId
-  getListSelectedItem
-]
-
-
-channelsVisibility = (stateId) -> [
-  ChannelsVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-
-mentionsQuery = (stateId) -> [
-  MentionsQueryStore
-  (queries) -> queries.get stateId
-]
-
-
-# Returns a list of user mentions depending on the current query
-# If query is empty, returns:
-# - users who are not participants of selected channel if current input command is /invite
-# - otherwise, selected channel participants
-# If query is not empty, returns users filtered by query
-userMentions = (stateId) -> [
-  ActivityFluxGetters.allUsers
-  ActivityFluxGetters.selectedChannelParticipants
-  mentionsQuery stateId
-  currentCommand stateId
-  ActivityFluxGetters.notSelectedChannelParticipants
-  (allUsers, participants, query, command, notParticipants) ->
-    isInviteCommand = command?.name is '/invite'
-
-    unless query
-      map = if isInviteCommand then notParticipants else participants
-      return if map then map.toList() else immutable.List()
-
-    query  = query.toLowerCase()
-    map = if isInviteCommand then notParticipants else allUsers
-    map.toList().filter (user) ->
-      profile = user.get 'profile'
-      names = [
-        profile.get 'nickname'
-        profile.get 'firstName'
-        profile.get 'lastName'
-      ]
-      return findNameByQuery names, query
-]
-
-
-# Returns a list of channel mentions depending on the current query
-# If current command is /invite, doesn't return anything
-# If query is empty, returns all channel mentions
-# Otherwise, returns mentions filtered by query
-channelMentions = (stateId) -> [
-  ChannelMentionsStore
-  currentCommand stateId
-  mentionsQuery stateId
-  (mentions, command, query) ->
-    return immutable.List()  if command?.name is '/invite'
-    return mentions  unless query
-
-    query = query.toLowerCase()
-    mentions.filter (mention) ->
-      return findNameByQuery mention.get('names').toJS(), query
-]
-
-
-mentionsRawIndex = (stateId) -> [
-  MentionsSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
-# Mentions selected index is used for a list
-# which is union of user mentions and channel mentions
-mentionsSelectedIndex = (stateId) -> [
-  userMentions stateId
-  channelMentions stateId
-  mentionsRawIndex stateId
-  (_userMentions, _channelMentions, currentIndex) ->
-    list = _userMentions.toList().concat _channelMentions
-    return calculateListSelectedIndex list, currentIndex
-]
-
-
-# Returns a selected item from a union of user mentions
-# and channel mentions by selected index
-mentionsSelectedItem = (stateId) -> [
-  userMentions stateId
-  channelMentions stateId
-  mentionsSelectedIndex stateId
-  (_userMentions, _channelMentions, selectedIndex) ->
-    list = _userMentions.toList().concat _channelMentions
-    return getListSelectedItem list, selectedIndex
-]
-
-
-mentionsVisibility = (stateId) -> [
-  MentionsVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-
-searchItems = (stateId) -> [
-  SearchStore
-  (searchStore) -> searchStore.get stateId
-]
-
-
-searchQuery = (stateId) -> [
-  SearchQueryStore
-  (queries) -> queries.get stateId
-]
-
-
-searchRawIndex = (stateId) -> [
-  SearchSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
-searchSelectedIndex = (stateId) -> [
-  searchItems stateId
-  searchRawIndex stateId
-  calculateListSelectedIndex
-]
-
-
-searchSelectedItem = (stateId) -> [
-  searchItems stateId
-  searchSelectedIndex stateId
-  getListSelectedItem
-]
-
-
-searchVisibility = (stateId) -> [
-  SearchVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-
 searchFlags = (stateId) -> [
   SearchFlagsStore
   (flags) -> flags.get stateId
@@ -407,68 +173,6 @@ currentCommand = (stateId) -> [
 ]
 
 
-commandsQuery = (stateId) -> [
-  CommandsQueryStore
-  (queries) -> queries.get stateId
-]
-
-
-commands = (stateId, disabledFeatures = []) -> [
-  CommandsStore
-  commandsQuery stateId
-  ActivityFluxGetters.selectedChannelThread
-  (allCommands, query, selectedChannelThread) ->
-    if disabledFeatures.indexOf('commands') > -1 or not selectedChannelThread
-      return immutable.List()
-
-    ignoredFeatures  = []
-    selectedChannel  = selectedChannelThread.get('channel').toJS()
-    isPrivateChannel = selectedChannel.typeConstant is 'privatemessage'
-    ignoredFeatures.push 'search'  if isPrivateChannel
-    ignoredFeatures.push 'leave'   if isGroupChannel selectedChannel
-
-    ignoredFeatures = disabledFeatures.concat ignoredFeatures
-
-    availableCommands = allCommands.filterNot (command) ->
-      featureName = command.get('name').replace '/', ''
-      return ignoredFeatures.indexOf(featureName) > -1
-
-    return availableCommands  if query is '/'
-
-    availableCommands.filter (command) ->
-      commandName = command.get 'name'
-      return commandName.indexOf(query) is 0
-]
-
-
-commandsRawIndex = (stateId) -> [
-  CommandsSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
-commandsSelectedIndex = (stateId, disabledFeatures) -> [
-  commands stateId, disabledFeatures
-  commandsRawIndex stateId
-  calculateListSelectedIndex
-]
-
-
-commandsSelectedItem = (stateId, disabledFeatures) -> [
-  commands stateId, disabledFeatures
-  commandsSelectedIndex stateId, disabledFeatures
-  getListSelectedItem
-]
-
-
-commandsVisibility = (stateId) -> [
-  CommandsVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-
-##################### DROPBOX GETTERS #####################
-
 dropboxSettings = (stateId) -> [
   DropboxSettingsStore
   (settings) -> settings.get stateId
@@ -481,35 +185,26 @@ dropboxQuery = (stateId) -> [
 ]
 
 
-dropboxType = (stateId) -> [
+dropboxConfig = (stateId) -> [
   dropboxSettings stateId
-  (settings) -> settings?.get 'type'
+  (settings) -> settings?.get 'config'
 ]
 
 
-dropboxEmojis = (stateId) -> [
-  dropboxType stateId
-  dropboxQuery stateId
-  EmojisStore
-  (type, query, emojis) ->
-    return  unless type is DropboxType.EMOJI
-    return  unless query
-
-    emojis = searchListByQuery emojis, query
-    emojis.sort (emoji1, emoji2) ->
-        return -1  if emoji1.indexOf(query) is 0
-        return 1  if emoji2.indexOf(query) is 0
-        return 0
+dropboxRawSelectedIndex = (stateId) -> [
+  dropboxSettings stateId
+  (settings) -> settings?.get 'index'
 ]
 
 
 dropboxChannels = (stateId) -> [
-  dropboxType stateId
   dropboxQuery stateId
+  dropboxConfig stateId
   ActivityFluxGetters.allChannels
   ActivityFluxGetters.popularChannels
-  (type, query, allChannels, popularChannels) ->
-    return  unless type is DropboxType.CHANNEL
+  (query, config, allChannels, popularChannels) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxChannels'
+
     return popularChannels.toList()  unless query
 
     query = query.toLowerCase()
@@ -520,15 +215,75 @@ dropboxChannels = (stateId) -> [
 ]
 
 
-dropboxUserMentions = (stateId) -> [
-  dropboxType stateId
+channelsSelectedIndex = (stateId) -> [
+  dropboxChannels stateId
+  dropboxRawSelectedIndex stateId
+  calculateListSelectedIndex
+]
+
+
+channelsSelectedItem = (stateId) -> [
+  dropboxChannels stateId
+  channelsSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+channelsFormattedItem = (stateId) -> [
+  channelsSelectedItem stateId
+  (selectedItem) ->
+    return  unless selectedItem
+    return "##{selectedItem.get 'name'}"
+]
+
+
+dropboxEmojis = (stateId) -> [
   dropboxQuery stateId
+  dropboxConfig stateId
+  EmojisStore
+  (query, config, emojis) ->
+    return  unless query
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxEmojis'
+
+    emojis = searchListByQuery emojis, query
+    emojis.sort (emoji1, emoji2) ->
+        return -1  if emoji1.indexOf(query) is 0
+        return 1  if emoji2.indexOf(query) is 0
+        return 0
+]
+
+
+emojisSelectedIndex = (stateId) -> [
+  dropboxEmojis stateId
+  dropboxRawSelectedIndex stateId
+  calculateListSelectedIndex
+]
+
+
+emojisSelectedItem = (stateId) -> [
+  dropboxEmojis stateId
+  emojisSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+emojisFormattedItem = (stateId) -> [
+  emojisSelectedItem stateId
+  (selectedItem) ->
+    return  unless selectedItem
+    return formatEmojiName selectedItem
+]
+
+
+dropboxUserMentions = (stateId) -> [
+  dropboxQuery stateId
+  dropboxConfig stateId
   ActivityFluxGetters.allUsers
   ActivityFluxGetters.selectedChannelParticipants
   currentCommand stateId
   ActivityFluxGetters.notSelectedChannelParticipants
-  (type, query, allUsers, participants, command, notParticipants) ->
-    return  unless type is DropboxType.MENTION
+  (query, config, allUsers, participants, command, notParticipants) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxMentions'
 
     isInviteCommand = command?.name is '/invite'
 
@@ -550,12 +305,12 @@ dropboxUserMentions = (stateId) -> [
 
 
 dropboxChannelMentions = (stateId) -> [
-  dropboxType stateId
   dropboxQuery stateId
+  dropboxConfig stateId
   ChannelMentionsStore
   currentCommand stateId
-  (type, query, mentions, command) ->
-    return  unless type is DropboxType.MENTION
+  (query, config, mentions, command) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxMentions'
 
     return immutable.List()  if command?.name is '/invite'
     return mentions  unless query
@@ -575,33 +330,83 @@ dropboxMentions = (stateId) -> [
 ]
 
 
-dropboxSearchItems = (stateId, disabledFeatures = []) -> [
-  dropboxType stateId
+mentionsSelectedIndex = (stateId) -> [
+  dropboxMentions stateId
+  dropboxRawSelectedIndex stateId
+  (mentions, index) ->
+    return -1  unless mentions
+
+    { userMentions, channelMentions } = mentions
+    list = userMentions.concat channelMentions
+    return calculateListSelectedIndex list, index
+]
+
+
+mentionsSelectedItem = (stateId) -> [
+  dropboxMentions stateId
+  mentionsSelectedIndex stateId
+  (mentions, index) ->
+    return  unless mentions
+
+    { userMentions, channelMentions } = mentions
+    list = userMentions.concat channelMentions
+    return getListSelectedItem list, index
+]
+
+
+mentionsFormattedItem = (stateId) -> [
+  mentionsSelectedItem stateId
+  dropboxQuery stateId
+  (selectedItem, query) ->
+    return  unless selectedItem
+
+    names = selectedItem.get('names')
+    if names
+      name = findNameByQuery(names.toJS(), query) ? names.first()
+    else
+      name = selectedItem.getIn ['profile', 'nickname']
+    return "@#{name}"
+]
+
+
+dropboxSearchItems = (stateId) -> [
+  dropboxConfig stateId
   SearchStore
-  (type, searchStore) ->
-    return  unless type is DropboxType.SEARCH
-    return  if disabledFeatures.indexOf('search') > -1
+  (config, searchStore) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxSearchItems'
 
     return searchStore.get stateId
 ]
 
 
-dropboxCommands = (stateId, disabledFeatures = []) -> [
-  dropboxType stateId
+searchSelectedIndex = (stateId) -> [
+  dropboxSearchItems stateId
+  dropboxRawSelectedIndex stateId
+  calculateListSelectedIndex
+]
+
+
+searchSelectedItem = (stateId) -> [
+  dropboxSearchItems stateId
+  searchSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+dropboxCommands = (stateId) -> [
   dropboxQuery stateId
+  dropboxConfig stateId
   CommandsStore
   ActivityFluxGetters.selectedChannelThread
-  (type, query, allCommands, selectedChannelThread) ->
-    return  unless type is DropboxType.COMMAND
-    return  if disabledFeatures.indexOf('commands') > -1 or not selectedChannelThread
+  (query, config, allCommands, selectedChannelThread) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxCommands'
+    return  unless selectedChannelThread
 
     ignoredFeatures  = []
     selectedChannel  = selectedChannelThread.get('channel').toJS()
     isPrivateChannel = selectedChannel.typeConstant is 'privatemessage'
     ignoredFeatures.push 'search'  if isPrivateChannel
     ignoredFeatures.push 'leave'   if isGroupChannel selectedChannel
-
-    ignoredFeatures = disabledFeatures.concat ignoredFeatures
 
     availableCommands = allCommands.filterNot (command) ->
       featureName = command.get('name').replace '/', ''
@@ -615,79 +420,29 @@ dropboxCommands = (stateId, disabledFeatures = []) -> [
 ]
 
 
-dropboxItems = (stateId) -> [
-  dropboxChannels stateId
-  dropboxEmojis stateId
-  dropboxMentions stateId
-  dropboxSearchItems stateId
+commandsSelectedIndex = (stateId) -> [
   dropboxCommands stateId
-  (channels, emojis, mentions, searchItems, commands) ->
-    return channels ? emojis ? mentions ? searchItems ? commands
-]
-
-
-dropboxRawSelectedIndex = (stateId) -> [
-  dropboxSettings stateId
-  (settings) -> settings?.get 'index'
-]
-
-
-dropboxSelectedIndex = (stateId) -> [
-  dropboxType stateId
-  dropboxItems stateId
   dropboxRawSelectedIndex stateId
-  (type, items, index) ->
-    if type is DropboxType.MENTION
-      { userMentions, channelMentions } = items
-      items = userMentions.concat channelMentions
-
-    return calculateListSelectedIndex items, index
+  calculateListSelectedIndex
 ]
 
 
-dropboxSelectedItem = (stateId) -> [
-  dropboxType stateId
-  dropboxItems stateId
-  dropboxSelectedIndex stateId
-  (type, items, index) ->
-    if type is DropboxType.MENTION
-      { userMentions, channelMentions } = items
-      items = userMentions.concat channelMentions
-
-    return getListSelectedItem items, index
+commandsSelectedItem = (stateId) -> [
+  dropboxCommands stateId
+  commandsSelectedIndex stateId
+  getListSelectedItem
 ]
 
 
-dropboxFormattedSelectedItem = (stateId) -> [
-  dropboxType stateId
-  dropboxQuery stateId
-  dropboxSelectedItem stateId
-  (type, query, selectedItem) ->
+commandsFormattedItem = (stateId) -> [
+  commandsSelectedItem stateId
+  (selectedItem) ->
     return  unless selectedItem
-
-    switch type
-      when DropboxType.CHANNEL
-        return "##{selectedItem.get 'name'}"
-      when DropboxType.EMOJI
-        return formatEmojiName selectedItem
-      when DropboxType.MENTION
-        names = selectedItem.get('names')
-        if names
-          name = findNameByQuery(names.toJS(), query) ? names.first()
-        else
-          name = selectedItem.getIn ['profile', 'nickname']
-        return "@#{name}"
-      when DropboxType.COMMAND
-        return "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
+    return "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
 ]
 
 
 module.exports = {
-  filteredEmojiList
-  filteredEmojiListQuery
-  filteredEmojiListSelectedItem
-  filteredEmojiListSelectedIndex
-
   emojiSelectBoxItems
   emojiSelectBoxTabs
   emojiSelectBoxQuery
@@ -698,43 +453,33 @@ module.exports = {
 
   frequentlyUsedEmojis
 
-  channelsQuery
-  channels
-  channelsRawIndex
-  channelsSelectedIndex
-  channelsSelectedItem
-  channelsVisibility
-
-  mentionsQuery
-  userMentions
-  channelMentions
-  mentionsRawIndex
-  mentionsSelectedIndex
-  mentionsSelectedItem
-  mentionsVisibility
-
-  searchItems
-  searchQuery
-  searchSelectedIndex
-  searchSelectedItem
-  searchVisibility
-  searchFlags
-
   currentValue
 
-  commandsQuery
-  commands
-  commandsRawIndex
+  dropboxQuery
+  dropboxConfig
+
+  dropboxChannels
+  channelsSelectedIndex
+  channelsSelectedItem
+  channelsFormattedItem
+
+  dropboxEmojis
+  emojisSelectedIndex
+  emojisSelectedItem
+  emojisFormattedItem
+
+  dropboxMentions
+  mentionsSelectedIndex
+  mentionsSelectedItem
+  mentionsFormattedItem
+
+  dropboxSearchItems
+  searchSelectedIndex
+  searchSelectedItem
+
+  dropboxCommands
   commandsSelectedIndex
   commandsSelectedItem
-  commandsVisibility
-
-
-  dropboxType
-  dropboxQuery
-  dropboxItems
-  dropboxSelectedIndex
-  dropboxSelectedItem
-  dropboxFormattedSelectedItem
+  commandsFormattedItem
 }
 

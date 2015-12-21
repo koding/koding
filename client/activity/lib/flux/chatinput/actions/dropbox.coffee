@@ -1,39 +1,27 @@
 kd          = require 'kd'
 actionTypes = require './actiontypes'
-DropboxType = require 'activity/flux/chatinput/dropboxtype'
-helpers     = require './helpers'
-
-ChannelActions          = require 'activity/flux/actions/channel'
-{ actions: AppActions } = require 'app/flux'
 
 
-checkForQuery = (stateId, value, position) ->
+checkForQuery = (stateId, value, position, tokens) ->
 
-  { SET_DROPBOX_QUERY, RESET_DROPBOX } = actionTypes
+  { SET_DROPBOX_QUERY_AND_CONFIG } = actionTypes
 
-  result = helpers.extractQuery value, position
+  result = extractQuery value, position, tokens
   return reset stateId  unless result
 
-  { query, type } = result
+  { query, token } = result
 
-  switch type
-    when DropboxType.CHANNEL then loadChannelsByQuery query
-    when DropboxType.MENTION then loadAccountsByQuery query
+  config = token.getConfig query
+  token.triggerAction? query
 
-  dispatch SET_DROPBOX_QUERY, { stateId, query, type }
-
-
-loadChannelsByQuery = (query) ->
-
-  if query
-    ChannelActions.loadChannelsByQuery query
-  else
-    ChannelActions.loadPopularChannels()
+  dispatch SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
 
 
-loadAccountsByQuery = (query) ->
+extractQuery = (value, position, tokens) ->
 
-  AppActions.user.searchAccounts query  if query
+  for token in tokens
+    query = token.extractQuery value, position
+    return { query, token }  if query?
 
 
 setSelectedIndex = (stateId, index) ->
