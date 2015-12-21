@@ -5,12 +5,21 @@ actions         = require 'app/flux/environment/actions'
 SidebarWidget   = require '../sidebarmachineslistitem/sidebarwidget'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
+Toggle          = require 'app/components/common/toggle'
 
 
 module.exports = class DeleteWorkspaceWidget extends React.Component
 
   @defaultProps =
     className : '--DeleteWorkspace'
+
+
+  constructor: (props) ->
+
+    super props
+
+    @state =
+      deleteAllFiles : no
 
 
   getDataBindings: ->
@@ -22,7 +31,7 @@ module.exports = class DeleteWorkspaceWidget extends React.Component
     options =
       machine            : @props.machine
       workspace          : @props.workspace
-      deleteRelatedFiles : no
+      deleteRelatedFiles : @state.deleteAllFiles
 
     actions.deleteWorkspace(options).then =>
       kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'machineLabel'}/my-workspace"
@@ -32,6 +41,11 @@ module.exports = class DeleteWorkspaceWidget extends React.Component
 
     kd.utils.defer =>
       actions.hideDeleteWorkspaceWidget @props.workspace.get '_id'
+
+
+  handleDeleteAllFiles: (status) ->
+
+    @setState { deleteAllFiles : status }
 
 
   render: ->
@@ -55,6 +69,11 @@ module.exports = class DeleteWorkspaceWidget extends React.Component
         >
         <span className='button-title'>DELETE WORKSPACE</span>
       </button>
+
+      <div className='DeleteWorkspace-Files'>
+        also delete its files
+        <Toggle size='tiny' callback={@bound 'handleDeleteAllFiles'} />
+      </div>
 
     </SidebarWidget>
 
