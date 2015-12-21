@@ -91,7 +91,7 @@ func realMain() error {
 	}
 
 	log.Println(">> Installing klient from URL: %s", val.LatestKlientURL)
-	if err := installKlient(val.Username, val.LatestKlientURL); err != nil {
+	if err := installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL); err != nil {
 		return err
 	}
 
@@ -125,7 +125,7 @@ func createUser(username string, groups []string) error {
 	return nil
 }
 
-func installKlient(username, url string) error {
+func installKlient(username, url, registerURL, kontrolURL string) error {
 	var tmpFile = "/tmp/latest-klient.deb"
 	var args = []string{url, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
 
@@ -148,7 +148,16 @@ func installKlient(username, url string) error {
 		return err
 	}
 
-	newContent := strings.Replace(string(content), "./klient", fmt.Sprintf("sudo -E -u %s ./klient", username), -1)
+	initLine := fmt.Sprintf("sudo -E -u %s ./klient", username)
+	if registerURL != "" {
+		initLine += fmt.Sprintf(" -register-url '%s'", registerURL)
+	}
+
+	if kontrolURL != "" {
+		initLine += fmt.Sprintf(" -kontrol-url '%s'", kontrolURL)
+	}
+
+	newContent := strings.Replace(string(content), "./klient", initLine, -1)
 
 	if err := ioutil.WriteFile("/etc/init/klient.conf", []byte(newContent), 0644); err != nil {
 		return err
