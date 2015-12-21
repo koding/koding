@@ -23,4 +23,3 @@ module.exports = class FeedThreadSidebar extends React.Component
       <SocialMediaWidget />
     </Scroller>
 
-
