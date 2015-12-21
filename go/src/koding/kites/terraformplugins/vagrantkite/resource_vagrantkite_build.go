@@ -1,8 +1,11 @@
 package vagrantkite
 
 import (
+	"errors"
 	"koding/kites/kloud/klient"
 	"log"
+	"net"
+	"net/url"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -63,11 +66,6 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Optional:    true,
 				Description: "Hostname of the Vagrant machine. Defaults to klient's username",
 			},
-			"ipAddress": &schema.Schema{
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "IP Address of the remote Vagrant box",
-			},
 			"memory": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,
@@ -79,11 +77,27 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Description: "Number of CPU's to be used for the underlying Vagrant box. Defaults to 1",
 			},
 
+			"registerURL": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Register URL of the klient inside the Vagrant box",
+			},
+			"kontrolURL": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Kontrol URL of the klient inside the Vagrant box",
+			},
+
 			// Computes fields
-			"hostURL": &schema.Schema{
+			"klientHostURL": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "URL of the Host machine where the Vagrant box residues",
+				Description: "URL of the Klient inside the host machine where the Vagrant box residues",
+			},
+			"klientGuestURL": &schema.Schema{
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "URL of the Klient inside the guest machine where the Vagrant box residues",
 			},
 		},
 	}
@@ -158,24 +172,34 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	// TODO(arslan): timeout with a select statement
-	<-done
+	select {
+	case <-done:
+	case <-time.After(time.Minute * 10):
+		return errors.New("Vagrant build took to much time(10 minutes). Please try again")
+	}
+
+	// Klient runs on 56789 inside the machine, but Vagrant exposes it as 56790
+	// so it doesn't collide with the Klient inside the Host machine. So change
+	// the port, but keep the Host the same.
+	u, err := url.Parse(klientRef.URL())
+	if err != nil {
+		return err
+	}
+
+	host, _, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		return err
+	}
+
+	u.Host = net.JoinHostPort(host, "56790")
 
 	d.SetId(queryString)
-	d.Set("hostURL", klientRef.URL())
+	d.Set("klientHostURL", klientRef.URL())
+	d.Set("klientGuestURL", u.String())
 	d.Set("hostname", result.Hostname)
 	d.Set("box", result.Box)
 	d.Set("cpus", result.Cpus)
 	d.Set("memory", result.Memory)
-
-	ipAddress, err := klientRef.IpAddress()
-	if err == nil {
-		// do not return on error if the IpAddress is not parsable. If we
-		// couldn't extract the IpAddress from the URL there is nothing to do.
-		// We only save if it's parsable
-		d.Set("ipAddress", ipAddress)
-	}
-
 	return nil
 }
 
