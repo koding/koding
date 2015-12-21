@@ -55,7 +55,7 @@ module.exports = class Sidebar extends React.Component
 
     isRendered = no
 
-    (@state.sharedMachines.concat @state.collaborationMachines).map (machine) =>
+    (@state.sharedMachines.concat @state.collaborationMachines).toList().map (machine) =>
 
       if not isRendered and @popoverNeeded machine
         isRendered = yes
