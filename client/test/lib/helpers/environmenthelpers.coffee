@@ -197,7 +197,7 @@ module.exports =
 
   clickAddVMButton: (browser) ->
 
-    sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
+    sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .my-machines .sidebar-title'
 
     browser
       .waitForElementVisible   '[testpath=main-sidebar]', 20000
@@ -285,7 +285,7 @@ module.exports =
       .waitForElementVisible  nicknameInput, 20000
       .clearValue             nicknameInput
       .setValue               nicknameInput, name + '\n'
-  
+
 
   reinitVM: (browser) ->
 
