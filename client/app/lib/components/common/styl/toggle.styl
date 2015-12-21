@@ -1,0 +1,99 @@
+// Component styles
+.react-toggle
+  dIBlock()
+  rel()
+  pointer()
+  bg                        color, transparent
+  border                    0
+  padding                   0
+  -webkit-touch-callout     none
+  -webkit-user-select       none
+  -khtml-user-select        none
+  -moz-user-select          none
+  -ms-user-select           none
+  user-select               none
+  -webkit-tap-highlight-color rgba(0,0,0,0)
+  -webkit-tap-highlight-color transparent
+
+.react-toggle-screenreader-only
+  border                    0
+  clip                      rect(0 0 0 0)
+  size                      1px 1px
+  margin                    -1px
+  overflow                  hidden
+  padding                   0
+  abs()
+
+.react-toggle--disabled
+  opacity                   .5
+  -webkit-transition        opacity .25s
+  transition                opacity .25s
+
+.react-toggle-track
+  size                      50px 24px
+  padding                   0
+  rounded                   30px
+  bg                        color, #d4d4d4
+  vendor                    transition, all 0.2s ease
+
+.react-toggle-track
+  svg
+    hidden()
+
+.react-toggle--checked
+
+  .react-toggle-track
+    bg                      color, #19AB27
+
+  .react-toggle-track-check
+    opacity                 1
+    vendor                  transition opacity .25s ease
+
+  .react-toggle-track-x
+    opacity                 0
+
+  .react-toggle-thumb
+    left                    27px
+
+.react-toggle-track-check
+  hidden()
+  abs                       6px 0 0 8px
+  size                      14px 10px
+  margin-top                auto
+  margin-bottom             auto
+  line-height               0
+  vendor                    transition, opacity .25s ease
+  opacity                   0
+
+.react-toggle-track-x
+  abs                       0 10px 0 0
+  size                      10px 10px
+  margin-top                auto
+  margin-bottom             auto
+  line-height               0
+  opacity                   1
+  vendor                    transition, opacity .25s ease
+
+.react-toggle-thumb
+  vendor                    transition all .1s cubic-bezier(0.23, 1, 0.32, 1) 0ms
+  abs                       1px 0 0 1px
+  size                      22px 22px
+  rounded                   50%
+  bg                        color #f4f4f4
+  borderBox()
+// Component style rules
+
+// Custom style rules
+.ReactToggle
+  &.tiny
+    .react-toggle-thumb
+      size                  14px 14px
+      left                  3px
+      top                   2px
+
+    .react-toggle-track
+      size                  34px 18px
+
+    .react-toggle--checked
+      .react-toggle-thumb
+        left                18px
