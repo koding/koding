@@ -114,7 +114,7 @@ func NewSoftlayerWithOptions(opts *Options) (*Softlayer, error) {
 // If filter is nil, all templates are returned.
 func (c *Softlayer) KeysByFilter(filter *Filter) (Keys, error) {
 	path := fmt.Sprintf("%s/getSshKeys.json", c.account.GetName())
-	p, err := c.DoRawHttpRequestWithObjectMask(path, KeyMask, "GET", nullBuf)
+	p, err := c.DoRawHttpRequestWithObjectMask(path, keyMask, "GET", nullBuf)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (c *Softlayer) XKeysByFilter(filter *Filter) (Keys, error) {
 	}
 	path := fmt.Sprintf("%s/getSshKeys.json", c.account.GetName())
 	p, err = c.DoRawHttpRequestWithObjectFilterAndObjectMask(
-		path, KeyMask, string(p), "GET", nullBuf,
+		path, keyMask, string(p), "GET", nullBuf,
 	)
 	if err != nil {
 		return nil, err
@@ -251,7 +251,7 @@ func (c *Softlayer) DeleteKey(id int) error {
 // If filter is nil, all templates are returned.
 func (c *Softlayer) TemplatesByFilter(filter *Filter) (Templates, error) {
 	path := fmt.Sprintf("%s/getBlockDeviceTemplateGroups.json", c.account.GetName())
-	p, err := c.DoRawHttpRequestWithObjectMask(path, TemplateMasks, "GET", nullBuf)
+	p, err := c.DoRawHttpRequestWithObjectMask(path, templateMask, "GET", nullBuf)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +306,7 @@ func (c *Softlayer) XTemplatesByFilter(filter *Filter) (Templates, error) {
 	}
 	path := fmt.Sprintf("%s/getBlockDeviceTemplateGroups.json", c.account.GetName())
 	p, err = c.DoRawHttpRequestWithObjectFilterAndObjectMask(
-		path, TemplateMasks, string(p), "GET", nullBuf,
+		path, templateMask, string(p), "GET", nullBuf,
 	)
 	if err != nil {
 		return nil, err

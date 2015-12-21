@@ -54,10 +54,10 @@ func (t Tags) String() string {
 	return string(p)
 }
 
-// TemplateMasks represents objectMasks for the Template struct.
+// templateMasks represents objectMasks for the Template struct.
 //
 // TODO(rjeczalik): infer the list from JSON tags
-var TemplateMasks = []string{
+var templateMask = []string{
 	"id",
 	"parentId",
 	"globalIdentifier",

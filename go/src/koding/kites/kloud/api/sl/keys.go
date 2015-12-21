@@ -94,8 +94,8 @@ func (k *Key) decode() {
 	}
 }
 
-// KeyMask represents objectMask Softlayer API value for the Key type.
-var KeyMask = []string{
+// keyMask represents objectMask Softlayer API value for the Key type.
+var keyMask = []string{
 	"id",
 	"label",
 	"createDate",
