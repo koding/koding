@@ -125,19 +125,43 @@ AWS Region: us-west-2 (2 images):
 
 ### Updating Softlayer base image
 
-Install packer-builder-softlayer plugin from my fork:
+Install packer-builder-softlayer plugin from our fork [koding/packer-builder-softlayer](https://github.com/koding/packer-builder-softlayer):
 
 ```
 $ # assuming ~ is your $GOPATH
-$ git clone git@github.com:rjeczalik/packer-builder-softlayer ~/src/github.com/leonidlm/packer-builder-softlayer
-$ # assuming ~/bin is your $GOBIN where packer executable is located
+$ git clone git@github.com:koding/packer-builder-softlayer ~/src/github.com/leonidlm/packer-builder-softlayer
+$ # assuming $GOPATH/bin is in your $PATH where packer executable is located
 $ go install github.com/leonidlm/packer-builder-softlayer
+```
+
+Locate the kloud `ssh\_key\_id` to use during build with `sl` command:
+
+```
+$ go install koding/kites/kloud/scripts/sl
+$ sl sshkey list -label kloud -user root
+ID		Label	Fingerprint		Created						Users
+12345	kloud	12:34:56:67:89	2016-02-05T17:55:00+02:00	[root]
 ```
 
 Navigate to koding repo and build the image:
 
 ```
 koding $ cd go/src/kites/kloud/provisioner
-koding $ export SOFTLAYER\_USERNAME=<?> SOFTLAYER\_API\_KEY=<?>
+koding $ export SOFTLAYER\_USER\_NAME=<?>
+koding $ export SOFTLAYER\_API\_KEY=<?>
+koding $ export SOFTLAYER\_PRIVATE\_KEY="<?>/credentials/private_keys/kloud/kloud_rsa.pem"
+koding $ export SOFTLAYER\_SSH\_KEY\_ID=12345
 koding $ packer build -only=softlayer template.json
+...
+Build 'softlayer' finished.
+
+==> Builds finished. The artifacts of successful builds are:
+--> softlayer: dal05::dfd85d27-af0b-4ca1-a1d7-b67db3011aee (koding-base-latest-1450290568)
+```
+
+Tag the new image as `koding-stable` and untag the old one:
+
+```
+koding $ images modify -create-tags Name=koding-stable -ids NEW_ID
+koding $ images modify -delete-tags Name -ids OLD_ID
 ```

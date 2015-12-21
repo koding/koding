@@ -115,14 +115,14 @@ func (c *Softlayer) TemplatesByFilter(filter *Filter) (Templates, error) {
 		return nil, err
 	}
 
+	for _, template := range templates {
+		template.decode()
+	}
+
 	templates = templates.Filter(filter)
 
 	if len(templates) == 0 {
 		return nil, &NotFoundError{Filter: filter}
-	}
-
-	for _, template := range templates {
-		template.decode()
 	}
 
 	sort.Sort(byCreateDateDesc(templates))
