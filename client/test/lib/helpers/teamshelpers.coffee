@@ -347,7 +347,7 @@ module.exports =
     imageSelector         = '.EmbedBox-container .EmbedBoxImage'
     imageTextSelector     = '.Pane-body .ChatList .ChatItem .ChatItem-contentBody:nth-of-type(1)'
     linkTextSelector      = '.EmbedBoxLinkContent .EmbedBoxLinkContent-description'
-    emojiSelector         = '.ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ChatItem-contentBody '
+    emojiSelector         = '.ChatList .ChatItem .MediaObject .ChatListItem-itemBodyContainer .ChatItem-contentBody .MessageBody'
     emojiSmileySelector   = "#{emojiSelector} .emoji-smiley"
     emojiThumbsUpSelector = "#{emojiSelector} .emoji-thumbsup"
     messageWithShortCode  = "console.log('123456789')"
@@ -366,7 +366,8 @@ module.exports =
     switch messageType
       when 'messageWithCode'
         browser
-          .assert.containsText    "#{textAreaSelector} .ChatItem .SimpleChatListItem", messageWithShortCode
+          .pause                  2000
+          .assert.containsText    "#{textAreaSelector} .ChatItem:nth-of-type(3)", messageWithShortCode
       when 'messageWithImage'
         browser
           .waitForElementVisible  imageSelector, 20000
