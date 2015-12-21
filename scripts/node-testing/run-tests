@@ -52,7 +52,7 @@ start = ->
 
   shellCommandsArray = shellCommands.asArray {
     socialWorker    : getNthInstancePublicIpAddress instanceData, 0
-    nodejsWebServer : getNthInstancePublicIpAddress instanceData, 1
+    nodejsWebServer : getNthInstancePublicIpAddress instanceData, 0
   }
 
   async.each shellCommandsArray, iterator, (err) ->
