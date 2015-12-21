@@ -58,7 +58,7 @@ module.exports = class DeleteWorkspaceWidget extends React.Component
         <a
           title='Understanding Workspaces'
           className='DeleteWorkspace-Understading'
-          href='http://learn.koding.com/guides/getting-started/workspaces/'>
+          href='https://koding.com/docs/getting-started-workspaces'>
           Understanding Workspaces
         </a>
       </div>
