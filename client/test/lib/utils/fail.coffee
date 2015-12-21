@@ -35,21 +35,16 @@ NW::fail = (result, actual, expected, defaultMsg) ->
         @client.api.getLog 'browser', (logs) =>
 
           for log in logs
-            logString += """
-              #{log.level} #{log.message}
-
-
-            """
+            logString += "#{log.level} #{log.message}\n"
 
           s3 = new AWS.S3 params:
             Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.txt"
             Bucket : 'koding-test-data'
 
-          s3.upload Body: logString, (err, res) =>
-            if err
-              console.log ' ✖ Unable to write console log to S3.'
-            else
-              console.log " ✔ Console log saved to S3. #{res.Location}"
-
-
+          if logString.length
+            s3.upload Body: logString, (err, res) =>
+              NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
+              msg = if err then ' ✖ Unable to write console log to S3.' else " ✔ Console log saved to S3. #{res.Location}"
+              console.log msg
+          else
             NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
