@@ -20,18 +20,10 @@ createApps = (appNames = [], shouldShow) ->
 describe 'kd.singletons.appManager', ->
 
 
-  beforeEach ->
-
-    spy        = null
-    appManager = new ApplicationManager
+  beforeEach -> appManager = new ApplicationManager
 
 
-  afterEach ->
-
-    if spy
-      spy.restore()
-      expect.restoreSpies()
-      spy = null
+  afterEach -> expect.restoreSpies()
 
 
   describe 'constructor', ->
@@ -45,7 +37,7 @@ describe 'kd.singletons.appManager', ->
 
       isRegistered = no
       appInstance  = new AppController name: 'FooApp'
-      spy = expect.spyOn appManager, 'setListeners'
+      expect.spyOn appManager, 'setListeners'
 
       appManager.on 'AppRegistered', -> isRegistered = yes
       appManager.register appInstance
@@ -135,7 +127,7 @@ describe 'kd.singletons.appManager', ->
 
     it 'should warn if there is no name', ->
 
-      spy = expect.spyOn kd, 'warn'
+      expect.spyOn kd, 'warn'
 
       appManager.tell()
       expect(kd.warn).toHaveBeenCalled()
@@ -224,7 +216,7 @@ describe 'kd.singletons.appManager', ->
     it 'should load app', (done) ->
 
       globals.config.apps.InternalApp = name: 'InternalApp'
-      spy = expect.spyOn KodingAppsController, 'loadInternalApp'
+      expect.spyOn KodingAppsController, 'loadInternalApp'
 
       appManager.create 'InternalApp', {}
 
@@ -244,7 +236,7 @@ describe 'kd.singletons.appManager', ->
       createApps [ 'FooApp', 'BarApp' ]
 
       appManager.on 'AppIsBeingShown', -> isAppShown = yes
-      spy = expect.spyOn appManager, 'setLastActiveIndex'
+      expect.spyOn appManager, 'setLastActiveIndex'
 
       appManager.appControllers.FooApp.instances.first.appIsShown = ->
         isAppIsShownCallbackExecuted = yes
@@ -275,7 +267,7 @@ describe 'kd.singletons.appManager', ->
 
       createApps [ 'App1', 'App2', 'App3' ], yes
       appManager.on 'AppIsBeingShown', -> isEventEmitted = yes
-      spy = expect.spyOn appManager, 'setLastActiveIndex'
+      expect.spyOn appManager, 'setLastActiveIndex'
 
       expect(appManager.getFrontApp().options.name).toBe 'App3'
 
@@ -369,7 +361,7 @@ describe 'kd.singletons.appManager', ->
 
     it 'should warn if open called with no name', ->
 
-      spy = expect.spyOn(kd, 'warn')
+      expect.spyOn(kd, 'warn')
       appManager.open()
       expect(kd.warn).toHaveBeenCalled()
 
