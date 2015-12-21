@@ -10,7 +10,7 @@ MostActiveChannelsWidget   = require 'activity/components/sidebarwidgets/mostact
 module.exports = class FeedThreadSidebar extends React.Component
 
   @defaultProps=
-    popularChannels = immutable.List()
+    popularChannels = immutable.Map()
 
 
   render: ->

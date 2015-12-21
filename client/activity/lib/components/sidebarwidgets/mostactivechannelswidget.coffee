@@ -8,7 +8,7 @@ module.exports = class MostActiveChannelsWidget extends React.Component
   MAX_PREVIEW_COUNT = 5
 
   @defaultProps=
-    popularChannels = immutable.List()
+    popularChannels = immutable.Map()
 
 
   renderChannelList: ->
