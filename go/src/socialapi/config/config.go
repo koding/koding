@@ -6,7 +6,7 @@ var (
 	conf *Config
 )
 
-// Returns config, if it is nil, panics
+// MustGet returns config, if it is nil, panics
 func MustGet() *Config {
 	if conf == nil {
 		panic("config is not set, please call Config.MustRead(pathToConfFile)")

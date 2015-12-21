@@ -37,5 +37,3 @@ module.exports = class Emailer
     setTimeout ->
       console.log "[SIMULATION] EMAIL SENT TO #{options.To}"
     , 250
-
-
