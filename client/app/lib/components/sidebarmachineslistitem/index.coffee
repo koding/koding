@@ -37,7 +37,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     status = @machine ['status', 'state']
 
     @state = {
-      collapsed : status isnt Machine.State.Running and not @props.active
+      collapsed : status isnt Machine.State.Running
       showLeaveSharedMachineWidget : no
     }
 
