@@ -34,7 +34,7 @@ module.exports = class DeleteWorkspaceWidget extends React.Component
       deleteRelatedFiles : @state.deleteAllFiles
 
     actions.deleteWorkspace(options).then =>
-      kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'machineLabel'}/my-workspace"
+      kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'label'}/my-workspace"
 
 
   handleOnClose: ->
