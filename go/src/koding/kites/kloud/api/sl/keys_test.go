@@ -23,7 +23,7 @@ func TestKeys(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewKey(%q)=%s", pem, err)
 	}
-	key.Label = fmt.Sprintf("test-%s", key.Label)
+	key.Label = fmt.Sprintf("test-%s-%d", key.Label, time.Now().UnixNano())
 	newKey, err := c.CreateKey(key)
 	if err != nil {
 		t.Fatalf("CreateKey(%+v)=%s", key, err)
