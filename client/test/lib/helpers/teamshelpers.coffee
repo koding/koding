@@ -341,16 +341,45 @@ module.exports =
     return channelName
 
 
-  sendComment: (browser) ->
+  sendComment: (browser, message, messageType) ->
 
-    chatMessage = helpers.getFakeText()
+    chatInputSelector     = '.ChatPaneFooter .ChatInputWidget textarea'
+    imageSelector         = '.EmbedBox-container .EmbedBoxImage'
+    imageTextSelector     = '.Pane-body .ChatList .ChatItem .ChatItem-contentBody:nth-of-type(1)'
+    linkTextSelector      = '.EmbedBoxLinkContent .EmbedBoxLinkContent-description'
+    emojiSelector         = '.ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ChatItem-contentBody '
+    emojiSmileySelector   = "#{emojiSelector} .emoji-smiley"
+    emojiThumbsUpSelector = "#{emojiSelector} .emoji-thumbsup"
+    messageWithShortCode  = "console.log('123456789')"
+    textAreaSelector      = '.Pane-body .ChatList'
 
     browser
       .waitForElementVisible  chatItem, 20000
       .waitForElementVisible  chatInputSelector, 20000
-      .setValue               chatInputSelector, chatMessage + '\n'
+      .setValue               chatInputSelector, message + '\n'
       .waitForElementVisible  chatItem, 20000
-      .assert.containsText    '.Pane-body .ChatList', chatMessage
+
+    if not messageType
+      browser
+        .assert.containsText      textAreaSelector, message
+
+    switch messageType
+      when 'messageWithCode'
+        browser
+          .assert.containsText    "#{textAreaSelector} .ChatItem .SimpleChatListItem", messageWithShortCode
+      when 'messageWithImage'
+        browser
+          .waitForElementVisible  imageSelector, 20000
+          .assert.containsText    imageTextSelector, message
+      when 'messageWithLink'
+        browser
+          .waitForElementVisible  linkTextSelector, 20000
+          .assert.containsText    linkTextSelector, 'The Free Encyclopedia'
+      when 'messageWithEmoji'
+        browser
+          .waitForElementVisible  emojiSmileySelector, 20000
+          .assert.elementPresent  emojiSmileySelector
+          .assert.elementPresent  emojiThumbsUpSelector
 
 
   createChannelsAndCheckList: (browser, user) ->

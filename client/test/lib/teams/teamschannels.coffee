@@ -16,9 +16,11 @@ module.exports =
 
   sendComment: (browser) ->
 
+    message = helpers.getFakeText()
+
     user = teamsHelpers.loginTeam(browser)
     teamsHelpers.createChannel(browser, user)
-    teamsHelpers.sendComment(browser)
+    teamsHelpers.sendComment(browser, message)
     browser.end()
 
 
@@ -69,11 +71,4 @@ module.exports =
     user = teamsHelpers.loginTeam(browser)
     teamsHelpers.createChannel(browser, user)
     teamsHelpers.joinChannel(browser)
-    browser.end()
-
-
-  createNewChannelWithInvalidName: (browser) ->
-
-    user = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user, '{invalid-name}', yes)
     browser.end()

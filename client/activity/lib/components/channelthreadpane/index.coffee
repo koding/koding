@@ -11,6 +11,8 @@ PublicFeedPane       = require 'activity/components/publicfeedpane'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
 getGroup             = require 'app/util/getGroup'
 isFeedEnabled        = require 'app/util/isFeedEnabled'
+FeedThreadSidebar    = require 'activity/components/publicfeedpane/feedthreadsidebar'
+
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -97,9 +99,17 @@ module.exports = class ChannelThreadPane extends React.Component
 
     return null  unless thread = @state.channelThread
 
-    <ThreadSidebar
-      channelThread={thread}
-      channelParticipants={@state.channelParticipants} />
+    if isFeedEnabled()
+      <aside className='FeedThreadPane-sidebar'>
+        <FeedThreadSidebar
+          channelThread={thread} />
+      </aside>
+    else
+      <aside className='ChannelThreadPane-sidebar'>
+        <ThreadSidebar
+          channelThread={thread}
+          channelParticipants={@state.channelParticipants} />
+      </aside>
 
 
   render: ->
@@ -111,9 +121,7 @@ module.exports = class ChannelThreadPane extends React.Component
         {@renderHeader()}
         {@renderBody()}
       </ChannelDropContainer>
-      <aside className='ChannelThreadPane-sidebar'>
-        {@renderSidebar()}
-      </aside>
+      {@renderSidebar()}
       {@props.children}
     </div>
 
