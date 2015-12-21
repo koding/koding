@@ -23,6 +23,7 @@ type vagrantCreateReq struct {
 	Box           string
 	Memory        int
 	Cpus          int
+	CustomScript  string
 }
 
 type vagrantUpReq struct {
@@ -75,6 +76,11 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Number of CPU's to be used for the underlying Vagrant box. Defaults to 1",
+			},
+			"customScript": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Custom script to be executed inside the Vagrant box after the main provisioning is finished.",
 			},
 
 			"registerURL": &schema.Schema{
@@ -138,6 +144,7 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		Hostname:      d.Get("hostname").(string),
 		Memory:        d.Get("memory").(int),
 		Cpus:          d.Get("cpus").(int),
+		CustomScript:  d.Get("customScript").(string),
 	}
 
 	resp, err := klientRef.Client.Tell("vagrant.create", args)
