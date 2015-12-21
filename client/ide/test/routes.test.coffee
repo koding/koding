@@ -3,13 +3,14 @@ expect       = require 'expect'
 routes       = require '../lib/routes'
 dataProvider = require 'app/userenvironmentdataprovider'
 
-spy             = null
-ROUTE_PARAMS    =
-  machine       : { params: { machineLabel: 'koding-vm-0' } }
-  noMachine     : { params: { machineLabel: 'not-existing-machine' } }
-  workspace     : { params: { machineLabel: 'koding-vm-0', workspaceSlug: 'my-workspace' } }
-  noWorkspace   : { params: { machineLabel: 'koding-vm-0', workspaceSlug: 'not-existing-workspace' } }
-  collaboration : { params: { machineLabel: '6075649037833338981' } }
+spy                    = null
+ROUTE_PARAMS           =
+  machine              : { params: { machineLabel: 'koding-vm-0' } }
+  noMachine            : { params: { machineLabel: 'not-existing-machine' } }
+  workspace            : { params: { machineLabel: 'koding-vm-0', workspaceSlug: 'my-workspace' } }
+  noWorkspace          : { params: { machineLabel: 'koding-vm-0', workspaceSlug: 'not-existing-workspace' } }
+  collaboration        : { params: { machineLabel: '6075649037833338981' } }
+  noMachineNoWorkspace : { params: { machineLabel: 'not-existing-machine', workspaceSlug: 'not-existing-workspace' } }
 
 
 createSpyAndAssert = (spyOn, spyFor, routeType, routeParams, done) ->
@@ -75,10 +76,7 @@ describe 'IDE.routes', ->
 
       it 'should routeToLatestWorkspace if there is no machine', (done) ->
 
-        params = ROUTE_PARAMS.noMachine
-        params.workspaceSlug = 'my-workspace'
-
-        createSpyAndAssert routes, 'routeToLatestWorkspace', 'workspace', params, done
+        createSpyAndAssert routes, 'routeToLatestWorkspace', 'workspace', ROUTE_PARAMS.noMachineNoWorkspace, done
 
 
       it 'should fetchWorkspaceByMachineUId', (done) ->
