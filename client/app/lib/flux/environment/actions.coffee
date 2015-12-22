@@ -240,7 +240,8 @@ deleteWorkspace = (params) ->
 
       if deleteRelatedFiles
         methodName = 'deleteWorkspaceRootFolder'
-        appManager.tell 'IDE', methodName, machineUId, rootPath
+        ideApp = environmentDataProvider.getIDEFromUId machineUId
+        ideApp?[methodName] machineUId, rootPath
 
       reactor.dispatch actions.WORKSPACE_DELETED, { machine, workspace }
       resolve()
