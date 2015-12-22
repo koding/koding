@@ -2,7 +2,6 @@ React                    = require 'kd-react'
 ReactDOM                 = require 'react-dom'
 actions                  = require 'app/flux/environment/actions'
 SidebarWidget            = require './sidebarwidget'
-EnvironmentFlux          = require 'app/flux/environment'
 InvitationWidgetUserView = require './invitationwidgetuserview'
 
 module.exports = class SharingMachineInvitationWidget extends React.Component
@@ -13,13 +12,13 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
 
   onRejectClicked: ->
 
-    EnvironmentFlux.actions.setActiveInvitationMachineId { machine: null }
+    actions.setActiveInvitationMachineId { machine: null }
     actions.rejectInvitation @props.machine
 
 
   onAcceptClicked: ->
 
-    EnvironmentFlux.actions.setActiveInvitationMachineId { machine: null }
+    actions.setActiveInvitationMachineId { machine: null }
     actions.acceptInvitation @props.machine
 
 

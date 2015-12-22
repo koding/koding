@@ -16,9 +16,7 @@ module.exports = class ActiveInvitationMachineIdStore extends KodingFluxStore
 
   setMachineId: (activeMachineId, { id, forceUpdate }) ->
 
-    if forceUpdate or activeMachineId isnt id
-      return id
-
+    return id  if forceUpdate or activeMachineId isnt id
     return null
 
 
