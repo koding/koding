@@ -14,12 +14,6 @@ helpers              = require './helpers'
 focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 parseStringToCommand = require 'activity/util/parseStringToCommand'
 
-ChannelToken         = require './tokens/channeltoken'
-EmojiToken           = require './tokens/emojitoken'
-MentionToken         = require './tokens/mentiontoken'
-SearchToken          = require './tokens/searchtoken'
-CommandToken         = require './tokens/commandtoken'
-
 module.exports = class ChatInputWidget extends React.Component
 
   { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
@@ -29,7 +23,7 @@ module.exports = class ChatInputWidget extends React.Component
     onResize    : kd.noop
     placeholder : ''
     onChange    : kd.noop
-    tokens      : [ChannelToken, EmojiToken, MentionToken, SearchToken, CommandToken]
+    tokens      : []
 
 
   getDataBindings: ->
@@ -139,11 +133,10 @@ module.exports = class ChatInputWidget extends React.Component
     return  if @state.value is value
 
     { channelId, onChange, tokens } = @props
-    textInput      = ReactDOM.findDOMNode @refs.textInput
-    cursorPosition = helpers.getCursorPosition textInput
+    textInput = ReactDOM.findDOMNode @refs.textInput
+    position  = helpers.getCursorPosition textInput
 
-    ChatInputFlux.actions.value.setValue channelId, @stateId, value
-    ChatInputFlux.actions.dropbox.checkForQuery @stateId, value, cursorPosition, tokens
+    ChatInputFlux.actions.value.setValue channelId, @stateId, value, { position, tokens }
 
     onChange value  unless skipChangeEvent
 
@@ -282,7 +275,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   closeDropboxes: ->
 
-    @refs.emojiSelectBox.close()
+    @refs.emojiSelectBox?.close()
     @onDropboxClose()
 
 

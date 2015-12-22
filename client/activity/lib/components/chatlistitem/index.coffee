@@ -28,6 +28,9 @@ ImmutableRenderMixin    = require 'react-immutable-render-mixin'
 EmbedBox                = require 'activity/components/embedbox'
 KeyboardKeys            = require 'app/util/keyboardKeys'
 ChatInputEmbedExtractor = require 'activity/components/chatinputembedextractor'
+ChannelToken            = require 'activity/components/chatinputwidget/tokens/channeltoken'
+EmojiToken              = require 'activity/components/chatinputwidget/tokens/emojitoken'
+MentionToken            = require 'activity/components/chatinputwidget/tokens/mentiontoken'
 Encoder                 = require 'htmlencode'
 MessageLink             = require 'activity/components/messagelink'
 
@@ -298,14 +301,14 @@ module.exports = class ChatListItem extends React.Component
         <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
       <ChatInputEmbedExtractor
-        messageId        = { message.get 'id' }
-        channelId        = { @props.channelId }
-        value            = { messageBody }
-        onSubmit         = { @bound 'updateMessage' }
-        onEsc            = { @bound 'cancelEdit' }
-        ref              = 'editInput'
-        disabledFeatures = { ['commands'] }
-        onReady          = { @bound 'onEditStarted' }
+        messageId = { message.get 'id' }
+        channelId = { @props.channelId }
+        value     = { messageBody }
+        onSubmit  = { @bound 'updateMessage' }
+        onEsc     = { @bound 'cancelEdit' }
+        ref       = 'editInput'
+        tokens    = { [ChannelToken, EmojiToken, MentionToken] }
+        onReady   = { @bound 'onEditStarted' }
       />
     </div>
 
