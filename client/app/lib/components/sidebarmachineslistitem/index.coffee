@@ -44,9 +44,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   componentWillReceiveProps: ->
 
-    return  unless @refs.SidebarMachinesListItem
+    return  unless @refs.sidebarMachinesListItem
 
-    coordinates = getBoundingClientReact @refs.SidebarMachinesListItem
+    coordinates = getBoundingClientReact @refs.sidebarMachinesListItem
     @setState { coordinates: coordinates }
 
 
@@ -160,7 +160,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     if @machine('type') is 'own'
       kd.singletons.router.handleRoute "/Machines/#{@machine 'slug'}"
     else
-      sidebarListItem = ReactDOM.findDOMNode @refs.SidebarMachinesListItem
+      sidebarListItem = ReactDOM.findDOMNode @refs.sidebarMachinesListItem
       clientRect      = sidebarListItem.getBoundingClientRect()
       coordinates     =
         top           : clientRect.top - 15
@@ -210,7 +210,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
         className={"SidebarMachinesListItem--MainLink"}
         href='#'
         onClick={@bound 'handleMachineClick'}
-        ref='SidebarMachinesListItem'
+        ref='sidebarMachinesListItem'
         >
         <cite className={"SidebarListItem-icon"} title={"Machine status: #{status}"}/>
         <span className='SidebarListItem-title'>{@getMachineLabel()}</span>

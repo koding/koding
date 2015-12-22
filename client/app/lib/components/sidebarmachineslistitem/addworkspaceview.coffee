@@ -20,7 +20,7 @@ module.exports = class AddWorkspaceView extends React.Component
 
   componentDidUpdate: ->
 
-    textInput = ReactDOM.findDOMNode @refs.WorkspaceAdd
+    textInput = ReactDOM.findDOMNode @refs.addWorkspaceInput
     textInput?.focus()
 
 
@@ -63,7 +63,7 @@ module.exports = class AddWorkspaceView extends React.Component
       <input
         type='text'
         className='kdinput text'
-        ref='WorkspaceAdd'
+        ref='addWorkspaceInput'
         onKeyDown={@bound 'onKeyDown'} />
       <cite className='Workspace-cancel' onClick={@bound 'onEsc'} />
     </div>

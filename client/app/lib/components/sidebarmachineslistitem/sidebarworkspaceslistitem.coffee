@@ -25,7 +25,7 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
 
   setCoordiantes: ->
 
-    coordinates = getBoundingClientReact @refs.WorkspaceItem
+    coordinates = getBoundingClientReact @refs.workspaceItem
     @setState { coordinates: coordinates }
 
 
@@ -76,7 +76,7 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
 
     <div
       key={@props.workspace.get '_id'}
-      ref='WorkspaceItem'
+      ref='workspaceItem'
       className="Workspace-item #{active}">
       <cite className='Workspace-icon' />
       <Link className='Workspace-link' href={@getWorkspaceLink()} onClick={@bound 'handleLinkClick'}>
