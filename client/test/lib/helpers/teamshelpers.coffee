@@ -388,7 +388,6 @@ module.exports =
           .waitForElementVisible  emojiThumbsUpSelector, 20000
 
 
-
   createChannelsAndCheckList: (browser, user) ->
 
     channelHeader     = "#{sidebarSectionsSelector} .SidebarSection-header"
@@ -537,5 +536,3 @@ module.exports =
         .click                    likeButtonPressed
         .waitForElementVisible    likeButtonUnpressed, 20000
         .assert.elementNotPresent likeButtonPressed
-
-
