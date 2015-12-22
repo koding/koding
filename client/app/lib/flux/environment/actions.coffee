@@ -189,7 +189,7 @@ acceptInvitation = (machine, channelId) ->
 
   jMachine = remote.revive machine.toJS()
 
-  jMachine.approve (err) =>
+  jMachine.approve (err) ->
 
     return showError err  if err
 
