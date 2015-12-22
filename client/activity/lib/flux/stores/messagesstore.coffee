@@ -57,7 +57,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     @on actions.LOAD_COMMENT_SUCCESS, @handleLoadCommentSuccess
 
-    @on actions.CREATE_COMMENT_BEGIN, @handleCreateMessageBegin
+    @on actions.CREATE_COMMENT_BEGIN, @handleCreateCommentBegin
     @on actions.CREATE_COMMENT_SUCCESS, @handleCreateCommentSuccess
     @on actions.CREATE_COMMENT_FAIL, @handleCreateMessageFail
 
@@ -78,7 +78,12 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { addMessage } = MessageCollectionHelpers
 
-    return addMessage messages, toImmutable message
+    messages = addMessage messages, toImmutable message
+
+    message.replies.forEach (_message) ->
+      messages = addMessage messages, toImmutable _message
+
+    return messages
 
 
   ###*
