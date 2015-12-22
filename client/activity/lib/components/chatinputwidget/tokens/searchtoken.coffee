@@ -1,5 +1,6 @@
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
 SearchDropbox     = require 'activity/components/searchdropbox'
+SearchActions     = require 'activity/flux/chatinput/actions/search'
 
 module.exports = SearchToken =
 
@@ -19,5 +20,11 @@ module.exports = SearchToken =
         items         : 'dropboxSearchItems'
         selectedIndex : 'searchSelectedIndex'
         selectedItem  : 'searchSelectedItem'
+        flags         : 'searchFlags'
     }
+
+
+  triggerAction: (stateId, query) ->
+
+    SearchActions.fetchData stateId, query
 

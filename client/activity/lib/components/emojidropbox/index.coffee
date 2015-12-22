@@ -11,14 +11,15 @@ EmojiBoxWrapperMixin = require 'activity/components/emojiboxwrapper/mixin'
 
 module.exports = class EmojiDropbox extends React.Component
 
-  @include [ImmutableRenderMixin, EmojiBoxWrapperMixin]
-
-
   @defaultProps =
-    items          : immutable.List()
-    selectedIndex  : 0
-    selectedItem   : null
-    query          : ''
+    query           : ''
+    items           : immutable.List()
+    selectedItem    : null
+    selectedIndex   : 0
+    flags           : null
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   getItemKey: (item) -> item
@@ -31,7 +32,7 @@ module.exports = class EmojiDropbox extends React.Component
 
   renderList: ->
 
-    { items, selectedIndex, query } = @props
+    { items, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
@@ -41,8 +42,8 @@ module.exports = class EmojiDropbox extends React.Component
         index       = { index }
         item        = { item }
         query       = { query }
-        onSelected  = { @props.onItemSelected }
-        onConfirmed = { @props.onItemConfirmed }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -50,12 +51,12 @@ module.exports = class EmojiDropbox extends React.Component
 
   render: ->
 
-    { query, items } = @props
+    { query, items, onClose } = @props
 
     <Dropbox
       className = 'EmojiDropbox'
       visible   = { items.size > 0 }
-      onClose   = { @props.onClose }
+      onClose   = { onClose }
       type      = 'dropup'
       title     = 'Emojis matching '
       subtitle  = { ":#{query}" }
@@ -64,4 +65,7 @@ module.exports = class EmojiDropbox extends React.Component
       {@renderList()}
       <div className="clearfix" />
     </Dropbox>
+
+
+EmojiDropbox.include [ ImmutableRenderMixin, EmojiBoxWrapperMixin ]
 

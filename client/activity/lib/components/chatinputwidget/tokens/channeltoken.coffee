@@ -28,7 +28,7 @@ module.exports = ChannelToken =
     }
 
 
-  triggerAction: (query) ->
+  triggerAction: (stateId, query) ->
 
     if query
       ChannelActions.loadChannelsByQuery query

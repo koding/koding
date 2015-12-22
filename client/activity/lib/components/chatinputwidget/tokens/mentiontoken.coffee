@@ -28,7 +28,7 @@ module.exports = MentionToken =
     }
 
 
-  triggerAction: (query) ->
+  triggerAction: (stateId, query) ->
 
       AppFlux.actions.user.searchAccounts query  if query
 

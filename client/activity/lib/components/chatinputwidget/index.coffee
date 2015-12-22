@@ -1,4 +1,5 @@
 kd                   = require 'kd'
+_                    = require 'lodash'
 React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
 $                    = require 'jquery'
@@ -61,6 +62,7 @@ module.exports = class ChatInputWidget extends React.Component
       dropboxSearchItems         : getters.dropboxSearchItems @stateId
       searchSelectedIndex        : getters.searchSelectedIndex @stateId
       searchSelectedItem         : getters.searchSelectedItem @stateId
+      searchFlags                : getters.searchFlags @stateId
 
       dropboxCommands            : getters.dropboxCommands @stateId
       commandsSelectedIndex      : getters.commandsSelectedIndex @stateId
@@ -90,7 +92,14 @@ module.exports = class ChatInputWidget extends React.Component
   componentDidUpdate: (oldProps, oldState) ->
 
     isValueChanged = oldState.value isnt @state.value
-    @focus()  if isValueChanged
+    if isValueChanged
+      @focus()
+
+      { tokens } = @props
+      textInput  = ReactDOM.findDOMNode this.refs.textInput
+      position   = helpers.getCursorPosition textInput
+      ChatInputFlux.actions.dropbox.checkForQuery @stateId, @state.value, position, tokens
+
     @updateDropboxPosition()
 
     # This line actually is needed for the case
@@ -132,11 +141,8 @@ module.exports = class ChatInputWidget extends React.Component
 
     return  if @state.value is value
 
-    { channelId, onChange, tokens } = @props
-    textInput = ReactDOM.findDOMNode @refs.textInput
-    position  = helpers.getCursorPosition textInput
-
-    ChatInputFlux.actions.value.setValue channelId, @stateId, value, { position, tokens }
+    { channelId, onChange } = @props
+    ChatInputFlux.actions.value.setValue channelId, @stateId, value
 
     onChange value  unless skipChangeEvent
 
@@ -176,18 +182,17 @@ module.exports = class ChatInputWidget extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    return @confirmSelectedItem()  if @refs.dropbox
+    return @confirmSelectedItem()  if @state.dropboxConfig
 
-    unless isDropboxEnter
-      value = @state.value.trim()
-      command = parseStringToCommand value
+    value = @state.value.trim()
+    command = parseStringToCommand value
 
-      if command
-        @props.onCommand? { command }
-      else
-        @props.onSubmit? { value }
+    if command
+      @props.onCommand? { command }
+    else
+      @props.onSubmit? { value }
 
-      @resetValue()
+    @resetValue()
 
 
   onEsc: (event) -> @props.onEsc?()
@@ -232,11 +237,11 @@ module.exports = class ChatInputWidget extends React.Component
     formattedItem = @state[dropboxConfig.getIn ['getters', 'formattedItem']]
     textInput     = ReactDOM.findDOMNode @refs.textInput
 
-    { value, cursorPosition } = helpers.insertDropboxItem textInput, formattedItem + ' '
+    { value, cursorPosition } = helpers.insertDropboxItem textInput, formattedItem
     @setValue value
     @onDropboxClose()
 
-    kd.utils.defer ->
+    kd.utils.defer =>
       helpers.setCursorPosition textInput, cursorPosition
 
 
@@ -321,12 +326,22 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
+  renderDropbox: ->
+
+    props = _.assign {}, @state, {
+      onItemSelected  : @bound 'onItemSelected'
+      onItemConfirmed : @bound 'confirmSelectedItem'
+    }
+
+    Dropbox = DropboxContainer props
+    <Dropbox ref='dropbox' {...props} />
+
+
   render: ->
 
-    Dropbox = DropboxContainer @state
 
     <div className={kd.utils.curry "ChatInputWidget", @props.className}>
-      <Dropbox ref='dropbox' />
+      { @renderDropbox() }
       <AutoSizeTextarea
         ref           = 'textInput'
         placeholder   = @props.placeholder

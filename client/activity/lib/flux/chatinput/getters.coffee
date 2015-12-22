@@ -154,12 +154,6 @@ emojiSelectBoxTabIndex = (stateId) -> [
 ]
 
 
-searchFlags = (stateId) -> [
-  SearchFlagsStore
-  (flags) -> flags.get stateId
-]
-
-
 currentValue = (stateId) -> [
   ValueStore
   ActivityFluxGetters.selectedChannelThreadId
@@ -233,7 +227,7 @@ channelsFormattedItem = (stateId) -> [
   channelsSelectedItem stateId
   (selectedItem) ->
     return  unless selectedItem
-    return "##{selectedItem.get 'name'}"
+    return "##{selectedItem.get 'name'} "
 ]
 
 
@@ -271,7 +265,7 @@ emojisFormattedItem = (stateId) -> [
   emojisSelectedItem stateId
   (selectedItem) ->
     return  unless selectedItem
-    return formatEmojiName selectedItem
+    return "#{formatEmojiName selectedItem} "
 ]
 
 
@@ -365,7 +359,7 @@ mentionsFormattedItem = (stateId) -> [
       name = findNameByQuery(names.toJS(), query) ? names.first()
     else
       name = selectedItem.getIn ['profile', 'nickname']
-    return "@#{name}"
+    return "@#{name} "
 ]
 
 
@@ -390,6 +384,12 @@ searchSelectedItem = (stateId) -> [
   dropboxSearchItems stateId
   searchSelectedIndex stateId
   getListSelectedItem
+]
+
+
+searchFlags = (stateId) -> [
+  SearchFlagsStore
+  (flags) -> flags.get stateId
 ]
 
 
@@ -476,6 +476,7 @@ module.exports = {
   dropboxSearchItems
   searchSelectedIndex
   searchSelectedItem
+  searchFlags
 
   dropboxCommands
   commandsSelectedIndex

@@ -11,15 +11,15 @@ ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 module.exports = class SearchDropbox extends React.Component
 
-  @include [ ImmutableRenderMixin ]
-
-
   @defaultProps =
-    items          : immutable.List()
-    visible        : no
-    selectedItem   : null
-    selectedIndex  : 0
-    flags          : immutable.Map()
+    query           : ''
+    items           : immutable.List()
+    selectedItem    : null
+    selectedIndex   : 0
+    flags           : null
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   shouldComponentUpdate: (nextProps, nextState) -> not nextProps.flags?.get 'isLoading'
@@ -35,7 +35,7 @@ module.exports = class SearchDropbox extends React.Component
 
   renderList: ->
 
-    { items, selectedIndex } = @props
+    { items, selectedIndex, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
@@ -44,8 +44,8 @@ module.exports = class SearchDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @props.onItemSelected }
-        onConfirmed = { @props.onItemConfirmed }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -69,14 +69,14 @@ module.exports = class SearchDropbox extends React.Component
 
   render: ->
 
-    { items, query, flags, visible } = @props
+    { items, query, flags } = @props
 
     isError      = items.size is 0 and query
-    isEmptyQuery = not query and visible
+    isEmptyQuery = not query
 
     <Dropbox
       className = 'SearchDropbox'
-      visible   = { items.size > 0 }
+      visible   = { items.size > 0 or isError or isEmptyQuery }
       onClose   = { @props.onClose }
       type      = 'dropup'
       title     = 'Search'

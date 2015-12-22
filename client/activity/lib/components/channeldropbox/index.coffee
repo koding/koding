@@ -9,13 +9,15 @@ ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 module.exports = class ChannelDropbox extends React.Component
 
-  @include [ImmutableRenderMixin]
-
-
   @defaultProps =
-    items          : immutable.List()
-    selectedIndex  : 0
-    selectedItem   : null
+    query           : ''
+    items           : immutable.List()
+    selectedItem    : null
+    selectedIndex   : 0
+    flags           : null
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   getItemKey: (item) -> item.get 'id'
@@ -28,7 +30,7 @@ module.exports = class ChannelDropbox extends React.Component
 
   renderList: ->
 
-    { items, selectedIndex } = @props
+    { items, selectedIndex, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
@@ -37,8 +39,8 @@ module.exports = class ChannelDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @props.onItemSelected }
-        onConfirmed = { @props.onItemConfirmed }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -46,16 +48,19 @@ module.exports = class ChannelDropbox extends React.Component
 
   render: ->
 
-    { items } = @props
+    { items, onClose } = @props
 
     <Dropbox
       className = 'ChannelDropbox'
       visible   = { items.size > 0 }
-      onClose   = { @props.onClose }
+      onClose   = { onClose }
       type      = 'dropup'
       title     = 'Channels'
       ref       = 'dropbox'
     >
       {@renderList()}
     </Dropbox>
+
+
+ChannelDropbox.include [ ImmutableRenderMixin ]
 

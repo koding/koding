@@ -10,12 +10,15 @@ ImmutableRenderMixin   = require 'react-immutable-render-mixin'
 
 module.exports = class MentionDropbox extends React.Component
 
-  @include [ImmutableRenderMixin]
-
-
   @defaultProps =
-    selectedIndex   : 0
+    query           : ''
+    items           : immutable.List()
     selectedItem    : null
+    selectedIndex   : 0
+    flags           : null
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   getItemKey: (item) ->
@@ -32,7 +35,7 @@ module.exports = class MentionDropbox extends React.Component
 
   renderUserMentions: ->
 
-    { items, selectedIndex, query } = @props
+    { items, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
 
     { userMentions } = items
 
@@ -43,8 +46,8 @@ module.exports = class MentionDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @props.onItemSelected }
-        onConfirmed = { @props.onItemConfirmed }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
         query       = { query }
@@ -53,7 +56,7 @@ module.exports = class MentionDropbox extends React.Component
 
   renderChannelMentions: ->
 
-    { items, channelMentions, selectedIndex, query } = @props
+    { items, channelMentions, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
 
     { userMentions, channelMentions } = items
 
@@ -65,8 +68,8 @@ module.exports = class MentionDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @props.onItemSelected }
-        onConfirmed = { @props.onItemConfirmed }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
         query       = { query }
@@ -98,4 +101,7 @@ module.exports = class MentionDropbox extends React.Component
       <div className='Dropbox-header MentionDropbox-listHeader DropboxItem-separated'>
         { title }
       </div>
+
+
+MentionDropbox.include [ ImmutableRenderMixin ]
 

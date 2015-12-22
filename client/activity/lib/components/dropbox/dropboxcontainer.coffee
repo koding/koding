@@ -19,13 +19,14 @@ module.exports = (props) ->
 
       componentProps = {
         query           : dropboxQuery
-        items           : props[dropboxConfig.getIn ['getters', 'items']]
-        selectedIndex   : props[dropboxConfig.getIn ['getters', 'selectedIndex']]
-        selectedItem    : props[dropboxConfig.getIn ['getters', 'selectedItem']]
         onItemSelected
         onItemConfirmed
         onClose
       }
+
+      getters = dropboxConfig.get('getters').toJS()
+      for propName, getter of getters
+        componentProps[propName] = props[getter]
 
       <Component ref='dropbox' {...componentProps} />
 

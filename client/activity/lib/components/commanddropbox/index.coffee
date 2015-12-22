@@ -10,14 +10,15 @@ ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 module.exports = class CommandDropbox extends React.Component
 
-  @include [ImmutableRenderMixin]
-
-
   @defaultProps =
-    items          : immutable.List()
-    visible        : no
-    selectedIndex  : 0
-    selectedItem   : null
+    query           : ''
+    items           : immutable.List()
+    selectedItem    : null
+    selectedIndex   : 0
+    flags           : null
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   getItemKey: (item) -> item.get 'name'
@@ -30,7 +31,7 @@ module.exports = class CommandDropbox extends React.Component
 
   renderList: ->
 
-    { items, selectedIndex } = @props
+    { items, selectedIndex, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
@@ -39,8 +40,8 @@ module.exports = class CommandDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @props.onItemSelected }
-        onConfirmed = { @props.onItemConfirmed }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -57,14 +58,14 @@ module.exports = class CommandDropbox extends React.Component
 
   render: ->
 
-    { items, query, visible } = @props
+    { items, query, visible, onClose } = @props
 
     isError = items.size is 0 and query
 
     <Dropbox
       className = 'CommandDropbox'
       visible   = { query? }
-      onClose   = { @props.onClose }
+      onClose   = { onClose }
       type      = 'dropup'
       title     = 'Commands matching'
       subtitle  = { query }
@@ -73,4 +74,7 @@ module.exports = class CommandDropbox extends React.Component
       { @renderList()  unless isError }
       { @renderError()  if isError }
     </Dropbox>
+
+
+CommandDropbox.include [ ImmutableRenderMixin ]
 
