@@ -183,7 +183,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return label
 
 
-  createAddWorkspaceInput: ->
+  createAddWorkspaceView: ->
 
     actions.showAddWorkspaceView @machine '_id'
 
@@ -247,7 +247,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     modal = new MoreWorkspacesModal {}, workspaces
 
     # TODO: handle new workspace creation
-    modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
+    modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceView'
 
 React.Component.include.call SidebarMachinesListItem, [KDReactorMixin]
 
