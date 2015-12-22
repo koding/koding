@@ -68,10 +68,6 @@ module.exports = class Comments extends React.Component
     @setState { hasValue: hasValue, commentValue: value }
 
 
-  getPostButtonClassNames: -> classnames
-    'FeedItem-postComment' : yes
-    'green'                : @state.hasValue
-    'hidden'               : not @state.focusOnInput and not @state.hasValue
 
 
   render: ->
