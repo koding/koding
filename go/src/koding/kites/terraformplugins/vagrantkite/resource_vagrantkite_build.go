@@ -26,7 +26,7 @@ type vagrantCreateReq struct {
 	CustomScript  string
 }
 
-type vagrantUpReq struct {
+type vagrantCommandReq struct {
 	FilePath string
 	Watch    dnode.Function
 }
@@ -36,7 +36,7 @@ func resourceVagrantKiteBuild() *schema.Resource {
 		Create: resourceMachineCreate,
 		Read:   resourceMachineNoop,
 		Update: resourceMachineNoop,
-		Delete: resourceMachineNoop,
+		Delete: resourceMachineDelete,
 
 		Schema: map[string]*schema.Schema{
 			// Required configuration files
@@ -170,7 +170,7 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	})
 
-	upArgs := &vagrantUpReq{
+	upArgs := &vagrantCommandReq{
 		FilePath: d.Get("filePath").(string),
 		Watch:    watch,
 	}
@@ -207,6 +207,61 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	d.Set("box", result.Box)
 	d.Set("cpus", result.Cpus)
 	d.Set("memory", result.Memory)
+	return nil
+}
+
+func resourceMachineDelete(d *schema.ResourceData, meta interface{}) error {
+	// TODO(arslan): cache the client, it reads from kite.key every single time
+	// it tries to populate the config
+	c, err := NewClient()
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	queryString := d.Get("queryString").(string)
+
+	klientRef, err := klient.ConnectTimeout(c.Kite, queryString, time.Second*10)
+	if err != nil {
+		if err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable {
+			c.Log.Error(
+				"[%s] Klient is not registered to Kontrol. Err: %s",
+				queryString,
+				err.Error(),
+			)
+
+			return nil // if the machine is not open, we cant do anything
+		}
+
+		return err
+	}
+	defer klientRef.Close()
+
+	done := make(chan bool)
+
+	watch := dnode.Callback(func(r *dnode.Partial) {
+		msg := r.One().MustString()
+		log.Println("[DEBUG] Vagrant destroy msg:", msg)
+		if msg == magicEnd {
+			close(done)
+		}
+	})
+
+	destroyArgs := &vagrantCommandReq{
+		FilePath: d.Get("filePath").(string),
+		Watch:    watch,
+	}
+
+	if _, err = klientRef.Client.Tell("vagrant.destroy", destroyArgs); err != nil {
+		return err
+	}
+
+	select {
+	case <-done:
+	case <-time.After(time.Minute * 10):
+		return errors.New("Vagrant destroy took to much time(10 minutes). Please try again")
+	}
+
 	return nil
 }
 

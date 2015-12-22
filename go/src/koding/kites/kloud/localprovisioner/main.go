@@ -228,6 +228,33 @@ func applyVagrantCommand() error {
 		return err
 	}
 
+	destroyArgs := &kloud.TerraformApplyRequest{
+		StackId:   userData.StackId,
+		GroupName: groupname,
+		Destroy:   true,
+	}
+
+	resp, err = remote.Tell("apply", destroyArgs)
+	if err != nil {
+		return err
+	}
+
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs = kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: userData.StackId,
+			Type:    "apply",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Terminated, remote); err != nil {
+		return err
+	}
+
 	return nil
 }
 
