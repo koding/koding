@@ -19,12 +19,13 @@ module.exports = ChannelToken =
   getConfig: ->
 
     return {
-      component       : ChannelDropbox
-      getters         :
-        items         : 'dropboxChannels'
-        selectedIndex : 'channelsSelectedIndex'
-        selectedItem  : 'channelsSelectedItem'
-        formattedItem : 'channelsFormattedItem'
+      component            : ChannelDropbox
+      getters              :
+        items              : 'dropboxChannels'
+        selectedIndex      : 'channelsSelectedIndex'
+        selectedItem       : 'channelsSelectedItem'
+        formattedItem      : 'channelsFormattedItem'
+      horizontalNavigation : no
     }
 
 

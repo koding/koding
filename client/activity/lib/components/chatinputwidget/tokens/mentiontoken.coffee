@@ -19,12 +19,13 @@ module.exports = MentionToken =
   getConfig: ->
 
     return {
-      component       : MentionDropbox
-      getters         :
-        items         : 'dropboxMentions'
-        selectedIndex : 'mentionsSelectedIndex'
-        selectedItem  : 'mentionsSelectedItem'
-        formattedItem : 'mentionsFormattedItem'
+      component            : MentionDropbox
+      getters              :
+        items              : 'dropboxMentions'
+        selectedIndex      : 'mentionsSelectedIndex'
+        selectedItem       : 'mentionsSelectedItem'
+        formattedItem      : 'mentionsFormattedItem'
+      horizontalNavigation : no
     }
 
 

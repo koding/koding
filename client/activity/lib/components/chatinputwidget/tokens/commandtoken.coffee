@@ -14,11 +14,12 @@ module.exports = CommandToken =
   getConfig: ->
 
     return {
-      component       : CommandDropbox
-      getters         :
-        items         : 'dropboxCommands'
-        selectedIndex : 'commandsSelectedIndex'
-        selectedItem  : 'commandsSelectedItem'
-        formattedItem : 'commandsFormattedItem'
+      component            : CommandDropbox
+      getters              :
+        items              : 'dropboxCommands'
+        selectedIndex      : 'commandsSelectedIndex'
+        selectedItem       : 'commandsSelectedItem'
+        formattedItem      : 'commandsFormattedItem'
+      horizontalNavigation : no
     }
 

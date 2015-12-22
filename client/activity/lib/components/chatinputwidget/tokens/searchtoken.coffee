@@ -15,12 +15,13 @@ module.exports = SearchToken =
   getConfig: ->
 
     return {
-      component       : SearchDropbox
-      getters         :
-        items         : 'dropboxSearchItems'
-        selectedIndex : 'searchSelectedIndex'
-        selectedItem  : 'searchSelectedItem'
-        flags         : 'searchFlags'
+      component            : SearchDropbox
+      getters              :
+        items              : 'dropboxSearchItems'
+        selectedIndex      : 'searchSelectedIndex'
+        selectedItem       : 'searchSelectedItem'
+        flags              : 'searchFlags'
+      horizontalNavigation : no
     }
 
 

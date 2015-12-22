@@ -200,17 +200,27 @@ module.exports = class ChatInputWidget extends React.Component
 
   onNextPosition: (event, keyInfo) ->
 
-    if @state.dropboxConfig
-      ChatInputFlux.actions.dropbox.moveToNextIndex @stateId
-      kd.utils.stopDOMEvent event
+    { dropboxConfig } = @state
+    return  unless dropboxConfig
+
+    hasHorizontalNavigation = dropboxConfig.get 'horizontalNavigation'
+    return @onDropboxClose()  if keyInfo.isRightArrow and not hasHorizontalNavigation
+
+    ChatInputFlux.actions.dropbox.moveToNextIndex @stateId
+    kd.utils.stopDOMEvent event
 
 
   onPrevPosition: (event, keyInfo) ->
 
     if event.target.value
-      if @state.dropboxConfig
-        ChatInputFlux.actions.dropbox.moveToPrevIndex @stateId
-        kd.utils.stopDOMEvent event
+      { dropboxConfig } = @state
+      return  unless dropboxConfig
+
+      hasHorizontalNavigation = dropboxConfig.get 'horizontalNavigation'
+      return @onDropboxClose()  if keyInfo.isLeftArrow and not hasHorizontalNavigation
+
+      ChatInputFlux.actions.dropbox.moveToPrevIndex @stateId
+      kd.utils.stopDOMEvent event
     else
 
       return  unless keyInfo.isUpArrow

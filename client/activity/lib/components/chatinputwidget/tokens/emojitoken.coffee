@@ -18,11 +18,12 @@ module.exports = EmojiToken =
   getConfig: ->
 
     return {
-      component       : EmojiDropbox
-      getters         :
-        items         : 'dropboxEmojis'
-        selectedIndex : 'emojisSelectedIndex'
-        selectedItem  : 'emojisSelectedItem'
-        formattedItem : 'emojisFormattedItem'
+      component            : EmojiDropbox
+      getters              :
+        items              : 'dropboxEmojis'
+        selectedIndex      : 'emojisSelectedIndex'
+        selectedItem       : 'emojisSelectedItem'
+        formattedItem      : 'emojisFormattedItem'
+      horizontalNavigation : yes
     }
 
