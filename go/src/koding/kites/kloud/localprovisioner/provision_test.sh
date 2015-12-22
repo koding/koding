@@ -7,7 +7,7 @@ KODING_REPO_GO="/Users/fatih/Code/koding/go"
 
 cd $GOBIN
 
-(cd /Users/fatih/Code/koding/go/src/koding/kites/kloud/localprovisioner && go build)
+(cd ${KODING_REPO_GO}/src/koding/kites/kloud/localprovisioner && go build)
 
 # Fill the remaining parts
 KONTROL_POSTGRES_PASSWORD=kontrolapp201506 \
