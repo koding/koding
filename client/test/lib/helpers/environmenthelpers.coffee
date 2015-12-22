@@ -235,8 +235,6 @@ module.exports =
     createDomainName     = paragraph.split(' ')[0]
     domainName           = createDomainName + '.' + user.username + '.dev.koding.io'
 
-    @openDomainSettings(browser)
-
     browser
       .waitForElementVisible    buttonSelector, 20000
       .click                    buttonSelector
