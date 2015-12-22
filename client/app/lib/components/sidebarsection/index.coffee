@@ -9,8 +9,8 @@ module.exports = class SidebarSection extends React.Component
   @defaultProps =
     titleLink     : '#'
     title         : ''
-    secondaryLink : ''
     unreadCount   : 0
+    secondaryLink : '#'
 
   renderUnreadCount: ->
 
