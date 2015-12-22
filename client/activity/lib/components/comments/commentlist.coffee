@@ -17,10 +17,11 @@ module.exports = class CommentList extends React.Component
   showMoreComment: ->
 
     { comments, messageId } = @props
-    from    = comments.first().get 'createdAt'
-    options = { messageId, from }
 
-    ActivityFlux.actions.channel.loadPreviousReplies options
+    limit = 10
+    from  = comments.first().get 'createdAt'
+
+    ActivityFlux.actions.message.loadComments messageId, { from, limit }
 
 
   renderShowMoreComments: ->
