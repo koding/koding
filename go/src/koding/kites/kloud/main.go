@@ -82,6 +82,11 @@ type Config struct {
 	// for softlayer provider
 	SLTemplateTag string
 
+	// Overrides the default post install URL to userdata binary
+	// for Softlayer instances. By default the binary is built from
+	// scripts/softlayer.
+	SLScriptURL string
+
 	// MaxResults limits the max items fetched per page for each
 	// AWS Describe* API calls.
 	MaxResults int `default:"500"`
@@ -184,8 +189,15 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	if conf.SLTemplateTag != "" {
-		k.Log.Warning("Default Template tag changed from %s to %s", softlayer.DefaultTemplateTag, conf.SLTemplateTag)
+		k.Log.Warning("Default Template tag changed from %s to %s",
+			softlayer.DefaultTemplateTag, conf.SLTemplateTag)
 		softlayer.DefaultTemplateTag = conf.SLTemplateTag
+	}
+
+	if conf.SLScriptURL != "" {
+		k.Log.Warning("Default script URL changed from %s to %s",
+			softlayer.PostInstallScriptUri, conf.SLScriptURL)
+		softlayer.PostInstallScriptUri = conf.SLScriptURL
 	}
 
 	klientFolder := "development/latest"

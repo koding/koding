@@ -52,13 +52,13 @@ module.exports =
     browser.end()
 
 
-  editMessageWithLink: (browser) ->
+  # editMessageWithLink: (browser) ->
 
-    helpers.beginTest(browser)
+  #   helpers.beginTest(browser)
 
-    activityHelpers.postMessageWithLink(browser)
-    activityHelpers.editAction(browser, "message", no, no, yes)
-    browser.end()
+  #   activityHelpers.postMessageWithLink(browser)
+  #   activityHelpers.editAction(browser, "message", no, no, yes)
+  #   browser.end()
 
 
   postCommentWithCode: (browser) ->

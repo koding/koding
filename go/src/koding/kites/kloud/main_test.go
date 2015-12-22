@@ -117,8 +117,18 @@ var (
 	awsProvider    *awsprovider.Provider
 	slProvider     *softlayer.Provider
 
-	// testRegion     = "us-east-1"
-	testRegion = "ap-northeast-1"
+	defaultRegion     = "eu-west-1"
+	defaultDatacenter = "sjc01"
+
+	solo = &Client{
+		Provider: "softlayer", // overwrite with KLOUD_TEST_PROVIDER
+		Region:   "",          // overwrite with KLOUD_TEST_REGION
+	}
+
+	team = &Client{
+		Provider: "aws",
+		Region:   "", // overwrite with KLOUD_TEST_REGION
+	}
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
 
@@ -167,6 +177,14 @@ type singleUser struct {
 }
 
 func init() {
+	if s := os.Getenv("KLOUD_TEST_REGION"); s != "" {
+		solo.Region = s
+		team.Region = s
+	}
+	if s := os.Getenv("KLOUD_TEST_PROVIDER"); s != "" {
+		solo.Provider = s
+	}
+
 	repoPath, err := currentRepoPath()
 	if err != nil {
 		log.Fatal("currentRepoPath error:", err)
@@ -270,7 +288,7 @@ func init() {
 func TestTerraformAuthenticate(t *testing.T) {
 	username := "testuser12"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, testRegion, "aws")
+	userData, err := team.CreateUser(username, groupname)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -291,7 +309,7 @@ func TestTerraformAuthenticate(t *testing.T) {
 func TestTerraformBootstrap(t *testing.T) {
 	username := "testuser11"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, testRegion, "aws")
+	userData, err := team.CreateUser(username, groupname)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -326,7 +344,7 @@ func TestTerraformStack(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, testRegion, "aws")
+	userData, err := team.CreateUser(username, groupname)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -381,8 +399,8 @@ func TestTerraformStack(t *testing.T) {
 			t.Errorf("plan label: have: %+v got: %s\n", userData.MachineLabels, machine.Label)
 		}
 
-		if machine.Region != testRegion {
-			t.Errorf("plan region: want: us-east-1 got: %s\n", machine.Region)
+		if machine.Region != team.region() {
+			t.Errorf("plan region: want: %s got: %s\n", team.region(), machine.Region)
 		}
 	}
 
@@ -415,11 +433,11 @@ func TestTerraformStack(t *testing.T) {
 
 	fmt.Printf("===> STARTED to start/stop the machine with id: %s\n", userData.MachineIds[0].Hex())
 
-	if err := stop(userData.MachineIds[0].Hex(), "aws", userData.Remote); err != nil {
+	if err := team.Stop(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 
-	if err := start(userData.MachineIds[0].Hex(), "aws", userData.Remote); err != nil {
+	if err := team.Start(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 
@@ -454,39 +472,39 @@ func TestTerraformStack(t *testing.T) {
 func TestBuild(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
-	userData, err := createUser(username, "koding", "eu-west-1", "softlayer")
+	userData, err := solo.CreateUser(username, "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	machineId := userData.MachineIds[0].Hex()
 
-	if err := build(machineId, userData.Remote); err != nil {
+	if err := solo.Build(machineId, userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Restarting machine")
-	if err := restart(machineId, "softlayer", userData.Remote); err != nil {
+	if err := solo.Restart(machineId, userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Stopping machine")
-	if err := stop(machineId, "softlayer", userData.Remote); err != nil {
+	if err := solo.Stop(machineId, userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Starting machine")
-	if err := start(machineId, "softlayer", userData.Remote); err != nil {
+	if err := solo.Start(machineId, userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Reiniting  machine")
-	if err := reinit(machineId, "softlayer", userData.Remote); err != nil {
+	if err := solo.Reinit(machineId, userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Destroying machine")
-	if err := destroy(machineId, "softlayer", userData.Remote); err != nil {
+	if err := solo.Destroy(machineId, userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
@@ -559,30 +577,30 @@ func checkSSHKey(id, privateKey string) error {
 func TestStop(t *testing.T) {
 	t.Parallel()
 	username := "testuser2"
-	userData, err := createUser(username, "koding", "eu-west-1", "koding")
+	userData, err := solo.CreateUser(username, "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Stopping machine")
-	if err := stop(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
+	if err := solo.Stop(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	// the following calls should give an error, if not there is a problem
-	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
+	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
 		t.Error("`build` method can not be called on `stopped` machines.")
 	}
 
-	if err := stop(userData.MachineIds[0].Hex(), "koding", userData.Remote); err == nil {
+	if err := solo.Stop(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
 		t.Error("`stop` method can not be called on `stopped` machines.")
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
+	if err := solo.Destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -590,30 +608,30 @@ func TestStop(t *testing.T) {
 func TestStart(t *testing.T) {
 	t.Parallel()
 	username := "testuser3"
-	userData, err := createUser(username, "koding", "eu-west-1", "koding")
+	userData, err := solo.CreateUser(username, "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Stopping machine to start machine again")
-	if err := stop(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
+	if err := solo.Stop(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Starting machine")
-	if err := start(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
+	if err := solo.Start(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
 	}
 
-	if err := start(userData.MachineIds[0].Hex(), "koding", userData.Remote); err == nil {
+	if err := solo.Start(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
 		t.Error("`start` method can not be called on `started` machines.")
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
+	if err := solo.Destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -621,17 +639,17 @@ func TestStart(t *testing.T) {
 func TestSnapshot(t *testing.T) {
 	t.Parallel()
 	username := "testuser4"
-	userData, err := createUser(username, "koding", "eu-west-1", "koding")
+	userData, err := solo.CreateUser(username, "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Creating snapshot")
-	if err := createSnapshot(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := solo.CreateSnapshot(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 
@@ -642,7 +660,7 @@ func TestSnapshot(t *testing.T) {
 	}
 
 	log.Println("Deleting snapshot")
-	if err := deleteSnapshot(userData.MachineIds[0].Hex(), snapshotId, userData.Remote); err != nil {
+	if err := solo.DeleteSnapshot(userData.MachineIds[0].Hex(), snapshotId, userData.Remote); err != nil {
 		t.Error(err)
 	}
 
@@ -659,7 +677,7 @@ func TestSnapshot(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
+	if err := solo.Destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -667,18 +685,18 @@ func TestSnapshot(t *testing.T) {
 func TestResize(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
-	userData, err := createUser(username, "koding", "eu-west-1", "koding")
+	userData, err := solo.CreateUser(username, "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := solo.Build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
 	defer func() {
 		log.Println("Destroying machine")
-		if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
+		if err := solo.Destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 			t.Error(err)
 		}
 	}()
@@ -699,7 +717,7 @@ func TestResize(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := resize(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+		if err := solo.Resize(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
 			t.Error(err)
 		}
 
@@ -720,8 +738,8 @@ func TestResize(t *testing.T) {
 	resize(7) // second increase
 }
 
-// createUser creates a test user in jUsers and a single jMachine document.
-func createUser(username, groupname, region, provider string) (*singleUser, error) {
+// CreateUser creates a test user in jUsers and a single jMachine document.
+func (c *Client) CreateUser(username, groupname string) (*singleUser, error) {
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
@@ -864,7 +882,7 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 	err = addCredential("aws", map[string]interface{}{
 		"access_key": os.Getenv("KLOUD_TESTACCOUNT_ACCESSKEY"),
 		"secret_key": os.Getenv("KLOUD_TESTACCOUNT_SECRETKEY"),
-		"region":     region,
+		"region":     c.region(),
 	})
 	if err != nil {
 		return nil, err
@@ -885,7 +903,6 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 		Credentials: credentials,
 	}
 	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount)
-	//stackTemplate.Template.Content = terraformTemplate
 
 	if err := awsProvider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
 		return c.Insert(&stackTemplate)
@@ -912,22 +929,22 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 			ObjectId:  machineId,
 			Label:     label,
 			Domain:    username + ".dev.koding.io",
-			Provider:  provider,
+			Provider:  c.Provider,
 			CreatedAt: time.Now().UTC(),
 			Users:     users,
 			Meta:      make(bson.M, 0),
 			Groups:    make([]models.MachineGroup, 0),
 		}
 
-		switch provider {
+		switch c.Provider {
 		case "koding":
 			machine.Credential = username
 		default:
 			// aws, softlayer
-			machine.Credential = credentials[provider][0]
+			machine.Credential = credentials[c.Provider][0]
 		}
 
-		machine.Meta["region"] = region
+		machine.Meta["region"] = c.region()
 		machine.Meta["instanceType"] = "t2.micro"
 		machine.Meta["storage_size"] = 3
 		machine.Meta["alwaysOn"] = false
@@ -960,14 +977,14 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 	}
 
 	userKite := kite.New("user", "0.0.1")
-	c := conf.Copy()
-	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
-	c.Username = username
-	userKite.Config = c
+	confCopy := conf.Copy()
+	confCopy.KiteKey = testutil.NewKiteKeyUsername(username).Raw
+	confCopy.Username = username
+	userKite.Config = confCopy
 
 	kloudQuery := &protocol.KontrolQuery{
 		Username:    "testuser",
-		Environment: c.Environment,
+		Environment: confCopy.Environment,
 		Name:        "kloud",
 	}
 	kites, err := userKite.GetKites(kloudQuery)
@@ -999,21 +1016,38 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 	}, nil
 }
 
-func build(id string, remote *kite.Client) error {
+type Client struct {
+	Provider string
+	Region   string
+}
+
+func (c *Client) region() string {
+	if c.Region != "" {
+		return c.Region
+	}
+	switch c.Provider {
+	case "softlayer":
+		return defaultDatacenter
+	default:
+		return defaultRegion
+	}
+}
+
+func (c *Client) Build(id string, remote *kite.Client) error {
 	buildArgs := &args{
 		MachineId: id,
-		Provider:  "softlayer",
-		TerraformContext: `
+		Provider:  c.Provider,
+		TerraformContext: fmt.Sprintf(`
 provider "aws" {
     access_key = "${var.aws_access_key}"
     secret_key = "${var.aws_secret_key}"
-    region = "us-east-1"
+    region = "%s"
 }
 
 resource "aws_instance" "example" {
     ami = "ami-d05e75b8"
     instance_type = "t2.micro"
-}`,
+}`, c.region()),
 	}
 
 	resp, err := remote.Tell("build", buildArgs)
@@ -1038,10 +1072,10 @@ resource "aws_instance" "example" {
 
 }
 
-func destroy(id, provider string, remote *kite.Client) error {
+func (c *Client) Destroy(id string, remote *kite.Client) error {
 	destroyArgs := &args{
 		MachineId: id,
-		Provider:  provider,
+		Provider:  c.Provider,
 	}
 
 	resp, err := remote.Tell("destroy", destroyArgs)
@@ -1064,10 +1098,10 @@ func destroy(id, provider string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Terminated, remote)
 }
 
-func start(id, provider string, remote *kite.Client) error {
+func (c *Client) Start(id string, remote *kite.Client) error {
 	startArgs := &args{
 		MachineId: id,
-		Provider:  provider,
+		Provider:  c.Provider,
 	}
 
 	resp, err := remote.Tell("start", startArgs)
@@ -1091,10 +1125,10 @@ func start(id, provider string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func stop(id, provider string, remote *kite.Client) error {
+func (c *Client) Stop(id string, remote *kite.Client) error {
 	stopArgs := &args{
 		MachineId: id,
-		Provider:  provider,
+		Provider:  c.Provider,
 	}
 
 	resp, err := remote.Tell("stop", stopArgs)
@@ -1118,10 +1152,10 @@ func stop(id, provider string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Stopped, remote)
 }
 
-func reinit(id, provider string, remote *kite.Client) error {
+func (c *Client) Reinit(id string, remote *kite.Client) error {
 	reinitArgs := &args{
 		MachineId: id,
-		Provider:  provider,
+		Provider:  c.Provider,
 	}
 
 	resp, err := remote.Tell("reinit", reinitArgs)
@@ -1145,10 +1179,10 @@ func reinit(id, provider string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func restart(id, provider string, remote *kite.Client) error {
+func (c *Client) Restart(id string, remote *kite.Client) error {
 	restartArgs := &args{
 		MachineId: id,
-		Provider:  provider,
+		Provider:  c.Provider,
 	}
 
 	resp, err := remote.Tell("restart", restartArgs)
@@ -1172,10 +1206,10 @@ func restart(id, provider string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func resize(id string, remote *kite.Client) error {
+func (c *Client) Resize(id string, remote *kite.Client) error {
 	resizeArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  c.Provider,
 	}
 
 	resp, err := remote.Tell("resize", resizeArgs)
@@ -1199,10 +1233,10 @@ func resize(id string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func createSnapshot(id string, remote *kite.Client) error {
+func (c *Client) CreateSnapshot(id string, remote *kite.Client) error {
 	createSnapshotArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  c.Provider,
 	}
 
 	resp, err := remote.Tell("createSnapshot", createSnapshotArgs)
@@ -1226,11 +1260,11 @@ func createSnapshot(id string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func deleteSnapshot(id, snapshotId string, remote *kite.Client) error {
+func (c *Client) DeleteSnapshot(id, snapshotId string, remote *kite.Client) error {
 	deleteSnapshotArgs := &args{
 		MachineId:  id,
 		SnapshotId: snapshotId,
-		Provider:   "koding",
+		Provider:   c.Provider,
 	}
 
 	resp, err := remote.Tell("deleteSnapshot", deleteSnapshotArgs)
@@ -1358,7 +1392,7 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 
 	slp := &softlayer.Provider{
 		DB:         db,
-		Log:        common.NewLogger("kloud-provider", true),
+		Log:        common.NewLogger("kloud-softlayer", true),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		SLClient:   slclient,
@@ -1370,8 +1404,7 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 }
 
 func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider, s *softlayer.Provider) *kloud.Kloud {
-	debugEnabled := true
-	kloudLogger := common.NewLogger("kloud", debugEnabled)
+	kloudLogger := common.NewLogger("kloud", true)
 	sess := &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,
