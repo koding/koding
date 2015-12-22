@@ -70,12 +70,14 @@ methods =
       Key    : filename
       Bucket : 'koding-test-data'
 
+    browser.pause 10000
+
     s3.createBucket ->
       s3.upload Body: string, (err, res) ->
         if err
           console.log ' ✖ Unable to write test times to S3.'
         else
-          console.log ' ✔ Test data saved to S3.'
+          console.log " ✔ Test data saved to S3. #{res.Location}"
 
 
 module.exports =

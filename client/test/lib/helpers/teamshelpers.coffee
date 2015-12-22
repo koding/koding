@@ -366,6 +366,7 @@ module.exports =
     switch messageType
       when 'messageWithCode'
         browser
+          .pause                  3000
           .assert.containsText    "#{textAreaSelector} .ChatItem .SimpleChatListItem", messageWithShortCode
       when 'messageWithImage'
         browser
@@ -378,8 +379,9 @@ module.exports =
       when 'messageWithEmoji'
         browser
           .waitForElementVisible  emojiSmileySelector, 20000
-          .assert.elementPresent  emojiSmileySelector
-          .assert.elementPresent  emojiThumbsUpSelector
+          .waitForElementVisible  emojiSmileySelector, 20000
+          .pause                  2000
+          .waitForElementVisible  emojiThumbsUpSelector, 20000
 
 
   createChannelsAndCheckList: (browser, user) ->

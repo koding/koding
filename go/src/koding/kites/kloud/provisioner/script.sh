@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update -q
