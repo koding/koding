@@ -273,15 +273,15 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return c.UpdateId(
 			m.ObjectId,
 			bson.M{"$set": bson.M{
-				"ipAddress":         m.IpAddress,
-				"queryString":       m.QueryString,
-				"meta.instanceType": meta.InstanceType,
-				"meta.instanceName": meta.InstanceName,
-				"meta.instanceId":   meta.InstanceId,
-				"meta.source_ami":   meta.SourceAmi,
-				"status.state":      machinestate.Running.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     reason,
+				"ipAddress":          m.IpAddress,
+				"queryString":        m.QueryString,
+				"meta.instance_type": meta.InstanceType,
+				"meta.instanceName":  meta.InstanceName,
+				"meta.instanceId":    meta.InstanceId,
+				"meta.source_ami":    meta.SourceAmi,
+				"status.state":       machinestate.Running.String(),
+				"status.modifiedAt":  time.Now().UTC(),
+				"status.reason":      reason,
 			}},
 		)
 	})

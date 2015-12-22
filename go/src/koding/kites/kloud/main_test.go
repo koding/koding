@@ -119,18 +119,18 @@ var (
 
 	defaultRegion       = "eu-west-1"
 	defaultDatacenter   = "sjc01"
-	defaultInstanceType = "t2.micro"
+	defaultInstanceType = "t2.nano"
 
 	solo = &Client{
 		Provider:     "softlayer", // overwrite with KLOUD_TEST_PROVIDER
 		Region:       "",          // overwrite with KLOUD_TEST_REGION
-		InstanceType: "t2.micro",  // overwrite with KLOUD_TEST_INSTANCE_TYPE
+		InstanceType: "",          // overwrite with KLOUD_TEST_INSTANCE_TYPE
 	}
 
 	team = &Client{
 		Provider:     "aws",
-		Region:       "",         // overwrite with KLOUD_TEST_REGION
-		InstanceType: "t2.micro", // overwrite with KLOUD_TEST_INSTANCE_TYPE
+		Region:       "", // overwrite with KLOUD_TEST_REGION
+		InstanceType: "", // overwrite with KLOUD_TEST_INSTANCE_TYPE
 	}
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
