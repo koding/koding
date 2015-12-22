@@ -898,6 +898,85 @@ module.exports = class SocialApiController extends KDController
         return callback null, mapChannels result
 
 
+    createChannelWithParticipants: (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{id}/update"
+        data     : options
+      , callback
+
+
+    fetchActivities      : (options = {}, callback = kd.noop)->
+
+      # show exempt content if only requester is admin or exempt herself
+      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+
+      options.showExempt or= showExempt
+
+      err = {message: "An error occurred"}
+
+      endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
+      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+        return callback err  if err
+
+        return callback null, mapActivities response
+
+    fetchActivitiesWithComments : (options = {}, callback = kd.noop)->
+
+      # show exempt content if only requester is admin or exempt herself
+      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+
+      options.showExempt or= showExempt
+
+      err = {message: "An error occurred"}
+
+      endPoint = "/api/social/channel/#{options.id}/list?#{serialize(options)}"
+      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+        return callback err  if err
+
+        return callback null, mapActivities response
+
+    fetchPopularPosts: (options, callback) ->
+      { channelName } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/popular/posts/#{channelName}?limit=10"
+      , callback
+
+    fetchPopularTopics: (options, callback) ->
+      { type } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/popular/topics/#{type}"
+      , callback
+
+    fetchPinnedMessages: (options, callback) ->
+
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/activity/pin/list"
+      , callback
+
+    # add if control if options have -> accountId & messageId & groupName
+    pinMessage: (options, callback) ->
+
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/activity/pin/add"
+        data     : options
+      , callback
+
+    # add if control if options have -> accountId & messageId & groupName
+    unpinMessage: (options, callback) ->
+
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/activity/pin/remove"
+        data     : options
+      , callback
+
+
 
   channel:
     byId                 : channelRequesterFn
