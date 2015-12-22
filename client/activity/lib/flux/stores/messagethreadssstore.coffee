@@ -32,7 +32,7 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
 
     @on actions.LOAD_COMMENT_SUCCESS, @handleLoadSuccess
 
-    @on actions.CREATE_COMMENT_BEGIN, @handleCreateBegin
+    @on actions.CREATE_COMMENT_BEGIN, @handleCreateCommentBegin
     @on actions.CREATE_COMMENT_SUCCESS, @handleCreateSuccess
     @on actions.CREATE_COMMENT_FAIL, @handleCreateFail
 
@@ -50,7 +50,10 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
   ensureThread: (threads, { message }) ->
 
     unless threads.has message.id
-      return threads = initThread threads, message.id
+      threads = initThread threads, message.id
+
+    message.replies.forEach (reply) ->
+      threads = addComment threads, message.id, reply._id
 
     return threads
 
@@ -78,7 +81,7 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
    * @param {string} clientRequestId
    * @return {IMThreadCollection} nextState
   ###
-  handleCreateBegin: (threads, { messageId, clientRequestId }) ->
+  handleCreateCommentBegin: (threads, { messageId, clientRequestId }) ->
 
     return addComment threads, messageId, clientRequestId
 
