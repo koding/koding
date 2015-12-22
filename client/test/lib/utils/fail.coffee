@@ -37,26 +37,35 @@ NW::fail = (result, actual, expected, defaultMsg) ->
 
             try
 
+              logString = ''
+
               @client.api.getLog 'browser', (logs) =>
 
-                logString += "#{log.level} #{log.message}\n"  for log in logs
+                try
 
-                s3 = new AWS.S3 params:
-                  Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.txt"
-                  Bucket : 'koding-test-data'
+                  logString += "#{log.level} #{log.message}\n"  for log in logs
 
-                if logString.length
-                  s3.upload Body: logString, (err, res) =>
+                  s3 = new AWS.S3 params:
+                    Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.txt"
+                    Bucket : 'koding-test-data'
+
+                  if logString.length
+                    s3.upload Body: logString, (err, res) =>
+                      NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
+                      msg = if err then ' ✖ Unable to write console log to S3.' else " ✔ Console log saved to S3. #{res.Location}"
+                      console.log msg
+                  else
+                    console.log ' ✖ There was no browser log available...'
                     NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
-                    msg = if err then ' ✖ Unable to write console log to S3.' else " ✔ Console log saved to S3. #{res.Location}"
-                    console.log msg
-                else
-                  console.log ' ✖ There was no browser log available...'
+
+                catch
+
+                  console.log ' ✖ Failed to upload browser logs to s3.'
                   NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
 
             catch
 
-              console.log ' ✖ Failed to upload browser logs to s3.'
+              console.log ' ✖ Failed to get browser logs.'
               NW_ORG_FAIL.call this, result, actual, expected, defaultMsg
 
 
