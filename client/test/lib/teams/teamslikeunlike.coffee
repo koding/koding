@@ -49,11 +49,11 @@ module.exports =
       .waitForElementVisible  menuButton,   20000
       .click                  menuButton
       .waitForElementVisible  editButton,   20000
-      .click  		            editButton
+      .click                  editButton
       .waitForElementVisible  chatInput,    20000
       .clearValue             chatInput
       .setValue               chatInput,    editedmessage
-      .setValue		            chatInput,    browser.Keys.ENTER
+      .setValue               chatInput,    browser.Keys.ENTER
       .waitForElementVisible  editedText,   20000
       .assert.containsText    editedText,   editedmessage
       .end()
