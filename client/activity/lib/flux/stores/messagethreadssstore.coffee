@@ -28,6 +28,7 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
     @on actions.LOAD_MESSAGE_SUCCESS, @ensureThread
     @on actions.LOAD_POPULAR_MESSAGE_SUCCESS, @ensureThread
     @on actions.CREATE_MESSAGE_SUCCESS, @ensureThread
+    @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
 
     @on actions.LOAD_COMMENT_SUCCESS, @handleLoadSuccess
 
@@ -126,6 +127,19 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
 
     threads.map (thread) ->
       thread.update 'comments', (comments) -> comments.remove messageId
+
+
+  ###*
+   * Adds fake thread to the threads by given clientRequestId.
+   *
+   * @param {IMThreadCollection} threads
+   * @param {object} payload
+   * @param {string} payload.clientRequestId
+   * @return {IMThreadCollection} nextState
+  ###
+  handleCreateMessageBegin: (threads, { clientRequestId }) ->
+
+    return threads.set clientRequestId, createThread clientRequestId
 
 
 ###*
