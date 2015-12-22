@@ -14,9 +14,9 @@ module.exports = (options, callback) ->
     if socialApiData?.navigated?
       { navigated } = socialApiData
 
-      { slug, data:{ message } } = navigated
+      { slug, data } = navigated
 
-      if message
+      if message = data?.message
         { body } = message
         summary  = body.slice(0, 80)
         title    = "#{summary} | Koding Community"
