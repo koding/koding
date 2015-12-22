@@ -5,7 +5,7 @@ KODING_REPO_GO="/Users/fatih/Code/koding/go"
 
 (cd ${KODING_REPO_GO} && ./build.sh)
 
-cd $GOBIN
+cd ${KODING_REPO_GO}/bin
 
 (cd ${KODING_REPO_GO}/src/koding/kites/kloud/localprovisioner && go build)
 
