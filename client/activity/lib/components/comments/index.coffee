@@ -68,14 +68,25 @@ module.exports = class Comments extends React.Component
     @setState { hasValue: hasValue, commentValue: value }
 
 
+  getComments: ->
+
+    comments = @props.message.get 'comments'
+
+    return immutable.List()  unless comments
+
+    comments.sort (a, b) ->
+      if a.get('createdAt') > b.get('createdAt') then 1
+      else if a.get('createdAt') < b.get('createdAt') then return -1
+      else 0
 
 
   render: ->
 
     <div className='CommentsWrapper'>
       <CommentList
+        messageId={ @props.message.get '_id' }
         repliesCount={ @props.message.get 'repliesCount' }
-        comments={ @props.message.get 'replies' }
+        comments={@getComments()}
         onMentionClick={ @bound 'onMentionClick' } />
       <CommentInputWidget
         ref='CommentInputWidget'
