@@ -1,12 +1,12 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-DropboxItem          = require 'activity/components/dropboxitem'
-ErrorDropboxItem     = require 'activity/components/errordropboxitem'
-SearchDropboxItem    = require 'activity/components/searchdropboxitem'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
+kd                     = require 'kd'
+React                  = require 'kd-react'
+immutable              = require 'immutable'
+classnames             = require 'classnames'
+Dropbox                = require 'activity/components/dropbox/portaldropbox'
+DropboxItem            = require 'activity/components/dropboxitem'
+ErrorDropboxItem       = require 'activity/components/errordropboxitem'
+SearchDropboxItem      = require 'activity/components/searchdropboxitem'
+ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
 
 
 module.exports = class SearchDropbox extends React.Component
@@ -86,4 +86,7 @@ module.exports = class SearchDropbox extends React.Component
       { @renderError()  if isError }
       { @renderList()  unless isError and isEmptyQuery }
     </Dropbox>
+
+
+SearchDropbox.include [ ScrollableDropboxMixin ]
 

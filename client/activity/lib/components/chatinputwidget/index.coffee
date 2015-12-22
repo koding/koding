@@ -343,8 +343,7 @@ module.exports = class ChatInputWidget extends React.Component
       onItemConfirmed : @bound 'confirmSelectedItem'
     }
 
-    Dropbox = DropboxContainer props
-    <Dropbox ref='dropbox' {...props} />
+    <DropboxContainer ref='dropbox' {...props} />
 
 
   render: ->

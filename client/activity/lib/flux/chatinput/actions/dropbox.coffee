@@ -1,6 +1,6 @@
 kd          = require 'kd'
 actionTypes = require './actiontypes'
-
+getters     = require 'activity/flux/chatinput/getters'
 
 checkForQuery = (stateId, value, position, tokens) ->
 
@@ -43,6 +43,10 @@ moveToPrevIndex = (stateId) ->
 
 
 reset = (stateId) ->
+
+  # do not perform extra dispatches to avoid dispatch errors when switching to another channel
+  dropboxConfig = kd.singletons.reactor.evaluate getters.dropboxConfig stateId
+  return  unless dropboxConfig
 
   { RESET_DROPBOX } = actionTypes
   dispatch RESET_DROPBOX, { stateId }
