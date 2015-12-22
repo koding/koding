@@ -64,7 +64,7 @@ module.exports = class Koding extends ProviderInterface
             type          : 'aws'
             region        : region ? SUPPORTED_REGIONS[0]
             source_ami    : '' # Kloud is updating this field after a successfull build
-            instance_type : 't2.micro'
+            instance_type : 't2.nano'
             storage_size  : storage
             alwaysOn      : no
 
@@ -148,7 +148,7 @@ module.exports = class Koding extends ProviderInterface
 
     callback null, [
       {
-        name  : 't2.micro'
+        name  : 't2.nano'
         title : 'Small 1x'
         spec  : {
           cpu : 1, ram: 1, storage: 4

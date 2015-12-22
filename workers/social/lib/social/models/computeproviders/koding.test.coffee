@@ -56,7 +56,7 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
         label        : generateRandomString()
         region       : 'us-east-1'
         storage      : '3'
-        instanceType : 't2.micro'
+        instanceType : 't2.nano'
       , options
 
 

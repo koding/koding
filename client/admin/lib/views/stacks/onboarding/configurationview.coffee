@@ -49,8 +49,9 @@ module.exports = class ConfigurationView extends JView
     @tabHandleContainer.repositionPlusHandle @tabView.handles
 
     pane.tabHandle.addSubView pane.instanceTypeSelectBox = select = new kd.SelectBox
-      defaultValue  : 't2.micro'
+      defaultValue  : 't2.nano'
       selectOptions : [
+        { title: 't2.nano',  value: 't2.nano'  }
         { title: 't2.micro',  value: 't2.micro'  }
         { title: 't2.small',  value: 't2.small'  }
         { title: 't2.medium', value: 't2.medium' }
