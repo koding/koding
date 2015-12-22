@@ -388,6 +388,7 @@ module.exports =
           .waitForElementVisible  emojiThumbsUpSelector, 20000
 
 
+
   createChannelsAndCheckList: (browser, user) ->
 
     channelHeader     = "#{sidebarSectionsSelector} .SidebarSection-header"
@@ -513,4 +514,28 @@ module.exports =
       browser.expect.element(pendingMemberView).text.to.not.contain userEmail
     else
       browser.waitForElementVisible     '.kdnotification', 20000 # Assertion
+
+
+  likeunlikePost: (browser, unlikePost = no) ->
+
+    bodyContainer       = '.ChatListItem-itemBodyContainer'
+    likeButtonUnpressed = "#{bodyContainer} .ChatItem-likeLink:nth-child(2)"
+    likeButtonPressed   = "#{bodyContainer} .ChatItem-likeLink.is-likedByUser"
+    textSelector        = "#{bodyContainer}:nth-of-type(1)"
+
+    browser
+      .pause                  2000
+      .waitForElementVisible  textSelector, 20000
+      .moveToElement          textSelector, 10, 10
+      .waitForElementVisible  likeButtonUnpressed, 20000
+      .click                  likeButtonUnpressed
+      .waitForElementVisible  likeButtonPressed, 20000
+      .assert.visible         likeButtonPressed
+
+    if unlikePost
+      browser
+        .click                    likeButtonPressed
+        .waitForElementVisible    likeButtonUnpressed, 20000
+        .assert.elementNotPresent likeButtonPressed
+
 
