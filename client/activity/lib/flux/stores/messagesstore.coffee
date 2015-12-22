@@ -232,6 +232,28 @@ module.exports = class MessagesStore extends KodingFluxStore
 
 
   ###*
+   * Handler for `CREATE_COMMENT_BEGIN` action.
+   * It creates a fake message and pushes it to given channel's thread.
+   * Latency compensation first step.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.body
+   * @param {string} payload.clientRequestId
+   * @return {IMMessageCollection} nextState
+  ###
+  handleCreateCommentBegin: (messages, { body, clientRequestId, messageId }) ->
+
+    { createFakeMessage, addMessage } = MessageCollectionHelpers
+
+    comment = createFakeMessage clientRequestId, body
+    comment.typeConstant = 'reply'
+    messages = messages.updateIn [messageId, 'repliesCount'], (count) -> count + 1
+
+    return addMessage messages, toImmutable comment
+
+
+  ###*
    * Handler for `CREATE_COMMENT_SUCCESS` action.
    * It first removes fake comment if it exists, and then pushes given comment
    * from payload.
