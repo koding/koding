@@ -44,7 +44,6 @@ joinSession = (browser, firstUser, secondUser) ->
   fullName         = shareModal + ' .user-details .fullname'
   acceptButton     = shareModal + ' .kdbutton.green'
   rejectButton     = shareModal + ' .kdbutton.red'
-  loadingButton    = acceptButton + '.loading'
   selectedMachine  = '.sidebar-machine-box.selected'
   filetree         = '.ide-files-tab'
   message          = '.kdlistitemview-activity.privatemessage'
@@ -67,7 +66,6 @@ joinSession = (browser, firstUser, secondUser) ->
         .waitForElementVisible     acceptButton, 50000
         .waitForElementVisible     rejectButton, 50000
         .click                     acceptButton
-        .waitForElementVisible     loadingButton, 50000
         .waitForElementNotPresent  shareModal, 50000
         .pause                     3000 # wait for sidebar redraw
         .waitForElementVisible     selectedMachine, 50000
