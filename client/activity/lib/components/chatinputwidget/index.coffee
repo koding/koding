@@ -5,6 +5,7 @@ ReactDOM             = require 'react-dom'
 $                    = require 'jquery'
 AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 DropboxContainer     = require 'activity/components/dropbox/dropboxcontainer'
+EmojiSelectBox       = require 'activity/components/emojiselectbox'
 ActivityFlux         = require 'activity/flux'
 ChatInputFlux        = require 'activity/flux/chatinput'
 KDReactorMixin       = require 'app/flux/base/reactormixin'
@@ -79,7 +80,7 @@ module.exports = class ChatInputWidget extends React.Component
     textInput = ReactDOM.findDOMNode this.refs.textInput
     focusOnGlobalKeyDown textInput
 
-    window.addEventListener 'resize', @bound 'updateDropboxPosition'
+    window.addEventListener 'resize', @bound 'updateDropboxPositions'
 
     scrollContainer = $(textInput).closest '.Scrollable'
     scrollContainer.on 'scroll', @bound 'closeDropboxes'
@@ -100,7 +101,7 @@ module.exports = class ChatInputWidget extends React.Component
       position   = helpers.getCursorPosition textInput
       ChatInputFlux.actions.dropbox.checkForQuery @stateId, @state.value, position, tokens
 
-    @updateDropboxPosition()
+    @updateDropboxPositions()
 
     # This line actually is needed for the case
     # when value prop is set to state.
@@ -110,7 +111,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   componentWillUnmount: ->
 
-    window.removeEventListener 'resize', @bound 'updateDropboxPosition'
+    window.removeEventListener 'resize', @bound 'updateDropboxPositions'
 
     textInput = ReactDOM.findDOMNode this.refs.textInput
     scrollContainer = $(textInput).closest '.Scrollable'
@@ -125,7 +126,7 @@ module.exports = class ChatInputWidget extends React.Component
     @props.onReady?()
 
 
-  updateDropboxPosition: ->
+  updateDropboxPositions: ->
 
     textInput = $ ReactDOM.findDOMNode @refs.textInput
 
@@ -134,7 +135,8 @@ module.exports = class ChatInputWidget extends React.Component
     height = textInput.outerHeight()
 
     inputDimensions = { width, height, left : offset.left, top : offset.top }
-    @refs.dropbox?.updatePosition inputDimensions
+    @refs.dropbox.updatePosition inputDimensions
+    @refs.emojiSelectBox.updatePosition inputDimensions
 
 
   setValue: (value, skipChangeEvent) ->
@@ -351,6 +353,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     <div className={kd.utils.curry "ChatInputWidget", @props.className}>
       { @renderDropbox() }
+      { @renderEmojiSelectBox() }
       <AutoSizeTextarea
         ref           = 'textInput'
         placeholder   = @props.placeholder
