@@ -513,9 +513,9 @@ updateChannel = (options={}) ->
 
   socialapi.channel.update options, (err, channel) =>
     if err
-      return dispatch actionTypes.UPDATE_CHANNEL_FAIL, err
+      return dispatch UPDATE_CHANNEL_FAIL, err
 
-    dispatch actionTypes.UPDATE_CHANNEL_SUCCESS, { channel }
+    dispatch UPDATE_CHANNEL_SUCCESS, { channel }
 
 
 module.exports = {
