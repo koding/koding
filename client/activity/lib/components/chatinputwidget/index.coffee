@@ -253,7 +253,7 @@ module.exports = class ChatInputWidget extends React.Component
     @setValue value
     @onDropboxClose()
 
-    kd.utils.defer =>
+    kd.utils.defer ->
       helpers.setCursorPosition textInput, cursorPosition
 
 

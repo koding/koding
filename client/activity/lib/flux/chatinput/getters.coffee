@@ -10,7 +10,6 @@ isGroupChannel                = require 'app/util/isgroupchannel'
 searchListByQuery             = require 'activity/util/searchListByQuery'
 convertEmojisWithSynonyms     = require 'activity/util/convertEmojisWithSynonyms'
 Constants                     = require './constants'
-DropboxType                   = require './dropboxtype'
 isPublicChannel               = require 'app/util/isPublicChannel'
 formatEmojiName               = require 'activity/util/formatEmojiName'
 
