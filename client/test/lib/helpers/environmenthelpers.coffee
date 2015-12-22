@@ -232,7 +232,7 @@ module.exports =
     buttonSelector       = '.domains .kdheaderview button.add-button'
     buttonLoaderSelector = '.add-view button.loading'
     paragraph            = helpers.getFakeText()
-    createDomainName     = paragraph.split(' ')[0]
+    createDomainName     = "#{paragraph.split(' ')[0]}#{Date.now()}"
     domainName           = createDomainName + '.' + user.username + '.dev.koding.io'
 
     browser
