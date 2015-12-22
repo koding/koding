@@ -646,62 +646,40 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Mac
 }
 
 func updateAWS(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId) error {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return errors.New("session context is not passed")
-	}
-
 	size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
 	if err != nil {
 		return err
 	}
 
-	ipAddress := tf.Attributes["public_ip"]
-
-	return sess.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			machineId,
-			bson.M{"$set": bson.M{
-				"provider":          tf.Provider,
-				"meta.region":       tf.Region,
-				"queryString":       tf.QueryString,
-				"ipAddress":         ipAddress,
-				"meta.instanceId":   tf.Attributes["id"],
-				"meta.instanceType": tf.Attributes["instance_type"],
-				"meta.source_ami":   tf.Attributes["ami"],
-				"meta.storage_size": size,
-				"status.state":      machinestate.Running.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Created with kloud.apply",
-			}},
-		)
-	})
+	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
+		"provider":          tf.Provider,
+		"meta.region":       tf.Region,
+		"queryString":       tf.QueryString,
+		"ipAddress":         tf.Attributes["public_ip"],
+		"meta.instanceId":   tf.Attributes["id"],
+		"meta.instanceType": tf.Attributes["instance_type"],
+		"meta.source_ami":   tf.Attributes["ami"],
+		"meta.storage_size": size,
+		"status.state":      machinestate.Running.String(),
+		"status.modifiedAt": time.Now().UTC(),
+		"status.reason":     "Created with kloud.apply",
+	}})
 }
 
 func updateVagrantKite(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId) error {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return errors.New("session context is not passed")
-	}
-
-	return sess.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			machineId,
-			bson.M{"$set": bson.M{
-				"provider":            tf.Provider,
-				"queryString":         tf.QueryString,
-				"ipAddress":           tf.Attributes["ipAddress"],
-				"meta.filePath":       tf.Attributes["filePath"],
-				"meta.memory":         tf.Attributes["memory"],
-				"meta.cpus":           tf.Attributes["cpus"],
-				"meta.box":            tf.Attributes["box"],
-				"meta.hostname":       tf.Attributes["hostname"],
-				"meta.klientHostURL":  tf.Attributes["klientHostURL"],
-				"meta.klientGuestURL": tf.Attributes["klientGuestURL"],
-				"status.state":        machinestate.Running.String(),
-				"status.modifiedAt":   time.Now().UTC(),
-				"status.reason":       "Created with kloud.apply",
-			}},
-		)
-	})
+	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
+		"provider":            tf.Provider,
+		"queryString":         tf.QueryString,
+		"ipAddress":           tf.Attributes["ipAddress"],
+		"meta.filePath":       tf.Attributes["filePath"],
+		"meta.memory":         tf.Attributes["memory"],
+		"meta.cpus":           tf.Attributes["cpus"],
+		"meta.box":            tf.Attributes["box"],
+		"meta.hostname":       tf.Attributes["hostname"],
+		"meta.klientHostURL":  tf.Attributes["klientHostURL"],
+		"meta.klientGuestURL": tf.Attributes["klientGuestURL"],
+		"status.state":        machinestate.Running.String(),
+		"status.modifiedAt":   time.Now().UTC(),
+		"status.reason":       "Created with kloud.apply",
+	}})
 }
