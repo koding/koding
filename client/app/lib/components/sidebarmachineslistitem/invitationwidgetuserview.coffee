@@ -14,15 +14,18 @@ module.exports = class InvitationWidgetUserView extends React.Component
 
 
   render: ->
+
+    { owner, size : { width, height } } = @props
+
     <div className='SidebarWidget-UserView'>
-      <ProfileLinkContainer origin={@props.owner}>
-        <Avatar className="ChatItem-Avatar" width={@props.size.width} height={@props.size.height} />
+      <ProfileLinkContainer origin={owner}>
+        <Avatar className="ChatItem-Avatar" width={width} height={height} />
       </ProfileLinkContainer>
 
-      <ProfileLinkContainer origin={@props.owner} className='SidebarWidget-UserDetail'>
+      <ProfileLinkContainer origin={owner} className='SidebarWidget-UserDetail'>
         <ProfileText className='SidebarWidget-FullName' />
         <div className='SidebarWidget-Nickname'>
-          @{@props.owner}
+          @{owner}
         </div>
       </ProfileLinkContainer>
     </div>
