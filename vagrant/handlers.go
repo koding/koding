@@ -41,6 +41,7 @@ type VagrantCreateOptions struct {
 	Memory        int
 	Cpus          int
 	ProvisionData string
+	CustomScript  string
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
