@@ -6,6 +6,7 @@ calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 getGroup                   = require 'app/util/getGroup'
 SidebarPublicChannelsTabs  = require 'activity/flux/stores/sidebarchannels/sidebarpublicchannelstabs'
+ResultStates               = require 'activity/util/resultStates'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -202,14 +203,13 @@ selectedChannelThread = [
   selectedChannel
   MessageLikersStore
   selectedChannelPopularMessages
-  ShowPopularMessagesFlagStore
   allUsers
-  (threads, channel, likers, popularMessages, showPopularMessagesFlag, users) ->
+  (threads, channel, likers, popularMessages, users) ->
     return null  unless channel
     thread = threads.get channel.get('id')
     thread = thread.set 'channel', channel
 
-    if showPopularMessagesFlag
+    if thread.getIn(['flags', 'resultListState']) is ResultStates.LIKED
       popularMessages = popularMessages or immutable.Map()
       thread = thread.set 'messages', popularMessages
 
