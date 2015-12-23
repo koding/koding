@@ -20,6 +20,7 @@
     "/NewChannel": "NewPublicChannel",
     "/AllChannels": "AllPublicChannels",
     "/Channels/:channelName": "SinglePublicChannel",
+    "/Channels/:channelName/Recent": "SinglePublicChannel",
     "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
     "/Channels/:channelName/Liked": "SinglePublicChannelPopularPosts",
     "/Channels/:channelName/NotificationSettings": "ChannelNotificationSettings",
