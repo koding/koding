@@ -51,13 +51,8 @@ func ParseKey(pem string) (*Key, error) {
 	for _, b := range md5.Sum(pub.Marshal()) {
 		fmt.Fprintf(&buf, "%0.2x:", b)
 	}
-	// Use filename without the ".pem" suffix as the initial label.
-	label := filepath.Base(pem)
-	if strings.HasSuffix(pem, ".pem") {
-		label = label[:len(label)-len(".pem")]
-	}
 	return &Key{
-		Label:       label,
+		Label:       strings.TrimSuffix(filepath.Base(pem), ".pem"),               // trim .pem file extension
 		Key:         string(bytes.TrimRight(ssh.MarshalAuthorizedKey(pub), "\n")), // trim newline
 		Fingerprint: string(bytes.TrimRight(buf.Bytes(), ":")),                    // trim dangling colon
 		Note:        "{}",

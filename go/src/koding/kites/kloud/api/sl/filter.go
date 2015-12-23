@@ -1,11 +1,5 @@
 package sl
 
-func op(value interface{}) interface{} {
-	return map[string]interface{}{
-		"operation": value,
-	}
-}
-
 // Filter is used for querying Softlayer resources.
 type Filter struct {
 	// ID is the ID of the resource.
@@ -36,6 +30,13 @@ type Filter struct {
 
 	// Fingerprint is a fingerprint of the resource.
 	Fingerprint string
+}
+
+// op is a helper function that wraps given value with {"operation": value}.
+func op(value interface{}) interface{} {
+	return map[string]interface{}{
+		"operation": value,
+	}
 }
 
 // Object returns the objectFilter representation of the filter.
