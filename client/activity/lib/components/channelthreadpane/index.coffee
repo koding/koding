@@ -23,7 +23,6 @@ module.exports = class ChannelThreadPane extends React.Component
       channelThread       : getters.selectedChannelThread
       popularChannels     : getters.popularChannels
       channelParticipants : getters.selectedChannelParticipants
-      showPopularMessages : getters.showPopularMessagesFlag
     }
 
 
@@ -82,8 +81,7 @@ module.exports = class ChannelThreadPane extends React.Component
       <section className='ThreadPane-feedWrapper'>
         <PublicFeedPane
           ref='pane'
-          thread={thread}
-          showPopularMessages={@state.showPopularMessages} />
+          thread={thread} />
       </section>
     else
       <section className='ThreadPane-chatWrapper'>
