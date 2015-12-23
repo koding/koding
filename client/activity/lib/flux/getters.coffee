@@ -39,8 +39,6 @@ MessageLikersStore              = [['MessageLikersStore'], withEmptyMap]
 SidebarPublicChannelsQueryStore = ['SidebarPublicChannelsQueryStore']
 SidebarPublicChannelsTabStore   = ['SidebarPublicChannelsTabStore']
 
-ShowPopularMessagesFlagStore = ['ShowPopularMessagesFlagStore']
-
 FollowedPublicChannelIdsStore = [
   FollowedPublicChannelIdsStore
   (ids) ->
@@ -470,6 +468,5 @@ module.exports = {
   sidebarPublicChannels
 
   allFollowedChannels
-  showPopularMessagesFlag : ShowPopularMessagesFlagStore
 }
 
