@@ -52,10 +52,10 @@ module.exports = clone
     validFor           : 30
     instancePerMember  : 5
     allowedInstances   : [
-      't2.nano', 't2.micro', 't1.micro', 't2.small', 'm1.small',
-      't2.medium', 'm3.medium', 'm1.medium', 't2.large', 'c3.large',
-      'c4.large', 'c1.medium', 'm3.large', 'm1.large', 'c3.xlarge',
-      'c4.xlarge', 'm2.xlarge', 'm4.xlarge', 'm3.xlarge', 'm1.xlarge',
+      't2.nano', 't2.micro', 't2.small', 't2.medium',
+      'm3.medium', 'm1.medium', 't2.large', 'c3.large',
+      'c4.large', 'c1.medium', 'm3.large', 'c3.xlarge',
+      'c4.xlarge', 'm2.xlarge', 'm4.xlarge', 'm3.xlarge',
       'c3.2xlarge'
     ]
     maxInstance        : 500
