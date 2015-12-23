@@ -23,6 +23,7 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
     @on actions.SET_CHANNEL_LAST_SEEN_TIME, @handleSetLastSeenTime
     @on actions.SET_MESSAGE_EDIT_MODE, @handleSetMessageEditMode
     @on actions.UNSET_MESSAGE_EDIT_MODE, @handleUnsetMessageEditMode
+    @on actions.SET_CHANNEL_RESULT_STATE_FLAG, @handleSetChannelResultStateFlag
 
 
   handleLoadChannel: (channelFlags, { channelId }) ->
@@ -76,6 +77,12 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'hasEditingMessage'], no
+
+
+  handleSetChannelResultStateFlag: (channelFlags, { channelId, resultState }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'resultListState'], resultState
 
 
 helper =
