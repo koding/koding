@@ -14,6 +14,7 @@ showError = require 'app/util/showError'
 Promise = require 'bluebird'
 TopicFollowButton = require 'app/commonviews/topicfollowbutton'
 Encoder = require 'htmlencode'
+isKoding = require 'app/util/isKoding'
 
 module.exports = class MessagePane extends KDTabPaneView
 
@@ -338,16 +339,16 @@ module.exports = class MessagePane extends KDTabPaneView
     {socialapi, appManager}  = kd.singletons
     {id, typeConstant, name} = @getData()
 
-    app  = appManager.get 'Activity'
+    app = appManager.get 'Activity'
 
     # TODO: Add defensive checks here because `Teams` doesn't use old sidebar.
     # So we have to give support to old codes.
-    item = app.getView()?.sidebar?.selectedItem
 
-    return  unless item?.count
-
-    # do not wait for response to set it as 0
-    item.setUnreadCount 0
+    if isKoding()
+      item = app.getView()?.sidebar?.selectedItem
+      return  unless item?.count
+      # do not wait for response to set it as 0
+      item.setUnreadCount 0
 
     # no need to send updatelastSeenTime or glance when checking publicfeeds
     return  if name in ['public', 'announcement']
