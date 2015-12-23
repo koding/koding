@@ -28,6 +28,9 @@ sudo groupadd docker
 #sudo apt-get update
 #sudo apt-get install -y lxc-docker
 
+# configure locale
+sudo locale-gen UTF-8
+
 # remove installed packages to free up space
 sudo apt-get clean
 
