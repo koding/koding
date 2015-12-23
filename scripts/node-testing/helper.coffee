@@ -2,13 +2,12 @@ fs = require 'fs'
 
 getNthInstanceData = (instanceData, n) ->
   
-  # getting nth test instance's id and public ip
-  instance = null
+  instance = {}
   
+  # getting nth test instance's id and public ip
   nthInstanceData = fs.readFileSync(instanceData).toString().split("\n")[n]?.split(' ')
 
   if nthInstanceData
-    instance = {}
     [ instance.instanceId, instance.publicIpAddress ] = nthInstanceData
     
   return instance
@@ -16,7 +15,8 @@ getNthInstanceData = (instanceData, n) ->
 
 getNthInstancePublicIpAddress = (instanceData, n) ->
 
-  return getNthInstanceData(instanceData, n)?.publicIpAddress
+  # returns null if nth instance data doesn't exist
+  return getNthInstanceData(instanceData, n).publicIpAddress
 
     
 module.exports = {
