@@ -5,12 +5,12 @@ immutable    = require 'immutable'
 Link         = require 'app/components/common/link'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
+ResultState  = require 'activity/util/resultStates'
 
 module.exports = class FeedPaneTabContainer extends React.Component
 
   @defaultProps=
     thread              : immutable.Map()
-    showPopularMessages : no
 
 
   showPopularMessages: (event) ->
@@ -24,9 +24,7 @@ module.exports = class FeedPaneTabContainer extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    ActivityFlux.actions.channel.setShowPopularMessagesFlag null
-
-    @handleRoute '/'
+    @handleRoute '/Recent'
 
 
   handleRoute: (route) ->
@@ -39,12 +37,12 @@ module.exports = class FeedPaneTabContainer extends React.Component
 
   getMostRecentTabClassNames: -> classnames
     'FeedPane-tab' : yes
-    'active'       : not @props.showPopularMessages
+    'active'       : @props.thread.getIn(['flags', 'resultListState']) is ResultState.RECENT
 
 
   getMostLikedTabClassNames: -> classnames
     'FeedPane-tab' : yes
-    'active'       : @props.showPopularMessages
+    'active'       : @props.thread.getIn(['flags', 'resultListState']) is ResultState.LIKED
 
 
   render: ->
