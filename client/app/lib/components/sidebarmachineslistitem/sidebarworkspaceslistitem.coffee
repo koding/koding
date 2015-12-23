@@ -23,16 +23,16 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
     activeWorkspace : EnvironmentFlux.getters.activeWorkspace
 
 
-  setCoordiantes: ->
+  setCoordinates: ->
 
     coordinates = getBoundingClientReact @refs.workspaceItem
     @setState { coordinates: coordinates }
 
 
-  componentWillReceiveProps: -> @setCoordiantes()
+  componentWillReceiveProps: -> @setCoordinates()
 
 
-  componentDidMount: -> @setCoordiantes()
+  componentDidMount: -> @setCoordinates()
 
 
   getWorkspaceLink: ->
