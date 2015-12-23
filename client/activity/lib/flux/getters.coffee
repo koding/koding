@@ -101,10 +101,23 @@ channelParticipants = [
       , immutable.Map()
 ]
 
+messagesWithComments = [
+  MessageThreadsStore
+  MessagesStore
+  MessageFlagsStore
+  (threads, messages, flags) ->
+    messages
+      .filter (m) -> m.get('typeConstant') isnt 'reply'
+      .map (message) ->
+        commentIds = threads.getIn [message.get('id'), 'comments']
+        comments   = messages.filter (m) -> commentIds.has m.get 'id'
+        message.set 'comments', comments
+]
+
 # Maps channels message ids with relevant message instances.
 channelThreads = [
   ChannelThreadsStore
-  MessagesStore
+  messagesWithComments
   ChannelFlagsStore
   allChannels
   ['ChannelMessageLoaderMarkersStore']

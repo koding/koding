@@ -3,16 +3,25 @@ React           = require 'kd-react'
 Link            = require 'app/components/common/link'
 immutable       = require 'immutable'
 CommentListItem = require './commentlistitem'
+ActivityFlux    = require 'activity/flux'
 
 module.exports = class CommentList extends React.Component
 
   defaultProps=
     repliesCount  : 0
+    messageId     : null
     comments      : immutable.List()
     onMentionClick: kd.noop
 
 
   showMoreComment: ->
+
+    { comments, messageId } = @props
+
+    limit = 10
+    from  = comments.first().get 'createdAt'
+
+    ActivityFlux.actions.message.loadComments messageId, { from, limit }
 
 
   renderShowMoreComments: ->
@@ -37,7 +46,7 @@ module.exports = class CommentList extends React.Component
 
   renderList: ->
 
-    @props.comments.map (comment) =>
+    @props.comments.toList().map (comment) =>
       <CommentListItem
         comment={comment}
         key={comment.get 'id'}
