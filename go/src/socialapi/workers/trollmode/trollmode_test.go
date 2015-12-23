@@ -687,7 +687,7 @@ func TestMarkedAsTroll(t *testing.T) {
 		})
 
 		// channel_message
-		Convey("when a troll posts a status update normal user shouldnt be able to see it", func() {
+		SkipConvey("when a troll posts a status update normal user shouldnt be able to see it", func() {
 			// first post
 			post1, err := rest.CreatePost(groupChannel.Id, trollUser.Id, ses.ClientId)
 			tests.ResultedWithNoErrorCheck(post1, err)
