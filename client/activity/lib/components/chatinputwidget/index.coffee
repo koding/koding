@@ -48,17 +48,14 @@ module.exports = class ChatInputWidget extends React.Component
       dropboxChannels            : getters.dropboxChannels @stateId
       channelsSelectedIndex      : getters.channelsSelectedIndex @stateId
       channelsSelectedItem       : getters.channelsSelectedItem @stateId
-      channelsFormattedItem      : getters.channelsFormattedItem @stateId
 
       dropboxEmojis              : getters.dropboxEmojis @stateId
       emojisSelectedIndex        : getters.emojisSelectedIndex @stateId
       emojisSelectedItem         : getters.emojisSelectedItem @stateId
-      emojisFormattedItem        : getters.emojisFormattedItem @stateId
 
       dropboxMentions            : getters.dropboxMentions @stateId
       mentionsSelectedIndex      : getters.mentionsSelectedIndex @stateId
       mentionsSelectedItem       : getters.mentionsSelectedItem @stateId
-      mentionsFormattedItem      : getters.mentionsFormattedItem @stateId
 
       dropboxSearchItems         : getters.dropboxSearchItems @stateId
       searchSelectedIndex        : getters.searchSelectedIndex @stateId
@@ -68,7 +65,6 @@ module.exports = class ChatInputWidget extends React.Component
       dropboxCommands            : getters.dropboxCommands @stateId
       commandsSelectedIndex      : getters.commandsSelectedIndex @stateId
       commandsSelectedItem       : getters.commandsSelectedItem @stateId
-      commandsFormattedItem      : getters.commandsFormattedItem @stateId
     }
 
 
@@ -243,15 +239,19 @@ module.exports = class ChatInputWidget extends React.Component
 
   confirmSelectedItem: ->
 
-    { dropboxConfig } = @state
+    { dropboxQuery, dropboxConfig } = @state
     return  unless dropboxConfig
 
-    formattedItem = @state[dropboxConfig.getIn ['getters', 'formattedItem']]
-    textInput     = ReactDOM.findDOMNode @refs.textInput
+    selectedItem      = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
+    confirationResult = dropboxConfig.get('handleItemConfirmation') selectedItem, dropboxQuery
 
-    { value, cursorPosition } = helpers.insertDropboxItem textInput, formattedItem
-    @setValue value
     @onDropboxClose()
+    return  unless typeof confirationResult is 'string'
+
+    textInput = ReactDOM.findDOMNode @refs.textInput
+
+    { value, cursorPosition } = helpers.insertDropboxItem textInput, confirationResult
+    @setValue value
 
     kd.utils.defer ->
       helpers.setCursorPosition textInput, cursorPosition
@@ -265,13 +265,6 @@ module.exports = class ChatInputWidget extends React.Component
     @setValue newValue
 
     @focus()
-
-
-  onSearchItemConfirmed: (message) ->
-
-    { initialChannelId, id } = message
-    ActivityFlux.actions.channel.loadChannel(initialChannelId).then ({ channel }) ->
-      kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
 
 
   setCommand: (value) ->

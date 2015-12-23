@@ -1,6 +1,7 @@
 textHelpers       = require 'activity/util/textHelpers'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
 EmojiDropbox      = require 'activity/components/emojidropbox'
+formatEmojiName   = require 'activity/util/formatEmojiName'
 
 module.exports = EmojiToken =
 
@@ -18,12 +19,12 @@ module.exports = EmojiToken =
   getConfig: ->
 
     return {
-      component            : EmojiDropbox
-      getters              :
-        items              : 'dropboxEmojis'
-        selectedIndex      : 'emojisSelectedIndex'
-        selectedItem       : 'emojisSelectedItem'
-        formattedItem      : 'emojisFormattedItem'
-      horizontalNavigation : yes
+      component              : EmojiDropbox
+      getters                :
+        items                : 'dropboxEmojis'
+        selectedIndex        : 'emojisSelectedIndex'
+        selectedItem         : 'emojisSelectedItem'
+      horizontalNavigation   : yes
+      handleItemConfirmation : (item, query) -> "#{formatEmojiName item} "
     }
 

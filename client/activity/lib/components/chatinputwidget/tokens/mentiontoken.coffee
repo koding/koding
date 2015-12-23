@@ -2,6 +2,7 @@ textHelpers       = require 'activity/util/textHelpers'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
 AppFlux           = require 'app/flux'
 MentionDropbox    = require 'activity/components/mentiondropbox'
+findNameByQuery   = require 'activity/util/findNameByQuery'
 
 module.exports = MentionToken =
 
@@ -24,8 +25,14 @@ module.exports = MentionToken =
         items              : 'dropboxMentions'
         selectedIndex      : 'mentionsSelectedIndex'
         selectedItem       : 'mentionsSelectedItem'
-        formattedItem      : 'mentionsFormattedItem'
       horizontalNavigation : no
+      handleItemConfirmation : (item, query) ->
+        names = item.get 'names'
+        if names
+          name = findNameByQuery(names.toJS(), query) ? names.first()
+        else
+          name = item.getIn ['profile', 'nickname']
+        return "@#{name} "
     }
 
 

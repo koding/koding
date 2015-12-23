@@ -11,7 +11,6 @@ searchListByQuery             = require 'activity/util/searchListByQuery'
 convertEmojisWithSynonyms     = require 'activity/util/convertEmojisWithSynonyms'
 Constants                     = require './constants'
 isPublicChannel               = require 'app/util/isPublicChannel'
-formatEmojiName               = require 'activity/util/formatEmojiName'
 
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
@@ -222,14 +221,6 @@ channelsSelectedItem = (stateId) -> [
 ]
 
 
-channelsFormattedItem = (stateId) -> [
-  channelsSelectedItem stateId
-  (selectedItem) ->
-    return  unless selectedItem
-    return "##{selectedItem.get 'name'} "
-]
-
-
 dropboxEmojis = (stateId) -> [
   dropboxQuery stateId
   dropboxConfig stateId
@@ -257,14 +248,6 @@ emojisSelectedItem = (stateId) -> [
   dropboxEmojis stateId
   emojisSelectedIndex stateId
   getListSelectedItem
-]
-
-
-emojisFormattedItem = (stateId) -> [
-  emojisSelectedItem stateId
-  (selectedItem) ->
-    return  unless selectedItem
-    return "#{formatEmojiName selectedItem} "
 ]
 
 
@@ -347,21 +330,6 @@ mentionsSelectedItem = (stateId) -> [
 ]
 
 
-mentionsFormattedItem = (stateId) -> [
-  mentionsSelectedItem stateId
-  dropboxQuery stateId
-  (selectedItem, query) ->
-    return  unless selectedItem
-
-    names = selectedItem.get('names')
-    if names
-      name = findNameByQuery(names.toJS(), query) ? names.first()
-    else
-      name = selectedItem.getIn ['profile', 'nickname']
-    return "@#{name} "
-]
-
-
 dropboxSearchItems = (stateId) -> [
   dropboxConfig stateId
   SearchStore
@@ -433,14 +401,6 @@ commandsSelectedItem = (stateId) -> [
 ]
 
 
-commandsFormattedItem = (stateId) -> [
-  commandsSelectedItem stateId
-  (selectedItem) ->
-    return  unless selectedItem
-    return "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
-]
-
-
 module.exports = {
   emojiSelectBoxItems
   emojiSelectBoxTabs
@@ -460,17 +420,14 @@ module.exports = {
   dropboxChannels
   channelsSelectedIndex
   channelsSelectedItem
-  channelsFormattedItem
 
   dropboxEmojis
   emojisSelectedIndex
   emojisSelectedItem
-  emojisFormattedItem
 
   dropboxMentions
   mentionsSelectedIndex
   mentionsSelectedItem
-  mentionsFormattedItem
 
   dropboxSearchItems
   searchSelectedIndex
@@ -480,6 +437,5 @@ module.exports = {
   dropboxCommands
   commandsSelectedIndex
   commandsSelectedItem
-  commandsFormattedItem
 }
 
