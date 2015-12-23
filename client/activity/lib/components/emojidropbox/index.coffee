@@ -10,12 +10,21 @@ ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxm
 
 module.exports = class EmojiDropbox extends React.Component
 
+  @propTypes =
+    query           : React.PropTypes.string
+    items           : React.PropTypes.instanceOf immutable.List
+    selectedItem    : React.PropTypes.string
+    selectedIndex   : React.PropTypes.number
+    onItemSelected  : React.PropTypes.func
+    onItemConfirmed : React.PropTypes.func
+    onClose         : React.PropTypes.func
+
+
   @defaultProps =
     query           : ''
     items           : immutable.List()
     selectedItem    : null
     selectedIndex   : 0
-    flags           : null
     onItemSelected  : kd.noop
     onItemConfirmed : kd.noop
     onClose         : kd.noop

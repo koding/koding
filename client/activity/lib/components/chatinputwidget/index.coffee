@@ -20,6 +20,14 @@ module.exports = class ChatInputWidget extends React.Component
 
   { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
+  @propTypes =
+    onReady     : React.PropTypes.func
+    onResize    : React.PropTypes.func
+    placeholder : React.PropTypes.string
+    onChange    : React.PropTypes.func
+    tokens      : React.PropTypes.array
+
+
   @defaultProps =
     onReady     : kd.noop
     onResize    : kd.noop

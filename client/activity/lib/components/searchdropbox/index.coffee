@@ -10,6 +10,17 @@ ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxm
 
 module.exports = class SearchDropbox extends React.Component
 
+  @propTypes =
+    query           : React.PropTypes.string
+    items           : React.PropTypes.instanceOf immutable.List
+    selectedItem    : React.PropTypes.instanceOf immutable.Map
+    selectedIndex   : React.PropTypes.number
+    flags           : React.PropTypes.instanceOf immutable.Map
+    onItemSelected  : React.PropTypes.func
+    onItemConfirmed : React.PropTypes.func
+    onClose         : React.PropTypes.func
+
+
   @defaultProps =
     query           : ''
     items           : immutable.List()
