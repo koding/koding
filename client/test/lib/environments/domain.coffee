@@ -44,14 +44,12 @@ module.exports =
 
     browser.elements 'css selector', domainSelector, (result) =>
       if result.value.length > 1
-        console.log result.value
-
         console.log ' ✔ Another domain is already added. Ending test...'
-        browser.end()
       else
         console.log ' ✔ Creating a new domain...'
         environmentHelpers.addDomain(browser, user)
-        browser.end()
+
+      browser.end()
 
 
   deleteDomain: (browser) ->
@@ -78,6 +76,7 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
+    environmentHelpers.openDomainSettings(browser)
     domainName = environmentHelpers.addDomain(browser, user)
 
     browser

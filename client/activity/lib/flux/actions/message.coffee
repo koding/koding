@@ -109,7 +109,7 @@ loadMessage = do (fetchingMap = {}) -> (messageId) ->
 
     dispatchLoadMessageSuccess message.initialChannelId, message
     # unmark this message for being fetched.
-    loadComments message.id
+    # loadComments message.id
     fetchingMap[messageId] = no
 
     return { message }
@@ -206,7 +206,7 @@ loadMessageBySlug = (slug) ->
       return
 
     dispatchLoadMessageSuccess message.initialChannelId, message
-    loadComments message.id
+    # loadComments message.id
 
 
 ###*
@@ -381,8 +381,6 @@ editMessage = (messageId, body, payload) ->
  * @param {number} limit
 ###
 loadComments = (messageId, options = {}) ->
-
-  return
 
   options.limit ?= 25
   { socialapi } = kd.singletons
