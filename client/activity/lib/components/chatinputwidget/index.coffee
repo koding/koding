@@ -261,7 +261,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     { value } = @state
 
-    newValue = value + item
+    newValue = value + formatEmojiName item
     @setValue newValue
 
     @focus()

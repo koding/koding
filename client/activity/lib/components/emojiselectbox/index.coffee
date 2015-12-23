@@ -7,9 +7,7 @@ Dropbox               = require 'activity/components/dropbox/portaldropbox'
 ScrollableList        = require './scrollablelist'
 Tabs                  = require './tabs'
 Footer                = require './footer'
-formatEmojiName       = require 'activity/util/formatEmojiName'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-EmojiBoxWrapperMixin = require 'activity/components/emojiboxwrapper/mixin'
 
 
 module.exports = class EmojiSelectBox extends React.Component
@@ -21,6 +19,9 @@ module.exports = class EmojiSelectBox extends React.Component
     query        : ''
     tabs         : immutable.List()
     tabIndex     : 0
+
+
+  componentDidMount: -> ChatInputFlux.actions.emoji.loadUsageCounts()
 
 
   updatePosition: (inputDimensions) ->
@@ -42,10 +43,9 @@ module.exports = class EmojiSelectBox extends React.Component
 
   onItemConfirmed: ->
 
-    @handleSelectedItemConfirmation()
-
     { selectedItem } = @props
-    @props.onItemConfirmed? formatEmojiName selectedItem
+    ChatInputFlux.actions.emoji.incrementUsageCount selectedItem
+    @props.onItemConfirmed? selectedItem
     @close()
 
 
@@ -107,5 +107,5 @@ module.exports = class EmojiSelectBox extends React.Component
     </Dropbox>
 
 
-EmojiSelectBox.include [ImmutableRenderMixin, EmojiBoxWrapperMixin]
+EmojiSelectBox.include [ImmutableRenderMixin]
 

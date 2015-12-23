@@ -6,7 +6,7 @@ Dropbox                = require 'activity/components/dropbox/portaldropbox'
 UserMentionItem        = require 'activity/components/mentiondropboxitem/usermentionitem'
 ChannelMentionItem     = require 'activity/components/mentiondropboxitem/channelmentionitem'
 ImmutableRenderMixin   = require 'react-immutable-render-mixin'
-
+ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
 
 module.exports = class MentionDropbox extends React.Component
 
@@ -103,5 +103,5 @@ module.exports = class MentionDropbox extends React.Component
       </div>
 
 
-MentionDropbox.include [ ImmutableRenderMixin ]
+MentionDropbox.include [ ImmutableRenderMixin, ScrollableDropboxMixin ]
 

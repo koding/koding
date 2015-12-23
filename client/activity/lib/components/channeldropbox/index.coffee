@@ -1,11 +1,11 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-ChannelDropboxItem   = require 'activity/components/channeldropboxitem'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
-
+kd                     = require 'kd'
+React                  = require 'kd-react'
+immutable              = require 'immutable'
+classnames             = require 'classnames'
+Dropbox                = require 'activity/components/dropbox/portaldropbox'
+ChannelDropboxItem     = require 'activity/components/channeldropboxitem'
+ImmutableRenderMixin   = require 'react-immutable-render-mixin'
+ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
 
 module.exports = class ChannelDropbox extends React.Component
 
@@ -62,5 +62,5 @@ module.exports = class ChannelDropbox extends React.Component
     </Dropbox>
 
 
-ChannelDropbox.include [ ImmutableRenderMixin ]
+ChannelDropbox.include [ ImmutableRenderMixin, ScrollableDropboxMixin ]
 

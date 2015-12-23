@@ -7,7 +7,6 @@ CommandDropboxItem   = require 'activity/components/commanddropboxitem'
 ErrorDropboxItem     = require 'activity/components/errordropboxitem'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
-
 module.exports = class CommandDropbox extends React.Component
 
   @defaultProps =

@@ -8,7 +8,6 @@ ErrorDropboxItem       = require 'activity/components/errordropboxitem'
 SearchDropboxItem      = require 'activity/components/searchdropboxitem'
 ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
 
-
 module.exports = class SearchDropbox extends React.Component
 
   @defaultProps =
