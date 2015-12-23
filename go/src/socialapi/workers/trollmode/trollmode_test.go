@@ -701,8 +701,6 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			// try to get post with normal user
 			post11, err := rest.GetPost(post1.Id, normalUser.Id, groupChannel.GroupName, normalSes.ClientId)
-			fmt.Println("err is:", err)
-			fmt.Println("post11 is:", post11)
 			So(err, ShouldNotBeNil)
 			So(post11, ShouldBeNil)
 		})
