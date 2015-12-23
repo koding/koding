@@ -3,6 +3,7 @@ ChannelThreadPane = require 'activity/components/channelthreadpane'
 ActivityFlux      = require 'activity/flux'
 getGroup          = require 'app/util/getGroup'
 changeToChannel   = require 'activity/util/changeToChannel'
+ResultStates      = require 'activity/util/resultStates'
 
 {
   thread  : threadActions,
@@ -37,10 +38,21 @@ module.exports = class SingleChannelRoute
   onEnter: (nextState, replaceState, done) ->
 
     messageActions.changeSelectedMessage null
-    channelActions.setShowPopularMessagesFlag null
 
-    { channelName } = nextState.params
+    { params, routes, location } = nextState
+    { channelName } = params
+
+    if location.pathname is "/Channels/#{channelName}"
+      route = "/Channels/#{channelName}/Recent"
+      return kd.singletons.router.handleRoute route
+
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
+
+    channel = channelByName channelName
+
+    channelActions.loadChannelByName(channelName).then ({channel}) ->
+      if shouldSetResultStateFlag routes
+        channelActions.setChannelResultStateFlag channel.id, ResultStates.RECENT
 
     if channelName
       transitionToChannel channelName, done
