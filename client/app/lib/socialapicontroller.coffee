@@ -639,7 +639,7 @@ module.exports = class SocialApiController extends KDController
 
 # Handler:  GetWithRelated,
 # Endpoint: "/message/{id}/related", is not set yet.
-  message:
+  messageV2:
 
     byId : (options, callback) ->
       { id } = options
@@ -757,83 +757,83 @@ module.exports = class SocialApiController extends KDController
     revive               : mapActivity
 
 
-  # message:
-  #   byId                 : messageRequesterFn
-  #     fnName             : 'byId'
-  #     validateOptionsWith: ['id']
-  #     mapperFn           : mapActivity
+  message:
+    byId                 : messageRequesterFn
+      fnName             : 'byId'
+      validateOptionsWith: ['id']
+      mapperFn           : mapActivity
 
-  #   bySlug               : messageRequesterFn
-  #     fnName             : 'bySlug'
-  #     validateOptionsWith: ['slug']
-  #     mapperFn           : mapActivity
+    bySlug               : messageRequesterFn
+      fnName             : 'bySlug'
+      validateOptionsWith: ['slug']
+      mapperFn           : mapActivity
 
-  #   edit                 : messageRequesterFn
-  #     fnName             : 'edit'
-  #     validateOptionsWith: ['id', 'body']
-  #     mapperFn           : (data) -> mapActivity data, yes # force cache invalidation
+    edit                 : messageRequesterFn
+      fnName             : 'edit'
+      validateOptionsWith: ['id', 'body']
+      mapperFn           : (data) -> mapActivity data, yes # force cache invalidation
 
-  #   post                 : messageRequesterFn
-  #     fnName             : 'post'
-  #     validateOptionsWith: ['body']
-  #     mapperFn           : mapActivity
+    post                 : messageRequesterFn
+      fnName             : 'post'
+      validateOptionsWith: ['body']
+      mapperFn           : mapActivity
 
-  #   reply                : messageRequesterFn
-  #     fnName             : 'reply'
-  #     validateOptionsWith: ['body', 'messageId']
-  #     mapperFn           : mapActivity
+    reply                : messageRequesterFn
+      fnName             : 'reply'
+      validateOptionsWith: ['body', 'messageId']
+      mapperFn           : mapActivity
 
-  #   delete               : messageRequesterFn
-  #     fnName             : 'delete'
-  #     validateOptionsWith: ['id']
+    delete               : messageRequesterFn
+      fnName             : 'delete'
+      validateOptionsWith: ['id']
 
-  #   like                 : messageRequesterFn
-  #     fnName             : 'like'
-  #     validateOptionsWith: ['id']
+    like                 : messageRequesterFn
+      fnName             : 'like'
+      validateOptionsWith: ['id']
 
-  #   unlike               : messageRequesterFn
-  #     fnName             : 'unlike'
-  #     validateOptionsWith: ['id']
+    unlike               : messageRequesterFn
+      fnName             : 'unlike'
+      validateOptionsWith: ['id']
 
-  #   listReplies          : messageRequesterFn
-  #     fnName             : 'listReplies'
-  #     validateOptionsWith: ['messageId']
-  #     mapperFn           : mapActivities
+    listReplies          : messageRequesterFn
+      fnName             : 'listReplies'
+      validateOptionsWith: ['messageId']
+      mapperFn           : mapActivities
 
-  #   listLikers           : messageRequesterFn
-  #     fnName             : 'listLikers'
-  #     validateOptionsWith: ['id']
+    listLikers           : messageRequesterFn
+      fnName             : 'listLikers'
+      validateOptionsWith: ['id']
 
-  #   sendMessageToChannel : messageRequesterFn
-  #     fnName             : 'sendMessageToChannel'
-  #     validateOptionsWith: ['body', 'channelId']
-  #     mapperFn           : mapCreatedChannel
+    sendMessageToChannel : messageRequesterFn
+      fnName             : 'sendMessageToChannel'
+      validateOptionsWith: ['body', 'channelId']
+      mapperFn           : mapCreatedChannel
 
-  #   initPrivateMessage   : messageRequesterFn
-  #     fnName             : 'initPrivateMessage'
-  #     validateOptionsWith: ['body', 'recipients']
-  #     mapperFn           : mapCreatedChannel
+    initPrivateMessage   : messageRequesterFn
+      fnName             : 'initPrivateMessage'
+      validateOptionsWith: ['body', 'recipients']
+      mapperFn           : mapCreatedChannel
 
-  #   sendPrivateMessage   : messageRequesterFn
-  #     fnName             : 'sendPrivateMessage'
-  #     validateOptionsWith: ['body', 'channelId']
-  #     mapperFn           : mapCreatedChannel
+    sendPrivateMessage   : messageRequesterFn
+      fnName             : 'sendPrivateMessage'
+      validateOptionsWith: ['body', 'channelId']
+      mapperFn           : mapCreatedChannel
 
-  #   search               : messageRequesterFn
-  #     fnName             : 'search'
-  #     validateOptionsWith: ['name']
-  #     mapperFn           : mapCreatedChannel
+    search               : messageRequesterFn
+      fnName             : 'search'
+      validateOptionsWith: ['name']
+      mapperFn           : mapCreatedChannel
 
-  #   fetchPrivateMessages : messageRequesterFn
-  #     fnName             : 'fetchPrivateMessages'
-  #     mapperFn           : mapCreatedChannel
+    fetchPrivateMessages : messageRequesterFn
+      fnName             : 'fetchPrivateMessages'
+      mapperFn           : mapCreatedChannel
 
-  #   create               : channelRequesterFn
-  #     fnName             : 'create'
-  #     validateOptionsWith: ["name"]
-  #     mapperFn           : mapChannel
+    create               : channelRequesterFn
+      fnName             : 'create'
+      validateOptionsWith: ["name"]
+      mapperFn           : mapChannel
 
-
+    revive               : mapActivity
 
     fetchDataFromEmbedly : (args...) ->
       remote.api.SocialMessage.fetchDataFromEmbedly args...
