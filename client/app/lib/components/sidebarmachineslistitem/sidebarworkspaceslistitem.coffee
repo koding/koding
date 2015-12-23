@@ -68,6 +68,17 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
       />
 
 
+  renderUnreadCount: ->
+
+    channel = @props.workspace.get 'channel'
+    return null  unless channel?.get('unreadCount')
+
+    return \
+      <cite className='SidebarListItem-unreadCount'>
+        {channel.get 'unreadCount'}
+      </cite>
+
+
   render: ->
 
     active = if @state.activeWorkspace is @props.workspace.get('_id')
@@ -81,6 +92,7 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
       <cite className='Workspace-icon' />
       <Link className='Workspace-link' href={@getWorkspaceLink()} onClick={@bound 'handleLinkClick'}>
         <span className='Workspace-title'>{@props.workspace.get 'name'}</span>
+        {@renderUnreadCount()}
       </Link>
       {@renderWorkspaceSettingsIcon()}
       {@renderDeleteWorkspaceWidget()}

@@ -81,15 +81,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
       kd.singletons.router.handleRoute getMachineLink @props.machine
 
 
-  renderUnreadCount: ->
-    return null  unless @props.unreadCount > 0
-
-    return \
-      <cite className='SidebarListItem-unreadCount'>
-        {@props.unreadCount}
-      </cite>
-
-
   renderProgressbar: ->
 
     status     = @machine ['status', 'state']
@@ -214,7 +205,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
         >
         <cite className={"SidebarListItem-icon"} title={"Machine status: #{status}"}/>
         <span className='SidebarListItem-title'>{@getMachineLabel()}</span>
-        {@renderUnreadCount()}
         {@renderProgressbar()}
       </Link>
       {@renderMachineSettingsIcon()}
