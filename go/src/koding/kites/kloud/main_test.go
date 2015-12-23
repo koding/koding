@@ -117,17 +117,20 @@ var (
 	awsProvider    *awsprovider.Provider
 	slProvider     *softlayer.Provider
 
-	defaultRegion     = "eu-west-1"
-	defaultDatacenter = "sjc01"
+	defaultRegion       = "eu-west-1"
+	defaultDatacenter   = "sjc01"
+	defaultInstanceType = "t2.nano"
 
 	solo = &Client{
-		Provider: "softlayer", // overwrite with KLOUD_TEST_PROVIDER
-		Region:   "",          // overwrite with KLOUD_TEST_REGION
+		Provider:     "softlayer", // overwrite with KLOUD_TEST_PROVIDER
+		Region:       "",          // overwrite with KLOUD_TEST_REGION
+		InstanceType: "",          // overwrite with KLOUD_TEST_INSTANCE_TYPE
 	}
 
 	team = &Client{
-		Provider: "aws",
-		Region:   "", // overwrite with KLOUD_TEST_REGION
+		Provider:     "aws",
+		Region:       "", // overwrite with KLOUD_TEST_REGION
+		InstanceType: "", // overwrite with KLOUD_TEST_INSTANCE_TYPE
 	}
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
@@ -149,7 +152,7 @@ var (
         "aws_instance": {
             "example": {
                 "count": %d,
-                "instance_type": "t2.micro",
+                "instance_type": "%s",
                 "user_data": "sudo apt-get install sl -y\ntouch /tmp/${var.username}.txt"
             }
         }
@@ -180,6 +183,10 @@ func init() {
 	if s := os.Getenv("KLOUD_TEST_REGION"); s != "" {
 		solo.Region = s
 		team.Region = s
+	}
+	if s := os.Getenv("KLOUD_TEST_INSTANCE_TYPE"); s != "" {
+		solo.InstanceType = s
+		team.InstanceType = s
 	}
 	if s := os.Getenv("KLOUD_TEST_PROVIDER"); s != "" {
 		solo.Provider = s
@@ -902,7 +909,7 @@ func (c *Client) CreateUser(username, groupname string) (*singleUser, error) {
 		Id:          stackTemplateId,
 		Credentials: credentials,
 	}
-	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount)
+	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount, c.instanceType())
 
 	if err := awsProvider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
 		return c.Insert(&stackTemplate)
@@ -945,7 +952,7 @@ func (c *Client) CreateUser(username, groupname string) (*singleUser, error) {
 		}
 
 		machine.Meta["region"] = c.region()
-		machine.Meta["instanceType"] = "t2.micro"
+		machine.Meta["instance_type"] = c.instanceType()
 		machine.Meta["storage_size"] = 3
 		machine.Meta["alwaysOn"] = false
 		machine.Assignee.InProgress = false
@@ -1017,8 +1024,9 @@ func (c *Client) CreateUser(username, groupname string) (*singleUser, error) {
 }
 
 type Client struct {
-	Provider string
-	Region   string
+	Provider     string
+	Region       string
+	InstanceType string
 }
 
 func (c *Client) region() string {
@@ -1031,6 +1039,13 @@ func (c *Client) region() string {
 	default:
 		return defaultRegion
 	}
+}
+
+func (c *Client) instanceType() string {
+	if c.InstanceType != "" {
+		return c.InstanceType
+	}
+	return defaultInstanceType
 }
 
 func (c *Client) Build(id string, remote *kite.Client) error {
@@ -1046,8 +1061,8 @@ provider "aws" {
 
 resource "aws_instance" "example" {
     ami = "ami-d05e75b8"
-    instance_type = "t2.micro"
-}`, c.region()),
+    instance_type = "%s"
+}`, c.region(), c.instanceType()),
 	}
 
 	resp, err := remote.Tell("build", buildArgs)

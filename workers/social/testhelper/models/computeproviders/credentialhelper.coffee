@@ -21,13 +21,13 @@ generateMetaData = (provider) ->
       access_key           : generateRandomString()
       secret_key           : generateRandomString()
       storage_size         : 2
-      instance_type        : 't2.micro'
+      instance_type        : 't2.nano'
 
     when 'koding'
       type                 : 'aws'
       region               : region ? SUPPORTED_REGIONS[0]
       source_ami           : ''
-      instance_type        : 't2.micro'
+      instance_type        : 't2.nano'
       storage_size         : storage
       alwaysOn             : no
 

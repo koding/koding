@@ -55,7 +55,7 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 	// cleanup this too so "build" can continue with a clean setup
 	m.IpAddress = ""
 	m.QueryString = ""
-	m.Meta["instance_name"] = ""
+	m.Meta["instanceName"] = ""
 	m.Meta["instanceId"] = ""
 	m.Status.State = machinestate.NotInitialized.String()
 

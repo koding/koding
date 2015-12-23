@@ -652,7 +652,6 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Mac
 				return err
 			}
 		}
-
 	}
 
 	return nil
@@ -665,17 +664,17 @@ func updateAWS(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId
 	}
 
 	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
-		"provider":          tf.Provider,
-		"meta.region":       tf.Region,
-		"queryString":       tf.QueryString,
-		"ipAddress":         tf.Attributes["public_ip"],
-		"meta.instanceId":   tf.Attributes["id"],
-		"meta.instanceType": tf.Attributes["instance_type"],
-		"meta.source_ami":   tf.Attributes["ami"],
-		"meta.storage_size": size,
-		"status.state":      machinestate.Running.String(),
-		"status.modifiedAt": time.Now().UTC(),
-		"status.reason":     "Created with kloud.apply",
+		"provider":           tf.Provider,
+		"meta.region":        tf.Region,
+		"queryString":        tf.QueryString,
+		"ipAddress":          tf.Attributes["public_ip"],
+		"meta.instanceId":    tf.Attributes["id"],
+		"meta.instance_type": tf.Attributes["instance_type"],
+		"meta.source_ami":    tf.Attributes["ami"],
+		"meta.storage_size":  size,
+		"status.state":       machinestate.Running.String(),
+		"status.modifiedAt":  time.Now().UTC(),
+		"status.reason":      "Created with kloud.apply",
 	}})
 }
 
