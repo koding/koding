@@ -1,6 +1,8 @@
 machineRuleChecker = require 'app/util/machinerulechecker'
 getMachineOwner    = require 'app/util/getmachineowner'
 
+{ allChannels }    = require 'activity/flux/getters'
+
 withEmptyMap       = (storeData) -> storeData or immutable.Map()
 
 StacksStore                       = ['StacksStore']
@@ -19,9 +21,21 @@ sharedMachineListItems            = [['SharedMachineListItemsStore'], withEmptyM
 ActiveInvitationMachineIdStore    = ['ActiveInvitationMachineIdStore']
 ActiveLeavingSharedMachineIdStore = ['ActiveLeavingSharedMachineIdStore']
 
+workspacesWithChannels = [
+  WorkspacesStore
+  allChannels
+  (workspaces, channels) ->
+
+    workspaces.map (workspace) ->
+      if channelId = workspace.get('channelId')
+        workspace.set 'channel', channels.get(channelId)
+      else
+        workspace
+]
+
 machinesWithWorkspaces = [
   MachinesStore
-  WorkspacesStore
+  workspacesWithChannels
   MachinesWorkspacesStore
   (machines, workspaces, machinesWorkspaces) ->
 
