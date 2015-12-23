@@ -1,9 +1,8 @@
-kd                = require 'kd'
 ActivityFlux      = require 'activity/flux'
+ResultStates      = require 'activity/util/resultStates'
 ChannelThreadPane = require 'activity/components/channelthreadpane'
-
 { channelByName } = ActivityFlux.getters
-{ actions } = ActivityFlux
+{ channel : channelActions } = ActivityFlux.actions
 
 module.exports = class PublicChannelPopularMessages
 
@@ -21,19 +20,14 @@ module.exports = class PublicChannelPopularMessages
 
   onEnter: (nextState, replaceState, done) ->
 
-    actions.message.changeSelectedMessage null
-
     { channelName } = nextState.params
-
     channel = channelByName channelName
 
-    actions.channel.setShowPopularMessagesFlag yes
-    actions.channel.loadPopularMessages channel._id
-      .then -> done()
+    channelActions.setChannelResultStateFlag channel._id, ResultStates.LIKED
+    channelActions.loadPopularMessages(channel._id).then -> done()
 
 
   onLeave: ->
 
-    actions.thread.changeSelectedThread null
-    actions.channel.setShowPopularMessagesFlag null
+    actions.channel.setChannelResultStateFlag channel._id, ResultStates.RECENT
 
