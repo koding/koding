@@ -16,6 +16,7 @@ GlobalNotificationView  = require './globalnotificationview'
 MainTabView             = require './maintabview'
 TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+actionTypes             = require 'activity/flux/actions/actiontypes'
 
 
 module.exports = class MainView extends KDView
@@ -237,7 +238,12 @@ module.exports = class MainView extends KDView
 
   glanceChannelWorkspace: (channel) ->
 
-    @activitySidebar.glanceChannelWorkspace channel
+    if isKoding()
+      @activitySidebar.glanceChannelWorkspace channel
+    else
+      kd.singletons.reactor.dispatch actionTypes.SET_CHANNEL_UNREAD_COUNT,
+        unreadCount : 0
+        channelId   : channel.id
 
 
   createAccountArea:->
