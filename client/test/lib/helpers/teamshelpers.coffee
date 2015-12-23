@@ -291,9 +291,9 @@ module.exports =
     channelPlusSelector           = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
 
     browser
-      .waitForElementVisible    sidebarSectionsSelector, 20000
-      .moveToElement            sidebarSectionsHeaderSelector, 100, 7
-      .pause                    2000 # wait for side bar channel list
+      .pause                   7500 # wait for load to sidebar
+      .waitForElementVisible   sidebarSectionsSelector, 20000
+      .moveToElement           sidebarSectionsHeaderSelector, 100, 7
 
     if plus
       browser
