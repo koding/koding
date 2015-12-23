@@ -212,6 +212,8 @@ class ApplicationManager extends KDObject
     appOptions  = getAppOptions name
     appInstance = @get name
 
+    return if appOptions.background
+
     appView     = appInstance.getView?()
     return unless appView
 
@@ -317,18 +319,23 @@ class ApplicationManager extends KDObject
     @emit "AppRegistered", name, appInstance.options
 
 
-  unregister:(appInstance)->
+  unregister: (appInstance) ->
 
-    name  = appInstance.getOption "name"
-    index = @appControllers[name].instances.indexOf appInstance
+    name  = appInstance.getOption 'name'
+    app   = @appControllers[name]
 
-    if index >= 0
-      @appControllers[name].instances.splice index, 1
+    return no  unless app
 
-      @emit "AppUnregistered", name, appInstance.options
+    index = app.instances.indexOf appInstance
 
-      if @appControllers[name].instances.length is 0
-        delete @appControllers[name]
+    return  no  unless index >=0
+
+    @appControllers[name].instances.splice index, 1
+
+    @emit "AppUnregistered", name, appInstance.options
+
+    if @appControllers[name].instances.length is 0
+      delete @appControllers[name]
 
 
   createPromptModal:(appOptions, callback)->
