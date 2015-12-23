@@ -54,6 +54,18 @@ module.exports = class SingleChannelRoute
   onLeave: -> threadActions.changeSelectedThread null
 
 
+shouldSetResultStateFlag = (routes) ->
+
+  setResultStateFlagAsRecent = yes
+
+  for route in routes
+    path = route.path.toUpperCase()
+    if ResultStates[path] and path isnt ResultStates.RECENT
+      setResultStateFlagAsRecent = no
+
+  return setResultStateFlagAsRecent
+
+
 transitionToChannel = (channelName, done) ->
 
   { reactor } = kd.singletons
