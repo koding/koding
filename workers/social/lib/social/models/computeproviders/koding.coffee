@@ -68,7 +68,9 @@ module.exports = class Koding extends ProviderInterface
             storage_size  : storage
             alwaysOn      : no
 
-          if 't2.medium' in userPlan.allowedInstances
+          if 't2.micro' in userPlan.allowedInstances
+            meta.instance_type = 't2.micro'
+          else if 't2.medium' in userPlan.allowedInstances
             meta.instance_type = 't2.medium'
 
           unless snapshotId
