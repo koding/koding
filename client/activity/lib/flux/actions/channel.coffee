@@ -518,11 +518,11 @@ updateChannel = (options={}) ->
     dispatch UPDATE_CHANNEL_SUCCESS, { channel }
 
 
-setShowPopularMessagesFlag = (showPopularMessagesFlag) ->
+setChannelResultStateFlag = (channelId, resultState) ->
 
-  { SET_SHOW_POPULAR_MESSAGES_FLAG } = actionTypes
+  { SET_CHANNEL_RESULT_STATE_FLAG } = actionTypes
 
-  dispatch SET_SHOW_POPULAR_MESSAGES_FLAG, { showPopularMessagesFlag }
+  dispatch SET_CHANNEL_RESULT_STATE_FLAG, { resultState, channelId }
 
 
 module.exports = {
@@ -550,6 +550,6 @@ module.exports = {
   setScrollPosition
   setLastSeenTime
   updateChannel
-  setShowPopularMessagesFlag
+  setChannelResultStateFlag
 }
 
