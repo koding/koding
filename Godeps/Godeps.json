@@ -185,7 +185,7 @@
 		},
 		{
 			"ImportPath": "github.com/koding/vagrantutil",
-			"Rev": "005078b54876bbb3166cce3437679fcf544576e4"
+			"Rev": "c1b511fee33a322964cb46ffdf9ae9d6c5175e1b"
 		},
 		{
 			"ImportPath": "github.com/kr/binarydist",

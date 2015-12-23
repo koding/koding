@@ -13,6 +13,8 @@ import (
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/vagrantutil"
 )
 
+const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
+
 // Handlers define a set of kite handlers which is responsible of managing
 // vagrant boxes on multiple different paths.
 type Handlers struct {
@@ -29,8 +31,17 @@ func NewHandlers() *Handlers {
 
 // Info is returned when the Status() or List() methods are called.
 type Info struct {
-	Path  string
-	State string
+	FilePath string
+	State    string
+}
+
+type VagrantCreateOptions struct {
+	Hostname      string
+	Box           string
+	Memory        int
+	Cpus          int
+	ProvisionData string
+	CustomScript  string
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
@@ -39,7 +50,7 @@ type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, err
 // executed with a valid path.
 func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error) {
 	var params struct {
-		Path string
+		FilePath string
 	}
 
 	if r.Args == nil {
@@ -51,23 +62,23 @@ func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error
 		return nil, err
 	}
 
-	if params.Path == "" {
-		return nil, errors.New("path is missing")
+	if params.FilePath == "" {
+		return nil, errors.New("[filePath] is missing")
 	}
 
 	// check if it was added previously, if not create a new vagrantUtil
 	// instance
 	h.pathsMu.Lock()
-	v, ok := h.paths[params.Path]
+	v, ok := h.paths[params.FilePath]
 	h.pathsMu.Unlock()
 	if !ok {
-		v, err = vagrantutil.NewVagrant(params.Path)
+		v, err = vagrantutil.NewVagrant(params.FilePath)
 		if err != nil {
 			return nil, err
 		}
 
 		h.pathsMu.Lock()
-		h.paths[params.Path] = v
+		h.paths[params.FilePath] = v
 		h.pathsMu.Unlock()
 	}
 
@@ -85,8 +96,8 @@ func (h *Handlers) List(r *kite.Request) (interface{}, error) {
 		response := make([]Info, len(vagrants))
 		for i, vg := range vagrants {
 			response[i] = Info{
-				Path:  vg.VagrantfilePath,
-				State: vg.State,
+				FilePath: vg.VagrantfilePath,
+				State:    vg.State,
 			}
 		}
 
@@ -96,26 +107,47 @@ func (h *Handlers) List(r *kite.Request) (interface{}, error) {
 	return h.withPath(r, fn)
 }
 
-// Create creates the Vagrantfile source inside the specified path
+// Create creates the Vagrantfile source inside the specified file path
 func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		var params struct {
-			Vagrantfile string
-		}
-
 		if r.Args == nil {
 			return nil, errors.New("arguments are not passed")
 		}
 
-		if r.Args.One().Unmarshal(&params) != nil || params.Vagrantfile == "" {
-			return nil, errors.New("vagrantfile argument is empty")
-		}
-
-		if err := v.Create(params.Vagrantfile); err != nil {
+		var params VagrantCreateOptions
+		if err := r.Args.One().Unmarshal(&params); err != nil {
 			return nil, err
 		}
 
-		return true, nil
+		if params.Box == "" {
+			params.Box = "ubuntu/trusty64"
+		}
+
+		if params.Hostname == "" {
+			params.Hostname = r.LocalKite.Config.Username
+		}
+
+		if params.Memory == 0 {
+			params.Memory = 1024
+		}
+
+		if params.Cpus == 0 {
+			params.Cpus = 1
+		}
+
+		vagrantFile, err := createTemplate(&params)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Println("----------------------------Vagrantfile")
+		fmt.Println(vagrantFile)
+
+		if err := v.Create(vagrantFile); err != nil {
+			return nil, err
+		}
+
+		return params, nil
 	}
 
 	return h.withPath(r, fn)
@@ -162,8 +194,8 @@ func (h *Handlers) Status(r *kite.Request) (interface{}, error) {
 		}
 
 		return Info{
-			Path:  v.VagrantfilePath,
-			State: status.String(),
+			FilePath: v.VagrantfilePath,
+			State:    status.String(),
 		}, nil
 	}
 	return h.withPath(r, fn)
@@ -206,11 +238,14 @@ func watchCommand(r *kite.Request, fn func() (<-chan *vagrantutil.CommandOutput,
 		for out := range output {
 			if out.Error != nil {
 				params.Watch.Call(fmt.Sprintf("%s failed: %s", r.Method, out.Error.Error()))
+				params.Watch.Call(magicEnd)
 				return
 			}
 
 			params.Watch.Call(out.Line)
 		}
+
+		params.Watch.Call(magicEnd)
 	}()
 
 	return true, nil
