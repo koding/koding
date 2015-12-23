@@ -1,3 +1,5 @@
+# coffeelint: disable=cyclomatic_complexity
+# FIXME ~GG ^^
 # Koding VMs Provider implementation for ComputeProvider
 # ------------------------------------------------------
 
