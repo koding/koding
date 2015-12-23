@@ -50,9 +50,14 @@ start = ->
     console.error 'error: instance data file is not specified'
     process.exit 1
 
+
+  socialWorkerTestInstanceIp    = getNthInstancePublicIpAddress instanceData, 0
+  nodejsWebServerTestInstanceIp = getNthInstancePublicIpAddress instanceData, 1
+
+  # if there is only one instance, run both tests in the same instance
   shellCommandsArray = shellCommands.asArray {
-    socialWorker    : getNthInstancePublicIpAddress instanceData, 0
-    nodejsWebServer : getNthInstancePublicIpAddress instanceData, 0
+    socialWorker    : socialWorkerTestInstanceIp
+    nodejsWebServer : nodejsWebServerTestInstanceIp or socialWorkerTestInstanceIp
   }
 
   async.each shellCommandsArray, iterator, (err) ->
