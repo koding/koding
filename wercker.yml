@@ -62,14 +62,14 @@ build:
           echo $INSTANCE_OPTIONS
           scripts/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
           cat INSTANCE_DATA
-    - script:
-        name: copy prod creds
-        code: ./scripts/copy-prod-creds.sh
-    - script:
-        name: check configs
-        code: |
-          ./configure --config sandbox
-          ./configure --config prod
+    # - script:
+    #     name: copy prod creds
+    #     code: ./scripts/copy-prod-creds.sh
+    # - script:
+    #     name: check configs
+    #     code: |
+    #       ./configure --config sandbox
+    #       ./configure --config prod
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
