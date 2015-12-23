@@ -81,7 +81,7 @@ module.exports = class SearchDropbox extends React.Component
 
     { items, query, flags } = @props
 
-    isError      = items.size is 0 and query
+    isError      = items.size is 0 and Boolean query
     isEmptyQuery = not query
 
     <Dropbox
