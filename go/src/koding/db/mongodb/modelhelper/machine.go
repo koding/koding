@@ -333,6 +333,14 @@ func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 	return Mongo.Run(MachinesColl, query)
 }
 
+func UpdateMachine(machineId bson.ObjectId, change interface{}) error {
+	query := func(c *mgo.Collection) error {
+		return c.UpdateId(machineId, change)
+	}
+
+	return Mongo.Run(MachinesColl, query)
+}
+
 func ChangeMachineState(machineId bson.ObjectId, reason string, state machinestate.State) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(
