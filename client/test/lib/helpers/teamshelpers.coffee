@@ -330,6 +330,7 @@ module.exports =
         .waitForElementVisible  '.CreateChannel-Modal', 20000
     else
       browser
+        .pause                  3000 # wait for page load
         .waitForElementVisible  chatItem, 20000
         .pause                  3000
         .assert.containsText    chatItem, user.username
