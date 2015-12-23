@@ -10,9 +10,16 @@ module.exports = class MachineSettingsSpecsView extends KDView
 
     super options, data
 
-    size = @getData().jMachine.meta?.storage_size
+    { jMachine } = @getData()
+    size = jMachine.meta?.storage_size
+    type = jMachine.meta?.instance_type ? 't2.micro'
+    ram  = {
+      't2.nano'   : '512M'
+      't2.micro'  : '1GB'
+      't2.medium' : '4GB'
+    }[type] ? '1GB'
+
     disk = if size? then "#{size}GB" else 'N/A'
-    ram  = '1GB'
     cpu  = '1x'
 
     @addSubView @iconWrapper = new KDCustomHTMLView cssClass: 'icons'
