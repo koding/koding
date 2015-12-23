@@ -23,7 +23,7 @@ environmentDataProvider       = require 'app/userenvironmentdataprovider'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
-actiontypes                   = require 'app/flux/environment/actiontypes'
+actionTypes                   = require 'app/flux/environment/actiontypes'
 
 {warn} = kd
 
@@ -38,9 +38,17 @@ module.exports = CollaborationController =
   # social related
 
   setSocialChannel: (channel) ->
-
     @socialChannel = channel
     @bindSocialChannelEvents()
+
+    return  if isKoding()
+
+    { reactor } = kd.singletons
+
+    reactor.dispatch actionTypes.UPDATE_WORKSPACE_CHANNEL_ID, {
+      workspaceId : @workspaceData._id
+      channelId   : @getSocialChannelId()
+    }
 
 
   fetchSocialChannel: (callback) ->
@@ -994,7 +1002,7 @@ module.exports = CollaborationController =
     return  unless @stateMachine.state in ['Active', 'Ending']
 
     unless isKoding() # Remove the machine from sidebar.
-      kd.singletons.reactor.dispatch actiontypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
+      kd.singletons.reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
