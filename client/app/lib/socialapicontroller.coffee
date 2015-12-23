@@ -1104,10 +1104,10 @@ module.exports = class SocialApiController extends KDController
       fnName             : 'fetchFollowedChannels'
       mapperFn           : mapChannels
 
-    # searchTopics         : channelRequesterFn
-    #   fnName             : 'searchTopics'
-    #   validateOptionsWith: ['name']
-    #   mapperFn           : mapChannels
+    searchTopics         : channelRequesterFn
+      fnName             : 'searchTopics'
+      validateOptionsWith: ['name']
+      mapperFn           : mapChannels
 
     fetchProfileFeed     : channelRequesterFn
       fnName             : 'fetchProfileFeed'
@@ -1122,10 +1122,10 @@ module.exports = class SocialApiController extends KDController
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
 
-    # delete               : channelRequesterFn
-    #   fnName             : 'delete'
-    #   validateOptionsWith: ["channelId"]
-    #   successFn          : removeChannel
+    delete               : channelRequesterFn
+      fnName             : 'delete'
+      validateOptionsWith: ["channelId"]
+      successFn          : removeChannel
 
     revive               : mapChannel
 
