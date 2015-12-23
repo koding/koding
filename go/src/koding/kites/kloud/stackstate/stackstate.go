@@ -56,6 +56,15 @@ func (s *State) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
+// InProgress checks whether the given state is one of the states that defines
+// a ongoing process, such as building, destroying, etc...
+func (s State) InProgress() bool {
+	if s.In(Building, Destroying) {
+		return true
+	}
+	return false
+}
+
 // In checks if the state is available in the given state.
 func (s State) In(states ...State) bool {
 	for _, state := range states {
