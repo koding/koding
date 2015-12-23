@@ -57,6 +57,12 @@ function health_check () {
   return 0
 }
 
+function fail_instance () {
+  INSTANCE=$1
+  echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
+  exit 1
+}
+
 IFS=$'\n'
 
 INSTANCES=$(cat $INSTANCE_DATA_FILE)
@@ -64,14 +70,10 @@ truncate --size 0 $INSTANCE_DATA_FILE
 
 for INSTANCE in $INSTANCES; do
   (
-    check_connectivity $INSTANCE  8090 1m 5 || continue # nginx
-    check_connectivity $INSTANCE 42424 1m 5 || continue # selenium-server
-
-    if health_check $INSTANCE; then
-      echo $INSTANCE >> $INSTANCE_DATA_FILE
-    else
-      echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
-    fi
+    check_connectivity $INSTANCE  8090 1m 5 || fail_instance $INSTANCE
+    check_connectivity $INSTANCE 42424 1m 5 || fail_instance $INSTANCE
+    health_check $INSTANCE || fail_instance $INSTANCE
+    echo $INSTANCE >> $INSTANCE_DATA_FILE
   ) &
 done
 
