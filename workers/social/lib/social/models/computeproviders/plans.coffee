@@ -4,7 +4,7 @@ module.exports       = clone
     total            : 1
     alwaysOn         : 0
     storage          : 3
-    allowedInstances : ['t2.nano', 't2.micro']
+    allowedInstances : ['t2.nano']
     managed          : 1
     snapshots        : 0
   hobbyist           :

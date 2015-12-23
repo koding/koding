@@ -16,7 +16,7 @@ module.exports = clone
                             # by a super-admin (an admin in Koding group)
     validFor           : 0  # no expire date
     instancePerMember  : 1  # allows one instance per member
-    allowedInstances   : [ 't2.nano', 't2.micro' ]
+    allowedInstances   : [ 't2.nano' ]
     maxInstance        : 1  # maximum instance count for this group (total)
     storagePerInstance : 5  # means 5GB storage for this plan in total (max).
                             # 1 member x 1 instancePerMember = 1 instance
