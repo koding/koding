@@ -14,6 +14,7 @@ module.exports = class WorkspacesStore extends KodingFluxStore
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
     @on actions.WORKSPACE_CREATED, @createWorkspace
     @on actions.WORKSPACE_DELETED, @deleteWorkspace
+    @on actions.UPDATE_WORKSPACE_CHANNEL_ID, @updateChannelId
 
 
   load: (workspaces_, { own, shared, collaboration }) ->
@@ -35,3 +36,8 @@ module.exports = class WorkspacesStore extends KodingFluxStore
 
     workspaces.withMutations (workspaces) ->
       workspaces.remove workspace.get '_id'
+
+
+  updateChannelId: (workspaces, { workspaceId, channelId }) ->
+
+    workspaces.setIn [workspaceId, 'channelId'], channelId
