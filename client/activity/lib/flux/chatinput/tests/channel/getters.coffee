@@ -10,8 +10,6 @@ ChatInputFlux        = require 'activity/flux/chatinput'
 ChatInputActionTypes = require 'activity/flux/chatinput/actions/actiontypes'
 DropboxSettingsStore = require 'activity/flux/chatinput/stores/dropboxsettingsstore'
 
-toImmutable = require 'app/util/toImmutable'
-
 describe 'ChatInputChannelGetters', ->
 
   channels = [
@@ -30,6 +28,13 @@ describe 'ChatInputChannelGetters', ->
       items         : 'dropboxChannels'
       selectedIndex : 'channelsSelectedIndex'
       selectedItem  : 'channelsSelectedItem'
+  }
+  testConfig = {
+    component       : React.Component
+    getters         :
+      items         : 'dropboxTestItems'
+      selectedIndex : 'testSelectedIndex'
+      selectedItem  : 'testSelectedItem'
   }
 
   beforeEach ->
@@ -56,7 +61,6 @@ describe 'ChatInputChannelGetters', ->
       items = @reactor.evaluate getters.dropboxChannels stateId
       expect(items).toBeA 'undefined'
 
-      testConfig = { getters : { items : 'dropboxTestItems' } }
       @reactor.dispatch ChatInputActionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : '', config : testConfig }
 
       items = @reactor.evaluate getters.dropboxChannels stateId
@@ -87,7 +91,17 @@ describe 'ChatInputChannelGetters', ->
 
   describe '#channelsSelectedIndex', ->
 
-    it 'returns 0 by default', ->
+     it 'returns -1 if channels are empty', ->
+
+      { getters } = ChatInputFlux
+
+      @reactor.dispatch ChatInputActionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : '', config : testConfig }
+      index = @reactor.evaluate getters.channelsSelectedIndex stateId
+
+      expect(index).toBe -1
+
+
+   it 'returns 0 by default', ->
 
       { getters } = ChatInputFlux
 
@@ -140,6 +154,16 @@ describe 'ChatInputChannelGetters', ->
 
 
   describe '#channelsSelectedItem', ->
+
+    it 'returns nothing if channels are empty', ->
+
+      { getters } = ChatInputFlux
+
+      @reactor.dispatch ChatInputActionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : '', config : testConfig }
+      selectedItem = @reactor.evaluate getters.channelsSelectedItem stateId
+
+      expect(selectedItem).toBeA 'undefined'
+
 
     it 'returns item by selected index', ->
 

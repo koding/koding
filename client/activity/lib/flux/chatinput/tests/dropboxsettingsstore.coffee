@@ -1,7 +1,8 @@
 expect  = require 'expect'
 Reactor = require 'app/flux/base/reactor'
 React   = require 'kd-react'
-actions = require 'activity/flux/chatinput/actions/actiontypes'
+
+actionTypes = require 'activity/flux/chatinput/actions/actiontypes'
 
 ChatInputDropboxSettingsStore = require 'activity/flux/chatinput/stores/dropboxsettingsstore'
 
@@ -25,7 +26,7 @@ describe 'ChatInputDropboxSettingsStore', ->
 
     it 'sets query and config', ->
 
-      @reactor.dispatch actions.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'query').toBe query
@@ -38,7 +39,7 @@ describe 'ChatInputDropboxSettingsStore', ->
     it 'can\'t set index if config was not set yet', ->
 
       index = 1
-      @reactor.dispatch actions.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBeA 'undefined'
@@ -47,14 +48,14 @@ describe 'ChatInputDropboxSettingsStore', ->
     it 'sets index successfully', ->
 
       index = 1
-      @reactor.dispatch actions.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
-      @reactor.dispatch actions.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBe index
 
       index = 3
-      @reactor.dispatch actions.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBe index
@@ -66,7 +67,7 @@ describe 'ChatInputDropboxSettingsStore', ->
 
       index = 3
 
-      @reactor.dispatch actions.MOVE_TO_NEXT_DROPBOX_SELECTED_INDEX, { stateId }
+      @reactor.dispatch actionTypes.MOVE_TO_NEXT_DROPBOX_SELECTED_INDEX, { stateId }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBeA 'undefined'
@@ -77,9 +78,9 @@ describe 'ChatInputDropboxSettingsStore', ->
       index = 3
       nextIndex = index + 1
 
-      @reactor.dispatch actions.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
-      @reactor.dispatch actions.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
-      @reactor.dispatch actions.MOVE_TO_NEXT_DROPBOX_SELECTED_INDEX, { stateId }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.MOVE_TO_NEXT_DROPBOX_SELECTED_INDEX, { stateId }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBe nextIndex
@@ -91,7 +92,7 @@ describe 'ChatInputDropboxSettingsStore', ->
 
       index = 3
 
-      @reactor.dispatch actions.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId }
+      @reactor.dispatch actionTypes.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBeA 'undefined'
@@ -102,9 +103,9 @@ describe 'ChatInputDropboxSettingsStore', ->
       index = 3
       prevIndex = index - 1
 
-      @reactor.dispatch actions.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
-      @reactor.dispatch actions.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
-      @reactor.dispatch actions.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBe prevIndex
@@ -116,9 +117,9 @@ describe 'ChatInputDropboxSettingsStore', ->
 
       index = 5
 
-      @reactor.dispatch actions.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
-      @reactor.dispatch actions.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
-      @reactor.dispatch actions.RESET_DROPBOX, { stateId }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.RESET_DROPBOX, { stateId }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings).toBeA 'undefined'
