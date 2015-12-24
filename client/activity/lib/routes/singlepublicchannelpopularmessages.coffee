@@ -1,14 +1,19 @@
-ActivityFlux      = require 'activity/flux'
-ResultStates      = require 'activity/util/resultStates'
-ChannelThreadPane = require 'activity/components/channelthreadpane'
-{ channelByName } = ActivityFlux.getters
-{ channel : channelActions } = ActivityFlux.actions
+kd                  = require 'kd'
+ActivityFlux        = require 'activity/flux'
+ResultStates        = require 'activity/constants/resultStates'
+ChannelThreadPane   = require 'activity/components/channelthreadpane'
+transitionToChannel = require 'activity/util/transitionToChannel'
+{ channelByName }   = ActivityFlux.getters
+
+{
+  thread  : threadActions,
+  channel : channelActions } = ActivityFlux.actions
 
 module.exports = class SinglePublicChannelPopularMessages
 
   constructor: ->
 
-    @path = 'Liked'
+    @path = ':channelName/Liked'
 
 
   getComponents: (state, callback) ->
@@ -21,13 +26,19 @@ module.exports = class SinglePublicChannelPopularMessages
   onEnter: (nextState, replaceState, done) ->
 
     { channelName } = nextState.params
-    channel = channelByName channelName
 
-    channelActions.changeResultState channel._id, ResultStates.LIKED
-    channelActions.loadPopularMessages(channel._id).then -> done()
+    channelActions.loadChannelByName(channelName).then ({channel}) ->
+      channelActions.changeResultState channel._id, ResultStates.LIKED
+      channelActions.loadPopularMessages(channel._id).then -> done()
+
+    if channelName
+      transitionToChannel channelName, done
+    else if not selectedThread
+      threadActions.changeSelectedThread null
+      done()
+    else
+      done()
 
 
-  onLeave: ->
-
-    actions.channel.changeResultState channel._id, ResultStates.RECENT
+  onLeave: -> actions.channel.changeResultState channel._id, ResultStates.RECENT
 
