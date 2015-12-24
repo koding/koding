@@ -42,6 +42,19 @@ run() {
 
 make compile
 
+export DISPLAY=:99
+export TEST_VENDOR=$(pwd)/vendor
+
+java -jar $TEST_VENDOR/selenium-server-standalone.jar \
+     -host 0.0.0.0 \
+     -port 42424 \
+     -Dwebdriver.chrome.driver=$TEST_VENDOR/chromedriver/linux64/chromedriver \
+     2>&1 >> /var/log/selenium-server.log &
+
+SELENIUM_PID=$!
+
+sleep 5 # wait for selenium-server to be ready
+
 run $1 $2 $3
 
 CODE=$?
@@ -51,5 +64,7 @@ if [ "$(hostname)" == 'wercker-test-instance' ]; then
     mv users.json users-$1-$2.json
   fi
 fi
+
+kill -TERM $SELENIUM_PID
 
 exit $CODE
