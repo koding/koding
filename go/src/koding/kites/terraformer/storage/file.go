@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -19,24 +20,26 @@ type File struct {
 
 // NewFile creates a new folder storage
 func NewFile(basePath string, log logging.Logger) (*File, error) {
+	f := &File{
+		log: log,
+	}
 	// if base path is empty create a temp one
 	if basePath == "" {
 		// calling TempDir simultaneously will not choose the same directory.
 		var err error
 		basePath, err = ioutil.TempDir("", "storage")
 		if err != nil {
-			return nil, err
+			return nil, f.errorf(err, "NewFile: tmpdir failed")
 		}
 	}
 
 	if err := os.MkdirAll(basePath, os.ModePerm); err != nil {
-		return nil, err
+		return nil, f.errorf(err, "NewFile: mkdir %q failed", basePath)
 	}
 
-	return &File{
-		basePath: basePath,
-		log:      log,
-	}, nil
+	f.basePath = basePath
+
+	return f, nil
 }
 
 // BasePath returns the base path for the storage
@@ -46,44 +49,50 @@ func (f *File) BasePath() (string, error) {
 
 // Write writes to a file with given path
 func (f *File) Write(filePath string, file io.Reader) (err error) {
+	f.log.Debug("writing %q", filePath)
+
 	dirPath, err := f.fullPath(path.Dir(filePath))
 	if err != nil {
-		return err
+		return f.errorf(err, "Write: fullPath of %q failed", path.Dir(filePath))
 	}
 
 	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
-		return err
+		return f.errorf(err, "Write: mkdir %q failed", dirPath)
 	}
 
 	fullPath, err := f.fullPath(filePath)
 	if err != nil {
-		return err
+		return f.errorf(err, "Write: fullPath of %q failed", filePath)
 	}
 
 	tf, err := os.Create(fullPath)
 	if err != nil {
-		return err
+		return f.errorf(err, "Write: creating %q failed", fullPath)
 	}
 
-	defer func() {
-		// Sync commits the current contents of the file to disk; even if it
-		// fails, try to close the file.
-		err = nonil(err, tf.Sync(), tf.Close())
-	}()
-
 	_, err = io.Copy(tf, file)
-	return err
+
+	// Sync commits the current contents of the file to disk; even if it
+	// fails, try to close the file.
+	err = nonil(err, tf.Sync(), tf.Close())
+	if err != nil {
+		return f.errorf(err, "Write: writing %q failed", fullPath)
+	}
+
+	return nil
 }
 
 // Remove removes the file from system
 func (f File) Remove(filePath string) error {
+	f.log.Debug("removing %q", filePath)
+
 	fullPath, err := f.fullPath(filePath)
 	if err != nil {
-		return err
+		return f.errorf(err, "Remove: fullPath of %q failed", fullPath)
 	}
 
 	if err := os.RemoveAll(fullPath); err != nil {
-		return err
+		return f.errorf(err, "Remove: removing %q failed", fullPath)
 	}
 
 	return nil
@@ -93,14 +102,16 @@ func (f File) Remove(filePath string) error {
 //
 // Caller is responsible for closing the file.
 func (f *File) Read(filePath string) (io.Reader, error) {
+	f.log.Debug("reading %q", filePath)
+
 	fullPath, err := f.fullPath(filePath)
 	if err != nil {
-		return nil, err
+		return nil, f.errorf(err, "Read: fullPath of %q failed", filePath)
 	}
 
 	r, err := os.Open(fullPath)
 	if err != nil {
-		return nil, err
+		return nil, f.errorf(err, "Read: opening %q failed", fullPath)
 	}
 
 	return r, nil
@@ -108,6 +119,8 @@ func (f *File) Read(filePath string) (io.Reader, error) {
 
 // Clone clones underlying files to the target storage
 func (f *File) Clone(filePath string, target Interface) error {
+	f.log.Debug("cloning %q", filePath)
+
 	fullPath, err := f.fullPath(filePath)
 	if err != nil {
 		return err
@@ -115,7 +128,7 @@ func (f *File) Clone(filePath string, target Interface) error {
 
 	fileInfos, err := ioutil.ReadDir(fullPath)
 	if err != nil {
-		return err
+		return f.errorf(err, "Clone: read %q dir failed", fullPath)
 	}
 
 	// TODO(rjeczalik): glob directories and copy files recursively?
@@ -130,7 +143,7 @@ func (f *File) Clone(filePath string, target Interface) error {
 
 		file, err := f.Read(fnPath)
 		if err != nil {
-			return err
+			return f.errorf(err, "Clone: reading %q failed", fnPath)
 		}
 
 		fpath := path.Join(filePath, fileInfo.Name())
@@ -140,7 +153,7 @@ func (f *File) Clone(filePath string, target Interface) error {
 		f.ensureClosed(file, fpath)
 
 		if err != nil {
-			return err
+			return f.errorf(err, "Clone: writing %q failed", fpath)
 		}
 	}
 
@@ -162,4 +175,9 @@ func (f *File) ensureClosed(r io.Reader, path string) {
 			f.log.Warning("failed closing resource path=%q: %s", path, err)
 		}
 	}
+}
+
+func (f *File) errorf(err error, format string, args ...interface{}) error {
+	f.log.Error("%s: %s", fmt.Sprintf(format, args...), err)
+	return err
 }
