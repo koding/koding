@@ -6,6 +6,9 @@ emailsanitize = require './user/emailsanitize'
 module.exports = class JCampaignData extends jraphical.Module
 
   @set
+    sharedEvents :
+      static     : [ ]
+      instance   : [ ]
     schema       :
       email      :
         type     : String
