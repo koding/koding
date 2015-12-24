@@ -5,8 +5,8 @@ if process.env.DISABLE_TESTS
   console.log "Tests are disabled"
   return
 
-{ exec }                          = require 'child_process'
-{ getNthInstancePublicIpAddress } = require './helper'
+{ exec }                           = require 'child_process'
+{ getNextInstancePublicIpAddress } = require './helper'
 
 async                             = require 'async'
 shellCommands                     = require './shell-commands'
@@ -50,9 +50,10 @@ start = ->
     console.error 'error: instance data file is not specified'
     process.exit 1
 
+  # if there is only one instance, run both tests in the same instance
   shellCommandsArray = shellCommands.asArray {
-    socialWorker    : getNthInstancePublicIpAddress instanceData, 0
-    nodejsWebServer : getNthInstancePublicIpAddress instanceData, 1
+    socialWorker    : getNextInstancePublicIpAddress instanceData
+    nodejsWebServer : getNextInstancePublicIpAddress instanceData
   }
 
   async.each shellCommandsArray, iterator, (err) ->
