@@ -12,9 +12,6 @@ ResultStates      = require 'activity/util/resultStates'
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
-PublicChannelNotificationSettingsRoute = require './publicchannelnotificationsettings'
-SingleMessageRoute = require './singlemessage'
-SinglePublicChannelPopularMessages = require './singlepublicchannelpopularmessages'
 
 module.exports = class SingleChannelRoute
 
@@ -22,11 +19,8 @@ module.exports = class SingleChannelRoute
 
     @path = ':channelName'
     @childRoutes = [
-      new PublicChannelNotificationSettingsRoute
-      new SinglePublicChannelPopularMessages
       new SingleMessageRoute
     ]
-
 
   getComponents: (state, callback) ->
 
@@ -50,14 +44,6 @@ module.exports = class SingleChannelRoute
 
     channel = channelByName channelName
 
-    # when the route is '/Channels/:channelName/Liked' SingleChannelRoute triggers
-    # first then SinglePublicChannelPopularMessages triggers. this check has been added
-    # to make sure if resultState has to set '/Recent'. In '/Liked' page first
-    # 'Most Liked' tab active then 'Most Recent' because of async operation.
-    channelActions.loadChannelByName(channelName).then ({channel}) ->
-      if shouldSetResultStateFlag routes
-        channelActions.changeResultState channel.id, ResultStates.RECENT
-
     if channelName
       transitionToChannel channelName, done
     else if not selectedThread
@@ -68,39 +54,4 @@ module.exports = class SingleChannelRoute
 
 
   onLeave: -> threadActions.changeSelectedThread null
-
-
-shouldSetResultStateFlag = (routes) ->
-
-  shouldSet = yes
-
-  for route in routes
-    path = route.path.toUpperCase()
-    if ResultStates[path] and path isnt ResultStates.RECENT
-      shouldSet = no
-
-  return shouldSet
-
-
-transitionToChannel = (channelName, done) ->
-
-  { reactor } = kd.singletons
-
-  isChannelOpened = no
-
-  channel = channelByName channelName
-
-  if channel
-    isChannelOpened = reactor.evaluate ['OpenedChannelsStore', channel.id]
-
-  # if we have an opened channel, switch to it immediately.
-  if isChannelOpened
-    threadActions.changeSelectedThread channel.id
-    done()
-  else
-    channelActions.loadChannelByName(channelName).then ({channel}) ->
-      threadActions.changeSelectedThread channel.id
-      channelActions.loadParticipants channel.id
-      done()
-
 
