@@ -1,5 +1,4 @@
 { message: messageActions } = require('activity/flux').actions
-ResultStates = require 'activity/constants/resultStates'
 
 module.exports = class SingleMessageRoute
 

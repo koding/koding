@@ -9,7 +9,7 @@ ResultState  = require 'activity/constants/resultStates'
 
 module.exports = class FeedPaneTabContainer extends React.Component
 
-  @defaultProps=
+  @defaultProps =
     thread : immutable.Map()
 
 
