@@ -21,15 +21,27 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage, c *models.C
 		return response.NewBadRequest(err)
 	}
 
+	parentChannel, err := models.Cache.Channel.ById(parent.InitialChannelId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	canOpen, err := parentChannel.CanOpen(c.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewAccessDenied(models.ErrCannotOpenChannel)
+	}
+
 	// first create reply as a message
 	reply.TypeConstant = models.ChannelMessage_TYPE_REPLY
 
 	// set initial channel id for message creation
 	reply.InitialChannelId = parent.InitialChannelId
 
-	if reply.AccountId == 0 {
-		reply.AccountId = c.Client.Account.Id
-	}
+	reply.AccountId = c.Client.Account.Id
 
 	if err := reply.Create(); err != nil {
 		// todo this should be internal server error
