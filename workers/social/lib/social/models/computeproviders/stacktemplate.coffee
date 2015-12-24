@@ -405,7 +405,7 @@ KD.remote.api.JStackTemplate.create({
     {
       "label" : "koding-vm-0",
       "provider" : "koding",
-      "instanceType" : "t2.micro",
+      "instance_type" : "t2.nano",
       "provisioners" : [
           "devrim/koding-base"
       ],
@@ -438,7 +438,7 @@ Default Template ---
         {
             "label" : "VM1 from Koding",
             "provider" : "koding",
-            "instanceType" : "t2.micro",
+            "instance_type" : "t2.nano",
             "provisioners" : [
                 "devrim/koding-base"
             ],

@@ -127,14 +127,14 @@ func (m *Machine) markAsNotInitialized() error {
 		return c.UpdateId(
 			m.ObjectId,
 			bson.M{"$set": bson.M{
-				"ipAddress":         "",
-				"queryString":       "",
-				"meta.instanceType": "",
-				"meta.instanceName": "",
-				"meta.instanceId":   "",
-				"status.state":      machinestate.NotInitialized.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Machine is marked as NotInitialized",
+				"ipAddress":          "",
+				"queryString":        "",
+				"meta.instance_type": "",
+				"meta.instanceName":  "",
+				"meta.instanceId":    "",
+				"status.state":       machinestate.NotInitialized.String(),
+				"status.modifiedAt":  time.Now().UTC(),
+				"status.reason":      "Machine is marked as NotInitialized",
 			}},
 		)
 	}); err != nil {
@@ -144,7 +144,7 @@ func (m *Machine) markAsNotInitialized() error {
 	m.IpAddress = ""
 	m.QueryString = ""
 	m.Meta["instance_type"] = ""
-	m.Meta["instance_name"] = ""
+	m.Meta["instanceName"] = ""
 	m.Meta["instanceId"] = ""
 
 	// so any State() method can return the correct status

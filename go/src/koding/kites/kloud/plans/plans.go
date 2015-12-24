@@ -77,7 +77,8 @@ var (
 		StorageLimit:       3,
 		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
-			T2Micro: {},
+			T2Nano:  {},
+			T2Micro: {}, // users of old free plans should be allowed to rebuild their instances
 		},
 	}
 
@@ -90,6 +91,7 @@ var (
 		StorageLimit:       10,
 		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
+			T2Nano:  {},
 			T2Micro: {},
 		},
 	}
@@ -103,6 +105,7 @@ var (
 		StorageLimit:       25,
 		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
+			T2Nano:  {},
 			T2Micro: {},
 		},
 	}
@@ -116,6 +119,7 @@ var (
 		StorageLimit:       50,
 		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
+			T2Nano:  {},
 			T2Micro: {},
 		},
 	}
@@ -129,6 +133,7 @@ var (
 		StorageLimit:       100,
 		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
+			T2Nano:  {},
 			T2Micro: {},
 		},
 	}
@@ -143,7 +148,10 @@ var (
 		StorageLimit:       200,
 		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
-			T2Micro: {}, T2Small: {}, T2Medium: {},
+			T2Nano:   {},
+			T2Micro:  {},
+			T2Small:  {},
+			T2Medium: {},
 		},
 	}
 
@@ -156,6 +164,7 @@ var (
 		StorageLimit:       3,
 		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
+			T2Nano:  {},
 			T2Micro: {},
 		},
 	}

@@ -37,7 +37,7 @@ module.exports = class CodeSetupView extends JView
     pane.tabHandle.addSubView pane.instanceTypeLabel = new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'title'
-      partial  : 't2.micro'
+      partial  : 't2.nano'
 
     @tabView.showPaneByIndex 0
 
