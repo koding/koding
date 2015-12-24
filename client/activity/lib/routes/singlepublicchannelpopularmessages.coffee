@@ -4,7 +4,7 @@ ChannelThreadPane = require 'activity/components/channelthreadpane'
 { channelByName } = ActivityFlux.getters
 { channel : channelActions } = ActivityFlux.actions
 
-module.exports = class PublicChannelPopularMessages
+module.exports = class SinglePublicChannelPopularMessages
 
   constructor: ->
 
@@ -23,11 +23,11 @@ module.exports = class PublicChannelPopularMessages
     { channelName } = nextState.params
     channel = channelByName channelName
 
-    channelActions.setChannelResultStateFlag channel._id, ResultStates.LIKED
+    channelActions.changeResultState channel._id, ResultStates.LIKED
     channelActions.loadPopularMessages(channel._id).then -> done()
 
 
   onLeave: ->
 
-    actions.channel.setChannelResultStateFlag channel._id, ResultStates.RECENT
+    actions.channel.changeResultState channel._id, ResultStates.RECENT
 
