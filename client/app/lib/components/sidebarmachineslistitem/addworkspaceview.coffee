@@ -13,6 +13,13 @@ module.exports = class AddWorkspaceView extends React.Component
 
   { ESC, ENTER } = KeyboardKeys
 
+  constructor: ->
+
+    super
+
+    @state =
+      inProgress : no
+
 
   getDataBindings: ->
     addWorkspaceView : EnvironmentFlux.getters.addWorkspaceView
@@ -36,11 +43,15 @@ module.exports = class AddWorkspaceView extends React.Component
     { value } = event.target
 
     return  unless value.trim()
+    return  if @state.inProgress is yes
+
+    @setState { inProgress : yes }
 
     options =
       name          : value
       machineUId    : @props.machine.get 'uid'
       machineLabel  : @props.machine.get 'label'
+      eventObj      : this
 
     IDEHelpers.createWorkspace options
 
@@ -53,6 +64,14 @@ module.exports = class AddWorkspaceView extends React.Component
   onClick: (event) ->
 
     kd.utils.stopDOMEvent event
+
+
+  # This method is a workaround.
+  # Refactor this method when "IDEHelpers.createWorkspace" is refactored.
+  # Listen result of "IDEHelpers.createWorkspace"
+  emit: (eventType, error) ->
+
+    @setState { inProgress : no }
 
 
   render: ->
