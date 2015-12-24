@@ -518,11 +518,11 @@ updateChannel = (options={}) ->
     dispatch UPDATE_CHANNEL_SUCCESS, { channel }
 
 
-setChannelResultStateFlag = (channelId, resultState) ->
+changeResultState = (channelId, resultState) ->
 
-  { SET_CHANNEL_RESULT_STATE_FLAG } = actionTypes
+  { SET_CHANNEL_RESULT_STATE } = actionTypes
 
-  dispatch SET_CHANNEL_RESULT_STATE_FLAG, { resultState, channelId }
+  dispatch SET_CHANNEL_RESULT_STATE, { resultState, channelId }
 
 
 module.exports = {
@@ -550,6 +550,6 @@ module.exports = {
   setScrollPosition
   setLastSeenTime
   updateChannel
-  setChannelResultStateFlag
+  changeResultState
 }
 
