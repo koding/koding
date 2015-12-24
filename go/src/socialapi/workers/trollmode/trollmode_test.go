@@ -294,7 +294,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// create reply
-			reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id)
+			reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, post.AccountId)
@@ -408,7 +408,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// create reply
-			reply, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id)
+			reply, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, trollUser.Id)
@@ -430,7 +430,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// create reply
-			reply, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id)
+			reply, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, trollUser.Id)
@@ -701,7 +701,7 @@ func TestMarkedAsTroll(t *testing.T) {
 		})
 
 		// interaction
-		Convey("when a troll likes a status update, like count should not be incremented", func() {
+		SkipConvey("when a troll likes a status update, like count should not be incremented", func() {
 			// create a post from a normal user
 			post1, err := rest.CreatePost(groupChannel.Id, normalUser.Id, ses.ClientId)
 			tests.ResultedWithNoErrorCheck(post1, err)
