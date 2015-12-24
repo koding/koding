@@ -12,11 +12,11 @@ FeedInputWidget      = require './feedinputwidget'
 module.exports = class FeedPane extends React.Component
 
   @defaultProps =
-    title               : null
-    messages            : null
-    isDataLoading       : no
-    onInviteOthers      : kd.noop
-    showItemMenu        : yes
+    title          : null
+    messages       : null
+    isDataLoading  : no
+    onInviteOthers : kd.noop
+    showItemMenu   : yes
 
 
   componentDidMount: ->

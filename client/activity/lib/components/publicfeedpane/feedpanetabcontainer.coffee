@@ -10,7 +10,7 @@ ResultState  = require 'activity/util/resultStates'
 module.exports = class FeedPaneTabContainer extends React.Component
 
   @defaultProps=
-    thread              : immutable.Map()
+    thread : immutable.Map()
 
 
   showPopularMessages: (event) ->
