@@ -24,7 +24,7 @@ type Flag struct {
 }
 
 func NewFlag(name, synopsis string) *Flag {
-	flagSet := flag.NewFlagSet(name, flag.PanicOnError)
+	flagSet := flag.NewFlagSet(name, flag.ContinueOnError)
 	flagSet.SetOutput(ioutil.Discard)
 
 	// global subcommand flags
@@ -77,7 +77,7 @@ func (f *Flag) ParseArgs(args []string) error {
 	}
 
 	err := f.Parse(args)
-	if err != nil {
+	if err != nil && err != flag.ErrHelp {
 		DefaultUi.Error(err.Error())
 		return err
 	}

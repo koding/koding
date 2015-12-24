@@ -1,0 +1,66 @@
+{
+	"environment": "{{var `Env`}}",
+	"user": {
+		"_id": "{{var `UserID`}}",
+		"status": "confirmed",
+		"passwordStatus": "valid",
+		"registeredAt": "0001-01-01T00:00:00Z",
+		"lastLoginDate": "0001-01-01T00:00:00Z",
+		"onlineStatus": {
+			"actual": "online"
+		},
+		"sshKeys": [],
+		"username": "{{var `Username`}}",
+		"email": "{{var `Email`}}",
+		"sanitizedEmail": "{{var `Email`}}",
+		"salt": "{{var `Salt`}}",
+		"password": "{{var `Password`}}",
+		"emailFrequency": {
+			"global": true,
+			"daily": false,
+			"privateMessage": true,
+			"followActions": false,
+			"comment": true,
+			"likeActivities": false,
+			"groupInvite": true,
+			"groupRequest": true,
+			"groupApproved": true,
+			"groupJoined": true,
+			"groupLeft": false,
+			"mention": true,
+			"marketing": true
+		}
+	},
+	"machine": {
+		"_id": "{{var `MachineID`}}",
+		"label": "{{var `MachineName`}}",
+		"slug": "{{var `MachineName`}}",
+		"status": {
+			"state": "NotInitialized",
+			"modifiedAt": "0001-01-01T00:00:00Z"
+		},
+		"createdAt": "0001-01-01T00:00:00Z",
+		"provisioners": [],
+		"provider": "softlayer",
+		"meta": {
+			"storage_size": 25,
+			"alwaysOn": false,
+			"datacenter": "{{var `Datacenter`}}"
+		},
+		"generatedFrom": {
+			"templateId": "{{var `TemplateID`}}",
+			"revision": ""
+		},
+		"users": [{
+			"id": "{{var `UserID`}}",
+			"username": "{{var `Username`}}",
+			"sudo": true,
+			"owner": true
+		}],
+		"groups": [{
+			"id": "{{var `GroupID`}}"
+		}],
+		"uid": "",
+		"domain": ""
+	}
+}

@@ -40,7 +40,7 @@ type MachineGeneratedFrom struct {
 type Machine struct {
 	ObjectId      bson.ObjectId        `bson:"_id" json:"_id"`
 	Uid           string               `bson:"uid" json:"uid"`
-	QueryString   string               `bson:"queryString" json:"queryString"`
+	QueryString   string               `bson:"queryString,omitempty" json:"queryString"`
 	IpAddress     string               `bson:"ipAddress" json:"ipAddress"`
 	Domain        string               `bson:"domain" json:"domain"`
 	Provider      string               `bson:"provider" json:"provider"`

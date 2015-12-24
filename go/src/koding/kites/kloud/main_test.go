@@ -951,8 +951,7 @@ func (c *Client) CreateUser(username, groupname string) (*singleUser, error) {
 			machine.Credential = credentials[c.Provider][0]
 		}
 
-		machine.Meta["region"] = c.region()
-		machine.Meta["instance_type"] = c.instanceType()
+		c.updateMeta(machine.Meta)
 		machine.Meta["storage_size"] = 3
 		machine.Meta["alwaysOn"] = false
 		machine.Assignee.InProgress = false
@@ -1046,6 +1045,16 @@ func (c *Client) instanceType() string {
 		return c.InstanceType
 	}
 	return defaultInstanceType
+}
+
+func (c *Client) updateMeta(m bson.M) {
+	switch c.Provider {
+	case "softlayer":
+		m["datacenter"] = c.region()
+	default:
+		m["region"] = c.region()
+		m["instance_type"] = c.instanceType()
+	}
 }
 
 func (c *Client) Build(id string, remote *kite.Client) error {
