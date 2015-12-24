@@ -1,13 +1,13 @@
-_                                 = require 'lodash'
-kd                                = require 'kd'
-Link                              = require 'app/components/common/link'
-React                             = require 'kd-react'
-ReactDOM                          = require 'react-dom'
-ActivityFlux                      = require 'activity/flux'
-ActivityModal                     = require 'app/components/activitymodal'
-KDReactorMixin                    = require 'app/flux/base/reactormixin'
-RadioGroup                        = require 'react-radio'
-NotificationSettingsFlux          = require 'activity/flux/channelnotificationsettings'
+_                        = require 'lodash'
+kd                       = require 'kd'
+Link                     = require 'app/components/common/link'
+React                    = require 'kd-react'
+ReactDOM                 = require 'react-dom'
+ActivityFlux             = require 'activity/flux'
+ActivityModal            = require 'app/components/activitymodal'
+KDReactorMixin           = require 'app/flux/base/reactormixin'
+RadioGroup               = require 'react-radio'
+NotificationSettingsFlux = require 'activity/flux/channelnotificationsettings'
 
 
 module.exports = class PublicChannelNotificationSettingsModal extends React.Component
