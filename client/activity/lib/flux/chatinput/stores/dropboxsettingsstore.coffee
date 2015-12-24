@@ -32,12 +32,14 @@ module.exports = class ChatInputDropboxSettingsStore extends KodingFluxStore
   setIndex: (currentState, { stateId, index }) ->
 
     currentState = helper.ensureSettingsMap currentState, stateId
+    return currentState  unless currentState.getIn [ stateId, 'config' ]
     currentState.setIn [ stateId, 'index' ], index
 
 
   moveToNextIndex: (currentState, { stateId }) ->
 
     currentState = helper.ensureSettingsMap currentState, stateId
+    return currentState  unless currentState.getIn [ stateId, 'config' ]
     index        = currentState.getIn [ stateId, 'index' ], 0
     currentState.setIn [ stateId, 'index' ], index + 1
 
@@ -45,6 +47,7 @@ module.exports = class ChatInputDropboxSettingsStore extends KodingFluxStore
   moveToPrevIndex: (currentState, { stateId }) ->
 
     currentState = helper.ensureSettingsMap currentState, stateId
+    return currentState  unless currentState.getIn [ stateId, 'config' ]
     index        = currentState.getIn [ stateId, 'index' ], 0
     currentState.setIn [ stateId, 'index' ], index - 1
 
@@ -52,9 +55,7 @@ module.exports = class ChatInputDropboxSettingsStore extends KodingFluxStore
   reset: (currentState, { stateId }) ->
 
     currentState = helper.ensureSettingsMap currentState, stateId
-    currentState = currentState.setIn [ stateId, 'query' ], ''
-    currentState = currentState.setIn [ stateId, 'config' ], null
-    currentState = currentState.setIn [ stateId, 'index' ], 0
+    currentState = currentState.remove stateId
 
 
   helper =
