@@ -15,7 +15,7 @@ $transRed   = rgba(233, 72, 53, .25)
   padding                   0px 8px 0px 19px
   opacity                   1
   rel()
-  size                      218px 20px
+  size                      221px 20px
   text-decoration           none
 
   &.active
@@ -29,6 +29,13 @@ $transRed   = rgba(233, 72, 53, .25)
   &.active
     .SidebarMachinesListItem--MainLink
       color                 #FFF
+
+  &.unread
+    .MachineSettings
+      right                 35px
+
+  .SidebarListItem-unreadCount
+    margin-top              1px
 
   .SidebarListItem-icon
     abs                     50% 0 0 0px
@@ -104,11 +111,10 @@ $transRed   = rgba(233, 72, 53, .25)
 
 
 .MachineSettings
-  abs                       4px -5px 0 0
+  abs                       3px -5px 0 0
   opacity                   0
   r-sprite                  app vm-settings-icon
   right                     2px
-  top                       5px
   vendor                    transition, opacity .1s .1s ease
 
 
@@ -164,6 +170,11 @@ $transRed   = rgba(233, 72, 53, .25)
       .Workspace-settings
         opacity             1
 
+    &.unread
+      .Workspace-settings
+        right               35px
+
+
   .Workspace-add
     rel()
     margin-top              5px
@@ -201,5 +212,5 @@ $transRed   = rgba(233, 72, 53, .25)
     abs()
     r-sprite                'app', 'vm-settings-icon'
     right                   2px
-    top                     5px
+    top                     3px
     opacity                 0

@@ -3,6 +3,7 @@ Link                    = require 'app/components/common/link'
 React                   = require 'kd-react'
 actions                 = require 'app/flux/environment/actions'
 ReactDOM                = require 'react-dom'
+UnreadCount             = require './unreadcount'
 getMachineLink          = require 'app/util/getMachineLink'
 KDReactorMixin          = require 'app/flux/base/reactormixin'
 EnvironmentFlux         = require 'app/flux/environment'
@@ -68,15 +69,20 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
       />
 
 
-  renderUnreadCount: ->
+  getUnreadCount: ->
 
     channel = @props.workspace.get 'channel'
-    return null  unless channel?.get('unreadCount')
 
-    return \
-      <cite className='SidebarListItem-unreadCount'>
-        {channel.get 'unreadCount'}
-      </cite>
+    return 0  unless channel
+
+    return channel.get 'unreadCount'
+
+
+  renderUnreadCount: ->
+
+    return null  unless unreadCount = @getUnreadCount()
+
+    <UnreadCount count={unreadCount} />
 
 
   render: ->
@@ -85,10 +91,14 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
     then 'active'
     else ''
 
+    unread = if @getUnreadCount()
+    then 'unread'
+    else ''
+
     <div
       key={@props.workspace.get '_id'}
       ref='workspaceItem'
-      className="Workspace-item #{active}">
+      className="Workspace-item #{active} #{unread}">
       <cite className='Workspace-icon' />
       <Link className='Workspace-link' href={@getWorkspaceLink()} onClick={@bound 'handleLinkClick'}>
         <span className='Workspace-title'>{@props.workspace.get 'name'}</span>
