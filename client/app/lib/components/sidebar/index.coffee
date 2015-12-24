@@ -93,7 +93,7 @@ module.exports = class Sidebar extends React.Component
     stackList.koding.forEach (stack) =>
       stackSections.push @renderStack stack
 
-    # Now render stack of managed vms as last
+    # Now render stack of managed vms last
     stackList.managed.forEach (stack) =>
       stackSections.push @renderStack stack
 
