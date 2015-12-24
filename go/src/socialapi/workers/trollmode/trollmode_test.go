@@ -1,7 +1,6 @@
 package trollmode
 
 import (
-	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math"
@@ -365,11 +364,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			// add a message from a troll user
 			post, err := rest.CreatePost(privatemessageChannel.Id, trollUser.Id, trollSes.ClientId)
-			fmt.Println("ses user client id :", ses)
-			fmt.Println("troll user client id :", trollSes)
 			So(err, ShouldBeNil)
-			fmt.Println("err is:", err)
-			fmt.Println("post is:", post)
 			So(post, ShouldNotBeNil)
 
 			// fetch last message
@@ -689,11 +684,11 @@ func TestMarkedAsTroll(t *testing.T) {
 		// channel_message
 		SkipConvey("when a troll posts a status update normal user shouldnt be able to see it", func() {
 			// first post
-			post1, err := rest.CreatePost(groupChannel.Id, trollUser.Id, ses.ClientId)
+			post1, err := rest.CreatePost(groupChannel.Id, trollUser.Id, trollSes.ClientId)
 			tests.ResultedWithNoErrorCheck(post1, err)
 
 			// second post
-			post2, err := rest.CreatePost(groupChannel.Id, trollUser.Id, ses.ClientId)
+			post2, err := rest.CreatePost(groupChannel.Id, trollUser.Id, trollSes.ClientId)
 			tests.ResultedWithNoErrorCheck(post2, err)
 
 			// mark user as troll
