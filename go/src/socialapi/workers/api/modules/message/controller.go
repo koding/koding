@@ -277,10 +277,6 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 		return response.NewBadRequest(err)
 	}
 
-	if req.AccountId != c.Client.Account.Id {
-		return response.NewBadRequest(models.ErrAccessDenied)
-	}
-
 	body := req.Body
 	payload := req.Payload
 	if err := req.ById(id); err != nil {
@@ -288,6 +284,18 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
+	}
+
+	if req.AccountId != c.Client.Account.Id {
+		isAdmin, err := modelhelper.IsAdmin(c.Client.Account.Nick, c.GroupName)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if !isAdmin {
+			return response.NewBadRequest(models.ErrAccessDenied)
+		}
+
 	}
 
 	if req.Id == 0 {
@@ -328,8 +336,6 @@ func Get(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, ht
 	if !canOpen {
 		return response.NewAccessDenied(models.ErrCannotOpenChannel)
 	}
-	//fetch initial CHannel
-	// canopen ?
 
 	cmc := models.NewChannelMessageContainer()
 	return response.HandleResultAndError(cmc, cmc.Fetch(cm.Id, request.GetQuery(u)))
@@ -381,8 +387,8 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}, ctx *models.Contex
 		return response.NewNotFound()
 	}
 
-	ch := models.NewChannel()
-	if err := ch.ById(cm.InitialChannelId); err != nil {
+	ch, err := models.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
