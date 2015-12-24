@@ -15,8 +15,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/koding/multiconfig"
 	"github.com/koding/logging"
+	"github.com/koding/multiconfig"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -57,7 +57,7 @@ type MachineDocument struct {
 		StorageSize  int    `bson:"storage_size"`
 		SourceAmi    string `bson:"source_ami"`
 	} `bson:"meta"`
-	Users  []models.MachineUser `bson:"users"`
+	Users  []models.MachineUser  `bson:"users"`
 	Groups []models.MachineGroup `bson:"groups"`
 }
 
@@ -78,7 +78,7 @@ func realMain() error {
 	opts := &amazon.ClientOptions{
 		Credentials: credentials.NewStaticCredentials(conf.AccessKey, conf.SecretKey, ""),
 		Regions:     amazon.ProductionRegions,
-		Log: logging.NewLogger("userdebug"),
+		Log:         logging.NewLogger("userdebug"),
 	}
 	ec2clients, err := amazon.NewClients(opts)
 	if err != nil {

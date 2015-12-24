@@ -1,10 +1,5 @@
 package sl
 
-import (
-	"encoding/json"
-	"errors"
-)
-
 // Filter is used for querying Softlayer resources.
 type Filter struct {
 	// ID is the ID of the resource.
@@ -25,41 +20,59 @@ type Filter struct {
 	// By default only parent templates are returned - the ones having
 	// ParentID equal to 0.
 	Children bool
+
+	// Label is the label of the resource.
+	Label string
+
+	// User is a user to which the resource is attached to. In most
+	// cases it's a shorthand for Tags["user"].
+	User string
+
+	// Fingerprint is a fingerprint of the resource.
+	Fingerprint string
 }
 
-// JSON returns the objectFilter JSON representation of the filter.
-func (f *Filter) JSON() (string, error) {
+// op is a helper function that wraps given value with {"operation": value}.
+func op(value interface{}) interface{} {
+	return map[string]interface{}{
+		"operation": value,
+	}
+}
+
+// Object returns the objectFilter representation of the filter.
+//
+// TODO(rjeczalik): infer from JSON tags
+func (f *Filter) Object() map[string]interface{} {
 	if f == nil {
-		return "", nil
+		return nil
 	}
 	m := make(map[string]interface{})
 	if f.Name != "" {
-		m["name"] = map[string]interface{}{
-			"operation": f.Name,
-		}
+		m["name"] = op(f.Name)
 	}
 	if f.ID != 0 {
-		m["id"] = map[string]interface{}{
-			"operation": f.ID,
-		}
+		m["id"] = op(f.ID)
 	}
 	if f.Datacenter != "" && !f.Children {
+		// If children are also to be collected, then it's not
+		// possible to filter items with objectFilter - parent items
+		// have "datacenters" field and children - "datacenter" one.
+		// Filtering by one of them would remove the other group
+		// from the result set.
 		m["datacenters"] = map[string]interface{}{
-			"name": map[string]interface{}{
-				"operation": f.Datacenter,
-			},
+			"name": op(f.Datacenter),
 		}
 	}
-	// TODO(rjeczalik): research how to support tags
+	if f.Label != "" {
+		m["label"] = op(f.Label)
+	}
+	if f.Fingerprint != "" {
+		m["fingerprint"] = op(f.Fingerprint)
+	}
+	// TODO(rjeczalik): f.Tags - research how to support tags
+	// TODO(rjeczalik): f.User - like above
 	if len(m) == 0 {
-		return "", nil
+		return nil
 	}
-	m = map[string]interface{}{
-		"blockDeviceTemplateGroups": m,
-	}
-	p, err := json.Marshal(m)
-	if err != nil {
-		return "", errors.New("error marshaling filter: " + err.Error())
-	}
-	return string(p), nil
+	return m
 }

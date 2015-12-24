@@ -203,28 +203,69 @@ func CountUsersByQuery(selector bson.M) (int, error) {
 	return count, Mongo.Run(UserColl, query)
 }
 
-// GetOwner returns the owner of the machine, if it's not found it returns an
-// error.
-func GetPermittedUser(users []models.MachineUser) (*models.User, error) {
-	var ownerId bson.ObjectId
+// GetPermittedUser returns the permitted user of the machine (owner or shared
+// user), if it's not found it returns an error. The requestName is optional,
+// if it's not empty and the the users list has more than one valid allowed
+// users, we return the one that matches the requesterName.
+func GetPermittedUser(requesterName string, users []models.MachineUser) (*models.User, error) {
+	allowedIds := make([]bson.ObjectId, 0)
+	for _, perm := range users {
+		// owner is allowed to do anything
+		if perm.Owner {
+			allowedIds = append(allowedIds, perm.Id)
+			continue
+		}
 
-	for _, user := range users {
-		if user.Owner || (user.Permanent && user.Approved) {
-			ownerId = user.Id
+		// for this requestername needs to be available, for owner we don't care
+		if (perm.Permanent && perm.Approved) && requesterName != "" {
+			allowedIds = append(allowedIds, perm.Id)
+
 		}
 	}
 
-	if !ownerId.Valid() {
+	// nothing found, just return
+	if len(allowedIds) == 0 {
 		return nil, errors.New("owner not found")
 	}
 
-	user, err := GetUserById(users[0].Id.Hex())
-	if err == mgo.ErrNotFound {
-		return nil, fmt.Errorf("User with Id not found: %s", ownerId.Hex())
-	}
-	if err != nil {
-		return nil, fmt.Errorf("username lookup error: %v", err)
+	// if the list contains only one user and if the requesterName is empty,
+	// just get the do a short lookup and return the first result. (usually if
+	// there is only one owner)
+	if len(allowedIds) == 1 || requesterName == "" {
+		var user *models.User
+		err := Mongo.Run("jUsers", func(c *mgo.Collection) error {
+			return c.FindId(allowedIds[0]).One(&user)
+		})
+
+		if err == mgo.ErrNotFound {
+			return nil, fmt.Errorf("User with Id not found: %s", allowedIds[0].Hex())
+		}
+		if err != nil {
+			return nil, fmt.Errorf("username lookup error: %v", err)
+		}
+
+		return user, nil
 	}
 
-	return user, nil
+	// get the full list of users and return the one that matches the
+	// requesterName, if not we return someone that is allowed. Note that we
+	// don't do the validation here, this is only to fetch the user, don't put
+	// any validation logic here.
+	var allowedUsers []*models.User
+	if err := Mongo.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": bson.M{"$in": allowedIds}}).All(&allowedUsers)
+	}); err != nil {
+		return nil, fmt.Errorf("username lookup error: %s", err)
+	}
+
+	// now we have all allowed users, if we have someone that is in match with
+	// the requesterName just return it.
+	for _, u := range allowedUsers {
+		if u.Name == requesterName {
+			return u, nil
+		}
+	}
+
+	// nothing found, just return the first one
+	return allowedUsers[0], nil
 }

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update -q
@@ -25,6 +27,9 @@ sudo groupadd docker
 #sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
 #sudo apt-get update
 #sudo apt-get install -y lxc-docker
+
+# configure locale
+sudo locale-gen UTF-8
 
 # remove installed packages to free up space
 sudo apt-get clean

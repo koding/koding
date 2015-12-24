@@ -1245,7 +1245,7 @@ module.exports = class JGroup extends Module
         @updateCounts()
         @cycleChannel()
 
-        { profile: nickname } = client.connection.delegate
+        { profile: { nickname } } = client.connection.delegate
 
         return  unless nickname
 

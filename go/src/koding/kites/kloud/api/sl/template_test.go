@@ -38,6 +38,10 @@ func TestTagsMatches(t *testing.T) {
 		tags:  sl.Tags{"A": "B", "C": "D", "E": "F"},
 		match: sl.Tags{"A": "B", "C": "D", "E": "F"},
 		ok:    true,
+	}, { // i=7
+		tags:  sl.Tags{},
+		match: sl.Tags{"Name": "koding-stable"},
+		ok:    false,
 	}}
 	for i, cas := range cases {
 		ok := cas.tags.Matches(cas.match)

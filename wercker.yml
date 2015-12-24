@@ -59,6 +59,7 @@ build:
         name: launch test instance
         code: |
           INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
+          echo $INSTANCE_OPTIONS
           scripts/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
           cat INSTANCE_DATA
     - script:

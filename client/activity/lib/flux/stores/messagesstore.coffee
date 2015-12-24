@@ -57,7 +57,7 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     @on actions.LOAD_COMMENT_SUCCESS, @handleLoadCommentSuccess
 
-    @on actions.CREATE_COMMENT_BEGIN, @handleCreateMessageBegin
+    @on actions.CREATE_COMMENT_BEGIN, @handleCreateCommentBegin
     @on actions.CREATE_COMMENT_SUCCESS, @handleCreateCommentSuccess
     @on actions.CREATE_COMMENT_FAIL, @handleCreateMessageFail
 
@@ -78,7 +78,12 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     { addMessage } = MessageCollectionHelpers
 
-    return addMessage messages, toImmutable message
+    messages = addMessage messages, toImmutable message
+
+    message.replies.forEach (_message) ->
+      messages = addMessage messages, toImmutable _message
+
+    return messages
 
 
   ###*
@@ -229,6 +234,28 @@ module.exports = class MessagesStore extends KodingFluxStore
       message = message.remove '__isEmbedPayloadDisabled'
 
     return addMessage messages, message
+
+
+  ###*
+   * Handler for `CREATE_COMMENT_BEGIN` action.
+   * It creates a fake message and pushes it to given channel's thread.
+   * Latency compensation first step.
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.body
+   * @param {string} payload.clientRequestId
+   * @return {IMMessageCollection} nextState
+  ###
+  handleCreateCommentBegin: (messages, { body, clientRequestId, messageId }) ->
+
+    { createFakeMessage, addMessage } = MessageCollectionHelpers
+
+    comment = createFakeMessage clientRequestId, body
+    comment.typeConstant = 'reply'
+    messages = messages.updateIn [messageId, 'repliesCount'], (count) -> count + 1
+
+    return addMessage messages, toImmutable comment
 
 
   ###*

@@ -1,6 +1,8 @@
 package kloud
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/models"
@@ -8,6 +10,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
+	pUser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/userdata"
 	"strconv"
 	"strings"
@@ -125,7 +128,11 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 				return nil, err
 			}
 
-			if resourceType != "instance" {
+			if resourceType == "instance" && provider != "aws" {
+				continue
+			}
+
+			if resourceType == "build" && provider != "vagrantkite" {
 				continue
 			}
 
@@ -209,30 +216,120 @@ func parseResource(resource string) (string, string, string, error) {
 	return provider, resourceType, label, nil
 }
 
-func injectKodingData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
+func injectVagrantData(ctx context.Context, template *terraformTemplate, username string) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
 	}
 
+	var resource struct {
+		VagrantBuild map[string]map[string]interface{} `hcl:"vagrantkite_build"`
+	}
+
+	if err := template.DecodeResource(&resource); err != nil {
+		return nil, err
+	}
+
+	if len(resource.VagrantBuild) == 0 {
+		sess.Log.Debug("No Vagrant build available")
+		return nil, nil
+	}
+
+	kiteIds := make(map[string]string)
+
+	for resourceName, box := range resource.VagrantBuild {
+		kiteID := uuid.NewV4().String()
+
+		kiteKey, err := sess.Userdata.Keycreator.Create(username, kiteID)
+		if err != nil {
+			return nil, err
+		}
+
+		klientURL, err := sess.Userdata.Bucket.LatestDeb()
+		if err != nil {
+			return nil, err
+		}
+		klientURL = sess.Userdata.Bucket.URL(klientURL)
+
+		// get the registerURL if passed via template
+		var registerURL string
+		if r, ok := box["registerURL"]; ok {
+			if ru, ok := r.(string); ok {
+				registerURL = ru
+			}
+		}
+
+		// get the kontrolURL if passed via template
+		var kontrolURL string
+		if k, ok := box["kontrolURL"]; ok {
+			if ku, ok := k.(string); ok {
+				kontrolURL = ku
+			}
+		}
+
+		data := pUser.Value{
+			Username:        username,
+			Groups:          []string{"sudo"},
+			Hostname:        username, // no typo here. hostname = username
+			KiteKey:         kiteKey,
+			LatestKlientURL: klientURL,
+			RegisterURL:     registerURL,
+			KontrolURL:      kontrolURL,
+		}
+
+		// pass the values as a JSON encoded as bae64. Our script will decode
+		// and unmarshall and use it inside the Vagrant box
+		val, err := json.Marshal(&data)
+		if err != nil {
+			return nil, err
+		}
+
+		kiteIds[resourceName] = kiteID
+		encoded := base64.StdEncoding.EncodeToString(val)
+		box["provisionData"] = encoded
+		resource.VagrantBuild[resourceName] = box
+	}
+
+	template.Resource["vagrantkite_build"] = resource.VagrantBuild
+
+	if err := template.hclUpdate(); err != nil {
+		return nil, err
+	}
+
+	b := &buildData{
+		KiteIds: kiteIds,
+	}
+
+	return b, nil
+}
+
+func injectAWSData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	awsFound := false
 	awsOutput := &AwsBootstrapOutput{}
 	for _, cred := range data.Creds {
 		if cred.Provider != "aws" {
 			continue
 		}
 
+		awsFound = true
+
 		if err := mapstructure.Decode(cred.Data, &awsOutput); err != nil {
 			return nil, err
 		}
+
+		if structs.HasZero(awsOutput) {
+			return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
+		}
 	}
 
-	if structs.HasZero(awsOutput) {
-		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
-	}
-
-	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..
-	if err := template.injectKodingVariables(data.KodingData); err != nil {
-		return nil, err
+	if !awsFound {
+		sess.Log.Debug("No AWS data found to be injected")
+		return nil, nil
 	}
 
 	var resource struct {
@@ -349,14 +446,8 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 		return nil, err
 	}
 
-	out, err := template.jsonOutput()
-	if err != nil {
-		return nil, err
-	}
-
 	b := &buildData{
-		Template: out,
-		KiteIds:  kiteIds,
+		KiteIds: kiteIds,
 	}
 
 	return b, nil

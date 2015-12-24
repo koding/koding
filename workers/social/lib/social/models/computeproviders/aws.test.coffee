@@ -76,7 +76,7 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
           expect(err).to.not.exist
           expect(data.meta.type)            .to.be.equal Aws.providerSlug
           expect(data.meta.region)          .to.be.equal 'us-east-1'
-          expect(data.meta.instance_type)   .to.be.equal 't2.micro'
+          expect(data.meta.instance_type)   .to.be.equal 't2.nano'
           expect(data.credential)           .to.be.equal options.credential
           expect(data.meta.source_ami)      .to.not.exist
           done()

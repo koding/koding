@@ -75,6 +75,15 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 	eventId := r.Method + "-" + args.StackId
 	ev := k.NewEventer(eventId)
 
+	stack, err := modelhelper.GetComputeStack(args.StackId)
+	if err != nil {
+		return nil, err
+	}
+
+	if stack.State().InProgress() {
+		return nil, fmt.Errorf("State is currently %s. Please try again later", stack.State())
+	}
+
 	if args.Destroy {
 		ev.Push(&eventer.Event{
 			Message: r.Method + " started",
@@ -101,9 +110,11 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 		var err error
 		if args.Destroy {
-			modelhelper.SetStackState(args.StackId, "Stack destroying started", stackstate.Destroying)
+			modelhelper.SetStackState(args.StackId, "Stack destroying started",
+				stackstate.Destroying)
 
-			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
+			k.Log.New(args.StackId).Info("======> %s (destroy) started <======",
+				strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
 			err = destroy(ctx, r.Username, args.GroupName, args.StackId)
 		} else {
@@ -112,10 +123,12 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
 			err = apply(ctx, r.Username, args.GroupName, args.StackId)
 			if err != nil {
-				modelhelper.SetStackState(args.StackId, "Stack building failed", stackstate.NotInitialized)
+				modelhelper.SetStackState(args.StackId, "Stack building failed",
+					stackstate.NotInitialized)
 				finalEvent.Status = machinestate.NotInitialized
 			} else {
-				modelhelper.SetStackState(args.StackId, "Stack building finished", stackstate.Initialized)
+				modelhelper.SetStackState(args.StackId, "Stack building finished",
+					stackstate.Initialized)
 			}
 
 		}
@@ -220,11 +233,26 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
-	buildData, err := injectKodingData(ctx, template, username, data)
+	// inject koding variables, in the form of koding_user_foo,
+	// koding_group_name, etc..
+	if err := template.injectKodingVariables(data.KodingData); err != nil {
+		return err
+	}
+
+	if _, err := injectAWSData(ctx, template, username, data); err != nil {
+		return err
+	}
+
+	if _, err := injectVagrantData(ctx, template, username); err != nil {
+		return err
+	}
+
+	out, err := template.jsonOutput()
 	if err != nil {
 		return err
 	}
-	stack.Template = buildData.Template
+
+	stack.Template = out
 
 	sess.Log.Debug("Calling terraform.destroy method with context:")
 	sess.Log.Debug(stack.Template)
@@ -341,11 +369,42 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
-	buildData, err := injectKodingData(ctx, template, username, data)
+	sess.Log.Debug("Injecting Koding data")
+	// inject koding variables, in the form of koding_user_foo,
+	// koding_group_name, etc..
+	if err := template.injectKodingVariables(data.KodingData); err != nil {
+		return err
+	}
+
+	kiteIds := make(map[string]string)
+
+	awsData, err := injectAWSData(ctx, template, username, data)
 	if err != nil {
 		return err
 	}
-	stack.Template = buildData.Template
+
+	if awsData != nil && awsData.KiteIds != nil {
+		for label, id := range awsData.KiteIds {
+			kiteIds[label] = id
+		}
+	}
+
+	vagrantData, err := injectVagrantData(ctx, template, username)
+	if err != nil {
+		return err
+	}
+
+	if vagrantData != nil && vagrantData.KiteIds != nil {
+		for label, id := range vagrantData.KiteIds {
+			kiteIds[label] = id
+		}
+	}
+
+	out, err := template.jsonOutput()
+	if err != nil {
+		return err
+	}
+	stack.Template = out
 
 	done := make(chan struct{})
 
@@ -386,6 +445,8 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		return err
 	}
 
+	fmt.Printf("state = %+v\n", state)
+
 	close(done)
 
 	ev.Push(&eventer.Event{
@@ -394,9 +455,11 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	sess.Log.Debug("Checking total '%d' klients", len(buildData.KiteIds))
-	if err := checkKlients(ctx, buildData.KiteIds); err != nil {
-		return err
+	if len(kiteIds) != 0 {
+		sess.Log.Debug("Checking total '%d' klients", len(kiteIds))
+		if err := checkKlients(ctx, kiteIds); err != nil {
+			return err
+		}
 	}
 
 	output, err := machinesFromState(state)
@@ -406,9 +469,12 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 
 	sess.Log.Debug("Machines from state: %+v", output)
 	sess.Log.Debug("Build region: %+v", region)
-	sess.Log.Debug("Build data kiteIDS: %+v", buildData.KiteIds)
 	output.AppendRegion(region)
-	output.AppendQueryString(buildData.KiteIds)
+
+	if len(kiteIds) != 0 {
+		sess.Log.Debug("Build data kiteIDS: %+v", kiteIds)
+		output.AppendQueryString(kiteIds)
+	}
 
 	d, err := json.MarshalIndent(output, "", " ")
 	if err != nil {
@@ -563,11 +629,6 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 }
 
 func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Machine) error {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return errors.New("session context is not passed")
-	}
-
 	for _, machine := range jMachines {
 		label := machine.Label
 		if l, ok := machine.Meta["assignedLabel"]; ok {
@@ -581,34 +642,56 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Mac
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
-		size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
-		if err != nil {
-			return err
-		}
-
-		ipAddress := tf.Attributes["public_ip"]
-
-		if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				machine.ObjectId,
-				bson.M{"$set": bson.M{
-					"provider":          tf.Provider,
-					"meta.region":       tf.Region,
-					"queryString":       tf.QueryString,
-					"ipAddress":         ipAddress,
-					"meta.instanceId":   tf.Attributes["id"],
-					"meta.instanceType": tf.Attributes["instance_type"],
-					"meta.source_ami":   tf.Attributes["ami"],
-					"meta.storage_size": size,
-					"status.state":      machinestate.Running.String(),
-					"status.modifiedAt": time.Now().UTC(),
-					"status.reason":     "Created with kloud.apply",
-				}},
-			)
-		}); err != nil {
-			return err
+		switch tf.Provider {
+		case "aws":
+			if err := updateAWS(ctx, tf, machine.ObjectId); err != nil {
+				return err
+			}
+		case "vagrantkite":
+			if err := updateVagrantKite(ctx, tf, machine.ObjectId); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+func updateAWS(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId) error {
+	size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
+	if err != nil {
+		return err
+	}
+
+	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
+		"provider":           tf.Provider,
+		"meta.region":        tf.Region,
+		"queryString":        tf.QueryString,
+		"ipAddress":          tf.Attributes["public_ip"],
+		"meta.instanceId":    tf.Attributes["id"],
+		"meta.instance_type": tf.Attributes["instance_type"],
+		"meta.source_ami":    tf.Attributes["ami"],
+		"meta.storage_size":  size,
+		"status.state":       machinestate.Running.String(),
+		"status.modifiedAt":  time.Now().UTC(),
+		"status.reason":      "Created with kloud.apply",
+	}})
+}
+
+func updateVagrantKite(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId) error {
+	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
+		"provider":            tf.Provider,
+		"queryString":         tf.QueryString,
+		"ipAddress":           tf.Attributes["ipAddress"],
+		"meta.filePath":       tf.Attributes["filePath"],
+		"meta.memory":         tf.Attributes["memory"],
+		"meta.cpus":           tf.Attributes["cpus"],
+		"meta.box":            tf.Attributes["box"],
+		"meta.hostname":       tf.Attributes["hostname"],
+		"meta.klientHostURL":  tf.Attributes["klientHostURL"],
+		"meta.klientGuestURL": tf.Attributes["klientGuestURL"],
+		"status.state":        machinestate.Running.String(),
+		"status.modifiedAt":   time.Now().UTC(),
+		"status.reason":       "Created with kloud.apply",
+	}})
 }

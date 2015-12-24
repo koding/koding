@@ -177,12 +177,12 @@ module.exports           = class MainController extends KDController
     unless account instanceof remote.api.JAccount
       account = remote.revive account
 
-    matchIds = account._id is globals.userAccount?._id
-    return  if not firstLoad and matchIds
-
     clientExpirationValidators = [checkGuestUser, checkLoggedOut]
     for validator in clientExpirationValidators when validator account
       return expireClientId()
+
+    matchIds = account._id is globals.userAccount?._id
+    return  if not firstLoad and matchIds
 
     globals.userAccount = account
     connectedState.connected = yes
