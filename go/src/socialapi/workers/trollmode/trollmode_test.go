@@ -766,20 +766,20 @@ func TestMarkedAsTroll(t *testing.T) {
 			// 	So(err, ShouldBeNil)
 			// }
 
-			reply, err := rest.AddReply(post.Id, adminUser, groupChannel.Id, ses.ClientId)
+			reply, err := rest.AddReply(post.Id, adminUser.Id, groupChannel.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(reply, ShouldNotBeNil)
-			So(reply.AccountId, ShouldEqual, userId)
+			So(reply.AccountId, ShouldEqual, adminUser.Id)
 
-			reply, err := rest.AddReply(post.Id, normalUser, groupChannel.Id, normalSes.ClientId)
+			reply1, err := rest.AddReply(post.Id, normalUser.Id, groupChannel.Id, normalSes.ClientId)
 			So(err, ShouldBeNil)
-			So(reply, ShouldNotBeNil)
-			So(reply.AccountId, ShouldEqual, userId)
+			So(reply1, ShouldNotBeNil)
+			So(reply1.AccountId, ShouldEqual, normalUser.Id)
 
-			reply, err := rest.AddReply(post.Id, trollUser, groupChannel.Id, trollSes.ClientId)
+			reply2, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
-			So(reply, ShouldNotBeNil)
-			So(reply.AccountId, ShouldEqual, userId)
+			So(reply2, ShouldNotBeNil)
+			So(reply2.AccountId, ShouldEqual, trollUser.Id)
 
 			// add replies
 			// for _, userId := range users {
