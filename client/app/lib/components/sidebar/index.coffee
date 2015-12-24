@@ -65,17 +65,37 @@ module.exports = class Sidebar extends React.Component
           machine={machine} />
 
 
+  renderStack: (stack) ->
+    <SidebarStackSection
+      key={stack.get '_id'}
+      previewCount={PREVIEW_COUNT}
+      selectedId={@state.selectedThreadId}
+      stack={stack}
+      machines={stack.get 'machines'}/>
+
+
+
   renderStacks: ->
 
     stackSections = []
-    @state.stacks.toList().map (stack) =>
-      stackSections.push \
-        <SidebarStackSection
-          key={stack.get '_id'}
-          previewCount={PREVIEW_COUNT}
-          selectedId={@state.selectedThreadId}
-          stack={stack}
-          machines={stack.get 'machines'}/>
+    stackList     =
+      koding      : []
+      managed     : []
+
+    @state.stacks.toList().map (stack) ->
+      provider = if stack.get('title').toLowerCase() is 'managed vms'
+      then 'managed'
+      else 'koding'
+
+      stackList[provider].push stack
+
+    # Render stacks of koding as first.
+    stackList.koding.forEach (stack) =>
+      stackSections.push @renderStack stack
+
+    # Now render stack of managed vms as last
+    stackList.managed.forEach (stack) =>
+      stackSections.push @renderStack stack
 
     return stackSections
 
