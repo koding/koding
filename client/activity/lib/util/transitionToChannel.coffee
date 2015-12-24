@@ -19,11 +19,11 @@ module.exports = transitionToChannel =  (channelName, done) ->
   # if we have an opened channel, switch to it immediately.
   if isChannelOpened
     threadActions.changeSelectedThread channel.id
-    done()
+    done null, channel
   else
     channelActions.loadChannelByName(channelName).then ({channel}) ->
       threadActions.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id
-      done()
+      done null, channel
 
 
