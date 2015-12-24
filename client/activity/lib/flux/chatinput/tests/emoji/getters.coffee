@@ -8,7 +8,7 @@ DropboxSettingsStore = require 'activity/flux/chatinput/stores/dropboxsettingsst
 EmojisStore          = require 'activity/flux/chatinput/stores/emoji/emojisstore'
 
 
-describe 'EmojiGetters', ->
+describe 'ChatInputEmojiGetters', ->
 
   stateId = '123'
   config  = {
@@ -131,6 +131,7 @@ describe 'EmojiGetters', ->
       { getters } = ChatInputFlux
 
       @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'apple', config }
+      # index is set by default to 0
       @reactor.dispatch actionTypes.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId }
 
       items = @reactor.evaluate getters.dropboxEmojis stateId

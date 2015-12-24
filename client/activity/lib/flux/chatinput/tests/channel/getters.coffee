@@ -145,6 +145,7 @@ describe 'ChatInputChannelGetters', ->
       { getters } = ChatInputFlux
 
       @reactor.dispatch ChatInputActionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : '', config }
+      # index is set by default to 0
       @reactor.dispatch ChatInputActionTypes.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId }
 
       items = @reactor.evaluate getters.dropboxChannels stateId

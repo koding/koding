@@ -364,13 +364,13 @@ dropboxCommands = (stateId) -> [
   dropboxQuery stateId
   dropboxConfig stateId
   CommandsStore
-  ActivityFluxGetters.selectedChannelThread
-  (query, config, allCommands, selectedChannelThread) ->
+  ActivityFluxGetters.selectedChannel
+  (query, config, allCommands, selectedChannel) ->
     return  unless config and config.getIn(['getters', 'items']) is 'dropboxCommands'
-    return  unless selectedChannelThread
+    return  unless selectedChannel
 
     ignoredFeatures  = []
-    selectedChannel  = selectedChannelThread.get('channel').toJS()
+    selectedChannel  = selectedChannel.toJS()
     isPrivateChannel = selectedChannel.typeConstant is 'privatemessage'
     ignoredFeatures.push 'search'  if isPrivateChannel
     ignoredFeatures.push 'leave'   if isGroupChannel selectedChannel

@@ -429,6 +429,7 @@ module.exports = {
 
   selectedChannelThreadId
   selectedChannelThread
+  selectedChannel
 
   channelByName
 
