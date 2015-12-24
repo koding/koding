@@ -748,7 +748,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			post, err := rest.CreatePost(groupChannel.Id, normalUser.Id, ses.ClientId)
 			tests.ResultedWithNoErrorCheck(post, err)
 
-			users := []int64{adminUser.Id, normalUser.Id, trollUser.Id}
+			// users := []int64{adminUser.Id, normalUser.Id, trollUser.Id}
 
 			_, err = rest.AddInteraction("like", post.Id, adminUser.Id)
 			So(err, ShouldBeNil)
