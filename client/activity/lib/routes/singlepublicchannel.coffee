@@ -1,15 +1,14 @@
-kd                        = require 'kd'
-ChannelThreadPane         = require 'activity/components/channelthreadpane'
-ActivityFlux              = require 'activity/flux'
-transitionToChannel       = require 'activity/util/transitionToChannel'
-SingleMessageRoute        = require './singlemessage'
+kd                  = require 'kd'
+ChannelThreadPane   = require 'activity/components/channelthreadpane'
+ActivityFlux        = require 'activity/flux'
+transitionToChannel = require 'activity/util/transitionToChannel'
+SingleMessageRoute  = require './singlemessage'
 
 {
   thread  : threadActions,
   message : messageActions } = ActivityFlux.actions
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
-
 
 module.exports = class SingleChannelRoute
 
