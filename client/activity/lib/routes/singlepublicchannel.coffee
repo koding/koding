@@ -1,12 +1,15 @@
-kd                  = require 'kd'
-ChannelThreadPane   = require 'activity/components/channelthreadpane'
-ActivityFlux        = require 'activity/flux'
-transitionToChannel = require 'activity/util/transitionToChannel'
-SingleMessageRoute  = require './singlemessage'
+kd                                     = require 'kd'
+ChannelThreadPane                      = require 'activity/components/channelthreadpane'
+ActivityFlux                           = require 'activity/flux'
+transitionToChannel                    = require 'activity/util/transitionToChannel'
+SingleMessageRoute                     = require './singlemessage'
+ResultStates                           = require 'activity/constants/resultStates'
+PublicChannelNotificationSettingsRoute = require 'activity/routes/publicchannelnotificationsettings'
 
 {
   thread  : threadActions,
-  message : messageActions } = ActivityFlux.actions
+  message : messageActions,
+  channel : channelActions } = ActivityFlux.actions
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
@@ -16,6 +19,7 @@ module.exports = class SingleChannelRoute
 
     @path = ':channelName'
     @childRoutes = [
+      new PublicChannelNotificationSettingsRoute
       new SingleMessageRoute
     ]
 
@@ -33,15 +37,14 @@ module.exports = class SingleChannelRoute
     { channelName, postId } = nextState.params
     { pathname } = nextState.location
 
-    unless postId
-      return kd.singletons.router.handleRoute "#{pathname}/Recent"
-
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
 
     channel = channelByName channelName
 
     if channelName
-      transitionToChannel channelName, done
+      transitionToChannel channelName, (err, channel) ->
+        channelActions.changeResultState channel._id, ResultStates.RECENT
+        done()
     else if not selectedThread
       threadActions.changeSelectedThread null
       done()
