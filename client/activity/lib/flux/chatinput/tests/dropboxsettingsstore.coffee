@@ -66,7 +66,7 @@ describe 'ChatInputDropboxSettingsStore', ->
 
       index = 3
 
-      @reactor.dispatch actions.MOVE_TO_NEXT_DROPBOX_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actions.MOVE_TO_NEXT_DROPBOX_SELECTED_INDEX, { stateId }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBeA 'undefined'
@@ -91,7 +91,7 @@ describe 'ChatInputDropboxSettingsStore', ->
 
       index = 3
 
-      @reactor.dispatch actions.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actions.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId }
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings.get 'index').toBeA 'undefined'
