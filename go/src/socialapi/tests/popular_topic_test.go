@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"socialapi/models"
 	"socialapi/rest"
@@ -59,7 +58,6 @@ func TestPopularTopic(t *testing.T) {
 			time.Sleep(1 * time.Second)
 
 			popularTopics, err := rest.FetchPopularTopics(account.Id, groupName, ses.ClientId)
-			fmt.Println("POPULAR TOPIC,POPULAR TOPIC,POPULAR TOPIC:", popularTopics)
 
 			So(err, ShouldBeNil)
 			So(popularTopics, ShouldNotBeNil)
