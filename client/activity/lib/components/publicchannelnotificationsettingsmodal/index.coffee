@@ -28,8 +28,13 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
   componentDidMount: ->
 
     webNotifications = ReactDOM.findDOMNode @refs.webNotifications
-    value = @state.channelNotificationSettings.get('desktopSetting')
-    radio = webNotifications.querySelector "input[value=#{value}]"
+
+    if @state.channelNotificationSettings
+      value = @state.channelNotificationSettings.get('desktopSetting')
+      radio = webNotifications.querySelector "input[value=#{value}]"
+    else
+      # get the first radio to focus
+      radio = webNotifications.querySelector "input[type=radio]"
 
     radio.focus()
 
@@ -103,7 +108,7 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
 
     channelName = @state.selectedThread.getIn ['channel', 'name']
 
-    route = "/Channels/#{channelName}"
+    route = "/Channels/#{channelName}/Recent"
 
     kd.singletons.router.handleRoute route
 
