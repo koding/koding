@@ -6,14 +6,15 @@ import (
 
 type CreatePostType struct {
 	ChannelId, Acc1Id, Acc2Id int64
-	Body                      string
+	Body, Token               string
 }
 
-func NewCreatePost(channelId, acc1Id, acc2Id int64) *CreatePostType {
+func NewCreatePost(channelId, acc1Id, acc2Id int64, token string) *CreatePostType {
 	return &CreatePostType{
 		ChannelId: channelId,
 		Acc1Id:    acc1Id,
 		Acc2Id:    acc2Id,
+		Token:     token,
 	}
 }
 
@@ -40,7 +41,7 @@ func (c *CreatePostType) CreateReplies(n int) (*CreatePostReplyReturn, error) {
 	cpReturn.Replies = make([]*models.ChannelMessage, 0)
 
 	for i := 1; i <= n; i++ {
-		reply, err := AddReply(cpReturn.Post.Id, c.Acc2Id, c.ChannelId)
+		reply, err := AddReply(cpReturn.Post.Id, c.Acc2Id, c.ChannelId, c.Token)
 		if err != nil {
 			return nil, err
 		}
