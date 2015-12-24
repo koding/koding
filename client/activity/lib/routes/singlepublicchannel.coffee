@@ -1,13 +1,11 @@
-kd                = require 'kd'
-ChannelThreadPane = require 'activity/components/channelthreadpane'
-ActivityFlux      = require 'activity/flux'
-getGroup          = require 'app/util/getGroup'
-changeToChannel   = require 'activity/util/changeToChannel'
-ResultStates      = require 'activity/util/resultStates'
+kd                        = require 'kd'
+ChannelThreadPane         = require 'activity/components/channelthreadpane'
+ActivityFlux              = require 'activity/flux'
+transitionToChannel       = require 'activity/util/transitionToChannel'
+SingleMessageRoute        = require './singlemessage'
 
 {
   thread  : threadActions,
-  channel : channelActions,
   message : messageActions } = ActivityFlux.actions
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
@@ -35,10 +33,10 @@ module.exports = class SingleChannelRoute
 
     { params, routes, location } = nextState
     { channelName } = params
+    { pathname } = location
 
-    if location.pathname is "/Channels/#{channelName}"
-      route = "/Channels/#{channelName}/Recent"
-      return kd.singletons.router.handleRoute route
+    unless nextState.params.postId
+      return kd.singletons.router.handleRoute "#{pathname}/Recent"
 
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
 
