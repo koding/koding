@@ -223,7 +223,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id)
+				reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -252,11 +252,11 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id)
+				reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
-				reply, err = rest.AddReply(post.Id, post.AccountId, groupChannel.Id)
+				reply, err = rest.AddReply(post.Id, post.AccountId, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -273,7 +273,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -301,7 +301,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -349,7 +349,7 @@ func TestChannelMessage(t *testing.T) {
 				sesNonOwner, err := models.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -377,11 +377,11 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply1, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+				reply1, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply1, ShouldNotBeNil)
 
-				reply2, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+				reply2, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply2, ShouldNotBeNil)
 
@@ -418,11 +418,11 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply1, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+				reply1, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply1, ShouldNotBeNil)
 
-				reply2, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+				reply2, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply2, ShouldNotBeNil)
 
