@@ -20,10 +20,10 @@
     "/NewChannel": "NewPublicChannel",
     "/AllChannels": "AllPublicChannels",
     "/Channels/:channelName": "SinglePublicChannel",
-    "/Channels/:channelName/Recent": "SinglePublicChannel",
-    "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
     "/Channels/:channelName/Liked": "SinglePublicChannelPopularMessages",
-    "/Channels/:channelName/NotificationSettings": "ChannelNotificationSettings",
+    "/Channels/:channelName/Recent": "SinglePublicChannelRecentMessages",
+    "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
+    "/Channels/:channelName/NotificationSettings": "PublicChannelNotificationSettingsRoute",
 
     "/PrivateChannelModals/:modalRoute": "PrivateChannelModals",
     "/PublicChannelModals/:modalRoute": "PublicChannelModals",
