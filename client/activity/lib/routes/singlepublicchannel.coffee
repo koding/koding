@@ -50,9 +50,13 @@ module.exports = class SingleChannelRoute
 
     channel = channelByName channelName
 
+    # when the route is '/Channels/:channelName/Liked' SingleChannelRoute triggers
+    # first then SinglePublicChannelPopularMessages triggers. this check has been added
+    # to make sure if resultState has to set '/Recent'. In '/Liked' page first
+    # 'Most Liked' tab active then 'Most Recent' because of async operation.
     channelActions.loadChannelByName(channelName).then ({channel}) ->
       if shouldSetResultStateFlag routes
-        channelActions.setChannelResultStateFlag channel.id, ResultStates.RECENT
+        channelActions.changeResultState channel.id, ResultStates.RECENT
 
     if channelName
       transitionToChannel channelName, done
@@ -68,14 +72,14 @@ module.exports = class SingleChannelRoute
 
 shouldSetResultStateFlag = (routes) ->
 
-  setResultStateFlagAsRecent = yes
+  shouldSet = yes
 
   for route in routes
     path = route.path.toUpperCase()
     if ResultStates[path] and path isnt ResultStates.RECENT
-      setResultStateFlagAsRecent = no
+      shouldSet = no
 
-  return setResultStateFlagAsRecent
+  return shouldSet
 
 
 transitionToChannel = (channelName, done) ->
