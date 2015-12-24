@@ -8,7 +8,7 @@ module.exports = parseTerraformOutput = (response) ->
   #   {
   #     "label" : "koding-vm-0",
   #     "provider" : "koding",
-  #     "instanceType" : "t2.micro",
+  #     "instanceType" : "t2.nano",
   #     "provisioners" : [
   #         "devrim/koding-base"
   #     ],

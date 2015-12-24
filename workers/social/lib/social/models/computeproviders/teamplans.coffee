@@ -16,7 +16,7 @@ module.exports = clone
                             # by a super-admin (an admin in Koding group)
     validFor           : 0  # no expire date
     instancePerMember  : 1  # allows one instance per member
-    allowedInstances   : [ 't2.micro' ]
+    allowedInstances   : [ 't2.nano' ]
     maxInstance        : 1  # maximum instance count for this group (total)
     storagePerInstance : 5  # means 5GB storage for this plan in total (max).
                             # 1 member x 1 instancePerMember = 1 instance
@@ -28,7 +28,7 @@ module.exports = clone
                             # by a super-admin (an admin in Koding group)
     validFor           : 30 # in days (1 month)
     instancePerMember  : 1  # allows one instance per member
-    allowedInstances   : [ 't2.micro' ]
+    allowedInstances   : [ 't2.nano', 't2.micro' ]
     maxInstance        : 10 # maximum instance count for this group (total)
     storagePerInstance : 5  # means 25GB storage for this plan in total (max).
                             # 5 member x 1 instancePerMember = 5 instances
@@ -40,7 +40,7 @@ module.exports = clone
                             # by a super-admin (an admin in Koding group)
     validFor           : 30 # in days (1 month)
     instancePerMember  : 2  # allows two instances per member
-    allowedInstances   : [ 't2.micro', 't2.small' ]
+    allowedInstances   : [ 't2.nano', 't2.micro', 't2.small' ]
     maxInstance        : 20 # maximum instance count for this group (total)
     storagePerInstance : 10 # means 100GB storage for this plan in total (max).
                             # 5 member x 2 instancePerMember   = 10 instances
@@ -52,8 +52,11 @@ module.exports = clone
     validFor           : 30
     instancePerMember  : 5
     allowedInstances   : [
-      't2.micro', 't2.small', 't2.medium', 't2.large'
-      'm3.medium', 'm3.large', 'c3.large', 'c3.xlarge'
+      't2.nano', 't2.micro', 't2.small', 't2.medium',
+      'm3.medium', 'm1.medium', 't2.large', 'c3.large',
+      'c4.large', 'c1.medium', 'm3.large', 'c3.xlarge',
+      'c4.xlarge', 'm2.xlarge', 'm4.xlarge', 'm3.xlarge',
+      'c3.2xlarge'
     ]
     maxInstance        : 500
     storagePerInstance : 20

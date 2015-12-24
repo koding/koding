@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"koding/kites/kloud/keycreator"
 	"log"
 	"strings"
 	"text/template"
+
+	"koding/kites/kloud/keycreator"
 
 	"code.google.com/p/go.crypto/ssh"
 	"gopkg.in/yaml.v2"

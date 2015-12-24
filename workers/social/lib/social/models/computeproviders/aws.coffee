@@ -27,7 +27,7 @@ module.exports = class Aws extends ProviderInterface
     meta =
       type          : @providerSlug
       region        : region ? 'us-east-1'
-      instance_type : instanceType ? 't2.micro'
+      instance_type : instanceType ? 't2.nano'
       storage_size  : storage
       assignedLabel : label
 

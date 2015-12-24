@@ -287,13 +287,13 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 		return c.UpdateId(
 			m.ObjectId,
 			bson.M{"$set": bson.M{
-				"ipAddress":         m.IpAddress,
-				"meta.instanceName": meta.InstanceName,
-				"meta.instanceId":   meta.InstanceId,
-				"meta.instanceType": meta.InstanceType,
-				"status.state":      machinestate.Running.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Machine is running",
+				"ipAddress":          m.IpAddress,
+				"meta.instanceName":  meta.InstanceName,
+				"meta.instanceId":    meta.InstanceId,
+				"meta.instance_type": meta.InstanceType,
+				"status.state":       machinestate.Running.String(),
+				"status.modifiedAt":  time.Now().UTC(),
+				"status.reason":      "Machine is running",
 			}},
 		)
 	})

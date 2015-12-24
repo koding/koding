@@ -46,7 +46,7 @@ NW::fail = (result, actual, expected, defaultMsg) ->
                   logString += "#{log.level} #{log.message}\n"  for log in logs
 
                   s3 = new AWS.S3 params:
-                    Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.txt"
+                    Key    : "console.log-#{test.module}-#{test.name}-#{Date.now()}.log"
                     Bucket : 'koding-test-data'
 
                   if logString.length

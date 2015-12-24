@@ -1,3 +1,5 @@
+# coffeelint: disable=cyclomatic_complexity
+# FIXME ~GG ^^
 # Koding VMs Provider implementation for ComputeProvider
 # ------------------------------------------------------
 
@@ -64,11 +66,13 @@ module.exports = class Koding extends ProviderInterface
             type          : 'aws'
             region        : region ? SUPPORTED_REGIONS[0]
             source_ami    : '' # Kloud is updating this field after a successfull build
-            instance_type : 't2.micro'
+            instance_type : 't2.nano'
             storage_size  : storage
             alwaysOn      : no
 
-          if 't2.medium' in userPlan.allowedInstances
+          if 't2.micro' in userPlan.allowedInstances
+            meta.instance_type = 't2.micro'
+          else if 't2.medium' in userPlan.allowedInstances
             meta.instance_type = 't2.medium'
 
           unless snapshotId
@@ -148,7 +152,7 @@ module.exports = class Koding extends ProviderInterface
 
     callback null, [
       {
-        name  : 't2.micro'
+        name  : 't2.nano'
         title : 'Small 1x'
         spec  : {
           cpu : 1, ram: 1, storage: 4

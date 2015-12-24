@@ -12,7 +12,7 @@ module.exports = """
           "tags": {
             "Name": "${var.koding_user_username}-${var.koding_group_slug}"
           },
-          "instance_type": "t2.micro",
+          "instance_type": "t2.nano",
           "ami": ""
         }
       }

@@ -44,6 +44,7 @@ services=(
   koding/workers/appstoragemigrator
   koding/kites/kloud/cleaners/cmd/cleaner
   koding/kites/kloud/scripts/userdebug
+  koding/kites/kloud/scripts/sl
 
   github.com/koding/kite/kitectl
   github.com/canthefason/go-watcher
