@@ -42,6 +42,9 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
   render: ->
 
     coordinates = @coordinates
+
+    return null  if not coordinates.top and not coordinates.left
+
     type = if @props.machine.get('type') is 'collaboration'
     then 'collaboration'
     else 'share'
