@@ -109,6 +109,7 @@ stacks = [
             machine = machinesWorkspaces.get(id)
             machine
               .set 'type', 'own'
+              .set 'owner', getMachineOwner machine
               .set 'isApproved', yes
 ]
 

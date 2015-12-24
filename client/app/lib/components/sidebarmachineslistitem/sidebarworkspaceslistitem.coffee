@@ -1,5 +1,6 @@
 kd                      = require 'kd'
 Link                    = require 'app/components/common/link'
+nick                    = require 'app/util/nick'
 React                   = require 'kd-react'
 actions                 = require 'app/flux/environment/actions'
 ReactDOM                = require 'react-dom'
@@ -62,6 +63,7 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
   renderWorkspaceSettingsIcon: ->
 
     return null  if @props.workspace.get 'isDefault'
+    return null  if @props.machine.get('owner') isnt nick()
 
     <cite
       className='Workspace-settings'
