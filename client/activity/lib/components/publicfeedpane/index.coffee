@@ -5,7 +5,7 @@ immutable      = require 'immutable'
 FeedPane       = require './feedpane'
 ActivityFlux   = require 'activity/flux'
 ScrollerMixin  = require 'app/components/scroller/scrollermixin'
-ResultState    = require 'activity/util/resultStates'
+ResultState    = require 'activity/constants/resultStates'
 
 module.exports = class PublicFeedPane extends React.Component
 

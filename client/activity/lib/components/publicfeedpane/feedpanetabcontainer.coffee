@@ -5,7 +5,7 @@ immutable    = require 'immutable'
 Link         = require 'app/components/common/link'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
-ResultState  = require 'activity/util/resultStates'
+ResultState  = require 'activity/constants/resultStates'
 
 module.exports = class FeedPaneTabContainer extends React.Component
 

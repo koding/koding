@@ -6,7 +6,7 @@ calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 getGroup                   = require 'app/util/getGroup'
 SidebarPublicChannelsTabs  = require 'activity/flux/stores/sidebarchannels/sidebarpublicchannelstabs'
-ResultStates               = require 'activity/util/resultStates'
+ResultStates               = require 'activity/constants/resultStates'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
