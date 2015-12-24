@@ -22,7 +22,7 @@
     "/Channels/:channelName": "SinglePublicChannel",
     "/Channels/:channelName/Recent": "SinglePublicChannel",
     "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
-    "/Channels/:channelName/Liked": "SinglePublicChannelPopularPosts",
+    "/Channels/:channelName/Liked": "SinglePublicChannelPopularMessages",
     "/Channels/:channelName/NotificationSettings": "ChannelNotificationSettings",
 
     "/PrivateChannelModals/:modalRoute": "PrivateChannelModals",

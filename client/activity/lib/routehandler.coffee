@@ -13,7 +13,7 @@ reactivityRouteTypes = [
   'AllPublicChannels'
   'SinglePublicChannel'
   'SinglePublicChannelPost'
-  'SinglePublicChannelPopularPosts'
+  'SinglePublicChannelPopularMessages'
   'ChannelNotificationSettings'
 
   'PrivateChannelModals'

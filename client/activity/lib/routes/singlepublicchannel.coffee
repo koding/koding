@@ -14,7 +14,7 @@ ResultStates      = require 'activity/util/resultStates'
 
 PublicChannelNotificationSettingsRoute = require './publicchannelnotificationsettings'
 SingleMessageRoute = require './singlemessage'
-PublicChannelPopularMessages = require './publicchannelpopularmessages'
+SinglePublicChannelPopularMessages = require './singlepublicchannelpopularmessages'
 
 module.exports = class SingleChannelRoute
 
@@ -23,7 +23,7 @@ module.exports = class SingleChannelRoute
     @path = ':channelName'
     @childRoutes = [
       new PublicChannelNotificationSettingsRoute
-      new PublicChannelPopularMessages
+      new SinglePublicChannelPopularMessages
       new SingleMessageRoute
     ]
 
