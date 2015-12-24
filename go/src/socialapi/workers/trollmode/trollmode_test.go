@@ -701,7 +701,7 @@ func TestMarkedAsTroll(t *testing.T) {
 		})
 
 		// interaction
-		SkipConvey("when a troll likes a status update, like count should not be incremented", func() {
+		Convey("when a troll likes a status update, like count should not be incremented", func() {
 			// create a post from a normal user
 			post1, err := rest.CreatePost(groupChannel.Id, normalUser.Id, ses.ClientId)
 			tests.ResultedWithNoErrorCheck(post1, err)
@@ -750,21 +750,45 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			users := []int64{adminUser.Id, normalUser.Id, trollUser.Id}
 
+			_, err = rest.AddInteraction("like", post.Id, adminUser.Id)
+			So(err, ShouldBeNil)
+
+			_, err = rest.AddInteraction("like", post.Id, normalUser.Id)
+			So(err, ShouldBeNil)
+
+			_, err = rest.AddInteraction("like", post.Id, trollUser.Id)
+			So(err, ShouldBeNil)
+
 			// add interactions
-			for _, userId := range users {
-				// add like from troll user
-				_, err = rest.AddInteraction("like", post.Id, userId)
-				So(err, ShouldBeNil)
-			}
+			// for _, userId := range users {
+			// 	// add like from troll user
+			// 	_, err = rest.AddInteraction("like", post.Id, userId)
+			// 	So(err, ShouldBeNil)
+			// }
+
+			reply, err := rest.AddReply(post.Id, adminUser, groupChannel.Id, ses.ClientId)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
+			So(reply.AccountId, ShouldEqual, userId)
+
+			reply, err := rest.AddReply(post.Id, normalUser, groupChannel.Id, normalSes.ClientId)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
+			So(reply.AccountId, ShouldEqual, userId)
+
+			reply, err := rest.AddReply(post.Id, trollUser, groupChannel.Id, trollSes.ClientId)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
+			So(reply.AccountId, ShouldEqual, userId)
 
 			// add replies
-			for _, userId := range users {
-				// create reply
-				reply, err := rest.AddReply(post.Id, userId, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-				So(reply.AccountId, ShouldEqual, userId)
-			}
+			// for _, userId := range users {
+			// 	// create reply
+			// 	reply, err := rest.AddReply(post.Id, userId, groupChannel.Id)
+			// 	So(err, ShouldBeNil)
+			// 	So(reply, ShouldNotBeNil)
+			// 	So(reply.AccountId, ShouldEqual, userId)
+			// }
 
 			return post
 		}
