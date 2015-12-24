@@ -1,11 +1,11 @@
-kd             = require 'kd'
-React          = require 'kd-react'
-ReactDOM       = require 'react-dom'
-immutable      = require 'immutable'
-FeedPane       = require './feedpane'
-ActivityFlux   = require 'activity/flux'
-ScrollerMixin  = require 'app/components/scroller/scrollermixin'
-ResultState    = require 'activity/constants/resultStates'
+kd            = require 'kd'
+React         = require 'kd-react'
+ReactDOM      = require 'react-dom'
+immutable     = require 'immutable'
+FeedPane      = require './feedpane'
+ActivityFlux  = require 'activity/flux'
+ScrollerMixin = require 'app/components/scroller/scrollermixin'
+ResultState   = require 'activity/constants/resultStates'
 
 module.exports = class PublicFeedPane extends React.Component
 

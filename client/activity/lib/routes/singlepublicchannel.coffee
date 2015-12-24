@@ -30,11 +30,10 @@ module.exports = class SingleChannelRoute
 
     messageActions.changeSelectedMessage null
 
-    { params, routes, location } = nextState
-    { channelName } = params
-    { pathname } = location
+    { channelName, postId } = nextState.params
+    { pathname } = nextState.location
 
-    unless nextState.params.postId
+    unless postId
       return kd.singletons.router.handleRoute "#{pathname}/Recent"
 
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread

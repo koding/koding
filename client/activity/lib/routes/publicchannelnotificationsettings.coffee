@@ -17,6 +17,7 @@ module.exports = class PublicChannelNotificationSettingsRoute
 
     @path = ':channelName/NotificationSettings'
 
+
   getComponents: (state, callback) ->
 
     callback null,
@@ -28,8 +29,7 @@ module.exports = class PublicChannelNotificationSettingsRoute
 
     channel = channelByName nextState.params.channelName
 
-    { params, routes, location } = nextState
-    { channelName } = params
+    { channelName } = nextState.params
 
     channelActions.loadChannelByName(channelName).then ({channel}) ->
       NotificationSettingsFlux.actions.channel.load(channel.id).then -> done()
