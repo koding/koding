@@ -33,8 +33,12 @@ module.exports = class AddWorkspaceView extends React.Component
 
   onEnter: (event) ->
 
+    { value } = event.target
+
+    return  unless value.trim()
+
     options =
-      name          : event.target.value
+      name          : value
       machineUId    : @props.machine.get 'uid'
       machineLabel  : @props.machine.get 'label'
 
