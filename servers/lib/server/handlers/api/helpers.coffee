@@ -18,7 +18,7 @@ sendApiResponse = (res, data) ->
 
 checkApiAvailability = (options, callback) ->
 
-  { JGroup }  = koding.models
+  { JGroup }   = koding.models
   { apiToken } = options
 
   JGroup.one { slug : apiToken.group }, (err, group) ->
