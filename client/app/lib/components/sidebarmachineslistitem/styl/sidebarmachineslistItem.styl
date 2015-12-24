@@ -148,7 +148,6 @@ $transRed   = rgba(233, 72, 53, .25)
   .Workspace-item
     borderBox()
     display                 block
-    ellipsis()
     opacity                 1
     padding                 0 0 0 35px
     rel()
@@ -162,9 +161,11 @@ $transRed   = rgba(233, 72, 53, .25)
       line-height           23px
       font-size             12px
       overflow              hidden
-      max-width             195px
-      noTextDeco()
+      max-width             160px
       color                 $gray-14
+      ellipsis()
+      noTextDeco()
+      dIBlock()
 
     &:hover
       .Workspace-settings
