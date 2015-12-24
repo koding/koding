@@ -177,7 +177,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   createAddWorkspaceView: ->
 
-    actions.showAddWorkspaceView @machine '_id'
+    id = @machine '_id'
+
+    actions.hideAddWorkspaceView id # Before hide it if it's visible
+    actions.showAddWorkspaceView id # After show it
 
 
   renderConnectedManagedMachineWidget: ->
