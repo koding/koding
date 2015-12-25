@@ -49,6 +49,16 @@ module.exports = class FeedItem extends React.Component
     @setState { isPopupOpen: not @state.isPopupOpen }
 
 
+  updateMessage: ->
+
+    value     = @refs.editInputWidget.getValue().trim()
+    messageId = @props.message.get '_id'
+    { message } = ActivityFlux.actions
+
+    message.unsetMessageEditMode messageId, @props.channelId
+    message.editMessage messageId, value
+
+
 
   renderFeedItemMenu: ->
 
