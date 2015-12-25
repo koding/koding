@@ -116,6 +116,8 @@
     "underscore": "1.5.2",
     "url": "0.4.9",
     "validator": "0.2.0",
+    "winston": "2.1.1",
+    "winston-papertrail": "1.0.2",
     "ws": "0.4.25",
     "xml2js": "0.2.6",
     "yield-siftscience": "0.0.8"
