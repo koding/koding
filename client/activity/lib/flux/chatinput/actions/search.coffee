@@ -11,6 +11,16 @@ NUMBER_OF_ITEMS  = 5
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
+###*
+ * Performs search by given query
+ * If the last search is still in progress, i.e. isLoading flag is true,
+ * it prevents from doing a new search.
+ * Once items are loaded, it checks if a new dropbox query was set
+ * during loading. If it's so, it loads data for a new query
+ *
+ * @param {string} stateId
+ * @param {string} query
+###
 fetchData = (stateId, query) ->
 
   return  resetData stateId  unless query
@@ -42,6 +52,11 @@ fetchData = (stateId, query) ->
       dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { stateId, err }
 
 
+###*
+ * Clears stored search items
+ *
+ * @param {string} stateId
+###
 resetData = (stateId) -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { stateId }
 
 

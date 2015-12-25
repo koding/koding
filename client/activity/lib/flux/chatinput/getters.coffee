@@ -165,30 +165,37 @@ currentCommand = (stateId) -> [
 ]
 
 
+# Returns stored dropbox settings for a given stateId
 dropboxSettings = (stateId) -> [
   DropboxSettingsStore
   (settings) -> settings.get stateId
 ]
 
 
+# Returns dropbox query for a given stateId
 dropboxQuery = (stateId) -> [
   dropboxSettings stateId
   (settings) -> settings?.get 'query'
 ]
 
 
+# Returns dropbox config for a given stateId
 dropboxConfig = (stateId) -> [
   dropboxSettings stateId
   (settings) -> settings?.get 'config'
 ]
 
 
+# Returns dropbox index for a given stateId
 dropboxRawSelectedIndex = (stateId) -> [
   dropboxSettings stateId
   (settings) -> settings?.get 'index'
 ]
 
 
+# Returns a list of channels depending on the current dropbox query
+# If query if empty, returns popular channels
+# Otherwise, returns channels filtered by query
 dropboxChannels = (stateId) -> [
   dropboxQuery stateId
   dropboxConfig stateId
@@ -207,6 +214,7 @@ dropboxChannels = (stateId) -> [
 ]
 
 
+# Returns channels dropbox selected index
 channelsSelectedIndex = (stateId) -> [
   dropboxChannels stateId
   dropboxRawSelectedIndex stateId
@@ -214,6 +222,7 @@ channelsSelectedIndex = (stateId) -> [
 ]
 
 
+# Returns channels dropbox selected item
 channelsSelectedItem = (stateId) -> [
   dropboxChannels stateId
   channelsSelectedIndex stateId
@@ -221,6 +230,7 @@ channelsSelectedItem = (stateId) -> [
 ]
 
 
+# Returns a list of emojis depending on dropbox query
 dropboxEmojis = (stateId) -> [
   dropboxQuery stateId
   dropboxConfig stateId
@@ -237,6 +247,7 @@ dropboxEmojis = (stateId) -> [
 ]
 
 
+# Returns emojis dropbox selected index
 emojisSelectedIndex = (stateId) -> [
   dropboxEmojis stateId
   dropboxRawSelectedIndex stateId
@@ -244,6 +255,7 @@ emojisSelectedIndex = (stateId) -> [
 ]
 
 
+# Returns emojis dropbox selected item
 emojisSelectedItem = (stateId) -> [
   dropboxEmojis stateId
   emojisSelectedIndex stateId
@@ -251,6 +263,11 @@ emojisSelectedItem = (stateId) -> [
 ]
 
 
+# Returns a list of user mentions depending on dropbox query
+# If query is empty, returns:
+# - users who are not participants of selected channel if current input command is /invite
+# - otherwise, selected channel participants
+# If query is not empty, returns users filtered by query
 dropboxUserMentions = (stateId) -> [
   dropboxQuery stateId
   dropboxConfig stateId
@@ -280,6 +297,10 @@ dropboxUserMentions = (stateId) -> [
 ]
 
 
+# Returns a list of channel mentions depending on dropbox query
+# If current command is /invite, doesn't return anything
+# If query is empty, returns all channel mentions
+# Otherwise, returns mentions filtered by query
 dropboxChannelMentions = (stateId) -> [
   dropboxQuery stateId
   dropboxConfig stateId
@@ -297,6 +318,8 @@ dropboxChannelMentions = (stateId) -> [
 ]
 
 
+# Returns dropbox user mentions and channel mentions
+# combined into one object
 dropboxMentions = (stateId) -> [
   dropboxUserMentions stateId
   dropboxChannelMentions stateId
@@ -306,6 +329,8 @@ dropboxMentions = (stateId) -> [
 ]
 
 
+# Returns mentions dropbox selected index. It's a common index
+# for dropbox user and channel mentions
 mentionsSelectedIndex = (stateId) -> [
   dropboxMentions stateId
   dropboxRawSelectedIndex stateId
@@ -318,6 +343,7 @@ mentionsSelectedIndex = (stateId) -> [
 ]
 
 
+# Returns mentions dropbox selected item
 mentionsSelectedItem = (stateId) -> [
   dropboxMentions stateId
   mentionsSelectedIndex stateId
@@ -330,6 +356,7 @@ mentionsSelectedItem = (stateId) -> [
 ]
 
 
+# Returns a list of search items for a given stateId
 dropboxSearchItems = (stateId) -> [
   dropboxConfig stateId
   SearchStore
@@ -340,6 +367,7 @@ dropboxSearchItems = (stateId) -> [
 ]
 
 
+# Returns a selected index of dropbox search items
 searchSelectedIndex = (stateId) -> [
   dropboxSearchItems stateId
   dropboxRawSelectedIndex stateId
@@ -347,6 +375,7 @@ searchSelectedIndex = (stateId) -> [
 ]
 
 
+# Returns a selected item of dropbox search items
 searchSelectedItem = (stateId) -> [
   dropboxSearchItems stateId
   searchSelectedIndex stateId
@@ -354,12 +383,18 @@ searchSelectedItem = (stateId) -> [
 ]
 
 
+# Returns search flags for a given stateId
 searchFlags = (stateId) -> [
   SearchFlagsStore
   (flags) -> flags.get stateId
 ]
 
 
+# Returns a list of dropbox commands depending on selected channel
+# and dropbox query:
+# - if it's a private channel, a list doesn't have /search command.
+# - if it's a group channel, a list doesn't have /leave command.
+# - if dropbox query isn't empty, it filters list by query
 dropboxCommands = (stateId) -> [
   dropboxQuery stateId
   dropboxConfig stateId
@@ -387,6 +422,7 @@ dropboxCommands = (stateId) -> [
 ]
 
 
+# Returns commands dropbox selected index
 commandsSelectedIndex = (stateId) -> [
   dropboxCommands stateId
   dropboxRawSelectedIndex stateId
@@ -394,6 +430,7 @@ commandsSelectedIndex = (stateId) -> [
 ]
 
 
+# Returns commands dropbox selected item
 commandsSelectedItem = (stateId) -> [
   dropboxCommands stateId
   commandsSelectedIndex stateId
