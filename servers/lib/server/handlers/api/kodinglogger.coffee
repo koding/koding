@@ -1,15 +1,18 @@
+{ argv }         = require 'optimist'
+KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
+
 errors           = require './errors'
 
 LOG_IDENTIFIER   = '[%scope%:%group%]'
 SCOPES           = ['log', 'error', 'warn', 'info']
 
-LOG_DESTINATION  = 'logs3.papertrailapp.com:13734'
-                 # 'logs.papertrailapp.com:49069' # PRODUCTION
-DEFAULT_GROUP_ID = 2199093 # log test group ID in papertrail
-                 # 867873  # koding.com group ID in papertrail
+LOG_DESTINATION  = KONFIG.papertrail.destination
+DEFAULT_GROUP_ID = KONFIG.papertrail.groupId
+token            = KONFIG.papertrail.token
+
+Papertrail       = new (require 'papertrail') { token }
 
 stripcolorcodes  = require 'stripcolorcodes'
-Papertrail       = new (require 'papertrail') { token: '4p4KML0UeU4ijb0swx' }
 winston          = require 'winston'
 
 module.exports = class KodingLogger
