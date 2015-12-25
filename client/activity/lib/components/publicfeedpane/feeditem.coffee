@@ -81,6 +81,21 @@ module.exports = class FeedItem extends React.Component
 
     <MessageItemMenu message={@props.message}/>
 
+
+  renderEditMode: ->
+
+    { message } = @props
+
+    return  unless message.get '__isEditing'
+
+    <FeedItemInputWidget
+      ref='editInputWidget'
+      value={message.get 'body'}
+      channelId={@props.channelId}
+      cancelEdit={@bound 'cancelEdit'}
+      updateMessage={@bound 'updateMessage'} />
+
+
   render: ->
 
     { message } = @props
@@ -111,6 +126,7 @@ module.exports = class FeedItem extends React.Component
         <div className="FeedItem-bodyContentWrapper">
           <MessageBody message={message} />
         </div>
+        {@renderEditMode()}
       </section>
       <footer className="FeedItem-footer">
         <div className="FeedItem-footerActionContainer">
