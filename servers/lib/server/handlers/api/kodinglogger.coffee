@@ -9,7 +9,7 @@ DEFAULT_GROUP_ID = 2199093 # log test group ID in papertrail
                  # 867873  # koding.com group ID in papertrail
 
 stripcolorcodes  = require 'stripcolorcodes'
-Papertrail       = new (require 'papertrail') token: '4p4KML0UeU4ijb0swx'
+Papertrail       = new (require 'papertrail') { token: '4p4KML0UeU4ijb0swx' }
 winston          = require 'winston'
 
 module.exports = class KodingLogger
@@ -85,7 +85,7 @@ module.exports = class KodingLogger
     return scope.replace /%group%/, group
 
 
-  @search = (options = {}, callback = ->) ->
+  @search = (options = {}, callback = -> ) ->
 
     { query, from, limit } = options
 
@@ -121,3 +121,4 @@ module.exports = class KodingLogger
     query = if query then "#{restriction} AND #{query}" else restriction
 
     return query
+
