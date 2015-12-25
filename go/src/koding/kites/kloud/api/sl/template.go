@@ -8,18 +8,6 @@ import (
 	"time"
 )
 
-// Datacenter represents a Softlayer datacenter.
-type Datacenter struct {
-	ID       int    `json:"id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	StatusID int    `json:"statusId,omitempty"`
-}
-
-// String implements the fmt.Stringer interface.
-func (d *Datacenter) String() string {
-	return d.Name
-}
-
 // Tags represents the resource tags.
 //
 // If Softlayer does not support tagging the resource, it's
