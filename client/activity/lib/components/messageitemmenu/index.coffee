@@ -28,6 +28,19 @@ module.exports = class MessageItemMenu extends React.Component
       isMarkUserAsTrollModalVisible : no
 
 
+  componentDidMount: -> @getAccountInfo()
+
+
+  getAccountInfo: ->
+
+    message = @props.message.toJS()
+
+    if message.account._id
+      remote.cacheable "JAccount", message.account._id, (err, account)=>
+        return @setState account: account  if account
+    else if message.bongo_.constructorName is 'JAccount'
+      return @setState account: message  if account
+
 
   showBlockUserPromptModal: ->
 
