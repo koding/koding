@@ -1,16 +1,10 @@
 kd                   = require 'kd'
-React                = require 'kd-react'
 MessageBody          = require 'activity/components/common/messagebody'
-ButtonWithMenu       = require 'app/components/buttonwithmenu'
 ChatListItem         = require 'activity/components/chatlistitem'
 MessageTime          = require 'activity/components/chatlistitem/messagetime'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
-MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
-BlockUserModal       = require 'app/components/blockusermodal'
-ActivityPromptModal  = require 'app/components/activitypromptmodal'
 classnames           = require 'classnames'
 MessageLink          = require 'activity/components/messagelink'
-
 
 module.exports = class SimpleChatListItem extends ChatListItem
 
@@ -39,11 +33,6 @@ module.exports = class SimpleChatListItem extends ChatListItem
         {@renderEmbedBox()}
         {@renderChatItemMenu()}
         <div className='clearfix'></div>
-        <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
-          Are you sure you want to delete this post?
-        </ActivityPromptModal>
-        <MarkUserAsTrollModal {...@getMarkUserAsTrollModalProps()} isOpen={@state.isMarkUserAsTrollModalVisible} />
-        <BlockUserModal {...@getBlockUserModalProps()} isOpen={@state.isBlockUserModalVisible} />
       </div>
     </div>
 
