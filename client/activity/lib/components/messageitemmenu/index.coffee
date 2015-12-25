@@ -61,6 +61,13 @@ module.exports = class MessageItemMenu extends React.Component
     onAbort            : @bound "closeBlockUserPromptModal"
     onClose            : @bound "closeBlockUserPromptModal"
 
+
+  getMenuItems: ->
+
+    if checkFlag('super-admin')
+    then @getAdminMenuItems()
+    else @getDefaultMenuItems()
+
   render: ->
 
     { message } = @props
