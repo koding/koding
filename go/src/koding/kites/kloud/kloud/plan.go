@@ -109,12 +109,17 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	// TODO(rjeczalik): rework injectAWSData
 	sess.Log.Debug("Injecting AWS data")
-	buildData, err := injectAWSData(ctx, template, r.Username, data)
+	_, err = injectAWSData(ctx, template, r.Username, data)
 	if err != nil {
 		return nil, err
 	}
-	stackTemplate.Template.Content = buildData.Template
+	out, err := template.jsonOutput()
+	if err != nil {
+		return nil, err
+	}
+	stackTemplate.Template.Content = out
 
 	k.Log.Debug("Calling plan with content\n%s", stackTemplate.Template.Content)
 	plan, err := tfKite.Plan(&tf.TerraformRequest{
