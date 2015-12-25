@@ -104,7 +104,7 @@ module.exports = class KodingLogger
       .searchEvents withQuery
 
       .then (data) ->
-        callback null, processData data, limit
+        setTimeout -> callback null, processData data, limit
 
       .catch (err) ->
         callback errors.internalError
