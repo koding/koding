@@ -23,7 +23,7 @@ function terminate_failing_instances () {
   echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/terminate
 }
 
-function check () {
+function check_connectivity () {
   INSTANCE=$1
   INSTANCE_ID=$(echo $INSTANCE | awk '{print $1}')
   HOST=$(echo $INSTANCE | awk '{print $2}')
@@ -64,8 +64,8 @@ truncate --size 0 $INSTANCE_DATA_FILE
 
 for INSTANCE in $INSTANCES; do
   (
-    check $INSTANCE  8090 1m 5 || continue # nginx
-    check $INSTANCE 42424 1m 5 || continue # selenium-server
+    check_connectivity $INSTANCE  8090 1m 5 || continue # nginx
+    check_connectivity $INSTANCE 42424 1m 5 || continue # selenium-server
 
     if health_check $INSTANCE; then
       echo $INSTANCE >> $INSTANCE_DATA_FILE
