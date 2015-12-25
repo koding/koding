@@ -17,40 +17,7 @@ winston          = require 'winston'
 
 module.exports = class KodingLogger
 
-
-  @send = (scope, group, log) ->
-
-    scope   = 'log' if scope not in SCOPES
-    message = "#{getIdentifier scope, group} #{log}"
-    logger  = @getLogger()
-
-    logger.info    message
-    console[scope] message
-
-
-  @getLogger = ->
-
-    return @logger  if @logger
-
-    require('winston-papertrail').Papertrail
-
-    [host, port] = LOG_DESTINATION.split ':'
-    port         = +port
-    program      = 'KodingLogger'
-    logFormat    = (_, message) -> message
-    @logger      = new winston.Logger
-      transports: [new winston.transports.Papertrail {
-        host, port, logFormat, program
-      }]
-
-
-  @destroyLogger = ->
-
-    return  unless @logger
-
-    @logger.close()
-    @logger = null
-
+  @SCOPES = SCOPES
 
   processData = (data, limit = 100) ->
 
@@ -86,6 +53,40 @@ module.exports = class KodingLogger
 
     scope = LOG_IDENTIFIER.replace /%scope%/, scope
     return scope.replace /%group%/, group
+
+
+  @connect = ->
+
+    return @logger  if @logger
+
+    require('winston-papertrail').Papertrail
+
+    [host, port] = LOG_DESTINATION.split ':'
+    port         = +port
+    program      = 'KodingLogger'
+    logFormat    = (_, message) -> message
+
+    @pt = new winston.transports.Papertrail { host, port, logFormat, program }
+    @logger = new winston.Logger { transports: [ @pt ] }
+
+
+  @send = (scope, group, log, print = yes) ->
+
+    scope   = 'log' if scope not in SCOPES
+    message = "#{getIdentifier scope, group} #{log}"
+    logger  = @connect()
+
+    logger.info    message
+    console[scope] message  if print
+
+
+  @close = ->
+
+    return  unless @logger
+
+    @logger.close()
+    @logger = null
+    @pt     = null
 
 
   @search = (options = {}, callback = -> ) ->
