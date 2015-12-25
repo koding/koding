@@ -67,6 +67,15 @@ module.exports = class FeedItem extends React.Component
     message.unsetMessageEditMode messageId, @props.channelId, yes
 
 
+  getClassNames: ->
+
+    { message } = @props
+
+    classnames
+      'FeedItem' : yes
+      'editing'  : message.get '__isEditing'
+      'edited'   : message.get('createdAt') isnt message.get('updatedAt')
+
 
   renderFeedItemMenu: ->
 
@@ -77,7 +86,7 @@ module.exports = class FeedItem extends React.Component
     { message } = @props
     likeText = if message.getIn ['interactions', 'like',  'isInteracted'] then 'Unlike' else 'Like'
 
-    <div className={kd.utils.curry 'FeedItem', @props.className}>
+    <div className={@getClassNames()}>
       <header className="FeedItem-header">
         <div className="FeedItem-headerContentWrapper MediaObject">
           <div className="MediaObject-media">
