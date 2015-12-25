@@ -181,36 +181,50 @@ rejectInvitation = (machine) ->
   sinkrow.daisy queue
 
 
-acceptInvitation = (machine, channelId) ->
+acceptInvitation = (machine) ->
 
   { router, machineShareManager, socialapi, reactor } = kd.singletons
 
-  machineShareManager.unset machine.get 'uid'
+  uid = machine.get 'uid'
 
-  jMachine = remote.revive machine.toJS()
+  machineShareManager.unset uid
+
+  invitation  = machineShareManager.get uid
+  jMachine    = remote.revive machine.toJS()
 
   jMachine.approve (err) ->
 
     return showError err  if err
 
     kallback = (route, callback) ->
-
       # Fetch all machines
       loadMachines().then ->
         callback()
         router.handleRoute route
 
-
     if machine.get('type') is 'collaboration'
-      if workspace = machine.get('workspaces')?.toList()?.first()
-        socialapi.channel.acceptInvite { channelId: workspace.get 'channelId' }, (err) ->
+      _getInvitationChannelId { uid, invitation }, (channelId) ->
+        socialapi.channel.acceptInvite { channelId }, (err) ->
           return showError err  if err
 
-          kallback "/IDE/#{workspace.get 'channelId'}", ->
+          kallback "/IDE/#{channelId}", ->
             reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
     else
       kallback "/IDE/#{machine.get 'uid'}/my-workspace", ->
         reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+
+
+_getInvitationChannelId = ({ uid, invitation }, callback) ->
+
+  environmentDataProvider.fetchMachineByUId uid, (machine, workspaces) ->
+    for workspace in workspaces
+
+      if invitation?.workspaceId is workspace.getId()
+        callback workspace.channelId
+        break
+      else if not invitation and workspace.channelId
+        callback workspace.channelId
+        break
 
 
 showAddWorkspaceView = (machineId) ->

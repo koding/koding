@@ -635,11 +635,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @addSubView @machinesWrapper = new KDCustomHTMLView
         cssClass: 'machines-wrapper'
 
-    if isKoding()
-      @createDefaultMachineList expandedBoxUIds
-      @createSharedMachineList()
-    else
-      @createStackMachineList expandedBoxUIds
+    @createDefaultMachineList expandedBoxUIds
+    @createSharedMachineList()
 
 
   createDefaultMachineList: (expandedBoxUIds) ->
