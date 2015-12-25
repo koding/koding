@@ -59,6 +59,14 @@ module.exports = class FeedItem extends React.Component
     message.editMessage messageId, value
 
 
+  cancelEdit: ->
+
+    messageId = @props.message.get '_id'
+    { message } = ActivityFlux.actions
+
+    message.unsetMessageEditMode messageId, @props.channelId, yes
+
+
 
   renderFeedItemMenu: ->
 
