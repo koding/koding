@@ -33,3 +33,11 @@ module.exports = class MessageItemMenu extends React.Component
     { message } = @props
 
     return null unless message
+
+    if (message.get('accountId') is whoami().socialApiId) or checkFlag('super-admin')
+      <div className={@props.className}>
+        <ButtonWithMenu items={@getMenuItems()} />
+        <BlockUserModal
+          {...@getBlockUserModalProps()}
+          isOpen={@state.isBlockUserModalVisible} />
+      </div>
