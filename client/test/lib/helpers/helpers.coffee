@@ -506,7 +506,7 @@ module.exports =
 
   submitForm: (browser, validCardDetails = yes) ->
 
-    upgradePlanButton = '.kdmodal-inner .green'
+    upgradePlanButton = '.kdmodal-inner .green:not(.paypal)'
     planType          = 'developer'
 
     if validCardDetails
