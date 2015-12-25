@@ -54,6 +54,8 @@ module.exports = class FeedPane extends React.Component
 
     return null  unless @props.thread
 
+    channelId = @props.thread.get 'channelId'
+
     <Scroller
       style={{height: 'auto'}}
       ref='scrollContainer'
@@ -62,9 +64,10 @@ module.exports = class FeedPane extends React.Component
       <FeedThreadHeader
         className="FeedThreadPane-header"
         thread={@props.thread} />
-      <FeedInputWidget thread={@props.thread} />
-      <FeedPaneTabContainer thread={@props.thread}/>
+      <FeedInputWidget channelId={channelId} />
+      <FeedPaneTabContainer thread={@props.thread} />
       <FeedList
+        channelId={channelId}
         isMessagesLoading={@isThresholdReached}
         messages={@getMessages()} />
     </Scroller>
