@@ -25,32 +25,22 @@ module.exports = class ChatListItem extends React.Component
   @include [ImmutableRenderMixin]
 
   @defaultProps =
-    hover                         : no
-    account                       : null
-    isDeleting                    : no
-    channelName                   : ''
-    isUserMarkedAsTroll           : no
-    isBlockUserModalVisible       : no
-    isMarkUserAsTrollModalVisible : no
-    showItemMenu                  : yes
-    isSelected                    : no
-    channelId                     : ''
-    onEditStarted                 : kd.noop
+    hover         : no
+    isDeleting    : no
+    channelName   : ''
+    showItemMenu  : yes
+    isSelected    : no
+    channelId     : ''
+    onEditStarted : kd.noop
 
   constructor: (props) ->
 
     super props
 
     @state =
-      hover                         : @props.hover
-      account                       : @props.account
-      editMode                      : @props.message.get '__isEditing'
-      isDeleting                    : @props.isDeleting
-      isUserMarkedAsTroll           : @props.message.get('account').isExempt
-      isBlockUserModalVisible       : @props.isBlockUserModalVisible
-      isMarkUserAsTrollModalVisible : @props.isMarkUserAsTrollModalVisible
-
-
+      hover      : @props.hover
+      editMode   : @props.message.get '__isEditing'
+      isDeleting : @props.isDeleting
 
 
   componentDidUpdate: (prevProps, prevState) ->
