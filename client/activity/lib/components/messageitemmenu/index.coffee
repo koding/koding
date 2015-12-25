@@ -29,6 +29,17 @@ module.exports = class MessageItemMenu extends React.Component
 
 
 
+  showBlockUserPromptModal: ->
+
+    @setState isBlockUserModalVisible: yes
+
+
+  closeBlockUserPromptModal: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState isBlockUserModalVisible: no
+
+
   getBlockUserModalProps: ->
 
     account            : @state.account
