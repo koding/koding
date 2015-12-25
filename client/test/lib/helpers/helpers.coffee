@@ -230,6 +230,7 @@ module.exports =
       .assert.containsText     channelTitle, hashtag # Assertion
       .waitForElementVisible   channelTitle + ' .follow', 25000
       .click                   channelTitle + ' .follow'
+      .pause                   5000000
       .waitForElementVisible   channelTitle + ' .following', 25000 # Assertion
 
     return hashtag
