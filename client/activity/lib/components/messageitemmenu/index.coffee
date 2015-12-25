@@ -68,6 +68,23 @@ module.exports = class MessageItemMenu extends React.Component
     then @getAdminMenuItems()
     else @getDefaultMenuItems()
 
+
+  getDefaultMenuItems: -> []
+
+
+  getAdminMenuItems: ->
+
+    adminMenuItems = [
+      {
+        title   : 'Block User'
+        key     : 'blockuser'
+        onClick : @bound 'showBlockUserPromptModal'
+      }
+    ]
+
+    return @getDefaultMenuItems().concat adminMenuItems
+
+
   render: ->
 
     { message } = @props
