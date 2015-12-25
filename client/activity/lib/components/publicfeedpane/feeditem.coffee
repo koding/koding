@@ -1,31 +1,33 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
-ReactDOM             = require 'react-dom'
 Link                 = require 'app/components/common/link'
 TimeAgo              = require 'app/components/common/timeago'
 immutable            = require 'immutable'
 MessageLink          = require 'activity/components/messagelink'
 MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
-MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
-AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
-ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+ActivityFlux         = require 'activity/flux'
 Comments             = require 'activity/components/comments'
 ActivitySharePopup   = require 'activity/components/activitysharepopup'
 Avatar               = require 'app/components/profile/avatar'
+MessageItemMenu      = require 'activity/components/messageitemmenu'
+classnames           = require 'classnames'
+FeedItemInputWidget  = require './feediteminputwidget'
+MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
+ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
 
 module.exports = class FeedItem extends React.Component
 
   @defaultProps =
-    message: immutable.Map()
+    channelId : null
+    message   : immutable.Map()
 
   constructor: (props) ->
 
     super props
 
-    @state =
-      isPopupOpen  : no
+    @state = { isPopupOpen : no }
 
 
   shouldComponentUpdate: (nextProps, nextState) ->
@@ -36,6 +38,7 @@ module.exports = class FeedItem extends React.Component
   handleCommentLinkClick: (event) ->
 
     kd.utils.stopDOMEvent event
+
     @refs.Comments.focusCommentInput()
 
 
