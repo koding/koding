@@ -20,6 +20,9 @@ func TestChannelMessage(t *testing.T) {
 
 			nonOwnerAccount := models.CreateAccountInBothDbsWithCheck()
 
+			nonOwnerSes, err := models.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
+			So(err, ShouldBeNil)
+
 			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 
@@ -273,7 +276,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
+				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -301,7 +304,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
+				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -349,7 +352,7 @@ func TestChannelMessage(t *testing.T) {
 				sesNonOwner, err := models.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
+				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
