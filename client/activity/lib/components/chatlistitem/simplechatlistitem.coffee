@@ -1,13 +1,13 @@
-kd                   = require 'kd'
-MessageBody          = require 'activity/components/common/messagebody'
-ChatListItem         = require 'activity/components/chatlistitem'
-MessageTime          = require 'activity/components/chatlistitem/messagetime'
-ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
-classnames           = require 'classnames'
-MessageLink          = require 'activity/components/messagelink'
+kd               = require 'kd'
+React            = require 'kd-react'
+MessageBody      = require 'activity/components/common/messagebody'
+ChatListItem     = require 'activity/components/chatlistitem'
+MessageTime      = require 'activity/components/chatlistitem/messagetime'
+classnames       = require 'classnames'
+MessageLink      = require 'activity/components/messagelink'
+ActivityLikeLink = require 'activity/components/chatlistitem/activitylikelink'
 
 module.exports = class SimpleChatListItem extends ChatListItem
-
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject SimpleChatListItem': yes
