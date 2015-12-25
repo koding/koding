@@ -46,6 +46,11 @@ module.exports = class FeedItem extends React.Component
     @setState { isPopupOpen: not @state.isPopupOpen }
 
 
+
+  renderFeedItemMenu: ->
+
+    <MessageItemMenu message={@props.message}/>
+
   render: ->
 
     { message } = @props
@@ -70,6 +75,7 @@ module.exports = class FeedItem extends React.Component
             </MessageLink>
           </div>
         </div>
+        {@renderFeedItemMenu()}
       </header>
       <section className="FeedItem-body">
         <div className="FeedItem-bodyContentWrapper">
