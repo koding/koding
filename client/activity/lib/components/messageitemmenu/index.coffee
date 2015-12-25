@@ -141,7 +141,7 @@ module.exports = class MessageItemMenu extends React.Component
     else @getDefaultMenuItems()
 
 
-  getDefaultMenuItems: -> []
+  getDefaultMenuItems: ->
 
     return [
       {title: 'Edit Post'  , key: 'editpost'            , onClick: @bound 'editPost'}
