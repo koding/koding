@@ -28,6 +28,15 @@ module.exports = class MessageItemMenu extends React.Component
       isMarkUserAsTrollModalVisible : no
 
 
+
+  getBlockUserModalProps: ->
+
+    account            : @state.account
+    buttonConfirmTitle : "BLOCK USER"
+    className          : "BlockUserModal"
+    onAbort            : @bound "closeBlockUserPromptModal"
+    onClose            : @bound "closeBlockUserPromptModal"
+
   render: ->
 
     { message } = @props
