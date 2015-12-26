@@ -30,9 +30,9 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
-      showDropTarget        : no
-      channelThread         : immutable.Map()
-      channelParticipants   : immutable.List()
+      showDropTarget      : no
+      channelThread       : immutable.Map()
+      channelParticipants : immutable.List()
 
 
   channel: (args...) -> @state.channelThread.getIn ['channel'].concat args
@@ -80,7 +80,8 @@ module.exports = class ChannelThreadPane extends React.Component
       <section className='ThreadPane-feedWrapper'>
         <PublicFeedPane
           ref='pane'
-          thread={thread} />
+          thread={thread}
+          popularChannels={@state.popularChannels}/>
       </section>
     else
       <section className='ThreadPane-chatWrapper'>
