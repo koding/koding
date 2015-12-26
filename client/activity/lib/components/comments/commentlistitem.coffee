@@ -78,6 +78,20 @@ module.exports = class CommentListItem extends React.Component
       'edited'          : comment.get('createdAt') isnt comment.get('updatedAt')
 
 
+  renderEditMode: ->
+
+    comment = @props.comment
+
+    return  unless comment.get '__isEditing'
+
+    <CommentInputWidget
+      hasValue = { @state.hasValue }
+      postComment={ @bound 'updateComment' }
+      commentValue={ @state.commentValue }
+      cancelEdit={ @bound 'cancelEdit' }
+      handleCommentInputChange={ @bound 'handleCommentInputChange' } />
+
+
   renderCommentItemMenu: ->
 
     <MessageItemMenu
@@ -102,6 +116,7 @@ module.exports = class CommentListItem extends React.Component
       </ProfileLinkContainer>
       <div className='CommentListItem-body'>
         <MessageBody message={comment} />
+        {@renderEditMode()}
       </div>
       <div className='CommentListItem-footer'>
         <TimeAgo from={comment.get 'createdAt'} className='CommentListItem-date' />
