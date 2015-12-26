@@ -3,17 +3,25 @@ React                = require 'kd-react'
 whoami               = require 'app/util/whoami'
 AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 Avatar               = require 'app/components/profile/avatar'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 classnames           = require 'classnames'
 KeyboardKeys         = require 'app/constants/keyboardKeys'
+ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+ReactDOM             = require 'react-dom'
 
 module.exports = class CommentInputWidget extends React.Component
+
+  @defaultProps =
+    commentValue : ''
+    cancelEdit   : kd.noop
+    hasValue     : no
 
   constructor: (props) ->
 
     super
 
     @state =
+      hasValue     : @props.hasValue
+      commentValue : @props.commentValue
       focusOnInput : no
 
 
