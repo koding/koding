@@ -6,7 +6,7 @@ Encoder          = require 'htmlencode'
 AutoSizeTextarea = require 'app/components/common/autosizetextarea'
 Button           = require 'app/components/common/button'
 ActivityFlux     = require 'activity/flux'
-KeyboardKeys     = require 'app/util/keyboardKeys'
+KeyboardKeys     = require 'app/constants/keyboardKeys'
 
 module.exports = class FeedItemInputWidget extends React.Component
 

@@ -4,7 +4,7 @@ React        = require 'kd-react'
 ReactDOM     = require 'react-dom'
 classnames   = require 'classnames'
 Dropbox      = require './dropboxbody'
-KeyboardKeys = require 'app/util/keyboardKeys'
+KeyboardKeys = require 'app/constants/keyboardKeys'
 
 module.exports = class RelativeDropbox extends React.Component
 
