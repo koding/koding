@@ -3,20 +3,23 @@ React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
 FeedList             = require './feedlist'
 Scroller             = require 'app/components/scroller'
-FeedThreadHeader     = require './feedthreadheader'
 Encoder              = require 'htmlencode'
 whoami               = require 'app/util/whoami'
-FeedPaneTabContainer = require './feedpanetabcontainer'
+immutable            = require 'immutable'
 FeedInputWidget      = require './feedinputwidget'
+FeedPaneTabContainer = require './feedpanetabcontainer'
+FeedThreadHeader     = require './feedthreadheader'
+FeedThreadSidebar    = require 'activity/components/publicfeedpane/feedthreadsidebar'
 
 module.exports = class FeedPane extends React.Component
 
   @defaultProps =
-    title          : null
-    messages       : null
-    isDataLoading  : no
-    onInviteOthers : kd.noop
-    showItemMenu   : yes
+    title           : null
+    messages        : null
+    isDataLoading   : no
+    onInviteOthers  : kd.noop
+    showItemMenu    : yes
+    popularChannels : immutable.List()
 
 
   componentDidMount: ->
@@ -61,6 +64,10 @@ module.exports = class FeedPane extends React.Component
       ref='scrollContainer'
       hasMore={@props.thread.get('messages').size}
       onThresholdReached={@bound 'onThresholdReached'}>
+      <aside className='FeedThreadPane-sidebar'>
+        <FeedThreadSidebar
+          popularChannels={@props.popularChannels} />
+      </aside>
       <FeedThreadHeader
         className="FeedThreadPane-header"
         thread={@props.thread} />

@@ -13,7 +13,8 @@ Encoder              = require 'htmlencode'
 
 module.exports = class CommentListItem extends React.Component
 
-  defaultProps=
+  @defaultProps =
+    channelId      : null
     comment        : immutable.Map()
     onMentionClick : kd.noop
 

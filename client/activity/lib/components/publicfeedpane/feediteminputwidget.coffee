@@ -10,7 +10,7 @@ KeyboardKeys     = require 'app/util/keyboardKeys'
 
 module.exports = class FeedItemInputWidget extends React.Component
 
-  defaultProps =
+  @defaultProps =
     value : ''
 
   constructor: (props) ->

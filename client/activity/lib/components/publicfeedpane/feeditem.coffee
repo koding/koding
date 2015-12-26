@@ -144,7 +144,10 @@ module.exports = class FeedItem extends React.Component
             isOpened={@state.isPopupOpen} />
         </div>
         <MessageLikeSummary message={message} className="FeedItem-summary" />
-        <Comments ref='Comments' message={ @props.message } />
+        <Comments
+          ref='Comments'
+          message={ @props.message }
+          channelId={ @props.channelId } />
       </footer>
     </div>
 
