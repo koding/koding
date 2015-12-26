@@ -1,9 +1,16 @@
 .CommentListItem
   margin-bottom             15px
+  rel()
+
   > a
     color                   $feed-link
     font-size               12px
     font-weight             600
+
+  .ButtonWithMenuWrapper
+    right                   0
+    abs()
+    hidden()
 
   .MediaObject-media
     fl()
@@ -12,6 +19,33 @@
   .ProfilePicture
     width                   30px !important
     height                  30px !important
+
+  &:hover
+    .ButtonWithMenuWrapper
+      visible()
+
+  &.editing
+    .CommentListItem-body .MessageBody
+    .CommentInputWidget .MediaObject-media
+    .CommentListItem-footer a
+      hidden()
+
+    .CommentInputWidget
+      padding               8px 12px 0 0
+
+    .CommentInputWidget-input
+      width                 100% !important
+
+    .FeedItem-postComment
+      bottom                9px
+      right                 16px
+
+  &.edited
+    .CommentListItem-date:after
+      content               " (edited)"
+      font-size             11px
+      margin                0 3px
+      dIBlock
 
 .CommentListItem-body
   padding-left              38px
@@ -56,4 +90,5 @@
 
 .CommentListItem-date
   font-size                 $fs-small
+
 
