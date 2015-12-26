@@ -78,12 +78,20 @@ module.exports = class CommentListItem extends React.Component
       'edited'          : comment.get('createdAt') isnt comment.get('updatedAt')
 
 
+  renderCommentItemMenu: ->
+
+    <MessageItemMenu
+      message={@props.comment}
+      disableAdminMenuItems:{yes} />
+
+
   render: ->
 
     { comment } = @props
     return null  unless comment
 
     <div className={@getClassNames()}>
+      {@renderCommentItemMenu()}
       <div className='MediaObject-media'>
         <ProfileLinkContainer origin={comment.get('account').toJS()}>
           <Avatar className='FeedItem-Avatar' width={35} height={35} />
