@@ -36,6 +36,16 @@ module.exports = class CommentListItem extends React.Component
     message.unsetMessageEditMode commentId, @props.channelId
     message.editMessage commentId, @state.commentValue.trim()
 
+
+  cancelEdit: ->
+
+    { comment, channelId } = @props
+    { message } = ActivityFlux.actions
+
+    @setState { commentValue: comment.get 'body' }
+
+    message.unsetMessageEditMode comment.get '_id', channelId
+
   render: ->
 
     { comment } = @props
