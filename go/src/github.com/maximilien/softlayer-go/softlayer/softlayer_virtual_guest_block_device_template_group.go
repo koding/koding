@@ -7,7 +7,13 @@ import (
 type SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service interface {
 	Service
 
+	AddLocations(id int, locations []datatypes.SoftLayer_Location) (bool, error)
+
+	CreateFromExternalSource(configuration datatypes.SoftLayer_Container_Virtual_Guest_Block_Device_Template_Configuration) (datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group, error)
+	CopyToExternalSource(configuration datatypes.SoftLayer_Container_Virtual_Guest_Block_Device_Template_Configuration) (bool, error)
+
 	DeleteObject(id int) (datatypes.SoftLayer_Provisioning_Version1_Transaction, error)
+	DenySharingAccess(id int, accountId int) (bool, error)
 
 	GetObject(id int) (datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group, error)
 	GetDatacenters(id int) ([]datatypes.SoftLayer_Location, error)
@@ -19,7 +25,11 @@ type SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service interface {
 	GetImageType(id int) (datatypes.SoftLayer_Image_Type, error)
 	GetImageTypeKeyName(id int) (string, error)
 
-	CreateFromExternalSource(configuration datatypes.SoftLayer_Container_Virtual_Guest_Block_Device_Template_Configuration) (datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group, error)
-	CopyToExternalSource(configuration datatypes.SoftLayer_Container_Virtual_Guest_Block_Device_Template_Configuration) (bool, error)
 	GetTransaction(id int) (datatypes.SoftLayer_Provisioning_Version1_Transaction, error)
+
+	PermitSharingAccess(id int, accountId int) (bool, error)
+
+	RemoveLocations(id int, locations []datatypes.SoftLayer_Location) (bool, error)
+
+	SetAvailableLocations(id int, locations []datatypes.SoftLayer_Location) (bool, error)
 }

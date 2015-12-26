@@ -355,12 +355,12 @@ func CreateTestSshKey() (datatypes.SoftLayer_Security_Ssh_Key, string) {
 func CreateDisk(size int, location string) datatypes.SoftLayer_Network_Storage {
 	networkStorageService, err := CreateNetworkStorageService()
 	Expect(err).ToNot(HaveOccurred())
-	
+
 	fmt.Printf("----> creating new disk\n")
 	disk, err := networkStorageService.CreateIscsiVolume(size, location)
 	Expect(err).ToNot(HaveOccurred())
 	fmt.Printf("----> created disk: %d\n", disk.Id)
-	
+
 	return disk
 }
 
