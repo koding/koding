@@ -67,12 +67,23 @@ module.exports = class CommentListItem extends React.Component
     hasValue = yes  if value.trim()
     @setState { hasValue: hasValue, commentValue: value }
 
+
+  getClassNames: ->
+
+    { comment } = @props
+
+    classnames
+      'CommentListItem' : yes
+      'editing'         : comment.get '__isEditing'
+      'edited'          : comment.get('createdAt') isnt comment.get('updatedAt')
+
+
   render: ->
 
     { comment } = @props
     return null  unless comment
 
-    <div className='CommentListItem'>
+    <div className={@getClassNames()}>
       <div className='MediaObject-media'>
         <ProfileLinkContainer origin={comment.get('account').toJS()}>
           <Avatar className='FeedItem-Avatar' width={35} height={35} />
