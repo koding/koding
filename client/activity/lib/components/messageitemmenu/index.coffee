@@ -15,7 +15,8 @@ MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
 module.exports = class MessageItemMenu extends React.Component
 
   @defaultProps =
-    message : immutable.Map()
+    disableAdminMenuItems : no
+    message               : immutable.Map()
 
   constructor: (props) ->
 
@@ -136,7 +137,7 @@ module.exports = class MessageItemMenu extends React.Component
 
   getMenuItems: ->
 
-    if checkFlag('super-admin')
+    if checkFlag('super-admin') and not @props.disableAdminMenuItems
     then @getAdminMenuItems()
     else @getDefaultMenuItems()
 
