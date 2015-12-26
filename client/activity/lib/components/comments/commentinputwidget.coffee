@@ -25,6 +25,12 @@ module.exports = class CommentInputWidget extends React.Component
       focusOnInput : no
 
 
+  componentDidMount: ->
+
+    textInput = ReactDOM.findDOMNode @refs.textInput
+    kd.utils.moveCaretToEnd textInput
+
+
   onFocus: (event) -> @setState focusOnInput: yes
 
 
