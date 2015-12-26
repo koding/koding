@@ -120,21 +120,28 @@ module.exports = class CommentListItem extends React.Component
       </div>
       <div className='CommentListItem-footer'>
         <TimeAgo from={comment.get 'createdAt'} className='CommentListItem-date' />
-        <ActivityLikeLink
-          tooltip={no}
-          messageId={comment.get('id')}
-          interactions={comment.get('interactions').toJS()}>
-          Like
-          {makeLike comment.getIn ['interactions', 'like', 'actorsCount']}
-        </ActivityLikeLink>
+        {makeLike comment}
         <Link onClick={ @bound 'onClick' }>Mention</Link>
       </div>
     </div>
 
 
-makeLike = (count) ->
+makeLike = (comment) ->
 
-  return null  unless count
+  return null  unless comment
 
-  <span className='CommentListItem-likeCount'>{count}</span>
+  text  = 'Like'
+  text  = 'Unlike'  if comment.getIn ['interactions', 'like', 'isInteracted']
+
+  actorsCount = comment.getIn ['interactions', 'like', 'actorsCount']
+  count = <span className='CommentListItem-likeCount'>{actorsCount}</span>
+  count = null  unless actorsCount
+
+  <ActivityLikeLink
+    tooltip={no}
+    messageId={comment.get('id')}
+    interactions={comment.get('interactions').toJS()}>
+    {text}
+    {count}
+  </ActivityLikeLink>
 
