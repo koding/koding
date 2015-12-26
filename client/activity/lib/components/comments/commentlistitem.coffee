@@ -3,13 +3,17 @@ React                = require 'kd-react'
 Avatar               = require 'app/components/profile/avatar'
 Link                 = require 'app/components/common/link'
 TimeAgo              = require 'app/components/common/timeago'
+Encoder              = require 'htmlencode'
 immutable            = require 'immutable'
+classnames           = require 'classnames'
 MessageLink          = require 'activity/components/messagelink'
 MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
-Encoder              = require 'htmlencode'
+MessageItemMenu      = require 'activity/components/messageitemmenu'
+ActivityFlux         = require 'activity/flux'
+CommentInputWidget   = require './commentinputwidget'
+ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
 module.exports = class CommentListItem extends React.Component
 
@@ -17,6 +21,15 @@ module.exports = class CommentListItem extends React.Component
     channelId      : null
     comment        : immutable.Map()
     onMentionClick : kd.noop
+
+  constructor: (props) ->
+
+    super
+
+    @state =
+      hasValue     : yes
+      commentValue : @props.comment.get('body') or ''
+      focusOnInput : no
 
 
   onClick: (event) ->
@@ -45,6 +58,14 @@ module.exports = class CommentListItem extends React.Component
     @setState { commentValue: comment.get 'body' }
 
     message.unsetMessageEditMode comment.get '_id', channelId
+
+
+  handleCommentInputChange: (event) ->
+
+    hasValue = no
+    value    = event.target.value
+    hasValue = yes  if value.trim()
+    @setState { hasValue: hasValue, commentValue: value }
 
   render: ->
 
