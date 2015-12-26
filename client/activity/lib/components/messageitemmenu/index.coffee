@@ -189,20 +189,20 @@ module.exports = class MessageItemMenu extends React.Component
 
     { message } = @props
 
-    return null unless message
+    return null  unless message
+    return null  if (message.get('accountId') isnt whoami().socialApiId) and not checkFlag('super-admin')
 
-    if (message.get('accountId') is whoami().socialApiId) or checkFlag('super-admin')
-      <div className={@props.className}>
-        <ButtonWithMenu items={@getMenuItems()} />
-        <BlockUserModal
-          {...@getBlockUserModalProps()}
-          isOpen={@state.isBlockUserModalVisible} />
-        <MarkUserAsTrollModal
-          {...@getMarkUserAsTrollModalProps()}
-          isOpen={@state.isMarkUserAsTrollModalVisible} />
-        <ActivityPromptModal
-          {...@getDeleteItemModalProps()}
-          isOpen={@state.isDeleting}>
-          Are you sure you want to delete this post?
-        </ActivityPromptModal>
-      </div>
+    <div className={@props.className}>
+      <ButtonWithMenu items={@getMenuItems()} />
+      <BlockUserModal
+        {...@getBlockUserModalProps()}
+        isOpen={@state.isBlockUserModalVisible} />
+      <MarkUserAsTrollModal
+        {...@getMarkUserAsTrollModalProps()}
+        isOpen={@state.isMarkUserAsTrollModalVisible} />
+      <ActivityPromptModal
+        {...@getDeleteItemModalProps()}
+        isOpen={@state.isDeleting}>
+        Are you sure you want to delete this post?
+      </ActivityPromptModal>
+    </div>
