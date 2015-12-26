@@ -3,6 +3,8 @@ package sl
 import (
 	"reflect"
 	"strings"
+
+	"github.com/fatih/structs"
 )
 
 // ObjectMask returns object mask value, which is used in Softlayer API for
@@ -10,58 +12,60 @@ import (
 //
 // ObjectMask assumes each field we want to read from Softlayer API has
 // API name set in its json tag.
-func ObjectMask(v interface{}) []string {
-	var objectMask []string
-	typ := underlying(reflect.TypeOf(v))
-	if typ.Kind() != reflect.Struct {
-		panic("called ObjectMask on a non-struct value: " + typ.String())
-	}
-
-	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
-		if field.PkgPath != "" {
-			// The field is unexported, ignore.
+func ObjectMask(v interface{}) (mask []string) {
+	for _, field := range structs.New(toStruct(v)).Fields() {
+		if !field.IsExported() {
 			continue
 		}
 
-		mask := nameFromTag(field.Tag)
-		if mask == "" {
-			// No name, ignore.
+		m := nameFromTag(field.Tag("json"))
+		if m == "" {
 			continue
 		}
 
-		fieldTyp := underlying(field.Type)
-		if fieldTyp.Kind() != reflect.Struct {
-			objectMask = append(objectMask, mask)
+		child := toStruct(field.Value())
+		if child == nil {
+			mask = append(mask, m)
 			continue
 		}
 
-		childMask := ObjectMask(reflect.New(fieldTyp).Interface())
+		childMask := ObjectMask(child)
 		if len(childMask) == 0 {
-			objectMask = append(objectMask, mask)
+			mask = append(mask, m)
 			continue
 		}
 
 		for _, child := range childMask {
-			objectMask = append(objectMask, mask+"."+child)
+			mask = append(mask, m+"."+child)
 		}
 	}
-	return objectMask
+	return mask
 }
 
-func underlying(typ reflect.Type) reflect.Type {
-	switch typ.Kind() {
-	case reflect.Ptr, reflect.Slice:
-		return underlying(typ.Elem())
-	default:
-		return typ
+// toStruct converts []StructType value to *StructType one in order to
+// traverse over its fields with structs.New(v).Fields.
+//
+// If v is a nil pointer to a struct to returns a non-nil one.
+func toStruct(v interface{}) interface{} {
+	switch typ := reflect.TypeOf(v); typ.Kind() {
+	case reflect.Ptr:
+		if typ.Elem().Kind() == reflect.Struct {
+			if reflect.ValueOf(v).IsNil() {
+				return reflect.New(typ.Elem())
+			}
+			return v
+		}
+	case reflect.Struct:
+		return v
+	case reflect.Slice:
+		return toStruct(reflect.New(typ.Elem()).Interface())
 	}
+	return nil
 }
 
 // nameFromTag returns API name; it returns empty string if the name is missing
 // or to be ignored (equal to "-").
-func nameFromTag(tag reflect.StructTag) string {
-	s := tag.Get("json")
+func nameFromTag(s string) string {
 	if i := strings.IndexRune(s, ','); i != -1 {
 		s = s[:i]
 	}

@@ -24,7 +24,6 @@ func (t Tags) Matches(tags Tags) bool {
 		}
 	}
 	return len(matches) == len(tags)
-
 }
 
 // String gives key-value tags representation.
