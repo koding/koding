@@ -28,6 +28,14 @@ module.exports = class CommentListItem extends React.Component
     onMentionClick comment
 
 
+  updateComment: ->
+
+    commentId = @props.comment.get '_id'
+    { message } = ActivityFlux.actions
+
+    message.unsetMessageEditMode commentId, @props.channelId
+    message.editMessage commentId, @state.commentValue.trim()
+
   render: ->
 
     { comment } = @props
