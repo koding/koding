@@ -5,6 +5,7 @@ AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 Avatar               = require 'app/components/profile/avatar'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 classnames           = require 'classnames'
+KeyboardKeys         = require 'app/constants/keyboardKeys'
 
 module.exports = class CommentInputWidget extends React.Component
 
@@ -20,6 +21,12 @@ module.exports = class CommentInputWidget extends React.Component
 
 
   onBlur: (event) -> @setState focusOnInput: no
+
+
+  onKeyDown: (event) ->
+
+    if event.which is KeyboardKeys.ESC
+      @props.cancelEdit()
 
 
   getPostButtonClassNames: -> classnames
@@ -43,6 +50,7 @@ module.exports = class CommentInputWidget extends React.Component
         onFocus     = { @bound 'onFocus' }
         onBlur      = { @bound 'onBlur' }
         placeholder = 'Type your comment'
+        onKeyDown   = { @bound 'onKeyDown' }
         onChange    = { @props.handleCommentInputChange }
         value       = { @props.commentValue }
         className   = 'CommentInputWidget-input'/>
