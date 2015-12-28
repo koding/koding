@@ -90,14 +90,7 @@ func (k *Key) decode() {
 }
 
 // keyMask represents objectMask Softlayer API value for the Key type.
-var keyMask = []string{
-	"id",
-	"label",
-	"createDate",
-	"key",
-	"fingerprint",
-	"notes",
-}
+var keyMask = ObjectMask((*Key)(nil))
 
 // Keys is a helper type for a slice of keys that supports filtering.
 type Keys []*Key
