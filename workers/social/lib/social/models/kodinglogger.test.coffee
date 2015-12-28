@@ -4,6 +4,26 @@ KodingLogger                     = require './kodinglogger'
 
 runTests = -> describe 'KodingLogger', ->
 
+  it 'should provide helper method for each scope', (done) ->
+
+    for scope in KodingLogger.SCOPES
+      expect(KodingLogger[scope]).to.exist
+
+    done()
+
+
+  describe '# getIdentifier', ->
+
+    it 'should generate an identifier for provided group and scope', (done) ->
+
+      group = 'testgroup'
+      scope = 'warn'
+
+      identifier = KodingLogger.getIdentifier scope, group
+      expect(identifier).to.be.equal "[#{scope}:#{group}]"
+
+      done()
+
 
   describe '# generateRestrictedQuery', ->
 
