@@ -1,10 +1,6 @@
-kd                        = require 'kd'
 ActivityFlux              = require 'activity/flux'
 NotificationSettingsModal = require 'activity/components/publicchannelnotificationsettingsmodal'
 NotificationSettingsFlux  = require 'activity/flux/channelnotificationsettings'
-
-{ selectedChannelThread, channelByName } = ActivityFlux.getters
-
 
 module.exports = class PublicChannelNotificationSettingsRoute
 
@@ -17,6 +13,8 @@ module.exports = class PublicChannelNotificationSettingsRoute
 
 
   onEnter: (nextState, replaceState, done) ->
+
+    { channelByName } = ActivityFlux.getters
 
     channel = channelByName nextState.params.channelName
 

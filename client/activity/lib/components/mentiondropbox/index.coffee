@@ -5,49 +5,29 @@ classnames             = require 'classnames'
 Dropbox                = require 'activity/components/dropbox/portaldropbox'
 UserMentionItem        = require 'activity/components/mentiondropboxitem/usermentionitem'
 ChannelMentionItem     = require 'activity/components/mentiondropboxitem/channelmentionitem'
-DropboxWrapperMixin    = require 'activity/components/dropbox/dropboxwrappermixin'
-ChatInputFlux          = require 'activity/flux/chatinput'
 ImmutableRenderMixin   = require 'react-immutable-render-mixin'
-isWithinCodeBlock      = require 'app/util/isWithinCodeBlock'
-findNameByQuery        = require 'activity/util/findNameByQuery'
-
+ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
 
 module.exports = class MentionDropbox extends React.Component
 
-  @include [ImmutableRenderMixin, DropboxWrapperMixin]
+  @propTypes =
+    query           : React.PropTypes.string
+    items           : React.PropTypes.object
+    selectedItem    : React.PropTypes.instanceOf immutable.Map
+    selectedIndex   : React.PropTypes.number
+    onItemSelected  : React.PropTypes.func
+    onItemConfirmed : React.PropTypes.func
+    onClose         : React.PropTypes.func
 
 
   @defaultProps =
-    userMentions    : immutable.List()
-    channelMentions : immutable.List()
-    visible         : no
-    selectedIndex   : 0
+    query           : ''
+    items           : { userMentions: immutable.List(), channelMentions: immutable.List() }
     selectedItem    : null
-
-
-  isActive: ->
-
-    { userMentions, channelMentions, visible } = @props
-    return (userMentions.size + channelMentions.size) > 0 and visible
-
-
-  hasSingleItem: ->
-
-    { userMentions, channelMentions, visible } = @props
-    return (userMentions.size + channelMentions.size) is 1
-
-
-  formatSelectedValue: ->
-
-    { selectedItem, query } = @props
-    names = selectedItem.get('names')
-
-    if names
-      name = findNameByQuery(names.toJS(), query) ? names.first()
-    else
-      name = selectedItem.getIn ['profile', 'nickname']
-
-    return "@#{name}"
+    selectedIndex   : 0
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   getItemKey: (item) ->
@@ -57,64 +37,16 @@ module.exports = class MentionDropbox extends React.Component
     if names then names.first() else item.get '_id'
 
 
-  close: ->
+  updatePosition: (inputDimensions) ->
 
-    { stateId } = @props
-    ChatInputFlux.actions.mention.setVisibility stateId, no
-
-
-  moveToNextPosition: (keyInfo) ->
-
-    if keyInfo.isRightArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.mention.moveToNextIndex stateId
-
-    return yes
-
-
-  moveToPrevPosition: (keyInfo) ->
-
-    if keyInfo.isLeftArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.mention.moveToPrevIndex stateId
-
-    return yes
-
-
-  checkTextForQuery: (textData) ->
-
-    { currentWord, value, position } = textData
-    return no  unless currentWord
-    return no  if isWithinCodeBlock value, position
-
-    matchResult = currentWord.match /^@(.*)/
-    return no  unless matchResult
-
-    query = matchResult[1]
-    { stateId } = @props
-    ChatInputFlux.actions.mention.setQuery stateId, query
-    ChatInputFlux.actions.mention.setVisibility stateId, yes
-
-    return yes
-
-
-  onItemSelected: (index) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.mention.setSelectedIndex stateId, index
+    @refs.dropbox.setInputDimensions inputDimensions
 
 
   renderUserMentions: ->
 
-    { userMentions, selectedIndex, query } = @props
+    { items, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
+
+    { userMentions } = items
 
     userMentions.map (item, index) =>
       isSelected = index is selectedIndex
@@ -123,8 +55,8 @@ module.exports = class MentionDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @bound 'onItemSelected' }
-        onConfirmed = { @bound 'confirmSelectedItem' }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
         query       = { query }
@@ -133,7 +65,9 @@ module.exports = class MentionDropbox extends React.Component
 
   renderChannelMentions: ->
 
-    { userMentions, channelMentions, selectedIndex, query } = @props
+    { items, channelMentions, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
+
+    { userMentions, channelMentions } = items
 
     channelMentions.map (item, index) =>
       index += userMentions.size
@@ -143,8 +77,8 @@ module.exports = class MentionDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @bound 'onItemSelected' }
-        onConfirmed = { @bound 'confirmSelectedItem' }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
         query       = { query }
@@ -153,12 +87,12 @@ module.exports = class MentionDropbox extends React.Component
 
   render: ->
 
-    { userMentions, channelMentions } = @props
+    { userMentions, channelMentions } = @props.items
 
     <Dropbox
       className = 'MentionDropbox'
-      visible   = { @isActive() }
-      onClose   = { @bound 'close' }
+      visible   = { userMentions.size + channelMentions.size > 0 }
+      onClose   = { @props.onClose }
       type      = 'dropup'
       ref       = 'dropbox'
     >
@@ -176,4 +110,7 @@ module.exports = class MentionDropbox extends React.Component
       <div className='Dropbox-header MentionDropbox-listHeader DropboxItem-separated'>
         { title }
       </div>
+
+
+MentionDropbox.include [ ImmutableRenderMixin, ScrollableDropboxMixin ]
 

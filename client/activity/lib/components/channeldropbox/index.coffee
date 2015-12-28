@@ -1,91 +1,45 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-ChannelDropboxItem   = require 'activity/components/channeldropboxitem'
-DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
-ChatInputFlux        = require 'activity/flux/chatinput'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
-isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
-
+kd                     = require 'kd'
+React                  = require 'kd-react'
+immutable              = require 'immutable'
+classnames             = require 'classnames'
+Dropbox                = require 'activity/components/dropbox/portaldropbox'
+ChannelDropboxItem     = require 'activity/components/channeldropboxitem'
+ImmutableRenderMixin   = require 'react-immutable-render-mixin'
+ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
 
 module.exports = class ChannelDropbox extends React.Component
 
-  @include [ImmutableRenderMixin, DropboxWrapperMixin]
+  @propTypes =
+    query           : React.PropTypes.string
+    items           : React.PropTypes.instanceOf immutable.List
+    selectedItem    : React.PropTypes.instanceOf immutable.Map
+    selectedIndex   : React.PropTypes.number
+    onItemSelected  : React.PropTypes.func
+    onItemConfirmed : React.PropTypes.func
+    onClose         : React.PropTypes.func
 
 
   @defaultProps =
-    items          : immutable.List()
-    visible        : no
-    selectedIndex  : 0
-    selectedItem   : null
-
-
-  formatSelectedValue: -> "##{@props.selectedItem.get 'name'}"
+    query           : ''
+    items           : immutable.List()
+    selectedItem    : null
+    selectedIndex   : 0
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   getItemKey: (item) -> item.get 'id'
 
 
-  close: ->
+  updatePosition: (inputDimensions) ->
 
-    { stateId } = @props
-    ChatInputFlux.actions.channel.setVisibility stateId, no
-
-
-  moveToNextPosition: (keyInfo) ->
-
-    if keyInfo.isRightArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.channel.moveToNextIndex stateId
-
-    return yes
-
-
-  moveToPrevPosition: (keyInfo) ->
-
-    if keyInfo.isLeftArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.channel.moveToPrevIndex stateId
-
-    return yes
-
-
-  checkTextForQuery: (textData) ->
-
-    { currentWord, value, position } = textData
-    return no  unless currentWord
-
-    matchResult = currentWord.match /^#(.*)/
-
-    return no  unless matchResult
-    return no  if isWithinCodeBlock value, position
-
-    query = matchResult[1]
-    { stateId } = @props
-    ChatInputFlux.actions.channel.setQuery stateId, query
-    ChatInputFlux.actions.channel.setVisibility stateId, yes
-    return yes
-
-
-  onItemSelected: (index) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.channel.setSelectedIndex stateId, index
+    @refs.dropbox.setInputDimensions inputDimensions
 
 
   renderList: ->
 
-    { items, selectedIndex } = @props
+    { items, selectedIndex, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
@@ -94,8 +48,8 @@ module.exports = class ChannelDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @bound 'onItemSelected' }
-        onConfirmed = { @bound 'confirmSelectedItem' }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -103,14 +57,19 @@ module.exports = class ChannelDropbox extends React.Component
 
   render: ->
 
+    { items, onClose } = @props
+
     <Dropbox
       className = 'ChannelDropbox'
-      visible   = { @isActive() }
-      onClose   = { @bound 'close' }
+      visible   = { items.size > 0 }
+      onClose   = { onClose }
       type      = 'dropup'
       title     = 'Channels'
       ref       = 'dropbox'
     >
       {@renderList()}
     </Dropbox>
+
+
+ChannelDropbox.include [ ImmutableRenderMixin, ScrollableDropboxMixin ]
 

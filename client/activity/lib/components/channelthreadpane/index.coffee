@@ -79,7 +79,9 @@ module.exports = class ChannelThreadPane extends React.Component
 
     if isFeedEnabled()
       <section className='ThreadPane-feedWrapper'>
-        <PublicFeedPane ref='pane' thread={thread}/>
+        <PublicFeedPane
+          ref='pane'
+          thread={thread} />
       </section>
     else
       <section className='ThreadPane-chatWrapper'>
