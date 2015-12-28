@@ -63,8 +63,10 @@ module.exports = class Sidebar extends React.Component
 
       if not isRendered and @popoverNeeded machine
         isRendered = yes
-        item   = @state.sharedMachineListItems.get machine.get '_id'
+        item = @state.sharedMachineListItems.get machine.get '_id'
+
         <SharingMachineInvitationWidget
+          key="InvitationWidget-#{machine.get '_id'}"
           listItem={item}
           machine={machine} />
 
