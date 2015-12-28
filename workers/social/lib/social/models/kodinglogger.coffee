@@ -104,9 +104,13 @@ module.exports = class KodingLogger
     @pt     = null
 
 
-  @search = (options = {}, callback = -> ) ->
+  @search = (options = {}, callback) ->
 
     { query, from, limit } = options
+
+    unless callback
+      console.trace 'KodingLogger.search requires callback'
+      return
 
     withQuery   =
       q         : query
