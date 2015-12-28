@@ -4,6 +4,7 @@ KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 { daisy }                          = require 'bongo'
 { checkAuthorizationBearerHeader } = require '../../helpers'
 { sendApiError
+  verifyApiToken
   sendApiResponse
   checkApiAvailability }           = require './helpers'
 
@@ -12,7 +13,7 @@ apiErrors = require './errors'
 
 module.exports = createSsoToken = (req, res, next) ->
 
-  { JAccount, JGroup, JUser, JApiToken } = (require '../../bongo').models
+  { JAccount, JUser } = (require '../../bongo').models
 
   # validating req params
   { error, token, username } = validateRequest req
@@ -24,16 +25,10 @@ module.exports = createSsoToken = (req, res, next) ->
   queue = [
 
     ->
-      # checking if token is valid
-      JApiToken.one { code : token }, (err, apiToken_) ->
-        return sendApiError res, apiErrors.internalError    if err
-        return sendApiError res, apiErrors.invalidApiToken  unless apiToken_
-        apiToken = apiToken_
-        queue.next()
-
-    ->
-      checkApiAvailability { apiToken }, (err) ->
+      verifyApiToken token, (err, apiToken_) ->
         return sendApiError res, err  if err
+
+        apiToken = apiToken_
         queue.next()
 
     ->
