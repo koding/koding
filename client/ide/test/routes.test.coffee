@@ -233,3 +233,23 @@ describe 'IDE.routes', ->
       expect(appManager.open).toHaveBeenCalled()
       expect(appManager.tell).toHaveBeenCalledWith 'IDE', 'createMachineStateModal', state: 'NotFound'
 
+
+  describe '.routeToFallback', ->
+
+
+    it 'should routeToMachineWorkspace if there is a machine', ->
+
+      mock.envDataProvider.getMyMachines.toReturnMachines()
+      expect.spyOn routes, 'routeToMachineWorkspace'
+
+      routes.routeToFallback()
+      expect(routes.routeToMachineWorkspace).toHaveBeenCalledWith mockMachine
+
+
+    it 'should loadIDENotFound if there is no machine', ->
+
+      mock.envDataProvider.getMyMachines.toReturnEmptyArray()
+      expect.spyOn routes, 'loadIDENotFound'
+
+      routes.routeToFallback()
+      expect(routes.loadIDENotFound).toHaveBeenCalled()

@@ -98,8 +98,9 @@ loadIDE = (data) ->
 
 routeToFallback = ->
 
+  { routeToMachineWorkspace, loadIDENotFound } = module.exports
+
   machines = dataProvider.getMyMachines()
-  router   = kd.getSingleton 'router'
   [ obj ]  = machines
 
   if obj?.machine # `?` intentionally. there might be no machine.
@@ -190,7 +191,7 @@ loadCollaborativeIDE = (id) ->
 routeHandler = (type, info, state, path, ctx) ->
 
   # This is just a dirty workaround to be able to run the unit tests
-  # in the future we hope to find a better way and remove this imports. acet /cc usirin
+  # in the future we hope to find a better way and remove this imports. -- acet /cc usirin
   { routeToLatestWorkspace, loadCollaborativeIDE, routeToMachineWorkspace, loadIDE } = module.exports
 
   switch type
