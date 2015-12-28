@@ -215,3 +215,21 @@ describe 'IDE.routes', ->
 
       expect(storage.getValue).toHaveBeenCalled()
       expect(workspace).toEqual undefined
+
+
+  describe '.loadIDENotFound', ->
+
+    it 'should tell ide instance to createMachineStateModal with NotFound state', ->
+
+      fakeApp        = {}
+      { appManager } = kd.singletons
+
+      expect.spyOn(appManager, 'open').andCall (appName, options, callback) -> callback fakeApp
+      expect.spyOn appManager, 'tell'
+
+      routes.loadIDENotFound()
+
+      expect(fakeApp.amIHost).toBe yes
+      expect(appManager.open).toHaveBeenCalled()
+      expect(appManager.tell).toHaveBeenCalledWith 'IDE', 'createMachineStateModal', state: 'NotFound'
+
