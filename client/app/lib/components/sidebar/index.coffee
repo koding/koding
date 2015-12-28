@@ -11,6 +11,8 @@ SidebarChannelsSection         = require 'app/components/sidebarchannelssection'
 SidebarMessagesSection         = require 'app/components/sidebarmessagessection'
 SidebarSharedMachinesSection   = require 'app/components/sidebarsharedmachinessection'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
+SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
+
 
 module.exports = class Sidebar extends React.Component
 
@@ -30,6 +32,7 @@ module.exports = class Sidebar extends React.Component
       activeInvitationMachineId    : EnvironmentFlux.getters.activeInvitationMachineId
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
       requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
+      differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
     }
 
 
@@ -108,6 +111,13 @@ module.exports = class Sidebar extends React.Component
     <SidebarNoStacks />
 
 
+  renderDifferentStackResources: ->
+
+    return null  if not @state.differentStackResourcesStore
+
+    <SidebarDifferentStackResources />
+
+
   renderSharedMachines: ->
 
     machines =
@@ -139,6 +149,7 @@ module.exports = class Sidebar extends React.Component
   render: ->
 
     <Scroller className={kd.utils.curry 'activity-sidebar', @props.className}>
+      {@renderDifferentStackResources()}
       {@renderStacks()}
       {@renderNoStacks()}
       {@renderSharedMachines()}

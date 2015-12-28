@@ -11,7 +11,7 @@ showErrorNotification   = require 'app/util/showErrorNotification'
 module.exports = class SidebarNoStacks extends React.Component
 
   @defaultProps =
-    className   : 'SidebarNoStacks'
+    className   : 'SidebarStackWidgets'
 
 
   constructor: ->

@@ -66,6 +66,15 @@ _bindStackEvents = ->
     loadMachines().then ->
       reactor.dispatch actions.STACK_UPDATED, stack
 
+  computeController.on 'GroupStacksInconsistent', ->
+    reactor.dispatch actions.GROUP_STACKS_INCONSISTENT
+
+  computeController.on 'GroupStacksConsistent', ->
+    reactor.dispatch actions.GROUP_STACKS_CONSISTENT
+
+  computeController.on 'RenderStacks', (stack) ->
+    console.log '>>>>>>>> render stacks'
+
 
 handleSharedMachineInvitation = (sharedMachine)->
 
@@ -293,7 +302,12 @@ hideManagedMachineAddedModal = (machineId) ->
 
 reinitStack = (stackId) ->
 
-  kd.singletons.reactor.dispatch actions.REINIT_STACK, stackId
+  { reactor } = kd.singletons
+
+  reactor.dispatch actions.REINIT_STACK, stackId
+
+  if differentStackResourcesStore = reactor.evaluate ['DifferentStackResourcesStore']
+    reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
 
 reinitStackFromWidget = (stack) ->
