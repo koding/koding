@@ -10,6 +10,8 @@ isGroupChannel                = require 'app/util/isgroupchannel'
 searchListByQuery             = require 'activity/util/searchListByQuery'
 convertEmojisWithSynonyms     = require 'activity/util/convertEmojisWithSynonyms'
 Constants                     = require './constants'
+isPublicChannel               = require 'app/util/isPublicChannel'
+
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -17,71 +19,17 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 
 EmojisStore                         = [['EmojisStore'], withEmptyList]
 EmojiCategoriesStore                = [['EmojiCategoriesStore'], withEmptyList]
-FilteredEmojiListQueryStore         = [['FilteredEmojiListQueryStore'], withEmptyMap]
-FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], withEmptyMap]
 EmojiSelectBoxQueryStore            = [['EmojiSelectBoxQueryStore'], withEmptyMap]
 EmojiSelectBoxSelectedIndexStore    = [['EmojiSelectBoxSelectedIndexStore'], withEmptyMap]
 EmojiSelectBoxVisibilityStore       = [['EmojiSelectBoxVisibilityStore'], withEmptyMap]
 EmojiSelectBoxTabIndexStore         = [['EmojiSelectBoxTabIndexStore'], withEmptyMap]
 EmojiUsageCountsStore               = [['EmojiUsageCountsStore'], withEmptyMap]
-ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
-ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
-ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
-MentionsQueryStore                  = [['ChatInputMentionsQueryStore'], withEmptyMap]
-MentionsSelectedIndexStore          = [['ChatInputMentionsSelectedIndexStore'], withEmptyMap]
-MentionsVisibilityStore             = [['ChatInputMentionsVisibilityStore'], withEmptyMap]
 ChannelMentionsStore                = [['ChatInputChannelMentionsStore'], withEmptyList]
-SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyMap]
-SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
-SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
 SearchStore                         = [['ChatInputSearchStore'], withEmptyMap]
 SearchFlagsStore                    = [['ChatInputSearchFlagsStore'], withEmptyMap]
 ValueStore                          = [['ChatInputValueStore'], withEmptyMap]
 CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList]
-CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
-CommandsSelectedIndexStore          = [['ChatInputCommandsSelectedIndexStore'], withEmptyMap]
-CommandsVisibilityStore             = [['ChatInputCommandsVisibilityStore'], withEmptyMap]
-
-
-filteredEmojiListQuery = (stateId) -> [
-  FilteredEmojiListQueryStore
-  (queries) -> queries.get stateId
-]
-
-
-# Returns a list of emojis filtered by current query
-filteredEmojiList = (stateId) -> [
-  EmojisStore
-  filteredEmojiListQuery stateId
-  (emojis, query) ->
-    return immutable.List()  unless query
-
-    emojis = searchListByQuery emojis, query
-    emojis.sort (emoji1, emoji2) ->
-        return -1  if emoji1.indexOf(query) is 0
-        return 1  if emoji2.indexOf(query) is 0
-        return 0
-]
-
-
-filteredEmojiListRawIndex = (stateId) -> [
-  FilteredEmojiListSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
-filteredEmojiListSelectedIndex = (stateId) -> [
-  filteredEmojiList stateId
-  filteredEmojiListRawIndex stateId
-  calculateListSelectedIndex
-]
-
-
-filteredEmojiListSelectedItem = (stateId) -> [
-  filteredEmojiList stateId
-  filteredEmojiListSelectedIndex stateId
-  getListSelectedItem
-]
+DropboxSettingsStore                = [['ChatInputDropboxSettingsStore'], withEmptyMap]
 
 
 # Returns emoji selectbox query by given stateId
@@ -204,73 +152,132 @@ emojiSelectBoxTabIndex = (stateId) -> [
 ]
 
 
-channelsQuery = (stateId) -> [
-  ChannelsQueryStore
-  (queries) -> queries.get stateId
+currentValue = (stateId) -> [
+  ValueStore
+  ActivityFluxGetters.selectedChannelThreadId
+  (values, channelId) -> values.getIn [channelId, stateId], ''
 ]
 
 
-# Returns a list of channels depending on the current query
+currentCommand = (stateId) -> [
+  currentValue stateId
+  (value) -> parseStringToCommand value
+]
+
+
+# Returns stored dropbox settings for a given stateId
+dropboxSettings = (stateId) -> [
+  DropboxSettingsStore
+  (settings) -> settings.get stateId
+]
+
+
+# Returns dropbox query for a given stateId
+dropboxQuery = (stateId) -> [
+  dropboxSettings stateId
+  (settings) -> settings?.get 'query'
+]
+
+
+# Returns dropbox config for a given stateId
+dropboxConfig = (stateId) -> [
+  dropboxSettings stateId
+  (settings) -> settings?.get 'config'
+]
+
+
+# Returns dropbox index for a given stateId
+dropboxRawSelectedIndex = (stateId) -> [
+  dropboxSettings stateId
+  (settings) -> settings?.get 'index'
+]
+
+
+# Returns a list of channels depending on the current dropbox query
 # If query if empty, returns popular channels
 # Otherwise, returns channels filtered by query
-channels = (stateId) -> [
+dropboxChannels = (stateId) -> [
+  dropboxQuery stateId
+  dropboxConfig stateId
   ActivityFluxGetters.allChannels
   ActivityFluxGetters.popularChannels
-  channelsQuery stateId
-  (allChannels, popularChannels, query) ->
+  (query, config, allChannels, popularChannels) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxChannels'
+
     return popularChannels.toList()  unless query
 
     query = query.toLowerCase()
     allChannels.toList().filter (channel) ->
-      channelName = channel.get('name').toLowerCase()
-      return channelName.indexOf(query) is 0
+      channel = channel.toJS()
+      name    = channel.name.toLowerCase()
+      return name.indexOf(query) is 0 and isPublicChannel channel
 ]
 
 
-channelsRawIndex = (stateId) -> [
-  ChannelsSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
+# Returns channels dropbox selected index
 channelsSelectedIndex = (stateId) -> [
-  channels stateId
-  channelsRawIndex stateId
+  dropboxChannels stateId
+  dropboxRawSelectedIndex stateId
   calculateListSelectedIndex
 ]
 
 
+# Returns channels dropbox selected item
 channelsSelectedItem = (stateId) -> [
-  channels stateId
+  dropboxChannels stateId
   channelsSelectedIndex stateId
   getListSelectedItem
 ]
 
 
-channelsVisibility = (stateId) -> [
-  ChannelsVisibilityStore
-  (visibilities) -> visibilities.get stateId
+# Returns a list of emojis depending on dropbox query
+dropboxEmojis = (stateId) -> [
+  dropboxQuery stateId
+  dropboxConfig stateId
+  EmojisStore
+  (query, config, emojis) ->
+    return  unless query
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxEmojis'
+
+    emojis = searchListByQuery emojis, query
+    emojis.sort (emoji1, emoji2) ->
+        return -1  if emoji1.indexOf(query) is 0
+        return 1  if emoji2.indexOf(query) is 0
+        return 0
 ]
 
 
-mentionsQuery = (stateId) -> [
-  MentionsQueryStore
-  (queries) -> queries.get stateId
+# Returns emojis dropbox selected index
+emojisSelectedIndex = (stateId) -> [
+  dropboxEmojis stateId
+  dropboxRawSelectedIndex stateId
+  calculateListSelectedIndex
 ]
 
 
-# Returns a list of user mentions depending on the current query
+# Returns emojis dropbox selected item
+emojisSelectedItem = (stateId) -> [
+  dropboxEmojis stateId
+  emojisSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+# Returns a list of user mentions depending on dropbox query
 # If query is empty, returns:
 # - users who are not participants of selected channel if current input command is /invite
 # - otherwise, selected channel participants
 # If query is not empty, returns users filtered by query
-userMentions = (stateId) -> [
+dropboxUserMentions = (stateId) -> [
+  dropboxQuery stateId
+  dropboxConfig stateId
   ActivityFluxGetters.allUsers
   ActivityFluxGetters.selectedChannelParticipants
-  mentionsQuery stateId
   currentCommand stateId
   ActivityFluxGetters.notSelectedChannelParticipants
-  (allUsers, participants, query, command, notParticipants) ->
+  (query, config, allUsers, participants, command, notParticipants) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxMentions'
+
     isInviteCommand = command?.name is '/invite'
 
     unless query
@@ -290,15 +297,18 @@ userMentions = (stateId) -> [
 ]
 
 
-# Returns a list of channel mentions depending on the current query
+# Returns a list of channel mentions depending on dropbox query
 # If current command is /invite, doesn't return anything
 # If query is empty, returns all channel mentions
 # Otherwise, returns mentions filtered by query
-channelMentions = (stateId) -> [
+dropboxChannelMentions = (stateId) -> [
+  dropboxQuery stateId
+  dropboxConfig stateId
   ChannelMentionsStore
   currentCommand stateId
-  mentionsQuery stateId
-  (mentions, command, query) ->
+  (query, config, mentions, command) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxMentions'
+
     return immutable.List()  if command?.name is '/invite'
     return mentions  unless query
 
@@ -308,120 +318,97 @@ channelMentions = (stateId) -> [
 ]
 
 
-mentionsRawIndex = (stateId) -> [
-  MentionsSelectedIndexStore
-  (indexes) -> indexes.get stateId
+# Returns dropbox user mentions and channel mentions
+# combined into one object
+dropboxMentions = (stateId) -> [
+  dropboxUserMentions stateId
+  dropboxChannelMentions stateId
+  (userMentions, channelMentions) ->
+    return  unless userMentions and channelMentions
+    return  { userMentions, channelMentions }
 ]
 
 
-# Mentions selected index is used for a list
-# which is union of user mentions and channel mentions
+# Returns mentions dropbox selected index. It's a common index
+# for dropbox user and channel mentions
 mentionsSelectedIndex = (stateId) -> [
-  userMentions stateId
-  channelMentions stateId
-  mentionsRawIndex stateId
-  (_userMentions, _channelMentions, currentIndex) ->
-    list = _userMentions.toList().concat _channelMentions
-    return calculateListSelectedIndex list, currentIndex
+  dropboxMentions stateId
+  dropboxRawSelectedIndex stateId
+  (mentions, index) ->
+    return -1  unless mentions
+
+    { userMentions, channelMentions } = mentions
+    list = userMentions.concat channelMentions
+    return calculateListSelectedIndex list, index
 ]
 
 
-# Returns a selected item from a union of user mentions
-# and channel mentions by selected index
+# Returns mentions dropbox selected item
 mentionsSelectedItem = (stateId) -> [
-  userMentions stateId
-  channelMentions stateId
+  dropboxMentions stateId
   mentionsSelectedIndex stateId
-  (_userMentions, _channelMentions, selectedIndex) ->
-    list = _userMentions.toList().concat _channelMentions
-    return getListSelectedItem list, selectedIndex
+  (mentions, index) ->
+    return  unless mentions
+
+    { userMentions, channelMentions } = mentions
+    list = userMentions.concat channelMentions
+    return getListSelectedItem list, index
 ]
 
 
-mentionsVisibility = (stateId) -> [
-  MentionsVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-
-searchItems = (stateId) -> [
+# Returns a list of search items for a given stateId
+dropboxSearchItems = (stateId) -> [
+  dropboxConfig stateId
   SearchStore
-  (searchStore) -> searchStore.get stateId
+  (config, searchStore) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxSearchItems'
+
+    return searchStore.get stateId
 ]
 
 
-searchQuery = (stateId) -> [
-  SearchQueryStore
-  (queries) -> queries.get stateId
-]
-
-
-searchRawIndex = (stateId) -> [
-  SearchSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
+# Returns a selected index of dropbox search items
 searchSelectedIndex = (stateId) -> [
-  searchItems stateId
-  searchRawIndex stateId
+  dropboxSearchItems stateId
+  dropboxRawSelectedIndex stateId
   calculateListSelectedIndex
 ]
 
 
+# Returns a selected item of dropbox search items
 searchSelectedItem = (stateId) -> [
-  searchItems stateId
+  dropboxSearchItems stateId
   searchSelectedIndex stateId
   getListSelectedItem
 ]
 
 
-searchVisibility = (stateId) -> [
-  SearchVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-
+# Returns search flags for a given stateId
 searchFlags = (stateId) -> [
   SearchFlagsStore
   (flags) -> flags.get stateId
 ]
 
 
-currentValue = (stateId) -> [
-  ValueStore
-  ActivityFluxGetters.selectedChannelThreadId
-  (values, channelId) -> values.getIn [channelId, stateId], ''
-]
-
-
-currentCommand = (stateId) -> [
-  currentValue stateId
-  (value) -> parseStringToCommand value
-]
-
-
-commandsQuery = (stateId) -> [
-  CommandsQueryStore
-  (queries) -> queries.get stateId
-]
-
-
-commands = (stateId, disabledFeatures = []) -> [
+# Returns a list of dropbox commands depending on selected channel
+# and dropbox query:
+# - if it's a private channel, a list doesn't have /search command.
+# - if it's a group channel, a list doesn't have /leave command.
+# - if dropbox query isn't empty, it filters list by query
+dropboxCommands = (stateId) -> [
+  dropboxQuery stateId
+  dropboxConfig stateId
   CommandsStore
-  commandsQuery stateId
-  ActivityFluxGetters.selectedChannelThread
-  (allCommands, query, selectedChannelThread) ->
-    if disabledFeatures.indexOf('commands') > -1 or not selectedChannelThread
-      return immutable.List()
+  ActivityFluxGetters.selectedChannel
+  (query, config, allCommands, selectedChannel) ->
+    return  unless config and config.getIn(['getters', 'items']) is 'dropboxCommands'
+    return  unless selectedChannel
 
     ignoredFeatures  = []
-    selectedChannel  = selectedChannelThread.get('channel').toJS()
+    selectedChannel  = selectedChannel.toJS()
     isPrivateChannel = selectedChannel.typeConstant is 'privatemessage'
     ignoredFeatures.push 'search'  if isPrivateChannel
     ignoredFeatures.push 'leave'   if isGroupChannel selectedChannel
-
-    ignoredFeatures = disabledFeatures.concat ignoredFeatures
 
     availableCommands = allCommands.filterNot (command) ->
       featureName = command.get('name').replace '/', ''
@@ -435,38 +422,23 @@ commands = (stateId, disabledFeatures = []) -> [
 ]
 
 
-commandsRawIndex = (stateId) -> [
-  CommandsSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-
-
-commandsSelectedIndex = (stateId, disabledFeatures) -> [
-  commands stateId, disabledFeatures
-  commandsRawIndex stateId
+# Returns commands dropbox selected index
+commandsSelectedIndex = (stateId) -> [
+  dropboxCommands stateId
+  dropboxRawSelectedIndex stateId
   calculateListSelectedIndex
 ]
 
 
-commandsSelectedItem = (stateId, disabledFeatures) -> [
-  commands stateId, disabledFeatures
-  commandsSelectedIndex stateId, disabledFeatures
+# Returns commands dropbox selected item
+commandsSelectedItem = (stateId) -> [
+  dropboxCommands stateId
+  commandsSelectedIndex stateId
   getListSelectedItem
 ]
 
 
-commandsVisibility = (stateId) -> [
-  CommandsVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-
 module.exports = {
-  filteredEmojiList
-  filteredEmojiListQuery
-  filteredEmojiListSelectedItem
-  filteredEmojiListSelectedIndex
-
   emojiSelectBoxItems
   emojiSelectBoxTabs
   emojiSelectBoxQuery
@@ -477,35 +449,30 @@ module.exports = {
 
   frequentlyUsedEmojis
 
-  channelsQuery
-  channels
-  channelsRawIndex
-  channelsSelectedIndex
-  channelsSelectedItem
-  channelsVisibility
-
-  mentionsQuery
-  userMentions
-  channelMentions
-  mentionsRawIndex
-  mentionsSelectedIndex
-  mentionsSelectedItem
-  mentionsVisibility
-
-  searchItems
-  searchQuery
-  searchSelectedIndex
-  searchSelectedItem
-  searchVisibility
-  searchFlags
-
   currentValue
 
-  commandsQuery
-  commands
-  commandsRawIndex
+  dropboxQuery
+  dropboxConfig
+
+  dropboxChannels
+  channelsSelectedIndex
+  channelsSelectedItem
+
+  dropboxEmojis
+  emojisSelectedIndex
+  emojisSelectedItem
+
+  dropboxMentions
+  mentionsSelectedIndex
+  mentionsSelectedItem
+
+  dropboxSearchItems
+  searchSelectedIndex
+  searchSelectedItem
+  searchFlags
+
+  dropboxCommands
   commandsSelectedIndex
   commandsSelectedItem
-  commandsVisibility
 }
 

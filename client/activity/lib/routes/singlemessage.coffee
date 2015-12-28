@@ -7,6 +7,10 @@ module.exports = class SingleMessageRoute
     @path = ':postId'
 
 
-  onEnter: (nextState) -> messageActions.changeSelectedMessage nextState.params.postId
+  onEnter: (nextState) ->
+
+    messageActions.changeSelectedMessage nextState.params.postId
+
 
   onLeave: -> messageActions.changeSelectedMessage null
+

@@ -261,6 +261,7 @@ Configuration = (options={}) ->
     collaboration                  : {timeout: 1 * 60 * 1000}
     client                         : {watch: yes                                                     , version: version                                             , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
     jwt                            : {secret: "ac25b4e6009c1b6ba336a3eb17fbc3b7"                     , confirmExpiresInMinutes: 10080  } # 7 days
+    papertrail                     : {destination: 'logs3.papertrailapp.com:13734'                   , groupId: 2199093                                             , token: '4p4KML0UeU4ijb0swx' }
     sendEventsToSegment            : options.sendEventsToSegment
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#

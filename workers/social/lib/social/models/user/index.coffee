@@ -1950,9 +1950,11 @@ module.exports = class JUser extends jraphical.Module
   fetchHomepageView: (options, callback) ->
 
     { account, bongoModels } = options
+
     @fetchAccount 'koding', (err, account) ->
-      if err then callback err
-      else account.fetchHomepageView options, callback
+      return callback err  if err
+      return callback new KodingError 'Account not found'  unless account
+      account.fetchHomepageView options, callback
 
 
   confirmEmail: (callback) ->
