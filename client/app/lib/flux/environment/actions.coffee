@@ -78,9 +78,10 @@ _bindStackEvents = ->
 
 handleSharedMachineInvitation = (sharedMachine)->
 
-  { machineUId } = sharedMachine
+  # Inconsistent property definition.
+  { machineUId, uid } = sharedMachine
 
-  fetchMachineByUId machineUId, (machine) ->
+  fetchMachineByUId (machineUId or uid), (machine) ->
     machine = toImmutable machine
     setActiveInvitationMachineId { machine, forceUpdate: yes }
     setActiveLeavingSharedMachineId null
