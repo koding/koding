@@ -1,18 +1,17 @@
-kd                = require 'kd'
-ChannelThreadPane = require 'activity/components/channelthreadpane'
-ActivityFlux      = require 'activity/flux'
-getGroup          = require 'app/util/getGroup'
-changeToChannel   = require 'activity/util/changeToChannel'
+kd                                     = require 'kd'
+ChannelThreadPane                      = require 'activity/components/channelthreadpane'
+ActivityFlux                           = require 'activity/flux'
+transitionToChannel                    = require 'activity/util/transitionToChannel'
+SingleMessageRoute                     = require './singlemessage'
+ResultStates                           = require 'activity/constants/resultStates'
+PublicChannelNotificationSettingsRoute = require 'activity/routes/publicchannelnotificationsettings'
 
 {
   thread  : threadActions,
-  channel : channelActions,
-  message : messageActions } = ActivityFlux.actions
+  message : messageActions,
+  channel : channelActions } = ActivityFlux.actions
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
-
-PublicChannelNotificationSettingsRoute = require './publicchannelnotificationsettings'
-SingleMessageRoute = require './singlemessage'
 
 module.exports = class SingleChannelRoute
 
@@ -23,7 +22,6 @@ module.exports = class SingleChannelRoute
       new PublicChannelNotificationSettingsRoute
       new SingleMessageRoute
     ]
-
 
   getComponents: (state, callback) ->
 
@@ -36,11 +34,17 @@ module.exports = class SingleChannelRoute
 
     messageActions.changeSelectedMessage null
 
-    { channelName } = nextState.params
+    { channelName, postId } = nextState.params
+    { pathname } = nextState.location
+
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
 
+    channel = channelByName channelName
+
     if channelName
-      transitionToChannel channelName, done
+      transitionToChannel channelName, (err, channel) ->
+        channelActions.changeResultState channel._id, ResultStates.RECENT
+        done()
     else if not selectedThread
       threadActions.changeSelectedThread null
       done()
@@ -49,27 +53,4 @@ module.exports = class SingleChannelRoute
 
 
   onLeave: -> threadActions.changeSelectedThread null
-
-
-transitionToChannel = (channelName, done) ->
-
-  { reactor } = kd.singletons
-
-  isChannelOpened = no
-
-  channel = channelByName channelName
-
-  if channel
-    isChannelOpened = reactor.evaluate ['OpenedChannelsStore', channel.id]
-
-  # if we have an opened channel, switch to it immediately.
-  if isChannelOpened
-    threadActions.changeSelectedThread channel.id
-    done()
-  else
-    channelActions.loadChannelByName(channelName).then ({channel}) ->
-      threadActions.changeSelectedThread channel.id
-      channelActions.loadParticipants channel.id
-      done()
-
 

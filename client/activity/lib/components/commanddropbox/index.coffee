@@ -5,96 +5,41 @@ classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox/portaldropbox'
 CommandDropboxItem   = require 'activity/components/commanddropboxitem'
 ErrorDropboxItem     = require 'activity/components/errordropboxitem'
-DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
-ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
-isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
-
 
 module.exports = class CommandDropbox extends React.Component
 
-  @include [ImmutableRenderMixin, DropboxWrapperMixin]
+  @propTypes =
+    query           : React.PropTypes.string
+    items           : React.PropTypes.instanceOf immutable.List
+    selectedItem    : React.PropTypes.instanceOf immutable.Map
+    selectedIndex   : React.PropTypes.number
+    onItemSelected  : React.PropTypes.func
+    onItemConfirmed : React.PropTypes.func
+    onClose         : React.PropTypes.func
 
 
   @defaultProps =
-    items          : immutable.List()
-    visible        : no
-    selectedIndex  : 0
-    selectedItem   : null
-
-
-  isActive: -> @props.visible
-
-
-  formatSelectedValue: ->
-
-    { selectedItem } = @props
-    return ''  unless selectedItem
-
-    return "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
+    query           : ''
+    items           : immutable.List()
+    selectedItem    : null
+    selectedIndex   : 0
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   getItemKey: (item) -> item.get 'name'
 
 
-  close: ->
+  updatePosition: (inputDimensions) ->
 
-    { stateId } = @props
-    ChatInputFlux.actions.command.setVisibility stateId, no
-
-
-  moveToNextPosition: (keyInfo) ->
-
-    if keyInfo.isRightArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.command.moveToNextIndex stateId
-
-    return yes
-
-
-  moveToPrevPosition: (keyInfo) ->
-
-    if keyInfo.isLeftArrow
-      @close()
-      return no
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.command.moveToPrevIndex stateId
-
-    return yes
-
-
-  checkTextForQuery: (textData) ->
-
-    { currentWord, value, position } = textData
-    return no  unless currentWord
-
-    matchResult = value.match /^(\/[^\s]*)$/
-
-    return no  unless matchResult
-    return no  if isWithinCodeBlock value, position
-
-    query = matchResult[1]
-    { stateId } = @props
-    ChatInputFlux.actions.command.setQuery stateId, query
-    ChatInputFlux.actions.command.setVisibility stateId, yes
-    return yes
-
-
-  onItemSelected: (index) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.command.setSelectedIndex stateId, index
+    @refs.dropbox.setInputDimensions inputDimensions
 
 
   renderList: ->
 
-    { items, selectedIndex } = @props
+    { items, selectedIndex, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
@@ -103,8 +48,8 @@ module.exports = class CommandDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @bound 'onItemSelected' }
-        onConfirmed = { @bound 'confirmSelectedItem' }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -121,14 +66,14 @@ module.exports = class CommandDropbox extends React.Component
 
   render: ->
 
-    { items, query, visible } = @props
+    { items, query, visible, onClose } = @props
 
     isError = items.size is 0 and query
 
     <Dropbox
       className = 'CommandDropbox'
-      visible   = { @isActive() }
-      onClose   = { @bound 'close' }
+      visible   = { query? }
+      onClose   = { onClose }
       type      = 'dropup'
       title     = 'Commands matching'
       subtitle  = { query }
@@ -137,4 +82,7 @@ module.exports = class CommandDropbox extends React.Component
       { @renderList()  unless isError }
       { @renderError()  if isError }
     </Dropbox>
+
+
+CommandDropbox.include [ ImmutableRenderMixin ]
 

@@ -10,7 +10,7 @@ type SoftLayer_Virtual_Guest_Service interface {
 	ActivatePrivatePort(instanceId int) (bool, error)
 	ActivatePublicPort(instanceId int) (bool, error)
 	AttachDiskImage(instanceId int, imageId int) (datatypes.SoftLayer_Provisioning_Version1_Transaction, error)
-	AttachEphemeralDisk(instanceId int, diskSize int) error
+	AttachEphemeralDisk(instanceId int, diskSize int) (datatypes.SoftLayer_Container_Product_Order_Receipt, error)
 
 	CaptureImage(instanceId int) (datatypes.SoftLayer_Container_Disk_Image_Capture_Template, error)
 	CheckHostDiskAvailability(instanceId int, diskCapacity int) (bool, error)

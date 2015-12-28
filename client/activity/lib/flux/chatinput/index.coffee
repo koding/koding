@@ -9,6 +9,7 @@ module.exports = {
     message : require './actions/message'
     value   : require './actions/value'
     command : require './actions/command'
+    dropbox : require './actions/dropbox'
 
   stores  : [
     require './stores/emoji/emojisstore'
@@ -37,6 +38,7 @@ module.exports = {
     require './stores/command/querystore'
     require './stores/command/selectedindexstore'
     require './stores/command/visibilitystore'
+    require './stores/dropboxsettingsstore'
   ]
 }
 
