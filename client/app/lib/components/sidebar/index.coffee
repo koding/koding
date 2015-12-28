@@ -5,6 +5,7 @@ ActivityFlux                   = require 'activity/flux'
 EnvironmentFlux                = require 'app/flux/environment'
 Scroller                       = require 'app/components/scroller'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
+SidebarNoStacks                = require 'app/components/sidebarstacksection/sidebarnostacks'
 SidebarStackSection            = require 'app/components/sidebarstacksection'
 SidebarChannelsSection         = require 'app/components/sidebarchannelssection'
 SidebarMessagesSection         = require 'app/components/sidebarmessagessection'
@@ -100,6 +101,13 @@ module.exports = class Sidebar extends React.Component
     return stackSections
 
 
+  renderNoStacks: ->
+
+    return null  if @state.stacks.size
+
+    <SidebarNoStacks />
+
+
   renderSharedMachines: ->
 
     machines =
@@ -132,6 +140,7 @@ module.exports = class Sidebar extends React.Component
 
     <Scroller className={kd.utils.curry 'activity-sidebar', @props.className}>
       {@renderStacks()}
+      {@renderNoStacks()}
       {@renderSharedMachines()}
       {@renderChannels()}
       {@renderMessages()}
