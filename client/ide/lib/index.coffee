@@ -1674,7 +1674,10 @@ class IDEAppController extends AppController
           style    : 'solid light-gray medium'
           title    : 'OK'
           callback : =>
-            reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
+
+            unless isKoding()
+              reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
+
             @modal.destroy()
             @quit()
 
