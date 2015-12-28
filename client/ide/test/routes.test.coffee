@@ -128,3 +128,48 @@ describe 'IDE.routes', ->
 
         routes.routeHandler 'workspace', ROUTE_PARAMS.workspace
         expect(routes.routeToMachineWorkspace).toHaveBeenCalled()
+
+
+  describe '.selectWorkspaceOnSidebar', ->
+
+    it 'should return safely if there is no machine or workspace', ->
+
+      calls = [
+        routes.selectWorkspaceOnSidebar()
+        routes.selectWorkspaceOnSidebar {}
+        routes.selectWorkspaceOnSidebar { machine: {} }
+        routes.selectWorkspaceOnSidebar { workspace: {} }
+      ]
+
+      expect(call).toBe no  for call in calls
+
+
+    it 'should call activitySidebar.selectWorkspace', ->
+
+      mockMachine         = mock.getMockMachine()
+      mockWorkspace       = mock.getMockWorkspace()
+      data                = { machine: mockMachine, workspace: mockWorkspace }
+      { activitySidebar } = kd.singletons.mainView
+      storage             = kd.singletons.localStorageController.storage 'IDE'
+      storageData         =
+        machineLabel      : mockMachine.slug
+        workspaceSlug     : mockWorkspace.slug
+        channelId         : undefined
+
+      sidebarSpy = expect.spyOn activitySidebar, 'selectWorkspace'
+      storageSpy = expect.spyOn storage, 'setValue'
+
+      routes.selectWorkspaceOnSidebar data
+
+      expect(activitySidebar.selectWorkspace).toHaveBeenCalled()
+      expect(storage.setValue).toHaveBeenCalled()
+
+      [ firstCall, secondCall ] = storageSpy.calls
+
+      expect(firstCall.arguments[0]).toBe 'LatestWorkspace'
+      expect(firstCall.arguments[1]).toEqual storageData
+
+      expect(secondCall.arguments[0]).toBe "LatestWorkspace_#{mockMachine.uid}"
+      expect(secondCall.arguments[1]).toEqual storageData
+
+

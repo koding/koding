@@ -1,21 +1,23 @@
-kd = require 'kd'
-nick = require 'app/util/nick'
-whoami = require 'app/util/whoami'
+kd             = require 'kd'
+nick           = require 'app/util/nick'
+whoami         = require 'app/util/whoami'
+globals        = require 'globals'
+remote         = require('app/remote').getInstance()
+Machine        = require 'app/providers/machine'
+lazyrouter     = require 'app/lazyrouter'
+dataProvider   = require 'app/userenvironmentdataprovider'
 registerRoutes = require 'app/util/registerRoutes'
-globals = require 'globals'
-remote = require('app/remote').getInstance()
-Machine = require 'app/providers/machine'
-lazyrouter = require 'app/lazyrouter'
-dataProvider = require 'app/userenvironmentdataprovider'
 
 
 selectWorkspaceOnSidebar = (data) ->
 
+  return no  unless data
+
   { machine, workspace } = data
 
-  return  unless machine or workspace
+  return no if not machine or not workspace
 
-  kd.getSingleton('mainView').activitySidebar.selectWorkspace data
+  kd.singletons.mainView.activitySidebar.selectWorkspace data
   storage = kd.singletons.localStorageController.storage 'IDE'
 
   workspaceData    =
