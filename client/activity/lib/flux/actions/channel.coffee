@@ -518,6 +518,13 @@ updateChannel = (options={}) ->
     dispatch UPDATE_CHANNEL_SUCCESS, { channel }
 
 
+changeResultState = (channelId, resultState) ->
+
+  { SET_CHANNEL_RESULT_STATE } = actionTypes
+
+  dispatch SET_CHANNEL_RESULT_STATE, { resultState, channelId }
+
+
 module.exports = {
   followChannel
   unfollowChannel
@@ -543,5 +550,6 @@ module.exports = {
   setScrollPosition
   setLastSeenTime
   updateChannel
+  changeResultState
 }
 
