@@ -21,8 +21,8 @@ import (
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Stack is struct that contains all necessary information Apply needs to

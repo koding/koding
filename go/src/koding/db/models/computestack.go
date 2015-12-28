@@ -4,7 +4,7 @@ import (
 	"koding/kites/kloud/stackstate"
 	"time"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // ComputeStack is a document from jComputeStack collection

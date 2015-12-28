@@ -8,7 +8,7 @@ import (
 	"koding/tools/utils"
 	"net/http"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // UserInfo contains the relevant user models and other info required to render

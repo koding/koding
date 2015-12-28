@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"koding/db/models"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // FetchAdminAccounts fetches the admin accounts from database
