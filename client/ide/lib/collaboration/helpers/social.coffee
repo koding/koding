@@ -55,12 +55,11 @@ fetchChannel = (id, callback) ->
   kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
     callback err, channel
 
-    return  if isKoding()
-
-    kd.singletons.reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, {
-      channelId: id,
-      channel
-    }
+    if not isKoding() and channel
+      kd.singletons.reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, {
+        channelId : id,
+        channel
+      }
 
 
 ###*

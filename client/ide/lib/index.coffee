@@ -1663,8 +1663,6 @@ class IDEAppController extends AppController
 
   showUserRemovedModal: ->
 
-    { reactor } = kd.singletons
-
     options        =
       title        : 'Machine access revoked'
       content      : 'Your access to this machine has been removed by its owner.'
@@ -1676,6 +1674,7 @@ class IDEAppController extends AppController
           callback : =>
 
             unless isKoding()
+              { reactor } = kd.singletons
               reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
 
             @modal.destroy()
