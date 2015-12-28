@@ -3,8 +3,8 @@
   padding                   14px 0
   cursor                    pointer
 
-  .SidebarListItem-unreadCount.--header
-    abs                     11px
+  > .SidebarListItem-unreadCount
+    top                     11px
     margin-top              0
 
   a
@@ -32,3 +32,10 @@
   .SidebarSection-secondaryLink
     visible()
 
+.SidebarSection-header
+  &.unread
+    .SidebarSection-headerTitle
+      max-width             190px
+
+    .SidebarSection-secondaryLink
+      hidden()

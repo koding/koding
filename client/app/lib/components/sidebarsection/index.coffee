@@ -2,20 +2,28 @@ kd                 = require 'kd'
 Link               = require 'app/components/common/link'
 React              = require 'kd-react'
 classnames         = require 'classnames'
+UnreadCount        = require 'app/components/sidebarmachineslistitem/unreadcount'
 CreateChannelFlux  = require 'activity/flux/createchannel'
+
 
 module.exports = class SidebarSection extends React.Component
 
   @defaultProps =
-    titleLink     : '#'
-    title         : ''
-    unreadCount   : 0
-    secondaryLink : '#'
+    titleLink                 : '#'
+    title                     : ''
+    unreadCount               : 0
+    secondaryLink             : '#'
+    unreadCountClickHandler   : kd.noop
+
 
   renderUnreadCount: ->
+    <UnreadCount
+      count={@props.unreadCount}
+      onClick={@bound 'handleUnreadCountClick'} />
 
-    if @props.unreadCount > 0
-      <cite className="SidebarListItem-unreadCount --header">{@props.unreadCount}</cite>
+
+  handleUnreadCountClick: ->
+    @props.unreadCountClickHandler()
 
 
   renderSecondaryLink: ->
@@ -29,7 +37,11 @@ module.exports = class SidebarSection extends React.Component
 
   renderHeader: ->
 
-    <header className="SidebarSection-header">
+    unreadCount = if @props.unreadCount
+    then 'unread'
+    else ''
+
+    <header className="SidebarSection-header #{unreadCount}">
       <Link href={@props.titleLink}>
         <h4 className='SidebarSection-headerTitle'>
           {@props.title}
@@ -41,7 +53,6 @@ module.exports = class SidebarSection extends React.Component
 
 
   render: ->
-
     <section className={classnames 'SidebarSection', @props.className}>
       {@renderHeader()}
       <div className='SidebarSection-body'>

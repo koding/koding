@@ -296,6 +296,13 @@ reinitStack = (stackId) ->
   kd.singletons.reactor.dispatch actions.REINIT_STACK, stackId
 
 
+reinitStackFromWidget = (stack) ->
+
+  { computeController } = kd.singletons
+  _stack = remote.revive stack.toJS()
+  computeController.reinitGroupStack _stack
+
+
 createWorkspace = (machine, workspace) ->
 
   kd.singletons.reactor.dispatch actions.WORKSPACE_CREATED, { machine, workspace }
@@ -357,4 +364,5 @@ module.exports = {
   unsetMachineListItem
   setActiveInvitationMachineId
   setActiveLeavingSharedMachineId
+  reinitStackFromWidget
 }
