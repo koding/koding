@@ -44,9 +44,6 @@ if platform is 'linux'
 else if platform is 'darwin'
   platform = 'mac32'
 
-chromedriverPath = "../vendor/chromedriver/#{platform}/chromedriver"
-nwConfig.selenium.cli_args['webdriver.chrome.driver'] = path.resolve __dirname, chromedriverPath
-
 nwConfig.selenium.start_process = argv.startSelenium
 nwConfig.selenium.server_path = path.resolve __dirname, nwConfig.selenium.server_path
 

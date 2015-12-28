@@ -16,7 +16,7 @@ module.exports =
     user ?= utils.getUser()
 
     browser.url url
-    browser.maximizeWindow()
+    browser.resizeWindow 1440, 900
 
     @doLogin browser, user
 

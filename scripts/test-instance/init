@@ -48,7 +48,6 @@ export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
 
 java -jar $TEST_VENDOR/selenium-server-standalone.jar \
      -host 0.0.0.0 \
-     -port 42424 \
-     -Dwebdriver.chrome.driver=$TEST_VENDOR/chromedriver/linux64/chromedriver &
+     -port 42424 &
 
 exit 0
