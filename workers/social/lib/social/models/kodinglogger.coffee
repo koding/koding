@@ -1,8 +1,6 @@
 { argv }         = require 'optimist'
 KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
 
-errors           = require './errors'
-
 LOG_IDENTIFIER   = '[%scope%:%group%]'
 SCOPES           = ['log', 'error', 'warn', 'info']
 
@@ -14,6 +12,7 @@ Papertrail       = new (require 'papertrail') { token }
 
 stripcolorcodes  = require 'stripcolorcodes'
 winston          = require 'winston'
+
 
 module.exports = class KodingLogger
 
@@ -107,7 +106,10 @@ module.exports = class KodingLogger
         setTimeout -> callback null, processData data, limit
 
       .catch (err) ->
-        callback errors.internalError
+        callback
+          status  : 500
+          message : 'The server encountered an internal error.'
+          code    : 'InternalError'
 
 
   @generateRestrictedQuery = (group, query, scope) ->

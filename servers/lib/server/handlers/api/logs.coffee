@@ -4,7 +4,7 @@
   sendApiResponse } = require './helpers'
 errors              = require './errors'
 
-KodingLogger        = require './kodinglogger'
+KodingLogger        = require '../../../../models/kodinglogger'
 
 module.exports      = (req, res, next) ->
 

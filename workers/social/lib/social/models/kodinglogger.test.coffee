@@ -1,4 +1,4 @@
-{ expect, generateRandomString } = require '../../../../testhelper'
+{ expect, generateRandomString } = require '../../../testhelper'
 KodingLogger                     = require './kodinglogger'
 
 
