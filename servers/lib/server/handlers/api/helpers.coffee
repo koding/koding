@@ -1,5 +1,10 @@
-errors = require './errors'
-koding = require '../../bongo'
+errors   = require './errors'
+koding   = require '../../bongo'
+
+{ argv } = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+
+Jwt      = require 'jsonwebtoken'
 
 SUGGESTED_USERNAME_MIN_LENGTH = 4
 SUGGESTED_USERNAME_MAX_LENGTH = 15
@@ -48,8 +53,21 @@ isUsernameLengthValid = (username) ->
   return minLength <= username?.length <= maxLength
 
 
+validateJWTToken = (token, callback) ->
+
+  { secret } = KONFIG.jwt
+
+  Jwt.verify token, secret, { algorithms: ['HS256'] }, (err, decoded) ->
+
+    { username, group } = decoded
+
+    return callback errors.ssoTokenFailedToParse   if err
+    return callback errors.invalidSSOTokenPayload  unless username
+    return callback errors.invalidSSOTokenPayload  unless group
+    return callback null, { username, group }
 module.exports = {
   sendApiError
+  validateJWTToken
   sendApiResponse
   checkApiAvailability
   isUsernameLengthValid
