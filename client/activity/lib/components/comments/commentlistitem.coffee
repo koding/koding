@@ -51,11 +51,16 @@ module.exports = class CommentListItem extends React.Component
           messageId={comment.get('id')}
           interactions={comment.get('interactions').toJS()}>
           Like
-          <span className='CommentListItem-likeCount'>
-            {comment.getIn ['interactions', 'like', 'actorsCount']}
-          </span>
+          {makeLike comment.getIn ['interactions', 'like', 'actorsCount']}
         </ActivityLikeLink>
         <Link onClick={ @bound 'onClick' }>Mention</Link>
       </div>
     </div>
+
+
+makeLike = (count) ->
+
+  return null  unless count
+
+  <span className='CommentListItem-likeCount'>{count}</span>
 

@@ -1,122 +1,158 @@
-expect = require 'expect'
-
+expect  = require 'expect'
 Reactor = require 'app/flux/base/reactor'
+React   = require 'kd-react'
 
 ChatInputSearchStore = require 'activity/flux/chatinput/stores/search/searchstore'
-ChatInputSearchSelectedIndexStore = require 'activity/flux/chatinput/stores/search/selectedindexstore'
 ChatInputFlux = require 'activity/flux/chatinput'
-actions = require 'activity/flux/chatinput/actions/actiontypes'
+DropboxSettingsStore = require 'activity/flux/chatinput/stores/dropboxsettingsstore'
+
+actionTypes = require 'activity/flux/chatinput/actions/actiontypes'
 
 describe 'ChatInputSearchGetters', ->
+
+  searchItems = [
+    { id : '1', name : 'message 1' }
+    { id : '2', name : 'message 2' }
+    { id : '3', name : 'message 3' }
+  ]
+
+  stateId = '123'
+  config  = {
+    component       : React.Component
+    getters         :
+      items         : 'dropboxSearchItems'
+      selectedIndex : 'searchSelectedIndex'
+      selectedItem  : 'searchSelectedItem'
+  }
+  testConfig = {
+    component       : React.Component
+    getters         :
+      items         : 'dropboxTestItems'
+      selectedIndex : 'testSelectedIndex'
+      selectedItem  : 'testSelectedItem'
+  }
 
   beforeEach ->
 
     @reactor = new Reactor()
     stores = {}
     stores[ChatInputSearchStore.getterPath] = ChatInputSearchStore
-    stores[ChatInputSearchSelectedIndexStore.getterPath] = ChatInputSearchSelectedIndexStore
+    stores[DropboxSettingsStore.getterPath] = DropboxSettingsStore
     @reactor.registerStores stores
 
+    @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items : searchItems }
 
-  describe '#chatInputSearchSelectedIndex', ->
 
-    stateId = 'test'
+  describe '#dropboxSearchItems', ->
 
-    it 'gets -1 when search items are empty', ->
+    it 'returns nothing if drobox config doesn\'t contain dropboxSearchItems getter', ->
 
       { getters } = ChatInputFlux
-      items = []
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
+      items = @reactor.evaluate getters.dropboxSearchItems stateId
+      expect(items).toBeA 'undefined'
 
-      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).toEqual -1
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config : testConfig }
+
+      items = @reactor.evaluate getters.dropboxSearchItems stateId
+      expect(items).toBeA 'undefined'
 
 
-    it 'gets the same index which was set by action', ->
+    it 'returns loaded items if dropbox config contain dropboxSearchItems getters', ->
 
-      index       = 1
       { getters } = ChatInputFlux
-      items = [
-        { id : '1' }
-        { id : '2' }
-        { id : '3' }
-      ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config }
 
-      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).toEqual index
+      items = @reactor.evaluateToJS getters.dropboxSearchItems stateId
+      expect(items).toEqual searchItems
 
 
-    it 'handles negative store value', ->
+  describe '#searchSelectedIndex', ->
 
-      index       = -2
+    it 'returns -1 if search items are empty', ->
+
       { getters } = ChatInputFlux
-      items = [
-        { id : '1' }
-        { id : '2' }
-        { id : '3' }
-        { id : '4' }
-        { id : '5' }
-      ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config : testConfig }
+      index = @reactor.evaluate getters.searchSelectedIndex stateId
 
-      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).toEqual (index % items.length) + items.length
-
-      index = -9
-
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
-
-      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).toEqual (index % items.length) + items.length
+      expect(index).toBe -1
 
 
-    it 'handles store value bigger than list size', ->
+    it 'returns 0 by default', ->
 
-      index       = 5
       { getters } = ChatInputFlux
-      items = [
-        { id : '1' }
-        { id : '2' }
-        { id : '3' }
-      ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config }
+      index = @reactor.evaluate getters.searchSelectedIndex stateId
 
-      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).toEqual index % items.length
-
-      index = 8
-
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
-
-      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
-      expect(selectedIndex).toEqual index % items.length
+      expect(index).toBe 0
 
 
-  describe '#chatInputSelectedItem', ->
+    it 'returns index which was set before', ->
 
-    stateId = 'test'
-
-    it 'gets item by specified selected index', ->
-
-      index       = 1
+      index = 1
       { getters } = ChatInputFlux
-      items = [
-        { id : '1' }
-        { id : '2' }
-        { id : '3' }
-      ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config }
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index }
+
+      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
+
+      expect(selectedIndex).toBe index
+
+
+    it 'returns index corrected to items size if index is greater that items size', ->
+
+      { getters } = ChatInputFlux
+
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config }
+
+      items = @reactor.evaluate getters.dropboxSearchItems stateId
+
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index : items.size - 1 }
+      @reactor.dispatch actionTypes.MOVE_TO_NEXT_DROPBOX_SELECTED_INDEX, { stateId }
+
+      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
+
+      expect(selectedIndex).toBe 0
+
+
+    it 'returns index corrected to items size if index is negative', ->
+
+      { getters } = ChatInputFlux
+
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config }
+      # index is set by default to 0
+      @reactor.dispatch actionTypes.MOVE_TO_PREV_DROPBOX_SELECTED_INDEX, { stateId }
+
+      items = @reactor.evaluate getters.dropboxSearchItems stateId
+      selectedIndex = @reactor.evaluate getters.searchSelectedIndex stateId
+
+      expect(selectedIndex).toBe items.size - 1
+
+
+  describe '#searchSelectedItem', ->
+
+    it 'returns nothing if search items are empty', ->
+
+      { getters } = ChatInputFlux
+
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config : testConfig }
+      selectedItem = @reactor.evaluate getters.searchSelectedItem stateId
+
+      expect(selectedItem).toBeA 'undefined'
+
+
+    it 'returns item by selected index', ->
+
+      { getters } = ChatInputFlux
+
+      @reactor.dispatch actionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'test', config }
+      @reactor.dispatch actionTypes.SET_DROPBOX_SELECTED_INDEX, { stateId, index : 1 }
 
       selectedItem = @reactor.evaluateToJS getters.searchSelectedItem stateId
-      expect(selectedItem.id).toEqual items[index].id
+
+      expect(selectedItem).toEqual searchItems[1]
 

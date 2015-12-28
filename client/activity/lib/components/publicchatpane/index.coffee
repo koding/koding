@@ -4,6 +4,11 @@ immutable            = require 'immutable'
 ActivityFlux         = require 'activity/flux'
 ChatPane             = require 'activity/components/chatpane'
 ChatInputWidget      = require 'activity/components/chatinputwidget'
+ChannelToken         = require 'activity/components/chatinputwidget/tokens/channeltoken'
+EmojiToken           = require 'activity/components/chatinputwidget/tokens/emojitoken'
+MentionToken         = require 'activity/components/chatinputwidget/tokens/mentiontoken'
+SearchToken          = require 'activity/components/chatinputwidget/tokens/searchtoken'
+CommandToken         = require 'activity/components/chatinputwidget/tokens/commandtoken'
 ChatPaneWrapperMixin = require 'activity/components/chatpane/chatpanewrappermixin'
 FollowChannelBox     = require 'activity/components/followchannelbox'
 
@@ -50,12 +55,13 @@ module.exports = class PublicChatPane extends React.Component
 
     <footer className="PublicChatPane-footer ChatPaneFooter">
       <ChatInputWidget
-        ref='chatInputWidget'
-        className={unless isParticipant then 'hidden'}
-        onSubmit={@bound 'onSubmit'}
-        onCommand={@bound 'onCommand'}
-        channelId={@channel 'id'}
-        onResize={@bound 'onResize'}
+        ref       = 'chatInputWidget'
+        className = { unless isParticipant then 'hidden' }
+        onSubmit  = { @bound 'onSubmit' }
+        onCommand = { @bound 'onCommand' }
+        channelId = { @channel 'id' }
+        onResize  = { @bound 'onResize' }
+        tokens    = { [ChannelToken, EmojiToken, MentionToken, SearchToken, CommandToken] }
       />
       <FollowChannelBox
         className={if isParticipant then 'hidden'}
