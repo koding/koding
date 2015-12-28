@@ -65,8 +65,26 @@ validateJWTToken = (token, callback) ->
     return callback errors.invalidSSOTokenPayload  unless username
     return callback errors.invalidSSOTokenPayload  unless group
     return callback null, { username, group }
+
+
+verifyApiToken = (token, callback) ->
+
+  { JApiToken } = koding.models
+
+  # checking if token is valid
+  JApiToken.one { code: token }, (err, apiToken) ->
+
+    return callback errors.internalError    if err
+    return callback errors.invalidApiToken  unless apiToken
+
+    checkApiAvailability { apiToken }, (err) ->
+      return callback err  if err
+
+      callback null, apiToken
+
 module.exports = {
   sendApiError
+  verifyApiToken
   validateJWTToken
   sendApiResponse
   checkApiAvailability
