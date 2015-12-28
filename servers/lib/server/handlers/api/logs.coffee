@@ -1,23 +1,22 @@
-{ fetchSession }    = require '../../helpers'
+{ sendApiError
+  sendApiResponse
+  verifySessionOrApiToken } = require './helpers'
 
-{ sendApiError,
-  sendApiResponse } = require './helpers'
-errors              = require './errors'
+errors          = require './errors'
+KodingLogger    = require '../../../../models/kodinglogger'
 
-KodingLogger        = require '../../../../models/kodinglogger'
+module.exports  = (req, res, next) ->
 
-module.exports      = (req, res, next) ->
+  verifySessionOrApiToken req, res, (data) ->
 
-  fetchSession req, res, (err, session) ->
+    { apiToken, session } = data
 
-    if err or not session
-      return sendApiError res, errors.unauthorizedRequest
+    group = apiToken?.group or session.groupName
 
     # safe zone
 
     { q, limit, from, scope } = req.query
 
-    group = session.groupName ? 'koding'
     query = KodingLogger.generateRestrictedQuery group, q, scope
 
     KodingLogger.search { query, limit, from }, (err, logs) ->
