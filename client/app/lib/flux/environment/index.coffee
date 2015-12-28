@@ -17,7 +17,8 @@ module.exports =
     require './stores/connectedmanagedmachinestore'
     require './stores/activemachinestore'
     require './stores/activeinvitationmachineidstore'
-    require './stores/activeleavingsharedmachineidstore.coffee'
+    require './stores/activeleavingsharedmachineidstore'
+    require './stores/differentstackresourcesstore'
   ]
 
   register: (reactor) -> reactor.registerStores @stores

@@ -20,6 +20,7 @@ ConnectedManagedMachineStore      = ['ConnectedManagedMachineStore']
 sharedMachineListItems            = [['SharedMachineListItemsStore'], withEmptyMap]
 ActiveInvitationMachineIdStore    = ['ActiveInvitationMachineIdStore']
 ActiveLeavingSharedMachineIdStore = ['ActiveLeavingSharedMachineIdStore']
+DifferentStackResourcesStore      = ['DifferentStackResourcesStore']
 
 workspacesWithChannels = [
   WorkspacesStore
@@ -128,4 +129,5 @@ module.exports = {
   connectedManagedMachine : ConnectedManagedMachineStore
   activeInvitationMachineId: ActiveInvitationMachineIdStore
   activeLeavingSharedMachineId: ActiveLeavingSharedMachineIdStore
+  differentStackResourcesStore : DifferentStackResourcesStore
 }
