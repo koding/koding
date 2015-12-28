@@ -77,9 +77,11 @@ describe 'IDE.routes', ->
         mock.envDataProvider.ensureDefaultWorkspace()
 
         expect.spyOn dataProvider, 'ensureDefaultWorkspace'
+        expect.spyOn dataProvider, 'fetchWorkspaceByMachineUId' # to prevent ide load and url change
 
         routes.routeHandler 'workspace', ROUTE_PARAMS.workspace
         expect(dataProvider.ensureDefaultWorkspace).toHaveBeenCalled()
+        expect(dataProvider.fetchWorkspaceByMachineUId).toHaveBeenCalled()
 
 
       it 'should routeToLatestWorkspace if there is no machine', ->
