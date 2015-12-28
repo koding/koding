@@ -116,6 +116,36 @@ runTests = -> describe 'KodingLogger', ->
       done()
 
 
+  describe '# connect', ->
+
+    it 'should be able to connect to papertrail', (done) ->
+
+      expect(KodingLogger.logger).to.not.exist
+      expect(KodingLogger.pt).to.not.exist
+
+      KodingLogger.connect()
+
+      expect(KodingLogger.logger).to.exist
+      expect(KodingLogger.pt).to.exist
+
+      KodingLogger.pt.on 'connect', -> done()
+
+
+  describe '# close', ->
+
+    it 'should close existing connection from papertrail', (done) ->
+
+      expect(KodingLogger.logger).to.exist
+      expect(KodingLogger.pt).to.exist
+
+      KodingLogger.close()
+
+      expect(KodingLogger.logger).to.not.exist
+      expect(KodingLogger.pt).to.not.exist
+
+      done()
+
+
   describe '# send', ->
 
     it 'should send a log to papertrail', (done) ->
