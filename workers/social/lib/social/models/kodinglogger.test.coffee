@@ -131,21 +131,6 @@ runTests = -> describe 'KodingLogger', ->
       KodingLogger.pt.on 'connect', -> done()
 
 
-  describe '# close', ->
-
-    it 'should close existing connection from papertrail', (done) ->
-
-      expect(KodingLogger.logger).to.exist
-      expect(KodingLogger.pt).to.exist
-
-      KodingLogger.close()
-
-      expect(KodingLogger.logger).to.not.exist
-      expect(KodingLogger.pt).to.not.exist
-
-      done()
-
-
   describe '# send', ->
 
     it 'should send a log to papertrail', (done) ->
@@ -158,9 +143,9 @@ runTests = -> describe 'KodingLogger', ->
 
       identifier = KodingLogger.getIdentifier scope, group
 
-      KodingLogger.connect()
+      KodingLogger[scope] group, log
 
-      KodingLogger.pt.on 'connect', ->
+      setTimeout ->
 
         KodingLogger.search { query }, (err, result) ->
 
@@ -170,11 +155,9 @@ runTests = -> describe 'KodingLogger', ->
           expect(result.logs).to.have.length.above 0
           expect(result.logs[0].message).to.be.equal "#{identifier} #{log}"
 
-          KodingLogger.close()
-
           done()
 
-      KodingLogger[scope] group, log
+      , 2000
 
 
   describe '# search', ->
@@ -190,9 +173,10 @@ runTests = -> describe 'KodingLogger', ->
 
       identifier = KodingLogger.getIdentifier scope, group
 
-      KodingLogger.connect()
+      for log in logs
+        KodingLogger[scope] group, log
 
-      KodingLogger.pt.on 'connect', ->
+      setTimeout ->
 
         KodingLogger.search { query }, (err, result) ->
 
@@ -203,12 +187,24 @@ runTests = -> describe 'KodingLogger', ->
           expect(result.logs[0].message).to.be.equal "#{identifier} #{logs[0]}"
           expect(result.logs[1].message).to.be.equal "#{identifier} #{logs[1]}"
 
-          KodingLogger.close()
-
           done()
 
-      for log in logs
-        KodingLogger[scope] group, log
+      , 4000
+
+
+  describe '# close', ->
+
+    it 'should close existing connection from papertrail', (done) ->
+
+      expect(KodingLogger.logger).to.exist
+      expect(KodingLogger.pt).to.exist
+
+      KodingLogger.close()
+
+      expect(KodingLogger.logger).to.not.exist
+      expect(KodingLogger.pt).to.not.exist
+
+      done()
 
 
 runTests()
