@@ -1,9 +1,11 @@
-kd           = require 'kd'
-mock         = require '../../mocks/mockingjay'
-expect       = require 'expect'
-routes       = require '../lib/routes'
-dataProvider = require 'app/userenvironmentdataprovider'
+kd            = require 'kd'
+mock          = require '../../mocks/mockingjay'
+expect        = require 'expect'
+routes        = require '../lib/routes'
+dataProvider  = require 'app/userenvironmentdataprovider'
 
+mockMachine   = mock.getMockMachine()
+mockWorkspace = mock.getMockWorkspace()
 
 ROUTE_PARAMS           =
   machine              : { params: { machineLabel: 'koding-vm-0' } }
@@ -22,9 +24,21 @@ createSpyAndAssert = (spyOn, spyFor, routeType, routeParams) ->
   expect(spyOn[spyFor]).toHaveBeenCalled()
 
 
+getStorageData = ->
+
+  storage        = kd.singletons.localStorageController.storage 'IDE'
+  storageData    =
+    machineLabel : mockMachine.slug
+    workspaceSlug: mockWorkspace.slug
+    channelId    : undefined
+
+  return { storage, storageData }
+
+
 describe 'IDE.routes', ->
 
   afterEach -> expect.restoreSpies()
+
 
   describe '.routeHandler', ->
 
@@ -146,15 +160,9 @@ describe 'IDE.routes', ->
 
     it 'should call activitySidebar.selectWorkspace', ->
 
-      mockMachine         = mock.getMockMachine()
-      mockWorkspace       = mock.getMockWorkspace()
-      data                = { machine: mockMachine, workspace: mockWorkspace }
-      { activitySidebar } = kd.singletons.mainView
-      storage             = kd.singletons.localStorageController.storage 'IDE'
-      storageData         =
-        machineLabel      : mockMachine.slug
-        workspaceSlug     : mockWorkspace.slug
-        channelId         : undefined
+      data                     = { machine: mockMachine, workspace: mockWorkspace }
+      { activitySidebar }      = kd.singletons.mainView
+      { storage, storageData } = getStorageData()
 
       sidebarSpy = expect.spyOn activitySidebar, 'selectWorkspace'
       storageSpy = expect.spyOn storage, 'setValue'
@@ -173,3 +181,37 @@ describe 'IDE.routes', ->
       expect(secondCall.arguments[1]).toEqual storageData
 
 
+  describe '.getLatestWorkspace', ->
+
+    it 'should return safely if there is no workspace', ->
+
+      expect(routes.getLatestWorkspace()).toBe no
+      expect(routes.getLatestWorkspace({ uid: 'foo' })).toBe no
+
+
+    it 'should find the latest workspace', ->
+
+      { storage, storageData } = getStorageData()
+
+      expect.spyOn(storage, 'getValue').andCall -> return storageData
+      mock.envDataProvider.findWorkspace.toReturnWorkspace()
+
+      { machineLabel, workspaceSlug, channelId } = storageData
+
+      workspace = routes.getLatestWorkspace mockMachine
+
+      expect(dataProvider.findWorkspace).toHaveBeenCalledWith machineLabel, workspaceSlug, channelId
+      expect(workspace).toEqual storageData
+
+
+    it 'should return undefined if there is no workspace found for the storaged data in localStorage', ->
+
+      { storage, storageData } = getStorageData()
+
+      expect.spyOn(storage, 'getValue').andCall -> return storageData
+      mock.envDataProvider.findWorkspace.toReturnNull()
+
+      workspace = routes.getLatestWorkspace mockMachine
+
+      expect(storage.getValue).toHaveBeenCalled()
+      expect(workspace).toEqual undefined
