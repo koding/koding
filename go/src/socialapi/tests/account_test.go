@@ -6,7 +6,7 @@ import (
 	"socialapi/workers/common/tests"
 	"testing"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"

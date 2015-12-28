@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 )
 
 // AccountCreated adds user the algolia and adds koding group's channel id
