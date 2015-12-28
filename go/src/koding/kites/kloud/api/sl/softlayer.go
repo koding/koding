@@ -70,6 +70,7 @@ type Softlayer struct {
 // NewSoftlayer creates new Softlayer client for the given credentials.
 func NewSoftlayer(username, apiKey string) (*Softlayer, error) {
 	client := client.NewSoftLayerClient(username, apiKey)
+	client.HTTPClient = NewClient()
 	opts := &Options{
 		SLClient: client,
 	}

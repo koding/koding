@@ -22,6 +22,8 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 		vgbdtgService softlayer.SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service
 
 		vgbdtGroup datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group
+
+		locations []datatypes.SoftLayer_Location
 	)
 
 	BeforeEach(func() {
@@ -282,7 +284,103 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(transaction.TransactionStatus).ToNot(BeNil())
+		})
+	})
 
+	Context("#DenySharingAccess", func() {
+		BeforeEach(func() {
+			vgbdtGroup.Id = 1234567
+			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_denySharingAccess.json")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("sucessfully denies sharing access for VGBDTG instance", func() {
+			denySharing, err := vgbdtgService.DenySharingAccess(vgbdtGroup.Id, 1234567)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(denySharing).To(BeTrue())
+		})
+	})
+
+	Context("#PermitSharingAccess", func() {
+		BeforeEach(func() {
+			vgbdtGroup.Id = 1234567
+			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_permitSharingAccess.json")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("sucessfully permits sharing access for VGBDTG instance", func() {
+			permitSharing, err := vgbdtgService.PermitSharingAccess(vgbdtGroup.Id, 1234567)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(permitSharing).To(BeTrue())
+		})
+	})
+
+	Context("#XyzLocations", func() {
+		BeforeEach(func() {
+			locations = []datatypes.SoftLayer_Location{
+				datatypes.SoftLayer_Location{
+					Id:       0,
+					Name:     "0",
+					LongName: "Location 0",
+				},
+				datatypes.SoftLayer_Location{
+					Id:       1,
+					Name:     "1",
+					LongName: "Location 1",
+				},
+				datatypes.SoftLayer_Location{
+					Id:       2,
+					Name:     "2",
+					LongName: "Location 2",
+				},
+			}
+		})
+
+		Context("#AddLocations", func() {
+			BeforeEach(func() {
+				vgbdtGroup.Id = 1234567
+				fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_addLocations.json")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("sucessfully adds locations to VGBDTG instance", func() {
+				result, err := vgbdtgService.AddLocations(vgbdtGroup.Id, locations)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(result).To(BeTrue())
+			})
+		})
+
+		Context("#RemoveLocations", func() {
+			BeforeEach(func() {
+				vgbdtGroup.Id = 1234567
+				fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_removeLocations.json")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("sucessfully removes locations to VGBDTG instance", func() {
+				result, err := vgbdtgService.RemoveLocations(vgbdtGroup.Id, locations)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(result).To(BeTrue())
+			})
+		})
+
+		Context("#SetAvailableLocations", func() {
+			BeforeEach(func() {
+				vgbdtGroup.Id = 1234567
+				fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_setAvailableLocations.json")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("sucessfully sets available locations to VGBDTG instance", func() {
+				result, err := vgbdtgService.SetAvailableLocations(vgbdtGroup.Id, locations)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(result).To(BeTrue())
+			})
 		})
 	})
 })
