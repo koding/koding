@@ -15,6 +15,7 @@ IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
 isKoding                      = require 'app/util/isKoding'
 showError                     = require 'app/util/showError'
+actionTypes                   = require 'app/flux/environment/actiontypes'
 KDModalView                   = kd.ModalView
 KDSplitView                   = kd.SplitView
 IDEWorkspace                  = require './workspace/ideworkspace'
@@ -1662,6 +1663,8 @@ class IDEAppController extends AppController
 
   showUserRemovedModal: ->
 
+    { reactor } = kd.singletons
+
     options        =
       title        : 'Machine access revoked'
       content      : 'Your access to this machine has been removed by its owner.'
@@ -1671,7 +1674,7 @@ class IDEAppController extends AppController
           style    : 'solid light-gray medium'
           title    : 'OK'
           callback : =>
-
+            reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
             @modal.destroy()
             @quit()
 
