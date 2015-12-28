@@ -48,7 +48,7 @@ module.exports = class KodingLogger
     return scopes
 
 
-  getIdentifier = (scope, group) ->
+  @getIdentifier = (scope, group) ->
 
     scope = LOG_IDENTIFIER.replace /%scope%/, scope
     return scope.replace /%group%/, group
@@ -137,11 +137,11 @@ module.exports = class KodingLogger
     scopes = getScopes scope
 
     if scopes.length is 1
-      restriction = getIdentifier scopes[0], group
+      restriction = @getIdentifier scopes[0], group
     else
       restrictions = []
       for scope in scopes
-        restrictions.push getIdentifier scope, group
+        restrictions.push @getIdentifier scope, group
       restriction = "(#{restrictions.join ' OR '})"
 
     query = if query then "#{restriction} AND #{query}" else restriction
