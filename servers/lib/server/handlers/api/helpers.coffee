@@ -82,6 +82,35 @@ verifyApiToken = (token, callback) ->
 
       callback null, apiToken
 
+
+verifySessionOrApiToken = (req, res, callback) ->
+
+  { checkAuthorizationBearerHeader
+    fetchSession } = require '../../helpers'
+
+  token = checkAuthorizationBearerHeader req
+
+  if token
+
+    verifyApiToken token, (err, apiToken) ->
+      return sendApiError res, err  if err
+
+      # making sure subdomain is same with group slug
+      unless apiToken.group in req.subdomains
+        return sendApiError res, errors.invalidRequest
+
+      callback { apiToken }
+
+  else
+
+    fetchSession req, res, (err, session) ->
+
+      if err or not session or not session.groupName?
+        return sendApiError res, errors.unauthorizedRequest
+
+      callback { session }
+
+
 module.exports = {
   sendApiError
   verifyApiToken
@@ -89,6 +118,7 @@ module.exports = {
   sendApiResponse
   checkApiAvailability
   isUsernameLengthValid
+  verifySessionOrApiToken
   isSuggestedUsernameLengthValid
 
   SUGGESTED_USERNAME_MIN_LENGTH
