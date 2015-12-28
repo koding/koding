@@ -197,9 +197,9 @@ acceptInvitation = (machine) ->
 
   uid = machine.get 'uid'
 
+  invitation  = machineShareManager.get uid
   machineShareManager.unset uid
 
-  invitation  = machineShareManager.get uid
   jMachine    = remote.revive machine.toJS()
 
   jMachine.approve (err) ->
@@ -212,7 +212,7 @@ acceptInvitation = (machine) ->
         callback()
         router.handleRoute route
 
-    if machine.get('type') is 'collaboration'
+    if invitation?.type is 'collaboration' or machine.get('type') is 'collaboration'
       _getInvitationChannelId { uid, invitation }, (channelId) ->
         socialapi.channel.acceptInvite { channelId }, (err) ->
           return showError err  if err
@@ -220,7 +220,7 @@ acceptInvitation = (machine) ->
           kallback "/IDE/#{channelId}", ->
             reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
     else
-      kallback "/IDE/#{machine.get 'uid'}/my-workspace", ->
+      kallback "/IDE/#{machine.get 'uid'}", ->
         reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
 
 
