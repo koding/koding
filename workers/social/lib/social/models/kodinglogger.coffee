@@ -54,6 +54,20 @@ module.exports = class KodingLogger
     return scope.replace /%group%/, group
 
 
+  SCOPES.forEach (scope) =>
+
+    @[scope] = (requester, message...) =>
+
+      group = if typeof requester is 'string'
+        requester
+      else if requester.context?.group?
+        requester.context.group
+      else
+        'unknown'
+
+      @processMessage scope, group, message...
+
+
   @connect = ->
 
     return @logger  if @logger
@@ -69,14 +83,16 @@ module.exports = class KodingLogger
     @logger = new winston.Logger { transports: [ @pt ] }
 
 
-  @send = (scope, group, log, print = yes) ->
+  @processMessage = (scope, group, message...) ->
 
     scope   = 'log' if scope not in SCOPES
-    message = "#{getIdentifier scope, group} #{log}"
-    logger  = @connect()
+    message = "#{@getIdentifier scope, group} #{message}"
 
-    logger.info    message
-    console[scope] message  if print
+    console[scope] message
+
+    unless KONFIG.environment is 'production'
+      logger = @connect()
+      logger.info message
 
 
   @close = ->

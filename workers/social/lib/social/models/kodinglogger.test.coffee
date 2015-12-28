@@ -106,7 +106,7 @@ runTests = -> describe 'KodingLogger', ->
 
           done()
 
-      KodingLogger.send scope, group, log, no
+      KodingLogger[scope] group, log
 
 
   describe '# search', ->
@@ -138,7 +138,7 @@ runTests = -> describe 'KodingLogger', ->
           done()
 
       for log in logs
-        KodingLogger.send scope, group, log, no
+        KodingLogger[scope] group, log
 
 
 runTests()
