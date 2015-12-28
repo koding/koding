@@ -1,16 +1,17 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-checkFlag            = require 'app/util/checkFlag'
-ButtonWithMenu       = require 'app/components/buttonwithmenu'
-getMessageOwner      = require 'app/util/getMessageOwner'
-ActivityFlux         = require 'activity/flux'
-AppFlux              = require 'app/flux'
-immutable            = require 'immutable'
-whoami               = require 'app/util/whoami'
-remote               = require('app/remote').getInstance()
-BlockUserModal       = require 'app/components/blockusermodal'
-ActivityPromptModal  = require 'app/components/activitypromptmodal'
-MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
+kd                    = require 'kd'
+React                 = require 'kd-react'
+checkFlag             = require 'app/util/checkFlag'
+ButtonWithMenu        = require 'app/components/buttonwithmenu'
+getMessageOwner       = require 'app/util/getMessageOwner'
+ActivityFlux          = require 'activity/flux'
+AppFlux               = require 'app/flux'
+immutable             = require 'immutable'
+whoami                = require 'app/util/whoami'
+remote                = require('app/remote').getInstance()
+BlockUserModal        = require 'app/components/blockusermodal'
+ActivityPromptModal   = require 'app/components/activitypromptmodal'
+MarkUserAsTrollModal  = require 'app/components/markuserastrollmodal'
+showErrorNotification = require 'app/util/showErrorNotification'
 
 module.exports = class MessageItemMenu extends React.Component
 
@@ -25,11 +26,24 @@ module.exports = class MessageItemMenu extends React.Component
     @state =
       account                       : null
       isDeleting                    : no
+      isOwnerExempt                 : no
       isBlockUserModalVisible       : no
       isMarkUserAsTrollModalVisible : no
 
 
-  componentDidMount: -> @getAccountInfo()
+  componentDidMount: ->
+
+    @checkTheOwnerIsExempt()
+    @getAccountInfo()
+
+
+  checkTheOwnerIsExempt: ->
+
+    getMessageOwner @props.message.toJS(), (err, owner) =>
+
+      return showErrorNotification err  if err
+
+      @setState isOwnerExempt: owner.isExempt
 
 
   getAccountInfo: ->
