@@ -16,9 +16,11 @@ runTests = -> describe 'KodingLogger', ->
       restrictedQuery = KodingLogger
         .generateRestrictedQuery group, query, scope
 
+      identifier = KodingLogger.getIdentifier scope, group
+
       expect restrictedQuery
         .to.exist
-        .to.be.equal "[#{scope}:#{group}] AND #{query}"
+        .to.be.equal "#{identifier} AND #{query}"
 
       done()
 
@@ -31,9 +33,11 @@ runTests = -> describe 'KodingLogger', ->
       restrictedQuery = KodingLogger
         .generateRestrictedQuery group, query, scope
 
+      identifier = KodingLogger.getIdentifier scope, group
+
       expect restrictedQuery
         .to.exist
-        .to.be.equal "[#{scope}:#{group}]"
+        .to.be.equal identifier
 
       done()
 
@@ -44,9 +48,13 @@ runTests = -> describe 'KodingLogger', ->
 
       restrictedQuery = KodingLogger.generateRestrictedQuery group, query
 
+      identifiers = []
+      for _scope in KodingLogger.SCOPES
+        identifiers.push KodingLogger.getIdentifier _scope, group
+
       expect restrictedQuery
         .to.exist
-        .to.be.equal "([log:apple] OR [error:apple] OR [warn:apple] OR [info:apple]) AND #{query}"
+        .to.be.equal "(#{identifiers.join ' OR '}) AND #{query}"
 
       done()
 
@@ -58,9 +66,13 @@ runTests = -> describe 'KodingLogger', ->
 
       restrictedQuery = KodingLogger.generateRestrictedQuery group, query
 
+      identifiers = []
+      for _scope in KodingLogger.SCOPES
+        identifiers.push KodingLogger.getIdentifier _scope, group
+
       expect restrictedQuery
         .to.exist
-        .to.be.equal "([log:apple] OR [error:apple] OR [warn:apple] OR [info:apple]) AND #{query}"
+        .to.be.equal "(#{identifiers.join ' OR '}) AND #{query}"
 
       done()
 
@@ -73,9 +85,13 @@ runTests = -> describe 'KodingLogger', ->
       restrictedQuery = KodingLogger
         .generateRestrictedQuery group, query, scope
 
+      identifiers = []
+      for _scope in ['log', 'info']
+        identifiers.push KodingLogger.getIdentifier _scope, group
+
       expect restrictedQuery
         .to.exist
-        .to.be.equal "([log:apple] OR [info:apple]) AND #{query}"
+        .to.be.equal "(#{identifiers.join ' OR '}) AND #{query}"
 
       done()
 
@@ -90,6 +106,8 @@ runTests = -> describe 'KodingLogger', ->
 
       query = KodingLogger.generateRestrictedQuery group, log, scope
 
+      identifier = KodingLogger.getIdentifier scope, group
+
       KodingLogger.connect()
 
       KodingLogger.pt.on 'connect', ->
@@ -100,7 +118,7 @@ runTests = -> describe 'KodingLogger', ->
           expect(result).to.exist
           expect(result.logs).to.exist
           expect(result.logs).to.have.length.above 0
-          expect(result.logs[0].message).to.be.equal "[#{scope}:#{group}] #{log}"
+          expect(result.logs[0].message).to.be.equal "#{identifier} #{log}"
 
           KodingLogger.close()
 
@@ -120,6 +138,8 @@ runTests = -> describe 'KodingLogger', ->
       query = KodingLogger
         .generateRestrictedQuery group, (logs.join ' OR '), scope
 
+      identifier = KodingLogger.getIdentifier scope, group
+
       KodingLogger.connect()
 
       KodingLogger.pt.on 'connect', ->
@@ -130,8 +150,8 @@ runTests = -> describe 'KodingLogger', ->
           expect(result).to.exist
           expect(result.logs).to.exist
           expect(result.logs).to.have.length(2)
-          expect(result.logs[0].message).to.be.equal "[#{scope}:#{group}] #{logs[0]}"
-          expect(result.logs[1].message).to.be.equal "[#{scope}:#{group}] #{logs[1]}"
+          expect(result.logs[0].message).to.be.equal "#{identifier} #{logs[0]}"
+          expect(result.logs[1].message).to.be.equal "#{identifier} #{logs[1]}"
 
           KodingLogger.close()
 
