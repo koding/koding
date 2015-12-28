@@ -72,9 +72,6 @@ _bindStackEvents = ->
   computeController.on 'GroupStacksConsistent', ->
     reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
-  computeController.on 'RenderStacks', (stack) ->
-    console.log '>>>>>>>> render stacks'
-
 
 handleSharedMachineInvitation = (sharedMachine)->
 
