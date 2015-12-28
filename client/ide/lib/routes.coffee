@@ -185,7 +185,11 @@ loadCollaborativeIDE = (id) ->
       return console.error e
 
 
-module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
+routeHandler = (type, info, state, path, ctx) ->
+
+  # This is just a dirty workaround to be able to run the unit tests
+  # in the future we hope to find a better way and remove this imports. acet /cc usirin
+  { routeToLatestWorkspace, loadCollaborativeIDE, routeToMachineWorkspace, loadIDE } = module.exports
 
   switch type
 
@@ -219,3 +223,22 @@ module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
 
           else
             routeToLatestWorkspace()
+
+
+module.exports = {
+
+  selectWorkspaceOnSidebar
+  getLatestWorkspace
+  loadIDENotFound
+  loadIDE
+  routeToFallback
+  routeToMachineWorkspace
+  routeToLatestWorkspace
+  loadCollaborativeIDE
+  routeHandler
+
+  init: -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
+
+    routeHandler type, info, state, path, ctx
+
+}

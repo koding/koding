@@ -40,7 +40,7 @@ KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 
 
-require('./routes')()
+require('./routes').init()
 
 
 module.exports =

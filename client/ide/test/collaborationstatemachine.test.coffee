@@ -10,17 +10,17 @@ describe 'CollaborationStateMachine', ->
 
     { states } = machine
 
-    expect(states['Loading']).to.be.ok
-    expect(states['ErrorLoading']).to.be.ok
-    expect(states['Resuming']).to.be.ok
-    expect(states['NotStarted']).to.be.ok
-    expect(states['Preparing']).to.be.ok
-    expect(states['ErrorPreparing']).to.be.ok
-    expect(states['Prepared']).to.be.ok
-    expect(states['Creating']).to.be.ok
-    expect(states['ErrorCreating']).to.be.ok
-    expect(states['Active']).to.be.ok
-    expect(states['Ending']).to.be.ok
+    expect(states['Loading']).toExist()
+    expect(states['ErrorLoading']).toExist()
+    expect(states['Resuming']).toExist()
+    expect(states['NotStarted']).toExist()
+    expect(states['Preparing']).toExist()
+    expect(states['ErrorPreparing']).toExist()
+    expect(states['Prepared']).toExist()
+    expect(states['Creating']).toExist()
+    expect(states['ErrorCreating']).toExist()
+    expect(states['Active']).toExist()
+    expect(states['Ending']).toExist()
 
 
   it 'tests Loading state transitions', ->
@@ -167,7 +167,7 @@ assertLegalTransitions = (machineFactoryFn, states) ->
 assertIllegalTransitions = (machineFactoryFn, states) ->
   states.forEach (state) ->
     machine = machineFactoryFn()
-    expect(-> machine.transition state).to.throw /illegal state transition/
+    expect(-> machine.transition state).toThrow /illegal state transition/
 
 newSimpleMachine = -> new CollabStateMachine
 
