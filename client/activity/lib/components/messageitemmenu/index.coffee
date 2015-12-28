@@ -164,26 +164,26 @@ module.exports = class MessageItemMenu extends React.Component
     ]
 
 
-  getAdminMenuItems: ->
+  getMarkUserMenuItem: ->
 
-    { message } = @props
     markUserMenuItem =
       key: 'markuserastroll',
       title: 'Mark User as Troll',
       onClick: @bound 'showMarkUserAsTrollPromptModal'
 
-    getMessageOwner message.toJS(), (err, owner) =>
+    if @state.isOwnerExempt
+      markUserMenuItem =
+        key: 'unmarkuserastroll',
+        title: 'Unmark User as Troll',
+        onClick: @bound 'unMarkUserAsTroll'
 
-      return showErrorNotification err  if err
+    return markUserMenuItem
 
-      if owner.isExempt
-        markUserMenuItem =
-          key: 'unmarkuserastroll',
-          title: 'Unmark User as Troll',
-          onClick: @bound 'unMarkUserAsTroll'
+
+  getAdminMenuItems: ->
 
     adminMenuItems = [
-      markUserMenuItem
+      @getMarkUserMenuItem()
       {
         title   : 'Block User'
         key     : 'blockuser'
