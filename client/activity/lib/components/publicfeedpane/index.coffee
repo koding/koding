@@ -1,10 +1,11 @@
-kd             = require 'kd'
-React          = require 'kd-react'
-ReactDOM       = require 'react-dom'
-immutable      = require 'immutable'
-FeedPane       = require './feedpane'
-ActivityFlux   = require 'activity/flux'
-ScrollerMixin  = require 'app/components/scroller/scrollermixin'
+kd            = require 'kd'
+React         = require 'kd-react'
+ReactDOM      = require 'react-dom'
+immutable     = require 'immutable'
+FeedPane      = require './feedpane'
+ActivityFlux  = require 'activity/flux'
+ScrollerMixin = require 'app/components/scroller/scrollermixin'
+ResultState   = require 'activity/constants/resultStates'
 
 module.exports = class PublicFeedPane extends React.Component
 
@@ -31,8 +32,13 @@ module.exports = class PublicFeedPane extends React.Component
 
     return  unless (messages = @props.thread.get 'messages').size
 
-    ActivityFlux.actions.message.loadMessages @channel('id'),
-      from: messages.first().get 'createdAt'
+    switch @props.thread.getIn ['flags', 'resultListState']
+      when ResultState.LIKED
+        from = messages.last().get 'createdAt'
+        ActivityFlux.actions.channel.loadPopularMessages @channel('id'), { from }
+      when ResultState.RECENT
+        from = messages.first().get 'createdAt'
+        ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
   onThresholdReached: (event) ->
@@ -58,4 +64,5 @@ module.exports = class PublicFeedPane extends React.Component
       thread={@props.thread}
       onLoadMore={@bound 'onLoadMore'}
     />
+
 

@@ -63,7 +63,7 @@ module.exports = class FeedPane extends React.Component
         className="FeedThreadPane-header"
         thread={@props.thread} />
       <FeedInputWidget thread={@props.thread} />
-      <FeedPaneTabContainer thread={@props.thread} />
+      <FeedPaneTabContainer thread={@props.thread}/>
       <FeedList
         isMessagesLoading={@isThresholdReached}
         messages={@getMessages()} />
