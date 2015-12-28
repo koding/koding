@@ -27,7 +27,7 @@ module.exports = class SidebarNoStacks extends React.Component
       return showErrorNotification err  if err
       @setState
         isGroupAdmin : isAdmin
-        isready      : yes
+        isReady      : yes
 
 
   handleOnClick: (event) ->
