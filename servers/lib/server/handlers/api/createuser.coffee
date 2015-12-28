@@ -6,6 +6,7 @@ apiErrors                          = require './errors'
   handleClientIdNotFound
   checkAuthorizationBearerHeader } = require '../../helpers'
 { sendApiError
+  verifyApiToken
   sendApiResponse
   checkApiAvailability
   isUsernameLengthValid
@@ -87,38 +88,15 @@ module.exports = createUser = (req, res, next) ->
 
 validateData = (data, callback) ->
 
-  { JUser, JGroup, JApiToken } = koding.models
   { token, username, suggestedUsername } = data
 
-  apiToken = null
+  verifyApiToken token, (err, apiToken) ->
+    return callback err  if err
 
-  queue = [
+    handleUsername username, suggestedUsername, (err, username) ->
+      return callback err  if err
 
-    ->
-      # checking if token is valid
-      JApiToken.one { code : token }, (err, apiToken_) ->
-        return callback apiErrors.internalError    if err
-        return callback apiErrors.invalidApiToken  unless apiToken_
-
-        apiToken = apiToken_
-        queue.next()
-
-    ->
-      checkApiAvailability { apiToken }, (err) ->
-        return callback err  if err
-        queue.next()
-
-    ->
-      handleUsername username, suggestedUsername, (err, username_) ->
-        return callback err  if err
-        username = username_
-        queue.next()
-
-    -> callback null, { apiToken, username }
-
-  ]
-
-  daisy queue
+      callback null, { apiToken, username }
 
 
 handleUsername = (username, suggestedUsername, callback) ->
