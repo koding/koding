@@ -3,6 +3,7 @@ Machine        = require 'app/providers/machine'
 dataProvider   = require 'app/userenvironmentdataprovider'
 mockjmachine   = require './mock.jmachine'
 mockjworkspace = require './mock.jworkspace'
+mockMachine    = new Machine { machine: mockjmachine }
 
 module.exports =
 
@@ -13,7 +14,7 @@ module.exports =
       toReturnMachine: ->
 
         expect.spyOn(dataProvider, 'fetchMachine').andCall (identifier, callback) ->
-          callback new Machine { machine: mockjmachine }
+          callback mockMachine
 
 
       toReturnNull: ->
@@ -40,3 +41,32 @@ module.exports =
 
         expect.spyOn(dataProvider, 'fetchWorkspaceByMachineUId').andCall (options, callback) ->
           callback null
+
+
+    findWorkspace:
+
+      toReturnWorkspace: ->
+
+        expect.spyOn(dataProvider, 'findWorkspace').andCall -> return mockjworkspace
+
+      toReturnNull: ->
+
+        expect.spyOn(dataProvider, 'findWorkspace').andCall -> return null
+
+
+    getMyMachines:
+
+      toReturnMachines: ->
+
+        expect.spyOn(dataProvider, 'getMyMachines').andCall -> return [ { machine: mockMachine } ]
+
+      toReturnEmptyArray: ->
+
+        expect.spyOn(dataProvider, 'getMyMachines').andCall -> return []
+
+
+  getMockMachine: ->  return new Machine { machine: @getMockJMachine() }
+
+  getMockJMachine: -> return mockjmachine
+
+  getMockWorkspace: -> return mockjworkspace
