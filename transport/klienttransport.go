@@ -19,6 +19,10 @@ const (
 // KlientTransport is a Transport using Klient on user VM.
 type KlientTransport struct {
 	Client *kite.Client
+
+	// The timeout Trip() uses for TellWithTimeout. If left empty, a zero timeout is
+	// used, achieving the same result as Tell(), ie no timeout.
+	TellTimeout time.Duration
 }
 
 // NewKlientTransport initializes KlientTransport with Klient connection.
@@ -59,7 +63,7 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 // Trip is a generic method for communication. It accepts `req` to pass args
 // to Klient and `res` to store unmarshalled response from Klient.
 func (k *KlientTransport) Trip(methodName string, req interface{}, res interface{}) error {
-	raw, err := k.Client.Tell(methodName, req)
+	raw, err := k.Client.TellWithTimeout(methodName, k.TellTimeout, req)
 	if err != nil {
 		return err
 	}
