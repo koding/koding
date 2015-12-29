@@ -7,10 +7,8 @@ package sl
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
-	"sort"
 
 	"github.com/koding/logging"
 	"github.com/maximilien/softlayer-go/client"
@@ -59,16 +57,11 @@ type Softlayer struct {
 	// is not tighly coupled with our Softlayer provider.
 	softlayer.Client
 
-	account softlayer.SoftLayer_Account_Service
-	guest   softlayer.SoftLayer_Virtual_Guest_Service
-	block   softlayer.SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service
-	sshkey  softlayer.SoftLayer_Security_Ssh_Key_Service
-
 	opts *Options
 }
 
 // NewSoftlayer creates new Softlayer client for the given credentials.
-func NewSoftlayer(username, apiKey string) (*Softlayer, error) {
+func NewSoftlayer(username, apiKey string) *Softlayer {
 	client := client.NewSoftLayerClient(username, apiKey)
 	client.HTTPClient = NewClient()
 	opts := &Options{
@@ -78,31 +71,11 @@ func NewSoftlayer(username, apiKey string) (*Softlayer, error) {
 }
 
 // NewSoftlayerWithOptions creates new Softlayer client for the given options.
-func NewSoftlayerWithOptions(opts *Options) (*Softlayer, error) {
-	account, err := opts.SLClient.GetSoftLayer_Account_Service()
-	if err != nil {
-		return nil, errors.New("invalid softlayer.Client: " + err.Error())
-	}
-	guest, err := opts.SLClient.GetSoftLayer_Virtual_Guest_Service()
-	if err != nil {
-		return nil, errors.New("invalid softlayer.Client: " + err.Error())
-	}
-	block, err := opts.SLClient.GetSoftLayer_Virtual_Guest_Block_Device_Template_Group_Service()
-	if err != nil {
-		return nil, errors.New("invalid softlayer.Client: " + err.Error())
-	}
-	sshkey, err := opts.SLClient.GetSoftLayer_Security_Ssh_Key_Service()
-	if err != nil {
-		return nil, errors.New("invalid softlayer.Client: " + err.Error())
-	}
+func NewSoftlayerWithOptions(opts *Options) *Softlayer {
 	return &Softlayer{
-		Client:  opts.SLClient,
-		account: account,
-		guest:   guest,
-		block:   block,
-		sshkey:  sshkey,
-		opts:    opts,
-	}, nil
+		Client: opts.SLClient,
+		opts:   opts,
+	}
 }
 
 // KeysByFilter fetches all keys and performs client-side filtering using the
@@ -111,33 +84,17 @@ func NewSoftlayerWithOptions(opts *Options) (*Softlayer, error) {
 // If no templates are found that matches the filter, non-nil error is returned.
 // If filter is nil, all templates are returned.
 func (c *Softlayer) KeysByFilter(filter *Filter) (Keys, error) {
-	path := fmt.Sprintf("%s/getSshKeys.json", c.account.GetName())
-	p, err := c.DoRawHttpRequestWithObjectMask(path, keyMask, "GET", nullBuf)
-	if err != nil {
+	req := &ResourceRequest{
+		Name:       "SshKey",
+		Path:       "SoftLayer_Account/getSshKeys.json",
+		Filter:     filter,
+		ObjectMask: keyMask,
+		Resource:   &Keys{},
+	}
+	if err := c.get(req); err != nil {
 		return nil, err
 	}
-	if err := checkError(p); err != nil {
-		return nil, err
-	}
-
-	var keys Keys
-	if err := json.Unmarshal(p, &keys); err != nil {
-		return nil, err
-	}
-
-	for _, key := range keys {
-		key.decode()
-	}
-
-	keys = keys.Filter(filter)
-
-	if len(keys) == 0 {
-		return nil, newNotFoundError("SshKey", fmt.Errorf("filter=%v", filter))
-	}
-
-	sort.Sort(byCreateDateKey(keys))
-
-	return keys, nil
+	return *req.Resource.(*Keys), nil
 }
 
 // XKeysByFilter queries for keys, which are filtered on the server side with
@@ -146,42 +103,18 @@ func (c *Softlayer) KeysByFilter(filter *Filter) (Keys, error) {
 // If no templates are found that matches the filter, non-nil error is returned.
 // If filter is nil, all templates are returned.
 func (c *Softlayer) XKeysByFilter(filter *Filter) (Keys, error) {
-	objFilter := map[string]interface{}{
-		"sshKeys": filter.Object(),
+	req := &ResourceRequest{
+		Name:       "SshKey",
+		Path:       "SoftLayer_Account/getSshKeys.json",
+		Filter:     filter,
+		FilterName: "sshKeys",
+		ObjectMask: keyMask,
+		Resource:   &Keys{},
 	}
-	p, err := json.Marshal(objFilter)
-	if err != nil {
+	if err := c.get(req); err != nil {
 		return nil, err
 	}
-	path := fmt.Sprintf("%s/getSshKeys.json", c.account.GetName())
-	p, err = c.DoRawHttpRequestWithObjectFilterAndObjectMask(
-		path, keyMask, string(p), "GET", nullBuf,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkError(p); err != nil {
-		return nil, err
-	}
-
-	var keys Keys
-	if err := json.Unmarshal(p, &keys); err != nil {
-		return nil, err
-	}
-
-	for _, key := range keys {
-		key.decode()
-	}
-
-	keys = keys.Filter(filter)
-
-	if len(keys) == 0 {
-		return nil, newNotFoundError("SshKey", fmt.Errorf("filter=%v", filter))
-	}
-
-	sort.Sort(byCreateDateKey(keys))
-
-	return keys, nil
+	return *req.Resource.(*Keys), nil
 }
 
 // CreateKey creates new SSH key on the Softlayer endpoint.
@@ -201,7 +134,7 @@ func (c *Softlayer) CreateKey(key *Key) (*Key, error) {
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/createObject.json", c.sshkey.GetName())
+	const path = "SoftLayer_Security_Ssh_Key/createObject.json"
 	p, err = c.DoRawHttpRequest(path, "POST", bytes.NewBuffer(p))
 	if err != nil {
 		return nil, err
@@ -221,7 +154,7 @@ func (c *Softlayer) CreateKey(key *Key) (*Key, error) {
 
 // DeleteKey deletes SSH key given by the id.
 func (c *Softlayer) DeleteKey(id int) error {
-	path := fmt.Sprintf("%s/%d", c.sshkey.GetName(), id)
+	path := fmt.Sprintf("SoftLayer_Security_Ssh_Key/%d", id)
 	p, err := c.DoRawHttpRequest(path, "DELETE", nullBuf)
 	if err != nil {
 		return err
@@ -248,33 +181,17 @@ func (c *Softlayer) DeleteKey(id int) error {
 // If no templates are found that matches the filter, non-nil error is returned.
 // If filter is nil, all templates are returned.
 func (c *Softlayer) TemplatesByFilter(filter *Filter) (Templates, error) {
-	path := fmt.Sprintf("%s/getBlockDeviceTemplateGroups.json", c.account.GetName())
-	p, err := c.DoRawHttpRequestWithObjectMask(path, templateMask, "GET", nullBuf)
-	if err != nil {
+	req := &ResourceRequest{
+		Name:       "Template",
+		Path:       "SoftLayer_Account/getBlockDeviceTemplateGroups.json",
+		Filter:     filter,
+		ObjectMask: templateMask,
+		Resource:   &Templates{},
+	}
+	if err := c.get(req); err != nil {
 		return nil, err
 	}
-	if err := checkError(p); err != nil {
-		return nil, err
-	}
-
-	var templates Templates
-	if err := json.Unmarshal(p, &templates); err != nil {
-		return nil, err
-	}
-
-	for _, template := range templates {
-		template.decode()
-	}
-
-	templates = templates.Filter(filter)
-
-	if len(templates) == 0 {
-		return nil, newNotFoundError("Template", fmt.Errorf("filter=%v", filter))
-	}
-
-	sort.Sort(byCreateDateDesc(templates))
-
-	return templates, nil
+	return *req.Resource.(*Templates), nil
 }
 
 // TemplatesByFilter queries for templates, which are filtered on the server
@@ -295,105 +212,54 @@ func (c *Softlayer) TemplatesByFilter(filter *Filter) (Templates, error) {
 //   https://github.com/softlayer/softlayer-python/blob/50c60bd/SoftLayer/utils.py#L71-L113
 //
 func (c *Softlayer) XTemplatesByFilter(filter *Filter) (Templates, error) {
-	objFilter := map[string]interface{}{
-		"blockDeviceTemplateGroups": filter.Object(),
+	req := &ResourceRequest{
+		Name:       "Template",
+		Path:       "SoftLayer_Account/getBlockDeviceTemplateGroups.json",
+		Filter:     filter,
+		FilterName: "blockDeviceTemplateGroups",
+		ObjectMask: templateMask,
+		Resource:   &Templates{},
 	}
-	p, err := json.Marshal(objFilter)
-	if err != nil {
+	if err := c.get(req); err != nil {
 		return nil, err
 	}
-	path := fmt.Sprintf("%s/getBlockDeviceTemplateGroups.json", c.account.GetName())
-	p, err = c.DoRawHttpRequestWithObjectFilterAndObjectMask(
-		path, templateMask, string(p), "GET", nullBuf,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkError(p); err != nil {
-		return nil, err
-	}
-
-	var templates Templates
-	if err := json.Unmarshal(p, &templates); err != nil {
-		return nil, err
-	}
-
-	if len(templates) == 0 {
-		return nil, newNotFoundError("Template", fmt.Errorf("filter=%v", filter))
-	}
-
-	for _, template := range templates {
-		template.decode()
-	}
-
-	sort.Sort(byCreateDateDesc(templates))
-
-	return templates, nil
+	return *req.Resource.(*Templates), nil
 }
 
 // DatacentersByFilter
 func (c *Softlayer) DatacentersByFilter(filter *Filter) (Datacenters, error) {
-	const path = "SoftLayer_Location_Datacenter/getDatacenters.json"
-	p, err := c.DoRawHttpRequestWithObjectMask(path, datacenterMask, "GET", nullBuf)
-	if err != nil {
+	req := &ResourceRequest{
+		Name:       "Datacenter",
+		Path:       "SoftLayer_Location_Datacenter/getDatacenters.json",
+		Filter:     filter,
+		ObjectMask: datacenterMask,
+		Resource:   &Datacenters{},
+	}
+	if err := c.get(req); err != nil {
 		return nil, err
 	}
-	if err := checkError(p); err != nil {
-		return nil, err
-	}
-
-	var datacenters Datacenters
-	if err := json.Unmarshal(p, &datacenters); err != nil {
-		return nil, err
-	}
-
-	datacenters = datacenters.Filter(filter)
-
-	if len(datacenters) == 0 {
-		return nil, newNotFoundError("Datacenter", fmt.Errorf("filter=%v", filter))
-	}
-
-	return datacenters, nil
+	return *req.Resource.(*Datacenters), nil
 }
 
 // XDatacentersByFilter
 func (c *Softlayer) XDatacentersByFilter(filter *Filter) (Datacenters, error) {
-	const path = "SoftLayer_Location_Datacenter/getDatacenters.json"
-	objFilter := map[string]interface{}{
-		"locations": filter.Object(),
+	req := &ResourceRequest{
+		Name:       "Datacenter",
+		Path:       "SoftLayer_Location_Datacenter/getDatacenters.json",
+		Filter:     filter,
+		FilterName: "locations",
+		ObjectMask: datacenterMask,
+		Resource:   &Datacenters{},
 	}
-	p, err := json.Marshal(objFilter)
-	if err != nil {
+	if err := c.get(req); err != nil {
 		return nil, err
 	}
-
-	p, err = c.DoRawHttpRequestWithObjectFilterAndObjectMask(
-		path, datacenterMask, string(p), "GET", nullBuf,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkError(p); err != nil {
-		return nil, err
-	}
-
-	var datacenters Datacenters
-	if err := json.Unmarshal(p, &datacenters); err != nil {
-		return nil, err
-	}
-
-	datacenters = datacenters.Filter(filter)
-
-	if len(datacenters) == 0 {
-		return nil, newNotFoundError("Datacenter", fmt.Errorf("filter=%v", filter))
-	}
-
-	return datacenters, nil
+	return *req.Resource.(*Datacenters), nil
 }
 
 // DeleteInstance requests a VM termination given by the id.
 func (c *Softlayer) DeleteInstance(id int) error {
-	path := fmt.Sprintf("%s/%d", c.guest.GetName(), id)
+	path := fmt.Sprintf("SoftLayer_Virtual_Guest/%d", id)
 	p, err := c.DoRawHttpRequest(path, "DELETE", nullBuf)
 	if err != nil {
 		return err
