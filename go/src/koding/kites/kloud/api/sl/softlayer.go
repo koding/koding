@@ -81,8 +81,8 @@ func NewSoftlayerWithOptions(opts *Options) *Softlayer {
 // KeysByFilter fetches all keys and performs client-side filtering using the
 // given filter.
 //
-// If no templates are found that matches the filter, non-nil error is returned.
-// If filter is nil, all templates are returned.
+// If no keys are found that matches the filter, non-nil error is returned.
+// If filter is nil, all keys are returned.
 func (c *Softlayer) KeysByFilter(filter *Filter) (Keys, error) {
 	req := &ResourceRequest{
 		Name:       "SshKey",
@@ -100,8 +100,8 @@ func (c *Softlayer) KeysByFilter(filter *Filter) (Keys, error) {
 // XKeysByFilter queries for keys, which are filtered on the server side with
 // the given filter.
 //
-// If no templates are found that matches the filter, non-nil error is returned.
-// If filter is nil, all templates are returned.
+// If no keys are found that matches the filter, non-nil error is returned.
+// If filter is nil, all keys are returned.
 func (c *Softlayer) XKeysByFilter(filter *Filter) (Keys, error) {
 	req := &ResourceRequest{
 		Name:       "SshKey",
@@ -226,7 +226,12 @@ func (c *Softlayer) XTemplatesByFilter(filter *Filter) (Templates, error) {
 	return *req.Resource.(*Templates), nil
 }
 
-// DatacentersByFilter
+// DatacentersByFilter fetches all keys and performs client-side filtering
+// using the given filter.
+//
+// If no datacenters are found that matches the filter, non-nil error is
+// returned.
+// If filter is nil, all datacenters are returned.
 func (c *Softlayer) DatacentersByFilter(filter *Filter) (Datacenters, error) {
 	req := &ResourceRequest{
 		Name:       "Datacenter",
@@ -241,7 +246,12 @@ func (c *Softlayer) DatacentersByFilter(filter *Filter) (Datacenters, error) {
 	return *req.Resource.(*Datacenters), nil
 }
 
-// XDatacentersByFilter
+// XDatacentersByFilter queries for keys, which are filtered on the server side
+// with the given filter.
+//
+// If no datacenters are found that matches the filter, non-nil error is
+// returned.
+// If filter is nil, all datacenters are returned.
 func (c *Softlayer) XDatacentersByFilter(filter *Filter) (Datacenters, error) {
 	req := &ResourceRequest{
 		Name:       "Datacenter",
@@ -255,6 +265,78 @@ func (c *Softlayer) XDatacentersByFilter(filter *Filter) (Datacenters, error) {
 		return nil, err
 	}
 	return *req.Resource.(*Datacenters), nil
+}
+
+// InstancesByFilter fetches all instances and performs client-side filtering
+// using the given filter.
+//
+// If no instances are found that matches the filter, non-nil error is returned.
+// If filter is nil, all instances are returned.
+func (c *Softlayer) InstancesByFilter(filter *Filter) (Instances, error) {
+	req := &ResourceRequest{
+		Name:       "Instance",
+		Path:       "SoftLayer_Account/getVirtualGuests.json",
+		Filter:     filter,
+		ObjectMask: instanceMask,
+		Resource:   &Instances{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+	return *req.Resource.(*Instances), nil
+}
+
+// XInstancesByFilter queries for keys, which are filtered on the server side
+// with the given filter.
+//
+// If no instances are found that matches the filter, non-nil error is returned.
+// If filter is nil, all instances are returned.
+func (c *Softlayer) XInstancesByFilter(filter *Filter) (Instances, error) {
+	req := &ResourceRequest{
+		Name:       "Instance",
+		Path:       "SoftLayer_Account/getVirtualGuests.json",
+		Filter:     filter,
+		FilterName: "virtualGuests",
+		ObjectMask: instanceMask,
+		Resource:   &Instances{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+	return *req.Resource.(*Instances), nil
+}
+
+// InstanceSetTags sets tags of the instance specified by the id to the provided
+// value. All old tags will get overwritten.
+func (c *Softlayer) InstanceSetTags(id int, tags Tags) error {
+	req := map[string]interface{}{
+		"parameters": []interface{}{tags.Ref()},
+	}
+	p, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	path := fmt.Sprintf("SoftLayer_Virtual_Guest/%d/setTags.json", id)
+	p, err = c.DoRawHttpRequest(path, "POST", bytes.NewBuffer(p))
+	if err != nil {
+		return err
+	}
+
+	if err := checkError(p); err != nil {
+		return err
+	}
+
+	var ok bool
+	if err := json.Unmarshal(p, &ok); err != nil {
+		return err
+	}
+
+	if !ok {
+		return fmt.Errorf("failed setting tags for instance id=%d", id)
+	}
+
+	return nil
 }
 
 // DeleteInstance requests a VM termination given by the id.

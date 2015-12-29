@@ -26,6 +26,29 @@ func (t Tags) Matches(tags Tags) bool {
 	return len(matches) == len(tags)
 }
 
+// Ref returns the Softlayer string representation of list of TagReferences.
+func (t Tags) Ref() string {
+	if len(t) == 0 {
+		return ""
+	}
+	var buf bytes.Buffer
+	for k, v := range t {
+		fmt.Fprintf(&buf, "%s:%s,", k, v)
+	}
+	p := buf.Bytes()
+	p = p[:len(p)-1] // remove dangling comma
+	return string(p)
+}
+
+// Copy returns a copy of the tags.
+func (t Tags) Copy() Tags {
+	tCopy := make(Tags, len(t))
+	for k, v := range t {
+		tCopy[k] = v
+	}
+	return tCopy
+}
+
 // String gives key-value tags representation.
 func (t Tags) String() string {
 	if len(t) == 0 {
