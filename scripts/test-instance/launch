@@ -10,15 +10,13 @@ argv = require('minimist')(process.argv.slice(2))
 AWS = require './aws'
 EC2 = new AWS.EC2()
 
+revision = 'FETCH_HEAD'  unless revision = argv.commit
+
 if argv['pull-request']
-  git_fetch    = "git fetch origin +refs/pull/#{argv['pull-request']}/head"
-  git_checkout = 'git checkout FETCH_HEAD'
-else if argv.commit
-  git_fetch    = 'git fetch origin'
-  git_checkout = "git checkout -fq #{argv.commit}"
-else
-  console.error 'error: Please specify a remote branch or a commit'
-  process.exit 1
+  refspec = "+refs/pull/#{argv['pull-request']}/head"
+
+git_fetch    = "git fetch origin #{refspec or ''}"
+git_checkout = "git checkout -fq #{revision}"
 
 argv.count ?= 1
 
