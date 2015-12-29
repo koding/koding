@@ -47,6 +47,21 @@ module.exports = helpers =
     return { value : newValue, cursorPosition }
 
 
+  replaceWordAtPosition: (value, position, word) ->
+
+    textBeforePosition = value.substring 0, position
+    textToReplace      = helpers.getLastWord textBeforePosition
+    startReplaceIndex  = textBeforePosition.lastIndexOf textToReplace
+    endReplaceIndex    = position
+
+    newValue    = value.substring 0, startReplaceIndex
+    newValue   += word
+    newPosition = newValue.length
+    newValue   += value.substring endReplaceIndex
+
+    return { newValue, newPosition }
+
+
   parseCommand: (value) ->
 
     matchResult = value.match /^(\/[^\s]+)(\s.*)?/
