@@ -1,10 +1,14 @@
+kd             = require 'kd'
 expect         = require 'expect'
 Machine        = require 'app/providers/machine'
 ideRoutes      = require 'ide/routes.coffee'
 dataProvider   = require 'app/userenvironmentdataprovider'
 mockjmachine   = require './mock.jmachine'
 mockjworkspace = require './mock.jworkspace'
+
 mockMachine    = new Machine { machine: mockjmachine }
+{ socialapi }  = kd.singletons
+
 
 module.exports =
 
@@ -51,6 +55,7 @@ module.exports =
 
         expect.spyOn(dataProvider, 'findWorkspace').andCall -> return mockjworkspace
 
+
       toReturnNull: ->
 
         expect.spyOn(dataProvider, 'findWorkspace').andCall -> return null
@@ -62,9 +67,44 @@ module.exports =
 
         expect.spyOn(dataProvider, 'getMyMachines').andCall -> return [ { machine: mockMachine } ]
 
+
       toReturnEmptyArray: ->
 
         expect.spyOn(dataProvider, 'getMyMachines').andCall -> return []
+
+
+    fetchMachineByLabel:
+
+      toReturnMachine: ->
+
+        expect.spyOn(dataProvider, 'fetchMachineByLabel').andCall (identifier, callback) ->
+          callback mockMachine
+
+
+      toReturnMachineAndWorkspace: ->
+
+        expect.spyOn(dataProvider, 'fetchMachineByLabel').andCall (identifier, callback) ->
+          callback mockMachine, mockjworkspace
+
+
+      toReturnNull: ->
+
+        expect.spyOn(dataProvider, 'fetchMachineByLabel').andCall (identifier, callback) ->
+          callback null, null
+
+
+    fetchMachineAndWorkspaceByChannelId:
+
+      toReturnMachineAndWorkspace: ->
+
+        expect.spyOn(dataProvider, 'fetchMachineAndWorkspaceByChannelId').andCall (channelId, callback) ->
+          callback mockMachine, mockjworkspace
+
+
+      toReturnNull: ->
+
+        expect.spyOn(dataProvider, 'fetchMachineAndWorkspaceByChannelId').andCall (channelId, callback) ->
+          callback null, null
 
 
   machine:
@@ -83,15 +123,38 @@ module.exports =
       toReturnWorkspace: ->
 
         expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall ->
-          return { workspaceSlug: 'foo-workspace' }
+          return { workspaceSlug: 'foo-workspace', machineLabel: 'koding-vm-0' }
+
 
       toReturnNull: ->
 
         expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall -> return null
 
 
-  getMockMachine: ->  return mockMachine
+      toReturnWorkspaceWithChannelId: ->
 
-  getMockJMachine: -> return mockjmachine
+        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall ->
+          return { workspaceSlug: 'foo-workspace', channelId: '6075644514008039523', machineLabel: 'koding-vm-0' }
+
+
+  socialapi:
+
+    cacheable:
+
+      toReturnError: ->
+
+        expect.spyOn(socialapi, 'cacheable').andCall (type, id, callback) ->
+          callback { message: 'No channel' }
+
+
+      toReturnChannel: ->
+
+        expect.spyOn(socialapi, 'cacheable').andCall (type, id, callback) ->
+          callback null, { some: 'channel', information: 'will be here', in: 'the future' }
+
+
+  getMockMachine: ->   return mockMachine
+
+  getMockJMachine: ->  return mockjmachine
 
   getMockWorkspace: -> return mockjworkspace
