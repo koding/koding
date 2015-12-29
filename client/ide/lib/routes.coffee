@@ -132,6 +132,8 @@ routeToMachineWorkspace = (machine) ->
 
 routeToLatestWorkspace = ->
 
+  { getLatestWorkspace, routeToFallback, routeToMachineWorkspace } = module.exports
+
   router          = kd.getSingleton 'router'
   latestWorkspace = getLatestWorkspace()
 
@@ -159,6 +161,10 @@ routeToLatestWorkspace = ->
         routeToMachineWorkspace machine
       else
         routeToFallback()
+
+  # I think we should add an else case here to call routeToFallback because if
+  # we don't have channelId, machineLabel and workspaceSlug at the same time
+  # we will probably end up with a WSOD. // acet
 
 
 loadCollaborativeIDE = (id) ->

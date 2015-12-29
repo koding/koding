@@ -291,3 +291,119 @@ describe 'IDE.routes', ->
 
       routes.routeToMachineWorkspace mockMachine
       expect(kd.singletons.router.handleRoute).toHaveBeenCalledWith expectedRoute
+
+
+  describe '.routeToLatestWorkspace', ->
+
+
+    it 'should routeToFallback if there is no latest workspace', ->
+
+      mock.ideRoutes.getLatestWorkspace.toReturnNull()
+      expect.spyOn routes, 'routeToFallback'
+
+      routes.routeToLatestWorkspace()
+
+      expect(routes.routeToFallback).toHaveBeenCalled()
+
+
+    it 'should fetchMachineByLabel to verify that we still have the jMachine document of the stored machine in localStorage', ->
+
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspace()
+      expect.spyOn dataProvider, 'fetchMachineByLabel'
+
+      routes.routeToLatestWorkspace()
+
+      expect(dataProvider.fetchMachineByLabel).toHaveBeenCalled()
+
+
+    it 'should route to /IDE/koding-vm-0/foo-workspace after fetching the machine', ->
+
+      expectedRoute = '/IDE/koding-vm-0/my-workspace'
+
+      mock.envDataProvider.fetchMachineByLabel.toReturnMachineAndWorkspace()
+      expect.spyOn kd.singletons.router, 'handleRoute'
+
+      routes.routeToLatestWorkspace()
+
+      expect(kd.singletons.router.handleRoute).toHaveBeenCalledWith expectedRoute
+
+
+    it 'should routeToMachineWorkspace if fetchMachine returns no workspace', ->
+
+      mock.envDataProvider.fetchMachineByLabel.toReturnMachine()
+      expect.spyOn routes, 'routeToMachineWorkspace'
+
+      routes.routeToLatestWorkspace()
+      expect(routes.routeToMachineWorkspace).toHaveBeenCalledWith mockMachine
+
+
+
+    it 'should routeToFallback if there is no machine and workspace for the stored data', ->
+
+      mock.envDataProvider.fetchMachineByLabel.toReturnNull()
+      expect.spyOn routes, 'routeToFallback'
+
+      routes.routeToLatestWorkspace()
+      expect(routes.routeToFallback).toHaveBeenCalled()
+
+
+    it 'should verify social channel existence if the stored data has channelId info', ->
+
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspaceWithChannelId()
+      expect.spyOn kd.singletons.socialapi, 'cacheable'
+
+      routes.routeToLatestWorkspace()
+
+      expect(kd.singletons.socialapi.cacheable).toHaveBeenCalled()
+
+
+    it 'should unset LatestWorkspace in localStorage and routeToFallback if socialapi returns an error for the given channelId', ->
+
+      { storage } = getStorageData()
+
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspaceWithChannelId()
+      mock.socialapi.cacheable.toReturnError()
+      expect.spyOn storage, 'unsetKey'
+      expect.spyOn routes,  'routeToFallback'
+
+      routes.routeToLatestWorkspace()
+
+      expect(storage.unsetKey).toHaveBeenCalledWith 'LatestWorkspace'
+      expect(routes.routeToFallback).toHaveBeenCalled()
+
+
+    it 'should fetchMachineAndWorkspaceByChannelId to verify that we have that machine with the given channelId', ->
+
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspaceWithChannelId()
+      mock.socialapi.cacheable.toReturnChannel()
+      expect.spyOn dataProvider, 'fetchMachineAndWorkspaceByChannelId'
+
+      routes.routeToLatestWorkspace()
+      expect(dataProvider.fetchMachineAndWorkspaceByChannelId).toHaveBeenCalled()
+
+
+    it 'should route to /IDE/6075644514008039523 if channelId is still valid and there is machine and the workspace', ->
+
+      expectedRoute = '/IDE/6075644514008039523'
+
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspaceWithChannelId()
+      mock.socialapi.cacheable.toReturnChannel()
+      mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnMachineAndWorkspace()
+      expect.spyOn kd.singletons.router, 'handleRoute'
+
+      routes.routeToLatestWorkspace()
+
+      expect(kd.singletons.router.handleRoute).toHaveBeenCalledWith expectedRoute
+
+
+    it 'should routeToFallback if fetchMachineAndWorkspaceByChannelId returns no machine and workspace', ->
+
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspaceWithChannelId()
+      mock.socialapi.cacheable.toReturnChannel()
+      mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnNull()
+      expect.spyOn routes, 'routeToFallback'
+
+      routes.routeToLatestWorkspace()
+
+      expect(routes.routeToFallback).toHaveBeenCalled()
+
