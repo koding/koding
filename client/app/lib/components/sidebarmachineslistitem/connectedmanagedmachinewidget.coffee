@@ -22,7 +22,7 @@ PROVIDERS         =
 module.exports = class ConnectedManagedMachineWidget extends React.Component
 
   @defaultProps =
-    className : '--ConnectedManagedVm sidebar-info-modal'
+    className : 'ConnectedManagedVm sidebar-info-modal'
 
   getDataBindings: ->
     connectedManagedMachine: EnvironmentFlux.getters.connectedManagedMachine

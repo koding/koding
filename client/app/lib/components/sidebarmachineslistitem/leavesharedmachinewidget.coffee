@@ -7,7 +7,7 @@ InvitationWidgetUserView  = require './invitationwidgetuserview'
 module.exports = class LeaveSharedMachineWidget extends React.Component
 
   @defaultProps =
-    className : '--Approved'
+    className : 'Approved'
 
 
   onLeaveClicked: ->

@@ -7,7 +7,7 @@ SidebarWidget = require 'app/components/sidebarmachineslistitem/sidebarwidget'
 module.exports = class StackUpdatedWidget extends React.Component
 
   @defaultProps =
-    className   : '--StackUpdated'
+    className   : 'StackUpdated'
 
 
   constructor: ->

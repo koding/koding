@@ -11,7 +11,7 @@ Toggle          = require 'app/components/common/toggle'
 module.exports = class DeleteWorkspaceWidget extends React.Component
 
   @defaultProps =
-    className : '--DeleteWorkspace'
+    className : 'DeleteWorkspace'
 
 
   constructor: (props) ->
