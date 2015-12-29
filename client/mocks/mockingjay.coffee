@@ -1,5 +1,6 @@
 expect         = require 'expect'
 Machine        = require 'app/providers/machine'
+ideRoutes      = require 'ide/routes.coffee'
 dataProvider   = require 'app/userenvironmentdataprovider'
 mockjmachine   = require './mock.jmachine'
 mockjworkspace = require './mock.jworkspace'
@@ -73,6 +74,20 @@ module.exports =
       toReturnYes: -> expect.spyOn(mockMachine, 'isPermanent').andCall -> return yes
 
       toReturnNo:  -> expect.spyOn(mockMachine, 'isPermanent').andCall -> return no
+
+
+  ideRoutes:
+
+    getLatestWorkspace:
+
+      toReturnWorkspace: ->
+
+        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall ->
+          return { workspaceSlug: 'foo-workspace' }
+
+      toReturnNull: ->
+
+        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall -> return null
 
 
   getMockMachine: ->  return mockMachine
