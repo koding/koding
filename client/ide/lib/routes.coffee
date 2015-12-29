@@ -249,11 +249,9 @@ routeHandler = (type, info, state, path, ctx) ->
 
         dataProvider.ensureDefaultWorkspace ->
 
-          dataProvider.fetchWorkspaceByMachineUId data, (workspace) =>
-            if workspace
-              loadIDE { machine, workspace, username }
-            else
-              routeToMachineWorkspace machine
+          if machine
+            username = machine.getOwner()
+            data = machineUId: machine.uid, workspaceSlug: params.workspaceSlug
 
             dataProvider.fetchWorkspaceByMachineUId data, (workspace) =>
               if workspace then loadIDE { machine, workspace, username }
