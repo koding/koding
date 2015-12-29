@@ -51,14 +51,18 @@ func toStruct(v interface{}) interface{} {
 	case reflect.Ptr:
 		if typ.Elem().Kind() == reflect.Struct {
 			if reflect.ValueOf(v).IsNil() {
-				return reflect.New(typ.Elem())
+				return reflect.New(typ.Elem()).Interface()
 			}
 			return v
 		}
 	case reflect.Struct:
 		return v
 	case reflect.Slice:
-		return toStruct(reflect.New(typ.Elem()).Interface())
+		typ = typ.Elem()
+		if typ.Kind() == reflect.Ptr {
+			typ = typ.Elem()
+		}
+		return toStruct(reflect.New(typ).Interface())
 	}
 	return nil
 }
