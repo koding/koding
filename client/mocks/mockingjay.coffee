@@ -9,6 +9,7 @@ module.exports =
 
   envDataProvider:
 
+
     fetchMachine:
 
       toReturnMachine: ->
@@ -65,7 +66,16 @@ module.exports =
         expect.spyOn(dataProvider, 'getMyMachines').andCall -> return []
 
 
-  getMockMachine: ->  return new Machine { machine: @getMockJMachine() }
+  machine:
+
+    isPermanent:
+
+      toReturnYes: -> expect.spyOn(mockMachine, 'isPermanent').andCall -> return yes
+
+      toReturnNo:  -> expect.spyOn(mockMachine, 'isPermanent').andCall -> return no
+
+
+  getMockMachine: ->  return mockMachine
 
   getMockJMachine: -> return mockjmachine
 
