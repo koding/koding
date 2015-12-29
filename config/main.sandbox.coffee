@@ -228,9 +228,6 @@ Configuration = (options={}) ->
 
     kloud                          : kloud
     terraformer                    : terraformer
-
-    emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
-
     kontrol                        : kontrol
     newkontrol                     : kontrol
     gatekeeper                     : gatekeeper
