@@ -80,7 +80,6 @@ module.exports = class Sidebar extends React.Component
       machines={stack.get 'machines'}/>
 
 
-
   renderStacks: ->
 
     stackSections = []

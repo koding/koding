@@ -10,7 +10,7 @@ module.exports = class SidebarSharedMachinesSection extends React.Component
 
     machines = @props.machines.shared.concat @props.machines.collaboration
 
-    machines.map (machine) =>
+    machines.toList().map (machine) =>
 
       <SidebarMachinesListItem
         key={machine.get '_id'}
