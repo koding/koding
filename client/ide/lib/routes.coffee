@@ -111,6 +111,8 @@ routeToFallback = ->
 
 routeToMachineWorkspace = (machine) ->
 
+  { getLatestWorkspace } = module.exports
+
   latestWorkspace = getLatestWorkspace machine
 
   unless machine instanceof Machine
