@@ -123,7 +123,7 @@ module.exports = class KodingLogger
       .searchEvents withQuery
 
       .then (data) ->
-        setTimeout -> callback null, processData data, limit
+        setImmediate -> callback null, processData data, limit
 
       .catch (err) ->
         callback
