@@ -515,7 +515,7 @@ module.exports =
       browser.waitForElementVisible     '.kdnotification', 20000 # Assertion
 
 
-  likeunlikePost: (browser, unlikePost = no) ->
+  likeunlikePost: (browser, likeLikePost = no) ->
 
     bodyContainer       = '.ChatListItem-itemBodyContainer'
     likeButtonUnpressed = "#{bodyContainer} .ChatItem-likeLink:nth-child(2)"
@@ -531,8 +531,9 @@ module.exports =
       .waitForElementVisible  likeButtonPressed, 20000
       .assert.visible         likeButtonPressed
 
-    if unlikePost
+    if likeLikePost
       browser
         .click                    likeButtonPressed
         .waitForElementVisible    likeButtonUnpressed, 20000
+        .pause                    3000
         .assert.elementNotPresent likeButtonPressed
