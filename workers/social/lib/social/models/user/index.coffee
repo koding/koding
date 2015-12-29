@@ -798,25 +798,6 @@ module.exports = class JUser extends jraphical.Module
       callback new KodingError error
 
 
-  checkUserStatus = (user, account, callback) ->
-
-    if user.status is 'unconfirmed' and KONFIG.emailConfirmationCheckerWorker.enabled
-      error = new KodingError 'You should confirm your email address'
-      error.code = 403
-      error.data or= {}
-      error.data.name = account.profile.firstName or account.profile.nickname
-      error.data.nickname = account.profile.nickname
-      return callback error
-
-    return callback null
-
-
-  checkLoginConstraints = (user, account, callback) ->
-    checkBlockedStatus user, (err) ->
-      return callback err  if err
-      checkUserStatus user, account, callback
-
-
   updateUserPasswordStatus = (user, callback) ->
     # let user log in for the first time, than set password status
     # as 'needs reset'
@@ -844,7 +825,7 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         # checking login constraints
-        checkLoginConstraints user, account, (err) ->
+        checkBlockedStatus user, (err) ->
           return callback err  if err
           queue.next()
 
