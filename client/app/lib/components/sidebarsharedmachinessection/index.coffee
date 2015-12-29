@@ -15,8 +15,6 @@ module.exports = class SidebarSharedMachinesSection extends React.Component
       <SidebarMachinesListItem
         key={machine.get '_id'}
         machine={machine}
-        active={machine.get('_id') is @props.selectedId}
-        renderedStacksCount={@props.renderedStacksCount}
         activeLeavingSharedMachineId={@props.activeLeavingSharedMachineId} />
 
 
