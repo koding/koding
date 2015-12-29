@@ -262,9 +262,7 @@ describe 'IDE.routes', ->
 
       expectedRoute = '/IDE/koding-vm-0/foo-workspace'
 
-      expect.spyOn(routes, 'getLatestWorkspace').andCall ->
-        return { workspaceSlug: 'foo-workspace' }
-
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspace()
       expect.spyOn kd.singletons.router, 'handleRoute'
 
       routes.routeToMachineWorkspace mockMachine
@@ -275,9 +273,9 @@ describe 'IDE.routes', ->
 
       expectedRoute = '/IDE/koding-vm-0/my-workspace'
 
-      expect.spyOn(routes, 'getLatestWorkspace').andCall -> return null
-
+      mock.ideRoutes.getLatestWorkspace.toReturnNull()
       expect.spyOn kd.singletons.router, 'handleRoute'
+
       routes.routeToMachineWorkspace mockMachine
 
       expect(kd.singletons.router.handleRoute).toHaveBeenCalledWith expectedRoute
@@ -288,11 +286,8 @@ describe 'IDE.routes', ->
       expectedRoute = '/IDE/ufkk8bca4a8a/foo-workspace'
 
       mock.machine.isPermanent.toReturnYes()
-      expect.spyOn(routes, 'getLatestWorkspace').andCall ->
-        return { workspaceSlug: 'foo-workspace' }
-
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspace()
       expect.spyOn kd.singletons.router, 'handleRoute'
 
       routes.routeToMachineWorkspace mockMachine
-
       expect(kd.singletons.router.handleRoute).toHaveBeenCalledWith expectedRoute
