@@ -22,6 +22,7 @@ module.exports = class SidebarSharedMachinesSection extends React.Component
 
     <SidebarSection
       className={kd.utils.curry 'SidebarSharedMachinesSection', @props.className}
-      title={@props.sectionTitle}>
+      title={@props.sectionTitle}
+      secondaryLink=''>
       {@renderMachines()}
     </SidebarSection>
