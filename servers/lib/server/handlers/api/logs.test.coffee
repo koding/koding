@@ -17,7 +17,7 @@ generateLogRequestParams = (opts = {}, subdomain) ->
 
   params    =
     url     : generateUrl { route : '-/api/logs', subdomain }
-    query   : { }
+    query   : {}
     headers : { Authorization : "Bearer #{generateRandomString()}" }
 
   requestParams = generateRequestParamsEncodeBody params, opts
