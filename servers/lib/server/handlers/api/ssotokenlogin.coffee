@@ -27,7 +27,7 @@ module.exports = ssoTokenLogin = (req, res, next) ->
 
         # making sure subdomain is same with group slug
         unless group in req.subdomains
-          return sendApiError res, apiErrors.invalidRequest
+          return sendApiError res, apiErrors.invalidRequestDomain
 
         queue.next()
 

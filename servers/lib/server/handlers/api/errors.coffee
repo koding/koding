@@ -5,9 +5,9 @@ module.exports = {
     message                     : 'The server encountered an internal error.'
     code                        : 'InternalError'
 
-  invalidRequest                :
+  invalidRequestDomain          :
     status                      : 400
-    message                     : 'Request is invalid'
+    message                     : 'Request domain is not valid'
     code                        : 'InvalidRequestDomain'
 
   groupNotFound                 :

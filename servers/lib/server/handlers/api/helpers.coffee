@@ -97,7 +97,7 @@ verifySessionOrApiToken = (req, res, callback) ->
 
       # making sure subdomain is same with group slug
       unless apiToken.group in req.subdomains
-        return sendApiError res, errors.invalidRequest
+        return sendApiError res, errors.invalidRequestDomain
 
       callback { apiToken }
 
