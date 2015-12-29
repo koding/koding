@@ -4,15 +4,12 @@ cd $(dirname $0)
 
 OPTIONS=''
 
-REVISION=$(git rev-parse HEAD)
-
-HEADS=$(git branch -r -v | \
-           grep ${REVISION:0:7} | \
-           awk '{print $1}')
+HEADS=$(git branch -r --contains ${REVISION:0:7})
 
 for HEAD in $HEADS; do
   if [ -n "$(echo $HEAD | grep '/pull/')" ]; then
     PR_HEAD=$HEAD
+    break
   fi
 done
 
