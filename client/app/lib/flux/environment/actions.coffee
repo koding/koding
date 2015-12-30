@@ -1,9 +1,9 @@
 kd                      = require 'kd'
+async                   = require 'async'
 actions                 = require './actiontypes'
 getters                 = require './getters'
 Promise                 = require 'bluebird'
 Machine                 = require 'app/providers/machine'
-sinkrow                 = require 'sinkrow'
 remote                  = require('app/remote').getInstance()
 Promise                 = require 'bluebird'
 showError               = require 'app/util/showError'
@@ -155,15 +155,19 @@ rejectInvitation = (machine) ->
     when 'shared'         then isPermanent
     when 'collaboration'  then not isPermanent
 
-  queue = [
-    ->
+  async.series([
+    (callback) ->
+
       if denyMachine
-      then remote.revive(machine.toJS()).deny (err) ->
-        return showError err  if err
-        queue.next()
-      else queue.next()
-    ->
-      return queue.next()  unless machine.get('type') is 'collaboration'
+        remote.revive(machine.toJS()).deny (err) ->
+          showError err  if err
+          callback()
+      else
+        callback()
+
+    (callback) ->
+
+      return callback()  unless machine.get('type') is 'collaboration'
 
       { channel } = kd.singletons.socialapi
       workspace   = machine.get('workspaces').first()
@@ -171,8 +175,10 @@ rejectInvitation = (machine) ->
 
       channel[method] { channelId: workspace.get 'channelId' }, (err) ->
         showError err  if err
-        queue.next()
-    ->
+        callback()
+
+    (callback) ->
+
       if denyMachine
         environmentDataProvider.getIDEFromUId(machine.get('uid'))?.quit()
 
@@ -181,10 +187,8 @@ rejectInvitation = (machine) ->
       else 'SHARED_VM_INVITATION_REJECTED'
 
       kd.singletons.reactor.dispatch actions[actionType], machine.get '_id'
-      queue.next()
-  ]
-
-  sinkrow.daisy queue
+      callback()
+  ])
 
 
 acceptInvitation = (machine) ->
