@@ -12,6 +12,7 @@ var (
 	flagWatchEvents bool
 	flagKloudAddr   string
 	flagUsername    string
+	flagDebug       bool
 )
 
 type Flag struct {
@@ -31,6 +32,7 @@ func NewFlag(name, synopsis string) *Flag {
 	flagSet.StringVar(&flagKloudAddr, "kloud-addr", "http://127.0.0.1:5500/kite",
 		"Kloud addr to connect")
 	flagSet.BoolVar(&flagWatchEvents, "watch", false, "Watch the events coming by.")
+	flagSet.BoolVar(&flagDebug, "debug", false, "Turns on debug logging.")
 
 	f := &Flag{
 		name:     name,

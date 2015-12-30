@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"koding/db/mongodb"
 	"koding/kites/kloud/kloud"
@@ -62,8 +63,9 @@ func (cmd *GroupList) Run(ctx context.Context) error {
 
 // GroupCreate implements the "kloudctl group create" subcommand.
 type GroupCreate struct {
-	file  string
-	count int
+	file     string
+	count    int
+	throttle int
 }
 
 func (*GroupCreate) Name() string {
@@ -73,9 +75,13 @@ func (*GroupCreate) Name() string {
 func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.file, "f", "", "JSON-encoded Machine specification file.")
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
+	f.IntVar(&cmd.throttle, "t", 0, "Throttling - max number of machines to be concurrently created.")
 }
 
 func (cmd *GroupCreate) Run(ctx context.Context) error {
+	if cmd.throttle == 0 {
+		cmd.throttle = cmd.count
+	}
 	_, db := fromContext(ctx)
 	spec, err := ParseMachineSpec(cmd.file, nil)
 	if err != nil {
@@ -99,48 +105,107 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	return cmd.createMachines(ctx, specs...)
 }
 
+type createResponse struct {
+	MachineID    string
+	MachineLabel string
+	Time         time.Duration
+	Err          error
+}
+
 func (cmd *GroupCreate) createMachines(ctx context.Context, specs ...*MachineSpec) error {
-	errch := make(chan error, len(specs))
-	for _, spec := range specs {
-		go func(spec *MachineSpec) {
-			resp, err := requestMachine(ctx, spec)
-			if err != nil {
-				errch <- fmt.Errorf("request %q machine failed: %s", spec.Machine.Label, err)
-			} else {
-				DefaultUi.Info(fmt.Sprintf("machine %q requested: eventID=%s",
-					spec.Machine.Label, resp.EventId))
-				errch <- nil
+	buildch := make(chan *MachineSpec)
+	resch := make(chan *createResponse, cmd.throttle)
+
+	for range make([]struct{}, cmd.throttle) {
+		go func() {
+			for spec := range buildch {
+				msg := fmt.Sprintf("Requesting to build %q", spec.Machine.Label)
+				DefaultUi.Info(msg)
+				resch <- createMachine(ctx, spec)
 			}
-		}(spec)
+		}()
 	}
+
+	go func() {
+		for _, spec := range specs {
+			buildch <- spec
+		}
+	}()
+
 	var errs *multierror.Error
+	var overall time.Duration
 	for range specs {
-		if err := <-errch; err != nil {
+		res := <-resch
+		overall += res.Time
+		if res.Err != nil {
+			err := fmt.Errorf("Error building %q (%q): %s", res.MachineLabel,
+				res.MachineID, res.Err)
+			DefaultUi.Error(err.Error())
 			errs = multierror.Append(errs, err)
+		} else {
+			msg := fmt.Sprintf("Building %q (%q) finished in %s.", res.MachineLabel,
+				res.MachineID, res.Time)
+			DefaultUi.Info(msg)
 		}
 	}
+	DefaultUi.Info(fmt.Sprintf("Average build time: %s", overall/time.Duration(len(specs))))
 	return errs.ErrorOrNil()
 }
 
-func requestMachine(ctx context.Context, spec *MachineSpec) (*kloud.ControlResult, error) {
+func createMachine(ctx context.Context, spec *MachineSpec) *createResponse {
 	k, db := fromContext(ctx)
 	if err := spec.BuildMachine(db); err != nil {
-		return nil, err
+		return &createResponse{
+			MachineLabel: spec.Machine.Label,
+			Err:          err,
+		}
 	}
-	req := &KloudArgs{
+	start := time.Now()
+	newResponse := func(err error) *createResponse {
+		return &createResponse{
+			MachineID:    spec.Machine.ObjectId.Hex(),
+			MachineLabel: spec.Machine.Label,
+			Time:         time.Now().Sub(start),
+			Err:          err,
+		}
+	}
+	buildReq := &KloudArgs{
 		MachineId: spec.Machine.ObjectId.Hex(),
 		Provider:  spec.Machine.Provider,
 		Username:  spec.Username(),
 	}
-	resp, err := k.Tell("build", req)
+	resp, err := k.Tell("build", buildReq)
 	if err != nil {
-		return nil, err
+		return newResponse(err)
 	}
 	var result kloud.ControlResult
 	if err = resp.Unmarshal(&result); err != nil {
-		return nil, err
+		return newResponse(err)
 	}
-	return &result, nil
+	req := kloud.EventArgs{{
+		Type:    "build",
+		EventId: spec.Machine.ObjectId.Hex(),
+	}}
+	for {
+		resp, err := k.Tell("event", req)
+		if err != nil {
+			return newResponse(err)
+		}
+		var events []kloud.EventResponse
+		if err := resp.Unmarshal(&events); err != nil {
+			return newResponse(err)
+		}
+		if len(events) == 0 {
+			return newResponse(errors.New("empty event response"))
+		}
+		if s := events[0].Event.Error; s != "" {
+			return newResponse(errors.New(s))
+		}
+		if events[0].Event.Percentage == 100 {
+			return newResponse(nil)
+		}
+		time.Sleep(defaultPollInterval)
+	}
 }
 
 // GroupDelete implememts the "kloudctl group delete" subcommand.
