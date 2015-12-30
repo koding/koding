@@ -7,6 +7,7 @@ KDReactorMixin       = require 'app/flux/base/reactormixin'
 helpers              = require './helpers'
 parseStringToCommand = require 'activity/util/parseStringToCommand'
 ChatInputWidget      = require './index'
+formatEmojiName      = require 'activity/util/formatEmojiName'
 
 module.exports = class ChatInputContainer extends React.Component
 
@@ -115,13 +116,19 @@ module.exports = class ChatInputContainer extends React.Component
   getValue: -> @state.value
 
 
+  setCommand: (value) -> @setValue value
+
+
+  focus: -> @refs.input.focus()
+
+
   onEnter: (event) ->
 
     return  if event.shiftKey
 
     kd.utils.stopDOMEvent event
 
-    return @confirmSelectedItem()  if @state.dropboxConfig
+    return @onDropboxItemConfirmed()  if @state.dropboxConfig
 
     value = @state.value.trim()
     command = parseStringToCommand value
@@ -192,7 +199,7 @@ module.exports = class ChatInputContainer extends React.Component
     ChatInputFlux.actions.dropbox.moveToPrevIndex @stateId
 
 
-  onItemSelected: (index) ->
+  onDropboxItemSelected: (index) ->
 
     ChatInputFlux.actions.dropbox.setSelectedIndex @stateId, index
 
@@ -202,7 +209,7 @@ module.exports = class ChatInputContainer extends React.Component
     ChatInputFlux.actions.dropbox.reset @stateId  if @state.dropboxConfig
 
 
-  confirmSelectedItem: ->
+  onDropboxItemConfirmed: ->
 
     { dropboxQuery, dropboxConfig } = @state
     return  unless dropboxConfig
@@ -222,34 +229,75 @@ module.exports = class ChatInputContainer extends React.Component
       @refs.input.setCursorPosition newPosition
 
 
-  setCommand: (value) -> @setValue value
+  onSelectBoxVisible: ->
+
+    ChatInputFlux.actions.emoji.setSelectBoxVisibility @stateId, yes
 
 
-  showSelectBox: -> ChatInputFlux.actions.emoji.setSelectBoxVisibility @stateId, yes
+  onSelectBoxItemSelected: (index) ->
+
+    ChatInputFlux.actions.emoji.setSelectBoxSelectedIndex @stateId, index
 
 
-  focus: -> @refs.input.focus()
+  onSelectBoxItemUnselected: ->
+
+    ChatInputFlux.actions.emoji.resetSelectBoxSelectedIndex @stateId
+
+
+  onSelectBoxItemConfirmed: ->
+
+    { emojiSelectBoxSelectedItem, value } = @state
+
+    ChatInputFlux.actions.emoji.incrementUsageCount emojiSelectBoxSelectedItem
+
+    newValue = value + formatEmojiName emojiSelectBoxSelectedItem
+    @setValue newValue
+
+    @onSelectBoxClose()
+
+
+  onSelectBoxTabChange: (tabIndex) ->
+
+    ChatInputFlux.actions.emoji.unsetSelectBoxQuery @stateId
+    ChatInputFlux.actions.emoji.setSelectBoxTabIndex @stateId, tabIndex
+
+
+  onSelectBoxClose: ->
+
+    ChatInputFlux.actions.emoji.setSelectBoxVisibility @stateId, no
+
+
+  onSelectBoxSearch: (value) ->
+
+    ChatInputFlux.actions.emoji.setSelectBoxQuery @stateId, value
 
 
   render: ->
 
-    <ChatInputWidget {...@state}
-      ref                = 'input'
-      className          = { @props.className }
-      onChange           = { @bound 'setValue' }
-      onEnter            = { @bound 'onEnter' }
-      onEsc              = { @props.onEsc }
-      onRightArrow       = { @bound 'onRightArrow' }
-      onDownArrow        = { @bound 'onDownArrow' }
-      onTab              = { @bound 'onTab' }
-      onLeftArrow        = { @bound 'onLeftArrow' }
-      onUpArrow          = { @bound 'onUpArrow' }
-      onItemSelected     = { @bound 'onItemSelected' }
-      onItemConfirmed    = { @bound 'confirmSelectedItem' }
-      onDropboxClose     = { @bound 'onDropboxClose' }
-      onSelectBoxVisible = { @bound 'showSelectBox' }
-      placeholder        = { @props.placeholder }
-      onResize           = { @props.onResize }
+    <ChatInputWidget
+      ref                       = 'input'
+      className                 = { @props.className }
+      data                      = { @state }
+      placeholder               = { @props.placeholder }
+      onResize                  = { @props.onResize }
+      onChange                  = { @bound 'setValue' }
+      onEnter                   = { @bound 'onEnter' }
+      onEsc                     = { @props.onEsc }
+      onRightArrow              = { @bound 'onRightArrow' }
+      onDownArrow               = { @bound 'onDownArrow' }
+      onTab                     = { @bound 'onTab' }
+      onLeftArrow               = { @bound 'onLeftArrow' }
+      onUpArrow                 = { @bound 'onUpArrow' }
+      onDropboxItemSelected     = { @bound 'onDropboxItemSelected' }
+      onDropboxItemConfirmed    = { @bound 'onDropboxItemConfirmed' }
+      onDropboxClose            = { @bound 'onDropboxClose' }
+      onSelectBoxVisible        = { @bound 'onSelectBoxVisible' }
+      onSelectBoxItemSelected   = { @bound 'onSelectBoxItemSelected' }
+      onSelectBoxItemUnselected = { @bound 'onSelectBoxItemUnselected' }
+      onSelectBoxItemConfirmed  = { @bound 'onSelectBoxItemConfirmed' }
+      onSelectBoxTabChange      = { @bound 'onSelectBoxTabChange' }
+      onSelectBoxClose          = { @bound 'onSelectBoxClose' }
+      onSelectBoxSearch         = { @bound 'onSelectBoxSearch' }
     />
 
 

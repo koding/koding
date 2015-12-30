@@ -6,7 +6,6 @@ $                    = require 'jquery'
 AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 DropboxContainer     = require 'activity/components/dropbox/dropboxcontainer'
 EmojiSelectBox       = require 'activity/components/emojiselectbox'
-formatEmojiName      = require 'activity/util/formatEmojiName'
 KeyboardKeys         = require 'app/constants/keyboardKeys'
 Link                 = require 'app/components/common/link'
 helpers              = require './helpers'
@@ -45,7 +44,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   componentDidUpdate: (prevProps) ->
 
-    @focus()  if prevProps.value isnt @props.value
+    @focus()  if prevProps.data.value isnt @props.data.value
     @updateDropboxPositions()
 
 
@@ -93,15 +92,7 @@ module.exports = class ChatInputWidget extends React.Component
       when UP_ARROW    then onUpArrow event
 
 
-  onEmojiSelectBoxItemConfirmed: (item) ->
-
-    { value, onChange } = @props
-
-    newValue = value + formatEmojiName item
-    @onChange newValue
-
-
-  handleEmojiButtonClick: (event) -> @props.onSelectboxVisible()
+  handleEmojiButtonClick: (event) -> @props.onSelectBoxVisible()
 
 
   focus: ->
@@ -112,7 +103,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   closeDropboxes: ->
 
-    @refs.emojiSelectBox?.close()
+    @props.onSelectBoxClose()
     @props.onDropboxClose()
 
 
@@ -154,25 +145,38 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderEmojiSelectBox: ->
 
-    { emojiSelectBoxItems, emojiSelectBoxTabs, emojiSelectBoxQuery } = @props
-    { emojiSelectBoxVisibility, emojiSelectBoxSelectedItem, emojiSelectBoxTabIndex } = @props
+    { onSelectBoxItemSelected, onSelectBoxItemUnselected, onSelectBoxItemConfirmed,
+      onSelectBoxTabChange, onSelectBoxClose, onSelectBoxSearch, data } = @props
+    { emojiSelectBoxItems, emojiSelectBoxTabs, emojiSelectBoxQuery,
+      emojiSelectBoxVisibility, emojiSelectBoxSelectedItem, emojiSelectBoxTabIndex } = data
 
     <EmojiSelectBox
-      items           = { emojiSelectBoxItems }
-      tabs            = { emojiSelectBoxTabs }
-      query           = { emojiSelectBoxQuery }
-      visible         = { emojiSelectBoxVisibility }
-      selectedItem    = { emojiSelectBoxSelectedItem }
-      tabIndex        = { emojiSelectBoxTabIndex }
-      onItemConfirmed = { @bound 'onEmojiSelectBoxItemConfirmed' }
-      ref             = 'emojiSelectBox'
-      stateId         = { @stateId }
+      ref              = 'emojiSelectBox'
+      items            = { emojiSelectBoxItems }
+      tabs             = { emojiSelectBoxTabs }
+      query            = { emojiSelectBoxQuery }
+      visible          = { emojiSelectBoxVisibility }
+      selectedItem     = { emojiSelectBoxSelectedItem }
+      tabIndex         = { emojiSelectBoxTabIndex }
+      onItemSelected   = { onSelectBoxItemSelected }
+      onItemUnselected = { onSelectBoxItemUnselected }
+      onItemConfirmed  = { onSelectBoxItemConfirmed }
+      onTabChange      = { onSelectBoxTabChange }
+      onClose          = { onSelectBoxClose }
+      onSearch         = { onSelectBoxSearch }
     />
 
 
   renderDropbox: ->
 
-    <DropboxContainer ref='dropbox' {...@props} />
+    { data, onDropboxItemSelected, onDropboxItemConfirmed, onDropboxClose } = @props
+
+    <DropboxContainer {...data}
+      ref             = 'dropbox'
+      onItemSelected  = { onDropboxItemSelected }
+      onItemConfirmed = { onDropboxItemConfirmed }
+      onClose         = { onDropboxClose }
+    />
 
 
   render: ->
@@ -183,8 +187,8 @@ module.exports = class ChatInputWidget extends React.Component
       { @renderEmojiSelectBox() }
       <AutoSizeTextarea
         ref           = 'textInput'
-        placeholder   = @props.placeholder
-        value         = { @props.value }
+        placeholder   = { @props.placeholder }
+        value         = { @props.data.value }
         onChange      = { @bound 'onChange' }
         onKeyDown     = { @bound 'onKeyDown' }
         onResize      = { @bound 'onResize' }
