@@ -31,6 +31,8 @@ module.exports = class ActivitySharePopup extends React.Component
 
   componentDidMount: ->
 
+    @setCoordinates()
+
     document.addEventListener 'copy', @bound 'copyTheClipboard'
 
 
@@ -39,7 +41,20 @@ module.exports = class ActivitySharePopup extends React.Component
     document.removeEventListener 'copy', @bound 'copyTheClipboard'
 
 
+  setCoordinates: ->
+
+    itemNode = ReactDOM.findDOMNode @props.socialShareLinkComponent
+    popup    = ReactDOM.findDOMNode @refs.ActivitySharePopup
+
+    if itemNode and popup
+      { top, left, width } = itemNode.getBoundingClientRect()
+      popup.style.top  = "#{top}px"
+      popup.style.left = "#{left + width + 10}px"
+
+
   componentDidUpdate: ->
+
+    @setCoordinates()
 
     shortenUrl @props.url, (shorten)=>
       shareUrlInput = ReactDOM.findDOMNode @refs.shareUrlInput
