@@ -69,6 +69,26 @@ module.exports = class FeedPane extends React.Component
     @setState isOpened: no
     @unsetActiveSocialShareLink()
 
+
+  renderSocialSharePopup: ->
+
+    { socialShareLinks, activeSocialShareLinkId } = @state
+
+    return null  unless activeSocialShareLinkId
+
+    message  = @props.thread.getIn ['messages', activeSocialShareLinkId]
+    shareUrl = groupifyLink "Activity/Post/#{message.get('slug')}", yes
+    socialShareLinkComponent = socialShareLinks.get activeSocialShareLinkId
+
+    <ActivitySharePopup
+      ref='ActivitySharePopup'
+      socialShareLinkComponent={socialShareLinkComponent}
+      message={message}
+      url = shareUrl
+      className='FeedItem-sharePopup'
+      isOpened={@state.isOpened} />
+
+
   renderBody: ->
 
     return null  unless @props.thread
@@ -103,9 +123,15 @@ module.exports = class FeedPane extends React.Component
         <section className="Pane-body">
           {@renderBody()}
           {@props.children}
+          {@renderSocialSharePopup()}
         </section>
       </section>
     </div>
+
+
+React.Component.include.call FeedPane, [
+  KDReactorMixin, ImmutableRenderMixin
+]
 
 
 _hideScroller = (scroller) -> scroller?.style.opacity = 0
