@@ -3,6 +3,7 @@ expect         = require 'expect'
 Machine        = require 'app/providers/machine'
 ideRoutes      = require 'ide/routes.coffee'
 dataProvider   = require 'app/userenvironmentdataprovider'
+mockjaccount   = require './mock.jaccount'
 mockjmachine   = require './mock.jmachine'
 mockjworkspace = require './mock.jworkspace'
 
@@ -159,3 +160,5 @@ module.exports =
   getMockJMachine: ->  return mockjmachine
 
   getMockWorkspace: -> return mockjworkspace
+
+  getMockAccount: ->   return mockjaccount
