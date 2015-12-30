@@ -6,12 +6,13 @@ module.exports =
   getters   : require './getters'
 
   actions   :
-    message         : require './actions/message'
-    thread          : require './actions/thread'
-    channel         : require './actions/channel'
-    suggestions     : require './actions/suggestions'
-    user            : require './actions/user'
-    command         : require './actions/command'
+    feed        : require './actions/feed'
+    message     : require './actions/message'
+    thread      : require './actions/thread'
+    channel     : require './actions/channel'
+    suggestions : require './actions/suggestions'
+    user        : require './actions/user'
+    command     : require './actions/command'
 
   stores    : [
     require './stores/messagesstore'
@@ -33,6 +34,8 @@ module.exports =
     require './stores/messagelikerssstore'
     require './stores/channelflagsstore'
     require './stores/messageflagsstore'
+    require './stores/socialsharelinksstore'
+    require './stores/activesocialsharelinkidstore.coffee'
     require './stores/channelparticipants/channelparticipantssearchquerystore'
     require './stores/channelparticipants/channelparticipantsdropdownvisibilitystore'
     require './stores/channelparticipants/channelparticipantsselectedindexstore'
