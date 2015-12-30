@@ -58,6 +58,17 @@ module.exports = class FeedPane extends React.Component
       else 0
 
 
+  unsetActiveSocialShareLink: kd.utils.debounce 400, ->
+
+    @setState isOpened: yes
+    ActivityFlux.actions.feed.setActiveSocialShareLink null
+
+
+  onScroll: ->
+
+    @setState isOpened: no
+    @unsetActiveSocialShareLink()
+
   renderBody: ->
 
     return null  unless @props.thread
@@ -65,6 +76,7 @@ module.exports = class FeedPane extends React.Component
     channelId = @props.thread.get 'channelId'
 
     <Scroller
+      onScroll={@bound 'onScroll'}
       style={{height: 'auto'}}
       ref='scrollContainer'
       hasMore={@props.thread.get('messages').size}
