@@ -16,19 +16,49 @@ module.exports = class ChatInputWidget extends React.Component
   { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
   @propTypes =
-    onReady     : React.PropTypes.func
-    onResize    : React.PropTypes.func
-    placeholder : React.PropTypes.string
-    onChange    : React.PropTypes.func
-    tokens      : React.PropTypes.array
+    onResize                  : React.PropTypes.func
+    placeholder               : React.PropTypes.string
+    onChange                  : React.PropTypes.func
+    onEnter                   : React.PropTypes.func
+    onEsc                     : React.PropTypes.func
+    onRightArrow              : React.PropTypes.func
+    onDownArrow               : React.PropTypes.func
+    onTab                     : React.PropTypes.func
+    onLeftArrow               : React.PropTypes.func
+    onUpArrow                 : React.PropTypes.func
+    onDropboxItemSelected     : React.PropTypes.func
+    onDropboxItemConfirmed    : React.PropTypes.func
+    onDropboxClose            : React.PropTypes.func
+    onSelectBoxVisible        : React.PropTypes.func
+    onSelectBoxItemSelected   : React.PropTypes.func
+    onSelectBoxItemUnselected : React.PropTypes.func
+    onSelectBoxItemConfirmed  : React.PropTypes.func
+    onSelectBoxTabChange      : React.PropTypes.func
+    onSelectBoxClose          : React.PropTypes.func
+    onSelectBoxSearch         : React.PropTypes.func
 
 
   @defaultProps =
-    onReady     : kd.noop
-    onResize    : kd.noop
-    placeholder : ''
-    onChange    : kd.noop
-    tokens      : []
+    onResize                  : kd.noop
+    placeholder               : ''
+    onChange                  : kd.noop
+    onEnter                   : kd.noop
+    onEsc                     : kd.noop
+    onRightArrow              : kd.noop
+    onDownArrow               : kd.noop
+    onTab                     : kd.noop
+    onLeftArrow               : kd.noop
+    onUpArrow                 : kd.noop
+    onDropboxItemSelected     : kd.noop
+    onDropboxItemConfirmed    : kd.noop
+    onDropboxClose            : kd.noop
+    onSelectBoxVisible        : kd.noop
+    onSelectBoxItemSelected   : kd.noop
+    onSelectBoxItemUnselected : kd.noop
+    onSelectBoxItemConfirmed  : kd.noop
+    onSelectBoxTabChange      : kd.noop
+    onSelectBoxClose          : kd.noop
+    onSelectBoxSearch         : kd.noop
 
 
   componentDidMount: ->
