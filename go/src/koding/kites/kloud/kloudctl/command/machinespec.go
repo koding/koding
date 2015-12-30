@@ -91,6 +91,16 @@ type MachineSpecVars struct {
 	TemplateID  string `json:"templateId,omitempty"`
 	GroupID     string `json:"groupId,omitempty"`
 	Datacenter  string `json:"datacenter,omitempty"`
+	Region      string `json:"region,omitempty"`
+}
+
+var defaultVars = &MachineSpecVars{
+	Env:         "dev",
+	Username:    "kloudctl",
+	Email:       "rafal+kloudctl@koding.com",
+	MachineName: "kloudctl",
+	Datacenter:  "sjc01",
+	Region:      "us-east-1",
 }
 
 // ParseMachineSpec parses the given spec file and templates the variables
@@ -107,7 +117,7 @@ func ParseMachineSpec(file string, vars *MachineSpecVars) (*MachineSpec, error) 
 		return nil, err
 	}
 	if vars == nil {
-		vars = &MachineSpecVars{}
+		vars = defaultVars
 	}
 	tmpl, err := template.New("spec").Funcs(vars.Funcs()).Parse(string(p))
 	if err != nil {
@@ -127,13 +137,16 @@ func ParseMachineSpec(file string, vars *MachineSpecVars) (*MachineSpec, error) 
 // Var a value of the given variable. If the variable is not set, it is
 // going to read VAR_<NAME> env.
 func (vars *MachineSpecVars) Var(name string) string {
+	if s := os.Getenv("VAR_" + strings.ToUpper(name)); s != "" {
+		return s
+	}
 	field, ok := structs.New(vars).FieldOk(name)
 	if ok {
 		if s, ok := field.Value().(string); ok && s != "" {
 			return s
 		}
 	}
-	return os.Getenv("VAR_" + strings.ToUpper(name))
+	return ""
 }
 
 // Funcs returns text/template funcs.
