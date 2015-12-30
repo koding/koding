@@ -46,9 +46,8 @@ _bindMachineEvents = (environmentData) ->
   # forceUpdate parameter from ActiveInvitationMachineIdStore setMachineId event handler
 
   kd.singletons.notificationController
-
-    .on 'SharedMachineInvitation', (machine) -> handleSharedMachineInvitation machine
-    .on 'CollaborationInvitation', (machine) -> handleSharedMachineInvitation machine
+    .on 'SharedMachineInvitation', handleSharedMachineInvitation
+    .on 'CollaborationInvitation', handleSharedMachineInvitation
 
 
 _bindStackEvents = ->
