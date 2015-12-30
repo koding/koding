@@ -1,9 +1,11 @@
 package command
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -16,6 +18,21 @@ import (
 	"github.com/mitchellh/cli"
 	"golang.org/x/net/context"
 )
+
+type Stage struct {
+	Name     string    `json:"name,omitempty"`
+	Start    time.Time `json:"start,omitempty"`
+	Progress int       `json:"progress,omitempty"`
+}
+
+type Status struct {
+	MachineID    string    `json:"machineId,omitempty"`
+	MachineLabel string    `json:"machineLabel,omitempty"`
+	Start        time.Time `json:"start,omitempty"`
+	End          time.Time `json:"end,omitempty"`
+	Stages       []Stage   `json:"stages,omitempty"`
+	Err          error     `json:"err,omitempty"`
+}
 
 type Group struct {
 	*res.Resource
@@ -66,6 +83,7 @@ type GroupCreate struct {
 	file     string
 	count    int
 	throttle int
+	output   string
 }
 
 func (*GroupCreate) Name() string {
@@ -76,6 +94,7 @@ func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.file, "f", "", "JSON-encoded Machine specification file.")
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
 	f.IntVar(&cmd.throttle, "t", 0, "Throttling - max number of machines to be concurrently created.")
+	f.StringVar(&cmd.output, "o", "", "File where list of statuses for each build will be written.")
 }
 
 func (cmd *GroupCreate) Run(ctx context.Context) error {
@@ -105,16 +124,9 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	return cmd.createMachines(ctx, specs...)
 }
 
-type createResponse struct {
-	MachineID    string
-	MachineLabel string
-	Time         time.Duration
-	Err          error
-}
-
 func (cmd *GroupCreate) createMachines(ctx context.Context, specs ...*MachineSpec) error {
 	buildch := make(chan *MachineSpec)
-	resch := make(chan *createResponse, cmd.throttle)
+	resch := make(chan *Status, cmd.throttle)
 
 	for range make([]struct{}, cmd.throttle) {
 		go func() {
@@ -133,39 +145,53 @@ func (cmd *GroupCreate) createMachines(ctx context.Context, specs ...*MachineSpe
 	}()
 
 	var errs *multierror.Error
-	var overall time.Duration
-	for range specs {
-		res := <-resch
-		overall += res.Time
-		if res.Err != nil {
-			err := fmt.Errorf("Error building %q (%q): %s", res.MachineLabel,
-				res.MachineID, res.Err)
+	var avg, max time.Duration
+	var min = time.Hour
+	s := make([]*Status, len(specs))
+	for i := range s {
+		s[i] = <-resch
+		dur := s[i].End.Sub(s[i].Start)
+		avg += dur
+		if dur < min {
+			min = dur
+		}
+		if dur > max {
+			max = dur
+		}
+		if s[i].Err != nil {
+			err := fmt.Errorf("Error building %q (%q): %s", s[i].MachineLabel, s[i].MachineID, s[i].Err)
 			DefaultUi.Error(err.Error())
 			errs = multierror.Append(errs, err)
 		} else {
-			msg := fmt.Sprintf("Building %q (%q) finished in %s.", res.MachineLabel,
-				res.MachineID, res.Time)
+			msg := fmt.Sprintf("Building %q (%q) finished in %s.", s[i].MachineLabel, s[i].MachineID, dur)
 			DefaultUi.Info(msg)
 		}
 	}
-	DefaultUi.Info(fmt.Sprintf("Average build time: %s", overall/time.Duration(len(specs))))
+	avg = avg / time.Duration(len(specs))
+	DefaultUi.Info(fmt.Sprintf("Build times: avg=%s, min=%s, max=%s", avg, min, max))
+	if err := cmd.writeStatuses(s); err != nil {
+		errs = multierror.Append(errs, err)
+	}
 	return errs.ErrorOrNil()
 }
 
-func createMachine(ctx context.Context, spec *MachineSpec) *createResponse {
+func createMachine(ctx context.Context, spec *MachineSpec) *Status {
 	k, db := fromContext(ctx)
 	if err := spec.BuildMachine(db); err != nil {
-		return &createResponse{
+		return &Status{
 			MachineLabel: spec.Machine.Label,
 			Err:          err,
 		}
 	}
 	start := time.Now()
-	newResponse := func(err error) *createResponse {
-		return &createResponse{
+	var stages []Stage
+	newStatus := func(err error) *Status {
+		return &Status{
 			MachineID:    spec.Machine.ObjectId.Hex(),
 			MachineLabel: spec.Machine.Label,
-			Time:         time.Now().Sub(start),
+			Start:        start,
+			Stages:       stages,
+			End:          time.Now(),
 			Err:          err,
 		}
 	}
@@ -176,36 +202,64 @@ func createMachine(ctx context.Context, spec *MachineSpec) *createResponse {
 	}
 	resp, err := k.Tell("build", buildReq)
 	if err != nil {
-		return newResponse(err)
+		return newStatus(err)
 	}
 	var result kloud.ControlResult
 	if err = resp.Unmarshal(&result); err != nil {
-		return newResponse(err)
+		return newStatus(err)
 	}
 	req := kloud.EventArgs{{
 		Type:    "build",
 		EventId: spec.Machine.ObjectId.Hex(),
 	}}
+	var last Stage
 	for {
 		resp, err := k.Tell("event", req)
 		if err != nil {
-			return newResponse(err)
+			return newStatus(err)
 		}
 		var events []kloud.EventResponse
 		if err := resp.Unmarshal(&events); err != nil {
-			return newResponse(err)
+			return newStatus(err)
 		}
-		if len(events) == 0 {
-			return newResponse(errors.New("empty event response"))
+		if len(events) == 0 || events[0].Event == nil {
+			return newStatus(errors.New("empty event response"))
+		}
+		if events[0].Event.Message != last.Name || events[0].Event.Percentage != last.Progress {
+			last = Stage{
+				Name:     events[0].Event.Message,
+				Start:    events[0].Event.TimeStamp,
+				Progress: events[0].Event.Percentage,
+			}
+			stages = append(stages, last)
 		}
 		if s := events[0].Event.Error; s != "" {
-			return newResponse(errors.New(s))
+			return newStatus(errors.New(s))
 		}
 		if events[0].Event.Percentage == 100 {
-			return newResponse(nil)
+			return newStatus(nil)
 		}
 		time.Sleep(defaultPollInterval)
 	}
+}
+
+func (cmd *GroupCreate) writeStatuses(s []*Status) (err error) {
+	var f *os.File
+	if cmd.output == "" {
+		f, err = ioutil.TempFile("", "kloudctl")
+	} else {
+		f, err = os.OpenFile(cmd.output, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0755)
+	}
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	err = nonil(json.NewEncoder(f).Encode(s), f.Sync(), f.Close())
+	if err != nil {
+		return err
+	}
+	DefaultUi.Info(fmt.Sprintf("Summary written to %q", f.Name()))
+	return nil
 }
 
 // GroupDelete implememts the "kloudctl group delete" subcommand.
@@ -241,4 +295,13 @@ func envMongoURL() string {
 		}
 	}
 	return ""
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }
