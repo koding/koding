@@ -212,21 +212,15 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 		})
 
 		It("reports error when providing a wrong disk size", func() {
-			err := virtualGuestService.AttachEphemeralDisk(123, -1)
+			_, err := virtualGuestService.AttachEphemeralDisk(123, -1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Ephemeral disk size can not be negative: -1"))
 		})
 
 		It("can attach a local disk without error", func() {
-			err := virtualGuestService.AttachEphemeralDisk(123, 25)
+			receipt, err := virtualGuestService.AttachEphemeralDisk(123, 25)
 			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("reports error when providing a disk size that exceeds the biggest capacity disk SL can provide", func() {
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Service_getUpgradeItemPrices.json")
-			err := virtualGuestService.AttachEphemeralDisk(123, 26)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("No proper local disk for size 26"))
+			Expect(receipt.OrderId).NotTo(Equal(0))
 		})
 
 	})

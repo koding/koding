@@ -13,6 +13,7 @@ resurrection.styl
 // scrollviews and add their chrome frames
 html.app
   height            100%
+
   body
     height          100%
     overflow        hidden  // this is to avoid rubber-band/elastic scroll on macs
@@ -2486,3 +2487,6 @@ paymentGrayLighter  = #f8f8f8
 .kdnotification.tray.disconnected
   pointer()
 
+// workaround for scroll problem in test runner page
+html.test-runner body
+  overflow                  auto !important

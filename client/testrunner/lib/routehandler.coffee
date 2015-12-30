@@ -38,6 +38,7 @@ runTests = ->
   mochaContainer = document.createElement 'div'
   mochaContainer.id = 'mocha'
   document.body.appendChild mochaContainer
+  document.documentElement.classList.add 'test-runner'
 
   appendScripts ->
     window.socket = io "http://localhost:#{SOCKET_PORT}"
