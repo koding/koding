@@ -150,7 +150,8 @@ module.exports =
       toReturnChannel: ->
 
         expect.spyOn(socialapi, 'cacheable').andCall (type, id, callback) ->
-          callback null, { some: 'channel', information: 'will be here', in: 'the future' }
+          callback null, { id: '6075644514008039523' }
+
 
 
   getMockMachine: ->   return mockMachine
