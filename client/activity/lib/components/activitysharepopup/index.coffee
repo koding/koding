@@ -17,7 +17,7 @@ module.exports = class ActivitySharePopup extends React.Component
     isOpened : no
     gplus    : { enabled : yes }
     facebook : { enabled : yes }
-    twitter  : { enabled : yes, text : '' }
+    twitter  : { enabled : yes, text  : '' }
     linkedin : { enabled : yes, title : 'Koding.com'}
 
 
