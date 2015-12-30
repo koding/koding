@@ -3,23 +3,28 @@ React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
 FeedList             = require './feedlist'
 Scroller             = require 'app/components/scroller'
-Encoder              = require 'htmlencode'
-whoami               = require 'app/util/whoami'
 immutable            = require 'immutable'
 FeedInputWidget      = require './feedinputwidget'
 FeedPaneTabContainer = require './feedpanetabcontainer'
 FeedThreadHeader     = require './feedthreadheader'
 FeedThreadSidebar    = require 'activity/components/publicfeedpane/feedthreadsidebar'
+ActivityFlux         = require 'activity/flux'
+KDReactorMixin       = require 'app/flux/base/reactormixin'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
+ActivitySharePopup   = require 'activity/components/activitysharepopup'
 
 module.exports = class FeedPane extends React.Component
 
   @defaultProps =
-    title           : null
-    messages        : null
-    isDataLoading   : no
-    onInviteOthers  : kd.noop
-    showItemMenu    : yes
     popularChannels : immutable.List()
+    messages : null
+
+
+  getDataBindings: ->
+    return {
+      socialShareLinks        : ActivityFlux.getters.socialShareLinks
+      activeSocialShareLinkId : ActivityFlux.getters.activeSocialShareLinkId
+    }
 
 
   componentDidMount: ->
