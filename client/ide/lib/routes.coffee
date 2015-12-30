@@ -169,6 +169,8 @@ routeToLatestWorkspace = ->
 
 loadCollaborativeIDE = (id) ->
 
+  { routeToLatestWorkspace, loadIDE } = module.exports
+
   kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
 
     return routeToLatestWorkspace()  if err

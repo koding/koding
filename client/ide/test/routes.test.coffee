@@ -407,3 +407,77 @@ describe 'IDE.routes', ->
 
       expect(routes.routeToFallback).toHaveBeenCalled()
 
+
+  describe '.loadCollaborativeIDE', ->
+
+
+    it 'should validate the channel via socialapi.cacheable request', ->
+
+      mock.socialapi.cacheable.toReturnChannel()
+      expect.spyOn kd.singletons.socialapi, 'cacheable'
+
+      routes.loadCollaborativeIDE()
+
+      expect(kd.singletons.socialapi.cacheable).toHaveBeenCalled()
+
+
+    it 'should routeToLatestWorkspace if socialapi returns an error', ->
+
+      mock.socialapi.cacheable.toReturnError()
+      expect.spyOn routes, 'routeToLatestWorkspace'
+
+      routes.loadCollaborativeIDE()
+
+      expect(routes.routeToLatestWorkspace).toHaveBeenCalled()
+
+
+    it 'should fetchMachineAndWorkspaceByChannelId to validate machine and workpsace belongs to given channelId', ->
+
+      mock.socialapi.cacheable.toReturnChannel()
+      mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnMachineAndWorkspace()
+      expect.spyOn dataProvider, 'fetchMachineAndWorkspaceByChannelId'
+
+      routes.loadCollaborativeIDE()
+
+      expect(dataProvider.fetchMachineAndWorkspaceByChannelId).toHaveBeenCalled()
+
+
+    it 'should routeToLatestWorkspace if no workspace for the channelId', ->
+
+      mock.socialapi.cacheable.toReturnChannel()
+      mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnNull()
+      expect.spyOn routes, 'routeToLatestWorkspace'
+
+      routes.loadCollaborativeIDE()
+
+      expect(routes.routeToLatestWorkspace).toHaveBeenCalled()
+
+
+    it 'should routeToLatestWorkspace if jAccount.some returns error', ->
+
+      mock.socialapi.cacheable.toReturnChannel()
+      mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnMachineAndWorkspace()
+      mock.remote.api.JAccount.some.toReturnError()
+      expect.spyOn routes, 'routeToLatestWorkspace'
+
+      routes.loadCollaborativeIDE()
+
+      expect(routes.routeToLatestWorkspace).toHaveBeenCalled()
+
+
+    it 'should loadIDE if account found', ->
+
+      machine   = mock.getMockJMachine()
+      workspace = mock.getMockWorkspace()
+      username  = mock.getMockAccount().profile.nickname
+      channelId = '6075644514008039523'
+
+      expect.spyOn routes, 'loadIDE'
+      mock.socialapi.cacheable.toReturnChannel()
+      mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnMachineAndWorkspace()
+      mock.remote.api.JAccount.some.toReturnAccounts()
+
+      routes.loadCollaborativeIDE()
+
+      expect(routes.loadIDE).toHaveBeenCalledWith { machine, workspace, username, channelId }
+
