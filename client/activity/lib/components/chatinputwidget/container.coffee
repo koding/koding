@@ -84,10 +84,6 @@ module.exports = class ChatInputContainer extends React.Component
   componentDidUpdate: (oldProps, oldState) ->
 
     isValueChanged = oldState.value isnt @state.value
-    if isValueChanged
-      { tokens } = @props
-      position   = @refs.input.getCursorPosition()
-      ChatInputFlux.actions.dropbox.checkForQuery @stateId, @state.value, position, tokens
 
     # This line actually is needed for the case
     # when value prop is set to state.
@@ -110,7 +106,18 @@ module.exports = class ChatInputContainer extends React.Component
     { channelId, onChange } = @props
     ChatInputFlux.actions.value.setValue channelId, @stateId, value
 
+    kd.utils.defer @bound 'checkForQuery'
+
     onChange value  unless skipChangeEvent
+
+
+  checkForQuery: ->
+
+    return  unless @refs.input
+
+    { dropbox } = ChatInputFlux.actions
+    position    = @refs.input.getCursorPosition()
+    dropbox.checkForQuery @stateId, @state.value, position, @props.tokens
 
 
   getValue: -> @state.value
