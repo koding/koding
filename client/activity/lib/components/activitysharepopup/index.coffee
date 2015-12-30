@@ -78,6 +78,37 @@ module.exports = class ActivitySharePopup extends React.Component
 
     return shareText
 
+
+  buildGPlusShareLink: ->
+
+    if @props.gplus.enabled
+      link = "https://plus.google.com/share?url=#{encodeURIComponent(@props.url)}"
+
+
+  buildTwitterShareLink: ->
+
+    if @props.twitter.enabled
+      shareText = @getTwitterShareText() or @props.twitter.text
+      link = """https://twitter.com/intent/tweet?
+        text=#{encodeURIComponent shareText}&via=koding&source=koding"""
+
+
+  buildFacebookShareLink: ->
+
+    if @props.facebook.enabled
+      link = "https://www.facebook.com/sharer/sharer.php?u=#{encodeURIComponent(@props.url)}"
+
+
+  buildLinkedInShareLink: ->
+
+    if @props.linkedin.enabled
+      link = """http://www.linkedin.com/shareArticle?mini=true&url=
+        #{encodeURIComponent(@props.url)}&
+        title=#{encodeURIComponent(@props.linkedin.title)}&
+        summary=#{encodeURIComponent(@props.url)}&
+        source=#{location.origin}"""
+
+
   render: ->
 
     return null  unless @props.isOpened
