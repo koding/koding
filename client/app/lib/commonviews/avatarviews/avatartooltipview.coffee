@@ -54,34 +54,11 @@ module.exports = class AvatarTooltipView extends JView
   click:(event)->
     # @getDelegate()?.getTooltip().hide()
 
-  decorateFollowButton:(data)->
-
-    # no dummy data!
-    return unless data.getId?
-
-    unless data.followee?
-      whoami().isFollowing? data.getId(), "JAccount", (err, following)=>
-        data.followee = following
-        kd.warn err  if isLoggedIn()
-        if data.followee
-          @followButton.setClass 'following-btn'
-          @followButton.setState "Following"
-        else
-          @followButton.setState "Follow"
-          @followButton.unsetClass 'following-btn'
-    else
-      if data.followee
-        @followButton.setClass 'following-btn'
-        @followButton.setState "Following"
-    @followButton.setData data
-    @followButton.render()
 
   updateData:(data={})->
 
     # lazy loading data is spoonfed to the individual views
     @setData data
-
-    @decorateFollowButton data
 
     @profileName.setData data
     @profileName.render()
