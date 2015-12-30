@@ -1,5 +1,6 @@
 kd             = require 'kd'
 expect         = require 'expect'
+remote         = require('app/remote').getInstance()
 Machine        = require 'app/providers/machine'
 ideRoutes      = require 'ide/routes.coffee'
 dataProvider   = require 'app/userenvironmentdataprovider'
@@ -152,6 +153,26 @@ module.exports =
 
         expect.spyOn(socialapi, 'cacheable').andCall (type, id, callback) ->
           callback null, { id: '6075644514008039523' }
+
+
+  remote:
+
+    api:
+
+      JAccount:
+
+        some:
+
+          toReturnError: ->
+
+            expect.spyOn(remote.api.JAccount, 'some').andCall (query, options, callback) ->
+              callback { some: 'error' }
+
+
+          toReturnAccounts: ->
+
+            expect.spyOn(remote.api.JAccount, 'some').andCall (query, options, callback) ->
+              callback null, [ mockjaccount ]
 
 
 
