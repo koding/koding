@@ -63,6 +63,21 @@ module.exports = class ActivitySharePopup extends React.Component
       shareUrlInput.setSelectionRange(0, shareUrlInput.value.length)
 
 
+  getTwitterShareText: ->
+
+    { tags, title, body } = @props.message
+    hashTags = ''
+
+    if tags
+      hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
+      hashTags  = _.unique(hashTags).join " "
+      hashTags += " "
+
+    itemText  = shortenText title or body, maxLength: 100, minLength: 100
+    shareText = "#{itemText} #{hashTags}- #{@props.url}"
+
+    return shareText
+
   render: ->
 
     return null  unless @props.isOpened
