@@ -125,12 +125,26 @@ module.exports = class ActivitySharePopup extends React.Component
     <Portal isOpened={@props.isOpened} closeOnOutsideClick={yes} onClose={@props.onClose}>
       <div ref='ActivitySharePopup' className='ActivitySharePopup'>
         <input ref='shareUrlInput' readOnly={yes} type='text' value={@props.url}/>
-        <div>
-          <SocialShareLinkItem onClick={@bound 'onClick'} href={@buildGPlusShareLink()} className='share-icon share-gplus' provider='gplus'/>
-          <SocialShareLinkItem onClick={@bound 'onClick'} href={@buildLinkedInShareLink()} className='share-icon share-linkedin' provider='linkedin'/>
-          <SocialShareLinkItem onClick={@bound 'onClick'} href={@buildFacebookShareLink()} className='share-icon share-facebook' provider='facebook'/>
-          <SocialShareLinkItem onClick={@bound 'onClick'} href={@buildTwitterShareLink()} className='share-icon share-twitter' provider='twitter'/>
-        </div>
+        <SocialShareLinkItem
+          provider='gplus'
+          onClick={@bound 'onClick'}
+          href={@buildGPlusShareLink()}
+          className='share-icon share-gplus' />
+        <SocialShareLinkItem
+          provider='linkedin'
+          onClick={@bound 'onClick'}
+          href={@buildLinkedInShareLink()}
+          className='share-icon share-linkedin' />
+        <SocialShareLinkItem
+          provider='facebook'
+          onClick={@bound 'onClick'}
+          href={@buildFacebookShareLink()}
+          className='share-icon share-facebook' />
+        <SocialShareLinkItem
+          provider='twitter'
+          onClick={@bound 'onClick'}
+          href={@buildTwitterShareLink()}
+          className='share-icon share-twitter' />
       </div>
     </Portal>
 
