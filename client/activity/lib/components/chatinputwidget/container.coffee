@@ -145,7 +145,7 @@ module.exports = class ChatInputContainer extends React.Component
     else
       @props.onSubmit? { value }
 
-      @setValue ''
+    @setValue ''
 
 
   onRightArrow: (event) ->
