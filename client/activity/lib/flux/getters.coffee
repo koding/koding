@@ -36,9 +36,10 @@ SuggestionsFlagsStore           = [['SuggestionsFlagsStore'], withEmptyMap]
 SuggestionsSelectedIndexStore   = ['SuggestionsSelectedIndexStore']
 UsersStore                      = [['UsersStore'], withEmptyMap]
 MessageLikersStore              = [['MessageLikersStore'], withEmptyMap]
-
 SidebarPublicChannelsQueryStore = ['SidebarPublicChannelsQueryStore']
 SidebarPublicChannelsTabStore   = ['SidebarPublicChannelsTabStore']
+socialShareLinks                = [['SocialShareLinksStore'], withEmptyMap]
+ActiveSocialShareLinkIdStore    = ['ActiveSocialShareLinkIdStore']
 
 FollowedPublicChannelIdsStore = [
   FollowedPublicChannelIdsStore
@@ -476,5 +477,6 @@ module.exports = {
   sidebarPublicChannels
 
   allFollowedChannels
+  socialShareLinks
+  activeSocialShareLinkId: ActiveSocialShareLinkIdStore
 }
-
