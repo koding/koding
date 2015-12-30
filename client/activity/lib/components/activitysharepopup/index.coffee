@@ -122,13 +122,15 @@ module.exports = class ActivitySharePopup extends React.Component
 
     return null  unless @props.isOpened
 
-    <div className='ActivitySharePopup'>
-      <input ref='shareUrlInput' readOnly={yes} type='text' value={@props.url}/>
-      <div>
-        <Link className='share-icon share-gplus'/>
-        <Link className='share-icon share-linkedin'/>
-        <Link className='share-icon share-facebook'/>
-        <Link className='share-icon share-twitter'/>
+    <Portal isOpened={@props.isOpened} closeOnOutsideClick={yes} onClose={@props.onClose}>
+      <div ref='ActivitySharePopup' className='ActivitySharePopup'>
+        <input ref='shareUrlInput' readOnly={yes} type='text' value={@props.url}/>
+        <div>
+          <SocialShareLinkItem onClick={@bound 'onClick'} href={@buildGPlusShareLink()} className='share-icon share-gplus' provider='gplus'/>
+          <SocialShareLinkItem onClick={@bound 'onClick'} href={@buildLinkedInShareLink()} className='share-icon share-linkedin' provider='linkedin'/>
+          <SocialShareLinkItem onClick={@bound 'onClick'} href={@buildFacebookShareLink()} className='share-icon share-facebook' provider='facebook'/>
+          <SocialShareLinkItem onClick={@bound 'onClick'} href={@buildTwitterShareLink()} className='share-icon share-twitter' provider='twitter'/>
+        </div>
       </div>
-    </div>
+    </Portal>
 
