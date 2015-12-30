@@ -4,7 +4,6 @@ whoami = require '../../util/whoami'
 isLoggedIn = require '../../util/isLoggedIn'
 AvatarStaticView = require './avatarstaticview'
 JView = require '../../jview'
-MemberFollowToggleButton = require '../../memberfollowtogglebutton'
 MemberMailLink = require '../../members/contentdisplays/membermaillink'
 
 
@@ -34,34 +33,6 @@ module.exports = class AvatarTooltipView extends JView
       origin    : origin
     , data
 
-
-    @followButton = new MemberFollowToggleButton
-      style       : "follow-btn"
-      loader      :
-        color     : "#333333"
-        diameter  : 18
-        top       : 11
-    , @getData()
-
-    @followers = new JView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
-      click       : (event)->
-        return if @getData().counts.followers is 0
-        kd.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'followers'
-    , @getData()
-
-    @following = new JView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
-      click       : (event)->
-        return if @getData().counts.following is 0
-        kd.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'following'
-    , @getData()
 
     @likes = new JView
       tagName     : 'a'
