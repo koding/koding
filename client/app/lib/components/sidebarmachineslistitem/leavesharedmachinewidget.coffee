@@ -2,7 +2,7 @@ React                     = require 'kd-react'
 Popover                   = require 'app/components/common/popover'
 actions                   = require 'app/flux/environment/actions'
 SidebarWidget             = require './sidebarwidget'
-InvitationWidgetUserView  = require './invitationwidgetuserview'
+InvitationWidgetUserPart  = require './invitationwidgetuserpart'
 
 module.exports = class LeaveSharedMachineWidget extends React.Component
 
@@ -23,7 +23,7 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
 
     <SidebarWidget {...@props}>
       <p className='SidebarWidget-Title'>Shared with you by</p>
-      <InvitationWidgetUserView
+      <InvitationWidgetUserPart
         owner={@props.machine.get 'owner'}
        />
       <button className='kdbutton solid medium red' onClick={@bound 'onLeaveClicked'}>

@@ -2,7 +2,7 @@ React                    = require 'kd-react'
 ReactDOM                 = require 'react-dom'
 actions                  = require 'app/flux/environment/actions'
 SidebarWidget            = require './sidebarwidget'
-InvitationWidgetUserView = require './invitationwidgetuserview'
+InvitationWidgetUserPart = require './invitationwidgetuserpart'
 
 module.exports = class SharingMachineInvitationWidget extends React.Component
 
@@ -51,7 +51,7 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
     text = "wants to #{type} their VM with you."
 
     <SidebarWidget {...@props} coordinates={coordinates}>
-      <InvitationWidgetUserView
+      <InvitationWidgetUserPart
         owner={@props.machine.get 'owner'}
        />
       <p className='SidebarWidget-Title'>{text}</p>

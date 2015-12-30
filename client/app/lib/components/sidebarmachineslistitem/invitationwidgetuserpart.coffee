@@ -5,7 +5,7 @@ ProfileText           = require 'app/components/profile/profiletext'
 ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
 
 
-module.exports = class InvitationWidgetUserView extends React.Component
+module.exports = class InvitationWidgetUserPart extends React.Component
 
   @defaultProps =
     size      :
