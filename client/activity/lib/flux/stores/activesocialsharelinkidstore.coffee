@@ -10,10 +10,10 @@ module.exports = class ActiveSocialShareLinkIdStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.SET_ACTIVE_SOCIAL_SHARE_LINK_ID, @setId
+    @on actions.SET_ACTIVE_SOCIAL_SHARE_LINK_ID, @setActiveLinkId
 
 
-  setId: (activeId, { id }) ->
+  setActiveLinkId: (activeId, { id }) ->
 
     return id  if activeId isnt id
     return null
