@@ -35,7 +35,7 @@ module.exports =
     editedmessage = 'Message after editing'
     textSelector  = '.ChatListItem-itemBodyContainer:nth-of-type(1)'
     chatInput     = '.editing .ChatItem-updateMessageForm .ChatInputWidget textarea'
-    menuButton    = '.SimpleChatListItem .ButtonWithMenuWrapper'
+    menuButton    = '.ChatItem-contentWrapper .ButtonWithMenuWrapper:nth-of-type(2) button'
     editButton    = '.ButtonWithMenuItemsList li:nth-child(1)'
     editedText    = '.ChatItem .SimpleChatListItem.edited .ChatListItem-itemBodyContainer .ChatItem-contentBody .MessageBody'
 
