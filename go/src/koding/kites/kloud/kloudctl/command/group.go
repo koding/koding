@@ -90,9 +90,10 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	}
 	// Index the machines.
 	if len(specs) > 1 {
-		for i, spec := range specs {
-			spec.Machine.Slug = fmt.Sprintf("%s-%d", spec.Machine.Slug, i)
-			spec.Machine.Label = fmt.Sprintf("%s-%d", spec.Machine.Label, i)
+		for _, spec := range specs {
+			i := shortUID()
+			spec.Machine.Slug = fmt.Sprintf("%s-%s", spec.Machine.Slug, i)
+			spec.Machine.Label = fmt.Sprintf("%s-%s", spec.Machine.Label, i)
 		}
 	}
 	return cmd.createMachines(ctx, specs...)

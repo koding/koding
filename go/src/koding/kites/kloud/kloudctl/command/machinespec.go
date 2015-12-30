@@ -68,12 +68,7 @@ func (spec *MachineSpec) Domain() string {
 }
 
 func (spec *MachineSpec) finalizeUID() string {
-	p := make([]byte, 4)
-	_, err := rand.Read(p)
-	if err != nil {
-		panic("internal error running PRNG: " + err.Error())
-	}
-	return spec.Machine.Uid[:4] + hex.EncodeToString(p)
+	return spec.Machine.Uid[:4] + shortUID()
 }
 
 func (spec *MachineSpec) env() string {
@@ -316,4 +311,13 @@ func getOrCreateHackathonGroup(db *mongodb.MongoDB) (*models.Group, error) {
 		return nil, err
 	}
 	return &group, nil
+}
+
+func shortUID() string {
+	p := make([]byte, 4)
+	_, err := rand.Read(p)
+	if err != nil {
+		panic("internal error running PRNG: " + err.Error())
+	}
+	return hex.EncodeToString(p)
 }
