@@ -1,9 +1,13 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-ReactDOM             = require 'react-dom'
-Link                 = require 'app/components/common/link'
-shortenUrl           = require 'app/util/shortenUrl'
-groupifyLink         = require 'app/util/groupifyLink'
+_                   = require 'lodash'
+kd                  = require 'kd'
+React               = require 'kd-react'
+ReactDOM            = require 'react-dom'
+shortenUrl          = require 'app/util/shortenUrl'
+shortenText         = require 'app/util/shortenText'
+Portal              = require('react-portal').default
+ActivityFlux        = require 'activity/flux'
+Link                = require 'app/components/common/link'
+SocialShareLinkItem = require './socialsharelinkitem'
 
 module.exports = class ActivitySharePopup extends React.Component
 
@@ -11,8 +15,10 @@ module.exports = class ActivitySharePopup extends React.Component
     url      : ''
     onClose  : kd.noop
     isOpened : no
-
-  onClose: -> @props.onClose()
+    gplus    : { enabled : yes }
+    facebook : { enabled : yes }
+    twitter  : { enabled : yes, text : '' }
+    linkedin : { enabled : yes, title : 'Koding.com'}
 
 
   copyTheClipboard: ->
