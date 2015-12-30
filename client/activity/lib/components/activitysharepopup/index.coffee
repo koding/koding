@@ -109,6 +109,15 @@ module.exports = class ActivitySharePopup extends React.Component
         source=#{location.origin}"""
 
 
+  onClick: (url, provider)=>
+
+    window.open(
+      url,
+      "#{provider}-share-dialog",
+      "width=626,height=436,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
+    )
+
+
   render: ->
 
     return null  unless @props.isOpened
