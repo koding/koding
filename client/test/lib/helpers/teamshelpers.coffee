@@ -444,3 +444,30 @@ module.exports =
       .click                     followChannelButton
       .waitForElementNotVisible  followChannelButton, 20000
 
+
+  inviteUser: (browser) ->
+
+    invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    inviteUserView           = "#{invitationsModalSelector} .invite-view"
+    emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
+    userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
+    inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
+    notificationView         = '.kdnotification'
+    pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
+    pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+
+    browser
+      .waitForElementVisible  inviteUserView, 20000
+      .waitForElementVisible  emailInputSelector, 20000
+      .setValue               emailInputSelector, userEmail
+      .waitForElementVisible  inviteMemberButton, 20000
+      .click                  inviteMemberButton
+      .waitForElementVisible  notificationView, 20000
+      .assert.containsText    notificationView, 'Invitations are sent to new members.'
+      .click                  pendingMembersTab
+      .waitForElementVisible  pendingMemberView, 20000
+      .assert.containsText    pendingMemberView, userEmail
+
+    return userEmail
+
+
