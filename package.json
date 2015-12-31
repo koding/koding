@@ -21,7 +21,6 @@
     "bluebird": "1.0.8",
     "body-parser": "1.12.2",
     "cache-manager": "1.2.2",
-    "checksum": "0.1.1",
     "cli-table": "0.3.1",
     "cloudflare": "0.0.6",
     "coffee-script": "1.7.1",
