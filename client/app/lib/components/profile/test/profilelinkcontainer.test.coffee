@@ -1,5 +1,4 @@
 { expect }    = require 'chai'
-sinon         = require 'sinon'
 React         = require 'react/addons'
 { TestUtils } = React.addons
 helper        = require '../helper'
