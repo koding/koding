@@ -3,11 +3,14 @@ utils    = require '../utils/utils.js'
 HUBSPOT  = no
 
 
-teamsModalSelector      = '.TeamsModal--groupCreation'
-companyNameSelector     = '.login-form input[testpath=company-name]'
-sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
-chatItem                = '.Pane-body .ChatList .ChatItem'
-chatInputSelector       = '.ChatPaneFooter .ChatInputWidget textarea'
+teamsModalSelector       = '.TeamsModal--groupCreation'
+companyNameSelector      = '.login-form input[testpath=company-name]'
+sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
+chatItem                 = '.Pane-body .ChatList .ChatItem'
+chatInputSelector        = '.ChatPaneFooter .ChatInputWidget textarea'
+sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
+invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+
 
 module.exports =
 
@@ -470,4 +473,44 @@ module.exports =
 
     return userEmail
 
+
+  clickPendingInvitations: (browser, openTab = yes) ->
+
+    pendingMembersTab = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
+    pendingMemberView = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+
+    if openTab
+      @clickTeamSettings(browser)
+      @openInvitationsTab(browser)
+
+    browser
+      .waitForElementVisible  pendingMembersTab, 20000
+      .click                  pendingMembersTab
+      .waitForElementVisible  pendingMemberView, 20000 # Assertion
+
+
+  invitationAction: (browser, userEmail, revoke) ->
+
+    pendingMemberView         = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+    pendingMemberViewTime     = "#{pendingMemberView} time"
+    pendingMemberViewSettings = "#{pendingMemberView}.settings-visible .settings"
+    actionButton              = "#{pendingMemberViewSettings} .resend-button"
+
+    if revoke
+      actionButton = "#{pendingMemberViewSettings} .revoke-button"
+
+    @clickPendingInvitations(browser, no)
+
+    browser
+      .waitForElementVisible  pendingMemberViewTime, 20000
+      .click                  pendingMemberViewTime
+      .waitForElementVisible  actionButton, 20000
+      .pause                  3000
+      .click                  actionButton
+      .pause                  2000
+
+    if revoke
+      browser.expect.element(pendingMemberView).text.to.not.contain userEmail
+    else
+      browser.waitForElementVisible     '.kdnotification', 20000 # Assertion
 

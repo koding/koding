@@ -12,3 +12,14 @@ module.exports =
     teamsHelpers.openInvitationsTab(browser)
     teamsHelpers.inviteUser(browser)
     browser.end()
+
+
+  resendInvitation: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
+    teamsHelpers.openInvitationsTab(browser)
+    email = teamsHelpers.inviteUser(browser)
+    teamsHelpers.invitationAction(browser, email)
+    browser.end()
+
