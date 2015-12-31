@@ -1,11 +1,18 @@
 kd            = require 'kd'
+nick          = require 'app/util/nick'
 mock          = require '../../mocks/mockingjay'
 expect        = require 'expect'
 routes        = require '../lib/routes'
 dataProvider  = require 'app/userenvironmentdataprovider'
 
+appManager    = kd.singletons.appManager
 mockMachine   = mock.getMockMachine()
 mockWorkspace = mock.getMockWorkspace()
+dataToLoadIDE =
+  machine     : mock.getMockJMachine()
+  username    : mock.getMockAccount().profile.nickname
+  workspace   : mock.getMockWorkspace()
+  channelId   : '6075644514008039523'
 
 ROUTE_PARAMS           =
   machine              : { params: { machineLabel: 'koding-vm-0' } }
@@ -221,8 +228,7 @@ describe 'IDE.routes', ->
 
     it 'should tell ide instance to createMachineStateModal with NotFound state', ->
 
-      fakeApp        = {}
-      { appManager } = kd.singletons
+      fakeApp = {}
 
       expect.spyOn(appManager, 'open').andCall (appName, options, callback) -> callback fakeApp
       expect.spyOn appManager, 'tell'
@@ -316,7 +322,7 @@ describe 'IDE.routes', ->
       expect(dataProvider.fetchMachineByLabel).toHaveBeenCalled()
 
 
-    it 'should route to /IDE/koding-vm-0/foo-workspace after fetching the machine', ->
+    it 'should route to /IDE/koding-vm-0/my-workspace after fetching the machine', ->
 
       expectedRoute = '/IDE/koding-vm-0/my-workspace'
 
@@ -467,11 +473,6 @@ describe 'IDE.routes', ->
 
     it 'should loadIDE if account found', ->
 
-      machine   = mock.getMockJMachine()
-      workspace = mock.getMockWorkspace()
-      username  = mock.getMockAccount().profile.nickname
-      channelId = '6075644514008039523'
-
       expect.spyOn routes, 'loadIDE'
       mock.socialapi.cacheable.toReturnChannel()
       mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnMachineAndWorkspace()
@@ -479,5 +480,71 @@ describe 'IDE.routes', ->
 
       routes.loadCollaborativeIDE()
 
-      expect(routes.loadIDE).toHaveBeenCalledWith { machine, workspace, username, channelId }
+      expect(routes.loadIDE).toHaveBeenCalledWith dataToLoadIDE
 
+
+  describe '.loadIDE', ->
+
+    testLoadIDEInnerCallback = (callback) ->
+
+      spy     = expect.spyOn(appManager, 'open').andCall (appName, options, callback) -> callback fakeApp
+      { uid } = mockMachine
+      fakeApp = { mountMachineByMachineUId: -> }
+
+      mock.ideRoutes.findInstance.toReturnNull()
+      expect.spyOn fakeApp, 'mountMachineByMachineUId'
+
+      callback()
+
+      expect(appManager.open).toHaveBeenCalled()
+      expect(spy.calls.first.arguments[0]).toBe 'IDE'
+      expect(spy.calls.first.arguments[1].forceNew).toBe yes
+      expect(fakeApp.mountMachineByMachineUId).toHaveBeenCalledWith uid
+      expect(fakeApp.mountedMachineUId).toBe uid
+      expect(fakeApp.workspaceData).toBe mockWorkspace
+
+      if nick() is dataToLoadIDE.username
+        expect(fakeApp.amIHost).toBe yes
+      else
+        expect(fakeApp.isInSession).toBe       yes
+        expect(fakeApp.amIHost).toBe           no
+        expect(fakeApp.collaborationHost).toBe dataToLoadIDE.username
+        expect(fakeApp.channelId).toBe         dataToLoadIDE.channelId
+
+
+    it 'should selectWorkspaceOnSidebar', ->
+
+      expect.spyOn routes, 'selectWorkspaceOnSidebar'
+
+      routes.loadIDE dataToLoadIDE
+
+      expect(routes.selectWorkspaceOnSidebar).toHaveBeenCalledWith dataToLoadIDE
+
+
+    it 'should showInstance if ide is already opened', ->
+
+      mock.ideRoutes.findInstance.toReturnInstance()
+      expect.spyOn appManager, 'showInstance'
+      expect.spyOn routes, 'selectWorkspaceOnSidebar'
+      appManager.appControllers.IDE = {}
+      appManager.appControllers.IDE.instances = []
+
+      routes.loadIDE dataToLoadIDE
+
+      expect(appManager.showInstance).toHaveBeenCalled()
+      expect(routes.selectWorkspaceOnSidebar).toHaveBeenCalled()
+
+
+    it 'should open IDE if there is no open ide app instance', ->
+
+      appManager.appControllers.IDE = null
+
+      testLoadIDEInnerCallback -> routes.loadIDE dataToLoadIDE
+
+
+    it 'should open IDE if ide instance not found but there is open ide instances', ->
+
+      appManager.appControllers.IDE = {}
+      appManager.appControllers.IDE.instances = []
+
+      testLoadIDEInnerCallback -> routes.loadIDE dataToLoadIDE

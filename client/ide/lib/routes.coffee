@@ -53,6 +53,8 @@ loadIDENotFound = ->
 
 loadIDE = (data) ->
 
+  { selectWorkspaceOnSidebar, findInstance } = module.exports
+
   { machine, workspace, username, channelId } = data
   selectWorkspaceOnSidebar data
 
@@ -78,22 +80,34 @@ loadIDE = (data) ->
 
   return callback()  unless ideApps?.instances
 
-  for instance in ideApps.instances
-    isSameMachine   = instance.mountedMachineUId is machineUId
-    isSameWorkspace = instance.workspaceData?.getId() is workspace.getId()
-
-    if isSameMachine
-      if isSameWorkspace then ideInstance = instance
-      # should not be the case anymore since 'my-workspace' deprecated.
-      else if workspace.slug is 'my-workspace'
-        if instance.workspaceData?.isDefault
-          ideInstance = instance
+  ideInstance = findInstance machine, workspace
 
   if ideInstance
     appManager.showInstance ideInstance
     selectWorkspaceOnSidebar data # should not be required
   else
     callback()
+
+
+findInstance = (machine, workspace) ->
+
+  ideApps       = kd.singletons.appManager.appControllers.IDE
+  machineUId    = machine.uid
+  workspaceId   = workspace.getId()
+  workspaceSlug = workspace.slug
+
+  for instance in ideApps.instances
+    isSameMachine   = instance.mountedMachineUId is machineUId
+    isSameWorkspace = instance.workspaceData?.getId() is workspaceId
+
+    if isSameMachine
+      if isSameWorkspace then ideInstance = instance
+      # should not be the case anymore since 'my-workspace' deprecated.
+      else if workspaceSlug is 'my-workspace'
+        if instance.workspaceData?.isDefault
+          ideInstance = instance
+
+  return ideInstance
 
 
 routeToFallback = ->
@@ -248,6 +262,7 @@ module.exports = {
   routeToMachineWorkspace
   routeToLatestWorkspace
   loadCollaborativeIDE
+  findInstance
   routeHandler
 
   init: -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
