@@ -23,3 +23,12 @@ module.exports =
     teamsHelpers.invitationAction(browser, email)
     browser.end()
 
+
+  revokeInvitation: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
+    teamsHelpers.openInvitationsTab(browser)
+    email = teamsHelpers.inviteUser(browser)
+    teamsHelpers.invitationAction(browser, email, yes)
+    browser.end()
