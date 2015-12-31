@@ -41,7 +41,6 @@
     "express": "4.9.5",
     "express-session": "1.10.4",
     "faker": "1.1.0",
-    "formidable": "1.0.12",
     "geoip-lite": "1.1.6",
     "git-rev": "0.2.1",
     "googleapis": "1.1.5",
