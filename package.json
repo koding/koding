@@ -65,7 +65,6 @@
     "ngrok": "0.1.97",
     "nib": "0.5.0",
     "node-dogstatsd": "0.0.6",
-    "node-eden": "0.0.3",
     "node-odesk": "0.0.7",
     "node-sockjs-client": "1.0.7",
     "node-sprite-generator": "0.5.0",
