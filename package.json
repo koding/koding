@@ -22,7 +22,6 @@
     "body-parser": "1.12.2",
     "cache-manager": "1.2.2",
     "cli-table": "0.3.1",
-    "cloudflare": "0.0.6",
     "coffee-script": "1.7.1",
     "coffeenode-zxcvbn": "1.0.1",
     "colors": "0.6.0-1",
