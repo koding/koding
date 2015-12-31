@@ -549,3 +549,34 @@ describe 'IDE.routes', ->
       appManager.appControllers.IDE.instances = []
 
       testLoadIDEInnerCallback -> routes.loadIDE dataToLoadIDE
+
+
+  describe '.findInstance', ->
+
+
+    it 'should return undefined if there is no ide app instance', ->
+
+      appManager.appControllers.IDE = { instances: [] }
+
+      instance = routes.findInstance mockMachine, { getId: -> }
+
+      expect(instance).toBe undefined
+
+
+    it 'should return the appInstance if there is a match', ->
+
+      ws = {}
+      ws[key]  = value for own key, value of mockWorkspace
+      ws.getId = -> ws._id
+
+      appManager.appControllers.IDE =
+        instances: [
+          {
+            foo              : 'bar'
+            workspaceData    : ws
+            mountedMachineUId: mockMachine.uid
+          }
+        ]
+
+      instance = routes.findInstance mockMachine, ws
+      expect(instance.foo).toBe 'bar'
