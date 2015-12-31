@@ -139,6 +139,18 @@ module.exports =
           return { workspaceSlug: 'foo-workspace', channelId: '6075644514008039523', machineLabel: 'koding-vm-0' }
 
 
+    findInstance:
+
+      toReturnInstance: ->
+
+        expect.spyOn(ideRoutes, 'findInstance').andCall -> return {}
+
+
+      toReturnNull: ->
+
+        expect.spyOn(ideRoutes, 'findInstance').andCall -> return null
+
+
   socialapi:
 
     cacheable:
@@ -173,7 +185,6 @@ module.exports =
 
             expect.spyOn(remote.api.JAccount, 'some').andCall (query, options, callback) ->
               callback null, [ mockjaccount ]
-
 
 
   getMockMachine: ->   return mockMachine
