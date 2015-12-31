@@ -322,10 +322,11 @@ describe 'IDE.routes', ->
       expect(dataProvider.fetchMachineByLabel).toHaveBeenCalled()
 
 
-    it 'should route to /IDE/koding-vm-0/my-workspace after fetching the machine', ->
+    it 'should route to /IDE/koding-vm-0/foo-workspace after fetching the machine', ->
 
-      expectedRoute = '/IDE/koding-vm-0/my-workspace'
+      expectedRoute = '/IDE/koding-vm-0/foo-workspace'
 
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspace()
       mock.envDataProvider.fetchMachineByLabel.toReturnMachineAndWorkspace()
       expect.spyOn kd.singletons.router, 'handleRoute'
 
