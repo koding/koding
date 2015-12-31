@@ -45,7 +45,6 @@
     "git-rev": "0.2.1",
     "googleapis": "1.1.5",
     "gulp": "3.8.11",
-    "gulp-coffee": "2.2.0",
     "hat": "0.0.3",
     "helmet": "0.2.4",
     "highlight.js": "7.3.0",
