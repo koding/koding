@@ -15,7 +15,6 @@
     "install": "./scripts/patch-node-modules.sh"
   },
   "dependencies": {
-    "amqplib": "0.2.0",
     "analytics-node": "1.2.2",
     "async": "0.2.5",
     "aws-sdk": "2.1.4",
