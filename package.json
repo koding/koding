@@ -74,7 +74,6 @@
     "opentok": "2.2.5",
     "optimist": "0.3.1",
     "progress": "0.0.4",
-    "prompt": "0.1.12",
     "read": "1.0.5",
     "redis": "0.12.1",
     "request": "2.54.0",
