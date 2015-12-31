@@ -70,6 +70,7 @@ type Softlayer struct {
 // NewSoftlayer creates new Softlayer client for the given credentials.
 func NewSoftlayer(username, apiKey string) (*Softlayer, error) {
 	client := client.NewSoftLayerClient(username, apiKey)
+	client.HTTPClient = NewClient()
 	opts := &Options{
 		SLClient: client,
 	}
@@ -328,6 +329,66 @@ func (c *Softlayer) XTemplatesByFilter(filter *Filter) (Templates, error) {
 	sort.Sort(byCreateDateDesc(templates))
 
 	return templates, nil
+}
+
+// DatacentersByFilter
+func (c *Softlayer) DatacentersByFilter(filter *Filter) (Datacenters, error) {
+	const path = "SoftLayer_Location_Datacenter/getDatacenters.json"
+	p, err := c.DoRawHttpRequestWithObjectMask(path, datacenterMask, "GET", nullBuf)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkError(p); err != nil {
+		return nil, err
+	}
+
+	var datacenters Datacenters
+	if err := json.Unmarshal(p, &datacenters); err != nil {
+		return nil, err
+	}
+
+	datacenters = datacenters.Filter(filter)
+
+	if len(datacenters) == 0 {
+		return nil, newNotFoundError("Datacenter", fmt.Errorf("filter=%v", filter))
+	}
+
+	return datacenters, nil
+}
+
+// XDatacentersByFilter
+func (c *Softlayer) XDatacentersByFilter(filter *Filter) (Datacenters, error) {
+	const path = "SoftLayer_Location_Datacenter/getDatacenters.json"
+	objFilter := map[string]interface{}{
+		"locations": filter.Object(),
+	}
+	p, err := json.Marshal(objFilter)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err = c.DoRawHttpRequestWithObjectFilterAndObjectMask(
+		path, datacenterMask, string(p), "GET", nullBuf,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkError(p); err != nil {
+		return nil, err
+	}
+
+	var datacenters Datacenters
+	if err := json.Unmarshal(p, &datacenters); err != nil {
+		return nil, err
+	}
+
+	datacenters = datacenters.Filter(filter)
+
+	if len(datacenters) == 0 {
+		return nil, newNotFoundError("Datacenter", fmt.Errorf("filter=%v", filter))
+	}
+
+	return datacenters, nil
 }
 
 // DeleteInstance requests a VM termination given by the id.

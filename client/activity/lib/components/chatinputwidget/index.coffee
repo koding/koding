@@ -218,6 +218,9 @@ module.exports = class ChatInputWidget extends React.Component
 
   onPrevPosition: (event, keyInfo) ->
 
+    # it returns to navigate between channels with 'alt+up' keys
+    return  if event.altKey and keyInfo.isUpArrow
+
     if event.target.value
       { dropboxConfig } = @state
       return  unless dropboxConfig

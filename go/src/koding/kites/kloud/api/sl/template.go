@@ -8,18 +8,6 @@ import (
 	"time"
 )
 
-// Datacenter represents a Softlayer datacenter.
-type Datacenter struct {
-	ID       int    `json:"id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	StatusID int    `json:"statusId,omitempty"`
-}
-
-// String implements the fmt.Stringer interface.
-func (d *Datacenter) String() string {
-	return d.Name
-}
-
 // Tags represents the resource tags.
 //
 // If Softlayer does not support tagging the resource, it's
@@ -27,7 +15,7 @@ func (d *Datacenter) String() string {
 // in the Description, Comment or Note field of the resource.
 type Tags map[string]string
 
-// Matches
+// Matches gives true when all of the tags are present in t.
 func (t Tags) Matches(tags Tags) bool {
 	matches := make(map[string]struct{})
 	for k, v := range t {
@@ -36,7 +24,6 @@ func (t Tags) Matches(tags Tags) bool {
 		}
 	}
 	return len(matches) == len(tags)
-
 }
 
 // String gives key-value tags representation.
@@ -55,18 +42,7 @@ func (t Tags) String() string {
 }
 
 // templateMasks represents objectMasks for the Template struct.
-//
-// TODO(rjeczalik): infer the list from JSON tags
-var templateMask = []string{
-	"id",
-	"parentId",
-	"globalIdentifier",
-	"createDate",
-	"name",
-	"note",
-	"datacenter",
-	"datacenters",
-}
+var templateMask = ObjectMask((*Template)(nil))
 
 // Template represents a Softlayer's Block_Device_Template resource.
 type Template struct {
