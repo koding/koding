@@ -151,6 +151,8 @@ module.exports = class ChatInputWidget extends React.Component
   onResize: ->
 
     ChatPaneBody    = document.querySelector '.Pane-body'
+    return @props.onResize()  unless ChatPaneBody
+
     scrollContainer = ChatPaneBody.querySelector '.Scrollable'
 
     { scrollTop, scrollHeight } = scrollContainer
