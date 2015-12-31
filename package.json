@@ -66,7 +66,6 @@
     "nib": "0.5.0",
     "node-dogstatsd": "0.0.6",
     "node-sockjs-client": "1.0.7",
-    "node-sprite-generator": "0.5.0",
     "node-syntaxhighlighter": "0.8.1",
     "node-uuid": "1.4.1",
     "nodemailer": "0.5.15",
