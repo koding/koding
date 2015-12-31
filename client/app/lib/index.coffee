@@ -1,5 +1,4 @@
 # Make sure none of these modules are calling remote#getInstance before this file. -og
-css                    = require "#{__dirname}/../styl/index.styl"
 globals                = require 'globals'
 kookies                = require 'kookies'
 kd                     = require 'kd'
