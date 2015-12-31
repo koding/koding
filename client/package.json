@@ -87,7 +87,6 @@
     "extract-text-webpack-plugin": "^0.8.2",
     "mocha": "2.2.4",
     "nightwatch": "0.8.8",
-    "sinon": "1.14.1",
     "socket.io": "1.3.5",
     "stylus-loader": "^1.4.0",
     "webpack": "^1.12.2",
