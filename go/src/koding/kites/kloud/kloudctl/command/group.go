@@ -7,9 +7,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
+	"text/tabwriter"
 	"time"
 
 	"koding/db/mongodb/modelhelper"
+
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+
+	"koding/db/models"
+	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/utils/res"
 
@@ -59,24 +67,70 @@ func NewGroup() cli.CommandFactory {
 func (g *Group) Action(args []string, k *kite.Client) error {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
+	ctx = context.WithValue(ctx, softlayerKey, newSoftlayer())
 	modelhelper.Initialize(envMongoURL())
 	defer modelhelper.Close()
 	g.Resource.ContextFunc = func([]string) context.Context { return ctx }
 	return g.Resource.Main(args)
 }
 
-// GroupList implements the "kloudctl group list" subcommand.
-type GroupList struct{}
+type GroupList struct {
+	group string
+	env   string
+	tags  string
+}
 
 func (*GroupList) Name() string {
 	return "list"
 }
 
 func (cmd *GroupList) RegisterFlags(f *flag.FlagSet) {
+	f.StringVar(&cmd.group, "group", "hackathon", "Name of the instance group to list.")
+	f.StringVar(&cmd.env, "env", "dev", "Kloud environment.")
+	f.StringVar(&cmd.tags, "tags", "", "Tags to filter instances.")
 }
 
 func (cmd *GroupList) Run(ctx context.Context) error {
-	return errors.New("TODO(rjeczalik)")
+	instances, err := cmd.listInstances(ctx)
+	if err != nil {
+		return err
+	}
+	w := &tabwriter.Writer{}
+	w.Init(os.Stdout, 0, 16, 0, '\t', 0)
+	fmt.Fprintln(w, "ID\tUser\tDatacener\tTags")
+	for _, i := range instances {
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", i.Tags["koding-machineid"], i.Tags["koding-user"],
+			i.Datacenter.Name, i.Tags)
+	}
+	w.Flush()
+	return nil
+}
+
+func (cmd *GroupList) listInstances(ctx context.Context) (sl.Instances, error) {
+	_, c := fromContext(ctx)
+	f := &sl.Filter{
+		Tags: sl.Tags{},
+	}
+	if cmd.tags != "" {
+		tags := sl.NewTags(strings.Split(cmd.tags, ","))
+		for k, v := range tags {
+			f.Tags[k] = v
+		}
+	}
+	if cmd.env != "" {
+		f.Tags["koding-env"] = cmd.env
+	}
+	if cmd.group != "" {
+		var group models.Group
+		query := func(c *mgo.Collection) error {
+			return c.Find(bson.M{"slug": cmd.group}).One(&group)
+		}
+		if err := modelhelper.Mongo.Run("jGroups", query); err != nil {
+			return nil, err
+		}
+		f.Tags["koding-groupid"] = group.Id.Hex()
+	}
+	return c.InstancesByFilter(f)
 }
 
 // GroupCreate implements the "kloudctl group create" subcommand.
@@ -176,7 +230,7 @@ func (cmd *GroupCreate) createMachines(ctx context.Context, specs ...*MachineSpe
 }
 
 func createMachine(ctx context.Context, spec *MachineSpec) *Status {
-	k := fromContext(ctx)
+	k, _ := fromContext(ctx)
 	if err := spec.BuildMachine(); err != nil {
 		return &Status{
 			MachineLabel: spec.Machine.Label,
@@ -284,8 +338,21 @@ var kiteKey struct {
 	byte `key:"kite"`
 }
 
-func fromContext(ctx context.Context) *kite.Client {
-	return ctx.Value(kiteKey).(*kite.Client)
+var softlayerKey struct {
+	byte `key:"softlayer"`
+}
+
+func fromContext(ctx context.Context) (*kite.Client, *sl.Softlayer) {
+	k := ctx.Value(kiteKey).(*kite.Client)
+	c := ctx.Value(softlayerKey).(*sl.Softlayer)
+	return k, c
+}
+
+func newSoftlayer() *sl.Softlayer {
+	return sl.NewSoftlayer(
+		os.Getenv("SOFTLAYER_USER_NAME"),
+		os.Getenv("SOFTLAYER_API_KEY"),
+	)
 }
 
 func envMongoURL() string {

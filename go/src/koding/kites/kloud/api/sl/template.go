@@ -15,6 +15,22 @@ import (
 // in the Description, Comment or Note field of the resource.
 type Tags map[string]string
 
+// NewTags creates Tags for the given kev=value list.
+func NewTags(kv []string) Tags {
+	if len(kv) == 0 {
+		return nil
+	}
+	t := make(Tags)
+	for _, kv := range kv {
+		if i := strings.IndexRune(kv, '='); i != -1 {
+			t[kv[:i]] = kv[i+1:]
+		} else {
+			t[kv] = ""
+		}
+	}
+	return t
+}
+
 // Matches gives true when all of the tags are present in t.
 func (t Tags) Matches(tags Tags) bool {
 	matches := make(map[string]struct{})
