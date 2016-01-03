@@ -151,6 +151,22 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.Log.Debug("Final object:")
 	m.Log.Debug("%+v", obj)
 
+	// Softlayer always converts all text to lower case, that's
+	// why the "-machineid" or "-groupid" are not a typo.
+	tags := map[string]string{
+		"koding-user":      m.Username,
+		"koding-env":       m.Session.Kite.Config.Environment,
+		"koding-machineid": m.ObjectId.Hex(),
+		"koding-domain":    m.Domain,
+	}
+	if len(m.Groups) != 0 {
+		tags["koding-groupid"] = m.Groups[0].Id.Hex()
+	}
+
+	if err = m.Session.SLClient.InstanceSetTags(obj.Id, sl.Tags(tags)); err != nil {
+		return err
+	}
+
 	m.QueryString = protocol.Kite{ID: kiteID}.String()
 	m.IpAddress = obj.PrimaryIpAddress
 
