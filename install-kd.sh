@@ -172,9 +172,9 @@ esac
 
 
 kontrolFlag=""
-if [ -n "$KONTROL_URL" ]; then
-  echo "Installing with custom Kontrol Url... '$KONTROL_URL'"
-  kontrolFlag="--kontrol=$KONTROL_URL"
+if [ -n "$KONTROLURL" ]; then
+  echo "Installing with custom Kontrol Url... '$KONTROLURL'"
+  kontrolFlag="--kontrol=$KONTROLURL"
 fi
 
 # No need to print Creating foo... because kd install handles that.
