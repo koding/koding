@@ -6,12 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"koding/kites/kloud/kloud"
 	"os"
+	"os/signal"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
+	"koding/kites/kloud/kloud"
 
+	"github.com/hashicorp/go-multierror"
 	"golang.org/x/net/context"
 )
 
@@ -55,10 +56,24 @@ func (gt *GroupThrottler) RegisterFlags(f *flag.FlagSet) {
 func (gt *GroupThrottler) RunItems(ctx context.Context, items []Item) error {
 	itemsCh := make(chan Item)
 	done := make(chan *Status, len(items))
+	cancel := make(chan struct{})
 
 	if gt.throttle == 0 {
 		gt.throttle = len(items)
 	}
+
+	// Cancel processing on signal.
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, os.Kill)
+	go func() {
+		var canceled bool
+		for range ch {
+			if !canceled {
+				close(cancel)
+				canceled = true
+			}
+		}
+	}()
 
 	// Process items.
 	for i := 0; i < gt.throttle; i++ {
@@ -66,7 +81,33 @@ func (gt *GroupThrottler) RunItems(ctx context.Context, items []Item) error {
 			for item := range itemsCh {
 				msg := fmt.Sprintf("Requesting to process %q", item.Label())
 				DefaultUi.Info(msg)
-				done <- gt.processAndWatch(ctx, item)
+
+				// Early check if processing was canceled to not start
+				// actual processing if it's not needed.
+				select {
+				case <-cancel:
+					done <- &Status{
+						MachineLabel: item.Label(),
+						Err:          errors.New("processing was cancelled"),
+					}
+				default:
+				}
+
+				// Start processing on another goroutine so it can
+				// be interrupted.
+				ch := make(chan *Status)
+				go func() {
+					ch <- gt.processAndWatch(ctx, item)
+				}()
+				select {
+				case <-cancel:
+					done <- &Status{
+						MachineLabel: item.Label(),
+						Err:          errors.New("processing was cancelled"),
+					}
+				case s := <-ch:
+					done <- s
+				}
 			}
 		}()
 	}
