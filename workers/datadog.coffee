@@ -47,18 +47,6 @@ module.exports = class Metrics extends MetricsBase
     @sendMetrics @getMethodMetrics(opts), metricName, tags
 
 
-  @getNodejsProcessMetrics : ->
-
-    memUsage = process.memoryUsage()
-
-    return {
-      gauge       :
-        rss       : memUsage.rss
-        heapUsed  : memUsage.heapUsed
-        heapTotal : memUsage.heapTotal
-    }
-
-
   @populateNodejsTags : (tags) ->
 
     tags ?= []
