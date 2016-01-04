@@ -15,10 +15,11 @@ apiErrors                           = require './errors'
 KodingLogger                        = require '../../../../models/kodinglogger'
 
 
-generateLogRequestParams = (opts = {}, subdomain) ->
+generateLogRequestParams = (opts = {}, subdomain, query) ->
 
+  query    ?= ''
   params    =
-    url     : generateUrl { route : '-/api/logs', subdomain }
+    url     : generateUrl { route : "-/api/logs#{query}", subdomain }
     query   : {}
     headers : { Authorization : "Bearer #{generateRandomString()}" }
 
@@ -56,6 +57,8 @@ beforeTests = -> before (done) ->
 
         withConvertedUserAndApiToken options, (team) ->
           TESTUSERS.team = team
+
+          KodingLogger[TESTSCOPE] TESTUSERS.team.group.slug, TESTLOG
 
           done()
 
@@ -185,6 +188,29 @@ runTests = -> describe 'server.handlers.api.logs', ->
     logRequestParams = generateRequestParamsEncodeBody
       url      : generateUrl { route : "-/api/logs?q=#{TESTLOG}" }
       clientId : client.sessionToken
+
+    identifier = KodingLogger.getIdentifier TESTSCOPE, group.slug
+
+    request.get logRequestParams, (err, res, body) ->
+
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 200
+      expect(body).to.contain 'data'
+      expect((JSON.parse body).data.logs).to.exist
+      expect((JSON.parse body).data.logs).to.have.length 1
+      expect((JSON.parse body).data.logs[0].message).to.be.equal "#{identifier} #{TESTLOG}"
+
+      done()
+
+
+  it 'should send HTTP 200 and the result in data if apiToken is valid', (done) ->
+
+    { apiToken, group } = TESTUSERS.team
+
+    logRequestParams = generateLogRequestParams
+      headers : { Authorization : "Bearer #{apiToken.code}" }
+    , group.slug
+    , "?q=#{TESTLOG}"
 
     identifier = KodingLogger.getIdentifier TESTSCOPE, group.slug
 
