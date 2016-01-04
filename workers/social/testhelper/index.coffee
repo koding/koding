@@ -94,14 +94,24 @@ withConvertedUser = (opts, callback) ->
   withDummyClient context, ({ client }) ->
     JUser.convert client, userFormData, (err, data) ->
       expect(err).to.not.exist
+
       { account, newToken, user } = data
       client.sessionToken         = newToken
       client.connection.delegate  = account
 
       fetchOrCreateGroup client, opts, (group) ->
-        if opts?.userFormData?
-        then callback { client, user, account, group, sessionToken : newToken }
-        else callback { client, user, account, group, sessionToken : newToken, userFormData }
+
+        dataToSend = { client, user, account, group, sessionToken : newToken }
+
+        if opts.userFormData?
+          dataToSend.userFormData = userFormData
+
+        if opts.role?
+          group.addMember account, opts.role, (err) ->
+            expect(err).to.not.exist
+            callback dataToSend
+        else
+          callback dataToSend
 
 
 withCreatedUser = (opts, callback) ->

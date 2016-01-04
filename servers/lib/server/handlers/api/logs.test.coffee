@@ -118,7 +118,7 @@ runTests = -> describe 'server.handlers.api.logs', ->
 
   it 'should send HTTP 200 if token not provided but there is a valid session', (done) ->
 
-    withConvertedUser ({ group, account, client }) ->
+    withConvertedUser { role: 'admin' }, ({ group, account, client }) ->
 
       logRequestParams = generateRequestParamsEncodeBody
         url      : generateUrl { route : '-/api/logs' }
