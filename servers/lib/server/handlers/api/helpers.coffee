@@ -43,6 +43,23 @@ fetchGroup = (slug, callback) ->
 
     callback null, group
 
+
+fetchUserRolesFromSession = (session, callback) ->
+
+  { groupName, username } = session
+
+  fetchGroup groupName, (err, group) ->
+    return callback err  if err
+
+    fetchAccount username, (err, account) ->
+      return callback err  if err
+
+      group.fetchRolesByAccount account, (err, roles) ->
+        return callback errors.internalError  if err
+
+        callback null, roles ? []
+
+
 checkApiAvailability = (options, callback) ->
 
   { JGroup }   = koding.models
@@ -125,7 +142,11 @@ verifySessionOrApiToken = (req, res, callback) ->
       if err or not session or not session.groupName?
         return sendApiError res, errors.unauthorizedRequest
 
-      callback { session }
+      fetchUserRolesFromSession session, (err, roles) ->
+        if err or 'admin' not in roles
+          return sendApiError res, errors.unauthorizedRequest
+
+        callback { session }
 
 
 module.exports = {
