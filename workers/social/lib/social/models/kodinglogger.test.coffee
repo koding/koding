@@ -120,6 +120,7 @@ runTests = -> describe 'KodingLogger', ->
 
     it 'should be able to connect to papertrail', (done) ->
 
+      KodingLogger.close()
       KodingLogger.connect()
 
       expect(KodingLogger.logger).to.exist
