@@ -59,6 +59,10 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
 
     actions.setSelectedWorkspaceId @props.workspace.get '_id'
 
+    if @getUnreadCount()
+      ideInstance = environmentDataProvider.getIDEFromUId @props.machine.get 'uid'
+      ideInstance?.showChat()
+
 
   renderWorkspaceSettingsIcon: ->
 
