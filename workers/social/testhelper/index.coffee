@@ -103,7 +103,7 @@ withConvertedUser = (opts, callback) ->
 
         dataToSend = { client, user, account, group, sessionToken : newToken }
 
-        if opts.userFormData?
+        if not opts.userFormData?
           dataToSend.userFormData = userFormData
 
         if opts.role?
