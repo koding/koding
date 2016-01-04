@@ -78,7 +78,7 @@ module.exports = class Metrics extends MetricsBase
     return tags
 
 
-  @monitorNodejs : ->
+  @startMonitoringNodejs : ->
 
     tags = @populateCommonTags()
     tags = @populateNodejsTags(tags)
