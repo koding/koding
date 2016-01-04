@@ -11,7 +11,9 @@
 { withConvertedUser }               = require '../../../../../workers/social/testhelper'
 { withConvertedUserAndApiToken }    = require '../../../../../workers/social/testhelper/models/apitokenhelper'
 
-apiErrors = require './errors'
+apiErrors                           = require './errors'
+KodingLogger                        = require '../../../../models/kodinglogger'
+
 
 generateLogRequestParams = (opts = {}, subdomain) ->
 
@@ -29,8 +31,14 @@ TESTUSERS =
   admin   : null
   regular : null
 
+TESTLOG   = generateRandomString()
+
+# use different scope on each test ~ GG
+TESTSCOPE = KodingLogger.SCOPES[Math.round(Math.random() * KodingLogger.SCOPES.length)]
 
 beforeTests = -> before (done) ->
+
+  KodingLogger.connect()
 
   checkBongoConnectivity ->
 
@@ -40,6 +48,7 @@ beforeTests = -> before (done) ->
       withConvertedUser { role: 'admin' }, (admin) ->
         TESTUSERS.admin = admin
 
+        KodingLogger[TESTSCOPE] TESTUSERS.admin.group.slug, TESTLOG
         done()
 
 
@@ -160,6 +169,28 @@ runTests = -> describe 'server.handlers.api.logs', ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 200
       expect(body).to.contain 'data'
+
+      done()
+
+
+  it 'should send HTTP 200 and the result in data if session is valid', (done) ->
+
+    { client, group } = TESTUSERS.admin
+
+    logRequestParams = generateRequestParamsEncodeBody
+      url      : generateUrl { route : "-/api/logs?q=#{TESTLOG}" }
+      clientId : client.sessionToken
+
+    identifier = KodingLogger.getIdentifier TESTSCOPE, group.slug
+
+    request.get logRequestParams, (err, res, body) ->
+
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 200
+      expect(body).to.contain 'data'
+      expect((JSON.parse body).data.logs).to.exist
+      expect((JSON.parse body).data.logs).to.have.length 1
+      expect((JSON.parse body).data.logs[0].message).to.be.equal "#{identifier} #{TESTLOG}"
 
       done()
 
