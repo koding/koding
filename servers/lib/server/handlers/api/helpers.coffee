@@ -21,18 +21,35 @@ sendApiResponse = (res, data) ->
   return res.status(200).send response
 
 
-checkApiAvailability = (options, callback) ->
+fetchAccount = (username, callback) ->
 
-  { JGroup }   = koding.models
-  { apiToken } = options
+  koding.models.JAccount.one { 'profile.nickname': username }, (err, account) ->
 
-  JGroup.one { slug : apiToken.group }, (err, group) ->
+    if err or not account
+      return callback errors.internalError
+
+    callback null, account
+
+
+fetchGroup = (slug, callback) ->
+
+  koding.models.JGroup.one { slug }, (err, group) ->
 
     if err
       return callback errors.internalError
 
     unless group
       return callback errors.groupNotFound
+
+    callback null, group
+
+checkApiAvailability = (options, callback) ->
+
+  { JGroup }   = koding.models
+  { apiToken } = options
+
+  fetchGroup apiToken.group, (err, group) ->
+    return callback err  if err
 
     unless group.isApiEnabled is true
       return callback errors.apiIsDisabled
