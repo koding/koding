@@ -143,6 +143,7 @@ app = express()
 
 do ->
   usertracker.start()
+  datadog.monitorNodejs()
 
   compression = require 'compression'
   bodyParser = require 'body-parser'
