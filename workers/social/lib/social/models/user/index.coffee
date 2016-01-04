@@ -646,9 +646,10 @@ module.exports = class JUser extends jraphical.Module
       # yes weird, but we are creating user before creating group
       return callback null, { isEligible: yes } if not group
 
-      isAllowed = group.isInAllowedDomain email
-      return callback new KodingError 'Your email domain is not in allowed \
-        domains for this group'  unless isAllowed
+      unless group.isInAllowedDomain email
+        domainErr = 'Your email domain is not in allowed domains for this group'
+        return callback new KodingError domainErr  if group.allowedDomains?.length > 0
+        return callback new KodingError 'Access denied'
 
       return callback null, { isEligible: yes }
 
