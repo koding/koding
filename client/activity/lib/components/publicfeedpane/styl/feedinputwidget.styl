@@ -37,7 +37,7 @@
     width                   66px
     margin-left             8px
     color                   $white
-    bg                      color, $blue
+    bg                      color, $feed-button
 
   .FeedInputWidget-preview
     outline                 none
@@ -45,57 +45,60 @@
     r-sprite                "activity", "markdown"
 
 .FeedInputWidget-previewWrapper
-  max-width                   600px
-  margin                      10px 0 12px
-  rounded                     6px
-  padding                     18px
-  border                      2px dashed #cfcfcf
-  bg                          color, $white
-  overflow                    initial
+  max-width                 600px
+  margin                    10px 0 12px
+  rounded                   6px
+  padding                   18px
+  border                    2px dashed #cfcfcf
+  bg                        color, $white
+  overflow                  initial
   rel()
   borderBox()
 
+  > a
+    color                   $feed-link
+
   &:before
-    content                   ''
-    size                      0 0
-    border                    10px solid transparent
-    border-bottom-color       #cfcfcf
-    abs                       0 89px 100% 0
+    content                 ''
+    size                    0 0
+    border                  10px solid transparent
+    border-bottom-color     #cfcfcf
+    abs                     0 89px 100% 0
 
   &:after
-    content                   ''
-    size                      0 0
-    border                    10px solid transparent
-    border-bottom-color       $white
-    margin-bottom             -2px
-    abs                       0 89px 100% 0
+    content                 ''
+    size                    0 0
+    border                  10px solid transparent
+    border-bottom-color     $white
+    margin-bottom           -2px
+    abs                     0 89px 100% 0
 
 .FeedInputWidget-previewBody
-  padding-top                 12px
-  font-size                   14px
-  color                       $gray-8
-  overflow                    auto
-  max-height                  40vh
+  padding-top               12px
+  font-size                 14px
+  color                     $gray-8
+  overflow                  auto
+  max-height                40vh
 
 .FeedInputWidget-previewDate
-  font-size                   12px
+  font-size                 12px
 
 .FeedInputWidget-previewDate:before
   hidden()
 
 .FeedInputWidget-closePreview
-  cursor                  pointer
-  abs                     14px 14px 0 0
-  font-size               12px
-  line-height             16px
+  pointer()
+  abs                       14px 14px 0 0
+  font-size                 12px
+  line-height               16px
 
   &:hover
     noTextDeco()
 
   &:after
-    content               ''
-    display               inline-block
-    r-sprite              activity, 'add-integration'
-    vertical-align        middle
-    margin-left           7px
-    vendor                transform, rotate(45deg)
+    content                 ''
+    display                 inline-block
+    r-sprite                activity, 'green-cancel-16'
+    vertical-align          middle
+    margin-left             7px
+
