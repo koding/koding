@@ -24,9 +24,23 @@ generateLogRequestParams = (opts = {}, subdomain) ->
 
   return requestParams
 
+
+TESTUSERS =
+  admin   : null
+  regular : null
+
+
 beforeTests = -> before (done) ->
 
-  checkBongoConnectivity done
+  checkBongoConnectivity ->
+
+    withConvertedUser (regular) ->
+      TESTUSERS.regular = regular
+
+      withConvertedUser { role: 'admin' }, (admin) ->
+        TESTUSERS.admin = admin
+
+        done()
 
 
 runTests = -> describe 'server.handlers.api.logs', ->
@@ -59,19 +73,19 @@ runTests = -> describe 'server.handlers.api.logs', ->
 
   it 'should send HTTP 401 if no api token provided and session not belongs to an admin', (done) ->
 
-    withConvertedUser ({ group, account, client }) ->
+    { client } = TESTUSERS.regular
 
-      logRequestParams = generateRequestParamsEncodeBody
-        url      : generateUrl { route : '-/api/logs' }
-        clientId : client.sessionToken
+    logRequestParams = generateRequestParamsEncodeBody
+      url      : generateUrl { route : '-/api/logs' }
+      clientId : client.sessionToken
 
-      request.get logRequestParams, (err, res, body) ->
+    request.get logRequestParams, (err, res, body) ->
 
-        expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 401
-        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.unauthorizedRequest }
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 401
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.unauthorizedRequest }
 
-        done()
+      done()
 
 
   it 'should send HTTP 403 if group.isApiEnabled is not true', (done) ->
@@ -135,19 +149,19 @@ runTests = -> describe 'server.handlers.api.logs', ->
 
   it 'should send HTTP 200 if token not provided but there is a valid session', (done) ->
 
-    withConvertedUser { role: 'admin' }, ({ group, account, client }) ->
+    { client } = TESTUSERS.admin
 
-      logRequestParams = generateRequestParamsEncodeBody
-        url      : generateUrl { route : '-/api/logs' }
-        clientId : client.sessionToken
+    logRequestParams = generateRequestParamsEncodeBody
+      url      : generateUrl { route : '-/api/logs' }
+      clientId : client.sessionToken
 
-      request.get logRequestParams, (err, res, body) ->
+    request.get logRequestParams, (err, res, body) ->
 
-        expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 200
-        expect(body).to.contain 'data'
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 200
+      expect(body).to.contain 'data'
 
-        done()
+      done()
 
 
 beforeTests()
