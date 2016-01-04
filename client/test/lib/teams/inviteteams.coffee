@@ -20,6 +20,7 @@ module.exports =
     teamsHelpers.clickTeamSettings(browser)
     teamsHelpers.openInvitationsTab(browser)
     email = teamsHelpers.inviteUser(browser)
+    browser.pause 5000 # Wait for notification remove
     teamsHelpers.invitationAction(browser, email)
     browser.end()
 
@@ -30,5 +31,6 @@ module.exports =
     teamsHelpers.clickTeamSettings(browser)
     teamsHelpers.openInvitationsTab(browser)
     email = teamsHelpers.inviteUser(browser)
+    browser.pause 5000 # Wait for notification remove
     teamsHelpers.invitationAction(browser, email, yes)
     browser.end()
