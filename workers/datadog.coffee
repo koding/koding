@@ -1,13 +1,16 @@
+os              = require 'os'
 { argv }        = require 'optimist'
 KONFIG          = require('koding-config-manager').load("main.#{argv.c}")
-{ MetricsBase } = require 'koding-datadog'
+monitor         = require('appmetrics').monitor()
+{ DogStatsD
+  MetricsBase } = require 'koding-datadog'
 
 module.exports = class Metrics extends MetricsBase
 
   @prefix : 'socialWorker'
 
 
-  @populateTags : (tags) ->
+  @populateCommonTags : (tags) ->
 
     tags ?= []
     tags.push "version:#{KONFIG.version}"
@@ -27,7 +30,7 @@ module.exports = class Metrics extends MetricsBase
     return "#{@prefix}.#{constructorName}.#{methodName}.#{type}"
 
 
-  @methodMetrics : (opts) ->
+  @getMethodMetrics : (opts) ->
 
     return {
       increment    :
@@ -39,6 +42,94 @@ module.exports = class Metrics extends MetricsBase
 
   @sendMethodMetrics : (opts) ->
 
-    tags       = @populateTags()
+    tags       = @populateCommonTags()
     metricName = @generateName opts
-    @sendMetrics @methodMetrics(opts), metricName, tags
+    @sendMetrics @getMethodMetrics(opts), metricName, tags
+
+
+  @getNodejsProcessMetrics : ->
+
+    memUsage = process.memoryUsage()
+
+    return {
+      gauge       :
+        rss       : memUsage.rss
+        heapUsed  : memUsage.heapUsed
+        heapTotal : memUsage.heapTotal
+    }
+
+
+  @populateNodejsTags : (tags) ->
+
+    tags ?= []
+
+    tagList = {
+      os      : [ 'type', 'release', 'hostname' ]
+      process : [ 'cwd', 'pid', 'argv', 'title', 'getuid', 'getgid',
+        'version', 'platform', 'execPath' ]
+    }
+
+    for key, value of tagList
+      for prop in value
+        tagName  = "#{key}.#{prop}"
+        tagValue = ''
+
+        source = switch
+          when key is 'process'  then process
+          when key is 'os'       then os
+
+        tagValue = switch
+          when not source[prop]                   then 0
+          when Array.isArray source[prop]         then source[prop].join()
+          when typeof source[prop] is 'function'  then source[prop]()
+          else                                         source[prop]
+
+        tagValue = @sanitizeTagValue tagValue
+        tags.push "#{tagName}:#{tagValue}"
+
+    return tags
+
+
+  @monitorNodejs : ->
+
+    tags = @populateCommonTags()
+    tags = @populateNodejsTags(tags)
+
+    monitor.on 'eventloop', (eventloop) =>
+      eventloopMetrics =
+        gauge           :
+          'latency.min' : eventloop.latency.min
+          'latency.max' : eventloop.latency.max
+          'latency.avg' : eventloop.latency.avg
+
+      @sendMetrics eventloopMetrics, 'nodejs.eventloop', tags
+
+    monitor.on 'memory', (memory) =>
+      memMetrics =
+        gauge                :
+          'process.private'  : memory.private
+          'process.physical' : memory.physical
+          'process.virtual'  : memory.virtual
+          'system.used'      : memory.physical_used
+          'system.total'     : memory.physical_total
+
+      @sendMetrics memMetrics, 'nodejs.memory', tags
+
+    monitor.on 'gc', (gc) =>
+      gcMetrics =
+        gauge      :
+          size     : gc.size
+          used     : gc.used
+          duration : gc.duration
+
+      @sendMetrics gcMetrics, 'nodejs.gc', tags
+
+    monitor.on 'cpu', (cpu) =>
+      cpuMetrics =
+        gauge     :
+          process : cpu.process
+          system  : cpu.system
+
+      @sendMetrics cpuMetrics, 'nodejs.cpu', tags
+
+
