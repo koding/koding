@@ -58,6 +58,16 @@ func (spec *MachineSpec) Domain() string {
 	return fmt.Sprintf("%s.%s.%s", spec.Machine.Uid, spec.Machine.Credential, dnsZones[spec.env()])
 }
 
+// ID returns an ID of the machine.
+func (spec *MachineSpec) ID() string {
+	return spec.Machine.ObjectId.Hex()
+}
+
+// Label returns a label of the machine.
+func (spec *MachineSpec) Label() string {
+	return spec.Machine.Label
+}
+
 func (spec *MachineSpec) finalizeUID() string {
 	return spec.Machine.Uid[:4] + shortUID()
 }
