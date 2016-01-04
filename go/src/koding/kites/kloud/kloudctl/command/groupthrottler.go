@@ -36,6 +36,9 @@ type Item interface {
 	Label() string
 }
 
+// ErrSkipWatch is used to skip waiting for kloud events.
+var ErrSkipWatch = errors.New("skipped waiting for kloud events")
+
 // ProcessFunc processes a single item.
 type ProcessFunc func(context.Context, Item) error
 
@@ -136,6 +139,10 @@ func (gt *GroupThrottler) RunItems(ctx context.Context, items []Item) error {
 		}
 		if dur > max {
 			max = dur
+		}
+
+		if s.Err == ErrSkipWatch {
+			s.Err = nil
 		}
 
 		// Handle error if any.

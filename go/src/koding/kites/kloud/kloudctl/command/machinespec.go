@@ -17,6 +17,24 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// Instance represents a user VM.
+type Instance struct {
+	SoftlayerID int
+	Domain      string
+	Username    string
+	MachineID   string
+}
+
+// ID returns the instance's ID.
+func (i *Instance) ID() string {
+	return i.MachineID
+}
+
+// Label returns instance's label.
+func (i *Instance) Label() string {
+	return i.Domain
+}
+
 // MachineSpec describes data needed to create a machine, thus a "spec".
 type MachineSpec struct {
 	Environment string         `json:"environment,omitempty"`

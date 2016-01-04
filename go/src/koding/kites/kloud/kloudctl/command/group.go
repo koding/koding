@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -199,10 +198,20 @@ func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 }
 
 // GroupDelete implememts the "kloudctl group delete" subcommand.
-type GroupDelete struct{}
+type GroupDelete struct {
+	GroupList
+	*GroupThrottler
+
+	provider string
+}
 
 func NewGroupDelete() *GroupDelete {
-	return &GroupDelete{}
+	cmd := &GroupDelete{}
+	cmd.GroupThrottler = &GroupThrottler{
+		Name:    "destroy",
+		Process: cmd.destroy,
+	}
+	return cmd
 }
 
 func (*GroupDelete) Name() string {
@@ -210,10 +219,67 @@ func (*GroupDelete) Name() string {
 }
 
 func (cmd *GroupDelete) RegisterFlags(f *flag.FlagSet) {
+	cmd.GroupList.RegisterFlags(f)
+	cmd.GroupThrottler.RegisterFlags(f)
+
+	f.StringVar(&cmd.provider, "provider", "softlayer", "Kloud provider name.")
 }
 
 func (cmd *GroupDelete) Run(ctx context.Context) error {
-	return errors.New("TODO(rjeczalik)")
+	instances, err := cmd.listInstances(ctx)
+	if err != nil {
+		return err
+	}
+	items := make([]Item, len(instances))
+	for i, instance := range instances {
+		items[i] = &Instance{
+			SoftlayerID: instance.ID,
+			Domain:      instance.Tags["koding-domain"],
+			Username:    instance.Tags["koding-user"],
+		}
+	}
+	// TODO(rjeczalik): It's not possible to concurrently delete domains due to:
+	//
+	//   ERROR    could not delete domain "ukhscbd6fee9.kloudctl.dev.koding.io":
+	//   PriorRequestNotComplete: The request was rejected because Route 53 was
+	//   still processing a prior request.\n\tstatus code: 400, request id:
+	//   c8248760-b2e5-11e5-9b7d-33010efc6afe"
+	//
+	cmd.GroupThrottler.throttle = 1
+	return cmd.RunItems(ctx, items)
+}
+
+func (cmd *GroupDelete) destroy(ctx context.Context, item Item) error {
+	instance := item.(*Instance)
+	k, db, c := fromContext(ctx)
+
+	var m models.Machine
+	query := func(c *mgo.Collection) error {
+		where := bson.M{
+			"domain":         instance.Domain,
+			"users.username": instance.Username,
+		}
+		return c.Find(where).One(&m)
+	}
+
+	err := db.Run("jMachines", query)
+	if err == mgo.ErrNotFound {
+		return nonil(c.DeleteInstance(instance.SoftlayerID), ErrSkipWatch)
+	}
+
+	instance.MachineID = m.ObjectId.Hex()
+
+	req := &KloudArgs{
+		MachineId: instance.ID(),
+		Provider:  cmd.provider,
+	}
+	resp, err := k.Tell("destroy", req)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	return resp.Unmarshal(&result)
 }
 
 var kiteKey struct {
