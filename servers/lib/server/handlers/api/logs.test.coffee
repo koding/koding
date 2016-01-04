@@ -30,11 +30,13 @@ generateLogRequestParams = (opts = {}, subdomain) ->
 TESTUSERS =
   admin   : null
   regular : null
+  team    : null
 
 TESTLOG   = generateRandomString()
 
 # use different scope on each test ~ GG
 TESTSCOPE = KodingLogger.SCOPES[Math.round(Math.random() * KodingLogger.SCOPES.length)]
+
 
 beforeTests = -> before (done) ->
 
@@ -49,7 +51,13 @@ beforeTests = -> before (done) ->
         TESTUSERS.admin = admin
 
         KodingLogger[TESTSCOPE] TESTUSERS.admin.group.slug, TESTLOG
-        done()
+
+        options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+
+        withConvertedUserAndApiToken options, (team) ->
+          TESTUSERS.team = team
+
+          done()
 
 
 runTests = -> describe 'server.handlers.api.logs', ->
@@ -99,61 +107,58 @@ runTests = -> describe 'server.handlers.api.logs', ->
 
   it 'should send HTTP 403 if group.isApiEnabled is not true', (done) ->
 
-    # creating user, group, and api token
-    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
-    withConvertedUserAndApiToken options, ({ client, userFormData, apiToken, group }) ->
+    { client, apiToken, group } = TESTUSERS.team
 
-      # setting api token availability false for the group
-      group.modify client, { isApiEnabled: false }, (err) ->
+    # setting api token availability false for the group
+    group.modify client, { isApiEnabled: false }, (err) ->
 
+      expect(err).to.not.exist
+
+      logRequestParams = generateLogRequestParams
+        headers : { Authorization : "Bearer #{apiToken.code}" }
+
+      request.get logRequestParams, (err, res, body) ->
         expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 403
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiIsDisabled }
 
-        logRequestParams = generateLogRequestParams
-          headers : { Authorization : "Bearer #{apiToken.code}" }
-
-        request.get logRequestParams, (err, res, body) ->
+        # revert api token availability to true for the group
+        group.modify client, { isApiEnabled: true }, (err) ->
           expect(err).to.not.exist
-          expect(res.statusCode).to.be.equal 403
-          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiIsDisabled }
-
           done()
 
 
   it 'should send HTTP 400 if provided token valid but not subdomain', (done) ->
 
-    # creating user, group, and api token
-    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
-    withConvertedUserAndApiToken options, ({ group, account, apiToken }) ->
+    { client, apiToken, group } = TESTUSERS.team
 
-      logRequestParams = generateLogRequestParams
-        headers : { Authorization : "Bearer #{apiToken.code}" }
+    logRequestParams = generateLogRequestParams
+      headers : { Authorization : "Bearer #{apiToken.code}" }
 
-      request.get logRequestParams, (err, res, body) ->
-        expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 400
-        expect(JSON.parse body).to.be.deep.equal {
-          error: apiErrors.invalidRequestDomain
-        }
+    request.get logRequestParams, (err, res, body) ->
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
+      expect(JSON.parse body).to.be.deep.equal {
+        error: apiErrors.invalidRequestDomain
+      }
 
-        done()
+      done()
 
 
   it 'should send HTTP 200 if provided token and request domain is valid', (done) ->
 
-    # creating user, group, and api token
-    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
-    withConvertedUserAndApiToken options, ({ group, account, apiToken }) ->
+    { client, apiToken, group } = TESTUSERS.team
 
-      logRequestParams = generateLogRequestParams
-        headers : { Authorization : "Bearer #{apiToken.code}" }
-      , group.slug
+    logRequestParams = generateLogRequestParams
+      headers : { Authorization : "Bearer #{apiToken.code}" }
+    , group.slug
 
-      request.get logRequestParams, (err, res, body) ->
-        expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 200
-        expect(body).to.contain 'data'
+    request.get logRequestParams, (err, res, body) ->
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 200
+      expect(body).to.contain 'data'
 
-        done()
+      done()
 
 
   it 'should send HTTP 200 if token not provided but there is a valid session', (done) ->
