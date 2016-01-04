@@ -9,7 +9,7 @@ appManager    = kd.singletons.appManager
 mockMachine   = mock.getMockMachine()
 mockWorkspace = mock.getMockWorkspace()
 dataToLoadIDE =
-  machine     : mock.getMockJMachine()
+  machine     : mock.getMockMachine()
   username    : mock.getMockAccount().profile.nickname
   workspace   : mock.getMockWorkspace()
   channelId   : '6075644514008039523'
@@ -337,12 +337,12 @@ describe 'IDE.routes', ->
 
     it 'should routeToMachineWorkspace if fetchMachine returns no workspace', ->
 
+      mock.ideRoutes.getLatestWorkspace.toReturnWorkspace()
       mock.envDataProvider.fetchMachineByLabel.toReturnMachine()
       expect.spyOn routes, 'routeToMachineWorkspace'
 
       routes.routeToLatestWorkspace()
       expect(routes.routeToMachineWorkspace).toHaveBeenCalledWith mockMachine
-
 
 
     it 'should routeToFallback if there is no machine and workspace for the stored data', ->
