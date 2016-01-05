@@ -40,7 +40,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
     @button     = @getButton "Join #{KD.config.groupName}!"
     @buttonLink = @getButtonLink partial, callback
 
-    @on 'FormSubmitFailed', => @button.hideLoader()
+    @on 'FormSubmitFailed', @button.bound 'hideLoader'
 
 
   submit: (formData) ->

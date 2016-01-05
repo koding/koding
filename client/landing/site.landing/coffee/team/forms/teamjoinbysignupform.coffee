@@ -84,8 +84,8 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
       return  unless event.target.tagName is 'A'
       @emit 'FormNeedsToBeChanged', yes, yes
 
-    @on 'FormValidationFailed', => @button.hideLoader()
-    @on 'FormSubmitFailed', => @button.hideLoader()
+    @on 'FormValidationFailed', @button.bound 'hideLoader'
+    @on 'FormSubmitFailed',     @button.bound 'hideLoader'
 
 
   submit: (formData) ->

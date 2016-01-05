@@ -11,7 +11,7 @@ module.exports = class LoginViewInlineForm extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-    @on "FormValidationFailed", => @button.hideLoader()
+    @on 'FormValidationFailed', @button.bound 'hideLoader'
 
     inputs = KDFormView.findChildInputs this
 
