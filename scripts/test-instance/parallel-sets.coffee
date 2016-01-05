@@ -70,6 +70,7 @@ module.exports = [
   [
     { name: 'ide general' }
     { name: 'ide layout' }
+    { name: 'teams inviteteams' }
   ]
 
   [
