@@ -226,6 +226,7 @@ Configuration = (options={}) ->
     misc                           : {claimGlobalNamesForUsers: no , debugConnectionErrors: yes}
     githubapi                      : githubapi
     recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
+    nodejsRateLimiter              : {enabled : no, limit : 3000, duration : 3600000}
 
     # -- WORKER CONFIGURATION -- #
 
