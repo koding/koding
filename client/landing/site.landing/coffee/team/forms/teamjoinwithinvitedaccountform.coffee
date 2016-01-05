@@ -24,7 +24,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     @buttonLink = @getButtonLink "Not you? <a href='#'>Create an account!</a>", (event) =>
       KD.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
-      # @emit 'FormNeedsToBeChanged', yes, yes
+
       @emit 'FormNeedsToBeChanged', no, no
 
 

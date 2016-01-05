@@ -20,8 +20,6 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
           rules         : { email: yes }
           messages      : { email: 'Please type a valid email address.' }
           events        :
-            # required    : 'blur'
-            # rangeLength : 'blur'
             regExp      : 'keyup'
 
     @email.inputReceivedKeyup()  if teamData.invitation?.email
@@ -40,8 +38,6 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
             regExp       : 'For username only lowercase letters and numbers are allowed!'
             rangeLength  : 'Username should be between 4 and 25 characters!'
           events         :
-            # required     : 'blur'
-            # rangeLength  : 'blur'
             regExp       : 'keyup'
 
     @passwordStrength = ps = new KDCustomHTMLView
