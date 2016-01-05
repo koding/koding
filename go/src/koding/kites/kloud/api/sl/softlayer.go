@@ -306,6 +306,45 @@ func (c *Softlayer) XInstancesByFilter(filter *Filter) (Instances, error) {
 	return *req.Resource.(*Instances), nil
 }
 
+// VlansByFilter fetches all vlans and performs client-side filtering
+// using the given filter.
+//
+// If no vlans are found that matches the filter, non-nil error is returned.
+// If filter is nil, all vlans are returned.
+func (c *Softlayer) VlansByFilter(filter *Filter) (VLANs, error) {
+	req := &ResourceRequest{
+		Name:       "Vlan",
+		Path:       "SoftLayer_Account/getNetworkVlans.json",
+		Filter:     filter,
+		ObjectMask: vlanMask,
+		Resource:   &VLANs{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+	return *req.Resource.(*VLANs), nil
+}
+
+// XVlansByFilter queries for vlans, which are filtered on the server side
+// with the given filter.
+//
+// If no vlans are found that matches the filter, non-nil error is returned.
+// If filter is nil, all vlans are returned.
+func (c *Softlayer) XVlansByFilter(filter *Filter) (VLANs, error) {
+	req := &ResourceRequest{
+		Name:       "Vlan",
+		Path:       "SoftLayer_Account/getNetworkVlans.json",
+		Filter:     filter,
+		FilterName: "networkVlans",
+		ObjectMask: vlanMask,
+		Resource:   &VLANs{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+	return *req.Resource.(*VLANs), nil
+}
+
 // InstanceSetTags sets tags of the instance specified by the id to the provided
 // value. All old tags will get overwritten.
 func (c *Softlayer) InstanceSetTags(id int, tags Tags) error {

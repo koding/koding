@@ -5,31 +5,6 @@ import (
 	"time"
 )
 
-// Subnet represents a single Softlayer subnet.
-type Subnet struct {
-	ID        string `json:"id,omitempty"`
-	NetworkID string `json:"networkIdentifier,omitempty"`
-	Type      string `json:"subnetType,omitempty"`
-	Netmaks   string `json:"netmask,omitempty"`
-	Broadcast string `json:"broadcastAddress,omitempty"`
-	Gateway   string `json:"gateway,omitempty"`
-	CIDR      int    `json:"cidr,omitempty"`
-	Total     int    `json:"totalIpAddresses,omitempty"`
-	Available int    `json:"usableIpAddressCount,omitempty"`
-	POD       string `json:"pod,omitempty"`
-}
-
-// VLAN represents a single Softlayer VLAN
-type VLAN struct {
-	ID         int       `json:"id,omitempty"`
-	InternalID int       `json:"vlanNumber,omitempty"`
-	Name       string    `json:"name,omitempty"`
-	ModifyDate time.Time `json:"modifyDate,omitempty"`
-	RoutingID  int       `json:"networkVrfId,omitempty"`
-	Subnet     Subnet    `json:"primarySubnet,omitempty"`
-	Subnets    []Subnet  `json:"subnets,omitempty"`
-}
-
 // Attribute represents a single instance attribute.
 type Attribute struct {
 	Value string `json:"value,omitempty"`
