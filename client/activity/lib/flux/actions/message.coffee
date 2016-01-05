@@ -72,7 +72,7 @@ dispatchLoadMessageSuccess = (channelId, message) ->
   dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
 
   message.replies.forEach (comment) ->
-    dispatch 'LOAD_COMMENT_SUCCESS', {messageId: message.id, comment}
+    dispatch actionTypes.LOAD_COMMENT_SUCCESS, {messageId: message.id, comment}
     realtimeActionCreators.bindMessageEvents comment
 
 
