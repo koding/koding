@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os/user"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
@@ -62,9 +63,16 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 
 // Trip is a generic method for communication. It accepts `req` to pass args
 // to Klient and `res` to store unmarshalled response from Klient.
+//
+// If the method timeouts out, then we return syscall.ECONNREFUSED so it'll be
+// shown to user by the kernel.
 func (k *KlientTransport) Trip(methodName string, req interface{}, res interface{}) error {
 	raw, err := k.Client.TellWithTimeout(methodName, k.TellTimeout, req)
 	if err != nil {
+		if kiteError, ok := err.(kite.Error); ok && kiteError.Type == "timeout" {
+			return syscall.ECONNREFUSED
+		}
+
 		return err
 	}
 
