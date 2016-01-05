@@ -69,7 +69,7 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 func (k *KlientTransport) Trip(methodName string, req interface{}, res interface{}) error {
 	raw, err := k.Client.TellWithTimeout(methodName, k.TellTimeout, req)
 	if err != nil {
-		if kiteError, ok := err.(kite.Error); ok && kiteError.Type == "timeout" {
+		if kiteError, ok := err.(*kite.Error); ok && kiteError.Type == "timeout" {
 			return syscall.ECONNREFUSED
 		}
 
