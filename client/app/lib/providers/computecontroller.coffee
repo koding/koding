@@ -931,10 +931,11 @@ module.exports = class ComputeController extends KDController
     @fetchStacks =>
 
       if asStack
-        stack = @findStackFromStackId machineId
-        return  if stack
-          stack.machines.forEach (machine) =>
-            @triggerReviveFor machine._id
+        if stack = @findStackFromStackId machineId
+          @reset yes, =>
+            stack.machines.forEach (machine) =>
+              @triggerReviveFor machine._id
+          return
 
       remote.api.JMachine.one machineId, (err, machine) =>
         kd.warn "Revive failed for #{machineId}: ", err  if err
