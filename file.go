@@ -37,7 +37,7 @@ func (f *File) ReadAt(offset int64) ([]byte, error) {
 	// fetch from remote is no content
 	if len(f.Content) == 0 {
 		if err := f.updateContentFromRemote(); err != nil {
-			return nil, nil
+			return nil, err
 		}
 	}
 
