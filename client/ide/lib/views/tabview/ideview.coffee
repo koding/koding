@@ -201,11 +201,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   createPane_: (view, paneOptions, paneData) ->
 
-      return new Error 'Missing argument for createPane_ helper'
     if not view or not paneOptions
+      return  throw new Error 'Missing argument for createPane_ helper'
 
     unless view instanceof KDView
-      return new Error 'View must be an instance of KDView'
+      return  throw new Error 'View must be an instance of KDView'
 
     if view instanceof IDEEditorPane
       paneOptions.name = @trimUntitledFileName paneOptions.name
