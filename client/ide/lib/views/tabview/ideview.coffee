@@ -481,9 +481,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @emitChange pane, context: {}, 'TabChanged'
 
 
-  goToLine: ->
-
-    @getActivePaneView().aceView.ace.showGotoLine()
+  goToLine: -> @getActivePaneView().aceView.ace.showGotoLine()
 
 
   click: ->
@@ -704,9 +702,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       kd.warn "Failed to terminate session, possibly it's already dead.", err
 
 
-  dragover: (event) ->
-
-    kd.utils.stopDOMEvent event
+  dragover: (event) -> kd.utils.stopDOMEvent event
 
 
   drop: (event) ->
@@ -802,9 +798,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
 
   toggleVisibility = (handle, state) ->
-    el = handle.getElement()
-    if state
-    then el.classList.add 'in'
+
+    if   handle.getElement() then el.classList.add 'in'
     else el.classList.remove 'in'
 
 
@@ -831,9 +826,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     return notifier
 
 
-  setHash: (hash) ->
-
-    @hash = hash or generatePassword 64, no
+  setHash: (hash) -> @hash = hash or generatePassword 64, no
 
 
   handleTabMoved: (params) ->
