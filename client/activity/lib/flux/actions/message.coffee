@@ -71,6 +71,10 @@ dispatchLoadMessageSuccess = (channelId, message) ->
   realtimeActionCreators.bindMessageEvents message
   dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
 
+  message.replies.forEach (comment) ->
+    dispatch 'LOAD_COMMENT_SUCCESS', {messageId: message.id, comment}
+    realtimeActionCreators.bindMessageEvents comment
+
 
 ###*
  * An empty promise resolver. It's being used for default cases that returns
