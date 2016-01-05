@@ -133,15 +133,11 @@ makeLike = (comment) ->
   text  = 'Like'
   text  = 'Unlike'  if comment.getIn ['interactions', 'like', 'isInteracted']
 
-  actorsCount = comment.getIn ['interactions', 'like', 'actorsCount']
-  count = <span className='CommentListItem-likeCount'>{actorsCount}</span>
-  count = null  unless actorsCount
-
   <ActivityLikeLink
-    tooltip={no}
+    renderCount={yes}
     messageId={comment.get('id')}
+    shouldSetTooltipPosition={yes}
     interactions={comment.get('interactions').toJS()}>
     {text}
-    {count}
   </ActivityLikeLink>
 
