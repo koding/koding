@@ -1,4 +1,5 @@
 React        = require 'kd-react'
+ReactDOM     = require 'react-dom'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
 Tooltip      = require 'app/components/tooltip'
@@ -8,7 +9,22 @@ ProfileText  = require 'app/components/profile/profiletext'
 module.exports = class ActivityLikeLink extends React.Component
 
   @defaultProps =
-    tooltip : yes
+    tooltip                  : yes
+    shouldSetTooltipPosition : no
+
+
+  componentDidUpdate: -> @setTooltipPosition()  if @props.shouldSetTooltipPosition
+
+
+  setTooltipPosition: ->
+
+    tooltip = ReactDOM.findDOMNode @refs.tooltip
+
+    return  unless tooltip
+
+    count   = ReactDOM.findDOMNode @refs.count
+    tooltip.style.marginLeft = "#{-count.offsetWidth / 2}px"
+
 
   getClassName: ->
 
@@ -46,7 +62,7 @@ module.exports = class ActivityLikeLink extends React.Component
 
     return null  unless actorsCount
 
-    <Tooltip>
+    <Tooltip ref='tooltip'>
       {@renderTooltipItems()}
     </Tooltip>
 
