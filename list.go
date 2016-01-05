@@ -71,8 +71,8 @@ func ListCommand(c *cli.Context) int {
 			// TODO: "fishify" the mount paths.
 			formattedMount = fmt.Sprintf(
 				"%s -> %s",
-				FishifyPath(info.Mounts[0].LocalPath),
-				FishifyPath(info.Mounts[0].RemotePath),
+				shortenPath(info.Mounts[0].LocalPath),
+				shortenPath(info.Mounts[0].RemotePath),
 			)
 		}
 
@@ -103,7 +103,7 @@ func getListOfMachines(kite *kite.Client) ([]kiteInfo, error) {
 	return infos, nil
 }
 
-// FishifyPath takes a path and returnes a "Fish" like path.
+// shortenPath takes a path and returnes a "Fish" like path.
 // Example:
 //
 //     /foo/bar/baz/bat
@@ -115,7 +115,7 @@ func getListOfMachines(kite *kite.Client) ([]kiteInfo, error) {
 // Note that this is different from Fish, in that it shows the root directory. This
 // is done so that a mounted directory that has the same name as the remote directory
 // is easier to distinguish.
-func FishifyPath(p string) string {
+func shortenPath(p string) string {
 	sep := string(os.PathSeparator)
 	l := strings.Split(p, sep)
 
