@@ -22,7 +22,9 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         type             : "password"
         testPath         : "recover-password"
         placeholder      : "Password"
-        focus            : => @password.icon.unsetTooltip()
+        focus            : =>
+          @password.icon.unsetTooltip()
+          return yes
         keydown          : (event) =>
           if event.which is ENTER
             @password.input.validate()
@@ -49,9 +51,13 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
           password        : @password
           tfcode          : @tfcode
         decorateValidation: no
-        focus             : => @email.icon.unsetTooltip()
+        focus             : =>
+          @email.icon.unsetTooltip()
+          return yes
+        blur              : =>
+          @fetchGravatarInfo @email.input.getValue()
+          return yes
         keydown           : (event) => @submitForm event  if event.which is ENTER
-        blur              : => @fetchGravatarInfo @email.input.getValue()
         change            : => @emailIsAvailable = no
 
 
