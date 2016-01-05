@@ -1,14 +1,14 @@
-kd                     = require 'kd'
-React                  = require 'kd-react'
-immutable              = require 'immutable'
-classnames             = require 'classnames'
-Dropbox                = require 'activity/components/dropbox/portaldropbox'
-UserMentionItem        = require 'activity/components/mentiondropboxitem/usermentionitem'
-ChannelMentionItem     = require 'activity/components/mentiondropboxitem/channelmentionitem'
-ImmutableRenderMixin   = require 'react-immutable-render-mixin'
-ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+Dropbox              = require 'activity/components/dropbox/portaldropbox'
+UserMentionItem      = require 'activity/components/mentiondropboxitem/usermentionitem'
+ChannelMentionItem   = require 'activity/components/mentiondropboxitem/channelmentionitem'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
+ScrollableDropbox    = require 'activity/components/dropbox/scrollabledropbox'
 
-module.exports = class MentionDropbox extends React.Component
+class MentionDropbox extends React.Component
 
   @propTypes =
     query           : React.PropTypes.string
@@ -33,7 +33,6 @@ module.exports = class MentionDropbox extends React.Component
   getItemKey: (item) ->
 
     names = item.get('names')
-
     if names then names.first() else item.get '_id'
 
 
@@ -58,7 +57,6 @@ module.exports = class MentionDropbox extends React.Component
         onSelected  = { onItemSelected }
         onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
-        ref         = { @getItemKey item }
         query       = { query }
       />
 
@@ -80,7 +78,6 @@ module.exports = class MentionDropbox extends React.Component
         onSelected  = { onItemSelected }
         onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
-        ref         = { @getItemKey item }
         query       = { query }
       />
 
@@ -112,5 +109,7 @@ module.exports = class MentionDropbox extends React.Component
       </div>
 
 
-MentionDropbox.include [ ImmutableRenderMixin, ScrollableDropboxMixin ]
+MentionDropbox.include [ ImmutableRenderMixin ]
+
+module.exports = ScrollableDropbox MentionDropbox
 

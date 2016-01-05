@@ -33,7 +33,7 @@ module.exports = class DropboxBody extends React.Component
     { contentClassName } = @props
 
     classes =
-      'Dropbox-scrollable'     : yes
+      'Dropbox-scrollable' : yes
     classes[contentClassName] = yes  if contentClassName
 
     return classnames classes
