@@ -37,6 +37,7 @@ var (
 	// Starting from cheapest, list is according to us-east and coming from:
 	// http://www.ec2instances.info/. Only supported types are here.
 	InstancesList = []string{
+		"t2.nano",
 		"t2.micro",
 		"t2.small",
 		"t2.medium",
@@ -272,15 +273,15 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return c.UpdateId(
 			m.ObjectId,
 			bson.M{"$set": bson.M{
-				"ipAddress":         m.IpAddress,
-				"queryString":       m.QueryString,
-				"meta.instanceType": meta.InstanceType,
-				"meta.instanceName": meta.InstanceName,
-				"meta.instanceId":   meta.InstanceId,
-				"meta.source_ami":   meta.SourceAmi,
-				"status.state":      machinestate.Running.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     reason,
+				"ipAddress":          m.IpAddress,
+				"queryString":        m.QueryString,
+				"meta.instance_type": meta.InstanceType,
+				"meta.instanceName":  meta.InstanceName,
+				"meta.instanceId":    meta.InstanceId,
+				"meta.source_ami":    meta.SourceAmi,
+				"status.state":       machinestate.Running.String(),
+				"status.modifiedAt":  time.Now().UTC(),
+				"status.reason":      reason,
 			}},
 		)
 	})
@@ -478,9 +479,9 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		aws.StringValue(group.GroupId), aws.Int64Value(subnet.AvailableIpAddressCount))
 
 	if m.Session.AWSClient.Builder.InstanceType == "" {
-		m.Log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro",
+		m.Log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.nano",
 			m.ObjectId.Hex())
-		m.Session.AWSClient.Builder.InstanceType = plans.T2Micro.String()
+		m.Session.AWSClient.Builder.InstanceType = plans.T2Nano.String()
 	}
 
 	kiteUUID := uuid.NewV4()
@@ -559,8 +560,8 @@ func (m *Machine) checkLimits(buildData *BuildData) error {
 
 	// check if the user is egligible to create a vm with this instance type
 	if err := m.Checker.AllowedInstances(plans.Instances[aws.StringValue(buildData.EC2Data.InstanceType)]); err != nil {
-		m.Log.Critical("Instance type %q is not allowed. Fallback to t2.micro", aws.StringValue(buildData.EC2Data.InstanceType))
-		buildData.EC2Data.InstanceType = aws.String(plans.T2Micro.String())
+		m.Log.Critical("Instance type %q is not allowed. Fallback to t2.nano", aws.StringValue(buildData.EC2Data.InstanceType))
+		buildData.EC2Data.InstanceType = aws.String(plans.T2Nano.String())
 	}
 
 	wantSize := int(aws.Int64Value(buildData.EC2Data.BlockDeviceMappings[0].Ebs.VolumeSize))

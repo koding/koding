@@ -195,3 +195,123 @@ func (slvgbdtg *softLayer_Virtual_Guest_Block_Device_Template_Group_Service) Get
 
 	return transaction, nil
 }
+
+func (slvgbdtg *softLayer_Virtual_Guest_Block_Device_Template_Group_Service) DenySharingAccess(id int, accountId int) (bool, error) {
+	parameters := datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_GroupInitParameters{
+		Parameters: datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_GroupInitParameter{
+			AccountId: accountId,
+		},
+	}
+
+	requestBody, err := json.Marshal(parameters)
+	if err != nil {
+		return false, err
+	}
+
+	response, err := slvgbdtg.client.DoRawHttpRequest(fmt.Sprintf("%s/%d/denySharingAccess.json", slvgbdtg.GetName(), id), "POST", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return false, err
+	}
+
+	if res := string(response[:]); res != "true" {
+		return false, errors.New(fmt.Sprintf("Failed to permit sharing access to VGDBTG with ID: %d to account ID: %d", id, accountId))
+	}
+
+	return true, nil
+}
+
+func (slvgbdtg *softLayer_Virtual_Guest_Block_Device_Template_Group_Service) PermitSharingAccess(id int, accountId int) (bool, error) {
+	parameters := datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_GroupInitParameters{
+		Parameters: datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_GroupInitParameter{
+			AccountId: accountId,
+		},
+	}
+
+	requestBody, err := json.Marshal(parameters)
+	if err != nil {
+		return false, err
+	}
+
+	response, err := slvgbdtg.client.DoRawHttpRequest(fmt.Sprintf("%s/%d/permitSharingAccess.json", slvgbdtg.GetName(), id), "POST", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return false, err
+	}
+
+	if res := string(response[:]); res != "true" {
+		return false, errors.New(fmt.Sprintf("Failed to permit sharing access to VGDBTG with ID: %d to account ID: %d", id, accountId))
+	}
+
+	return true, nil
+}
+
+func (slvgbdtg *softLayer_Virtual_Guest_Block_Device_Template_Group_Service) AddLocations(id int, locations []datatypes.SoftLayer_Location) (bool, error) {
+	parameters := datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group_LocationsInitParameters{
+		Parameters: datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group_LocationsInitParameter{
+			Locations: locations,
+		},
+	}
+
+	requestBody, err := json.Marshal(parameters)
+	if err != nil {
+		return false, err
+	}
+
+	response, err := slvgbdtg.client.DoRawHttpRequest(fmt.Sprintf("%s/%d/addLocations.json", slvgbdtg.GetName(), id), "POST", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return false, err
+	}
+
+	if res := string(response[:]); res != "true" {
+		return false, errors.New(fmt.Sprintf("Failed to add locations access to VGDBTG with ID: %d", id))
+	}
+
+	return true, nil
+}
+
+func (slvgbdtg *softLayer_Virtual_Guest_Block_Device_Template_Group_Service) RemoveLocations(id int, locations []datatypes.SoftLayer_Location) (bool, error) {
+	parameters := datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group_LocationsInitParameters{
+		Parameters: datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group_LocationsInitParameter{
+			Locations: locations,
+		},
+	}
+
+	requestBody, err := json.Marshal(parameters)
+	if err != nil {
+		return false, err
+	}
+
+	response, err := slvgbdtg.client.DoRawHttpRequest(fmt.Sprintf("%s/%d/removeLocations.json", slvgbdtg.GetName(), id), "POST", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return false, err
+	}
+
+	if res := string(response[:]); res != "true" {
+		return false, errors.New(fmt.Sprintf("Failed to remove locations access to VGDBTG with ID: %d", id))
+	}
+
+	return true, nil
+}
+
+func (slvgbdtg *softLayer_Virtual_Guest_Block_Device_Template_Group_Service) SetAvailableLocations(id int, locations []datatypes.SoftLayer_Location) (bool, error) {
+	parameters := datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group_LocationsInitParameters{
+		Parameters: datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group_LocationsInitParameter{
+			Locations: locations,
+		},
+	}
+
+	requestBody, err := json.Marshal(parameters)
+	if err != nil {
+		return false, err
+	}
+
+	response, err := slvgbdtg.client.DoRawHttpRequest(fmt.Sprintf("%s/%d/setAvailableLocations.json", slvgbdtg.GetName(), id), "POST", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return false, err
+	}
+
+	if res := string(response[:]); res != "true" {
+		return false, errors.New(fmt.Sprintf("Failed to set available locations access to VGDBTG with ID: %d", id))
+	}
+
+	return true, nil
+}

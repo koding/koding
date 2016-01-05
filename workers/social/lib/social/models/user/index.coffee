@@ -457,7 +457,7 @@ module.exports = class JUser extends jraphical.Module
       =>
         @normalizeLoginId loginId, (err, username_) ->
           return callback err  if err
-          username = username_.toLowerCase()
+          username = username_?.toLowerCase?() or ''
           queue.next()
 
       ->
@@ -1950,9 +1950,11 @@ module.exports = class JUser extends jraphical.Module
   fetchHomepageView: (options, callback) ->
 
     { account, bongoModels } = options
+
     @fetchAccount 'koding', (err, account) ->
-      if err then callback err
-      else account.fetchHomepageView options, callback
+      return callback err  if err
+      return callback new KodingError 'Account not found'  unless account
+      account.fetchHomepageView options, callback
 
 
   confirmEmail: (callback) ->

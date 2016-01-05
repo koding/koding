@@ -291,9 +291,9 @@ module.exports =
     channelPlusSelector           = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
 
     browser
-      .waitForElementVisible    sidebarSectionsSelector, 20000
-      .moveToElement            sidebarSectionsHeaderSelector, 100, 7
-      .pause                    2000 # wait for side bar channel list
+      .pause                   7500 # wait for load to sidebar
+      .waitForElementVisible   sidebarSectionsSelector, 20000
+      .moveToElement           sidebarSectionsHeaderSelector, 100, 7
 
     if plus
       browser
@@ -330,6 +330,7 @@ module.exports =
         .waitForElementVisible  '.CreateChannel-Modal', 20000
     else
       browser
+        .pause                  3000 # wait for page load
         .waitForElementVisible  chatItem, 20000
         .pause                  3000
         .assert.containsText    chatItem, user.username
@@ -341,16 +342,47 @@ module.exports =
     return channelName
 
 
-  sendComment: (browser) ->
+  sendComment: (browser, message, messageType) ->
 
-    chatMessage = helpers.getFakeText()
+    chatInputSelector     = '.ChatPaneFooter .ChatInputWidget textarea'
+    imageSelector         = '.EmbedBox-container .EmbedBoxImage'
+    imageTextSelector     = '.Pane-body .ChatList .ChatItem .ChatItem-contentBody:nth-of-type(1)'
+    linkTextSelector      = '.EmbedBoxLinkContent .EmbedBoxLinkContent-description'
+    emojiSelector         = '.ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ChatItem-contentBody '
+    emojiSmileySelector   = "#{emojiSelector} .emoji-smiley"
+    emojiThumbsUpSelector = "#{emojiSelector} .emoji-thumbsup"
+    messageWithShortCode  = "console.log('123456789')"
+    textAreaSelector      = '.Pane-body .ChatList'
 
     browser
       .waitForElementVisible  chatItem, 20000
       .waitForElementVisible  chatInputSelector, 20000
-      .setValue               chatInputSelector, chatMessage + '\n'
+      .setValue               chatInputSelector, message + '\n'
       .waitForElementVisible  chatItem, 20000
-      .assert.containsText    '.Pane-body .ChatList', chatMessage
+
+    if not messageType
+      browser
+        .assert.containsText      textAreaSelector, message
+
+    switch messageType
+      when 'messageWithCode'
+        browser
+          .pause                  3000
+          .assert.containsText    "#{textAreaSelector} .ChatItem .SimpleChatListItem", messageWithShortCode
+      when 'messageWithImage'
+        browser
+          .waitForElementVisible  imageSelector, 20000
+          .assert.containsText    imageTextSelector, message
+      when 'messageWithLink'
+        browser
+          .waitForElementVisible  linkTextSelector, 20000
+          .assert.containsText    linkTextSelector, 'The Free Encyclopedia'
+      when 'messageWithEmoji'
+        browser
+          .waitForElementVisible  emojiSmileySelector, 20000
+          .waitForElementVisible  emojiSmileySelector, 20000
+          .pause                  2000
+          .waitForElementVisible  emojiThumbsUpSelector, 20000
 
 
   createChannelsAndCheckList: (browser, user) ->

@@ -1,14 +1,11 @@
 kd                   = require 'kd'
+_                    = require 'lodash'
 React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
 $                    = require 'jquery'
 AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
-EmojiDropbox         = require 'activity/components/emojidropbox'
-ChannelDropbox       = require 'activity/components/channeldropbox'
-MentionDropbox       = require 'activity/components/mentiondropbox'
+DropboxContainer     = require 'activity/components/dropbox/dropboxcontainer'
 EmojiSelectBox       = require 'activity/components/emojiselectbox'
-SearchDropbox        = require 'activity/components/searchdropbox'
-CommandDropbox       = require 'activity/components/commanddropbox'
 ActivityFlux         = require 'activity/flux'
 ChatInputFlux        = require 'activity/flux/chatinput'
 KDReactorMixin       = require 'app/flux/base/reactormixin'
@@ -19,58 +16,63 @@ helpers              = require './helpers'
 focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 parseStringToCommand = require 'activity/util/parseStringToCommand'
 
-
 module.exports = class ChatInputWidget extends React.Component
 
   { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
+  @propTypes =
+    onReady     : React.PropTypes.func
+    onResize    : React.PropTypes.func
+    placeholder : React.PropTypes.string
+    onChange    : React.PropTypes.func
+    tokens      : React.PropTypes.array
+
+
   @defaultProps =
-    disabledFeatures : []
-    onReady          : kd.noop
-    onResize         : kd.noop
-    placeholder      : ''
-    onChange         : kd.noop
+    onReady     : kd.noop
+    onResize    : kd.noop
+    placeholder : ''
+    onChange    : kd.noop
+    tokens      : []
 
 
   getDataBindings: ->
 
-    { getters }          = ChatInputFlux
-    { disabledFeatures } = @props
+    { getters } = ChatInputFlux
 
     return {
-      value                          : getters.currentValue @stateId
-      filteredEmojiList              : getters.filteredEmojiList @stateId
-      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
-      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
-      filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
-      emojiSelectBoxItems            : getters.emojiSelectBoxItems @stateId
-      emojiSelectBoxTabs             : getters.emojiSelectBoxTabs
-      emojiSelectBoxQuery            : getters.emojiSelectBoxQuery @stateId
-      emojiSelectBoxSelectedItem     : getters.emojiSelectBoxSelectedItem @stateId
-      emojiSelectBoxVisibility       : getters.emojiSelectBoxVisibility @stateId
-      emojiSelectBoxTabIndex         : getters.emojiSelectBoxTabIndex @stateId
-      channels                       : getters.channels @stateId
-      channelsSelectedIndex          : getters.channelsSelectedIndex @stateId
-      channelsSelectedItem           : getters.channelsSelectedItem @stateId
-      channelsQuery                  : getters.channelsQuery @stateId
-      channelsVisibility             : getters.channelsVisibility @stateId
-      userMentions                   : getters.userMentions @stateId
-      channelMentions                : getters.channelMentions @stateId
-      mentionsQuery                  : getters.mentionsQuery @stateId
-      mentionsSelectedIndex          : getters.mentionsSelectedIndex @stateId
-      mentionsSelectedItem           : getters.mentionsSelectedItem @stateId
-      mentionsVisibility             : getters.mentionsVisibility @stateId
-      searchItems                    : getters.searchItems @stateId
-      searchQuery                    : getters.searchQuery @stateId
-      searchSelectedIndex            : getters.searchSelectedIndex @stateId
-      searchSelectedItem             : getters.searchSelectedItem @stateId
-      searchVisibility               : getters.searchVisibility @stateId
-      searchFlags                    : getters.searchFlags @stateId
-      commands                       : getters.commands @stateId, disabledFeatures
-      commandsQuery                  : getters.commandsQuery @stateId
-      commandsSelectedIndex          : getters.commandsSelectedIndex @stateId, disabledFeatures
-      commandsSelectedItem           : getters.commandsSelectedItem @stateId, disabledFeatures
-      commandsVisibility             : getters.commandsVisibility @stateId
+      value                      : getters.currentValue @stateId
+
+      emojiSelectBoxItems        : getters.emojiSelectBoxItems @stateId
+      emojiSelectBoxTabs         : getters.emojiSelectBoxTabs
+      emojiSelectBoxQuery        : getters.emojiSelectBoxQuery @stateId
+      emojiSelectBoxSelectedItem : getters.emojiSelectBoxSelectedItem @stateId
+      emojiSelectBoxVisibility   : getters.emojiSelectBoxVisibility @stateId
+      emojiSelectBoxTabIndex     : getters.emojiSelectBoxTabIndex @stateId
+
+      dropboxQuery               : getters.dropboxQuery @stateId
+      dropboxConfig              : getters.dropboxConfig @stateId
+
+      dropboxChannels            : getters.dropboxChannels @stateId
+      channelsSelectedIndex      : getters.channelsSelectedIndex @stateId
+      channelsSelectedItem       : getters.channelsSelectedItem @stateId
+
+      dropboxEmojis              : getters.dropboxEmojis @stateId
+      emojisSelectedIndex        : getters.emojisSelectedIndex @stateId
+      emojisSelectedItem         : getters.emojisSelectedItem @stateId
+
+      dropboxMentions            : getters.dropboxMentions @stateId
+      mentionsSelectedIndex      : getters.mentionsSelectedIndex @stateId
+      mentionsSelectedItem       : getters.mentionsSelectedItem @stateId
+
+      dropboxSearchItems         : getters.dropboxSearchItems @stateId
+      searchSelectedIndex        : getters.searchSelectedIndex @stateId
+      searchSelectedItem         : getters.searchSelectedItem @stateId
+      searchFlags                : getters.searchFlags @stateId
+
+      dropboxCommands            : getters.dropboxCommands @stateId
+      commandsSelectedIndex      : getters.commandsSelectedIndex @stateId
+      commandsSelectedItem       : getters.commandsSelectedItem @stateId
     }
 
 
@@ -95,7 +97,14 @@ module.exports = class ChatInputWidget extends React.Component
   componentDidUpdate: (oldProps, oldState) ->
 
     isValueChanged = oldState.value isnt @state.value
-    @focus()  if isValueChanged
+    if isValueChanged
+      @focus()
+
+      { tokens } = @props
+      textInput  = ReactDOM.findDOMNode this.refs.textInput
+      position   = helpers.getCursorPosition textInput
+      ChatInputFlux.actions.dropbox.checkForQuery @stateId, @state.value, position, tokens
+
     @updateDropboxPositions()
 
     # This line actually is needed for the case
@@ -130,27 +139,18 @@ module.exports = class ChatInputWidget extends React.Component
     height = textInput.outerHeight()
 
     inputDimensions = { width, height, left : offset.left, top : offset.top }
-    for dropbox in @getDropboxes() when dropbox?
-      dropbox.updatePosition inputDimensions
-
-
-  isFeatureDisabled: (feature) -> @props.disabledFeatures.indexOf(feature) > -1
-
-
-  getInputDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.mentionDropbox, @refs.searchDropbox, @refs.commandDropbox ]
-
-
-  getDropboxes: -> @getInputDropboxes().concat @refs.emojiSelectBox
+    @refs.dropbox.updatePosition inputDimensions
+    @refs.emojiSelectBox.updatePosition inputDimensions
 
 
   setValue: (value, skipChangeEvent) ->
 
     return  if @state.value is value
 
-    { channelId } = @props
-
+    { channelId, onChange } = @props
     ChatInputFlux.actions.value.setValue channelId, @stateId, value
-    @props.onChange value  unless skipChangeEvent
+
+    onChange value  unless skipChangeEvent
 
 
   resetValue: ->
@@ -167,29 +167,7 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = event.target
 
     @setValue value
-    @runDropboxChecks value
     @props.onResize()
-
-
-  runDropboxChecks: (value) ->
-
-    textInput = ReactDOM.findDOMNode @refs.textInput
-    textData  =
-      currentWord : helpers.getCurrentWord textInput
-      value       : value
-      position    : helpers.getCursorPosition textInput
-
-    # Let every dropbox check entered text.
-    # If any dropbox considers text as a query,
-    # stop checking for others and close active dropbox
-    # if it exists
-    queryIsSet = no
-    for dropbox in @getInputDropboxes() when dropbox?
-      unless queryIsSet
-        queryIsSet = dropbox.checkTextForQuery textData
-        continue  if queryIsSet
-
-      dropbox.close()  if dropbox.isActive()
 
 
   onKeyDown: (event) ->
@@ -210,24 +188,17 @@ module.exports = class ChatInputWidget extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    isDropboxEnter = no
-    for dropbox in @getInputDropboxes() when dropbox?
-      continue  unless dropbox.isActive()
+    return @confirmSelectedItem()  if @state.dropboxConfig
 
-      dropbox.confirmSelectedItem()
-      isDropboxEnter = yes
-      break
+    value = @state.value.trim()
+    command = parseStringToCommand value
 
-    unless isDropboxEnter
-      value = @state.value.trim()
-      command = parseStringToCommand value
+    if command
+      @props.onCommand? { command }
+    else
+      @props.onSubmit? { value }
 
-      if command
-        @props.onCommand? { command }
-      else
-        @props.onSubmit? { value }
-
-      @resetValue()
+    @resetValue()
 
 
   onEsc: (event) -> @props.onEsc?()
@@ -235,23 +206,30 @@ module.exports = class ChatInputWidget extends React.Component
 
   onNextPosition: (event, keyInfo) ->
 
-    for dropbox in @getInputDropboxes() when dropbox?
-      continue  unless dropbox.isActive()
+    { dropboxConfig } = @state
+    return  unless dropboxConfig
 
-      stopEvent = dropbox.moveToNextPosition keyInfo
-      kd.utils.stopDOMEvent event  if stopEvent
-      break
+    hasHorizontalNavigation = dropboxConfig.get 'horizontalNavigation'
+    return @onDropboxClose()  if keyInfo.isRightArrow and not hasHorizontalNavigation
+
+    ChatInputFlux.actions.dropbox.moveToNextIndex @stateId
+    kd.utils.stopDOMEvent event
 
 
   onPrevPosition: (event, keyInfo) ->
 
-    if event.target.value
-      for dropbox in @getInputDropboxes() when dropbox?
-        continue  unless dropbox.isActive()
+    # it returns to navigate between channels with 'alt+up' keys
+    return  if event.altKey and keyInfo.isUpArrow
 
-        stopEvent = dropbox.moveToPrevPosition keyInfo
-        kd.utils.stopDOMEvent event  if stopEvent
-        break
+    if event.target.value
+      { dropboxConfig } = @state
+      return  unless dropboxConfig
+
+      hasHorizontalNavigation = dropboxConfig.get 'horizontalNavigation'
+      return @onDropboxClose()  if keyInfo.isLeftArrow and not hasHorizontalNavigation
+
+      ChatInputFlux.actions.dropbox.moveToPrevIndex @stateId
+      kd.utils.stopDOMEvent event
     else
 
       return  unless keyInfo.isUpArrow
@@ -260,12 +238,30 @@ module.exports = class ChatInputWidget extends React.Component
       ChatInputFlux.actions.message.setLastMessageEditMode()
 
 
-  onDropboxItemConfirmed: (item) ->
+  onItemSelected: (index) ->
+
+    ChatInputFlux.actions.dropbox.setSelectedIndex @stateId, index
+
+
+  onDropboxClose: ->
+
+    ChatInputFlux.actions.dropbox.reset @stateId  if @state.dropboxConfig
+
+
+  confirmSelectedItem: ->
+
+    { dropboxQuery, dropboxConfig } = @state
+    return  unless dropboxConfig
+
+    selectedItem      = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
+    confirationResult = dropboxConfig.get('handleItemConfirmation') selectedItem, dropboxQuery
+
+    @onDropboxClose()
+    return  unless typeof confirationResult is 'string'
 
     textInput = ReactDOM.findDOMNode @refs.textInput
 
-    item += ' '
-    { value, cursorPosition } = helpers.insertDropboxItem textInput, item
+    { value, cursorPosition } = helpers.insertDropboxItem textInput, confirationResult
     @setValue value
 
     kd.utils.defer ->
@@ -276,25 +272,15 @@ module.exports = class ChatInputWidget extends React.Component
 
     { value } = @state
 
-    newValue = value + item
+    newValue = value + formatEmojiName item
     @setValue newValue
 
     @focus()
 
 
-  onSearchItemConfirmed: (message) ->
-
-    { initialChannelId, id } = message
-    ActivityFlux.actions.channel.loadChannel(initialChannelId).then ({ channel }) ->
-      kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
-
-
   setCommand: (value) ->
 
     @setValue value
-
-    kd.utils.defer =>
-      @runDropboxChecks value
 
 
   handleEmojiButtonClick: (event) ->
@@ -310,7 +296,8 @@ module.exports = class ChatInputWidget extends React.Component
 
   closeDropboxes: ->
 
-    dropbox.close()  for dropbox in @getDropboxes() when dropbox?
+    @refs.emojiSelectBox?.close()
+    @onDropboxClose()
 
 
   isLastItemBeingEdited: ->
@@ -337,21 +324,6 @@ module.exports = class ChatInputWidget extends React.Component
     @props.onResize()
 
 
-  renderEmojiDropbox: ->
-
-    { filteredEmojiList, filteredEmojiListSelectedIndex, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
-
-    <EmojiDropbox
-      items           = { filteredEmojiList }
-      selectedIndex   = { filteredEmojiListSelectedIndex }
-      selectedItem    = { filteredEmojiListSelectedItem }
-      query           = { filteredEmojiListQuery }
-      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
-      ref             = 'emojiDropbox'
-      stateId         = { @stateId }
-    />
-
-
   renderEmojiSelectBox: ->
 
     { emojiSelectBoxItems, emojiSelectBoxTabs, emojiSelectBoxQuery } = @state
@@ -370,86 +342,22 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
-  renderChannelDropbox: ->
+  renderDropbox: ->
 
-    { channels, channelsSelectedItem, channelsSelectedIndex, channelsQuery, channelsVisibility } = @state
+    props = _.assign {}, @state, {
+      onItemSelected  : @bound 'onItemSelected'
+      onItemConfirmed : @bound 'confirmSelectedItem'
+    }
 
-    <ChannelDropbox
-      items           = { channels }
-      selectedIndex   = { channelsSelectedIndex }
-      selectedItem    = { channelsSelectedItem }
-      query           = { channelsQuery }
-      visible         = { channelsVisibility }
-      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
-      ref             = 'channelDropbox'
-      stateId         = { @stateId }
-    />
-
-
-  renderMentionDropbox: ->
-
-    { userMentions, channelMentions, mentionsSelectedIndex, mentionsSelectedItem } = @state
-    { mentionsQuery, mentionsVisibility } = @state
-
-    <MentionDropbox
-      userMentions    = { userMentions }
-      channelMentions = { channelMentions }
-      selectedIndex   = { mentionsSelectedIndex }
-      selectedItem    = { mentionsSelectedItem }
-      query           = { mentionsQuery }
-      visible         = { mentionsVisibility }
-      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
-      ref             = 'mentionDropbox'
-      stateId         = { @stateId }
-    />
-
-
-  renderSearchDropbox: ->
-
-    return  if @isFeatureDisabled('search') or @isFeatureDisabled('commands')
-
-    { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility, searchFlags } = @state
-
-    <SearchDropbox
-      items           = { searchItems }
-      selectedIndex   = { searchSelectedIndex }
-      selectedItem    = { searchSelectedItem }
-      query           = { searchQuery }
-      visible         = { searchVisibility }
-      onItemConfirmed = { @bound 'onSearchItemConfirmed' }
-      ref             = 'searchDropbox'
-      stateId         = { @stateId }
-      flags           = { searchFlags }
-    />
-
-
-  renderCommandDropbox: ->
-
-    return  if @isFeatureDisabled 'commands'
-
-    { commands, commandsSelectedItem, commandsSelectedIndex, commandsQuery, commandsVisibility } = @state
-
-    <CommandDropbox
-      items           = { commands }
-      selectedIndex   = { commandsSelectedIndex }
-      selectedItem    = { commandsSelectedItem }
-      query           = { commandsQuery }
-      visible         = { commandsVisibility }
-      onItemConfirmed = { @bound 'setCommand' }
-      ref             = 'commandDropbox'
-      stateId         = { @stateId }
-    />
+    <DropboxContainer ref='dropbox' {...props} />
 
 
   render: ->
 
+
     <div className={kd.utils.curry "ChatInputWidget", @props.className}>
-      { @renderEmojiDropbox() }
+      { @renderDropbox() }
       { @renderEmojiSelectBox() }
-      { @renderChannelDropbox() }
-      { @renderMentionDropbox() }
-      { @renderSearchDropbox() }
-      { @renderCommandDropbox() }
       <AutoSizeTextarea
         ref           = 'textInput'
         placeholder   = @props.placeholder

@@ -1,11 +1,17 @@
+// package provisionklient provisions a machine based on two things. If no
+// -data flag is passed it assumes it's inside a Softlayer Virtual Machine and
+// tries to get the metadata from the internal service. If a -data flag is
+// passed it assumes that it is a base64 encoded JSON and uses it directly
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/kites/kloud/scripts/softlayer/userdata"
+	"koding/kites/kloud/scripts/provisionklient/userdata"
 	"log"
 	"net/http"
 	"os"
@@ -21,8 +27,12 @@ const (
 	outputFile = "/var/log/koding-setup.txt"
 )
 
-// output defines the log and command execution outputs
-var output io.Writer = os.Stderr
+var (
+	flagData = flag.String("data", "", "Data to be used for provisioning. Must be JSON encoded in base64")
+
+	// output defines the log and command execution outputs
+	output io.Writer = os.Stderr
+)
 
 func main() {
 	file, err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -40,9 +50,26 @@ func main() {
 }
 
 func realMain() error {
-	val, err := metadata()
-	if err != nil {
-		return err
+	flag.Parse()
+
+	var val *userdata.Value
+	var err error
+	if *flagData == "" {
+		// get data from metadata if nothing is passed as arguments
+		// used by softlayer instances
+		val, err = metadata()
+		if err != nil {
+			return err
+		}
+	} else {
+		data, err := base64.StdEncoding.DecodeString(*flagData)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(data, &val); err != nil {
+			return err
+		}
 	}
 
 	log.Println("---- Metadata ----")
@@ -64,12 +91,13 @@ func realMain() error {
 	}
 
 	log.Println(">> Installing klient from URL: %s", val.LatestKlientURL)
-	if err := installKlient(val.Username, val.LatestKlientURL); err != nil {
+	if err := installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL); err != nil {
 		return err
 	}
 
 	return nil
 }
+
 func createUser(username string, groups []string) error {
 	var args = []string{"--disabled-password", "--shell", "/bin/bash", "--gecos", "Koding", username}
 	adduser := newCommand("adduser", args...)
@@ -97,7 +125,7 @@ func createUser(username string, groups []string) error {
 	return nil
 }
 
-func installKlient(username, url string) error {
+func installKlient(username, url, registerURL, kontrolURL string) error {
 	var tmpFile = "/tmp/latest-klient.deb"
 	var args = []string{url, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
 
@@ -120,7 +148,16 @@ func installKlient(username, url string) error {
 		return err
 	}
 
-	newContent := strings.Replace(string(content), "./klient", fmt.Sprintf("sudo -E -u %s ./klient", username), -1)
+	initLine := fmt.Sprintf("sudo -E -u %s ./klient", username)
+	if registerURL != "" {
+		initLine += fmt.Sprintf(" -register-url '%s'", registerURL)
+	}
+
+	if kontrolURL != "" {
+		initLine += fmt.Sprintf(" -kontrol-url '%s'", kontrolURL)
+	}
+
+	newContent := strings.Replace(string(content), "./klient", initLine, -1)
 
 	if err := ioutil.WriteFile("/etc/init/klient.conf", []byte(newContent), 0644); err != nil {
 		return err

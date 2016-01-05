@@ -197,7 +197,7 @@ module.exports =
 
   clickAddVMButton: (browser) ->
 
-    sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
+    sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .my-machines .sidebar-title'
 
     browser
       .waitForElementVisible   '[testpath=main-sidebar]', 20000
@@ -232,10 +232,8 @@ module.exports =
     buttonSelector       = '.domains .kdheaderview button.add-button'
     buttonLoaderSelector = '.add-view button.loading'
     paragraph            = helpers.getFakeText()
-    createDomainName     = paragraph.split(' ')[0]
+    createDomainName     = "#{paragraph.split(' ')[0]}#{Date.now()}"
     domainName           = createDomainName + '.' + user.username + '.dev.koding.io'
-
-    @openDomainSettings(browser)
 
     browser
       .waitForElementVisible    buttonSelector, 20000
@@ -285,7 +283,7 @@ module.exports =
       .waitForElementVisible  nicknameInput, 20000
       .clearValue             nicknameInput
       .setValue               nicknameInput, name + '\n'
-  
+
 
   reinitVM: (browser) ->
 

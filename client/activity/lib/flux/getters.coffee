@@ -6,6 +6,7 @@ calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 getGroup                   = require 'app/util/getGroup'
 SidebarPublicChannelsTabs  = require 'activity/flux/stores/sidebarchannels/sidebarpublicchannelstabs'
+ResultStates               = require 'activity/constants/resultStates'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -101,10 +102,23 @@ channelParticipants = [
       , immutable.Map()
 ]
 
+messagesWithComments = [
+  MessageThreadsStore
+  MessagesStore
+  MessageFlagsStore
+  (threads, messages, flags) ->
+    messages
+      .filter (m) -> m.get('typeConstant') isnt 'reply'
+      .map (message) ->
+        commentIds = threads.getIn [message.get('id'), 'comments']
+        comments   = messages.filter (m) -> commentIds.has m.get 'id'
+        message.set 'comments', comments
+]
+
 # Maps channels message ids with relevant message instances.
 channelThreads = [
   ChannelThreadsStore
-  MessagesStore
+  messagesWithComments
   ChannelFlagsStore
   allChannels
   ['ChannelMessageLoaderMarkersStore']
@@ -177,15 +191,28 @@ allFollowedChannels = [
   (publics, privates) -> publics.concat privates
 ]
 
+selectedChannelPopularMessages = [
+  channelPopularMessages
+  selectedChannelThreadId
+  (messages, id) -> messages.get id
+]
+
 # Returns the selected thread mapped with selected channel instance.
 selectedChannelThread = [
   channelThreads
   selectedChannel
   MessageLikersStore
+  selectedChannelPopularMessages
   allUsers
-  (threads, channel, likers, users) ->
+  (threads, channel, likers, popularMessages, users) ->
     return null  unless channel
     thread = threads.get channel.get('id')
+    thread = thread.set 'channel', channel
+
+    if thread.getIn(['flags', 'resultListState']) is ResultStates.LIKED
+      popularMessages = popularMessages or immutable.Map()
+      thread = thread.set 'messages', popularMessages
+
     thread = thread.update 'messages', (messages) ->
       messages.map (msg) ->
         msg.update 'body', (body) ->
@@ -200,7 +227,7 @@ selectedChannelThread = [
               .set 'actorsCount', messageLikers.size
               .set 'isInteracted', messageLikers.contains whoami()._id
 
-    return thread.set 'channel', channel
+    return thread
 ]
 
 channelByName = (name, types = ['topic', 'group', 'announcement']) ->
@@ -254,12 +281,6 @@ followedPrivateChannelThreads = [
     channels.map (channel) ->
       thread = threads.get channel.get('id')
       return thread.set 'channel', channel
-]
-
-selectedChannelPopularMessages = [
-  channelPopularMessages
-  selectedChannelThreadId
-  (messages, id) -> messages.get id
 ]
 
 selectedMessageThreadId = SelectedMessageThreadIdStore
@@ -416,6 +437,7 @@ module.exports = {
 
   selectedChannelThreadId
   selectedChannelThread
+  selectedChannel
 
   channelByName
 

@@ -95,7 +95,17 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return errors.New("permitted users list is empty")
 	}
 
-	user, err := modelhelper.GetPermittedUser(machine.Users)
+	// check if this is called via Kite call
+	var requesterName string
+	req, ok := request.FromContext(ctx)
+	if ok {
+		requesterName = req.Username
+	}
+
+	// get the user from the permitted list. If the list contains more than one
+	// allowed person, fetch the one that is the same as requesterName, if
+	// not pick up the first one.
+	user, err := modelhelper.GetPermittedUser(requesterName, machine.Users)
 	if err != nil {
 		return err
 	}

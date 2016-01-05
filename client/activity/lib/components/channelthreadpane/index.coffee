@@ -11,6 +11,8 @@ PublicFeedPane       = require 'activity/components/publicfeedpane'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
 getGroup             = require 'app/util/getGroup'
 isFeedEnabled        = require 'app/util/isFeedEnabled'
+FeedThreadSidebar    = require 'activity/components/publicfeedpane/feedthreadsidebar'
+
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -19,6 +21,7 @@ module.exports = class ChannelThreadPane extends React.Component
   getDataBindings: ->
     return {
       channelThread       : getters.selectedChannelThread
+      popularChannels     : getters.popularChannels
       channelParticipants : getters.selectedChannelParticipants
     }
 
@@ -76,7 +79,9 @@ module.exports = class ChannelThreadPane extends React.Component
 
     if isFeedEnabled()
       <section className='ThreadPane-feedWrapper'>
-        <PublicFeedPane ref='pane' thread={thread}/>
+        <PublicFeedPane
+          ref='pane'
+          thread={thread} />
       </section>
     else
       <section className='ThreadPane-chatWrapper'>
@@ -97,9 +102,17 @@ module.exports = class ChannelThreadPane extends React.Component
 
     return null  unless thread = @state.channelThread
 
-    <ThreadSidebar
-      channelThread={thread}
-      channelParticipants={@state.channelParticipants} />
+    if isFeedEnabled()
+      <aside className='FeedThreadPane-sidebar'>
+        <FeedThreadSidebar
+          popularChannels={@state.popularChannels} />
+      </aside>
+    else
+      <aside className='ChannelThreadPane-sidebar'>
+        <ThreadSidebar
+          channelThread={thread}
+          channelParticipants={@state.channelParticipants} />
+      </aside>
 
 
   render: ->
@@ -111,9 +124,7 @@ module.exports = class ChannelThreadPane extends React.Component
         {@renderHeader()}
         {@renderBody()}
       </ChannelDropContainer>
-      <aside className='ChannelThreadPane-sidebar'>
-        {@renderSidebar()}
-      </aside>
+      {@renderSidebar()}
       {@props.children}
     </div>
 

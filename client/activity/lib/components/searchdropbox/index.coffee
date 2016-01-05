@@ -1,96 +1,51 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-DropboxItem          = require 'activity/components/dropboxitem'
-ErrorDropboxItem     = require 'activity/components/errordropboxitem'
-SearchDropboxItem    = require 'activity/components/searchdropboxitem'
-DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
-ChatInputFlux        = require 'activity/flux/chatinput'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
-isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
-
+kd                     = require 'kd'
+React                  = require 'kd-react'
+immutable              = require 'immutable'
+classnames             = require 'classnames'
+Dropbox                = require 'activity/components/dropbox/portaldropbox'
+DropboxItem            = require 'activity/components/dropboxitem'
+ErrorDropboxItem       = require 'activity/components/errordropboxitem'
+SearchDropboxItem      = require 'activity/components/searchdropboxitem'
+ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
 
 module.exports = class SearchDropbox extends React.Component
 
-  @include [ ImmutableRenderMixin, DropboxWrapperMixin ]
+  @propTypes =
+    query           : React.PropTypes.string
+    items           : React.PropTypes.instanceOf immutable.List
+    selectedItem    : React.PropTypes.instanceOf immutable.Map
+    selectedIndex   : React.PropTypes.number
+    flags           : React.PropTypes.instanceOf immutable.Map
+    onItemSelected  : React.PropTypes.func
+    onItemConfirmed : React.PropTypes.func
+    onClose         : React.PropTypes.func
 
 
   @defaultProps =
-    items          : immutable.List()
-    visible        : no
-    selectedItem   : null
-    selectedIndex  : 0
-    flags          : immutable.Map()
+    query           : ''
+    items           : immutable.List()
+    selectedItem    : null
+    selectedIndex   : 0
+    flags           : null
+    onItemSelected  : kd.noop
+    onItemConfirmed : kd.noop
+    onClose         : kd.noop
 
 
   shouldComponentUpdate: (nextProps, nextState) -> not nextProps.flags?.get 'isLoading'
 
 
-  isActive: -> @props.visible
-
-
-  formatSelectedValue: -> @props.selectedItem.get('message').toJS()
-
-
   getItemKey: (item) -> item.getIn ['message', 'id']
 
 
-  close: ->
+  updatePosition: (inputDimensions) ->
 
-    { stateId } = @props
-    ChatInputFlux.actions.search.setVisibility stateId, no
-    ChatInputFlux.actions.search.resetData stateId
-
-
-  moveToNextPosition: (keyInfo) ->
-
-    return no  if keyInfo.isRightArrow
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.search.moveToNextIndex stateId
-
-    return yes
-
-
-  moveToPrevPosition: (keyInfo) ->
-
-    return no  if keyInfo.isLeftArrow
-
-    { stateId } = @props
-    unless @hasSingleItem()
-      ChatInputFlux.actions.search.moveToPrevIndex stateId
-
-    return yes
-
-
-  checkTextForQuery: (textData) ->
-
-    { currentWord, value, position } = textData
-
-    matchResult = value.match /^\/s(earch)? (.*)/
-    return no  unless matchResult
-    return no  if isWithinCodeBlock value, position
-
-    query = matchResult[2]
-    { stateId } = @props
-    ChatInputFlux.actions.search.setQuery stateId, query
-    ChatInputFlux.actions.search.setVisibility stateId, yes
-
-    return yes
-
-
-  onItemSelected: (index) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.search.setSelectedIndex stateId, index
+    @refs.dropbox.setInputDimensions inputDimensions
 
 
   renderList: ->
 
-    { items, selectedIndex } = @props
+    { items, selectedIndex, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
@@ -99,8 +54,8 @@ module.exports = class SearchDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        onSelected  = { @bound 'onItemSelected' }
-        onConfirmed = { @bound 'confirmSelectedItem' }
+        onSelected  = { onItemSelected }
+        onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
       />
@@ -124,15 +79,15 @@ module.exports = class SearchDropbox extends React.Component
 
   render: ->
 
-    { items, query, flags, visible } = @props
+    { items, query, flags } = @props
 
-    isError      = items.size is 0 and query
-    isEmptyQuery = not query and visible
+    isError      = items.size is 0 and Boolean query
+    isEmptyQuery = not query
 
     <Dropbox
       className = 'SearchDropbox'
-      visible   = { @isActive() }
-      onClose   = { @bound 'close' }
+      visible   = { items.size > 0 or isError or isEmptyQuery }
+      onClose   = { @props.onClose }
       type      = 'dropup'
       title     = 'Search'
       ref       = 'dropbox'
@@ -141,4 +96,7 @@ module.exports = class SearchDropbox extends React.Component
       { @renderError()  if isError }
       { @renderList()  unless isError and isEmptyQuery }
     </Dropbox>
+
+
+SearchDropbox.include [ ScrollableDropboxMixin ]
 

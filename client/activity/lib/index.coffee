@@ -44,6 +44,7 @@ module.exports = class ActivityAppController extends AppController
     helper.loadEmojiStyles()
 
     NotificationSettingsFlux.actions.channel.loadGlobal()
+    ActivityFlux.actions.channel.loadPopularChannels()
 
 
   post: (options = {}, callback = noop) ->

@@ -16,7 +16,7 @@ module.exports =
     user ?= utils.getUser()
 
     browser.url url
-    browser.maximizeWindow()
+    browser.resizeWindow 1440, 900
 
     @doLogin browser, user
 
@@ -506,7 +506,7 @@ module.exports =
 
   submitForm: (browser, validCardDetails = yes) ->
 
-    upgradePlanButton = '.kdmodal-inner .green'
+    upgradePlanButton = '.kdmodal-inner .green:not(.paypal)'
     planType          = 'developer'
 
     if validCardDetails

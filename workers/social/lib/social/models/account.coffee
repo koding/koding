@@ -19,7 +19,6 @@ module.exports = class JAccount extends jraphical.Module
   JName               = require './name'
   JKite               = require './kite'
   JStorage            = require './storage'
-  JAppStorage         = require './appstorage'
   JCombinedAppStorage = require './combinedappstorage'
 
   @getFlagRole            = 'content'
@@ -273,15 +272,10 @@ module.exports = class JAccount extends jraphical.Module
 
       # bongo doesn't wait models to be loaded and this causes errors
       # in node.js tests so synchronously requiring them
-      JAppStorage      = require './appstorage'
       JCredential      = require './computeproviders/credential'
       JStackTemplate   = require './computeproviders/stacktemplate'
 
       return {
-        appStorage    :
-          as          : 'appStorage'
-          targetType  : JAppStorage
-
         storage       :
           as          : 'storage'
           targetType  : 'JStorage'
@@ -670,7 +664,7 @@ module.exports = class JAccount extends jraphical.Module
         @update { $set: { 'counts.twitterFollowers': followerCount } }, ->
 
 
-  dummyAdmins = [ 'sinan', 'devrim', 'gokmen', 'fatihacet', 'arslan',
+  dummyAdmins = [ 'sinan', 'devrim', 'gokmen', 'fatihacet',
                   'sent-hil', 'cihangirsavas', 'leeolayvar', 'stefanbc',
                   'szkl', 'nitin', 'usirin', 'kodinglearn', 'rjeczalik' ] # kodinglearn is nitin's impersonation account
 
@@ -915,27 +909,14 @@ module.exports = class JAccount extends jraphical.Module
     { appId, version } = options
     return callback 'version and appId must be set!' unless appId and version
 
-    queue = [
+    query = { accountId : @getId() }
+    JCombinedAppStorage.one query, (err, storage) =>
+      return callback err            if err
+      return callback null, storage  if storage?.bucket?[appId]
 
-      =>
-        @migrateOldAppStorageIfExists { appId, version }, (err, storage) ->
-          return callback err            if err
-          return callback null, storage  if storage
-          queue.next()
-
-      =>
-        query = { accountId : @getId() }
-        JCombinedAppStorage.one query, (err, storage) =>
-          return callback err            if err
-          return callback null, storage  if storage?.bucket?[appId]
-
-          @createAppStorage options, (err, newStorage) ->
-            return callback err  if err
-            callback null, newStorage
-
-    ]
-
-    daisy queue
+      @createAppStorage options, (err, newStorage) ->
+        return callback err  if err
+        callback null, newStorage
 
 
   createAppStorage: (options, callback) ->
@@ -952,68 +933,6 @@ module.exports = class JAccount extends jraphical.Module
       # recursive call in case of unique index error
       return @createAppStorage options, callback  if err?.code is 11000
       return callback err, storage
-
-
-  migrateOldAppStorageIfExists: (options, callback) ->
-
-    { appId, version } = options
-
-    unless appId and version
-      return callback new KodingError 'version and appId is not set!'
-
-    accountId    = @getId()
-    newStorage   = null
-    oldStorages  = null
-    luckyStorage = null
-
-    queue = [
-
-      =>
-        # trying to fetch old app storages, there were more than one
-        # appStorages for the same appId and version, probably due to some bug
-        # so we are trying to pick the one that contains data in it
-        query = { 'data.appId':appId, 'data.version':version }
-        @fetchAppStorages query, (err, storages) ->
-          return calback err  if err
-          # returning storage null bcs there was no old storage to be migrated
-          return callback null, null  unless storages.length > 0
-
-          storages.forEach (storage) ->
-            # if storage bucket is not empty pick it as the lucky one
-            luckyStorage = storage  unless _.isEmpty storage?.bucket
-
-          # if there was no lucky storage, pick the first one
-          luckyStorage ?= storages[0]
-          oldStorages   = storages
-          queue.next()
-
-      =>
-        # creating new app storage document
-        options.data = luckyStorage?.bucket or {}
-        @createAppStorage options, (err, storage) ->
-          return callback err  if err
-          newStorage = storage
-          queue.next()
-
-      ->
-        _queue = []
-        # removing old storages
-        oldStorages.forEach (oldStorage) ->
-          _queue.push ->
-            oldStorage.remove (err) ->
-              return _queue.fin err  if err
-              _queue.fin()
-
-        dash _queue, (err) ->
-          return callback err  if err
-          queue.next()
-
-      ->
-        callback null, newStorage
-
-    ]
-
-    daisy queue
 
 
   fetchAppStorage$: secure (client, options, callback) ->
