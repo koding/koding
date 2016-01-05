@@ -214,8 +214,10 @@ loadCollaborativeIDE = (id) ->
 
 routeHandler = (type, info, state, path, ctx) ->
 
-  # This is just a dirty workaround to be able to run the unit tests
-  # in the future we hope to find a better way and remove this imports. -- acet /cc usirin
+  # This is just a dirty workaround to be able to run the unit tests because
+  # exported functions are not the same functions as the defined ones,
+  # this is to make spies work in the future we hope to find a better way and
+  # remove this imports. -- acet /cc usirin
   { routeToLatestWorkspace, loadCollaborativeIDE, routeToMachineWorkspace, loadIDE } = module.exports
 
   switch type
