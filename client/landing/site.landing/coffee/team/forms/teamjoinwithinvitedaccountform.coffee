@@ -1,6 +1,6 @@
 JView           = require './../../core/jview'
-TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'
+TeamJoinTabForm = require './../forms/teamjointabform'
 
 
 module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
@@ -9,7 +9,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
     super
 
-    teamData     = KD.utils.getTeamData()
+    teamData = KD.utils.getTeamData()
 
     @username = new LoginInputView
       cssClass        : 'hidden'
