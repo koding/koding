@@ -68,9 +68,9 @@ module.exports = class Metrics extends MetricsBase
 
         tagValue = switch
           when not source[prop]                   then 0
-          when Array.isArray source[prop]         then source[prop].join()
-          when typeof source[prop] is 'function'  then source[prop]()
-          else                                         source[prop]
+          when Array.isArray source[prop]         then source[prop].join('-')
+          when typeof source[prop] is 'function'  then source[prop].call()
+          else                                    source[prop]
 
         tagValue = @sanitizeTagValue tagValue
         tags.push "#{tagName}:#{tagValue}"
@@ -83,16 +83,16 @@ module.exports = class Metrics extends MetricsBase
     tags = @populateCommonTags()
     tags = @populateNodejsTags(tags)
 
-    monitor.on 'eventloop', (eventloop) =>
+    monitor.on 'eventloop', (eventloop) ->
       eventloopMetrics =
         gauge           :
           'latency.min' : eventloop.latency.min
           'latency.max' : eventloop.latency.max
           'latency.avg' : eventloop.latency.avg
 
-      @sendMetrics eventloopMetrics, 'nodejs.eventloop', tags
+      Metrics.sendMetrics eventloopMetrics, 'nodejs.eventloop', tags
 
-    monitor.on 'memory', (memory) =>
+    monitor.on 'memory', (memory) ->
       memMetrics =
         gauge                :
           'process.private'  : memory.private
@@ -101,23 +101,23 @@ module.exports = class Metrics extends MetricsBase
           'system.used'      : memory.physical_used
           'system.total'     : memory.physical_total
 
-      @sendMetrics memMetrics, 'nodejs.memory', tags
+      Metrics.sendMetrics memMetrics, 'nodejs.memory', tags
 
-    monitor.on 'gc', (gc) =>
+    monitor.on 'gc', (gc) ->
       gcMetrics =
         gauge      :
           size     : gc.size
           used     : gc.used
           duration : gc.duration
 
-      @sendMetrics gcMetrics, 'nodejs.gc', tags
+      Metrics.sendMetrics gcMetrics, 'nodejs.gc', tags
 
-    monitor.on 'cpu', (cpu) =>
+    monitor.on 'cpu', (cpu) ->
       cpuMetrics =
         gauge     :
           process : cpu.process
           system  : cpu.system
 
-      @sendMetrics cpuMetrics, 'nodejs.cpu', tags
+      Metrics.sendMetrics cpuMetrics, 'nodejs.cpu', tags
 
 
