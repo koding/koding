@@ -10,6 +10,7 @@ module.exports = class ActivityLikeLink extends React.Component
 
   @defaultProps =
     tooltip                  : yes
+    renderCount              : no
     shouldSetTooltipPosition : no
 
 
@@ -45,6 +46,16 @@ module.exports = class ActivityLikeLink extends React.Component
       likeMessage @props.messageId
 
 
+  renderCount: ->
+
+    return null  unless @props.renderCount
+    { actorsCount } = @props.interactions.like
+
+    return null  unless actorsCount
+
+    <span ref='count' className='ActivityLikeLink-count'>{actorsCount}</span>
+
+
   renderTooltipItems: (participant) ->
 
     { actorsPreview } = @props.interactions.like
@@ -71,6 +82,7 @@ module.exports = class ActivityLikeLink extends React.Component
 
     <a className={@getClassName()} onClick={ @bound 'onClick' } >
       {@props.children}
+      {@renderCount()}
       {@renderTooltip()}
     </a>
 
