@@ -7,6 +7,7 @@ KDObject            = kd.Object
 remote              = require('./remote').getInstance()
 backoff             = require 'backoff'
 doXhrRequest        = require './util/doXhrRequest'
+nick                = require 'app/util/nick'
 
 
 module.exports = class SearchController extends KDObject
@@ -132,18 +133,19 @@ module.exports = class SearchController extends KDObject
 
   searchAccounts: (seed, options = {}) ->
 
-    opts =
+    opts  =
       hitsPerPage                  : 10
-      restrictSearchableAttributes : [ "nick" ]
+      restrictSearchableAttributes : [ 'nick' ]
 
-    opts = kd.utils.extend opts, options
-
-    seed = seed.replace /[^-\w]/g, ''
+    opts      = kd.utils.extend opts, options
+    seed      = seed.replace /[^-\w]/g, ''
+    nickname  = nick()
 
     @search 'accounts', seed, opts
       .then (data) ->
         throw new Error "No data!" if data.length is 0
         return data
+      .filter (account) -> account.nick isnt nickname
       .map ({ objectID }) -> remote.cacheableAsync 'JAccount', objectID
       .catch (err) =>
         console.warn 'algolia strategy failed; trying mongo'

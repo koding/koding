@@ -2,8 +2,10 @@ kd                     = require 'kd'
 KDView                 = kd.View
 Encoder                = require 'htmlencode'
 Machine                = require './machine'
+isMacOS                = require 'app/util/isMacOS'
 isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
+selectText             = require 'app/util/selectText'
 KodingSwitch           = require '../commonviews/kodingswitch'
 KDLoaderView           = kd.LoaderView
 CustomLinkView         = require '../customlinkview'
@@ -112,7 +114,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
   bindViewEvents: ->
 
-    { nickname, nickEdit, buildlogs } = @form.inputs
+    { nickname, nickEdit, buildlogs, publicIp } = @form.inputs
 
     nickname.on 'click', (e) =>
 
@@ -140,6 +142,12 @@ module.exports = class MachineSettingsGeneralView extends KDView
       kd.utils.wait 1000, @lazyBound 'emit', 'ModalDestroyRequested'
 
 
+    publicIp.on 'click', ->
+      selectText publicIp.getElement()
+      publicIp.tooltip.show()
+      publicIp.tooltip.once 'ReceivedClickElsewhere', publicIp.tooltip.bound 'hide'
+
+
   createForm: ->
 
     isAws       = @machine.provider is 'aws'
@@ -149,6 +157,8 @@ module.exports = class MachineSettingsGeneralView extends KDView
     logsMessage = if @machine.isRunning() \
       then "<span class='logs-link'>show logs</span>"
       else "Please turn on the machine to see logs"
+
+    copyShortcut = if isMacOS() then 'Cmd' else 'Ctrl'
 
     @addSubView @form = new KDFormViewWithFields
       cssClass          : 'AppModal-form'
@@ -194,6 +204,12 @@ module.exports = class MachineSettingsGeneralView extends KDView
           cssClass      : if running then 'custom-link-view' else 'hidden'
           itemClass     : KDView
           partial       : @machine.ipAddress or 'N/A'
+          tooltip       :
+            title       : "Press #{copyShortcut}+C to copy"
+            sticky      : yes
+            cssClass    : 'public-ip'
+            placement   : 'above'
+            events      : []
         accessUri       :
           label         : 'Assigned URL'
           cssClass      : if isManaged or isAws then 'assigned-url hidden' else 'assigned-url'
