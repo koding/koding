@@ -153,6 +153,9 @@ module.exports = class ComputeEventListener extends KDObject
           computeController.stateChecker.watch eventId
           # For `apply` event revive all the machines in a stack ~ GG
           computeController.triggerReviveFor eventId, asStack = type is 'apply'
+        else if event.error and event.percentage is 100 and type is 'apply'
+          # If a stack `apply` is failed we need to revive it from DB ~ GG
+          computeController.triggerReviveFor eventId, asStack = yes
         else
           computeController.stateChecker.ignore eventId
 
