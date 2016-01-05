@@ -9,7 +9,6 @@ PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane
 isMyChannel          = require 'app/util/isMyChannel'
 isMyPost             = require 'app/util/isMyPost'
 envDataProvider      = require 'app/userenvironmentdataprovider'
-nick                 = require 'app/util/nick'
 
 CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
 IDEChatParticipantHeads               = require './idechatparticipantheads'
@@ -304,8 +303,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
 
   participantAdded: (participant) ->
-
-    return  if participant.profile.nickname is nick()
 
     @removeOnboarding()
 
