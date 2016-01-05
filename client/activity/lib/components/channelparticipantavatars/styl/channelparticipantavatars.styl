@@ -1,152 +1,153 @@
 .ChannelParticipantAvatars
   rel()
   dBlock()
-  z-index                 2
-  bg                      color, #f5f5f5
+  z-index                   2
+  bg                        color, #f5f5f5
 
 .ChannelParticipantAvatars-singleBox
   rel()
   dIBlock()
-  vertical-align          top
-  size                    30px, 30px
-  margin                  5px 0 0 10px
-  line-height             26px
+  vertical-align            top
+  size                      30px, 30px
+  margin                    5px 0 0 10px
+  line-height               26px
 
   .Tooltip-wrapper
-    display               none
-    opacity               0
-    top                   62px !important
-    vendor                transition, opacity .3s ease
+    margin-top              -24px
+    display                 none
+    opacity                 0
+    top                     62px !important
+    vendor                  transition, opacity .3s ease
 
   &:hover
     .Tooltip-wrapper
       dBlock()
-      opacity             1
+      opacity               1
 
   &:nth-child(5n)
     .Tooltip-wrapper
-      left                auto !important
-      right               0
-      vendor              transform, translateX(0)
+      left                  auto !important
+      right                 0
+      vendor                transform, translateX(0)
 
       &:after
-        right             10px
-        left              auto !important
+        right               10px
+        left                auto !important
 
   &:nth-child(5n+1)
-    margin-left           0
+    margin-left             0
 
 .ChannelParticipantAvatars-newParticipantBox
   pointer()
   borderBox()
-  text-align              center
-  rounded                 4px
-  size                    30px, 30px
-  border                  1px dashed $gray-10
+  text-align                center
+  rounded                   4px
+  size                      30px, 30px
+  border                    1px dashed $gray-10
 
   &:before
     rel()
     dIBlock()
-    content               ''
-    r-sprite              'activity', 'reactivity-new-participant-plus'
-    vendor                transition, .2s ease
+    content                 ''
+    r-sprite                'activity', 'reactivity-new-participant-plus'
+    vendor                  transition, .2s ease
 
   &.cross
     &:before
-      vendor              transform, rotate(45deg)
+      vendor                transform, rotate(45deg)
 
 .ChannelParticipantAvatars .ProfilePicture
-  vertical-align          middle
+  vertical-align            middle
 
 .ChannelParticipantAvatars-moreCount
   pointer()
   borderBox()
-  size                    30px, 30px
-  border                  1px solid $gray-10
-  border-radius           $border-radius
-  text-align              center
+  size                      30px, 30px
+  border                    1px solid $gray-10
+  border-radius             $border-radius
+  text-align                center
 
 .ChannelParticipantInput
   rel()
-  z-index                 1
-  opacity                 0
-  margin-bottom           10px
-  top                     -45px
-  vendor                  transition, .2s ease
-  height                  0
+  z-index                   1
+  opacity                   0
+  margin-bottom             10px
+  top                       -45px
+  vendor                    transition, .2s ease
+  height                    0
 
   input
     rel()
     borderBox()
-    outline               none
-    height                32px
-    width                 100%
-    padding               0 10px
-    margin-bottom         10px
-    border                1px solid $gray-16
+    outline                 none
+    height                  32px
+    width                   100%
+    padding                 0 10px
+    margin-bottom           10px
+    border                  1px solid $gray-16
 
   &.slide-down
-    margin-top            10px
-    height                32px
-    top                   0
-    opacity               1
+    margin-top              10px
+    height                  32px
+    top                     0
+    opacity                 1
 
 .ChannelParticipantAvatars-allParticipantsMenu
   abs()
-  rounded                 $border-radius
-  border                  1px solid $gray-20
-  z-index                 9
-  padding                 5px 0
-  bg                      color, $white
-  right                   25px
-  max-height              420px
-  shadow                  0 8px 35px rgba(0, 0, 0, 0.22)
+  rounded                   $border-radius
+  border                    1px solid $gray-20
+  z-index                   9
+  padding                   5px 0
+  bg                        color, $white
+  right                     25px
+  max-height                420px
+  shadow                    0 8px 35px rgba(0, 0, 0, 0.22)
 
   &:before
     abs()
-    content               ''
-    top                   -7px
-    right                 50px
-    size                  0, 0
-    border-left           7px solid transparent;
-    border-right          7px solid transparent;
-    border-bottom         7px solid $white;
+    content                 ''
+    top                     -7px
+    right                   50px
+    size                    0, 0
+    border-left             7px solid transparent;
+    border-right            7px solid transparent;
+    border-bottom           7px solid $white;
 
   .ChannelParticipantAvatars-allParticipantsMenuContainer
-    width                 200px
-    max-height            395px
-    overflow-y            auto
-    overflow-x            hidden
+    width                   200px
+    max-height              395px
+    overflow-y              auto
+    overflow-x              hidden
 
   .ChannelParticipantAvatars-allParticipantsMenuTitle
-    color                 $gray-14
-    border-bottom         1px solid $gray-16
-    padding               5px 10px
-    font-size             14px
+    color                   $gray-14
+    border-bottom           1px solid $gray-16
+    padding                 5px 10px
+    font-size               14px
 
   .ChannelParticipantAvatars-singleBox
     dBlock()
     pointer()
     noTextDeco()
-    width                 auto
-    color                 $gray-12
-    margin                0
-    padding               5px 10px
+    width                   auto
+    color                   $gray-12
+    margin                  0
+    padding                 5px 10px
 
     a
       noTextDeco()
-      color               $gray-12
+      color                 $gray-12
 
     .ProfilePicture
       fl()
-      margin-right        10px
+      margin-right          10px
 
     &:hover
-      bg                  color, $gray-12
-      color               $white
+      bg                    color, $gray-12
+      color                 $white
 
       a
-        color             $white
+        color               $white
 
 // @media only screen and (max-width : 950px)
 //   .ChannelParticipantAvatars-singleBox
