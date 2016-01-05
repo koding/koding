@@ -175,8 +175,8 @@ module.exports = helpers =
         snapshotKey   = @getWorkspaceStorageKey ws, nickname
         layoutSizeKey = @getWorkspaceLayoutSizeStorageKey ws, nickname
 
-        kite.storageDelete snapshotKey    # Remove snapshot
-        kite.storageDelete layoutSizeKey  # Remove layout size data
+        kite.storageDelete snapshotKey
+        kite.storageDelete layoutSizeKey
 
       callback()
 
