@@ -1,6 +1,7 @@
 kd        = require 'kd'
-globals   = require 'globals'
 whoami    = require 'app/util/whoami'
+globals   = require 'globals'
+isMacOS   = require 'app/util/isMacOS'
 
 
 module.exports = class AddManagedMachineModal extends kd.ModalView
@@ -108,12 +109,9 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   showTooltip: ->
 
-    shortcut = 'Ctrl+C'
+    shortcut = if isMacOS() then 'Cmd' else 'Ctrl'
 
-    if navigator.userAgent.indexOf('Mac OS X') > -1
-      shortcut = 'Cmd+C'
-
-    @input.setTooltip title: "Press #{shortcut} to copy", placement: 'above'
+    @input.setTooltip title: "Press #{shortcut}+C to copy", placement: 'above'
     @input.tooltip.show()
 
     kd.singletons.windowController.addLayer @input
