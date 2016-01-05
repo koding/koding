@@ -81,20 +81,29 @@ func InstallCommandFactory(c *cli.Context) int {
 
 	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
 	if err != nil {
-		fmt.Printf("Error getting %s wrapper path: '%s'\n", KlientName, err)
+		log.Errorf("Error creating klient.sh path: %s", err)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
 	klientBinPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient"))
 	if err != nil {
-		fmt.Printf("Error getting %s path: '%s'\n", KlientName, err)
+		log.Errorf(
+			"Error creating klient binary path. path:%s, err:%s",
+			filepath.Join(KlientDirectory, "klient"), err,
+		)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
 	// Create the installation dir, if needed.
 	err = os.MkdirAll(KlientDirectory, 0755)
 	if err != nil {
-		fmt.Printf("Error creating directory to hold %s: %q\n", KlientName, err)
+		log.Errorf(
+			"Error creating klient binary directory(s). path:%s, err:%s",
+			KlientDirectory, err,
+		)
+		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
 
@@ -126,9 +135,9 @@ func InstallCommandFactory(c *cli.Context) int {
 				sudoCmd, KiteHome, klientBinPath, kontrolURL))
 
 			// perm -rwr-xr-x, same as klient
-			err := ioutil.WriteFile(klientShPath, klientShFile, 0755)
-			if err != nil {
-				fmt.Printf("Error creating %s wrapper: '%s'\n", KlientName, err)
+			if err := ioutil.WriteFile(klientShPath, klientShFile, 0755); err != nil {
+				log.Errorf("Error writing klient.sh file. err:%s", err)
+				fmt.Println(FailedInstallingKlient)
 				return 1
 			}
 
@@ -145,7 +154,8 @@ func InstallCommandFactory(c *cli.Context) int {
 	fmt.Println("Downloading...")
 
 	if err = downloadRemoteToLocal(S3KlientPath, klientBinPath); err != nil {
-		fmt.Printf("Error downloading %s: '%s'\n", KlientName, err)
+		log.Errorf("Error downloading klient binary. err:%s", err)
+		fmt.Printf(FailedDownloadingKlient)
 		return 1
 	}
 
@@ -168,13 +178,8 @@ func InstallCommandFactory(c *cli.Context) int {
 	cmd.Stdin = os.Stdin
 
 	if err := cmd.Run(); err != nil {
-		// TODO: Log the error, or handle it somehow so it doesn't leak.
-		// log.Errorf("Error registering klient. %q", err)
-		fmt.Printf(`Error: Failed to authenticate the %s.
-
-Please go back to Koding to get a new code and try again.
-`,
-			KlientName)
+		log.Errorf("Error registering klient. err:%s", err)
+		fmt.Println(FailedRegisteringKlient)
 		return 1
 	}
 
@@ -184,25 +189,35 @@ Please go back to Koding to get a new code and try again.
 	// so since this is just ctl problem, we'll just fix the permission
 	// here for now.
 	if err = os.Chmod(KiteHome, 0755); err != nil {
-		fmt.Printf("Error installing %s: '%s'\n", KlientName, err)
+		log.Errorf(
+			"Error chmodding KiteHome directory. dir:%s, err:%s",
+			KiteHome, err,
+		)
+		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
 
 	if err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644); err != nil {
-		fmt.Printf("Error installing kite.key: '%s'\n", err)
+		log.Errorf(
+			"Error chmodding kite.key. path:%s, err:%s",
+			filepath.Join(KiteHome, "kite.key"), err,
+		)
+		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
 
 	// Create our interface to the OS specific service
 	s, err := newService()
 	if err != nil {
-		fmt.Printf("Error starting service: '%s'\n", err)
+		log.Errorf("Error creating Service. err:%s", err)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
 	// Install the klient binary as a OS service
 	if err = s.Install(); err != nil {
-		fmt.Printf("Error installing service: '%s'\n", err)
+		log.Errorf("Error installing Service. err:%s", err)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
@@ -221,7 +236,8 @@ Please go back to Koding to get a new code and try again.
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
 	if err != nil {
-		fmt.Printf("Error verifying the installation of %s: '%s'\n", KlientName, err)
+		log.Errorf("Error verifying the installation of klient. %s", err)
+		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
 

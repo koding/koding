@@ -15,22 +15,21 @@ import (
 func ListCommand(c *cli.Context) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to %s: '%s'", KlientName, err,
-		))
+		log.Errorf("Error creating klient client. err:%s", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to %s: '%s'", KlientName, err,
-		))
+		log.Errorf("Error dialing klient client. err:%s", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	infos, err := getListOfMachines(k)
 	if err != nil {
-		fmt.Print(err)
+		log.Errorf("Error listing machines. err:%s", err)
+		fmt.Print(FailedListMachines)
 		return 1
 	}
 

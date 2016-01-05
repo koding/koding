@@ -12,7 +12,8 @@ import (
 func RestartCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
-		fmt.Printf("Error restarting %s: '%s'\n", KlientName, err)
+		log.Errorf("Error creating Service. err:%s", err)
+		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
@@ -21,12 +22,17 @@ func RestartCommand(c *cli.Context) int {
 	// Only worry about stopping if klient is actually running.
 	if IsKlientRunning(KlientAddress) {
 		if err := s.Stop(); err != nil {
-			fmt.Printf("Error stopping service: '%s'\n", err)
+			log.Errorf("Error stopping Service. err:%s", err)
+			fmt.Println(FailedStopKlient)
 			return 1
 		}
 
 		if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
-			fmt.Printf("Timed out waiting for the %s to stop\n", KlientName)
+			log.Errorf(
+				"Timed out while waiting for Klient to start. attempts:%d, err:%s",
+				5, err,
+			)
+			fmt.Println(FailedStopKlient)
 			return 1
 		}
 
@@ -34,13 +40,18 @@ func RestartCommand(c *cli.Context) int {
 	}
 
 	if err := s.Start(); err != nil {
-		fmt.Printf("Error starting %s: '%s'\n", KlientName, err)
+		log.Errorf("Error starting Service. err:%s", err)
+		fmt.Println(FailedStartKlient)
 		return 1
 	}
 
 	fmt.Println("Waiting until started...")
 	if err := WaitUntilStarted(KlientAddress, 5, 1*time.Second); err != nil {
-		fmt.Printf("Timed out waiting for the %s to start\n", KlientName)
+		log.Errorf(
+			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
+			5, err,
+		)
+		fmt.Println(FailedStartKlient)
 		return 1
 	}
 

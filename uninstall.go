@@ -81,7 +81,8 @@ type Uninstall struct {
 // bin can end up with multiple warnings, creating a bad UX.
 func (u *Uninstall) Uninstall() (string, int) {
 	if err := u.ServiceUninstaller.Uninstall(); err != nil {
-		return fmt.Sprintf("Error uninstalling %s: '%s'\n", KlientName, err), 1
+		log.Errorf("Service errored on uninstall. err:%s", err)
+		return FailedUninstallingKlient, 1
 	}
 
 	// Since most issues faced during file removal are not critical errors,
@@ -90,32 +91,28 @@ func (u *Uninstall) Uninstall() (string, int) {
 
 	// Remove the kitekey
 	if err := u.RemoveKiteKey(); err != nil {
-		warnings = append(warnings, fmt.Sprintf(
-			"Warning: Failed to remove authorization file. This is not a critical issue.\n",
-		))
+		log.Warningf("Failed to remove kite key. err:%s", err)
+		warnings = append(warnings, FailedToRemoveAuthFileWarn)
 	}
 
 	// Remove the klient/klient.sh files
 	if err := u.RemoveKlientFiles(); err != nil {
-		warnings = append(warnings, fmt.Sprintf(
-			"Warning: Failed to remove %s files. This is not a critical issue.\n",
-			u.KlientName,
-		))
+		log.Warningf("Failed to remove klient or klient.sh. err:%s", err)
+		warnings = append(warnings, FailedToRemoveFilesWarn)
 	}
 
 	// Remove the klient directories
 	//
-	// Note that we're ignoring any errors in removing the directories to avoid
+	// Note that we're not printing any errors in removing the directories to avoid
 	// spamming the user with warnings.
-	u.RemoveKlientDirectories()
+	if err := u.RemoveKlientDirectories(); err != nil {
+		log.Warningf("Failed to remove klient directories. err:%s", err)
+	}
 
 	// Remove the klientctl binary itself.
 	// (The current binary is removing itself.. So emo...)
 	if err := u.RemoveKlientctl(); err != nil {
-		warnings = append(warnings, fmt.Sprintf(
-			"Warning: Failed to remove %s binary. This is not a critical issue.\n",
-			u.KlientctlName,
-		))
+		warnings = append(warnings, FailedToRemoveKlientWarn)
 	}
 
 	if len(warnings) != 0 {
@@ -135,7 +132,8 @@ func (u *Uninstall) Uninstall() (string, int) {
 func UninstallCommand(c *cli.Context) (string, int) {
 	s, err := newService()
 	if err != nil {
-		return fmt.Sprintf("Error identifying service %s: '%s'\n", KlientName, err), 1
+		log.Errorf("Error creating Service. err:%s", err)
+		return GenericInternalError, 1
 	}
 
 	uninstaller := &Uninstall{

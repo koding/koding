@@ -29,7 +29,8 @@ func UpdateCommand(c *cli.Context) int {
 
 	yesUpdate, err := checkUpdate.IsUpdateAvailable()
 	if err != nil {
-		fmt.Printf("Error checking if update is available: '%s'\n", err)
+		log.Errorf("Error checking if update is available. err:%s", err)
+		fmt.Println(FailedCheckingUpdateAvailable)
 		return 1
 	}
 
@@ -40,7 +41,8 @@ func UpdateCommand(c *cli.Context) int {
 
 	s, err := newService()
 	if err != nil {
-		fmt.Printf("Error stopping %s: '%s'\n", KlientName, err)
+		log.Errorf("Error creating Service. err:%s", err)
+		fmt.Println(GenericInternalError)
 		return 1
 	}
 
@@ -49,7 +51,8 @@ func UpdateCommand(c *cli.Context) int {
 
 	// stop klient before we update it
 	if err := s.Stop(); err != nil {
-		fmt.Printf("Error stopping %s: '%s'\n", KlientName, err)
+		log.Errorf("Error stopping Service. err:%s", err)
+		fmt.Println(FailedStopKlient)
 		return 1
 	}
 
@@ -66,14 +69,16 @@ func UpdateCommand(c *cli.Context) int {
 
 	for localPath, remotePath := range dlPaths {
 		if err := downloadRemoteToLocal(remotePath, localPath); err != nil {
-			fmt.Printf("Error updating %s: '%s'\n", Name, err)
+			log.Errorf("Error updating. err:%s", err)
+			fmt.Println(FailedDownloadUpdate)
 			return 1
 		}
 	}
 
 	// start klient now that it's done updating
 	if err := s.Start(); err != nil {
-		fmt.Printf("Error starting %s: '%s'\n", KlientName, err)
+		log.Errorf("Error starting Service. err:%s", err)
+		fmt.Println(FailedStartKlient)
 		return 1
 	}
 
