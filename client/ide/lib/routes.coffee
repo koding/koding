@@ -1,21 +1,23 @@
-kd = require 'kd'
-nick = require 'app/util/nick'
-whoami = require 'app/util/whoami'
+kd             = require 'kd'
+nick           = require 'app/util/nick'
+whoami         = require 'app/util/whoami'
+globals        = require 'globals'
+remote         = require('app/remote').getInstance()
+Machine        = require 'app/providers/machine'
+lazyrouter     = require 'app/lazyrouter'
+dataProvider   = require 'app/userenvironmentdataprovider'
 registerRoutes = require 'app/util/registerRoutes'
-globals = require 'globals'
-remote = require('app/remote').getInstance()
-Machine = require 'app/providers/machine'
-lazyrouter = require 'app/lazyrouter'
-dataProvider = require 'app/userenvironmentdataprovider'
 
 
 selectWorkspaceOnSidebar = (data) ->
 
+  return no  unless data
+
   { machine, workspace } = data
 
-  return  unless machine or workspace
+  return no if not machine or not workspace
 
-  kd.getSingleton('mainView').activitySidebar.selectWorkspace data
+  kd.singletons.mainView.activitySidebar.selectWorkspace data
   storage = kd.singletons.localStorageController.storage 'IDE'
 
   workspaceData    =
@@ -33,7 +35,7 @@ getLatestWorkspace = (machine) ->
   if machine
     workspace = storage.getValue "LatestWorkspace_#{machine.uid}"
 
-  return  unless workspace
+  return no  unless workspace
 
   { machineLabel, workspaceSlug, channelId } = workspace
 
@@ -50,6 +52,8 @@ loadIDENotFound = ->
 
 
 loadIDE = (data) ->
+
+  { selectWorkspaceOnSidebar, findInstance } = module.exports
 
   { machine, workspace, username, channelId } = data
   selectWorkspaceOnSidebar data
@@ -76,16 +80,7 @@ loadIDE = (data) ->
 
   return callback()  unless ideApps?.instances
 
-  for instance in ideApps.instances
-    isSameMachine   = instance.mountedMachineUId is machineUId
-    isSameWorkspace = instance.workspaceData?.getId() is workspace.getId()
-
-    if isSameMachine
-      if isSameWorkspace then ideInstance = instance
-      # should not be the case anymore since 'my-workspace' deprecated.
-      else if workspace.slug is 'my-workspace'
-        if instance.workspaceData?.isDefault
-          ideInstance = instance
+  ideInstance = findInstance machine, workspace
 
   if ideInstance
     appManager.showInstance ideInstance
@@ -94,10 +89,32 @@ loadIDE = (data) ->
     callback()
 
 
+findInstance = (machine, workspace) ->
+
+  ideApps       = kd.singletons.appManager.appControllers.IDE
+  machineUId    = machine.uid
+  workspaceId   = workspace.getId()
+  workspaceSlug = workspace.slug
+
+  for instance in ideApps.instances
+    isSameMachine   = instance.mountedMachineUId is machineUId
+    isSameWorkspace = instance.workspaceData?.getId() is workspaceId
+
+    if isSameMachine
+      if isSameWorkspace then ideInstance = instance
+      # should not be the case anymore since 'my-workspace' deprecated.
+      else if workspaceSlug is 'my-workspace'
+        if instance.workspaceData?.isDefault
+          ideInstance = instance
+
+  return ideInstance
+
+
 routeToFallback = ->
 
+  { routeToMachineWorkspace, loadIDENotFound } = module.exports
+
   machines = dataProvider.getMyMachines()
-  router   = kd.getSingleton 'router'
   [ obj ]  = machines
 
   if obj?.machine # `?` intentionally. there might be no machine.
@@ -107,6 +124,8 @@ routeToFallback = ->
 
 
 routeToMachineWorkspace = (machine) ->
+
+  { getLatestWorkspace } = module.exports
 
   latestWorkspace = getLatestWorkspace machine
 
@@ -126,6 +145,8 @@ routeToMachineWorkspace = (machine) ->
 
 
 routeToLatestWorkspace = ->
+
+  { getLatestWorkspace, routeToFallback, routeToMachineWorkspace } = module.exports
 
   router          = kd.getSingleton 'router'
   latestWorkspace = getLatestWorkspace()
@@ -155,8 +176,14 @@ routeToLatestWorkspace = ->
       else
         routeToFallback()
 
+  # I think we should add an else case here to call routeToFallback because if
+  # we don't have channelId, machineLabel and workspaceSlug at the same time
+  # we will probably end up with a WSOD. // acet
+
 
 loadCollaborativeIDE = (id) ->
+
+  { routeToLatestWorkspace, loadIDE } = module.exports
 
   kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
 
@@ -187,8 +214,10 @@ loadCollaborativeIDE = (id) ->
 
 routeHandler = (type, info, state, path, ctx) ->
 
-  # This is just a dirty workaround to be able to run the unit tests
-  # in the future we hope to find a better way and remove this imports. acet /cc usirin
+  # This is just a dirty workaround to be able to run the unit tests because
+  # exported functions are not the same functions as the defined ones,
+  # this is to make spies work in the future we hope to find a better way and
+  # remove this imports. -- acet /cc usirin
   { routeToLatestWorkspace, loadCollaborativeIDE, routeToMachineWorkspace, loadIDE } = module.exports
 
   switch type
@@ -235,6 +264,7 @@ module.exports = {
   routeToMachineWorkspace
   routeToLatestWorkspace
   loadCollaborativeIDE
+  findInstance
   routeHandler
 
   init: -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
