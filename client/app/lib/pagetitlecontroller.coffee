@@ -1,8 +1,9 @@
-Encoder  = require 'htmlencode'
-kd       = require 'kd'
-KDObject = kd.Object
-remote   = require('./remote').getInstance()
-isMyNotification = require 'app/util/isMyNotification'
+kd                = require 'kd'
+remote            = require('./remote').getInstance()
+Encoder           = require 'htmlencode'
+isKoding          = require 'app/util/isKoding'
+KDObject          = kd.Object
+isMyNotification  = require 'app/util/isMyNotification'
 
 module.exports = class PageTitleController extends KDObject
 
@@ -60,7 +61,15 @@ module.exports = class PageTitleController extends KDObject
     @update @getAppTitle()
 
 
-  update: (title) -> global.document.title = " #{Encoder.htmlDecode title}"
+  update: (title) ->
+
+    prefix = ''
+
+    unless isKoding()
+      groupTitle = kd.singletons.groupsController.getCurrentGroup().title
+      prefix = "#{groupTitle} - Koding |"
+
+    global.document.title = " #{prefix} #{Encoder.htmlDecode title}"
 
   reset: -> @update @defaultTitle
 
