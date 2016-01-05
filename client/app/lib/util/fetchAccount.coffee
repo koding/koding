@@ -24,6 +24,8 @@ module.exports = fetchAccount = (origin, callback) ->
   if origin.constructorName
     origin.id or= origin._id
     remote.cacheable origin.constructorName, origin.id, callback
+  else if 'bot' is origin
+    remote.api.JAccount.one {'profile.nickname': 'bot'}, callback
   else if 'string' is typeof origin
     remote.cacheable origin, (err, [account]) -> callback err, account
   else if origin?.bongo_?.constructorName is 'JAccount'
