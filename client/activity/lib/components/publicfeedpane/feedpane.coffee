@@ -12,6 +12,7 @@ ActivityFlux         = require 'activity/flux'
 KDReactorMixin       = require 'app/flux/base/reactormixin'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 ActivitySharePopup   = require 'activity/components/activitysharepopup'
+groupifyLink         = require 'app/util/groupifyLink'
 
 module.exports = class FeedPane extends React.Component
 
