@@ -114,6 +114,8 @@ module.exports = class TeamJoinTab extends KDTabPaneView
       KD.utils.storeNewTeamData 'join', formData
       KD.utils.joinTeam
         error : ({responseText}) =>
+          @form.emit 'FormSubmitFailed'
+
           if /TwoFactor/.test responseText
             track 'needed two factor authentication'
             @form.showTwoFactor()
@@ -140,6 +142,7 @@ module.exports = class TeamJoinTab extends KDTabPaneView
           else                    "Sorry, there is a problem with \"#{username}\"!"
 
           new KDNotificationView title : msg
+          @form.emit 'FormSubmitFailed'
 
 
 track = (action) ->

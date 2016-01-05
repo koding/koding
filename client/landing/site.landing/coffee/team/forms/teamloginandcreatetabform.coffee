@@ -53,6 +53,7 @@ module.exports = class TeamLoginAndCreateTabForm extends LoginViewInlineForm
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'
       type       : 'submit'
+      loader     : yes
 
 
   showTwoFactor: ->
