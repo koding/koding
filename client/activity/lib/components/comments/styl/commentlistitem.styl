@@ -76,17 +76,29 @@
       margin                0 8px
       vertical-align        middle
 
-.CommentListItem-likeCount
-  rel()
-  top                       -1px
-  height                    16px
-  line-height               16px
-  rounded                   2px
-  font-size                 $fs-extra-small
-  padding                   0 4px
-  margin-left               5px
-  bg                        color, $gray-16
-  color                     $gray-6
+  .Tooltip-wrapper
+    top                     auto
+    bottom                  24px
+    left                    100%
+    hidden()
+
+  .ActivityLikeLink
+    rel()
+
+  .ActivityLikeLink-count
+    rel()
+    top                     -1px
+    height                  16px
+    line-height             16px
+    rounded                 2px
+    font-size               $fs-extra-small
+    padding                 0 4px
+    margin-left             5px
+    bg                      color, $gray-16
+    color                   $gray-6
+
+  .ActivityLikeLink-count:hover + .Tooltip-wrapper
+    visible()
 
 .CommentListItem-date
   font-size                 $fs-smaller

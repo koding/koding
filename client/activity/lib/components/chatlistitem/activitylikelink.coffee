@@ -13,7 +13,7 @@ module.exports = class ActivityLikeLink extends React.Component
   getClassName: ->
 
     classnames(
-      'ChatItem-likeLink': yes
+      'ActivityLikeLink' : yes
       'is-likedByUser'   : @props.interactions.like.isInteracted
       'is-likedByOthers' : @props.interactions.like.actorsCount
     )
