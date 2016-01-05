@@ -9,7 +9,7 @@ module.exports = class TeamManageView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'member-related'
+    options.cssClass = 'team-related'
 
     super options, data
 
@@ -38,9 +38,7 @@ module.exports = class TeamManageView extends kd.View
 
     @listView   = new TeamList
     @controller = new TeamListController
-      view       : @listView
-      wrapper    : no
-      scrollView : no
+      view      : @listView
 
     @addSubView @controller.getView()
 
