@@ -1,31 +1,33 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
-ReactDOM             = require 'react-dom'
 Link                 = require 'app/components/common/link'
 TimeAgo              = require 'app/components/common/timeago'
 immutable            = require 'immutable'
 MessageLink          = require 'activity/components/messagelink'
 MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
-MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
-AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
-ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+ActivityFlux         = require 'activity/flux'
 Comments             = require 'activity/components/comments'
 ActivitySharePopup   = require 'activity/components/activitysharepopup'
 Avatar               = require 'app/components/profile/avatar'
+MessageItemMenu      = require 'activity/components/messageitemmenu'
+classnames           = require 'classnames'
+FeedItemInputWidget  = require './feediteminputwidget'
+MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
+ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
 
 module.exports = class FeedItem extends React.Component
 
   @defaultProps =
-    message: immutable.Map()
+    channelId : null
+    message   : immutable.Map()
 
   constructor: (props) ->
 
     super props
 
-    @state =
-      isPopupOpen  : no
+    @state = { isPopupOpen : no }
 
 
   shouldComponentUpdate: (nextProps, nextState) ->
@@ -36,6 +38,7 @@ module.exports = class FeedItem extends React.Component
   handleCommentLinkClick: (event) ->
 
     kd.utils.stopDOMEvent event
+
     @refs.Comments.focusCommentInput()
 
 
@@ -46,12 +49,59 @@ module.exports = class FeedItem extends React.Component
     @setState { isPopupOpen: not @state.isPopupOpen }
 
 
+  updateMessage: ->
+
+    value     = @refs.editInputWidget.getValue().trim()
+    messageId = @props.message.get '_id'
+    { message } = ActivityFlux.actions
+
+    message.unsetMessageEditMode messageId, @props.channelId
+    message.editMessage messageId, value
+
+
+  cancelEdit: ->
+
+    messageId = @props.message.get '_id'
+    { message } = ActivityFlux.actions
+
+    message.unsetMessageEditMode messageId, @props.channelId, yes
+
+
+  getClassNames: ->
+
+    { message } = @props
+
+    classnames
+      'FeedItem' : yes
+      'editing'  : message.get '__isEditing'
+      'edited'   : message.get('createdAt') isnt message.get('updatedAt')
+
+
+  renderFeedItemMenu: ->
+
+    <MessageItemMenu message={@props.message}/>
+
+
+  renderEditMode: ->
+
+    { message } = @props
+
+    return  unless message.get '__isEditing'
+
+    <FeedItemInputWidget
+      ref='editInputWidget'
+      value={message.get 'body'}
+      channelId={@props.channelId}
+      cancelEdit={@bound 'cancelEdit'}
+      updateMessage={@bound 'updateMessage'} />
+
+
   render: ->
 
     { message } = @props
     likeText = if message.getIn ['interactions', 'like',  'isInteracted'] then 'Unlike' else 'Like'
 
-    <div className={kd.utils.curry 'FeedItem', @props.className}>
+    <div className={@getClassNames()}>
       <header className="FeedItem-header">
         <div className="FeedItem-headerContentWrapper MediaObject">
           <div className="MediaObject-media">
@@ -70,11 +120,13 @@ module.exports = class FeedItem extends React.Component
             </MessageLink>
           </div>
         </div>
+        {@renderFeedItemMenu()}
       </header>
       <section className="FeedItem-body">
         <div className="FeedItem-bodyContentWrapper">
           <MessageBody message={message} />
         </div>
+        {@renderEditMode()}
       </section>
       <footer className="FeedItem-footer">
         <div className="FeedItem-footerActionContainer">
@@ -92,7 +144,10 @@ module.exports = class FeedItem extends React.Component
             isOpened={@state.isPopupOpen} />
         </div>
         <MessageLikeSummary message={message} className="FeedItem-summary" />
-        <Comments ref='Comments' message={ @props.message } />
+        <Comments
+          ref='Comments'
+          message={ @props.message }
+          channelId={ @props.channelId } />
       </footer>
     </div>
 

@@ -9,7 +9,7 @@ isKoding                 = require 'app/util/isKoding'
 AppStorage               = require 'app/appstorage'
 AppController            = require 'app/appcontroller'
 KodingAppsController     = require 'app/kodingappscontroller'
-keyboardKeys             = require 'app/util/keyboardKeys'
+keyboardKeys             = require 'app/constants/keyboardKeys'
 NotificationSettingsFlux = require 'activity/flux/channelnotificationsettings'
 
 require('./routehandler')()

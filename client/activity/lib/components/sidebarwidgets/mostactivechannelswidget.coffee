@@ -17,7 +17,7 @@ module.exports = class MostActiveChannelsWidget extends React.Component
 
     popularChannels = @props.popularChannels.slice 0, MAX_PREVIEW_COUNT
 
-    popularChannels.map (channel, index) ->
+    popularChannels.toList().map (channel, index) ->
       <MostActiveChannelListItem key={channel.get 'id'} channel={channel} />
 
 
