@@ -251,7 +251,7 @@ func (cmd *GroupDelete) Run(ctx context.Context) error {
 
 func (cmd *GroupDelete) destroy(ctx context.Context, item Item) error {
 	instance := item.(*Instance)
-	k, db, c := fromContext(ctx)
+	k, c := fromContext(ctx)
 
 	var m models.Machine
 	query := func(c *mgo.Collection) error {
@@ -262,7 +262,7 @@ func (cmd *GroupDelete) destroy(ctx context.Context, item Item) error {
 		return c.Find(where).One(&m)
 	}
 
-	err := db.Run("jMachines", query)
+	err := modelhelper.Mongo.Run("jMachines", query)
 	if err == mgo.ErrNotFound {
 		return nonil(c.DeleteInstance(instance.SoftlayerID), ErrSkipWatch)
 	}

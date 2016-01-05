@@ -120,6 +120,16 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		PostInstallScriptUri: PostInstallScriptUri,
 	}
 
+	if meta.VlanID != 0 {
+		m.Log.Debug("Assigning custom VLAN: %d", meta.VlanID)
+
+		virtualGuestTemplate.PrimaryBackendNetworkComponent = &datatypes.PrimaryBackendNetworkComponent{
+			NetworkVlan: datatypes.NetworkVlan{
+				Id: meta.VlanID,
+			},
+		}
+	}
+
 	m.Log.Debug("Creating the server instance with following data: %+v", virtualGuestTemplate)
 
 	//Get the SoftLayer virtual guest service
