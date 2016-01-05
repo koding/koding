@@ -69,9 +69,13 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	}
 
 	mountConfig := &fuse.MountConfig{
-		// Name of mount; required to be non empty or `umount` command will
-		// require root to unmount the folder.
+		// FSName is name of mount; required to be non empty or `umount` command
+		// will require root to unmount the folder.
 		FSName: c.MountName,
+
+		// VolumeName is the name of the folder shown in applications like Finder
+		// in OSX.
+		VolumeName: path.Base(c.LocalPath),
 
 		// DisableWritebackCaching disables write cache in Kernel. Without this if
 		// a file changes in the user VM, when user checks local, file will not have
