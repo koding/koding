@@ -81,9 +81,9 @@ func (cmd *GroupList) Run(ctx context.Context) error {
 	}
 	w := &tabwriter.Writer{}
 	w.Init(os.Stdout, 0, 16, 0, '\t', 0)
-	fmt.Fprintln(w, "ID\tUser\tDatacener\tTags")
+	fmt.Fprintln(w, "ID\tSoftlayerIDUser\tDatacener\tTags")
 	for _, i := range instances {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", i.Tags["koding-machineid"], i.Tags["koding-user"],
+		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\n", i.Tags["koding-machineid"], i.ID, i.Tags["koding-user"],
 			i.Datacenter.Name, i.Tags)
 	}
 	w.Flush()
