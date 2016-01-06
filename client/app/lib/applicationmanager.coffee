@@ -262,15 +262,12 @@ class ApplicationManager extends KDObject
       @quit appController.instances[appController.lastActiveIndex]
 
 
-  get:(name)->
+  get: (name, all = no)->
 
-    if apps = @appControllers[name]
-      apps.instances[apps.lastActiveIndex] or apps.instances.first
-    else
-      null
-
-
-  getInstances: (name) -> @appControllers[name]?.instances
+   if apps = @appControllers[name]
+     if all then apps else apps.instances[apps.lastActiveIndex] or apps.instances.first
+   else
+     null
 
 
   getByView: (view)->
