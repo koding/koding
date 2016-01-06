@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -40,6 +41,7 @@ func init() {
 	fs.HandleFunc("createDirectory", CreateDirectory)
 	fs.HandleFunc("move", Move)
 	fs.HandleFunc("copy", Copy)
+	fs.HandleFunc("getDiskInfo", GetDiskInfo)
 
 	go fs.Run()
 	<-fs.ServerReadyNotify()
@@ -923,4 +925,43 @@ func exists(file string) (bool, error) {
 	}
 
 	return false, err
+}
+
+func TestGetDiskInfo(t *testing.T) {
+	resp, err := remote.Tell("getDiskInfo")
+	if err != nil {
+		t.Error(err)
+	}
+
+	stfs := syscall.Statfs_t{}
+	if err := syscall.Statfs("/", &stfs); err != nil {
+		t.Fatal(err)
+	}
+
+	var di *DiskInfo
+	if err = resp.Unmarshal(&di); err != nil {
+		t.Fatal(err)
+	}
+
+	if di.BlockSize != stfs.Bsize {
+		t.Errorf("got %+v, expected %+v", stfs.Bsize, di.BlockSize)
+	}
+
+	v := stfs.Blocks * uint64(stfs.Bsize)
+	if di.BlocksTotal != v {
+		t.Errorf("got %+v, expected %+v", v, di.BlocksTotal)
+	}
+
+	v = stfs.Bfree * uint64(stfs.Bsize)
+	if di.BlocksFree != v {
+		t.Errorf("got %+v, expected %+v", v, di.BlocksFree)
+	}
+
+	if di.BlocksUsed == 0 {
+		t.Errorf("expected non 0 value")
+	}
+
+	if di.BlocksUsed != (di.BlocksTotal - di.BlocksFree) {
+		t.Errorf("blocksUsed != blocksTotal-blocksFree")
+	}
 }

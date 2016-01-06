@@ -232,6 +232,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("fs.createDirectory", fs.CreateDirectory)
 	k.kite.HandleFunc("fs.move", fs.Move)
 	k.kite.HandleFunc("fs.copy", fs.Copy)
+	k.kite.HandleFunc("fs.getDiskInfo", fs.GetDiskInfo)
 
 	// Vagrant
 	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"syscall"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
@@ -355,4 +356,27 @@ func Copy(r *kite.Request) (interface{}, error) {
 	}
 
 	return true, nil
+}
+
+type DiskInfo struct {
+	BlockSize   uint32 `json:"blockSize"`
+	BlocksTotal uint64 `json:"blocksTotal"`
+	BlocksFree  uint64 `json:"blocksFree"`
+	BlocksUsed  uint64 `json:"blocksUsed"`
+}
+
+func GetDiskInfo(r *kite.Request) (interface{}, error) {
+	stfs := syscall.Statfs_t{}
+	if err := syscall.Statfs("/", &stfs); err != nil {
+		return nil, err
+	}
+
+	di := &DiskInfo{
+		BlockSize:   stfs.Bsize,
+		BlocksTotal: stfs.Blocks * uint64(stfs.Bsize),
+		BlocksFree:  stfs.Bfree * uint64(stfs.Bsize),
+	}
+	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
+
+	return di, nil
 }
