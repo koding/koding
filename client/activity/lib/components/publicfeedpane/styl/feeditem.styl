@@ -13,8 +13,24 @@ $base-padding               = 18px
   &.is-disabled
     opacity                 .5 !important
 
+  &.editing
+    .FeedItem-bodyContentWrapper
+    .FeedItem-footerActionContainer
+      hidden()
+
+  &.edited
+    .FeedItem-date:after
+      content               " (edited)"
+      font-size             11px
+      margin                0 3px
+      dIBlock()
+
 .FeedItem-header
+  rel()
   padding                   $base-padding $base-padding 0 $base-padding
+
+  .ButtonWithMenuWrapper
+    abs                     10px 15px 0 0
 
 .FeedItem-headerContentWrapper
   overflow                  hidden
@@ -40,16 +56,6 @@ $base-padding               = 18px
   font-size                 $fs-small
   color                     $color-light-text
 
-.FeedItem-date:before
-  content                   ""
-  display                   inline-block
-  size                      3px, 3px
-  rounded                   50%
-  background                $color-light-text
-  font-size                 8px
-  margin                    0 6px
-  vertical-align            middle
-
 .FeedItem-body
   padding                   ($base-padding/2) $base-padding
 
@@ -73,7 +79,6 @@ $base-padding               = 18px
   width                     100%
   overflow                  hidden
   bg                        color, $white
-  border-bottom             1px solid #EAEAEA
   borderBox()
 
   > a
@@ -88,11 +93,11 @@ $base-padding               = 18px
 
     &:before
       dIBlock()
-      content:                ""
-      size                    3px 3px
-      rounded                 50%
-      bg                      color, $gray-12
-      font-size               12px
-      margin                  0 8px
-      vertical-align          middle
+      content:              ""
+      size                  3px 3px
+      rounded               50%
+      bg                    color, $gray-12
+      font-size             12px
+      margin                0 8px
+      vertical-align        middle
 

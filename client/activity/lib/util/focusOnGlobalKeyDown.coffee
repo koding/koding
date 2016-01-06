@@ -1,5 +1,5 @@
 kd   = require 'kd'
-KEYS = require 'app/util/keyboardKeys'
+KEYS = require 'app/constants/keyboardKeys'
 $    = require 'jquery'
 
 module.exports = focusOnGlobalKeyDown = (input) ->

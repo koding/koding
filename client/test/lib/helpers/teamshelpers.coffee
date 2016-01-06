@@ -10,6 +10,8 @@ chatItem                 = '.Pane-body .ChatList .ChatItem'
 chatInputSelector        = '.ChatPaneFooter .ChatInputWidget textarea'
 sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
 invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
+pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
 
 
 module.exports =
@@ -448,7 +450,7 @@ module.exports =
       .waitForElementNotVisible  followChannelButton, 20000
 
 
-  inviteUser: (browser) ->
+  inviteUser: (browser, addMoreUser = no) ->
 
     invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
     inviteUserView           = "#{invitationsModalSelector} .invite-view"
@@ -456,8 +458,6 @@ module.exports =
     userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
     inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
     notificationView         = '.kdnotification'
-    pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
-    pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
 
     browser
       .waitForElementVisible  inviteUserView, 20000
@@ -467,17 +467,21 @@ module.exports =
       .click                  inviteMemberButton
       .waitForElementVisible  notificationView, 20000
       .assert.containsText    notificationView, 'Invitations are sent to new members.'
-      .click                  pendingMembersTab
-      .waitForElementVisible  pendingMemberView, 20000
-      .assert.containsText    pendingMemberView, userEmail
+      .pause                  2000 # wait for notification
+
+    if addMoreUser
+      browser
+        .waitForElementVisible  emailInputSelector, 20000
+    else
+      browser
+        .click                  pendingMembersTab
+        .waitForElementVisible  pendingMemberView, 20000
+        .assert.containsText    pendingMemberView, userEmail
 
     return userEmail
 
 
   clickPendingInvitations: (browser, openTab = yes) ->
-
-    pendingMembersTab = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
-    pendingMemberView = "#{invitationsModalSelector} .kdlistitemview-member.pending"
 
     if openTab
       @clickTeamSettings(browser)
@@ -512,5 +516,25 @@ module.exports =
     if revoke
       browser.expect.element(pendingMemberView).text.to.not.contain userEmail
     else
-      browser.waitForElementVisible     '.kdnotification', 20000 # Assertion
+      browser.waitForElementVisible  '.kdnotification', 20000 # Assertion
+
+
+  searchPendingInvitation: (browser, userEmail) ->
+
+    pendingInvitations  = '.member-related .pending-invitations'
+    searchSelector      = "#{pendingInvitations} .search"
+    searchInputSelector = "#{searchSelector} input"
+    emailList           = "#{pendingInvitations} .listview-wrapper"
+
+    browser
+      .waitForElementVisible     searchSelector, 20000
+      .waitForElementVisible     searchInputSelector, 20000
+      .click                     searchInputSelector
+      .setValue                  searchInputSelector, userEmail + browser.Keys.ENTER
+      .pause                     5000 # wait for listing
+      .waitForElementVisible     emailList, 20000
+      .assert.containsText       emailList, userEmail
+
+
+
 

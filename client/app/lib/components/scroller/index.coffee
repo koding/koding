@@ -35,6 +35,7 @@ module.exports = class Scroller extends React.Component
 
     <PerfectScrollbar
       {...@props}
+      onScroll={@props.onScroll}
       className={kd.utils.curry 'Scrollable', @props.className}
       onUpLimitReached={@bound 'onUpLimitReached'}
       onDownLimitReached={@bound 'onDownLimitReached'}

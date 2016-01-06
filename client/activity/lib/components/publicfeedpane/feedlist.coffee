@@ -1,14 +1,19 @@
-kd = require 'kd'
-React = require 'kd-react'
-
+kd       = require 'kd'
+React    = require 'kd-react'
 FeedItem = require './feeditem'
 
 module.exports = class FeedList extends React.Component
 
+  defaultProps =
+    channelId : null
+
+
   renderChildren: ->
 
-    @props.messages.map (msg) ->
-      <FeedItem key={msg.get 'id'} message={msg} />
+    { channelId } = @props
+
+    @props.messages.toList().map (msg) ->
+      <FeedItem channelId={channelId} key={msg.get 'id'} message={msg} />
 
 
   render: ->

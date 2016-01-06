@@ -1,14 +1,14 @@
-$                      = require 'jquery'
-kd                     = require 'kd'
-React                  = require 'kd-react'
-immutable              = require 'immutable'
-classnames             = require 'classnames'
-Dropbox                = require 'activity/components/dropbox/portaldropbox'
-EmojiDropboxItem       = require 'activity/components/emojidropboxitem'
-ImmutableRenderMixin   = require 'react-immutable-render-mixin'
-ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
+$                    = require 'jquery'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+Dropbox              = require 'activity/components/dropbox/portaldropbox'
+EmojiDropboxItem     = require 'activity/components/emojidropboxitem'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
+ScrollableDropbox    = require 'activity/components/dropbox/scrollabledropbox'
 
-module.exports = class EmojiDropbox extends React.Component
+class EmojiDropbox extends React.Component
 
   @propTypes =
     query           : React.PropTypes.string
@@ -75,5 +75,7 @@ module.exports = class EmojiDropbox extends React.Component
     </Dropbox>
 
 
-EmojiDropbox.include [ ImmutableRenderMixin, ScrollableDropboxMixin ]
+EmojiDropbox.include [ ImmutableRenderMixin ]
+
+module.exports = ScrollableDropbox EmojiDropbox
 

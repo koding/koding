@@ -10,8 +10,9 @@ ResultState   = require 'activity/constants/resultStates'
 module.exports = class PublicFeedPane extends React.Component
 
   @defaultProps =
-    thread   : immutable.Map()
-    messages : immutable.List()
+    thread          : immutable.Map()
+    messages        : immutable.List()
+    popularChannels : immutable.List()
 
 
   channel: (keyPath...) -> @props.thread?.getIn ['channel'].concat keyPath
@@ -60,6 +61,7 @@ module.exports = class PublicFeedPane extends React.Component
 
     <FeedPane
       ref='feedPane'
+      popularChannels={@props.popularChannels}
       key={@props.thread.get 'channelId'}
       thread={@props.thread}
       onLoadMore={@bound 'onLoadMore'}

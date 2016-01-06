@@ -1,4 +1,5 @@
 React        = require 'kd-react'
+ReactDOM     = require 'react-dom'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
 Tooltip      = require 'app/components/tooltip'
@@ -8,12 +9,28 @@ ProfileText  = require 'app/components/profile/profiletext'
 module.exports = class ActivityLikeLink extends React.Component
 
   @defaultProps =
-    tooltip : yes
+    tooltip                  : yes
+    renderCount              : no
+    shouldSetTooltipPosition : no
+
+
+  componentDidUpdate: -> @setTooltipPosition()  if @props.shouldSetTooltipPosition
+
+
+  setTooltipPosition: ->
+
+    tooltip = ReactDOM.findDOMNode @refs.tooltip
+
+    return  unless tooltip
+
+    count   = ReactDOM.findDOMNode @refs.count
+    tooltip.style.marginLeft = "#{-count.offsetWidth / 2}px"
+
 
   getClassName: ->
 
     classnames(
-      'ChatItem-likeLink': yes
+      'ActivityLikeLink' : yes
       'is-likedByUser'   : @props.interactions.like.isInteracted
       'is-likedByOthers' : @props.interactions.like.actorsCount
     )
@@ -27,6 +44,16 @@ module.exports = class ActivityLikeLink extends React.Component
       unlikeMessage @props.messageId
     else
       likeMessage @props.messageId
+
+
+  renderCount: ->
+
+    return null  unless @props.renderCount
+    { actorsCount } = @props.interactions.like
+
+    return null  unless actorsCount
+
+    <span ref='count' className='ActivityLikeLink-count'>{actorsCount}</span>
 
 
   renderTooltipItems: (participant) ->
@@ -46,7 +73,7 @@ module.exports = class ActivityLikeLink extends React.Component
 
     return null  unless actorsCount
 
-    <Tooltip>
+    <Tooltip ref='tooltip'>
       {@renderTooltipItems()}
     </Tooltip>
 
@@ -55,6 +82,7 @@ module.exports = class ActivityLikeLink extends React.Component
 
     <a className={@getClassName()} onClick={ @bound 'onClick' } >
       {@props.children}
+      {@renderCount()}
       {@renderTooltip()}
     </a>
 
