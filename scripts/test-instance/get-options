@@ -4,21 +4,18 @@ cd $(dirname $0)
 
 OPTIONS=''
 
-REVISION=$(git rev-parse HEAD)
-
-HEADS=$(git branch -r -v | \
-           grep ${REVISION:0:7} | \
-           awk '{print $1}')
+HEADS=$(git branch -r --contains ${REVISION:0:7})
 
 for HEAD in $HEADS; do
   if [ -n "$(echo $HEAD | grep '/pull/')" ]; then
     PR_HEAD=$HEAD
+    break
   fi
 done
 
 if [ -n "$PR_HEAD" ]; then
   PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
-  OPTIONS="--pull-request $PR_NR $OPTIONS"
+  OPTIONS="--pull-request $PR_NR --commit $REVISION $OPTIONS"
 else
   OPTIONS="--commit $REVISION $OPTIONS"
 fi
