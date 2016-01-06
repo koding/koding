@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"koding/db/models"
 
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 )
 
 func GetNameBySlug(slug string) (*models.Name, error) {

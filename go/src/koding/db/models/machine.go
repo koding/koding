@@ -4,7 +4,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"time"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type MachineGroup struct {

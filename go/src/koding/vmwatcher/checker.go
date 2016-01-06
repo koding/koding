@@ -5,7 +5,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type LimitResponse struct {

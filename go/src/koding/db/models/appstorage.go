@@ -1,6 +1,6 @@
 package models
 
-import "labix.org/v2/mgo/bson"
+import "gopkg.in/mgo.v2/bson"
 
 type AppStorage struct {
 	Id      bson.ObjectId          `bson:"_id" json:"_id"`

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
