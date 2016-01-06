@@ -259,8 +259,6 @@ class Haydar extends events.EventEmitter
       rewriteMap : rewriteMap
       noParse    : [
         'jquery',
-        'underscore',
-        'lodash',
         'emojify',
         'kd-shim-algoliasearch', 'algoliasearch',
         'accounting',
