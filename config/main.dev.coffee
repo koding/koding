@@ -1351,13 +1351,13 @@ Configuration = (options={}) ->
 
         while IFS=".", read MAJOR MINOR REVISION; do
           MISMATCH=1
-          if [[ $MAJOR -eq 0 && $MINOR -eq 10 ]]; then
+          if [[ $MAJOR -eq 4 && $MINOR -eq 2 ]]; then
             MISMATCH=
           fi
         done < <(echo $VERSION)
 
         if [[ -n "$MISMATCH" ]]; then
-          echo "error: node version is $VERSION, it must be 0.10.x"
+          echo "error: node version is $VERSION, it must be 4.2.x"
           exit 1
         fi
       }
