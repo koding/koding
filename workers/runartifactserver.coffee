@@ -10,7 +10,7 @@ module.exports = (name = '', options = {}) ->
 
   app.use compression()
   app.use bodyParser.json()
-  helmet.defaults app
+  app.use helmet()
   app.use cors()
 
   KONFIG = require 'koding-config-manager'

@@ -40,10 +40,9 @@ do ->
   app.use bodyParser.urlencoded { extended : yes }
   app.use compression()
   # helmet:
-  app.use helmet.xframe('sameorigin')
-  app.use helmet.iexss()
-  app.use helmet.ienoopen()
-  app.use helmet.contentTypeOptions()
+  app.use helmet.frameguard action: 'sameorigin'
+  app.use helmet.xssFilter()
+  app.use helmet.ieNoOpen()
   app.use helmet.hidePoweredBy()
   app.use metrics.send
 
