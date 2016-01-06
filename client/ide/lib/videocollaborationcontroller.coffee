@@ -30,7 +30,7 @@ module.exports = VideoCollaborationController =
     if /^((?!chrome|android).)*safari/i.test userAgent
       showError """
         The video component is not supported for Safari.<br />
-        To enabled this  functionality, please use Google Chrome or Firefox.
+        To enable this functionality, please use Google Chrome or Firefox.
       """
       return
 
