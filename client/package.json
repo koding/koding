@@ -8,6 +8,7 @@
     "@koding/inherits-underscore": "0.2.0",
     "@koding/kd-react": "koding/kd-react.git#0.2.0",
     "accounting": "0.4.1",
+    "algoliasearch": "3.10.2",
     "async": "2.0.1",
     "axios": "0.14.0",
     "backoff": "2.5.0",
@@ -33,7 +34,6 @@
     "inputmask-core": "2.2.0",
     "jquery": "3.1.0",
     "js-yaml": "3.6.1",
-    "kd-shim-algoliasearch": "2.9.2",
     "kd-shim-jquery-sketchpad": "0.1.1",
     "kd-shim-jspath": "0.2.0",
     "kd-shim-sockjs-client": "0.3.4",
@@ -97,7 +97,6 @@
   "browser": {
     "kd": "kd.js",
     "jspath": "kd-shim-jspath",
-    "algoliasearch": "kd-shim-algoliasearch",
     "underscore": "lodash",
     "sockjs-client": "kd-shim-sockjs-client",
     "os": "component-os",
