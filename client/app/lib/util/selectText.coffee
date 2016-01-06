@@ -1,6 +1,6 @@
 module.exports = (element) ->
 
-  if global.document.body.createTextRange
+  if document.body.createTextRange
     range = document.body.createTextRange()
     range.moveToElementText element
     range.select()
