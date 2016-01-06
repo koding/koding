@@ -97,7 +97,7 @@ module.exports = [
   ]
 
   [
-    { name: 'environments vm-advanced' }
+    # { name: 'environments vm-advanced' }
   ]
 
 ]
