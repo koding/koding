@@ -111,8 +111,9 @@ module.exports = class SearchController extends KDObject
 
   searchAccountsMongo: (seed) ->
 
-    val   = seed.replace /^@/, ''
-    query =
+    val       = seed.replace /^@/, ''
+    nickname  = nick()
+    query     =
       'profile.nickname': val
 
     { groupsController } = kd.singletons
@@ -126,9 +127,12 @@ module.exports = class SearchController extends KDObject
         # don't show it in auto complete
         if (group = groupsController.getCurrentGroup())
           return group.isMember account, (err, isMember) ->
-            if err
-            then reject err
-            else resolve if isMember then [account] else []
+            return reject err  if err
+
+            if isMember and account.profile.nickname isnt nickname
+              resolve [account]
+            else
+              resolve []
 
 
   searchAccounts: (seed, options = {}) ->
