@@ -36,9 +36,10 @@ SuggestionsFlagsStore           = [['SuggestionsFlagsStore'], withEmptyMap]
 SuggestionsSelectedIndexStore   = ['SuggestionsSelectedIndexStore']
 UsersStore                      = [['UsersStore'], withEmptyMap]
 MessageLikersStore              = [['MessageLikersStore'], withEmptyMap]
-
 SidebarPublicChannelsQueryStore = ['SidebarPublicChannelsQueryStore']
 SidebarPublicChannelsTabStore   = ['SidebarPublicChannelsTabStore']
+socialShareLinks                = [['SocialShareLinksStore'], withEmptyMap]
+ActiveSocialShareLinkIdStore    = ['ActiveSocialShareLinkIdStore']
 
 FollowedPublicChannelIdsStore = [
   FollowedPublicChannelIdsStore
@@ -102,9 +103,24 @@ channelParticipants = [
       , immutable.Map()
 ]
 
+messages = [
+  MessagesStore
+  MessageLikersStore
+  allUsers
+  (messages, likers, users) ->
+    messages.map (msg) ->
+      msg.updateIn ['interactions', 'like'], (like) ->
+        like.withMutations (like) ->
+          messageLikers = likers.get (msg.get 'id'), immutable.Map()
+          like
+            .set 'actorsPreview', messageLikers.map (id) -> users.get id
+            .set 'actorsCount', messageLikers.size
+            .set 'isInteracted', messageLikers.contains whoami()._id
+]
+
 messagesWithComments = [
   MessageThreadsStore
-  MessagesStore
+  messages
   MessageFlagsStore
   (threads, messages, flags) ->
     messages
@@ -218,14 +234,6 @@ selectedChannelThread = [
         msg.update 'body', (body) ->
           # don't show channel name on post body.
           body.replace(///\##{channel.get('name')}($|\s)///, '').trim()
-
-        msg.updateIn ['interactions', 'like'], (like) ->
-          like.withMutations (like) ->
-            messageLikers = likers.get (msg.get 'id'), immutable.Map()
-            like
-              .set 'actorsPreview', messageLikers.map (id) -> users.get id
-              .set 'actorsCount', messageLikers.size
-              .set 'isInteracted', messageLikers.contains whoami()._id
 
     return thread
 ]
@@ -469,5 +477,6 @@ module.exports = {
   sidebarPublicChannels
 
   allFollowedChannels
+  socialShareLinks
+  activeSocialShareLinkId: ActiveSocialShareLinkIdStore
 }
-

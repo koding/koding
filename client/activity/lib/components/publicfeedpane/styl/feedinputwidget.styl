@@ -3,16 +3,35 @@
   padding-left              34px
   max-width                 600px
   rel()
-  > i
+
+  &:before
+    content                 ''
     top                     18px
     left                    50px
     r-sprite                activity widget-icon
     z-index                 2
     abs()
 
+  &.embedded
+    bg                      color, transparent
+    padding-left            0
+
+    &:before
+      hidden()
+
+    textarea
+      padding               5px !important
+      rounded               3px
+      height                50px !important
+      min-height            50px
+
+    .FeedInputWidget-buttonBar
+      border                none
+
   textarea
     dBlock()
     borderBox()
+    rounded                 3px 3px 0 0
     padding                 16px 44px 14px !important
     min-height              52px !important
     max-height              60vh
@@ -29,7 +48,6 @@
   padding                   8px
   border                    1px solid #dfdfdf
   border-top                none
-  bg                        color, #f4f4f4
 
   .FeedInputWidget-send
     height                  26px
@@ -43,6 +61,15 @@
     outline                 none
     border                  none
     r-sprite                "activity", "markdown"
+
+  .FeedInputWidget-cancel
+    border                  none
+    color                   $gray-8
+    font-size               14px
+
+    &:active
+      bg                    color, transparent
+      outline               0
 
 .FeedInputWidget-previewWrapper
   max-width                 600px
@@ -97,8 +124,7 @@
 
   &:after
     content                 ''
-    display                 inline-block
     r-sprite                activity, 'green-cancel-16'
     vertical-align          middle
     margin-left             7px
-
+    dIBlock()

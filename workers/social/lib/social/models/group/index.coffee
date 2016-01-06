@@ -702,7 +702,7 @@ module.exports = class JGroup extends Module
         dash queue, callback
 
   # isInAllowedDomain checks if given email's domain is in allowed domains
-  isInAllowedDomain: (email, callback) ->
+  isInAllowedDomain: (email) ->
     # allow for all domains for koding
     return yes if @slug is 'koding'
 

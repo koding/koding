@@ -2,7 +2,6 @@ whoami = require '../util/whoami'
 kd = require 'kd'
 KDListItemView = kd.ListItemView
 AvatarView = require './avatarviews/avatarview'
-FollowButton = require './followbutton'
 JCustomHTMLView = require '../jcustomhtmlview'
 ProfileLinkView = require './linkviews/profilelinkview'
 
@@ -28,28 +27,8 @@ module.exports = class MembersListItemView extends KDListItemView
 
     @actor = new ProfileLinkView {}, data
 
-    @followersAndFollowing = new JCustomHTMLView
-      cssClass  : 'user-numbers'
-      pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
-    , data
-
-    unless data.getId() is whoami().getId()
-      @followButton = new FollowButton
-        title          : "follow"
-        icon           : yes
-        style          : 'solid green medium'
-        stateOptions   :
-          unfollow     :
-            title      : "unfollow"
-            cssClass   : 'following-account'
-            style      : 'solid gray medium'
-        dataType       : 'JAccount'
-      , data
-
   viewAppended:->
     @addSubView @avatar
-    @addSubView @followButton if @followButton
     @addSubView @actor
-    @addSubView @followersAndFollowing
 
 
