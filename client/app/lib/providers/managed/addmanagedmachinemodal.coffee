@@ -1,7 +1,7 @@
-kd        = require 'kd'
-whoami    = require 'app/util/whoami'
-globals   = require 'globals'
-isMacOS   = require 'app/util/isMacOS'
+kd              = require 'kd'
+whoami          = require 'app/util/whoami'
+globals         = require 'globals'
+getCopyShortcut = require 'app/util/getCopyShortcut'
 
 
 module.exports = class AddManagedMachineModal extends kd.ModalView
@@ -109,9 +109,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   showTooltip: ->
 
-    shortcut = if isMacOS() then 'Cmd' else 'Ctrl'
-
-    @input.setTooltip title: "Press #{shortcut}+C to copy", placement: 'above'
+    @input.setTooltip title: "Press #{getCopyShortcut()} to copy", placement: 'above'
     @input.tooltip.show()
 
     kd.singletons.windowController.addLayer @input

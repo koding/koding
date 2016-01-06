@@ -2,13 +2,13 @@ kd                     = require 'kd'
 KDView                 = kd.View
 Encoder                = require 'htmlencode'
 Machine                = require './machine'
-isMacOS                = require 'app/util/isMacOS'
 isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 selectText             = require 'app/util/selectText'
 KodingSwitch           = require '../commonviews/kodingswitch'
 KDLoaderView           = kd.LoaderView
 CustomLinkView         = require '../customlinkview'
+getCopyShortcut        = require 'app/util/getCopyShortcut'
 KDCustomHTMLView       = kd.CustomHTMLView
 KDHitEnterInputView    = kd.HitEnterInputView
 KDFormViewWithFields   = kd.FormViewWithFields
@@ -158,8 +158,6 @@ module.exports = class MachineSettingsGeneralView extends KDView
       then "<span class='logs-link'>show logs</span>"
       else "Please turn on the machine to see logs"
 
-    copyShortcut = if isMacOS() then 'Cmd' else 'Ctrl'
-
     @addSubView @form = new KDFormViewWithFields
       cssClass          : 'AppModal-form'
       fields            :
@@ -205,7 +203,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
           itemClass     : KDView
           partial       : @machine.ipAddress or 'N/A'
           tooltip       :
-            title       : "Press #{copyShortcut}+C to copy"
+            title       : "Press #{getCopyShortcut()} to copy"
             sticky      : yes
             cssClass    : 'public-ip'
             placement   : 'above'
