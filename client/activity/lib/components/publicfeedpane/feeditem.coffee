@@ -8,7 +8,6 @@ MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
 ActivityFlux         = require 'activity/flux'
 Comments             = require 'activity/components/comments'
-ActivitySharePopup   = require 'activity/components/activitysharepopup'
 Avatar               = require 'app/components/profile/avatar'
 MessageItemMenu      = require 'activity/components/messageitemmenu'
 classnames           = require 'classnames'
@@ -16,18 +15,13 @@ FeedItemInputWidget  = require './feediteminputwidget'
 MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+SocialShareLink      = require './socialsharelink'
 
 module.exports = class FeedItem extends React.Component
 
   @defaultProps =
     channelId : null
     message   : immutable.Map()
-
-  constructor: (props) ->
-
-    super props
-
-    @state = { isPopupOpen : no }
 
 
   shouldComponentUpdate: (nextProps, nextState) ->
@@ -40,13 +34,6 @@ module.exports = class FeedItem extends React.Component
     kd.utils.stopDOMEvent event
 
     @refs.Comments.focusCommentInput()
-
-
-  toggleSharePopupVisibility: (event) ->
-
-    kd.utils.stopDOMEvent event
-
-    @setState { isPopupOpen: not @state.isPopupOpen }
 
 
   updateMessage: ->
@@ -137,11 +124,7 @@ module.exports = class FeedItem extends React.Component
             {likeText}
           </ActivityLikeLink>
           <Link onClick={@bound 'handleCommentLinkClick'}>Comment</Link>
-          <Link onClick={@bound 'toggleSharePopupVisibility'}>Share</Link>
-          <ActivitySharePopup
-            url = "Activity/Post/#{message.get('slug')}"
-            className='FeedItem-sharePopup'
-            isOpened={@state.isPopupOpen} />
+          <SocialShareLink messageId={message.get('id')} />
         </div>
         <MessageLikeSummary message={message} className="FeedItem-summary" />
         <Comments
