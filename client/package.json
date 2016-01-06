@@ -54,6 +54,7 @@
     "react-radio": "1.0.6",
     "react-router": "1.0.0-rc4",
     "react-waypoint": "1.1.2",
+    "react-addons-test-utils": "0.14.5",
     "record-shortcuts": "0.1.4",
     "shortcuts": "0.5.7",
     "sinkrow": "git+ssh://git@github.com:koding/sinkrow#v0.1.2",
