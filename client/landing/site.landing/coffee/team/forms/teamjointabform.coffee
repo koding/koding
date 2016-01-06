@@ -15,9 +15,10 @@ module.exports = class TeamJoinTabForm extends KDFormView
   getButton: (title) ->
 
     new KDButtonView
-      title      : title
-      style      : 'TeamsModal-button TeamsModal-button--green'
-      type       : 'submit'
+      title   : title
+      style   : 'TeamsModal-button TeamsModal-button--green'
+      type    : 'submit'
+      loader  : yes
 
 
   getButtonLink: (partial, callback) ->

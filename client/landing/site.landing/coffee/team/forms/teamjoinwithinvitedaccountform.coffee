@@ -1,6 +1,6 @@
 JView           = require './../../core/jview'
-TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'
+TeamJoinTabForm = require './../forms/teamjointabform'
 
 
 module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
@@ -9,7 +9,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
     super
 
-    teamData     = KD.utils.getTeamData()
+    teamData = KD.utils.getTeamData()
 
     @username = new LoginInputView
       cssClass        : 'hidden'
@@ -24,8 +24,10 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     @buttonLink = @getButtonLink "Not you? <a href='#'>Create an account!</a>", (event) =>
       KD.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
-      # @emit 'FormNeedsToBeChanged', yes, yes
+
       @emit 'FormNeedsToBeChanged', no, no
+
+    @on 'FormValidationFailed', @button.bound 'hideLoader'
 
 
   submit: (formData) ->
