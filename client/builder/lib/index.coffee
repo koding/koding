@@ -261,7 +261,6 @@ class Haydar extends events.EventEmitter
         'jquery',
         'lodash-compat',
         'emojify',
-        'kd-shim-algoliasearch', 'algoliasearch',
         'accounting',
         'timeago'
       ]
