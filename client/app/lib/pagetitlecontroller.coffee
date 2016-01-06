@@ -63,13 +63,16 @@ module.exports = class PageTitleController extends KDObject
 
   update: (title) ->
 
-    prefix = ''
+    title = "#{Encoder.htmlDecode title}"
 
-    unless isKoding()
-      groupTitle = kd.singletons.groupsController.getCurrentGroup().title
-      prefix = "#{groupTitle} - Koding |"
+    { groupsController } = kd.singletons
 
-    global.document.title = " #{prefix} #{Encoder.htmlDecode title}"
+    groupsController.ready ->
+      if ((group = groupsController.getCurrentGroup()) and not isKoding())
+        global.document.title = "#{group.title} - Koding | #{title}"
+      else
+        global.document.title = "#{title}"
+
 
   reset: -> @update @defaultTitle
 
