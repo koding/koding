@@ -1,0 +1,127 @@
+
+Whois Server Version 2.0
+
+Domain names in the .com and .net domains can now be registered
+with many different competing registrars. Go to http://www.internic.net
+for detailed information.
+
+   Domain Name: KODING.COM
+   Registrar: OMNIS NETWORK, LLC
+   Sponsoring Registrar IANA ID: 143
+   Whois Server: whois.omnis.com
+   Referral URL: http://www.omnis.com
+   Name Server: ELLE.NS.CLOUDFLARE.COM
+   Name Server: FRED.NS.CLOUDFLARE.COM
+   Status: ok http://www.icann.org/epp#OK
+   Updated Date: 26-feb-2014
+   Creation Date: 24-oct-2003
+   Expiration Date: 24-oct-2021
+
+>>> Last update of whois database: Tue, 14 Jul 2015 21:23:22 GMT <<<
+
+NOTICE: The expiration date displayed in this record is the date the
+registrar's sponsorship of the domain name registration in the registry is
+currently set to expire. This date does not necessarily reflect the expiration
+date of the domain name registrant's agreement with the sponsoring
+registrar.  Users may consult the sponsoring registrar's Whois database to
+view the registrar's reported date of expiration for this registration.
+
+TERMS OF USE: You are not authorized to access or query our Whois
+database through the use of electronic processes that are high-volume and
+automated except as reasonably necessary to register domain names or
+modify existing registrations; the Data in VeriSign Global Registry
+Services' ("VeriSign") Whois database is provided by VeriSign for
+information purposes only, and to assist persons in obtaining information
+about or related to a domain name registration record. VeriSign does not
+guarantee its accuracy. By submitting a Whois query, you agree to abide
+by the following terms of use: You agree that you may use this Data only
+for lawful purposes and that under no circumstances will you use this Data
+to: (1) allow, enable, or otherwise support the transmission of mass
+unsolicited, commercial advertising or solicitations via e-mail, telephone,
+or facsimile; or (2) enable high volume, automated, electronic processes
+that apply to VeriSign (or its computer systems). The compilation,
+repackaging, dissemination or other use of this Data is expressly
+prohibited without the prior written consent of VeriSign. You agree not to
+use electronic processes that are automated and high-volume to access or
+query the Whois database except as reasonably necessary to register
+domain names or modify existing registrations. VeriSign reserves the right
+to restrict your access to the Whois database in its sole discretion to ensure
+operational stability.  VeriSign may restrict or terminate your access to the
+Whois database for failure to abide by these terms of use. VeriSign
+reserves the right to modify these terms at any time.
+
+The Registry database contains ONLY .COM, .NET, .EDU domains and
+Registrars.
+
+For more information on Whois status codes, please visit
+https://www.icann.org/resources/pages/epp-status-codes-2014-06-16-en.
+Domain Name: koding.com
+Domain ID: d558381
+WHOIS Server: whois.omnis.com
+Update Date: 2014-02-26T22:44:54Z
+Creation Date: 2003-10-24T18:41:58Z
+Registrar Registration Expiration Date: 2021-10-24T18:41:58Z
+Registrar: Omnis Network, LLC
+Registrar IANA ID: 143
+Registrar Abuse Contact Email: abuse@omnis.com
+Registrar Abuse Contact Phone: +1.310-316-9600
+Domain Status: ok
+Registry Registrant ID:
+Registrant Name: Devrim Yasar
+Registrant Organization:
+Registrant Street: POBOX 10055
+Registrant City: New York
+Registrant State/Province: NY
+Registrant Postal Code: 10027
+Registrant Country: US
+Registrant Phone: +1.9173385110
+Registrant Phone Ext:
+Registrant Fax:
+Registrant Fax Ext:
+Registrant Email: domains@kodingen.com
+Registry Admin ID:
+Admin Name: Devrim Yasar
+Admin Organization:
+Admin Street: POBOX 10055
+Admin City: New York
+Admin State/Province: NY
+Admin Postal Code: 10027
+Admin Country: US
+Admin Phone: +1.9173385110
+Admin Phone Ext:
+Admin Fax:
+Admin Fax Ext:
+Admin Email: domains@kodingen.com
+Registry Tech ID:
+Tech Name: Devrim Yasar
+Tech Organization:
+Tech Street: POBOX 10055
+Tech City: New York
+Tech State/Province: NY
+Tech Postal Code: 10027
+Tech Country: US
+Tech Phone: +1.9173385110
+Tech Phone Ext:
+Tech Fax:
+Tech Fax Ext:
+Tech Email: domains@kodingen.com
+Name Server: fred.ns.cloudflare.com
+Name Server: elle.ns.cloudflare.com
+DNSSEC: unsigned
+URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
+>>> Last update of WHOIS database: 2015-07-14T21:23:28Z <<<
+
+Omnis Network, LLC's WHOIS data is provided for information and reference
+only. Omnis Network, LLC makes no guarantee or warranty that the data
+available is accurate. You agree that the data will not be used under any
+circumstances to allow, enable, or otherwise support the transmission by
+email, telephone, or facsimile of mass, unsolicited, commercial
+advertising or solicitation. You agree not to enable high volume,
+automated, electronic processes that submit queries to Omnis Network, LLC
+or send data to the systems of any Registry operator or ICANN-Accredited
+registrar. Compilation, repackaging, dissemination or other use of the
+WHOIS database in its entirety, or of a substantial portion thereof, is
+not allowed without prior written permission of Omnis Network, LLC. By
+submitting this query, you agree to be bound by these terms.
+
+

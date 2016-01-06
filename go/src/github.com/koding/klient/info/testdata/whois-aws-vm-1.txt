@@ -1,0 +1,36 @@
+
+#
+# ARIN WHOIS data and services are subject to the Terms of Use
+# available at: https://www.arin.net/whois_tou.html
+#
+# If you see inaccuracies in the results, please report at
+# http://www.arin.net/public/whoisinaccuracy/index.xhtml
+#
+
+
+#
+# Query terms are ambiguous.  The query is assumed to be:
+#     "n 54.186.53.164"
+#
+# Use "?" to get help.
+#
+
+#
+# The following results may also be obtained via:
+# http://whois.arin.net/rest/nets;q=54.186.53.164?showDetails=true&showARIN=false&showNonArinTopLevelNet=false&ext=netref2
+#
+
+Amazon.com, Inc. AMAZO-ZPDX7 (NET-54-184-0-0-1) 54.184.0.0 - 54.187.255.255
+Amazon Technologies Inc. AMAZON-2011L (NET-54-176-0-0-1) 54.176.0.0 - 54.191.255.255
+
+
+
+#
+# ARIN WHOIS data and services are subject to the Terms of Use
+# available at: https://www.arin.net/whois_tou.html
+#
+# If you see inaccuracies in the results, please report at
+# http://www.arin.net/public/whoisinaccuracy/index.xhtml
+#
+
+
