@@ -29,26 +29,20 @@ type MachineSpec struct {
 
 // HasMachine returns true when spec describes aleady existing machine.
 func (spec *MachineSpec) HasMachine() bool {
-	return spec.Machine.ObjectId != "" && spec.Machine.ObjectId.Valid()
+	return spec.Machine.ObjectId.Valid()
 }
 
 // HasUser returns true when spec describes already existing user.
 func (spec *MachineSpec) HasUser() bool {
-	if spec.User.ObjectId != "" && spec.User.ObjectId.Valid() {
+	if spec.User.ObjectId.Valid() {
 		return true
 	}
-	if len(spec.Machine.Users) == 0 {
-		return false
-	}
-	return spec.Machine.Users[0].Id != "" && spec.Machine.Users[0].Id.Valid()
+	return len(spec.Machine.Users) != 0 && spec.Machine.Users[0].Id.Valid()
 }
 
 // HasGroup returns true when spec describes already existing group.
 func (spec *MachineSpec) HasGroup() bool {
-	if len(spec.Machine.Groups) == 0 {
-		return false
-	}
-	return spec.Machine.Groups[0].Id != "" && spec.Machine.Groups[0].Id.Valid()
+	return len(spec.Machine.Groups) != 0 && spec.Machine.Groups[0].Id.Valid()
 }
 
 // Username returns the name of the user the requests machine creation.

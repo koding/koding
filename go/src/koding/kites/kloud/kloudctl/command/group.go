@@ -214,10 +214,11 @@ func createMachine(ctx context.Context, spec *MachineSpec) *Status {
 	}}
 	var last Stage
 	for {
-		resp, err := k.Tell("event", req)
+		resp, err := k.TellWithTimeout("event", defaultTellTimeout, req)
 		if err != nil {
 			return newStatus(err)
 		}
+
 		var events []kloud.EventResponse
 		if err := resp.Unmarshal(&events); err != nil {
 			return newStatus(err)
@@ -225,6 +226,7 @@ func createMachine(ctx context.Context, spec *MachineSpec) *Status {
 		if len(events) == 0 || events[0].Event == nil {
 			return newStatus(errors.New("empty event response"))
 		}
+
 		if events[0].Event.Message != last.Name || events[0].Event.Percentage != last.Progress {
 			last = Stage{
 				Name:     events[0].Event.Message,
@@ -233,12 +235,14 @@ func createMachine(ctx context.Context, spec *MachineSpec) *Status {
 			}
 			stages = append(stages, last)
 		}
+
 		if s := events[0].Event.Error; s != "" {
 			return newStatus(errors.New(s))
 		}
 		if events[0].Event.Percentage == 100 {
 			return newStatus(nil)
 		}
+
 		time.Sleep(defaultPollInterval)
 	}
 }

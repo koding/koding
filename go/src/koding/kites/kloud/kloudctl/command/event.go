@@ -12,7 +12,10 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-const defaultPollInterval = 4 * time.Second
+const (
+	defaultPollInterval = 4 * time.Second
+	defaultTellTimeout  = 15 * time.Second
+)
 
 type Event struct {
 	event    *string
@@ -54,7 +57,7 @@ func watch(k *kite.Client, eventType string, eventId string, interval time.Durat
 	})
 
 	for {
-		resp, err := k.Tell("event", eventArgs)
+		resp, err := k.TellWithTimeout("event", defaultTellTimeout, eventArgs)
 		if err != nil {
 			return err
 		}
