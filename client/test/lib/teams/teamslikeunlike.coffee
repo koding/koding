@@ -7,26 +7,26 @@ HUBSPOT      = no
 module.exports =
 
 
-  likePost: (browser) ->
+  # likePost: (browser) ->
 
-    message = helpers.getFakeText()
+  #   message = helpers.getFakeText()
 
-    user    = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user)
-    teamsHelpers.sendComment(browser, message)
-    teamsHelpers.likeunlikePost(browser)
-    browser.end()
+  #   user    = teamsHelpers.loginTeam(browser)
+  #   teamsHelpers.createChannel(browser, user)
+  #   teamsHelpers.sendComment(browser, message)
+  #   teamsHelpers.likeunlikePost(browser)
+  #   browser.end()
 
 
-  unlikePost: (browser) ->
+  # unlikePost: (browser) ->
 
-    message = helpers.getFakeText()
+  #   message = helpers.getFakeText()
 
-    user    = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user)
-    teamsHelpers.sendComment(browser, message)
-    teamsHelpers.likeunlikePost(browser, yes)
-    browser.end()
+  #   user    = teamsHelpers.loginTeam(browser)
+  #   teamsHelpers.createChannel(browser, user)
+  #   teamsHelpers.sendComment(browser, message)
+  #   teamsHelpers.likeunlikePost(browser, yes)
+  #   browser.end()
 
 
   editPost: (browser) ->
