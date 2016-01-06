@@ -1,5 +1,4 @@
 {fork} = require 'child_process'
-# KodingLogger = require 'koding-logger'
 os = require 'os'
 processes = new (require 'processes')
 option '-c', '--configPath [CONFIG]', 'Which config file to use.'
