@@ -538,3 +538,26 @@ module.exports =
 
 
 
+
+  likeunlikePost: (browser, likeLikePost = no) ->
+
+    bodyContainer       = '.ChatListItem-itemBodyContainer'
+    likeButtonUnpressed = "#{bodyContainer} .ChatItem-likeLink:nth-child(2)"
+    likeButtonPressed   = "#{bodyContainer} .ChatItem-likeLink.is-likedByUser"
+    textSelector        = "#{bodyContainer}:nth-of-type(1)"
+
+    browser
+      .pause                  2000
+      .waitForElementVisible  textSelector, 20000
+      .moveToElement          textSelector, 10, 10
+      .waitForElementVisible  likeButtonUnpressed, 20000
+      .click                  likeButtonUnpressed
+      .waitForElementVisible  likeButtonPressed, 20000
+      .assert.visible         likeButtonPressed
+
+    if likeLikePost
+      browser
+        .click                    likeButtonPressed
+        .waitForElementVisible    likeButtonUnpressed, 20000
+        .pause                    3000
+        .assert.elementNotPresent likeButtonPressed

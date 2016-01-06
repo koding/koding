@@ -94,6 +94,7 @@ module.exports = [
   [
     { name: 'environments domain' }
     { name: 'teams teams' }
+    { name: 'teams teamslikeunlike' }
   ]
 
   [
