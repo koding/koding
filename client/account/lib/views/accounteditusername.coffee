@@ -30,6 +30,7 @@ module.exports = class AccountEditUsername extends JView
   constructor: (options = {}, data) ->
 
     super options, data
+
     @initViews()
 
 
@@ -351,6 +352,9 @@ module.exports = class AccountEditUsername extends JView
     if @userInfo.status is "unconfirmed"
       @userProfileForm.fields.verifyEmail.show()
       @userProfileForm.inputs.verifyEmail.show()
+
+    @userProfileForm.inputs.firstName.setFocus()
+
 
   getAvatarOptions: ->
     tagName       : 'figure'
