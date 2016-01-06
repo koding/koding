@@ -1,8 +1,8 @@
-React         = require 'react/addons'
-ReactDOM      = require 'react-dom'
-expect        = require 'expect'
-DateMarker    = require '../datemarker'
-{ TestUtils } = React.addons
+React      = require 'react/addons'
+ReactDOM   = require 'react-dom'
+expect     = require 'expect'
+DateMarker = require '../datemarker'
+TestUtils  = require 'react-addons-test-utils'
 
 describe 'DateMarker', ->
 
