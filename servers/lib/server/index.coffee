@@ -40,9 +40,8 @@ do ->
   app.use compression()
   # helmet:
   app.use helmet.xframe('sameorigin')
-  app.use helmet.iexss()
+  app.use helmet.xssFilter()
   app.use helmet.ienoopen()
-  app.use helmet.contentTypeOptions()
   app.use helmet.hidePoweredBy()
   app.use metrics.send
 
