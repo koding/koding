@@ -8,6 +8,7 @@ AppController         = require 'app/appcontroller'
 IDEEditorPane         = require 'ide/workspace/panes/ideeditorpane'
 IDETailerPane         = require 'ide/workspace/panes/idetailerpane'
 IDETerminalPane       = require 'ide/workspace/panes/ideterminalpane'
+IDEDrawingPane        = require 'ide/workspace/panes/idedrawingpane'
 IDEApplicationTabView = require 'ide/views/tabview/ideapplicationtabview'
 
 ideView = null
@@ -125,4 +126,18 @@ describe 'IDEView', ->
       expect(pane).toBeA kd.TabPaneView
       expect(pane.view).toBeA IDETerminalPane
       expect(pane.options.name).toBe 'Terminal'
+      expect(ideView.tabView.panes).toInclude pane
       expect(pane.view.options.path).toBe '/root/path'
+
+
+  describe '::createDrawingBoard', ->
+
+    it 'should create a drawing board and append it', ->
+
+      ideView.createDrawingBoard '123ea1'
+      pane = ideView.tabView.panes.first.view
+
+      expect(pane).toBeA IDEDrawingPane
+      expect(pane.hash).toBe '123ea1'
+
+

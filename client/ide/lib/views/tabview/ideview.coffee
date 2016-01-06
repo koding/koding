@@ -395,8 +395,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     drawingPane = new IDEDrawingPane { hash: paneHash }
     @createPane_ drawingPane, { name: 'Drawing' }
 
-    unless paneHash
-      @emitChange  drawingPane, context: {}
+    @emitChange  drawingPane, context: {}  unless paneHash
 
 
   createPreview: (url) ->
