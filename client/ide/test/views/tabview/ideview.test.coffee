@@ -1,6 +1,7 @@
 kd                    = require 'kd'
 mock                  = require '../../../../mocks/mockingjay'
 expect                = require 'expect'
+IDEAce                = require 'ide/views/ace/ideace'
 FSFile                = require 'app/util/fs/fsfile'
 FSHelper              = require 'app/util/fs/fshelper'
 IDEView               = require 'ide/views/tabview/ideview'
@@ -249,3 +250,50 @@ describe 'IDEView', ->
 
       editorPane.emit 'ShowMeAsActive'
       expect(ideView.switchToEditorTabByFile).toHaveBeenCalledWith file
+
+
+    it 'should listen for EditorIsReady event and handle the cases', ->
+
+      obj            = callback: ->
+      file           = getFile()
+      content        = 'foo bar'
+      cursor         = { row: 1, column: 2 }
+      fakeAce        = new IDEAce
+      fakeAce.editor =
+        scrollToRow  : ->
+        setReadOnly  : ->
+
+      expect.spyOn obj, 'callback'
+
+      editorPane = ideView.createEditorAfterFileCheck file, content, obj.callback, yes, yes
+
+      expect.spyOn(editorPane, 'getAce').andReturn fakeAce
+      expect.spyOn editorPane, 'goToLine'
+      expect.spyOn fakeAce.editor, 'scrollToRow'
+      expect.spyOn IDEHelpers, 'showFileReadOnlyNotification'
+      expect.spyOn editorPane, 'makeReadOnly'
+      spy = expect.spyOn kd.singletons.appManager, 'tell'
+
+      editorPane.emit 'EditorIsReady'
+
+      expect(fakeAce.editor.scrollToRow).toHaveBeenCalledWith 0
+      expect(editorPane.goToLine).toHaveBeenCalledWith 1
+      expect(IDEHelpers.showFileReadOnlyNotification).toHaveBeenCalled()
+      expect(editorPane.makeReadOnly).toHaveBeenCalled()
+      expect(obj.callback).toHaveBeenCalledWith editorPane
+
+      fakeAce.emit 'ace.change.cursor', cursor
+      [ appName, methodName, paneType, data ] = spy.calls[0].arguments
+
+      expect(appName).toBe 'IDE'
+      expect(methodName).toBe 'updateStatusBar'
+      expect(paneType).toBe 'editor'
+      expect(data.cursor).toBe cursor
+      expect(data.file).toBe file
+
+      fakeAce.emit 'FindAndReplaceViewRequested', yes
+      [ appName_, methodName_, inReplaceMode ] = spy.calls[1].arguments
+
+      expect(appName_).toBe 'IDE'
+      expect(methodName_).toBe 'showFindReplaceView'
+      expect(inReplaceMode).toBe yes
