@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"koding/db/models"
-	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 
 	"github.com/fatih/structs"
 	"gopkg.in/mgo.v2"
@@ -152,16 +152,16 @@ func (vars *MachineSpecVars) Funcs() map[string]interface{} {
 
 // BuildUserAndGroup ensures the user and group of the spec are
 // inserted into db.
-func (spec *MachineSpec) BuildUserAndGroup(db *mongodb.MongoDB) error {
+func (spec *MachineSpec) BuildUserAndGroup() error {
 	// If MachineID is not nil, ensure it exists and reuse it if it does.
 	if spec.HasMachine() {
-		return db.One("jMachines", spec.Machine.ObjectId.Hex(), &spec.Machine)
+		return modelhelper.Mongo.One("jMachines", spec.Machine.ObjectId.Hex(), &spec.Machine)
 	}
 	// If no existing group is provided, create or use 'hackathon' one,
 	// which will make VMs invisible to users until they're assigned
 	// to proper group before the hackathon.
 	if !spec.HasGroup() {
-		group, err := getOrCreateHackathonGroup(db)
+		group, err := getOrCreateHackathonGroup()
 		if err != nil {
 			return err
 		}
@@ -191,7 +191,7 @@ func (spec *MachineSpec) BuildUserAndGroup(db *mongodb.MongoDB) error {
 			}
 			return c.Insert(&spec.User)
 		}
-		err := db.Run("jUsers", query)
+		err := modelhelper.Mongo.Run("jUsers", query)
 		if err != nil {
 			return err
 		}
@@ -216,7 +216,7 @@ func (spec *MachineSpec) BuildUserAndGroup(db *mongodb.MongoDB) error {
 			group.Counts["members"] = count + 1
 			return c.UpdateId(id, &group)
 		}
-		err = db.Run("jGroups", query)
+		err = modelhelper.Mongo.Run("jGroups", query)
 		if err != nil {
 			return err
 		}
@@ -237,7 +237,7 @@ func (spec *MachineSpec) BuildUserAndGroup(db *mongodb.MongoDB) error {
 		query := func(c *mgo.Collection) error {
 			return c.FindId(spec.Machine.Users[0].Id).One(&user)
 		}
-		err := db.Run("jUsers", query)
+		err := modelhelper.Mongo.Run("jUsers", query)
 		if err != nil {
 			return err
 		}
@@ -248,7 +248,7 @@ func (spec *MachineSpec) BuildUserAndGroup(db *mongodb.MongoDB) error {
 	query := func(c *mgo.Collection) error {
 		return c.FindId(spec.Machine.Groups[0].Id).One(&group)
 	}
-	if err := db.Run("jGroups", query); err != nil {
+	if err := modelhelper.Mongo.Run("jGroups", query); err != nil {
 		return err
 	}
 	spec.Machine.Uid = fmt.Sprintf("u%c%c%c",
@@ -260,7 +260,7 @@ func (spec *MachineSpec) BuildUserAndGroup(db *mongodb.MongoDB) error {
 }
 
 // BuildMachine inserts the machine to DB and requests kloud to build it.
-func (spec *MachineSpec) BuildMachine(db *mongodb.MongoDB) error {
+func (spec *MachineSpec) BuildMachine() error {
 	// Insert the machine to the db.
 	query := func(c *mgo.Collection) error {
 		spec.Machine.ObjectId = bson.NewObjectId()
@@ -271,7 +271,7 @@ func (spec *MachineSpec) BuildMachine(db *mongodb.MongoDB) error {
 		spec.Machine.Domain = spec.Domain()
 		return c.Insert(&spec.Machine)
 	}
-	return db.Run("jMachines", query)
+	return modelhelper.Mongo.Run("jMachines", query)
 }
 
 // Copy gives a copy of the spec value.
@@ -294,7 +294,7 @@ var dnsZones = map[string]string{
 	"production": "koding.com",
 }
 
-func getOrCreateHackathonGroup(db *mongodb.MongoDB) (*models.Group, error) {
+func getOrCreateHackathonGroup() (*models.Group, error) {
 	var group models.Group
 	query := func(c *mgo.Collection) error {
 		err := c.Find(bson.M{"slug": "hackathon"}).One(&group)
@@ -314,7 +314,7 @@ func getOrCreateHackathonGroup(db *mongodb.MongoDB) (*models.Group, error) {
 		}
 		return err
 	}
-	if err := db.Run("jGroups", query); err != nil {
+	if err := modelhelper.Mongo.Run("jGroups", query); err != nil {
 		return nil, err
 	}
 	return &group, nil

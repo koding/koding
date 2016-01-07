@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/utils/res"
 
@@ -59,7 +59,8 @@ func NewGroup() cli.CommandFactory {
 func (g *Group) Action(args []string, k *kite.Client) error {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
-	ctx = context.WithValue(ctx, mongoKey, mongodb.NewMongoDB(envMongoURL()))
+	modelhelper.Initialize(envMongoURL())
+	defer modelhelper.Close()
 	g.Resource.ContextFunc = func([]string) context.Context { return ctx }
 	return g.Resource.Main(args)
 }
@@ -101,12 +102,11 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	if cmd.throttle == 0 {
 		cmd.throttle = cmd.count
 	}
-	_, db := fromContext(ctx)
 	spec, err := ParseMachineSpec(cmd.file, nil)
 	if err != nil {
 		return err
 	}
-	if err := spec.BuildUserAndGroup(db); err != nil {
+	if err := spec.BuildUserAndGroup(); err != nil {
 		return err
 	}
 	specs := make([]*MachineSpec, cmd.count)
@@ -176,8 +176,8 @@ func (cmd *GroupCreate) createMachines(ctx context.Context, specs ...*MachineSpe
 }
 
 func createMachine(ctx context.Context, spec *MachineSpec) *Status {
-	k, db := fromContext(ctx)
-	if err := spec.BuildMachine(db); err != nil {
+	k := fromContext(ctx)
+	if err := spec.BuildMachine(); err != nil {
 		return &Status{
 			MachineLabel: spec.Machine.Label,
 			Err:          err,
@@ -284,12 +284,8 @@ var kiteKey struct {
 	byte `key:"kite"`
 }
 
-var mongoKey struct {
-	byte `key:"mongo"`
-}
-
-func fromContext(ctx context.Context) (*kite.Client, *mongodb.MongoDB) {
-	return ctx.Value(kiteKey).(*kite.Client), ctx.Value(mongoKey).(*mongodb.MongoDB)
+func fromContext(ctx context.Context) *kite.Client {
+	return ctx.Value(kiteKey).(*kite.Client)
 }
 
 func envMongoURL() string {
