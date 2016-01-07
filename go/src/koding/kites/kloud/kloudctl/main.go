@@ -17,6 +17,7 @@ func main() {
 	c := cli.NewCLI(Name, Version)
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
+		"group":           command.NewGroup(),
 		"ping":            command.NewPing(),
 		"event":           command.NewEvent(),
 		"info":            command.NewInfo(),

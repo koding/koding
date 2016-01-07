@@ -4,20 +4,24 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"koding/kites/kloud/api/sl"
 	"os"
 	"text/tabwriter"
 	"text/template"
+
+	"koding/kites/kloud/api/sl"
+	"koding/kites/kloud/utils/res"
+
+	"golang.org/x/net/context"
 )
 
 func init() {
-	Main.Register(datacenterResource)
+	Resources.Register(datacenterResource)
 }
 
-var datacenterResource = &Resource{
+var datacenterResource = &res.Resource{
 	Name:        "datacenter",
 	Description: "Manage datacenters.",
-	Commands: map[string]Command{
+	Commands: map[string]res.Command{
 		"list": new(datacenterList),
 	},
 }
@@ -47,11 +51,11 @@ func (cmd *datacenterList) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.template, "t", "", "Applies given text/template to slice of datacenters.")
 }
 
-func (cmd *datacenterList) Run(c *sl.Softlayer) error {
+func (cmd *datacenterList) Run(context.Context) error {
 	f := &sl.Filter{
 		Name: cmd.name,
 	}
-	datacenters, err := c.DatacentersByFilter(f)
+	datacenters, err := client.DatacentersByFilter(f)
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,64 @@
+{
+	"environment": "dev",
+	"user": {
+		"status": "confirmed",
+		"passwordStatus": "valid",
+		"registeredAt": "0001-01-01T00:00:00Z",
+		"lastLoginDate": "0001-01-01T00:00:00Z",
+		"onlineStatus": {
+			"actual": "online"
+		},
+		"sshKeys": [],
+		"username": "kloudctl",
+		"email": "rafal+kloudctl@koding.com",
+		"sanitizedEmail": "rafal+kloudctl@koding.com",
+		"salt": "",
+		"password": "",
+		"emailFrequency": {
+			"global": true,
+			"daily": false,
+			"privateMessage": true,
+			"followActions": false,
+			"comment": true,
+			"likeActivities": false,
+			"groupInvite": true,
+			"groupRequest": true,
+			"groupApproved": true,
+			"groupJoined": true,
+			"groupLeft": false,
+			"mention": true,
+			"marketing": true
+		}
+	},
+	"machine": {
+		"label": "kloudctl",
+		"slug": "kloudctl",
+		"status": {
+			"state": "NotInitialized",
+			"modifiedAt": "0001-01-01T00:00:00Z"
+		},
+		"createdAt": "0001-01-01T00:00:00Z",
+		"provisioners": [],
+		"provider": "softlayer",
+		"meta": {
+			"storage_size": 25,
+			"alwaysOn": false,
+			"datacenter": "sjc01",
+			"vlanId": ""
+		},
+		"generatedFrom": {
+			"templateId": "",
+			"revision": ""
+		},
+		"users": [{
+			"username": "kloudctl",
+			"sudo": true,
+			"owner": true
+		}],
+		"groups": [{
+			"id": ""
+		}],
+		"uid": "",
+		"domain": ""
+	}
+}
