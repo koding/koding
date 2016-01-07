@@ -155,7 +155,12 @@ func (vars *MachineSpecVars) Funcs() map[string]interface{} {
 func (spec *MachineSpec) BuildUserAndGroup() error {
 	// If MachineID is not nil, ensure it exists and reuse it if it does.
 	if spec.HasMachine() {
-		return modelhelper.Mongo.One("jMachines", spec.Machine.ObjectId.Hex(), &spec.Machine)
+		m, err := modelhelper.GetMachine(spec.Machine.ObjectId.Hex())
+		if err != nil {
+			return err
+		}
+		spec.Machine = *m
+		return nil
 	}
 	// If no existing group is provided, create or use 'hackathon' one,
 	// which will make VMs invisible to users until they're assigned
@@ -233,22 +238,15 @@ func (spec *MachineSpec) BuildUserAndGroup() error {
 	}
 	// Lookup username for existing user.
 	if spec.Machine.Users[0].Username == "" {
-		var user models.User
-		query := func(c *mgo.Collection) error {
-			return c.FindId(spec.Machine.Users[0].Id).One(&user)
-		}
-		err := modelhelper.Mongo.Run("jUsers", query)
+		user, err := modelhelper.GetUserById(spec.Machine.Users[0].Id.Hex())
 		if err != nil {
 			return err
 		}
 		spec.Machine.Users[0].Username = user.Name
 	}
 	// Lookup group and init Uid.
-	var group models.Group
-	query := func(c *mgo.Collection) error {
-		return c.FindId(spec.Machine.Groups[0].Id).One(&group)
-	}
-	if err := modelhelper.Mongo.Run("jGroups", query); err != nil {
+	group, err := modelhelper.GetGroupById(spec.Machine.Groups[0].Id.Hex())
+	if err != nil {
 		return err
 	}
 	spec.Machine.Uid = fmt.Sprintf("u%c%c%c",
