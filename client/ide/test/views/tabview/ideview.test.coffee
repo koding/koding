@@ -4,15 +4,18 @@ expect                = require 'expect'
 FSFile                = require 'app/util/fs/fsfile'
 FSHelper              = require 'app/util/fs/fshelper'
 IDEView               = require 'ide/views/tabview/ideview'
+IDEHelpers            = require '../../../lib/idehelpers'
 AppController         = require 'app/appcontroller'
 IDEEditorPane         = require 'ide/workspace/panes/ideeditorpane'
 IDETailerPane         = require 'ide/workspace/panes/idetailerpane'
 IDETerminalPane       = require 'ide/workspace/panes/ideterminalpane'
 IDEDrawingPane        = require 'ide/workspace/panes/idedrawingpane'
+showErrorNotification = require 'app/util/showErrorNotification'
 IDEApplicationTabView = require 'ide/views/tabview/ideapplicationtabview'
 
-ideView = null
-
+ideView                     = null
+showErrorNotificationSpy    = null
+revertShowErrorNotification = null
 
 initSpies = ->
 
@@ -20,6 +23,17 @@ initSpies = ->
   expect.spyOn IDEView.prototype, 'bindListeners'
   expect.spyOn IDEView.prototype, 'trimUntitledFileName'
   expect.spyOn IDEView.prototype, 'handlePaneRemoved'
+
+  showErrorNotificationSpy    = expect.createSpy()
+  revertShowErrorNotification = IDEView.__set__ 'showErrorNotification', showErrorNotificationSpy
+
+
+getFile = ->
+
+  path    = 'foo/path'
+  machine = mock.getMockMachine()
+
+  return FSHelper.createFileInstance { path, machine }
 
 
 createEditorPane = (paneClass) ->
@@ -48,7 +62,10 @@ describe 'IDEView', ->
     ideView = new IDEView
 
 
-  afterEach -> expect.restoreSpies()
+  afterEach ->
+
+    expect.restoreSpies()
+    revertShowErrorNotification()
 
 
   describe 'constructor', ->
@@ -141,3 +158,94 @@ describe 'IDEView', ->
       expect(pane.hash).toBe '123ea1'
 
 
+  describe '::createEditor', ->
+
+    it 'should create new file instance if no file is passed', ->
+
+      fileContent    = 'foo bar content'
+      dummyFileName  = 'localfile:/Untitled.txt@1452090820440'
+      mountedMachine = mock.getMockMachine()
+      callbackFn     = ->
+
+      spy = expect.spyOn IDEView.prototype, 'createEditorAfterFileCheck'
+      expect.spyOn(IDEView.prototype, 'getDummyFilePath').andReturn dummyFileName
+      mock.appManager.getFrontApp.toReturnPassedParam { mountedMachine }
+
+      ideView = new IDEView
+      ideView.createEditor null, fileContent, callbackFn
+
+      expect(ideView.getDummyFilePath).toHaveBeenCalled()
+      expect(ideView.createEditorAfterFileCheck).toHaveBeenCalled()
+
+      [ fileInstance, content, callback, emitChange, isReadOnly ] = spy.calls[0].arguments
+      expect(fileInstance).toBeA FSFile
+      expect(fileInstance.machine).toEqual mountedMachine
+      expect(fileInstance.options.path).toBe dummyFileName
+      expect(content).toBe fileContent
+      expect(callback).toBe callbackFn
+      expect(emitChange).toBe yes
+      expect(isReadOnly).toBe no
+
+
+    it 'should fetch permission of a file before opening it', ->
+
+      mock.fsFile.fetchPermissions.toReturnInfo()
+      ideView.createEditor file = getFile()
+      expect(file.fetchPermissions).toHaveBeenCalled()
+
+
+    it 'should showFileAccessDeniedError if file is not readble', ->
+
+      expect.spyOn IDEHelpers, 'showFileAccessDeniedError'
+      mock.fsFile.fetchPermissions.toReturnInfo no, no
+
+      ideView.createEditor getFile()
+      expect(IDEHelpers.showFileAccessDeniedError).toHaveBeenCalled()
+
+
+    it 'should showErrorNotification if file.fetchPermissions returns error', ->
+
+      err = message: 'Everything is something happened.'
+      mock.fsFile.fetchPermissions.toReturnError err
+      ideView.createEditor getFile()
+
+      expect(showErrorNotificationSpy).toHaveBeenCalledWith err
+
+
+  describe '::createEditorAfterFileCheck', ->
+
+    it 'should create the IDEEditorPane and call createPane_ method and emit change object', ->
+
+      uid        = mock.getMockMachine().uid
+      file       = getFile()
+      path       = file.path
+      content    = 'foo'
+      callback   = ->
+      eventFlag  = no
+      emitChange = yes
+      isReadOnly = no
+      change     = context: file: { content, path, machine: { uid } }
+
+      createPaneSpy = expect.spyOn ideView, 'createPane_'
+      emitChangeSpy = expect.spyOn ideView, 'emitChange'
+      expect.spyOn ideView, 'switchToEditorTabByFile'
+      ideView.once 'NewEditorPaneCreated', -> eventFlag = yes
+
+      editorPane      = ideView.createEditorAfterFileCheck file, content, callback, emitChange, isReadOnly
+      [ ep, opt, fl ] = createPaneSpy.calls.first.arguments
+      [ ed, ch ]      = emitChangeSpy.calls.first.arguments
+
+      expect(editorPane).toBeA IDEEditorPane
+      expect(ep).toBe editorPane
+      expect(ed).toBe editorPane
+      expect(fl).toBe file
+      expect(opt).toEqual { name: file.name, editor: editorPane, aceView: editorPane.aceView }
+      expect(eventFlag).toBe yes
+      expect(ch).toEqual change
+      expect(editorPane.options.ideViewHash).toBe ideView.hash
+      expect(editorPane.options.file).toBe file
+      expect(editorPane.options.content).toBe content
+      expect(editorPane.options.delegate).toBe ideView
+
+      editorPane.emit 'ShowMeAsActive'
+      expect(ideView.switchToEditorTabByFile).toHaveBeenCalledWith file

@@ -409,9 +409,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @emitChange previewPane, context: { url }
 
 
-  showView: (view) ->
-
-    @createPane_ view, { name: 'Search Result' }
+  showView: (view, name = 'Search Result') -> @createPane_ view, { name }
 
 
   updateStatusBar: (paneType, data) ->
