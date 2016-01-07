@@ -170,8 +170,10 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	// save root directory
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
-	var di transport.FsGetDiskInfo
-	if err := t.Trip("fs.getDiskInfo", nil, &di); err != nil {
+	req := struct{ Path string }{rootDir.RemotePath}
+	res := transport.FsGetDiskInfo{}
+
+	if err := t.Trip("fs.getDiskInfo", req, &res); err != nil {
 		if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type != "methodNotFound" {
 			return nil, err
 		}
@@ -182,7 +184,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		MountConfig:       mountConfig,
 		RWMutex:           sync.RWMutex{},
 		Watcher:           watcher,
-		DiskInfo:          di,
+		DiskInfo:          res,
 		ignoredFolderList: ignoredFolderList,
 		liveNodes:         liveNodes,
 	}, nil
