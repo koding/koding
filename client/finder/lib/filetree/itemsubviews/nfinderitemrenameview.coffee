@@ -31,5 +31,3 @@ module.exports = class NFinderItemRenameView extends JView
     {{> @input}}
     {{> @cancel}}
     """
-
-

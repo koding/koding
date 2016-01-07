@@ -360,4 +360,3 @@ module.exports = class NFinderController extends KDViewController
     FSHelper.resetRegistry()
     @stopAllWatchers()
     @machines = []
-
