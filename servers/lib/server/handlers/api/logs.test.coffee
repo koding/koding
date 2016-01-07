@@ -36,7 +36,7 @@ TESTUSERS =
 TESTLOG   = generateRandomString()
 
 # use different scope on each test ~ GG
-TESTSCOPE = KodingLogger.SCOPES[Math.round(Math.random() * KodingLogger.SCOPES.length)]
+TESTSCOPE = KodingLogger.SCOPES[Math.round(Math.random() * (KodingLogger.SCOPES.length - 1))]
 
 
 beforeTests = -> before (done) ->
