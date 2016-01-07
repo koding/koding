@@ -123,4 +123,3 @@ describe 'ChatInputDropboxSettingsStore', ->
       dropboxSettings = @reactor.evaluate(['dropboxSettings']).get stateId
 
       expect(dropboxSettings).toBeA 'undefined'
-

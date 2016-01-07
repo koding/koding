@@ -379,5 +379,3 @@ module.exports = class MainView extends KDView
 
     body.style.background = "#000"
     @setClass "logout-tv"
-
-

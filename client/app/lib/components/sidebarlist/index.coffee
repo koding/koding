@@ -28,4 +28,3 @@ module.exports = class SidebarList extends React.Component
     <div className={classnames 'SidebarList', @props.className}>
       {@renderChildren()}
     </div>
-

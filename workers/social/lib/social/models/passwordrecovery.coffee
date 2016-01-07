@@ -277,5 +277,3 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   redeem: (callback) ->
     @update { $set: { status: 'redeemed' } }, callback
-
-

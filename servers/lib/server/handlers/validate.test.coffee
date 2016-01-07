@@ -80,4 +80,3 @@ runTests = -> describe 'server.handlers.validate', ->
 
 
 runTests()
-

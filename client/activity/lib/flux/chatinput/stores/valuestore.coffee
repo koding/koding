@@ -32,4 +32,3 @@ module.exports = class ChatInputValueStore extends KodingFluxStore
 
     currentState.set channelId, immutable.Map()  unless  currentState.get channelId
     currentState.setIn [channelId, stateId], value
-

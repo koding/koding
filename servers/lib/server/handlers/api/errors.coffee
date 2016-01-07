@@ -96,4 +96,3 @@ module.exports = {
     code                        : 'OutOfRangeSuggestedUsername'
 
 }
-

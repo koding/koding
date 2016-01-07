@@ -357,5 +357,3 @@ runTests = -> describe 'workers.social.user.account', ->
 beforeTests()
 
 runTests()
-
-

@@ -345,4 +345,3 @@ runTests = -> describe 'server.handlers.reset', ->
 
 
 runTests()
-

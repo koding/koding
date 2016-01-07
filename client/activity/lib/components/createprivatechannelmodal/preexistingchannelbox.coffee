@@ -21,4 +21,3 @@ module.exports = class PreExistingChannelBox extends React.Component
         </p>
       </div>
     </div>
-

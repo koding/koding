@@ -11,4 +11,3 @@ module.exports = class GroupMembersPageListItemView extends MembersListItemView
         height           : 50
 
     super options, data
-

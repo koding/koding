@@ -162,4 +162,3 @@ describe 'ChatInputEmojiGetters', ->
       selectedItem = @reactor.evaluateToJS getters.emojisSelectedItem stateId
 
       expect(selectedItem).toEqual 'green_apple'
-

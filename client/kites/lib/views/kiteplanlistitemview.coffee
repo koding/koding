@@ -53,5 +53,3 @@ module.exports = class KitePlanListItemView extends KDListItemView
           @subscription = subscription
           @subscribeButton.setTitle "Unsubscribe"
           @subscribeButton.setCallback @bound "unsubscribe"
-
-

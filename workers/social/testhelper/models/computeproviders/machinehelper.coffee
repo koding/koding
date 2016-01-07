@@ -105,4 +105,3 @@ module.exports = {
   fetchMachinesByUsername
   generateMachineParamsByAccount
 }
-

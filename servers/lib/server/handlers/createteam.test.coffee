@@ -653,4 +653,3 @@ runTests = -> describe 'server.handlers.createteam', ->
 beforeTests()
 
 runTests()
-

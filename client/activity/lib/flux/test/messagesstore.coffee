@@ -344,4 +344,3 @@ describe 'MessagesStore', ->
       expect(message.get '__isEmbedPayloadDisabled').toBe yes
       expect(message.getIn ['__editedPayload', 'link_url']).toBeA 'undefined'
       expect(message.getIn ['__editedPayload', 'link_embed']).toBeA 'undefined'
-

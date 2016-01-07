@@ -85,5 +85,3 @@ module.exports = class GroupsBlockedUserView extends JView
     """
     {{> @listWrapper}}
     """
-
-

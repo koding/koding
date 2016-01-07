@@ -27,5 +27,3 @@ describe 'ProfileLinkContainer', ->
       # in lifecycle methods, `e.g componentDidMount, etc.` since React components
       # are opaque data structures. I guess we will have to come up with some extra
       # conventions. This needs to be discussed. ~Umut
-
-

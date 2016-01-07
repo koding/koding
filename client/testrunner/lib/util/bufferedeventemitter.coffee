@@ -28,6 +28,3 @@ module.exports = class BufferedEventEmitter extends EventEmitter
       if value?._afterEach? and value?._slow?
         return undefined
       return value
-
-
-

@@ -51,4 +51,3 @@ module.exports = class AccountEditorListItem extends KDListItemView
     #   </div>
     #   <div class='swappableish swappable-wrapper posstatic'></div>
     # """
-

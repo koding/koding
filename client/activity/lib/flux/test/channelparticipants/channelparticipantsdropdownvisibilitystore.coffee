@@ -26,4 +26,3 @@ describe 'ChannelParticipantsDropdownVisibilityStore', ->
       visible = @reactor.evaluate ['channelParticipantsDropdownVisibility']
 
       expect(visible).toBe no
-

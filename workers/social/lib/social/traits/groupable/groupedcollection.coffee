@@ -39,5 +39,3 @@ module.exports = class GroupedCollection
   each:(selector, fields, options, callback) ->
     collection = getCollection @konstructor, @source.group
     helpers.each.call @konstructor, collection, selector, fields, options, callback
-
-

@@ -187,5 +187,3 @@ k = (tagName, cssClass, subviews = []) ->
     else view.addSubView subview
 
   return view
-
-

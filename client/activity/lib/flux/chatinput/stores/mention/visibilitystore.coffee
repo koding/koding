@@ -30,4 +30,3 @@ module.exports = class ChatInputMentionsVisibilityStore extends KodingFluxStore
   setVisibility: (currentState, { stateId, visible }) ->
 
     currentState.set stateId, visible
-

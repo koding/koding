@@ -19,4 +19,3 @@ module.exports = class CollaborationComingSoonModal extends React.Component
         <img src='/a/images/activity/coming-soon-modal-content.png'/>
       </div>
     </Modal>
-

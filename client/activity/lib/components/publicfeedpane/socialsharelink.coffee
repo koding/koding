@@ -29,4 +29,3 @@ module.exports = class SocialShareLink extends React.Component
   render: ->
 
     <Link onClick={@bound 'setActiveSocialShareLink'}>Share</Link>
-

@@ -36,4 +36,3 @@ module.exports = renderEmojis = (element, showTooltip = yes) ->
       element.innerHTML = "<span class='emoji-sprite emoji-#{emojiName}' #{titleAttr} />"
 
     return element
-

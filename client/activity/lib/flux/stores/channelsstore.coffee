@@ -120,4 +120,3 @@ removeFakeChannel = (channels, id) ->
     channels = channels.remove id
 
   return channels
-

@@ -31,4 +31,3 @@ module.exports = class EmojiSelectBoxVisibilityStore extends KodingFluxStore
   setVisibility: (currentState, { stateId, visible }) ->
 
     currentState.set stateId, visible
-

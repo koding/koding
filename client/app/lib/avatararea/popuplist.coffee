@@ -11,4 +11,3 @@ module.exports  = class PopupList extends KDListView
     # options.lastToFirst  ?= no
 
     super options,data
-

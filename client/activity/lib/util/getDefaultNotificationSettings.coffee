@@ -5,5 +5,3 @@ module.exports = getDefaultNotificationSettings = ->
     mobileSetting  : 'all'
     desktopSetting : 'all'
   }
-
-

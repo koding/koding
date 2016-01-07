@@ -39,5 +39,3 @@ module.exports = class ServerSocketRunner extends EventEmitter
       test = { title, err }
       test.fullTitle = -> fullTitleResult
       return [test, err]
-
-

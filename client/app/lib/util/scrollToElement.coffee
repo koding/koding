@@ -19,5 +19,3 @@ module.exports = scrollToElement = (element) ->
   scrollTop = containerTop + elementTop - distanceToCenter
 
   $scroller.animate { scrollTop }, 347
-
-

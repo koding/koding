@@ -35,4 +35,3 @@ module.exports = class EmojiIcon extends React.Component
     <span ref='icon'>
       {formatEmojiName emoji}
     </span>
-

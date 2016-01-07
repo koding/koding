@@ -19,4 +19,3 @@ module.exports = class ChannelDropboxItem extends React.Component
       <span className="ChannelDropboxItem-hash"># </span>
       {item.get 'name'}
     </DropboxItem>
-

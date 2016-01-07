@@ -62,4 +62,3 @@ module.exports = class ChannelParticipantsSelectedIndexStore extends KodingFluxS
    * @return {number} nextState
   ###
   resetIndex: (currentState) -> 0
-

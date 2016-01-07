@@ -26,5 +26,3 @@ module.exports = class CreateNewChannelParticipantsDropdownVisibilityStore exten
    * @return {bool} nextState
   ###
   setVisibility: (currentState, { visible }) -> visible
-
-

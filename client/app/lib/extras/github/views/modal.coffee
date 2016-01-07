@@ -130,5 +130,3 @@ module.exports = class Modal extends KDModalView
         @message.off 'click'
         @container.show()
         @showRepos oauth.github.username, force
-
-

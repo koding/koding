@@ -1045,6 +1045,3 @@ beforeTests()
 runTests()
 
 afterTests()
-
-
-

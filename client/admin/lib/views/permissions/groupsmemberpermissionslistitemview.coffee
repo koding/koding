@@ -123,5 +123,3 @@ module.exports = class GroupsMemberPermissionsListItemView extends KDListItemVie
       {{> @userRole}}
       {{> @editContainer}}
     """
-
-

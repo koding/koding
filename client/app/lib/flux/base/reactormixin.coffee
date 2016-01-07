@@ -45,5 +45,3 @@ module.exports =
 getState = (reactor, data) ->
 
   return _.mapValues data, (value) -> reactor.evaluate value
-
-

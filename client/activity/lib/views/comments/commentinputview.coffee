@@ -19,4 +19,3 @@ module.exports = class CommentInputView extends ActivityInputView
   sendCursorToEnd: ->
 
     helpers.setCursorPosition @getElement(), @getValue().length
-

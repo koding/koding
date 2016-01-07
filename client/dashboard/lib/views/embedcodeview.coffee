@@ -55,5 +55,3 @@ module.exports = class EmbedCodeView extends KDTabView
       if not err and subscriptions.length > 0
         console.log "User is subscribed to the plan."
     """
-
-

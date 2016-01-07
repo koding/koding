@@ -208,5 +208,3 @@ module.exports = class Payment extends Base
     JReward.fetchEarnedAmount options, (err, amount) ->
       return callback err  if err?
       callback null, amount / 1000
-
-

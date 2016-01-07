@@ -71,4 +71,3 @@ module.exports = class SuggestionItem extends React.Component
 
 
     makeInfoText: (count, noun) -> formatPlural count, noun
-

@@ -100,5 +100,3 @@ module.exports = class MainViewController extends KDViewController
     if isApp or name in appsWithSidebar
     then mainView.setClass 'with-sidebar'
     else mainView.unsetClass 'with-sidebar'
-
-

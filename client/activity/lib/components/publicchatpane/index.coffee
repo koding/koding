@@ -88,4 +88,3 @@ module.exports = class PublicChatPane extends React.Component
 
 
 PublicChatPane.include [ChatPaneWrapperMixin]
-

@@ -101,4 +101,3 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
     participantIds = participantIds.set channelId, channel
 
     return participantIds
-

@@ -100,5 +100,3 @@ runTests = -> describe 'server.handlers.confirm', ->
 beforeTests()
 
 runTests()
-
-

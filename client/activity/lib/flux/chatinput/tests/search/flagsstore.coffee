@@ -46,5 +46,3 @@ describe 'ChatInputSearchFlagsStore', ->
       @reactor.dispatch actions.CHAT_INPUT_SEARCH_FAIL, { stateId }
       flags = @reactor.evaluate(['chatInputSearchFlags']).get stateId
       expect(flags.get 'isLoading').toBe no
-
-

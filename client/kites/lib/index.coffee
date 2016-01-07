@@ -59,5 +59,3 @@ module.exports = class KitesAppController extends AppController
 
       $("body").addClass "apps"
       @getView().addSubView new KiteDetailsView {}, kite.first
-
-

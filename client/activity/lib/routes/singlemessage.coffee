@@ -13,4 +13,3 @@ module.exports = class SingleMessageRoute
 
 
   onLeave: -> messageActions.changeSelectedMessage null
-

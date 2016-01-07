@@ -71,5 +71,3 @@ module.exports = class KiteDetailsView extends JView
         </div>
       </div>
     """
-
-

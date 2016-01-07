@@ -88,5 +88,3 @@ module.exports = class AccountEditSecurity extends KDView
   saveNewPassword:(formData)->
     remote.api.JUser.changePassword formData.password,(err,docs)=>
       unless err then do @passwordDidUpdate
-
-

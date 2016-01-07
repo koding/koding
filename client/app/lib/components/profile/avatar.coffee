@@ -17,5 +17,3 @@ module.exports = class Avatar extends React.Component
 
   render: ->
     <ProfilePicture {...@getPictureProps()} />
-
-

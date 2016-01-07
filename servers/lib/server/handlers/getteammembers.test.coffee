@@ -296,4 +296,3 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
 
 runTests()
-

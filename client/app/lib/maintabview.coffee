@@ -125,5 +125,3 @@ module.exports = class MainTabView extends KDTabView
           title     : "Cancel"
           callback  : =>
             modal.destroy()
-
-

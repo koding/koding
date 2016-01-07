@@ -54,5 +54,3 @@ describe 'Gmail Validation', ->
   it 'ignores other google domains', ->
     expected = 'ind.iana+jones@gmail.uk'
     expect(sanitize(expected)).to.equal expected
-
-

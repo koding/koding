@@ -38,4 +38,3 @@ module.exports = class EmojiCategoriesStore extends KodingFluxStore
     data.push { category : 'Custom', emojis : otherEmojis }
 
     toImmutable data
-

@@ -46,4 +46,3 @@ module.exports = class ChatInputQueryStore extends KodingFluxStore
   unsetQuery: (currentState, { stateId }) ->
 
     currentState.delete stateId
-

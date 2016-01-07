@@ -80,5 +80,3 @@ module.exports = class LegalAppView extends JView
       </article>
     </section>
     """
-
-

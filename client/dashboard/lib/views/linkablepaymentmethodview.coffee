@@ -50,4 +50,3 @@ module.exports = class LinkablePaymentMethodView extends PaymentMethodView
       then 'unlink'
       else 'link'
     )
-

@@ -30,5 +30,3 @@ module.exports = {
   unsetFeedListItem
   setActiveSocialShareLink
 }
-
-

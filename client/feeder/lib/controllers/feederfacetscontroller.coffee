@@ -55,5 +55,3 @@ module.exports = class FeederFacetsController extends KDViewController
           when 'sort'   then sortName is type
         isSelectedItem = typeMatches and controller.getListItems().length > 1
         controller.selectItem item  if isSelectedItem
-
-

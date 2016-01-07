@@ -197,6 +197,3 @@ module.exports = class ActivityController extends KDObject
                 kallback account if account
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
-
-
-

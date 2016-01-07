@@ -80,4 +80,3 @@ describe 'ChatInputMentionsSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate(['chatInputMentionsSelectedIndex']).get stateId
 
       expect(selectedIndex).toBe undefined
-

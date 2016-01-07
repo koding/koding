@@ -374,4 +374,3 @@ module.exports = class ChatInputWidget extends React.Component
 
 
 React.Component.include.call ChatInputWidget, [KDReactorMixin]
-

@@ -96,4 +96,3 @@ module.exports = class EmojiSelectBoxList extends React.Component
 
 
 EmojiSelectBoxList.include [ImmutableRenderMixin]
-

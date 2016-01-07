@@ -65,4 +65,3 @@ module.exports = class CreateChannelParticipantsDropdown extends React.Component
         </div>
       </div>
     </Dropbox>
-

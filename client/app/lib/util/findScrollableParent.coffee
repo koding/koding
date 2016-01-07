@@ -26,5 +26,3 @@ module.exports = findScrollableParent = (element) ->
       return element
 
   return global
-
-

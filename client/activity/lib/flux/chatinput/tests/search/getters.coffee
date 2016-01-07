@@ -155,4 +155,3 @@ describe 'ChatInputSearchGetters', ->
       selectedItem = @reactor.evaluateToJS getters.searchSelectedItem stateId
 
       expect(selectedItem).toEqual searchItems[1]
-

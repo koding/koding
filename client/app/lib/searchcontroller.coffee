@@ -201,5 +201,3 @@ module.exports = class SearchController extends KDObject
       # index.setSettings attributesForFaceting: 'channel'
       @indexes[indexName] = index
     @indexes[indexName]
-
-

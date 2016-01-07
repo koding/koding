@@ -100,4 +100,3 @@ module.exports = class AccountCredentialListWrapper extends KDView
     listText = DEFAULT_LIST_TEXT unless listText
 
     @header.updateTitle listText
-

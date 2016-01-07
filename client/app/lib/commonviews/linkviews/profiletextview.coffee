@@ -10,4 +10,3 @@ module.exports = class ProfileTextView extends ProfileLinkView
     super
 
   click: -> yes
-

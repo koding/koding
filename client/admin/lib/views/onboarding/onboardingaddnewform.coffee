@@ -72,5 +72,3 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
         {{> @saveButton}}
       </div>
     """
-
-

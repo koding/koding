@@ -11,4 +11,3 @@ module.exports = searchListByQuery = (list, query) ->
   result = list.filter (item) ->
     index = item.indexOf(query)
     if isBeginningMatch then index is 0 else index > -1
-

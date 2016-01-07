@@ -44,5 +44,3 @@ module.exports = (options, callback) ->
 
   fetchScripts options, (err, scripts, socialApiData) ->
     callback null, prepareHTML scripts, socialApiData
-
-

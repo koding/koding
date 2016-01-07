@@ -547,4 +547,3 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 beforeTests()
 
 runTests()
-

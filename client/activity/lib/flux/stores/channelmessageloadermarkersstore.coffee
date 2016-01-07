@@ -43,5 +43,3 @@ ensureMarkerContainers = (markers, channelId, messageId) ->
 
 
 defaultMarker = -> toImmutable { after: no, before: no }
-
-

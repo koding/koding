@@ -108,6 +108,3 @@ module.exports = class PopupNotifications extends AvatarPopup
           return kd.warn "Notifications cannot be received", err  if err
           @listController.removeAllItems()
           @listController.instantiateListItems notifications
-
-
-

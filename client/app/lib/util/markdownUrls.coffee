@@ -45,4 +45,3 @@ module.exports = markdownUrls = (body) ->
   result += formatUrlsByPosition body, prevIndex
 
   return result
-

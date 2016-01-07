@@ -30,5 +30,3 @@ module.exports = class MembersListItemView extends KDListItemView
   viewAppended:->
     @addSubView @avatar
     @addSubView @actor
-
-

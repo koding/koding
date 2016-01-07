@@ -62,6 +62,3 @@ module.exports = class ActivityInputView extends KDHitEnterInputView
     super event
 
     @emit 'EnterPerformed'  if event.which is ENTER and event.metaKey
-
-
-

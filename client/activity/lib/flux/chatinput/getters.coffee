@@ -475,4 +475,3 @@ module.exports = {
   commandsSelectedIndex
   commandsSelectedItem
 }
-

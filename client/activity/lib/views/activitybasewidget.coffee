@@ -9,5 +9,3 @@ module.exports = class ActivityBaseWidget extends JView
     options.cssClass = kd.utils.curry 'activity-widget', options.cssClass
 
     super options, data
-
-

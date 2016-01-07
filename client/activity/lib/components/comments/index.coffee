@@ -97,4 +97,3 @@ module.exports = class Comments extends React.Component
         commentValue={ @state.commentValue }
         handleCommentInputChange={ @bound 'handleCommentInputChange' } />
     </div>
-

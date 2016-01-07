@@ -70,5 +70,3 @@ module.exports = class WebtermSettingsView extends JView
     <p>Use visual bell                  {{> @bell}}</p>
     <p>Fullscreen                       {{> @fullscreen}}</p>
     """
-
-

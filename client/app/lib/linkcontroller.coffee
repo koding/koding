@@ -40,5 +40,3 @@ module.exports = class LinkController extends KDController
     id = link.getId()
     link.off @linkHandlers[id]
     delete @linkHandlers[id]
-
-

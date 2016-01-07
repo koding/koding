@@ -19,4 +19,3 @@ module.exports = class PublicChannelNotificationSettingsRoute
     channel = channelByName nextState.params.channelName
 
     NotificationSettingsFlux.actions.channel.load(channel.id).then -> done()
-

@@ -83,4 +83,3 @@ runTests = -> describe 'workers.social.models.computeproviders.rackspace', ->
 beforeTests()
 
 runTests()
-

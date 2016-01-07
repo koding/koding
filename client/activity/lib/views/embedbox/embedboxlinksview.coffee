@@ -56,5 +56,3 @@ module.exports = class EmbedBoxLinksView extends KDView
     """
     {{> @linkList}}
     """
-
-

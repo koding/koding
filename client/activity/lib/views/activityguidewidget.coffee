@@ -73,5 +73,3 @@ module.exports = class ActivityGuideWidget extends ActivityBaseWidget
       </p>
       {{> @readMoreLink}}{{> @readLessLink}}
     """
-
-

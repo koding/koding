@@ -18,7 +18,3 @@ module.exports = class Button extends React.Component
       tabIndex={@props.tabIndex}
       className={kd.utils.curry 'Button', @props.className}
       onClick={@bound 'onClick'}>{@props.children}</button>
-
-
-
-

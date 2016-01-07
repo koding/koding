@@ -27,6 +27,3 @@ module.exports = forwardEvents = (from, to, events, reducer) ->
       payload = [payload]  unless Array.isArray payload
 
       to.emit event, payload...
-
-
-

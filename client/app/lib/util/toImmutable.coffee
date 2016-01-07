@@ -9,4 +9,3 @@ module.exports = toImmutable = (js) ->
   return if immutable.Iterable.isIndexed seq
   then seq.toList()
   else seq.toMap()
-

@@ -343,5 +343,3 @@ module.exports = class ComputeHelpers
       tester (res, failed)->
         console.timeEnd 'via kloud.info'
         log 'All completed:', res, failed
-
-

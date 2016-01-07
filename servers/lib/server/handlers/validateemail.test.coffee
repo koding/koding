@@ -290,4 +290,3 @@ runTests = -> describe 'server.handlers.validateemail', ->
 
 
 runTests()
-

@@ -51,6 +51,3 @@ module.exports = class KiteLogger
   if globals.config.environment is 'production'
     @interval = 10000 # 10 seconds
     @timer = kd.utils.repeat @interval, @consume
-
-
-

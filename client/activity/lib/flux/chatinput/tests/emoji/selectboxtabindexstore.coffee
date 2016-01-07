@@ -28,4 +28,3 @@ describe 'EmojiSelectBoxTabIndexStore', ->
       tabIndex = @reactor.evaluate(['emojiSelectBoxTabIndex']).get stateId
 
       expect(tabIndex).toEqual -1
-

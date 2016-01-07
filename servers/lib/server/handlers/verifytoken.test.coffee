@@ -246,4 +246,3 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
 
 runTests()
-

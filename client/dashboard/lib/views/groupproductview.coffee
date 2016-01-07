@@ -41,5 +41,3 @@ module.exports = class GroupProductView extends JView
     """
     #{title} <span class="price-and-type">#{displayPrice}/#{subscriptionType}</span>
     """
-
-

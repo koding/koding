@@ -50,4 +50,3 @@ runTests = -> describe 'server.handlers.optout', ->
 
 
 runTests()
-

@@ -222,5 +222,3 @@ module.exports = class JWorkspace extends Module
             originId     : account.getId()
 
           @create client, data, callback
-
-

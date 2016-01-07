@@ -116,4 +116,3 @@ module.exports = class TeamsAppView extends kd.CustomHTMLView
       {{> @features}}
     </section>
     """
-

@@ -161,4 +161,3 @@ module.exports = class ActivitySideView extends JView
     { searchLink, countSource, limit } = @getOptions()
 
     return new SidebarMoreLink {href: searchLink, countSource, limit}
-

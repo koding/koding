@@ -43,4 +43,3 @@ module.exports = class DropboxContainer extends React.Component
       componentProps[propName] = @props[getter]
 
     <Component ref='dropbox' {...componentProps} />
-

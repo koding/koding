@@ -95,5 +95,3 @@ module.exports = class GroupPaymentController extends KDController
             modal.setState 'createNew'
 
     return modal
-
-

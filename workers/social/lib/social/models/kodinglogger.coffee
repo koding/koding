@@ -147,4 +147,3 @@ module.exports = class KodingLogger
     query = if query then "#{restriction} AND #{query}" else restriction
 
     return query
-

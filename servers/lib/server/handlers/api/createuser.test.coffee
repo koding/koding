@@ -305,5 +305,3 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 beforeTests()
 
 runTests()
-
-

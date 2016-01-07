@@ -28,4 +28,3 @@ module.exports = class PrivateChannelListItem extends React.Component
     <PrivateChannelLink to={@channel()} className='ChannelListItem' onClick={@props.onItemClick}>
       <span className='ChannelListItem-title'>{title}</span>
     </PrivateChannelLink>
-

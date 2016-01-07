@@ -120,4 +120,3 @@ describe 'MessageThreadsStore', ->
 
       storeState = @reactor.evaluateToJS ['MessageThreadsStore']
       expect(storeState['123']['comments']['007']).toEqual undefined
-

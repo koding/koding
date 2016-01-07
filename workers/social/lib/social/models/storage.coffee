@@ -17,5 +17,3 @@ module.exports = class JStorage extends jraphical.Module
       content     :
         type      : Object
         default   : -> {}
-
-

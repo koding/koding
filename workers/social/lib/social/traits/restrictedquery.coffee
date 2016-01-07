@@ -78,5 +78,3 @@ module.exports = class RestrictedQuery
     success:(client, selector, options, callback) ->
       selector.group = makeGroupSelector client.context.group
       @teasers selector, options, callback
-
-

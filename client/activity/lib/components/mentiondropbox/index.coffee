@@ -112,4 +112,3 @@ class MentionDropbox extends React.Component
 MentionDropbox.include [ ImmutableRenderMixin ]
 
 module.exports = ScrollableDropbox MentionDropbox
-

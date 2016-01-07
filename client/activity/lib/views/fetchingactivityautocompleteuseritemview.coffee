@@ -7,5 +7,3 @@ module.exports = class FetchingActivityAutoCompleteUserItemView extends KDAutoCo
     options.type = 'dropdown-member'
     
     super options, data
-
-

@@ -118,5 +118,3 @@ module.exports = class PrivateMessageForm extends KDFormViewWithFields
       form     : this
       cssClass : 'private'
     kd.utils.defer => @autoComplete.getView().setFocus()
-
-

@@ -29,6 +29,3 @@ module.exports = class PublicChannelMessageLink extends React.Component
       className={kd.utils.curry 'MessageLink PublicChannelMessageLink', @props.className}>
       {@props.children}
     </Link>
-
-
-

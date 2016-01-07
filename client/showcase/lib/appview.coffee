@@ -7,5 +7,3 @@ module.exports = class ShowcaseAppView extends kd.CustomHTMLView
     options.cssClass = 'ShowcaseApp'
 
     super options, data
-
-

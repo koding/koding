@@ -54,4 +54,3 @@ module.exports = DropboxInputMixin =
 
       stopEvent = dropdown.moveToPrevPosition keyInfo
       kd.utils.stopDOMEvent event  if stopEvent
-

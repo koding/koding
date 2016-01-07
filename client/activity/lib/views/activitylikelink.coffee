@@ -75,4 +75,3 @@ module.exports = class ActivityLikeLink extends CustomLinkView
 
     { isInteracted } = @getData().interactions.like
     "#{if isInteracted then "Unlike" else "Like"}"
-

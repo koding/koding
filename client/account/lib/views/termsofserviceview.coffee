@@ -7,5 +7,3 @@ module.exports = class TermsOfServiceView extends KDCustomHTMLView
       src               : "/Legal/Terms"
 
     super options, data
-
-

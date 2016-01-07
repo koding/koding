@@ -7,5 +7,3 @@ module.exports = class PrivacyPolicyView extends KDCustomHTMLView
       src               : "/Legal/Privacy"
 
     super options, data
-
-

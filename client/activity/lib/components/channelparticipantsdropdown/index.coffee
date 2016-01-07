@@ -67,4 +67,3 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
         </div>
       </div>
     </Dropbox>
-

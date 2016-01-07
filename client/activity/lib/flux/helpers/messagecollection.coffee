@@ -139,4 +139,3 @@ module.exports = {
   createFakeMessage
   removeFakeMessage
 }
-

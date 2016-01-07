@@ -74,4 +74,3 @@ module.exports = class ChatInputSelectedIndexStore extends KodingFluxStore
   resetIndex: (currentState, { stateId }) ->
 
     currentState.delete stateId
-

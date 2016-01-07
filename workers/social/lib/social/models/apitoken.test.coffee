@@ -193,4 +193,3 @@ runTests = -> describe 'workers.social.apitoken', ->
 beforeTests()
 
 runTests()
-

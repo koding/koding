@@ -119,5 +119,3 @@ module.exports = class List extends React.Component
     <div className="ListView #{@props.className}" onScroll={@props.onScroll}>
       {@renderChildren()}
     </div>
-
-

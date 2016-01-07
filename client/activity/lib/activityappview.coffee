@@ -296,6 +296,3 @@ module.exports = class ActivityAppView extends KDView
       if /\/Activity\/Public/.test path
       then '/Activity/Public'
       else path
-
-
-

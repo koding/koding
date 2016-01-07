@@ -150,4 +150,3 @@ module.exports =
             browser
               .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
-

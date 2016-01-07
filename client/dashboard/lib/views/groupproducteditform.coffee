@@ -170,5 +170,3 @@ module.exports = class GroupProductEditForm extends KDFormViewWithFields
   priceVolatilityChanged: ->
     enabled = @inputs.priceIsVolatile.getValue()
     do @fields.feeAmount[if enabled then 'hide' else 'show']
-
-

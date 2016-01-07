@@ -87,5 +87,3 @@ module.exports = class Google extends ProviderInterface
       }
 
     ]
-
-

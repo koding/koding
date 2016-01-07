@@ -74,5 +74,3 @@ module.exports = class ExternalProfileView extends JView
     """
     <span class="icon"></span>
     """
-
-

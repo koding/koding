@@ -35,5 +35,3 @@ module.exports = class Filterable
   @byRelevance$ = permit 'query collection',
     success: (client, seed, options, callback) ->
       @byRelevance client, seed, options, callback
-
-

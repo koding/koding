@@ -34,4 +34,3 @@ module.exports = SearchToken =
   triggerAction: (stateId, query) ->
 
     SearchActions.fetchData stateId, query
-

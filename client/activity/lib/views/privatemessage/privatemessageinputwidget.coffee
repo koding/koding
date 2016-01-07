@@ -23,5 +23,3 @@ module.exports = class PrivateMessageInputWidget extends ReplyInputWidget
 
       [channel] = channels
       router.handleRoute "/Activity/Message/#{channel.id}"
-
-

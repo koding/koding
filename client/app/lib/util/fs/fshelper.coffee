@@ -317,4 +317,3 @@ module.exports = class FSHelper
       break if fileType
 
     return fileType or 'unknown'
-

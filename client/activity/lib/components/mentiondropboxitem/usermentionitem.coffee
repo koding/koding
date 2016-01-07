@@ -60,4 +60,3 @@ module.exports = class UserMentionItem extends React.Component
       if shouldHighlight
       then highlightQueryInWord text, query
       else text
-

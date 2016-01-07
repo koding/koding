@@ -276,4 +276,3 @@ module.exports = {
   generateRandomUserArray
   generateDummyUserFormData
 }
-

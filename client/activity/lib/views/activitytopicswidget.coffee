@@ -69,8 +69,3 @@ module.exports = class ActivityTopicsWidget extends KDCustomHTMLView
     return  unless channelItem = @listController.itemsIndexed[id]
 
     channelItem.setFollowingState followingState
-
-
-
-
-

@@ -89,4 +89,3 @@ runTests = -> describe 'workers.social.models.computeproviders.google', ->
 beforeTests()
 
 runTests()
-

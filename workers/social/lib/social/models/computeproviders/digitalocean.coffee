@@ -62,5 +62,3 @@ module.exports = class DigitalOcean extends ProviderInterface
         price : '$80 per Month'
       }
     ]
-
-

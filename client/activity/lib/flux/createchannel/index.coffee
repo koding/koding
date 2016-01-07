@@ -12,4 +12,3 @@ module.exports = {
     require './stores/selectedindexstore'
   ]
 }
-

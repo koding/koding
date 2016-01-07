@@ -47,4 +47,3 @@ module.exports = class EmojiUsageCountsStore extends KodingFluxStore
 
     count = currentState.get(emoji) ? 0
     currentState.set emoji, count + 1
-

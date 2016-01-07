@@ -53,5 +53,3 @@ module.exports = class SidebarMessageItem extends SidebarItem
     {{> @endButton}}
     {{> @unreadCount}}
     """
-
-

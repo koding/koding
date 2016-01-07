@@ -61,4 +61,3 @@ module.exports = class FeedItemInputWidget extends React.Component
           onClick={ @props.updateMessage }>DONE</Button>
       </div>
     </div>
-

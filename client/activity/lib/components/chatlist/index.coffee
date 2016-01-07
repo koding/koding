@@ -197,4 +197,3 @@ module.exports = class ChatList extends React.Component
 
 
 React.Component.include.call ChatList, [KDReactorMixin]
-

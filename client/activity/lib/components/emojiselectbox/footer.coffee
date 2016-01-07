@@ -52,4 +52,3 @@ module.exports = class EmojiSelectBoxFooter extends React.Component
     </div>
 
 EmojiSelectBoxFooter.include [ImmutableRenderMixin]
-

@@ -68,5 +68,3 @@ module.exports = (options = {}) ->
   <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
 
   """
-
-

@@ -67,6 +67,3 @@ module.exports = (options, callback) ->
 
     else
       return callback null, prepareHTML 'landing'
-
-
-

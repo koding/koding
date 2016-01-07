@@ -31,5 +31,3 @@ module.exports = class MessageFlagsStore extends KodingFluxStore
       messageFlags = messageFlags.set messageId, immutable.Map()
 
     return messageFlags.setIn [messageId, 'isMessagesLoading'], no
-
-

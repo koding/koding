@@ -131,4 +131,3 @@ module.exports = class SharePopup extends JView
     {{> @facebookShareLink}}
     {{> @twitterShareLink}}
     """
-

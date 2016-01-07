@@ -330,5 +330,3 @@ module.exports = class SocialChannel extends Base
 
     { fetchBotChannel } = require './requests'
     fetchBotChannel options, callback
-
-

@@ -157,5 +157,3 @@ module.exports = class GroupsMemberRolesEditView extends JView
     super
 
     @loader.show()
-
-

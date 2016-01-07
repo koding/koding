@@ -42,4 +42,3 @@ describe 'EmojiSelectBoxSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate(['emojiSelectBoxSelectedIndex']).get stateId
 
       expect(selectedIndex).toBe undefined
-

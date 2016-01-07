@@ -213,5 +213,3 @@ module.exports = class Slugifiable
   useSlug:(slug, callback) ->
     { constructor } = this
     claimUniqueSlug this, constructor, slug, callback
-
-

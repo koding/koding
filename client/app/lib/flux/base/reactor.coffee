@@ -34,5 +34,3 @@ mapWithClassName = (classes) ->
     result[klass.getterPath] = klass
     return result
   , {}
-
-

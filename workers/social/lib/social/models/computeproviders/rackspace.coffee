@@ -151,5 +151,3 @@ module.exports = class Rackspace extends ProviderInterface
         price : '$2,978.40 per Month'
       }
     ]
-
-

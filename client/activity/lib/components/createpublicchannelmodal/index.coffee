@@ -357,4 +357,3 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
 
 React.Component.include.call CreatePublicChannelModal, [KDReactorMixin]
-

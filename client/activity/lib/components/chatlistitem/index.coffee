@@ -199,4 +199,3 @@ makeAvatar = (imAccount) ->
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <Avatar className="ChatItem-Avatar" width={35} height={35} />
   </ProfileLinkContainer>
-

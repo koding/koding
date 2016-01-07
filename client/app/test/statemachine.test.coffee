@@ -84,5 +84,3 @@ class KDObject
     @options = options
 
   bound: (fnName) -> return this[fnName].bind this
-
-
