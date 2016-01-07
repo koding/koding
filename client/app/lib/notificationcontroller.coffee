@@ -94,12 +94,11 @@ module.exports = class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
-    @on 'MachineListUpdated', ({machineUId, action}) ->
+    @on 'MachineListUpdated', ({machineUId, action, permanent}) ->
       switch action
         when 'removed'
-          if ideInstance = envDataProvider.getIDEFromUId machineUId
-            if ideInstance.mountedMachine.isPermanent()
-              ideInstance.showUserRemovedModal()
+          if (ideInstance = envDataProvider.getIDEFromUId machineUId) and permanent
+            ideInstance.showUserRemovedModal()
 
       kd.singletons.computeController.reset yes
 
