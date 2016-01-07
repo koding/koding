@@ -47,11 +47,6 @@ var (
 		Name, retryNewCodeOrContactSupport,
 	)
 
-	// FailedUninstallingKlient is a generic uninstall error.
-	FailedUninstallingKlient = fmt.Sprintf(
-		"Error: Unable to uninstall %s\n%s", Name, retryOrContactSupport,
-	)
-
 	// FailedStartKlient is used when starting klient fails.
 	FailedStartKlient = fmt.Sprintf(
 		"Error: Failed to start the %s within the expected time.\n%s", KlientName, retryOrContactSupport,
@@ -106,6 +101,12 @@ Please unmount and try again, or contact support@koding.com if this issue persis
 	//
 	// TODO: What can we instruct the user to do here?
 	FailedToUnlockMount = "Warning: Failed to unlock mount."
+
+	// FailedUninstallingKlientWarn is when the service fails
+	// (connecting or uninstalling)
+	FailedUninstallingKlientWarn = fmt.Sprintf(
+		"Warning: Unable to uninstall %s service.", Name,
+	)
 
 	// FailedToRemoveFiles is a generic failed to remove warning.
 	FailedToRemoveFilesWarn = fmt.Sprintf(
