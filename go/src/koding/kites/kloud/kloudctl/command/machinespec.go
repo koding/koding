@@ -121,16 +121,9 @@ func (spec *MachineSpec) BuildUserAndGroup() error {
 	}
 	// If no existing user is provided, create one.
 	if !spec.HasUser() {
-		query := func(c *mgo.Collection) error {
-			// Try to lookup user by username first.
-			var user models.User
-			err := c.Find(bson.M{"username": spec.Username()}).One(&user)
-			if err == nil {
-				spec.User.ObjectId = user.ObjectId
-				spec.User.Name = spec.Username()
-				return nil
-			}
-			// If the lookup fails, create new one.
+		// Try to lookup user by username first.
+		user, err := modelhelper.GetUser(spec.Username())
+		if err != nil {
 			spec.User.ObjectId = bson.NewObjectId()
 			if spec.User.RegisteredAt.IsZero() {
 				spec.User.RegisteredAt = time.Now()
@@ -138,34 +131,14 @@ func (spec *MachineSpec) BuildUserAndGroup() error {
 			if spec.User.LastLoginDate.IsZero() {
 				spec.User.LastLoginDate = spec.User.RegisteredAt
 			}
-			return c.Insert(&spec.User)
-		}
-		err := modelhelper.Mongo.Run("jUsers", query)
-		if err != nil {
-			return err
-		}
-		// For newly created user increment the member count.
-		query = func(c *mgo.Collection) error {
-			var group models.Group
-			id := spec.Machine.Groups[0].Id
-			err := c.FindId(id).One(&group)
-			if err != nil {
+			if err = modelhelper.CreateUser(&spec.User); err != nil {
 				return err
 			}
-			var count int
-			members, ok := group.Counts["members"]
-			if ok {
-				count, ok = members.(int)
-				if !ok {
-					// If the member count is unavaible to skip updating
-					// and return.
-					return nil
-				}
-			}
-			group.Counts["members"] = count + 1
-			return c.UpdateId(id, &group)
+			user = &spec.User
 		}
-		err = modelhelper.Mongo.Run("jGroups", query)
+		spec.User.ObjectId = user.ObjectId
+		spec.User.Name = spec.Username()
+		_, err = modelhelper.UpdateGroupAddMembers(spec.Machine.Groups[0].Id, 1)
 		if err != nil {
 			return err
 		}
@@ -203,17 +176,13 @@ func (spec *MachineSpec) BuildUserAndGroup() error {
 
 // BuildMachine inserts the machine to DB and requests kloud to build it.
 func (spec *MachineSpec) BuildMachine() error {
-	// Insert the machine to the db.
-	query := func(c *mgo.Collection) error {
-		spec.Machine.ObjectId = bson.NewObjectId()
-		spec.Machine.CreatedAt = time.Now()
-		spec.Machine.Status.ModifiedAt = time.Now()
-		spec.Machine.Credential = spec.Machine.Users[0].Username
-		spec.Machine.Uid = spec.finalizeUID()
-		spec.Machine.Domain = spec.Domain()
-		return c.Insert(&spec.Machine)
-	}
-	return modelhelper.Mongo.Run("jMachines", query)
+	spec.Machine.ObjectId = bson.NewObjectId()
+	spec.Machine.CreatedAt = time.Now()
+	spec.Machine.Status.ModifiedAt = time.Now()
+	spec.Machine.Credential = spec.Machine.Users[0].Username
+	spec.Machine.Uid = spec.finalizeUID()
+	spec.Machine.Domain = spec.Domain()
+	return modelhelper.CreateMachine(&spec.Machine)
 }
 
 // Copy gives a copy of the spec value.
