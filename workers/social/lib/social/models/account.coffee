@@ -98,13 +98,6 @@ module.exports = class JAccount extends jraphical.Module
       instance:
         modify:
           (signature Object, Function)
-        follow: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        unfollow: [
-          (signature Function)
-        ]
         fetchAppStorage:
           (signature Object, Function)
         setEmailPreferences:

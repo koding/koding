@@ -182,6 +182,9 @@ module.exports = class GroupsController extends kd.Controller
       return callback err  if err
 
       # Modify group data to use this stackTemplate as default
+      # TMS-1919: Needs to be changed to update stackTemplates list
+      # instead of setting it as is for the given stacktemplate ~ GG
+
       currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) ->
         return callback err  if err
 
@@ -190,12 +193,20 @@ module.exports = class GroupsController extends kd.Controller
           type  : 'mini'
 
         # Re-call create default stack flow to make sure it exists
+        # TMS-1919: This is possibly not needed for multiple stacks
+        # since we will allow users to select one stacktemplate from
+        # available stacktemplates list of group ~ GG
+
         computeController.createDefaultStack yes
 
         if stackTemplate._updated
           id = currentGroup.socialApiDefaultChannelId
 
           ActivityFlux = require 'activity/flux'
+
+          # TMS-1919: This needs to be rethink and maybe we should allow
+          # admins to post a specific message instead of a static one ~ GG
+
           ActivityFlux.actions.message.createMessage id, "
             I've just updated the Team stack template, please take a backup of
             your existing data and re-initialize your stack to use the latest

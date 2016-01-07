@@ -274,6 +274,11 @@ module.exports = class JComputeStack extends jraphical.Module
 
   unuseStackTemplate: (callback) ->
 
+    # TMS-1919: We currently have one-to-one relation between user and any
+    # given stack template, if we need to allow users to use same stack
+    # multiple times (which I don't think we should do) we need to change
+    # this behaviour here and the rest of the code ~ GG
+
     Relationship.remove
       targetName : 'JStackTemplate'
       targetId   : @baseStackId

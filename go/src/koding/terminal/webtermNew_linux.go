@@ -16,8 +16,8 @@ import (
 	kitelib "github.com/koding/kite"
 	kitednode "github.com/koding/kite/dnode"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // DO NOT CONFUSE THIS WITH WebtermServer in webterm.go, this is build on top

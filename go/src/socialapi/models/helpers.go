@@ -9,8 +9,8 @@ import (
 
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func CreateChannelWithParticipants() (*Channel, []*Account) {

@@ -8,10 +8,11 @@ ActivityFlux    = require 'activity/flux'
 module.exports = class CommentList extends React.Component
 
   defaultProps=
-    repliesCount  : 0
-    messageId     : null
-    comments      : immutable.List()
-    onMentionClick: kd.noop
+    repliesCount   : 0
+    messageId      : null
+    channelId      : null
+    comments       : immutable.List()
+    onMentionClick : kd.noop
 
 
   showMoreComment: ->
@@ -48,6 +49,7 @@ module.exports = class CommentList extends React.Component
 
     @props.comments.toList().map (comment) =>
       <CommentListItem
+        channelId={@props.channelId}
         comment={comment}
         key={comment.get 'id'}
         onMentionClick={ @props.onMentionClick } />

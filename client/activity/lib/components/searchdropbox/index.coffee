@@ -1,14 +1,15 @@
-kd                     = require 'kd'
-React                  = require 'kd-react'
-immutable              = require 'immutable'
-classnames             = require 'classnames'
-Dropbox                = require 'activity/components/dropbox/portaldropbox'
-DropboxItem            = require 'activity/components/dropboxitem'
-ErrorDropboxItem       = require 'activity/components/errordropboxitem'
-SearchDropboxItem      = require 'activity/components/searchdropboxitem'
-ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
+kd                = require 'kd'
+React             = require 'kd-react'
+ReactDOM          = require 'react-dom'
+immutable         = require 'immutable'
+classnames        = require 'classnames'
+Dropbox           = require 'activity/components/dropbox/portaldropbox'
+DropboxItem       = require 'activity/components/dropboxitem'
+ErrorDropboxItem  = require 'activity/components/errordropboxitem'
+SearchDropboxItem = require 'activity/components/searchdropboxitem'
+ScrollableDropbox = require 'activity/components/dropbox/scrollabledropbox'
 
-module.exports = class SearchDropbox extends React.Component
+class SearchDropbox extends React.Component
 
   @propTypes =
     query           : React.PropTypes.string
@@ -35,9 +36,6 @@ module.exports = class SearchDropbox extends React.Component
   shouldComponentUpdate: (nextProps, nextState) -> not nextProps.flags?.get 'isLoading'
 
 
-  getItemKey: (item) -> item.getIn ['message', 'id']
-
-
   updatePosition: (inputDimensions) ->
 
     @refs.dropbox.setInputDimensions inputDimensions
@@ -56,8 +54,7 @@ module.exports = class SearchDropbox extends React.Component
         item        = { item }
         onSelected  = { onItemSelected }
         onConfirmed = { onItemConfirmed }
-        key         = { @getItemKey item }
-        ref         = { @getItemKey item }
+        key         = { item.getIn ['message', 'id'] }
       />
 
 
@@ -98,5 +95,5 @@ module.exports = class SearchDropbox extends React.Component
     </Dropbox>
 
 
-SearchDropbox.include [ ScrollableDropboxMixin ]
+module.exports = ScrollableDropbox SearchDropbox
 

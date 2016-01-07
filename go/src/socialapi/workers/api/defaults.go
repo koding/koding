@@ -7,7 +7,7 @@ import (
 	"socialapi/models"
 	"strconv"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"

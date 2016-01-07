@@ -19,7 +19,7 @@ import (
 	"github.com/koding/kite"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type AwsBootstrapOutput struct {

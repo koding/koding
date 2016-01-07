@@ -9,19 +9,17 @@ FeedInputWidgetPreview = require './feedinputwidgetpreview'
 
 module.exports = class FeedInputWidget extends React.Component
 
+  defaultProps =
+    value     : ''
+    channelId : null
+
   constructor: (props) ->
 
     super
 
     @state =
-      value       : ''
+      value       : @props.value
       previewMode : no
-
-
-  channel: (key) -> @props.thread?.getIn ['channel', key]
-
-
-  onResize: ->
 
 
   onChange: (event) -> @setState value: event.target.value
@@ -38,9 +36,8 @@ module.exports = class FeedInputWidget extends React.Component
 
     return  unless value
 
-    ActivityFlux.actions.message.createMessage @channel('id'), value
-      .then =>
-        @setState { value: '', previewMode: no }
+    ActivityFlux.actions.message.createMessage @props.channelId, value
+      .then => @setState { value: '', previewMode: no }
 
 
   render: ->
@@ -49,13 +46,10 @@ module.exports = class FeedInputWidget extends React.Component
     placeholder = "Hey #{firstName}, share something interesting or ask a question."
 
     <div className='FeedInputWidget'>
-      <i></i>
       <AutoSizeTextarea
         placeholder={placeholder}
         value={@state.value}
-        onChange={@bound 'onChange'}
-        onResize={ @bound 'onResize' }
-        />
+        onChange={@bound 'onChange'} />
       <div className='FeedInputWidget-buttonBar'>
         <Button
           tabIndex={1}

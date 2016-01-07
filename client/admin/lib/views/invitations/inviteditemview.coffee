@@ -97,13 +97,13 @@ module.exports = class InvitedItemView extends KDListItemView
     if statusType is 'pending'
 
       @settings.addSubView @revokeButton = new KDButtonView
-        cssClass : 'solid compact outline'
+        cssClass : 'solid compact outline revoke-button'
         title    : 'REVOKE INVITATION'
         loader   : color : '#4a4e52'
         callback : @bound 'revoke'
 
       @settings.addSubView @resendButton = new KDButtonView
-        cssClass : 'solid compact outline'
+        cssClass : 'solid compact outline resend-button'
         title    : 'RESEND INVITATION'
         loader   : color : '#4a4e52'
         callback : @bound 'resend'

@@ -646,9 +646,10 @@ module.exports = class JUser extends jraphical.Module
       # yes weird, but we are creating user before creating group
       return callback null, { isEligible: yes } if not group
 
-      isAllowed = group.isInAllowedDomain email
-      return callback new KodingError 'Your email domain is not in allowed \
-        domains for this group'  unless isAllowed
+      unless group.isInAllowedDomain email
+        domainErr = 'Your email domain is not in allowed domains for this group'
+        return callback new KodingError domainErr  if group.allowedDomains?.length > 0
+        return callback new KodingError 'Access denied'
 
       return callback null, { isEligible: yes }
 
@@ -798,25 +799,6 @@ module.exports = class JUser extends jraphical.Module
       callback new KodingError error
 
 
-  checkUserStatus = (user, account, callback) ->
-
-    if user.status is 'unconfirmed' and KONFIG.emailConfirmationCheckerWorker.enabled
-      error = new KodingError 'You should confirm your email address'
-      error.code = 403
-      error.data or= {}
-      error.data.name = account.profile.firstName or account.profile.nickname
-      error.data.nickname = account.profile.nickname
-      return callback error
-
-    return callback null
-
-
-  checkLoginConstraints = (user, account, callback) ->
-    checkBlockedStatus user, (err) ->
-      return callback err  if err
-      checkUserStatus user, account, callback
-
-
   updateUserPasswordStatus = (user, callback) ->
     # let user log in for the first time, than set password status
     # as 'needs reset'
@@ -844,7 +826,7 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         # checking login constraints
-        checkLoginConstraints user, account, (err) ->
+        checkBlockedStatus user, (err) ->
           return callback err  if err
           queue.next()
 

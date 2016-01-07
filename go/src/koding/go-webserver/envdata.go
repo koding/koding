@@ -6,7 +6,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type EnvData struct {

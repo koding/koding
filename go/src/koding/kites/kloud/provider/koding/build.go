@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
@@ -235,7 +235,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// allocate and associate a new Public IP for paying users, we can do
 	// this after we create the instance
-	if m.Payment.Plan != "free" {
+	if m.Payment.Plan != plans.Free.Name {
 		m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
 
 		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(meta.InstanceId)
@@ -528,6 +528,12 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 			imageData.blockDeviceMapping,
 		},
 		UserData: aws.String(base64.StdEncoding.EncodeToString(userdata)),
+	}
+
+	// On build or rebuild ensure instances for old free users are
+	// converted from t2.micro to t2.nano.
+	if m.Payment.Plan == plans.Free.Name {
+		ec2Data.InstanceType = aws.String("t2.nano")
 	}
 
 	// pass publicKey if only it's available

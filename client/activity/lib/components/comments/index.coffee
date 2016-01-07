@@ -11,7 +11,8 @@ CommentInputWidget   = require './commentinputwidget'
 module.exports = class Comments extends React.Component
 
   @defaultProps=
-    message : immutable.Map()
+    message   : immutable.Map()
+    channelId : null
 
   constructor: (props) ->
 
@@ -84,6 +85,7 @@ module.exports = class Comments extends React.Component
 
     <div className='CommentsWrapper'>
       <CommentList
+        channelId={ @props.channelId }
         messageId={ @props.message.get '_id' }
         repliesCount={ @props.message.get 'repliesCount' }
         comments={@getComments()}

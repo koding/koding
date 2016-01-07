@@ -11,7 +11,7 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 	"net/http"
 	"strconv"
 	"strings"

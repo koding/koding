@@ -3,11 +3,16 @@ utils    = require '../utils/utils.js'
 HUBSPOT  = no
 
 
-teamsModalSelector      = '.TeamsModal--groupCreation'
-companyNameSelector     = '.login-form input[testpath=company-name]'
-sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
-chatItem                = '.Pane-body .ChatList .ChatItem'
-chatInputSelector       = '.ChatPaneFooter .ChatInputWidget textarea'
+teamsModalSelector       = '.TeamsModal--groupCreation'
+companyNameSelector      = '.login-form input[testpath=company-name]'
+sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
+chatItem                 = '.Pane-body .ChatList .ChatItem'
+chatInputSelector        = '.ChatPaneFooter .ChatInputWidget textarea'
+sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
+invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
+pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+
 
 module.exports =
 
@@ -444,3 +449,115 @@ module.exports =
       .click                     followChannelButton
       .waitForElementNotVisible  followChannelButton, 20000
 
+
+  inviteUser: (browser, addMoreUser = no) ->
+
+    invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    inviteUserView           = "#{invitationsModalSelector} .invite-view"
+    emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
+    userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
+    inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
+    notificationView         = '.kdnotification'
+
+    browser
+      .waitForElementVisible  inviteUserView, 20000
+      .waitForElementVisible  emailInputSelector, 20000
+      .setValue               emailInputSelector, userEmail
+      .waitForElementVisible  inviteMemberButton, 20000
+      .click                  inviteMemberButton
+      .waitForElementVisible  notificationView, 20000
+      .assert.containsText    notificationView, 'Invitations are sent to new members.'
+      .pause                  2000 # wait for notification
+
+    if addMoreUser
+      browser
+        .waitForElementVisible  emailInputSelector, 20000
+    else
+      browser
+        .click                  pendingMembersTab
+        .waitForElementVisible  pendingMemberView, 20000
+        .assert.containsText    pendingMemberView, userEmail
+
+    return userEmail
+
+
+  clickPendingInvitations: (browser, openTab = yes) ->
+
+    if openTab
+      @clickTeamSettings(browser)
+      @openInvitationsTab(browser)
+
+    browser
+      .waitForElementVisible  pendingMembersTab, 20000
+      .click                  pendingMembersTab
+      .waitForElementVisible  pendingMemberView, 20000 # Assertion
+
+
+  invitationAction: (browser, userEmail, revoke) ->
+
+    pendingMemberView         = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+    pendingMemberViewTime     = "#{pendingMemberView} time"
+    pendingMemberViewSettings = "#{pendingMemberView}.settings-visible .settings"
+    actionButton              = "#{pendingMemberViewSettings} .resend-button"
+
+    if revoke
+      actionButton = "#{pendingMemberViewSettings} .revoke-button"
+
+    @clickPendingInvitations(browser, no)
+
+    browser
+      .waitForElementVisible  pendingMemberViewTime, 20000
+      .click                  pendingMemberViewTime
+      .waitForElementVisible  actionButton, 20000
+      .pause                  3000
+      .click                  actionButton
+      .pause                  2000
+
+    if revoke
+      browser.expect.element(pendingMemberView).text.to.not.contain userEmail
+    else
+      browser.waitForElementVisible  '.kdnotification', 20000 # Assertion
+
+
+  searchPendingInvitation: (browser, userEmail) ->
+
+    pendingInvitations  = '.member-related .pending-invitations'
+    searchSelector      = "#{pendingInvitations} .search"
+    searchInputSelector = "#{searchSelector} input"
+    emailList           = "#{pendingInvitations} .listview-wrapper"
+
+    browser
+      .waitForElementVisible     searchSelector, 20000
+      .waitForElementVisible     searchInputSelector, 20000
+      .click                     searchInputSelector
+      .setValue                  searchInputSelector, userEmail + browser.Keys.ENTER
+      .pause                     5000 # wait for listing
+      .waitForElementVisible     emailList, 20000
+      .assert.containsText       emailList, userEmail
+
+
+
+
+
+  likeunlikePost: (browser, likeLikePost = no) ->
+
+    bodyContainer       = '.ChatListItem-itemBodyContainer'
+    likeButtonUnpressed = "#{bodyContainer} .ChatItem-likeLink:nth-child(2)"
+    likeButtonPressed   = "#{bodyContainer} .ChatItem-likeLink.is-likedByUser"
+    textSelector        = "#{bodyContainer}:nth-of-type(1)"
+
+    browser
+      .pause                  2000
+      .waitForElementVisible  textSelector, 20000
+      .moveToElement          textSelector, 10, 10
+      .waitForElementVisible  likeButtonUnpressed, 20000
+      .click                  likeButtonUnpressed
+      .waitForElementVisible  likeButtonPressed, 20000
+      .assert.visible         likeButtonPressed
+
+    if likeLikePost
+      browser
+        .click                    likeButtonPressed
+        .waitForElementVisible    likeButtonUnpressed, 20000
+        .pause                    3000
+        .assert.elementNotPresent likeButtonPressed

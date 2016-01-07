@@ -7,7 +7,6 @@ KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 jraphical = require 'jraphical'
 module.exports = class JProposedDomain extends jraphical.Module
 
-  DomainManager      = require 'domainer'
   Validators         = require './group/validators'
   KodingError        = require '../error'
   { secure, ObjectId, signature } = require 'bongo'
@@ -17,7 +16,6 @@ module.exports = class JProposedDomain extends jraphical.Module
 
   @trait __dirname, '../traits/protected'
 
-  domainManager     = new DomainManager
   JAccount          = require './account'
 
   @share()
