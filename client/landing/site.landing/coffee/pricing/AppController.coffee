@@ -10,4 +10,3 @@ module.exports = class PricingAppController extends KDViewController
     options.appInfo = title: "Pricing"
     options.view    = new PricingAppView params: options.params
     super options, data
-

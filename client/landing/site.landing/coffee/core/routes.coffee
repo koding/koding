@@ -75,5 +75,3 @@ do ->
     '/Authenticate/:step?' : handleTeamOnboardingRoute.bind this, 'stacks'
     '/Congratz'            : handleTeamOnboardingRoute.bind this, 'congratz'
     '/Banned'              : handleTeamRoute.bind this, 'banned'
-
-

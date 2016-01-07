@@ -33,4 +33,3 @@ module.exports = class LoginAppsController extends KDViewController
     @appStorage.fetchStorage (storage) =>
       @appStorage.setValue key, value, (err) ->
         warn "Failed to set #{key} information"  if err
-

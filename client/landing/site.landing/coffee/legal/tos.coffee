@@ -1116,5 +1116,3 @@ module.exports = class TosView extends JView
       </p>
     </div>
     """
-
-
