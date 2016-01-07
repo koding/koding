@@ -25,6 +25,15 @@ module.exports = VideoCollaborationController =
 
   prepareVideoCollaboration: ->
 
+    { userAgent } = global.navigator
+
+    if /^((?!chrome|android).)*safari/i.test userAgent
+      showError """
+        The video component is not supported for Safari.<br />
+        To enable this functionality, please use Google Chrome or Firefox.
+      """
+      return
+
     @videoModel = new VideoCollaborationModel
       channel : @socialChannel
       view    : @chat.getVideoView()
