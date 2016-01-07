@@ -10,7 +10,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/kontrol"
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 )
 
 func (q *Queue) CheckAWS() {

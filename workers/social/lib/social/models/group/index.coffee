@@ -246,7 +246,7 @@ module.exports = class JGroup extends Module
         sendNotification:
           (signature String, String, Function)
         setPlan:
-          (signature String, Function)
+          (signature Object, Function)
         fetchApiTokens: [
           (signature Function)
           (signature Object, Function)
@@ -1081,14 +1081,32 @@ module.exports = class JGroup extends Module
 
   setPlan    : permit
     advanced : [{ permission: 'edit groups', superadmin: yes }]
-    success  : (client, plan, callback) ->
+    success  : (client, data, callback) ->
 
       TEAMPLANS = require '../computeproviders/teamplans'
 
-      if plan not in (plans = Object.keys TEAMPLANS)
+      { plan, overrides } = data
+
+      if plan not in (plans = Object.keys(TEAMPLANS).concat 'noplan')
         return callback new KodingError "Plan can be #{plans.join ','}"
 
-      @update { $set: { 'config.plan': plan } }, callback
+      if plan is 'noplan'
+        _plan      = ''
+        overrides  = ''
+      else
+        _plan      = plan
+        overrides ?= {}
+
+      dataToUpdate = {
+        'config.plan'          : _plan
+        'config.planOverrides' : overrides
+      }
+
+      if plan is 'noplan'
+        @update { $unset: dataToUpdate }, callback
+      else
+        @update { $set: dataToUpdate }, callback
+
 
 
   modifyMembershipPolicy: permit

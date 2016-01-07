@@ -28,6 +28,7 @@ module.exports = class StackTemplateListController extends AccountListViewContro
     query        = { group: currentGroup.slug }
 
     # TODO Add Pagination here ~ GG
+    # TMS-1919: This is TODO needs to be done ~ GG
     JStackTemplate.some query, { limit: 30 }, (err, stackTemplates) =>
 
       @hideLazyLoader()

@@ -1,6 +1,6 @@
 package models
 
-import "labix.org/v2/mgo/bson"
+import "gopkg.in/mgo.v2/bson"
 
 // StackTemplate is a document from jStackTemplates collection
 type StackTemplate struct {

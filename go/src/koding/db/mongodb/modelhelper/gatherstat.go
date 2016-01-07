@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"koding/db/models"
 
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 )
 
 const GatherStatsColl = "gatherstats"

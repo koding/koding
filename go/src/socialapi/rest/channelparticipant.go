@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"socialapi/models"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func CreateChannelParticipants(channelId, accountId int64, c int) ([]*models.ChannelParticipant, error) {

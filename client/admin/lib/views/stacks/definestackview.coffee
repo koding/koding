@@ -314,6 +314,9 @@ module.exports = class DefineStackView extends KDView
       stackTemplate.inuse ?= stackTemplate._id in (stackTemplates or [])
       templateSetBefore    = stackTemplates?.length
 
+      # TMS-1919: This needs to be reimplemented, once we have multiple
+      # stacktemplates set for a team this will be broken ~ GG
+
       if templateSetBefore
 
         unless stackTemplate.inuse
@@ -634,6 +637,10 @@ module.exports = class DefineStackView extends KDView
     { groupsController } = kd.singletons
 
     @outputView.add 'Setting this as default group stack template...'
+
+    # TMS-1919: This should only add the stacktemplate to the list of
+    # available stacktemplates, we can also provide set one of the template
+    # as default ~ GG
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
       if @outputView.handleError err

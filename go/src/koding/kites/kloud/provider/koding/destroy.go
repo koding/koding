@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 
 	"golang.org/x/net/context"
 )
