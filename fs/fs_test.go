@@ -943,7 +943,7 @@ func TestGetDiskInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if di.BlockSize != stfs.Bsize {
+	if di.BlockSize != uint32(stfs.Bsize) {
 		t.Errorf("got %+v, expected %+v", stfs.Bsize, di.BlockSize)
 	}
 

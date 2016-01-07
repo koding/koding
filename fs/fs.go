@@ -358,6 +358,7 @@ func Copy(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
+// DiskInfo contains metadata about a mount.
 type DiskInfo struct {
 	BlockSize   uint32 `json:"blockSize"`
 	BlocksTotal uint64 `json:"blocksTotal"`
@@ -365,6 +366,7 @@ type DiskInfo struct {
 	BlocksUsed  uint64 `json:"blocksUsed"`
 }
 
+// GetDiskInfo returns DiskInfo about the mount at "/".
 func GetDiskInfo(r *kite.Request) (interface{}, error) {
 	stfs := syscall.Statfs_t{}
 	if err := syscall.Statfs("/", &stfs); err != nil {
@@ -372,7 +374,7 @@ func GetDiskInfo(r *kite.Request) (interface{}, error) {
 	}
 
 	di := &DiskInfo{
-		BlockSize:   stfs.Bsize,
+		BlockSize:   uint32(stfs.Bsize),
 		BlocksTotal: stfs.Blocks * uint64(stfs.Bsize),
 		BlocksFree:  stfs.Bfree * uint64(stfs.Bsize),
 	}
