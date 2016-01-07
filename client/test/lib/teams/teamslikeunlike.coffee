@@ -4,7 +4,7 @@ teamsHelpers = require '../helpers/teamshelpers.js'
 HUBSPOT      = no
 
 
-module.exports = 
+module.exports =
 
 
   likePost: (browser) ->
