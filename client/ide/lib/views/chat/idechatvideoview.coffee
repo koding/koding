@@ -21,5 +21,3 @@ module.exports = class IDEChatVideoView extends BaseChatVideoView
   handleStateChangeRequest: (type) -> (active) ->
 
     kd.singletons.appManager.tell 'IDE', 'toggleVideoControl', type, active
-
-

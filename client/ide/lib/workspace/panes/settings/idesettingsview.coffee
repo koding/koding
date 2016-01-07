@@ -49,4 +49,3 @@ module.exports = class IDESettingsView extends JView
     { componentId } = @getOptions()
     appManager      = kd.getSingleton 'appManager'
     appManager.tell 'IDE', 'updateSettings', componentId, key, value
-

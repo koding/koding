@@ -24,4 +24,3 @@ module.exports  = class SplitRegionHandlerView extends KDCustomHTMLView
     { direction } = @getOptions()
 
     @emit 'TabDropped', direction
-

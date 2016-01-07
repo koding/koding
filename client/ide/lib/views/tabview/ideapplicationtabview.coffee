@@ -135,4 +135,3 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     @emit 'PaneRemovedByUserAction', pane
 
     super pane
-

@@ -334,4 +334,3 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
       item.showEditWidget()
       @scrollView.wrapper.scrollToSubView item, 500
       return
-

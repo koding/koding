@@ -345,4 +345,3 @@ module.exports = class RealtimeManager extends KDObject
     @isReady = no
 
     @emit 'RealtimeManagerDidDispose'
-

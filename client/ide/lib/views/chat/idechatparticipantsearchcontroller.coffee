@@ -20,4 +20,3 @@ module.exports = class IDEChatParticipantSearchController extends ParticipantSea
       , videoState
 
     @emit 'VideoStateRequested'
-

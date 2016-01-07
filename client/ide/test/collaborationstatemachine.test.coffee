@@ -222,4 +222,3 @@ endingMachine = ->
   machine = activeMachine()
   machine.transition 'Ending'
   return machine
-

@@ -33,4 +33,3 @@ module.exports = class LimitedVideoCollaborationModal extends KDModalView
 
     @addSubView new ComputePlansModalFooterLink
       title : 'Upgrade your account to any paid plan for unlimited video collaboration.'
-
