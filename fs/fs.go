@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"syscall"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
@@ -355,4 +356,37 @@ func Copy(r *kite.Request) (interface{}, error) {
 	}
 
 	return true, nil
+}
+
+// DiskInfo contains metadata about a mount.
+type DiskInfo struct {
+	BlockSize   uint32 `json:"blockSize"`
+	BlocksTotal uint64 `json:"blocksTotal"`
+	BlocksFree  uint64 `json:"blocksFree"`
+	BlocksUsed  uint64 `json:"blocksUsed"`
+}
+
+// GetDiskInfo returns DiskInfo about the mount at the specified path.
+func GetDiskInfo(r *kite.Request) (interface{}, error) {
+	var params struct {
+		Path string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
+		return nil, errors.New("{ path: [string] }")
+	}
+
+	stfs := syscall.Statfs_t{}
+	if err := syscall.Statfs(params.Path, &stfs); err != nil {
+		return nil, err
+	}
+
+	di := &DiskInfo{
+		BlockSize:   uint32(stfs.Bsize),
+		BlocksTotal: stfs.Blocks,
+		BlocksFree:  stfs.Bfree,
+	}
+	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
+
+	return di, nil
 }
