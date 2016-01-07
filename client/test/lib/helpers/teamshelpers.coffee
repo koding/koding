@@ -538,9 +538,9 @@ module.exports =
 
   likeunlikePost: (browser, likeLikePost = no) ->
 
-    likeContainer       = ".ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ActivityLikeLink"
-    likeButtonUnpressed = "#{likeContainer}"
-    likeButtonPressed   = "#{likeContainer}.is-likedByUser"
+    likeContainer       = ".ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer"
+    likeButtonUnpressed = "#{likeContainer} a[class~=ActivityLikeLink]:not(.is-likedByUser)"
+    likeButtonPressed   = "#{likeContainer} .ActivityLikeLink.is-likedByUser"
     textSelector        = '.ChatListItem-itemBodyContainer:nth-of-type(1)'
 
     browser
