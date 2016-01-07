@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"syscall"
 	"testing"
 	"time"
 
@@ -29,6 +30,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 					},
 					"fs.getInfo":                transport.FsGetInfoRes{Exists: true},
 					"fs.readRecursiveDirectory": transport.FsReadDirectoryRes{},
+					"fs.getDiskInfo":            transport.FsGetDiskInfo{},
 				},
 			}
 			k := newknfs(t)
@@ -73,6 +75,12 @@ func TestKodingNetworkFS(tt *testing.T) {
 							Size:     uint64(len(s)),
 						},
 					},
+				},
+				"fs.getDiskInfo": transport.FsGetDiskInfo{
+					BlockSize:   8192,
+					BlocksTotal: 10000,
+					BlocksFree:  9000,
+					BlocksUsed:  1000,
 				},
 			},
 		}
@@ -599,6 +607,16 @@ func TestKodingNetworkFS(tt *testing.T) {
 			})
 		})
 
+		Convey("StatFS", func() {
+			fs := syscall.Statfs_t{}
+			err := syscall.Statfs(k.MountPath, &fs)
+			So(err, ShouldBeNil)
+
+			So(fs.Bsize, ShouldEqual, 8192)
+			So(fs.Blocks, ShouldEqual, 10000)
+			So(fs.Bfree, ShouldEqual, 9000)
+		})
+
 		// Convey("SetInodeAttributes", func() {
 		// })
 
@@ -622,6 +640,7 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 			"fs.readDirectory":          transport.FsReadDirectoryRes{},
 			"fs.getInfo":                transport.FsGetInfoRes{Exists: true},
 			"fs.readRecursiveDirectory": transport.FsReadDirectoryRes{},
+			"fs.getDiskInfo":            transport.FsGetDiskInfo{},
 		},
 	}
 
