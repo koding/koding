@@ -366,10 +366,18 @@ type DiskInfo struct {
 	BlocksUsed  uint64 `json:"blocksUsed"`
 }
 
-// GetDiskInfo returns DiskInfo about the mount at "/".
+// GetDiskInfo returns DiskInfo about the mount at the specified path.
 func GetDiskInfo(r *kite.Request) (interface{}, error) {
+	var params struct {
+		Path string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
+		return nil, errors.New("{ path: [string] }")
+	}
+
 	stfs := syscall.Statfs_t{}
-	if err := syscall.Statfs("/", &stfs); err != nil {
+	if err := syscall.Statfs(params.Path, &stfs); err != nil {
 		return nil, err
 	}
 
