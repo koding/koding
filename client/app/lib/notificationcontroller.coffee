@@ -1,12 +1,13 @@
-kookies            = require 'kookies'
-getGroup           = require 'app/util/getGroup'
-whoami             = require 'app/util/whoami'
-envDataProvider    = require 'app/userenvironmentdataprovider'
-kd                 = require 'kd'
-articlize          = require 'indefinite-article'
-KDModalView        = kd.ModalView
-KDNotificationView = kd.NotificationView
-KDObject           = kd.Object
+kookies             = require 'kookies'
+getGroup            = require 'app/util/getGroup'
+whoami              = require 'app/util/whoami'
+envDataProvider     = require 'app/userenvironmentdataprovider'
+kd                  = require 'kd'
+articlize           = require 'indefinite-article'
+KDModalView         = kd.ModalView
+KDNotificationView  = kd.NotificationView
+KDObject            = kd.Object
+IDEHelpers          = require 'ide/idehelpers'
 
 
 module.exports = class NotificationController extends KDObject
@@ -75,7 +76,9 @@ module.exports = class NotificationController extends KDObject
         @emit event, contents  if event
 
 
-  setListeners:->
+  setListeners: ->
+
+    { appManager } = kd.singletons
 
     @on 'GuestTimePeriodHasEnded', deleteUserCookie
 
@@ -89,17 +92,22 @@ module.exports = class NotificationController extends KDObject
         deleteUserCookie()
 
     @once 'EmailShouldBeConfirmed', ->
-      {firstName, nickname} = whoami().profile
-      kd.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
+      { firstName, nickname } = whoami().profile
+      appManager.tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
     @on 'MachineListUpdated', ({machineUId, action}) ->
       switch action
         when 'removed'
-          if ideInstance = envDataProvider.getIDEFromUId machineUId
-            if ideInstance.mountedMachine.isPermanent()
-              ideInstance.showUserRemovedModal()
+
+          { IDE }   = appManager.appControllers
+          instances = IDEHelpers.getOpenedIDEInstancesByMachineUId machineUId
+
+          return  unless instances.length
+
+          IDE.instances[IDE.lastActiveIndex].showUserRemovedModal ->
+            instances.forEach (instance) -> instance.quit()
 
       kd.singletons.computeController.reset yes
 

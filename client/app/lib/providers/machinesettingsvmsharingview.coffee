@@ -1,14 +1,15 @@
-kd                               = require 'kd'
-nick                             = require 'app/util/nick'
-remote                           = require('app/remote').getInstance()
-KDView                           = kd.View
-Machine                          = require 'app/providers/machine'
-UserItem                         = require 'app/useritem'
-KDCustomHTMLView                 = kd.CustomHTMLView
-ComputeErrorUsageModal           = require './computeerrorusagemodal'
-KDAutoCompleteController         = kd.AutoCompleteController
-MachineSettingsCommonView        = require './machinesettingscommonview'
-ActivityAutoCompleteUserItemView = require 'activity/views/activityautocompleteuseritemview'
+kd                                = require 'kd'
+nick                              = require 'app/util/nick'
+remote                            = require('app/remote').getInstance()
+KDView                            = kd.View
+Machine                           = require 'app/providers/machine'
+UserItem                          = require 'app/useritem'
+IDEHelpers                        = require 'ide/idehelpers'
+KDCustomHTMLView                  = kd.CustomHTMLView
+ComputeErrorUsageModal            = require './computeerrorusagemodal'
+KDAutoCompleteController          = kd.AutoCompleteController
+MachineSettingsCommonView         = require './machinesettingscommonview'
+ActivityAutoCompleteUserItemView  = require 'activity/views/activityautocompleteuseritemview'
 
 
 module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommonView
@@ -89,8 +90,13 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
       return @showNotification err  if err
 
-      kite   = @machine.getBaseKite()
-      method = if task is 'add' then 'klientShare' else 'klientUnshare'
+      kite = @machine.getBaseKite()
+
+      if task is 'add'
+        method = 'klientShare'
+      else
+        method = 'klientUnshare'
+        IDEHelpers.deleteSnapshotData @machine, nickname
 
       kite[method] { username: nickname, permanent: yes }
 
