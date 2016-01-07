@@ -268,7 +268,7 @@ If this problem persists, please contact us at: support@koding.com
 	}
 
 	res = fmt.Sprintf(
-		"The %s appears to be running and is healthy\n", KlientName,
+		"The %s appears to be running and is healthy.", KlientName,
 	)
 
 	return res, true
