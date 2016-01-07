@@ -8,4 +8,3 @@ do ->
   KD.registerRoutes 'Pricing',
 
     '/Pricing': -> handler (app) -> app.getView()
-

@@ -113,5 +113,3 @@ module.exports = class SinglePlanView extends KDView
   enable: ->
     @unsetClass 'current'
     @buyButton.enable()
-
-

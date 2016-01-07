@@ -21,4 +21,3 @@ module.exports = class LoginViewInlineForm extends KDFormView
 
 
   pistachio:->
-

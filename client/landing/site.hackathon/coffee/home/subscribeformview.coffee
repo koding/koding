@@ -56,4 +56,3 @@ module.exports = class SubscribeFormView extends KDFormViewWithFields
       success     : => @emit 'subscribeSuccess'
       error       : => @emit 'subscribeError'
       complete    : => submit.hideLoader()
-

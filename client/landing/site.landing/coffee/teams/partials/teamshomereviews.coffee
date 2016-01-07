@@ -69,5 +69,3 @@ module.exports = class TeamsHomeReviews extends KDView
         """
 
     @setPartial reviews
-
-

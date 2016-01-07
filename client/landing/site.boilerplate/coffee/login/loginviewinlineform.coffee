@@ -12,4 +12,3 @@ module.exports = class LoginViewInlineForm extends KDFormView
     @on 'FormValidationFailed', @button.bound 'hideLoader'
 
   pistachio:->
-

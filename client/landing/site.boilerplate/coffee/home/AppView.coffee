@@ -120,5 +120,3 @@ module.exports = class HomeView extends KDView
     </section>
 
     """
-
-
