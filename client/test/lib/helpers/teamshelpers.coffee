@@ -536,15 +536,12 @@ module.exports =
       .assert.containsText       emailList, userEmail
 
 
-
-
-
   likeunlikePost: (browser, likeLikePost = no) ->
 
-    bodyContainer       = '.ChatListItem-itemBodyContainer'
-    likeButtonUnpressed = "#{bodyContainer} .ChatItem-likeLink:nth-child(2)"
-    likeButtonPressed   = "#{bodyContainer} .ChatItem-likeLink.is-likedByUser"
-    textSelector        = "#{bodyContainer}:nth-of-type(1)"
+    likeContainer       = ".ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ActivityLikeLink"
+    likeButtonUnpressed = "#{likeContainer}"
+    likeButtonPressed   = "#{likeContainer}.is-likedByUser"
+    textSelector        = '.ChatListItem-itemBodyContainer:nth-of-type(1)'
 
     browser
       .pause                  2000
