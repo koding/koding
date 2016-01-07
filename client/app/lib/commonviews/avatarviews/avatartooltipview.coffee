@@ -97,5 +97,3 @@ module.exports = class AvatarTooltipView extends JView
         </div>
     </div>
     """
-
-

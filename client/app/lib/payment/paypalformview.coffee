@@ -51,6 +51,3 @@ module.exports = class PaypalFormView extends KDFormViewWithFields
       defaultValue: @state.planInterval
       type: 'hidden'
       cssClass: 'hidden'
-
-
-

@@ -66,5 +66,3 @@ module.exports = class PublicFeedPane extends React.Component
       thread={@props.thread}
       onLoadMore={@bound 'onLoadMore'}
     />
-
-

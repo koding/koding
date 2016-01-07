@@ -152,5 +152,3 @@ renderTooltip = (state) ->
   <div className={className}>
     <span>Coming soon</span>
   </div>
-
-

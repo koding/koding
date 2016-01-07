@@ -53,4 +53,3 @@ module.exports = class SidebarModalThreads extends React.Component
         { @renderNoResultText() }
       </Scroller>
     </div>
-

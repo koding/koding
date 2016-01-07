@@ -82,5 +82,3 @@ module.exports = class GroupsUploadView extends JView
       {{> @saveButton}}
       {{> @loader}}
     """
-
-

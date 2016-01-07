@@ -305,7 +305,3 @@ module.exports = class PrivacyView extends JView
       </p>
     </div>
     """
-
-
-
-

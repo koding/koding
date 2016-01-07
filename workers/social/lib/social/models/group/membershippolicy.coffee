@@ -50,5 +50,3 @@ module.exports = class JMembershipPolicy extends Module
       '''
       Sorry, membership to this group requires administrative approval.
       '''
-
-

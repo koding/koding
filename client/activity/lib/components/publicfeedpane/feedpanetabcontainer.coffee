@@ -61,4 +61,3 @@ module.exports = class FeedPaneTabContainer extends React.Component
         <i className='FeedPane-searchIcon'/>
       </div>
     </div>
-

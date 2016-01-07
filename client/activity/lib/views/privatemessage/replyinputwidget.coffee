@@ -76,6 +76,3 @@ module.exports = class ReplyInputWidget extends ActivityInputWidget
 
 
   viewAppended: ->
-
-
-

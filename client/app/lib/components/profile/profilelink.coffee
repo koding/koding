@@ -19,6 +19,3 @@ module.exports = class ProfileLink extends React.Component
     <a href={@getHref()} onClick={@props.onClick} {...@props}>
       {@props.children}
     </a>
-
-
-

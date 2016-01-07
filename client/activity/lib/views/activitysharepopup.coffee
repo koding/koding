@@ -37,5 +37,3 @@ module.exports = class ActivitySharePopup extends SharePopup
   getNewTabOptions: (options) ->
 
     return enabled: true, url: options.url
-
-

@@ -93,5 +93,3 @@ module.exports = (req, res) ->
   r.end()
 
   r.on 'error', (e) -> console.error 'problem with request: ' + e.message
-
-

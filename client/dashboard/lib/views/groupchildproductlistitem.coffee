@@ -12,4 +12,3 @@ module.exports = class GroupChildProductListItem extends KDListItemView
     {.fl{ #(product.title) }}
     <span class="fr">x{{ #(quantity) }}</span>
     """
-

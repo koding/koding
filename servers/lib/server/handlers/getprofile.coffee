@@ -19,4 +19,3 @@ module.exports = (req, res, next) ->
       { data : { profile } } = account
 
       return res.status(200).send profile
-

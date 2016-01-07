@@ -43,5 +43,3 @@ module.exports = class JCampaignData extends jraphical.Module
 
       model = new JCampaignData data
       model.save callback
-
-

@@ -41,6 +41,3 @@ module.exports = class LeaveChannelButton extends KDButtonView
         kd.singletons.router.handleRoute '/Activity/Public'
       .catch (args...) =>
         showError args...
-
-
-

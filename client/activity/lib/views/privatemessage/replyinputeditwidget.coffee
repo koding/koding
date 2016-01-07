@@ -22,4 +22,3 @@ module.exports = class ReplyInputEditWidget extends ReplyInputWidget
 
     @input.setValue Encoder.htmlDecode body
     @input.emit 'BeingEdited', link?.link_url
-

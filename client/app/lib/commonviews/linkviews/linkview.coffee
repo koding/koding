@@ -54,5 +54,3 @@ module.exports = class LinkView extends KDCustomHTMLView
       remote.cacheable origin, kallback
     else
       callback origin
-
-

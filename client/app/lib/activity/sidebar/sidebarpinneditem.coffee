@@ -43,5 +43,3 @@ module.exports = class SidebarPinnedItem extends SidebarItem
     {span.user-numbers{ @stripTags #(body) }}
     {{> @unreadCount}}
     """
-
-

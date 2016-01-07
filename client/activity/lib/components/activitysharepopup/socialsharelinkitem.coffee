@@ -22,4 +22,3 @@ module.exports = class SocialShareLinkItem extends React.Component
   render: ->
 
     <Link {...@props} onClick={@bound 'onClick'} />
-

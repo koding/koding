@@ -30,5 +30,3 @@ module.exports = class Protected
     Protected.permissionsByModule[@name] = perms.concat Object.keys permissions
     defaults = Protected.permissionDefaultsByModule[@name] ?= {}
     extend defaults, permissions
-
-

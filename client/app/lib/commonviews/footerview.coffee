@@ -29,5 +29,3 @@ module.exports = class FooterView extends KDView
       </nav>
     </div>
     """
-
-

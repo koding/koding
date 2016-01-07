@@ -6,5 +6,3 @@ module.exports = class JLocationState extends Model
     countryCode : String
     stateCode   : String
     state       : String
-
-

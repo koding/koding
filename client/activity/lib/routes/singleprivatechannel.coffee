@@ -67,5 +67,3 @@ transitionToChannel = (channelId, done) ->
       threadActions.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id
       done()
-
-

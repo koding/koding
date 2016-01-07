@@ -56,4 +56,3 @@ module.exports = class DropboxItem extends React.Component
     >
       {@props.children}
     </div>
-

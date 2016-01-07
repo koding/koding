@@ -11,6 +11,3 @@ module.exports = class AccountKodingKeyList extends KDListView
       itemClass : AccountKodingKeyListItem
     options = defaults extends options
     super options, data
-
-
-

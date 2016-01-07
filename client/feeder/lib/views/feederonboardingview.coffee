@@ -30,5 +30,3 @@ module.exports = class FeederOnboardingView extends KDCustomHTMLView
           {name} = @getOptions()
           app.appStorage.setValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", yes
           @emit "OnboardingMessageCloseIconClicked"
-
-

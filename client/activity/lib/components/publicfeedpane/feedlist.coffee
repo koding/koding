@@ -20,4 +20,3 @@ module.exports = class FeedList extends React.Component
     <div className={kd.utils.curry 'FeedList', @props.className}>
       {@renderChildren().toList()}
     </div>
-

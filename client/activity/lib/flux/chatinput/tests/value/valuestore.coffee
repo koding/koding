@@ -31,4 +31,3 @@ describe 'ChatInputValueStore', ->
       value = @reactor.evaluate(['chatInputValue']).getIn [channelId, stateId]
 
       expect(value).toEqual testValue2
-

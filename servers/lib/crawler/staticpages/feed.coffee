@@ -345,5 +345,3 @@ module.exports = {
   getSidebar
   getEmptyPage
 }
-
-

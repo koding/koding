@@ -110,4 +110,3 @@ module.exports = class PortalDropbox extends React.Component
             { @props.children }
         </Dropbox>
     </Portal>
-

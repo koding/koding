@@ -57,4 +57,3 @@ module.exports = class CreateNewChannelParticipantsSelectedIndexStore extends Ko
    * @return {number} nextState
   ###
   moveToPrevIndex: (currentState) -> currentState - 1
-

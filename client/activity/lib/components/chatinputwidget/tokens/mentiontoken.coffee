@@ -39,4 +39,3 @@ module.exports = MentionToken =
   triggerAction: (stateId, query) ->
 
       AppFlux.actions.user.searchAccounts query  if query
-

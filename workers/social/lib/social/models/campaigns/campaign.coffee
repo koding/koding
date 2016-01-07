@@ -97,5 +97,3 @@ module.exports = class JCampaign extends JStorage
       return callback err  unless permitted
 
       toggleCampaign name, no, callback
-
-

@@ -66,5 +66,3 @@ activityView = (callback) ->
     view = app.getView()
     view.switchToReactivityContainer()
     callback view
-
-

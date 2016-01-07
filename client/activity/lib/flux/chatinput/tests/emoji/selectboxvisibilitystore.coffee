@@ -28,4 +28,3 @@ describe 'EmojiSelectBoxVisibilityStore', ->
       visible = @reactor.evaluate(['emojiSelectBoxVisibility']).get stateId
 
       expect(visible).toBe no
-

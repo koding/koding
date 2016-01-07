@@ -138,5 +138,3 @@ module.exports = class LocalSyncController extends KDController
     for key in @storage.getLocalStorageKeys()
       if key.indexOf("koding-editor") > -1
         delete global.localStorage[key]
-
-

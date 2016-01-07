@@ -107,5 +107,3 @@ handleQueue = (fetchActivitiesForNavigatedURL, reqs, params, callback) ->
       queue.fin()
 
   dash queue, -> callback null, queue.localPrefetchedFeeds
-
-

@@ -19,5 +19,3 @@ module.exports = class PublicChatPaneView extends kd.TabPaneView
 
   renderReact: ->
     <PublicChatPane channel={@data} />
-
-

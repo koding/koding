@@ -19,5 +19,3 @@ module.exports = class ActivityTabHandle extends KDTabHandleView
     @setAttribute "testpath","ActivityTabHandle-#{href}"
 
     @addSubView new CustomLinkView { title, href }
-
-

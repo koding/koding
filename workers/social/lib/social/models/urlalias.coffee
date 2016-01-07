@@ -41,5 +41,3 @@ module.exports = class JUrlAlias extends Model
           callback null, doc.target
         else
           callback new KodingError '404 - alias not found!'
-
-

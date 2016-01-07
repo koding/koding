@@ -34,7 +34,3 @@ module.exports = class SidebarMoreLink extends CustomLinkView
     if visibleCount > limit
     then @show()
     else @hide()
-
-
-
-

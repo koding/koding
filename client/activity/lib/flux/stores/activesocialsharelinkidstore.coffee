@@ -17,4 +17,3 @@ module.exports = class ActiveSocialShareLinkIdStore extends KodingFluxStore
 
     return id  if activeId isnt id
     return null
-

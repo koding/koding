@@ -120,5 +120,3 @@ module.exports = {
   newVmFromSnapshot
   showSnapshottingModal
 }
-
-

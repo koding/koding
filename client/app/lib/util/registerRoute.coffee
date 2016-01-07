@@ -19,4 +19,3 @@ module.exports = (appName, route, handler) ->
 
     if router = kd.singletons.router then cb()
     else kd.Router.on 'RouterIsReady', cb
-

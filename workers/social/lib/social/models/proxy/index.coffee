@@ -84,5 +84,3 @@ module.exports = class JProxyFilter extends jraphical.Module
 
   update$: secure (client, data, callback = noop) ->
     @update { $set: data }, callback
-
-

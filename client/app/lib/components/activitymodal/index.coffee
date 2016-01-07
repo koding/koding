@@ -48,5 +48,3 @@ module.exports = class ActivityModal extends React.Component
         </Modal.ButtonGroup>
       </form>
     </Modal>
-
-

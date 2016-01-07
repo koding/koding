@@ -35,4 +35,3 @@ describe 'ReactView', ->
     helloWorld = findRenderedDOMWithClassName foo, 'hello-world'
 
     expect(helloWorld.textContent).toEqual 'Hello World'
-

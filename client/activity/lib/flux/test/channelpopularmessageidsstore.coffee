@@ -27,5 +27,3 @@ describe 'ChannelPopularMessageIdsStore', ->
 
       expect(storeState.foo['bar']).toEqual 'bar'
       expect(storeState.baz['qux']).toEqual 'qux'
-
-

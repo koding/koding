@@ -42,6 +42,3 @@ module.exports = class SearchInputView extends KDHitEnterInputView
     @setValue ""
 
     super
-
-
-

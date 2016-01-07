@@ -46,4 +46,3 @@ module.exports = class EmojiSelectBoxItem extends React.Component
       className    = 'EmojiSelectBoxItem'>
         <EmojiIcon emoji={item} />
     </DropboxItem>
-

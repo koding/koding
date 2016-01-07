@@ -40,4 +40,3 @@ module.exports = class EmbedBoxLinkImage extends React.Component
         onError   = { @bound 'handleError' }
       />
     </a>
-

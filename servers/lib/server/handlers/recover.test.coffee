@@ -104,4 +104,3 @@ runTests = -> describe 'server.handlers.recover', ->
 
 
 runTests()
-

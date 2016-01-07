@@ -24,5 +24,3 @@ module.exports = class ActivityCommentCount extends CustomLinkView
 
 
   pistachio: -> '{{ #(repliesCount)}}'
-
-

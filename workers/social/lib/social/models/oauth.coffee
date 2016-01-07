@@ -107,5 +107,3 @@ module.exports = class OAuth extends bongo.Base
       query = {}
       query["foreignAuth.#{provider}"] = credentials
       session.update { $set: query }, callback
-
-

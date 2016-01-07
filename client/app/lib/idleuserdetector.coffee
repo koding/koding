@@ -24,5 +24,3 @@ module.exports = class IdleUserDetector extends KDObject
     @isIdle = no
     @idleSince = Date.now()
     @emit 'userBack'  if wasIdle
-
-

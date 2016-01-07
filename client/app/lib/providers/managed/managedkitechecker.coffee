@@ -349,5 +349,3 @@ module.exports = class ManagedKiteChecker extends kd.Object
 
     queryPromise.catch (err) =>
       kd.error err  if err
-
-

@@ -16,4 +16,3 @@ module.exports = {
   'DELETE_CHANNEL_NOTIFICATION_SETTINGS_SUCCESS'
 
 }
-

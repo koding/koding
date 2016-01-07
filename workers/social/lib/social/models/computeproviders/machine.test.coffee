@@ -923,5 +923,3 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 beforeTests()
 
 runTests()
-
-

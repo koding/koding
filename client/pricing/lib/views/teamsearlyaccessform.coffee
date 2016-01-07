@@ -33,5 +33,3 @@ module.exports = class TeamsEarlyAccessForm extends KDFormView
       {{> @email}}
       {{> @button}}
     """
-
-

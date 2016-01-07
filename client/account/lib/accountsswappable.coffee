@@ -19,4 +19,3 @@ module.exports = class AccountsSwappable extends KDView
     else
       @view1.show()
       @view2.hide()
-

@@ -56,5 +56,3 @@ module.exports = [
     lastName  : 'Jones'
   }
 ]
-
-

@@ -28,5 +28,3 @@ module.exports = class FeederSingleView extends KDCustomHTMLView
     # else if width < 900 and width > 600  then "medium"
     # else if width < 600 and width > 300  then "narrow"
     # else                                      "extra-narrow"
-
-

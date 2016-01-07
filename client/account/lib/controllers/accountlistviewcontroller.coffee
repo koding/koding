@@ -20,5 +20,3 @@ module.exports = class AccountListViewController extends KDListViewController
           height              : 40
 
     super options, data
-
-

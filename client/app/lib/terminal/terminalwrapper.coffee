@@ -25,5 +25,3 @@ module.exports = class TerminalWrapper extends KDCustomScrollViewWrapper
       @setScrollTop lastPosition = newPosition
 
       return shouldStop
-
-

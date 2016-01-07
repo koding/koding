@@ -31,5 +31,3 @@ module.exports = class FilterLinksView extends KDCustomHTMLView
     @links[@selected]?.unsetClass 'active'
     @links[@selected = name].setClass 'active'
     @emit 'FilterSelected', @selected
-
-

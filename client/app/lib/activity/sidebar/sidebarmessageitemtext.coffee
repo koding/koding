@@ -123,7 +123,3 @@ module.exports = class SidebarMessageItemText extends JView
         return ' & '
       when position < nameCount - 1
         return ', '
-
-
-
-

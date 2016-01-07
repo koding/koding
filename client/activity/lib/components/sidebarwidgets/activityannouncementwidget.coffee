@@ -12,5 +12,3 @@ module.exports = class ActivityAnnouncementWidget extends React.Component
         href="https://koding.com/Hackathon"
         title="Apply Now, space limited!">Apply Now, space limited!</a>
     </div>
-
-

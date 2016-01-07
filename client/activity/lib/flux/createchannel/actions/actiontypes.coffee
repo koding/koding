@@ -18,4 +18,3 @@ module.exports = {
   'CREATE_PRIVATE_CHANNEL_SUCCESS'
 
 }
-

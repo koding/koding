@@ -54,5 +54,3 @@ module.exports = class GroupTabHandleView extends KDTabHandleView
 
   pistachio:->
     "#{@getOptions().title} {{> @newCount}}{{> @pendingCount}}"
-
-

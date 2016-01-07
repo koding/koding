@@ -306,5 +306,3 @@ module.exports = class ActivityPane extends MessagePane
         router.handleRoute '/Activity/Public/Recent'
 
     @tabView.tabHandleContainer.addSubView searchIcon
-
-

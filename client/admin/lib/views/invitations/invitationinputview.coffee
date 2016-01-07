@@ -51,4 +51,3 @@ module.exports = class InvitationInputView extends KDView
       lastName  : @lastName.getValue()
       role      : if @admin.getValue() then 'admin' else 'member'
     }
-

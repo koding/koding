@@ -30,4 +30,3 @@ runTests = -> describe 'workers.social.models.computeproviders.providerinterface
 beforeTests()
 
 runTests()
-

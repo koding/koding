@@ -51,5 +51,3 @@ module.exports = class BrowsePrivateChannelsModal extends React.Component
 
 
 BrowsePrivateChannelsModal.include [KDReactorMixin]
-
-

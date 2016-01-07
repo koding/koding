@@ -29,7 +29,3 @@ module.exports = class TopicSearchModal extends SidebarSearchModal
 
       kd.singletons.router.handleRoute item.getOption 'route'
       @destroy()
-
-
-
-

@@ -34,4 +34,3 @@ module.exports = updateStackTemplate = (data, callback) ->
       title, template, credentials, rawContent
       templateDetails, config, description
     }, callback
-

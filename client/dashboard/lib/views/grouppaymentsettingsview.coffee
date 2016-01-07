@@ -115,4 +115,3 @@ module.exports = class GroupPaymentSettingsView extends JView
     billingView.setPaymentInfo paymentMethod
 
   pistachio:-> "{{> @settingsForm}}"
-

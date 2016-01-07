@@ -37,5 +37,3 @@ module.exports = (options, callback) ->
 
   fetchScripts options, (err, scripts) ->
     callback null, prepareHTML scripts
-
-

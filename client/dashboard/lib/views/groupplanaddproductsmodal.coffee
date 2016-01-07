@@ -89,4 +89,3 @@ module.exports = class GroupPlanAddProductsModal extends KDModalView
       qty = plan.quantities?[product.planCode] ? 0
       item = @products.addItem product
       item.setQuantity qty
-

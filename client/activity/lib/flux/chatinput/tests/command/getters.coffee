@@ -194,4 +194,3 @@ describe 'ChatInputCommandGetters', ->
       selectedItem = @reactor.evaluateToJS getters.commandsSelectedItem stateId
 
       expect(selectedItem).toEqual items[1]
-

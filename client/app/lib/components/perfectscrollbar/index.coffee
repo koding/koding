@@ -117,5 +117,3 @@ module.exports = class PerfectScrollbar extends Component
     <div ref='container' {...props}>
       {@props.children}
     </div>
-
-

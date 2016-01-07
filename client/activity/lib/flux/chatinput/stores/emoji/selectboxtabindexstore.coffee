@@ -31,4 +31,3 @@ module.exports = class EmojiSelectBoxTabIndexStore extends KodingFluxStore
   setTabIndex: (currentState, { stateId, tabIndex }) ->
 
     currentState.set stateId, tabIndex
-

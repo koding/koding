@@ -53,5 +53,3 @@ module.exports = class CommentListViewController extends KDListViewController
     @showLazyLoader no  if @getOption 'startWithLazyLoader'
 
     @scrollView.on 'LazyLoadThresholdReached', @bound 'showLazyLoader'
-
-

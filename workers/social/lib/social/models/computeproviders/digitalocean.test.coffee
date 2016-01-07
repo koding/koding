@@ -82,4 +82,3 @@ runTests = -> describe 'workers.social.models.computeproviders.digitalocean', ->
 beforeTests()
 
 runTests()
-

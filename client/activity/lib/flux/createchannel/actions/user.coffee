@@ -94,4 +94,3 @@ module.exports = {
   moveToPrevIndex
   setDropdownVisibility
 }
-

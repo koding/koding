@@ -196,4 +196,3 @@ initThread = (threads, messageId) ->
 createThread = (messageId) ->
 
   return toImmutable { messageId, comments: toImmutable({}) }
-

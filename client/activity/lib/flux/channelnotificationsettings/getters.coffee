@@ -13,4 +13,3 @@ channelNotificationSettings = [
 module.exports = {
   channelNotificationSettings
 }
-

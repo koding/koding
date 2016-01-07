@@ -114,5 +114,3 @@ module.exports =
     .waitForElementNotPresent buttonLoaderSelector, 20000
     .waitForElementVisible    errorSelector, 20000 # Assertion
     .end()
-
-

@@ -11,5 +11,3 @@ module.exports = class AllPrivateChannelsRoute
   getComponents: (state, callback) ->
 
     helper.renderWithBackgroundChannel BrowsePrivateChannelsModal, callback
-
-

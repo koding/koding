@@ -133,4 +133,3 @@ module.exports = class FeedItem extends React.Component
           channelId={ @props.channelId } />
       </footer>
     </div>
-

@@ -135,5 +135,3 @@ module.exports = class JVerificationToken extends Module
 
     confirmation = new JVerificationToken { username, action, email, pin }
     confirmation.save (err) -> callback err, confirmation
-
-

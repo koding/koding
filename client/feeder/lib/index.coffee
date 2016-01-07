@@ -24,5 +24,3 @@ module.exports = class FeederAppController extends KDController
         new feedControllerConstructor options
       else
         new FeedController options
-
-

@@ -5,4 +5,3 @@
 module.exports = getListSelectedItem = (list, selectedIndex) ->
   return  unless list and list.size > 0
   return list.get selectedIndex
-

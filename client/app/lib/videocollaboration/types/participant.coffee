@@ -89,4 +89,3 @@ class Subscriber extends BaseVideoParticipant
 
 
 module.exports = participantTypes = { Publisher, Subscriber }
-

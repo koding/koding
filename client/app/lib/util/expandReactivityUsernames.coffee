@@ -49,4 +49,3 @@ module.exports = (text, excludeSelector) ->
 
       result += $element.get(0).outerHTML or "" # in case there is a text-only element
     result
-

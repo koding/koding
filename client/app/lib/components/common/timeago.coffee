@@ -36,6 +36,3 @@ module.exports = class TimeAgo extends React.Component
     <span className={kd.utils.curry "u-color-light-text", @props.className}>
       <time>{timeago @state.from}</time>
     </span>
-
-
-

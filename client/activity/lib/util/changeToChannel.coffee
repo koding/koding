@@ -12,5 +12,3 @@ module.exports = changeToChannel = (channel, postId, callback) ->
   else messageActions.changeSelectedMessage null
 
   callback?()
-
-

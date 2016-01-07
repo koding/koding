@@ -257,5 +257,3 @@ getOrderedVideoParticipants = (state) ->
   # merge them here. We basically sorted them to make publishings appear on the
   # most left.
   filterList = publishings.concat nonpublishings
-
-

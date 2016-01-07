@@ -19,4 +19,3 @@ module.exports = class ErrorlessImageView extends KDCustomHTMLView
     @hide()
 
     return no
-

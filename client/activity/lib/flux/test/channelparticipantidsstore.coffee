@@ -93,4 +93,3 @@ describe 'ChannelParticipantIdsStore', ->
 
       expect(storeState.testchannel_2).toEqual {'testAccount_2'}
       expect(storeState.testchannel_1).toEqual {}
-

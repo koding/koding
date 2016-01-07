@@ -190,5 +190,3 @@ module.exports = class JMailNotification extends Model
                 if err then callback err
                 else
                   callback null, "You will no longer get e-mails #{definition}"
-
-

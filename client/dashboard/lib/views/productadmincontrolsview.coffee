@@ -56,4 +56,3 @@ module.exports = class ProductAdminControlsView extends JView
     {{> @sortWeight}}
     {{> @embedView}}
     """
-

@@ -127,4 +127,3 @@ module.exports = class ChannelThreadPane extends React.Component
 React.Component.include.call ChannelThreadPane, [
   KDReactorMixin, ImmutableRenderMixin
 ]
-

@@ -99,5 +99,3 @@ module.exports = class JWFGH extends Model
         isApproved    : no
         isApplication : no
       }
-
-

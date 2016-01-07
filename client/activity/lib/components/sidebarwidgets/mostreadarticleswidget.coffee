@@ -51,4 +51,3 @@ module.exports = class MostReadArticlesWidget extends React.Component
         More guides on Koding University...
       </a>
     </div>
-

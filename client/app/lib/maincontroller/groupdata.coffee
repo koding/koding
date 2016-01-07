@@ -9,5 +9,3 @@ module.exports = class GroupData extends KDEventEmitter
   setGroup: (group) ->
     @data = group
     @emit 'update'
-
-

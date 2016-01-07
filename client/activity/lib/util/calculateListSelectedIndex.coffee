@@ -15,5 +15,3 @@ module.exports = calculateListSelectedIndex = (list, currentIndex) ->
     index += size  if index < 0
 
   return index
-
-

@@ -140,4 +140,3 @@ makeLike = (comment) ->
     interactions={comment.get('interactions').toJS()}>
     {text}
   </ActivityLikeLink>
-

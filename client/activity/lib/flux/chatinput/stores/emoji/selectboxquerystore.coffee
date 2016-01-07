@@ -13,4 +13,3 @@ module.exports = class EmojiSelectBoxQueryStore extends BaseQueryStore
     @bindActions
       setQuery   : actions.SET_EMOJI_SELECTBOX_QUERY
       unsetQuery : actions.UNSET_EMOJI_SELECTBOX_QUERY
-

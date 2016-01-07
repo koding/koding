@@ -83,7 +83,3 @@ module.exports = class InlineImageSettings extends KDView
     imageType = @getOptions().type
     if imageType is "logo"
       @group.modify "customize.logo"    : "#{url}"
-
-
-
-

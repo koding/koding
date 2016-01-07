@@ -10,5 +10,3 @@ module.exports = class AvatarStaticView extends AvatarView
     super options, data
 
   click:-> yes
-
-

@@ -198,5 +198,3 @@ module.exports = class JName extends Model
                       callback err
                     else if ++j is docCount and ++i is konstructorCount
                       callback null
-
-

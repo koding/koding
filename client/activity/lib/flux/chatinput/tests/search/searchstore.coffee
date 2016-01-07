@@ -70,4 +70,3 @@ describe 'ChatInputSearchStore', ->
       searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
       expect(searchItems).toBe undefined
-

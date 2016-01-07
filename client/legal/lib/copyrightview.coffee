@@ -126,7 +126,3 @@ module.exports = class CopyrightView extends JView
 
     </div>
     """
-
-
-
-

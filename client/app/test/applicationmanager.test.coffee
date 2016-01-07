@@ -497,4 +497,3 @@ describe 'kd.singletons.appManager', ->
 
     it 'should return no if no app name provided', ->
       expect(appManager.shouldLoadApp()).toBe no
-

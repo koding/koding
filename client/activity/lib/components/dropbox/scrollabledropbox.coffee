@@ -24,4 +24,3 @@ module.exports = (Component) ->
     render: ->
 
       <Component ref='dropbox' {...@props} />
-

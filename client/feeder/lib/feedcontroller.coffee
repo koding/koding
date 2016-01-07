@@ -228,5 +228,3 @@ module.exports = class FeedController extends KDViewController
         @feedIsLoading = yes
 
         filter.dataSource selector, options, kallback
-
-

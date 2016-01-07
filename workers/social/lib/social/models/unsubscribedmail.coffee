@@ -25,5 +25,3 @@ module.exports = class JUnsubscribedMail extends Model
       return callback err                  if err
       return unsubscribed.remove callback  if unsubscribed
       callback null
-
-

@@ -44,5 +44,3 @@ module.exports = class TopicMessagePane extends MessagePane
     super message
 
   defaultFilter: 'Most Recent'
-
-

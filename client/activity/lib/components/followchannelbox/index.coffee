@@ -23,4 +23,3 @@ module.exports = class FollowChannelBox extends React.Component
         className="Button Button-followChannel"
         onClick={@bound 'onFollowChannel'}>Join</button>
     </div>
-

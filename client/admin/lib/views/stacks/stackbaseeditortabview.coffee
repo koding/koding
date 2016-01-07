@@ -10,4 +10,3 @@ module.exports = class StackBaseEditorTabView extends KDView
     super options, data
 
     @on 'FocusToEditor', => @editorView?.setFocus yes
-

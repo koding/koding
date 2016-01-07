@@ -37,4 +37,3 @@ module.exports = class EmojiDropboxItem extends React.Component
       <EmojiIcon emoji={item} />
       {@renderEmojiName()}
     </DropboxItem>
-

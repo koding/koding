@@ -93,4 +93,3 @@ helper =
       return channelFlags.set channelId, immutable.Map()
 
     return channelFlags
-

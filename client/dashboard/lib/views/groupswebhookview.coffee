@@ -16,5 +16,3 @@ module.exports = class GroupsWebhookView extends JView
 
   pistachio:->
     "{.endpoint{#(webhookEndpoint)}} {{> @editLink}}"
-
-

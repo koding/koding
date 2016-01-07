@@ -47,4 +47,3 @@ describe 'EmojiUsageCountsStore', ->
       counts = @reactor.evaluateToJS(['emojiUsageCounts'])
 
       expect(counts[emoji]).toEqual 2
-

@@ -40,4 +40,3 @@ prependParticipantPreview = (channel, account) ->
   channel.participantsPreview.unshift origin
 
   return channel
-

@@ -72,4 +72,3 @@ module.exports = class CommentInputWidget extends React.Component
         className={@getPostButtonClassNames()}
         onClick={ @props.postComment }>SEND</button>
     </div>
-

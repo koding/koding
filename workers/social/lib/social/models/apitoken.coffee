@@ -121,9 +121,3 @@ module.exports = class JApiToken extends jraphical.Module
     advanced: PERMISSION_EDIT_GROUPS
     success: (client, callback) ->
       @remove callback
-
-
-
-
-
-

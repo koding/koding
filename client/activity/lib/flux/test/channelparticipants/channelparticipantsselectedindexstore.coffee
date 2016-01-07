@@ -76,4 +76,3 @@ describe 'ChannelParticipantsSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate ['channelParticipantsSelectedIndex']
 
       expect(selectedIndex).toEqual 0
-

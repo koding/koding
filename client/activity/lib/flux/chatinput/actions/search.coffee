@@ -64,4 +64,3 @@ module.exports = {
   fetchData
   resetData
 }
-

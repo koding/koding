@@ -131,5 +131,3 @@ module.exports = (options = {}, callback) ->
   ]
 
   dash queue, -> callback null, createHTML(), socialapidata
-
-

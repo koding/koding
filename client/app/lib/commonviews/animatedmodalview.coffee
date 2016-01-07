@@ -76,5 +76,3 @@ module.exports = class AnimatedModalView extends KDView
     kd.utils.wait 500, =>
       @overlay.destroy()
       KDModalView::destroy.call this
-
-

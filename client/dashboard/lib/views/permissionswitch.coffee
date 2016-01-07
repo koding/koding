@@ -25,5 +25,3 @@ module.exports = class PermissionSwitch extends KodingSwitch
     kdSwitch.addClass "on"
 
     super
-
-

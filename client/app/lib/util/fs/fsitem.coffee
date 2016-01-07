@@ -285,5 +285,3 @@ module.exports = class FSItem extends KDObject
 
     .then =>
       @emit "fs.job.started"
-
-

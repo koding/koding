@@ -16,5 +16,3 @@ module.exports = class Link extends React.Component
 
   render: ->
     <a {...@props} onClick={@bound 'onClick'}>{@props.children}</a>
-
-

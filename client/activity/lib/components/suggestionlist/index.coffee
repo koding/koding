@@ -47,4 +47,3 @@ module.exports = class SuggestionList extends React.Component
         {@renderChildren()}
       </div>
     </div>
-

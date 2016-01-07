@@ -552,4 +552,3 @@ module.exports = {
   updateChannel
   changeResultState
 }
-

@@ -161,5 +161,3 @@ module.exports = class ChannelThreadHeader extends React.Component
         onClose={@bound 'onModalClose'}
         isOpen={@state.isModalOpen}/>
     </div>
-
-
