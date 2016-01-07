@@ -1,14 +1,16 @@
-kd = require 'kd'
-React = require 'kd-react'
-SidebarModalList = require 'activity/components/sidebarmodallist'
-Modal = require 'app/components/modal'
-KDReactorMixin = require 'app/flux/base/reactormixin'
-ActivityFlux = require 'activity/flux'
-isPublicChannel = require 'app/util/isPublicChannel'
+kd                     = require 'kd'
+React                  = require 'kd-react'
+ActivityFlux           = require 'activity/flux'
+Modal                  = require 'app/components/modal'
+isPublicChannel        = require 'app/util/isPublicChannel'
+KDReactorMixin         = require 'app/flux/base/reactormixin'
+SidebarModalList       = require 'activity/components/sidebarmodallist'
 PrivateChannelListItem = require 'activity/components/privatechannellistitem'
 
-
 module.exports = class BrowsePrivateChannelsModal extends React.Component
+
+  @defaultProps =
+    isOpen : yes
 
 
   getDataBindings: ->
@@ -39,8 +41,9 @@ module.exports = class BrowsePrivateChannelsModal extends React.Component
   render: ->
 
     title = 'Other Messages:'
-    <Modal className='ChannelList-Modal PrivateChannelListModal' isOpen={yes} onClose={@bound 'onClose'}>
+    <Modal className='ChannelList-Modal PrivateChannelListModal' isOpen={@props.isOpen} onClose={@bound 'onClose'}>
       <SidebarModalList
+        ref='SidebarModalList'
         title={title}
         searchProp='name'
         threads={@state.threads}
