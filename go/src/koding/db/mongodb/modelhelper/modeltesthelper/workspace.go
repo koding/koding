@@ -4,8 +4,8 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func CreateWorkspaceForMachine(account *models.Account, machineUId string) (*models.Workspace, error) {

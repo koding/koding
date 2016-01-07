@@ -225,6 +225,10 @@ module.exports = class JStackTemplate extends Module
       return callback no  if err or not group
 
       templateId = @getId()
+
+      # TMS-1919: This is already written for multiple stacks, just a check
+      # might be required ~ GG
+
       for stackTemplateId in group.stackTemplates ? []
         return callback yes  if templateId.equals stackTemplateId
 

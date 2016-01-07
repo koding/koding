@@ -309,13 +309,13 @@ module.exports = class AdminIntegrationDetailsView extends JView
           label         : '<p>Descriptive Label</p><span>Use this label to provide extra context in your list of integrations (optional).</span>'
           defaultValue  : data.description  or integration.summary
         repository      :
-          label         : '<p>Repository</p><span>Choose the repository that you would like to listen.</span>'
+          label         : '<p>Repository</p><span>Choose the repository that you would like to listen to.</span>'
           type          : 'select'
           selectOptions : repositories
           cssClass      : unless repositories.length then 'hidden'
           defaultValue  : data.selectedRepository
         events          :
-          label         : '<p>Customize Events</p><span>Choose the events you would like to receive events for.</span>'
+          label         : '<p>Customize Events</p><span>Choose the events you would like to receive notifications for</span>'
           type          : 'hidden'
           cssClass      : unless data.settings?.events?.length then 'hidden'
         name            :

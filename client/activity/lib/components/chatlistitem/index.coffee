@@ -1,73 +1,46 @@
 kd                      = require 'kd'
 React                   = require 'kd-react'
 ReactDOM                = require 'react-dom'
-remote                  = require('app/remote').getInstance()
 Avatar                  = require 'app/components/profile/avatar'
 immutable               = require 'immutable'
 MessageBody             = require 'activity/components/common/messagebody'
 ProfileText             = require 'app/components/profile/profiletext'
 ProfileLinkContainer    = require 'app/components/profile/profilelinkcontainer'
-ButtonWithMenu          = require 'app/components/buttonwithmenu'
-ActivityPromptModal     = require 'app/components/activitypromptmodal'
-MarkUserAsTrollModal    = require 'app/components/markuserastrollmodal'
-BlockUserModal          = require 'app/components/blockusermodal'
 ActivityLikeLink        = require 'activity/components/chatlistitem/activitylikelink'
 MessageTime             = require 'activity/components/chatlistitem/messagetime'
-keycode                 = require 'keycode'
-AppFlux                 = require 'app/flux'
 ActivityFlux            = require 'activity/flux'
 classnames              = require 'classnames'
-Portal                  = require 'react-portal'
-whoami                  = require 'app/util/whoami'
-checkFlag               = require 'app/util/checkFlag'
-impersonate             = require 'app/util/impersonate'
-getMessageOwner         = require 'app/util/getMessageOwner'
-showErrorNotification   = require 'app/util/showErrorNotification'
-showNotification        = require 'app/util/showNotification'
 ImmutableRenderMixin    = require 'react-immutable-render-mixin'
 EmbedBox                = require 'activity/components/embedbox'
-KeyboardKeys            = require 'app/util/keyboardKeys'
 ChatInputEmbedExtractor = require 'activity/components/chatinputembedextractor'
 ChannelToken            = require 'activity/components/chatinputwidget/tokens/channeltoken'
 EmojiToken              = require 'activity/components/chatinputwidget/tokens/emojitoken'
 MentionToken            = require 'activity/components/chatinputwidget/tokens/mentiontoken'
 Encoder                 = require 'htmlencode'
 MessageLink             = require 'activity/components/messagelink'
+MessageItemMenu         = require 'activity/components/messageitemmenu'
 
 module.exports = class ChatListItem extends React.Component
 
   @include [ImmutableRenderMixin]
 
   @defaultProps =
-    hover                         : no
-    account                       : null
-    isDeleting                    : no
-    channelName                   : ''
-    isUserMarkedAsTroll           : no
-    isBlockUserModalVisible       : no
-    isMarkUserAsTrollModalVisible : no
-    showItemMenu                  : yes
-    isSelected                    : no
-    channelId                     : ''
-    onEditStarted                 : kd.noop
+    hover         : no
+    isDeleting    : no
+    channelName   : ''
+    showItemMenu  : yes
+    isSelected    : no
+    channelId     : ''
+    onEditStarted : kd.noop
 
   constructor: (props) ->
 
     super props
 
     @state =
-      hover                         : @props.hover
-      account                       : @props.account
-      editMode                      : @props.message.get '__isEditing'
-      isDeleting                    : @props.isDeleting
-      isUserMarkedAsTroll           : @props.message.get('account').isExempt
-      isBlockUserModalVisible       : @props.isBlockUserModalVisible
-      isMarkUserAsTrollModalVisible : @props.isMarkUserAsTrollModalVisible
-
-
-  componentDidMount: ->
-
-    @getAccountInfo()
+      hover      : @props.hover
+      editMode   : @props.message.get '__isEditing'
+      isDeleting : @props.isDeleting
 
 
   componentDidUpdate: (prevProps, prevState) ->
@@ -76,18 +49,6 @@ module.exports = class ChatListItem extends React.Component
     wasInEditMode = prevProps.message.get '__isEditing'
 
     @refs.editInput.focus()  if isInEditMode and not wasInEditMode
-
-
-  getAccountInfo: ->
-
-    { message } = @props
-    message = message.toJS()
-
-    if message.account._id
-      remote.cacheable "JAccount", message.account._id, (err, account)=>
-        return @setState account: account  if account
-    else if message.bongo_.constructorName is 'JAccount'
-      return @setState account: message  if account
 
 
   isEditedMessage: ->
@@ -104,141 +65,6 @@ module.exports = class ChatListItem extends React.Component
     className         : classnames
       'ChatItem'      : yes
       'is-selected'   : @props.isSelected
-
-  getMenuItems: ->
-
-    if checkFlag('super-admin')
-    then @getAdminMenuItems()
-    else @getDefaultMenuItems()
-
-
-  getDefaultMenuItems: ->
-
-    return [
-      {title: 'Edit Post'   , key: 'editpost'             , onClick: @bound 'editPost'}
-      {title: 'Delete Post' , key: 'showdeletepostprompt' , onClick: @bound 'showDeletePostPromptModal'}
-    ]
-
-
-  getAdminMenuItems: ->
-
-    { message } = @props
-    markUserMenuItem = {title: 'Mark User as Troll', key: 'markuserastroll', onClick: @bound 'showMarkUserAsTrollPromptModal'}
-
-    getMessageOwner message.toJS(), (err, owner) =>
-
-      return showErrorNotification err  if err
-
-      if owner.isExempt
-        markUserMenuItem = {title: 'Unmark User as Troll', key: 'unmarkuserastroll', onClick: @bound 'unMarkUserAsTroll'}
-
-    adminMenuItems = [
-      markUserMenuItem
-      {
-        title   : 'Block User'
-        key     : 'blockuser'
-        onClick : @bound 'showBlockUserPromptModal'
-      }
-      {
-        title   : 'Impersonate User'
-        key     : 'impersonateuser'
-        onClick : @bound 'impersonateUser'
-      }
-    ]
-
-    return @getDefaultMenuItems().concat adminMenuItems
-
-
-  getDeleteItemModalProps: ->
-
-    title              : "Delete post"
-    body               : "Are you sure you want to delete this post?"
-    buttonConfirmTitle : "DELETE"
-    className          : "Modal-DeleteItemPrompt"
-    onConfirm          : @bound "deletePostButtonHandler"
-    onAbort            : @bound "closeDeletePostModal"
-    onClose            : @bound "closeDeletePostModal"
-
-
-  getMarkUserAsTrollModalProps: ->
-
-    account            : @state.account
-    title              : "MARK USER AS TROLL"
-    className          : "MarkUserAsTrollModal"
-    onAbort            : @bound "closeMarkUserAsTrollModal"
-    onClose            : @bound "closeMarkUserAsTrollModal"
-    buttonConfirmTitle : "YES, THIS USER IS DEFINITELY A TROLL"
-
-
-  getBlockUserModalProps: ->
-
-    account            : @state.account
-    buttonConfirmTitle : "BLOCK USER"
-    className          : "BlockUserModal"
-    onAbort            : @bound "closeBlockUserPromptModal"
-    onClose            : @bound "closeBlockUserPromptModal"
-
-
-  deletePostButtonHandler: (event) ->
-
-    kd.utils.stopDOMEvent event
-    ActivityFlux.actions.message.removeMessage @props.message.get('id')
-    @closeDeletePostModal()
-
-
-  closeDeletePostModal: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @setState isDeleting: no
-
-
-  editPost: ->
-
-    messageId = @props.message.get '_id'
-
-    ActivityFlux.actions.message.setMessageEditMode messageId, @props.channelId
-
-
-  showDeletePostPromptModal: ->
-
-    @setState isDeleting: yes
-
-
-  showMarkUserAsTrollPromptModal: ->
-
-    @setState isMarkUserAsTrollModalVisible: yes
-
-
-  closeMarkUserAsTrollModal: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @setState isMarkUserAsTrollModalVisible: no
-
-
-  closeBlockUserPromptModal: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @setState isBlockUserModalVisible: no
-
-
-  unMarkUserAsTroll: (event) ->
-
-    kd.utils.stopDOMEvent event
-    AppFlux.actions.user.unmarkUserAsTroll @state.account
-    @closeMarkUserAsTrollModal()
-
-
-  showBlockUserPromptModal: ->
-
-    @setState isBlockUserModalVisible: yes
-
-
-  impersonateUser: (event) ->
-
-    kd.utils.stopDOMEvent event
-    { message } = @props
-
-    AppFlux.actions.user.impersonateUser message.toJS()
 
 
   updateMessage: ->
@@ -317,9 +143,7 @@ module.exports = class ChatListItem extends React.Component
 
     return null  unless @props.showItemMenu
 
-    { message } = @props
-    if (message.get('accountId') is whoami().socialApiId) or checkFlag('super-admin')
-      <ButtonWithMenu items={@getMenuItems()} />
+    <MessageItemMenu message={@props.message}/>
 
 
   renderEmbedBox: ->
@@ -359,11 +183,6 @@ module.exports = class ChatListItem extends React.Component
         {@renderEditMode()}
         {@renderEmbedBox()}
         {@renderChatItemMenu()}
-        <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
-          Are you sure you want to delete this post?
-        </ActivityPromptModal>
-        <MarkUserAsTrollModal {...@getMarkUserAsTrollModalProps()} isOpen={@state.isMarkUserAsTrollModalVisible} />
-        <BlockUserModal {...@getBlockUserModalProps()} isOpen={@state.isBlockUserModalVisible} />
       </div>
     </div>
 

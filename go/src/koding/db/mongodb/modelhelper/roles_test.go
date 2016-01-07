@@ -4,7 +4,7 @@ import (
 	"koding/db/models"
 	"testing"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func TestFetchAdminAccounts(t *testing.T) {

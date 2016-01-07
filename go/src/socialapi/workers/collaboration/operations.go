@@ -15,8 +15,8 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/kite"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // DeleteDriveDoc deletes the file from google drive

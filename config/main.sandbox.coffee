@@ -168,7 +168,7 @@ Configuration = (options={}) ->
     github                  : github
 
   userSitesDomain     = "sandbox.koding.io"
-  hubspotPageURL      = "https://teams-koding.hs-sites.com"
+  hubspotPageURL      = "http://www.koding.com"
 
   socialQueueName     = "koding-social-#{configName}"
 
@@ -228,9 +228,6 @@ Configuration = (options={}) ->
 
     kloud                          : kloud
     terraformer                    : terraformer
-
-    emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
-
     kontrol                        : kontrol
     newkontrol                     : kontrol
     gatekeeper                     : gatekeeper

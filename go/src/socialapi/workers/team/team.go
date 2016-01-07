@@ -8,7 +8,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"strconv"
 
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"

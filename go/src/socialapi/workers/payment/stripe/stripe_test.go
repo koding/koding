@@ -9,7 +9,7 @@ import (
 
 	"github.com/koding/runner"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/stripe/stripe-go"
 	stripeCustomer "github.com/stripe/stripe-go/customer"

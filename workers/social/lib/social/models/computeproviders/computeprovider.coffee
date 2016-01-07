@@ -456,6 +456,13 @@ module.exports = class ComputeProvider extends Base
 
     { template, account, group } = {}
 
+    # TMS-1919: A similar method needs to be written (or this one needs to
+    # be updated) to allow users to provide any stackTemplate to create a stack
+    # from it (::generateStackFromTemplate)
+    # We then need to check if they are eligible to use that stack template,
+    # we need to check plan limits for the current group and create the stack
+    # and related machines here, this is very critical for multiple stacks ~ GG
+
     series [
 
       (next) ->

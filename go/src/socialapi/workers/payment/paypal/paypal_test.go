@@ -16,7 +16,7 @@ import (
 	"github.com/koding/paypal"
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var (

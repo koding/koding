@@ -21,7 +21,7 @@
     font-size               12px
     font-weight             400
 
-  .ChatItem-likeLink
+  .ActivityLikeLink
     abs()
     pointer()
     top                     11px
@@ -30,15 +30,15 @@
     padding                 5px 10px
 
     .Tooltip-wrapper
-      bottom                  22px
-      display                 none
-      opacity                 0
-      vendor                  transition, opacity .3s ease
+      bottom                22px
+      display               none
+      opacity               0
+      vendor                transition, opacity .3s ease
 
     &:hover
       .Tooltip-wrapper
         visible()
-        opacity               1
+        opacity             1
 
     &:after
       content               ''
@@ -129,7 +129,7 @@
     .ButtonWithMenuWrapper
       visible()
 
-    .ChatItem-likeLink
+    .ActivityLikeLink
       display               inline-block
 
   .ChatItem-updateMessageForm
@@ -158,28 +158,28 @@
       padding               13px 42px 12px 6px
 
   .ChatInputWidget:before
-    display                   none
+    display                 none
 
   .ChatInputWidget-emojiButton
-    right                     13px
+    right                   13px
 
 .ChatItem.is-selected
-  bg                          color, #FFFBD5
+  bg                        color, #FFFBD5
 
 .ChatItem-contentWrapper.SimpleChatListItem
-  margin                      0 !important
-  padding                     0 23px 0 86px !important
+  margin                    0 !important
+  padding                   0 23px 0 86px !important
   article
-    padding-left              0 !important
+    padding-left            0 !important
 
 
   .ChatItem-messageDate
     abs()
     hidden()
-    top                       0
-    left                      15px
+    top                     0
+    left                    15px
 
-  .ChatItem-likeLink
+  .ActivityLikeLink
     top                     1px
     left                    63px
     padding                 5px
@@ -207,32 +207,32 @@
 
 .ChatItem-editActions
   abs()
-  top                         4px
-  right                       0
-  line-height                 12px
-  font-size                   11px
+  top                       4px
+  right                     0
+  line-height               12px
+  font-size                 11px
 
 .ChatItem-editAction
   pointer()
-  padding                     0
-  outline                     none
-  border                      none
-  bg                          color, transparent
+  padding                   0
+  outline                   none
+  border                    none
+  bg                        color, transparent
 
   &:before
     blockMid()
-    content                   ''
-    margin-right              6px
+    content                 ''
+    margin-right            6px
 
   &.cancel
-    margin-right              3px
+    margin-right            3px
 
     &:before
-      r-sprite                activity 'icon-cross'
+      r-sprite              activity 'icon-cross'
 
   &.submit
-    margin-right              20px
+    margin-right            20px
 
     &:before
-      r-sprite                activity 'check-green'
+      r-sprite              activity 'check-green'
 

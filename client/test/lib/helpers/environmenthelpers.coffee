@@ -268,7 +268,8 @@ module.exports =
       .waitForElementVisible    '.env-modal.paid-plan', 50000
       .click                    '.env-modal.paid-plan button'
       .waitForElementNotVisible '.env-modal.paid-plan', 50000
-      .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 50000
+      .pause                    5000 # wait for action complete
+      .waitForElementVisible    '.my-machines .sidebar-machine-box.koding-vm-1', 50000
 
 
   nameVM: (browser, name) ->

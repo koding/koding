@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/jinzhu/now"
 
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"

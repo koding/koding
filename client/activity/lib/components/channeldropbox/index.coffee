@@ -1,13 +1,13 @@
-kd                     = require 'kd'
-React                  = require 'kd-react'
-immutable              = require 'immutable'
-classnames             = require 'classnames'
-Dropbox                = require 'activity/components/dropbox/portaldropbox'
-ChannelDropboxItem     = require 'activity/components/channeldropboxitem'
-ImmutableRenderMixin   = require 'react-immutable-render-mixin'
-ScrollableDropboxMixin = require 'activity/components/dropbox/scrollabledropboxmixin'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+Dropbox              = require 'activity/components/dropbox/portaldropbox'
+ChannelDropboxItem   = require 'activity/components/channeldropboxitem'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
+ScrollableDropbox    = require 'activity/components/dropbox/scrollabledropbox'
 
-module.exports = class ChannelDropbox extends React.Component
+class ChannelDropbox extends React.Component
 
   @propTypes =
     query           : React.PropTypes.string
@@ -29,9 +29,6 @@ module.exports = class ChannelDropbox extends React.Component
     onClose         : kd.noop
 
 
-  getItemKey: (item) -> item.get 'id'
-
-
   updatePosition: (inputDimensions) ->
 
     @refs.dropbox.setInputDimensions inputDimensions
@@ -50,8 +47,7 @@ module.exports = class ChannelDropbox extends React.Component
         item        = { item }
         onSelected  = { onItemSelected }
         onConfirmed = { onItemConfirmed }
-        key         = { @getItemKey item }
-        ref         = { @getItemKey item }
+        key         = { item.get 'id' }
       />
 
 
@@ -71,5 +67,7 @@ module.exports = class ChannelDropbox extends React.Component
     </Dropbox>
 
 
-ChannelDropbox.include [ ImmutableRenderMixin, ScrollableDropboxMixin ]
+ChannelDropbox.include [ ImmutableRenderMixin ]
+
+module.exports = ScrollableDropbox ChannelDropbox
 

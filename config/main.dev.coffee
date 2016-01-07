@@ -189,7 +189,7 @@ Configuration = (options={}) ->
     janitor                 : { port: "6700", secretKey: "janitorsecretkey-dev" }
 
   userSitesDomain     = "dev.koding.io"
-  hubspotPageURL      = "https://teams-koding.hs-sites.com"
+  hubspotPageURL      = "http://www.koding.com"
 
   socialQueueName     = "koding-social-#{configName}"
   autoConfirmAccounts = yes
@@ -245,9 +245,6 @@ Configuration = (options={}) ->
     rerouting                      : {port          : 9500 }
     kloud                          : kloud
     terraformer                    : terraformer
-
-    emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
-
     kontrol                        : kontrol
     newkontrol                     : kontrol
     gatekeeper                     : gatekeeper
