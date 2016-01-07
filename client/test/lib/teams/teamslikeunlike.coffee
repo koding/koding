@@ -58,4 +58,3 @@ module.exports =
       .assert.containsText    editedText, editedmessage
       .end()
 
-
