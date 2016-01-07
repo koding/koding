@@ -1,7 +1,6 @@
 {
-	"environment": "{{var `Env`}}",
+	"environment": "dev",
 	"user": {
-		"_id": "{{var `UserID`}}",
 		"status": "confirmed",
 		"passwordStatus": "valid",
 		"registeredAt": "0001-01-01T00:00:00Z",
@@ -10,11 +9,11 @@
 			"actual": "online"
 		},
 		"sshKeys": [],
-		"username": "{{var `Username`}}",
-		"email": "{{var `Email`}}",
-		"sanitizedEmail": "{{var `Email`}}",
-		"salt": "{{var `Salt`}}",
-		"password": "{{var `Password`}}",
+		"username": "kloudctl",
+		"email": "rafal+kloudctl@koding.com",
+		"sanitizedEmail": "rafal+kloudctl@koding.com",
+		"salt": "",
+		"password": "",
 		"emailFrequency": {
 			"global": true,
 			"daily": false,
@@ -32,9 +31,8 @@
 		}
 	},
 	"machine": {
-		"_id": "{{var `MachineID`}}",
-		"label": "{{var `MachineName`}}",
-		"slug": "{{var `MachineName`}}",
+		"label": "kloudctl",
+		"slug": "kloudctl",
 		"status": {
 			"state": "NotInitialized",
 			"modifiedAt": "0001-01-01T00:00:00Z"
@@ -45,20 +43,20 @@
 		"meta": {
 			"storage_size": 25,
 			"alwaysOn": false,
-			"datacenter": "{{var `Datacenter`}}"
+			"datacenter": "sjc01",
+			"vlanId": ""
 		},
 		"generatedFrom": {
-			"templateId": "{{var `TemplateID`}}",
+			"templateId": "",
 			"revision": ""
 		},
 		"users": [{
-			"id": "{{var `UserID`}}",
-			"username": "{{var `Username`}}",
+			"username": "kloudctl",
 			"sudo": true,
 			"owner": true
 		}],
 		"groups": [{
-			"id": "{{var `GroupID`}}"
+			"id": ""
 		}],
 		"uid": "",
 		"domain": ""

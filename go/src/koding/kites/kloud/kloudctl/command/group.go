@@ -102,7 +102,7 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	if cmd.throttle == 0 {
 		cmd.throttle = cmd.count
 	}
-	spec, err := ParseMachineSpec(cmd.file, nil)
+	spec, err := ParseMachineSpec(cmd.file)
 	if err != nil {
 		return err
 	}

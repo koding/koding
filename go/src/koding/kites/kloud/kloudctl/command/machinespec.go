@@ -1,21 +1,17 @@
 package command
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"os"
-	"strings"
 	"time"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
-	"github.com/fatih/structs"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -72,34 +68,9 @@ func (spec *MachineSpec) env() string {
 	return "dev"
 }
 
-// MachineSpecVars represents variables accessible from within the spec template.
-type MachineSpecVars struct {
-	Env         string `json:"env,omitempty"`
-	UserID      string `json:"userId,omitempty"`
-	Username    string `json:"username,omitempty"`
-	Email       string `json:"email,omitempty"`
-	Salt        string `json:"salt,omitempty"`
-	Password    string `json:"password,omitempty"`
-	MachineID   string `json:"machineId,omitempty"`
-	MachineName string `json:"machineName,omitempty"`
-	TemplateID  string `json:"templateId,omitempty"`
-	GroupID     string `json:"groupId,omitempty"`
-	Datacenter  string `json:"datacenter,omitempty"`
-	Region      string `json:"region,omitempty"`
-}
-
-var defaultVars = &MachineSpecVars{
-	Env:         "dev",
-	Username:    "kloudctl",
-	Email:       "rafal+kloudctl@koding.com",
-	MachineName: "kloudctl",
-	Datacenter:  "sjc01",
-	Region:      "us-east-1",
-}
-
 // ParseMachineSpec parses the given spec file and templates the variables
 // with the given vars.
-func ParseMachineSpec(file string, vars *MachineSpecVars) (*MachineSpec, error) {
+func ParseMachineSpec(file string) (*MachineSpec, error) {
 	var p []byte
 	var err error
 	if file == "-" {
@@ -110,44 +81,13 @@ func ParseMachineSpec(file string, vars *MachineSpecVars) (*MachineSpec, error) 
 	if err != nil {
 		return nil, err
 	}
-	if vars == nil {
-		vars = defaultVars
-	}
-	tmpl, err := template.New("spec").Funcs(vars.Funcs()).Parse(string(p))
-	if err != nil {
-		return nil, err
-	}
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, nil); err != nil {
-		return nil, err
-	}
+
 	var spec MachineSpec
-	if err := json.Unmarshal(buf.Bytes(), &spec); err != nil {
+	if err := json.Unmarshal(p, &spec); err != nil {
 		return nil, err
 	}
+
 	return &spec, nil
-}
-
-// Var a value of the given variable. If the variable is not set, it is
-// going to read VAR_<NAME> env.
-func (vars *MachineSpecVars) Var(name string) string {
-	if s := os.Getenv("VAR_" + strings.ToUpper(name)); s != "" {
-		return s
-	}
-	field, ok := structs.New(vars).FieldOk(name)
-	if ok {
-		if s, ok := field.Value().(string); ok && s != "" {
-			return s
-		}
-	}
-	return ""
-}
-
-// Funcs returns text/template funcs.
-func (vars *MachineSpecVars) Funcs() map[string]interface{} {
-	return map[string]interface{}{
-		"var": vars.Var,
-	}
 }
 
 // BuildUserAndGroup ensures the user and group of the spec are
