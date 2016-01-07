@@ -23,8 +23,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/multiconfig"
 	"golang.org/x/crypto/ssh"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type Config struct {

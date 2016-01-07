@@ -46,20 +46,4 @@ initKodingGroup = ->
 
 exports.init = (koding) ->
   console.warn 'Initialization code is temporarily disabled.'
-  # JGroup = require './models/group'
-  # JGroup.count (err, count) ->
-  #   return console.error err  if err
-  #   initKodingGroup()  if count is 0
-  # If we need to create initialize the DB, do it now:
-  # counter = (require 'koding-counter') {
-  #   db          : koding.getClient()
-  #   counterName : 'dbinit'
-  # }
-  # counter.initizalize -> counter.count (err, count) ->
-  #   throw err  if err
-  #   if count is 0
-  #     counter.next (err, seq) ->
-  #       throw err  if err
-  #       init()
-
 

@@ -8,7 +8,7 @@ import (
 	"socialapi/models"
 	"strconv"
 
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 
 	"github.com/koding/cache"
 	"github.com/koding/eventexporter"

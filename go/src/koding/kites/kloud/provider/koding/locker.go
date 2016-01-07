@@ -5,8 +5,8 @@ import (
 
 	"koding/kites/kloud/kloud"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func (p *Provider) Lock(id string) error {

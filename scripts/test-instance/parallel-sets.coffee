@@ -70,6 +70,7 @@ module.exports = [
   [
     { name: 'ide general' }
     { name: 'ide layout' }
+    { name: 'teams inviteteams' }
   ]
 
   [
@@ -93,10 +94,11 @@ module.exports = [
   [
     { name: 'environments domain' }
     { name: 'teams teams' }
+    { name: 'teams teamslikeunlike' }
   ]
 
   [
-    { name: 'environments vm-advanced' }
+    # { name: 'environments vm-advanced' }
   ]
 
 ]

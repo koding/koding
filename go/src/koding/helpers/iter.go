@@ -6,7 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/logger"
 
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 )
 
 // iterOptions holds the related config paramters for Iter operation

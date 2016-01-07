@@ -6,7 +6,7 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 
 	"golang.org/x/net/context"
 )
