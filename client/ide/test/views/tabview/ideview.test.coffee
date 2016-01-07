@@ -1,5 +1,6 @@
 kd                    = require 'kd'
 mock                  = require '../../../../mocks/mockingjay'
+nick                  = require 'app/util/nick'
 expect                = require 'expect'
 IDEAce                = require 'ide/views/ace/ideace'
 FSFile                = require 'app/util/fs/fsfile'
@@ -29,11 +30,9 @@ initSpies = ->
   revertShowErrorNotification = IDEView.__set__ 'showErrorNotification', showErrorNotificationSpy
 
 
-getFile = ->
+getFile = (path = 'foo/path') ->
 
-  path    = 'foo/path'
   machine = mock.getMockMachine()
-
   return FSHelper.createFileInstance { path, machine }
 
 
@@ -297,3 +296,74 @@ describe 'IDEView', ->
       expect(appName_).toBe 'IDE'
       expect(methodName_).toBe 'showFindReplaceView'
       expect(inReplaceMode).toBe yes
+
+
+  describe '::emitChange', ->
+
+    it 'should create a change object and emit it', ->
+
+      hash     = '1F9B0F7B'
+      paneType = 'FooPane'
+      pane     = { hash, options: { paneType } }
+      change   = { context: foo: 'bar' }
+
+      ideView.on 'ChangeHappened', (change) ->
+        expect(change.type).toBe  'MyChangeType'
+        expect(change.origin).toBe nick()
+        expect(change.context.paneType).toBe paneType
+        expect(change.context.paneHash).toBe hash
+        expect(change.context.ideViewHash).toBe ideView.hash
+
+      ideView.emitChange pane, change, 'MyChangeType'
+
+
+    it 'should add file to change object if change type is PaneRemoved or TabChanged', ->
+
+      file = getFile()
+      pane = { file }
+
+      for type in [ 'PaneRemoved', 'TabChanged' ]
+        ideView.once 'ChangeHappened', (change) ->
+          expect(change.type).toBe type
+          expect(change.context.file.path).toBe file.path
+
+        ideView.emitChange pane, null, type
+
+
+  describe '::openFile', ->
+
+    it 'should switchToEditorTabByFile if the same file is already opened', ->
+
+      fooFile   = getFile 'foo/file/path'
+      barFile   = getFile 'bar/file/path'
+      callbacks =
+        foo     : ->
+        bar     : ->
+
+      expect.spyOn callbacks, 'foo'
+      expect.spyOn callbacks, 'bar'
+      expect.spyOn ideView, 'switchToEditorTabByFile'
+
+      ideView.openFiles.push fooFile, barFile
+
+      ideView.openFile fooFile, 'foo', callbacks.foo
+
+      expect(ideView.switchToEditorTabByFile).toHaveBeenCalledWith fooFile
+      expect(callbacks.foo).toHaveBeenCalled()
+
+      ideView.openFile barFile, 'bar', callbacks.bar
+
+      expect(ideView.switchToEditorTabByFile).toHaveBeenCalledWith barFile
+      expect(callbacks.bar).toHaveBeenCalled()
+
+
+    it 'should createEditor for the given file', ->
+
+      file = getFile 'baz/waz'
+      spy  = expect.spyOn(ideView, 'createEditor').andCall (f, c, k, e) -> k new kd.TabPaneView
+
+      ideView.openFile file
+
+      expect(ideView.createEditor).toHaveBeenCalled()
+      expect(spy.calls.first.arguments.first).toBe file
+      expect(ideView.openFiles.indexOf(file)).toBeGreaterThan -1
