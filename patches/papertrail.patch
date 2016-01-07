@@ -1,0 +1,10 @@
+--- a/node_modules/papertrail/api.js  2015-12-24 22:50:29.000000000 +0200
++++ b/node_modules/papertrail/api.js	2015-12-24 22:50:40.000000000 +0200
+@@ -93,7 +93,6 @@
+   */
+   searchEvents: decorateRequest(function(options) {
+     options = options || {};
+-    if (options.q) options.q = encodeURI(options.q);
+
+     return request.get(this.baseUrl + 'events/search').
+             query(options);

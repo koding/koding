@@ -111,9 +111,17 @@ generateRequestParamsEncodeBody = (params, opts = {}) ->
     requestParams.jar ?= request.jar()
     requestParams.jar.setCookie cookie, requestParams.url
 
+  if clientIdCookieValue = requestParams.clientId
+    cookie = request.cookie "clientId=#{clientIdCookieValue}"
+    requestParams.jar ?= request.jar()
+    requestParams.jar.setCookie cookie, requestParams.url
+
   if requestParams.body
     # after deep extending object, encodes body param to a query string
     requestParams.body = querystring.stringify requestParams.body
+
+  if requestParams.query
+    requestParams.query = querystring.stringify requestParams.query
 
   return requestParams
 
