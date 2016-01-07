@@ -1,7 +1,7 @@
 React                = require 'react/addons'
 expect               = require 'expect'
 ActivityAppComponent = require '../appcomponent'
-{ TestUtils }        = React.addons
+TestUtils            = require 'react-addons-test-utils'
 
 describe 'ActivityAppComponent', ->
 
