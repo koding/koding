@@ -45,4 +45,3 @@ module.exports = class SplitRegionView extends KDCustomHTMLView
       cssClass  : kd.utils.curry 'region', direction
       tagName   : 'div'
       partial   : '<span>Drop to move source pane to this split.</span>'
-

@@ -116,7 +116,3 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
         , items
 
         MENU.once 'KDObjectWillBeDestroyed', => MENU = null
-
-
-
-

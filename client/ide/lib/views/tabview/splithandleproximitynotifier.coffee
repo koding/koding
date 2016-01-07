@@ -38,5 +38,3 @@ module.exports = class ProximityNotifier extends kd.Object
 
 
   removeHandler: -> removeMouseMoveListener @_handler
-
-

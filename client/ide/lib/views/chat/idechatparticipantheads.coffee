@@ -41,5 +41,3 @@ module.exports = class IDEChatParticipantHeads extends ParticipantHeads
 
     @previewContainer.destroySubViews()
     @previewContainer.addSubView avatar  for avatar in avatars
-
-

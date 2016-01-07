@@ -43,4 +43,3 @@ module.exports = class IDEBaseSplitView extends KDSplitView
     { first } = @panels.last.getSubViews().first.getSubViews()
 
     return first
-
