@@ -951,9 +951,8 @@ func TestGetDiskInfo(t *testing.T) {
 		t.Errorf("got %+v, expected %+v", stfs.Bsize, di.BlockSize)
 	}
 
-	v := stfs.Blocks * uint64(stfs.Bsize)
-	if di.BlocksTotal != v {
-		t.Errorf("got %+v, expected %+v", v, di.BlocksTotal)
+	if di.BlocksTotal != stfs.Blocks {
+		t.Errorf("got %+v, expected %+v", stfs.Blocks, di.BlocksTotal)
 	}
 
 	if di.BlocksFree == 0 {

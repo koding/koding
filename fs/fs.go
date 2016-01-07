@@ -383,8 +383,8 @@ func GetDiskInfo(r *kite.Request) (interface{}, error) {
 
 	di := &DiskInfo{
 		BlockSize:   uint32(stfs.Bsize),
-		BlocksTotal: stfs.Blocks * uint64(stfs.Bsize),
-		BlocksFree:  stfs.Bfree * uint64(stfs.Bsize),
+		BlocksTotal: stfs.Blocks,
+		BlocksFree:  stfs.Bfree,
 	}
 	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
 
