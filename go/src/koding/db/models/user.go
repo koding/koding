@@ -7,12 +7,13 @@ import (
 )
 
 type User struct {
-	ObjectId      bson.ObjectId `bson:"_id" json:"-"`
-	Uid           int           `bson:"uid" json:"uid"`
-	Email         string        `bson:"email" json:"email"`
-	LastLoginDate time.Time     `bson:"lastLoginDate,omitempty" json:"lastLoginDate"`
-	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
-	BlockedUntil  time.Time     `bson:"blockedUntil" json:"blockedUntil"`
+	ObjectId       bson.ObjectId `bson:"_id" json:"_id"`
+	Uid            int           `bson:"uid" json:"uid"`
+	Email          string        `bson:"email" json:"email"`
+	SanitizedEmail string        `bson:"sanitizedEmail" json:"sanitizedEmail"`
+	LastLoginDate  time.Time     `bson:"lastLoginDate,omitempty" json:"lastLoginDate"`
+	RegisteredAt   time.Time     `bson:"registeredAt" json:"registeredAt"`
+	BlockedUntil   time.Time     `bson:"blockedUntil,omitempty" json:"blockedUntil"`
 
 	// TODO left this for consistency, but should be converted into Username
 	Name string `bson:"username" json:"username"`
@@ -26,12 +27,15 @@ type User struct {
 		Title string `bson:"title"`
 		Key   string `bson:"key"`
 	} `bson:"sshKeys"`
+	OnlineStatus struct {
+		Actual string `bson:"actual"`
+	} `bson:"onlineStatus"`
 
 	BlockedReason string `bson:"blockedReason" json:"blockedReason"`
 
 	EmailFrequency *EmailFrequency `bson:"emailFrequency" json:"emailFrequency"`
 	Inactive       *UserInactive   `bson:"inactive,omitempty" json:"inactive"`
-	ForeignAuth    ForeignAuth     `bson:"foreignAuth" json:"-"`
+	ForeignAuth    ForeignAuth     `bson:"foreignAuth,omitempty" json:"-"`
 }
 
 type EmailFrequency struct {
