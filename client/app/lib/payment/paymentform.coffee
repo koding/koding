@@ -203,6 +203,7 @@ module.exports = class PaymentForm extends JView
 
   initEvents: ->
 
+    formIsValid    = no
     { cardNumber } = @form.inputs
 
     cardNumber.on "CreditCardTypeIdentified", (type) ->
@@ -210,7 +211,17 @@ module.exports = class PaymentForm extends JView
 
     @paypalForm.on 'PaypalTokenLoaded', @bound 'initPaypalClient'
 
-    @on 'GotValidationResult', @bound 'handleValidationResult'
+    @on 'GotValidationResult', (isValid) =>
+      formIsValid = isValid
+      @handleValidationResult isValid
+
+    # Get inputs of credit card form
+    Object.keys(@form.inputs).map (key) =>
+      input = @form.inputs[key]
+
+      input.on 'keydown', (e) =>
+        # If validation is passed, submit the form.
+        @submitButton.click()  if formIsValid and e.keyCode is 13
 
 
   handleValidationResult: (isValid) ->
