@@ -13,6 +13,7 @@ import (
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/transport"
+	"github.com/koding/kite"
 )
 
 var (
@@ -47,6 +48,9 @@ type KodingNetworkFS struct {
 	MountConfig *fuse.MountConfig
 
 	Watcher Watcher
+
+	// DiskInfo is the cached result of remote disk info.
+	DiskInfo transport.FsGetDiskInfo
 
 	// ignoredFolderList is folders for which all operations will return empty
 	// response. If a file has same name as entry in list, it'll NOT be ignored.
@@ -166,11 +170,19 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	// save root directory
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
+	var di transport.FsGetDiskInfo
+	if err := t.Trip("fs.getDiskInfo", nil, &di); err != nil {
+		if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type != "methodNotFound" {
+			return nil, err
+		}
+	}
+
 	return &KodingNetworkFS{
 		MountPath:         c.LocalPath,
 		MountConfig:       mountConfig,
 		RWMutex:           sync.RWMutex{},
 		Watcher:           watcher,
+		DiskInfo:          di,
 		ignoredFolderList: ignoredFolderList,
 		liveNodes:         liveNodes,
 	}, nil
@@ -569,6 +581,13 @@ func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) erro
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
+	ds := k.DiskInfo
+
+	op.BlockSize = ds.BlockSize
+	op.Blocks = ds.BlocksTotal
+	op.BlocksFree = ds.BlocksFree
+	op.BlocksAvailable = op.BlocksFree
+
 	return nil
 }
 

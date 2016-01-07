@@ -43,3 +43,10 @@ func (f *FsReadFileRes) UnmarshalJSON(b []byte) error {
 
 	return nil
 }
+
+type FsGetDiskInfo struct {
+	BlockSize   uint32 `json:"blockSize"`
+	BlocksTotal uint64 `json:"blocksTotal"`
+	BlocksFree  uint64 `json:"blocksFree"`
+	BlocksUsed  uint64 `json:"blocksUsed"`
+}
