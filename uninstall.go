@@ -71,6 +71,15 @@ type Uninstall struct {
 	// remover is a remove func, which can be used to play safe for testing. Typically
 	// equals os.Remove.
 	remover func(string) error
+
+	// warnings is a slice of warnings to respond to the user with. Since most
+	// errors during the uninstall process aren't reason alone to stop uninstalling,
+	// we want to simply inform the user of them. This slice keeps track of these
+	// warnings.
+	//
+	// IMPORTANT: These warnings are *user facing*, and should be populated from
+	// the errormessages.go file.
+	warnings []string
 }
 
 // Uninstall actually runs the uninstall process, configured by the structs fields,
@@ -81,24 +90,20 @@ type Uninstall struct {
 // bin can end up with multiple warnings, creating a bad UX.
 func (u *Uninstall) Uninstall() (string, int) {
 	if err := u.ServiceUninstaller.Uninstall(); err != nil {
-		log.Errorf("Service errored on uninstall. err:%s", err)
-		return FailedUninstallingKlient, 1
+		log.Warningf("Service errored on uninstall. err:%s", err)
+		u.addWarning(FailedUninstallingKlientWarn)
 	}
-
-	// Since most issues faced during file removal are not critical errors,
-	// we can compile a collection of warnings and print them to the user.
-	warnings := []string{}
 
 	// Remove the kitekey
 	if err := u.RemoveKiteKey(); err != nil {
 		log.Warningf("Failed to remove kite key. err:%s", err)
-		warnings = append(warnings, FailedToRemoveAuthFileWarn)
+		u.addWarning(FailedToRemoveAuthFileWarn)
 	}
 
 	// Remove the klient/klient.sh files
 	if err := u.RemoveKlientFiles(); err != nil {
 		log.Warningf("Failed to remove klient or klient.sh. err:%s", err)
-		warnings = append(warnings, FailedToRemoveFilesWarn)
+		u.addWarning(FailedToRemoveFilesWarn)
 	}
 
 	// Remove the klient directories
@@ -112,13 +117,14 @@ func (u *Uninstall) Uninstall() (string, int) {
 	// Remove the klientctl binary itself.
 	// (The current binary is removing itself.. So emo...)
 	if err := u.RemoveKlientctl(); err != nil {
-		warnings = append(warnings, FailedToRemoveKlientWarn)
+		log.Warningf("Failed to remove klientctl. err:%s", err)
+		u.addWarning(FailedToRemoveKlientWarn)
 	}
 
-	if len(warnings) != 0 {
+	if len(u.warnings) != 0 {
 		return fmt.Sprintf(
 			"Successfully uninstalled %s, with warnings:\n%s",
-			u.KlientName, strings.Join(warnings, "\n"),
+			u.KlientName, strings.Join(u.warnings, "\n"),
 		), 0
 	}
 
@@ -130,10 +136,12 @@ func (u *Uninstall) Uninstall() (string, int) {
 //
 // TODO: remove all artifacts, ie bolt db, ssh keys, kd etc.
 func UninstallCommand(c *cli.Context) (string, int) {
+	warnings := []string{}
+
 	s, err := newService()
 	if err != nil {
-		log.Errorf("Error creating Service. err:%s", err)
-		return GenericInternalError, 1
+		log.Warningf("Failed creating Service for uninstall. err:%s", err)
+		warnings = append(warnings, FailedUninstallingKlientWarn)
 	}
 
 	uninstaller := &Uninstall{
@@ -150,6 +158,7 @@ func UninstallCommand(c *cli.Context) (string, int) {
 		KlientFilename:        "klient",
 		KlientshFilename:      "klient.sh",
 		remover:               os.Remove,
+		warnings:              warnings,
 	}
 
 	return uninstaller.Uninstall()
@@ -275,4 +284,8 @@ func (u *Uninstall) RemoveKlientctl() error {
 	}
 
 	return u.remover(u.KlientctlPath)
+}
+
+func (u *Uninstall) addWarning(s string) {
+	u.warnings = append(u.warnings, s)
 }
