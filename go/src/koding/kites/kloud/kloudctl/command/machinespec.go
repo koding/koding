@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -106,6 +107,9 @@ func (spec *MachineSpec) BuildUserAndGroup() error {
 	// which will make VMs invisible to users until they're assigned
 	// to proper group before the hackathon.
 	if !spec.HasGroup() {
+		if spec.Environment != "dev" {
+			return errors.New("no group specified")
+		}
 		group, err := getOrCreateHackathonGroup()
 		if err != nil {
 			return err
