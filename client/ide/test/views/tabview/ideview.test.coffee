@@ -16,6 +16,7 @@ showErrorNotification = require 'app/util/showErrorNotification'
 IDEApplicationTabView = require 'ide/views/tabview/ideapplicationtabview'
 
 ideView                     = null
+handlePaneRemovedSpy        = null
 showErrorNotificationSpy    = null
 revertShowErrorNotification = null
 
@@ -24,7 +25,7 @@ initSpies = ->
   expect.spyOn IDEView.prototype, 'updateStatusBar'
   expect.spyOn IDEView.prototype, 'bindListeners'
   expect.spyOn IDEView.prototype, 'trimUntitledFileName'
-  expect.spyOn IDEView.prototype, 'handlePaneRemoved'
+  handlePaneRemovedSpy = expect.spyOn IDEView.prototype, 'handlePaneRemoved'
 
   showErrorNotificationSpy    = expect.createSpy()
   revertShowErrorNotification = IDEView.__set__ 'showErrorNotification', showErrorNotificationSpy
@@ -367,3 +368,114 @@ describe 'IDEView', ->
       expect(ideView.createEditor).toHaveBeenCalled()
       expect(spy.calls.first.arguments.first).toBe file
       expect(ideView.openFiles.indexOf(file)).toBeGreaterThan -1
+
+
+  describe '::switchToEditorTabByFile', ->
+
+    it 'should check tabView panes and call tabView.showPaneByIndex', ->
+
+      pane1 = new kd.TabPaneView {}, file1 = getFile '/foo'
+      pane2 = new kd.TabPaneView {}, file2 = getFile '/bar'
+      pane3 = new kd.TabPaneView {}, file3 = getFile '/baz'
+
+      ideView.tabView.panes.push pane1, pane2, pane3
+
+      expect.spyOn ideView.tabView, 'showPaneByIndex'
+
+      ideView.switchToEditorTabByFile file2
+      expect(ideView.tabView.showPaneByIndex).toHaveBeenCalledWith 1
+
+      ideView.switchToEditorTabByFile file3
+      expect(ideView.tabView.showPaneByIndex).toHaveBeenCalledWith 2
+
+
+  describe '::showView', ->
+
+    it 'should call createPane_', ->
+
+      view1 = new kd.View
+      view2 = new kd.View
+      spy   = expect.spyOn ideView, 'createPane_'
+
+      ideView.showView view1
+
+      expect(ideView.createPane_).toHaveBeenCalled()
+      expect(spy.calls.first.arguments.first).toBe view1
+      expect(spy.calls.first.arguments.last).toEqual { name: 'Search Result' }
+
+      ideView.showView view2, 'My Pane'
+      expect(spy.calls.last.arguments.first).toBe view2
+      expect(spy.calls.last.arguments.last).toEqual { name: 'My Pane' }
+
+
+  describe '::getActivePaneView', ->
+
+    it 'should return null if there is no getActivePane', ->
+
+      view = new kd.View
+      spy  = expect.spyOn(ideView.tabView, 'getActivePane').andReturn { view }
+
+      returnView = ideView.getActivePaneView()
+
+      expect(ideView.tabView.getActivePane).toHaveBeenCalled()
+      expect(returnView).toBe view
+
+      spy.restore()
+
+      expect.spyOn(ideView.tabView, 'getActivePane').andReturn null
+
+      returnView = ideView.getActivePaneView()
+
+      expect(ideView.tabView.getActivePane).toHaveBeenCalled()
+      expect(returnView).toBe undefined
+
+
+  describe '::click', ->
+
+    it 'should call super and do extra things', ->
+
+      expect.spyOn IDEView.__super__, 'click'
+      spy = expect.spyOn kd.singletons.appManager, 'tell'
+      ideView.click()
+
+      expect(IDEView.__super__.click).toHaveBeenCalled()
+      expect(ideView.updateStatusBar).toHaveBeenCalled()
+
+      [ appName, methodName, arg ] = spy.calls.first.arguments
+      [ appName_, methodName_ ]    = spy.calls.last.arguments
+
+      expect(appName).toBe  'IDE'
+      expect(appName_).toBe 'IDE'
+
+      expect(methodName).toBe  'setActiveTabView'
+      expect(methodName_).toBe 'setFindAndReplaceViewDelegate'
+
+      expect(arg).toBe ideView.tabView
+
+      ideView.handlePaneRemoved {}
+
+
+  describe '::handlePaneRemoved', ->
+
+    it 'should remove pane and emit event and a change event', ->
+
+      handlePaneRemovedSpy.restore()
+
+      file1     = getFile 'your/file'
+      file2     = getFile 'my/file'
+      pane      = new kd.TabPaneView {}, file2
+      pane.view = new kd.View
+
+      expect.spyOn ideView, 'emit'
+      spy = expect.spyOn ideView, 'emitChange'
+      ideView.openFiles.push file1, file2
+
+      ideView.handlePaneRemoved pane
+
+      [ view, change, eventName ] = spy.calls.first.arguments
+
+      expect(ideView.emit).toHaveBeenCalledWith 'PaneRemoved', pane
+      expect(view).toBe pane.view
+      expect(change.context).toExist()
+      expect(eventName).toBe 'PaneRemoved'
+      expect(ideView.openFiles.indexOf(file2)).toBe -1
