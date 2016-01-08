@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/klientctl/logging"
@@ -84,6 +85,50 @@ func UpdateCommand(c *cli.Context) int {
 	if err := s.Start(); err != nil {
 		log.Errorf("Error starting Service. err:%s", err)
 		fmt.Println(FailedStartKlient)
+		return 1
+	}
+
+	var user string
+	for _, s := range os.Environ() {
+		env := strings.Split(s, "=")
+
+		if len(env) != 2 {
+			continue
+		}
+
+		if env[0] == "SUDO_USER" {
+			user = env[1]
+			break
+		}
+	}
+
+	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
+	if err != nil {
+		log.Errorf("Error creating klient.sh path: %s", err)
+		fmt.Println(GenericInternalNewCodeError)
+		return 1
+	}
+
+	klientBinPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient"))
+	if err != nil {
+		log.Errorf(
+			"Error creating klient binary path. path:%s, err:%s",
+			filepath.Join(KlientDirectory, "klient"), err,
+		)
+		fmt.Println(GenericInternalNewCodeError)
+		return 1
+	}
+
+	klientSh := klientSh{
+		User:          user,
+		KiteHome:      KiteHome,
+		KlientBinPath: klientBinPath,
+		KontrolURL:    KontrolURL,
+	}
+
+	if err := klientSh.WriteFormat(klientShPath); err != nil {
+		log.Errorf("Error writing klient.sh file. err:%s", err)
+		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
 
