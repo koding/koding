@@ -66,16 +66,12 @@ func (gt *GroupThrottler) RunItems(ctx context.Context, items []Item) error {
 	}
 
 	// Cancel processing on signal.
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, os.Kill)
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, os.Kill)
+	defer signal.Stop(sigCh)
 	go func() {
-		var canceled bool
-		for range ch {
-			if !canceled {
-				close(cancel)
-				canceled = true
-			}
-		}
+		<-sigCh
+		close(cancel)
 	}()
 
 	// Process items.
@@ -185,20 +181,24 @@ func (gt *GroupThrottler) processAndWatch(ctx context.Context, item Item) *Statu
 	if err := gt.Process(ctx, item); err != nil {
 		return newStatus(err)
 	}
+
+	var last Stage
 	req := kloud.EventArgs{{
 		Type:    gt.Name,
 		EventId: item.ID(),
 	}}
-	var last Stage
+
 	for {
 		resp, err := k.Tell("event", req)
 		if err != nil {
 			return newStatus(err)
 		}
+
 		var events []kloud.EventResponse
 		if err := resp.Unmarshal(&events); err != nil {
 			return newStatus(err)
 		}
+
 		if len(events) == 0 || events[0].Event == nil {
 			return newStatus(errors.New("empty event response"))
 		}
@@ -210,12 +210,14 @@ func (gt *GroupThrottler) processAndWatch(ctx context.Context, item Item) *Statu
 			}
 			stages = append(stages, last)
 		}
+
 		if s := events[0].Event.Error; s != "" {
 			return newStatus(errors.New(s))
 		}
 		if events[0].Event.Percentage == 100 {
 			return newStatus(nil)
 		}
+
 		time.Sleep(defaultPollInterval)
 	}
 }
@@ -231,10 +233,13 @@ func (gt *GroupThrottler) writeStatuses(s []*Status) (err error) {
 		return err
 	}
 	defer f.Close()
+
 	err = nonil(json.NewEncoder(f).Encode(s), f.Sync(), f.Close())
 	if err != nil {
 		return err
 	}
+
 	DefaultUi.Info(fmt.Sprintf("Status written to %q", f.Name()))
+
 	return nil
 }
