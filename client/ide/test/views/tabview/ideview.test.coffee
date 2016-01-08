@@ -32,7 +32,7 @@ initSpies = ->
   revertShowErrorNotification = IDEView.__set__ 'showErrorNotification', showErrorNotificationSpy
 
 
-getFile = (path = 'foo/path') ->
+createFile = (path = 'foo/path') ->
 
   machine = mock.getMockMachine()
   return FSHelper.createFileInstance { path, machine }
@@ -200,7 +200,7 @@ describe 'IDEView', ->
     it 'should fetch permission of a file before opening it', ->
 
       mock.fsFile.fetchPermissions.toReturnInfo()
-      ideView.createEditor file = getFile()
+      ideView.createEditor file = createFile()
       expect(file.fetchPermissions).toHaveBeenCalled()
 
 
@@ -209,7 +209,7 @@ describe 'IDEView', ->
       expect.spyOn IDEHelpers, 'showFileAccessDeniedError'
       mock.fsFile.fetchPermissions.toReturnInfo no, no
 
-      ideView.createEditor getFile()
+      ideView.createEditor createFile()
       expect(IDEHelpers.showFileAccessDeniedError).toHaveBeenCalled()
 
 
@@ -217,7 +217,7 @@ describe 'IDEView', ->
 
       err = message: 'Everything is something happened.'
       mock.fsFile.fetchPermissions.toReturnError err
-      ideView.createEditor getFile()
+      ideView.createEditor createFile()
 
       expect(showErrorNotificationSpy).toHaveBeenCalledWith err
 
@@ -227,7 +227,7 @@ describe 'IDEView', ->
     it 'should create the IDEEditorPane and call createPane_ method and emit change object', ->
 
       uid        = mock.getMockMachine().uid
-      file       = getFile()
+      file       = createFile()
       path       = file.path
       content    = 'foo'
       callback   = ->
@@ -264,7 +264,7 @@ describe 'IDEView', ->
     it 'should listen for EditorIsReady event and handle the cases', ->
 
       obj            = callback: ->
-      file           = getFile()
+      file           = createFile()
       content        = 'foo bar'
       cursor         = { row: 1, column: 2 }
       fakeAce        = new IDEAce
@@ -329,7 +329,7 @@ describe 'IDEView', ->
 
     it 'should add file to change object if change type is PaneRemoved or TabChanged', ->
 
-      file = getFile()
+      file = createFile()
       pane = { file }
 
       for type in [ 'PaneRemoved', 'TabChanged' ]
@@ -344,8 +344,8 @@ describe 'IDEView', ->
 
     it 'should switchToEditorTabByFile if the same file is already opened', ->
 
-      fooFile   = getFile 'foo/file/path'
-      barFile   = getFile 'bar/file/path'
+      fooFile   = createFile 'foo/file/path'
+      barFile   = createFile 'bar/file/path'
       callbacks =
         foo     : ->
         bar     : ->
@@ -369,7 +369,7 @@ describe 'IDEView', ->
 
     it 'should createEditor for the given file', ->
 
-      file = getFile 'baz/waz'
+      file = createFile 'baz/waz'
       spy  = expect.spyOn(ideView, 'createEditor').andCall (f, c, k, e) -> k new kd.TabPaneView
 
       ideView.openFile file
@@ -383,9 +383,9 @@ describe 'IDEView', ->
 
     it 'should check tabView panes and call tabView.showPaneByIndex', ->
 
-      pane1 = new kd.TabPaneView {}, file1 = getFile '/foo'
-      pane2 = new kd.TabPaneView {}, file2 = getFile '/bar'
-      pane3 = new kd.TabPaneView {}, file3 = getFile '/baz'
+      pane1 = new kd.TabPaneView {}, file1 = createFile '/foo'
+      pane2 = new kd.TabPaneView {}, file2 = createFile '/bar'
+      pane3 = new kd.TabPaneView {}, file3 = createFile '/baz'
 
       ideView.tabView.panes.push pane1, pane2, pane3
 
@@ -470,8 +470,8 @@ describe 'IDEView', ->
 
       handlePaneRemovedSpy.restore()
 
-      file1     = getFile 'your/file'
-      file2     = getFile 'my/file'
+      file1     = createFile 'your/file'
+      file2     = createFile 'my/file'
       pane      = new kd.TabPaneView {}, file2
       pane.view = new kd.View
 
@@ -516,7 +516,6 @@ describe 'IDEView', ->
 
       expect(terminalPane).toBe pane.view
       expect(change).toEqual { context: { session, machine: { uid } } }
-
 
 
   describe '::handleTabMoved', ->
