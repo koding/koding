@@ -21,6 +21,7 @@ handlePaneRemovedSpy        = null
 showErrorNotificationSpy    = null
 revertShowErrorNotification = null
 
+
 initSpies = ->
 
   expect.spyOn IDEView.prototype, 'updateStatusBar'
@@ -544,3 +545,109 @@ describe 'IDEView', ->
       expect(view).toBe      params.view
       expect(action).toBe    'IDETabMoved'
       expect(change).toEqual expectedChange
+
+
+  describe '::handleSplitViewCreated', ->
+
+    it 'should emitChange', ->
+
+      direction      = 'vertical'
+      newIdeView     = new IDEView
+      params         = { ideView, newIdeView, direction }
+      expectedChange =
+        context          :
+          ideViewHash    : ideView.hash
+          newIdeViewHash : newIdeView.hash
+          direction      : direction
+
+      spy = expect.spyOn ideView, 'emitChange'
+
+      ideView.handleSplitViewCreated params
+
+      expect(ideView.emitChange).toHaveBeenCalled()
+      [ newIV, change, changeName ] = spy.calls.first.arguments
+
+      expect(newIV).toBe      newIdeView
+      expect(change).toEqual  expectedChange
+      expect(changeName).toBe 'NewSplitViewCreated'
+
+
+    it 'should toggleFullscreen, collapseSidebar and toggleSidebar if ideApp isFullScreen', ->
+
+      { mainView, appManager } = kd.singletons
+      params = { ideView, newIdeView: new IDEView, direction: 'horizontal' }
+
+      expect.spyOn ideView, 'emitChange'
+      expect.spyOn ideView, 'toggleFullscreen'
+      expect.spyOn appManager, 'tell'
+      expect.spyOn mainView, 'toggleSidebar'
+
+      ideView.isFullScreen = yes
+      ideView.handleSplitViewCreated params
+
+      expect(appManager.tell).toHaveBeenCalledWith 'IDE', 'collapseSidebar'
+      expect(mainView.toggleSidebar).toHaveBeenCalled()
+      expect(ideView.toggleFullscreen).toHaveBeenCalled()
+
+
+  describe '::handleSplitViewMerged', ->
+
+    it 'should emitChange', ->
+
+      targetIdeView  = ideView
+      ideViewHash    = '1223334444'
+      params         = { ideViewHash, targetIdeView }
+      expectedChange = { context: { ideViewHash } }
+
+      spy = expect.spyOn ideView, 'emitChange'
+
+      ideView.handleSplitViewMerged params
+
+      [ tiv, change, changeName ] = spy.calls.first.arguments
+
+      expect(tiv).toBe targetIdeView
+      expect(change).toEqual expectedChange
+      expect(changeName).toBe 'SplitViewMerged'
+
+
+  describe '::setHash', ->
+
+    it 'should set given hash', ->
+
+      ideView.setHash 1
+      expect(ideView.hash).toBe 1
+
+
+    it 'should generate a new hash', ->
+
+      hash = '1a2b3c4d'
+      generatePasswordSpy = expect.createSpy().andReturn hash
+      revertGeneratePassword = IDEView.__set__ 'generatePassword', generatePasswordSpy
+
+      ideView.setHash()
+      expect(generatePasswordSpy).toHaveBeenCalled()
+      expect(ideView.hash).toBe hash
+
+      revertGeneratePassword()
+
+
+  describe '::renameTerminal', ->
+
+    it 'should setSession, setTitle and fetchTerminalSessions', ->
+
+      spy      = expect.createSpy()
+      pane     = createTerminalPane()
+      machine  = mock.getMockMachine()
+      newTitle = 'New Title'
+      handle   = ideView.tabView.getHandleByPane pane
+
+      expect.spyOn pane.view, 'setSession'
+      expect.spyOn handle, 'setTitle'
+      expect.spyOn(machine, 'getBaseKite').andReturn fetchTerminalSessions: spy
+
+      ideView.renameTerminal pane, machine, newTitle
+
+      expect(pane.view.setSession).toHaveBeenCalledWith newTitle
+      expect(handle.setTitle).toHaveBeenCalledWith newTitle
+      expect(machine.getBaseKite).toHaveBeenCalled()
+      expect(spy).toHaveBeenCalled()
