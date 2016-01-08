@@ -266,7 +266,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			post1, err := rest.CreatePost(groupChannel.Id, trollUser.Id, ses.ClientId)
 			tests.ResultedWithNoErrorCheck(post1, err)
 
-			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id)
+			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
 			So(controller.markInteractions(trollUser, models.Safe), ShouldBeNil)
@@ -461,7 +461,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// add like
-			_, err = rest.AddInteraction("like", post.Id, trollUser.Id)
+			_, err = rest.AddInteraction("like", post.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
 			// fetch likes
@@ -707,15 +707,15 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post1, err)
 
 			// add like from normal user
-			_, err = rest.AddInteraction("like", post1.Id, adminUser.Id)
+			_, err = rest.AddInteraction("like", post1.Id, adminUser.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			// add like from normal user
-			_, err = rest.AddInteraction("like", post1.Id, normalUser.Id)
+			_, err = rest.AddInteraction("like", post1.Id, normalUser.Id, normalSes.ClientId)
 			So(err, ShouldBeNil)
 
 			// add like from troll user
-			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id)
+			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
 			history, err := rest.GetPostWithRelatedData(
@@ -750,13 +750,13 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			// users := []int64{adminUser.Id, normalUser.Id, trollUser.Id}
 
-			_, err = rest.AddInteraction("like", post.Id, adminUser.Id)
+			_, err = rest.AddInteraction("like", post.Id, adminUser.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
-			_, err = rest.AddInteraction("like", post.Id, normalUser.Id)
+			_, err = rest.AddInteraction("like", post.Id, normalUser.Id, normalSes.ClientId)
 			So(err, ShouldBeNil)
 
-			_, err = rest.AddInteraction("like", post.Id, trollUser.Id)
+			_, err = rest.AddInteraction("like", post.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
 			// add interactions
