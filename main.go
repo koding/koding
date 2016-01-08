@@ -76,7 +76,7 @@ func main() {
 		cli.Command{
 			Name:      "list",
 			ShortName: "ls",
-			Usage:     "List the available machines.",
+			Usage:     "List running machines for user.",
 			Action:    Exit(CheckUpdateFirst(ListCommand)),
 			Subcommands: []cli.Command{
 				cli.Command{

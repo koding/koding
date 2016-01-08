@@ -37,6 +37,9 @@ var cmdDescriptions = map[string]string{
     on remote machines.
     All arguments after run are passed to command on remote machine.`),
 	),
+	"list": fmtDesc(
+		"", "List running machines for user.",
+	),
 	"restart": fmtDesc(
 		"", fmt.Sprintf("Restart the %s.", KlientName),
 	),
