@@ -11,6 +11,7 @@ import (
 type Build struct {
 	id         *string
 	snapshotId *string
+	provider   *string
 }
 
 func NewBuild() cli.CommandFactory {
@@ -19,6 +20,7 @@ func NewBuild() cli.CommandFactory {
 		f.action = &Build{
 			id:         f.String("id", "", "Machine Id belonging to the Build"),
 			snapshotId: f.String("snapshot", "", "Build the machine from this snapshot"),
+			provider:   f.String("provider", "koding", "Kloud provider."),
 		}
 		return f, nil
 	}
@@ -30,7 +32,7 @@ func (b *Build) Action(args []string, k *kite.Client) error {
 	resp, err := k.Tell("build", &KloudArgs{
 		MachineId:  *b.id,
 		SnapshotId: *b.snapshotId,
-		Provider:   "koding",
+		Provider:   *b.provider,
 	})
 	if err != nil {
 		return err

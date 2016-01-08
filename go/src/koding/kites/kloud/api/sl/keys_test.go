@@ -15,10 +15,7 @@ func TestKeys(t *testing.T) {
 	if pem == "" {
 		t.Skip("skipping, KLOUD_USER_PRIVATEKEY is empty")
 	}
-	c, err := sl.NewSoftlayerWithOptions(opts)
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := sl.NewSoftlayerWithOptions(opts)
 	key, err := sl.ParseKey(pem)
 	if err != nil {
 		t.Fatalf("NewKey(%q)=%s", pem, err)
