@@ -17,7 +17,7 @@ import (
 // MountCommand mounts a folder on remote machine to local folder by machine
 // name.
 func MountCommand(c *cli.Context) int {
-	if len(c.Args()) < 2 {
+	if len(c.Args()) != 2 {
 		cli.ShowCommandHelp(c, "mount")
 		return 1
 	}

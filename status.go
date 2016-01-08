@@ -90,8 +90,12 @@ func (e ErrHealthNoKontrolHTTPResponse) Error() string { return e.Message }
 // but incoming klient functionality will obviously be limited. So by
 // checking, we can inform the user.
 func StatusCommand(c *cli.Context) int {
-	res, ok := defaultHealthChecker.CheckAllWithResponse()
+	if len(c.Args()) != 0 {
+		cli.ShowCommandHelp(c, "status")
+		return 1
+	}
 
+	res, ok := defaultHealthChecker.CheckAllWithResponse()
 	fmt.Println(res)
 	if !ok {
 		return 1

@@ -37,6 +37,24 @@ var cmdDescriptions = map[string]string{
     on remote machines.
     All arguments after run are passed to command on remote machine.`),
 	),
+	"restart": fmtDesc(
+		"", fmt.Sprintf("Restart the %s.", KlientName),
+	),
+	"stop": fmtDesc(
+		"", fmt.Sprintf("Stop the %s.", KlientName),
+	),
+	"start": fmtDesc(
+		"", fmt.Sprintf("Start the %s.", KlientName),
+	),
+	"status": fmtDesc(
+		"", fmt.Sprintf("Check status of the %s.", KlientName),
+	),
+	"uninstall": fmtDesc(
+		"", fmt.Sprintf("Uninstall the %s.", KlientName),
+	),
+	"update": fmtDesc(
+		"", fmt.Sprintf("Update %s to latest version.", KlientName),
+	),
 }
 
 func init() {

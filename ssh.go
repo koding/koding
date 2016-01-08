@@ -47,6 +47,11 @@ type SSHCommand struct {
 
 // SSHCommandFactory is the factory method for SSHCommand.
 func SSHCommandFactory(c *cli.Context) int {
+	if len(c.Args()) != 1 {
+		cli.ShowCommandHelp(c, "ssh")
+		return 1
+	}
+
 	cmd, err := NewSSHCommand()
 	// TODO: Refactor SSHCommand instance to require no initialization,
 	// and thus avoid needing to log an error in a weird place.
