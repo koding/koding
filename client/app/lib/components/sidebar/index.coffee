@@ -20,6 +20,12 @@ module.exports = class Sidebar extends React.Component
 
   { getters, actions } = ActivityFlux
 
+  constructor: ->
+
+    @state =
+      showNoStacksWidget : no
+
+
   getDataBindings: ->
     return {
       publicChannels               : getters.followedPublicChannelThreadsWithSelectedChannel
@@ -41,7 +47,9 @@ module.exports = class Sidebar extends React.Component
 
   componentWillMount: ->
 
-    EnvironmentFlux.actions.loadStacks()
+    EnvironmentFlux.actions.loadStacks().then (stacks) =>
+      @setState { showNoStacksWidget : yes }  unless stacks.length
+
     EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
     actions.channel.loadFollowedPublicChannels()
     actions.channel.loadFollowedPrivateChannels()
@@ -108,6 +116,7 @@ module.exports = class Sidebar extends React.Component
   renderNoStacks: ->
 
     return null  if @state.stacks.size
+    return null  unless @state.showNoStacksWidget
 
     <SidebarNoStacks />
 
