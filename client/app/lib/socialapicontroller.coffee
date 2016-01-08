@@ -698,7 +698,7 @@ module.exports = class SocialApiController extends KDController
       doXhrRequest
         type     : 'POST'
         endPoint : "/api/social/message/#{id}/interaction/like/add"
-        data     : options
+        data     : _.omit options ,'id'
       , callback
 
     unlike : (options, callback) ->
@@ -706,7 +706,7 @@ module.exports = class SocialApiController extends KDController
       doXhrRequest
         type     : 'POST'
         endPoint : "/api/social/message/#{id}/interaction/like/delete"
-        data     : options
+        data     : _.omit options ,'id'
       , callback
 
     listLikers : (options, callback) ->
