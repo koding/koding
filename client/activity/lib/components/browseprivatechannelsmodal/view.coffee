@@ -5,7 +5,7 @@ immutable              = require 'immutable'
 SidebarModalList       = require 'activity/components/sidebarmodallist'
 PrivateChannelListItem = require 'activity/components/privatechannellistitem'
 
-module.exports = class View extends React.Component
+module.exports = class BrowsePrivateChannelsModalView extends React.Component
 
   @defaultProps =
     isOpen      : yes

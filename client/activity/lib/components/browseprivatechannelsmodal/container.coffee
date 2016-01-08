@@ -5,7 +5,7 @@ ActivityFlux    = require 'activity/flux'
 isPublicChannel = require 'app/util/isPublicChannel'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
 
-module.exports = class Container extends React.Component
+module.exports = class BrowsePrivateChannelsModalContainer extends React.Component
 
   @defaultProps =
     isOpen : yes
@@ -46,5 +46,5 @@ module.exports = class Container extends React.Component
       threads={@state.threads}
       onItemClick={@bound 'onItemClick'}/>
 
-Container.include [KDReactorMixin]
+BrowsePrivateChannelsModalContainer.include [KDReactorMixin]
 

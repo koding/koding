@@ -76,15 +76,15 @@ describe 'BrowsePrivateChannelsModal', ->
 
   it 'should call router.handleRoute method with public route parameter', ->
 
-    routeTestHelper 'koding-dummy-channel', 'koding-public-channel', "/Channels/koding-dummy-channel"
+    expectCorrectRoute 'koding-dummy-channel', 'koding-public-channel', "/Channels/koding-dummy-channel"
 
 
   it 'should call router.handleRoute method with private route parameter', ->
 
-    routeTestHelper 'koding-12345', 'privatemessage', "/Messages/koding-12345"
+    expectCorrectRoute 'koding-12345', 'privatemessage', "/Messages/koding-12345"
 
 
-routeTestHelper = (id, typeConstant, route) ->
+expectCorrectRoute = (id, typeConstant, route) ->
 
   modal = renderIntoDocument(<Modal.Container isOpen={no}/>)
 
