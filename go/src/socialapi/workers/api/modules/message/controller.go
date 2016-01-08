@@ -392,13 +392,10 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}, ctx *models.Contex
 		return response.NewBadRequest(err)
 	}
 
-	var accountId int64 = 0
+	q := request.GetQuery(u)
+	query := ctx.OverrideQuery(q)
 
-	if ctx.IsLoggedIn() {
-		accountId = ctx.Client.Account.Id
-	}
-
-	canOpen, err := ch.CanOpen(accountId)
+	canOpen, err := ch.CanOpen(query.AccountId)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -406,8 +403,6 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}, ctx *models.Contex
 	if !canOpen {
 		return response.NewBadRequest(models.ErrCannotOpenChannel)
 	}
-
-	q := request.GetQuery(u)
 
 	cmc := models.NewChannelMessageContainer()
 	if err := cmc.Fetch(cm.Id, q); err != nil {
@@ -439,13 +434,10 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (i
 		return response.NewBadRequest(err)
 	}
 
-	var accountId int64 = 0
-	if ctx.IsLoggedIn() {
-		accountId = ctx.Client.Account.Id
-	}
+	query := ctx.OverrideQuery(q)
 
 	// check if user can open
-	canOpen, err := ch.CanOpen(accountId)
+	canOpen, err := ch.CanOpen(query.AccountId)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
