@@ -58,18 +58,18 @@ _bindStackEvents = ->
 
   { reactor, computeController } = kd.singletons
 
-  computeController.on 'StackRevisionChecked', (stack) ->
+  computeController.ready ->
+    computeController.on 'StackRevisionChecked', (stack) ->
+      return  if _revisionStatus?.error? and not stack._revisionStatus.status
 
-    return  if _revisionStatus?.error? and not stack._revisionStatus.status
+      loadMachines().then ->
+        reactor.dispatch actions.STACK_UPDATED, stack
 
-    loadMachines().then ->
-      reactor.dispatch actions.STACK_UPDATED, stack
+    computeController.on 'GroupStacksInconsistent', ->
+      reactor.dispatch actions.GROUP_STACKS_INCONSISTENT
 
-  computeController.on 'GroupStacksInconsistent', ->
-    reactor.dispatch actions.GROUP_STACKS_INCONSISTENT
-
-  computeController.on 'GroupStacksConsistent', ->
-    reactor.dispatch actions.GROUP_STACKS_CONSISTENT
+    computeController.on 'GroupStacksConsistent', ->
+      reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
 
 handleSharedMachineInvitation = (sharedMachine)->
