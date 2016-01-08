@@ -65,7 +65,7 @@ module.exports = class SiftScience
       return callback new KodingError \
         'SiftScience is disabled because of missing configuration'
 
-    siftScience = require('yield-siftscience') KONFIG.siftScience
+    siftScience = require('yield-siftscience') { api_key: KONFIG.siftScience }
 
     @fetchUserInfo client, (err, userInfo) ->
       return callback err   if err
