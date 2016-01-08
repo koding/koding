@@ -148,6 +148,14 @@ case "$platform" in
     echo "Downloading kd..."
 
     sudo curl -SLo /usr/local/bin/kd "https://koding-kd.s3.amazonaws.com/klientctl-$platform"
+    err=$?; if [ "$err" -ne 0 ]; then
+      cat << EOF
+Error: Failed to download kd binary. Please check your internet
+connection or try again.
+EOF
+      exit 1
+    fi
+
     sudo chmod +x /usr/local/bin/kd
 
     echo "Created /usr/local/bin/kd"
