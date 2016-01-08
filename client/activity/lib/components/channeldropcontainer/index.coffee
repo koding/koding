@@ -55,4 +55,3 @@ module.exports = class ChannelDropContainer extends React.Component
       {@renderDropArea()}
       {@props.children}
     </section>
-

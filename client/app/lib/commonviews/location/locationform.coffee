@@ -141,5 +141,3 @@ module.exports = class LocationForm extends KDFormViewWithFields
     # @countryLoader.hide()
     @handleCountryCode()
     @emit 'CountryDataPopulated'
-
-

@@ -38,5 +38,3 @@ module.exports = class JEarnedReward extends Module
       amount          :
         type          : Number
         default       : -> 0
-
-

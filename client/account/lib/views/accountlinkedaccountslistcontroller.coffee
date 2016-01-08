@@ -10,4 +10,3 @@ module.exports = class AccountLinkedAccountsListController extends KDListViewCon
     super options, data
 
     @instantiateListItems ({title : nicename, provider} for own provider, {nicename} of globals.config.externalProfiles)
-

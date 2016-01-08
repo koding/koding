@@ -81,5 +81,3 @@ module.exports = class AddNewCustomViewForm extends JView
         {{> @saveButton}}
       </div>
     """
-
-

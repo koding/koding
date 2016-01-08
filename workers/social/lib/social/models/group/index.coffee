@@ -1678,4 +1678,3 @@ module.exports = class JGroup extends Module
             apiToken.username = account.profile.nickname
 
       return callback null, apiTokens
-

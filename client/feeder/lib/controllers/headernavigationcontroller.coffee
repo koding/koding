@@ -62,5 +62,3 @@ module.exports = class HeaderNavigationController extends KDController
     {title}      = item
     @activeFacet.setData { title }
     @activeFacet.render()
-
-

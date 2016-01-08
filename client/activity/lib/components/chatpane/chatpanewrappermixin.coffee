@@ -18,4 +18,3 @@ module.exports = ChatPaneWrapperMixin =
 
     if scrollHeight - (scrollTop + offsetHeight) < 20
       scrollContainer.scrollTop = scrollHeight
-

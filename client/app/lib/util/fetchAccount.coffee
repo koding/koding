@@ -34,5 +34,3 @@ module.exports = fetchAccount = (origin, callback) ->
     callback null, origin
   else
     callback { message: 'utils.fetchAccount: wrong type of argument - origin' }
-
-

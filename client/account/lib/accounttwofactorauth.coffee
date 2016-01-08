@@ -220,4 +220,3 @@ module.exports = class AccountTwoFactorAuth extends KDView
         below and click the “Enable” button.
 
       """
-

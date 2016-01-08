@@ -10,6 +10,3 @@ module.exports = class ProfileLinkContainer extends React.Component
     <ProfileLink account={@state.account} {...@props}>
       {@renderChildren()}
     </ProfileLink>
-
-
-

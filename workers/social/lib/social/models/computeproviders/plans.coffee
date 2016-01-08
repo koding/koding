@@ -49,5 +49,3 @@ module.exports       = clone
     allowedInstances : ['t2.nano', 't2.micro']
     managed          : 0
     snapshots        : 0
-
-

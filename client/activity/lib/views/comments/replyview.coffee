@@ -30,5 +30,3 @@ module.exports = class ReplyView extends CommentView
 
     appManager.tell 'Activity', 'sendPrivateMessage', {channelId, body}, (err, reply) =>
       return showError err  if err
-
-

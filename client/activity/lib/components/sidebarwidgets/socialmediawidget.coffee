@@ -18,4 +18,3 @@ module.exports = class SocialMediaWidget extends React.Component
         href={FACEBOOK_LINK}
         className='FeedThreadSidebar-social facebook'>Koding on Facebook</a>
     </div>
-

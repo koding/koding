@@ -79,4 +79,3 @@ originify = (preview, index) ->
     origin = preview.toJS()
 
   return origin
-

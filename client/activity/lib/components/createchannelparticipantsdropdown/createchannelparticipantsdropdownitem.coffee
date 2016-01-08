@@ -22,4 +22,3 @@ module.exports = class CreateChannelParticipantsDropdownItem extends React.Compo
         height={30} />
       <span>{item.getIn ['profile', 'nickname']}</span>
     </DropBoxItem>
-

@@ -26,5 +26,3 @@ module.exports = class CommentSettingsButton extends KDButtonViewWithMenu
     @$button = @domElement
 
     return @domElement
-
-

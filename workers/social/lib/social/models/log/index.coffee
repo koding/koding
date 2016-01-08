@@ -108,5 +108,3 @@ module.exports = class JLog extends Module
     ]
 
     daisy queue
-
-

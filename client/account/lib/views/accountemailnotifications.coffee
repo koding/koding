@@ -167,4 +167,3 @@ module.exports = class AccountEmailNotifications extends KDView
 
       field.formView[method]      'off'
       field.subSettings?[method]  'off'  # Toggle it on / off if current field has any sub settings
-

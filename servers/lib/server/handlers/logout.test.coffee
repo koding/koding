@@ -54,4 +54,3 @@ runTests = -> describe 'server.handlers.logout', ->
 
 
 runTests()
-

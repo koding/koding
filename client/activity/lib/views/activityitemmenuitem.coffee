@@ -9,5 +9,3 @@ module.exports = class ActivityItemMenuItem extends JView
     """
     #{title}
     """
-
-

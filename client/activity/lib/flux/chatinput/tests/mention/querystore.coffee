@@ -48,4 +48,3 @@ describe 'ChatInputMentionsQueryStore', ->
       query = @reactor.evaluate(['chatInputMentionsQuery']).get stateId
 
       expect(query).toBe undefined
-

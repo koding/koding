@@ -24,4 +24,3 @@ module.exports = class PlanAdminControlsView extends ProductAdminControlsView
     {{> @sortWeight}}
     {{> @embedView}}
     """
-

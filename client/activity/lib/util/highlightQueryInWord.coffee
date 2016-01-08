@@ -29,4 +29,3 @@ module.exports = highlightQueryInWord = (word, query, options = {}) ->
     <strong>{word.substr index, query.length}</strong>
     {word.substring index + query.length}
   </span>
-

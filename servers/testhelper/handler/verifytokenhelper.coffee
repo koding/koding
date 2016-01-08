@@ -39,5 +39,3 @@ module.exports = {
   generateVerifyTokenRequestBody
   generateVerifyTokenRequestParams
 }
-
-

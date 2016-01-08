@@ -193,7 +193,3 @@ module.exports = class AvatarView extends LinkView
     {{> @gravatar}}
     {{> @cite}}
     """
-
-
-
-

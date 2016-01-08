@@ -428,4 +428,3 @@ module.exports = class MessagesStore extends KodingFluxStore
       message = message.set '__editedPayload', payload
 
       return message
-

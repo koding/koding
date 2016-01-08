@@ -24,4 +24,3 @@ module.exports = (req, res) ->
     token   = opentok.generateToken sessionId, options
 
     res.status(200).send { token }
-

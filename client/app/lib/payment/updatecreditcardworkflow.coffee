@@ -104,4 +104,3 @@ module.exports = class UpdateCreditCardWorkflow extends BaseWorkFlow
     value   = { timestamp: Date.now() }
 
     accountStorage.setValue KEY, value
-

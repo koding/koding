@@ -30,4 +30,3 @@ renderWithBackgroundChannel = (Component, callback) ->
 module.exports = {
   renderWithBackgroundChannel
 }
-

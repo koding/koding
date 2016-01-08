@@ -456,5 +456,3 @@ module.exports = class JCredential extends jraphical.Module
           verifiedCount++  if data['meta']?[key]?
 
         callback null, bootstrapKeys.length is verifiedCount
-
-

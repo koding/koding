@@ -138,6 +138,3 @@ module.exports = class FeederResultsController extends KDViewController
     app.appStorage?.fetchValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", (value)->
       return if value
       kd.utils.wait 1000, cb
-
-
-

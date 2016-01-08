@@ -14,5 +14,3 @@ module.exports = class CommentLikeView extends ActivityLikeView
         gravity   : @getOption "tooltipPosition"
         title     : ""
     , data
-
-

@@ -48,4 +48,3 @@ describe 'FilteredEmojiListQueryStore', ->
       query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
       expect(query).toBe undefined
-

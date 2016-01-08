@@ -46,4 +46,3 @@ describe 'ChannelParticipantsSearchQueryStore', ->
       query = @reactor.evaluate ['channelParticipantsSearchQuery']
 
       expect(query).toBe null
-

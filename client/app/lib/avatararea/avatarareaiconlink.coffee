@@ -67,8 +67,3 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
     </span>
     <span class='icon'></span>
     """
-
-
-
-
-

@@ -41,4 +41,3 @@ module.exports = class SinglePublicChannelPopularMessages
 
 
   onLeave: -> actions.channel.changeResultState channel._id, ResultStates.RECENT
-

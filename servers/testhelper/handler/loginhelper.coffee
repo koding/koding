@@ -42,5 +42,3 @@ module.exports = {
   generateLoginRequestBody
   generateLoginRequestParams
 }
-
-

@@ -113,5 +113,3 @@ module.exports = class JProxyRestriction extends jraphical.Module
 
     JProxyRestriction.update selector, operation, { multi: true }, (err) ->
       callback err
-
-

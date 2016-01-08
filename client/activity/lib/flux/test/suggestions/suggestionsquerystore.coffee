@@ -29,4 +29,3 @@ describe 'SuggestionsQueryStore', ->
       query = @reactor.evaluate ['currentSuggestionsQuery']
 
       expect(query).toEqual query2
-

@@ -14,5 +14,3 @@ module.exports = class SidebarMessagesListItem extends React.Component
       unreadCount={@channel 'unreadCount'}
       active={@props.active}
       href="/Messages/#{@channel 'id'}" />
-
-

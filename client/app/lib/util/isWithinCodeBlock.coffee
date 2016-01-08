@@ -10,4 +10,3 @@ module.exports = isWithinCodeBlock = (text, position) ->
   regExp = new RegExp "(`|```)[^`]+#{positionAnchor}[^`]*\\1"
 
   return regExp.test text
-

@@ -43,4 +43,3 @@ helper =
     e.innerHTML = formatContent message.get 'body'
     body = e.textContent or e.innerText
     body = emojify.replace body
-

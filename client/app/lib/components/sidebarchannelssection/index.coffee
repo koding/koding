@@ -40,5 +40,3 @@ module.exports = class SidebarChannelsSection extends React.Component
         {@renderMoreLink()}
       </SidebarSection>
     </div>
-
-

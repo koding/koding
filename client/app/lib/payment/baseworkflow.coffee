@@ -32,4 +32,3 @@ module.exports = class BaseWorkFlow extends KDController
 
 
   blockUserForTooManyAttempts: ->
-

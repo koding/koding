@@ -13,5 +13,3 @@ module.exports = class SocialChannelContainer extends Base
       participantCount   : Number
       participantPreview : Array
       lastMessage        : SocialMessage
-
-

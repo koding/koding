@@ -34,4 +34,3 @@ module.exports = class SidebarSection extends React.Component
         {@props.children}
       </div>
     </section>
-

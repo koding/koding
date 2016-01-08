@@ -34,4 +34,3 @@ module.exports = class APITokenList extends KDListView
     overlay.once 'click',                   modal.bound   'destroy'
 
     return modal
-

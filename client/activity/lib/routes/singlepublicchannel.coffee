@@ -53,4 +53,3 @@ module.exports = class SingleChannelRoute
 
 
   onLeave: -> threadActions.changeSelectedThread null
-

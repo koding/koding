@@ -64,4 +64,3 @@ module.exports = class SearchDropboxItem extends React.Component
 
       comments = message.get 'repliesCount'
       formatPlural comments, 'Comment'
-

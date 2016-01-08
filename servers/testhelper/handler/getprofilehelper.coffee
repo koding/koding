@@ -19,5 +19,3 @@ generateGetProfileRequestParams = (opts = {}) ->
 module.exports = {
   generateGetProfileRequestParams
 }
-
-

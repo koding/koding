@@ -62,4 +62,3 @@ module.exports = class InfiniteScroll extends React.Component
     <div className="InfiniteScroll" ref="InfiniteScroll" onScroll={ @bound 'onScroll' } onWheel={ @bound 'onWheel'}>
       {@props.children}
     </div>
-

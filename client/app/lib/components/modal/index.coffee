@@ -108,5 +108,3 @@ class Modal.Button extends React.Component
       className={kd.utils.curry 'Button Modal-Button', @props.className}>
       {@props.children}
     </button>
-
-

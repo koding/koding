@@ -432,5 +432,3 @@ class ApplicationManager extends KDObject
   #     unless storage
   #       storage = {appId,version,bucket:{}} # creating a fake storage
   #     callback error, storage
-
-

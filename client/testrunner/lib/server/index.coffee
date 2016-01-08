@@ -52,4 +52,3 @@ io.on 'connection', (socket) ->
 
 # start server & listening.
 http.listen SOCKET_PORT, -> console.log "Socket test runner started on port: #{SOCKET_PORT}"
-

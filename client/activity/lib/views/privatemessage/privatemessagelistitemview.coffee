@@ -135,5 +135,3 @@ module.exports = class PrivateMessageListItemView extends ActivityListItemView
       {{> @embedBoxWrapper}}
     </div>
     """
-
-

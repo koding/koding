@@ -468,4 +468,3 @@ module.exports = class ComputeController_UI
     else
 
       modal.addSubView errorDetails
-

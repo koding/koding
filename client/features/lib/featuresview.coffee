@@ -257,7 +257,3 @@ module.exports = class FeaturesView extends KDView
       <div class='tab-contents'></div>
     </section>
     """
-
-
-
-

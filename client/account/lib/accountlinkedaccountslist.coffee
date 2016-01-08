@@ -12,7 +12,3 @@ module.exports = class AccountLinkedAccountsList extends KDListView
     options.cssClass    = 'AppModal--account-switchList'
 
     super options,data
-
-
-
-

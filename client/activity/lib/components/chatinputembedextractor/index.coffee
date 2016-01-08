@@ -52,4 +52,3 @@ module.exports = class ChatInputEmbedExtractor extends React.Component
 
 
 ChatInputEmbedExtractor.include [ ImmutableRenderMixin ]
-

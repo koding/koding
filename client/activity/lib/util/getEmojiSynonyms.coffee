@@ -15,4 +15,3 @@ module.exports = getEmojiSynonyms = (emoji) ->
 
   for synonyms in EMOJI_SYNONYMS
     return synonyms  if synonyms.indexOf(emoji) > -1
-

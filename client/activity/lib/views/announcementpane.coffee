@@ -52,7 +52,3 @@ module.exports = class AnnouncementPane extends TopicMessagePane
       #   hiddenHandle  : yes
       # }
     ]
-
-
-
-

@@ -379,6 +379,3 @@ module.exports = class AccountEditUsername extends JView
     </div>
     {{> @userProfileForm}}
     """
-
-
-

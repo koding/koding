@@ -14,4 +14,3 @@ module.exports = (callback) ->
       isAdmin = 'admin' in (roles ? [])
 
       return callback null, isAdmin
-

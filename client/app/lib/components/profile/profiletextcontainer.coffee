@@ -8,5 +8,3 @@ module.exports = class ProfileTextContainer extends React.Component
 
   render: ->
     <ProfileText account={@state.account} {...@props} />
-
-

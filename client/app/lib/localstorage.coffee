@@ -97,6 +97,3 @@ module.exports = class LocalStorage extends AppStorage
 
 
   @getStorage = -> storage
-
-
-

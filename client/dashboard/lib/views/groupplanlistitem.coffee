@@ -41,5 +41,3 @@ module.exports = class GroupPlanListItem extends GroupProductListItem
       {{> @controls}}
     </div>
     """
-
-

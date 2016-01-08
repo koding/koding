@@ -8,4 +8,3 @@ module.exports = class ReplyInputView extends ActivityInputView
     options.showButton = no
 
     super options, data
-

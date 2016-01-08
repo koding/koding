@@ -37,5 +37,3 @@ module.exports = class GroupProductSectionView extends JView
   setContents: (contents) ->
     @listController.removeAllItems()
     @listController.instantiateListItems contents
-
-

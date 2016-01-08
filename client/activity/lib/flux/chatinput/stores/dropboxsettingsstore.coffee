@@ -120,4 +120,3 @@ module.exports = class ChatInputDropboxSettingsStore extends KodingFluxStore
         return currentState.set stateId, immutable.Map()
 
       return currentState
-

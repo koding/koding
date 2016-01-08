@@ -260,5 +260,3 @@ getErrorMessage = (err) ->
   message     = "#{message}: #{Object.keys err.errors}"  if err.errors?
 
   return message
-
-

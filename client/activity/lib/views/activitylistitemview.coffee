@@ -274,5 +274,3 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
     </div>
     {{> @commentBox}}
     """
-
-

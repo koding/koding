@@ -14,4 +14,3 @@ module.exports = class ShowcaseAppController extends AppController
     options.view = new ShowcaseAppView
 
     super options, data
-

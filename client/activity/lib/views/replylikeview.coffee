@@ -86,6 +86,3 @@ module.exports = class ReplyLikeView extends ActivityLikeLink
 
 
   pistachio: -> ''
-
-
-

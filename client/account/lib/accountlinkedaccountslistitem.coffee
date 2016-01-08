@@ -88,4 +88,3 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
     {{> @switch}}
     <div class='title'><span class='icon'></span>{cite{ #(title)}}</div>
     """
-

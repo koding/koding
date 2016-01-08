@@ -13,4 +13,3 @@ module.exports = class ChatInputMentionsQueryStore extends BaseQueryStore
     @bindActions
       setQuery   : actions.SET_CHAT_INPUT_MENTIONS_QUERY
       unsetQuery : actions.UNSET_CHAT_INPUT_MENTIONS_QUERY
-

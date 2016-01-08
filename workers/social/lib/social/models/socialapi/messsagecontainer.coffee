@@ -14,5 +14,3 @@ module.exports = class SocialMessageContainer extends Base
       repliesCount  : Number
       replies       : [SocialMessageContainer]
       accountOldId  : String
-
-

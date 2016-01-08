@@ -71,7 +71,3 @@ module.exports = class ButtonWithMenu extends React.Component
         </ul>
       </Portal>
     </div>
-
-
-
-

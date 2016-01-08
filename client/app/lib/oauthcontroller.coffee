@@ -31,4 +31,3 @@ module.exports = class OAuthController extends KDController
       mainController.emit "ForeignAuthSuccess.#{provider}"
 
   notify = (err)-> new KDNotificationView title : "Something went wrong"
-

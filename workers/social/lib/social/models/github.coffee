@@ -170,5 +170,3 @@ module.exports = class Github extends Base
         gh[base][method] options, cb
       catch err
         cb err
-
-

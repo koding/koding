@@ -96,5 +96,3 @@ module.exports = class ActivityListController extends KDListViewController
 
     unless kd.getSingleton("router").getCurrentPath() is "/Activity"
       kd.getSingleton("activityController").clearNewItemsCount()
-
-

@@ -13,4 +13,3 @@ module.exports = class FilteredEmojiListQueryStore extends BaseQueryStore
     @bindActions
       setQuery   : actions.SET_FILTERED_EMOJI_LIST_QUERY
       unsetQuery : actions.UNSET_FILTERED_EMOJI_LIST_QUERY
-

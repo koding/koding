@@ -355,5 +355,3 @@ module.exports = class JProposedDomain extends jraphical.Module
       if /^([\w\-]+)\.kd\.io$/.test @domain
         return callback { message: "It's not allowed to delete root domains" }
       @remove (err) -> callback err
-
-

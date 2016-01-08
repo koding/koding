@@ -24,5 +24,3 @@ describe 'SelectedChannelThreadIdStore', ->
       selectedId = @reactor.evaluate ['selectedThreadId']
 
       expect(selectedId).toEqual '2'
-
-

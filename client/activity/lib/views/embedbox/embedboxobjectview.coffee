@@ -10,5 +10,3 @@ module.exports = class EmbedBoxObjectView extends JView
       #{Encoder.htmlDecode objectHtml or ''}
     </div>
     """
-
-

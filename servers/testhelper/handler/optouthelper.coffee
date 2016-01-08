@@ -38,5 +38,3 @@ module.exports = {
   generateOptoutRequestBody
   generateOptoutRequestParams
 }
-
-

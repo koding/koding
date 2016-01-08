@@ -10,6 +10,3 @@ module.exports = class NewMessageMarker extends React.Component
         new messages
       </div>
     </div>
-
-
-

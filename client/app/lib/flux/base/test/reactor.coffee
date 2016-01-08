@@ -21,5 +21,3 @@ describe 'KodingFluxReactor', ->
       reactor.dispatch 'test', { foo: 'test passed' }
 
       expect(flag).toEqual 'test passed'
-
-

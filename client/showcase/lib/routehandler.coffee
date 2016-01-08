@@ -9,6 +9,3 @@ module.exports = -> lazyrouter.bind 'showcase', (type, info, state, path, ctx) -
   handle = (name) -> handlers["handle#{name}"](info, ctx, path, state)
 
   handle type
-
-
-

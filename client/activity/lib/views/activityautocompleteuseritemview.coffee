@@ -27,6 +27,3 @@ module.exports = class ActivityAutoCompleteUserItemView extends KDAutoCompleteLi
       shouldShowNick : yes
       userInput
     }, @getData()
-
-
-

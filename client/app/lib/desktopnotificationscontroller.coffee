@@ -62,4 +62,3 @@ defaultNotificationOptions =
   iconUrl : '/a/images/logos/share_logo.png'
   title   : ''
   message : ''
-

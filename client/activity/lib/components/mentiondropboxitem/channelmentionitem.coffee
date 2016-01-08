@@ -54,4 +54,3 @@ module.exports = class ChannelMentionItem extends React.Component
         { @renderDescription() }
       </div>
     </DropboxItem>
-

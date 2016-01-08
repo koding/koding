@@ -20,4 +20,3 @@ module.exports = class CommandDropboxItem extends React.Component
       <span className='CommandDropboxItem-params'>{item.get 'extraInfo'}</span>
       <span className='CommandDropboxItem-description'>{item.get 'description'}</span>
     </DropboxItem>
-

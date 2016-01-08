@@ -55,4 +55,3 @@ module.exports = class SuggestionsSelectedIndexStore extends KodingFluxStore
    * @return {number} nextState
   ###
   resetIndex: (currentState) -> 0
-

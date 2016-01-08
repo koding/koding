@@ -40,5 +40,3 @@ module.exports = class GroupPermissionsView extends JView
     """
     {{> @loader}}
     """
-
-

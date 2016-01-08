@@ -279,5 +279,3 @@ module.exports = class JProvisioner extends jraphical.Module
         fieldsToUpdate.slug = slug
 
       @update { $set : fieldsToUpdate }, updateKallback slug, callback
-
-

@@ -100,6 +100,3 @@ module.exports = class LinkGroup extends KDCustomHTMLView
   render:->
 
     @createParticipantSubviews()
-
-
-

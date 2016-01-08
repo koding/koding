@@ -74,5 +74,3 @@ module.exports = class JCustomPartials extends Model
     @checkPermission client, (err, res) =>
       return callback err if err
       @remove callback
-
-

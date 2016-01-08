@@ -103,4 +103,3 @@ runTests = -> describe 'server.handlers.checktoken', ->
 
 
 runTests()
-

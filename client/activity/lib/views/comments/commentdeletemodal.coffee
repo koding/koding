@@ -51,6 +51,3 @@ module.exports = class CommentDeleteModal extends KDModalView
       # it is confirmed that it is deleted.
       @emit "DeleteConfirmed"
       @destroy()
-
-
-

@@ -23,6 +23,3 @@ module.exports = class SelectedMessageThreadIdStore extends KodingFluxStore
    * @return {null|string} nextState
   ###
   setSelectedMessageId: (currentState, { messageId }) -> messageId
-
-
-

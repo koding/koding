@@ -153,4 +153,3 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
 
 
 BrowsePublicChannelsModal.include [KDReactorMixin]
-

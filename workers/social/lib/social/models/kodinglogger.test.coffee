@@ -155,12 +155,12 @@ runTests = -> describe 'KodingLogger', ->
 
           done()
 
-      , 2000
+      , 4000
 
 
   describe '# search', ->
 
-    it 'should search log in papertrail', (done) ->
+    it.skip 'should search log in papertrail', (done) ->
 
       scope = 'info'
       group = 'testgroup'
@@ -187,7 +187,7 @@ runTests = -> describe 'KodingLogger', ->
 
           done()
 
-      , 4000
+      , 9000
 
 
   describe '# close', ->

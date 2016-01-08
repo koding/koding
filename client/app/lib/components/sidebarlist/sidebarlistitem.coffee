@@ -40,5 +40,3 @@ module.exports = class SidebarListItem extends React.Component
       <span className='SidebarListItem-title'>{@props.title}</span>
       {@renderUnreadCount()}
     </Link>
-
-

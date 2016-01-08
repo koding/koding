@@ -38,6 +38,3 @@ module.exports = class KodingSwitch extends KDOnOffSwitch
     @unsetClass 'off'
     @setClass   'on'
     @switchStateChanged() if wCallback
-
-
-

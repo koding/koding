@@ -71,5 +71,3 @@ module.exports = class S3 extends Base
       policy, signature
 
     }
-
-

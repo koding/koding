@@ -169,5 +169,3 @@ module.exports = class GroupsMemberPermissionsView extends JView
     {{> @searchWrapper}}
     {{> @listWrapper}}
     """
-
-

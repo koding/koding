@@ -9,5 +9,3 @@ module.exports = class ProductSectionListController extends KDListViewController
     @scrollView.addSubView @customItem = new KDCustomHTMLView
       cssClass : "no-item-found"
       partial  : message
-
-

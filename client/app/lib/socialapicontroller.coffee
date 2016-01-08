@@ -988,5 +988,3 @@ module.exports = class SocialApiController extends KDController
         type     : 'DELETE'
         endPoint : "/api/social/notificationsetting/#{options.id}"
       , callback
-
-

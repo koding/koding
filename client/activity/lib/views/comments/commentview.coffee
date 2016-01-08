@@ -219,6 +219,3 @@ module.exports = class CommentView extends KDView
     super
 
     @resetDecoration()
-
-
-

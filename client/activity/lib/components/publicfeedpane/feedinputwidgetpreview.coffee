@@ -46,4 +46,3 @@ module.exports = class FeedInputWidgetPreview extends React.Component
         <MessageBody message={message}/>
       </div>
     </div>
-

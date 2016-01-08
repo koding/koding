@@ -107,5 +107,3 @@ module.exports = class InstallKdModal extends kd.ModalView
     @input?.unsetTooltip()
 
     super
-
-

@@ -97,5 +97,3 @@ module.exports = class Groupable
 
   save$: permit 'create documents',
     success:(client, callback) -> @save callback
-
-

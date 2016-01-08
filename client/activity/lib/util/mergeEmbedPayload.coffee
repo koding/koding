@@ -13,4 +13,3 @@ module.exports = mergeEmbedPayload = (payload, embedPayload) ->
     delete result.link_embed
 
   return result
-

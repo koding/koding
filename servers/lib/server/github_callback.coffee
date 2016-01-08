@@ -123,5 +123,3 @@ module.exports = (req, res) ->
     headers : headers
   r = http.request options, authorizeUser
   r.end()
-
-

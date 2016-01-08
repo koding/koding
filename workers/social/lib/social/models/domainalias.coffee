@@ -104,5 +104,3 @@ module.exports = class JDomainAlias extends Module
         }
 
         domain.save (err) -> callback err
-
-

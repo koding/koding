@@ -280,4 +280,3 @@ module.exports = class UserPolicyView extends JView
 
     </div>
     """
-

@@ -30,4 +30,3 @@ module.exports = class ChatInputCommandsStore extends KodingFluxStore
     ]
 
     toImmutable commands
-

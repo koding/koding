@@ -70,4 +70,3 @@ class ChannelDropbox extends React.Component
 ChannelDropbox.include [ ImmutableRenderMixin ]
 
 module.exports = ScrollableDropbox ChannelDropbox
-

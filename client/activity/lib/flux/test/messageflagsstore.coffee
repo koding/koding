@@ -36,5 +36,3 @@ describe 'MessageFlagsStore', ->
       storeState = @reactor.evaluateToJS ['MessageFlagsStore']
 
       expect(storeState.test.isMessagesLoading).toEqual no
-
-

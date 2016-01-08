@@ -48,4 +48,3 @@ module.exports = class ChatInputSearchStore extends KodingFluxStore
   handleResetSearch: (currentState, { stateId }) ->
 
     currentState.delete stateId
-

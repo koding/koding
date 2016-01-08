@@ -18,5 +18,3 @@ module.exports = class ProfileText extends React.Component
 
   render: ->
     <span>{@getDisplayName()}</span>
-
-

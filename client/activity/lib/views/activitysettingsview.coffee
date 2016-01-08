@@ -233,5 +233,3 @@ module.exports = class ActivitySettingsView extends KDCustomHTMLView
     options.feedType = 'bug' if tagToAdd.title is "bug"
     activity.modify options, (err)->
       showError err if err
-
-

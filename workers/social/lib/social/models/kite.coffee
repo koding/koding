@@ -98,5 +98,3 @@ module.exports = class JKite extends jraphical.Module
     success: (client, planCode, callback) ->
       @fetchPlans (err, plan) ->
         plan.remove
-
-

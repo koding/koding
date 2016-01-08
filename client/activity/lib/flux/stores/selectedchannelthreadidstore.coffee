@@ -23,5 +23,3 @@ module.exports = class SelectedChannelThreadIdStore extends KodingFluxStore
    * @return {null|string} nextState
   ###
   setSelectedChannelId: (currentState, { channelId }) -> channelId
-
-

@@ -79,4 +79,3 @@ validateRequest = (req) ->
     return { error : apiErrors.unauthorizedRequest }
 
   return { error : null, token, username }
-

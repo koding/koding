@@ -9,5 +9,3 @@ module.exports = class FeederTabView extends KDTabView
     super options, data
 
     @unsetClass "kdscrollview"
-
-

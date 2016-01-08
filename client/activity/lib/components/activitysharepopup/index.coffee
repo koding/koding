@@ -147,4 +147,3 @@ module.exports = class ActivitySharePopup extends React.Component
           className='share-icon share-twitter' />
       </div>
     </Portal>
-

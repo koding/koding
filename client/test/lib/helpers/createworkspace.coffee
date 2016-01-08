@@ -25,4 +25,3 @@ module.exports = (browser) ->
         .assert.containsText     '.vm-info', '~/Workspaces/' + workspaceName # Assertion
 
   return workspaceName
-

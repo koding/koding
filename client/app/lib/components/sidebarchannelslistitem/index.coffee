@@ -18,4 +18,3 @@ prepareThreadLink = (thread) ->
   return null  unless thread
 
   return "/Channels/#{thread.getIn ['channel', 'name']}"
-

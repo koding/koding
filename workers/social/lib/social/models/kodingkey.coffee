@@ -133,5 +133,3 @@ module.exports = class JKodingKey extends jraphical.Module
           console.warn "Error occurred while creating koding key - Err: #{err}, "
           return callback new KodingError 'An error occurred while saving your key, please try again later'
         return callback null, "Authentication is successfull! Using id: #{data.hostname}"
-
-

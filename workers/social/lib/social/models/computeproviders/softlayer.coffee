@@ -113,4 +113,3 @@ module.exports = class Softlayer extends ProviderInterface
               id       : group.getId()
 
         updateMachine { selector, alwaysOn, usage, userPlan }, callback
-

@@ -3,4 +3,3 @@ module.exports = {
   'KEEP_POSITION'
   'UPDATE'
 }
-

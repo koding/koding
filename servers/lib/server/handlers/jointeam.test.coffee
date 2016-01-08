@@ -466,4 +466,3 @@ runTests = -> describe 'server.handlers.jointeam', ->
 
 
 runTests()
-

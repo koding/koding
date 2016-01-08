@@ -56,4 +56,3 @@ runTests = -> describe 'server.handlers.videosession', ->
 
 
 runTests()
-
