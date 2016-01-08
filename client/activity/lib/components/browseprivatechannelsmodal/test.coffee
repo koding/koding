@@ -46,8 +46,6 @@ describe 'BrowsePrivateChannelsModal', ->
     view = shallowRenderer.getRenderOutput()
     { children } = view.props
 
-    expect(view.type.name).toEqual 'Modal'
-    expect(children.type.name).toEqual 'SidebarModalList'
     expect(children.props.threads).toExist()
     expect(children.props.title).toEqual 'Other Messages:'
     expect(children.props.searchProp).toEqual 'name'
