@@ -7,6 +7,7 @@ FSFile                = require 'app/util/fs/fsfile'
 FSHelper              = require 'app/util/fs/fshelper'
 IDEView               = require 'ide/views/tabview/ideview'
 IDEHelpers            = require '../../../lib/idehelpers'
+WebTermView           = require 'app/terminal/webtermview'
 AppController         = require 'app/appcontroller'
 IDEEditorPane         = require 'ide/workspace/panes/ideeditorpane'
 IDETailerPane         = require 'ide/workspace/panes/idetailerpane'
@@ -52,6 +53,19 @@ createEditorPane = (paneClass) ->
   pane = ideView.createPane_ editorPane, options, file
 
   return { ideView, editorPane, pane, file }
+
+
+createTerminalPane = (options = {}) ->
+
+  app = new AppController
+  app.workspaceData = { rootPath: '/root/path' }
+
+  mock.appManager.getFrontApp.toReturnPassedParam app
+
+  options.machine = mock.getMockMachine()
+  pane = ideView.createTerminal options
+
+  return pane
 
 
 describe 'IDEView', ->
@@ -134,12 +148,7 @@ describe 'IDEView', ->
 
     it 'should create a terminal pane and append it', ->
 
-      app = new AppController
-      app.workspaceData = { rootPath: '/root/path' }
-
-      mock.appManager.getFrontApp.toReturnPassedParam app
-
-      pane = ideView.createTerminal { machine: mock.getMockMachine() }
+      pane = createTerminalPane()
 
       expect(pane).toBeA kd.TabPaneView
       expect(pane.view).toBeA IDETerminalPane
@@ -479,3 +488,60 @@ describe 'IDEView', ->
       expect(change.context).toExist()
       expect(eventName).toBe 'PaneRemoved'
       expect(ideView.openFiles.indexOf(file2)).toBe -1
+
+
+  describe '::handleWebtermCreated', ->
+
+    it 'should bind click event, emit event and update title', ->
+
+      uid              = mock.getMockMachine().uid
+      pane             = createTerminalPane()
+      session          = 'foo1bar2'
+      pane.view.remote = { session }
+      tabHandle        = ideView.tabView.getHandleByPane pane
+
+      expect.spyOn ideView,   'click'
+      expect.spyOn ideView,   'emit'
+      expect.spyOn tabHandle, 'setTitle'
+      spy = expect.spyOn ideView, 'emitChange'
+
+      ideView.handleWebtermCreated pane
+      pane.view.webtermView.emit 'click'
+
+      expect(ideView.emit).toHaveBeenCalledWith 'UpdateWorkspaceSnapshot'
+      expect(tabHandle.setTitle).toHaveBeenCalledWith 'foo1bar2'
+      expect(ideView.click).toHaveBeenCalled()
+
+      [ terminalPane, change ] = spy.calls.first.arguments
+
+      expect(terminalPane).toBe pane.view
+      expect(change).toEqual { context: { session, machine: { uid } } }
+
+
+
+  describe '::handleTabMoved', ->
+
+    it 'should call updateAceViewDelegate of the view and emitChange', ->
+
+      { editorPane }  = createEditorPane()
+      params          =
+        view          : editorPane
+        tabView       : { parent: { hash: '111' } }
+        targetTabView : { parent: { hash: '222' } }
+      expectedChange  =
+        context       :
+          originIDEViewHash : '111'
+          targetIDEViewHash : '222'
+
+      expect.spyOn params.view, 'updateAceViewDelegate'
+      spy = expect.spyOn ideView, 'emitChange'
+
+      ideView.handleTabMoved params
+
+      expect(params.view.updateAceViewDelegate).toHaveBeenCalledWith params.targetTabView.parent
+
+      [ view, change, action ] = spy.calls.first.arguments
+
+      expect(view).toBe      params.view
+      expect(action).toBe    'IDETabMoved'
+      expect(change).toEqual expectedChange

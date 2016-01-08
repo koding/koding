@@ -830,7 +830,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     { view, tabView, targetTabView } = params
 
-    view.updateAceViewDelegate targetTabView.parent  if view instanceof IDEEditorPane
+    if view instanceof IDEEditorPane
+      view.updateAceViewDelegate targetTabView.parent
 
     change =
       context:
