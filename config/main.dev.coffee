@@ -1396,15 +1396,16 @@ Configuration = (options={}) ->
       }
 
       function check_go_version () {
-        VERSION=$(go version 2> /dev/null)
-        VERSION=${VERSION:13:4}
+        VERSION=$(go version 2> /dev/null | cut -d' ' -f3 | sed -e 's:^go::')
         MAJOR=`echo $VERSION | cut -d. -f1`
         MINOR=`echo $VERSION | cut -d. -f2`
 
-        if [[ $MAJOR -lt 1 ]]; then
-            MISMATCH=1
-        elif [[ $MAJOR -eq 1 && $MINOR -lt 4 ]]; then
-            MISMATCH=1
+        if [[ $VERSION != 'devel' ]]; then
+            if [[ $MAJOR -lt 1 ]]; then
+                MISMATCH=1
+            elif [[ $MAJOR -eq 1 && $MINOR -lt 4 ]]; then
+                MISMATCH=1
+            fi
         fi
 
         if [[ -n $MISMATCH ]]; then
