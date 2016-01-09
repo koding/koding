@@ -144,7 +144,7 @@ func TestChannelMessage(t *testing.T) {
 						AccountId: nonOwnerAccount.Id,
 						GroupName: groupName,
 					},
-					ses.ClientId,
+					nonOwnerSes.ClientId,
 				)
 
 				So(err, ShouldBeNil)
