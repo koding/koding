@@ -14,6 +14,25 @@ module.exports =
     browser.end()
 
 
+  createChannelWithPurpose: (browser) ->
+
+    purpose = "testing the purpose field"
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user, purpose)
+    browser.end()
+
+
+  updateChannelPurpose: (browser) ->
+ 
+    purpose = "testing the purpose field"
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user, purpose)
+    teamsHelpers.updateChannelPurpose(browser)
+    browser.end()
+
+
   sendComment: (browser) ->
 
     message = helpers.getFakeText()
@@ -44,6 +63,31 @@ module.exports =
       .waitForElementVisible  searchInputSelector, 20000
       .setValue               searchInputSelector, channelNames[0].slice 0, 8
       .assert.containsText    threadsContainer, channelNames[0]
+      .end()
+
+
+  switchBetweenYourChannelsAndOtherChannels: (browser) ->
+ 
+    sidebarSelector          = '.SidebarChannelsSection .SidebarSection-header'
+    channelTextSelector      = '.ChannelList-Modal.PublicChannelListModal .ChannelListWrapper .ChannelList-title'
+    otherChannelsTabSelector = '.ChannelListWrapper .ChannelList-tabs .ChannelList-tab:nth-of-type(2)'
+    activeTabSelector        = '.ChannelListWrapper .ChannelList-tabs .ChannelList-tab.active-tab'
+    otherChannelsJoinButton  = '.PublicChannelLink.ChannelListItem .Button'
+ 
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
+    teamsHelpers.leaveChannel(browser)
+ 
+    browser
+      .waitForElementVisible  sidebarSelector, 20000
+      .click                  sidebarSelector
+      .waitForElementVisible  channelTextSelector, 20000
+      .assert.containsText    channelTextSelector, 'Channels'
+      .waitForElementVisible  otherChannelsTabSelector, 20000
+      .click                  otherChannelsTabSelector
+      .waitForElementVisible  activeTabSelector, 20000
+      .waitForElementVisible  otherChannelsJoinButton, 20000
+      .assert.containsText    otherChannelsJoinButton, 'JOIN'
       .end()
 
 
