@@ -310,7 +310,7 @@ module.exports =
         .click                  sidebarSectionsHeaderSelector
 
 
-  createChannel: (browser, user, purpose, isInvalid, channelName) ->
+  createChannel: (browser, user, channelName, isInvalid, purpose) ->
 
     channelModalSelector             = '.CreateChannel-Modal .CreateChannel-content'
     createChannelModalNameSelector   = "#{channelModalSelector} .channelName input"

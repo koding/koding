@@ -19,7 +19,7 @@ module.exports =
     purpose = "testing the purpose field"
 
     user = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user, purpose)
+    teamsHelpers.createChannel(browser, user, null, null, purpose)
     browser.end()
 
 
@@ -28,7 +28,7 @@ module.exports =
     purpose = "testing the purpose field"
 
     user = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user, purpose)
+    teamsHelpers.createChannel(browser, user, null, null, purpose)
     teamsHelpers.updateChannelPurpose(browser)
     browser.end()
 
