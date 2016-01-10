@@ -107,7 +107,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, post.AccountId, ses.ClientId)
+				_, err = rest.AddInteraction("like", post.Id, ses)
 				So(err, ShouldBeNil)
 
 				cmc, err := rest.GetPostWithRelatedData(
@@ -135,7 +135,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, nonOwnerAccount.Id, nonOwnerSes.ClientId)
+				_, err = rest.AddInteraction("like", post.Id, nonOwnerSes)
 				So(err, ShouldBeNil)
 
 				cmc, err := rest.GetPostWithRelatedData(
@@ -163,7 +163,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, nonOwnerAccount.Id, nonOwnerSes.ClientId)
+				_, err = rest.AddInteraction("like", post.Id, nonOwnerSes)
 				So(err, ShouldBeNil)
 
 				likes, err := rest.GetInteractions("like", post.Id)
@@ -178,7 +178,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, post.AccountId, ses.ClientId)
+				_, err = rest.AddInteraction("like", post.Id, ses)
 				So(err, ShouldBeNil)
 
 				cmc, err := rest.GetPostWithRelatedData(
@@ -310,7 +310,7 @@ func TestChannelMessage(t *testing.T) {
 
 				So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
 
-				_, err = rest.AddInteraction("like", reply.Id, nonOwnerAccount.Id, nonOwnerSes.ClientId)
+				_, err = rest.AddInteraction("like", reply.Id, nonOwnerSes)
 				So(err, ShouldBeNil)
 
 				cmc, err := rest.GetPostWithRelatedData(
@@ -429,10 +429,10 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(reply2, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", reply1.Id, account.Id, ses.ClientId)
+				_, err = rest.AddInteraction("like", reply1.Id, ses)
 				So(err, ShouldBeNil)
 
-				_, err = rest.AddInteraction("like", reply2.Id, account.Id, ses.ClientId)
+				_, err = rest.AddInteraction("like", reply2.Id, ses)
 				So(err, ShouldBeNil)
 
 				err = rest.DeletePost(post.Id, account.Id, groupName, ses.ClientId)
@@ -453,7 +453,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, account.Id, ses.ClientId)
+				_, err = rest.AddInteraction("like", post.Id, ses)
 				So(err, ShouldBeNil)
 
 				err = rest.DeletePost(post.Id, account.Id, groupName, ses.ClientId)
