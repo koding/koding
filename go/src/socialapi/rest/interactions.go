@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	kodingmodels "koding/db/models"
 	"socialapi/models"
 )
 
@@ -22,13 +23,18 @@ func GetInteractions(interactionType string, postId int64) ([]string, error) {
 	return interactions, nil
 }
 
-func AddInteraction(iType string, postId, accountId int64, token string) (*models.Interaction, error) {
+func AddInteraction(iType string, postId int64, ses *kodingmodels.Session) (*models.Interaction, error) {
+	acc := models.NewAccount()
+	if err := acc.ByNick(ses.Username); err != nil {
+
+	}
+
 	cm := models.NewInteraction()
-	cm.AccountId = accountId
+	cm.AccountId = acc.Id
 	cm.MessageId = postId
 
 	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, iType)
-	_, err := sendModelWithAuth("POST", url, cm, token)
+	_, err := sendModelWithAuth("POST", url, cm, ses.ClientId)
 	if err != nil {
 		return cm, err
 	}
