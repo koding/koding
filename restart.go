@@ -19,23 +19,31 @@ func RestartCommand(c *cli.Context) int {
 
 	fmt.Printf("Restarting the %s, this may take a moment...\n", KlientName)
 
-	// Only worry about stopping if klient is actually running.
-	if IsKlientRunning(KlientAddress) {
+	klientWasRunning := IsKlientRunning(KlientAddress)
+
+	if klientWasRunning {
+		// If klient is running, stop it, and tell the user if we fail
 		if err := s.Stop(); err != nil {
 			log.Errorf("Error stopping Service. err:%s", err)
 			fmt.Println(FailedStopKlient)
 			return 1
 		}
+	} else {
+		// If klient appears to not be running, try to stop it anyway. However,
+		// because it may not actually be running, don't inform the user if we fail here.
+		s.Stop()
+	}
 
-		if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
-			log.Errorf(
-				"Timed out while waiting for Klient to start. attempts:%d, err:%s",
-				5, err,
-			)
-			fmt.Println(FailedStopKlient)
-			return 1
-		}
+	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
+		log.Errorf(
+			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
+			5, err,
+		)
+		fmt.Println(FailedStopKlient)
+		return 1
+	}
 
+	if klientWasRunning {
 		fmt.Println("Stopped successfully.")
 	}
 
