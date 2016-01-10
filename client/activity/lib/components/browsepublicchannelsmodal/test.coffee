@@ -187,15 +187,15 @@ describe 'BrowsePublicChannelsModal', ->
 
     modal = renderIntoDocument(<ModalView isOpen={no}/>)
 
-    expect(typeof modal.props.query).toEqual 'string'
-    expect(typeof modal.props.className).toEqual 'string'
-    expect(typeof modal.props.onClose).toEqual 'function'
-    expect(typeof modal.props.onTabChange).toEqual 'function'
-    expect(typeof modal.props.onItemClick).toEqual 'function'
-    expect(typeof modal.props.onThresholdReached).toEqual 'function'
-    expect(typeof modal.props.onSearchInputChange).toEqual 'function'
-    expect(typeof modal.props.isOpen).toEqual 'boolean'
-    expect(typeof modal.props.isSearchActive).toEqual 'boolean'
+    expect(modal.props.query).toBeA 'string'
+    expect(modal.props.className).toBeA 'string'
+    expect(modal.props.onClose).toBeA 'function'
+    expect(modal.props.onTabChange).toBeA 'function'
+    expect(modal.props.onItemClick).toBeA 'function'
+    expect(modal.props.onThresholdReached).toBeA 'function'
+    expect(modal.props.onSearchInputChange).toBeA 'function'
+    expect(modal.props.isOpen).toBeA 'boolean'
+    expect(modal.props.isSearchActive).toBeA 'boolean'
 
 
   it 'checks rendered tabView and its children props', ->

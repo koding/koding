@@ -24,8 +24,8 @@ describe 'BrowsePrivateChannelsModal', ->
     modal = shallowRenderer.getRenderOutput()
 
     expect(modal.props.isOpen).toBeTruthy()
-    expect(typeof modal.props.onClose).toEqual 'function'
-    expect(typeof modal.props.onItemClick).toEqual 'function'
+    expect(modal.props.onClose).toBeA 'function'
+    expect(modal.props.onItemClick).toBeA 'function'
 
 
   it 'renders BrowsePrivateChannelsModal-View with PrivateChannelListModal and ChannelList-Modal classNames', ->
@@ -52,8 +52,8 @@ describe 'BrowsePrivateChannelsModal', ->
     expect(children.props.searchProp).toEqual 'name'
     expect(children.props.onThresholdAction).toEqual 'loadFollowedPrivateChannels'
     expect(children.props.onItemClick).toExist()
-    expect(typeof children.props.onThresholdAction).toEqual 'string'
-    expect(typeof children.props.itemComponent).toEqual 'function'
+    expect(children.props.onThresholdAction).toBeA 'string'
+    expect(children.props.itemComponent).toBeA 'function'
 
 
   it 'should render BrowsePrivateChannelsModal-Container and checks onItemClick method of modal', ->
