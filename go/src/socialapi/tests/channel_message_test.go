@@ -199,7 +199,7 @@ func TestChannelMessage(t *testing.T) {
 				// actor length should be 1
 				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
 
-				err = rest.DeleteInteraction("like", post.Id, account.Id, ses.ClientId)
+				err = rest.DeleteInteraction("like", post.Id, ses)
 				So(err, ShouldBeNil)
 
 				cmc, err = rest.GetPostWithRelatedData(
