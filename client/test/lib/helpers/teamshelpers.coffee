@@ -332,16 +332,16 @@ module.exports =
           .waitForElementVisible  purposeSelector, 20000
           .setValue               purposeSelector, purpose
  
-     browser
+    browser
       .waitForElementVisible  createChannelModalButtonSelector, 20000
       .moveToElement          createChannelModalButtonSelector, 32, 12
       .click                  createChannelModalButtonSelector
 
-     if isInvalid
-       browser
-         .waitForElementVisible  '.channelName.invalid', 20000
-         .pause                   2000
-         .waitForElementVisible  '.CreateChannel-Modal', 20000
+    if isInvalid
+      browser
+        .waitForElementVisible  '.channelName.invalid', 20000
+        .pause                   2000
+        .waitForElementVisible  '.CreateChannel-Modal', 20000
     else
       browser
         .pause                  3000 # wait for page load
