@@ -42,13 +42,18 @@ func AddInteraction(iType string, postId int64, ses *kodingmodels.Session) (*mod
 	return cm, nil
 }
 
-func DeleteInteraction(interactionType string, postId, accountId int64, token string) error {
+func DeleteInteraction(interactionType string, postId int64, ses *kodingmodels.Session) error {
+	acc := models.NewAccount()
+	if err := acc.ByNick(ses.Username); err != nil {
+
+	}
+
 	cm := models.NewInteraction()
-	cm.AccountId = accountId
+	cm.AccountId = acc.Id
 	cm.MessageId = postId
 
 	url := fmt.Sprintf("/message/%d/interaction/%s/delete", postId, interactionType)
-	_, err := marshallAndSendRequestWithAuth("POST", url, cm, token)
+	_, err := marshallAndSendRequestWithAuth("POST", url, cm, ses.ClientId)
 	if err != nil {
 		return err
 	}
