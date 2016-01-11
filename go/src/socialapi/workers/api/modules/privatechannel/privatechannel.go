@@ -12,11 +12,20 @@ import (
 	"github.com/koding/bongo"
 )
 
-func Init(u *url.URL, h http.Header, req *models.ChannelRequest) (int, http.Header, interface{}, error) {
+func Init(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	return response.HandleResultAndError(req.Create())
 }
 
-func Send(u *url.URL, h http.Header, req *models.ChannelRequest) (int, http.Header, interface{}, error) {
+func Send(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
 	return response.HandleResultAndError(req.Send())
 }
 
