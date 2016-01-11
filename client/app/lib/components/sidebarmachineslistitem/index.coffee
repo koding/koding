@@ -22,6 +22,7 @@ SharingMachineInvitationWidget = require './sharingmachineinvitationwidget'
 module.exports = class SidebarMachinesListItem extends React.Component
 
   @defaultProps =
+    stack                        : null
     showInSidebar                : yes
     bindWorkspacesTitleClick     : yes
     activeLeavingSharedMachineId : null
@@ -41,6 +42,26 @@ module.exports = class SidebarMachinesListItem extends React.Component
       collapsed : status isnt Machine.State.Running
       showLeaveSharedMachineWidget : no
     }
+
+    @listenMachineEvents()
+
+
+  listenMachineEvents: ->
+
+    machineId             = @machine('_id')
+    { computeController } = kd.singletons
+
+    computeController.on "start-#{machineId}", (event) =>
+      @setState { collapsed: no }  if event.percentage is 100
+
+    computeController.on "stop-#{machineId}", (event) =>
+      @setState { collapsed : yes }  unless event.percentage
+
+    if stackId = @props.stack?.get('_id')
+      computeController.on "apply-#{stackId}", (event) =>
+        { percentage, message } = event
+        if percentage is 100 and message in [ 'apply finished', 'reinit finished' ]
+          @setState { collapsed: no }
 
 
   componentWillReceiveProps: ->
