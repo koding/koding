@@ -67,7 +67,7 @@ func TestCheckOwnership(t *testing.T) {
 			tedsAccount, err := models.CreateAccountInBothDbsWithNick("ted")
 			tests.ResultedWithNoErrorCheck(tedsAccount, err)
 
-			bobsPost, err := rest.CreatePost(groupChannel.Id, account.Id, ses.ClientId)
+			bobsPost, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
 			tests.ResultedWithNoErrorCheck(bobsPost, err)
 
 			Convey("it should say when an account owns a post", func() {
@@ -115,7 +115,7 @@ func TestAccountFetchProfile(t *testing.T) {
 			So(channel, ShouldNotBeNil)
 
 			// create message
-			post, err := rest.CreatePost(channel.Id, account.Id, ses.ClientId)
+			post, err := rest.CreatePost(channel.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 
@@ -144,7 +144,7 @@ func TestAccountProfilePostCount(t *testing.T) {
 			So(channel, ShouldNotBeNil)
 
 			// create message
-			post, err := rest.CreatePost(channel.Id, account.Id, ses.ClientId)
+			post, err := rest.CreatePost(channel.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 
@@ -154,7 +154,7 @@ func TestAccountProfilePostCount(t *testing.T) {
 				So(cr, ShouldNotBeNil)
 				So(cr.TotalCount, ShouldEqual, 1)
 
-				post, err := rest.CreatePost(channel.Id, account.Id, ses.ClientId)
+				post, err := rest.CreatePost(channel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
