@@ -7,15 +7,14 @@ import (
 	"socialapi/models"
 )
 
-func CreatePost(channelId, accountId int64, token string) (*models.ChannelMessage, error) {
-	return CreatePostWithBodyAndAuth(channelId, accountId, "create a message", token)
+func CreatePost(channelId int64, token string) (*models.ChannelMessage, error) {
+	return CreatePostWithBodyAndAuth(channelId, "create a message", token)
 }
 
-func CreatePostWithBodyAndAuth(channelId, accountId int64, body, token string) (*models.ChannelMessage, error) {
+func CreatePostWithBodyAndAuth(channelId int64, body, token string) (*models.ChannelMessage, error) {
 	url := fmt.Sprintf("/channel/%d/message", channelId)
 	cm := models.NewChannelMessage()
 	cm.Body = body
-	cm.AccountId = accountId
 	res, err := marshallAndSendRequestWithAuth("POST", url, cm, token)
 	if err != nil {
 		return nil, err
@@ -29,7 +28,6 @@ func CreatePostWithBodyAndAuth(channelId, accountId int64, body, token string) (
 
 	return container.Message, nil
 
-	// return res.(*models.ChannelMessage), nil
 }
 
 func CreatePostWithBody(channelId, accountId int64, body string) (*models.ChannelMessage, error) {
@@ -48,8 +46,8 @@ func CreatePostWithHeader(channelId, accountId int64, header http.Header, token 
 	return createPostRequestWithAuth(channelId, cm, header, token)
 }
 
-func GetPost(id int64, accountId int64, groupName, token string) (*models.ChannelMessage, error) {
-	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
+func GetPost(id int64, token string) (*models.ChannelMessage, error) {
+	url := fmt.Sprintf("/message/%d", id)
 	cm := models.NewChannelMessage()
 	cmI, err := sendModelWithAuth("GET", url, cm, token)
 	if err != nil {
@@ -68,8 +66,8 @@ func GetPostBySlug(slug string, accountId int64) (*models.ChannelMessageContaine
 	return cmI.(*models.ChannelMessageContainer), nil
 }
 
-func DeletePost(id int64, accountId int64, groupName, token string) error {
-	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
+func DeletePost(id int64, token string) error {
+	url := fmt.Sprintf("/message/%d", id)
 	_, err := sendRequestWithAuth("DELETE", url, nil, token)
 	return err
 }
