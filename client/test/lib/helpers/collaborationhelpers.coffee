@@ -1,14 +1,17 @@
-helpers = require './helpers.js'
-assert  = require 'assert'
+helpers    = require './helpers.js'
+assert     = require 'assert'
+ideHelpers = require './idehelpers.js'
+utils      = require '../utils/utils.js'
 
-messagePane = '.message-pane.privatemessage'
+messagePane              = '.message-pane.privatemessage'
 notStartedButtonSelector = '.status-bar a.share.not-started'
+chatBox                  = '.collaboration.message-pane'
+shareButtonSelector      = '.status-bar a.share:not(.loading)'
 
 module.exports =
 
-  isSessionActive: (browser, callback) ->
 
-    shareButtonSelector = '.status-bar a.share:not(.loading)'
+  isSessionActive: (browser, callback) ->
 
     browser
       .waitForElementVisible   shareButtonSelector, 20000
@@ -20,7 +23,6 @@ module.exports =
 
   startSession: (browser) ->
 
-    shareButtonSelector = '.status-bar a.share:not(.loading)'
     chatViewSelector    = '.chat-view.onboarding'
     startButtonSelector = '.chat-view.onboarding .buttons button.start-session'
 
@@ -138,3 +140,114 @@ module.exports =
       else
         browser
           .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000
+
+
+  startSessionAndInviteUser: (browser, firstUser, secondUser) ->
+
+    secondUserName         = secondUser.username
+    secondUserAvatar       = ".avatars .avatarview[href='/#{secondUserName}']"
+    secondUserOnlineAvatar = secondUserAvatar + '.online'
+    chatTextSelector       = '.status-bar a.active'
+
+    helpers.beginTest browser, firstUser
+    helpers.waitForVMRunning browser
+
+    ideHelpers.closeAllTabs(browser)
+
+    @isSessionActive browser, (isActive) =>
+
+      if isActive then browser.end()
+      else
+        @startSession browser
+        @inviteUser   browser, secondUserName
+
+        browser
+          .waitForElementVisible  secondUserAvatar, 60000
+          .waitForElementVisible  secondUserOnlineAvatar, 50000 # Assertion
+          .waitForElementVisible  chatTextSelector, 50000
+          .assert.containsText    chatTextSelector, 'CHAT' # Assertion
+
+
+  joinSession: (browser, firstUser, secondUser) ->
+
+    firstUserName    = firstUser.username
+    secondUserName   = secondUser.username
+    sharedMachineBox = '[testpath=main-sidebar] .shared-machines:not(.hidden)'
+    shareModal       = '.share-modal'
+    fullName         = shareModal + ' .user-details .fullname'
+    acceptButton     = shareModal + ' .kdbutton.green'
+    rejectButton     = shareModal + ' .kdbutton.red'
+    selectedMachine  = '.sidebar-machine-box.selected'
+    filetree         = '.ide-files-tab'
+    message          = '.kdlistitemview-activity.privatemessage'
+    chatUsers        = "#{chatBox} .chat-heads"
+    userAvatar       = ".avatars .avatarview.online[href='/#{firstUserName}']"
+    chatTextSelector = '.status-bar a.active'
+    sessionLoading   = '.session-starting'
+
+    helpers.beginTest browser, secondUser
+
+    browser.element 'css selector', sharedMachineBox, (result) =>
+
+      if result.status is 0 then browser.end()
+      else
+        browser
+          .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
+          .waitForElementVisible     fullName, 50000
+          .assert.containsText       shareModal, firstUserName
+          .waitForElementVisible     acceptButton, 50000
+          .waitForElementVisible     rejectButton, 50000
+          .click                     acceptButton
+          .waitForElementNotPresent  shareModal, 50000
+          .pause                     3000 # wait for sidebar redraw
+          .waitForElementVisible     selectedMachine, 50000
+          .waitForElementNotPresent  sessionLoading, 50000
+          .waitForElementVisible     chatBox, 50000
+          .waitForElementVisible     chatUsers, 50000
+          .waitForElementVisible     message, 50000
+          .assert.containsText       chatBox, firstUserName
+          .assert.containsText       chatBox, secondUserName
+          .assert.containsText       filetree, firstUserName
+          .waitForElementVisible     userAvatar, 50000 # Assertion
+          .waitForElementVisible     chatTextSelector, 50000
+          .assert.containsText       chatTextSelector, 'CHAT' # Assertion
+
+
+  waitParticipantLeaveAndEndSession: (browser) ->
+
+    host        = utils.getUser no, 0
+    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant = utils.getUser no, 1
+
+    participantAvatar = ".avatars .avatarview.online[href='/#{participant.username}']"
+
+    if hostBrowser
+      browser.waitForElementNotPresent participantAvatar, 60000
+      @endSessionFromStatusBar(browser)
+
+
+  leaveSession: (browser) ->
+
+    participant  = utils.getUser no, 1
+    hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+
+    unless hostBrowser
+      @leaveSessionFromStatusBar(browser)
+      # assert that no shared vm on sidebar
+
+
+  initiateCollaborationSession: (browser) ->
+
+    host        = utils.getUser no, 0
+    participant = utils.getUser no, 1
+
+    console.log " ✔ Starting collaboration test..."
+    console.log " ✔ Host: #{host.username}"
+    console.log " ✔ Participant: #{participant.username}"
+
+    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+
+    if hostBrowser
+      @startSessionAndInviteUser browser, host, participant
+    else
+      @joinSession browser, host, participant
