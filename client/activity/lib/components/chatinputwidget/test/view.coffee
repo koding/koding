@@ -1,7 +1,7 @@
-React           = require 'react/addons'
+React           = require 'kd-react'
 ReactDOM        = require 'react-dom'
 expect          = require 'expect'
-{ TestUtils }   = React.addons
+TestUtils       = require 'react-addons-test-utils'
 toImmutable     = require 'app/util/toImmutable'
 KeyboardKeys    = require 'app/constants/keyboardKeys'
 EmojiDropbox    = require 'activity/components/emojidropbox'
