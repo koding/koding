@@ -41,9 +41,11 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
 
   render: ->
 
-    return null  unless @state.connectedManagedMachine is @props.machine.get('_id')
+    connectedMachine = @state.connectedManagedMachine.get @props.machine.get('_id')
 
-    provider = if PROVIDERS[@props.machine.get('provider')] then @props.machine.get('provider') else 'UnknownProvider'
+    return null  unless connectedMachine
+
+    provider = if PROVIDERS[connectedMachine.providerName] then connectedMachine.providerName else 'UnknownProvider'
 
     <SidebarWidget {...@props} onClose={@bound 'removeFromStore'}>
       <div className='artboard'>

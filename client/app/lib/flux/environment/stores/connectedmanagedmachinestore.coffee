@@ -8,16 +8,21 @@ module.exports = class ConnectedManagedMachineStore extends KodingFluxStore
 
   @getterPath = 'ConnectedManagedMachineStore'
 
-  getInitialState: -> null
+  getInitialState: -> immutable.Map()
 
 
   initialize: ->
 
-    @on actions.SHOW_MANAGED_MACHINE_ADDED_MODAL, @show
-    @on actions.HIDE_MANAGED_MACHINE_ADDED_MODAL, @hide
+    @on actions.SHOW_MANAGED_MACHINE_ADDED_MODAL, @add
+    @on actions.HIDE_MANAGED_MACHINE_ADDED_MODAL, @remove
 
 
-  show: (machines, id) -> id
+  add: (connectedMachines, { info, id }) ->
+
+    connectedMachines.withMutations (connectedMachines) ->
+      connectedMachines.set id, info
 
 
-  hide: (machines, id) -> null
+  remove: (connectedMachines, { id }) ->
+
+    connectedMachines.remove id

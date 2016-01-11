@@ -56,7 +56,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     if isKoding()
       kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
     else
-      actions.showManagedMachineAddedModal machine._id
+      actions.showManagedMachineAddedModal info, machine._id
 
     @destroy()
 
