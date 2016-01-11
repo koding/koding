@@ -37,19 +37,19 @@ func TestPopularTopic(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			for i := 0; i < 5; i++ {
-				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, account.Id, "create a message #5times", ses.ClientId)
+				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, "create a message #5times", ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 			}
 
 			for i := 0; i < 4; i++ {
-				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, account.Id, "create a message #4times", ses.ClientId)
+				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, "create a message #4times", ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 			}
 
 			for i := 0; i < 3; i++ {
-				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, account.Id, "create a message #3times", ses.ClientId)
+				post, err := rest.CreatePostWithBodyAndAuth(groupChannel.Id, "create a message #3times", ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 			}
@@ -57,7 +57,7 @@ func TestPopularTopic(t *testing.T) {
 			//required for backgroud task to be finished
 			time.Sleep(1 * time.Second)
 
-			popularTopics, err := rest.FetchPopularTopics(account.Id, groupName, ses.ClientId)
+			popularTopics, err := rest.FetchPopularTopics(ses.ClientId)
 
 			So(err, ShouldBeNil)
 			So(popularTopics, ShouldNotBeNil)
@@ -85,7 +85,7 @@ func TestPopularTopic(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(channelParticipant, ShouldNotBeNil)
 
-			popularTopics, err = rest.FetchPopularTopics(account.Id, groupName, ses.ClientId)
+			popularTopics, err = rest.FetchPopularTopics(ses.ClientId)
 			So(err, ShouldBeNil)
 			So(popularTopics, ShouldNotBeNil)
 			So(popularTopics[0].IsParticipant, ShouldBeTrue)
