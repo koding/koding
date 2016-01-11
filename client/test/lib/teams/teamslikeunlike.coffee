@@ -4,7 +4,7 @@ teamsHelpers = require '../helpers/teamshelpers.js'
 HUBSPOT      = no
 
 
-module.exports = 
+module.exports =
 
 
   likePost: (browser) ->
@@ -57,3 +57,4 @@ module.exports =
       .waitForElementVisible  editedText, 20000
       .assert.containsText    editedText, editedmessage
       .end()
+
