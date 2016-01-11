@@ -1,10 +1,12 @@
 React           = require 'react/addons'
+ReactDOM        = require 'react-dom'
 expect          = require 'expect'
 { TestUtils }   = React.addons
 toImmutable     = require 'app/util/toImmutable'
-KeyboardKeys    = require 'app/util/keyboardKeys'
+KeyboardKeys    = require 'app/constants/keyboardKeys'
 EmojiDropbox    = require 'activity/components/emojidropbox'
-ChatInputWidget = require 'activity/components/chatinputwidget'
+PortalDropbox   = require 'activity/components/dropbox/portaldropbox'
+ChatInputWidget = require 'activity/components/chatinputwidget/view'
 
 describe 'ChatInputWidget', ->
 
@@ -60,10 +62,13 @@ describe 'ChatInputWidget', ->
       <ChatInputWidget data={data} />
     )
 
-    component = TestUtils.findRenderedComponentWithType  result, EmojiDropbox
-    content   = component.refs.dropbox.getContentElement()
-    title     = content.parentNode.querySelector '.Dropbox-subtitle'
-    items     = content.querySelectorAll '.DropboxItem'
+    component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
+    expect(component).toExist()
+
+    dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
+    content = dropbox.getContentElement()
+    title   = content.parentNode.querySelector '.Dropbox-subtitle'
+    items   = content.querySelectorAll '.DropboxItem'
 
     expect(title.textContent).toEqual ":#{data.query}"
     expect(items.length).toEqual data.items.size
@@ -87,9 +92,12 @@ describe 'ChatInputWidget', ->
       <ChatInputWidget data={data} onDropboxItemSelected={callback} />
     )
 
-    component = TestUtils.findRenderedComponentWithType  result, EmojiDropbox
-    content   = component.refs.dropbox.getContentElement()
-    items     = content.querySelectorAll '.DropboxItem'
+    component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
+    expect(component).toExist()
+
+    dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
+    content = dropbox.getContentElement()
+    items   = content.querySelectorAll '.DropboxItem'
 
     newSelectedItem = items[data.selectedIndex + 1]
     TestUtils.Simulate.mouseEnter newSelectedItem
@@ -105,9 +113,12 @@ describe 'ChatInputWidget', ->
       <ChatInputWidget data={data} onDropboxItemConfirmed={callback} />
     )
 
-    component = TestUtils.findRenderedComponentWithType  result, EmojiDropbox
-    content   = component.refs.dropbox.getContentElement()
-    items     = content.querySelectorAll '.DropboxItem'
+    component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
+    expect(component).toExist()
+
+    dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
+    content = dropbox.getContentElement()
+    items   = content.querySelectorAll '.DropboxItem'
 
     selectedItem = items[data.selectedIndex]
     TestUtils.Simulate.click selectedItem

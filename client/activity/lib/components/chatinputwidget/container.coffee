@@ -6,7 +6,7 @@ ChatInputFlux        = require 'activity/flux/chatinput'
 KDReactorMixin       = require 'app/flux/base/reactormixin'
 helpers              = require './helpers'
 parseStringToCommand = require 'activity/util/parseStringToCommand'
-ChatInputWidget      = require './index'
+View                 = require './view'
 formatEmojiName      = require 'activity/util/formatEmojiName'
 
 module.exports = class ChatInputContainer extends React.Component
@@ -281,7 +281,7 @@ module.exports = class ChatInputContainer extends React.Component
 
   render: ->
 
-    <ChatInputWidget
+    <View
       ref                       = 'input'
       className                 = { @props.className }
       data                      = { @state }
@@ -308,5 +308,4 @@ module.exports = class ChatInputContainer extends React.Component
     />
 
 
-React.Component.include.call ChatInputContainer, [ KDReactorMixin ]
-
+ChatInputContainer.include [ KDReactorMixin ]
