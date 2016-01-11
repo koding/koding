@@ -87,6 +87,7 @@
     "nightwatch": "0.8.8",
     "sinon": "1.14.1",
     "socket.io": "1.3.5",
-    "yargs": "3.5.4"
+    "yargs": "3.5.4",
+    "react-addons-test-utils": "0.14.3"
   }
 }

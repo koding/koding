@@ -22,6 +22,7 @@ nub           = require 'nub'
 spritesmith   = require 'gulp.spritesmith'
 chalk         = require 'chalk'
 chokidar      = require 'chokidar'
+rewireify     = require 'rewireify'
 events        = require 'events'
 nib           = require 'nib'
 stylus        = require 'gulp-stylus'
@@ -236,6 +237,9 @@ class Haydar extends events.EventEmitter
     _reactify = [ reactify, { coffeeout: yes } ]
 
     transforms = [ _reactify, coffeeify, pistachioify ]
+
+    unless opts.excludeTestrunner
+      transforms.push rewireify
 
     if opts.minifyJs
       transforms.push [ uglifyify, {

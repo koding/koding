@@ -1,6 +1,7 @@
 kd             = require 'kd'
 expect         = require 'expect'
 remote         = require('app/remote').getInstance()
+FSFile         = require 'app/util/fs/fsfile'
 Machine        = require 'app/providers/machine'
 ideRoutes      = require 'ide/routes.coffee'
 dataProvider   = require 'app/userenvironmentdataprovider'
@@ -11,8 +12,8 @@ mockMessage    = require 'app/util/generateDummyMessage'
 mockChannel    = require 'app/util/generateDummyChannel'
 mockThread     = require 'app/util/generateDummyThread'
 
-mockMachine    = new Machine { machine: mockjmachine }
-{ socialapi }  = kd.singletons
+mockMachine = new Machine { machine: mockjmachine }
+{ socialapi, appManager } = kd.singletons
 
 
 module.exports =
@@ -188,6 +189,31 @@ module.exports =
 
             expect.spyOn(remote.api.JAccount, 'some').andCall (query, options, callback) ->
               callback null, [ mockjaccount ]
+
+
+  appManager:
+
+    getFrontApp:
+
+      toReturnPassedParam: (param) ->
+
+        expect.spyOn(appManager, 'getFrontApp').andReturn param
+
+
+  fsFile:
+
+    fetchPermissions:
+
+      toReturnError: (error = { some: 'error' }) ->
+
+        expect.spyOn(FSFile.prototype, 'fetchPermissions').andCall (callback) ->
+          callback error
+
+
+      toReturnInfo: (readable = yes, writable = yes) ->
+
+        expect.spyOn(FSFile.prototype, 'fetchPermissions').andCall (callback) ->
+          callback null, { readable, writable }
 
 
   getMockMachine: ->   return mockMachine
