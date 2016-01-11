@@ -1,6 +1,7 @@
-kd        = require 'kd'
-globals   = require 'globals'
-whoami    = require 'app/util/whoami'
+kd              = require 'kd'
+whoami          = require 'app/util/whoami'
+globals         = require 'globals'
+CopyTooltipView = require 'app/components/common/copytooltipview'
 
 
 module.exports = class AddManagedMachineModal extends kd.ModalView
@@ -85,18 +86,24 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"
 
     @loader.destroy()
-    @code.addSubView @input = new kd.InputView
+
+    inputWrapper = new kd.View
+
+    inputWrapper.addSubView @input = new kd.InputView
       defaultValue : cmd
       click        : =>
         @showTooltip()
         @input.selectAll()
 
-    @code.addSubView @selectButton = new kd.CustomHTMLView
+    inputWrapper.addSubView @selectButton = new kd.CustomHTMLView
       cssClass : 'select-all'
       partial  : '<span></span>SELECT'
       click    : =>
         @showTooltip()
         @input.selectAll()
+
+    @code.addSubView @copyTooltipView = new CopyTooltipView
+      childView  : inputWrapper
 
     { computeController } = kd.singletons
     computeController.managedKiteChecker.addListener @bound 'machineFoundCallback'
@@ -108,17 +115,10 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   showTooltip: ->
 
-    shortcut = 'Ctrl+C'
-
-    if navigator.userAgent.indexOf('Mac OS X') > -1
-      shortcut = 'Cmd+C'
-
-    @input.setTooltip title: "Press #{shortcut} to copy", placement: 'above'
-    @input.tooltip.show()
-
+    @copyTooltipView.showTooltip()
     kd.singletons.windowController.addLayer @input
-    @input.on 'ReceivedClickElsewhere', =>
-      @input.unsetTooltip()
+
+    @input.on 'ReceivedClickElsewhere', @copyTooltipView.bound 'unsetTooltip'
 
 
   handleError: (err) ->
@@ -161,7 +161,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   destroy: ->
 
-    @input?.unsetTooltip()
+    @copyTooltipView?.unsetTooltip()
 
     super
 

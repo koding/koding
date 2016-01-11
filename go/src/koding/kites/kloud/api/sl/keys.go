@@ -161,21 +161,22 @@ func (k Keys) ByTags(tags Tags) (res Keys) {
 }
 
 // Filter filters keys by the given filter value.
-//
-// If f is nil, all k are returned.
-func (k Keys) Filter(f *Filter) (res Keys) {
-	if f == nil {
-		return k
-	}
-	return k.ByID(f.ID).
+func (k *Keys) Filter(f *Filter) {
+	*k = k.ByID(f.ID).
 		ByLabel(f.Label).
 		ByFingerprint(f.Fingerprint).
 		ByUser(f.User).
 		ByTags(f.Tags)
 }
 
-type byCreateDateKey []*Key
+// Decode implements the ResourceDecoder interface.
+func (k Keys) Decode() {
+	for _, key := range k {
+		key.decode()
+	}
+}
 
-func (p byCreateDateKey) Len() int           { return len(p) }
-func (p byCreateDateKey) Less(i, j int) bool { return p[i].CreateDate.After(p[j].CreateDate) }
-func (p byCreateDateKey) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+// Sorts the keys descending by creation date.
+func (k Keys) Len() int           { return len(k) }
+func (k Keys) Less(i, j int) bool { return k[i].CreateDate.After(k[j].CreateDate) }
+func (k Keys) Swap(i, j int)      { k[i], k[j] = k[j], k[i] }

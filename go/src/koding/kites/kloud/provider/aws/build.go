@@ -149,6 +149,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	meta.SourceAmi = aws.StringValue(instance.ImageId)
 	m.IpAddress = aws.StringValue(instance.PublicIpAddress)
 
+	m.Meta = structs.Map(meta) // update meta
+
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
 	if err := m.addDomainAndTags(); err != nil {
 		m.Log.Error("couldn't add domain tags", err)
@@ -168,8 +170,6 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	if args.Reason != "" {
 		reason += "Custom reason: " + args.Reason
 	}
-
-	m.Meta = structs.Map(meta) // update meta
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
@@ -415,6 +415,7 @@ func (m *Machine) addDomainAndTags() error {
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			continue
 		}
 		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())

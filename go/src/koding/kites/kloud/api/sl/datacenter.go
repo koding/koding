@@ -87,9 +87,11 @@ func (d Datacenters) ByName(name string) (res Datacenters) {
 }
 
 // Filter filters the datacenters by the given filter.
-func (d Datacenters) Filter(f *Filter) Datacenters {
-	if f == nil {
-		return d
-	}
-	return d.ByID(f.ID).ByName(f.Name)
+func (d *Datacenters) Filter(f *Filter) {
+	*d = d.ByID(f.ID).ByName(f.Name)
 }
+
+// Sorts the datacenters ascending by name.
+func (d Datacenters) Len() int           { return len(d) }
+func (d Datacenters) Less(i, j int) bool { return d[i].Name < d[j].Name }
+func (d Datacenters) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }

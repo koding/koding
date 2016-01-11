@@ -30,12 +30,8 @@ func main() {
 	if apiKey == "" {
 		die("SOFTLAYER_API_KEY is not set")
 	}
-	var err error
-	client, err = sl.NewSoftlayer(username, apiKey)
-	if err != nil {
-		die(err)
-	}
-	if err = Resources.Main(os.Args[1:]); err != nil {
+	client = sl.NewSoftlayer(username, apiKey)
+	if err := Resources.Main(os.Args[1:]); err != nil {
 		die(err)
 	}
 }

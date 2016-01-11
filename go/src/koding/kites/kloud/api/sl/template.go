@@ -15,6 +15,22 @@ import (
 // in the Description, Comment or Note field of the resource.
 type Tags map[string]string
 
+// NewTags creates Tags for the given kev=value list.
+func NewTags(kv []string) Tags {
+	if len(kv) == 0 {
+		return nil
+	}
+	t := make(Tags)
+	for _, kv := range kv {
+		if i := strings.IndexRune(kv, '='); i != -1 {
+			t[kv[:i]] = kv[i+1:]
+		} else {
+			t[kv] = ""
+		}
+	}
+	return t
+}
+
 // Matches gives true when all of the tags are present in t.
 func (t Tags) Matches(tags Tags) bool {
 	matches := make(map[string]struct{})
@@ -24,6 +40,29 @@ func (t Tags) Matches(tags Tags) bool {
 		}
 	}
 	return len(matches) == len(tags)
+}
+
+// Ref returns the Softlayer string representation of list of TagReferences.
+func (t Tags) Ref() string {
+	if len(t) == 0 {
+		return ""
+	}
+	var buf bytes.Buffer
+	for k, v := range t {
+		fmt.Fprintf(&buf, "%s:%s,", k, v)
+	}
+	p := buf.Bytes()
+	p = p[:len(p)-1] // remove dangling comma
+	return string(p)
+}
+
+// Copy returns a copy of the tags.
+func (t Tags) Copy() Tags {
+	tCopy := make(Tags, len(t))
+	for k, v := range t {
+		tCopy[k] = v
+	}
+	return tCopy
 }
 
 // String gives key-value tags representation.
@@ -142,21 +181,24 @@ func (t Templates) ByTags(tags Tags) (res Templates) {
 }
 
 // Filter filters the template by the given filter value.
-func (t Templates) Filter(f *Filter) Templates {
-	if f == nil {
-		return t
-	}
+func (t *Templates) Filter(f *Filter) {
 	if !f.Children {
-		t = t.Parent()
+		*t = t.Parent()
 	}
-	return t.ByID(f.ID).
+	*t = t.ByID(f.ID).
 		ByName(f.Name).
 		ByDatacenter(f.Datacenter).
 		ByTags(f.Tags)
 }
 
-type byCreateDateDesc []*Template
+// Decode implements the ResourceDecoder interface.
+func (t Templates) Decode() {
+	for _, template := range t {
+		template.decode()
+	}
+}
 
-func (p byCreateDateDesc) Len() int           { return len(p) }
-func (p byCreateDateDesc) Less(i, j int) bool { return p[i].CreateDate.After(p[j].CreateDate) }
-func (p byCreateDateDesc) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+// Sorts the templates descending by creation date.
+func (t Templates) Len() int           { return len(t) }
+func (t Templates) Less(i, j int) bool { return t[i].CreateDate.After(t[j].CreateDate) }
+func (t Templates) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
