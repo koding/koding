@@ -537,18 +537,6 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/notificationsetting/$1$is_args$args"
           }
           {
-            location    : "~ /api/social/message/(.*)"
-            proxyPass   : "http://socialapi/message/$1$is_args$args"
-          }
-          {
-            location    : "~ /api/social/channel/(.*)"
-            proxyPass   : "http://socialapi/channel/$1$is_args$args"
-          }
-          {
-            location    : "~ /api/social/privatechannel/(.*)"
-            proxyPass   : "http://socialapi/privatechannel/$1$is_args$args"
-          }
-          {
             location    : "~ /api/social/collaboration/ping"
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
           }
