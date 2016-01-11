@@ -201,11 +201,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   createPane_: (view, paneOptions, paneData) ->
 
-    unless view or paneOptions
-      return new Error 'Missing argument for createPane_ helper'
+    if not view or not paneOptions
+      return  throw new Error 'Missing argument for createPane_ helper'
 
     unless view instanceof KDView
-      return new Error 'View must be an instance of KDView'
+      return  throw new Error 'View must be an instance of KDView'
 
     if view instanceof IDEEditorPane
       paneOptions.name = @trimUntitledFileName paneOptions.name
@@ -395,8 +395,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     drawingPane = new IDEDrawingPane { hash: paneHash }
     @createPane_ drawingPane, { name: 'Drawing' }
 
-    unless paneHash
-      @emitChange  drawingPane, context: {}
+    @emitChange  drawingPane, context: {}  unless paneHash
 
 
   createPreview: (url) ->
@@ -410,9 +409,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @emitChange previewPane, context: { url }
 
 
-  showView: (view) ->
-
-    @createPane_ view, { name: 'Search Result' }
+  showView: (view, name = 'Search Result') -> @createPane_ view, { name }
 
 
   updateStatusBar: (paneType, data) ->
@@ -481,9 +478,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @emitChange pane, context: {}, 'TabChanged'
 
 
-  goToLine: ->
-
-    @getActivePaneView().aceView.ace.showGotoLine()
+  goToLine: -> @getActivePaneView().aceView.ace.showGotoLine()
 
 
   click: ->
@@ -704,9 +699,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       kd.warn "Failed to terminate session, possibly it's already dead.", err
 
 
-  dragover: (event) ->
-
-    kd.utils.stopDOMEvent event
+  dragover: (event) -> kd.utils.stopDOMEvent event
 
 
   drop: (event) ->
@@ -802,9 +795,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
 
   toggleVisibility = (handle, state) ->
-    el = handle.getElement()
-    if state
-    then el.classList.add 'in'
+
+    if   handle.getElement() then el.classList.add 'in'
     else el.classList.remove 'in'
 
 
@@ -831,16 +823,15 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     return notifier
 
 
-  setHash: (hash) ->
-
-    @hash = hash or generatePassword 64, no
+  setHash: (hash) -> @hash = hash or generatePassword 64, no
 
 
   handleTabMoved: (params) ->
 
     { view, tabView, targetTabView } = params
 
-    view.updateAceViewDelegate targetTabView.parent  if view instanceof IDEEditorPane
+    if view instanceof IDEEditorPane
+      view.updateAceViewDelegate targetTabView.parent
 
     change =
       context:
