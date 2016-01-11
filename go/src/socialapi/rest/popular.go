@@ -6,8 +6,8 @@ import (
 	"socialapi/models"
 )
 
-func FetchPopularTopics(accountId int64, groupName, token string) ([]*models.ChannelContainer, error) {
-	url := fmt.Sprintf("/popular/topics/weekly?accountId=%d&groupName=%s", accountId, groupName)
+func FetchPopularTopics(token string) ([]*models.ChannelContainer, error) {
+	url := fmt.Sprintf("/popular/topics/weekly")
 	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
