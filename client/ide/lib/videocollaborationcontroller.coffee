@@ -116,7 +116,9 @@ module.exports = VideoCollaborationController =
 
   handleVideoSessionConnected: (session, videoActive) ->
 
-    if isVideoFeatureEnabled()
+    isVideoFeatureEnabled (enabled) =>
+      return  unless enabled
+
       if videoActive
         @emitToViews 'VideoSessionConnected', { action: 'join' }
       else
