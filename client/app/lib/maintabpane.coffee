@@ -23,5 +23,3 @@ module.exports = class MainTabPane extends KDTabPaneView
     @lastScrollTops.window = global.scrollY
 
     super
-
-

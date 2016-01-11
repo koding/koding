@@ -62,4 +62,3 @@ module.exports = class ButtonViewWithProgressBar extends KDCustomHTMLView
   updateProgress: (value, unit, label) ->
 
     @progressBar.updateBar value, unit, label
-

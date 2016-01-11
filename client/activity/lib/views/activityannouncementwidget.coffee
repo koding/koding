@@ -20,5 +20,3 @@ module.exports = class ActivityAnnouncementWidget extends JView
       <p>Win over $150,000 in cash prizes! Hack from wherever you are!</p>
       <a href="https://koding.com/Hackathon" target="_blank" title="Apply Now, space limited!">Apply Now, space limited!</a>
     """
-
-

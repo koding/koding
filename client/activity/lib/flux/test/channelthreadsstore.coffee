@@ -126,4 +126,3 @@ markAsFromServer = (message) ->
   else message.__fromServer = yes
 
   return message
-

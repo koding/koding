@@ -17,4 +17,3 @@ module.exports = class MemberAutoCompleteItemView extends KDAutoCompleteListItem
 
     @addSubView @profileLink = \
       new AutoCompleteProfileTextView {userInput, shouldShowNick: yes}, data
-

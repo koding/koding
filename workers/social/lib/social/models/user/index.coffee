@@ -649,7 +649,7 @@ module.exports = class JUser extends jraphical.Module
       unless group.isInAllowedDomain email
         domainErr = 'Your email domain is not in allowed domains for this group'
         return callback new KodingError domainErr  if group.allowedDomains?.length > 0
-        return callback new KodingError 'Access denied'
+        return callback new KodingError 'You are not allowed to access this team'
 
       return callback null, { isEligible: yes }
 

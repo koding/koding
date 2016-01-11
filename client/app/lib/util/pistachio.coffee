@@ -249,4 +249,3 @@ module.exports = class Pistachio
 
   update:(paths = @getDataPaths())->
     @refreshChildren 'path', paths, (html)-> @innerHTML = html
-

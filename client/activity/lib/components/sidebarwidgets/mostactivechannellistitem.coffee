@@ -42,5 +42,3 @@ module.exports = class MostActiveChannelListItem extends React.Component
         onClick={@bound 'onClick'}>
       </Button>
     </Link>
-
-

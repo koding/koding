@@ -41,5 +41,3 @@ module.exports = class GroupsMembershipPolicyLanguageEditor extends JView
     """
     {{> @editorLabel}}{{> @editor}}{{> @saveButton}}{{> @cancelButton}}
     """
-
-

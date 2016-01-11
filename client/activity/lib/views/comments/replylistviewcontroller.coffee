@@ -15,5 +15,3 @@ module.exports = class ReplyListViewController extends CommentListViewController
         activity        : data
 
     super options, data
-
-

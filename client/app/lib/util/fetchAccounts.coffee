@@ -23,5 +23,3 @@ module.exports = fetchAccounts = (origins, callback) ->
       queue.fin()
 
   sinkrow.dash queue, (err) -> callback err, _accounts
-
-

@@ -22,4 +22,3 @@ module.exports = class FeedThreadSidebar extends React.Component
       <MostActiveChannelsWidget popularChannels={@props.popularChannels}/>
       <SocialMediaWidget />
     </Scroller>
-

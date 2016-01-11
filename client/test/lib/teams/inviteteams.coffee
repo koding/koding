@@ -48,5 +48,3 @@ module.exports =
     browser.pause 5000 # Wait for notification remove
     teamsHelpers.searchPendingInvitation(browser, email2)
     browser.end()
-
-

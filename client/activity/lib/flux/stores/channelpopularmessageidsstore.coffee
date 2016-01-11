@@ -33,6 +33,3 @@ module.exports = class ChannelPopularMessageIdsStore extends KodingFluxStore
       popularMessageIds.set channelId, immutable.Map()
 
     return popularMessageIds.setIn [channelId, message.id], message.id
-
-
-

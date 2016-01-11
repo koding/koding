@@ -9,10 +9,7 @@ import (
 )
 
 func TestDatacenter(t *testing.T) {
-	c, err := sl.NewSoftlayerWithOptions(opts)
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := sl.NewSoftlayerWithOptions(opts)
 	f := &sl.Filter{
 		Name: "sjc01",
 	}

@@ -27,4 +27,3 @@ describe 'ActiveSocialShareLinkIdStore', ->
       activeId = @reactor.evaluate ['activeSocialShareLinkId']
 
       expect(activeId).toBe null
-

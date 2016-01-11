@@ -231,4 +231,3 @@ module.exports = class SnapshotListItem extends kd.ListItemView
     else
       @infoView.show()
       @editView.hide()
-

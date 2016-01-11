@@ -786,5 +786,3 @@ runTests = -> describe 'server.handlers.login', ->
 
 
 runTests()
-
-

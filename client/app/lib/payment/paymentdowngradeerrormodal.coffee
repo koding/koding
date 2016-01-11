@@ -46,7 +46,3 @@ module.exports = class PaymentDowngradeErrorModal extends PaymentBaseModal
       cssClass : 'submit-btn'
       partial  : 'CLOSE'
       callback : @bound 'cancel'
-
-
-
-

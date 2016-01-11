@@ -41,4 +41,3 @@ module.exports = {
     require './stores/dropboxsettingsstore'
   ]
 }
-

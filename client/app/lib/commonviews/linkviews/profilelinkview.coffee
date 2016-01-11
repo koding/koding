@@ -77,5 +77,3 @@ module.exports = class ProfileLinkView extends LinkView
       else if profile.firstName is "" and profile.lastName is ""
       then "{{#(profile.nickname)}} {{> @troll}}"
       else "{{#(profile.firstName)+' '+#(profile.lastName)}} {{> @troll}}"
-
-

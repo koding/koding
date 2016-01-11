@@ -164,5 +164,3 @@ module.exports = class GroupsInvitationCodeListItemView extends KDListItemView
       </div>
     </section>
     """
-
-

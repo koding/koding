@@ -118,4 +118,3 @@ module.exports = class HomePageCustomViewItem extends CustomViewItem
       Are you sure you want to publish this item?
       It will be visible to ALL Koding members!
     """
-

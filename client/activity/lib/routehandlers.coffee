@@ -117,5 +117,3 @@ handleChannel = (type, slug, callback) ->
   mainController.ready -> appManager.open 'Activity', (app) ->
     app.getView().switchToTabs()
     callback app
-
-

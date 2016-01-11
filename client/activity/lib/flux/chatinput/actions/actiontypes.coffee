@@ -61,4 +61,3 @@ module.exports = {
   'RESET_DROPBOX_SELECTED_INDEX'
   'RESET_DROPBOX'
 }
-

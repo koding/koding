@@ -81,5 +81,3 @@ module.exports = {
   fetchGroup
   bareRequest
 }
-
-

@@ -10,4 +10,3 @@ module.exports =
   DOWN_ARROW  : 40
   CTRL        : 17
   CMD         : 91
-

@@ -60,5 +60,3 @@ module.exports = class GroupsDangerModalView extends KDModalViewWithForms
       @modalTabs.forms.dangerForm.buttons.confirmButton.enable()
     else
       input.setValidationResult 'slugCheck', 'Sorry, entered value does not match group slug!', showError
-
-

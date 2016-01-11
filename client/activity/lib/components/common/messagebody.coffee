@@ -158,4 +158,3 @@ module.exports = class MessageBody extends React.Component
           body = message.body
 
       return body
-

@@ -192,5 +192,3 @@ module.exports = class Sidebar extends bongo.Base
         return failureFn()
 
       successFn()
-
-

@@ -25,5 +25,3 @@ module.exports = class CustomPlanStorageSlider extends KDSliderBarView
 
     @on "ValueIsChanging", (val)->
       handleLabel.updatePartial "#{val}GB"
-
-

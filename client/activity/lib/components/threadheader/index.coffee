@@ -164,5 +164,3 @@ module.exports = class ThreadHeader extends React.Component
         onClose={@bound 'onModalClose'}
         isOpen={@state.isModalOpen}/>
     </div>
-
-

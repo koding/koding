@@ -64,6 +64,3 @@ module.exports = class FormGeneratorMultipleInputView extends JView
     {{> @inputTitle}}
     {{> @addButton}}
     """
-
-
-

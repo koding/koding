@@ -35,6 +35,3 @@ module.exports = class ChatHead extends KDCustomHTMLView
 
 
   click: KDAutoCompletedItem::click
-
-
-

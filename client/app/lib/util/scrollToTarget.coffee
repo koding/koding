@@ -49,4 +49,3 @@ module.exports = (container, target) ->
     hasPrevSibling = target.prev().length > 0
     scrollTop = if hasPrevSibling then targetTop else 0
     container.scrollTop scrollTop
-

@@ -80,4 +80,3 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).toBe undefined
-

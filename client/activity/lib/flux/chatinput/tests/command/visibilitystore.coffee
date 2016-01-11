@@ -28,4 +28,3 @@ describe 'ChatInputCommandsVisibilityStore', ->
       visibility = @reactor.evaluate(['chatInputCommandsVisibility']).get stateId
 
       expect(visibility).toBe no
-

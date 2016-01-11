@@ -6,4 +6,3 @@ module.exports = EmojiPreloaderMixin =
 
     element = ReactDOM.findDOMNode this
     element.classList.add 'emoji-sprite-preloader'
-

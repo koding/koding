@@ -188,5 +188,3 @@ runTests = ->
 beforeTests()
 
 runTests()
-
-

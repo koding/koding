@@ -236,4 +236,3 @@ module.exports =
     leave(browser)
     waitAndEndSession(browser)
     browser.end()
-

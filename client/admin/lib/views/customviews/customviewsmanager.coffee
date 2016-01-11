@@ -65,4 +65,3 @@ module.exports = class CustomViewsManager extends JView
       {{> @homePages}}
       {{> @widgets}}
     """
-

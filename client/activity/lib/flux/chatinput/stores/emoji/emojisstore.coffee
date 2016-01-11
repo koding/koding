@@ -15,4 +15,3 @@ module.exports = class EmojisStore extends KodingFluxStore
   getInitialState: ->
 
     toImmutable emojisKeywords
-

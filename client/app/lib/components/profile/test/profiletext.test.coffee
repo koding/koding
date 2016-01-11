@@ -49,5 +49,3 @@ describe 'ProfileText', ->
     isTroll = _.includes span.getDOMNode().textContent, '(T)'
 
     expect(isTroll).toEqual yes
-
-

@@ -67,5 +67,3 @@ describe 'UsersStore', ->
 
       console.log 'storeState ', storeState
       expect(storeState.getIn ['321', 'isExempt']).toEqual no
-
-

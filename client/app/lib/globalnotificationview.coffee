@@ -79,4 +79,3 @@ module.exports = class GlobalNotificationView extends JView
     {{> @close}}{{> @adminClose}}
     </div>
     """
-

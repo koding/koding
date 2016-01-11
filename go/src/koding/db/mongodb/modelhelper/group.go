@@ -104,6 +104,33 @@ func UpdateGroupPartial(selector, options Selector) error {
 	return Mongo.Run(GroupsCollectionName, query)
 }
 
+func UpdateGroupAddMembers(id bson.ObjectId, newMembers int) (count int, err error) {
+	query := func(c *mgo.Collection) error {
+		var group models.Group
+		err := c.FindId(id).One(&group)
+		if err != nil {
+			return err
+		}
+		members, ok := group.Counts["members"]
+		if ok {
+			count, ok = members.(int)
+			if !ok {
+				// If the member count is unavaible to skip updating
+				// and return.
+				return nil
+			}
+		}
+		count += newMembers
+		group.Counts["members"] = count
+		return c.UpdateId(id, &group)
+	}
+	err = Mongo.Run("jGroups", query)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func CreateGroup(m *models.Group) error {
 	query := func(c *mgo.Collection) error {
 		return c.Insert(m)

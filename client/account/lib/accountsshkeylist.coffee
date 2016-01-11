@@ -11,5 +11,3 @@ module.exports = class AccountSshKeyList extends KDListView
       itemClass  : AccountSshKeyListItem
     ,options
     super options,data
-
-

@@ -21,4 +21,3 @@ describe 'EmojisStore', ->
 
       expect(emojis.indexOf emoji1).toBeGreaterThan -1
       expect(emojis.indexOf emoji2).toBeGreaterThan -1
-

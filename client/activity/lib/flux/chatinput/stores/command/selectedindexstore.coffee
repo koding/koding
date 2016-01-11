@@ -15,4 +15,3 @@ module.exports = class ChatInputCommandsSelectedIndexStore extends BaseSelectedI
       moveToNextIndex : actions.MOVE_TO_NEXT_CHAT_INPUT_COMMANDS_INDEX
       moveToPrevIndex : actions.MOVE_TO_PREV_CHAT_INPUT_COMMANDS_INDEX
       resetIndex      : actions.RESET_CHAT_INPUT_COMMANDS_SELECTED_INDEX
-

@@ -422,5 +422,3 @@ module.exports = class AuthWorker extends EventEmitter
                   @join messageData, socketId
                 else
                   @rejectClient routingKey
-
-

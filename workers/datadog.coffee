@@ -42,6 +42,3 @@ module.exports = class Metrics extends MetricsBase
     tags       = @populateTags()
     metricName = @generateName opts
     @sendMetrics @methodMetrics(opts), metricName, tags
-
-
-

@@ -33,6 +33,3 @@ module.exports = class CommentTimeView extends KDView
     dateString     = "#{dateString} at #{dateFormat givenDate, 'isoTime'}"
 
   getTime: (date) -> dateFormat date, @getOption 'timeFormat'
-
-
-

@@ -59,4 +59,3 @@ module.exports = helpers =
       params = (param for param in params when param isnt '')
 
     return { name, params }
-

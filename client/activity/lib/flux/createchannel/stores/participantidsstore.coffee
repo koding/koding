@@ -51,4 +51,3 @@ module.exports = class CreateNewChannelParticipantIdsStore extends KodingFluxSto
    * @return {string} nextState
   ###
   handleRemoveAllParticipantsFromNewChannel: (participants) -> immutable.Map()
-

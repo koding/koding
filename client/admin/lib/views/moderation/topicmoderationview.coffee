@@ -31,4 +31,3 @@ module.exports = class TopicModerationView extends KDView
 
     @allTopicsPane.addSubView       new TopicCommonView { typeConstant: "topic" }, @getData()
     @deletedTopicsPane.addSubView   new TopicCommonView { typeConstant: "linkedtopic" }, @getData()
-

@@ -223,4 +223,3 @@ module.exports = class EmbedBoxWidget extends KDView
     @url    = data?.url
 
     @emit 'EmbedFetched', err, data
-

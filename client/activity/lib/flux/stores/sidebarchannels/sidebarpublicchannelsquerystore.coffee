@@ -18,4 +18,3 @@ module.exports = class SidebarPublicChannelsQueryStore extends KodingFluxStore
 
 
   setQuery: (currentState, { query }) -> query
-

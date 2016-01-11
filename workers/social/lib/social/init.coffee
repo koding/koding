@@ -46,4 +46,3 @@ initKodingGroup = ->
 
 exports.init = (koding) ->
   console.warn 'Initialization code is temporarily disabled.'
-

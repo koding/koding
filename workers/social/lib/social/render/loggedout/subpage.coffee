@@ -84,5 +84,3 @@ module.exports = (options, callback) ->
 
   fetchScripts { bongoModels, client }, (err, scripts) ->
     callback null, prepareHTML scripts, title, shareUrl
-
-

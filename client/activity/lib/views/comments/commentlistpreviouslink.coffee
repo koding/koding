@@ -43,5 +43,3 @@ module.exports = class CommentListPreviousLink extends CustomLinkView
     if repliesCount <= replies.length
     then @hide()
     else @update()
-
-

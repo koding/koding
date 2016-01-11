@@ -22,7 +22,3 @@ module.exports = class SubscriptionView extends JView
     """
       <h4>{{#(planTitle).capitalize()}}</h4>
     """
-
-
-
-

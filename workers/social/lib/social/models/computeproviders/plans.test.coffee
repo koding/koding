@@ -13,4 +13,3 @@ runTests = -> describe 'workers.social.models.computeproviders.plans', ->
 
 
 runTests()
-

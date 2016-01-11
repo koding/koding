@@ -43,5 +43,3 @@ module.exports = class GroupProductListItem extends KDListItemView
       {{> @controls}}
     </div>
     """
-
-

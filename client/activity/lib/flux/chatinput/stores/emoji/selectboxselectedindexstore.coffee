@@ -13,4 +13,3 @@ module.exports = class EmojiSelectBoxSelectedIndexStore extends BaseSelectedInde
     @bindActions
       setIndex        : actions.SET_EMOJI_SELECTBOX_SELECTED_INDEX
       resetIndex      : actions.RESET_EMOJI_SELECTBOX_SELECTED_INDEX
-

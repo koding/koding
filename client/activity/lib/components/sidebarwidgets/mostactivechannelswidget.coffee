@@ -28,5 +28,3 @@ module.exports = class MostActiveChannelsWidget extends React.Component
         {@renderChannelList()}
       </div>
     </div>
-
-

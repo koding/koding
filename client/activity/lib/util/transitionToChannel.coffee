@@ -25,5 +25,3 @@ module.exports = transitionToChannel =  (channelName, done) ->
       threadActions.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id
       done null, channel
-
-

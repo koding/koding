@@ -40,5 +40,3 @@ module.exports = {
   generateRecoverRequestBody
   generateRecoverRequestParams
 }
-
-

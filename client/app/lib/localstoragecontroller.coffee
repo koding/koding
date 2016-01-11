@@ -19,4 +19,3 @@ module.exports = class LocalStorageController extends KDController
 
 
 # Let people can use AppStorage
-

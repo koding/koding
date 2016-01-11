@@ -23,4 +23,3 @@ module.exports = class ChatInputChannelMentionsStore extends KodingFluxStore
     ]
 
     return toImmutable mentions
-

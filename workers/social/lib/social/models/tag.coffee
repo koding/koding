@@ -485,4 +485,3 @@ module.exports = class JTag extends jraphical.Module
     { connection:{ delegate } } = client
     if delegate and not delegate.checkFlag 'super-admin'
       selector.status = { $nin: ['deleted', 'synonym'] }
-

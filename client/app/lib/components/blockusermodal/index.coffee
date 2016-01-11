@@ -76,4 +76,3 @@ module.exports = class BlockUserModal extends React.Component
         <input name="duration" onKeyUp={@bound "onKeyUpBlockingUserTime"} onChange={@bound "onKeyUpBlockingUserTime"} type="text" ref="BlockingTimeInput" placeholder="e.g. 1Y 1W 3D 2H..."/>
       </div>
     </ActivityModal>
-

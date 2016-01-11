@@ -47,7 +47,8 @@ findUsernameFromKey = (req, res, callback) ->
     else
       callback false, account.profile.nickname
 
-findUsernameFromSession = (req, res, callback) ->
+
+fetchSession = (req, res, callback) ->
 
   { clientId } = req.cookies
   unless clientId?
@@ -63,7 +64,14 @@ findUsernameFromSession = (req, res, callback) ->
     { session } = result
     unless session?
     then callback null
-    else callback null, session.username
+    else callback null, session
+
+
+findUsernameFromSession = (req, res, callback) ->
+
+  fetchSession req, res, (err, session) ->
+    callback err, session?.username
+
 
 fetchJAccountByKiteUserNameAndKey = (req, callback) ->
   if req.fields
@@ -159,8 +167,8 @@ isLoggedIn = (req, res, callback) ->
 
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback) ->
-  { JSession }                       = koding.models
-  query                            = { 'foreignAuthType' : provider }
+  { JSession } = koding.models
+  query = { 'foreignAuthType': provider }
   if oauthInfo.returnUrl
     query.returnUrl = oauthInfo.returnUrl
     delete oauthInfo.returnUrl
@@ -288,6 +296,7 @@ module.exports = {
   error_500
   authTemplate
   authenticationFailed
+  fetchSession
   findUsernameFromKey
   findUsernameFromSession
   fetchJAccountByKiteUserNameAndKey

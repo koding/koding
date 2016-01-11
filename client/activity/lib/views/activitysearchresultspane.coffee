@@ -20,5 +20,3 @@ module.exports = class ActivitySearchResultsPane extends ActivityContentPane
   appendContent: (content = []) ->
     super content
     @currentPage = null  if content.length < @getOption 'resultsPerPage'
-
-

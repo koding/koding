@@ -39,5 +39,3 @@ module.exports = class SidebarMessagesSection extends React.Component
         {@renderMoreLink()}
       </SidebarSection>
     </div>
-
-

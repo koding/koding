@@ -11,5 +11,3 @@ module.exports = class AccountEditorList extends KDListView
       itemClass : AccountEditorListItem
     ,options
     super options,data
-
-

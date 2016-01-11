@@ -48,6 +48,3 @@ module.exports = class GroupDescription extends KDCustomHTMLView
 
       # if "admin" in globals.config.roles
       #   @bodyView.setPartial "You can have a short description for your group here"  unless hasBody
-
-
-

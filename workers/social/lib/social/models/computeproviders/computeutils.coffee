@@ -391,5 +391,3 @@ module.exports = {
   revive, reviveClient, reviveCredential
   checkTemplateUsage
 }
-
-

@@ -161,4 +161,3 @@ module.exports = {
   'SOCIAL_SHARE_LINK_DELETED'
   'SET_ACTIVE_SOCIAL_SHARE_LINK_ID'
 }
-

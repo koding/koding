@@ -67,4 +67,3 @@ module.exports = class RelativeDropbox extends React.Component
         { @props.children }
       </Dropbox>
     </div>
-

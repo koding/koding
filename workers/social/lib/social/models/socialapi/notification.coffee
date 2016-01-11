@@ -62,5 +62,3 @@ module.exports = class SocialNotification extends Base
 
 
     return revivedNotifications
-
-

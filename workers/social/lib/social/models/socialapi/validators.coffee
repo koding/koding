@@ -29,5 +29,3 @@ module.exports =
           checkOwnership { accountId, objectId, type }, (err, res) ->
             return callback err, no  if err?
             return callback null, res.success
-
-

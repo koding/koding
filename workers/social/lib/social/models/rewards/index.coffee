@@ -448,5 +448,3 @@ module.exports = class JReward extends jraphical.Message
 
     addUserRegisteredListener()
     addEmailConfimedListener()
-
-

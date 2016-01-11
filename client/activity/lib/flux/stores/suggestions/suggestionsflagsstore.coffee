@@ -48,4 +48,3 @@ module.exports = class SuggestionsFlagsStore extends KodingFluxStore
   setAccessibility: (currentState, { accessible }) ->
 
     currentState.set 'accessible', accessible
-

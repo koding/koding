@@ -60,5 +60,3 @@ module.exports = class Notifying
     @setNotifiers events, (event, contents) ->
       { group } = contents
       JGroup.broadcast group, event, contents
-
-

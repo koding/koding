@@ -61,5 +61,3 @@ module.exports = class Joinable
     [callback, options] = [options, callback]  unless callback
     options ?= {}
     removeFromGroup_.call this, client, options, callback
-
-

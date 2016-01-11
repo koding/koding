@@ -7,6 +7,9 @@ dataProvider   = require 'app/userenvironmentdataprovider'
 mockjaccount   = require './mock.jaccount'
 mockjmachine   = require './mock.jmachine'
 mockjworkspace = require './mock.jworkspace'
+mockMessage    = require 'app/util/generateDummyMessage'
+mockChannel    = require 'app/util/generateDummyChannel'
+mockThread     = require 'app/util/generateDummyThread'
 
 mockMachine    = new Machine { machine: mockjmachine }
 { socialapi }  = kd.singletons
@@ -194,3 +197,11 @@ module.exports =
   getMockWorkspace: -> return mockjworkspace
 
   getMockAccount: ->   return mockjaccount
+
+  getMockMessage: (args...) -> return mockMessage(args...)
+
+  getMockChannel: (args...) -> return mockChannel(args...)
+
+  getMockThread: (args...)  ->  return mockThread(args...)
+
+

@@ -46,4 +46,3 @@ describe 'CreateNewChannelParticipantsSearchQueryStore', ->
       query = @reactor.evaluate(['searchQuery'])
 
       expect(query).toBe null
-

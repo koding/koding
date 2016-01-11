@@ -40,5 +40,3 @@ module.exports = class GroupPackEditForm extends KDFormViewWithFields
     super options, data
 
   getProductData: @::getFormData
-
-

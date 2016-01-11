@@ -54,5 +54,3 @@ module.exports = class Taggable
       else
         @emit 'TagsChanged', [] unless options.silent
         callback null
-
-

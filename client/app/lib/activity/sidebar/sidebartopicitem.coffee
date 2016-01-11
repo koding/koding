@@ -80,4 +80,3 @@ module.exports = class SidebarTopicItem extends SidebarItem
     {{> @followButton}}
     {{> @unreadCount}}
     """
-

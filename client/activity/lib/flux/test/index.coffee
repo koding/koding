@@ -25,4 +25,3 @@ require './channelparticipants/channelparticipantsdropdownvisibilitystore'
 require 'activity/flux/chatinput/tests'
 require 'activity/flux/createchannel/tests'
 require 'activity/flux/channelnotificationsettings/tests'
-

@@ -160,4 +160,3 @@ module.exports = class Koding extends ProviderInterface
         price : 'free'
       }
     ]
-

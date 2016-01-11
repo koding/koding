@@ -5,5 +5,3 @@ module.exports = getChannelTypeByName = (name) ->
   # that came to my mind to determine a type for a channel by its name. - US
 
   if name is 'public' then 'group' else 'topic'
-
-

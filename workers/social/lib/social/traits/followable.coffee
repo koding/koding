@@ -330,5 +330,3 @@ module.exports = class Followable
           followingCount  : @getAt('counts.following')
           followee        : followee
           action          : action
-
-

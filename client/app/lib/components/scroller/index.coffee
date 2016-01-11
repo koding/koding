@@ -42,5 +42,3 @@ module.exports = class Scroller extends React.Component
       ref='scrollContainer'>
       {@props.children}
     </PerfectScrollbar>
-
-

@@ -42,5 +42,3 @@ module.exports = class VideoControlView extends kd.ButtonView
     @active = active
 
     @setTooltip()
-
-

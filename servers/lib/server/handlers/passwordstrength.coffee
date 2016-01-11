@@ -11,5 +11,3 @@ module.exports = (req, res, next) ->
 
   return res.status(400).send 'Invalid password!'    unless report
   return res.status(200).send report
-
-

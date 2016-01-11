@@ -20,6 +20,7 @@ type Meta struct {
 	AlwaysOn    bool   `bson:"alwaysOn"`
 	Datacenter  string `structs:"datacenter" bson:"datacenter"`
 	SourceImage string `structs:"sourceImage" bson:"sourceImage"`
+	VlanID      int    `structs:"vlanId" bson:"vlanId"`
 }
 
 // Machine represents a single MongodDB document from the jMachines collection.

@@ -28,4 +28,3 @@ describe 'ChatInputSearchVisibilityStore', ->
       visible = @reactor.evaluate(['chatInputSearchVisibility']).get stateId
 
       expect(visible).toBe no
-

@@ -18,4 +18,3 @@ module.exports = class SuggestionsQueryStore extends KodingFluxStore
 
 
   setQuery: (currentState, { query }) -> query
-

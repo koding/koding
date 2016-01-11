@@ -177,5 +177,3 @@ fixParticipantVideo = (participant) ->
 
     container = participant.videoData.element
     fixPoster container
-
-

@@ -15,5 +15,3 @@ module.exports = class LegalAppController extends KDViewController
       cssClass      : "content-page legal"
 
     super options, data
-
-

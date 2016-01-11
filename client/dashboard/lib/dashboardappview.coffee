@@ -93,6 +93,3 @@ module.exports = class DashboardAppView extends JView
     {mainView} = pane
     return unless mainView
     mainView.emit 'SearchInputChanged', searchValue
-
-
-

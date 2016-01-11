@@ -13,5 +13,3 @@ module.exports = class NewChannelRoute
   getComponents: (state, callback) ->
 
     helper.renderWithBackgroundChannel CreatePublicChannelModal, callback
-
-

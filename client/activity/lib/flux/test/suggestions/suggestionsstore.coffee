@@ -67,4 +67,3 @@ describe 'SuggestionsStore', ->
       suggestions = @reactor.evaluate ['currentSuggestions']
 
       expect(suggestions.size).toEqual 0
-

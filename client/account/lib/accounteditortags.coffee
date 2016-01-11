@@ -10,5 +10,3 @@ module.exports = class AccountEditorTags extends KDView
     """
       #{extHTMLArr.join("")}
     """
-
-

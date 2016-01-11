@@ -23,4 +23,3 @@ module.exports = (body = '', markdownOptions = {}) ->
   body = expandUsernames body, 'code, a'
 
   return body
-

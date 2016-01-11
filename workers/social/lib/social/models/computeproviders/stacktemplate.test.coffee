@@ -225,4 +225,3 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 beforeTests()
 
 runTests()
-

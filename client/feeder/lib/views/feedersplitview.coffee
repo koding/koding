@@ -10,4 +10,3 @@ module.exports = class FeederSplitView extends ContentPageSplitBelowHeader
     options.bind      or= "mouseenter"
 
     super options
-

@@ -148,5 +148,3 @@ module.exports = class CustomViewsDashboardView extends JView
         {{> @container}}
       </div>
     """
-
-

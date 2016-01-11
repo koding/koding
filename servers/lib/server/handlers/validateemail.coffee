@@ -53,4 +53,3 @@ module.exports = (req, res) ->
 
   checkEmail = generateCheckEmailCallback res, email, JUser
   JUser.login clientId, { username : email, password, tfcode }, checkEmail
-

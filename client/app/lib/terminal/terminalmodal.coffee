@@ -49,5 +49,3 @@ module.exports = class TerminalModal extends KDModalView
   run: (command)->
 
     @emit "terminal.input", command + "\n"
-
-

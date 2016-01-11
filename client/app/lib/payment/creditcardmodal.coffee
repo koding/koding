@@ -117,4 +117,3 @@ module.exports = class CreditCardModal extends PaymentBaseModal
       plan you want to purchase, etc.).
     "
     @successMessage.show()
-

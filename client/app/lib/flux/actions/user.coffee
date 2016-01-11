@@ -184,4 +184,3 @@ module.exports = {
   markParticipantMayBeDeleted
   unmarkParticipantMayBeDeleted
 }
-

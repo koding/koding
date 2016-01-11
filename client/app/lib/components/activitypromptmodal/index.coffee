@@ -8,4 +8,3 @@ module.exports = class ActivityPromptModal extends React.Component
 
   render: ->
     <ActivityModal {...@props}/>
-

@@ -6,5 +6,3 @@ module.exports = (konstructor, groupName) ->
   groupedCollectionName = "#{collectionBaseName}__#{collectionGroupName}"
   console.log { groupedCollectionName }
   db.collection groupedCollectionName
-
-

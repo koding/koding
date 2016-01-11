@@ -20,4 +20,3 @@ module.exports = convertEmojisWithSynonyms = (emojis) ->
     return synonyms[0]
 
   emojis = emojis.filter Boolean
-

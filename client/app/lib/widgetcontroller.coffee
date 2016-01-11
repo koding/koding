@@ -75,5 +75,3 @@ module.exports = class WidgetController extends KDController
     tag.innerHTML = htmlencode.htmlDecode css
 
     global.document.head.appendChild tag
-
-

@@ -59,4 +59,3 @@ module.exports = class MetricsMiddleware extends MetricsBase
       @sendMetrics @metricsOnFinished({ elapsedTime }), metricName, tags
 
     next()
-

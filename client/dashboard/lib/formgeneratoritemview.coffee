@@ -93,6 +93,3 @@ module.exports = class FormGeneratorItemView extends KDListItemView
     <div class="default">{{> @defaultValue}}</div>
     {{> @removeButton}}
     """
-
-
-

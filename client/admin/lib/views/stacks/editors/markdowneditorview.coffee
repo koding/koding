@@ -29,4 +29,3 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
       overlay        : yes
       overlayOptions : cssClass : 'second-overlay'
       content        : applyMarkdown content
-

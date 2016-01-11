@@ -32,5 +32,3 @@ module.exports = class DateMarker extends React.Component
         {@renderDate()}
       </div>
     </div>
-
-

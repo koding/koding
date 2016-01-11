@@ -103,7 +103,3 @@ module.exports = class ActivityInputHelperView extends KDCustomHTMLView
     @hide()
     @destroySubViews()
     @currentHelperNames = []
-
-
-
-

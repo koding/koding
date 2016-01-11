@@ -27,4 +27,3 @@ module.exports = class KodingAppSelectorForGitHub extends Modal
     for repo in repos
       repo._disabled = !(_filter.test repo.full_name)
     repos
-

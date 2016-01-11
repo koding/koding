@@ -206,5 +206,3 @@ calculateReactivityLink = (post) ->
   if isPublicChannel channel
   then "/Channels/#{channel.name.toLowerCase()}/#{post.id}"
   else "/Messages/#{channel.id}/#{post.id}"
-
-

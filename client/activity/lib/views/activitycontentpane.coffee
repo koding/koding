@@ -53,7 +53,3 @@ module.exports = class ActivityContentPane extends KDTabPaneView
   removeMessage: MessagePane::removeMessage
 
   addItem: (item, index) -> @listController.addItem item, index
-
-
-
-

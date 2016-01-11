@@ -21,5 +21,3 @@ module.exports = (name = '') ->
     res.send "#{name} is running with version: #{KONFIG.version}"
 
   app.listen argv.p
-
-

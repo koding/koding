@@ -17,5 +17,3 @@ module.exports = (site) ->
     else tags += ''
 
   return tags
-
-

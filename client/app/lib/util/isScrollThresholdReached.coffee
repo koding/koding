@@ -17,4 +17,3 @@ module.exports = isScrollThresholdReached = (options) ->
     return yes
 
   return no
-

@@ -59,7 +59,3 @@ module.exports = class JCombinedAppStorage extends JStorage
 
       JCombinedAppStorage.one { accountId }, (err, storage) ->
         return callback err, storage
-
-
-
-

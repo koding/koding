@@ -52,4 +52,3 @@ module.exports = class LoadMoreMessagesMarker extends React.Component
     <div className="LoadMoreMessagesMarker">
       <a href="#" onClick={@bound 'onClick'}>Load more</a>
     </div>
-

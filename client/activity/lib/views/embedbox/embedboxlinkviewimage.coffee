@@ -48,5 +48,3 @@ module.exports = class EmbedBoxLinkViewImage extends CustomLinkView
     """
       {{> @imageView}}
     """
-
-

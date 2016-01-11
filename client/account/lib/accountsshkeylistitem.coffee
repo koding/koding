@@ -134,4 +134,3 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
     """
       <div class='swappableish swappable-wrapper posstatic'></div>
     """
-

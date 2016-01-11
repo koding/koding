@@ -64,4 +64,3 @@ module.exports = ScrollerMixin =
 
     { SCROLL_TO_BOTTOM } = scrollerActions
     @performScrollerAction SCROLL_TO_BOTTOM  if @shouldScrollToBottom()
-

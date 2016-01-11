@@ -28,4 +28,3 @@ module.exports = class Tooltip extends React.Component
     <div className={kd.utils.curry 'Tooltip-wrapper', @props.position} style={style}>
       {@renderChildren()}
     </div>
-

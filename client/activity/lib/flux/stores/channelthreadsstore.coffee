@@ -200,5 +200,3 @@ initThread = (threads, channelId) ->
 createThread = (channelId) ->
 
   return toImmutable { channelId, messages: toImmutable({}) }
-
-

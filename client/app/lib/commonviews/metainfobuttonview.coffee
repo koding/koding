@@ -1,9 +1,10 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDModalView = kd.ModalView
-showError = require 'app/util/showError'
-objectToString = require 'app/util/objectToString'
-applyMarkdown = require 'app/util/applyMarkdown'
+kd              = require 'kd'
+showError       = require 'app/util/showError'
+KDModalView     = kd.ModalView
+KDButtonView    = kd.ButtonView
+applyMarkdown   = require 'app/util/applyMarkdown'
+objectToString  = require 'app/util/objectToString'
+
 
 module.exports = class MetaInfoButtonView extends KDButtonView
 
@@ -27,5 +28,6 @@ module.exports = class MetaInfoButtonView extends KDButtonView
           cssClass : 'meta-info-modal has-markdown'
           title    : "Information of #{data.profile.nickname}"
           content  : colorized
+          overlay  : yes
 
     super options

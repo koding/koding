@@ -33,4 +33,3 @@ module.exports = class APITokenListView extends KDView
   viewAppended: ->
 
     @addSubView @listView
-

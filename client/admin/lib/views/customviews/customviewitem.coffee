@@ -62,5 +62,3 @@ module.exports = class CustomViewItem extends JView
         {{> @editButton}}
       </div>
     """
-
-

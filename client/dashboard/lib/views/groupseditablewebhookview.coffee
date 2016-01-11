@@ -38,5 +38,3 @@ module.exports = class GroupsEditableWebhookView extends JView
     {{> @webhookEndpoint}}
     {{> @saveButton}}
     """
-
-

@@ -15,5 +15,3 @@ module.exports = class JSecretName extends Model
       type        : String
       default     : require 'hat'
     oldSecretName : String
-
-

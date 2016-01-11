@@ -205,4 +205,3 @@ runTests = -> describe 'server.handlers.validateusername', ->
 
 
 runTests()
-

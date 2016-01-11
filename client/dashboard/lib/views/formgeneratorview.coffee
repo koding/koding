@@ -247,4 +247,3 @@ module.exports = class FormGeneratorView extends JView
     </div>
     {{> @saveButton}}
     """
-

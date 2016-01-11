@@ -19,4 +19,3 @@ module.exports = class SidebarPublicChannelsTabStore extends KodingFluxStore
 
 
   setTab: (currentState, { tab }) -> tab
-

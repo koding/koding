@@ -35,5 +35,3 @@ module.exports = {
   generateLogoutRequestBody
   generateLogoutRequestParams
 }
-
-

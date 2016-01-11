@@ -233,4 +233,3 @@ runTests = -> describe 'server.handlers.register', ->
 
 
 runTests()
-

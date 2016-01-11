@@ -70,5 +70,3 @@ module.exports = class FSFolder extends FSFile
     {@stopWatching} = response
     finder = @treeController.delegate
     finder?.registerWatcher @path, @stopWatching  if @stopWatching
-
-

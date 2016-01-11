@@ -86,5 +86,3 @@ describe 'ChannelNotificationSettingsStore', ->
       expect(notificationSettings.getIn [channelId_2, 'isSuppressed']).toEqual no
       expect(notificationSettings.get channelId_1).toBe undefined
       expect(notificationSettings.getIn [channelId_2, 'desktopSetting']).toEqual 'personal'
-
-

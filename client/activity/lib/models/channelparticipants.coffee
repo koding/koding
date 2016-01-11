@@ -207,5 +207,3 @@ fetchParticipants = (id, callback) ->
     origins = participants.map ({accountOldId}) ->
       return { id: accountOldId, constructorName: 'JAccount' }
     fetchAccounts origins, callback
-
-

@@ -10,4 +10,3 @@ module.exports = (str) ->
     color += ('00' + value.toString(16)).substr(-2)
 
   return color
-

@@ -2,4 +2,3 @@ module.exports = {
   'YourChannels'
   'OtherChannels'
 }
-
