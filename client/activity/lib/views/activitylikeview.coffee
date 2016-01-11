@@ -25,5 +25,3 @@ module.exports = class ActivityLikeView extends JView
 
 
   pistachio: -> "{{> @link}}{{> @count}}"
-
-

@@ -54,5 +54,3 @@ module.exports = class ChannelNotificationSettingsStore extends KodingFluxStore
     delete options.channelId
 
     notificationSettings = notificationSettings.set channelId, toImmutable options
-
-

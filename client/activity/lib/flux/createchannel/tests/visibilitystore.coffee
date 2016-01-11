@@ -26,4 +26,3 @@ describe 'CreateNewChannelParticipantsDropdownVisibilityStore', ->
       visibility = @reactor.evaluate(['dropdownVisibility'])
 
       expect(visibility).toBe no
-

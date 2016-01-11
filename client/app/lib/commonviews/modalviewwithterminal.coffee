@@ -95,5 +95,3 @@ module.exports = class ModalViewWithTerminal extends KDModalView
 
   toggleTerminal: (callback)->
     @[if @hidden then "showTerminal" else "hideTerminal"] callback
-
-

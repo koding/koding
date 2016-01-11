@@ -172,5 +172,3 @@ module.exports = class GroupProductsController extends KDController
         return callback err  if err
 
         callback null, products
-
-

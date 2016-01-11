@@ -185,4 +185,3 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
     </ActivityModal>
 
 React.Component.include.call PublicChannelNotificationSettingsModal, [KDReactorMixin]
-

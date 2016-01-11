@@ -6,4 +6,3 @@ module.exports = emojifyMarkdown = (element) ->
   element    = element.querySelector '.has-markdown'  unless isMarkdown
 
   emojify.run element
-

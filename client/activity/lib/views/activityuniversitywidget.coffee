@@ -27,5 +27,3 @@ module.exports = class ActivityUniversityWidget extends ActivityBaseWidget
         <a href="http://learn.koding.com/" target="_blank">More guides on Koding University...</a>
       </p>
     """
-
-

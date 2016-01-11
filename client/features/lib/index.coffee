@@ -15,5 +15,3 @@ module.exports = class FeaturesAppController extends KDViewController
       cssClass : 'content-page features'
 
     super options, data
-
-

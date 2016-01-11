@@ -18,5 +18,3 @@ generateSsoTokenLoginRequestParams = (opts = {}) ->
 module.exports = {
   generateSsoTokenLoginRequestParams
 }
-
-

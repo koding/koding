@@ -41,6 +41,3 @@ describe 'ProfileLink', ->
     TestUtils.Simulate.click link
 
     expect(flag).toEqual yes
-
-
-

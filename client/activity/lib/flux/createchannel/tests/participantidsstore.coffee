@@ -58,4 +58,3 @@ describe 'CreateNewChannelParticipantIdsStore', ->
 
       expect(participants.get testAccountId_1).toBe undefined
       expect(participants.get testAccountId_2).toBe undefined
-

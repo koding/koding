@@ -58,6 +58,3 @@ module.exports = openIdeByMachine = (machine, callback) ->
 
   # And now that we have subscribed to the event, fire the route.
   router.handleRoute "/IDE/#{machine.slug}"
-
-
-

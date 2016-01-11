@@ -106,5 +106,3 @@ module.exports = class ShowMoreDataModalView extends KDModalView
           @putList participants
     else
       @putList @getData()
-
-

@@ -30,5 +30,3 @@ module.exports = class EmbedBox extends KDView
       type       : @getOptions().type
 
     @addSubView new containerClass embedOptions, data
-
-

@@ -1,0 +1,171 @@
+--- a/node_modules/mocha/lib/reporters/koding.js	2015-12-29 17:34:36.000000000 +0200
++++ b/node_modules/mocha/lib/reporters/koding.js	2015-12-29 17:31:21.000000000 +0200
+@@ -0,0 +1,84 @@
++/**
++ * Module dependencies.
++ */
++
++var Base = require('./base')
++  , cursor = Base.cursor
++  , color = Base.color;
++
++/**
++ * Expose `Koding`.
++ */
++
++exports = module.exports = Koding;
++
++var oldConsole = Base.oldConsole;
++
++/**
++ * Initialize a new `Koding` test reporter.
++ *
++ * @param {Runner} runner
++ * @api public
++ */
++
++function Koding(runner) {
++  Base.call(this, runner);
++
++  var self = this
++    , stats = this.stats
++    , indents = 0
++    , n = 0;
++
++  function indent() {
++    return Array(indents).join('  ')
++  }
++
++  runner.on('start', function(){
++    oldConsole.log();
++  });
++
++  runner.on('suite', function(suite){
++    ++indents;
++    oldConsole.log(color('suite', '%s%s'), indent(), suite.title);
++  });
++
++  runner.on('suite end', function(suite){
++    --indents;
++    if (1 == indents) oldConsole.log();
++  });
++
++  runner.on('pending', function(test){
++    var fmt = indent() + color('pending', '  - %s');
++    oldConsole.log(fmt, test.title);
++  });
++
++  runner.on('pass', function(test){
++    if ('fast' == test.speed) {
++      var fmt = indent()
++        + color('checkmark', '  ' + Base.symbols.ok)
++        + color('pass', ' %s');
++      cursor.CR();
++      oldConsole.log(fmt, test.title);
++    } else {
++      var fmt = indent()
++        + color('checkmark', '  ' + Base.symbols.ok)
++        + color('pass', ' %s')
++        + color(test.speed, ' (%dms)');
++      cursor.CR();
++      oldConsole.log(fmt, test.title, test.duration);
++    }
++  });
++
++  runner.on('fail', function(test, err){
++    cursor.CR();
++    oldConsole.log(indent() + color('fail', '  %d) %s'), ++n, test.title);
++  });
++
++  runner.on('end', self.epilogue.bind(self));
++}
++
++/**
++ * Inherit from `Base.prototype`.
++ */
++
++Koding.prototype.__proto__ = Base.prototype;
+
+--- a/node_modules/mocha/lib/reporters/base.js	2015-12-29 17:33:51.000000000 +0200
++++ b/node_modules/mocha/lib/reporters/base.js	2015-12-29 17:31:10.000000000 +0200
+@@ -117,6 +117,20 @@
+     : 75
+ };
+
++var oldConsole   = {};
++
++oldConsole.log   = console.log;
++oldConsole.error = console.error;
++oldConsole.warn  = console.warn;
++oldConsole.info  = console.info;
++if (!process.env.MOCHA_VERBOSE) {
++  console.log    = function(){};
++  console.error  = function(){};
++  console.info   = function(){};
++  console.warn   = function(){};
++};
++exports.oldConsole = oldConsole;
++
+ /**
+  * Expose some basic cursor interactions
+  * that are common among reporters.
+@@ -157,7 +171,7 @@
+  */
+
+ exports.list = function(failures){
+-  console.log();
++  oldConsole.log();
+   failures.forEach(function(test, i){
+     // format
+     var fmt = color('error title', '  %s) %s:\n')
+@@ -207,7 +221,7 @@
+     // indent stack trace
+     stack = stack.replace(/^/gm, '  ');
+
+-    console.log(fmt, (i + 1), test.fullTitle(), msg, stack);
++    oldConsole.log(fmt, (i + 1), test.fullTitle(), msg, stack);
+   });
+ };
+
+@@ -289,14 +303,14 @@
+   var tests;
+   var fmt;
+
+-  console.log();
++  oldConsole.log();
+
+   // passes
+   fmt = color('bright pass', ' ')
+     + color('green', ' %d passing')
+     + color('light', ' (%s)');
+
+-  console.log(fmt,
++  oldConsole.log(fmt,
+     stats.passes || 0,
+     ms(stats.duration));
+
+@@ -305,20 +319,20 @@
+     fmt = color('pending', ' ')
+       + color('pending', ' %d pending');
+
+-    console.log(fmt, stats.pending);
++    oldConsole.log(fmt, stats.pending);
+   }
+
+   // failures
+   if (stats.failures) {
+     fmt = color('fail', '  %d failing');
+
+-    console.log(fmt, stats.failures);
++    oldConsole.log(fmt, stats.failures);
+
+     Base.list(this.failures);
+-    console.log();
++    oldConsole.log();
+   }
+
+-  console.log();
++  oldConsole.log();
+ };
+
+ /**

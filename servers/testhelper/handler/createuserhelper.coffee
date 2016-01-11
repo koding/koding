@@ -54,5 +54,3 @@ module.exports = {
   createUser
   generateCreateUserRequestParams
 }
-
-

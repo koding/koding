@@ -142,5 +142,3 @@ module.exports = class JSystemStatus extends Model
       }, { status, userAgent, feedback, userEmail:email }
 
       callback null
-
-

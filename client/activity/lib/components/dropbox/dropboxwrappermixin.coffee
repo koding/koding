@@ -67,4 +67,3 @@ module.exports = DropboxWrapperMixin =
 
 
   updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
-

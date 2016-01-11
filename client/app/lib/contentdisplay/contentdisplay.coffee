@@ -9,4 +9,3 @@ module.exports = class ContentDisplay extends MainTabPane
     options.cssClass = kd.utils.curry "content-display-wrapper content-page", options.cssClass
 
     super
-

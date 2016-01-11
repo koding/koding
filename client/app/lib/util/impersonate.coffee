@@ -15,4 +15,3 @@ module.exports = (username) ->
       KiteCache.clearAll()
 
       global.location.reload()
-

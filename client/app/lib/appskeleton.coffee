@@ -126,4 +126,3 @@ module.exports = class AppSkeleton
       Yet another awesome Koding application! by %%AUTHOR_FULLNAME%%
 
     """
-

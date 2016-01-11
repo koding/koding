@@ -19,4 +19,3 @@ module.exports = class EmbedBoxObject extends React.Component
     <div className='EmbedBoxObject'>
       { Encoder.htmlDecode objectHtml or '' }
     </div>
-

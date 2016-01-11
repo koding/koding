@@ -77,5 +77,3 @@ module.exports = class ReplyListItemView extends CommentListItemView
     {{> @menuWrapper}}
     </div>
     '''
-
-

@@ -39,5 +39,3 @@ module.exports = class SharedMachine extends bongo.Base
 
     options.permanent = yes
     JMachine.shareByUId client, uid, options, callback
-
-

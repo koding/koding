@@ -195,5 +195,3 @@ _hideScroller = (scroller) -> scroller?.style.opacity = 0
 
 
 _showScroller = (scroller) -> scroller?.style.opacity = 1
-
-

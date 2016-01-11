@@ -61,4 +61,3 @@ module.exports = class PricingAppController extends KDViewController
     return  unless planTitle and planInterval
 
     @loadPaymentProvider -> view.continueFrom planTitle, planInterval
-

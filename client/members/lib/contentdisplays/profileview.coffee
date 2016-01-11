@@ -327,5 +327,3 @@ module.exports = class ProfileView extends JView
         </div>
       </main>
     """
-
-

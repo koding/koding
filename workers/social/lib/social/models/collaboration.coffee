@@ -102,5 +102,3 @@ module.exports = class Collaboration extends Base
 
       options.permanent = no
       JMachine.shareByUId client, workspace.machineUId, options, callback
-
-

@@ -85,6 +85,3 @@ module.exports = class ActivityLikeLink extends React.Component
       {@renderCount()}
       {@renderTooltip()}
     </a>
-
-
-

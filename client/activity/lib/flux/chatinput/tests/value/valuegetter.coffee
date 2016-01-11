@@ -47,4 +47,3 @@ describe 'ChatInputValueGetter', ->
 
       value = @reactor.evaluate getters.currentValue stateId
       expect(value).toEqual ''
-

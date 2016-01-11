@@ -142,5 +142,3 @@ module.exports = class CustomViewsAdminView extends JView
         {{> @container}}
       </div>
     """
-
-

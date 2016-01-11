@@ -37,5 +37,3 @@ module.exports = class Cache
       (fallbackFn? callback, fetcherFnOptions) or (callback null, {})
 
   @remove: (cacheKey, data) -> delete cache[cacheKey]
-
-

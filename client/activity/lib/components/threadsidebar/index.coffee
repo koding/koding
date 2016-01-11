@@ -65,5 +65,3 @@ module.exports = class ThreadSidebar extends React.Component
         <a href="http://learn.koding.com"><i>See more...</i></a>
       </ThreadSidebarContentBox>
     </Scroller>
-
-

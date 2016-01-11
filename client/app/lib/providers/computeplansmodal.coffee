@@ -10,5 +10,3 @@ module.exports = class ComputePlansModal extends KDModalView
     options.overlay ?= yes
 
     super options
-
-

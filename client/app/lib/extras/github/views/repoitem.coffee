@@ -33,5 +33,3 @@ module.exports = class RepoItem extends KDListItemView
     {p{#(description)}}
     {{> @actionButton}}
     """
-
-

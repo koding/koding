@@ -60,9 +60,14 @@ func kloudClient() (*kite.Client, error) {
 
 	k.Config = c
 	k.Config.Transport = config.XHRPolling
-	k.SetLogLevel(kite.WARNING)
+	if flagDebug {
+		k.SetLogLevel(kite.DEBUG)
+	} else {
+		k.SetLogLevel(kite.WARNING)
+	}
 
 	remoteKite := k.NewClient(flagKloudAddr)
+	remoteKite.Reconnect = true
 	remoteKite.Auth = &kite.Auth{
 		Type: "kloudctl",
 		Key:  KloudSecretKey,

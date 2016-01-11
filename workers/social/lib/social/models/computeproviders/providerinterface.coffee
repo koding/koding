@@ -43,5 +43,3 @@ module.exports = class ProviderInterface
         callback null, credData
       else
         callback null, {}
-
-

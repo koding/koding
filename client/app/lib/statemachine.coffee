@@ -106,5 +106,3 @@ machinafyStates = (states, stateHandlers = {}) ->
   , {}
 
   return states
-
-

@@ -178,5 +178,3 @@ module.exports = class GroupsMembershipPolicyDetailView extends JView
         {{> @policyLanguageEditor}}
       </section>
       """
-
-

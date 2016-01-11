@@ -27,7 +27,3 @@ module.exports = class MoreChannelsModal extends SidebarSearchModal
 
       kd.singletons.router.handleRoute item.getOption 'route'
       @destroy()
-
-
-
-

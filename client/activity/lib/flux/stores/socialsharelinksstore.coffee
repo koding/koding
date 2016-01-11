@@ -23,4 +23,3 @@ module.exports = class SocialShareLinksStore extends KodingFluxStore
   unsetItem: (items, { id }) ->
 
     items.remove id
-

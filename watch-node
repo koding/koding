@@ -17,9 +17,9 @@ pid=$!
 while [[ true ]]; do
 
     if [[ `uname` == "Darwin" ]]; then
-      files=`find -L $watchfolder -type f -mtime -2s`
+      files=`find -L $watchfolder -type f -mtime -2s | grep -v "\.test\."`
     else
-      files=`find -L $watchfolder -type f -mmin $(echo 2/60 | bc -l)`
+      files=`find -L $watchfolder -type f -mmin $(echo 2/60 | bc -l) | grep -v "\.test\."`
     fi
 
     if [[ $files != "" ]]

@@ -60,5 +60,3 @@ module.exports = {
   generateRegisterRequestBody
   generateRegisterRequestParams
 }
-
-

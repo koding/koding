@@ -44,5 +44,3 @@ module.exports = class RunnerSocketConnector
       { title } = test
       fullTitleResult = test.fullTitle()
       return JSON.stringify { title, err, fullTitleResult }
-
-

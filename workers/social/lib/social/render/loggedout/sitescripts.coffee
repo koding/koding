@@ -24,5 +24,3 @@ module.exports = (campaign) ->
 
 
   return scripts
-
-

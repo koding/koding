@@ -70,4 +70,3 @@ module.exports = class DropboxBody extends React.Component
         </div>
       </div>
     </div>
-

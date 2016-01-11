@@ -8,4 +8,3 @@ module.exports = class PubnubChannel extends KDObject
 
     @name      = options.name
     @channelId = options.channelId
-

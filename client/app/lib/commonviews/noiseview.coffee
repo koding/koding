@@ -77,5 +77,3 @@ module.exports = class NoiseView extends kd.CustomHTMLView
     @stopNoiseAnimation()
 
     super
-
-

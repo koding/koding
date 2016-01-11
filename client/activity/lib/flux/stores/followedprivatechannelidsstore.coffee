@@ -41,4 +41,3 @@ module.exports = class FollowedPrivateChannelIdsStore extends KodingFluxStore
   handleRemovePrivateChannelSuccess: (privateMessageIds, { channelId }) ->
 
     privateMessageIds = privateMessageIds.remove channelId
-

@@ -45,4 +45,3 @@ cleanSelectedThreads = ->
   { thread, message } = require('activity/flux').actions
   threadActions.changeSelectedThread null
   messageActions.changeSelectedMessage null
-

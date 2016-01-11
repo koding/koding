@@ -148,4 +148,3 @@ module.exports = class SidebarModalList extends React.Component
       {@renderHeader()}
       {@renderChannelList()}
     </div>
-

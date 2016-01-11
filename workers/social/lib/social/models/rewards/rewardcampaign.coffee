@@ -251,5 +251,3 @@ module.exports = class JRewardCampaign extends jraphical.Module
   remove$: permit 'manage campaign',
     success: (client, data, callback) ->
       @remove callback
-
-

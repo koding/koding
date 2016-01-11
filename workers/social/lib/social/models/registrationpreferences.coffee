@@ -4,5 +4,3 @@ module.exports = class JRegistrationPreferences extends Model
 
   @setSchema
     isRegistrationEnabled : Boolean
-
-

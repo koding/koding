@@ -110,4 +110,3 @@ module.exports = class SearchItemBody extends React.Component
         .replace(helper.postRegexp, postValue)
 
       return content
-

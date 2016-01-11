@@ -39,5 +39,3 @@ module.exports = {
   generateValidateEmailRequestBody
   generateValidateEmailRequestParams
 }
-
-

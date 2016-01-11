@@ -17,6 +17,3 @@ module.exports = class PaymentBaseModal extends KDModalView
   initViews: ->
 
   initEvents: ->
-
-
-

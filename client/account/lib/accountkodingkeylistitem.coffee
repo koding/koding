@@ -82,4 +82,3 @@ module.exports = class AccountKodingKeyListItem extends KDListItemView
     """
       <span class="labelish">#{data.hostname or "Unknown Host"}</span>
     """
-

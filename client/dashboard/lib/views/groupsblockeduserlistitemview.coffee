@@ -73,5 +73,3 @@ module.exports = class GroupsBlockedUserListItemView extends KDListItemView
       </section>
     </div>
     """
-
-

@@ -784,20 +784,25 @@ module.exports = class JGroup extends Module
             }
         ]
 
-  fetchRolesByAccount:(account, callback) ->
+
+  fetchRolesByAccount: (account, callback) ->
+
     return callback new KodingError 'Account not found'  unless account
 
     Relationship.someData {
       targetId: account.getId()
       sourceId: @getId()
-    }, { as:1 }, (err, cursor) ->
-      if err then callback err
-      else
-        cursor.toArray (err, arr) ->
-          if err then callback err
-          else
-            roles = if arr.length > 0 then (doc.as for doc in arr) else ['guest']
-            callback null, roles
+    }
+    , { as:1 }
+    , (err, cursor) ->
+      return callback err  if err
+
+      cursor.toArray (err, arr) ->
+        return callback err  if err
+
+        roles = if arr?.length > 0 then (doc.as for doc in arr) else ['guest']
+        callback null, roles
+
 
   fetchMyRoles: secure (client, callback) ->
     @fetchRolesByAccount client.connection.delegate, callback
@@ -1673,4 +1678,3 @@ module.exports = class JGroup extends Module
             apiToken.username = account.profile.nickname
 
       return callback null, apiTokens
-

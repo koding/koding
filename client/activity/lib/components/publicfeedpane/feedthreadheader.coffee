@@ -37,5 +37,3 @@ module.exports = class FeedThreadHeader extends React.Component
         onClick={@bound 'onClick'}>
       </Button>
     </div>
-
-

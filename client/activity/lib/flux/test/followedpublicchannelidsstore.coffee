@@ -54,4 +54,3 @@ describe 'FollowedPublicChannelIdsStore', ->
 
       expect(storeState.bar).toEqual 'bar'
       expect(storeState.foo).toEqual undefined
-

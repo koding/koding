@@ -95,5 +95,3 @@ module.exports = class SiftScience
   parsePrice = (price) ->
     price = price.slice 1  if price[0] is '$'
     return parseFloat(price) * 1000000
-
-

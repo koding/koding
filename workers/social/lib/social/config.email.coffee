@@ -7,5 +7,3 @@ email.protocol = protocol
 email.protocol = email.protocol.split(':').shift() + ':'
 
 module.exports = email
-
-

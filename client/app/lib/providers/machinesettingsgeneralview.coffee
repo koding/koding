@@ -4,9 +4,11 @@ Encoder                = require 'htmlencode'
 Machine                = require './machine'
 isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
+selectText             = require 'app/util/selectText'
 KodingSwitch           = require '../commonviews/kodingswitch'
 KDLoaderView           = kd.LoaderView
 CustomLinkView         = require '../customlinkview'
+CopyTooltipView        = require 'app/components/common/copytooltipview'
 KDCustomHTMLView       = kd.CustomHTMLView
 KDHitEnterInputView    = kd.HitEnterInputView
 KDFormViewWithFields   = kd.FormViewWithFields
@@ -112,7 +114,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
   bindViewEvents: ->
 
-    { nickname, nickEdit, buildlogs } = @form.inputs
+    { nickname, nickEdit, buildlogs, publicIp } = @form.inputs
 
     nickname.on 'click', (e) =>
 
@@ -140,6 +142,11 @@ module.exports = class MachineSettingsGeneralView extends KDView
       kd.utils.wait 1000, @lazyBound 'emit', 'ModalDestroyRequested'
 
 
+    publicIp.on 'click', ->
+      selectText publicIp.getElement()
+      publicIp.showTooltip()
+
+
   createForm: ->
 
     isAws       = @machine.provider is 'aws'
@@ -149,6 +156,9 @@ module.exports = class MachineSettingsGeneralView extends KDView
     logsMessage = if @machine.isRunning() \
       then "<span class='logs-link'>show logs</span>"
       else "Please turn on the machine to see logs"
+
+    publicIpView = new KDView
+      partial   : @machine.ipAddress or 'N/A'
 
     @addSubView @form = new KDFormViewWithFields
       cssClass          : 'AppModal-form'
@@ -191,9 +201,9 @@ module.exports = class MachineSettingsGeneralView extends KDView
               callback  : => @handleNicknameUpdate() # bound won't work.
         publicIp        :
           label         : 'Public IP'
+          itemClass     : CopyTooltipView
+          childView     : publicIpView
           cssClass      : if running then 'custom-link-view' else 'hidden'
-          itemClass     : KDView
-          partial       : @machine.ipAddress or 'N/A'
         accessUri       :
           label         : 'Assigned URL'
           cssClass      : if isManaged or isAws then 'assigned-url hidden' else 'assigned-url'

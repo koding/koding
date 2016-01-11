@@ -10,4 +10,3 @@ module.exports = ->
     return
 
   kd.singletons.appManager.tell 'Account', 'showRegistrationNeededModal'
-

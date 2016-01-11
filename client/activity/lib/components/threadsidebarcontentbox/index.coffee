@@ -30,5 +30,3 @@ module.exports = class ThreadSidebarContentBox extends React.Component
         {@props.children}
       </section>
     </div>
-
-

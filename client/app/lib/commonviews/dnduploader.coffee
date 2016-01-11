@@ -309,4 +309,3 @@ module.exports = class DNDUploader extends KDView
   getMachine: ->
 
     @getDelegate().machines.first.machine
-

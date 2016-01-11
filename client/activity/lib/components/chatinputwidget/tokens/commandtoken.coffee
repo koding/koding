@@ -22,4 +22,3 @@ module.exports = CommandToken =
       horizontalNavigation   : no
       handleItemConfirmation : (item, query) -> "#{item.get 'name'} #{item.get 'paramPrefix', ''}"
     }
-

@@ -46,5 +46,3 @@ module.exports = (text = '', callback) ->
     # return this here so that other places can hook into this
     # via Promise api as well.
     return text
-
-

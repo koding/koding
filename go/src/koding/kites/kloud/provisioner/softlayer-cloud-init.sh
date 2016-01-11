@@ -68,11 +68,18 @@ EOF
 # overwritten by Koding Userdata, to restore original value run dpkg-reconfigure cloud-init
 datasource_list: [ SoftLayer, None ]
 EOF
-	# ensure cloud-init is started on boot
+
+	# ensure cloud-init is started for the first time
 	rm -rf /var/lib/cloud/*
 
-	# reboot instance to let the cloud-init run for the first time
-	reboot
+	# update environment after cloud-init package installation
+	source /etc/environment
+
+	# run cloud-init
+	cloud-init init --local
+	cloud-init init
+	cloud-init modules --mode=config
+	cloud-init modules --mode=final
 }
 
 main 2>&1 | tee -a /var/log/softlayer-cloud-init.log

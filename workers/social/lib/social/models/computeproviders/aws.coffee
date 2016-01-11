@@ -51,4 +51,3 @@ module.exports = class Aws extends ProviderInterface
     selector.provider = @providerSlug
 
     updateMachine { selector, alwaysOn }, callback
-

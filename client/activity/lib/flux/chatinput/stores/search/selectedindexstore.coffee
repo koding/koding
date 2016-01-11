@@ -15,4 +15,3 @@ module.exports = class ChatInputSearchSelectedIndexStore extends BaseSelectedInd
       moveToNextIndex : actions.MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX
       moveToPrevIndex : actions.MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX
       resetIndex      : actions.RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX
-

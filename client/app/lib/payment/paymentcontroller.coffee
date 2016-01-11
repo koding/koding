@@ -83,4 +83,3 @@ module.exports = class PaymentController extends kd.Controller
       data.month is 0
 
     return noCard
-

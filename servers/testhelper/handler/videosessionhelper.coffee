@@ -33,5 +33,3 @@ module.exports = {
   generateVideoSessionRequestBody
   generateVideoSessionRequestParams
 }
-
-

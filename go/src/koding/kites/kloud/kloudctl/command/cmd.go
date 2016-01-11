@@ -13,16 +13,18 @@ import (
 const batchLimit = 100
 
 type Cmd struct {
-	command string
-	ids     *string
+	command  string
+	provider *string
+	ids      *string
 }
 
 func NewCmd(command string) cli.CommandFactory {
 	return func() (cli.Command, error) {
 		f := NewFlag(command, fmt.Sprintf("%s a machine", command))
 		f.action = &Cmd{
-			command: command,
-			ids:     f.String("ids", "", "Machine id of information being showed."),
+			command:  command,
+			ids:      f.String("ids", "", "Machine id of information being showed."),
+			provider: f.String("provider", "koding", "Kloud provider."),
 		}
 		return f, nil
 	}
@@ -31,7 +33,7 @@ func NewCmd(command string) cli.CommandFactory {
 func (c *Cmd) SingleMachine(id string, k *kite.Client) (string, error) {
 	resp, err := k.Tell(c.command, &KloudArgs{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  *c.provider,
 	})
 	if err != nil {
 		return "", err

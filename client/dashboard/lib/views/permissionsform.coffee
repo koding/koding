@@ -222,5 +222,3 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
     selectedRoleValues = []
     selectedRoleValues.push permission for permission in allValues when permission.role is role
     createReducedList selectedRoleValues
-
-

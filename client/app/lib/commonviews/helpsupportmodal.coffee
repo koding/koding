@@ -125,4 +125,3 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
         </div>
       </div>
     """
-

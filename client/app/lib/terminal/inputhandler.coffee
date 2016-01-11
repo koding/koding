@@ -127,6 +127,3 @@ module.exports = class InputHandler
 
 
   useApplicationKeypad: (value) -> @applicationKeypad = value
-
-
-

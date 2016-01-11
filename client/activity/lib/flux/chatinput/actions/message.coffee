@@ -32,4 +32,3 @@ setLastMessageEditMode = ->
 module.exports = {
   setLastMessageEditMode
 }
-

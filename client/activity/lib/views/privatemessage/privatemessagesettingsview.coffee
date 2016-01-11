@@ -67,6 +67,3 @@ module.exports = class PrivateMessageSettingsView extends KDCustomHTMLView
     confirmButton.hideLoader()
     modal.destroy()
     showError err
-
-
-

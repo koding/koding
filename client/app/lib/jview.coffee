@@ -25,5 +25,3 @@ module.exports = class JView extends KDView
 
   pistachio: (tmpl) ->
     "#{@options.prefix}#{tmpl}#{@options.suffix}"  if tmpl
-
-

@@ -35,5 +35,3 @@ module.exports = class SimpleChatListItem extends ChatListItem
         <div className='clearfix'></div>
       </div>
     </div>
-
-

@@ -59,5 +59,3 @@ module.exports = class PopupGroupListItem extends KDListItemView
     """
     {{> @groupLogo}}{{> @switchLink}}{{> @adminLink}}
     """
-
-

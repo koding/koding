@@ -31,4 +31,3 @@ runTests = -> describe 'workers.social.models.computeproviders.azure', ->
 beforeTests()
 
 runTests()
-

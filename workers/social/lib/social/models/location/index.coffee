@@ -96,5 +96,3 @@ module.exports = class JLocation extends Model
     importer
       .once('error', callback)
       .once('end', => @importStates client, callback)
-
-

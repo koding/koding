@@ -76,5 +76,3 @@ describe 'CreateNewChannelParticipantsSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate(['selectedIndex'])
 
       expect(selectedIndex).toEqual prevIndex
-
-

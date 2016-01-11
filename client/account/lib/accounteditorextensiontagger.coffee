@@ -24,7 +24,3 @@ module.exports = class AccountEditorExtensionTagger extends KDFormView
       partial      : "cancel"
       cssClass     : "cancel-link"
       click        : => @emit "FormCancelled"
-
-
-
-

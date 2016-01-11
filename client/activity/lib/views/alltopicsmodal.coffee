@@ -39,5 +39,3 @@ module.exports = class AllTopicsModal extends KDModalView
         kd.singletons.socialapi.channel.fetchPopularTopics
           limit  : 25
         , callback
-
-

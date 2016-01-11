@@ -121,4 +121,3 @@ runTests = -> describe 'workers.social.models.computeproviders.snapshot', ->
 beforeTests()
 
 runTests()
-

@@ -141,5 +141,3 @@ module.exports = class ScreenBuffer
         content.push new StyledText(text, StyledText.DEFAULT_STYLE)
 
       content
-
-

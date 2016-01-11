@@ -137,6 +137,3 @@ module.exports = class ActivityLikeSummaryView extends KDView
     super
 
     @updateActors()
-
-
-

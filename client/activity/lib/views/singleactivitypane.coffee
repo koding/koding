@@ -19,6 +19,3 @@ module.exports = class SingleActivityPane extends ActivityPane
 
     @addSubView @scrollView
     @scrollView.wrapper.addSubView @tabView
-
-
-

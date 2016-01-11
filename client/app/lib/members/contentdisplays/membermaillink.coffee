@@ -27,4 +27,3 @@ module.exports = class MemberMailLink extends KDCustomHTMLView
     {profile} = member = @getData()
 
     kd.getSingleton("appManager").tell "Inbox", "createNewMessageModal", [member]
-

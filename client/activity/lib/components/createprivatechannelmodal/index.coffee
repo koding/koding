@@ -424,4 +424,3 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
 
 React.Component.include.call CreatePrivateChannelModal, [KDReactorMixin, DropboxInputMixin]
-

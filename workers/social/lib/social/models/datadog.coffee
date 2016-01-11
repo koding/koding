@@ -170,5 +170,3 @@ module.exports = class DataDog extends Base
         err = new KodingError 'Failed'
 
       callback err
-
-

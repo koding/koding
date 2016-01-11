@@ -26,5 +26,3 @@ module.exports = class ChannelParticipantsDropdownVisibilityStore extends Koding
    * @return {bool} nextState
   ###
   setVisibility: (currentState, { visible }) -> visible
-
-

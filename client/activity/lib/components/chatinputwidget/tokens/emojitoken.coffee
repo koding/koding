@@ -30,4 +30,3 @@ module.exports = EmojiToken =
         EmojiActions.incrementUsageCount item
         return "#{formatEmojiName item} "
     }
-

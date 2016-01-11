@@ -36,7 +36,3 @@ module.exports = class NotificationListController extends KDListViewController
       @emit 'NotificationCountDidChange', notifications.unreadCount
       callback null, notifications.notifications
       @hideLazyLoader()
-
-
-
-

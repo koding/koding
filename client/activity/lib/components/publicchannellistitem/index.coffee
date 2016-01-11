@@ -62,4 +62,3 @@ module.exports = class PublicChannelListItem extends React.Component
       <span className='ChannelListItem-title'>{channelName}</span>
       {@renderButton()}
     </PublicChannelLink>
-

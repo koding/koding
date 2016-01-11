@@ -8,5 +8,3 @@ module.exports = class Flaggable
   unmark: secure ({ connection:{ delegate } }, flag, callback = -> ) ->
     role = @constructor.getFlagRole() ? 'content'
     @unflag flag, delegate.getId(), role, callback
-
-

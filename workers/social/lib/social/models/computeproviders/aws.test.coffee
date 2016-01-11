@@ -169,4 +169,3 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
 beforeTests()
 
 runTests()
-

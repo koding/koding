@@ -75,4 +75,3 @@ module.exports = class GroupProductSettingsView extends JView
     {{> @packsView}}
     {{> @plansView}}
     """
-

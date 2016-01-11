@@ -144,5 +144,3 @@ module.exports = class DashboardAppController extends AppController
     @getOptions().view.ready =>
       {q} = query
       @emit "SearchFilterChanged", q or ""
-
-

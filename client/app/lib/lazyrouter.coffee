@@ -29,4 +29,3 @@ exports.register = (modules) ->
     registerRoutes m.name, routes
 
   return true
-

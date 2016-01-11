@@ -37,5 +37,3 @@ module.exports = {
   generateValidateUsernameRequestBody
   generateValidateUsernameRequestParams
 }
-
-

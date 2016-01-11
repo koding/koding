@@ -65,4 +65,3 @@ module.exports = class FeedInputWidget extends React.Component
         previewMode={ @state.previewMode }
         toggleMarkdownPreviewMode={ @bound 'toggleMarkdownPreviewMode' }/>
     </div>
-

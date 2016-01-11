@@ -147,5 +147,3 @@ module.exports = class JSnapshot extends Module
 
       @update { $set: { label } }, (err) ->
         callback err
-
-

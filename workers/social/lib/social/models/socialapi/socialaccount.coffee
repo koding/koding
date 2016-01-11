@@ -106,5 +106,3 @@ participantHandler = (funcName, data) ->
 
             SocialChannel[funcName] client, options, (err) ->
               return console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err
-
-

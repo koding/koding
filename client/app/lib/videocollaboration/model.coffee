@@ -926,5 +926,3 @@ module.exports = class VideoCollaborationModel extends kd.Object
 getCameraOptionFromState = (state) ->
 
   if state then { publishVideo: yes } else { videoSource: null }
-
-

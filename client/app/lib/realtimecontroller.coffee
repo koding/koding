@@ -412,4 +412,3 @@ module.exports = class RealtimeController extends KDController
     delete forbiddenChannels[channelName]
 
     @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
-

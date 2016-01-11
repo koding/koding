@@ -35,5 +35,3 @@ module.exports = class ModalAppsListItemView extends KDListItemView
       </p>
     </div>
     """
-
-

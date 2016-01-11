@@ -141,4 +141,3 @@ module.exports = class Managed extends ProviderInterface
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }
     selector.provider = @providerSlug
     updateMachine selector, fieldsToUpdate, callback
-

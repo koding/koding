@@ -5,4 +5,3 @@
 
 module.exports = ->
   global.name isnt "chromeapp"
-

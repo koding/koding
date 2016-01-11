@@ -176,4 +176,3 @@ describe 'ChatInputChannelGetters', ->
       selectedItem = @reactor.evaluateToJS getters.channelsSelectedItem stateId
 
       expect(selectedItem).toEqual channels[4]
-

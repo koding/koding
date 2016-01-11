@@ -7,13 +7,13 @@ if [ $# == 1 ]; then
   export GOBIN=$GOPATH/$1
 fi
 
-# ver contains the last digit of a go version, i.e: for v1.5 it contains 5 # we
-# are using it because the link operator has changed after v1.5, previously it
-# was an empty space, now its '=' (following code is retrieved from:
-# https://github.com/coreos/etcd/blob/master/build)
+# ver contains the last digit of a go version, i.e: for v1.5 it contains 5, for
+# devel version it's empty; we are using it because the link operator has
+# changed after v1.5, previously it was an empty space, now its '='
+# (following code is retrieved from: https://github.com/coreos/etcd/blob/master/build)
 val=$(go version)
 ver=$(echo $val | awk -F ' ' '{print $3}' | awk -F '.' '{print $2}')
-if [ $ver -gt 4 ]; then
+if [[ -z "$ver" ]] || [[ $ver -gt 4 ]]; then
 	LINK_OPERATOR="="
 else
 	LINK_OPERATOR=" "

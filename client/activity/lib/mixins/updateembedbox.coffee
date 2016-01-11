@@ -23,4 +23,3 @@ module.exports = updateEmbedBoxMixin = ->
   @embedBoxWrapper.destroySubViews()
   @embedBoxWrapper.addSubView embedBox
   @emit 'EmbedBoxUpdated'
-

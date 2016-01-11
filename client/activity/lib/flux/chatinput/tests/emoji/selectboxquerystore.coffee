@@ -48,4 +48,3 @@ describe 'EmojiSelectBoxQueryStore', ->
       query = @reactor.evaluate(['emojiSelectBoxQuery']).get stateId
 
       expect(query).toBe undefined
-

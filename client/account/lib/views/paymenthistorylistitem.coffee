@@ -24,7 +24,3 @@ module.exports = class PaymentHistoryListItem extends KDListItemView
         <span class='invoice-date'>#{dateFormat(data.periodEnd, 'mmm dd, yyyy')}</span>
       </div>
     """
-
-
-
-

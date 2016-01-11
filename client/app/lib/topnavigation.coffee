@@ -50,6 +50,3 @@ module.exports = class TopNavigation extends KDCustomHTMLView
   unsetActiveItems: ->
 
     item.unsetClass 'active'  for own name, item of @menu
-
-
-

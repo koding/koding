@@ -15,5 +15,3 @@ module.exports = class OpenedChannelsStore extends KodingFluxStore
 
     @on actions.LOAD_MESSAGES_SUCCESS, (openedChannels, { channelId }) ->
       openedChannels.set channelId, yes
-
-

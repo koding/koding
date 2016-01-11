@@ -32,5 +32,3 @@ module.exports = class KiteProductForm extends KDView
         @emit "CurrentSubscriptionSet", subscription  if subscription
         @listController.addItem item for item in plans
         @addSubView @listController.getView()
-
-

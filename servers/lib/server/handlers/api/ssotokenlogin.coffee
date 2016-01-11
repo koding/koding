@@ -1,13 +1,9 @@
 { daisy }  = require 'bongo'
-{ argv }   = require 'optimist'
-KONFIG     = require('koding-config-manager').load("main.#{argv.c}")
-{ secret } = KONFIG.jwt
-Jwt        = require 'jsonwebtoken'
-hat        = require 'hat'
 apiErrors  = require './errors'
 
 { setSessionCookie } = require '../../helpers'
 { sendApiError
+  validateJWTToken
   sendApiResponse }  = require './helpers'
 
 module.exports = ssoTokenLogin = (req, res, next) ->
@@ -25,13 +21,13 @@ module.exports = ssoTokenLogin = (req, res, next) ->
   queue = [
 
     ->
-      validateToken token, (err, data) ->
+      validateJWTToken token, (err, data) ->
         return sendApiError res, err  if err
         { username, group } = data
 
         # making sure subdomain is same with group slug
         unless group in req.subdomains
-          return sendApiError res, apiErrors.invalidRequest
+          return sendApiError res, apiErrors.invalidRequestDomain
 
         queue.next()
 
@@ -63,15 +59,3 @@ module.exports = ssoTokenLogin = (req, res, next) ->
   ]
 
   daisy queue
-
-
-validateToken = (token, callback) ->
-
-  Jwt.verify token, secret, { algorithms: ['HS256'] }, (err, decoded) ->
-    { username, group } = decoded
-
-    return callback apiErrors.ssoTokenFailedToParse   if err
-    return callback apiErrors.invalidSSOTokenPayload  unless username
-    return callback apiErrors.invalidSSOTokenPayload  unless group
-    return callback null, { username, group }
-

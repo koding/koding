@@ -89,5 +89,3 @@ module.exports = class WidgetCustomViewItem extends CustomViewItem
         {{> @editButton}}
       </div>
     """
-
-

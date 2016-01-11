@@ -189,4 +189,3 @@ module.exports = class UsersStore extends KodingFluxStore
     user = user.remove '_mayDelete'
     users = users.set accountId, user
     return users
-

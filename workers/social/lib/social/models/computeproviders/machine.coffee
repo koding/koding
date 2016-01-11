@@ -219,12 +219,14 @@ module.exports = class JMachine extends Module
     return newUsers
 
 
-  informAccounts = (users, machineUId, action) ->
+  informAccounts = (options) ->
+
+    { users, machineUId, action, permanent } = options
 
     users.forEach (user) ->
       user.fetchOwnAccount (err, account) ->
-        return if err or not account
-        account.sendNotification 'MachineListUpdated', { machineUId, action }
+        return  if err or not account
+        account.sendNotification 'MachineListUpdated', { machineUId, action, permanent }
 
 
   validateTarget = (target, user, callback) ->
@@ -377,7 +379,11 @@ module.exports = class JMachine extends Module
         'Machine sharing is limited up to 50 users.'
     else
       @update { $set: { users } }, (err) =>
-        informAccounts targets, @getAt('uid'), 'added'
+        informAccounts
+          users       : targets
+          machineUId  : @getAt('uid')
+          action      : 'added'
+
         callback err
 
 
@@ -391,7 +397,14 @@ module.exports = class JMachine extends Module
       users = excludeUser { users, user, permanent }
 
     @update { $set: { users } }, (err) =>
-      informAccounts targets, @getAt('uid'), 'removed'  if inform
+      if inform
+        informAccounts {
+          users       : targets
+          machineUId  : @getAt('uid')
+          action      : 'removed'
+          permanent
+        }
+
       callback err
 
 

@@ -11,22 +11,25 @@ import (
 	"time"
 
 	"koding/kites/kloud/api/sl"
+	"koding/kites/kloud/utils/res"
+
+	"golang.org/x/net/context"
 )
 
 var defaultUser = "root"
 
 func init() {
-	Main.Register(sshkeyResource)
+	Resources.Register(sshkeyResource)
 
 	if u, err := user.Current(); err == nil {
 		defaultUser = u.Username
 	}
 }
 
-var sshkeyResource = &Resource{
+var sshkeyResource = &res.Resource{
 	Name:        "sshkey",
 	Description: "Manages SSH keys.",
-	Commands: map[string]Command{
+	Commands: map[string]res.Command{
 		"list": new(sshkeyList),
 		"add":  new(sshkeyAdd),
 		"rm":   new(sshkeyRm),
@@ -50,7 +53,7 @@ func (cmd *sshkeyList) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.user, "user", "", "Filters keys by a user.")
 }
 
-func (cmd *sshkeyList) Run(c *sl.Softlayer) error {
+func (cmd *sshkeyList) Run(context.Context) error {
 	f := &sl.Filter{
 		Label: cmd.label,
 		User:  cmd.user,
@@ -62,7 +65,7 @@ func (cmd *sshkeyList) Run(c *sl.Softlayer) error {
 		}
 		f.Fingerprint = key.Fingerprint
 	}
-	keys, err := c.KeysByFilter(f)
+	keys, err := client.KeysByFilter(f)
 	if err != nil {
 		return err
 	}
@@ -89,7 +92,7 @@ func (cmd *sshkeyAdd) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.tags, "tags", "", "Tags to add for the key.")
 }
 
-func (cmd *sshkeyAdd) Run(c *sl.Softlayer) error {
+func (cmd *sshkeyAdd) Run(context.Context) error {
 	key, err := sl.ParseKey(cmd.pem)
 	if err != nil {
 		return err
@@ -103,7 +106,7 @@ func (cmd *sshkeyAdd) Run(c *sl.Softlayer) error {
 	if cmd.tags != "" {
 		key.Tags = newTags(strings.Split(cmd.tags, ","))
 	}
-	key, err = c.CreateKey(key)
+	key, err = client.CreateKey(key)
 	if err != nil {
 		return err
 	}
@@ -126,7 +129,7 @@ func (cmd *sshkeyRm) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.pem, "pem", "", "Remove public key for the given private key.")
 }
 
-func (cmd *sshkeyRm) Run(c *sl.Softlayer) error {
+func (cmd *sshkeyRm) Run(context.Context) error {
 	var ids []int
 	if cmd.id != 0 {
 		ids = append(ids, cmd.id)
@@ -139,7 +142,7 @@ func (cmd *sshkeyRm) Run(c *sl.Softlayer) error {
 		f := &sl.Filter{
 			Fingerprint: key.Fingerprint,
 		}
-		keys, err := c.KeysByFilter(f)
+		keys, err := client.KeysByFilter(f)
 		if err != nil && !sl.IsNotFound(err) {
 			return err
 		}
@@ -151,7 +154,7 @@ func (cmd *sshkeyRm) Run(c *sl.Softlayer) error {
 		return errors.New("no key found to remove")
 	}
 	for _, id := range ids {
-		if err := c.DeleteKey(id); err != nil {
+		if err := client.DeleteKey(id); err != nil {
 			return err
 		}
 		fmt.Println("Removed", id)

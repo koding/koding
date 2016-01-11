@@ -12,6 +12,7 @@ var (
 	flagWatchEvents bool
 	flagKloudAddr   string
 	flagUsername    string
+	flagDebug       bool
 )
 
 type Flag struct {
@@ -24,13 +25,14 @@ type Flag struct {
 }
 
 func NewFlag(name, synopsis string) *Flag {
-	flagSet := flag.NewFlagSet(name, flag.PanicOnError)
+	flagSet := flag.NewFlagSet(name, flag.ContinueOnError)
 	flagSet.SetOutput(ioutil.Discard)
 
 	// global subcommand flags
 	flagSet.StringVar(&flagKloudAddr, "kloud-addr", "http://127.0.0.1:5500/kite",
 		"Kloud addr to connect")
 	flagSet.BoolVar(&flagWatchEvents, "watch", false, "Watch the events coming by.")
+	flagSet.BoolVar(&flagDebug, "debug", false, "Turns on debug logging.")
 
 	f := &Flag{
 		name:     name,
@@ -77,7 +79,7 @@ func (f *Flag) ParseArgs(args []string) error {
 	}
 
 	err := f.Parse(args)
-	if err != nil {
+	if err != nil && err != flag.ErrHelp {
 		DefaultUi.Error(err.Error())
 		return err
 	}

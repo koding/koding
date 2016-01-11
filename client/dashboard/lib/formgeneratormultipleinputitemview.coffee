@@ -29,4 +29,3 @@ module.exports = class FormGeneratorMultipleInputItemView extends KDListItemView
     {{> @optionTitle}}
     {{> @removeButton}}
     """
-

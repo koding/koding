@@ -521,6 +521,7 @@ module.exports =
         .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
     else
       browser
+        .pause  3000
         .expect.element(upgradePlanButton).to.not.be.enabled
 
 

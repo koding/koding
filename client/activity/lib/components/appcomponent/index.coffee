@@ -43,5 +43,3 @@ module.exports = class ActivityAppComponent extends React.Component
       {@state.content}
       {@state.modal}
     </div>
-
-

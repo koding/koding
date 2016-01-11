@@ -61,5 +61,3 @@ module.exports = class PostPane extends React.Component
         showItemMenu={no}
       />
     </Modal>
-
-

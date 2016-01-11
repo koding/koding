@@ -145,5 +145,3 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
 beforeTests()
 
 runTests()
-
-

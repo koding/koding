@@ -92,4 +92,3 @@ module.exports = class PostingGuideLinesWidget extends React.Component
         className='ActivityGuideWidget-hideInfo'
         onClick={@bound 'hideInfoClick'}>hide info...</Link>
     </div>
-

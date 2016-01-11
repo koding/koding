@@ -41,5 +41,3 @@ module.exports = class KlientEventManager extends kd.Object
 
     # Return this, to match the EventEmitter's self return.
     return this
-
-

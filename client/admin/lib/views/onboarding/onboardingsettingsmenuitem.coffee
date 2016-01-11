@@ -9,4 +9,3 @@ module.exports = class OnboardingSettingsMenuItem extends JView
     """
       <i class="#{kd.utils.slugify title} icon"></i>#{title}
     """
-

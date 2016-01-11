@@ -5,4 +5,3 @@ module.exports = (target) ->
     whoami().profile.nickname is target.profile.nickname
   else if target?.originId?
     whoami()._id is target.originId
-

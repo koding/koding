@@ -12,4 +12,3 @@ module.exports = textHelpers =
     lastWord = textHelpers.getLastWord text
 
     return lastWord
-

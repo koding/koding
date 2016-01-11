@@ -25,5 +25,3 @@ module.exports = class KodingBotMessagePane extends PrivateMessagePane
       channel = @getData()
       channel.replies = data
       callback err, data
-
-

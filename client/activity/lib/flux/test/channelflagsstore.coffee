@@ -142,4 +142,3 @@ describe 'ChannelFlagsStore', ->
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
       expect(storeState[1].hasEditingMessage).toEqual no
-

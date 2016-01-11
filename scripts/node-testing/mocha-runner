@@ -53,8 +53,9 @@ start = ->
 
   # instantiating mocha instance
   mocha   = new Mocha
-    slow    : 200
-    timeout : 15000
+    slow     : 200
+    timeout  : 15000
+    reporter : 'koding'
 
   # adding test files which will be executed
   addTestFilesToMocha mocha, path

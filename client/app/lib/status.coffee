@@ -69,5 +69,3 @@ module.exports = class Status extends KDController
 
   sessionTokenChanged: (token) ->
     @emit "sessionTokenChanged", token
-
-

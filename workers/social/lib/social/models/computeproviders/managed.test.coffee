@@ -241,4 +241,3 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 beforeTests()
 
 runTests()
-

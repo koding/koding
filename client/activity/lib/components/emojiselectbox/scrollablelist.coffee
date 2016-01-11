@@ -127,4 +127,3 @@ module.exports = class EmojiSelectBoxScrollableList extends React.Component
 
 
 EmojiSelectBoxScrollableList.include [ImmutableRenderMixin]
-

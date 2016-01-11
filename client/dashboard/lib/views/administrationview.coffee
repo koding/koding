@@ -290,5 +290,3 @@ module.exports = class AdministrationView extends KDTabViewWithForms
       @addSubView @metaInfo = new KDView
         cssClass : 'has-markdown'
         partial  : applyMarkdown "```json \n#{info}\n```"
-
-

@@ -13,5 +13,3 @@ module.exports = class ChannelSidebarMoreLink extends SidebarMoreLink
     if totalCount > 8
     then @show()
     else @hide()
-
-

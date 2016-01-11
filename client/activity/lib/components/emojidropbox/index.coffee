@@ -78,4 +78,3 @@ class EmojiDropbox extends React.Component
 EmojiDropbox.include [ ImmutableRenderMixin ]
 
 module.exports = ScrollableDropbox EmojiDropbox
-

@@ -126,6 +126,12 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			return err
 		}
 
+		instanceType, ok := m.convertInstanceType(buildData)
+		if ok {
+			buildData.EC2Data.InstanceType = aws.String(instanceType)
+			m.Meta["instance_type"] = instanceType
+		}
+
 		meta.SourceAmi = buildData.ImageData.imageID
 		m.QueryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
@@ -144,15 +150,18 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		}
 
 		if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				m.ObjectId,
-				bson.M{"$set": bson.M{
-					"meta.instanceId": meta.InstanceId,
-					"meta.source_ami": meta.SourceAmi,
-					"meta.region":     meta.Region,
-					"queryString":     m.QueryString,
-				}},
-			)
+			updatedFields := bson.M{
+				"meta.instanceId": meta.InstanceId,
+				"meta.source_ami": meta.SourceAmi,
+				"meta.region":     meta.Region,
+				"queryString":     m.QueryString,
+			}
+
+			if ok {
+				updatedFields["meta.instance_type"] = instanceType
+			}
+
+			return c.UpdateId(m.ObjectId, bson.M{"$set": updatedFields})
 		}); err != nil {
 			return err
 		}
@@ -233,9 +242,11 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	meta.SourceAmi = aws.StringValue(instance.ImageId)
 	m.IpAddress = aws.StringValue(instance.PublicIpAddress)
 
+	m.Meta = structs.Map(meta) // update meta
+
 	// allocate and associate a new Public IP for paying users, we can do
 	// this after we create the instance
-	if m.Payment.Plan != plans.Free.Name {
+	if plan, ok := plans.Plans[m.Payment.Plan]; ok && plan != plans.Free {
 		m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
 
 		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(meta.InstanceId)
@@ -245,8 +256,6 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			m.IpAddress = elasticIp
 		}
 	}
-
-	m.Meta = structs.Map(meta) // update meta
 
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
 
@@ -451,6 +460,17 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 	}, nil
 }
 
+func (m *Machine) convertInstanceType(data *BuildData) (string, bool) {
+	switch {
+	// Ensure instances for old free users or users that downgraded from paid
+	// plan are converted from t2.micro to t2.nano.
+	case plans.Plans[m.Payment.Plan] == plans.Free && aws.StringValue(data.EC2Data.InstanceType) != "t2.nano":
+		return "t2.nano", true
+	default:
+		return "", false
+	}
+}
+
 // buildData returns all necessary data that is needed to build a machine.
 func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	// get all subnets belonging to Kloud
@@ -528,12 +548,6 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 			imageData.blockDeviceMapping,
 		},
 		UserData: aws.String(base64.StdEncoding.EncodeToString(userdata)),
-	}
-
-	// On build or rebuild ensure instances for old free users are
-	// converted from t2.micro to t2.nano.
-	if m.Payment.Plan == plans.Free.Name {
-		ec2Data.InstanceType = aws.String("t2.nano")
 	}
 
 	// pass publicKey if only it's available
@@ -707,6 +721,7 @@ func (m *Machine) addDomainAndTags() error {
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err)
+			continue
 		}
 		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err)

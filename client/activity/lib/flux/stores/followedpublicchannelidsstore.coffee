@@ -51,4 +51,3 @@ module.exports = class FollowedPublicChannelIdsStore extends KodingFluxStore
   handleUnfollowChannelSuccess: (followedChannelIds, { channelId }) ->
 
     followedChannelIds.remove channelId
-
