@@ -47,7 +47,7 @@ func TestChannelHistory(t *testing.T) {
 						Convey("Create posts with created participant", func() {
 							channel := channel
 							for i := 0; i < 10; i++ {
-								post, err := rest.CreatePost(channel.Id, channelParticipant.AccountId, ses.ClientId)
+								post, err := rest.CreatePost(channel.Id, ses.ClientId)
 								So(err, ShouldBeNil)
 								So(post, ShouldNotBeNil)
 								So(post.Id, ShouldNotEqual, 0)
@@ -130,7 +130,7 @@ func TestChannelHistory(t *testing.T) {
 							channel := channel
 							for i := 0; i < 5; i++ {
 								body := fmt.Sprintf("body%d", i)
-								post, err := rest.CreatePostWithBodyAndAuth(channel.Id, channelParticipant.AccountId, body, ses.ClientId)
+								post, err := rest.CreatePostWithBodyAndAuth(channel.Id, body, ses.ClientId)
 								// we need to wait while posting messages
 								// if we dont use time sleep, Added_at field of the messages is
 								// gonna be equal and this behavior is not expected situation
@@ -142,13 +142,13 @@ func TestChannelHistory(t *testing.T) {
 								So(post.Body, ShouldNotEqual, "")
 							}
 							bodyMes := "postMid message"
-							postMid, err := rest.CreatePostWithBodyAndAuth(channel.Id, channelParticipant.AccountId, bodyMes, ses.ClientId)
+							postMid, err := rest.CreatePostWithBodyAndAuth(channel.Id, bodyMes, ses.ClientId)
 							So(postMid, ShouldNotBeNil)
 							So(err, ShouldBeNil)
 							for i := 5; i < 10; i++ {
 								time.Sleep(1000 * time.Millisecond)
 								body := fmt.Sprintf("body%d", i)
-								post, err := rest.CreatePostWithBodyAndAuth(channel.Id, channelParticipant.AccountId, body, ses.ClientId)
+								post, err := rest.CreatePostWithBodyAndAuth(channel.Id, body, ses.ClientId)
 								So(err, ShouldBeNil)
 								So(post, ShouldNotBeNil)
 								So(post.Id, ShouldNotEqual, 0)

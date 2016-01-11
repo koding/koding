@@ -34,7 +34,7 @@ func TestInteractionLikedMessages(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(groupChannel, ShouldNotBeNil)
 
-			post, err := rest.CreatePost(groupChannel.Id, account.Id, ses.ClientId)
+			post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 
