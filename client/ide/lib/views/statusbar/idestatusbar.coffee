@@ -29,7 +29,6 @@ module.exports = class IDEStatusBar extends KDView
     @on 'ParticipantUnwatched', @bound 'decorateUnwatchedAvatars'
 
     { mainController, router, appManager } = kd.singletons
-    collabDisabled = mainController.isFeatureDisabled 'collaboration'
 
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
 
@@ -68,11 +67,13 @@ module.exports = class IDEStatusBar extends KDView
         return  if @hasClass 'loading'
         return  unless appManager.frontApp.isMachineRunning()
 
-        appManager.tell 'IDE', 'showChat'  unless collabDisabled
+        appManager.tell 'IDE', 'showChat'  unless @_collabDisabled
 
-    @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr'
+    @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr hidden'
 
-    @avatars.hide()  if collabDisabled
+    mainController.isFeatureDisabled 'collaboration', (collabDisabled) =>
+      @_collabDisable = collabDisabled
+      @avatars.show()  unless collabDisabled
 
 
   showInformation: ->
