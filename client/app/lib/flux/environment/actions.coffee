@@ -22,21 +22,26 @@ _bindMachineEvents = (environmentData) ->
 
   machines = reactor.evaluate getters.machinesWithWorkspaces
 
-  machines.map (machine, id) ->
+  computeController.ready ->
 
-    return  if _eventsCache.machine[id]
+    machines.map (machine, id) ->
+      return  if _eventsCache.machine[id]
 
-    _eventsCache.machine[id] = yes
+      _eventsCache.machine[id] = yes
 
-    computeController.on "public-#{id}", (event) ->
+      computeController.on "public-#{id}", (event) ->
+        reactor.dispatch actions.MACHINE_UPDATED, { id, event }
 
-      reactor.dispatch actions.MACHINE_UPDATED, { id, event }
+      computeController.on "revive-#{id}", (newMachine) ->
+        return loadMachines()  unless newMachine
+        reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
 
-    computeController.on "revive-#{id}", (newMachine) ->
+      if stack = computeController.findStackFromMachineId id
+        computeController.on "apply-#{stack._id}", (event) ->
+          reactor.dispatch actions.MACHINE_UPDATED, { id, event }
 
-      return loadMachines()  unless newMachine
-
-      reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
+        if stack.status?.state is Machine.State.Building
+          computeController.eventListener.addListener 'apply', stack._id
 
 
   # TODO: when a machine shared/collaborate, SharedMachineInvitation and
