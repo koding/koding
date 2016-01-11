@@ -29,7 +29,11 @@ func Send(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Con
 	return response.HandleResultAndError(req.Send())
 }
 
-func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func List(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
 	q := request.GetQuery(u)
 
 	channelList, err := getPrivateChannels(q)
@@ -40,7 +44,12 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	return response.HandleResultAndError(buildContainer(channelList, q))
 }
 
-func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Search(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	q := request.GetQuery(u)
 
 	if q.Name == "" {
@@ -55,7 +64,12 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return response.HandleResultAndError(buildContainer(channelList, q))
 }
 
-func Count(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Count(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	q := request.GetQuery(u)
 
 	query := getUserChannelsQuery(q)
