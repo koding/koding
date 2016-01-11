@@ -40,9 +40,6 @@ _bindMachineEvents = (environmentData) ->
         computeController.on "apply-#{stack._id}", (event) ->
           reactor.dispatch actions.MACHINE_UPDATED, { id, event }
 
-        if stack.status?.state is Machine.State.Building
-          computeController.eventListener.addListener 'apply', stack._id
-
 
   # TODO: when a machine shared/collaborate, SharedMachineInvitation and
   # CollaborationInvitation event listeners trigger two times.
