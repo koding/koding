@@ -53,13 +53,13 @@ func InstallCommandFactory(c *cli.Context) int {
 
 	// Now that we created the logfile, set our logger handler to use that newly created
 	// file, so that we can log errors during installation.
-	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	f, err := createLogFile(LogFilePath)
 	if err != nil {
-		fmt.Println(`Error: Unable to create log files.`)
-		return 1
+		fmt.Println(`Error: Unable to open log files.`)
+	} else {
+		log.SetHandler(logging.NewWriterHandler(f))
+		log.Infof("Installation created log file at %q", LogFilePath)
 	}
-	log.SetHandler(logging.NewWriterHandler(f))
-	log.Infof("Installation created log file")
 
 	authToken := c.Args().Get(0)
 
@@ -244,4 +244,22 @@ func InstallCommandFactory(c *cli.Context) int {
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", KlientName)
 
 	return 0
+}
+
+// createLogFile opens the given path for writing, sets the permissions,
+// and returns it. Creating it if needed. The caller is responsible for closing the
+// file when no longer needed.
+func createLogFile(p string) (*os.File, error) {
+	f, err := os.OpenFile(p, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := f.Chmod(0666); err != nil {
+		// Close the file, since it opened properly but we failed to Chmod it.
+		f.Close()
+		return nil, err
+	}
+
+	return f, nil
 }
