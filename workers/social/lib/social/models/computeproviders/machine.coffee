@@ -183,7 +183,7 @@ module.exports = class JMachine extends Module
 
   excludeUser = (options) ->
 
-    { users, user, permanent } = options
+    { users, user, permanent, force } = options
 
     userId   = user.getId()
     newUsers = []
@@ -191,7 +191,7 @@ module.exports = class JMachine extends Module
     for u in users
       unless userId.equals u.id
         newUsers.push u
-      else if not permanent and u.permanent
+      else if not permanent and u.permanent and not force
         newUsers.push u
 
     return newUsers
@@ -389,12 +389,12 @@ module.exports = class JMachine extends Module
 
   removeUsers: (options, callback) ->
 
-    { targets, permanent, inform } = options
+    { targets, permanent, inform, force } = options
 
     users = @users.splice 0
 
     for user in targets
-      users = excludeUser { users, user, permanent }
+      users = excludeUser { users, user, permanent, force }
 
     @update { $set: { users } }, (err) =>
       if inform
