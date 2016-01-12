@@ -3,11 +3,15 @@ React      = require 'kd-react'
 Tabs       = require 'activity/constants/sidebarpublicchannelstabs'
 classnames = require 'classnames'
 
-module.exports = class TabView extends React.Component
+module.exports = class BrowsePublicChannelsModalTabView extends React.Component
+
+  @propTypes =
+    className : React.PropTypes.string
+    activeTab : React.PropTypes.string
 
   @defaultProps =
-    className: ''
-    activeTab: ''
+    className : ''
+    activeTab : ''
 
   onYourChannelsClick: -> @props.onChange Tabs.YourChannels
 
