@@ -1,5 +1,5 @@
 machineRuleChecker = require 'app/util/machinerulechecker'
-getMachineOwner    = require 'app/util/getmachineowner'
+getMachineOwner    = require 'app/util/getMachineOwner'
 
 { allChannels }    = require 'activity/flux/getters'
 
