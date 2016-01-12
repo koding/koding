@@ -14,13 +14,13 @@ import (
 // UpdateCommand updates this binary if there's an update available.
 func UpdateCommand(c *cli.Context) int {
 	// Create and open the log file, to be safe in case it's missing.
-	f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	f, err := createLogFile(LogFilePath)
 	if err != nil {
 		fmt.Println(`Error: Unable to open log files.`)
-		return 1
+	} else {
+		log.SetHandler(logging.NewWriterHandler(f))
+		log.Infof("Update created log file")
 	}
-	log.SetHandler(logging.NewWriterHandler(f))
-	log.Infof("Update created log file")
 
 	checkUpdate := NewCheckUpdate()
 
