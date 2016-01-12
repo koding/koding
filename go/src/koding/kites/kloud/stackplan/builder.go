@@ -8,6 +8,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/utils/object"
 
 	"github.com/koding/logging"
@@ -19,14 +20,14 @@ import (
 // KodingMeta represents "koding_"-prefixed variables injected into Terraform
 // template.
 type KodingMeta struct {
-	Email     string `stackplan:"user_email"`
-	Username  string `stackplan:"user_username"`
-	Nickname  string `stackplan:"account_profile_nickname"`
-	Firstname string `stackplan:"account_profile_firstName"`
-	Lastname  string `stackplan:"account_profile_lastName"`
-	Hash      string `stackplan:"account_profile_hash"`
-	Title     string `stackplan:"group_title"`
-	Slug      string `stackplan:"group_slug"`
+	Email     string `hcl:"user_email"`
+	Username  string `hcl:"user_username"`
+	Nickname  string `hcl:"account_profile_nickname"`
+	Firstname string `hcl:"account_profile_firstName"`
+	Lastname  string `hcl:"account_profile_lastName"`
+	Hash      string `hcl:"account_profile_hash"`
+	Title     string `hcl:"group_title"`
+	Slug      string `hcl:"group_slug"`
 }
 
 // CustomMeta represents private variables injected into Terraform template.
@@ -57,7 +58,7 @@ func NewBuilder(log logging.Logger) *Builder {
 	return &Builder{
 		Log: log,
 		Object: &object.Builder{
-			Tag:       "stackplan",
+			Tag:       "hcl",
 			Sep:       "_",
 			Recursive: true,
 		},
@@ -139,6 +140,8 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 	}); err != nil {
 		return err
 	}
+
+	b.Log.Debug("Fetched machines: %+v", machines)
 
 	validUsers := make(map[string]models.MachineUser, 0)
 	validMachines := make(map[string]*models.Machine, 0)
@@ -333,10 +336,16 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 		b.Log.Debug("%s(%s): Credential metadata: %+v", cred.Provider, cred.Identifier, cred.Meta)
 
+		if validator, ok := cred.Meta.(kloud.Validator); ok {
+			if err := validator.Valid(); err != nil {
+				return fmt.Errorf("invalid credential %q: %s", cred.Identifier, err)
+			}
+		}
+
 		b.Credentials = append(b.Credentials, cred)
 	}
 
-	b.Log.Debug("Built credentials: len(credentials)=%d", len(b.Credentials))
+	b.Log.Debug("Built credentials: %+v", b.Credentials)
 
 	return nil
 }

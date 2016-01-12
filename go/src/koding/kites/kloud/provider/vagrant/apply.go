@@ -1,14 +1,12 @@
-package awsprovider
+package vagrant
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -21,7 +19,6 @@ import (
 	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
-	"gopkg.in/mgo.v2/bson"
 )
 
 // Apply
@@ -172,23 +169,7 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 
 	s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
-	for _, cred := range s.Builder.Credentials {
-		// rest is aws related
-		if cred.Provider != "aws" {
-			continue
-		}
-
-		meta := cred.Meta.(*AwsMeta)
-		if meta.Region == "" {
-			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
-		}
-
-		if err := s.SetAwsRegion(meta.Region); err != nil {
-			return err
-		}
-	}
-
-	if _, err := s.InjectAWSData(ctx, username); err != nil {
+	if _, _, err := s.InjectVagrantData(ctx, username); err != nil {
 		return err
 	}
 
@@ -286,33 +267,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 
 	s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
-	var region string
-	for _, cred := range s.Builder.Credentials {
-		// rest is aws related
-		if cred.Provider != "aws" {
-			continue
-		}
-
-		meta := cred.Meta.(*AwsMeta)
-		if meta.Region == "" {
-			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
-		}
-
-		// check if this a second round and it's using a different region, we
-		// shouldn't allow it.
-		if region != "" && region != meta.Region {
-			return fmt.Errorf("multiple credentials with multiple regions detected: %s and %s. Aborting",
-				region, meta.Region)
-		}
-
-		region = meta.Region
-
-		if err := s.SetAwsRegion(region); err != nil {
-			return err
-		}
-	}
-
-	kiteIDs, err := s.InjectAWSData(ctx, username)
+	hostQueryString, kiteIDs, err := s.InjectVagrantData(ctx, username)
 	if err != nil {
 		return err
 	}
@@ -364,8 +319,6 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 		return err
 	}
 
-	fmt.Printf("state = %+v\n", state)
-
 	close(done)
 
 	ev.Push(&eventer.Event{
@@ -387,14 +340,13 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 	}
 
 	s.Log.Debug("Machines from state: %+v", output)
-	s.Log.Debug("Build region: %+v", region)
-
-	output.AppendRegion(region)
 
 	if len(kiteIDs) != 0 {
 		s.Log.Debug("Build data kiteIDS: %+v", kiteIDs)
 		output.AppendQueryString(kiteIDs)
 	}
+
+	output.AppendHostQueryString(hostQueryString)
 
 	d, err := json.MarshalIndent(output, "", " ")
 	if err != nil {
@@ -410,50 +362,5 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 		Status:     machinestate.Building,
 	})
 
-	return updateMachines(ctx, output, s.Builder.Machines)
-}
-
-func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine) error {
-	for _, machine := range jMachines {
-		label := machine.Label
-		if l, ok := machine.Meta["assignedLabel"]; ok {
-			if ll, ok := l.(string); ok {
-				label = ll
-			}
-		}
-
-		tf, err := data.WithLabel(label)
-		if err != nil {
-			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
-		}
-
-		if tf.Provider == "aws" {
-			if err := updateAWS(ctx, tf, machine.ObjectId); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func updateAWS(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
-	size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
-	if err != nil {
-		return err
-	}
-
-	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
-		"provider":           tf.Provider,
-		"meta.region":        tf.Region,
-		"queryString":        tf.QueryString,
-		"ipAddress":          tf.Attributes["public_ip"],
-		"meta.instanceId":    tf.Attributes["id"],
-		"meta.instance_type": tf.Attributes["instance_type"],
-		"meta.source_ami":    tf.Attributes["ami"],
-		"meta.storage_size":  size,
-		"status.state":       machinestate.Running.String(),
-		"status.modifiedAt":  time.Now().UTC(),
-		"status.reason":      "Created with kloud.apply",
-	}})
+	return s.updateMachines(ctx, output, s.Builder.Machines)
 }

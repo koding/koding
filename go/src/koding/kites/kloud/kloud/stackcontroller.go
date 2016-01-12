@@ -36,7 +36,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		return nil, NewError(ErrNoArguments)
 	}
 
-	k.Log.Debug("Called %s with %q", r.Method, r.Args.Raw)
+	k.Log.Warning("Called %s with %q", r.Method, r.Args.Raw)
 
 	var argCommon struct {
 		Provider  string `json:"provider"`

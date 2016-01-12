@@ -31,6 +31,7 @@ import (
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
+	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/userdata"
 
@@ -277,6 +278,17 @@ func newKite(conf *Config) *kite.Kite {
 		Userdata:   userdata,
 	}
 
+	/// VAGRANT PROVIDER ///
+
+	vagrantProvider := &vagrant.Provider{
+		DB:         db,
+		Log:        common.NewLogger("kloud-vagrant", conf.DebugMode),
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		Kite:       k,
+		Userdata:   userdata,
+	}
+
 	/// SOFTLAYER PROVIDER ///
 
 	slClient := sl.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
@@ -341,6 +353,11 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	err = kld.AddProvider("aws", awsProvider)
+	if err != nil {
+		panic(err)
+	}
+
+	err = kld.AddProvider("vagrant", vagrantProvider)
 	if err != nil {
 		panic(err)
 	}
