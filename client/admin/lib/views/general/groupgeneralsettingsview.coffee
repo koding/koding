@@ -29,9 +29,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
     @forms = {}
 
-    @_canEditGroup = ['admin', 'owner'].reduce (prole, role) ->
-      prole or (role in _globals.config.roles)
-    , no
+    @_canEditGroup = kd.singletons.groupsController.canEditGroup()
 
     @createGeneralSettingsForm()
     @createAvatarUploadForm()  if @_canEditGroup

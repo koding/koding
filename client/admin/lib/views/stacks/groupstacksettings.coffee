@@ -24,6 +24,8 @@ module.exports = class GroupStackSettings extends kd.View
 
     kd.singletons.appStorageController.storage 'Ace', '1.0.1'
 
+    @_canEditGroup = kd.singletons.groupsController.canEditGroup()
+
     @on 'SubTabRequested', (action, identifier) ->
       return  unless action
 
@@ -67,8 +69,10 @@ module.exports = class GroupStackSettings extends kd.View
       return  unless stackTemplate
       @setRoute "/edit/#{stackTemplate._id}"
 
-    @initialView.on 'CreateNewStack',   @lazyBound 'setRoute', '/new'
-    @initialView.on 'NoTemplatesFound', @lazyBound 'setRoute', '/welcome'
+    @initialView.on 'CreateNewStack', @lazyBound 'setRoute', '/new'
+
+    if @_canEditGroup
+      @initialView.on 'NoTemplatesFound', @lazyBound 'setRoute', '/welcome'
 
 
   requestEditStack: (stackTemplate) ->
