@@ -1,4 +1,4 @@
-package kloud
+package stackplan
 
 import (
 	"encoding/base64"
@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
@@ -29,6 +28,18 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+type AwsBootstrapOutput struct {
+	ACL       string `json:"acl" mapstructure:"acl"`
+	CidrBlock string `json:"cidr_block" mapstructure:"cidr_block"`
+	IGW       string `json:"igw" mapstructure:"igw"`
+	KeyPair   string `json:"key_pair" mapstructure:"key_pair"`
+	RTB       string `json:"rtb" mapstructure:"rtb"`
+	SG        string `json:"sg" mapstructure:"sg"`
+	Subnet    string `json:"subnet" mapstructure:"subnet"`
+	VPC       string `json:"vpc" mapstructure:"vpc"`
+	AMI       string `json:"ami" mapstructure:"ami"`
+}
+
 // credPermissions defines the permission grid for the given method
 var (
 	credPermissionsMu sync.Mutex // protects credPermissions
@@ -40,7 +51,7 @@ var (
 	}
 )
 
-type TerraformMachine struct {
+type Machine struct {
 	Provider    string            `json:"provider"`
 	Label       string            `json:"label"`
 	Region      string            `json:"region"`
@@ -48,27 +59,40 @@ type TerraformMachine struct {
 	Attributes  map[string]string `json:"attributes"`
 }
 
-type Machines struct {
-	Machines []TerraformMachine `json:"machines"`
+// Stack is struct that contains all necessary information Apply needs to
+// perform successfully.
+type Stack struct {
+	// jMachine ids
+	Machines []string
+
+	// jCredential provider to identifiers
+	Credentials map[string][]string
+
+	// Terraform template
+	Template string
 }
 
-type buildData struct {
+type Machines struct {
+	Machines []Machine `json:"machines"`
+}
+
+type BuildData struct {
 	Template string
 	KiteIds  map[string]string
 }
 
-type kodingData struct {
+type KodingData struct {
 	Account *models.Account `structs:"account"`
 	Group   *models.Group   `structs:"group"`
 	User    *models.User    `structs:"user"`
 }
 
-type terraformData struct {
-	Creds      []*terraformCredential
-	KodingData *kodingData
+type Data struct {
+	Creds      []*Credential
+	KodingData *KodingData
 }
 
-type terraformCredential struct {
+type Credential struct {
 	Provider   string
 	Identifier string
 	Data       map[string]string `mapstructure:"data"`
@@ -98,23 +122,23 @@ func (m *Machines) AppendQueryString(queryStrings map[string]string) {
 }
 
 // WithLabel returns the machine with the associated label
-func (m *Machines) WithLabel(label string) (TerraformMachine, error) {
+func (m *Machines) WithLabel(label string) (Machine, error) {
 	for _, machine := range m.Machines {
 		if machine.Label == label {
 			return machine, nil
 		}
 	}
 
-	return TerraformMachine{}, fmt.Errorf("couldn't find machine with label '%s", label)
+	return Machine{}, fmt.Errorf("couldn't find machine with label '%s", label)
 }
 
-func machinesFromState(state *terraform.State) (*Machines, error) {
+func MachinesFromState(state *terraform.State) (*Machines, error) {
 	if state.Modules == nil {
 		return nil, errors.New("state modules is empty")
 	}
 
 	out := &Machines{
-		Machines: make([]TerraformMachine, 0),
+		Machines: make([]Machine, 0),
 	}
 
 	for _, m := range state.Modules {
@@ -141,7 +165,7 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 				attrs[key] = val
 			}
 
-			out.Machines = append(out.Machines, TerraformMachine{
+			out.Machines = append(out.Machines, Machine{
 				Provider:   provider,
 				Label:      label,
 				Attributes: attrs,
@@ -152,7 +176,7 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 	return out, nil
 }
 
-func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
+func MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 	if plan.Diff == nil {
 		return nil, errors.New("plan diff is empty")
 	}
@@ -162,7 +186,7 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 	}
 
 	out := &Machines{
-		Machines: make([]TerraformMachine, 0),
+		Machines: make([]Machine, 0),
 	}
 
 	for _, d := range plan.Diff.Modules {
@@ -189,7 +213,7 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				continue
 			}
 
-			out.Machines = append(out.Machines, TerraformMachine{
+			out.Machines = append(out.Machines, Machine{
 				Provider:   provider,
 				Label:      label,
 				Attributes: attrs,
@@ -216,7 +240,7 @@ func parseResource(resource string) (string, string, string, error) {
 	return provider, resourceType, label, nil
 }
 
-func injectVagrantData(ctx context.Context, template *terraformTemplate, username string) (*buildData, error) {
+func InjectVagrantData(ctx context.Context, template *Template, username string) (*BuildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -296,14 +320,14 @@ func injectVagrantData(ctx context.Context, template *terraformTemplate, usernam
 		return nil, err
 	}
 
-	b := &buildData{
+	b := &BuildData{
 		KiteIds: kiteIds,
 	}
 
 	return b, nil
 }
 
-func injectAWSData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
+func InjectAWSData(ctx context.Context, template *Template, username string, data *Data) (*BuildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -446,14 +470,14 @@ func injectAWSData(ctx context.Context, template *terraformTemplate, username st
 		return nil, err
 	}
 
-	b := &buildData{
+	b := &BuildData{
 		KiteIds: kiteIds,
 	}
 
 	return b, nil
 }
 
-func varsFromCredentials(creds *terraformData) map[string]string {
+func varsFromCredentials(creds *Data) map[string]string {
 	vars := make(map[string]string, 0)
 	for _, cred := range creds.Creds {
 		for k, v := range cred.Data {
@@ -463,7 +487,7 @@ func varsFromCredentials(creds *terraformData) map[string]string {
 	return vars
 }
 
-func checkKlients(ctx context.Context, kiteIds map[string]string) error {
+func CheckKlients(ctx context.Context, kiteIds map[string]string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
@@ -502,7 +526,7 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	return multiErrors
 }
 
-func fetchTerraformData(method, username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
+func FetchTerraformData(method, username, groupname string, identifiers []string) (*Data, error) {
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
@@ -583,13 +607,13 @@ func fetchTerraformData(method, username, groupname string, db *mongodb.MongoDB,
 	}
 
 	// 5- return list of keys. We only support aws for now
-	data := &terraformData{
-		KodingData: &kodingData{
+	data := &Data{
+		KodingData: &KodingData{
 			Account: account,
 			Group:   group,
 			User:    user,
 		},
-		Creds: make([]*terraformCredential, 0),
+		Creds: make([]*Credential, 0),
 	}
 
 	for _, c := range credentialData {
@@ -598,7 +622,7 @@ func fetchTerraformData(method, username, groupname string, db *mongodb.MongoDB,
 			return nil, fmt.Errorf("provider is not found for identifer: %s", c.Identifier)
 		}
 
-		cred := &terraformCredential{
+		cred := &Credential{
 			Provider:   provider,
 			Identifier: c.Identifier,
 		}
@@ -616,12 +640,12 @@ func fetchTerraformData(method, username, groupname string, db *mongodb.MongoDB,
 
 // isVariable checkes whether the given string is a template variable, such as:
 // "${var.region}"
-func isVariable(v string) bool {
+func IsVariable(v string) bool {
 	return v[0] == '$'
 }
 
-// parseAccountID parses an AWS arn string to get the Account ID
-func parseAccountID(arn string) (string, error) {
+// ParseAccountID parses an AWS arn string to get the Account ID
+func ParseAccountID(arn string) (string, error) {
 	// example arn string: "arn:aws:iam::213456789:user/username"
 	// returns: 213456789.
 	splitted := strings.Split(strings.TrimPrefix(arn, "arn:aws:iam::"), ":")
@@ -632,8 +656,8 @@ func parseAccountID(arn string) (string, error) {
 	return splitted[0], nil
 }
 
-// flattenValues converts the values of a map[string][]string to a []string slice.
-func flattenValues(kv map[string][]string) []string {
+// FlattenValues converts the values of a map[string][]string to a []string slice.
+func FlattenValues(kv map[string][]string) []string {
 	values := []string{}
 
 	for _, val := range kv {

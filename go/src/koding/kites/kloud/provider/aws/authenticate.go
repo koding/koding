@@ -1,54 +1,34 @@
-package kloud
+package awsprovider
 
 import (
-	"errors"
 	"fmt"
-
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stackplan"
+
+	"golang.org/x/net/context"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/koding/kite"
-	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2/bson"
 )
 
-type AuthenticateRequest struct {
-	// Identifiers contains identifiers to be authenticated
-	Identifiers []string `json:"identifiers"`
-
-	GroupName string `json:"groupName"`
-}
-
-func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
-	if r.Args == nil {
-		return nil, NewError(ErrNoArguments)
-	}
-
-	var args *TerraformBootstrapRequest
-	if err := r.Args.One().Unmarshal(&args); err != nil {
+// Authenticate
+func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
+	var arg kloud.AuthenticateRequest
+	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
 
-	if len(args.Identifiers) == 0 {
-		return nil, errors.New("identifiers are not passed")
+	if err := arg.Valid(); err != nil {
+		return nil, err
 	}
 
-	if args.GroupName == "" {
-		return nil, errors.New("group name is not passed")
-	}
-
-	ctx := k.ContextCreator(context.Background())
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("session context is not passed")
-	}
-
-	data, err := fetchTerraformData(r.Method, r.Username, args.GroupName, sess.DB, args.Identifiers)
+	data, err := stackplan.FetchTerraformData(s.Req.Method, s.Req.Username, arg.GroupName, arg.Identifiers)
 	if err != nil {
 		return nil, err
 	}
+	s.Log.Debug("Fetched terraform data: %+v", data)
 
 	result := make(map[string]bool, 0)
 
@@ -82,6 +62,8 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 
 		result[cred.Identifier] = verified
 	}
+
+	s.Log.Debug("Authenticate credentials result: %+v", result)
 
 	return result, nil
 }

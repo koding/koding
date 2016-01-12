@@ -1,4 +1,4 @@
-package kloud
+package stackplan
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform/config/lang"
 )
 
-type terraformTemplate struct {
+type Template struct {
 	Resource map[string]interface{} `json:"resource,omitempty"`
 	Provider map[string]interface{} `json:"provider,omitempty"`
 	Variable map[string]interface{} `json:"variable,omitempty"`
@@ -27,8 +27,8 @@ type terraformTemplate struct {
 
 // newTerraformTemplate parses the content and returns a terraformTemplate
 // instance
-func newTerraformTemplate(content string) (*terraformTemplate, error) {
-	template := &terraformTemplate{
+func ParseTemplate(content string) (*Template, error) {
+	template := &Template{
 		Resource: make(map[string]interface{}),
 		Provider: make(map[string]interface{}),
 		Variable: make(map[string]interface{}),
@@ -49,7 +49,7 @@ func newTerraformTemplate(content string) (*terraformTemplate, error) {
 
 // hclParse parses the given JSON input and updates the internal hcl object
 // representation
-func (t *terraformTemplate) hclParse(jsonIn string) error {
+func (t *Template) hclParse(jsonIn string) error {
 	file, err := parser.Parse([]byte(jsonIn))
 	if err != nil {
 		return err
@@ -65,8 +65,8 @@ func (t *terraformTemplate) hclParse(jsonIn string) error {
 }
 
 // hclUpdate update the internal hcl object
-func (t *terraformTemplate) hclUpdate() error {
-	out, err := t.jsonOutput()
+func (t *Template) hclUpdate() error {
+	out, err := t.JsonOutput()
 	if err != nil {
 		return err
 	}
@@ -75,27 +75,32 @@ func (t *terraformTemplate) hclUpdate() error {
 }
 
 // DecodeProvider decodes the provider block to the given out struct
-func (t *terraformTemplate) DecodeProvider(out interface{}) error {
+func (t *Template) DecodeProvider(out interface{}) error {
 	return t.decode("provider", out)
 }
 
 // DecodeResource decodes the resource block to the given out struct
-func (t *terraformTemplate) DecodeResource(out interface{}) error {
+func (t *Template) DecodeResource(out interface{}) error {
 	return t.decode("resource", out)
 }
 
 // DecodeVariable decodes the resource block to the given out struct
-func (t *terraformTemplate) DecodeVariable(out interface{}) error {
+func (t *Template) DecodeVariable(out interface{}) error {
 	return t.decode("variable", out)
 }
 
-func (t *terraformTemplate) decode(resource string, out interface{}) error {
+// Flush updates the template internal representation.
+func (t *Template) Flush() error {
+	return t.hclUpdate()
+}
+
+func (t *Template) decode(resource string, out interface{}) error {
 	obj := t.node.Filter(resource)
 	return hcl.DecodeObject(out, obj)
 }
 
-func (t *terraformTemplate) String() string {
-	out, err := t.jsonOutput()
+func (t *Template) String() string {
+	out, err := t.JsonOutput()
 	if err != nil {
 		return "<ERROR>"
 	}
@@ -103,8 +108,8 @@ func (t *terraformTemplate) String() string {
 	return out
 }
 
-// jsonOutput returns a JSON formatted output of the template
-func (t *terraformTemplate) jsonOutput() (string, error) {
+// JsonOutput returns a JSON formatted output of the template
+func (t *Template) JsonOutput() (string, error) {
 	out, err := json.MarshalIndent(&t, "", "  ")
 	if err != nil {
 		return "", err
@@ -125,8 +130,8 @@ func (t *terraformTemplate) jsonOutput() (string, error) {
 // []string{"foo", "bar"}. The returned list only contains unique names, so any
 // user variable which declared multiple times is neglected, only the last
 // occurence is being added.
-func (t *terraformTemplate) detectUserVariables() ([]string, error) {
-	out, err := t.jsonOutput()
+func (t *Template) detectUserVariables() ([]string, error) {
+	out, err := t.JsonOutput()
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +173,7 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 
 // shadowVariables shadows the given variables with the given holder. Variables
 // need to be in interpolation form, i.e: ${var.foo}
-func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error {
+func (t *Template) shadowVariables(holder string, vars ...string) error {
 	for i, item := range t.node.Items {
 		key := item.Keys[0].Token.Text
 		switch key {
@@ -199,7 +204,7 @@ func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error
 	return hcl.DecodeObject(&t.Resource, t.node.Filter("resource"))
 }
 
-func (t *terraformTemplate) setAwsRegion(region string) error {
+func (t *Template) SetAwsRegion(region string) error {
 	var provider struct {
 		Aws struct {
 			Region    string
@@ -218,7 +223,7 @@ func (t *terraformTemplate) setAwsRegion(region string) error {
 			"access_key": provider.Aws.AccessKey,
 			"secret_key": provider.Aws.SecretKey,
 		}
-	} else if !isVariable(provider.Aws.Region) && provider.Aws.Region != region {
+	} else if !IsVariable(provider.Aws.Region) && provider.Aws.Region != region {
 		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
 			provider.Aws.Region, region)
 	}
@@ -228,7 +233,7 @@ func (t *terraformTemplate) setAwsRegion(region string) error {
 
 // fillVariables finds variables declared with the given prefix and fills the
 // template with empty variables.
-func (t *terraformTemplate) fillVariables(prefix string) error {
+func (t *Template) FillVariables(prefix string) error {
 	vars, err := t.detectUserVariables()
 	if err != nil {
 		return err
@@ -241,10 +246,10 @@ func (t *terraformTemplate) fillVariables(prefix string) error {
 		}
 	}
 
-	return t.injectCustomVariables(prefix, fillVarData)
+	return t.InjectCustomVariables(prefix, fillVarData)
 }
 
-func (t *terraformTemplate) injectCustomVariables(prefix string, data map[string]string) error {
+func (t *Template) InjectCustomVariables(prefix string, data map[string]string) error {
 	for key, val := range data {
 		varName := fmt.Sprintf("%s_%s", prefix, key)
 		t.Variable[varName] = map[string]interface{}{
@@ -255,7 +260,7 @@ func (t *terraformTemplate) injectCustomVariables(prefix string, data map[string
 	return t.hclUpdate()
 }
 
-func (t *terraformTemplate) injectKodingVariables(data *kodingData) error {
+func (t *Template) InjectKodingVariables(data *KodingData) error {
 	var properties = []struct {
 		collection string
 		fieldToAdd map[string]bool

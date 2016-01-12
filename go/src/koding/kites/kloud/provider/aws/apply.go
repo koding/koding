@@ -1,4 +1,4 @@
-package kloud
+package awsprovider
 
 import (
 	"encoding/json"
@@ -10,72 +10,33 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 
-	"github.com/koding/kite"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Stack is struct that contains all necessary information Apply needs to
-// perform successfully.
-type Stack struct {
-	// jMachine ids
-	Machines []string
-
-	// jCredential provider to identifiers
-	Credentials map[string][]string
-
-	// Terraform template
-	Template string
-}
-
-type TerraformApplyRequest struct {
-	StackId string `json:"stackId"`
-
-	GroupName string `json:"groupName"`
-
-	// Destroy, if enabled, destroys the terraform tempalte associated with the
-	// given StackId.
-	Destroy bool
-}
-
-func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
-	if r.Args == nil {
-		return nil, NewError(ErrNoArguments)
-	}
-
-	var args *TerraformApplyRequest
-	if err := r.Args.One().Unmarshal(&args); err != nil {
+// Apply
+func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
+	var arg kloud.ApplyRequest
+	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
 
-	if args.StackId == "" {
-		return nil, errors.New("stackId is not passed")
+	if err := arg.Valid(); err != nil {
+		return nil, err
 	}
 
-	if args.GroupName == "" {
-		return nil, errors.New("group name is not passed")
-	}
-
-	// create context with the given request
-	ctx := request.NewContext(context.Background(), r)
-	ctx = publickeys.NewContext(ctx, k.PublicKeys)
-	ctx = k.ContextCreator(ctx)
-
-	// create eventer and also add it to the context
-	eventId := r.Method + "-" + args.StackId
-	ev := k.NewEventer(eventId)
-
-	stack, err := modelhelper.GetComputeStack(args.StackId)
+	stack, err := modelhelper.GetComputeStack(arg.StackID)
 	if err != nil {
 		return nil, err
 	}
@@ -84,24 +45,21 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("State is currently %s. Please try again later", stack.State())
 	}
 
-	if args.Destroy {
-		ev.Push(&eventer.Event{
-			Message: r.Method + " started",
+	if arg.Destroy {
+		s.Eventer.Push(&eventer.Event{
+			Message: s.Req.Method + " started",
 			Status:  machinestate.Terminating,
 		})
-
 	} else {
-		ev.Push(&eventer.Event{
-			Message: r.Method + " started",
+		s.Eventer.Push(&eventer.Event{
+			Message: s.Req.Method + " started",
 			Status:  machinestate.Building,
 		})
 	}
 
-	ctx = eventer.NewContext(ctx, ev)
-
 	go func() {
 		finalEvent := &eventer.Event{
-			Message:    r.Method + " finished",
+			Message:    s.Req.Method + " finished",
 			Status:     machinestate.Running,
 			Percentage: 100,
 		}
@@ -109,25 +67,25 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		start := time.Now()
 
 		var err error
-		if args.Destroy {
-			modelhelper.SetStackState(args.StackId, "Stack destroying started",
+		if arg.Destroy {
+			modelhelper.SetStackState(arg.StackID, "Stack destroying started",
 				stackstate.Destroying)
 
-			k.Log.New(args.StackId).Info("======> %s (destroy) started <======",
-				strings.ToUpper(r.Method))
+			s.Log.New(arg.StackID).Info("======> %s (destroy) started <======",
+				strings.ToUpper(s.Req.Method))
 			finalEvent.Status = machinestate.Terminated
-			err = destroy(ctx, r.Username, args.GroupName, args.StackId)
+			err = destroy(ctx, s.Req.Username, arg.GroupName, arg.StackID)
 		} else {
-			modelhelper.SetStackState(args.StackId, "Stack building started", stackstate.Building)
+			modelhelper.SetStackState(arg.StackID, "Stack building started", stackstate.Building)
 
-			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
-			err = apply(ctx, r.Username, args.GroupName, args.StackId)
+			s.Log.New(arg.StackID).Info("======> %s started <======", strings.ToUpper(s.Req.Method))
+			err = apply(ctx, s.Req.Username, arg.GroupName, arg.StackID)
 			if err != nil {
-				modelhelper.SetStackState(args.StackId, "Stack building failed",
+				modelhelper.SetStackState(arg.StackID, "Stack building failed",
 					stackstate.NotInitialized)
 				finalEvent.Status = machinestate.NotInitialized
 			} else {
-				modelhelper.SetStackState(args.StackId, "Stack building finished",
+				modelhelper.SetStackState(arg.StackID, "Stack building finished",
 					stackstate.Initialized)
 			}
 
@@ -136,21 +94,21 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 		if err != nil {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
-			k.Log.New(args.StackId).Error("%s error: %s", r.Method, err)
+			s.Log.New(arg.StackID).Error("%s error: %s", s.Req.Method, err)
 
 			finalEvent.Error = err.Error()
-			k.Log.New(args.StackId).Error("======> %s finished with error (time: %s): '%s' <======",
-				strings.ToUpper(r.Method), time.Since(start), err.Error())
+			s.Log.New(arg.StackID).Error("======> %s finished with error (time: %s): '%s' <======",
+				strings.ToUpper(s.Req.Method), time.Since(start), err.Error())
 		} else {
-			k.Log.New(args.StackId).Info("======> %s finished (time: %s) <======",
-				strings.ToUpper(r.Method), time.Since(start))
+			s.Log.New(arg.StackID).Info("======> %s finished (time: %s) <======",
+				strings.ToUpper(s.Req.Method), time.Since(start))
 		}
 
-		ev.Push(finalEvent)
+		s.Eventer.Push(finalEvent)
 	}()
 
-	return ControlResult{
-		EventId: eventId,
+	return kloud.ControlResult{
+		EventId: s.Eventer.ID(),
 	}, nil
 }
 
@@ -186,6 +144,7 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	if err != nil {
 		return err
 	}
+	sess.Log.Debug("Fetched machines: %+v", machines)
 
 	ev.Push(&eventer.Event{
 		Message:    "Fetching and validating credentials",
@@ -194,10 +153,11 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	data, err := fetchTerraformData(req.Method, username, groupname, sess.DB, flattenValues(stack.Credentials))
+	data, err := stackplan.FetchTerraformData(req.Method, username, groupname, stackplan.FlattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
+	sess.Log.Debug("Fetched terraform data: %+v", data)
 
 	sess.Log.Debug("Connection to Terraformer")
 	tfKite, err := terraformer.Connect(sess.Kite)
@@ -207,14 +167,14 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	defer tfKite.Close()
 
 	sess.Log.Debug("Parsing the template")
-	template, err := newTerraformTemplate(stack.Template)
+	template, err := stackplan.ParseTemplate(stack.Template)
 	if err != nil {
 		return err
 	}
 
 	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 	for _, cred := range data.Creds {
-		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
+		if err := template.InjectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
 
@@ -228,39 +188,41 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
-		if err := template.setAwsRegion(region); err != nil {
+		if err := template.SetAwsRegion(region); err != nil {
 			return err
 		}
 	}
 
 	// inject koding variables, in the form of koding_user_foo,
 	// koding_group_name, etc..
-	if err := template.injectKodingVariables(data.KodingData); err != nil {
+	if err := template.InjectKodingVariables(data.KodingData); err != nil {
 		return err
 	}
 
-	if _, err := injectAWSData(ctx, template, username, data); err != nil {
+	if _, err := stackplan.InjectAWSData(ctx, template, username, data); err != nil {
 		return err
 	}
 
-	if _, err := injectVagrantData(ctx, template, username); err != nil {
+	if _, err := stackplan.InjectVagrantData(ctx, template, username); err != nil {
 		return err
 	}
 
-	out, err := template.jsonOutput()
+	out, err := template.JsonOutput()
 	if err != nil {
 		return err
 	}
 
 	stack.Template = out
 
-	sess.Log.Debug("Calling terraform.destroy method with context:")
-	sess.Log.Debug(stack.Template)
-	_, err = tfKite.Destroy(&tf.TerraformRequest{
+	tfReq := &tf.TerraformRequest{
 		Content:   stack.Template,
 		ContentID: username + "-" + stackId,
 		Variables: nil,
-	})
+	}
+	sess.Log.Debug("Calling terraform.destroy method with context:")
+	sess.Log.Debug("%+v", tfReq)
+
+	_, err = tfKite.Destroy(tfReq)
 	if err != nil {
 		return err
 	}
@@ -300,12 +262,14 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	if err != nil {
 		return err
 	}
+	sess.Log.Debug("Fetched stack: %+v", stack)
 
 	sess.Log.Debug("Fetching and validating '%d' machines from user '%s'", len(stack.Machines), username)
 	machines, err := fetchMachines(ctx, stack.Machines...)
 	if err != nil {
 		return err
 	}
+	sess.Log.Debug("Fetched machines: %+v", machines)
 
 	ev.Push(&eventer.Event{
 		Message:    "Fetching and validating credentials",
@@ -314,10 +278,11 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	data, err := fetchTerraformData(req.Method, username, groupname, sess.DB, flattenValues(stack.Credentials))
+	data, err := stackplan.FetchTerraformData(req.Method, username, groupname, stackplan.FlattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
+	sess.Log.Debug("Fetched terraform data: %+v", data)
 
 	sess.Log.Debug("Connection to Terraformer")
 	tfKite, err := terraformer.Connect(sess.Kite)
@@ -328,7 +293,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 
 	sess.Log.Debug("Parsing the template")
 	sess.Log.Debug("%s", stack.Template)
-	template, err := newTerraformTemplate(stack.Template)
+	template, err := stackplan.ParseTemplate(stack.Template)
 	if err != nil {
 		return err
 	}
@@ -341,7 +306,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	var region string
 	for _, cred := range data.Creds {
 		sess.Log.Debug("Appending %s provider variables", cred.Provider)
-		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
+		if err := template.InjectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
 
@@ -364,7 +329,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 
 		region = credRegion
 
-		if err := template.setAwsRegion(region); err != nil {
+		if err := template.SetAwsRegion(region); err != nil {
 			return err
 		}
 	}
@@ -372,13 +337,13 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	sess.Log.Debug("Injecting Koding data")
 	// inject koding variables, in the form of koding_user_foo,
 	// koding_group_name, etc..
-	if err := template.injectKodingVariables(data.KodingData); err != nil {
+	if err := template.InjectKodingVariables(data.KodingData); err != nil {
 		return err
 	}
 
 	kiteIds := make(map[string]string)
 
-	awsData, err := injectAWSData(ctx, template, username, data)
+	awsData, err := stackplan.InjectAWSData(ctx, template, username, data)
 	if err != nil {
 		return err
 	}
@@ -389,7 +354,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
-	vagrantData, err := injectVagrantData(ctx, template, username)
+	vagrantData, err := stackplan.InjectVagrantData(ctx, template, username)
 	if err != nil {
 		return err
 	}
@@ -400,7 +365,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
-	out, err := template.jsonOutput()
+	out, err := template.JsonOutput()
 	if err != nil {
 		return err
 	}
@@ -432,14 +397,15 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}()
 
-	sess.Log.Debug("Final stack template. Calling terraform.apply method:")
-	sess.Log.Debug(stack.Template)
-
-	state, err := tfKite.Apply(&tf.TerraformRequest{
+	tfReq := &tf.TerraformRequest{
 		Content:   stack.Template,
 		ContentID: username + "-" + stackId,
 		Variables: nil,
-	})
+	}
+	sess.Log.Debug("Final stack template. Calling terraform.apply method:")
+	sess.Log.Debug("%+v", tfReq)
+
+	state, err := tfKite.Apply(tfReq)
 	if err != nil {
 		close(done)
 		return err
@@ -457,12 +423,12 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 
 	if len(kiteIds) != 0 {
 		sess.Log.Debug("Checking total '%d' klients", len(kiteIds))
-		if err := checkKlients(ctx, kiteIds); err != nil {
+		if err := stackplan.CheckKlients(ctx, kiteIds); err != nil {
 			return err
 		}
 	}
 
-	output, err := machinesFromState(state)
+	output, err := stackplan.MachinesFromState(state)
 	if err != nil {
 		return err
 	}
@@ -491,7 +457,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	return updateMachines(ctx, output, machines)
 }
 
-func fetchStack(stackId string) (*Stack, error) {
+func fetchStack(stackId string) (*stackplan.Stack, error) {
 	computeStack, err := modelhelper.GetComputeStack(stackId)
 	if err != nil {
 		return nil, err
@@ -522,7 +488,7 @@ func fetchStack(stackId string) (*Stack, error) {
 		}
 	}
 
-	return &Stack{
+	return &stackplan.Stack{
 		Machines:    machineIds,
 		Credentials: credentials,
 		Template:    stackTemplate.Template.Content,
@@ -624,7 +590,7 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 	return finalMachines, nil
 }
 
-func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Machine) error {
+func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine) error {
 	for _, machine := range jMachines {
 		label := machine.Label
 		if l, ok := machine.Meta["assignedLabel"]; ok {
@@ -653,7 +619,7 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*models.Mac
 	return nil
 }
 
-func updateAWS(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId) error {
+func updateAWS(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
 	size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
 	if err != nil {
 		return err
@@ -674,7 +640,7 @@ func updateAWS(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId
 	}})
 }
 
-func updateVagrantKite(ctx context.Context, tf TerraformMachine, machineId bson.ObjectId) error {
+func updateVagrantKite(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
 	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
 		"provider":            tf.Provider,
 		"queryString":         tf.QueryString,

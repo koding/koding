@@ -1,14 +1,14 @@
-package kloud
+package awsprovider
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 
@@ -16,7 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	awssession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/koding/kite"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2/bson"
@@ -34,74 +33,50 @@ type AwsBootstrapOutput struct {
 	AMI       string `json:"ami" mapstructure:"ami"`
 }
 
-type TerraformBootstrapRequest struct {
-	// Identifiers contains identifers to be used with terraform
-	Identifiers []string `json:"identifiers"`
-
-	GroupName string `json:"groupName"`
-
-	// Destroy destroys the bootstrap resource associated with the given
-	// identifiers
-	Destroy bool
-}
-
-func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
-	if r.Args == nil {
-		return nil, NewError(ErrNoArguments)
-	}
-
-	var args *TerraformBootstrapRequest
-	if err := r.Args.One().Unmarshal(&args); err != nil {
+// Bootstrap
+func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
+	var arg kloud.BootstrapRequest
+	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
 
-	if len(args.Identifiers) == 0 {
-		return nil, errors.New("identifiers are not passed")
+	if err := arg.Valid(); err != nil {
+		return nil, err
 	}
 
-	if args.GroupName == "" {
-		return nil, errors.New("group name is not passed")
-	}
-
-	if args.Destroy {
-		k.Log.Debug("Bootstrap destroy is called")
+	if arg.Destroy {
+		s.Log.Debug("Bootstrap destroy is called")
 	} else {
-		k.Log.Debug("Bootstrap apply is called")
+		s.Log.Debug("Bootstrap apply is called")
 	}
 
-	ctx := k.ContextCreator(context.Background())
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("session context is not passed")
-	}
-
-	data, err := fetchTerraformData(r.Method, r.Username, args.GroupName, sess.DB, args.Identifiers)
+	data, err := stackplan.FetchTerraformData(s.Req.Method, s.Req.Username, arg.GroupName, arg.Identifiers)
 	if err != nil {
 		return nil, err
 	}
 
-	k.Log.Debug("Connecting to terraformer kite")
-	tfKite, err := terraformer.Connect(sess.Kite)
+	s.Log.Debug("Connecting to terraformer kite")
+	tfKite, err := terraformer.Connect(s.Session.Kite)
 	if err != nil {
 		return nil, err
 	}
 	defer tfKite.Close()
 
-	k.Log.Debug("Iterating over credentials")
+	s.Log.Debug("Iterating over credentials")
 	for _, cred := range data.Creds {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		k.Log.Debug("parsing the template")
-		template, err := newTerraformTemplate(awsBootstrap)
+		s.Log.Debug("parsing the template")
+		template, err := stackplan.ParseTemplate(awsBootstrap)
 		if err != nil {
 			return nil, err
 		}
 
-		k.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
-		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
+		s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+		if err := template.InjectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return nil, err
 		}
 
@@ -115,45 +90,45 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		session := awssession.New(&aws.Config{
+		sess := awssession.New(&aws.Config{
 			Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
 			Region:      aws.String(awsCred.Region),
 		})
 
-		iamClient := iam.New(session)
+		iamClient := iam.New(sess)
 
-		k.Log.Debug("Fetching the AWS user information to get the account ID")
+		s.Log.Debug("Fetching the AWS user information to get the account ID")
 		user, err := iamClient.GetUser(nil) // will default to username making the request
 		if err != nil {
 			return nil, err
 		}
 
-		awsAccountID, err := parseAccountID(aws.StringValue(user.User.Arn))
+		awsAccountID, err := stackplan.ParseAccountID(aws.StringValue(user.User.Arn))
 		if err != nil {
 			return nil, err
 		}
 
-		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, awsCred.Region)
-		k.Log.Debug("Going to use the contentID: %s", contentID)
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, awsCred.Region)
+		s.Log.Debug("Going to use the contentID: %s", contentID)
 
-		keyName := "koding-deployment-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		keyName := "koding-deployment-" + s.Req.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
-		finalBootstrap, err := template.jsonOutput()
+		finalBootstrap, err := template.JsonOutput()
 		if err != nil {
 			return nil, err
 		}
 
 		finalBootstrap, err = appendAWSTemplateData(finalBootstrap, &awsTemplateData{
 			KeyPairName:     keyName,
-			PublicKey:       k.PublicKeys.PublicKey,
-			EnvironmentName: fmt.Sprintf("Koding-%s-Bootstrap", args.GroupName),
+			PublicKey:       s.Keys.PublicKey,
+			EnvironmentName: fmt.Sprintf("Koding-%s-Bootstrap", arg.GroupName),
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		// k.Log.Debug("[%s] Final bootstrap:", cred.Identifier)
-		// k.Log.Debug(finalBootstrap)
+		// s.Log.Debug("[%s] Final bootstrap:", cred.Identifier)
+		// s.Log.Debug(finalBootstrap)
 
 		// Important so bootstraping is distributed amongs multiple users. If I
 		// use these keys to bootstrap, any other user should be not create
@@ -166,9 +141,9 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		// destroy. So the operator changes from $set to $unset.
 		mongodDBOperator := "$set"
 
-		if args.Destroy {
+		if arg.Destroy {
 			mongodDBOperator = "$unset"
-			k.Log.Info("Destroying bootstrap resources belonging to identifier '%s'", cred.Identifier)
+			s.Log.Info("Destroying bootstrap resources belonging to identifier '%s'", cred.Identifier)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -177,7 +152,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				return nil, err
 			}
 		} else {
-			k.Log.Info("Creating bootstrap resources belonging to identifier '%s'", cred.Identifier)
+			s.Log.Info("Creating bootstrap resources belonging to identifier '%s'", cred.Identifier)
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -186,13 +161,13 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				return nil, err
 			}
 
-			k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.Identifier, state.RootModule().Outputs)
+			s.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.Identifier, state.RootModule().Outputs)
 			if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
 				return nil, err
 			}
 		}
 
-		k.Log.Debug("[%s] Aws Output: %+v", cred.Identifier, awsOutput)
+		s.Log.Debug("[%s] Aws Output: %+v", cred.Identifier, awsOutput)
 		if err := modelhelper.UpdateCredentialData(cred.Identifier, bson.M{
 			mongodDBOperator: bson.M{
 				"meta.acl":        awsOutput.ACL,

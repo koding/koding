@@ -67,7 +67,7 @@ var (
 type singleUser struct {
 	MachineIds      []bson.ObjectId
 	MachineLabels   []string
-	StackId         string
+	StackID         string
 	StackTemplateId string
 	PrivateKey      string
 	PublicKey       string
@@ -201,8 +201,8 @@ func applyVagrantCommand() error {
 	fmt.Printf("userData = %+v\n", userData)
 	remote := userData.Remote
 
-	applyArgs := &kloud.TerraformApplyRequest{
-		StackId:   userData.StackId,
+	applyArgs := &kloud.ApplyRequest{
+		StackID:   userData.StackID,
 		GroupName: groupname,
 	}
 
@@ -219,7 +219,7 @@ func applyVagrantCommand() error {
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
-			EventId: userData.StackId,
+			EventId: userData.StackID,
 			Type:    "apply",
 		},
 	})
@@ -228,8 +228,8 @@ func applyVagrantCommand() error {
 		return err
 	}
 
-	destroyArgs := &kloud.TerraformApplyRequest{
-		StackId:   userData.StackId,
+	destroyArgs := &kloud.ApplyRequest{
+		StackID:   userData.StackID,
 		GroupName: groupname,
 		Destroy:   true,
 	}
@@ -246,7 +246,7 @@ func applyVagrantCommand() error {
 
 	eArgs = kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
-			EventId: userData.StackId,
+			EventId: userData.StackID,
 			Type:    "apply",
 		},
 	})
@@ -439,13 +439,10 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 		panic(err)
 	}
 
-	slclient, err := sl.NewSoftlayer(
+	slclient := sl.NewSoftlayer(
 		os.Getenv("KLOUD_TESTACCOUNT_SLUSERNAME"),
 		os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
 	)
-	if err != nil {
-		panic(err)
-	}
 
 	kdp := &koding.Provider{
 		DB:             db,
@@ -752,9 +749,9 @@ func createUser(opts *createUserOptions) (*singleUser, error) {
 		}
 	}
 
-	computeStackId := bson.NewObjectId()
+	computeStackID := bson.NewObjectId()
 	computeStack := &models.ComputeStack{
-		Id:          computeStackId,
+		Id:          computeStackID,
 		BaseStackId: stackTemplateId,
 		Machines:    machineIds,
 	}
@@ -792,7 +789,7 @@ func createUser(opts *createUserOptions) (*singleUser, error) {
 	return &singleUser{
 		MachineIds:      machineIds,
 		MachineLabels:   machineLabels,
-		StackId:         computeStackId.Hex(),
+		StackID:         computeStackID.Hex(),
 		StackTemplateId: stackTemplate.Id.Hex(),
 		PrivateKey:      privateKey,
 		PublicKey:       publicKey,

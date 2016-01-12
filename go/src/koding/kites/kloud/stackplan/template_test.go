@@ -1,4 +1,4 @@
-package kloud
+package stackplan
 
 import (
 	"fmt"
@@ -35,7 +35,7 @@ const testTemplate = `{
 }`
 
 func TestTerraformTemplate_NewNil(t *testing.T) {
-	template, err := newTerraformTemplate(testTemplate)
+	template, err := ParseTemplate(testTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,12 +58,12 @@ func TestTerraformTemplate_NewNil(t *testing.T) {
 }
 
 func TestTerraformTemplate_InjectKodingData(t *testing.T) {
-	template, err := newTerraformTemplate(testTemplate)
+	template, err := ParseTemplate(testTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	data := &kodingData{
+	data := &KodingData{
 		Account: &models.Account{
 			Profile: models.AccountProfile{
 				Nickname:  "fatih",
@@ -82,7 +82,7 @@ func TestTerraformTemplate_InjectKodingData(t *testing.T) {
 		},
 	}
 
-	if err := template.injectKodingVariables(data); err != nil {
+	if err := template.InjectKodingVariables(data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -128,7 +128,7 @@ func TestTerraformTemplate_InjectKodingData(t *testing.T) {
 }
 
 func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
-	template, err := newTerraformTemplate(testTemplate)
+	template, err := ParseTemplate(testTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +140,7 @@ func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 		"qaz": "hello",
 	}
 
-	if err := template.injectCustomVariables(prefix, data); err != nil {
+	if err := template.InjectCustomVariables(prefix, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -170,7 +170,7 @@ func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 }
 
 func TestTerraformTemplate_DecodeProvider(t *testing.T) {
-	template, err := newTerraformTemplate(testTemplate)
+	template, err := ParseTemplate(testTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +211,7 @@ func TestTerraformTemplate_ShadowVariables(t *testing.T) {
         }
     }
 }`
-	template, err := newTerraformTemplate(userTestTemplate)
+	template, err := ParseTemplate(userTestTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -248,7 +248,7 @@ func TestTerraformTemplate_DetectUserVariables(t *testing.T) {
         }
     }
 }`
-	template, err := newTerraformTemplate(userTestTemplate)
+	template, err := ParseTemplate(userTestTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -308,12 +308,12 @@ func TestTerraformTemplate_FillVariables(t *testing.T) {
         }
     }
 }`
-	template, err := newTerraformTemplate(userTestTemplate)
+	template, err := ParseTemplate(userTestTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := template.fillVariables("userInput"); err != nil {
+	if err := template.FillVariables("userInput"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -359,12 +359,12 @@ func TestTerraformTemplate_SetAWSRegion(t *testing.T) {
     }
 }`
 
-	template, err := newTerraformTemplate(missingRegionTemplate)
+	template, err := ParseTemplate(missingRegionTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := template.setAwsRegion("us-east-1"); err != nil {
+	if err := template.SetAwsRegion("us-east-1"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -409,7 +409,7 @@ func TestTerraformTemplate_Encoding(t *testing.T) {
 	    }
 	}`
 
-	template, err := newTerraformTemplate(userTestTemplate)
+	template, err := ParseTemplate(userTestTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
