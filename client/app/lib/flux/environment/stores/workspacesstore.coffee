@@ -32,10 +32,10 @@ module.exports = class WorkspacesStore extends KodingFluxStore
     workspaces.set workspace._id, toImmutable workspace
 
 
-  deleteWorkspace: (workspaces, { workspace }) ->
+  deleteWorkspace: (workspaces, { workspaceId }) ->
 
     workspaces.withMutations (workspaces) ->
-      workspaces.remove workspace.get '_id'
+      workspaces.remove workspaceId
 
 
   updateChannelId: (workspaces, { workspaceId, channelId }) ->

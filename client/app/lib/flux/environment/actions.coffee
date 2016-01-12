@@ -181,6 +181,19 @@ rejectInvitation = (machine) ->
 
     (callback) ->
 
+      { reactor } = kd.singletons
+      workspaces  = machine.get('workspaces')
+
+      workspaces.map (workspace) ->
+        reactor.dispatch actions.WORKSPACE_DELETED, {
+          workspaceId : workspace.get '_id'
+          machineId   : machine.get '_id'
+        }
+
+      callback()
+
+    (callback) ->
+
       if denyMachine
         environmentDataProvider.getIDEFromUId(machine.get('uid'))?.quit()
 
@@ -269,7 +282,11 @@ deleteWorkspace = (params) ->
         ideApp = environmentDataProvider.getIDEFromUId machineUId
         ideApp?[methodName] machineUId, rootPath
 
-      reactor.dispatch actions.WORKSPACE_DELETED, { machine, workspace }
+      reactor.dispatch actions.WORKSPACE_DELETED, {
+        workspaceId : machine.get '_id'
+        machineId   : workspace.get '_id'
+      }
+
       resolve()
 
 

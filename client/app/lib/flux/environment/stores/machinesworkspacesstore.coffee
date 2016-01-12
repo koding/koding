@@ -36,9 +36,9 @@ module.exports = class MachinesWorkspacesStore extends KodingFluxStore
       machinesWorkspaces.set machine._id, machine_
 
 
-  deleteWorkspace: (machinesWorkspaces, { machine, workspace }) ->
+  deleteWorkspace: (machinesWorkspaces, { machineId, workspaceId }) ->
 
     machinesWorkspaces.withMutations (machinesWorkspaces) ->
-      machine_ = machinesWorkspaces.get(machine.get '_id').remove workspace.get '_id'
+      machine_ = machinesWorkspaces.get(machineId).remove workspaceId
 
-      machinesWorkspaces.set machine.get('_id'), machine_
+      machinesWorkspaces.set machineId, machine_
