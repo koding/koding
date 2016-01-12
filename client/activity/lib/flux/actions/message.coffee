@@ -586,6 +586,12 @@ disableEditedEmbedPayload = (messageId) ->
   dispatch DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD, { messageId }
 
 
+setChannelMessagesSearchQuery = (query) ->
+
+  { SET_CHANNEL_MESSAGES_SEARCH_QUERY } = actionTypes
+
+  dispatch SET_CHANNEL_MESSAGES_SEARCH_QUERY, { query }
+
 module.exports = {
   loadMessage
   loadMessages
@@ -606,4 +612,5 @@ module.exports = {
   removeLoaderMarker
   editEmbedPayloadByUrl
   disableEditedEmbedPayload
+  setChannelMessagesSearchQuery
 }
