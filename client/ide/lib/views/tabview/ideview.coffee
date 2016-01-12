@@ -651,7 +651,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     label                 = if @isFullScreen then 'Exit Fullscreen' else 'Enter Fullscreen'
     items[label]          =
-      callback            : @bound 'toggleFullscreen'
+      callback            : => @toggleFullscreen()
 
     return items
 
