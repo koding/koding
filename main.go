@@ -78,6 +78,12 @@ func main() {
 			ShortName: "ls",
 			Usage:     "List the available machines.",
 			Action:    Exit(CheckUpdateFirst(ListCommand)),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format",
+				},
+			},
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:   "mounts",

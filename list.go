@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -11,15 +12,15 @@ import (
 )
 
 type kiteInfo struct {
-	IP           string
-	VMName       string
-	Hostname     string
-	MachineLabel string
-	Mounts       []mountInfo
-	Teams        []string
+	IP           string      `json:"ip"`
+	VMName       string      `json:"vmName"`
+	Hostname     string      `json:"hostname"`
+	MachineLabel string      `json:"machineLabel"`
+	Mounts       []mountInfo `json:"mounts"`
+	Teams        []string    `json:"teams"`
 
 	// TODO: DEPRECATE
-	MountedPaths []string
+	MountedPaths []string `json:"mountedPaths"`
 }
 
 type mountInfo struct {
@@ -46,8 +47,20 @@ func ListCommand(c *cli.Context) int {
 	infos, err := getListOfMachines(k)
 	if err != nil {
 		log.Errorf("Error listing machines. err:%s", err)
-		fmt.Print(FailedListMachines)
+		fmt.Println(FailedListMachines)
 		return 1
+	}
+
+	if c.Bool("json") {
+		jsonBytes, err := json.MarshalIndent(infos, "", "  ")
+		if err != nil {
+			log.Errorf("Marshalling infos to json failed. err:%s", err)
+			fmt.Println(GenericInternalError)
+			return 1
+		}
+
+		fmt.Println(string(jsonBytes))
+		return 0
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
