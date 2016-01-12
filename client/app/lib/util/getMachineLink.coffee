@@ -6,4 +6,4 @@ module.exports = (machine, workspace) ->
     when 'collaboration'
       return "/IDE/#{workspace.get 'channelId'}"
     when 'shared', 'reassigned'
-      return "/IDE/#{machine.get 'uid'}"
+      return "/IDE/#{machine.get 'uid'}/#{workspace.get 'slug'}"
