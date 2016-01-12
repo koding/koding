@@ -63,6 +63,16 @@ module.exports = class FeedPaneTabContainer extends React.Component
     @setState { query }
 
 
+  onEnter: (event) ->
+
+    query       = @state.query.trim()
+    channelName = @props.thread.getIn ['channel', 'name']
+
+    return @redirectToChannel()  unless query
+
+    return kd.singletons.router.handleRoute "/Channels/#{channelName}/Search/#{query}"
+
+
   onEsc: (event) -> @redirectToChannel()
 
 
