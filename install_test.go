@@ -14,12 +14,14 @@ func TestCreateLogFile(t *testing.T) {
 	tmpDir := filepath.Join(testDir, "tmp")
 	testFile := filepath.Join(tmpDir, "logfile")
 
-	os.MkdirAll(tmpDir, 0755)
+	if err := os.MkdirAll(tmpDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	Convey("Given a path that already exists", t, func() {
-		os.Remove(testFile)
+		So(os.Remove(testFile), ShouldBeNil)
 		// Chmod it to something other than -rw-rw-rw-
-		ioutil.WriteFile(testFile, []byte("foo"), 0777)
+		So(ioutil.WriteFile(testFile, []byte("foo"), 0777), ShouldBeNil)
 
 		Convey("Then chmod the file to -rw-rw-rw-", func() {
 			f, err := createLogFile(testFile)
@@ -43,7 +45,9 @@ func TestCreateLogFile(t *testing.T) {
 	})
 
 	Convey("Given a path that does not exist", t, func() {
-		os.Remove(testFile)
+		if _, err := os.Stat(testFile); err == nil {
+			So(os.Remove(testFile), ShouldBeNil)
+		}
 
 		Convey("Then create the file", func() {
 			f, err := createLogFile(testFile)
