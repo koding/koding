@@ -90,7 +90,8 @@ func FetchChannelByName(accountId int64, name, groupName, typeConstant, token st
 
 func FetchChannelContainerByName(accountId int64, name, groupName, typeConstant, token string) (*models.ChannelContainer, error) {
 	url := fmt.Sprintf("/channel/name/%s?groupName=%s&type=%s&accountId=%d", name, groupName, typeConstant, accountId)
-	res, err := sendRequest("GET", url, nil)
+	// res, err := sendRequest("GET", url, nil)
+	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}
