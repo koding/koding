@@ -13,6 +13,13 @@ module.exports = class FeedPaneTabContainer extends React.Component
     thread : immutable.Map()
 
 
+  constructor: (props) ->
+
+    super
+
+    @state = { query: '' }
+
+
   showPopularMessages: (event) ->
 
     kd.utils.stopDOMEvent event
