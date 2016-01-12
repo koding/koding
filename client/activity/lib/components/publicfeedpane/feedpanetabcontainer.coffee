@@ -57,7 +57,12 @@ module.exports = class FeedPaneTabContainer extends React.Component
         onClick={@bound 'showMostRecentMessages'}
         className={@getMostRecentTabClassNames()}>Most Recent</Link>
       <div>
-        <input className='FeedPane-searchInput' placeholder='Search...'/>
+        <input
+          value={ @state.query }
+          onChange={ @bound 'onChange' }
+          onKeyDown={ @bound 'onKeyDown' }
+          className='FeedPane-searchInput'
+          placeholder='Search...'/>
         <i className='FeedPane-searchIcon'/>
       </div>
     </div>
