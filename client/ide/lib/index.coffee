@@ -442,7 +442,10 @@ class IDEAppController extends AppController
 
     { file, contents, targetTabView, description, emitChange } = options
 
-    @setActiveTabView targetTabView  if targetTabView
+    targetTabView = @ideViews.first.tabView  unless targetTabView
+
+    @setActiveTabView targetTabView
+
     @activeTabView.emit 'FileNeedsToBeTailed', {
       file, contents, description, callback, emitChange
     }
