@@ -29,8 +29,12 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
     @forms = {}
 
+    @_canEditGroup = ['admin', 'owner'].reduce (prole, role) ->
+      prole or (role in _globals.config.roles)
+    , no
+
     @createGeneralSettingsForm()
-    @createAvatarUploadForm()
+    @createAvatarUploadForm()  if @_canEditGroup
     # @createDeletionForm()
 
 
@@ -48,6 +52,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
       description  : 'Your team name is displayed in menus and emails. It usually is (or includes) the name of your company.'
       name         : 'title'
       cssClass     : 'name'
+
       defaultValue : Encoder.htmlDecode group.title ? ''
       placeholder  : 'Please enter a title here'
 
@@ -77,11 +82,12 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     #   placeholder  : 'domain.com, other.edu'
     #   defaultValue : Encoder.htmlDecode group.allowedDomains?.join(', ') ? ''
 
-    form.addSubView new KDButtonView
-      title    : 'Save Changes'
-      type     : 'submit'
-      cssClass : 'solid medium green'
-      callback : @bound 'update'
+    if @_canEditGroup
+      form.addSubView new KDButtonView
+        title    : 'Save Changes'
+        type     : 'submit'
+        cssClass : 'solid medium green'
+        callback : @bound 'update'
 
 
   createAvatarUploadForm: ->
