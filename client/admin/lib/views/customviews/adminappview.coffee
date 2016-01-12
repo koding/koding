@@ -53,13 +53,7 @@ module.exports = class AdminAppView extends kd.ModalView
 
     super
 
-    group = kd.getSingleton('groupsController').getCurrentGroup()
-    group?.canEditGroup (err, success) =>
-      if err or not success
-        {entryPoint} = globals.config
-        kd.singletons.router.handleRoute '/Activity', { entryPoint }
-      else
-        @createTabs()
+    kd.singletons.mainController.ready @bound 'createTabs'
 
 
   createTabs: ->

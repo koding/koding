@@ -55,18 +55,10 @@ module.exports = class PopupNotifications extends AvatarPopup
       click    : (event) => if event.target.tagName is 'A' then @hide()
       partial  : """
         <li class='account'><a href='/Account'>Account</a></li>
-        <li class='admin hidden'><a href='/Admin'>Team Settings</a></li>
+        <li class='admin'><a href='/Admin'>Team Settings</a></li>
         <li class='support'><a href='http://learn.koding.com'>Support</a></li>
         <li class='logout'><a href='/Logout'>Logout</a></li>
         """
-
-    { groupsController } = kd.singletons
-    groupsController.ready ->
-      group = groupsController.getCurrentGroup()
-      group.canEditGroup (err, success) ->
-        unless success
-        then ul.$('li.admin').remove()
-        else ul.$('li.admin').removeClass('hidden')
 
 
   hide: ->

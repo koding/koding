@@ -181,13 +181,13 @@ module.exports           = class MainController extends KDController
     globals.userAccount = account
     connectedState.connected = yes
 
-    @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
+    @on 'pageLoaded.as.loggedIn', (account) -> # ignore othter parameters
       setPreferredDomain account if account
 
     unless firstLoad
       (kd.getSingleton 'kontrol').reauthenticate()
 
-    account.fetchMyPermissionsAndRoles (err, res)=>
+    account.fetchMyPermissionsAndRoles (err, res) =>
 
       return kd.warn err  if err
 
@@ -199,7 +199,6 @@ module.exports           = class MainController extends KDController
       account.setLastLoginTimezoneOffset lastLoginTimezoneOffset: tzOffset, (err) ->
 
         kd.warn err  if err
-
 
       @ready @emit.bind this, "AccountChanged", account, firstLoad
 
