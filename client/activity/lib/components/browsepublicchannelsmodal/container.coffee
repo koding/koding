@@ -8,8 +8,11 @@ Tabs            = require 'activity/constants/sidebarpublicchannelstabs'
 
 module.exports = class BrowsePublicChannelsModalContainer extends React.Component
 
+  @propTypes =
+    isOpen : React.PropTypes.bool
+
   @defaultProps =
-    isOpen: yes
+    isOpen : yes
 
   skipCloseHandling: no
 
