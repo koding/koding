@@ -13,6 +13,10 @@ import (
 )
 
 func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	// check if user is logged in or not
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
 
 	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
