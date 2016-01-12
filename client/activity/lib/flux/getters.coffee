@@ -41,6 +41,9 @@ SidebarPublicChannelsQueryStore = ['SidebarPublicChannelsQueryStore']
 SidebarPublicChannelsTabStore   = ['SidebarPublicChannelsTabStore']
 socialShareLinks                = [['SocialShareLinksStore'], withEmptyMap]
 ActiveSocialShareLinkIdStore    = ['ActiveSocialShareLinkIdStore']
+FilteredChannelMessagesIdsStore = [['FilteredChannelMessagesIdsStore'], withEmptyMap]
+channelMessagesSearchQuery      = ['ChannelMessagesSearchQueryStore']
+
 
 FollowedPublicChannelIdsStore = [
   FollowedPublicChannelIdsStore
