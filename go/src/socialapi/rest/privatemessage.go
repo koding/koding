@@ -9,9 +9,10 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-func SendPrivateChannelRequest(pmr models.ChannelRequest) (*models.ChannelContainer, error) {
+func SendPrivateChannelRequest(pmr models.ChannelRequest, token string) (*models.ChannelContainer, error) {
 	url := "/privatechannel/init"
-	res, err := marshallAndSendRequest("POST", url, pmr)
+	// res, err := marshallAndSendRequest("POST", url, pmr)
+	res, err := marshallAndSendRequestWithAuth("POST", url, pmr, token)
 	if err != nil {
 		return nil, err
 	}
@@ -25,22 +26,23 @@ func SendPrivateChannelRequest(pmr models.ChannelRequest) (*models.ChannelContai
 	return model, nil
 }
 
-func GetPrivateChannels(q *request.Query) ([]models.ChannelContainer, error) {
-	return fetchPrivateChannels(q, "/privatechannel/list")
+func GetPrivateChannels(q *request.Query, token string) ([]models.ChannelContainer, error) {
+	return fetchPrivateChannels(q, "/privatechannel/list", token)
 }
 
-func SearchPrivateChannels(q *request.Query) ([]models.ChannelContainer, error) {
-	return fetchPrivateChannels(q, "/privatechannel/search")
+func SearchPrivateChannels(q *request.Query, token string) ([]models.ChannelContainer, error) {
+	return fetchPrivateChannels(q, "/privatechannel/search", token)
 }
 
-func fetchPrivateChannels(q *request.Query, endpoint string) ([]models.ChannelContainer, error) {
+func fetchPrivateChannels(q *request.Query, endpoint, token string) ([]models.ChannelContainer, error) {
 	v, err := query.Values(q)
 	if err != nil {
 		return nil, err
 	}
 
 	url := fmt.Sprintf("%s?%s", endpoint, v.Encode())
-	res, err := sendRequest("GET", url, nil)
+	// res, err := sendRequest("GET", url, nil)
+	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}
