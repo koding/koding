@@ -38,9 +38,7 @@ build:
     - script:
         name: node modules
         code: |
-          scripts/wercker/install-node-modules koding
           npm install
-          scripts/wercker/update-node-modules
     - script:
         name: notify cebeci
         code: |
