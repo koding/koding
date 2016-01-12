@@ -1001,8 +1001,14 @@ module.exports = CollaborationController =
     # TODO: fix explicit state checks.
     return  unless @stateMachine.state in ['Active', 'Ending']
 
+    { reactor } = kd.singletons
+
     unless isKoding() # Remove the machine from sidebar.
-      kd.singletons.reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
+      reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
+      reactor.dispatch actionTypes.WORKSPACE_DELETED, {
+        workspaceId : @workspaceData._id
+        machineId   : @mountedMachine._id
+      }
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
