@@ -1,7 +1,8 @@
 { Module }  = require 'jraphical'
 { revive }  = require './computeutils'
 KodingError = require '../../error'
-
+JUser       = require '../user'
+async       = require 'async'
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -438,7 +439,32 @@ module.exports = class JMachine extends Module
         else @removeUsers { targets, permanent, inform }, callback
 
       else
-        callback new KodingError 'Target does not support machines.'
+        @removeInvalidUsers callback
+
+
+  removeInvalidUsers: (callback) ->
+
+    queue = []
+    users = @users.slice 0
+    usersToBeRemoved = []
+
+    users.forEach (user) ->
+      return  if user.sudo and user.owner
+      queue.push (next) ->
+        JUser.one { _id: user.id }, (err, _user) ->
+          if err or not _user or _user.status is 'deleted'
+            usersToBeRemoved.push _user
+
+          next()
+
+    queue.push (next) =>
+      if usersToBeRemoved.length is 0
+        next new KodingError 'Target does not support machines.'
+      else
+        @removeUsers { targets: usersToBeRemoved, force: yes }, (err) ->
+          next err
+
+    async.series queue, callback
 
 
   fetchOwner: (callback) ->
