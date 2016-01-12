@@ -1,12 +1,23 @@
 kd                  = require 'kd'
 React               = require 'kd-react'
 Modal               = require 'app/components/modal'
-Header              = require './header'
+HeaderView          = require './headerview'
 TabView             = require './tabview'
 classnames          = require 'classnames'
 SidebarModalThreads = require 'activity/components/sidebarmodalthreads'
 
 module.exports = class BrowsePublicChannelsModalView extends React.Component
+
+  @propTypes =
+    isOpen              : React.PropTypes.bool
+    className           : React.PropTypes.string
+    query               : React.PropTypes.string
+    onClose             : React.PropTypes.func
+    onTabChange         : React.PropTypes.func
+    isSearchActive      : React.PropTypes.bool
+    onItemClick         : React.PropTypes.func
+    onThresholdReached  : React.PropTypes.func
+    onSearchInputChange : React.PropTypes.func
 
   @defaultProps =
     isOpen              : yes
@@ -26,7 +37,7 @@ module.exports = class BrowsePublicChannelsModalView extends React.Component
 
   renderHeader: ->
 
-    <Header query={@props.query} onSearchInputChange={@props.onSearchInputChange}/>
+    <HeaderView query={@props.query} onSearchInputChange={@props.onSearchInputChange}/>
 
 
   renderTabs: ->
