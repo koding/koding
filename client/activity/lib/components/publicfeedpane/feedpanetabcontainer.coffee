@@ -63,6 +63,12 @@ module.exports = class FeedPaneTabContainer extends React.Component
     @setState { query }
 
 
+  onKeyDown: (event) ->
+
+    return @onEnter event  if event.which is ENTER
+    return @onEsc event  if event.which is ESC
+
+
   onEnter: (event) ->
 
     query       = @state.query.trim()
