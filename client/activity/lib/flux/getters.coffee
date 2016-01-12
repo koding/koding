@@ -231,8 +231,12 @@ selectedChannelPopularMessages = [
 selectedChannelThread = [
   channelThreads
   selectedChannel
+  MessageLikersStore
+  allUsers
   selectedChannelPopularMessages
-  (threads, channel, popularMessages) ->
+  FilteredChannelMessagesIdsStore
+  channelMessagesSearchQuery
+  (threads, channel, likers, users, popularMessages, filteredIds, query) ->
     return null  unless channel
     thread = threads.get channel.get('id')
     thread = thread.set 'channel', channel
@@ -240,6 +244,17 @@ selectedChannelThread = [
     if thread.getIn(['flags', 'resultListState']) is ResultStates.LIKED
       popularMessages = popularMessages or immutable.Map()
       thread = thread.set 'messages', popularMessages
+
+    if query
+      messages = thread.get 'messages'
+      messages = filteredIds.map (id) -> messages.get id
+      thread   = thread.set 'messages', messages
+
+    thread = thread.update 'messages', (messages) ->
+      messages.map (msg) ->
+        msg.update 'body', (body) ->
+          # don't show channel name on post body.
+          body.replace(///\##{channel.get('name')}($|\s)///, '').trim()
 
     return thread
 ]
