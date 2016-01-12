@@ -17,6 +17,7 @@ webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
 { generateHumanstxt } = require './humanstxt'
 csrf                  = require './csrf'
+{ NodejsProfiler }    = require 'koding-datadog'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -147,6 +148,10 @@ koding.once 'dbClientReady', ->
 
   # start user tracking
   usertracker.start()
+
+  # start monitoring nodejs metrics (memory, gc, cpu etc...)
+  nodejsProfiler = new NodejsProfiler 'nodejs.webserver'
+  nodejsProfiler.startMonitoring()
 
   # init rabbitmq client for Email to use to queue emails
   mqClient = require './amqp'
