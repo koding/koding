@@ -24,6 +24,7 @@
     "/Channels/:channelName/Recent": "SinglePublicChannelRecentMessages",
     "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
     "/Channels/:channelName/NotificationSettings": "PublicChannelNotificationSettingsRoute",
+    "/Channels/:channelName/Search/:query": "SinglePublicChannelSearch",
 
     "/PrivateChannelModals/:modalRoute": "PrivateChannelModals",
     "/PublicChannelModals/:modalRoute": "PublicChannelModals",
