@@ -19,7 +19,7 @@ func TestCreateLogFile(t *testing.T) {
 	}
 
 	Convey("Given a path that already exists", t, func() {
-		So(os.Remove(testFile), ShouldBeNil)
+		So(os.RemoveAll(testFile), ShouldBeNil)
 		// Chmod it to something other than -rw-rw-rw-
 		So(ioutil.WriteFile(testFile, []byte("foo"), 0777), ShouldBeNil)
 
@@ -45,9 +45,7 @@ func TestCreateLogFile(t *testing.T) {
 	})
 
 	Convey("Given a path that does not exist", t, func() {
-		if _, err := os.Stat(testFile); err == nil {
-			So(os.Remove(testFile), ShouldBeNil)
-		}
+		So(os.RemoveAll(testFile), ShouldBeNil)
 
 		Convey("Then create the file", func() {
 			f, err := createLogFile(testFile)
