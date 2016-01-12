@@ -61,7 +61,8 @@ module.exports = class AdminAppView extends kd.ModalView
     group        = @getData()
     { tabData }  = @getOptions()
 
-    items = []
+    items   = []
+    myRoles = _globals.config.roles
 
     for own sectionKey, section of tabData
 
@@ -69,6 +70,12 @@ module.exports = class AdminAppView extends kd.ModalView
         continue
 
       for item in section.items
+
+        role = if item.role? then item.role else 'admin'
+
+        if role not in myRoles
+          continue
+
         items.push item
 
         if item.subTabs
