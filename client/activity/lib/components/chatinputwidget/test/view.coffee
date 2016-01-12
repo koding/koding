@@ -1,3 +1,4 @@
+kd              = require 'kd'
 React           = require 'kd-react'
 ReactDOM        = require 'react-dom'
 expect          = require 'expect'
@@ -8,7 +9,7 @@ EmojiDropbox    = require 'activity/components/emojidropbox'
 PortalDropbox   = require 'activity/components/dropbox/portaldropbox'
 ChatInputWidget = require 'activity/components/chatinputwidget/view'
 
-describe 'ChatInputWidget', ->
+describe 'ChatInputWidget.View', ->
 
   data = {
     dropboxConfig : toImmutable {
@@ -24,154 +25,187 @@ describe 'ChatInputWidget', ->
     query         : 'wh'
   }
 
-  it 'renders input with provided prop value and placeholder', ->
+  describe '::render', ->
 
-    value       = '12345'
-    placeholder = 'Type here...'
-    result = TestUtils.renderIntoDocument(
-      <ChatInputWidget placeholder={placeholder} data={{ value }} />
-    )
+    it 'renders input with provided prop value and placeholder', ->
 
-    input = TestUtils.findRenderedDOMComponentWithTag result, 'textarea'
+      value       = '12345'
+      placeholder = 'Type here...'
+      result = TestUtils.renderIntoDocument(
+        <ChatInputWidget placeholder={placeholder} data={{ value }} />
+      )
 
-    value = input.value
-    expect(value).toEqual value
-    expect(input.getAttribute 'placeholder').toEqual placeholder
+      input = TestUtils.findRenderedDOMComponentWithTag result, 'textarea'
 
+      value = input.value
+      expect(value).toEqual value
+      expect(input.getAttribute 'placeholder').toEqual placeholder
 
-  it 'calls onChange() callback when input value is changed', ->
+    it 'renders dropbox according to dropbox config and passed data', ->
 
-    value     = ''
-    testValue = 'whoa'
-    callback = (newValue) -> value = newValue
+      result = TestUtils.renderIntoDocument(
+        <ChatInputWidget data={data} />
+      )
 
-    result = TestUtils.renderIntoDocument(
-      <ChatInputWidget data={{}} onChange={callback} />
-    )
+      component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
+      expect(component).toExist()
 
-    input = TestUtils.findRenderedDOMComponentWithTag result, 'textarea'
-    input.value = testValue
-    TestUtils.Simulate.change input
+      dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
+      content = dropbox.getContentElement()
+      title   = content.parentNode.querySelector '.Dropbox-subtitle'
+      items   = content.querySelectorAll '.DropboxItem'
 
-    expect(value).toEqual testValue
+      expect(title.textContent).toEqual ":#{data.query}"
+      expect(items.length).toEqual data.items.size
+      for item, i in items
+        expect(item.textContent).toEqual ":#{data.items.get i}:"
+      expect(items[data.selectedIndex].classList.contains 'DropboxItem-selected').toBe yes
 
+      result = TestUtils.renderIntoDocument(
+        <ChatInputWidget data={{}} />
+      )
 
-  it 'renders dropbox according to dropbox config and passed data', ->
-
-    result = TestUtils.renderIntoDocument(
-      <ChatInputWidget data={data} />
-    )
-
-    component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
-    expect(component).toExist()
-
-    dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
-    content = dropbox.getContentElement()
-    title   = content.parentNode.querySelector '.Dropbox-subtitle'
-    items   = content.querySelectorAll '.DropboxItem'
-
-    expect(title.textContent).toEqual ":#{data.query}"
-    expect(items.length).toEqual data.items.size
-    for item, i in items
-      expect(item.textContent).toEqual ":#{data.items.get i}:"
-    expect(items[data.selectedIndex].classList.contains 'DropboxItem-selected').toBe yes
-
-    result = TestUtils.renderIntoDocument(
-      <ChatInputWidget data={{}} />
-    )
-
-    expect(-> TestUtils.findRenderedComponentWithType  result, EmojiDropbox).toThrow()
+      expect(-> TestUtils.findRenderedComponentWithType  result, EmojiDropbox).toThrow()
 
 
-  it 'calls onDropboxItemSelected() callback when dropbox item is hovered', ->
+  describe '::onChange', ->
 
-    newSelectedIndex = data.selectedIndex
-    callback = (index) -> newSelectedIndex = index
+    it 'should be called when input value is changed', ->
 
-    result = TestUtils.renderIntoDocument(
-      <ChatInputWidget data={data} onDropboxItemSelected={callback} />
-    )
+      testValue = 'whoa'
 
-    component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
-    expect(component).toExist()
+      { input, spy } = helper.renderWidgetWithInputCallback 'onChange'
 
-    dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
-    content = dropbox.getContentElement()
-    items   = content.querySelectorAll '.DropboxItem'
+      input.value = testValue
+      TestUtils.Simulate.change input
 
-    newSelectedItem = items[data.selectedIndex + 1]
-    TestUtils.Simulate.mouseEnter newSelectedItem
-    expect(newSelectedIndex).toEqual data.selectedIndex + 1
+      expect(spy).toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledWith testValue
 
 
-  it 'calls onDropboxItemConfirmed() callback when dropbox item is clicked', ->
+  describe '::onDropboxItemSelected', ->
 
-    flag = no
-    callback = -> flag = yes
+    it 'should be called when dropbox item is hovered', ->
 
-    result = TestUtils.renderIntoDocument(
-      <ChatInputWidget data={data} onDropboxItemConfirmed={callback} />
-    )
+      { dropbox, spy } = helper.renderWidgetWithDropboxCallback 'onDropboxItemSelected', data, EmojiDropbox
 
-    component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
-    expect(component).toExist()
+      content = dropbox.getContentElement()
+      items   = content.querySelectorAll '.DropboxItem'
 
-    dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
-    content = dropbox.getContentElement()
-    items   = content.querySelectorAll '.DropboxItem'
+      newSelectedItem = items[data.selectedIndex + 1]
+      TestUtils.Simulate.mouseEnter newSelectedItem
 
-    selectedItem = items[data.selectedIndex]
-    TestUtils.Simulate.click selectedItem
-    expect(flag).toBe yes
+      expect(spy).toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledWith data.selectedIndex + 1
 
 
-  it 'calls proper callbacks according to pressed input keys', ->
+  describe '::onDropboxItemConfirmed', ->
 
-    { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
+    it 'should be called when dropbox item is clicked', ->
 
-    key = null
+      { dropbox, spy } = helper.renderWidgetWithDropboxCallback 'onDropboxItemConfirmed', data, EmojiDropbox
 
-    onEnter      = -> key = 'enter'
-    onEsc        = -> key = 'esc'
-    onRightArrow = -> key = 'right'
-    onDownArrow  = -> key = 'down'
-    onTab        = -> key = 'tab'
-    onLeftArrow  = -> key = 'left'
-    onUpArrow    = -> key = 'up'
+      content = dropbox.getContentElement()
+      items   = content.querySelectorAll '.DropboxItem'
 
-    result = TestUtils.renderIntoDocument(
-      <ChatInputWidget
-        data         = { {} }
-        onEnter      = { onEnter }
-        onEsc        = { onEsc }
-        onRightArrow = { onRightArrow }
-        onDownArrow  = { onDownArrow }
-        onTab        = { onTab }
-        onLeftArrow  = { onLeftArrow }
-        onUpArrow    = { onUpArrow }
-      />
-    )
+      selectedItem = items[data.selectedIndex]
+      TestUtils.Simulate.click selectedItem
 
-    input = TestUtils.findRenderedDOMComponentWithTag result, 'textarea'
-    TestUtils.Simulate.keyDown input, { keyCode: ENTER, which: ENTER }
-    expect(key).toEqual 'enter'
-
-    TestUtils.Simulate.keyDown input, { keyCode: ESC, which: ESC }
-    expect(key).toEqual 'esc'
-
-    TestUtils.Simulate.keyDown input, { keyCode: RIGHT_ARROW, which: RIGHT_ARROW }
-    expect(key).toEqual 'right'
-
-    TestUtils.Simulate.keyDown input, { keyCode: DOWN_ARROW, which: DOWN_ARROW }
-    expect(key).toEqual 'down'
-
-    TestUtils.Simulate.keyDown input, { keyCode: TAB, which: TAB }
-    expect(key).toEqual 'tab'
-
-    TestUtils.Simulate.keyDown input, { keyCode: LEFT_ARROW, which: LEFT_ARROW }
-    expect(key).toEqual 'left'
-
-    TestUtils.Simulate.keyDown input, { keyCode: UP_ARROW, which: UP_ARROW }
-    expect(key).toEqual 'up'
+      expect(spy).toHaveBeenCalled()
 
 
+  describe '::onEnter', ->
+
+    it 'should be called when ENTER is pressed', ->
+
+      { input, spy } = helper.renderWidgetWithInputCallback 'onEnter'
+      TestUtils.Simulate.keyDown input, { which: KeyboardKeys.ENTER }
+      expect(spy).toHaveBeenCalled()
+
+
+  describe '::onEsc', ->
+
+    it 'should be called when ESC is pressed', ->
+
+      { input, spy } = helper.renderWidgetWithInputCallback 'onEsc'
+      TestUtils.Simulate.keyDown input, { which: KeyboardKeys.ESC }
+      expect(spy).toHaveBeenCalled()
+
+
+  describe '::onRightArrow', ->
+
+    it 'should be called when RIGHT_ARROW is pressed', ->
+
+      { input, spy } = helper.renderWidgetWithInputCallback 'onRightArrow'
+      TestUtils.Simulate.keyDown input, { which: KeyboardKeys.RIGHT_ARROW }
+      expect(spy).toHaveBeenCalled()
+
+
+  describe '::onDownArrow', ->
+
+    it 'should be called when DOWN_ARROW is pressed', ->
+
+      { input, spy } = helper.renderWidgetWithInputCallback 'onDownArrow'
+      TestUtils.Simulate.keyDown input, { which: KeyboardKeys.DOWN_ARROW }
+      expect(spy).toHaveBeenCalled()
+
+
+  describe '::onTab', ->
+
+    it 'should be called when TAB is pressed', ->
+
+      { input, spy } = helper.renderWidgetWithInputCallback 'onTab'
+      TestUtils.Simulate.keyDown input, { which: KeyboardKeys.TAB }
+      expect(spy).toHaveBeenCalled()
+
+
+  describe '::onLeftArrow', ->
+
+    it 'should be called when LEFT_ARROW is pressed', ->
+
+      { input, spy } = helper.renderWidgetWithInputCallback 'onLeftArrow'
+      TestUtils.Simulate.keyDown input, { which: KeyboardKeys.LEFT_ARROW }
+      expect(spy).toHaveBeenCalled()
+
+
+  describe '::onUpArrow', ->
+
+    it 'should be called when UP_ARROW is pressed', ->
+
+      { input, spy } = helper.renderWidgetWithInputCallback 'onUpArrow'
+      TestUtils.Simulate.keyDown input, { which: KeyboardKeys.UP_ARROW }
+      expect(spy).toHaveBeenCalled()
+
+
+  helper =
+
+    renderWidgetWithCallback: (eventName, data = {}) ->
+
+      props = { data }
+      props[eventName] = kd.noop
+
+      spy    = expect.spyOn props, eventName
+      widget = TestUtils.renderIntoDocument(
+        <ChatInputWidget {...props} />
+      )
+
+      return { widget, spy }
+
+
+    renderWidgetWithDropboxCallback: (eventName, data, dropboxType) ->
+
+      { widget, spy } = helper.renderWidgetWithCallback eventName, data
+
+      component = TestUtils.findRenderedComponentWithType widget, dropboxType
+      dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
+
+      return { dropbox, spy }
+
+
+    renderWidgetWithInputCallback: (eventName) ->
+
+      { widget, spy } = helper.renderWidgetWithCallback eventName
+
+      input  = TestUtils.findRenderedDOMComponentWithTag widget, 'textarea'
+
+      return { input, spy }

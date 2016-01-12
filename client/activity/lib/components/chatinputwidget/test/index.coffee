@@ -1,2 +1,4 @@
-require './view'
-require './tokens'
+describe 'ChatInputWidget', ->
+
+  require './view'
+  require './tokens'
