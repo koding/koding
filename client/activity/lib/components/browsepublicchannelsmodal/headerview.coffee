@@ -3,7 +3,11 @@ React      = require 'kd-react'
 Tabs       = require 'activity/constants/sidebarpublicchannelstabs'
 classnames = require 'classnames'
 
-module.exports = class Header extends React.Component
+module.exports = class BrowsePublicChannelsModalHeaderView extends React.Component
+
+  @propTypes =
+    query               : React.PropTypes.string
+    onSearchInputChange : React.PropTypes.func
 
   @defaultProps =
     query               : ''
