@@ -14,7 +14,7 @@ import (
 
 func Init(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Context) (int, http.Header, interface{}, error) {
 	// check if user logged in or not
-	if ctx.IsLoggedIn() {
+	if !ctx.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
@@ -23,7 +23,7 @@ func Init(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Con
 
 func Send(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Context) (int, http.Header, interface{}, error) {
 	// check if user logged in or not
-	if ctx.IsLoggedIn() {
+	if !ctx.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 	return response.HandleResultAndError(req.Send())
@@ -31,7 +31,7 @@ func Send(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Con
 
 func List(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	// check if user logged in or not
-	if ctx.IsLoggedIn() {
+	if !ctx.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 	q := request.GetQuery(u)
@@ -46,7 +46,7 @@ func List(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, h
 
 func Search(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	// check if user logged in or not
-	if ctx.IsLoggedIn() {
+	if !ctx.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
@@ -66,7 +66,7 @@ func Search(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int,
 
 func Count(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	// check if user logged in or not
-	if ctx.IsLoggedIn() {
+	if !ctx.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
