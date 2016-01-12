@@ -1,13 +1,18 @@
 kd           = require 'kd'
 React        = require 'kd-react'
-ReactDOM     = require 'react-dom'
 immutable    = require 'immutable'
 Link         = require 'app/components/common/link'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
 ResultState  = require 'activity/constants/resultStates'
+KeyboardKeys = require 'app/constants/keyboardKeys'
 
 module.exports = class FeedPaneTabContainer extends React.Component
+
+  { ESC, ENTER } = KeyboardKeys
+
+  @propTypes =
+    thread : React.PropTypes.instanceOf immutable.Map
 
   @defaultProps =
     thread : immutable.Map()
