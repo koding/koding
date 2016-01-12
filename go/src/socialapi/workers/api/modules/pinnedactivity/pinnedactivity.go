@@ -42,7 +42,11 @@ func checkPinMessagePrerequisites(channel *models.Channel, pinRequest *models.Pi
 	return nil
 }
 
-func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
+func PinMessage(u *url.URL, h http.Header, req *models.PinRequest, context *models.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	if err := validatePinRequest(req); err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -87,7 +91,11 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	// return response.HandleResultAndError(cml.List(query, true))
 }
 
-func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
+func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest, context *models.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	if err := validatePinRequest(req); err != nil {
 		return response.NewBadRequest(err)
 	}
