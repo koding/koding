@@ -19,7 +19,7 @@ func UpdateCommand(c *cli.Context) int {
 		fmt.Println(`Error: Unable to open log files.`)
 	} else {
 		log.SetHandler(logging.NewWriterHandler(f))
-		log.Infof("Update created log file")
+		log.Infof("Update created log file at %q", LogFilePath)
 	}
 
 	checkUpdate := NewCheckUpdate()

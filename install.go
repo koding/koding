@@ -58,7 +58,7 @@ func InstallCommandFactory(c *cli.Context) int {
 		fmt.Println(`Error: Unable to open log files.`)
 	} else {
 		log.SetHandler(logging.NewWriterHandler(f))
-		log.Infof("Installation created log file")
+		log.Infof("Installation created log file at %q", LogFilePath)
 	}
 
 	authToken := c.Args().Get(0)
