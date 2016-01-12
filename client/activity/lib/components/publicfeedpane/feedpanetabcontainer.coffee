@@ -45,6 +45,20 @@ module.exports = class FeedPaneTabContainer extends React.Component
     'active'       : @props.thread.getIn(['flags', 'resultListState']) is ResultState.LIKED
 
 
+  onEsc: (event) -> @redirectToChannel()
+
+
+  redirectToChannel: ->
+
+    @setState query: ''
+
+    channelName = @props.thread.getIn ['channel', 'name']
+
+    ActivityFlux.actions.message.setChannelMessagesSearchQuery ''
+
+    return kd.singletons.router.handleRoute "/Channels/#{channelName}"
+
+
   render: ->
 
     return null  unless @props.thread
