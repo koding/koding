@@ -57,6 +57,12 @@ module.exports = class FeedPaneTabContainer extends React.Component
     'active'       : @props.thread.getIn(['flags', 'resultListState']) is ResultState.LIKED
 
 
+  onChange: (event) ->
+
+    query = event.target.value
+    @setState { query }
+
+
   onEsc: (event) -> @redirectToChannel()
 
 
