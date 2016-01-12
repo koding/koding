@@ -83,6 +83,10 @@ module.exports = [
   ]
 
   [
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
     { name: 'environments vm' }
     { name: 'teams teamspostwith' }
   ]

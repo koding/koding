@@ -8,6 +8,7 @@ notStartedButtonSelector = '.status-bar a.share.not-started'
 chatBox                  = '.collaboration.message-pane'
 shareButtonSelector      = '.status-bar a.share:not(.loading)'
 
+
 module.exports =
 
 
@@ -142,7 +143,7 @@ module.exports =
           .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000
 
 
-  startSessionAndInviteUser: (browser, firstUser, secondUser) ->
+  startSessionAndInviteUser: (browser, firstUser, secondUser, assertOnline = yes) ->
 
     secondUserName         = secondUser.username
     secondUserAvatar       = ".avatars .avatarview[href='/#{secondUserName}']"
@@ -161,9 +162,12 @@ module.exports =
         @startSession browser
         @inviteUser   browser, secondUserName
 
+        browser.waitForElementVisible  secondUserAvatar, 60000
+
+        if assertOnline
+          browser.waitForElementVisible  secondUserOnlineAvatar, 50000 # Assertion
+
         browser
-          .waitForElementVisible  secondUserAvatar, 60000
-          .waitForElementVisible  secondUserOnlineAvatar, 50000 # Assertion
           .waitForElementVisible  chatTextSelector, 50000
           .assert.containsText    chatTextSelector, 'CHAT' # Assertion
 
@@ -251,3 +255,32 @@ module.exports =
       @startSessionAndInviteUser browser, host, participant
     else
       @joinSession browser, host, participant
+
+
+  rejectInvitation: (browser) ->
+
+    host        = utils.getUser no, 0
+    participant = utils.getUser no, 1
+
+    firstUserName    = host.username
+    secondUserName   = participant.username
+    sharedMachineBox = '[testpath=main-sidebar] .shared-machines:not(.hidden)'
+    shareModal       = '.share-modal'
+    fullName         = shareModal + ' .user-details .fullname'
+    rejectButton     = shareModal + ' .kdbutton.red'
+
+    helpers.beginTest browser, participant
+
+    browser.element 'css selector', sharedMachineBox, (result) =>
+
+      if result.status is 0 then browser.end()
+      else
+        browser
+          .waitForElementVisible    shareModal, 500000 # wait for vm turn on for host
+          .waitForElementVisible    fullName, 50000
+          .assert.containsText      shareModal, firstUserName
+          .waitForElementVisible    rejectButton, 50000
+          .click                    rejectButton
+          .waitForElementNotPresent rejectButton, 20000
+          .waitForElementNotPresent shareModal, 20000
+          .waitForElementNotPresent sharedMachineBox, 20000
