@@ -1,15 +1,14 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-ReactDOM             = require 'react-dom'
-ChatList             = require 'activity/components/chatlist'
-ActivityFlux         = require 'activity/flux'
-Scroller             = require 'app/components/scroller'
-ScrollerMixin        = require 'app/components/scroller/scrollermixin'
-EmojiPreloaderMixin  = require 'activity/components/emojipreloadermixin'
-ChannelInfoContainer = require 'activity/components/channelinfocontainer'
-scrollToTarget       = require 'app/util/scrollToTarget'
-scrollerActions      = require 'app/components/scroller/scrolleractions'
-
+kd                  = require 'kd'
+React               = require 'kd-react'
+ReactDOM            = require 'react-dom'
+ActivityFlux        = require 'activity/flux'
+Scroller            = require 'app/components/scroller'
+scrollToTarget      = require 'app/util/scrollToTarget'
+ChatList            = require 'activity/components/chatlist'
+ChannelInfo         = require 'activity/components/channelinfo'
+ScrollerMixin       = require 'app/components/scroller/scrollermixin'
+scrollerActions     = require 'app/components/scroller/scrolleractions'
+EmojiPreloaderMixin = require 'activity/components/emojipreloadermixin'
 
 module.exports = class ChatPane extends React.Component
 
@@ -135,10 +134,10 @@ module.exports = class ChatPane extends React.Component
     if not reachedFirstMessage
       return null
 
-    <ChannelInfoContainer
+    <ChannelInfo.Container
       ref='ChannelInfoContainer'
       key={@channel 'id'}
-      thread={@props.thread}
+      channel={@props.thread.get 'channel'}
       onInviteOthers={@props.onInviteOthers} />
 
 
