@@ -75,7 +75,6 @@ func UpdatePost(cm *models.ChannelMessage, token string) (*models.ChannelMessage
 	cm.Body = "after update"
 
 	url := fmt.Sprintf("/message/%d", cm.Id)
-	// cmI, err := sendModel("POST", url, cm)
 	cmI, err := sendModelWithAuth("POST", url, cm, token)
 	if err != nil {
 		return nil, err

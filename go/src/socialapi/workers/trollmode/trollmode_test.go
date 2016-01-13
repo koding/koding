@@ -49,8 +49,6 @@ func TestMarkedAsTroll(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 	CreatePrivateMessageUser()
-	// disable logs
-	// r.Log.SetLevel(logging.CRITICAL)
 
 	Convey("given a controller", t, func() {
 
@@ -266,7 +264,6 @@ func TestMarkedAsTroll(t *testing.T) {
 			post1, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
 			tests.ResultedWithNoErrorCheck(post1, err)
 
-			// _, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
 			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
@@ -462,7 +459,6 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// add like
-			// _, err = rest.AddInteraction("like", post.Id, trollUser.Id, trollSes.ClientId)
 			_, err = rest.AddInteraction("like", post.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
@@ -709,17 +705,14 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post1, err)
 
 			// add like from normal user
-			// _, err = rest.AddInteraction("like", post1.Id, adminUser.Id, ses.ClientId)
 			_, err = rest.AddInteraction("like", post1.Id, adminUser.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			// add like from normal user
-			// _, err = rest.AddInteraction("like", post1.Id, normalUser.Id, normalSes.ClientId)
 			_, err = rest.AddInteraction("like", post1.Id, normalUser.Id, normalSes.ClientId)
 			So(err, ShouldBeNil)
 
 			// add like from troll user
-			// _, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
 			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
