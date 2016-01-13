@@ -8,11 +8,7 @@ TestUtils       = require 'react-addons-test-utils'
 toImmutable     = require 'app/util/toImmutable'
 whoami          = require 'app/util/whoami'
 
-{ Simulate
-  createRenderer
-  renderIntoDocument
-  findRenderedDOMComponentWithClass
-  scryRenderedDOMComponentsWithClass } = TestUtils
+{ Simulate, createRenderer, renderIntoDocument } = TestUtils
 
 
 describe 'ChannelInfoView', ->
@@ -21,7 +17,7 @@ describe 'ChannelInfoView', ->
 
   describe '::render', ->
 
-    it 'should render ChannelInfoView and checks classname, children length and element type', ->
+    it 'should have correct children for default', ->
 
       shallowRenderer = createRenderer()
       shallowRenderer.render(<ChannelInfoView />)
@@ -33,20 +29,7 @@ describe 'ChannelInfoView', ->
       expect(channelInfoView.props.children.length).toEqual 3
 
 
-    it 'should render ChannelInfoView and checks rendered node length and className', ->
-
-      channelInfoView = renderIntoDocument(<ChannelInfoView />)
-
-      node  = findRenderedDOMComponentWithClass channelInfoView, 'ChannelInfoContainer'
-      nodes = scryRenderedDOMComponentsWithClass channelInfoView, 'ChannelInfoContainer'
-
-      expect(channelInfoView.props.channel).toExist()
-      expect(node).toExist()
-      expect(nodes.length).toEqual 1
-      expect(node.className).toEqual 'ChannelInfoContainer'
-
-
-    it 'should be "Koding Bot" of ".ChannelInfoContainer-name" textContent', ->
+    it 'should show correct name for bot channel', ->
 
       options = { typeConstant : 'bot' }
       channel = toImmutable mock.getMockChannel options
@@ -57,7 +40,7 @@ describe 'ChannelInfoView', ->
       expect(infoContainerName.textContent).toEqual 'Koding Bot'
 
 
-    it 'should be "#koding-dummy-channel" of ".ChannelInfoContainer-name" textContent', ->
+    it 'should show correct name for public channels', ->
 
       options =
         typeConstant : 'topic'
@@ -71,7 +54,7 @@ describe 'ChannelInfoView', ->
       expect(infoContainerName.textContent).toEqual '#koding-dummy-channel'
 
 
-    it 'should be "This is a private conversation." of ".ChannelInfoContainer-name" textContent ', ->
+    it 'should show a description instead of a name for a private channels', ->
 
       options = { typeConstant : 'privatemessage' }
       channel = toImmutable mock.getMockChannel options
@@ -82,7 +65,7 @@ describe 'ChannelInfoView', ->
       expect(infoContainerName.textContent).toEqual 'This is a private conversation.'
 
 
-    it 'should be "created by you today." of profileLink textContent', ->
+    it 'should show special label when channel is created by logged in user', ->
 
       accountOldId = whoami().id
       createdAt    = new Date()
@@ -113,7 +96,7 @@ describe 'ChannelInfoView', ->
       expect(onIntegrationHelp).toHaveBeenCalled()
 
 
-    it 'should call onCollaborationHelp when click StartCollaborationLink element', ->
+    it 'should call passed handler on collaboration link click', ->
 
       onCollaborationHelp    = expect.createSpy()
       channelInfoView        = renderIntoDocument(<ChannelInfoView onCollaborationHelp={onCollaborationHelp}/>)
@@ -124,7 +107,7 @@ describe 'ChannelInfoView', ->
       expect(onCollaborationHelp).toHaveBeenCalled()
 
 
-    it 'should call onInviteOthers when click InviteOthersLink element', ->
+    it 'should call passed handler on invite others link click', ->
 
       onInviteOthers   = expect.createSpy()
       channelInfoView  = renderIntoDocument(<ChannelInfoView onInviteOthers={onInviteOthers}/>)
