@@ -1,4 +1,4 @@
-box: koding/base@0.0.24
+box: koding/base@0.0.26
 no-response-timeout: 10
 services:
   - userminddeployer/postgresql9.3@0.0.7-usermind-9.3-1
@@ -36,7 +36,7 @@ build:
         name: setup nvm
         code: |
           source $HOME/.nvm/nvm.sh
-          nvm use 0.10.33
+          nvm use 4.2
     - script:
         name: koding node modules
         code: |
@@ -177,9 +177,8 @@ build:
     - script:
         name: setup nvm
         code: |
-
           source $HOME/.nvm/nvm.sh
-          nvm use 0.10.33
+          nvm use 4.2
     - script:
         name: upload logs
         code: scripts/wercker/upload-logs INSTANCE_DATA
@@ -224,7 +223,7 @@ deploy:
         name: setup nvm
         code: |
           source $HOME/.nvm/nvm.sh
-          nvm use 0.10.33
+          nvm use 4.2
     - script:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
