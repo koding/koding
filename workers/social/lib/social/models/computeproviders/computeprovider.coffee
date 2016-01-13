@@ -392,15 +392,18 @@ module.exports = class ComputeProvider extends Base
   @updateGroupStackUsage = (group, change, callback) ->
 
     plan = group.getAt 'config.plan'
-    return callback null  unless plan
 
-    plan = teamutils.getPlanData plan
+    if plan
+      plan       = teamutils.getPlanData plan
+      maxAllowed = plan.member
+    else
+      maxAllowed = 9999
 
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
       type      : 'member_stacks'
-      max       : plan.member
+      max       : maxAllowed
       min       : 0
     , (err) ->
       # no worries about `decrement` errors
@@ -411,17 +414,20 @@ module.exports = class ComputeProvider extends Base
   @updateGroupInstanceUsage = (group, change, amount, callback) ->
 
     plan = group.getAt 'config.plan'
-    return callback null  unless plan
     return callback null  if amount is 0
 
-    plan = teamutils.getPlanData plan
+    if plan
+      plan       = teamutils.getPlanData plan
+      maxAllowed = plan.maxInstance
+    else
+      maxAllowed = 9999
 
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
       amount    : amount
       type      : 'member_instances'
-      max       : plan.maxInstance
+      max       : maxAllowed
       min       : 0
     , (err) ->
       # no worries about `decrement` errors
