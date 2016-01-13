@@ -3,7 +3,6 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
-	kodingmodels "koding/db/models"
 	"socialapi/models"
 )
 
@@ -23,18 +22,13 @@ func GetInteractions(interactionType string, postId int64) ([]string, error) {
 	return interactions, nil
 }
 
-func AddInteraction(iType string, postId int64, ses *kodingmodels.Session) (*models.Interaction, error) {
-	acc := models.NewAccount()
-	if err := acc.ByNick(ses.Username); err != nil {
-
-	}
-
+func AddInteraction(iType string, postId, accountId int64, token string) (*models.Interaction, error) {
 	cm := models.NewInteraction()
-	cm.AccountId = acc.Id
+	cm.AccountId = accountId
 	cm.MessageId = postId
 
 	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, iType)
-	_, err := sendModelWithAuth("POST", url, cm, ses.ClientId)
+	_, err := sendModelWithAuth("POST", url, cm, token)
 	if err != nil {
 		return cm, err
 	}
@@ -42,18 +36,13 @@ func AddInteraction(iType string, postId int64, ses *kodingmodels.Session) (*mod
 	return cm, nil
 }
 
-func DeleteInteraction(interactionType string, postId int64, ses *kodingmodels.Session) error {
-	acc := models.NewAccount()
-	if err := acc.ByNick(ses.Username); err != nil {
-
-	}
-
+func DeleteInteraction(interactionType string, postId, accountId int64, token string) error {
 	cm := models.NewInteraction()
-	cm.AccountId = acc.Id
+	cm.AccountId = accountId
 	cm.MessageId = postId
 
 	url := fmt.Sprintf("/message/%d/interaction/%s/delete", postId, interactionType)
-	_, err := marshallAndSendRequestWithAuth("POST", url, cm, ses.ClientId)
+	_, err := marshallAndSendRequestWithAuth("POST", url, cm, token)
 	if err != nil {
 		return err
 	}
