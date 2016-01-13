@@ -28,6 +28,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
       @emit 'FormNeedsToBeChanged', no, no
 
     @on 'FormValidationFailed', @button.bound 'hideLoader'
+    @on 'FormSubmitFailed', @button.bound 'hideLoader'
 
 
   submit: (formData) ->
