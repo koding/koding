@@ -228,6 +228,6 @@ module.exports =
 
   getMockChannel: (args...) -> return mockChannel(args...)
 
-  getMockThread: (args...)  ->  return mockThread(args...)
+  getMockThread: (args...)  -> return mockThread(args...)
 
 
