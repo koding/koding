@@ -494,6 +494,11 @@ module.exports = class ComputeProvider extends Base
             next err
 
       (next) ->
+
+        # Marking this as groupStack to use it with group resources ~ GG
+        res.template.config ?= {}
+        res.template.config.groupStack = yes
+
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
           if err
             # swallowing errors for followings since we need the real error ~GG
