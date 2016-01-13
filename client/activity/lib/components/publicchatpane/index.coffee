@@ -40,7 +40,7 @@ module.exports = class PublicChatPane extends React.Component
       from: messages.first().get 'createdAt'
 
 
-  onInviteOthers: ->
+  onInviteClick: ->
 
     return  unless input = @refs.chatInputWidget
 
@@ -81,7 +81,7 @@ module.exports = class PublicChatPane extends React.Component
         className='PublicChatPane'
         onSubmit={@bound 'onSubmit'}
         onLoadMore={@bound 'onLoadMore'}
-        onInviteOthers={@bound 'onInviteOthers'}
+        onInviteClick={@bound 'onInviteClick'}
       />
       {@renderFooter()}
     </div>

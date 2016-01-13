@@ -12,18 +12,15 @@ module.exports = class ChannelInfoView extends React.Component
 
   @propTypes =
     channel                   : React.PropTypes.instanceOf immutable.Map
-    onInviteOthers            : React.PropTypes.func
-    onIntegrationHelp         : React.PropTypes.func
-    onCollaborationHelp       : React.PropTypes.func
+    onInviteClick             : React.PropTypes.func.isRequired
+    onIntegrationClick        : React.PropTypes.func.isRequired
+    onCollaborationClick      : React.PropTypes.func.isRequired
     collabTooltipVisible      : React.PropTypes.bool
     integrationTooltipVisible : React.PropTypes.bool
 
 
   @defaultProps =
     channel                   : immutable.Map()
-    onInviteOthers            : kd.noop
-    onIntegrationHelp         : kd.noop
-    onCollaborationHelp       : kd.noop
     collabTooltipVisible      : no
     integrationTooltipVisible : no
 
@@ -96,25 +93,25 @@ module.exports = class ChannelInfoView extends React.Component
           You can start a collaboration session, or drag and drop VMs and
           workspaces here from the sidebar to let anyone in this channel access
           them.
-          (<Link onClick ={@props.onCollaborationHelp}>Show me how?</Link>)
+          (<Link onClick ={@props.onCollaborationClick}>Show me how?</Link>)
         </div>
       </div>
       <div className='ChannelInfoContainer-actions'>
         <Link
           className='ChannelInfoContainer-action StartCollaborationLink'
-          onClick={@props.onCollaborationHelp}>
+          onClick={@props.onCollaborationClick}>
           Start Collaboration
           {renderTooltip @props.collabTooltipVisible}
         </Link>
         <Link
           className='ChannelInfoContainer-action AddIntegrationLink'
-          onClick={@props.onIntegrationHelp}>
+          onClick={@props.onIntegrationClick}>
           Add integration
           {renderTooltip @props.integrationTooltipVisible}
         </Link>
         <Link
           className='ChannelInfoContainer-action InviteOthersLink'
-          onClick={@props.onInviteOthers}>
+          onClick={@props.onInviteClick}>
           Invite others
         </Link>
       </div>

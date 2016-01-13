@@ -6,13 +6,12 @@ immutable = require 'immutable'
 module.exports = class ChannelInfoContainer extends React.Component
 
   @propTypes =
-    channel        : React.PropTypes.instanceOf immutable.Map
-    onInviteOthers : React.PropTypes.func
+    channel       : React.PropTypes.instanceOf immutable.Map
+    onInviteClick : React.PropTypes.func.isRequired
 
 
   @defaultProps =
-    channel        : immutable.Map()
-    onInviteOthers : kd.noop
+    channel       : immutable.Map()
 
 
   constructor: (props) ->
@@ -22,7 +21,7 @@ module.exports = class ChannelInfoContainer extends React.Component
     @state = { collabTooltipVisible: no, integrationTooltipVisible: no }
 
 
-  onCollaborationHelp: (event) ->
+  onCollaborationClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
@@ -31,7 +30,7 @@ module.exports = class ChannelInfoContainer extends React.Component
     kd.utils.wait 2000, => @setState collabTooltipVisible: no
 
 
-  onIntegrationHelp: (event) ->
+  onIntegrationClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
@@ -40,20 +39,20 @@ module.exports = class ChannelInfoContainer extends React.Component
     kd.utils.wait 2000, => @setState integrationTooltipVisible: no
 
 
-  onInviteOthers: (event) ->
+  onInviteClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
-    @props.onInviteOthers?()
+    @props.onInviteClick?()
 
 
   render: ->
 
     <View
       channel={@props.channel}
-      onInviteOthers={@bound 'onInviteOthers'}
-      onIntegrationHelp={@bound 'onIntegrationHelp'}
-      onCollaborationHelp={@bound 'onCollaborationHelp'}
+      onInviteClick={@bound 'onInviteClick'}
+      onIntegrationClick={@bound 'onIntegrationClick'}
+      onCollaborationClick={@bound 'onCollaborationClick'}
       integrationTooltipVisible={@state.integrationTooltipVisible}
       collabTooltipVisible={@state.collabTooltipVisible} />
 

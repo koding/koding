@@ -20,18 +20,18 @@ describe 'ChannelInfoContainer', ->
       expect(container.props.channel).toExist()
       expect(container.props.collabTooltipVisible).toBeFalsy()
       expect(container.props.integrationTooltipVisible).toBeFalsy()
-      expect(container.props.onInviteOthers).toBeA 'function'
-      expect(container.props.onIntegrationHelp).toBeA 'function'
-      expect(container.props.onCollaborationHelp).toBeA 'function'
+      expect(container.props.onInviteClick).toBeA 'function'
+      expect(container.props.onIntegrationClick).toBeA 'function'
+      expect(container.props.onCollaborationClick).toBeA 'function'
 
 
-  describe '::onCollaborationHelp', ->
+  describe '::onCollaborationClick', ->
 
     it 'should show collaboration tooltip for 2 seconds', ->
 
       container = renderIntoDocument(<ChannelInfo.Container />)
 
-      container.onCollaborationHelp()
+      container.onCollaborationClick()
 
       expect(container.state.collabTooltipVisible).toBeTruthy()
 
@@ -40,13 +40,13 @@ describe 'ChannelInfoContainer', ->
         expect(container.state.collabTooltipVisible).toBeFalsy()
 
 
-  describe '::onIntegrationHelp', ->
+  describe '::onIntegrationClick', ->
 
     it 'should show integration tooltip for 2 seconds', ->
 
       container = renderIntoDocument(<ChannelInfo.Container />)
 
-      container.onIntegrationHelp()
+      container.onIntegrationClick()
 
       expect(container.state.integrationTooltipVisible).toBeTruthy()
 
@@ -55,16 +55,14 @@ describe 'ChannelInfoContainer', ->
         expect(container.state.integrationTooltipVisible).toBeFalsy()
 
 
-  describe '::onInviteOthers', ->
+  describe '::onInviteClick', ->
 
-
-      onInviteOthers  = expect.createSpy()
-      container       = renderIntoDocument(<ChannelInfo.Container onInviteOthers={onInviteOthers}/>)
     it 'should call onInviteClick props', ->
 
-      container.onInviteOthers()
+      onInviteClick = expect.createSpy()
+      container     = renderIntoDocument(<ChannelInfo.Container onInviteClick={onInviteClick}/>)
 
-      expect(onInviteOthers).toHaveBeenCalled()
+      container.onInviteClick()
 
-      expect.restoreSpies()
+      expect(onInviteClick).toHaveBeenCalled()
 

@@ -86,33 +86,33 @@ describe 'ChannelInfoView', ->
 
     it 'should call passed handler on add integration link click', ->
 
-      onIntegrationHelp  = expect.createSpy()
-      channelInfoView    = renderIntoDocument(<ChannelInfoView onIntegrationHelp={onIntegrationHelp}/>)
+      onIntegrationClick = expect.createSpy()
+      channelInfoView    = renderIntoDocument(<ChannelInfoView onIntegrationClick={onIntegrationClick}/>)
       addIntegrationLink = ReactDOM.findDOMNode(channelInfoView).querySelector '.AddIntegrationLink'
 
       Simulate.click addIntegrationLink
 
-      expect(onIntegrationHelp).toHaveBeenCalled()
+      expect(onIntegrationClick).toHaveBeenCalled()
 
 
     it 'should call passed handler on collaboration link click', ->
 
-      onCollaborationHelp    = expect.createSpy()
-      channelInfoView        = renderIntoDocument(<ChannelInfoView onCollaborationHelp={onCollaborationHelp}/>)
+      onCollaborationClick   = expect.createSpy()
+      channelInfoView        = renderIntoDocument(<ChannelInfoView onCollaborationClick={onCollaborationClick}/>)
       startCollaborationLink = ReactDOM.findDOMNode(channelInfoView).querySelector '.StartCollaborationLink'
 
       Simulate.click startCollaborationLink
 
-      expect(onCollaborationHelp).toHaveBeenCalled()
+      expect(onCollaborationClick).toHaveBeenCalled()
 
 
     it 'should call passed handler on invite others link click', ->
 
-      onInviteOthers   = expect.createSpy()
-      channelInfoView  = renderIntoDocument(<ChannelInfoView onInviteOthers={onInviteOthers}/>)
+      onInviteClick    = expect.createSpy()
+      channelInfoView  = renderIntoDocument(<ChannelInfoView onInviteClick={onInviteClick}/>)
       inviteOthersLink = ReactDOM.findDOMNode(channelInfoView).querySelector '.InviteOthersLink'
 
       Simulate.click inviteOthersLink
 
-      expect(onInviteOthers).toHaveBeenCalled()
+      expect(onInviteClick).toHaveBeenCalled()
 

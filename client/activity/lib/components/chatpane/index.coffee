@@ -12,12 +12,14 @@ EmojiPreloaderMixin = require 'activity/components/emojipreloadermixin'
 
 module.exports = class ChatPane extends React.Component
 
+    onInviteClick : React.PropTypes.func
   @defaultProps =
     title          : null
     messages       : null
     isDataLoading  : no
     onInviteOthers : kd.noop
     showItemMenu   : yes
+    onInviteClick : kd.noop
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
@@ -138,7 +140,7 @@ module.exports = class ChatPane extends React.Component
       ref='ChannelInfoContainer'
       key={@channel 'id'}
       channel={@props.thread.get 'channel'}
-      onInviteOthers={@props.onInviteOthers} />
+      onInviteClick={@props.onInviteClick} />
 
 
   onItemEditStarted: (itemElement) ->

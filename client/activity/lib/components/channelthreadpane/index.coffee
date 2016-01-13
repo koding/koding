@@ -44,7 +44,7 @@ module.exports = class ChannelThreadPane extends React.Component
     kd.singletons.router.handleRoute route
 
 
-  invitePeople: -> @refs.pane.onInviteOthers()
+  invitePeople: -> @refs.pane.onInviteClick()
 
 
   leaveChannel: ->
