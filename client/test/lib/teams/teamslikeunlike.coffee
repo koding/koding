@@ -31,30 +31,45 @@ module.exports =
 
   editPost: (browser) ->
 
-    message       = helpers.getFakeText()
-    editedmessage = 'Message after editing'
-    textSelector  = '.ChatItem .SimpleChatListItem.ChatItem-contentWrapper .ChatListItem-itemBodyContainer'
-    chatInput     = '.editing .ChatItem-updateMessageForm .ChatInputWidget textarea'
-    menuButton    = '.SimpleChatListItem.ChatItem-contentWrapper:nth-of-type(1) .ButtonWithMenuWrapper button'
-    editButton    = '.ButtonWithMenuItemsList li:nth-child(1)'
-    editedText    = '.ChatItem .SimpleChatListItem.edited .ChatListItem-itemBodyContainer .ChatItem-contentBody .MessageBody'
+    message = helpers.getFakeText()
 
     user = teamsHelpers.loginTeam(browser)
     teamsHelpers.createChannel(browser, user)
     teamsHelpers.sendComment(browser, message)
+    teamsHelpers.editOrDeletePost(browser, yes, no)
+    browser.end()
 
+
+  deletePost: (browser) ->
+ 
+    message = helpers.getFakeText()
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
+    teamsHelpers.sendComment(browser, message)
+    teamsHelpers.editOrDeletePost(browser, no, yes)
+    browser.end()
+
+
+   editPostUsingUPkey: (browser) ->
+ 
+    message           = helpers.getFakeText()
+    chatInputSelector = '.ChatPaneFooter .ChatInputWidget textarea'
+    textSelector      = '.ChatItem .SimpleChatListItem.ChatItem-contentWrapper .ChatListItem-itemBodyContainer'
+    editingSelector   = '.SimpleChatListItem.editing .ChatItem-updateMessageForm.visible .ChatInputWidget textarea'
+    chatItem          = '.Pane-body .ChatList .ChatItem:nth-of-type(3)'
+ 
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
+    teamsHelpers.sendComment(browser, message)
+ 
     browser
       .waitForElementVisible  textSelector, 20000
-      .moveToElement          textSelector, 10, 10
-      .waitForElementVisible  menuButton, 20000
-      .click                  menuButton
-      .waitForElementVisible  editButton, 20000
-      .click                  editButton
-      .waitForElementVisible  chatInput, 20000
-      .clearValue             chatInput
-      .setValue               chatInput, editedmessage
-      .setValue               chatInput, browser.Keys.ENTER
-      .waitForElementVisible  editedText, 20000
-      .assert.containsText    editedText, editedmessage
+      .setValue               chatInputSelector, browser.Keys.UP_ARROW
+      .waitForElementVisible  editingSelector, 20000 
+      .clearValue             editingSelector
+      .setValue               editingSelector, 'Message after editing' + browser.Keys.ENTER
+      .waitForElementVisible  chatItem, 20000
+      .pause                  3000 #waiting for text to be changed
+      .assert.containsText    chatItem, 'Message after editing'
       .end()
-
