@@ -65,7 +65,7 @@ echo PATH=\"$PATH\" > /etc/environment
 
 ## Update npm
 
-npm install --global npm@2.9.1
+npm install --global npm
 
 
 ## Install CoffeeScript modules
