@@ -4,3 +4,4 @@ describe 'ChatInputWidget', ->
   require './tokens'
   require './channeldropbox'
   require './emojidropbox'
+  require './commanddropbox'
