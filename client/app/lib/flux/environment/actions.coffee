@@ -283,8 +283,8 @@ deleteWorkspace = (params) ->
         ideApp?[methodName] machineUId, rootPath
 
       reactor.dispatch actions.WORKSPACE_DELETED, {
-        workspaceId : machine.get '_id'
-        machineId   : workspace.get '_id'
+        workspaceId : _id
+        machineId   : machine.get '_id'
       }
 
       resolve()
