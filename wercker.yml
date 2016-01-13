@@ -1,4 +1,4 @@
-box: koding/base@0.0.33
+box: koding/base@0.1.1
 no-response-timeout: 10
 services:
   - userminddeployer/postgresql9.3@0.0.7-usermind-9.3-1
