@@ -30,7 +30,8 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
 
   removeFromStore: ->
 
-    actions.hideManagedMachineAddedModal @props.machine.get '_id'
+    kd.utils.defer =>
+      actions.hideManagedMachineAddedModal @props.machine.get '_id'
 
 
   handleButtonClick: ->
