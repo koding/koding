@@ -291,6 +291,21 @@ module.exports = class JComputeStack extends jraphical.Module
     , callback
 
 
+  updateGroupResourceUsage = (stack, group, callback) ->
+
+    if stack.getAt 'config.groupStack'
+
+      ComputeProvider = require './computeproviders/computeprovider'
+      instanceCount   = (stack.getAt('machines') ? []).length
+
+      ComputeProvider.updateGroupResourceUsage {
+        group, change: 'decrement', instanceCount
+      }, callback
+
+    else
+      callback null
+
+
   destroy: (callback) ->
 
     @fetchGroup (err, group) =>
@@ -299,14 +314,9 @@ module.exports = class JComputeStack extends jraphical.Module
       @update { $set: { status: { state: 'Destroying' } } }, (err) =>
         return callback err  if err
 
-        JMachine        = require './computeproviders/machine'
-        ComputeProvider = require './computeproviders/computeprovider'
+        JMachine = require './computeproviders/machine'
 
-        instanceCount   = (@getAt('machines') ? []).length
-
-        ComputeProvider.updateGroupResourceUsage {
-          group, change: 'decrement', instanceCount
-        }, =>
+        updateGroupResourceUsage this, group, =>
 
           machineIds = (machineId for machineId in @machines)
 
