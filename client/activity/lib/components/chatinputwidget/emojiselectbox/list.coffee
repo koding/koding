@@ -3,7 +3,7 @@ React                 = require 'kd-react'
 ReactDOM              = require 'react-dom'
 classnames            = require 'classnames'
 immutable             = require 'immutable'
-EmojiSelectBoxItem    = require 'activity/components/emojiselectboxitem'
+EmojiSelectBoxItem    = require './item'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 List                  = require 'app/components/list'
 

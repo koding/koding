@@ -1,7 +1,7 @@
 textHelpers       = require 'activity/util/textHelpers'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
 ChannelActions    = require 'activity/flux/actions/channel'
-ChannelDropbox    = require 'activity/components/channeldropbox'
+ChannelDropbox    = require '../channeldropbox'
 
 module.exports = ChannelToken =
 

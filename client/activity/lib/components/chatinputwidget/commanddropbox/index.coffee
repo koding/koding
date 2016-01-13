@@ -2,12 +2,12 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-ChannelDropboxItem   = require 'activity/components/channeldropboxitem'
+PortalDropbox        = require 'activity/components/dropbox/portaldropbox'
+CommandDropboxItem   = require './item'
+ErrorDropboxItem     = require '../errordropboxitem'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
-ScrollableDropbox    = require 'activity/components/dropbox/scrollabledropbox'
 
-class ChannelDropbox extends React.Component
+module.exports = class CommandDropbox extends React.Component
 
   @propTypes =
     query           : React.PropTypes.string
@@ -29,6 +29,9 @@ class ChannelDropbox extends React.Component
     onClose         : kd.noop
 
 
+  getItemKey: (item) -> item.get 'name'
+
+
   updatePosition: (inputDimensions) ->
 
     @refs.dropbox.setInputDimensions inputDimensions
@@ -41,32 +44,44 @@ class ChannelDropbox extends React.Component
     items.map (item, index) =>
       isSelected = index is selectedIndex
 
-      <ChannelDropboxItem
+      <CommandDropboxItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
         onSelected  = { onItemSelected }
         onConfirmed = { onItemConfirmed }
-        key         = { item.get 'id' }
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
       />
+
+
+  renderError: ->
+
+    { query } = @props
+
+    <ErrorDropboxItem>
+      { query } is not a proper command
+    </ErrorDropboxItem>
 
 
   render: ->
 
-    { items, onClose } = @props
+    { items, query, visible, onClose } = @props
 
-    <Dropbox
-      className = 'ChannelDropbox'
-      visible   = { items.size > 0 }
+    isError = items.size is 0 and query
+
+    <PortalDropbox
+      className = 'CommandDropbox'
+      visible   = { query? }
       onClose   = { onClose }
       type      = 'dropup'
-      title     = 'Channels'
+      title     = 'Commands matching'
+      subtitle  = { query }
       ref       = 'dropbox'
     >
-      {@renderList()}
-    </Dropbox>
+      { @renderList()  unless isError }
+      { @renderError()  if isError }
+    </PortalDropbox>
 
 
-ChannelDropbox.include [ ImmutableRenderMixin ]
-
-module.exports = ScrollableDropbox ChannelDropbox
+CommandDropbox.include [ ImmutableRenderMixin ]
