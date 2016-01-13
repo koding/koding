@@ -1,7 +1,6 @@
 { Module }  = require 'jraphical'
 { revive }  = require './computeutils'
 KodingError = require '../../error'
-JUser       = require '../user'
 async       = require 'async'
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
@@ -442,8 +441,11 @@ module.exports = class JMachine extends Module
         @removeInvalidUsers callback
 
 
+  # Fetch machine's shared users and fetch those users' JUser document
+  # and remove the user from machine share list if the user.status is deleted
   removeInvalidUsers: (callback) ->
 
+    JUser = require '../user'
     queue = []
     users = @users.slice 0
     usersToBeRemoved = []

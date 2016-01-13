@@ -90,7 +90,8 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
             'user is not in the shared list.'
           ]
 
-          if err.message in errorMessages then @initList()
+          if err.message in errorMessages
+          then @initList()
           else @showNotification err
 
           userItem.setLoadingMode yes
