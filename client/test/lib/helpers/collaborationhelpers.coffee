@@ -143,6 +143,18 @@ module.exports =
           .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000
 
 
+  openChatWindow: (browser) ->
+
+    chatLink = '.status-bar .custom-link-view'
+    chatBox  = '.chat-view'
+
+    browser
+      .pause 3000
+      .waitForElementVisible  chatLink, 20000
+      .click                  chatLink
+      .waitForElementVisible  chatBox, 20000 # Assertion
+
+
   startSessionAndInviteUser: (browser, firstUser, secondUser, assertOnline = yes) ->
 
     secondUserName         = secondUser.username
@@ -284,3 +296,30 @@ module.exports =
           .waitForElementNotPresent rejectButton, 20000
           .waitForElementNotPresent shareModal, 20000
           .waitForElementNotPresent sharedMachineBox, 20000
+
+
+  leaveSessionFromChat: (browser) ->
+
+    participant  = utils.getUser no, 1
+    hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+
+    chatBox              = '.chat-view'
+    chatBoxChevronButton = "#{chatBox} .general-header span.chevron"
+    contextMenu          = '.kdcontextmenu.chat-dropdown'
+    leaveSessionMenuItem = "#{contextMenu} .context-list-wrapper li.leave-session"
+    kdmodal              = '.kdmodal.kddraggable'
+    kdmodalYesButton     = "#{kdmodal} button.green"
+
+    unless hostBrowser
+      @openChatWindow(browser)
+
+    browser
+      .waitForElementVisible     chatBoxChevronButton, 20000
+      .click                     chatBoxChevronButton
+      .waitForElementVisible     contextMenu, 20000
+      .waitForElementVisible     leaveSessionMenuItem, 20000
+      .click                     leaveSessionMenuItem
+      .waitForElementVisible     kdmodal, 20000
+      .click                     kdmodalYesButton
+      .waitForElementPresent     '.shared-machines', 20000
+      .waitForElementNotPresent  chatBox,20000
