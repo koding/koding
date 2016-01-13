@@ -2,6 +2,7 @@ package models
 
 import (
 	"net"
+	"socialapi/request"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
@@ -24,6 +25,18 @@ func NewContext(redis *redis.RedisSession, log logging.Logger) *Context {
 		redis: redis,
 		log:   log,
 	}
+}
+
+func (c *Context) OverrideQuery(q *request.Query) *request.Query {
+	// get group name from context
+	q.GroupName = c.GroupName
+	if c.IsLoggedIn() {
+		q.AccountId = c.Client.Account.Id
+	} else {
+		q.AccountId = 0
+	}
+
+	return q
 }
 
 func (c *Context) IsLoggedIn() bool {

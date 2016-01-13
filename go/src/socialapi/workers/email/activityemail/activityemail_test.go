@@ -50,7 +50,7 @@ func TestSaveDailyDigestNotification(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		cp := rest.NewCreatePost(channel.Id, acc1.Id, acc2.Id)
+		cp := rest.NewCreatePost(channel.Id, acc1.Id, acc2.Id, ses.ClientId)
 		_, err = cp.CreateReplies(2)
 		So(err, ShouldBeNil)
 
