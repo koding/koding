@@ -55,6 +55,16 @@ module.exports =
     browser.end()
 
 
+  postMessageWithBlockquote: (browser) ->
+  
+    message = "> Message with blockquote"
+  
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
+    teamsHelpers.sendComment(browser, message, 'messageWithBlockquote')
+    browser.end()
+
+
   # postMessageWithEmoji: (browser) ->
 
   #   messageWithEmoji = ':smiley: :+1:'
