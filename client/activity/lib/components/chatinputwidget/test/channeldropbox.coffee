@@ -5,7 +5,7 @@ expect         = require 'expect'
 TestUtils      = require 'react-addons-test-utils'
 toImmutable    = require 'app/util/toImmutable'
 ChannelDropbox = require '../channeldropbox'
-PortalDropbox  = require 'activity/components/dropbox/portaldropbox'
+helpers        = require './helpers'
 
 describe 'ChannelDropbox', ->
 
@@ -18,64 +18,36 @@ describe 'ChannelDropbox', ->
 
     it 'renders invisible dropbox if items are empty', ->
 
-      dropbox = helper.renderDropbox {}
+      dropbox = helpers.renderDropbox {}, ChannelDropbox
       expect(dropbox.props.visible).toBe no
 
-    it 'renders dropbox with passed items and selected index', ->
+    it 'renders dropbox with list of passed items', ->
 
-      props   = { items : channels, selectedIndex : 1 }
-      dropbox = helper.renderDropbox props
-      content = dropbox.getContentElement()
-      items   = content.querySelectorAll '.DropboxItem'
+      props = { items : channels }
+      helpers.dropboxItemsTest(
+        props,
+        ChannelDropbox,
+        (item, itemData) ->
+          expect(item.textContent).toEqual "# #{itemData.get 'name'}"
+      )
 
-      expect(items.length).toEqual props.items.size
-      for item, i in items
-        expect(item.textContent).toEqual "# #{props.items.getIn [i, 'name']}"
+    it 'renders dropbox with selected item', ->
 
-      expect(items[props.selectedIndex].classList.contains 'DropboxItem-selected').toBe yes
+      props = { items : channels, selectedIndex : 1 }
+      helpers.dropboxSelectedItemTest props, ChannelDropbox
 
 
   describe '::onItemSelected', ->
 
     it 'should be called when dropbox item is hovered', ->
 
-      props = { items : channels, selectedIndex : 0, onItemSelected : kd.noop }
-      spy   = expect.spyOn props, 'onItemSelected'
-
-      dropbox = helper.renderDropbox props
-      content = dropbox.getContentElement()
-      items   = content.querySelectorAll '.DropboxItem'
-
-      newSelectedItem = items[props.selectedIndex + 1]
-      TestUtils.Simulate.mouseEnter newSelectedItem
-
-      expect(spy).toHaveBeenCalled()
-      expect(spy).toHaveBeenCalledWith props.selectedIndex + 1
+      props = { items : channels, selectedIndex : 0 }
+      helpers.dropboxSelectedItemCallbackTest props, ChannelDropbox
 
 
   describe '::onItemConfirmed', ->
 
     it 'should be called when dropbox item is clicked', ->
 
-      props = { items : channels, selectedIndex : 1, onItemConfirmed : kd.noop }
-      spy   = expect.spyOn props, 'onItemConfirmed'
-
-      dropbox = helper.renderDropbox props
-      content = dropbox.getContentElement()
-      items   = content.querySelectorAll '.DropboxItem'
-
-      selectedItem = items[props.selectedIndex]
-      TestUtils.Simulate.click selectedItem
-
-      expect(spy).toHaveBeenCalled()
-
-
-  helper =
-
-    renderDropbox: (props) ->
-
-      result = TestUtils.renderIntoDocument(
-        <ChannelDropbox {...props} />
-      )
-      dropbox = TestUtils.findRenderedComponentWithType result, PortalDropbox
-      return dropbox
+      props = { items : channels, selectedIndex : 1 }
+      helpers.dropboxConfirmedItemCallbackTest props, ChannelDropbox
