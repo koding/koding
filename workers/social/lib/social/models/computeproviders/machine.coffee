@@ -370,7 +370,7 @@ module.exports = class JMachine extends Module
 
     { targets, asOwner, permanent } = options
 
-    users = @users.splice 0
+    users = @users.slice 0
 
     for user in targets
       users = addUser users, { user, asOwner, permanent }
@@ -392,7 +392,7 @@ module.exports = class JMachine extends Module
 
     { targets, permanent, inform, force } = options
 
-    users = @users.splice 0
+    users = @users.slice 0
 
     for user in targets
       users = excludeUser { users, user, permanent, force }
