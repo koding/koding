@@ -1,10 +1,10 @@
-module.exports = ({ channelId, channelName, typeConstant, privacyConstant, group }) ->
+module.exports = ({ channelId, channelName, typeConstant, privacyConstant, group, accountOldId, createdAt }) ->
   return {
     id                  : channelId or "6089984394406133765"
     _id                 : channelId or "6089984394406133765"
-    accountOldId        : "568b34b24868cdaf029fccee"
+    accountOldId        : accountOldId or "568b34b24868cdaf029fccee"
     bongo_              : {}
-    createdAt           : "2016-01-05T03:43:46.067543Z"
+    createdAt           : createdAt or "2016-01-05T03:43:46.067543Z"
     creatorId           : "18"
     deletedAt           : "0001-01-01T00:00:00Z"
     groupName           : group or 'dummy-group'

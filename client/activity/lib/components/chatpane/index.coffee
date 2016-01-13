@@ -1,24 +1,32 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-ReactDOM             = require 'react-dom'
-ChatList             = require 'activity/components/chatlist'
-ActivityFlux         = require 'activity/flux'
-Scroller             = require 'app/components/scroller'
-ScrollerMixin        = require 'app/components/scroller/scrollermixin'
-EmojiPreloaderMixin  = require 'activity/components/emojipreloadermixin'
-ChannelInfoContainer = require 'activity/components/channelinfocontainer'
-scrollToTarget       = require 'app/util/scrollToTarget'
-scrollerActions      = require 'app/components/scroller/scrolleractions'
-
+kd                  = require 'kd'
+React               = require 'kd-react'
+ReactDOM            = require 'react-dom'
+immutable           = require 'immutable'
+ActivityFlux        = require 'activity/flux'
+Scroller            = require 'app/components/scroller'
+scrollToTarget      = require 'app/util/scrollToTarget'
+ChatList            = require 'activity/components/chatlist'
+ChannelInfo         = require 'activity/components/channelinfo'
+ScrollerMixin       = require 'app/components/scroller/scrollermixin'
+scrollerActions     = require 'app/components/scroller/scrolleractions'
+EmojiPreloaderMixin = require 'activity/components/emojipreloadermixin'
 
 module.exports = class ChatPane extends React.Component
 
+  @propsTypes =
+    title         : React.PropTypes.string
+    isDataLoading : React.PropTypes.bool
+    onInviteClick : React.PropTypes.func
+    showItemMenu  : React.PropTypes.bool
+    messages      : React.PropTypes.instanceOf immutable.List()
+
+
   @defaultProps =
-    title          : null
-    messages       : null
-    isDataLoading  : no
-    onInviteOthers : kd.noop
-    showItemMenu   : yes
+    isDataLoading : no
+    showItemMenu  : yes
+    title         : null
+    onInviteClick : kd.noop
+    messages      : immutable.List()
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
@@ -135,11 +143,11 @@ module.exports = class ChatPane extends React.Component
     if not reachedFirstMessage
       return null
 
-    <ChannelInfoContainer
+    <ChannelInfo.Container
       ref='ChannelInfoContainer'
       key={@channel 'id'}
-      thread={@props.thread}
-      onInviteOthers={@props.onInviteOthers} />
+      channel={@props.thread.get 'channel'}
+      onInviteClick={@props.onInviteClick} />
 
 
   onItemEditStarted: (itemElement) ->
