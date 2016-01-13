@@ -75,7 +75,7 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
       JUser.unregister username.getValue(), (err) =>
         if err then new KDNotificationView title : 'There was a problem, please try again!'
         else
-          surveyLink = 'https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform'
+          surveyLink = 'https://docs.google.com/forms/d/1pNRfkqRJSYh8k7Z5JnZH06P1QXW5q8hfr6l8kLV_iOU/viewform'
           @setTitle 'Account successfully deleted'
           @setContent """
             <div class='modalformline'>
