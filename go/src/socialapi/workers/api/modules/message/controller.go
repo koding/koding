@@ -405,11 +405,11 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}, ctx *models.Contex
 	}
 
 	cmc := models.NewChannelMessageContainer()
-	if err := cmc.Fetch(cm.Id, q); err != nil {
+	if err := cmc.Fetch(cm.Id, query); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	cmc.AddIsInteracted(q).AddIsFollowed(q)
+	cmc.AddIsInteracted(query).AddIsFollowed(query)
 
 	return response.HandleResultAndError(cmc, cmc.Err)
 }
@@ -447,11 +447,11 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (i
 	}
 
 	cmc := models.NewChannelMessageContainer()
-	if err := cmc.Fetch(cm.Id, q); err != nil {
+	if err := cmc.Fetch(cm.Id, query); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	cmc.AddIsInteracted(q).AddIsFollowed(q)
+	cmc.AddIsInteracted(query).AddIsFollowed(query)
 
 	return response.HandleResultAndError(cmc, cmc.Err)
 }
