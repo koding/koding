@@ -22,13 +22,13 @@ func GetInteractions(interactionType string, postId int64) ([]string, error) {
 	return interactions, nil
 }
 
-func AddInteraction(iType string, postId, accountId int64) (*models.Interaction, error) {
+func AddInteraction(iType string, postId, accountId int64, token string) (*models.Interaction, error) {
 	cm := models.NewInteraction()
 	cm.AccountId = accountId
 	cm.MessageId = postId
 
 	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, iType)
-	_, err := sendModel("POST", url, cm)
+	_, err := sendModelWithAuth("POST", url, cm, token)
 	if err != nil {
 		return cm, err
 	}
@@ -36,13 +36,13 @@ func AddInteraction(iType string, postId, accountId int64) (*models.Interaction,
 	return cm, nil
 }
 
-func DeleteInteraction(interactionType string, postId, accountId int64) error {
+func DeleteInteraction(interactionType string, postId, accountId int64, token string) error {
 	cm := models.NewInteraction()
 	cm.AccountId = accountId
 	cm.MessageId = postId
 
 	url := fmt.Sprintf("/message/%d/interaction/%s/delete", postId, interactionType)
-	_, err := marshallAndSendRequest("POST", url, cm)
+	_, err := marshallAndSendRequestWithAuth("POST", url, cm, token)
 	if err != nil {
 		return err
 	}

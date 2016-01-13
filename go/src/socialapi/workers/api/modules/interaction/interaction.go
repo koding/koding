@@ -10,8 +10,9 @@ import (
 	"socialapi/workers/common/response"
 )
 
-func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, interface{}, error) {
+func Add(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Context) (int, http.Header, interface{}, error) {
 	var err error
+	req.AccountId = ctx.Client.Account.Id
 	req, err = prepareInteraction(u, req)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -25,8 +26,9 @@ func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, 
 	return response.NewOK(req)
 }
 
-func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, interface{}, error) {
+func Delete(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Context) (int, http.Header, interface{}, error) {
 	var err error
+	req.AccountId = ctx.Client.Account.Id
 	req, err = prepareInteraction(u, req)
 	if err != nil {
 		return response.NewBadRequest(err)

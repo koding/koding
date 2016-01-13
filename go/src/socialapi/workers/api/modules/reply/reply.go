@@ -9,28 +9,44 @@ import (
 	"socialapi/workers/common/response"
 )
 
-func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.Header, interface{}, error) {
+func Create(u *url.URL, h http.Header, reply *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
 	parentId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	// first create reply as a message
-	reply.TypeConstant = models.ChannelMessage_TYPE_REPLY
-
-	if err := reply.Create(); err != nil {
-		// todo this should be internal server error
-		return response.NewBadRequest(err)
-	}
-
-	// fetch parent
+	// fetch the parent message
 	parent, err := models.Cache.Message.ById(parentId)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	// set reply message's inital channel id from parent's
+	parentChannel, err := models.Cache.Channel.ById(parent.InitialChannelId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	canOpen, err := parentChannel.CanOpen(c.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewAccessDenied(models.ErrCannotOpenChannel)
+	}
+
+	// first create reply as a message
+	reply.TypeConstant = models.ChannelMessage_TYPE_REPLY
+
+	// set initial channel id for message creation
 	reply.InitialChannelId = parent.InitialChannelId
+
+	reply.AccountId = c.Client.Account.Id
+
+	if err := reply.Create(); err != nil {
+		// todo this should be internal server error
+		return response.NewBadRequest(err)
+	}
 
 	// then add this message as a reply to a parent message
 	mr := models.NewMessageReply()
