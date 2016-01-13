@@ -82,7 +82,7 @@ func TestChannelMessage(t *testing.T) {
 			Convey("message should not have payload, if user does not allow", func() {
 				h := http.Header{}
 				h.Add("X-Forwarded-For", "208.72.139.54")
-				post, err := rest.CreatePostWithHeader(groupChannel.Id, account.Id, h, ses.ClientId)
+				post, err := rest.CreatePostWithHeader(groupChannel.Id, h, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 				So(post.Payload, ShouldBeNil)
@@ -91,7 +91,7 @@ func TestChannelMessage(t *testing.T) {
 			Convey("Message should have location if user allowed", func() {
 				payload := make(map[string]interface{})
 				payload["saveLocation"] = "Manisa"
-				post, err := rest.CreatePostWithPayload(groupChannel.Id, account.Id, payload, ses.ClientId)
+				post, err := rest.CreatePostWithPayload(groupChannel.Id, payload, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 				So(post.Payload, ShouldNotBeNil)
@@ -107,7 +107,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, ses)
+				_, err = rest.AddInteraction("like", post.Id, post.AccountId, ses.ClientId)
 				So(err, ShouldBeNil)
 
 				cmc, err := rest.GetPostWithRelatedData(
@@ -135,7 +135,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, nonOwnerSes)
+				_, err = rest.AddInteraction("like", post.Id, nonOwnerAccount.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 
 				cmc, err := rest.GetPostWithRelatedData(
@@ -163,7 +163,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, nonOwnerSes)
+				_, err = rest.AddInteraction("like", post.Id, nonOwnerAccount.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 
 				likes, err := rest.GetInteractions("like", post.Id)
@@ -178,7 +178,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, ses)
+				_, err = rest.AddInteraction("like", post.Id, post.AccountId, ses.ClientId)
 				So(err, ShouldBeNil)
 
 				cmc, err := rest.GetPostWithRelatedData(
@@ -199,7 +199,7 @@ func TestChannelMessage(t *testing.T) {
 				// actor length should be 1
 				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
 
-				err = rest.DeleteInteraction("like", post.Id, ses)
+				err = rest.DeleteInteraction("like", post.Id, account.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 
 				cmc, err = rest.GetPostWithRelatedData(
@@ -226,7 +226,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id, ses.ClientId)
+				reply, err := rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -255,11 +255,11 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id, ses.ClientId)
+				reply, err := rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
-				reply, err = rest.AddReply(post.Id, post.AccountId, groupChannel.Id, ses.ClientId)
+				reply, err = rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -276,7 +276,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, nonOwnerSes.ClientId)
+				reply, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -304,13 +304,13 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, nonOwnerSes.ClientId)
+				reply, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
 				So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
 
-				_, err = rest.AddInteraction("like", reply.Id, nonOwnerSes)
+				_, err = rest.AddInteraction("like", reply.Id, nonOwnerAccount.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 
 				cmc, err := rest.GetPostWithRelatedData(
@@ -352,7 +352,7 @@ func TestChannelMessage(t *testing.T) {
 				sesNonOwner, err := models.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 
-				reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, nonOwnerSes.ClientId)
+				reply, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -380,11 +380,11 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply1, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
+				reply1, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply1, ShouldNotBeNil)
 
-				reply2, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
+				reply2, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply2, ShouldNotBeNil)
 
@@ -421,18 +421,18 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply1, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
+				reply1, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply1, ShouldNotBeNil)
 
-				reply2, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id, ses.ClientId)
+				reply2, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(reply2, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", reply1.Id, ses)
+				_, err = rest.AddInteraction("like", reply1.Id, account.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 
-				_, err = rest.AddInteraction("like", reply2.Id, ses)
+				_, err = rest.AddInteraction("like", reply2.Id, account.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 
 				err = rest.DeletePost(post.Id, ses.ClientId)
@@ -453,7 +453,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				_, err = rest.AddInteraction("like", post.Id, ses)
+				_, err = rest.AddInteraction("like", post.Id, account.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 
 				err = rest.DeletePost(post.Id, ses.ClientId)
@@ -472,7 +472,7 @@ func TestChannelMessage(t *testing.T) {
 				payload["key3"] = true
 				payload["key4"] = 3.4
 
-				post, err := rest.CreatePostWithPayload(groupChannel.Id, account.Id, payload, ses.ClientId)
+				post, err := rest.CreatePostWithPayload(groupChannel.Id, payload, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
@@ -485,7 +485,7 @@ func TestChannelMessage(t *testing.T) {
 
 			// TODO before enabling this topic feed must be added to wercker
 			// Convey("message should be fetched from all public channels with given slug", func() {
-			// 	post, err := rest.CreatePost( account.Id)
+			// 	post, err := rest.CreatePost(groupChannel.Id, account.Id)
 			// 	So(err, ShouldBeNil)
 			// 	So(post, ShouldNotBeNil)
 

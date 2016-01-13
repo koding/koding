@@ -267,7 +267,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post1, err)
 
 			// _, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
-			_, err = rest.AddInteraction("like", post1.Id, trollSes)
+			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
 			So(controller.markInteractions(trollUser, models.Safe), ShouldBeNil)
@@ -295,7 +295,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// create reply
-			reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id, ses.ClientId)
+			reply, err := rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, post.AccountId)
@@ -409,7 +409,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// create reply
-			reply, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id, trollSes.ClientId)
+			reply, err := rest.AddReply(post.Id, groupChannel.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, trollUser.Id)
@@ -431,7 +431,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// create reply
-			reply, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id, trollSes.ClientId)
+			reply, err := rest.AddReply(post.Id, groupChannel.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, trollUser.Id)
@@ -463,7 +463,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			// add like
 			// _, err = rest.AddInteraction("like", post.Id, trollUser.Id, trollSes.ClientId)
-			_, err = rest.AddInteraction("like", post.Id, trollSes)
+			_, err = rest.AddInteraction("like", post.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
 			// fetch likes
@@ -710,17 +710,17 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			// add like from normal user
 			// _, err = rest.AddInteraction("like", post1.Id, adminUser.Id, ses.ClientId)
-			_, err = rest.AddInteraction("like", post1.Id, ses)
+			_, err = rest.AddInteraction("like", post1.Id, adminUser.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			// add like from normal user
 			// _, err = rest.AddInteraction("like", post1.Id, normalUser.Id, normalSes.ClientId)
-			_, err = rest.AddInteraction("like", post1.Id, normalSes)
+			_, err = rest.AddInteraction("like", post1.Id, normalUser.Id, normalSes.ClientId)
 			So(err, ShouldBeNil)
 
 			// add like from troll user
 			// _, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
-			_, err = rest.AddInteraction("like", post1.Id, trollSes)
+			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
 			history, err := rest.GetPostWithRelatedData(
@@ -753,50 +753,30 @@ func TestMarkedAsTroll(t *testing.T) {
 			post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
 			tests.ResultedWithNoErrorCheck(post, err)
 
-			// users := []int64{adminUser.Id, normalUser.Id, trollUser.Id}
-
-			// _, err = rest.AddInteraction("like", post.Id, adminUser.Id, ses.ClientId)
-			_, err = rest.AddInteraction("like", post.Id, ses)
+			// users are -> adminUser, normalUser, trollUser
+			_, err = rest.AddInteraction("like", post.Id, adminUser.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
-			// _, err = rest.AddInteraction("like", post.Id, normalUser.Id, normalSes.ClientId)
-			_, err = rest.AddInteraction("like", post.Id, normalSes)
+			_, err = rest.AddInteraction("like", post.Id, normalUser.Id, normalSes.ClientId)
 			So(err, ShouldBeNil)
 
-			// _, err = rest.AddInteraction("like", post.Id, trollUser.Id, trollSes.ClientId)
-			_, err = rest.AddInteraction("like", post.Id, trollSes)
+			_, err = rest.AddInteraction("like", post.Id, trollUser.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 
-			// add interactions
-			// for _, userId := range users {
-			// 	// add like from troll user
-			// 	_, err = rest.AddInteraction("like", post.Id, userId)
-			// 	So(err, ShouldBeNil)
-			// }
-
-			reply, err := rest.AddReply(post.Id, adminUser.Id, groupChannel.Id, ses.ClientId)
+			reply, err := rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, adminUser.Id)
 
-			reply1, err := rest.AddReply(post.Id, normalUser.Id, groupChannel.Id, normalSes.ClientId)
+			reply1, err := rest.AddReply(post.Id, groupChannel.Id, normalSes.ClientId)
 			So(err, ShouldBeNil)
 			So(reply1, ShouldNotBeNil)
 			So(reply1.AccountId, ShouldEqual, normalUser.Id)
 
-			reply2, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id, trollSes.ClientId)
+			reply2, err := rest.AddReply(post.Id, groupChannel.Id, trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(reply2, ShouldNotBeNil)
 			So(reply2.AccountId, ShouldEqual, trollUser.Id)
-
-			// add replies
-			// for _, userId := range users {
-			// 	// create reply
-			// 	reply, err := rest.AddReply(post.Id, userId, groupChannel.Id)
-			// 	So(err, ShouldBeNil)
-			// 	So(reply, ShouldNotBeNil)
-			// 	So(reply.AccountId, ShouldEqual, userId)
-			// }
 
 			return post
 		}
