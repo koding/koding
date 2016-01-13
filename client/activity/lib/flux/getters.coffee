@@ -5,7 +5,7 @@ isPublicChannel            = require 'app/util/isPublicChannel'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 getGroup                   = require 'app/util/getGroup'
-SidebarPublicChannelsTabs  = require 'activity/flux/stores/sidebarchannels/sidebarpublicchannelstabs'
+SidebarPublicChannelsTabs  = require 'activity/constants/sidebarpublicchannelstabs'
 ResultStates               = require 'activity/constants/resultStates'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
