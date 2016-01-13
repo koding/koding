@@ -67,7 +67,7 @@ module.exports = class IDEStatusBar extends KDView
         return  if @hasClass 'loading'
         return  unless appManager.frontApp.isMachineRunning()
 
-        appManager.tell 'IDE', 'showChat'  unless @_collabDisabled
+        appManager.tell 'IDE', 'showChat'
 
     @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr hidden'
 
