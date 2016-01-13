@@ -163,10 +163,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  unless @machine 'isApproved'
     return null  unless @settingsEnabled()
 
-    <Link
+    <span
       className='MachineSettings'
-      onClick={@bound 'handleMachineSettingsClick'}
-      />
+      onClick={@bound 'handleMachineSettingsClick'}>
+    </span>
+
 
 
   handleMachineSettingsClick: (event) ->
@@ -256,8 +257,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
         <span className='SidebarListItem-title'>{@getMachineLabel()}</span>
         {@renderUnreadCount()}
         {@renderProgressbar()}
+        {@renderMachineSettingsIcon()}
       </Link>
-      {@renderMachineSettingsIcon()}
       {@renderWorkspaceSection()}
       {@renderLeaveSharedMachine()}
       {@renderConnectedManagedMachineWidget()}
