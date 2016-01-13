@@ -1,7 +1,8 @@
 {
   "variables": {
     "aws_access_key": "AKIAJTAPKSDXI4FIXGJA",
-    "aws_secret_key": "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"
+    "aws_secret_key": "ZGAxHptSlnbpQcNMRyVHsoGoB3x/3GxLqMyj1zNC",
+    "node_version": "4.2"
   },
   "builders": [
     {
@@ -49,7 +50,10 @@
     {
       "type": "shell",
       "script": "provision.sh",
-      "execute_command": "{{ .Vars }} sudo -E '{{ .Path }}'"
+      "execute_command": "{{ .Vars }} sudo -E '{{ .Path }}'",
+      "environment_vars": [
+        "NODE_VERSION={{user `node_version`}}"
+      ]
     },
     {
       "type": "shell",
@@ -57,7 +61,8 @@
       "execute_command": "{{ .Vars }} sudo -E '{{ .Path }}'",
       "environment_vars": [
         "CI=true",
-        "wercker=true"
+        "wercker=true",
+        "NODE_VERSION={{user `node_version`}}"
       ]
     }
   ]

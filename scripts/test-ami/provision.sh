@@ -8,8 +8,6 @@ PROVISION_USER=$SUDO_USER
 
 ## Add third party repositories
 
-add-apt-repository -y ppa:chris-lea/node.js
-
 wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 echo 'deb http://dl.google.com/linux/chrome/deb/ stable main' > /etc/apt/sources.list.d/google.list
 
@@ -55,8 +53,15 @@ pip install s3cmd
 
 # Install node.js
 
-apt-get install -y nodejs
+export NVM_DIR=/usr/local/nvm
 
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.30.1/install.sh | bash
+source $NVM_DIR/nvm.sh
+
+nvm install $NODE_VERSION
+nvm use $NODE_VERSION
+
+echo PATH=\"$PATH\" > /etc/environment
 
 ## Update npm
 
