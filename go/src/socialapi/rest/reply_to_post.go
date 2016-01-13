@@ -41,7 +41,7 @@ func (c *CreatePostType) CreateReplies(n int) (*CreatePostReplyReturn, error) {
 	cpReturn.Replies = make([]*models.ChannelMessage, 0)
 
 	for i := 1; i <= n; i++ {
-		reply, err := AddReply(cpReturn.Post.Id, c.Acc2Id, c.ChannelId, c.Token)
+		reply, err := AddReply(cpReturn.Post.Id, c.ChannelId, c.Token)
 		if err != nil {
 			return nil, err
 		}
