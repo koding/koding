@@ -3,7 +3,7 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 ActivityFlux         = require 'activity/flux'
 ChatPane             = require 'activity/components/chatpane'
-ChatInputContainer   = require 'activity/components/chatinputwidget/container'
+ChatInputWidget      = require 'activity/components/chatinputwidget'
 ChannelToken         = require 'activity/components/chatinputwidget/tokens/channeltoken'
 EmojiToken           = require 'activity/components/chatinputwidget/tokens/emojitoken'
 MentionToken         = require 'activity/components/chatinputwidget/tokens/mentiontoken'
@@ -54,7 +54,7 @@ module.exports = class PublicChatPane extends React.Component
     isParticipant = @channel 'isParticipant'
 
     <footer className="PublicChatPane-footer ChatPaneFooter">
-      <ChatInputContainer
+      <ChatInputWidget.Container
         ref       = 'chatInputWidget'
         className = { unless isParticipant then 'hidden' }
         onSubmit  = { @bound 'onSubmit' }
