@@ -8,6 +8,8 @@ TestUtils   = require 'react-addons-test-utils'
 
 describe 'ChannelInfoContainer', ->
 
+  afterEach -> expect.restoreSpies()
+
   describe '::render', ->
 
     it 'should render ChannelInfo-Container and check its props', ->
