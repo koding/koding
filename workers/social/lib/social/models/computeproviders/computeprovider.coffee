@@ -482,12 +482,10 @@ module.exports = class ComputeProvider extends Base
 
       (next) ->
         checkTemplateUsage template, account, (err) ->
-          next err
-
-      (next) ->
-        account.addStackTemplate template, (err) ->
-          res.client = client
-          next err
+          return next err  if err
+          account.addStackTemplate template, (err) ->
+            res.client = client
+            next err
 
       (next) ->
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
