@@ -40,10 +40,9 @@ func GetReplies(postId int64, accountId int64, groupName string) ([]*models.Chan
 	return replies, nil
 }
 
-func AddReply(postId, accountId, channelId int64, token string) (*models.ChannelMessage, error) {
+func AddReply(postId, channelId int64, token string) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Body = "reply body"
-	cm.AccountId = accountId
 	cm.InitialChannelId = channelId
 
 	url := fmt.Sprintf("/message/%d/reply", postId)
