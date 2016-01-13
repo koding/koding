@@ -13,7 +13,7 @@ module.exports = EmojiToken =
     currentWord = textHelpers.getWordByPosition value, position
     return  unless currentWord
 
-    matchResult = currentWord.match /^\:(.+)/
+    matchResult = currentWord.match /^\:([^:]+)$/
     return matchResult[1]  if matchResult
 
 

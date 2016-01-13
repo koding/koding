@@ -39,49 +39,10 @@ module.exports = class EmojiSelectBox extends React.Component
     @refs.dropbox.setInputDimensions inputDimensions
 
 
-  onItemSelected: (index) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.emoji.setSelectBoxSelectedIndex stateId, index
-
-
-  onItemUnselected: ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.emoji.resetSelectBoxSelectedIndex stateId
-
-
-  onItemConfirmed: ->
-
-    { selectedItem } = @props
-    ChatInputFlux.actions.emoji.incrementUsageCount selectedItem
-    @props.onItemConfirmed? selectedItem
-    @close()
-
-
-  onTabChange: (tabIndex) ->
-
-    { stateId } = @props
-
-    ChatInputFlux.actions.emoji.unsetSelectBoxQuery stateId
-    ChatInputFlux.actions.emoji.setSelectBoxTabIndex stateId, tabIndex
-
-
-  close: ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.emoji.setSelectBoxVisibility stateId, no
-
-
-  onSearch: (value) ->
-
-    { stateId } = @props
-    ChatInputFlux.actions.emoji.setSelectBoxQuery stateId, value
-
-
   renderList: ->
 
-    { visible, items, query, tabIndex } = @props
+    { visible, items, query, tabIndex, onItemSelected,
+      onItemUnselected, onItemConfirmed, onTabChange, onSearch } = @props
 
     return  unless visible
 
@@ -89,29 +50,29 @@ module.exports = class EmojiSelectBox extends React.Component
       items            = { items }
       query            = { query }
       sectionIndex     = { tabIndex }
-      onItemSelected   = { @bound 'onItemSelected' }
-      onItemUnselected = { @bound 'onItemUnselected' }
-      onItemConfirmed  = { @bound 'onItemConfirmed' }
-      onSectionChange  = { @bound 'onTabChange' }
-      onSearch         = { @bound 'onSearch' }
+      onItemSelected   = { onItemSelected }
+      onItemUnselected = { onItemUnselected }
+      onItemConfirmed  = { onItemConfirmed }
+      onSectionChange  = { onTabChange }
+      onSearch         = { onSearch }
       ref              = 'list'
     />
 
 
   render: ->
 
-    { items, query, visible, selectedItem, tabs, tabIndex } = @props
+    { items, query, visible, selectedItem, tabs, tabIndex, onClose, onTabChange } = @props
 
     <Dropbox
       className = 'EmojiSelectBox'
       visible   = { visible }
-      onClose   = { @bound 'close' }
+      onClose   = { onClose }
       type      = 'dropup'
       right     = 0
       ref       = 'dropbox'
       resize    = 'custom'
     >
-      <Tabs tabs={tabs} tabIndex={tabIndex} onTabChange={@bound 'onTabChange'} />
+      <Tabs tabs={tabs} tabIndex={tabIndex} onTabChange={onTabChange} />
       { @renderList() }
       <Footer selectedItem={selectedItem} />
     </Dropbox>
