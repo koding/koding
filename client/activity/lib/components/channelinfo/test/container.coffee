@@ -27,7 +27,7 @@ describe 'ChannelInfoContainer', ->
 
   describe '::onCollaborationHelp', ->
 
-    it 'should set collabTooltipVisible state yes first, after 2000 millisecond set to false', ->
+    it 'should show collaboration tooltip for 2 seconds', ->
 
       container = renderIntoDocument(<ChannelInfo.Container />)
 
@@ -42,7 +42,7 @@ describe 'ChannelInfoContainer', ->
 
   describe '::onIntegrationHelp', ->
 
-    it 'should set integrationTooltipVisible state yes first, after 2000 millisecond set to false', ->
+    it 'should show integration tooltip for 2 seconds', ->
 
       container = renderIntoDocument(<ChannelInfo.Container />)
 
@@ -57,10 +57,10 @@ describe 'ChannelInfoContainer', ->
 
   describe '::onInviteOthers', ->
 
-    it 'should call onInviteOthers props', ->
 
       onInviteOthers  = expect.createSpy()
       container       = renderIntoDocument(<ChannelInfo.Container onInviteOthers={onInviteOthers}/>)
+    it 'should call onInviteClick props', ->
 
       container.onInviteOthers()
 

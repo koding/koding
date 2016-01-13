@@ -84,8 +84,7 @@ describe 'ChannelInfoView', ->
 
   describe '::onClick', ->
 
-
-    it 'should call onIntegrationHelp when click AddIntegrationLink element', ->
+    it 'should call passed handler on add integration link click', ->
 
       onIntegrationHelp  = expect.createSpy()
       channelInfoView    = renderIntoDocument(<ChannelInfoView onIntegrationHelp={onIntegrationHelp}/>)
