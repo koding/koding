@@ -85,6 +85,8 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
         error : ({responseText}) =>
+          @form.emit 'FailedToCreateATeam'
+
           if /TwoFactor/.test responseText
             track 'requires two-factor authentication'
             @form.showTwoFactor()

@@ -55,6 +55,8 @@ module.exports = class TeamLoginAndCreateTabForm extends LoginViewInlineForm
       type       : 'submit'
       loader     : yes
 
+    @on 'FailedToCreateATeam', @button.bound 'hideLoader'
+
 
   showTwoFactor: ->
 
