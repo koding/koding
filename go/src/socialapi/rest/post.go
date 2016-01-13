@@ -38,10 +38,9 @@ func CreatePostWithBody(channelId, accountId int64, body string) (*models.Channe
 	return createPostRequest(channelId, cm, http.Header{})
 }
 
-func CreatePostWithHeader(channelId, accountId int64, header http.Header, token string) (*models.ChannelMessage, error) {
+func CreatePostWithHeader(channelId int64, header http.Header, token string) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Body = "Text1Text2"
-	cm.AccountId = accountId
 
 	return createPostRequestWithAuth(channelId, cm, header, token)
 }
@@ -91,10 +90,9 @@ type PayloadRequest struct {
 	Payload   map[string]interface{} `json:"payload"`
 }
 
-func CreatePostWithPayload(channelId, accountId int64, payload map[string]interface{}, token string) (*models.ChannelMessage, error) {
+func CreatePostWithPayload(channelId int64, payload map[string]interface{}, token string) (*models.ChannelMessage, error) {
 	pr := PayloadRequest{}
 	pr.Body = "message with payload"
-	pr.AccountId = accountId
 	pr.Payload = payload
 
 	return createPostRequestWithAuth(channelId, pr, http.Header{}, token)
