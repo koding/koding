@@ -323,3 +323,36 @@ module.exports =
       .click                     kdmodalYesButton
       .waitForElementPresent     '.shared-machines', 20000
       .waitForElementNotPresent  chatBox,20000
+
+
+  openMachineSettingsButton: (browser) ->
+
+    sharedMachineSelector       = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
+    sharedMachineButtonSettings = "#{sharedMachineSelector} span.settings-icon"
+    shareModal                  = '.share-modal'
+
+    browser
+      .waitForElementVisible     sharedMachineSelector, 20000
+      .moveToElement             sharedMachineSelector, 100, 10
+      .waitForElementVisible     sharedMachineButtonSettings, 20000
+      .click                     sharedMachineButtonSettings
+      .waitForElementVisible     shareModal, 20000
+
+
+  leaveSessionFromSidebar: (browser) ->
+
+    participant  = utils.getUser no, 1
+    hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+
+    shareModal         = '.share-modal'
+    leaveSessionButton = "#{shareModal} .kdmodal-inner button.red"
+    chatBox            = '.chat-view'
+
+    unless hostBrowser
+      @openMachineSettingsButton(browser)
+
+    browser
+      .waitForElementVisible     leaveSessionButton, 20000
+      .click                     leaveSessionButton
+      .waitForElementPresent     '.shared-machines', 20000
+      .waitForElementNotPresent  chatBox,20000
