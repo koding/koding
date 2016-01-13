@@ -150,6 +150,9 @@ module.exports = class JStackTemplate extends Module
       if validationError = validateTemplate data.template, group
         return callback validationError
 
+      if data.config?
+        data.config.groupStack = no
+
       stackTemplate = new JStackTemplate
         originId    : delegate.getId()
         group       : client.context.group

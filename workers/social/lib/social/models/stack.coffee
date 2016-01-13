@@ -154,6 +154,9 @@ module.exports = class JComputeStack extends jraphical.Module
       data.account   = client.connection.delegate
       data.groupSlug = client.context.group
 
+      if data.config?
+        data.config.groupStack = no
+
       delete data.baseStackId
       delete data.stackRevision
 
