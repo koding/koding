@@ -16,6 +16,10 @@ FollowChannelBox     = require 'activity/components/followchannelbox'
 
 module.exports = class PublicChatPane extends React.Component
 
+  @propTypes =
+    thread : React.PropTypes.instanceOf immutable.Map
+
+
   @defaultProps =
     thread : immutable.Map()
 

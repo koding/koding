@@ -1,6 +1,7 @@
 kd                  = require 'kd'
 React               = require 'kd-react'
 ReactDOM            = require 'react-dom'
+immutable           = require 'immutable'
 ActivityFlux        = require 'activity/flux'
 Scroller            = require 'app/components/scroller'
 scrollToTarget      = require 'app/util/scrollToTarget'
@@ -12,14 +13,20 @@ EmojiPreloaderMixin = require 'activity/components/emojipreloadermixin'
 
 module.exports = class ChatPane extends React.Component
 
+  @propsTypes =
+    title         : React.PropTypes.string
+    isDataLoading : React.PropTypes.bool
     onInviteClick : React.PropTypes.func
+    showItemMenu  : React.PropTypes.bool
+    messages      : React.PropTypes.instanceOf immutable.List()
+
+
   @defaultProps =
-    title          : null
-    messages       : null
-    isDataLoading  : no
-    onInviteOthers : kd.noop
-    showItemMenu   : yes
+    isDataLoading : no
+    showItemMenu  : yes
+    title         : null
     onInviteClick : kd.noop
+    messages      : immutable.List()
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
