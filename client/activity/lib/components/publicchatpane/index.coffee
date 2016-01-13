@@ -17,7 +17,8 @@ FollowChannelBox     = require 'activity/components/followchannelbox'
 module.exports = class PublicChatPane extends React.Component
 
   @defaultProps =
-    thread   : immutable.Map()
+    thread : immutable.Map()
+
 
   channel: (keyPath...) -> @props.thread?.getIn ['channel'].concat keyPath
 

@@ -25,18 +25,18 @@ module.exports = class ChannelInfoContainer extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    @setState collabTooltipVisible: yes
+    @setState { collabTooltipVisible: yes }
 
-    kd.utils.wait 2000, => @setState collabTooltipVisible: no
+    kd.utils.wait 2000, => @setState { collabTooltipVisible: no }
 
 
   onIntegrationClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
-    @setState integrationTooltipVisible: yes
+    @setState { integrationTooltipVisible: yes }
 
-    kd.utils.wait 2000, => @setState integrationTooltipVisible: no
+    kd.utils.wait 2000, => @setState { integrationTooltipVisible: no }
 
 
   onInviteClick: (event) ->
