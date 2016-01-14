@@ -1,3 +1,4 @@
+async            = require 'async'
 jraphical        = require 'jraphical'
 Regions          = require 'koding-regions'
 request          = require 'request'
@@ -436,50 +437,63 @@ module.exports = class JUser extends jraphical.Module
       queue.next()
 
 
-  @login = (clientId, credentials, callback) ->
+  validateLogin = (options, callback) ->
 
-    { username: loginId, password, groupIsBeingCreated
-      groupName, tfcode, invitationToken } = credentials
+    { loginId, clientId, password, tfcode } = options
 
-    user                  = null
-    session               = null
-    account               = null
-    username              = null
-    groupName            ?= 'koding'
-    invitation            = null
-    bruteForceControlData = {}
+    username = null
 
-    queue = [
+    async.series {
 
-      =>
-        @normalizeLoginId loginId, (err, username_) ->
-          return callback err  if err
+      username: (next) ->
+        JUser.normalizeLoginId loginId, (err, username_) ->
           username = username_?.toLowerCase?() or ''
-          queue.next()
+          next err, username
 
-      ->
-        fetchSession {
-          clientId, username
-        }, queue, callback, (session_) ->
-          session = session_
+      # fetch session and check for brute force attack
+      session: (next) ->
+        fetchSession { clientId, username }, (err, session) ->
+          return next err  if err
 
           bruteForceControlData =
             ip        : session.clientIP
             username  : username
 
-      ->
-        # todo add alert support(mail, log etc)
-        JLog.checkLoginBruteForce bruteForceControlData, (res) ->
-          unless res
-            return callback new KodingError \
-              "Your login access is blocked for #{JLog.timeLimit()} minutes."
+          # todo add alert support(mail, log etc)
+          JLog.checkLoginBruteForce bruteForceControlData, (res) ->
+            unless res
+              return next new KodingError \
+                "Your login access is blocked for #{JLog.timeLimit()} minutes."
 
+            next null, session
+
+      user: (next) ->
+        validateLoginCredentials { username, password, tfcode }, (err, user) ->
+          next err, user
+
+    }, callback
+
+
+  @login = (clientId, credentials, callback) ->
+
+    { username: loginId, password, groupIsBeingCreated
+      groupName, tfcode, invitationToken } = credentials
+
+    user        = null
+    session     = null
+    account     = null
+    username    = null
+    groupName  ?= 'koding'
+    invitation  = null
+
+    queue = [
+
+      ->
+        args = { loginId, clientId, password, tfcode }
+        validateLogin args, (err, data) ->
+          return callback err  if err
+          { username, user, session } = data
           queue.next()
-
-      ->
-        validateLoginCredentials {
-          username, password, tfcode
-        }, queue, callback, (user_) -> user = user_
 
       ->
         # fetch account of the user, we will use it later
