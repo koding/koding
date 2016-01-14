@@ -520,9 +520,11 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       =>
-        @addToGroupByInvitation {
-          groupName, groupIsBeingCreated, account, user, invitation
-        }, queue, callback
+        return queue.next()  if groupIsBeingCreated
+
+        @addToGroupByInvitation { groupName, account, user, invitation }, (err) ->
+          return callback err  if err
+          queue.next()
 
       ->
         return queue.next()  if groupIsBeingCreated
@@ -619,11 +621,10 @@ module.exports = class JUser extends jraphical.Module
       user.verifyByPin options, callback
 
 
-  @addToGroupByInvitation = (options, queue, callback) ->
+  @addToGroupByInvitation = (options, callback) ->
 
-    { groupName, groupIsBeingCreated, account, user, invitation } = options
+    { groupName, account, user, invitation } = options
 
-    return queue.next()  if groupIsBeingCreated
     # check for membership
     JGroup.one { slug: groupName }, (err, group) ->
 
@@ -631,13 +632,13 @@ module.exports = class JUser extends jraphical.Module
       return callback new KodingError 'group doesnt exist'  if not group
 
       group.isMember account, (err, isMember) ->
-        return callback err  if err
-        return queue.next()  if isMember # if user is already member, we can continue
+        return callback err   if err
+        return callback null  if isMember # if user is already member, we can continue
 
         # addGroup will check all prerequistes about joining to a group
         JUser.addToGroup account, groupName, user.email, invitation, (err) ->
           return callback err  if err
-          return queue.next()
+          return callback null
 
 
   redeemInvitation = (options, callback) ->
