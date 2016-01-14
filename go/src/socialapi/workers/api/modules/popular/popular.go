@@ -57,7 +57,8 @@ func getIds(key string, query *request.Query, c *models.Context) ([]int64, error
 }
 
 func ListTopics(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+	q := request.GetQuery(u)
+	query := ctx.OverrideQuery(q)
 
 	statisticName := u.Query().Get("statisticName")
 
@@ -134,7 +135,8 @@ func fetchMoreChannels(query *request.Query) ([]models.Channel, error) {
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+	q := request.GetQuery(u)
+	query := ctx.OverrideQuery(q)
 	query.Type = models.ChannelMessage_TYPE_POST
 	groupName := ctx.GroupName
 
