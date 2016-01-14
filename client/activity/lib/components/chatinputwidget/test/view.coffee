@@ -5,9 +5,9 @@ expect          = require 'expect'
 TestUtils       = require 'react-addons-test-utils'
 toImmutable     = require 'app/util/toImmutable'
 KeyboardKeys    = require 'app/constants/keyboardKeys'
-EmojiDropbox    = require 'activity/components/emojidropbox'
+EmojiDropbox    = require '../emojidropbox'
 PortalDropbox   = require 'activity/components/dropbox/portaldropbox'
-ChatInputWidget = require 'activity/components/chatinputwidget/view'
+ChatInputWidget = require '../view'
 
 describe 'ChatInputWidget.View', ->
 

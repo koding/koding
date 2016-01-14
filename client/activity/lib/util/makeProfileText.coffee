@@ -7,4 +7,4 @@ module.exports = makeProfileText = (origin) ->
   origin = origin.toJS()  if typeof origin.toJS is 'function'
 
   return \
-    <ProfileTextContainer origin={origin} />
+    <ProfileTextContainer key={origin.id} origin={origin} />

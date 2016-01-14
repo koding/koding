@@ -1,19 +1,27 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-classnames           = require 'classnames'
-ActivityFlux         = require 'activity/flux'
-ChannelLabel         = require 'activity/components/channellabel'
-Button               = require 'app/components/common/button'
+kd           = require 'kd'
+React        = require 'kd-react'
+immutable    = require 'immutable'
+classnames   = require 'classnames'
+ActivityFlux = require 'activity/flux'
+ChannelLabel = require 'activity/components/channellabel'
+Button       = require 'app/components/common/button'
 
 module.exports = class FeedThreadHeader extends React.Component
 
+  @propTypes =
+    className : React.PropTypes.string
+    channel   : React.PropTypes.instanceOf immutable.Map()
+
+
   @defaultProps =
-    thread : null
+    className : ''
+    channel   : immutable.Map()
+
 
   onClick: ->
 
-    channelId     = @props.thread.getIn ['channel', 'id']
-    isParticipant = @props.thread.getIn ['channel', 'isParticipant']
+    channelId     = @props.channel.get 'id'
+    isParticipant = @props.channel.get 'isParticipant'
 
     if isParticipant
       ActivityFlux.actions.channel.unfollowChannel channelId
@@ -22,16 +30,16 @@ module.exports = class FeedThreadHeader extends React.Component
 
 
   getFollowButtonClassNames: -> classnames
-    'FeedList-followButton'  : yes
-    'following': @props.thread.getIn ['channel', 'isParticipant']
+    'FeedList-followButton' : yes
+    'following'             : @props.channel.get 'isParticipant'
 
 
   render: ->
 
-    return null  unless @props.thread
+    return null  unless @props.channel
 
     <div className={kd.utils.curry "ThreadHeader", @props.className}>
-      <ChannelLabel thread={@props.thread} />
+      <ChannelLabel channel={@props.channel} />
       <Button
         className={@getFollowButtonClassNames()}}
         onClick={@bound 'onClick'}>

@@ -254,10 +254,10 @@ module.exports = class JInvitation extends jraphical.Module
     inviter       = getName delegate
     groupLink     = "#{protocol}//#{invitation.groupName}.#{hostname}/"
 
-    imgURL   = "#{protocol}//gravatar.com/avatar/#{profile.hash}?size=65&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+    imgURL   = "#{protocol}//gravatar.com/avatar/#{profile.hash}?size=85&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
 
     if profile.avatar
-      imgURL = "#{protocol}//#{hostname}/-/image/cache?endpoint=crop&grow=false&width=65&height=65&url=#{encodeURIComponent profile.avatar}"
+      imgURL = "#{protocol}//#{hostname}/-/image/cache?endpoint=crop&grow=false&width=85&height=85&url=#{encodeURIComponent profile.avatar}"
 
     properties =
       groupName    : invitation.groupName
