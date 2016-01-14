@@ -194,8 +194,28 @@ func GetChannel(id int64) (*models.Channel, error) {
 	return cc.Channel, nil
 }
 
+func GetChannelWithAccountId(id, accountId int64) (*models.Channel, error) {
+	cc, err := GetChannelContainerWithAccountId(id, accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	return cc.Channel, nil
+}
+
 func GetChannelContainer(id int64) (*models.ChannelContainer, error) {
 	url := fmt.Sprintf("/channel/%d", id)
+	cc := models.NewChannelContainer()
+	cmI, err := sendModel("GET", url, cc)
+	if err != nil {
+		return nil, err
+	}
+
+	return cmI.(*models.ChannelContainer), nil
+}
+
+func GetChannelContainerWithAccountId(id, accountId int64) (*models.ChannelContainer, error) {
+	url := fmt.Sprintf("/channel/%d?accountId=%d", id, accountId)
 	cc := models.NewChannelContainer()
 	cmI, err := sendModel("GET", url, cc)
 	if err != nil {

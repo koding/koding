@@ -145,16 +145,10 @@ module.exports           = class MainController extends KDController
     @forwardEvents remote, ['disconnected', 'reconnected']
 
 
-  isFeatureDisabled: (name, options = {}) ->
+  isFeatureDisabled: (name, callback) -> @ready => callback do ->
 
     return no  unless name
-
-    options.godMode ?= yes
-
-    { godMode } = options
-
-    if godMode
-      return no  if checkFlag 'super-admin'
+    return no  if checkFlag 'super-admin'
 
     {roles}            = globals.config
     {disabledFeatures} = getGroup()
@@ -165,7 +159,7 @@ module.exports           = class MainController extends KDController
     role = 'moderator' if 'moderator' in roles
     role = 'admin'     if 'admin'     in roles
 
-    return no   if !disabledFeatures[role]
+    return no   unless disabledFeatures[role]
     return yes  if disabledFeatures[role] and name in disabledFeatures[role]
 
     return no

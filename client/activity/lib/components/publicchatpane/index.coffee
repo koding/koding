@@ -3,7 +3,7 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 ActivityFlux         = require 'activity/flux'
 ChatPane             = require 'activity/components/chatpane'
-ChatInputWidget      = require 'activity/components/chatinputwidget'
+ChatInputContainer   = require 'activity/components/chatinputwidget/container'
 ChannelToken         = require 'activity/components/chatinputwidget/tokens/channeltoken'
 EmojiToken           = require 'activity/components/chatinputwidget/tokens/emojitoken'
 MentionToken         = require 'activity/components/chatinputwidget/tokens/mentiontoken'
@@ -16,8 +16,13 @@ FollowChannelBox     = require 'activity/components/followchannelbox'
 
 module.exports = class PublicChatPane extends React.Component
 
+  @propTypes =
+    thread : React.PropTypes.instanceOf immutable.Map
+
+
   @defaultProps =
-    thread   : immutable.Map()
+    thread : immutable.Map()
+
 
   channel: (keyPath...) -> @props.thread?.getIn ['channel'].concat keyPath
 
@@ -40,7 +45,7 @@ module.exports = class PublicChatPane extends React.Component
       from: messages.first().get 'createdAt'
 
 
-  onInviteOthers: ->
+  onInviteClick: ->
 
     return  unless input = @refs.chatInputWidget
 
@@ -54,7 +59,7 @@ module.exports = class PublicChatPane extends React.Component
     isParticipant = @channel 'isParticipant'
 
     <footer className="PublicChatPane-footer ChatPaneFooter">
-      <ChatInputWidget
+      <ChatInputContainer
         ref       = 'chatInputWidget'
         className = { unless isParticipant then 'hidden' }
         onSubmit  = { @bound 'onSubmit' }
@@ -81,7 +86,7 @@ module.exports = class PublicChatPane extends React.Component
         className='PublicChatPane'
         onSubmit={@bound 'onSubmit'}
         onLoadMore={@bound 'onLoadMore'}
-        onInviteOthers={@bound 'onInviteOthers'}
+        onInviteClick={@bound 'onInviteClick'}
       />
       {@renderFooter()}
     </div>

@@ -1,5 +1,7 @@
+os              = require 'os'
 { argv }        = require 'optimist'
 KONFIG          = require('koding-config-manager').load("main.#{argv.c}")
+monitor         = require('appmetrics').monitor()
 { MetricsBase } = require 'koding-datadog'
 
 module.exports = class Metrics extends MetricsBase
@@ -7,7 +9,7 @@ module.exports = class Metrics extends MetricsBase
   @prefix : 'socialWorker'
 
 
-  @populateTags : (tags) ->
+  @populateCommonTags : (tags) ->
 
     tags ?= []
     tags.push "version:#{KONFIG.version}"
@@ -27,7 +29,7 @@ module.exports = class Metrics extends MetricsBase
     return "#{@prefix}.#{constructorName}.#{methodName}.#{type}"
 
 
-  @methodMetrics : (opts) ->
+  @getMethodMetrics : (opts) ->
 
     return {
       increment    :
@@ -39,6 +41,8 @@ module.exports = class Metrics extends MetricsBase
 
   @sendMethodMetrics : (opts) ->
 
-    tags       = @populateTags()
+    tags       = @populateCommonTags()
     metricName = @generateName opts
-    @sendMetrics @methodMetrics(opts), metricName, tags
+    @sendMetrics @getMethodMetrics(opts), metricName, tags
+
+
