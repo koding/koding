@@ -9,6 +9,7 @@ isKoding        = require 'app/util/isKoding'
 lazyrouter      = require 'app/lazyrouter'
 dataProvider    = require 'app/userenvironmentdataprovider'
 registerRoutes  = require 'app/util/registerRoutes'
+isTeamReactSide = require 'app/util/isTeamReactSide'
 
 
 selectWorkspaceOnSidebar = (data) ->
@@ -19,10 +20,10 @@ selectWorkspaceOnSidebar = (data) ->
 
   return no if not machine or not workspace
 
-  if isKoding()
-    kd.getSingleton('mainView').activitySidebar.selectWorkspace data
-  else
+  if isTeamReactSide()
     actions.setSelectedWorkspaceId workspace._id
+  else
+    kd.getSingleton('mainView').activitySidebar.selectWorkspace data
 
   storage = kd.singletons.localStorageController.storage 'IDE'
 
