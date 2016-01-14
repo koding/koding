@@ -18,6 +18,9 @@ func Init(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Con
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
+	req.AccountId = ctx.Client.Account.Id
+	req.GroupName = ctx.GroupName
+
 	return response.HandleResultAndError(req.Create())
 }
 
@@ -26,6 +29,10 @@ func Send(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Con
 	if !ctx.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
+
+	req.AccountId = ctx.Client.Account.Id
+	req.GroupName = ctx.GroupName
+
 	return response.HandleResultAndError(req.Send())
 }
 
