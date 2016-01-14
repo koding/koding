@@ -375,14 +375,13 @@ module.exports = class JUser extends jraphical.Module
       callback null, session
 
 
-  validateLoginCredentials = (options, queue, callback, fetchData) ->
+  validateLoginCredentials = (options, callback) ->
 
     { username, password, tfcode } = options
 
     # check credential validity
     JUser.one { username }, (err, user) ->
       return logAndReturnLoginError username, err.message, callback if err
-      fetchData user
 
       # if user not found it means we dont know about given username
       unless user?
@@ -408,7 +407,7 @@ module.exports = class JUser extends jraphical.Module
           return logAndReturnLoginError username, 'Access denied!', callback
 
       # if everything is fine, just continue
-      queue.next()
+      callback null, user
 
 
   fetchInvitationByCode = (invitationToken, queue, callback, fetchData) ->
