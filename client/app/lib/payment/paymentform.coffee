@@ -18,6 +18,7 @@ PaymentConstants  = require './paymentconstants'
 PaypalFormView    = require './paypalformview'
 StripeFormView    = require './stripeformview'
 nick              = require '../util/nick'
+_                 = require 'lodash'
 
 
 module.exports = class PaymentForm extends JView
@@ -216,9 +217,8 @@ module.exports = class PaymentForm extends JView
       @handleValidationResult isValid
 
     # Get inputs of credit card form
-    Object.keys(@form.inputs).map (key) =>
-      input = @form.inputs[key]
 
+    _.each @form.inputs, (input) =>
       input.on 'keydown', (e) =>
         # If validation is passed, submit the form.
         @submitButton.click()  if formIsValid and e.keyCode is 13
