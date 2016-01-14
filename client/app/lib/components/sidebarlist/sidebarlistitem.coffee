@@ -6,6 +6,8 @@ Link       = require 'app/components/common/link'
 
 module.exports = class SidebarListItem extends React.Component
 
+  # title prop can be any type. SidebarChannelsListItem pass a string but
+  # SidebarMessagesListItem can pass an object.
   @propTypes =
     title   : React.PropTypes.any
     href    : React.PropTypes.string
