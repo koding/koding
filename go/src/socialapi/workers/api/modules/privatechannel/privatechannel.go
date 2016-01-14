@@ -41,8 +41,8 @@ func List(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, h
 	if !ctx.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
-	q := request.GetQuery(u)
-
+	query := request.GetQuery(u)
+	q := ctx.OverrideQuery(query)
 	channelList, err := getPrivateChannels(q)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -57,7 +57,8 @@ func Search(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int,
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	q := request.GetQuery(u)
+	query := request.GetQuery(u)
+	q := ctx.OverrideQuery(query)
 
 	if q.Name == "" {
 		return response.NewBadRequest(errors.New("search string not set"))
@@ -78,8 +79,9 @@ func Count(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, 
 	}
 
 	q := request.GetQuery(u)
+	qry := ctx.OverrideQuery(q)
 
-	query := getUserChannelsQuery(q)
+	query := getUserChannelsQuery(qry)
 
 	// add exempt clause if needed
 	if !q.ShowExempt {
