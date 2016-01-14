@@ -28,10 +28,10 @@ module.exports = class FeedThreadHeader extends React.Component
 
   render: ->
 
-    return null  unless @props.thread
+    return null  unless @props.channel
 
     <div className={kd.utils.curry "ThreadHeader", @props.className}>
-      <ChannelLabel thread={@props.thread} />
+      <ChannelLabel channel={@props.channel} />
       <Button
         className={@getFollowButtonClassNames()}}
         onClick={@bound 'onClick'}>

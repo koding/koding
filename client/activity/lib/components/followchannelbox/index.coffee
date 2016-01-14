@@ -18,7 +18,7 @@ module.exports = class FollowChannelBox extends React.Component
   render: ->
 
     <div className={kd.utils.curry "FollowChannelBox", @props.className}>
-      This is a preview of <ChannelLabel thread={@props.thread} />
+      This is a preview of <ChannelLabel channel={@props.channel} />
       <button
         className="Button Button-followChannel"
         onClick={@bound 'onFollowChannel'}>Join</button>

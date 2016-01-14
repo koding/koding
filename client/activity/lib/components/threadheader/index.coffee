@@ -154,7 +154,7 @@ module.exports = class ThreadHeader extends React.Component
     return null  unless @state.thread
 
     <div className={kd.utils.curry "ThreadHeader", @props.className}>
-      <ChannelLabel thread={@state.thread} />
+      <ChannelLabel channel={@state.thread.get 'channel'} />
       <ButtonWithMenu
         listClass='ChannelThreadPane-menuItems'
         items={@getMenuItems()} />
