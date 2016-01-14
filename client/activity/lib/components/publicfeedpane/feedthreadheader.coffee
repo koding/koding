@@ -20,8 +20,8 @@ module.exports = class FeedThreadHeader extends React.Component
 
   onClick: ->
 
-    channelId     = @props.thread.getIn ['channel', 'id']
-    isParticipant = @props.thread.getIn ['channel', 'isParticipant']
+    channelId     = @props.channel.get 'id'
+    isParticipant = @props.channel.get 'isParticipant'
 
     if isParticipant
       ActivityFlux.actions.channel.unfollowChannel channelId
@@ -30,8 +30,8 @@ module.exports = class FeedThreadHeader extends React.Component
 
 
   getFollowButtonClassNames: -> classnames
-    'FeedList-followButton'  : yes
-    'following': @props.thread.getIn ['channel', 'isParticipant']
+    'FeedList-followButton' : yes
+    'following'             : @props.channel.get 'isParticipant'
 
 
   render: ->
