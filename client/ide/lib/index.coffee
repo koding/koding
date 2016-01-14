@@ -1556,9 +1556,10 @@ class IDEAppController extends AppController
     @stopCollaborationSession()
 
     if destroy
-      kd.singletons.appManager.quit this
-      kd.utils.defer ->
-        kd.singletons.router.handleRoute '/IDE'
+      kd.singletons.appManager.quit this, =>
+        route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
+        kd.singletons.router.handleRoute route
+
       @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 
 
