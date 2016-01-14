@@ -126,7 +126,7 @@ func UpdateCommand(c *cli.Context) int {
 		KontrolURL:    KontrolURL,
 	}
 
-	if err := klientSh.WriteFormat(klientShPath); err != nil {
+	if err := klientSh.Create(klientShPath); err != nil {
 		log.Errorf("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1

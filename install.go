@@ -130,7 +130,7 @@ func InstallCommandFactory(c *cli.Context) int {
 		KontrolURL:    kontrolURL,
 	}
 
-	if err := klientSh.WriteFormat(klientShPath); err != nil {
+	if err := klientSh.Create(klientShPath); err != nil {
 		log.Errorf("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1
@@ -286,8 +286,8 @@ func (k klientSh) Format() string {
 	)
 }
 
-// WriteFormat writes the result of Format() to the given path.
-func (k klientSh) WriteFormat(p string) error {
+// Create writes the result of Format() to the given path.
+func (k klientSh) Create(p string) error {
 	s := k.Format()
 
 	// perm -rwr-xr-x, same as klient
