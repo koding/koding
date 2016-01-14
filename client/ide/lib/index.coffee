@@ -7,12 +7,15 @@ remote                        = require('app/remote').getInstance()
 KDView                        = kd.View
 whoami                        = require 'app/util/whoami'
 globals                       = require 'globals'
+actions                       = require 'app/flux/environment/actions'
 kookies                       = require 'kookies'
 Encoder                       = require 'htmlencode'
 Machine                       = require 'app/providers/machine'
 IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
+isKoding                      = require 'app/util/isKoding'
 showError                     = require 'app/util/showError'
+actionTypes                   = require 'app/flux/environment/actiontypes'
 KDModalView                   = kd.ModalView
 KDSplitView                   = kd.SplitView
 IDEWorkspace                  = require './workspace/ideworkspace'
@@ -22,6 +25,7 @@ AppController                 = require 'app/appcontroller'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
 splashMarkups                 = require './util/splashmarkups'
+isTeamReactSide               = require 'app/util/isTeamReactSide'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
 KDCustomHTMLView              = kd.CustomHTMLView
@@ -439,7 +443,10 @@ class IDEAppController extends AppController
 
     { file, contents, targetTabView, description, emitChange } = options
 
-    @setActiveTabView targetTabView  if targetTabView
+    targetTabView = @ideViews.first.tabView  unless targetTabView
+
+    @setActiveTabView targetTabView
+
     @activeTabView.emit 'FileNeedsToBeTailed', {
       file, contents, description, callback, emitChange
     }
@@ -574,14 +581,16 @@ class IDEAppController extends AppController
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
 
-      if not machineItem.isMine() and not machineItem.isApproved()
+      # Don't run these lines on `Teams` scope.
+      # Because `Teams` uses new Sidebar with React + Flux
+      if not isTeamReactSide() and not machineItem.isMine() and not machineItem.isApproved()
         { activitySidebar } = kd.singletons.mainView
         box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
         box.machineItem.showSharePopup sticky: yes, workspaceId: @workspaceData.getId()
+
         withFakeViews = yes
 
       @setMountedMachine machineItem
-
       @prepareIDE withFakeViews
 
       return no  if withFakeViews
@@ -657,6 +666,11 @@ class IDEAppController extends AppController
     machineItem.getBaseKite( no ).disconnect()
 
     if @machineStateModal
+
+      if isTeamReactSide() and event.status is Stopping
+        event.percentage = 100 - event.percentage
+        @machineStateModal.unsetClass 'full'
+
       @machineStateModal.updateStatus event
     else
       {state}   = machineItem.status
@@ -671,8 +685,12 @@ class IDEAppController extends AppController
 
     { state, container, machineItem, initial } = options
 
-    container   ?= @getView()
-    modalOptions = { state, container, initial }
+    container            ?= @getView()
+    modalOptions          = { state, container, initial }
+
+    if isTeamReactSide() and state is Stopping
+      modalOptions.cssClass = 'env-machine-state team full'
+
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
@@ -1168,7 +1186,7 @@ class IDEAppController extends AppController
 
     # when MachineStateModal calls this func, we need to rebind Klient.
     @bindKlientEvents machine
-    machine.getBaseKite().fetchTerminalSessions()
+    machine.getBaseKite()?.fetchTerminalSessions?()
 
     @fetchSnapshot (snapshot) =>
 
@@ -1190,7 +1208,10 @@ class IDEAppController extends AppController
       { mainView }  = kd.singletons
       data          = { machine, workspace: @workspaceData }
 
-      mainView.activitySidebar.selectWorkspace data
+      if isTeamReactSide()
+        actions.setSelectedWorkspaceId @workspaceData._id
+      else
+        mainView.activitySidebar.selectWorkspace data
 
       @emit 'IDEReady'
 
@@ -1656,6 +1677,10 @@ class IDEAppController extends AppController
           style    : 'solid light-gray medium'
           title    : 'OK'
           callback : =>
+
+            if isTeamReactSide()
+              { reactor } = kd.singletons
+              reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
 
             @modal.destroy()
             @quit()

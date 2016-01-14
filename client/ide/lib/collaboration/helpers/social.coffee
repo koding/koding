@@ -1,7 +1,11 @@
-kd = require 'kd'
-remote = require('app/remote').getInstance()
-getNick = require 'app/util/nick'
+kd                            = require 'kd'
+remote                        = require('app/remote').getInstance()
+getNick                       = require 'app/util/nick'
+isKoding                      = require 'app/util/isKoding'
+actionTypes                   = require 'activity/flux/actions/actiontypes'
+isTeamReactSide               = require 'app/util/isTeamReactSide'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
+
 
 ###*
  * Wrapper function around `SocialApiController#addParticipants`
@@ -49,7 +53,14 @@ kickParticipants = (channel, accounts, callback) ->
 ###
 fetchChannel = (id, callback) ->
 
-  kd.singletons.socialapi.cacheable 'channel', id, callback
+  kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
+    callback err, channel
+
+    if isTeamReactSide() and channel
+      kd.singletons.reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, {
+        channelId : id,
+        channel
+      }
 
 
 ###*

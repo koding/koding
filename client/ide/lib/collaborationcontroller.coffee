@@ -9,6 +9,8 @@ KDModalView                   = kd.ModalView
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
+isKoding                      = require 'app/util/isKoding'
+isTeamReactSide               = require 'app/util/isTeamReactSide'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
@@ -22,6 +24,7 @@ environmentDataProvider       = require 'app/userenvironmentdataprovider'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
+actionTypes                   = require 'app/flux/environment/actiontypes'
 
 {warn} = kd
 
@@ -36,9 +39,17 @@ module.exports = CollaborationController =
   # social related
 
   setSocialChannel: (channel) ->
-
     @socialChannel = channel
     @bindSocialChannelEvents()
+
+    return  unless isTeamReactSide()
+
+    { reactor } = kd.singletons
+
+    reactor.dispatch actionTypes.UPDATE_WORKSPACE_CHANNEL_ID, {
+      workspaceId : @workspaceData._id
+      channelId   : @getSocialChannelId()
+    }
 
 
   fetchSocialChannel: (callback) ->
@@ -991,6 +1002,15 @@ module.exports = CollaborationController =
     # TODO: fix explicit state checks.
     return  unless @stateMachine.state in ['Active', 'Ending']
 
+    { reactor } = kd.singletons
+
+    if isTeamReactSide() # Remove the machine from sidebar.
+      reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
+      reactor.dispatch actionTypes.WORKSPACE_DELETED, {
+        workspaceId : @workspaceData._id
+        machineId   : @mountedMachine._id
+      }
+
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
       @chat.emit 'CollaborationEnded'
@@ -998,7 +1018,7 @@ module.exports = CollaborationController =
       @chat = null
       @statusBar.emit 'CollaborationEnded'
       @removeParticipant nick()
-      @removeMachineNode()  unless @mountedMachine.isPermanent()
+      @removeMachineNode()  if not @mountedMachine.isPermanent() and not isTeamReactSide()
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       method = switch

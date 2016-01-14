@@ -1,12 +1,15 @@
-kd             = require 'kd'
-nick           = require 'app/util/nick'
-whoami         = require 'app/util/whoami'
-globals        = require 'globals'
-remote         = require('app/remote').getInstance()
-Machine        = require 'app/providers/machine'
-lazyrouter     = require 'app/lazyrouter'
-dataProvider   = require 'app/userenvironmentdataprovider'
-registerRoutes = require 'app/util/registerRoutes'
+kd              = require 'kd'
+nick            = require 'app/util/nick'
+whoami          = require 'app/util/whoami'
+remote          = require('app/remote').getInstance()
+actions         = require 'app/flux/environment/actions'
+globals         = require 'globals'
+Machine         = require 'app/providers/machine'
+isKoding        = require 'app/util/isKoding'
+lazyrouter      = require 'app/lazyrouter'
+dataProvider    = require 'app/userenvironmentdataprovider'
+registerRoutes  = require 'app/util/registerRoutes'
+isTeamReactSide = require 'app/util/isTeamReactSide'
 
 
 selectWorkspaceOnSidebar = (data) ->
@@ -17,7 +20,11 @@ selectWorkspaceOnSidebar = (data) ->
 
   return no if not machine or not workspace
 
-  kd.singletons.mainView.activitySidebar.selectWorkspace data
+  if isTeamReactSide()
+    actions.setSelectedWorkspaceId workspace._id
+  else
+    kd.getSingleton('mainView').activitySidebar.selectWorkspace data
+
   storage = kd.singletons.localStorageController.storage 'IDE'
 
   workspaceData    =
@@ -57,6 +64,7 @@ loadIDE = (data) ->
 
   { machine, workspace, username, channelId } = data
   selectWorkspaceOnSidebar data
+  actions.setSelectedMachineId machine._id
 
   appManager = kd.getSingleton 'appManager'
   ideApps    = appManager.appControllers.IDE
@@ -170,6 +178,7 @@ routeToLatestWorkspace = ->
   else if machineLabel and workspaceSlug
     dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) =>
       if machine and workspace
+        actions.setSelectedWorkspaceId workspace._id
         router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
       else if machine
         routeToMachineWorkspace machine
