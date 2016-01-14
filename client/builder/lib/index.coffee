@@ -306,6 +306,8 @@ class Haydar extends events.EventEmitter
 
       b.bundle (err, src) =>
 
+        console.log "bundle.js: #{src.toString().length} bytes"
+
         if err
           console.error inspect(err, { colors: true })
           if not opts.watchJs
