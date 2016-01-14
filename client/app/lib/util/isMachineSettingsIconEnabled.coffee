@@ -1,5 +1,5 @@
-Machine   = require 'app/providers/machine'
-isKoding  = require 'app/util/isKoding'
+Machine         = require 'app/providers/machine'
+isTeamReactSide = require 'app/util/isTeamReactSide'
 
 
 module.exports = (machine) ->
@@ -7,6 +7,6 @@ module.exports = (machine) ->
   { status : { state } } = machine
   { NotInitialized, Running, Stopped, Terminated, Unknown } = Machine.State
 
-  return state in [ Running, Stopped ]  unless isKoding()
+  return state in [ Running, Stopped ]  if isTeamReactSide()
 
   return state in [ NotInitialized, Running, Stopped, Terminated, Unknown ]

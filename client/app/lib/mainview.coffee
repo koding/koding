@@ -17,6 +17,7 @@ MainTabView             = require './maintabview'
 TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 actionTypes             = require 'activity/flux/actions/actiontypes'
+isTeamReactSide         = require 'app/util/isTeamReactSide'
 
 
 module.exports = class MainView extends KDView
@@ -159,7 +160,7 @@ module.exports = class MainView extends KDView
 
     @aside.addSubView @logoWrapper
 
-    unless isKoding()
+    if isTeamReactSide()
       SidebarView = require './components/sidebar/view'
       @aside.addSubView @sidebar = new SidebarView
       return
@@ -238,12 +239,12 @@ module.exports = class MainView extends KDView
 
   glanceChannelWorkspace: (channel) ->
 
-    if isKoding()
-      @activitySidebar.glanceChannelWorkspace channel
-    else
+    if isTeamReactSide()
       kd.singletons.reactor.dispatch actionTypes.SET_CHANNEL_UNREAD_COUNT,
         unreadCount : 0
         channelId   : channel.id
+    else
+      @activitySidebar.glanceChannelWorkspace channel
 
 
   createAccountArea:->

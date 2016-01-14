@@ -15,6 +15,8 @@ Promise = require 'bluebird'
 TopicFollowButton = require 'app/commonviews/topicfollowbutton'
 Encoder = require 'htmlencode'
 isKoding = require 'app/util/isKoding'
+isTeamReactSide = require 'app/util/isTeamReactSide'
+
 
 module.exports = class MessagePane extends KDTabPaneView
 
@@ -344,7 +346,7 @@ module.exports = class MessagePane extends KDTabPaneView
     # TODO: Add defensive checks here because `Teams` doesn't use old sidebar.
     # So we have to give support to old codes.
 
-    if isKoding()
+    unless isTeamReactSide()
       item = app.getView()?.sidebar?.selectedItem
       return  unless item?.count
       # do not wait for response to set it as 0
