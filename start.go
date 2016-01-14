@@ -9,6 +9,11 @@ import (
 
 // StartCommand starts local klient. Requires sudo.
 func StartCommand(c *cli.Context) int {
+	if len(c.Args()) != 0 {
+		cli.ShowCommandHelp(c, "start")
+		return 1
+	}
+
 	s, err := newService()
 	if err != nil {
 		log.Errorf("Error creating Service. err:%s", err)

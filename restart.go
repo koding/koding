@@ -10,6 +10,11 @@ import (
 // RestartCommand stops and starts klient. If Klient is not running to begin
 // with, it *just* starts klient.
 func RestartCommand(c *cli.Context) int {
+	if len(c.Args()) != 0 {
+		cli.ShowCommandHelp(c, "restart")
+		return 1
+	}
+
 	s, err := newService()
 	if err != nil {
 		log.Errorf("Error creating Service. err:%s", err)

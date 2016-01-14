@@ -10,6 +10,11 @@ import (
 
 // StopCommand stop local klient. Requires sudo.
 func StopCommand(c *cli.Context) int {
+	if len(c.Args()) != 0 {
+		cli.ShowCommandHelp(c, "stop")
+		return 1
+	}
+
 	s, err := newService()
 	if err != nil {
 		log.Errorf("Error creating Service. err:%s", err)

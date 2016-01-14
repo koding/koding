@@ -31,6 +31,11 @@ type mountInfo struct {
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
 func ListCommand(c *cli.Context) int {
+	if len(c.Args()) != 0 {
+		cli.ShowCommandHelp(c, "list")
+		return 1
+	}
+
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		log.Errorf("Error creating klient client. err:%s", err)

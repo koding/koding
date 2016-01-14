@@ -76,7 +76,7 @@ func main() {
 		cli.Command{
 			Name:      "list",
 			ShortName: "ls",
-			Usage:     "List the available machines.",
+			Usage:     "List running machines for user.",
 			Action:    Exit(CheckUpdateFirst(ListCommand)),
 			Flags: []cli.Flag{
 				cli.BoolFlag{
@@ -147,37 +147,37 @@ func main() {
 		cli.Command{
 			Name:        "uninstall",
 			Usage:       fmt.Sprintf("Uninstall the %s.", KlientName),
-			Description: fmt.Sprintf("Uninstall the %s.", KlientName),
+			Description: cmdDescriptions["uninstall"],
 			Action:      ExitWithMessage(UninstallCommand),
 		},
 		cli.Command{
 			Name:        "status",
-			Usage:       fmt.Sprintf("Status of the %s.", KlientName),
-			Description: fmt.Sprintf("Status the %s.", KlientName),
+			Usage:       fmt.Sprintf("Check status of the %s.", KlientName),
+			Description: cmdDescriptions["status"],
 			Action:      Exit(StatusCommand),
 		},
 		cli.Command{
 			Name:        "start",
 			Usage:       fmt.Sprintf("Start the %s.", KlientName),
-			Description: fmt.Sprintf("Start the %s.", KlientName),
+			Description: cmdDescriptions["start"],
 			Action:      Exit(StartCommand),
 		},
 		cli.Command{
 			Name:        "stop",
 			Usage:       fmt.Sprintf("Stop the %s.", KlientName),
-			Description: fmt.Sprintf("Stop the %s.", KlientName),
+			Description: cmdDescriptions["stop"],
 			Action:      Exit(StopCommand),
 		},
 		cli.Command{
 			Name:        "restart",
 			Usage:       fmt.Sprintf("Restart the %s.", KlientName),
-			Description: fmt.Sprintf("Restart the %s.", KlientName),
+			Description: cmdDescriptions["restart"],
 			Action:      Exit(RestartCommand),
 		},
 		cli.Command{
 			Name:        "update",
-			Usage:       "Update to latest version.",
-			Description: "Update to latest version.",
+			Usage:       fmt.Sprintf("Update %s to latest version.", KlientName),
+			Description: cmdDescriptions["update"],
 			Action:      Exit(UpdateCommand),
 		},
 		cli.Command{

@@ -13,6 +13,11 @@ import (
 
 // UpdateCommand updates this binary if there's an update available.
 func UpdateCommand(c *cli.Context) int {
+	if len(c.Args()) != 0 {
+		cli.ShowCommandHelp(c, "update")
+		return 1
+	}
+
 	// Create and open the log file, to be safe in case it's missing.
 	f, err := createLogFile(LogFilePath)
 	if err != nil {
