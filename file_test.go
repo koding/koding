@@ -238,16 +238,6 @@ func TestFile(tt *testing.T) {
 			So(string(f.Content), ShouldEqual, "Modified Content")
 		})
 	})
-
-	Convey("File#getContentFromRemote", tt, func() {
-		Convey("It should return content after fetching them from remote", func() {
-			f := newFileWithTransport()
-
-			content, err := f.getContentFromRemote()
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "Hello World!")
-		})
-	})
 }
 
 func newFileWithTransport() *File {

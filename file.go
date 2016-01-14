@@ -164,23 +164,14 @@ func (f *File) writeContentToRemote(content []byte) error {
 }
 
 func (f *File) updateContentFromRemote() error {
-	content, err := f.getContentFromRemote()
-	if err != nil {
-		return err
-	}
-
-	f.Content = content
-	f.Attrs.Size = uint64(len(f.Content))
-
-	return nil
-}
-
-func (f *File) getContentFromRemote() ([]byte, error) {
 	req := struct{ Path string }{f.RemotePath}
 	res := transport.FsReadFileRes{}
 	if err := f.Trip("fs.readFile", req, &res); err != nil {
-		return []byte{}, err
+		return err
 	}
 
-	return res.Content, nil
+	f.Content = res.Content
+	f.Attrs.Size = uint64(len(f.Content))
+
+	return nil
 }
