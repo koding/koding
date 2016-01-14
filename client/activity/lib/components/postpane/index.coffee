@@ -8,6 +8,12 @@ Modal        = require 'app/components/modal'
 
 module.exports = class PostPane extends React.Component
 
+  @propTypes =
+    thread        : React.PropTypes.instanceOf immutable.Map
+    messages      : React.PropTypes.instanceOf immutable.List
+    channelThread : React.PropTypes.instanceOf immutable.Map
+
+
   @defaultProps =
     thread        : immutable.Map()
     messages      : immutable.List()

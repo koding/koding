@@ -16,8 +16,13 @@ FollowChannelBox     = require 'activity/components/followchannelbox'
 
 module.exports = class PublicChatPane extends React.Component
 
+  @propTypes =
+    thread : React.PropTypes.instanceOf immutable.Map
+
+
   @defaultProps =
-    thread   : immutable.Map()
+    thread : immutable.Map()
+
 
   channel: (keyPath...) -> @props.thread?.getIn ['channel'].concat keyPath
 
@@ -40,7 +45,7 @@ module.exports = class PublicChatPane extends React.Component
       from: messages.first().get 'createdAt'
 
 
-  onInviteOthers: ->
+  onInviteClick: ->
 
     return  unless input = @refs.chatInputWidget
 
@@ -81,7 +86,7 @@ module.exports = class PublicChatPane extends React.Component
         className='PublicChatPane'
         onSubmit={@bound 'onSubmit'}
         onLoadMore={@bound 'onLoadMore'}
-        onInviteOthers={@bound 'onInviteOthers'}
+        onInviteClick={@bound 'onInviteClick'}
       />
       {@renderFooter()}
     </div>

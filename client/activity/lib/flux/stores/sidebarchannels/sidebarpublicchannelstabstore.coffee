@@ -1,6 +1,6 @@
 actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/base/store'
-Tabs            = require './sidebarpublicchannelstabs'
+Tabs            = require 'activity/constants/sidebarpublicchannelstabs'
 
 ###*
  * Store to handle current tab of sidebar public channels.

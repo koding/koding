@@ -3,6 +3,7 @@ package message
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/config"
@@ -21,9 +22,27 @@ var publicChannel *models.Channel
 
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
 
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
 	channelId, err := fetchInitialChannelId(u, c)
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	if err := ch.ById(channelId); err != nil {
+		return response.NewBadRequest(models.ErrChannelNotFound)
+	}
+
+	canOpen, err := ch.CanOpen(c.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
 	}
 
 	// override message type
@@ -32,6 +51,8 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 	req.TypeConstant = models.ChannelMessage_TYPE_POST
 
 	req.InitialChannelId = channelId
+
+	req.AccountId = c.Client.Account.Id
 
 	if req.Payload == nil {
 		req.Payload = gorm.Hstore{}
@@ -183,10 +204,18 @@ func checkThrottle(channelId, requesterId int64) error {
 	return nil
 }
 
-func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Delete(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewAccessDenied(models.ErrNotLoggedIn)
+	}
+
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	if id == 0 {
+		return response.NewBadRequest(models.ErrMessageIdIsNotSet)
 	}
 
 	cm := models.NewChannelMessage()
@@ -197,6 +226,19 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
+	}
+
+	// Add isAdmin checking
+	// is user is admin, then can delete another user's message
+	if cm.AccountId != c.Client.Account.Id {
+		isAdmin, err := modelhelper.IsAdmin(c.Client.Account.Nick, c.GroupName)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if !isAdmin {
+			return response.NewBadRequest(models.ErrAccessDenied)
+		}
 	}
 
 	// if this is a reply no need to delete it's replies
@@ -225,7 +267,11 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return response.NewDeleted()
 }
 
-func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -238,6 +284,18 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
+	}
+
+	if req.AccountId != c.Client.Account.Id {
+		isAdmin, err := modelhelper.IsAdmin(c.Client.Account.Nick, c.GroupName)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if !isAdmin {
+			return response.NewBadRequest(models.ErrAccessDenied)
+		}
+
 	}
 
 	if req.Id == 0 {
@@ -255,7 +313,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	return response.HandleResultAndError(cmc, cmc.Fetch(id, request.GetQuery(u)))
 }
 
-func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	cm, err := getMessageByUrl(u)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -263,6 +321,20 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 
 	if cm.Id == 0 {
 		return response.NewNotFound()
+	}
+
+	ch, err := models.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
+		response.NewBadRequest(err)
+	}
+
+	canOpen, err := ch.CanOpen(ctx.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewAccessDenied(models.ErrCannotOpenChannel)
 	}
 
 	cmc := models.NewChannelMessageContainer()
@@ -305,7 +377,7 @@ func getMessageByUrl(u *url.URL) (*models.ChannelMessage, error) {
 	return cm, nil
 }
 
-func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func GetWithRelated(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	cm, err := getMessageByUrl(u)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -315,19 +387,34 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 		return response.NewNotFound()
 	}
 
-	q := request.GetQuery(u)
-
-	cmc := models.NewChannelMessageContainer()
-	if err := cmc.Fetch(cm.Id, q); err != nil {
+	ch, err := models.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	cmc.AddIsInteracted(q).AddIsFollowed(q)
+	q := request.GetQuery(u)
+	query := ctx.OverrideQuery(q)
+
+	canOpen, err := ch.CanOpen(query.AccountId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
+	}
+
+	cmc := models.NewChannelMessageContainer()
+	if err := cmc.Fetch(cm.Id, query); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cmc.AddIsInteracted(query).AddIsFollowed(query)
 
 	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
-func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func GetBySlug(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 
 	if q.Slug == "" {
@@ -342,12 +429,29 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 		return response.NewBadRequest(err)
 	}
 
-	cmc := models.NewChannelMessageContainer()
-	if err := cmc.Fetch(cm.Id, q); err != nil {
+	ch := models.NewChannel()
+	if err := ch.ById(cm.InitialChannelId); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	cmc.AddIsInteracted(q).AddIsFollowed(q)
+	query := ctx.OverrideQuery(q)
+
+	// check if user can open
+	canOpen, err := ch.CanOpen(query.AccountId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
+	}
+
+	cmc := models.NewChannelMessageContainer()
+	if err := cmc.Fetch(cm.Id, query); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cmc.AddIsInteracted(query).AddIsFollowed(query)
 
 	return response.HandleResultAndError(cmc, cmc.Err)
 }

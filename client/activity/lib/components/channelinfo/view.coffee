@@ -1,59 +1,33 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
+moment               = require 'moment'
+immutable            = require 'immutable'
 classnames           = require 'classnames'
 whoami               = require 'app/util/whoami'
 Link                 = require 'app/components/common/link'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 ProfileText          = require 'app/components/profile/profiletext'
-moment               = require 'moment'
-immutable            = require 'immutable'
+ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
+module.exports = class ChannelInfoView extends React.Component
 
-module.exports = class ChannelInfoContainer extends React.Component
+  @propTypes =
+    channel                   : React.PropTypes.instanceOf immutable.Map
+    onInviteClick             : React.PropTypes.func.isRequired
+    onIntegrationClick        : React.PropTypes.func.isRequired
+    onCollaborationClick      : React.PropTypes.func.isRequired
+    collabTooltipVisible      : React.PropTypes.bool
+    integrationTooltipVisible : React.PropTypes.bool
+
 
   @defaultProps =
-    onInviteOthers: kd.noop
-    thread: immutable.Map()
-
-
-  constructor: (props) ->
-
-    super props
-
-    @state = { collabTooltipVisible: no, integrationTooltipVisible: no }
-
-
-  channel: (key) -> @props.thread?.getIn ['channel', key]
-
-
-  onCollaborationHelp: (event) ->
-
-    kd.utils.stopDOMEvent event
-
-    @setState collabTooltipVisible: yes
-
-    kd.utils.wait 2000, => @setState collabTooltipVisible: no
-
-
-  onIntegrationHelp: (event) ->
-
-    kd.utils.stopDOMEvent event
-
-    @setState integrationTooltipVisible: yes
-
-    kd.utils.wait 2000, => @setState integrationTooltipVisible: no
-
-
-  onInviteOthers: (event) ->
-
-    kd.utils.stopDOMEvent event
-
-    @props.onInviteOthers?()
+    channel                   : immutable.Map()
+    collabTooltipVisible      : no
+    integrationTooltipVisible : no
 
 
   renderChannelName: ->
 
-    switch @channel 'typeConstant'
+    switch @props.channel.get 'typeConstant'
       when 'bot'
         <div className='ChannelInfoContainer-name'>
           <strong>Koding Bot</strong>
@@ -64,13 +38,13 @@ module.exports = class ChannelInfoContainer extends React.Component
         </div>
       when 'topic'
         <div className='ChannelInfoContainer-name'>
-          #{@channel 'name'}
+          #{@props.channel.get 'name'}
         </div>
 
 
   renderProfileLink: ->
 
-    authorId = @channel 'accountOldId'
+    authorId = @props.channel.get 'accountOldId'
     origin = { _id: authorId, constructorName: 'JAccount' }
 
     author = if authorId is whoami()._id
@@ -80,23 +54,23 @@ module.exports = class ChannelInfoContainer extends React.Component
         <ProfileText />
       </ProfileLinkContainer>
 
-    dateString = moment(@channel 'createdAt').calendar null,
+    dateString = moment(@props.channel.get 'createdAt').calendar null,
       sameDay  : '[today]'
       lastDay  : '[yesterday]'
       lastWeek : '[last] dddd'
       sameElse : '[on] MMM D'
 
     return \
-      <span>
+      <span className='ChannelInfoContainer-profileLink'>
         , created by {author} {dateString}.<br/>
       </span>
 
 
   renderChannelIntro: ->
 
-    channelName = @channel 'name'
+    channelName = @props.channel.get 'name'
 
-    switch @channel 'typeConstant'
+    switch @props.channel.get 'typeConstant'
       when 'bot'
         <span>
           This is the very beginning of your chat history with <strong>Koding Bot</strong>. He is not so smart :)
@@ -110,6 +84,7 @@ module.exports = class ChannelInfoContainer extends React.Component
 
 
   render: ->
+
     <div className='ChannelInfoContainer'>
       {@renderChannelName()}
       <div className='ChannelInfoContainer-description'>
@@ -118,25 +93,25 @@ module.exports = class ChannelInfoContainer extends React.Component
           You can start a collaboration session, or drag and drop VMs and
           workspaces here from the sidebar to let anyone in this channel access
           them.
-          (<Link onClick ={@bound 'onCollaborationHelp'}>Show me how?</Link>)
+          (<Link onClick ={@props.onCollaborationClick}>Show me how?</Link>)
         </div>
       </div>
       <div className='ChannelInfoContainer-actions'>
         <Link
           className='ChannelInfoContainer-action StartCollaborationLink'
-          onClick={@bound 'onCollaborationHelp'}>
+          onClick={@props.onCollaborationClick}>
           Start Collaboration
-          {renderTooltip @state.collabTooltipVisible}
+          {renderTooltip @props.collabTooltipVisible}
         </Link>
         <Link
           className='ChannelInfoContainer-action AddIntegrationLink'
-          onClick={@bound 'onIntegrationHelp'}>
+          onClick={@props.onIntegrationClick}>
           Add integration
-          {renderTooltip @state.integrationTooltipVisible}
+          {renderTooltip @props.integrationTooltipVisible}
         </Link>
         <Link
           className='ChannelInfoContainer-action InviteOthersLink'
-          onClick={@bound 'onInviteOthers'}>
+          onClick={@props.onInviteClick}>
           Invite others
         </Link>
       </div>
@@ -152,3 +127,4 @@ renderTooltip = (state) ->
   <div className={className}>
     <span>Coming soon</span>
   </div>
+

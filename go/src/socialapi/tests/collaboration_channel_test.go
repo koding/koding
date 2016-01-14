@@ -414,7 +414,7 @@ func TestCollaborationChannels(t *testing.T) {
 				joinMessage := history.MessageList[0].Message
 				So(joinMessage, ShouldNotBeNil)
 
-				_, err = rest.UpdatePost(joinMessage)
+				_, err = rest.UpdatePost(joinMessage, ses.ClientId)
 				So(err, ShouldNotBeNil)
 			})
 
