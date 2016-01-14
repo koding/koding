@@ -411,17 +411,13 @@ module.exports = class JUser extends jraphical.Module
       callback null, user
 
 
-  fetchInvitationByCode = (invitationToken, queue, callback, fetchData) ->
-
-    # if we dont have an invitation code, do not continue
-    return queue.next()  unless invitationToken
+  fetchInvitationByCode = (invitationToken, callback) ->
 
     JInvitation = require '../invitation'
     JInvitation.byCode invitationToken, (err, invitation) ->
       return callback err  if err
       return callback new KodingError 'invitation is not valid'  unless invitation
-      fetchData invitation
-      queue.next()
+      callback null, invitation
 
 
   fetchInvitationByData = (options, queue, callback, fetchData) ->
@@ -503,14 +499,19 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        # if we dont have an invitation code, do not continue
+        return queue.next()  unless invitationToken
+
         # check if user can access to group
         #
         # there can be two cases here
         # # user is member, check validity
         # # user is not member, and trying to access with invitationToken
         # both should succeed
-        fetchInvitationByCode invitationToken, queue, callback, (invitation_) ->
+        fetchInvitationByCode invitationToken, (err, invitation_) ->
+          return callback err  if err
           invitation = invitation_
+          queue.next()
 
       ->
         fetchInvitationByData {
