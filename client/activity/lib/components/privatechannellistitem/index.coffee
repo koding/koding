@@ -25,7 +25,7 @@ module.exports = class PrivateChannelListItem extends React.Component
   render: ->
 
     typeConstant = @channel 'typeConstant'
-    title        = prepareThreadTitle @props.thread
+    title        = prepareThreadTitle @channel()
     channelId    = @channel '_id'
 
     <PrivateChannelLink to={@channel()} className='ChannelListItem' onClick={@props.onItemClick}>
