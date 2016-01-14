@@ -851,12 +851,13 @@ module.exports = class JUser extends jraphical.Module
       ->
         # updating session data after login
         sessionUpdateOptions =
-          $set            :
-            username      : username
-            clientId      : replacementToken
-            lastLoginDate : lastLoginDate = new Date
-          $unset          :
-            guestId       : 1
+          $set                :
+            username          : username
+            clientId          : replacementToken
+            lastLoginDate     : lastLoginDate = new Date
+          $unset              :
+            guestId           : 1
+            guestSessionBegan : 1
 
         guestUsername = session.username
 
