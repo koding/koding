@@ -179,6 +179,9 @@ func isMapObject(v interface{}) bool {
 }
 
 func flatten(v interface{}) interface{} {
+	if v == nil {
+		return nil
+	}
 	if isMapObject(v) {
 		return v
 	}

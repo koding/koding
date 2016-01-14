@@ -1,11 +1,11 @@
 package awsprovider
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/stackplan"
 
 	"golang.org/x/net/context"
 
@@ -24,30 +24,28 @@ func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	data, err := stackplan.FetchTerraformData(s.Req.Method, s.Req.Username, arg.GroupName, arg.Identifiers)
-	if err != nil {
+	if err := s.Builder.BuildCredentials(s.Req.Method, s.Req.Username, arg.GroupName, arg.Identifiers); err != nil {
 		return nil, err
 	}
-	s.Log.Debug("Fetched terraform data: %+v", data)
+
+	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
 
 	result := make(map[string]bool, 0)
 
-	for _, cred := range data.Creds {
-		// We are going to support more providers in the future, for now only allow aws
+	for _, cred := range s.Builder.Credentials {
 		if cred.Provider != "aws" {
-			return nil, fmt.Errorf("bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
+			return nil, errors.New("unable to authenticate non-aws credential: " + cred.Provider)
 		}
 
-		accessKey := cred.Data["access_key"]
-		secretKey := cred.Data["secret_key"]
-		authRegion, ok := cred.Data["region"]
-		if !ok {
-			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
+		meta := cred.Meta.(*AwsMeta)
+
+		if err := meta.Valid(); err != nil {
+			return nil, fmt.Errorf("validating %q credential: %s", cred.Identifier, err)
 		}
 
 		opts := &amazon.ClientOptions{
-			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-			Region:      authRegion,
+			Credentials: credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, ""),
+			Region:      meta.Region,
 			Log:         nil, // do not log warnings, as they're expected
 		}
 

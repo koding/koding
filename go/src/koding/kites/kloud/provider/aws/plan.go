@@ -35,11 +35,14 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	}
 
 	s.Log.Debug("Fetching credentials for id %v", stackTemplate.Credentials)
-	data, err := stackplan.FetchTerraformData(s.Req.Method, s.Req.Username, arg.GroupName, stackplan.FlattenValues(stackTemplate.Credentials))
-	if err != nil {
+
+	credIDs := stackplan.FlattenValues(stackTemplate.Credentials)
+
+	if err := s.Builder.BuildCredentials(s.Req.Method, s.Req.Username, arg.GroupName, credIDs); err != nil {
 		return nil, err
 	}
-	s.Log.Debug("Fetched terraform data: %+v", data)
+
+	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
 
 	// TODO(arslan): make one single persistent connection if needed, for now
 	// this is ok.
@@ -50,58 +53,51 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	defer tfKite.Close()
 
 	s.Log.Debug("Parsing template:\n%s", stackTemplate.Template.Content)
-	template, err := stackplan.ParseTemplate(stackTemplate.Template.Content)
-	if err != nil {
+
+	if err := s.Builder.BuildTemplate(stackTemplate.Template.Content); err != nil {
 		return nil, err
 	}
 
-	if err := template.FillVariables("userInput"); err != nil {
+	if err := s.Builder.Template.FillVariables("userInput_"); err != nil {
 		return nil, err
 	}
 
 	var region string
-	for _, cred := range data.Creds {
-		s.Log.Debug("Appending %s provider variables", cred.Provider)
-		if err := template.InjectCustomVariables(cred.Provider, cred.Data); err != nil {
-			return nil, err
-		}
-
+	for _, cred := range s.Builder.Credentials {
 		// rest is aws related
 		if cred.Provider != "aws" {
 			continue
 		}
 
-		var ok bool
-		region, ok = cred.Data["region"]
-		if !ok {
+		meta := cred.Meta.(*AwsMeta)
+		if meta.Region == "" {
 			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
-		if err := template.SetAwsRegion(region); err != nil {
+		if err := s.SetAwsRegion(meta.Region); err != nil {
 			return nil, err
 		}
+
+		region = meta.Region
+
+		break
 	}
 
 	s.Log.Debug("Plan: stack template before injecting Koding data")
-	s.Log.Debug("%v", template)
-
-	s.Log.Debug("Injecting Koding data")
-	// inject koding variables, in the form of koding_user_foo,
-	// koding_group_name, etc..
-	if err := template.InjectKodingVariables(data.KodingData); err != nil {
-		return nil, err
-	}
+	s.Log.Debug("%v", s.Builder.Template)
 
 	// TODO(rjeczalik): rework injectAWSData
 	s.Log.Debug("Injecting AWS data")
-	_, err = stackplan.InjectAWSData(ctx, template, s.Req.Username, data)
+
+	if _, err := s.InjectAWSData(ctx, s.Req.Username); err != nil {
+		return nil, err
+	}
+
+	out, err := s.Builder.Template.JsonOutput()
 	if err != nil {
 		return nil, err
 	}
-	out, err := template.JsonOutput()
-	if err != nil {
-		return nil, err
-	}
+
 	stackTemplate.Template.Content = out
 
 	tfReq := &tf.TerraformRequest{

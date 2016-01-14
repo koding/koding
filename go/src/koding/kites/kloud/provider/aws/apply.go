@@ -21,7 +21,6 @@ import (
 	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -74,12 +73,12 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 			s.Log.New(arg.StackID).Info("======> %s (destroy) started <======",
 				strings.ToUpper(s.Req.Method))
 			finalEvent.Status = machinestate.Terminated
-			err = destroy(ctx, s.Req.Username, arg.GroupName, arg.StackID)
+			err = s.destroy(ctx, s.Req.Username, arg.GroupName, arg.StackID)
 		} else {
 			modelhelper.SetStackState(arg.StackID, "Stack building started", stackstate.Building)
 
 			s.Log.New(arg.StackID).Info("======> %s started <======", strings.ToUpper(s.Req.Method))
-			err = apply(ctx, s.Req.Username, arg.GroupName, arg.StackID)
+			err = s.apply(ctx, s.Req.Username, arg.GroupName, arg.StackID)
 			if err != nil {
 				modelhelper.SetStackState(arg.StackID, "Stack building failed",
 					stackstate.NotInitialized)
@@ -112,7 +111,7 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 	}, nil
 }
 
-func destroy(ctx context.Context, username, groupname, stackId string) error {
+func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
@@ -134,17 +133,13 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	stack, err := fetchStack(stackId)
-	if err != nil {
+	if err := s.Builder.BuildStack(stackID); err != nil {
 		return err
 	}
 
-	sess.Log.Debug("Validating '%d' machines from user '%s'", len(stack.Machines), username)
-	machines, err := fetchMachines(ctx, stack.Machines...)
-	if err != nil {
+	if err := s.Builder.BuildMachines(ctx); err != nil {
 		return err
 	}
-	sess.Log.Debug("Fetched machines: %+v", machines)
 
 	ev.Push(&eventer.Event{
 		Message:    "Fetching and validating credentials",
@@ -152,91 +147,82 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	data, err := stackplan.FetchTerraformData(req.Method, username, groupname, stackplan.FlattenValues(stack.Credentials))
-	if err != nil {
+	credIDs := stackplan.FlattenValues(s.Builder.Stack.Credentials)
+
+	s.Log.Debug("Fetching '%d' credentials from user '%s'", len(credIDs), username)
+
+	if err := s.Builder.BuildCredentials(req.Method, username, groupname, credIDs); err != nil {
 		return err
 	}
-	sess.Log.Debug("Fetched terraform data: %+v", data)
 
-	sess.Log.Debug("Connection to Terraformer")
+	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
+	s.Log.Debug("Connection to Terraformer")
+
 	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
 		return err
 	}
 	defer tfKite.Close()
 
-	sess.Log.Debug("Parsing the template")
-	template, err := stackplan.ParseTemplate(stack.Template)
-	if err != nil {
+	s.Log.Debug("Building template")
+
+	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template); err != nil {
 		return err
 	}
 
-	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
-	for _, cred := range data.Creds {
-		if err := template.InjectCustomVariables(cred.Provider, cred.Data); err != nil {
-			return err
-		}
+	s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
+	for _, cred := range s.Builder.Credentials {
 		// rest is aws related
 		if cred.Provider != "aws" {
 			continue
 		}
 
-		region, ok := cred.Data["region"]
-		if !ok {
+		meta := cred.Meta.(*AwsMeta)
+		if meta.Region == "" {
 			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
-		if err := template.SetAwsRegion(region); err != nil {
+		if err := s.SetAwsRegion(meta.Region); err != nil {
 			return err
 		}
 	}
 
-	// inject koding variables, in the form of koding_user_foo,
-	// koding_group_name, etc..
-	if err := template.InjectKodingVariables(data.KodingData); err != nil {
+	if _, err := s.InjectAWSData(ctx, username); err != nil {
 		return err
 	}
 
-	if _, err := stackplan.InjectAWSData(ctx, template, username, data); err != nil {
-		return err
-	}
-
-	if _, err := stackplan.InjectVagrantData(ctx, template, username); err != nil {
-		return err
-	}
-
-	out, err := template.JsonOutput()
+	out, err := s.Builder.Template.JsonOutput()
 	if err != nil {
 		return err
 	}
 
-	stack.Template = out
+	s.Builder.Stack.Template = out
 
 	tfReq := &tf.TerraformRequest{
-		Content:   stack.Template,
-		ContentID: username + "-" + stackId,
+		Content:   s.Builder.Stack.Template,
+		ContentID: username + "-" + stackID,
 		Variables: nil,
 	}
-	sess.Log.Debug("Calling terraform.destroy method with context:")
-	sess.Log.Debug("%+v", tfReq)
+
+	s.Log.Debug("Calling terraform.destroy method with context:")
+	s.Log.Debug("%+v", tfReq)
 
 	_, err = tfKite.Destroy(tfReq)
 	if err != nil {
 		return err
 	}
 
-	for _, m := range machines {
+	for _, m := range s.Builder.Machines {
 		if err := modelhelper.DeleteMachine(m.ObjectId); err != nil {
 			return err
 		}
 	}
 
-	return modelhelper.DeleteComputeStack(stackId)
+	return modelhelper.DeleteComputeStack(stackID)
 }
 
-func apply(ctx context.Context, username, groupname, stackId string) error {
+func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) error {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return errors.New("session context is not passed")
@@ -258,18 +244,13 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	stack, err := fetchStack(stackId)
-	if err != nil {
+	if err := s.Builder.BuildStack(stackID); err != nil {
 		return err
 	}
-	sess.Log.Debug("Fetched stack: %+v", stack)
 
-	sess.Log.Debug("Fetching and validating '%d' machines from user '%s'", len(stack.Machines), username)
-	machines, err := fetchMachines(ctx, stack.Machines...)
-	if err != nil {
+	if err := s.Builder.BuildMachines(ctx); err != nil {
 		return err
 	}
-	sess.Log.Debug("Fetched machines: %+v", machines)
 
 	ev.Push(&eventer.Event{
 		Message:    "Fetching and validating credentials",
@@ -277,99 +258,71 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	data, err := stackplan.FetchTerraformData(req.Method, username, groupname, stackplan.FlattenValues(stack.Credentials))
-	if err != nil {
+	credIDs := stackplan.FlattenValues(s.Builder.Stack.Credentials)
+
+	s.Log.Debug("Fetching '%d' credentials from user '%s'", len(credIDs), username)
+
+	if err := s.Builder.BuildCredentials(req.Method, username, groupname, credIDs); err != nil {
 		return err
 	}
-	sess.Log.Debug("Fetched terraform data: %+v", data)
 
-	sess.Log.Debug("Connection to Terraformer")
+	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
+	s.Log.Debug("Connection to Terraformer")
+
 	tfKite, err := terraformer.Connect(sess.Kite)
 	if err != nil {
 		return err
 	}
 	defer tfKite.Close()
 
-	sess.Log.Debug("Parsing the template")
-	sess.Log.Debug("%s", stack.Template)
-	template, err := stackplan.ParseTemplate(stack.Template)
-	if err != nil {
+	s.Log.Debug("Building template")
+
+	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template); err != nil {
 		return err
 	}
 
-	sess.Log.Debug("Stack template before injecting Koding data:")
-	sess.Log.Debug("%s", template)
+	s.Log.Debug("Stack template before injecting Koding data:")
+	s.Log.Debug("%s", s.Builder.Template)
 
-	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+	s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
 	var region string
-	for _, cred := range data.Creds {
-		sess.Log.Debug("Appending %s provider variables", cred.Provider)
-		if err := template.InjectCustomVariables(cred.Provider, cred.Data); err != nil {
-			return err
-		}
-
+	for _, cred := range s.Builder.Credentials {
 		// rest is aws related
 		if cred.Provider != "aws" {
 			continue
 		}
 
-		credRegion, ok := cred.Data["region"]
-		if !ok {
+		meta := cred.Meta.(*AwsMeta)
+		if meta.Region == "" {
 			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
 		// check if this a second round and it's using a different region, we
 		// shouldn't allow it.
-		if region != "" && region != credRegion {
+		if region != "" && region != meta.Region {
 			return fmt.Errorf("multiple credentials with multiple regions detected: %s and %s. Aborting",
-				region, credRegion)
+				region, meta.Region)
 		}
 
-		region = credRegion
+		region = meta.Region
 
-		if err := template.SetAwsRegion(region); err != nil {
+		if err := s.SetAwsRegion(region); err != nil {
 			return err
 		}
 	}
 
-	sess.Log.Debug("Injecting Koding data")
-	// inject koding variables, in the form of koding_user_foo,
-	// koding_group_name, etc..
-	if err := template.InjectKodingVariables(data.KodingData); err != nil {
-		return err
-	}
-
-	kiteIds := make(map[string]string)
-
-	awsData, err := stackplan.InjectAWSData(ctx, template, username, data)
+	kiteIDs, err := s.InjectAWSData(ctx, username)
 	if err != nil {
 		return err
 	}
 
-	if awsData != nil && awsData.KiteIds != nil {
-		for label, id := range awsData.KiteIds {
-			kiteIds[label] = id
-		}
-	}
-
-	vagrantData, err := stackplan.InjectVagrantData(ctx, template, username)
+	out, err := s.Builder.Template.JsonOutput()
 	if err != nil {
 		return err
 	}
 
-	if vagrantData != nil && vagrantData.KiteIds != nil {
-		for label, id := range vagrantData.KiteIds {
-			kiteIds[label] = id
-		}
-	}
-
-	out, err := template.JsonOutput()
-	if err != nil {
-		return err
-	}
-	stack.Template = out
+	s.Builder.Stack.Template = out
 
 	done := make(chan struct{})
 
@@ -398,12 +351,12 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	}()
 
 	tfReq := &tf.TerraformRequest{
-		Content:   stack.Template,
-		ContentID: username + "-" + stackId,
+		Content:   s.Builder.Stack.Template,
+		ContentID: username + "-" + stackID,
 		Variables: nil,
 	}
-	sess.Log.Debug("Final stack template. Calling terraform.apply method:")
-	sess.Log.Debug("%+v", tfReq)
+	s.Log.Debug("Final stack template. Calling terraform.apply method:")
+	s.Log.Debug("%+v", tfReq)
 
 	state, err := tfKite.Apply(tfReq)
 	if err != nil {
@@ -421,9 +374,9 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		Status:     machinestate.Building,
 	})
 
-	if len(kiteIds) != 0 {
-		sess.Log.Debug("Checking total '%d' klients", len(kiteIds))
-		if err := stackplan.CheckKlients(ctx, kiteIds); err != nil {
+	if len(kiteIDs) != 0 {
+		s.Log.Debug("Checking total '%d' klients", len(kiteIDs))
+		if err := stackplan.CheckKlients(ctx, kiteIDs); err != nil {
 			return err
 		}
 	}
@@ -433,161 +386,31 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		return err
 	}
 
-	sess.Log.Debug("Machines from state: %+v", output)
-	sess.Log.Debug("Build region: %+v", region)
+	s.Log.Debug("Machines from state: %+v", output)
+	s.Log.Debug("Build region: %+v", region)
+
 	output.AppendRegion(region)
 
-	if len(kiteIds) != 0 {
-		sess.Log.Debug("Build data kiteIDS: %+v", kiteIds)
-		output.AppendQueryString(kiteIds)
+	if len(kiteIDs) != 0 {
+		s.Log.Debug("Build data kiteIDS: %+v", kiteIDs)
+		output.AppendQueryString(kiteIDs)
 	}
 
 	d, err := json.MarshalIndent(output, "", " ")
 	if err != nil {
 		return err
 	}
-	sess.Log.Debug("Updated machines\n%s", string(d))
 
-	sess.Log.Debug("Updating and syncing terraform output to jMachine documents")
+	s.Log.Debug("Updated machines\n%s", string(d))
+	s.Log.Debug("Updating and syncing terraform output to jMachine documents")
+
 	ev.Push(&eventer.Event{
 		Message:    "Updating machine settings",
 		Percentage: 90,
 		Status:     machinestate.Building,
 	})
-	return updateMachines(ctx, output, machines)
-}
 
-func fetchStack(stackId string) (*stackplan.Stack, error) {
-	computeStack, err := modelhelper.GetComputeStack(stackId)
-	if err != nil {
-		return nil, err
-	}
-
-	stackTemplate, err := modelhelper.GetStackTemplate(computeStack.BaseStackId.Hex())
-	if err != nil {
-		return nil, err
-	}
-
-	machineIds := make([]string, len(computeStack.Machines))
-	for i, m := range computeStack.Machines {
-		machineIds[i] = m.Hex()
-	}
-
-	credentials := make(map[string][]string, 0)
-
-	// first copy admin/group based credentials
-	for k, v := range stackTemplate.Credentials {
-		credentials[k] = v
-	}
-
-	// copy user based credentials
-	for k, v := range computeStack.Credentials {
-		// however don't override anything the admin already added
-		if _, ok := credentials[k]; !ok {
-			credentials[k] = v
-		}
-	}
-
-	return &stackplan.Stack{
-		Machines:    machineIds,
-		Credentials: credentials,
-		Template:    stackTemplate.Template.Content,
-	}, nil
-}
-
-func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error) {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("session context is not passed")
-	}
-
-	mongodbIds := make([]bson.ObjectId, len(ids))
-	for i, id := range ids {
-		mongodbIds[i] = bson.ObjectIdHex(id)
-	}
-
-	sess.Log.Debug("Fetching machines with IDs: %+v", mongodbIds)
-
-	machines := make([]*models.Machine, 0)
-	if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"_id": bson.M{"$in": mongodbIds}}).All(&machines)
-	}); err != nil {
-		return nil, err
-	}
-
-	validUsers := make(map[string]models.MachineUser, 0)
-	validMachines := make(map[string]*models.Machine, 0)
-
-	for _, machine := range machines {
-		// machines with empty users are supposed to allowed by default
-		// (gokmen)
-		if machine.Users == nil || len(machine.Users) == 0 {
-			validMachines[machine.ObjectId.Hex()] = machine
-			continue
-		}
-
-		// for others we need to be sure they are valid
-		// TODO(arslan): add custom type with custom methods for type
-		// []*Machineuser
-		for _, user := range machine.Users {
-			// we only going to select users that are allowed
-			if user.Sudo && user.Owner {
-				validUsers[user.Id.Hex()] = user
-			} else {
-				// return early, we don't tolerate nonvalid inputs to apply
-				return nil, fmt.Errorf("machine '%s' is not valid. Aborting apply",
-					machine.ObjectId.Hex())
-			}
-		}
-	}
-
-	allowedIds := make([]bson.ObjectId, 0)
-	for _, user := range validUsers {
-		allowedIds = append(allowedIds, user.Id)
-	}
-
-	sess.Log.Debug("Fetching users with allowed IDs: %+v", allowedIds)
-	users, err := modelhelper.GetUsersById(allowedIds...)
-	if err != nil {
-		return nil, err
-	}
-
-	req, ok := request.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("request context is not passed")
-	}
-
-	// find whether requested user is among allowed ones
-	var reqUser *models.User
-	for _, u := range users {
-		if u.Name == req.Username {
-			reqUser = u
-			break
-		}
-	}
-
-	if reqUser != nil {
-		// now check if the requested user is inside the allowed users list
-		for _, m := range machines {
-			for _, user := range m.Users {
-				if user.Id.Hex() == reqUser.ObjectId.Hex() {
-					validMachines[m.ObjectId.Hex()] = m
-					break
-				}
-			}
-		}
-	}
-
-	if len(validMachines) == 0 {
-		return nil, fmt.Errorf("no valid machines found for the user: %s", req.Username)
-	}
-
-	finalMachines := make([]*models.Machine, 0)
-	for _, m := range validMachines {
-		finalMachines = append(finalMachines, m)
-	}
-
-	return finalMachines, nil
+	return updateMachines(ctx, output, s.Builder.Machines)
 }
 
 func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine) error {
@@ -640,6 +463,7 @@ func updateAWS(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectI
 	}})
 }
 
+// TODO(rjeczalik): move to provider/vagrant
 func updateVagrantKite(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
 	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
 		"provider":            tf.Provider,

@@ -90,5 +90,18 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	// and the fn itself emits events if needed.
 	//
 	// This differs from k.coreMethods.
-	return fn(s, ctx)
+	resp, err := fn(s, ctx)
+
+	// Do not log error in production as most of them are expected:
+	//
+	//  - authenticate errors due to invalid credentials
+	//  - plan errors due to invalud user input
+	//
+	// TODO(rjeczalik): Refactor errors so the user-originated have different
+	// type and log unexpected errors with k.Log.Error().
+	if err != nil {
+		k.Log.Debug("method %q for user %q failed: %s", r.Method, r.Username, err)
+	}
+
+	return resp, err
 }

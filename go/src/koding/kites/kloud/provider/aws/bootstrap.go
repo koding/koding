@@ -2,6 +2,7 @@ package awsprovider
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -16,22 +17,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	awssession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2/bson"
 )
-
-type AwsBootstrapOutput struct {
-	ACL       string `json:"acl" mapstructure:"acl"`
-	CidrBlock string `json:"cidr_block" mapstructure:"cidr_block"`
-	IGW       string `json:"igw" mapstructure:"igw"`
-	KeyPair   string `json:"key_pair" mapstructure:"key_pair"`
-	RTB       string `json:"rtb" mapstructure:"rtb"`
-	SG        string `json:"sg" mapstructure:"sg"`
-	Subnet    string `json:"subnet" mapstructure:"subnet"`
-	VPC       string `json:"vpc" mapstructure:"vpc"`
-	AMI       string `json:"ami" mapstructure:"ami"`
-}
 
 // Bootstrap
 func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
@@ -50,12 +38,12 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 		s.Log.Debug("Bootstrap apply is called")
 	}
 
-	data, err := stackplan.FetchTerraformData(s.Req.Method, s.Req.Username, arg.GroupName, arg.Identifiers)
-	if err != nil {
+	if err := s.Builder.BuildCredentials(s.Req.Method, s.Req.Username, arg.GroupName, arg.Identifiers); err != nil {
 		return nil, err
 	}
 
 	s.Log.Debug("Connecting to terraformer kite")
+
 	tfKite, err := terraformer.Connect(s.Session.Kite)
 	if err != nil {
 		return nil, err
@@ -63,36 +51,23 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 	defer tfKite.Close()
 
 	s.Log.Debug("Iterating over credentials")
-	for _, cred := range data.Creds {
+
+	for _, cred := range s.Builder.Credentials {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
 		s.Log.Debug("parsing the template")
-		template, err := stackplan.ParseTemplate(awsBootstrap)
-		if err != nil {
-			return nil, err
+
+		if err := s.Builder.BuildTemplate(awsBootstrap); err != nil {
 		}
 
-		s.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
-		if err := template.InjectCustomVariables(cred.Provider, cred.Data); err != nil {
-			return nil, err
-		}
-
-		var awsCred struct {
-			Region    string `mapstructure:"region"`
-			AccessKey string `mapstructure:"access_key"`
-			SecretKey string `mapstructure:"secret_key"`
-		}
-
-		if err := mapstructure.Decode(cred.Data, &awsCred); err != nil {
-			return nil, err
-		}
+		meta := cred.Meta.(*AwsMeta)
 
 		sess := awssession.New(&aws.Config{
-			Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
-			Region:      aws.String(awsCred.Region),
+			Credentials: credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, ""),
+			Region:      aws.String(meta.Region),
 		})
 
 		iamClient := iam.New(sess)
@@ -108,12 +83,12 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			return nil, err
 		}
 
-		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, awsCred.Region)
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, meta.Region)
 		s.Log.Debug("Going to use the contentID: %s", contentID)
 
 		keyName := "koding-deployment-" + s.Req.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
-		finalBootstrap, err := template.JsonOutput()
+		finalBootstrap, err := s.Builder.Template.JsonOutput()
 		if err != nil {
 			return nil, err
 		}
@@ -123,6 +98,10 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			PublicKey:       s.Keys.PublicKey,
 			EnvironmentName: fmt.Sprintf("Koding-%s-Bootstrap", arg.GroupName),
 		})
+
+		s.Log.Debug("Final bootstrap template:")
+		s.Log.Debug(finalBootstrap)
+
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +114,7 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
 
-		awsOutput := &AwsBootstrapOutput{}
+		resp := &AwsMeta{}
 
 		// this is custom because we need to remove the fields if we get a
 		// destroy. So the operator changes from $set to $unset.
@@ -162,23 +141,31 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			}
 
 			s.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.Identifier, state.RootModule().Outputs)
-			if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
+
+			if err := s.Builder.Object.Decode(state.RootModule().Outputs, resp); err != nil {
 				return nil, err
+			}
+
+			s.Log.Debug("[%s] resp = %+v\n", cred.Identifier, resp)
+
+			if !resp.IsBootstrapComplete() {
+				return nil, errors.New("Bootstrap metadata is incomplete: " + cred.Identifier)
 			}
 		}
 
-		s.Log.Debug("[%s] Aws Output: %+v", cred.Identifier, awsOutput)
+		s.Log.Debug("[%s] Bootstrap response: %+v", cred.Identifier, resp)
+
 		if err := modelhelper.UpdateCredentialData(cred.Identifier, bson.M{
 			mongodDBOperator: bson.M{
-				"meta.acl":        awsOutput.ACL,
-				"meta.cidr_block": awsOutput.CidrBlock,
-				"meta.igw":        awsOutput.IGW,
-				"meta.key_pair":   awsOutput.KeyPair,
-				"meta.rtb":        awsOutput.RTB,
-				"meta.sg":         awsOutput.SG,
-				"meta.subnet":     awsOutput.Subnet,
-				"meta.vpc":        awsOutput.VPC,
-				"meta.ami":        awsOutput.AMI,
+				"meta.acl":        resp.ACL,
+				"meta.cidr_block": resp.CidrBlock,
+				"meta.igw":        resp.IGW,
+				"meta.key_pair":   resp.KeyPair,
+				"meta.rtb":        resp.RTB,
+				"meta.sg":         resp.SG,
+				"meta.subnet":     resp.Subnet,
+				"meta.vpc":        resp.VPC,
+				"meta.ami":        resp.AMI,
 			},
 		}); err != nil {
 			return nil, err

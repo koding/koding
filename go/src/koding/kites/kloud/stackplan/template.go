@@ -1,14 +1,12 @@
 package stackplan
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
+	"koding/kites/kloud/utils/object"
 	"strings"
 
-	"github.com/fatih/structs"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/json/parser"
@@ -23,6 +21,7 @@ type Template struct {
 	Output   map[string]interface{} `json:"output,omitempty"`
 
 	node *ast.ObjectList `json:"-"`
+	b    *object.Builder `json:"-"`
 }
 
 // newTerraformTemplate parses the content and returns a terraformTemplate
@@ -33,6 +32,11 @@ func ParseTemplate(content string) (*Template, error) {
 		Provider: make(map[string]interface{}),
 		Variable: make(map[string]interface{}),
 		Output:   make(map[string]interface{}),
+		b: &object.Builder{
+			Tag:       "stackplan",
+			Sep:       "_",
+			Recursive: true,
+		},
 	}
 
 	err := json.Unmarshal([]byte(content), &template)
@@ -108,6 +112,12 @@ func (t *Template) String() string {
 	return out
 }
 
+var unescapeJSON = strings.NewReplacer(
+	"\\u003c", "<",
+	"\\u003e", ">",
+	"\\u0026", "&",
+)
+
 // JsonOutput returns a JSON formatted output of the template
 func (t *Template) JsonOutput() (string, error) {
 	out, err := json.MarshalIndent(&t, "", "  ")
@@ -118,19 +128,19 @@ func (t *Template) JsonOutput() (string, error) {
 	// replace escaped brackets and ampersand. the marshal package is encoding
 	// them automtically so it can be safely processed inside HTML scripts, but
 	// we don't need it.
-	out = bytes.Replace(out, []byte("\\u003c"), []byte("<"), -1)
-	out = bytes.Replace(out, []byte("\\u003e"), []byte(">"), -1)
-	out = bytes.Replace(out, []byte("\\u0026"), []byte("&"), -1)
-
-	return string(out), nil
+	return unescapeJSON.Replace(string(out)), nil
 }
 
-// detectUserVariables parses the template for any ${var.foo}, ${var.bar},
+// DetectUserVariables parses the template for any ${var.foo}, ${var.bar},
 // etc.. user variables. It returns a list of found variables with, example:
 // []string{"foo", "bar"}. The returned list only contains unique names, so any
 // user variable which declared multiple times is neglected, only the last
 // occurence is being added.
-func (t *Template) detectUserVariables() ([]string, error) {
+func (t *Template) DetectUserVariables(prefix string) (map[string]string, error) {
+	if !strings.HasSuffix(prefix, "_") {
+		prefix = prefix + "_"
+	}
+
 	out, err := t.JsonOutput()
 	if err != nil {
 		return nil, err
@@ -149,7 +159,7 @@ func (t *Template) detectUserVariables() ([]string, error) {
 		return nil, err
 	}
 	// filter out duplicates
-	set := make(map[string]bool, 0)
+	userVars := make(map[string]string, 0)
 	for _, v := range vars {
 		// be sure we only get userVariables, as there is many ways of
 		// declaring variables
@@ -158,22 +168,17 @@ func (t *Template) detectUserVariables() ([]string, error) {
 			continue
 		}
 
-		if !set[u.Name] {
-			set[u.Name] = true
+		if _, ok = userVars[u.Name]; !ok && strings.HasPrefix(u.Name, prefix) {
+			userVars[u.Name] = ""
 		}
-	}
-
-	userVars := []string{}
-	for u := range set {
-		userVars = append(userVars, u)
 	}
 
 	return userVars, nil
 }
 
-// shadowVariables shadows the given variables with the given holder. Variables
+// ShadowVariables shadows the given variables with the given holder. Variables
 // need to be in interpolation form, i.e: ${var.foo}
-func (t *Template) shadowVariables(holder string, vars ...string) error {
+func (t *Template) ShadowVariables(holder string, vars ...string) error {
 	for i, item := range t.node.Items {
 		key := item.Keys[0].Token.Text
 		switch key {
@@ -204,131 +209,22 @@ func (t *Template) shadowVariables(holder string, vars ...string) error {
 	return hcl.DecodeObject(&t.Resource, t.node.Filter("resource"))
 }
 
-func (t *Template) SetAwsRegion(region string) error {
-	var provider struct {
-		Aws struct {
-			Region    string
-			AccessKey string `hcl:"access_key"`
-			SecretKey string `hcl:"secret_key"`
-		}
-	}
-
-	if err := t.DecodeProvider(&provider); err != nil {
-		return err
-	}
-
-	if provider.Aws.Region == "" {
-		t.Provider["aws"] = map[string]interface{}{
-			"region":     region,
-			"access_key": provider.Aws.AccessKey,
-			"secret_key": provider.Aws.SecretKey,
-		}
-	} else if !IsVariable(provider.Aws.Region) && provider.Aws.Region != region {
-		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
-			provider.Aws.Region, region)
-	}
-
-	return t.hclUpdate()
-}
-
 // fillVariables finds variables declared with the given prefix and fills the
 // template with empty variables.
 func (t *Template) FillVariables(prefix string) error {
-	vars, err := t.detectUserVariables()
+	vars, err := t.DetectUserVariables(prefix)
 	if err != nil {
 		return err
 	}
 
-	fillVarData := make(map[string]string, 0)
-	for _, v := range vars {
-		if strings.HasPrefix(v, prefix) {
-			fillVarData[strings.TrimPrefix(v, prefix+"_")] = ""
-		}
-	}
-
-	return t.InjectCustomVariables(prefix, fillVarData)
+	return t.InjectVariables("", vars)
 }
 
-func (t *Template) InjectCustomVariables(prefix string, data map[string]string) error {
-	for key, val := range data {
-		varName := fmt.Sprintf("%s_%s", prefix, key)
-		t.Variable[varName] = map[string]interface{}{
-			"default": val,
-		}
-	}
-
-	return t.hclUpdate()
-}
-
-func (t *Template) InjectKodingVariables(data *KodingData) error {
-	var properties = []struct {
-		collection string
-		fieldToAdd map[string]bool
-	}{
-		{"User",
-			map[string]bool{
-				"username": true,
-				"email":    true,
-			},
-		},
-		{"Account",
-			map[string]bool{
-				"profile": true,
-			},
-		},
-		{"Group",
-			map[string]bool{
-				"title": true,
-				"slug":  true,
-			},
-		},
-	}
-
-	for _, p := range properties {
-		model, ok := structs.New(data).FieldOk(p.collection)
-		if !ok {
-			continue
-		}
-
-		for _, field := range model.Fields() {
-			fieldName := strings.ToLower(field.Name())
-			// check if the user set a field tag
-			if field.Tag("bson") != "" {
-				fieldName = field.Tag("bson")
-			}
-
-			exists := p.fieldToAdd[fieldName]
-
-			// we need to declare to call it recursively
-			var addVariable func(*structs.Field, string, bool)
-
-			addVariable = func(field *structs.Field, varName string, allow bool) {
-				if !allow {
-					return
-				}
-
-				// nested structs, call again
-				if field.Kind() == reflect.Struct {
-					for _, f := range field.Fields() {
-						fieldName := strings.ToLower(f.Name())
-						// check if the user set a field tag
-						if f.Tag("bson") != "" {
-							fieldName = f.Tag("bson")
-						}
-
-						newName := varName + "_" + fieldName
-						addVariable(f, newName, true)
-					}
-					return
-				}
-
-				t.Variable[varName] = map[string]interface{}{
-					"default": field.Value(),
-				}
-			}
-
-			varName := "koding_" + strings.ToLower(p.collection) + "_" + fieldName
-			addVariable(field, varName, exists)
+// InjectVariables
+func (t *Template) InjectVariables(prefix string, meta interface{}) error {
+	for k, v := range t.b.New(prefix).Build(meta) {
+		t.Variable[k] = map[string]interface{}{
+			"default": v,
 		}
 	}
 
