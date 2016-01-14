@@ -900,6 +900,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					AccountId:  trollUser.Id,
 					ShowExempt: true,
 				},
+				trollSes.ClientId,
 			)
 
 			So(err, ShouldBeNil)
@@ -949,6 +950,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					AccountId:  trollUser.Id,
 					ShowExempt: true,
 				},
+				trollSes.ClientId,
 			)
 
 			So(err, ShouldBeNil)
@@ -974,7 +976,7 @@ func TestMarkedAsTroll(t *testing.T) {
 	})
 }
 
-func createPrivateMessageChannel(accountId int64, groupName string) (*models.Channel, error) {
+func createPrivateMessageChannel(accountId int64, groupName, token string) (*models.Channel, error) {
 	pmr := models.ChannelRequest{}
 	pmr.AccountId = accountId
 	pmr.Body = "this is a body for private message @sinan"
@@ -982,7 +984,7 @@ func createPrivateMessageChannel(accountId int64, groupName string) (*models.Cha
 	pmr.Recipients = []string{"sinan"}
 
 	// create first private channel
-	cmc, err := rest.SendPrivateChannelRequest(pmr)
+	cmc, err := rest.SendPrivateChannelRequest(pmr, token)
 	if err != nil {
 		return nil, err
 	}
