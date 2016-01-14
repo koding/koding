@@ -424,21 +424,23 @@ module.exports = class ComputeController extends KDController
       @reset yes, -> callback null, machine
 
 
-  createDefaultStack: (force) ->
+  createDefaultStack: (force, template) ->
 
     return  unless isLoggedIn()
 
-    {mainController, groupsController} = kd.singletons
+    { mainController, groupsController } = kd.singletons
 
-    create = =>
-      remote.api.ComputeProvider.createGroupStack (err, res) =>
-        return kd.warn err  if err
-        @reset yes
+    handleStackCreate = (err) =>
+      return kd.warn err  if err
+      @reset yes
 
     mainController.ready =>
 
-      if force or groupsController.currentGroupHasStack()
-        create()  if @stacks.length is 0
+      if template
+        template.generateStack handleStackCreate
+      else if force or groupsController.currentGroupHasStack()
+        if @stacks.length is 0
+          remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
 
@@ -1142,7 +1144,7 @@ module.exports = class ComputeController extends KDController
    * If not given it tries to find default one and does the same thing, if it
    * can't find the default one, asks to user what to do next.
   ###
-  reinitGroupStack: (stack) ->
+  reinitStack: (stack) ->
 
     stack ?= @getGroupStack()
 
@@ -1170,19 +1172,25 @@ module.exports = class ComputeController extends KDController
 
     @ui.askFor 'reinitStack', {}, =>
 
-      @destroyStack stack, (err) =>
+      @fetchBaseStackTemplate stack, (err, template) =>
 
-        return showError err  if err
+        groupStack = stack.config?.groupStack
 
-        @reset()
+        @destroyStack stack, (err) =>
 
-          .once 'RenderStacks', (stacks) ->
+          return showError err  if err
 
-            new kd.NotificationView
-              title : 'Stack reinitialized'
+          @reset()
 
-            kd.singletons.appManager.quitByName 'IDE'
-            kd.utils.defer ->
-              kd.singletons.router.handleRoute '/IDE'
+            .once 'RenderStacks', (stacks) ->
 
-          .createDefaultStack()
+              new kd.NotificationView
+                title : 'Stack reinitialized'
+
+              kd.singletons.appManager.quitByName 'IDE'
+              kd.utils.defer ->
+                kd.singletons.router.handleRoute '/IDE'
+
+          if template and not groupStack
+          then @createDefaultStack no, template
+          else @createDefaultStack()
