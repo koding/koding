@@ -420,17 +420,14 @@ module.exports = class JUser extends jraphical.Module
       callback null, invitation
 
 
-  fetchInvitationByData = (options, queue, callback, fetchData) ->
+  fetchInvitationByData = (options, callback) ->
 
-    { user, groupName, invitationToken } = options
-    # check if user has pending invitation
-    return queue.next()  if invitationToken
+    { user, groupName } = options
 
     selector = { email: user.email, groupName }
     JInvitation = require '../invitation'
     JInvitation.one selector, {}, (err, invitation) ->
-      fetchData invitation  if invitation
-      queue.next()
+      callback err, invitation
 
 
   validateLogin = (options, callback) ->
@@ -514,9 +511,13 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        fetchInvitationByData {
-          user, groupName, invitationToken
-        }, queue, callback, (invitation_) -> invitation = invitation_
+        # check if user has pending invitation
+        return queue.next()  if invitationToken
+
+        fetchInvitationByData { user, groupName }, (err, invitation_) ->
+          return callback err  if err
+          invitation = invitation_
+          queue.next()
 
       =>
         @addToGroupByInvitation {
