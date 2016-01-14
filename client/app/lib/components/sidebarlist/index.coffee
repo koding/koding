@@ -24,8 +24,10 @@ module.exports = class SidebarList extends React.Component
       threads = threads.slice 0, previewCount
 
     threads.toList().map (thread) ->
-      id = thread.getIn ['channel', 'id']
-      <Component key={id} active={id is selectedId} thread={thread} />
+      channel = thread.get 'channel'
+      id      = channel.get 'id'
+
+      <Component key={id} active={id is selectedId} channel={channel} />
 
 
   render: ->

@@ -15,14 +15,16 @@ module.exports = class SidebarChannelsListItem extends React.Component
 
 
   render: ->
+
     <SidebarListItem
-      title={@channel 'name'}
-      unreadCount={@channel 'unreadCount'}
+      title={@props.channel.get 'name'}
+      unreadCount={@props.channel.get 'unreadCount'}
       active={@props.active}
-      href={prepareThreadLink @props.thread} />
+      href={prepareThreadLink @props.channel} />
 
 
-prepareThreadLink = (thread) ->
-  return null  unless thread
+prepareThreadLink = (channel) ->
 
-  return "/Channels/#{thread.getIn ['channel', 'name']}"
+  return null  unless channel
+
+  return "/Channels/#{channel.get 'name'}"

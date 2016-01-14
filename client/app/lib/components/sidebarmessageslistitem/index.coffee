@@ -17,8 +17,9 @@ module.exports = class SidebarMessagesListItem extends React.Component
 
 
   render: ->
+
     <SidebarListItem
-      title={prepareThreadTitle @props.thread}
-      unreadCount={@channel 'unreadCount'}
+      title={prepareThreadTitle @props.channel}
+      unreadCount={@props.channel.get 'unreadCount'}
       active={@props.active}
-      href="/Messages/#{@channel 'id'}" />
+      href="/Messages/#{@props.channel.get 'id'}" />
