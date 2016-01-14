@@ -416,9 +416,11 @@ module.exports = class ComputeController extends KDController
   # create helpers on top of remote.ComputeProvider
   #
 
-  create: (options, callback)->
+  create: (options, callback) ->
+
     remote.api.ComputeProvider.create options, (err, machine) =>
       return callback err  if err?
+
       @reset yes, -> callback null, machine
 
 
@@ -1078,13 +1080,13 @@ module.exports = class ComputeController extends KDController
 
   fetchBaseStackTemplate: (stack, callback = kd.noop) ->
 
-    return callback null, ''  unless stack?.baseStackId
+    return callback null  unless stack?.baseStackId
 
     { baseStackId } = stack
 
     remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
       return callback err  if err
-      return callback null, template or {}
+      return callback null, template
 
 
   ###*
