@@ -49,6 +49,9 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
       @listController.lazyLoader.hide()
       @listController.replaceAllItems users
 
+      if @listController.getItemCount() is 0
+        @listController.noItemView.show()
+
 
   updateInMemoryListOfUsers: (users) ->
 
@@ -57,9 +60,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     @_users = [nick()].concat (user.profile.nickname for user in users)
 
 
-  addUser: (user) ->
-
-    @modifyUsers user, 'add'
+  addUser: (user) -> @modifyUsers user, 'add'
 
 
   kickUser: (userItem) ->
@@ -68,22 +69,9 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     @modifyUsers userItem.getData(), 'kick', userItem
 
 
-  updateUserList: (task, user, userItem) ->
-
-    if task is 'add'
-    then @listController.addItem user
-    else @listController.removeItem userItem
-
-    @updateInMemoryListOfUsers()
-    userItem?.setLoadingMode no
-
-    if @listController.getItemCount() is 0
-      @listController.noItemView.show()
-
-
   modifyUsers: (user, task, userItem) ->
 
-    {profile: {nickname} } = user
+    { profile: { nickname } } = user
 
     remote.api.SharedMachine[task] @machine.uid, [nickname], (err) =>
 
@@ -94,7 +82,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
       kite[method] { username: nickname, permanent: yes }
 
-        .then => @updateUserList task, user, userItem
+        .then => @initList()
 
         .catch (err) =>
           errorMessages = [
@@ -103,7 +91,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
           ]
 
           if err.message in errorMessages
-          then @updateUserList task, user, userItem
+          then @initList()
           else @showNotification err
 
           userItem.setLoadingMode yes
@@ -134,7 +122,6 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
       @autoComplete.selectedItemCounter = 0
       @autoComplete.selectedItemData    = []
-
 
 
   fetchAccounts: ({inputValue}, callback) ->

@@ -148,6 +148,7 @@ module.exports = class ChannelThreadHeader extends React.Component
 
 
   render: ->
+
     return null  unless @state.thread
 
     <div className={kd.utils.curry "ThreadHeader", @props.className}>
