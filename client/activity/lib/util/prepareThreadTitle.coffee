@@ -3,9 +3,8 @@ whoami                = require 'app/util/whoami'
 getParticipantOrigins = require 'activity/util/getParticipantOrigins'
 makeProfileText       = require 'activity/util/makeProfileText'
 
-module.exports = prepareThreadTitle = (thread) ->
+module.exports = prepareThreadTitle = (channel) ->
 
-  channel = thread.get 'channel'
   name = channel.get 'name'
 
   if name
