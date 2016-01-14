@@ -10,6 +10,7 @@ nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
 isKoding                      = require 'app/util/isKoding'
+isTeamReactSide               = require 'app/util/isTeamReactSide'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
@@ -41,7 +42,7 @@ module.exports = CollaborationController =
     @socialChannel = channel
     @bindSocialChannelEvents()
 
-    return  if isKoding()
+    return  unless isTeamReactSide()
 
     { reactor } = kd.singletons
 
@@ -1003,7 +1004,7 @@ module.exports = CollaborationController =
 
     { reactor } = kd.singletons
 
-    unless isKoding() # Remove the machine from sidebar.
+    if isTeamReactSide() # Remove the machine from sidebar.
       reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
       reactor.dispatch actionTypes.WORKSPACE_DELETED, {
         workspaceId : @workspaceData._id
@@ -1017,7 +1018,7 @@ module.exports = CollaborationController =
       @chat = null
       @statusBar.emit 'CollaborationEnded'
       @removeParticipant nick()
-      @removeMachineNode()  if not @mountedMachine.isPermanent() and isKoding()
+      @removeMachineNode()  if not @mountedMachine.isPermanent() and not isTeamReactSide()
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       method = switch

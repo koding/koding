@@ -25,6 +25,7 @@ AppController                 = require 'app/appcontroller'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
 splashMarkups                 = require './util/splashmarkups'
+isTeamReactSide               = require 'app/util/isTeamReactSide'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
 KDCustomHTMLView              = kd.CustomHTMLView
@@ -582,7 +583,7 @@ class IDEAppController extends AppController
 
       # Don't run these lines on `Teams` scope.
       # Because `Teams` uses new Sidebar with React + Flux
-      if isKoding() and not machineItem.isMine() and not machineItem.isApproved()
+      if not isTeamReactSide() and not machineItem.isMine() and not machineItem.isApproved()
         { activitySidebar } = kd.singletons.mainView
         box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
         box.machineItem.showSharePopup sticky: yes, workspaceId: @workspaceData.getId()
@@ -666,7 +667,7 @@ class IDEAppController extends AppController
 
     if @machineStateModal
 
-      if not isKoding() and event.status is Stopping
+      if isTeamReactSide() and event.status is Stopping
         event.percentage = 100 - event.percentage
         @machineStateModal.unsetClass 'full'
 
@@ -687,7 +688,7 @@ class IDEAppController extends AppController
     container            ?= @getView()
     modalOptions          = { state, container, initial }
 
-    if not isKoding() and state is Stopping
+    if isTeamReactSide() and state is Stopping
       modalOptions.cssClass = 'env-machine-state team full'
 
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
@@ -1207,10 +1208,10 @@ class IDEAppController extends AppController
       { mainView }  = kd.singletons
       data          = { machine, workspace: @workspaceData }
 
-      if isKoding()
-        mainView.activitySidebar.selectWorkspace data
-      else
+      if isTeamReactSide()
         actions.setSelectedWorkspaceId @workspaceData._id
+      else
+        mainView.activitySidebar.selectWorkspace data
 
       @emit 'IDEReady'
 
@@ -1676,7 +1677,7 @@ class IDEAppController extends AppController
           title    : 'OK'
           callback : =>
 
-            unless isKoding()
+            if isTeamReactSide()
               { reactor } = kd.singletons
               reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
 

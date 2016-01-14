@@ -1,8 +1,9 @@
 kd                            = require 'kd'
 remote                        = require('app/remote').getInstance()
-isKoding                      = require 'app/util/isKoding'
 getNick                       = require 'app/util/nick'
+isKoding                      = require 'app/util/isKoding'
 actionTypes                   = require 'activity/flux/actions/actiontypes'
+isTeamReactSide               = require 'app/util/isTeamReactSide'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 
 
@@ -55,7 +56,7 @@ fetchChannel = (id, callback) ->
   kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
     callback err, channel
 
-    if not isKoding() and channel
+    if isTeamReactSide() and channel
       kd.singletons.reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, {
         channelId : id,
         channel

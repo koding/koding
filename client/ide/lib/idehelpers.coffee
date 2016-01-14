@@ -7,6 +7,7 @@ isKoding              = require 'app/util/isKoding'
 showError             = require 'app/util/showError'
 actiontypes           = require 'app/flux/environment/actiontypes'
 dataProvider          = require 'app/userenvironmentdataprovider'
+isTeamReactSide       = require 'app/util/isTeamReactSide'
 FilePermissionsModal  = require './views/modals/filepermissionsmodal'
 
 
@@ -95,7 +96,7 @@ module.exports = helpers =
 
               eventObj.emit 'WorkspaceCreated', workspace
 
-              unless isKoding()
+              if isTeamReactSide()
                 actions.createWorkspace machine, workspace
                 actions.hideAddWorkspaceView machine._id
 
@@ -107,7 +108,7 @@ module.exports = helpers =
 
     eventObj.emit 'WorkspaceCreateFailed', error
 
-    unless isKoding()
+    if isTeamReactSide()
       { reactor } = kd.singletons
       reactor.dispatch actiontypes.WORKSPACE_COULD_NOT_CREATE, error
 
