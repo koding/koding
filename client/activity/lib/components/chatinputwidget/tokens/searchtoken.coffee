@@ -1,6 +1,6 @@
 kd                = require 'kd'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
-SearchDropbox     = require 'activity/components/searchdropbox'
+SearchDropbox     = require '../searchdropbox'
 SearchActions     = require 'activity/flux/chatinput/actions/search'
 ChannelActions    = require 'activity/flux/actions/channel'
 

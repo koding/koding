@@ -69,10 +69,10 @@ module.exports = class ChatListItem extends React.Component
 
   updateMessage: ->
 
-    return @deletePostButtonHandler()  if @state.isDeleting
-
     value = @refs.editInput.getValue().trim()
-    return @setState isDeleting: yes  unless value
+
+    unless value
+      return @refs.MessageItemMenu.showDeletePostPromptModal()
 
     messageId = @props.message.get '_id'
 
@@ -81,8 +81,6 @@ module.exports = class ChatListItem extends React.Component
 
 
   cancelEdit: ->
-
-    return @closeDeletePostModal()  if @state.isDeleting
 
     messageId = @props.message.get '_id'
     ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId, yes
@@ -143,7 +141,7 @@ module.exports = class ChatListItem extends React.Component
 
     return null  unless @props.showItemMenu
 
-    <MessageItemMenu message={@props.message}/>
+    <MessageItemMenu ref='MessageItemMenu' message={@props.message}/>
 
 
   renderEmbedBox: ->

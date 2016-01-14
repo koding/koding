@@ -34,11 +34,11 @@ func TestInteractionLikedMessages(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(groupChannel, ShouldNotBeNil)
 
-			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 
-			_, err = rest.AddInteraction("like", post.Id, account.Id)
+			_, err = rest.AddInteraction("like", post.Id, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 			Convey("We should be able to list the messages that liked", func() {
 				likes, err := rest.GetInteractions("like", post.Id)

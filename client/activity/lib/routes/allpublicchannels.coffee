@@ -10,4 +10,4 @@ module.exports = class AllPublicChannelsRoute
 
   getComponents: (state, callback) ->
 
-    helper.renderWithBackgroundChannel BrowsePublicChannelsModal, callback
+    helper.renderWithBackgroundChannel BrowsePublicChannelsModal.Container, callback

@@ -1,5 +1,7 @@
 kd = require 'kd'
 
-module.exports = isVideoFeatureEnabled = ->
+module.exports = isVideoFeatureEnabled = (callback) ->
 
-  not kd.singletons.mainController.isFeatureDisabled 'video-collaboration'
+  kd.singletons
+    .mainController.isFeatureDisabled 'video-collaboration', (state) ->
+      callback !state

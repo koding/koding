@@ -1,7 +1,7 @@
 { Module }  = require 'jraphical'
 { revive }  = require './computeutils'
 KodingError = require '../../error'
-
+async       = require 'async'
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -183,7 +183,7 @@ module.exports = class JMachine extends Module
 
   excludeUser = (options) ->
 
-    { users, user, permanent } = options
+    { users, user, permanent, force } = options
 
     userId   = user.getId()
     newUsers = []
@@ -191,7 +191,7 @@ module.exports = class JMachine extends Module
     for u in users
       unless userId.equals u.id
         newUsers.push u
-      else if not permanent and u.permanent
+      else if not permanent and u.permanent and not force
         newUsers.push u
 
     return newUsers
@@ -369,7 +369,7 @@ module.exports = class JMachine extends Module
 
     { targets, asOwner, permanent } = options
 
-    users = @users.splice 0
+    users = @users.slice 0
 
     for user in targets
       users = addUser users, { user, asOwner, permanent }
@@ -389,12 +389,12 @@ module.exports = class JMachine extends Module
 
   removeUsers: (options, callback) ->
 
-    { targets, permanent, inform } = options
+    { targets, permanent, inform, force } = options
 
-    users = @users.splice 0
+    users = @users.slice 0
 
     for user in targets
-      users = excludeUser { users, user, permanent }
+      users = excludeUser { users, user, permanent, force }
 
     @update { $set: { users } }, (err) =>
       if inform
@@ -438,7 +438,35 @@ module.exports = class JMachine extends Module
         else @removeUsers { targets, permanent, inform }, callback
 
       else
-        callback new KodingError 'Target does not support machines.'
+        @removeInvalidUsers callback
+
+
+  # Fetch machine's shared users and fetch those users' JUser document
+  # and remove the user from machine share list if the user.status is deleted
+  removeInvalidUsers: (callback) ->
+
+    JUser = require '../user'
+    queue = []
+    users = @users.slice 0
+    usersToBeRemoved = []
+
+    users.forEach (user) ->
+      return  if user.sudo and user.owner
+      queue.push (next) ->
+        JUser.one { _id: user.id }, (err, _user) ->
+          if err or not _user or _user.status is 'deleted'
+            usersToBeRemoved.push _user
+
+          next()
+
+    queue.push (next) =>
+      if usersToBeRemoved.length is 0
+        next new KodingError 'Target does not support machines.'
+      else
+        @removeUsers { targets: usersToBeRemoved, force: yes }, (err) ->
+          next err
+
+    async.series queue, callback
 
 
   fetchOwner: (callback) ->

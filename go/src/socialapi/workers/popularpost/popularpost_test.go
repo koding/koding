@@ -9,6 +9,7 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
+	"socialapi/workers/common/tests"
 
 	"github.com/koding/runner"
 
@@ -66,15 +67,29 @@ func TestPopularPost(t *testing.T) {
 	})
 
 	Convey("Given a post", t, func() {
-		account := models.CreateAccountWithTest()
 
-		c := models.CreateChannelWithTest(account.Id)
+		groupName := models.RandomGroupName()
+		// account := models.CreateAccountWithTest()
+		account, err := models.CreateAccountInBothDbs()
+		tests.ResultedWithNoErrorCheck(account, err)
 
-		cm, err := rest.CreatePost(c.Id, account.Id)
+		// c := models.CreateChannelWithTest(account.Id)
+
+		c := models.CreateTypedGroupedChannelWithTest(
+			account.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		cm, err := rest.CreatePost(c.Id, ses.ClientId)
 		So(err, ShouldBeNil)
 
 		Convey("When an interaction arrives", func() {
-			i, err := rest.AddInteraction("like", cm.Id, account.Id)
+			i, err := rest.AddInteraction("like", cm.Id, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
@@ -138,30 +153,42 @@ func TestPopularPost(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		cm, err := rest.CreatePost(c.Id, account.Id)
+		cm, err := rest.CreatePost(c.Id, ses.ClientId)
 		So(err, ShouldBeNil)
 
-		acc2 := models.CreateAccountWithTest()
+		// acc2 := models.CreateAccountWithTest()
+		acc2, err := models.CreateAccountInBothDbs()
+		tests.ResultedWithNoErrorCheck(acc2, err)
 
-		post2, err := rest.CreatePost(c.Id, account.Id)
+		models.CreateTypedGroupedChannelWithTest(
+			acc2.Id,
+			models.Channel_TYPE_GROUP,
+			groupName,
+		)
+
+		ses2, err := models.FetchOrCreateSession(acc2.Nick, groupName)
+		So(err, ShouldBeNil)
+		So(ses2, ShouldNotBeNil)
+
+		post2, err := rest.CreatePost(c.Id, ses.ClientId)
 		So(err, ShouldBeNil)
 
 		Convey("When interactions arrive", func() {
 			// create 2 likes for post 1
-			i, err := rest.AddInteraction("like", cm.Id, account.Id)
+			i, err := rest.AddInteraction("like", cm.Id, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
 			So(err, ShouldBeNil)
 
-			i, err = rest.AddInteraction("like", cm.Id, acc2.Id)
+			i, err = rest.AddInteraction("like", cm.Id, acc2.Id, ses2.ClientId)
 			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
 			So(err, ShouldBeNil)
 
 			// create 1 likes for post 1
-			i, err = rest.AddInteraction("like", post2.Id, account.Id)
+			i, err = rest.AddInteraction("like", post2.Id, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
@@ -218,11 +245,11 @@ func TestPopularPost(t *testing.T) {
 		key := keyname.Weekly()
 
 		// create post with interaction today
-		todayPost, err := rest.CreatePost(c.Id, account.Id)
+		todayPost, err := rest.CreatePost(c.Id, ses.ClientId)
 		So(err, ShouldBeNil)
 
 		// create post with interaction yesterday
-		yesterdayPost, err := rest.CreatePost(c.Id, account.Id)
+		yesterdayPost, err := rest.CreatePost(c.Id, ses.ClientId)
 		So(err, ShouldBeNil)
 
 		// update post to have yesterday's time
@@ -230,7 +257,7 @@ func TestPopularPost(t *testing.T) {
 		updateCreatedAt(yesterdayPost.Id, yesterdayTime)
 
 		// create post with interaction two days ago
-		twoDaysAgo, err := rest.CreatePost(c.Id, account.Id)
+		twoDaysAgo, err := rest.CreatePost(c.Id, ses.ClientId)
 		So(err, ShouldBeNil)
 
 		// update post to have two days ago time
@@ -238,19 +265,19 @@ func TestPopularPost(t *testing.T) {
 		updateCreatedAt(twoDaysAgo.Id, twoDaysAgoTime)
 
 		Convey("When interactions arrive for those posts", func() {
-			i, err := rest.AddInteraction("like", todayPost.Id, account.Id)
+			i, err := rest.AddInteraction("like", todayPost.Id, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
 			So(err, ShouldBeNil)
 
-			i, err = rest.AddInteraction("like", yesterdayPost.Id, account.Id)
+			i, err = rest.AddInteraction("like", yesterdayPost.Id, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
 			So(err, ShouldBeNil)
 
-			i, err = rest.AddInteraction("like", twoDaysAgo.Id, account.Id)
+			i, err = rest.AddInteraction("like", twoDaysAgo.Id, account.Id, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)

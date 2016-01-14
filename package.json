@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "analytics-node": "1.2.2",
+    "appmetrics": "1.0.5",
     "async": "0.2.5",
     "aws-sdk": "2.1.4",
     "bluebird": "1.0.8",

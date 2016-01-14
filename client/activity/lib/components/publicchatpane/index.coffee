@@ -16,8 +16,13 @@ FollowChannelBox     = require 'activity/components/followchannelbox'
 
 module.exports = class PublicChatPane extends React.Component
 
+  @propTypes =
+    thread : React.PropTypes.instanceOf immutable.Map
+
+
   @defaultProps =
-    thread   : immutable.Map()
+    thread : immutable.Map()
+
 
   channel: (keyPath...) -> @props.thread?.getIn ['channel'].concat keyPath
 
@@ -40,7 +45,7 @@ module.exports = class PublicChatPane extends React.Component
       from: messages.first().get 'createdAt'
 
 
-  onInviteOthers: ->
+  onInviteClick: ->
 
     return  unless input = @refs.chatInputWidget
 
@@ -54,7 +59,7 @@ module.exports = class PublicChatPane extends React.Component
     isParticipant = @channel 'isParticipant'
 
     <footer className="PublicChatPane-footer ChatPaneFooter">
-      <ChatInputWidget
+      <ChatInputWidget.Container
         ref       = 'chatInputWidget'
         className = { unless isParticipant then 'hidden' }
         onSubmit  = { @bound 'onSubmit' }
@@ -65,7 +70,7 @@ module.exports = class PublicChatPane extends React.Component
       />
       <FollowChannelBox
         className={if isParticipant then 'hidden'}
-        thread={@props.thread} />
+        channel={@props.thread.get 'channel'} />
     </footer>
 
 
@@ -81,7 +86,7 @@ module.exports = class PublicChatPane extends React.Component
         className='PublicChatPane'
         onSubmit={@bound 'onSubmit'}
         onLoadMore={@bound 'onLoadMore'}
-        onInviteOthers={@bound 'onInviteOthers'}
+        onInviteClick={@bound 'onInviteClick'}
       />
       {@renderFooter()}
     </div>

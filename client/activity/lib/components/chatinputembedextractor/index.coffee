@@ -48,7 +48,7 @@ module.exports = class ChatInputEmbedExtractor extends React.Component
 
   render: ->
 
-    <ChatInputWidget ref='input' {...@props} onChange={@bound 'onChange'} />
+    <ChatInputWidget.Container ref='input' {...@props} onChange={@bound 'onChange'} />
 
 
 ChatInputEmbedExtractor.include [ ImmutableRenderMixin ]
