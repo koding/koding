@@ -18,7 +18,7 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
       ##### Readme text for this stack template
 
       You can write down a readme text for new users.
-      This text will be shown when they wants to use this stack.
+      This text will be shown when they want to use this stack.
       You can use markdown with the readme content.
 
 

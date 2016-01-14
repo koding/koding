@@ -1,19 +1,18 @@
-$                    = require 'jquery'
 kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-EmojiDropboxItem     = require 'activity/components/emojidropboxitem'
+PortalDropbox        = require 'activity/components/dropbox/portaldropbox'
+ChannelDropboxItem   = require './item'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 ScrollableDropbox    = require 'activity/components/dropbox/scrollabledropbox'
 
-class EmojiDropbox extends React.Component
+class ChannelDropbox extends React.Component
 
   @propTypes =
     query           : React.PropTypes.string
     items           : React.PropTypes.instanceOf immutable.List
-    selectedItem    : React.PropTypes.string
+    selectedItem    : React.PropTypes.instanceOf immutable.Map
     selectedIndex   : React.PropTypes.number
     onItemSelected  : React.PropTypes.func
     onItemConfirmed : React.PropTypes.func
@@ -30,9 +29,6 @@ class EmojiDropbox extends React.Component
     onClose         : kd.noop
 
 
-  getItemKey: (item) -> item
-
-
   updatePosition: (inputDimensions) ->
 
     @refs.dropbox.setInputDimensions inputDimensions
@@ -40,41 +36,37 @@ class EmojiDropbox extends React.Component
 
   renderList: ->
 
-    { items, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
+    { items, selectedIndex, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
 
-      <EmojiDropboxItem
+      <ChannelDropboxItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
-        query       = { query }
         onSelected  = { onItemSelected }
         onConfirmed = { onItemConfirmed }
-        key         = { @getItemKey item }
-        ref         = { @getItemKey item }
+        key         = { item.get 'id' }
       />
 
 
   render: ->
 
-    { query, items, onClose } = @props
+    { items, onClose } = @props
 
-    <Dropbox
-      className = 'EmojiDropbox'
+    <PortalDropbox
+      className = 'ChannelDropbox'
       visible   = { items.size > 0 }
       onClose   = { onClose }
       type      = 'dropup'
-      title     = 'Emojis matching '
-      subtitle  = { ":#{query}" }
+      title     = 'Channels'
       ref       = 'dropbox'
     >
       {@renderList()}
-      <div className="clearfix" />
-    </Dropbox>
+    </PortalDropbox>
 
 
-EmojiDropbox.include [ ImmutableRenderMixin ]
+ChannelDropbox.include [ ImmutableRenderMixin ]
 
-module.exports = ScrollableDropbox EmojiDropbox
+module.exports = ScrollableDropbox ChannelDropbox

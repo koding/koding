@@ -3,7 +3,7 @@ React                 = require 'kd-react'
 ReactDOM              = require 'react-dom'
 immutable             = require 'immutable'
 ChatInputFlux         = require 'activity/flux/chatinput'
-Dropbox               = require 'activity/components/dropbox/portaldropbox'
+PortalDropbox         = require 'activity/components/dropbox/portaldropbox'
 ScrollableList        = require './scrollablelist'
 Tabs                  = require './tabs'
 Footer                = require './footer'
@@ -63,7 +63,7 @@ module.exports = class EmojiSelectBox extends React.Component
 
     { items, query, visible, selectedItem, tabs, tabIndex, onClose, onTabChange } = @props
 
-    <Dropbox
+    <PortalDropbox
       className = 'EmojiSelectBox'
       visible   = { visible }
       onClose   = { onClose }
@@ -75,7 +75,7 @@ module.exports = class EmojiSelectBox extends React.Component
       <Tabs tabs={tabs} tabIndex={tabIndex} onTabChange={onTabChange} />
       { @renderList() }
       <Footer selectedItem={selectedItem} />
-    </Dropbox>
+    </PortalDropbox>
 
 
 EmojiSelectBox.include [ImmutableRenderMixin]

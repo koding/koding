@@ -3,13 +3,17 @@ React      = require 'kd-react'
 immutable  = require 'immutable'
 classnames = require 'classnames'
 
-
 module.exports = class SidebarList extends React.Component
+
+  @propTypes =
+    itemComponent : React.PropTypes.func
+    selectedId    : React.PropTypes.string
+    threads       : React.PropTypes.instanceOf immutable.Map
 
   @defaultProps =
     itemComponent : null
-    threads       : immutable.Map()
     selectedId    : null
+    threads       : immutable.Map()
 
 
   renderChildren: ->
@@ -20,8 +24,10 @@ module.exports = class SidebarList extends React.Component
       threads = threads.slice 0, previewCount
 
     threads.toList().map (thread) ->
-      id = thread.getIn ['channel', 'id']
-      <Component key={id} active={id is selectedId} thread={thread} />
+      channel = thread.get 'channel'
+      id      = channel.get 'id'
+
+      <Component key={id} active={id is selectedId} channel={channel} />
 
 
   render: ->
