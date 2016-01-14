@@ -47,23 +47,23 @@ module.exports =
       .end()
 
 
-  leaveChannel: (browser) ->
+  # leaveChannel: (browser) ->
 
-    user                    = teamsHelpers.loginTeam(browser)
-    channelName1            = teamsHelpers.createChannel(browser, user)
-    sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
+  #   user                    = teamsHelpers.loginTeam(browser)
+  #   channelName1            = teamsHelpers.createChannel(browser, user)
+  #   sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
 
-    teamsHelpers.leaveChannel(browser)
-    channelName2                  = teamsHelpers.createChannel(browser, user)
-    channelLinkOnSidebarSelector2 = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName2}']"
+  #   teamsHelpers.leaveChannel(browser)
+  #   channelName2                  = teamsHelpers.createChannel(browser, user)
+  #   channelLinkOnSidebarSelector2 = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName2}']"
 
-    browser
-      .waitForElementVisible  sidebarSectionsSelector, 20000
-      .expect.element(sidebarSectionsSelector).text.to.not.contain(channelName1)
+  #   browser
+  #     .waitForElementVisible  sidebarSectionsSelector, 20000
+  #     .expect.element(sidebarSectionsSelector).text.to.not.contain(channelName1)
 
-    browser
-      .assert.containsText    channelLinkOnSidebarSelector2, channelName2
-      .end()
+  #   browser
+  #     .assert.containsText    channelLinkOnSidebarSelector2, channelName2
+  #     .end()
 
 
   joinChannel: (browser) ->
