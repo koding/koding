@@ -1216,9 +1216,14 @@ module.exports = class JUser extends jraphical.Module
           return callback new KodingError 'Could not update your session'
 
         if session?
-          session.update { $set: { clientId: newToken, username, groupName } }, (err) ->
+          sessionUpdateOptions =
+            $set   : { clientId : newToken, username, groupName }
+            $unset : { guestSessionBegan : 1 }
+
+          session.update sessionUpdateOptions, (err) ->
             return callback err  if err?
             callback null, newToken
+
         else
           callback new KodingError 'Session not found!'
 
