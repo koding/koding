@@ -143,6 +143,7 @@ module.exports = class DefineStackView extends KDView
 
     ace.on 'FileContentChanged', =>
       @setAsDefaultButton.hide()
+      @generateStackButton.hide()
       @saveButton.show()
 
 
@@ -218,6 +219,12 @@ module.exports = class DefineStackView extends KDView
       loader         : yes
       callback       : @bound 'handleSetDefaultTemplate'
 
+    @buttons.addSubView @generateStackButton = new kd.ButtonView
+      title          : 'Generate Stack'
+      cssClass       : 'solid compact green nav next hidden'
+      loader         : yes
+      callback       : @bound 'handleGenerateStack'
+
     @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
@@ -250,6 +257,7 @@ module.exports = class DefineStackView extends KDView
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
+    @generateStackButton.hide()
     @reinitButton.hide()
 
     @saveTemplate (err, stackTemplate) =>
@@ -287,17 +295,22 @@ module.exports = class DefineStackView extends KDView
 
   processTemplate: (stackTemplate) ->
 
+    { groupsController } = kd.singletons
+    canEditGroup         = groupsController.canEditGroup()
+
     setToGroup = (method = 'add') =>
-      @handleSetDefaultTemplate completed = no
 
-      @outputView[method] """
-        Your stack script has been successfully saved and all your team
-        members now will use the stack you have just saved.
+      if canEditGroup
+        @handleSetDefaultTemplate completed = no
 
-        You can now close this window or continue working with your stack.
-      """
+        @outputView[method] """
+          Your stack script has been successfully saved and all your team
+          members now will use the stack you have just saved.
 
-      @reinitButton.show()
+          You can now close this window or continue working with your stack.
+        """
+      else
+        @reinitButton.show()
 
 
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
@@ -309,7 +322,6 @@ module.exports = class DefineStackView extends KDView
         @outputView.add "Parsing failed, please check your template and try again"
         return
 
-      { groupsController } = kd.singletons
       { stackTemplates }   = groupsController.getCurrentGroup()
       stackTemplate.inuse ?= stackTemplate._id in (stackTemplates or [])
       templateSetBefore    = stackTemplates?.length
@@ -321,16 +333,23 @@ module.exports = class DefineStackView extends KDView
 
         unless stackTemplate.inuse
 
-          @setAsDefaultButton.show()
+          @generateStackButton.show()
 
-          @outputView.add """
-            Your stack script has been successfully saved.
+          if canEditGroup
+            @setAsDefaultButton.show()
+            @outputView.add """
+              Your stack script has been successfully saved.
 
-            If you want your team members to use this template you need to
-            apply it for your team.
+              If you want your team members to use this template you need to
+              apply it for your team.
 
-            You can now close the stack editor or continue editing your stack.
-          """
+              You can now close the stack editor or continue editing your stack.
+            """
+          else
+            @outputView.add """
+              Your stack script has been successfully saved.
+              You can now close the stack editor or continue editing your stack.
+            """
 
         else
           setToGroup()
@@ -628,7 +647,27 @@ module.exports = class DefineStackView extends KDView
 
 
   handleReinit: ->
-    kd.singletons.computeController.reinitGroupStack()
+    kd.singletons.computeController.reinitStack()
+
+
+  handleGenerateStack: ->
+
+    { stackTemplate } = @getData()
+    { groupsController, computeController } = kd.singletons
+
+    @outputView.add 'Generating stack from template...'
+
+    stackTemplate.generateStack (err) =>
+      @generateStackButton.hideLoader()
+
+      return  if @outputView.handleError err
+
+      @outputView.add 'Stack generated successfully. You can now build it.'
+
+      computeController.reset yes
+
+      @emit 'Reload'
+      @emit 'Completed', stackTemplate  if completed
 
 
   handleSetDefaultTemplate: (completed = yes) ->
