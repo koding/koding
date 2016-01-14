@@ -42,8 +42,8 @@ module.exports = helpers =
     { name, machineUId, rootPath, machineLabel, eventObj } = options
     { computeController, router, reactor } = kd.singletons
 
-    unless eventObj
-      eventObj = emit : -> # Create an object which has emit method.
+    # Create an object which has emit method.
+    eventObj or= { emit: kd.noop }
 
     if not name or not machineUId
       err = message: 'Missing options to create a new workspace'
