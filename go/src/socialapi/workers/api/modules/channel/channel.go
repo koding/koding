@@ -81,21 +81,22 @@ func Create(u *url.URL, h http.Header, req *models.Channel, context *models.Cont
 func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
 	q := request.GetQuery(u)
+
+	query := context.OverrideQuery(q)
 	// only list topic or linked topic channels
-	if q.Type != models.Channel_TYPE_LINKED_TOPIC {
-		q.Type = models.Channel_TYPE_TOPIC
+	if query.Type != models.Channel_TYPE_LINKED_TOPIC {
+		query.Type = models.Channel_TYPE_TOPIC
 	}
 
-	q.AccountId = context.Client.Account.Id
-
-	// TODO refactor this function just to return channel ids
+	// TODO
+	// refactor this function just to return channel ids
 	// we cache wisely
-	channelList, err := c.List(q)
+	channelList, err := c.List(query)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return handleChannelListResponse(channelList, q)
+	return handleChannelListResponse(channelList, query)
 }
 
 func handleChannelListResponse(channelList []models.Channel, q *request.Query) (int, http.Header, interface{}, error) {
@@ -319,6 +320,9 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel, context *models.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
 
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
