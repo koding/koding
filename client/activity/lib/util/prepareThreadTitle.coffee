@@ -49,6 +49,8 @@ helper =
         return ' & '
       when position < nameCount - 1
         return ', '
+      else
+        return ''
 
 
   getPlusMorePartial: (participantCount, nameCount) ->
