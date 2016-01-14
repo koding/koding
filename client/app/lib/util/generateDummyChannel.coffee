@@ -1,4 +1,7 @@
-module.exports = ({ channelId, channelName, typeConstant, privacyConstant, group, accountOldId, createdAt }) ->
+module.exports = ({ channelId, channelName, typeConstant, privacyConstant, group, accountOldId, createdAt, participantsPreview }) ->
+
+  channelName = if channelName or channelName is '' then channelName else 'dummy-channel'
+
   return {
     id                  : channelId or "6089984394406133765"
     _id                 : channelId or "6089984394406133765"
@@ -10,9 +13,9 @@ module.exports = ({ channelId, channelName, typeConstant, privacyConstant, group
     groupName           : group or 'dummy-group'
     isParticipant       : true
     metaBits            : 0
-    name                : channelName or 'dummy-channel'
+    name                : channelName
     participantCount    : 2
-    participantsPreview : [
+    participantsPreview : participantsPreview or [
       {
         _id             : "568b34b24868cdaf029fcce4"
         constructorName : "JAccount"

@@ -4,4 +4,4 @@ require './appcomponent/test'
 require './chatinputwidget/test'
 require './browsepublicchannelsmodal/test'
 require './channelinfo/test'
-
+require './channellabel/test'

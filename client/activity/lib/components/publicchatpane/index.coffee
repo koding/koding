@@ -70,7 +70,7 @@ module.exports = class PublicChatPane extends React.Component
       />
       <FollowChannelBox
         className={if isParticipant then 'hidden'}
-        thread={@props.thread} />
+        channel={@props.thread.get 'channel'} />
     </footer>
 
 
