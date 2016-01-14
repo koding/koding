@@ -6,3 +6,4 @@ describe 'ChatInputWidget', ->
   require './emojidropbox'
   require './commanddropbox'
   require './searchdropbox'
+  require './mentiondropbox'

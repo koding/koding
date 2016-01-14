@@ -20,11 +20,12 @@ module.exports = class UserMentionItem extends React.Component
 
     { item, query } = @props
     account         = item.toJS()
+    className       = 'DropboxItem-singleLine DropboxItem-separated MentionDropboxItem UserMentionItem'
 
-    <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated MentionDropboxItem">
+    <DropboxItem {...@props} className={className}>
       <Avatar width='25' height='25' account={account} />
       <div className='MentionDropboxItem-names'>
-        <span className='MentionDropboxItem-nickname'>
+        <span className='UserMentionItem-nickname'>
           { account.profile.nickname }
         </span>
         { helper.renderFullName account, query }
@@ -38,10 +39,11 @@ module.exports = class UserMentionItem extends React.Component
     renderFullName: (account, query) ->
 
       { firstName, lastName, nickname } = account.profile
+      return  unless firstName and lastName
 
       fullNameClass = classnames
         'MentionDropboxItem-secondaryText' : yes
-        'hidden'                           : not (firstName and lastName)
+        'UserMentionItem-fullName'         : yes
 
       # Do not highlight query in any name, if it's found in nickname.
       # Highlighting in first and last name is intended to show

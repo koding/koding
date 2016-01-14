@@ -22,7 +22,8 @@ module.exports = MentionToken =
     return {
       component            : MentionDropbox
       getters              :
-        items              : 'dropboxMentions'
+        userMentions       : 'dropboxUserMentions'
+        channelMentions    : 'dropboxChannelMentions'
         selectedIndex      : 'mentionsSelectedIndex'
         selectedItem       : 'mentionsSelectedItem'
       horizontalNavigation : no

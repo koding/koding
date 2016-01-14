@@ -56,7 +56,8 @@ module.exports = class ChatInputContainer extends React.Component
       emojisSelectedIndex        : getters.emojisSelectedIndex @stateId
       emojisSelectedItem         : getters.emojisSelectedItem @stateId
 
-      dropboxMentions            : getters.dropboxMentions @stateId
+      dropboxUserMentions        : getters.dropboxUserMentions @stateId
+      dropboxChannelMentions     : getters.dropboxChannelMentions @stateId
       mentionsSelectedIndex      : getters.mentionsSelectedIndex @stateId
       mentionsSelectedItem       : getters.mentionsSelectedItem @stateId
 
