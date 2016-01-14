@@ -119,15 +119,15 @@ module.exports = class ThreadHeader extends React.Component
       _originalPurpose = @channel '_originalPurpose'
       purpose = _originalPurpose or @channel 'purpose'
       thread  = thread.setIn ['channel', 'purpose'], purpose
-      @setState channelThread: thread
-      return @setState editingPurpose: no
+      @setState { channelThread: thread }
+      return @setState { editingPurpose: no }
 
     if event.which is ENTER
       id = @channel 'id'
       purpose = @channel('purpose').trim()
       { updateChannel } = ActivityFlux.actions.channel
 
-      updateChannel({ id, purpose }).then => @setState editingPurpose: no
+      updateChannel({ id, purpose }).then => @setState { editingPurpose: no }
 
 
   renderPurposeArea: ->
