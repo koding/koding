@@ -359,7 +359,7 @@ module.exports = class JUser extends jraphical.Module
       callback null, response
 
 
-  fetchSession = (options, queue, callback, fetchData) ->
+  fetchSession = (options, callback) ->
 
     { clientId, username } = options
 
@@ -372,9 +372,7 @@ module.exports = class JUser extends jraphical.Module
         console.error "login: session not found #{username}"
         return callback new KodingError 'Couldn\'t restore your session!'
 
-      fetchData session
-
-      queue.next()
+      callback null, session
 
 
   validateLoginCredentials = (options, queue, callback, fetchData) ->
