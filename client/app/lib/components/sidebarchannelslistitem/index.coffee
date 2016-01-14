@@ -1,10 +1,18 @@
-React = require 'kd-react'
+React           = require 'kd-react'
+immutable       = require 'immutable'
 SidebarListItem = require 'app/components/sidebarlist/sidebarlistitem'
-
 
 module.exports = class SidebarChannelsListItem extends React.Component
 
-  channel: (key) -> @props.thread?.getIn ['channel', key]
+  @propTypes =
+    active  : React.PropTypes.bool
+    channel : React.PropTypes.instanceOf immutable.Map
+
+
+  @defaultProps =
+    active  : no
+    channel : immutable.Map()
+
 
   render: ->
     <SidebarListItem

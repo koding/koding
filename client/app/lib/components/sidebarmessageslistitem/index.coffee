@@ -1,12 +1,20 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-toImmutable          = require 'app/util/toImmutable'
-SidebarListItem      = require 'app/components/sidebarlist/sidebarlistitem'
-prepareThreadTitle   = require 'activity/util/prepareThreadTitle'
+kd                 = require 'kd'
+React              = require 'kd-react'
+immutable          = require 'immutable'
+SidebarListItem    = require 'app/components/sidebarlist/sidebarlistitem'
+prepareThreadTitle = require 'activity/util/prepareThreadTitle'
 
 module.exports = class SidebarMessagesListItem extends React.Component
 
-  channel: (key) -> @props.thread?.getIn ['channel', key]
+  @propTypes =
+    active  : React.PropTypes.bool
+    channel : React.PropTypes.instanceOf immutable.Map
+
+
+  @defaultProps =
+    active  : no
+    channel : immutable.Map()
+
 
   render: ->
     <SidebarListItem

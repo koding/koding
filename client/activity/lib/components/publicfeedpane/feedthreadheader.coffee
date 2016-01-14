@@ -1,14 +1,22 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-classnames           = require 'classnames'
-ActivityFlux         = require 'activity/flux'
-ChannelLabel         = require 'activity/components/channellabel'
-Button               = require 'app/components/common/button'
+kd           = require 'kd'
+React        = require 'kd-react'
+immutable    = require 'immutable'
+classnames   = require 'classnames'
+ActivityFlux = require 'activity/flux'
+ChannelLabel = require 'activity/components/channellabel'
+Button       = require 'app/components/common/button'
 
 module.exports = class FeedThreadHeader extends React.Component
 
+  @propTypes =
+    className : React.PropTypes.string
+    channel   : React.PropTypes.instanceOf immutable.Map()
+
+
   @defaultProps =
-    thread : null
+    className : ''
+    channel   : immutable.Map()
+
 
   onClick: ->
 

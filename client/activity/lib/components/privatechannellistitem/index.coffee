@@ -1,15 +1,18 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-ActivityFlux          = require 'activity/flux'
-Button                = require 'app/components/common/button'
-prepareThreadTitle    = require 'activity/util/prepareThreadTitle'
-PrivateChannelLink    = require 'activity/components/privatechannellink'
+kd                 = require 'kd'
+React              = require 'kd-react'
+immutable          = require 'immutable'
+prepareThreadTitle = require 'activity/util/prepareThreadTitle'
+PrivateChannelLink = require 'activity/components/privatechannellink'
 
 module.exports = class PrivateChannelListItem extends React.Component
 
+  @propTypes =
+    thread      : React.PropTypes.instanceOf immutable.Map
+    onItemClick : React.PropTypes.func.isRequired
+
+
   @defaultProps =
-    onItemClick : kd.noop
-    thread      : null
+    thread      : immutable.Map()
 
 
   channel: (key) ->
