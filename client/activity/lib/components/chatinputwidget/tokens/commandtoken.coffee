@@ -1,5 +1,5 @@
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
-CommandDropbox    = require 'activity/components/commanddropbox'
+CommandDropbox    = require '../commanddropbox'
 
 module.exports = CommandToken =
 

@@ -1,7 +1,7 @@
 textHelpers       = require 'activity/util/textHelpers'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
 AppFlux           = require 'app/flux'
-MentionDropbox    = require 'activity/components/mentiondropbox'
+MentionDropbox    = require '../mentiondropbox'
 findNameByQuery   = require 'activity/util/findNameByQuery'
 
 module.exports = MentionToken =

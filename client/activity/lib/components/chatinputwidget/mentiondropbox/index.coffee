@@ -2,9 +2,9 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-UserMentionItem      = require 'activity/components/mentiondropboxitem/usermentionitem'
-ChannelMentionItem   = require 'activity/components/mentiondropboxitem/channelmentionitem'
+PortalDropbox        = require 'activity/components/dropbox/portaldropbox'
+UserMentionItem      = require './useritem'
+ChannelMentionItem   = require './channelitem'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 ScrollableDropbox    = require 'activity/components/dropbox/scrollabledropbox'
 
@@ -86,7 +86,7 @@ class MentionDropbox extends React.Component
 
     { userMentions, channelMentions } = @props.items
 
-    <Dropbox
+    <PortalDropbox
       className = 'MentionDropbox'
       visible   = { userMentions.size + channelMentions.size > 0 }
       onClose   = { @props.onClose }
@@ -97,7 +97,7 @@ class MentionDropbox extends React.Component
       { @renderUserMentions() }
       { helper.renderListHeader 'Groups'  if channelMentions.size > 0 }
       { @renderChannelMentions() }
-    </Dropbox>
+    </PortalDropbox>
 
 
   helper =

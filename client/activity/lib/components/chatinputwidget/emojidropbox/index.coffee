@@ -1,18 +1,19 @@
+$                    = require 'jquery'
 kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-CommandDropboxItem   = require 'activity/components/commanddropboxitem'
-ErrorDropboxItem     = require 'activity/components/errordropboxitem'
+PortalDropbox        = require 'activity/components/dropbox/portaldropbox'
+EmojiDropboxItem     = require './item'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
+ScrollableDropbox    = require 'activity/components/dropbox/scrollabledropbox'
 
-module.exports = class CommandDropbox extends React.Component
+class EmojiDropbox extends React.Component
 
   @propTypes =
     query           : React.PropTypes.string
     items           : React.PropTypes.instanceOf immutable.List
-    selectedItem    : React.PropTypes.instanceOf immutable.Map
+    selectedItem    : React.PropTypes.string
     selectedIndex   : React.PropTypes.number
     onItemSelected  : React.PropTypes.func
     onItemConfirmed : React.PropTypes.func
@@ -29,7 +30,7 @@ module.exports = class CommandDropbox extends React.Component
     onClose         : kd.noop
 
 
-  getItemKey: (item) -> item.get 'name'
+  getItemKey: (item) -> item
 
 
   updatePosition: (inputDimensions) ->
@@ -39,15 +40,16 @@ module.exports = class CommandDropbox extends React.Component
 
   renderList: ->
 
-    { items, selectedIndex, onItemSelected, onItemConfirmed } = @props
+    { items, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
 
-      <CommandDropboxItem
+      <EmojiDropboxItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
+        query       = { query }
         onSelected  = { onItemSelected }
         onConfirmed = { onItemConfirmed }
         key         = { @getItemKey item }
@@ -55,33 +57,24 @@ module.exports = class CommandDropbox extends React.Component
       />
 
 
-  renderError: ->
-
-    { query } = @props
-
-    <ErrorDropboxItem>
-      { query } is not a proper command
-    </ErrorDropboxItem>
-
-
   render: ->
 
-    { items, query, visible, onClose } = @props
+    { query, items, onClose } = @props
 
-    isError = items.size is 0 and query
-
-    <Dropbox
-      className = 'CommandDropbox'
-      visible   = { query? }
+    <PortalDropbox
+      className = 'EmojiDropbox'
+      visible   = { items.size > 0 }
       onClose   = { onClose }
       type      = 'dropup'
-      title     = 'Commands matching'
-      subtitle  = { query }
+      title     = 'Emojis matching '
+      subtitle  = { ":#{query}" }
       ref       = 'dropbox'
     >
-      { @renderList()  unless isError }
-      { @renderError()  if isError }
-    </Dropbox>
+      {@renderList()}
+      <div className="clearfix" />
+    </PortalDropbox>
 
 
-CommandDropbox.include [ ImmutableRenderMixin ]
+EmojiDropbox.include [ ImmutableRenderMixin ]
+
+module.exports = ScrollableDropbox EmojiDropbox

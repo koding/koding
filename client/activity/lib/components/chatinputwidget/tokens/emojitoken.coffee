@@ -1,6 +1,6 @@
 textHelpers       = require 'activity/util/textHelpers'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
-EmojiDropbox      = require 'activity/components/emojidropbox'
+EmojiDropbox      = require '../emojidropbox'
 formatEmojiName   = require 'activity/util/formatEmojiName'
 EmojiActions      = require 'activity/flux/chatinput/actions/emoji'
 

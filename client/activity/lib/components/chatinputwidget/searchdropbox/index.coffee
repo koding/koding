@@ -3,10 +3,10 @@ React             = require 'kd-react'
 ReactDOM          = require 'react-dom'
 immutable         = require 'immutable'
 classnames        = require 'classnames'
-Dropbox           = require 'activity/components/dropbox/portaldropbox'
+PortalDropbox     = require 'activity/components/dropbox/portaldropbox'
 DropboxItem       = require 'activity/components/dropboxitem'
-ErrorDropboxItem  = require 'activity/components/errordropboxitem'
-SearchDropboxItem = require 'activity/components/searchdropboxitem'
+ErrorDropboxItem  = require '../errordropboxitem'
+SearchDropboxItem = require './item'
 ScrollableDropbox = require 'activity/components/dropbox/scrollabledropbox'
 
 class SearchDropbox extends React.Component
@@ -81,7 +81,7 @@ class SearchDropbox extends React.Component
     isError      = items.size is 0 and Boolean query
     isEmptyQuery = not query
 
-    <Dropbox
+    <PortalDropbox
       className = 'SearchDropbox'
       visible   = { items.size > 0 or isError or isEmptyQuery }
       onClose   = { @props.onClose }
@@ -92,7 +92,7 @@ class SearchDropbox extends React.Component
       { @renderEmptyQueryMessage()  if isEmptyQuery }
       { @renderError()  if isError }
       { @renderList()  unless isError and isEmptyQuery }
-    </Dropbox>
+    </PortalDropbox>
 
 
 module.exports = ScrollableDropbox SearchDropbox

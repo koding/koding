@@ -1,7 +1,7 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
-ChatInputContainer   = require 'activity/components/chatinputwidget/container'
+ChatInputWidget      = require 'activity/components/chatinputwidget'
 urlGrabber           = require 'app/util/urlGrabber'
 ActivityFlux         = require 'activity/flux'
 embedlyHelpers       = require 'activity/flux/helpers/embedly'
@@ -48,7 +48,7 @@ module.exports = class ChatInputEmbedExtractor extends React.Component
 
   render: ->
 
-    <ChatInputContainer ref='input' {...@props} onChange={@bound 'onChange'} />
+    <ChatInputWidget.Container ref='input' {...@props} onChange={@bound 'onChange'} />
 
 
 ChatInputEmbedExtractor.include [ ImmutableRenderMixin ]
