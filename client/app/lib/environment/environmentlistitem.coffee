@@ -115,7 +115,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   createExtraViews: ->
 
-    { title } = @getData()
+    { title, config: { oldOwner } } = @getData()
 
     @header = new kd.CustomHTMLView
       cssClass : 'stack-info clearfix hidden'
@@ -129,6 +129,15 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       tagName  : 'span'
       cssClass : 'title'
       partial  : title
+
+    if oldOwner
+      @header.addSubView new kd.CustomHTMLView
+        tagName  : 'span'
+        cssClass : 'old-owner-desc'
+        partial  : """
+          You have kicked @#{oldOwner} from your team, that's why all his resources are now assigned to you.
+          You can delete their resources or keep it for backup purposes.
+        """
 
     @updateNotification = new kd.CustomHTMLView
       cssClass : 'update-notification hidden'

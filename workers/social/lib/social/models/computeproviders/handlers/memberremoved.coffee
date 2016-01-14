@@ -22,8 +22,9 @@ setOwnerOfStack = (stack, newOwnerId, oldOwner) ->
     log 'Failed to mark as unused stack:', err  if err
     stack.update {
       $set : {
-        originId : newOwnerId
-        title    : "#{stack.getAt 'title'} (@#{oldOwner})"
+        originId          : newOwnerId
+        title             : "#{stack.getAt 'title'} (@#{oldOwner})"
+        'config.oldOwner' : oldOwner
       }
     }, (err) ->
       log 'Failed to change ownership of stack:', err  if err
