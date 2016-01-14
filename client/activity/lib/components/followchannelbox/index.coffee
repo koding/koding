@@ -1,18 +1,24 @@
-kd = require 'kd'
-React = require 'kd-react'
+kd           = require 'kd'
+React        = require 'kd-react'
+immutable    = require 'immutable'
 ChannelLabel = require 'activity/components/channellabel'
-
-{ actions } = require 'activity/flux'
-
+{ actions }  = require 'activity/flux'
 
 module.exports = class FollowChannelBox extends React.Component
 
-  channel: (keyPath...) -> @props.thread.getIn ['channel'].concat keyPath
+  @propTypes =
+    channel   : React.PropTypes.instanceOf immutable.Map
+    className : React.PropTypes.string
+
+
+  @defaultProps =
+    channel   : immutable.Map()
+    className : ''
 
 
   onFollowChannel: ->
 
-    actions.channel.followChannel @channel 'id'
+    actions.channel.followChannel @props.channel.get 'id'
 
 
   render: ->
