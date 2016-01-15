@@ -20,6 +20,10 @@ func TestChannelParticipantOperations(t *testing.T) {
 			Convey("First Create Users and initiate conversation", func() {
 				ownerAccount, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
 
+				ownerSes, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+				So(err, ShouldBeNil)
+				So(ownerSes, ShouldNotBeNil)
+
 				secondAccount, err := models.CreateAccountInBothDbs()
 				tests.ResultedWithNoErrorCheck(secondAccount, err)
 				_, err = groupChannel.AddParticipant(secondAccount.Id)
@@ -51,7 +55,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"devrim"}
 
-				channelContainer, err := rest.SendPrivateChannelRequest(pmr)
+				channelContainer, err := rest.SendPrivateChannelRequest(pmr, ownerSes.ClientId)
 				So(err, ShouldBeNil)
 				So(channelContainer, ShouldNotBeNil)
 
