@@ -223,7 +223,7 @@ func Get(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int
 	}
 	q := request.GetQuery(u)
 
-	q.AccountId = context.Client.Account.Id
+	q = context.OverrideQuery(q)
 
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {
