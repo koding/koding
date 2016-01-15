@@ -23,16 +23,6 @@ module.exports =
     browser.end()
 
 
-  updateChannelPurpose: (browser) ->
-  
-    purpose = "testing the purpose field"
- 
-    user = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user, null, null, purpose)
-    teamsHelpers.updateChannelPurpose(browser)
-    browser.end()
-
-
   sendComment: (browser) ->
 
     message = helpers.getFakeText()
