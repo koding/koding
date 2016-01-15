@@ -108,8 +108,10 @@ stacks = [
         stack.update 'machines', (machines) ->
           machines.map (id) ->
             machine = machinesWorkspaces.get(id)
+            type    = if machine.getIn ['meta', 'oldOwner'] then 'reassigned' else 'own'
+
             machine
-              .set 'type', 'own'
+              .set 'type', type
               .set 'owner', getMachineOwner machine
               .set 'isApproved', yes
 ]
