@@ -1175,9 +1175,10 @@ class IDEAppController extends AppController
       ideView.tabView.emit 'TabNeedsToBeClosed', file
 
 
-  handleIDEBecameReady: (machine) ->
+  handleIDEBecameReady: (machine, initial = no) ->
 
-    { finderController } = @finderPane
+    { computeController } = kd.singletons
+    { finderController }  = @finderPane
 
     if @workspaceData
       finderController.updateMachineRoot @mountedMachine.uid, @workspaceData.rootPath
@@ -1212,6 +1213,8 @@ class IDEAppController extends AppController
         actions.setSelectedWorkspaceId @workspaceData._id
       else
         mainView.activitySidebar.selectWorkspace data
+
+      computeController.showBuildLogs machine  if initial
 
       @emit 'IDEReady'
 
