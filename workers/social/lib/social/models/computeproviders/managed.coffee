@@ -121,8 +121,14 @@ module.exports = class Managed extends ProviderInterface
 
     JMachine.one selector, (err, machine) ->
       if err or not machine
-      then callback new KodingError 'Machine not found.'
-      else machine.destroy client, callback
+        callback new KodingError 'Machine not found.'
+      else
+        machine.destroy client, (err) ->
+          return callback err  if err
+
+          checkPlans {
+            client, provider: @providerSlug, change: 'decrement'
+          }, (err) -> callback null
 
 
   updateMachine = (selector, fieldsToUpdate, callback) ->
