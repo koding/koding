@@ -67,7 +67,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Body = "this is a body message for private message @devrim @sinan"
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"devrim", "sinan"}
-				_, err := rest.SendPrivateChannelRequest(pmr)
+				_, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldNotBeNil)
 			})
 
@@ -83,7 +83,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Body = "this is a body message for private message @devrim @sinan"
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"devrim", "sinan"}
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -96,22 +96,22 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{}
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
 			})
 
-			Convey("if sender is not defined should fail to create PM", func() {
+			Convey("if sender is not defined but token is added, then shouldn't fail to create PM", func() {
 				pmr := models.ChannelRequest{}
 				pmr.AccountId = 0
 				pmr.Body = "this is a body for private message"
 				pmr.GroupName = ""
 				pmr.Recipients = []string{}
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
-				So(err, ShouldNotBeNil)
-				So(cmc, ShouldBeNil)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
 			})
 
 			Convey("one can send private message to multiple person", func() {
@@ -120,7 +120,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Body = "this is a body for private message @sinan"
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"sinan"}
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -132,7 +132,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"devrim", "sinan"}
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(cmc.Channel.TypeConstant, ShouldEqual, models.Channel_TYPE_PRIVATE_MESSAGE)
@@ -149,7 +149,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"devrim", "sinan"}
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(cmc.IsParticipant, ShouldBeTrue)
@@ -161,7 +161,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Body = "this is a body for @sinan private message @devrim"
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"devrim", "sinan"}
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(cmc.ParticipantCount, ShouldEqual, 3)
@@ -173,7 +173,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Body = "this is @sinan a body for @devrim private message"
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"sinan", "devrim"}
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(len(cmc.ParticipantsPreview), ShouldEqual, 3)
@@ -186,7 +186,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Body = body
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"sinan", "devrim"}
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(cmc.LastMessage.Message.Body, ShouldEqual, body)
@@ -199,11 +199,11 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Body = body
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"sinan", "devrim"}
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
-				pm, err := rest.GetPrivateChannels(&request.Query{AccountId: account.Id, GroupName: groupName})
+				pm, err := rest.GetPrivateChannels(&request.Query{AccountId: account.Id, GroupName: groupName}, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(pm, ShouldNotBeNil)
 				So(len(pm), ShouldNotEqual, 0)
@@ -226,15 +226,15 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Recipients = []string{"sinan", "devrim"}
 				pmr.Purpose = "test me up"
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 
 				query := request.Query{AccountId: account.Id, GroupName: groupName}
-				_, err = rest.SearchPrivateChannels(&query)
+				_, err = rest.SearchPrivateChannels(&query, ses.ClientId)
 				So(err, ShouldNotBeNil)
 
 				query.Name = "test"
-				pm, err := rest.SearchPrivateChannels(&query)
+				pm, err := rest.SearchPrivateChannels(&query, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(pm, ShouldNotBeNil)
 				So(len(pm), ShouldNotEqual, 0)
@@ -260,7 +260,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Recipients = []string{"devrim", "sinan"}
 				pmr.Payload = payload
 
-				pcr, err := rest.SendPrivateChannelRequest(pmr)
+				pcr, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(pcr, ShouldNotBeNil)
 				So(pcr.Channel, ShouldNotBeNil)
@@ -307,7 +307,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pic := "pictureSomethingLikeThat"
 				pmr.Payload["link_embed"] = &pic
 
-				cc, err := rest.SendPrivateChannelRequest(pmr)
+				cc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
@@ -383,7 +383,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"devrim"}
 
-				cc, err := rest.SendPrivateChannelRequest(pmr)
+				cc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
 
@@ -420,7 +420,7 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"sinan", "devrim"}
 
-				cc, err := rest.SendPrivateChannelRequest(pmr)
+				cc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
 
