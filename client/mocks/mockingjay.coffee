@@ -173,6 +173,17 @@ module.exports =
           callback null, { id: '6075644514008039523' }
 
 
+  groups:
+
+    getCurrentGroup:
+
+      toReturnPassedParam: (param) ->
+
+        { groupsController } = kd.singletons
+
+        expect.spyOn(groupsController, 'getCurrentGroup').andReturn param
+
+
   search:
 
     getIndex:
@@ -222,6 +233,16 @@ module.exports =
 
             expect.spyOn(remote.api.JAccount, 'some').andCall (query, options, callback) ->
               callback null, [ mockjaccount ]
+
+        one:
+
+          toReturnPassedParam: (param) ->
+
+            new Promise (resolve, reject) ->
+
+              promise = new Promise (resolve, reject) -> resolve param
+
+              expect.spyOn(remote.api.JAccount, 'one').andReturn promise
 
 
   appManager:

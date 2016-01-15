@@ -2,6 +2,7 @@ kd      = require 'kd'
 mock    = require '../../mocks/mockingjay'
 nick    = require 'app/util/nick'
 expect  = require 'expect'
+remote  = require('app/remote').getInstance()
 
 SearchController   = require 'app/searchcontroller'
 { mainController } = kd.singletons
@@ -108,3 +109,47 @@ describe 'kd.singletons.search', ->
           .catch ->
             expect(search.searchAccountsMongo).toHaveBeenCalledWith SEED
             done()
+
+
+  describe '::searchAccountsMongo', ->
+
+    it 'should call with seed argument', ->
+
+      { search } = kd.singletons
+
+      expect.spyOn search, 'searchAccountsMongo'
+
+      search.searchAccountsMongo SEED
+
+      expect(search.searchAccountsMongo).toHaveBeenCalledWith SEED
+
+    it 'should filter current user from the results', (done) ->
+
+      { search } = kd.singletons
+
+      mockAccount = mock.getMockAccount()
+      mockGroup   = remote.revive mock.getMockGroup()
+      nickname    = mockAccount.profile.nickname
+
+      mock.remote.api.JAccount.one.toReturnPassedParam mockAccount
+      mock.groups.getCurrentGroup.toReturnPassedParam mockGroup
+
+      expect.spyOn(mockGroup, 'isMember').andCall (account, callback) ->
+        callback null, yes
+
+      nickSpy     = expect.createSpy().andReturn nickname
+      revertNick  = SearchController.__set__ 'nick', nickSpy
+
+      search
+        .searchAccountsMongo SEED
+        .then (account) ->
+
+          found = no
+
+          for acc in account when acc.profile.nickname is nickname
+            found = yes
+
+          expect(found).toBe no
+
+          revertNick()
+          done()
