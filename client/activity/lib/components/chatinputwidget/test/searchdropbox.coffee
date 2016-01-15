@@ -18,7 +18,7 @@ describe 'SearchDropbox', ->
         repliesCount    : 2
         account         :
           id            : 1
-          profile       : { nickname : 'nick' }
+          profile       : { nickname : 'nick', firstName : '', lastName : '' }
           isIntegration : yes
     }
     {
@@ -29,10 +29,14 @@ describe 'SearchDropbox', ->
         repliesCount    : 5
         account         :
           id            : 2
-          profile       : { nickname : 'john' }
+          profile       : { nickname : 'john', firstName : '', lastName : '' }
           isIntegration : yes
     }
   ]
+
+
+  afterEach -> helpers.clearDropboxes()
+
 
   describe '::render', ->
 

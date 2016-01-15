@@ -12,6 +12,10 @@ describe 'EmojiDropbox', ->
   query = 'bee'
   emojis = toImmutable [ 'bee', 'beer', 'honeybee' ]
 
+
+  afterEach -> helpers.clearDropboxes()
+
+
   describe '::render', ->
 
     it 'renders invisible dropbox if items are empty', ->

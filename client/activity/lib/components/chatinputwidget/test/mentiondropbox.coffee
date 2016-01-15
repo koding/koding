@@ -30,6 +30,10 @@ describe 'MentionDropbox', ->
     }
   ]
 
+
+  afterEach -> helpers.clearDropboxes()
+
+
   describe '::render', ->
 
     it 'renders invisible dropbox if user and channel items are empty', ->

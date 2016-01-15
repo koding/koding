@@ -14,6 +14,9 @@ describe 'ChannelDropbox', ->
     { id : 2, name : 'test' }
   ]
 
+  afterEach -> helpers.clearDropboxes()
+
+
   describe '::render', ->
 
     it 'renders invisible dropbox if items are empty', ->

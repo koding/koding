@@ -26,6 +26,10 @@ describe 'CommandDropbox', ->
     }
   ]
 
+
+  afterEach -> helpers.clearDropboxes()
+
+
   describe '::render', ->
 
     it 'renders invisible dropbox if query is empty', ->

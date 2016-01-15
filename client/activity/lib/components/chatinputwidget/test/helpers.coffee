@@ -15,6 +15,13 @@ module.exports = helpers =
     dropbox = TestUtils.findRenderedComponentWithType result, PortalDropbox
 
 
+  clearDropboxes: ->
+
+    dropboxes = document.querySelectorAll('.PortalDropbox')
+    for dropbox in dropboxes
+      dropbox.parentNode.removeChild dropbox
+
+
   dropboxItemsTest: (props, DropboxType, testFn) ->
 
     dropbox = helpers.renderDropbox props, DropboxType
@@ -64,4 +71,3 @@ module.exports = helpers =
     TestUtils.Simulate.click selectedItem
 
     expect(spy).toHaveBeenCalled()
-
