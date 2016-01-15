@@ -22,6 +22,10 @@ executeCommand = (command, channel) ->
           kd.singletons.router.handleRoute "/Channels/#{channelName}"
       else
         channelActions.unfollowChannel channelId
+    when '/search'
+        { initialChannelId, messageId } = params
+        channelActions.loadChannel(initialChannelId).then ({ channel }) ->
+          kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{messageId}"
 
 
 module.exports = {
