@@ -87,10 +87,8 @@ func UpdateCommand(c *cli.Context) int {
 		return 1
 	}
 
-	user := sudoUserFromEnviron(os.Environ())
-
 	klientSh := klientSh{
-		User:          user,
+		User:          sudoUserFromEnviron(os.Environ()),
 		KiteHome:      KiteHome,
 		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
 		KontrolURL:    KontrolURL,

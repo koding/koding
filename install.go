@@ -94,10 +94,8 @@ func InstallCommandFactory(c *cli.Context) int {
 
 	// TODO: Accept `kd install --user foo` flag to replace the
 	// environ checking.
-	user := sudoUserFromEnviron(os.Environ())
-
 	klientSh := klientSh{
-		User:          user,
+		User:          sudoUserFromEnviron(os.Environ()),
 		KiteHome:      KiteHome,
 		KlientBinPath: klientBinPath,
 		KontrolURL:    kontrolURL,
