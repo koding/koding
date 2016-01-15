@@ -102,31 +102,14 @@ func UpdateCommand(c *cli.Context) int {
 		}
 	}
 
-	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
-	if err != nil {
-		log.Errorf("Error creating klient.sh path: %s", err)
-		fmt.Println(GenericInternalNewCodeError)
-		return 1
-	}
-
-	klientBinPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient"))
-	if err != nil {
-		log.Errorf(
-			"Error creating klient binary path. path:%s, err:%s",
-			filepath.Join(KlientDirectory, "klient"), err,
-		)
-		fmt.Println(GenericInternalNewCodeError)
-		return 1
-	}
-
 	klientSh := klientSh{
 		User:          user,
 		KiteHome:      KiteHome,
-		KlientBinPath: klientBinPath,
+		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
 		KontrolURL:    KontrolURL,
 	}
 
-	if err := klientSh.Create(klientShPath); err != nil {
+	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
 		log.Errorf("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1

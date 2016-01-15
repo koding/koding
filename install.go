@@ -79,23 +79,6 @@ func InstallCommandFactory(c *cli.Context) int {
 		kontrolURL = KontrolURL
 	}
 
-	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
-	if err != nil {
-		log.Errorf("Error creating klient.sh path: %s", err)
-		fmt.Println(GenericInternalNewCodeError)
-		return 1
-	}
-
-	klientBinPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient"))
-	if err != nil {
-		log.Errorf(
-			"Error creating klient binary path. path:%s, err:%s",
-			filepath.Join(KlientDirectory, "klient"), err,
-		)
-		fmt.Println(GenericInternalNewCodeError)
-		return 1
-	}
-
 	// Create the installation dir, if needed.
 	err = os.MkdirAll(KlientDirectory, 0755)
 	if err != nil {
@@ -106,6 +89,8 @@ func InstallCommandFactory(c *cli.Context) int {
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
+
+	klientBinPath := filepath.Join(KlientDirectory, "klient")
 
 	// TODO: Accept `kd install --user foo` flag to replace the
 	// environ checking.
@@ -130,7 +115,7 @@ func InstallCommandFactory(c *cli.Context) int {
 		KontrolURL:    kontrolURL,
 	}
 
-	if err := klientSh.Create(klientShPath); err != nil {
+	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
 		log.Errorf("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1
