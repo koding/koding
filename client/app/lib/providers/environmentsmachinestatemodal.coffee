@@ -764,7 +764,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
   prepareIDE: (initial) ->
 
 
-    { appManager, computeController } = kd.singletons
+    { appManager } = kd.singletons
 
     environmentDataProvider.fetchMachine @machine.uid, (machine) =>
 
@@ -775,9 +775,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @machine = machine
       @setData machine
 
-      @emit 'IDEBecameReady', machine
-
-      computeController.showBuildLogs machine  if initial
+      @emit 'IDEBecameReady', machine, initial
 
 
   verifyAccount: ->
