@@ -55,31 +55,6 @@ module.exports =
       .assert.containsText    threadsContainer, channelNames[0]
       .end()
 
-
-  switchBetweenYourChannelsAndOtherChannels: (browser) ->
- 
-    sidebarSelector          = '.SidebarChannelsSection .SidebarSection-header'
-    channelTextSelector      = '.ChannelList-Modal.PublicChannelListModal .ChannelListWrapper .ChannelList-title'
-    otherChannelsTabSelector = '.ChannelListWrapper .ChannelList-tabs .ChannelList-tab:nth-of-type(2)'
-    activeTabSelector        = '.ChannelListWrapper .ChannelList-tabs .ChannelList-tab.active-tab'
-    otherChannelsJoinButton  = '.PublicChannelLink.ChannelListItem .Button'
- 
-    user = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user)
-    teamsHelpers.leaveChannel(browser)
-  
-    browser
-      .waitForElementVisible  sidebarSelector, 20000
-      .click                  sidebarSelector
-      .waitForElementVisible  channelTextSelector, 20000
-      .assert.containsText    channelTextSelector, 'Channels'
-      .waitForElementVisible  otherChannelsTabSelector, 20000
-      .click                  otherChannelsTabSelector
-      .waitForElementVisible  activeTabSelector, 20000
-      .waitForElementVisible  otherChannelsJoinButton, 20000
-      .assert.containsText    otherChannelsJoinButton, 'JOIN'
-      .end()
-
   
   leaveChannel: (browser) ->
 
