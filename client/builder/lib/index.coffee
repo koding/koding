@@ -306,8 +306,6 @@ class Haydar extends events.EventEmitter
 
       b.bundle (err, src) =>
 
-        console.log "bundle.js: #{src.toString().length} bytes"
-
         if err
           console.error inspect(err, { colors: true })
           if not opts.watchJs
@@ -323,9 +321,16 @@ class Haydar extends events.EventEmitter
         else
 
           if opts.extractJsSourcemaps
+            strSrc = src.toString()
+            newSrc = []
+            chunkSize = 10 * 1024 * 1024 # 10 MB
+            for index in (index for index in strSrc.length by chunkSize)
+              chunk = strSrc.substring index, (index + chunkSize)
+              newSrc.push convert.removeMapFileComments chunk
+
             s = fs.createWriteStream outfile
             asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(
-              asStream(convert.removeMapFileComments(src.toString()))
+              asStream(newSrc.join())
             ).pipe(s)
 
             s.once 'finish', ->
