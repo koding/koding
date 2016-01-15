@@ -172,7 +172,38 @@ module.exports =
           callback null, { id: '6075644514008039523' }
 
 
+  search:
+
+    getIndex:
+
+      toReturnIndex: (success = yes) ->
+
+        { search } = kd.singletons
+
+        expect.spyOn(search, 'getIndex').andReturn {
+          search : (seed, callback, options) ->
+            objectID    = mockjaccount._id
+            { profile } = mockjaccount
+            { firstName, lastName } = profile
+
+            callback success, {
+              hits : [
+                { objectID, firstName, lastName, nick: profile.nickname }
+              ]
+            }
+        }
+
+
   remote:
+
+    cacheableAsync:
+
+      toReturnPassedParam: (param) ->
+
+        new Promise (resolve, reject) ->
+
+          return resolve param
+
 
     api:
 
