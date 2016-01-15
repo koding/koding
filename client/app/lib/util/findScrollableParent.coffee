@@ -16,6 +16,9 @@ module.exports = findScrollableParent = (element) ->
     if element is document
       continue
 
+    if element.classList.contains 'Scrollable'
+      return element
+
     style = global.getComputedStyle element
 
     overflowY =

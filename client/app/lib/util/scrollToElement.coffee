@@ -8,14 +8,19 @@ findScrollableParent = require 'app/util/findScrollableParent'
 ###
 module.exports = scrollToElement = (element) ->
 
-  $element = $ element
-  $parent = $element.parent()
+  $element  = $ element
+  $parent   = $element.parent()
   $scroller = $ findScrollableParent element
 
-  containerTop = Math.abs $parent.position().top
-  elementTop = $element.position().top
+  scrollableHeight = $scroller.get(0).scrollHeight
+  containerTop     = $parent.position().top
+  containerHeight  = $parent.height()
+  elementTop       = $element.position().top
+
+  heightDelta      = scrollableHeight - containerHeight
   distanceToCenter = (($scroller.height() - $element.height()) / 2)
 
-  scrollTop = containerTop + elementTop - distanceToCenter
+  scrollTop = heightDelta - containerTop + elementTop - distanceToCenter
 
   $scroller.animate { scrollTop }, 347
+
