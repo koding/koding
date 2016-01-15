@@ -17,27 +17,24 @@ module.exports =
       utils.getUser()
 
 
-  inviteUserAndRejectInvitation: (browser) ->
+  rejectInvitation: (browser) ->
 
-    host                   = utils.getUser no, 0
-    hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant            = utils.getUser no, 1
-    secondUserName         = participant.username
-    secondUserAvatar       = ".avatars .avatarview[href='/#{secondUserName}']"
-    secondUserOnlineAvatar = secondUserAvatar + '.online'
+    host            = utils.getUser no, 0
+    hostBrowser     = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant     = utils.getUser no, 1
+    secondUserName  = participant.username
+    chatHeads       = ".chat-view .chat-heads .ParticipantHeads [href='/#{participant.username}']"
 
     browser.pause 2500, -> # wait for user.json creation
       if hostBrowser
         collaborationHelpers.startSessionAndInviteUser(browser, host, participant, no)
-        browser
-          .waitForElementNotPresent secondUserAvatar, 60000
-          .waitForElementNotPresent secondUserOnlineAvatar, 50000 # Assertion
-
+        browser.waitForElementNotPresent(chatHeads, 60000)
         collaborationHelpers.endSessionFromStatusBar(browser)
+        browser.end()
       else
         collaborationHelpers.rejectInvitation(browser)
-
-      browser.end()
+        browser.pause 5000
+        browser.end()
 
 
   leaveSessionFromChat: (browser) ->
