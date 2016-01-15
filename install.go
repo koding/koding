@@ -273,8 +273,6 @@ func (k klientSh) Format() string {
 
 // Create writes the result of Format() to the given path.
 func (k klientSh) Create(p string) error {
-	s := k.Format()
-
 	// perm -rwr-xr-x, same as klient
-	return ioutil.WriteFile(p, []byte(s), 0755)
+	return ioutil.WriteFile(p, []byte(k.Format()), 0755)
 }
