@@ -6,6 +6,7 @@ Machine          = require 'app/providers/machine'
 ideRoutes        = require 'ide/routes.coffee'
 dataProvider     = require 'app/userenvironmentdataprovider'
 mockjaccount     = require './mock.jaccount'
+mockjgroup       = require './mock.jgroup'
 mockjmachine     = require './mock.jmachine'
 mockjworkspace   = require './mock.jworkspace'
 mockMessage      = require 'app/util/generateDummyMessage'
@@ -255,6 +256,8 @@ module.exports =
   getMockWorkspace: -> return mockjworkspace
 
   getMockAccount: ->   return mockjaccount
+
+  getMockGroup: ->     return mockjgroup
 
   getMockMessage: (args...) -> return mockMessage(args...)
 
