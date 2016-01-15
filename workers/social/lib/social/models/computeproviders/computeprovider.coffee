@@ -7,6 +7,7 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 teamutils   = require './teamutils'
 konstraints = require 'konstraints'
 
+MAX_INT     = Math.pow(2, 32) - 1
 
 module.exports = class ComputeProvider extends Base
 
@@ -395,11 +396,10 @@ module.exports = class ComputeProvider extends Base
 
     plan = group.getAt 'config.plan'
 
+    maxAllowed   = MAX_INT
     if plan
       plan       = teamutils.getPlanData plan
       maxAllowed = plan.member
-    else
-      maxAllowed = 9999
 
     JCounter = require '../counter'
     JCounter[change]
@@ -420,11 +420,10 @@ module.exports = class ComputeProvider extends Base
     plan = group.getAt 'config.plan'
     return callback null  if amount is 0
 
+    maxAllowed   = MAX_INT
     if plan
       plan       = teamutils.getPlanData plan
       maxAllowed = plan.maxInstance
-    else
-      maxAllowed = 9999
 
     JCounter = require '../counter'
     JCounter[change]
