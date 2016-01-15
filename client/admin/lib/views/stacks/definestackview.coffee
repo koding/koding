@@ -333,8 +333,6 @@ module.exports = class DefineStackView extends KDView
 
         unless stackTemplate.inuse
 
-          @generateStackButton.show()
-
           if canEditGroup
             @setAsDefaultButton.show()
             @outputView.add """
@@ -346,6 +344,7 @@ module.exports = class DefineStackView extends KDView
               You can now close the stack editor or continue editing your stack.
             """
           else
+            @generateStackButton.show()
             @outputView.add """
               Your stack script has been successfully saved.
               You can now close the stack editor or continue editing your stack.
