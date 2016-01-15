@@ -391,6 +391,8 @@ module.exports = class ComputeProvider extends Base
 
   @updateGroupStackUsage = (group, change, callback) ->
 
+    return callback null  if group.slug is 'koding'
+
     plan = group.getAt 'config.plan'
 
     if plan
@@ -412,6 +414,8 @@ module.exports = class ComputeProvider extends Base
 
 
   @updateGroupInstanceUsage = (group, change, amount, callback) ->
+
+    return callback null  if group.slug is 'koding'
 
     plan = group.getAt 'config.plan'
     return callback null  if amount is 0
@@ -438,6 +442,8 @@ module.exports = class ComputeProvider extends Base
   @updateGroupResourceUsage = (options, callback) ->
 
     { group, instanceCount, change } = options
+
+    return callback null  if group.slug is 'koding'
 
     @updateGroupStackUsage group, change, (err) =>
       return callback err  if err
