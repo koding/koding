@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/klientctl/logging"
@@ -88,19 +87,7 @@ func UpdateCommand(c *cli.Context) int {
 		return 1
 	}
 
-	var user string
-	for _, s := range os.Environ() {
-		env := strings.Split(s, "=")
-
-		if len(env) != 2 {
-			continue
-		}
-
-		if env[0] == "SUDO_USER" {
-			user = env[1]
-			break
-		}
-	}
+	user := sudoUserFromEnviron(os.Environ())
 
 	klientSh := klientSh{
 		User:          user,

@@ -94,19 +94,7 @@ func InstallCommandFactory(c *cli.Context) int {
 
 	// TODO: Accept `kd install --user foo` flag to replace the
 	// environ checking.
-	var user string
-	for _, s := range os.Environ() {
-		env := strings.Split(s, "=")
-
-		if len(env) != 2 {
-			continue
-		}
-
-		if env[0] == "SUDO_USER" {
-			user = env[1]
-			break
-		}
-	}
+	user := sudoUserFromEnviron(os.Environ())
 
 	klientSh := klientSh{
 		User:          user,
@@ -275,4 +263,23 @@ func (k klientSh) Format() string {
 func (k klientSh) Create(p string) error {
 	// perm -rwr-xr-x, same as klient
 	return ioutil.WriteFile(p, []byte(k.Format()), 0755)
+}
+
+// sudoUserFromEnviron extracts the SUDO_USER environment variable value from
+// the given slice, if any.
+func sudoUserFromEnviron(envs []string) string {
+	var user string
+	for _, s := range envs {
+		env := strings.Split(s, "=")
+
+		if len(env) != 2 {
+			continue
+		}
+
+		if env[0] == "SUDO_USER" {
+			user = env[1]
+			break
+		}
+	}
+	return user
 }
