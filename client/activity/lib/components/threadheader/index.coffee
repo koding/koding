@@ -119,15 +119,15 @@ module.exports = class ThreadHeader extends React.Component
       _originalPurpose = @channel '_originalPurpose'
       purpose = _originalPurpose or @channel 'purpose'
       thread  = thread.setIn ['channel', 'purpose'], purpose
-      @setState channelThread: thread
-      return @setState editingPurpose: no
+      @setState { channelThread: thread }
+      return @setState { editingPurpose: no }
 
     if event.which is ENTER
       id = @channel 'id'
       purpose = @channel('purpose').trim()
       { updateChannel } = ActivityFlux.actions.channel
 
-      updateChannel({ id, purpose }).then => @setState editingPurpose: no
+      updateChannel({ id, purpose }).then => @setState { editingPurpose: no }
 
 
   renderPurposeArea: ->
@@ -154,7 +154,7 @@ module.exports = class ThreadHeader extends React.Component
     return null  unless @state.thread
 
     <div className={kd.utils.curry "ThreadHeader", @props.className}>
-      <ChannelLabel thread={@state.thread} />
+      <ChannelLabel channel={@state.thread.get 'channel'} />
       <ButtonWithMenu
         listClass='ChannelThreadPane-menuItems'
         items={@getMenuItems()} />

@@ -5,7 +5,6 @@ Modal              = require './index'
 ModalView          = require './view'
 ReactDOM           = require 'react-dom'
 TestUtils          = require 'react-addons-test-utils'
-mock               = require '../../../../mocks/mockingjay'
 toImmutable        = require 'app/util/toImmutable'
 expectCorrectRoute = require 'activity/test/helpers/expectCorrectRoute'
 
