@@ -122,11 +122,19 @@ module.exports = class JComputeStack extends jraphical.Module
           ]]
 
 
-  @getStack = (account, _id, callback) ->
+  @getStack = (options, callback) ->
 
-    JComputeStack.one { _id, originId : account.getId() }, (err, stackObj) ->
+    { account, group, stack } = options
+
+    JComputeStack.one {
+      _id      : stack
+      originId : account.getId()
+      group    : group.slug
+    }, (err, stackObj) ->
+
       if err? or not stackObj?
         return callback new KodingError 'A valid stack id required'
+
       callback null, stackObj
 
 

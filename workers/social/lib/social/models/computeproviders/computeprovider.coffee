@@ -124,11 +124,11 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback) ->
 
-    { r: { account } } = client
+    { r: { account, group } } = client
     { stack } = options
 
     JComputeStack = require '../stack'
-    JComputeStack.getStack account, stack, (err, revivedStack) =>
+    JComputeStack.getStack { account, group, stack }, (err, revivedStack) =>
       return callback err  if err?
       return callback new KodingError 'No such stack'  unless revivedStack
 
