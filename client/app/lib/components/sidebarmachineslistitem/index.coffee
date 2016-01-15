@@ -194,10 +194,12 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   getMachineLabel: ->
 
-    label  = "#{@machine 'label'}"
-    label += " (@#{@machine 'owner'})"  if @machine('type') isnt 'own'
+    owner  = ""
 
-    return label
+    owner  = " (@#{@machine 'owner'})"  if @machine('type') in ['shared', 'collaboration']
+    owner  = " (@#{@machine ['meta', 'oldOwner']})"  if @machine('type') is 'reassigned'
+
+    return "#{@machine 'label'}#{owner}"
 
 
   createAddWorkspaceView: ->
