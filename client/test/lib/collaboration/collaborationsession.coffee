@@ -39,39 +39,14 @@ module.exports =
 
   leaveSessionFromChat: (browser) ->
 
-    host        = utils.getUser no, 0
-    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant = utils.getUser no, 1
-    chatBox     = '.chat-view'
-    chatHeads   = "#{chatBox} .chat-heads .ParticipantHeads [href='/#{participant.username}']"
-
-    if hostBrowser
-      collaborationHelpers.startSessionAndInviteUser(browser, host, participant)
-      browser.waitForElementNotPresent chatHeads, 50000
-      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-      browser.end()
-    else
-      collaborationHelpers.joinSession(browser, host, participant)
-      collaborationHelpers.closeChatPage(browser)
-      collaborationHelpers.leaveSessionFromChat(browser)
-      browser.end()
+    collaborationHelpers.testLeaveSessionFrom_(browser, 'Chat')
 
 
   leaveSessionFromSidebar: (browser) ->
 
-    host        = utils.getUser no, 0
-    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant = utils.getUser no, 1
-    chatBox     = '.chat-view'
-    chatHeads   = "#{chatBox} .chat-heads .ParticipantHeads [href='/#{participant.username}']"
+    collaborationHelpers.testLeaveSessionFrom_(browser, 'Sidebar')
 
-    if hostBrowser
-      collaborationHelpers.startSessionAndInviteUser(browser, host, participant)
-      browser.waitForElementNotPresent chatHeads, 50000
-      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-      browser.end()
-    else
-      collaborationHelpers.joinSession(browser, host, participant)
-      collaborationHelpers.closeChatPage(browser)
-      collaborationHelpers.leaveSessionFromSidebar(browser)
-      browser.end()
+
+  leaveSessionFromStatusBar: (browser) ->
+
+    collaborationHelpers.testLeaveSessionFrom_(browser, 'StatusBar')
