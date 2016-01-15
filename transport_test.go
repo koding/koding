@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/koding/fuseklient/transport"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -27,6 +28,32 @@ func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}
 	}
 
 	return json.Unmarshal(bytes, &res)
+}
+
+func (f *fakeTransport) CreateDirectory(path string) error {
+	return nil
+}
+
+func (f *fakeTransport) ReadDirectory(path string, i []string) (transport.FsReadDirectoryRes, error) {
+	var res transport.FsReadDirectoryRes
+	return res, f.Trip("fs.readDirectory", nil, &res)
+}
+
+func (f *fakeTransport) Rename(oldPath, newPath string) error {
+	return nil
+}
+
+func (f *fakeTransport) Remove(path string) error {
+	return nil
+}
+
+func (f *fakeTransport) WriteFile(path string, content []byte) error {
+	return nil
+}
+
+func (f *fakeTransport) ReadFile(path string) (transport.FsReadFileRes, error) {
+	var res transport.FsReadFileRes
+	return res, f.Trip("fs.readFile", nil, &res)
 }
 
 func TestFakeTransport(t *testing.T) {

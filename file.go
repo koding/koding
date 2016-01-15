@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/transport"
 )
 
 // File represents a file system file and implements Node interface.
@@ -150,23 +149,12 @@ func (f *File) syncToRemote() error {
 
 func (f *File) writeContentToRemote(content []byte) error {
 	f.IsDirty = false
-
-	req := struct {
-		Path    string
-		Content []byte
-	}{
-		Path:    f.RemotePath,
-		Content: content,
-	}
-	var res int
-
-	return f.Transport.Trip("fs.writeFile", req, &res)
+	return f.Transport.WriteFile(f.RemotePath, content)
 }
 
 func (f *File) updateContentFromRemote() error {
-	req := struct{ Path string }{f.RemotePath}
-	res := transport.FsReadFileRes{}
-	if err := f.Trip("fs.readFile", req, &res); err != nil {
+	res, err := f.Transport.ReadFile(f.RemotePath)
+	if err != nil {
 		return err
 	}
 

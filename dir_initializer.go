@@ -28,18 +28,8 @@ func NewDirInitializer(t transport.Transport, root *Dir, ignoreFolders []string)
 }
 
 func (d *DirInitializer) Initialize() error {
-	req := struct {
-		Path          string
-		Recursive     bool
-		IgnoreFolders []string
-	}{
-		Path:          d.RootDir.RemotePath,
-		Recursive:     true,
-		IgnoreFolders: d.IgnoreFolders,
-	}
-	res := transport.FsReadDirectoryRes{}
-
-	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
+	res, err := d.Transport.ReadDirectory(d.RootDir.RemotePath, d.IgnoreFolders)
+	if err != nil {
 		return err
 	}
 

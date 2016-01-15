@@ -110,15 +110,8 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 		return nil, fuse.EEXIST
 	}
 
-	req := struct {
-		Path      string
-		Recursive bool
-	}{
-		Path:      filepath.Join(d.RemotePath, name),
-		Recursive: true,
-	}
-	var res bool
-	if err := d.Trip("fs.createDirectory", req, &res); err != nil {
+	path := filepath.Join(d.RemotePath, name)
+	if err := d.Transport.CreateDirectory(path); err != nil {
 		return nil, err
 	}
 
@@ -216,13 +209,10 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
-	req := struct{ OldPath, NewPath string }{
-		OldPath: filepath.Join(d.RemotePath, oldName),
-		NewPath: filepath.Join(newDir.RemotePath, newName),
-	}
-	var res bool
+	oldPath := filepath.Join(d.RemotePath, oldName)
+	newPath := filepath.Join(newDir.RemotePath, newName)
 
-	if err := d.Trip("fs.rename", req, res); err != nil {
+	if err := d.Transport.Rename(oldPath, newPath); err != nil {
 		return nil, err
 	}
 
@@ -329,15 +319,8 @@ func (d *Dir) removeEntry(name string) (Node, error) {
 		return nil, err
 	}
 
-	req := struct {
-		Path      string
-		Recursive bool
-	}{
-		Path:      path.Join(d.RemotePath, name),
-		Recursive: true,
-	}
-	var res bool
-	if err := d.Trip("fs.remove", req, &res); err != nil {
+	path := path.Join(d.RemotePath, name)
+	if err := d.Transport.Remove(path); err != nil {
 		return nil, err
 	}
 
@@ -410,9 +393,8 @@ func newTempEntry(file transport.FsGetInfoRes) *tempEntry {
 }
 
 func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
-	req := struct{ Path string }{d.RemotePath}
-	res := transport.FsReadDirectoryRes{}
-	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
+	res, err := d.Transport.ReadDirectory(d.RemotePath, []string{})
+	if err != nil {
 		return nil, err
 	}
 

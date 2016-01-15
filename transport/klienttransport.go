@@ -78,3 +78,77 @@ func (k *KlientTransport) Trip(methodName string, req interface{}, res interface
 
 	return raw.Unmarshal(&res)
 }
+
+func (k *KlientTransport) CreateDirectory(path string) error {
+	req := struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      path,
+		Recursive: true,
+	}
+	var res bool
+	return k.Trip("fs.createDirectory", req, &res)
+}
+
+func (k *KlientTransport) Rename(oldPath, newPath string) error {
+	req := struct{ OldPath, NewPath string }{
+		OldPath: oldPath,
+		NewPath: newPath,
+	}
+	var res bool
+	return k.Trip("fs.rename", req, res)
+}
+
+func (k *KlientTransport) Remove(path string) error {
+	req := struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      path,
+		Recursive: true,
+	}
+	var res bool
+	return k.Trip("fs.remove", req, &res)
+}
+
+func (k *KlientTransport) ReadDirectory(path string, ignoreFolders []string) (FsReadDirectoryRes, error) {
+	req := struct {
+		Path          string
+		Recursive     bool
+		IgnoreFolders []string
+	}{
+		Path:          path,
+		Recursive:     true,
+		IgnoreFolders: ignoreFolders,
+	}
+	res := FsReadDirectoryRes{}
+	if err := k.Trip("fs.readDirectory", req, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+func (k *KlientTransport) WriteFile(path string, content []byte) error {
+	req := struct {
+		Path    string
+		Content []byte
+	}{
+		Path:    path,
+		Content: content,
+	}
+	var res int
+
+	return k.Trip("fs.writeFile", req, &res)
+}
+
+func (k *KlientTransport) ReadFile(path string) (FsReadFileRes, error) {
+	req := struct{ Path string }{path}
+	res := FsReadFileRes{}
+	if err := k.Trip("fs.readFile", req, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
