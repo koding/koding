@@ -170,13 +170,13 @@ module.exports = class JComputeStack extends jraphical.Module
 
       JGroup = require './group'
 
-      JGroup.one { slug: data.groupSlug }, (err, group) =>
+      JGroup.one { slug: data.groupSlug }, (err, group) ->
         return callback err  if err or not group
 
-        updateGroupResourceUsage data, group, 'increment', (err) =>
+        updateGroupResourceUsage data, group, 'increment', (err) ->
           return callback err  if err
 
-          JComputeStack.create data, (err, stack) =>
+          JComputeStack.create data, (err, stack) ->
             if err
             then updateGroupResourceUsage data, group, 'decrement', -> callback err
             else callback null, stack
