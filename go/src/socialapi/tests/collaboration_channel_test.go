@@ -60,7 +60,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -74,7 +74,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"devrim", "sinan"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -103,12 +103,15 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"devrim", "sinan"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 			})
 
-			Convey("if sender is not defined should fail to create collaboration channel", func() {
+			// we give token as parameter to SendPrivateChannelRequest
+			// handler sets the accountId and groupname if not defined in handler's function
+			// So it should not return any error unless account is defined
+			Convey("if sender is not defined should not fail to create collaboration channel", func() {
 				pmr := models.ChannelRequest{}
 				pmr.AccountId = 0
 				pmr.Body = "this is a body for private message"
@@ -116,9 +119,9 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
-				So(err, ShouldNotBeNil)
-				So(cmc, ShouldBeNil)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
 			})
 
 			Convey("one can send private message to multiple person", func() {
@@ -129,7 +132,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"sinan"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -143,7 +146,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"devrim", "sinan"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(cmc.Channel.TypeConstant, ShouldEqual, models.Channel_TYPE_COLLABORATION)
@@ -161,7 +164,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"devrim", "sinan"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(cmc.IsParticipant, ShouldBeTrue)
@@ -175,7 +178,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"devrim", "sinan"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(cmc.ParticipantCount, ShouldEqual, 3)
@@ -189,7 +192,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"sinan", "devrim"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(len(cmc.ParticipantsPreview), ShouldEqual, 3)
@@ -204,7 +207,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"sinan", "devrim"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 				So(cmc.LastMessage.Message.Body, ShouldEqual, body)
@@ -223,7 +226,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"sinan", "devrim"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -233,7 +236,7 @@ func TestCollaborationChannels(t *testing.T) {
 					Type:      models.Channel_TYPE_COLLABORATION,
 				}
 
-				pm, err := rest.GetPrivateChannels(query)
+				pm, err := rest.GetPrivateChannels(query, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(pm, ShouldNotBeNil)
 				So(len(pm), ShouldNotEqual, 0)
@@ -257,7 +260,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Purpose = "test me up"
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cmc, err := rest.SendPrivateChannelRequest(pmr)
+				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 
 				query := request.Query{
@@ -266,11 +269,11 @@ func TestCollaborationChannels(t *testing.T) {
 					Type:      models.Channel_TYPE_COLLABORATION,
 				}
 
-				_, err = rest.SearchPrivateChannels(&query)
+				_, err = rest.SearchPrivateChannels(&query, ses.ClientId)
 				So(err, ShouldNotBeNil)
 
 				query.Name = "test"
-				pm, err := rest.SearchPrivateChannels(&query)
+				pm, err := rest.SearchPrivateChannels(&query, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(pm, ShouldNotBeNil)
 				So(len(pm), ShouldNotEqual, 0)
@@ -318,7 +321,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"sinan", "devrim"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cc, err := rest.SendPrivateChannelRequest(pmr)
+				cc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
@@ -388,7 +391,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"devrim"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cc, err := rest.SendPrivateChannelRequest(pmr)
+				cc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
 
@@ -426,7 +429,7 @@ func TestCollaborationChannels(t *testing.T) {
 				pmr.Recipients = []string{"sinan", "devrim"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
 
-				cc, err := rest.SendPrivateChannelRequest(pmr)
+				cc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
 
