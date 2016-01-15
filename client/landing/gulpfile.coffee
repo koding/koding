@@ -34,7 +34,8 @@ gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve
 
 # BUILD
 
-gulp.task 'build-all-sites', req 'task.build.all'
+gulp.task 'exec-subsite-build', req 'task.build.all'
+gulp.task 'build-all-sites', ['exec-subsite-build'], -> process.exit()
 
 
 # DEFAULT
