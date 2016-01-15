@@ -87,6 +87,19 @@ func UpdateCommand(c *cli.Context) int {
 		return 1
 	}
 
+	klientSh := klientSh{
+		User:          sudoUserFromEnviron(os.Environ()),
+		KiteHome:      KiteHome,
+		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
+		KontrolURL:    KontrolURL,
+	}
+
+	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
+		log.Errorf("Error writing klient.sh file. err:%s", err)
+		fmt.Println(FailedInstallingKlient)
+		return 1
+	}
+
 	fmt.Printf("Successfully updated to latest version of %s.\n", Name)
 	return 0
 }

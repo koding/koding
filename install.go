@@ -79,23 +79,6 @@ func InstallCommandFactory(c *cli.Context) int {
 		kontrolURL = KontrolURL
 	}
 
-	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
-	if err != nil {
-		log.Errorf("Error creating klient.sh path: %s", err)
-		fmt.Println(GenericInternalNewCodeError)
-		return 1
-	}
-
-	klientBinPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient"))
-	if err != nil {
-		log.Errorf(
-			"Error creating klient binary path. path:%s, err:%s",
-			filepath.Join(KlientDirectory, "klient"), err,
-		)
-		fmt.Println(GenericInternalNewCodeError)
-		return 1
-	}
-
 	// Create the installation dir, if needed.
 	err = os.MkdirAll(KlientDirectory, 0755)
 	if err != nil {
@@ -107,48 +90,21 @@ func InstallCommandFactory(c *cli.Context) int {
 		return 1
 	}
 
+	klientBinPath := filepath.Join(KlientDirectory, "klient")
+
 	// TODO: Accept `kd install --user foo` flag to replace the
 	// environ checking.
-	var sudoCmd string
-	for _, s := range os.Environ() {
-		env := strings.Split(s, "=")
-
-		if len(env) != 2 {
-			continue
-		}
-
-		if env[0] == "SUDO_USER" {
-			sudoCmd = fmt.Sprintf("sudo -u %s ", env[1])
-			break
-		}
+	klientSh := klientSh{
+		User:          sudoUserFromEnviron(os.Environ()),
+		KiteHome:      KiteHome,
+		KlientBinPath: klientBinPath,
+		KontrolURL:    kontrolURL,
 	}
 
-	// TODO: Stop using this klient.sh file.
-	// If the klient.sh file is missing, write it. We can use build tags
-	// for os specific tags, if needed.
-	_, err = os.Stat(klientShPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			klientShFile := []byte(fmt.Sprintf(`#!/bin/sh
-%sKITE_HOME=%s %s --kontrol-url=%s
-`,
-				sudoCmd, KiteHome, klientBinPath, kontrolURL))
-
-			// perm -rwr-xr-x, same as klient
-			if err := ioutil.WriteFile(klientShPath, klientShFile, 0755); err != nil {
-				log.Errorf("Error writing klient.sh file. err:%s", err)
-				fmt.Println(FailedInstallingKlient)
-				return 1
-			}
-
-			fmt.Printf("Created %s\n", klientShPath)
-
-		} else {
-			// Unknown error stating (possibly permission), exit
-			// TODO: Print UX friendly err
-			fmt.Println("Error:", err)
-			return 1
-		}
+	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
+		log.Errorf("Error writing klient.sh file. err:%s", err)
+		fmt.Println(FailedInstallingKlient)
+		return 1
 	}
 
 	fmt.Println("Downloading...")
@@ -262,4 +218,66 @@ func createLogFile(p string) (*os.File, error) {
 	}
 
 	return f, nil
+}
+
+// klientSh implements methods for creating the klient.sh file.
+type klientSh struct {
+	// The username that the sudo command will run under.
+	User string
+
+	// The kite home that klient will run with. Used as part of the KITE_HOME
+	// environment variable for klient.
+	//
+	// An env var is needed because Kite looks for this environment variable directly,
+	// and cannot be specified by supplying an arg to klient.
+	KiteHome string
+
+	// The klient bin location, which will be the actual bin run from the klient.sh file
+	KlientBinPath string
+
+	// The kontrol url, for klient to connect to.
+	KontrolURL string
+}
+
+// Format returns the klient.sh struct formatted for the actual file.
+func (k klientSh) Format() string {
+	// sudoCmd is used to run the bin as the given user. However,
+	// we only do that if the user value of klientSh is non-zeroed.
+	var sudoCmd string
+
+	if k.User != "" {
+		sudoCmd = fmt.Sprintf("sudo -u %s ", k.User)
+	}
+
+	return fmt.Sprintf(
+		`#!/bin/sh
+%sKITE_HOME=%s %s --kontrol-url=%s
+`,
+		sudoCmd, k.KiteHome, k.KlientBinPath, k.KontrolURL,
+	)
+}
+
+// Create writes the result of Format() to the given path.
+func (k klientSh) Create(p string) error {
+	// perm -rwr-xr-x, same as klient
+	return ioutil.WriteFile(p, []byte(k.Format()), 0755)
+}
+
+// sudoUserFromEnviron extracts the SUDO_USER environment variable value from
+// the given slice, if any.
+func sudoUserFromEnviron(envs []string) string {
+	var user string
+	for _, s := range envs {
+		env := strings.Split(s, "=")
+
+		if len(env) != 2 {
+			continue
+		}
+
+		if env[0] == "SUDO_USER" {
+			user = env[1]
+			break
+		}
+	}
+	return user
 }
