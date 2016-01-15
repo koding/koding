@@ -3,6 +3,7 @@ whoami          = require 'app/util/whoami'
 globals         = require 'globals'
 actions         = require 'app/flux/environment/actions'
 isKoding        = require 'app/util/isKoding'
+isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
 
 
@@ -53,10 +54,10 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   machineFoundCallback: (info, machine) ->
 
-    if isKoding()
-      kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
-    else
+    if isTeamReactSide()
       actions.showManagedMachineAddedModal info, machine._id
+    else
+      kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
 
     @destroy()
 
