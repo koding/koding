@@ -121,6 +121,8 @@ module.exports = class IDEEditorPane extends IDEPane
       ace.removeModifiedFromTab()
       @updateFileModifiedTime()
 
+    @file.on 'fs.delete.finished', @bound 'removeCollaborativeString'
+
     @file.on 'FileContentsNeedsToBeRefreshed', =>
       ace.fetchContents (err, content) =>
         @updateContent content, yes
@@ -397,11 +399,10 @@ module.exports = class IDEEditorPane extends IDEPane
     ace = @getAce()
 
     ace.ready =>
+      @setContent string.getText(), no
 
-        @setContent string.getText(), no
-
-        if ace.contentChanged = ace.isCurrentContentChanged()
-          ace.emit 'FileContentChanged'
+      if ace.contentChanged = ace.isCurrentContentChanged()
+        ace.emit 'FileContentChanged'
 
 
   listenCollaborativeStringChanges: ->
@@ -427,6 +428,9 @@ module.exports = class IDEEditorPane extends IDEPane
     return  unless changedString is string
 
     @applyChange change
+
+
+  removeCollaborativeString: -> @rtm.delete 'string', @getFile().path
 
 
   isChangedByMe: (change) -> return change.isLocal
