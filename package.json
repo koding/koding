@@ -98,10 +98,10 @@
   },
   "devDependencies": {
     "chai": "2.2.0",
+    "coffeelint": "1.11.1",
     "crypto": "0.0.3",
     "github": "0.2.4",
     "mocha": "2.2.4",
-    "coffeelint": "1.11.1",
     "which": "1.0.5"
   },
   "optionalDependencies": {},
