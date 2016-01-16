@@ -615,7 +615,7 @@ module.exports =
     menuButtonSelector = '.ChannelThreadPane-content .ChannelThreadPane-header .ButtonWithMenuWrapper button'
     editButtonSelector = '.ButtonWithMenuItemsList.ChannelThreadPane-menuItems li:nth-child(3)'
     inputTextSelector  = '.ThreadHeader.ChannelThreadPane-header .ChannelThreadPane-purposeWrapper.editing input'
-    editedTextSelector = '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose'
+    editedTextSelector = '.ThreadHeader.ChannelThreadPane-header .ChannelThreadPane-purposeWrapper:not(.editing)'
 
     browser
       .waitForElementVisible  menuButtonSelector, 20000
