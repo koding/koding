@@ -5,10 +5,9 @@ HUBSPOT  = no
 
 teamsModalSelector       = '.TeamsModal--groupCreation'
 companyNameSelector      = '.login-form input[testpath=company-name]'
-sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
+sidebarSectionsSelector  = '.activity-sidebar .SidebarChannelsSection'
 chatItem                 = '.Pane-body .ChatList .ChatItem'
 chatInputSelector        = '.ChatPaneFooter .ChatInputWidget textarea'
-sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
 invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
 pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
 pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
@@ -292,7 +291,7 @@ module.exports =
 
   moveToSidebarHeader: (browser, plus, channelHeader) ->
 
-    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarChannelsSection .SidebarSection-header"
+    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarSection-header"
     channelPlusSelector           = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
 
     browser

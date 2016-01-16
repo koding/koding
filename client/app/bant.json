@@ -5,14 +5,16 @@
     "": "home",
     "/": "home",
     "/R/:username": "referrer",
-    "/:name?/Login": "login",
-    "/:name?/Register": "register",
-    "/:name?/Logout": "logout",
+    "/Login": "login",
+    "/Register": "register",
+    "/Logout": "logout",
     "/:slug/:name": "members",
     "/member/:username": "member",
-    "/:name?/Unsubscribe/:token/:email/:opt?": "unsubscribe",
+    "/Unsubscribe/:token/:email/:opt?": "unsubscribe",
     "/:name": "name",
-    "/Reset/:token": "reset"
+    "/Reset/:token": "reset",
+    "/Stacks/:stack?": "stacks",
+    "/Machines/:slug": "machine-settings"
   },
   "sprites": [
     "./lib/sprites"
