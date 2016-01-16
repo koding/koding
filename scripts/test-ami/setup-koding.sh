@@ -14,7 +14,7 @@ cd $REPOSITORY_PATH
 npm install --unsafe-perm
 
 ./configure
-sudo ./run buildservices force || :
+./run buildservices force || :
 
 
 # Cleanup
