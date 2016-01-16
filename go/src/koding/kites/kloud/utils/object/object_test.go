@@ -1,9 +1,12 @@
 package object_test
 
 import (
-	"koding/kites/kloud/utils/object"
 	"reflect"
 	"testing"
+
+	"koding/kites/kloud/utils/object"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type Foo struct {
@@ -50,6 +53,24 @@ func TestBuilder(t *testing.T) {
 			"prefix+bar+foos+foo": "",
 			"prefix+bar+barbar":   "z",
 			"prefix+baz":          42,
+		},
+	}, { // i=3
+		map[string]interface{}{"foo": "bar", "baz": 42},
+		object.Object{
+			"prefix+foo": "bar",
+			"prefix+baz": 42,
+		},
+	}, { // i=4
+		bson.M{"foo": bson.M{"bar": "s"}, "baz": 42},
+		object.Object{
+			"prefix+foo+bar": "s",
+			"prefix+baz":     42,
+		},
+	}, { // i=5
+		struct{ Field bson.M }{Field: bson.M{"other": Bar{Bar: "s"}}},
+		object.Object{
+			"prefix+field+other+foos+foo": "",
+			"prefix+field+other+barbar":   "s",
 		},
 	}}
 

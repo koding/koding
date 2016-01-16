@@ -66,6 +66,39 @@ func (b *Builder) Build(v interface{}) Object {
 }
 
 func (b *Builder) build(v interface{}, obj Object) {
+	if isMapObject(v) {
+		b.buildMapObject(v, obj)
+	} else {
+		b.buildStruct(v, obj)
+	}
+}
+
+func (b *Builder) buildMapObject(v interface{}, obj Object) {
+	m := reflect.ValueOf(v)
+	for _, vkey := range m.MapKeys() {
+		key := vkey.String()
+		if key == "" {
+			continue
+		}
+
+		vv := m.MapIndex(vkey).Interface()
+
+		if !b.Recursive {
+			b.set(obj, key, vv)
+			continue
+		}
+
+		child := flatten(vv)
+		if child == nil {
+			b.set(obj, key, vv)
+			continue
+		}
+
+		b.New(key).build(child, obj)
+	}
+}
+
+func (b *Builder) buildStruct(v interface{}, obj Object) {
 	for _, field := range structs.New(toStruct(v)).Fields() {
 		if !field.IsExported() {
 			continue
@@ -81,7 +114,7 @@ func (b *Builder) build(v interface{}, obj Object) {
 			continue
 		}
 
-		child := toStruct(field.Value())
+		child := flatten(field.Value())
 		if child == nil {
 			b.set(obj, key, field.Value())
 			continue
@@ -116,6 +149,24 @@ func (b *Builder) keyFromField(f *structs.Field) string {
 	}
 
 	return tag
+}
+
+func isMapObject(v interface{}) bool {
+	typ := reflect.TypeOf(v)
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	if typ.Kind() != reflect.Map {
+		return false
+	}
+	return typ.Key().Kind() == reflect.String
+}
+
+func flatten(v interface{}) interface{} {
+	if isMapObject(v) {
+		return v
+	}
+	return toStruct(v)
 }
 
 // toStruct converts []StructType value to *StructType one in order to
