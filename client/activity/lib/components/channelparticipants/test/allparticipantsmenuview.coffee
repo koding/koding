@@ -5,7 +5,7 @@ TestUtils = require 'react-addons-test-utils'
 MenuView  = require '../allparticipantsmenuview'
 mock      = require '../../../../../mocks/mockingjay'
 
-describe 'ChannelParticipantsAllParticipantsMenuView', ->
+describe 'ChannelAllParticipantsMenuView', ->
 
   { renderIntoDocument } = TestUtils
 
