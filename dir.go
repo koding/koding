@@ -111,7 +111,7 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 	}
 
 	path := filepath.Join(d.RemotePath, name)
-	if err := d.Transport.CreateDirectory(path); err != nil {
+	if err := d.Transport.CreateDir(path, 0755); err != nil {
 		return nil, err
 	}
 
@@ -393,7 +393,7 @@ func newTempEntry(file transport.FsGetInfoRes) *tempEntry {
 }
 
 func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
-	res, err := d.Transport.ReadDirectory(d.RemotePath, []string{})
+	res, err := d.Transport.ReadDir(d.RemotePath, []string{})
 	if err != nil {
 		return nil, err
 	}

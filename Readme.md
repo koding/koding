@@ -37,3 +37,9 @@ Library that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https
   * If you get `Device not configured` when trying to access mount when daemon is not running: do `diskutil unmount force <folder>`.
   * If you get `mount point <folder> is itself on a OSXFUSE volume`, do `diskutil unmount force <folder>`.
   * See https://github.com/jacobsa/fuse for more information.
+
+## Naming guide
+
+  * Dir over Directory or Folder.
+  * Use crud names in transports, ie CreateDir instead of MkDir.
+  * Mode over Permissions.

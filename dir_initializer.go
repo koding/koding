@@ -28,7 +28,7 @@ func NewDirInitializer(t transport.Transport, root *Dir, ignoreFolders []string)
 }
 
 func (d *DirInitializer) Initialize() error {
-	res, err := d.Transport.ReadDirectory(d.RootDir.RemotePath, d.IgnoreFolders)
+	res, err := d.Transport.ReadDir(d.RootDir.RemotePath, d.IgnoreFolders)
 	if err != nil {
 		return err
 	}

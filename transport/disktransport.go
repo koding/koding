@@ -1,0 +1,234 @@
+package transport
+
+import (
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+)
+
+// DiskTransport is an implementation of Transport that reads files and
+// directories from disk.
+type DiskTransport struct {
+	Path string
+}
+
+// Trip is a legacy method so it can satisfy Transport interface.
+func (d *DiskTransport) Trip(m string, res interface{}, resp interface{}) error {
+	return nil
+}
+
+// CreateDir (recursively) creates dir with specified name and mode.
+func (d *DiskTransport) CreateDir(path string, mode os.FileMode) error {
+	return os.MkdirAll(d.fullPath(path), mode)
+}
+
+// ReadDir returns entries of the dir at specified path.
+func (d *DiskTransport) ReadDir(path string, ignoredDirs []string) (FsReadDirRes, error) {
+	entries, err := readDirectory(d.fullPath(path), true, ignoredDirs)
+	if err != nil {
+		return FsReadDirRes{}, err
+	}
+
+	return FsReadDirRes{Files: entries}, nil
+}
+
+// Rename changes name of the entry from specified old to new name.
+func (d *DiskTransport) Rename(oldName, newName string) error {
+	return rename(d.fullPath(oldName), d.fullPath(newName))
+}
+
+// Remove (recursively) removes the entries in the specificed path.
+func (d *DiskTransport) Remove(path string) error {
+	return remove(d.fullPath(path), true)
+}
+
+// ReadFile reads file at specificed path and return its contents.
+func (d *DiskTransport) ReadFile(path string) (FsReadFileRes, error) {
+	var fsresp = FsReadFileRes{}
+	resp, err := readFile(d.fullPath(path))
+	if err != nil {
+		return fsresp, err
+	}
+
+	content, ok := resp["content"]
+	if !ok {
+		return fsresp, errors.New("'content' is not a byte slice")
+	}
+
+	byteContent, ok := content.([]byte)
+	if !ok {
+		return fsresp, errors.New("no 'content' in response")
+	}
+
+	return FsReadFileRes{Content: byteContent}, nil
+}
+
+// WriteFile writes file at specificed path with data.
+func (d *DiskTransport) WriteFile(path string, data []byte) error {
+	// path, data, doNotOverwrite, append
+	_, err := writeFile(d.fullPath(path), data, false, false)
+	return err
+}
+
+// fullPath joins the starting path with the specified path.
+func (d *DiskTransport) fullPath(path string) string {
+	return filepath.Join(d.Path, path)
+}
+
+///// COPIED FROM KLIENT. TODO: fix this.
+
+func readDirectory(p string, recursive bool, ignoreFolders []string) ([]FsGetInfoRes, error) {
+	ls := make([]FsGetInfoRes, 0)
+	walkerFn := func(path string, f os.FileInfo, err error) error {
+		// no use in returning root level directory that's being traversed
+		if path == p {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		// skip ignored folders
+		if f.IsDir() {
+			for _, ignore := range ignoreFolders {
+				// adding / is required to prevent partial matching
+				if strings.Contains(path, "/"+ignore+"/") {
+					return filepath.SkipDir
+				}
+			}
+		}
+
+		fileInfo := makeFileEntry(path, f)
+		ls = append(ls, fileInfo)
+
+		if !recursive && f.IsDir() {
+			return filepath.SkipDir
+		}
+
+		return nil
+	}
+
+	if err := filepath.Walk(p, walkerFn); err != nil {
+		return nil, err
+	}
+
+	return ls, nil
+}
+
+func makeFileEntry(fullPath string, fi os.FileInfo) FsGetInfoRes {
+	var (
+		readable bool
+		writable bool
+	)
+
+	f, err := os.OpenFile(fullPath, os.O_RDONLY, 0)
+	if f != nil {
+		f.Close()
+	}
+
+	// If there is no error in attempting to open the file for Reading,
+	// it is readable.
+	if err == nil {
+		readable = true
+	}
+
+	f, err = os.OpenFile(fullPath, os.O_WRONLY, 0)
+	if f != nil {
+		f.Close()
+	}
+
+	// If there are no error in attempting to open the file for Writing,
+	// it is writable.
+	if err == nil {
+		writable = true
+	}
+
+	entry := FsGetInfoRes{
+		Name:     fi.Name(),
+		Exists:   true,
+		FullPath: fullPath,
+		IsDir:    fi.IsDir(),
+		Size:     uint64(fi.Size()),
+		Mode:     fi.Mode(),
+		Time:     fi.ModTime(),
+		Readable: readable,
+		Writable: writable,
+	}
+
+	if fi.Mode()&os.ModeSymlink != 0 {
+		symlinkInfo, err := os.Stat(path.Dir(fullPath) + "/" + fi.Name())
+		if err != nil {
+			entry.IsBroken = true
+			return entry
+		}
+		entry.IsDir = symlinkInfo.IsDir()
+		entry.Size = uint64(symlinkInfo.Size())
+		entry.Mode = symlinkInfo.Mode()
+		entry.Time = symlinkInfo.ModTime()
+	}
+
+	return entry
+}
+
+func writeFile(filename string, data []byte, doNotOverwrite, Append bool) (int, error) {
+	flags := os.O_RDWR | os.O_CREATE
+	if doNotOverwrite {
+		flags |= os.O_EXCL
+	}
+
+	if !Append {
+		flags |= os.O_TRUNC
+	} else {
+		flags |= os.O_APPEND
+	}
+
+	file, err := os.OpenFile(filename, flags, 0666)
+	if err != nil {
+		return 0, err
+	}
+
+	defer file.Close()
+
+	return file.Write(data)
+}
+
+func readFile(path string) (map[string]interface{}, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	fi, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	if fi.Size() > 50*1024*1024 {
+		return nil, fmt.Errorf("File larger than 50MiB.")
+	}
+
+	buf := make([]byte, fi.Size())
+	if _, err := io.ReadFull(file, buf); err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{"content": buf}, nil
+}
+
+func rename(oldname, newname string) error {
+	return os.Rename(oldname, newname)
+}
+
+func remove(path string, recursive bool) error {
+	if recursive {
+		return os.RemoveAll(path)
+	}
+
+	return os.Remove(path)
+}

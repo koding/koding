@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type FsReadDirectoryRes struct {
+type FsReadDirRes struct {
 	Files []FsGetInfoRes `json:"files"`
 }
 

@@ -3,6 +3,7 @@ package transport
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/user"
 	"strings"
 	"syscall"
@@ -79,7 +80,8 @@ func (k *KlientTransport) Trip(methodName string, req interface{}, res interface
 	return raw.Unmarshal(&res)
 }
 
-func (k *KlientTransport) CreateDirectory(path string) error {
+func (k *KlientTransport) CreateDir(path string, mode os.FileMode) error {
+	// TODO: accept permissions here
 	req := struct {
 		Path      string
 		Recursive bool
@@ -112,7 +114,7 @@ func (k *KlientTransport) Remove(path string) error {
 	return k.Trip("fs.remove", req, &res)
 }
 
-func (k *KlientTransport) ReadDirectory(path string, ignoreFolders []string) (FsReadDirectoryRes, error) {
+func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (FsReadDirRes, error) {
 	req := struct {
 		Path          string
 		Recursive     bool
@@ -122,7 +124,7 @@ func (k *KlientTransport) ReadDirectory(path string, ignoreFolders []string) (Fs
 		Recursive:     true,
 		IgnoreFolders: ignoreFolders,
 	}
-	res := FsReadDirectoryRes{}
+	res := FsReadDirRes{}
 	if err := k.Trip("fs.readDirectory", req, &res); err != nil {
 		return res, err
 	}
