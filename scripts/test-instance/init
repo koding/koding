@@ -14,6 +14,8 @@ export CONFIG_DEBUGMODE="true"
 
 ulimit -n 10240
 
+source /etc/environment
+
 cd $REPOSITORY_PATH
 
 git config user.email 'sysops@koding.com'
