@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structs"
+	"github.com/mitchellh/mapstructure"
 )
 
 // TODO(rjeczalik): Missing support for slice of structs - object's value
@@ -63,6 +64,21 @@ func (b *Builder) Build(v interface{}) Object {
 	obj := make(Object)
 	b.build(v, obj)
 	return obj
+}
+
+// Decode marshals map-like obj value into v.
+//
+// TODO(rjeczalik): Support for recursive decoding.
+func (b *Builder) Decode(obj, v interface{}) error {
+	cfg := &mapstructure.DecoderConfig{
+		Result:  v,
+		TagName: b.Tag,
+	}
+	dec, err := mapstructure.NewDecoder(cfg)
+	if err != nil {
+		return err
+	}
+	return dec.Decode(obj)
 }
 
 func (b *Builder) build(v interface{}, obj Object) {

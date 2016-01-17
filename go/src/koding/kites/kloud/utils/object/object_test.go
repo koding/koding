@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/utils/object"
 
 	"gopkg.in/mgo.v2/bson"
@@ -79,5 +80,44 @@ func TestBuilder(t *testing.T) {
 		if !reflect.DeepEqual(obj, cas.obj) {
 			t.Errorf("%d: want %+v to be %+v", i, obj, cas.obj)
 		}
+	}
+}
+
+func TestBuilderDecode(t *testing.T) {
+	var RootModule = map[string]string{
+		"cidr_block": "10.0.0.0/16",
+		"igw":        "igw-aa43bdce",
+		"rtb":        "rtb-3e19315a",
+		"sg":         "sg-bf1898c6",
+		"subnet":     "subnet-5c0bf704",
+		"acl":        "acl-0948336d",
+		"key_pair":   "koding-deployment-rafal-1453026316070088464",
+		"vpc":        "vpc-f0e09594",
+		"ami":        "ami-cf35f3a4",
+	}
+	var meta = &awsprovider.AwsMeta{
+		CidrBlock: "10.0.0.0/16",
+		IGW:       "igw-aa43bdce",
+		RTB:       "rtb-3e19315a",
+		SG:        "sg-bf1898c6",
+		Subnet:    "subnet-5c0bf704",
+		ACL:       "acl-0948336d",
+		KeyPair:   "koding-deployment-rafal-1453026316070088464",
+		VPC:       "vpc-f0e09594",
+		AMI:       "ami-cf35f3a4",
+	}
+	b := &object.Builder{
+		Tag:       "stackplan",
+		Sep:       "_",
+		Recursive: true,
+	}
+
+	decoded := &awsprovider.AwsMeta{}
+	if err := b.Decode(RootModule, decoded); err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(decoded, meta) {
+		t.Errorf("want %+v to be %+v", decoded, meta)
 	}
 }
