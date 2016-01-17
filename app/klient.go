@@ -93,6 +93,8 @@ type KlientConfig struct {
 	UpdateInterval time.Duration
 	UpdateURL      string
 
+	VagrantHome string
+
 	TunnelServerAddr string
 	TunnelLocalAddr  string
 }
@@ -152,7 +154,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
 		tunnelclient: klienttunnel.NewClient(db),
-		vagrant:      vagrant.NewHandlers(),
+		vagrant:      vagrant.NewHandlers(conf.VagrantHome),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,

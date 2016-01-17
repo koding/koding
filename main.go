@@ -37,6 +37,9 @@ var (
 		"https://s3.amazonaws.com/koding-klient/"+protocol.Environment+"/latest-version.txt",
 		"Change update endpoint for latest version")
 
+	// Vagrant flags
+	flagVagrantHome = flag.String("vagrant-home", "", "Change Vagrant home path")
+
 	// Tunnel flags
 	flagTunnelServerAddr = flag.String("tunnel-server", "", "Tunnel server address")
 	flagTunnelLocalAddr  = flag.String("tunnel-local", "", "Address of local server to be tunneled (optional)")
@@ -65,13 +68,21 @@ func realMain() int {
 	}
 
 	dbPath := ""
+	vagrantHome := ""
 	u, err := user.Current()
 	if err == nil {
 		dbPath = filepath.Join(u.HomeDir, "/.config/koding/klient.bolt")
+		vagrantHome = filepath.Join(u.HomeDir, ".vagrant.d")
 	}
 
 	if *flagDBPath != "" {
 		dbPath = *flagDBPath
+	}
+
+	if *flagVagrantHome != "" {
+		vagrantHome = *flagVagrantHome
+	} else if s := os.Getenv("VAGRANT_CWD"); s != "" {
+		vagrantHome = s
 	}
 
 	conf := &app.KlientConfig{
@@ -88,6 +99,7 @@ func realMain() int {
 		UpdateInterval:   *flagUpdateInterval,
 		UpdateURL:        *flagUpdateURL,
 		ScreenrcPath:     *flagScreenrc,
+		VagrantHome:      vagrantHome,
 		TunnelServerAddr: *flagTunnelServerAddr,
 		TunnelLocalAddr:  *flagTunnelLocalAddr,
 	}

@@ -6,6 +6,7 @@ package vagrant
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"sync"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
@@ -18,13 +19,15 @@ const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
 // Handlers define a set of kite handlers which is responsible of managing
 // vagrant boxes on multiple different paths.
 type Handlers struct {
+	home    string
 	paths   map[string]*vagrantutil.Vagrant
 	pathsMu sync.Mutex // protects paths
 }
 
 // NewHandlers returns a new instance of Handlers.
-func NewHandlers() *Handlers {
+func NewHandlers(home string) *Handlers {
 	return &Handlers{
+		home:  home,
 		paths: make(map[string]*vagrantutil.Vagrant),
 	}
 }
@@ -42,6 +45,7 @@ type VagrantCreateOptions struct {
 	Cpus          int
 	ProvisionData string
 	CustomScript  string
+	FilePath      string
 }
 
 type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error)
@@ -66,23 +70,41 @@ func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error
 		return nil, errors.New("[filePath] is missing")
 	}
 
-	// check if it was added previously, if not create a new vagrantUtil
-	// instance
+	v, err := h.vagrantutil(params.FilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return fn(r, v)
+}
+
+// check if it was added previously, if not create a new vagrantUtil
+// instance
+func (h *Handlers) vagrantutil(path string) (*vagrantutil.Vagrant, error) {
+	path = h.absolute(path)
+
 	h.pathsMu.Lock()
-	v, ok := h.paths[params.FilePath]
-	h.pathsMu.Unlock()
+	defer h.pathsMu.Unlock()
+
+	v, ok := h.paths[path]
 	if !ok {
-		v, err = vagrantutil.NewVagrant(params.FilePath)
+		var err error
+		v, err = vagrantutil.NewVagrant(path)
 		if err != nil {
 			return nil, err
 		}
 
-		h.pathsMu.Lock()
-		h.paths[params.FilePath] = v
-		h.pathsMu.Unlock()
+		h.paths[path] = v
 	}
 
-	return fn(r, v)
+	return v, nil
+}
+
+func (h *Handlers) absolute(path string) string {
+	if !filepath.IsAbs(path) {
+		return filepath.Join(h.home, path)
+	}
+	return filepath.Clean(path)
 }
 
 // List returns a list of vagrant boxes with their status, paths and unique ids
@@ -118,6 +140,8 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 		if err := r.Args.One().Unmarshal(&params); err != nil {
 			return nil, err
 		}
+
+		params.FilePath = h.absolute(params.FilePath)
 
 		if params.Box == "" {
 			params.Box = "ubuntu/trusty64"
