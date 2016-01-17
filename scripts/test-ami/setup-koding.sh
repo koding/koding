@@ -2,6 +2,8 @@
 
 # Set up working environment
 
+source /etc/environment
+
 REPOSITORY_PATH=/opt/koding
 
 ## Clone repository
