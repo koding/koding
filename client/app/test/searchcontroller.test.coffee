@@ -121,8 +121,8 @@ describe 'kd.singletons.search', ->
       mockGroup   = mock.getMockGroup()
       nickname    = mockAccount.profile.nickname
 
-      mock.remote.api.JAccount.one.toReturnPassedParam mockAccount
-      mock.groups.getCurrentGroup.toReturnPassedParam mockGroup
+      mock.remote.api.JAccount.one.toReturnAccount()
+      mock.groups.getCurrentGroup.toReturnGroup()
 
       expect.spyOn(mockGroup, 'isMember').andCall (account, callback) ->
         callback null, yes

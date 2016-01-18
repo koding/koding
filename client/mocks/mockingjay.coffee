@@ -15,6 +15,8 @@ mockThread       = require 'app/util/generateDummyThread'
 mockParticipants = require 'app/util/generateDummyParticipants'
 
 mockMachine = new Machine { machine: mockjmachine }
+mockGroup   = remote.revive mockjgroup
+
 { socialapi, appManager } = kd.singletons
 
 
@@ -177,11 +179,11 @@ module.exports =
 
     getCurrentGroup:
 
-      toReturnPassedParam: (param) ->
+      toReturnGroup: ->
 
         { groupsController } = kd.singletons
 
-        expect.spyOn(groupsController, 'getCurrentGroup').andReturn param
+        expect.spyOn(groupsController, 'getCurrentGroup').andReturn mockGroup
 
 
   search:
@@ -236,11 +238,11 @@ module.exports =
 
         one:
 
-          toReturnPassedParam: (param) ->
+          toReturnAccount: ->
 
             new Promise (resolve, reject) ->
 
-              promise = new Promise (resolve, reject) -> resolve param
+              promise = new Promise (resolve, reject) -> resolve mockjaccount
 
               expect.spyOn(remote.api.JAccount, 'one').andReturn promise
 
@@ -278,7 +280,7 @@ module.exports =
 
   getMockAccount: ->   return mockjaccount
 
-  getMockGroup: ->     return remote.revive mockjgroup
+  getMockGroup: ->     return mockGroup
 
   getMockMessage: (args...) -> return mockMessage(args...)
 
