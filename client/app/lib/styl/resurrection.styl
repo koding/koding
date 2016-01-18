@@ -100,7 +100,7 @@ pre
 
       .count
       .SidebarListItem-unreadCount
-        vendor            transition, font-size .3s ease
+        vendor              transition, all .3s ease
 
       .sidebar-title
       .sidebar-machine-box
@@ -148,7 +148,7 @@ pre
         &.team
           .logo-wrapper.group
             > a
-              display       none
+              width         0
 
           .account-area
             .notifications
@@ -172,6 +172,10 @@ pre
           display           none !important
 
         .SidebarSection-header
+        .Workspaces-section
+        .MachineSettings
+        .SidebarListItem-title
+        .SidebarListItem-progressbar
         .sidebar-title
           opacity           0
 
@@ -1327,6 +1331,15 @@ paymentGrayLighter  = #f8f8f8
     .stdout
       width                 498px
 
+  &.team
+    .stopping + .progressbar-container
+      .bar
+        background-color    #e94835
+
+    &.full
+      .bar
+        margin-left         100%
+
   .kdmodal-content
     overflow                visible
 
@@ -1514,11 +1527,13 @@ paymentGrayLighter  = #f8f8f8
     rounded             4px
     bg                  image, none
     bg                  color, #D8D8D8
+
     .bar
-      bg                image, none
-      bg                color, #5DC45A
-      vendor            box-shadow, none
-      rounded           4px
+      bg                    image, none
+      bg                    color, #5DC45A
+      vendor                box-shadow, none
+      rounded               4px
+      vendor                transition, margin .3s ease
 
   .marketing-snippet
     margin-top          30px

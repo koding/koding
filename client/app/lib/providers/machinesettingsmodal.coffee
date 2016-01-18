@@ -103,6 +103,13 @@ module.exports = class MachineSettingsModal extends KDModalView
       @panesByTitle[item.title] = pane
 
 
+  destroy: ->
+
+    super
+
+    kd.singletons.router.back()
+
+
   # MachineSettingsModal has same UI with AccountSettingsModal.
   # However to reuse ASM styling I needed to add/remove some classes.
   # We can consider this method later.

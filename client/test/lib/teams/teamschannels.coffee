@@ -51,7 +51,7 @@ module.exports =
 
     user                    = teamsHelpers.loginTeam(browser)
     channelName1            = teamsHelpers.createChannel(browser, user)
-    sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
+    sidebarSectionsSelector = '.activity-sidebar .SidebarChannelsSection'
 
     teamsHelpers.leaveChannel(browser)
     channelName2                  = teamsHelpers.createChannel(browser, user)
