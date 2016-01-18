@@ -199,7 +199,7 @@ Configuration = (options={}) ->
     basevirtualhost : "koding.me"
     hostedzone      : "koding.me"
 
-  KONFIG              =
+  KONFIG =
     configName                     : configName
     environment                    : environment
     ebEnvName                      : options.ebEnvName
@@ -226,7 +226,7 @@ Configuration = (options={}) ->
     misc                           : {claimGlobalNamesForUsers: no , debugConnectionErrors: yes}
     githubapi                      : githubapi
     recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
-    nodejsRateLimiter              : {enabled : no, limit : 3000, duration : 3600000} # limit: request limit per rate limit window, duration: rate limit window duration in milli seconds
+    nodejsRateLimiter              : {enabled : no, guestRules : [{ interval: 3600, limit: 500 }], userRules : [{ interval: 3600, limit: 1000 }]} # limit: request limit per rate limit window, interval: rate limit window duration in seconds
 
     # -- WORKER CONFIGURATION -- #
 
