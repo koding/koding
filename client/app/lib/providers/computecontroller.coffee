@@ -1139,6 +1139,16 @@ module.exports = class ComputeController extends KDController
     return null
 
 
+  reloadIDE = (machineSlug) ->
+
+    route   = '/IDE'
+    if machineSlug
+      route = "/IDE/#{machineSlug}"
+
+    kd.singletons.appManager.quitByName 'IDE', ->
+      kd.singletons.router.handleRoute route
+
+
   ###*
    * Reinit's given stack or groups default stack
    * If stack given, it asks for re-init and first deletes and then calls
@@ -1184,14 +1194,12 @@ module.exports = class ComputeController extends KDController
 
           @reset()
 
-            .once 'RenderStacks', (stacks) ->
+            .once 'RenderStacks', (stacks = []) ->
 
               new kd.NotificationView
                 title : 'Stack reinitialized'
 
-              kd.singletons.appManager.quitByName 'IDE'
-              kd.utils.defer ->
-                kd.singletons.router.handleRoute '/IDE'
+              reloadIDE stacks[0]?.machines[0]?.slug
 
           if template and not groupStack
           then @createDefaultStack no, template
