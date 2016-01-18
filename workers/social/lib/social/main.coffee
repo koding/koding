@@ -109,8 +109,6 @@ koding.on 'authenticateUser', (client, callback) ->
 koding.on 'errFirstDetected', (err) -> console.error err
 
 koding.connect ->
-  (require './init').init koding
-
   # create default roles for groups
   JGroupRole = require './models/group/role'
 
