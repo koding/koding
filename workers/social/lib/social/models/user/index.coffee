@@ -1,3 +1,4 @@
+async            = require 'async'
 jraphical        = require 'jraphical'
 Regions          = require 'koding-regions'
 request          = require 'request'
@@ -359,7 +360,7 @@ module.exports = class JUser extends jraphical.Module
       callback null, response
 
 
-  fetchSession = (options, queue, callback, fetchData) ->
+  fetchSession = (options, callback) ->
 
     { clientId, username } = options
 
@@ -372,19 +373,16 @@ module.exports = class JUser extends jraphical.Module
         console.error "login: session not found #{username}"
         return callback new KodingError 'Couldn\'t restore your session!'
 
-      fetchData session
-
-      queue.next()
+      callback null, session
 
 
-  validateLoginCredentials = (options, queue, callback, fetchData) ->
+  validateLoginCredentials = (options, callback) ->
 
     { username, password, tfcode } = options
 
     # check credential validity
     JUser.one { username }, (err, user) ->
       return logAndReturnLoginError username, err.message, callback if err
-      fetchData user
 
       # if user not found it means we dont know about given username
       unless user?
@@ -410,33 +408,63 @@ module.exports = class JUser extends jraphical.Module
           return logAndReturnLoginError username, 'Access denied!', callback
 
       # if everything is fine, just continue
-      queue.next()
+      callback null, user
 
 
-  fetchInvitationByCode = (invitationToken, queue, callback, fetchData) ->
-
-    # if we dont have an invitation code, do not continue
-    return queue.next()  unless invitationToken
+  fetchInvitationByCode = (invitationToken, callback) ->
 
     JInvitation = require '../invitation'
     JInvitation.byCode invitationToken, (err, invitation) ->
       return callback err  if err
       return callback new KodingError 'invitation is not valid'  unless invitation
-      fetchData invitation
-      queue.next()
+      callback null, invitation
 
 
-  fetchInvitationByData = (options, queue, callback, fetchData) ->
+  fetchInvitationByData = (options, callback) ->
 
-    { user, groupName, invitationToken } = options
-    # check if user has pending invitation
-    return queue.next()  if invitationToken
+    { user, groupName } = options
 
     selector = { email: user.email, groupName }
     JInvitation = require '../invitation'
     JInvitation.one selector, {}, (err, invitation) ->
-      fetchData invitation  if invitation
-      queue.next()
+      callback err, invitation
+
+
+  validateLogin = (options, callback) ->
+
+    { loginId, clientId, password, tfcode } = options
+
+    username = null
+
+    async.series {
+
+      username: (next) ->
+        JUser.normalizeLoginId loginId, (err, username_) ->
+          username = username_?.toLowerCase?() or ''
+          next err, username
+
+      # fetch session and check for brute force attack
+      session: (next) ->
+        fetchSession { clientId, username }, (err, session) ->
+          return next err  if err
+
+          bruteForceControlData =
+            ip        : session.clientIP
+            username  : username
+
+          # todo add alert support(mail, log etc)
+          JLog.checkLoginBruteForce bruteForceControlData, (res) ->
+            unless res
+              return next new KodingError \
+                "Your login access is blocked for #{JLog.timeLimit()} minutes."
+
+            next null, session
+
+      user: (next) ->
+        validateLoginCredentials { username, password, tfcode }, (err, user) ->
+          next err, user
+
+    }, callback
 
 
   @login = (clientId, credentials, callback) ->
@@ -444,45 +472,21 @@ module.exports = class JUser extends jraphical.Module
     { username: loginId, password, groupIsBeingCreated
       groupName, tfcode, invitationToken } = credentials
 
-    user                  = null
-    session               = null
-    account               = null
-    username              = null
-    groupName            ?= 'koding'
-    invitation            = null
-    bruteForceControlData = {}
+    user        = null
+    session     = null
+    account     = null
+    username    = null
+    groupName  ?= 'koding'
+    invitation  = null
 
     queue = [
 
-      =>
-        @normalizeLoginId loginId, (err, username_) ->
+      ->
+        args = { loginId, clientId, password, tfcode }
+        validateLogin args, (err, data) ->
           return callback err  if err
-          username = username_?.toLowerCase?() or ''
+          { username, user, session } = data
           queue.next()
-
-      ->
-        fetchSession {
-          clientId, username
-        }, queue, callback, (session_) ->
-          session = session_
-
-          bruteForceControlData =
-            ip        : session.clientIP
-            username  : username
-
-      ->
-        # todo add alert support(mail, log etc)
-        JLog.checkLoginBruteForce bruteForceControlData, (res) ->
-          unless res
-            return callback new KodingError \
-              "Your login access is blocked for #{JLog.timeLimit()} minutes."
-
-          queue.next()
-
-      ->
-        validateLoginCredentials {
-          username, password, tfcode
-        }, queue, callback, (user_) -> user = user_
 
       ->
         # fetch account of the user, we will use it later
@@ -492,24 +496,35 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        # if we dont have an invitation code, do not continue
+        return queue.next()  unless invitationToken
+
         # check if user can access to group
         #
         # there can be two cases here
         # # user is member, check validity
         # # user is not member, and trying to access with invitationToken
         # both should succeed
-        fetchInvitationByCode invitationToken, queue, callback, (invitation_) ->
+        fetchInvitationByCode invitationToken, (err, invitation_) ->
+          return callback err  if err
           invitation = invitation_
+          queue.next()
 
       ->
-        fetchInvitationByData {
-          user, groupName, invitationToken
-        }, queue, callback, (invitation_) -> invitation = invitation_
+        # check if user has pending invitation
+        return queue.next()  if invitationToken
+
+        fetchInvitationByData { user, groupName }, (err, invitation_) ->
+          return callback err  if err
+          invitation = invitation_
+          queue.next()
 
       =>
-        @addToGroupByInvitation {
-          groupName, groupIsBeingCreated, account, user, invitation
-        }, queue, callback
+        return queue.next()  if groupIsBeingCreated
+
+        @addToGroupByInvitation { groupName, account, user, invitation }, (err) ->
+          return callback err  if err
+          queue.next()
 
       ->
         return queue.next()  if groupIsBeingCreated
@@ -606,11 +621,10 @@ module.exports = class JUser extends jraphical.Module
       user.verifyByPin options, callback
 
 
-  @addToGroupByInvitation = (options, queue, callback) ->
+  @addToGroupByInvitation = (options, callback) ->
 
-    { groupName, groupIsBeingCreated, account, user, invitation } = options
+    { groupName, account, user, invitation } = options
 
-    return queue.next()  if groupIsBeingCreated
     # check for membership
     JGroup.one { slug: groupName }, (err, group) ->
 
@@ -618,13 +632,13 @@ module.exports = class JUser extends jraphical.Module
       return callback new KodingError 'group doesnt exist'  if not group
 
       group.isMember account, (err, isMember) ->
-        return callback err  if err
-        return queue.next()  if isMember # if user is already member, we can continue
+        return callback err   if err
+        return callback null  if isMember # if user is already member, we can continue
 
         # addGroup will check all prerequistes about joining to a group
         JUser.addToGroup account, groupName, user.email, invitation, (err) ->
           return callback err  if err
-          return queue.next()
+          return callback null
 
 
   redeemInvitation = (options, callback) ->
@@ -840,12 +854,13 @@ module.exports = class JUser extends jraphical.Module
       ->
         # updating session data after login
         sessionUpdateOptions =
-          $set            :
-            username      : username
-            clientId      : replacementToken
-            lastLoginDate : lastLoginDate = new Date
-          $unset          :
-            guestId       : 1
+          $set                :
+            username          : username
+            clientId          : replacementToken
+            lastLoginDate     : lastLoginDate = new Date
+          $unset              :
+            guestId           : 1
+            guestSessionBegan : 1
 
         guestUsername = session.username
 
@@ -1204,9 +1219,14 @@ module.exports = class JUser extends jraphical.Module
           return callback new KodingError 'Could not update your session'
 
         if session?
-          session.update { $set: { clientId: newToken, username, groupName } }, (err) ->
+          sessionUpdateOptions =
+            $set   : { clientId : newToken, username, groupName }
+            $unset : { guestSessionBegan : 1 }
+
+          session.update sessionUpdateOptions, (err) ->
             return callback err  if err?
             callback null, newToken
+
         else
           callback new KodingError 'Session not found!'
 

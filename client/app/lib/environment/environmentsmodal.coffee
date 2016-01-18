@@ -59,5 +59,12 @@ module.exports = class EnvironmentsModal extends kd.ModalView
     listView.on 'StackReinitRequested', (stack) =>
 
       computeController
-        .once 'RenderStacks', @bound 'destroy'
+        .once 'RenderStacks', => @destroy no
         .reinitStack stack
+
+
+  destroy: (goBack = yes) ->
+
+    super
+
+    kd.singletons.router.back()  if goBack

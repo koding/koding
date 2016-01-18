@@ -1,9 +1,9 @@
 kd               = require 'kd'
 nick             = require 'app/util/nick'
+async            = require 'async'
 KDView           = kd.View
 remote           = require('app/remote').getInstance()
 whoami           = require '../../util/whoami'
-sinkrow          = require 'sinkrow'
 Machine          = require 'app/providers/machine'
 showError        = require 'app/util/showError'
 envHelpers       = require 'ide/collaboration/helpers/environment'
@@ -191,37 +191,43 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       when 'shared machine' then isPermanent
       when 'collaboration' then not isPermanent
 
-    queue = [
-      ->
+    async.series([
+      (callback) ->
         if denyMachine
-        then machine.jMachine.deny (err) ->
-          return showError err  if err
-          queue.next()
-        else queue.next()
-      =>
-        return queue.next()  unless channelId
+          machine.jMachine.deny (err) ->
+            showError err  if err
+            callback()
+        else
+          callback()
 
-        {channel} = kd.singletons.socialapi
+      (callback) ->
+        return callback()  unless channelId
 
-        method = if isApproved then 'leave' else 'rejectInvite'
+        { channel } = kd.singletons.socialapi
+        method      = if isApproved then 'leave' else 'rejectInvite'
 
         channel[method] {channelId}, (err) ->
           showError err
-          queue.next()
-      ->
+          callback()
+
+      (callback) ->
+
         if denyMachine
           envDataProvider.getIDEFromUId(machine.uid)?.quit()
-        queue.next()
-      ->
+
+        callback()
+
+      (callback) ->
+
         envDataProvider.fetch ->
           kd.singletons.mainView.activitySidebar.redrawMachineList()
-          queue.next()
-      =>
-        @destroy()
-        queue.next()
-    ]
+          callback()
 
-    sinkrow.daisy queue
+      (callback) =>
+
+        @destroy()
+        callback()
+    ])
 
 
   destroy: ->

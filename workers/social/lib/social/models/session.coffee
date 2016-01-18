@@ -5,38 +5,39 @@ module.exports = class JSession extends Model
   { v4: createId } = require 'node-uuid'
 
   @set
-    indexes         :
-      clientId      : 'unique'
-      otaToken      : 'sparse' # unique is also required
-      username      : 'descending'
-      clientIP      : 'sparse'
-    schema          :
-      clientId      : String
-      clientIP      : String
-      username      : String
-      otaToken      : String
-      groupName     :
-        type        : String
-        default     : -> 'koding'
-      guestId       : Number
-      terminalId    : String
-      sessionBegan  :
-        type        : Date
-        default     : -> new Date
-      lastAccess    :
-        type        : Date
-        get         : -> new Date
-      foreignAuth   :
-        github      : Object
-        odesk       : Object
-        facebook    : Object
-        linkedin    : Object
-      returnUrl     : String
-      foreignAuthType : String
-      impersonating : Boolean
-    sharedEvents    :
-      instance      : []
-      static        : []
+    indexes             :
+      clientId          : 'unique'
+      otaToken          : 'sparse' # unique is also required
+      username          : 'descending'
+      clientIP          : 'sparse'
+    schema              :
+      clientId          : String
+      clientIP          : String
+      username          : String
+      otaToken          : String
+      groupName         :
+        type            : String
+        default         : -> 'koding'
+      guestId           : Number
+      terminalId        : String
+      sessionBegan      :
+        type            : Date
+        default         : -> new Date
+      guestSessionBegan : Date
+      lastAccess        :
+        type            : Date
+        get             : -> new Date
+      foreignAuth       :
+        github          : Object
+        odesk           : Object
+        facebook        : Object
+        linkedin        : Object
+      returnUrl         : String
+      foreignAuthType   : String
+      impersonating     : Boolean
+    sharedEvents        :
+      instance          : []
+      static            : []
 
   do ->
     JAccount  = require './account'
@@ -65,8 +66,13 @@ module.exports = class JSession extends Model
         return @emit 'error', { message }
 
       { account } = resp
-      username  = JUser.createGuestUsername()
-      session   = new JSession { clientId, username }
+
+      sessionOptions =
+        clientId          : clientId
+        username          : JUser.createGuestUsername()
+        guestSessionBegan : new Date()
+
+      session = new JSession sessionOptions
 
       session.save (err) ->
         if err then callback err

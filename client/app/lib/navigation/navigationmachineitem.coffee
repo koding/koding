@@ -10,6 +10,7 @@ nick                         = require 'app/util/nick'
 Machine                      = require 'app/providers/machine'
 isKoding                     = require 'app/util/isKoding'
 groupifyLink                 = require 'app/util/groupifyLink'
+isMachineSettingsIconEnabled = require 'app/util/isMachineSettingsIconEnabled'
 userEnvironmentDataProvider  = require 'app/userenvironmentdataprovider'
 
 MachineSettingsModal         = require 'app/providers/machinesettingsmodal'
@@ -128,15 +129,7 @@ module.exports = class NavigationMachineItem extends JView
     @settingsIcon.unsetClass 'move-left'
 
 
-  settingsEnabled: ->
-
-    { status: { state } } = @machine
-    { NotInitialized, Running, Stopped, Terminated, Unknown } = Machine.State
-
-    unless isKoding()
-      return state in [ Running, Stopped ]
-
-    return state in [ NotInitialized, Running, Stopped, Terminated, Unknown ]
+  settingsEnabled: -> isMachineSettingsIconEnabled @machine
 
 
   handleMachineSettingsClick: ->
