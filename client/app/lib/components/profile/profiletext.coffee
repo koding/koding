@@ -7,6 +7,8 @@ module.exports = class ProfileText extends React.Component
 
   getDisplayName: ->
 
+    return 'a koding user'  unless @props.account
+
     { isExempt, profile } = @props.account
     { firstName, lastName, nickname } = profile
 
