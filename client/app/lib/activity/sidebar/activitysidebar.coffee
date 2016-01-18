@@ -546,9 +546,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     view.addSubView new KDCustomHTMLView
       tagName: 'a'
       partial: 'Show Stacks'
-      click: (event) ->
-        kd.utils.stopDOMEvent event
-        kd.singletons.router.handleRoute '/Stacks'
+      attributes: { href: '/Stacks' }
 
     @groupStacksChangedWarning = \
       @machinesWrapper.addSubView view, null, shouldPrepend = yes
