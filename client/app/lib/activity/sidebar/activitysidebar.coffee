@@ -32,7 +32,6 @@ SidebarSharedMachinesList       = require './sidebarsharedmachineslist'
 SidebarStackMachineList         = require './sidebarstackmachinelist'
 ChannelActivitySideView         = require './channelactivitysideview'
 SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
-EnvironmentsModal               = require 'app/environment/environmentsmodal'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -549,7 +548,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       partial: 'Show Stacks'
       click: (event) ->
         kd.utils.stopDOMEvent event
-        new EnvironmentsModal
+        kd.singletons.router.handleRoute '/Stacks'
 
     @groupStacksChangedWarning = \
       @machinesWrapper.addSubView view, null, shouldPrepend = yes

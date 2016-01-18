@@ -716,8 +716,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   requestNewMachine: ->
 
-    new EnvironmentsModal
     kd.singletons.appManager.getFrontApp().quit()
+    kd.singletons.router.handleRoute '/Stacks'
 
 
   turnOnMachine: ->
