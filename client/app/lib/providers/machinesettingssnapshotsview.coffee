@@ -203,12 +203,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
           return modal.showError()
 
         modal.destroy()
-        # Importing this here, because the order of imports means that
-        # MachineSettingsSnapshotsView gets created before MachineSettingsModal.
-        # Ie, we can't import it at the beginning of this file.
-        MachineSettingsModal = require './machinesettingsmodal'
-        settingsModal        = new MachineSettingsModal {}, machine
-        settingsModal.tabView.showPaneByName 'Snapshots'
+        kd.singletons.router.handleRoute "/Machines/#{machine.slug}/Snapshots"
 
 
   ###*

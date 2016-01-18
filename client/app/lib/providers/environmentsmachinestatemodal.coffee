@@ -17,7 +17,6 @@ ComputeController       = require './computecontroller'
 BaseModalView           = require './views/basemodalview'
 HelpSupportModal        = require '../commonviews/helpsupportmodal'
 
-EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
 MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 
@@ -552,9 +551,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       click: (event) =>
         if 'managed-disconnect' in event.target.classList
           kd.utils.stopDOMEvent event
-          MachineSettingsModal = require './machinesettingsmodal'
-          settingsModal        = new MachineSettingsModal {}, @machine
-          settingsModal.tabView.showPaneByName 'Advanced'
+          kd.singletons.handleRoute "/Machines/#{@machine.slug}/Advanced"
 
     @container.addSubView @label
 
