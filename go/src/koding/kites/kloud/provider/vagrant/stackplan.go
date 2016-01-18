@@ -155,9 +155,9 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			return "", nil, err
 		}
 
-		kiteIDs[resourceName] = kiteID
 		encoded := base64.StdEncoding.EncodeToString(val)
 		box["provisionData"] = encoded
+		kiteIDs[resourceName] = kiteID
 		res.Build[resourceName] = box
 	}
 
