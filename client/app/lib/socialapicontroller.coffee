@@ -10,6 +10,7 @@ kd = require 'kd'
 isKoding = require './util/isKoding'
 KDController = kd.Controller
 MessageEventManager = require './messageeventmanager'
+SocialApi = require 'activity/modules/socialapi'
 
 
 module.exports = class SocialApiController extends KDController
@@ -756,77 +757,83 @@ module.exports = class SocialApiController extends KDController
 
     revive               : mapActivity
 
-
   message:
-    byId                 : messageRequesterFn
-      fnName             : 'byId'
-      validateOptionsWith: ['id']
-      mapperFn           : mapActivity
 
-    bySlug               : messageRequesterFn
-      fnName             : 'bySlug'
-      validateOptionsWith: ['slug']
-      mapperFn           : mapActivity
+    byId: (options, callback) ->
+      SocialApi.models.message.byId options.id
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
 
-    edit                 : messageRequesterFn
-      fnName             : 'edit'
-      validateOptionsWith: ['id', 'body']
-      mapperFn           : (data) -> mapActivity data, yes # force cache invalidation
+    bySlug: (options, callback) ->
+      SocialApi.models.message.bySlug options.slug
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
 
-    post                 : messageRequesterFn
-      fnName             : 'post'
-      validateOptionsWith: ['body']
-      mapperFn           : mapActivity
+    edit: (options, callback) ->
+      SocialApi.models.message.update options.id, (_.omit options, 'id')
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
 
-    reply                : messageRequesterFn
-      fnName             : 'reply'
-      validateOptionsWith: ['body', 'messageId']
-      mapperFn           : mapActivity
+    post: (options, callback) ->
+      SocialApi.models.channel.public.post(options.channelId, _.omit(options, 'channelId'))
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
 
-    delete               : messageRequesterFn
-      fnName             : 'delete'
-      validateOptionsWith: ['id']
+    reply: (options, callback) ->
+      SocialApi.models.message.reply options.messageId, (_.omit options, 'messageId')
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
 
-    like                 : messageRequesterFn
-      fnName             : 'like'
-      validateOptionsWith: ['id']
+    delete: (options, callback) ->
+      SocialApi.models.message.destroy options.id
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
 
-    unlike               : messageRequesterFn
-      fnName             : 'unlike'
-      validateOptionsWith: ['id']
+    like: (options, callback) ->
+      SocialApi.models.message.like options.id
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
 
-    listReplies          : messageRequesterFn
-      fnName             : 'listReplies'
-      validateOptionsWith: ['messageId']
-      mapperFn           : mapActivities
+    unlike: (options, callback) ->
+      SocialApi.models.message.unlike options.id
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
 
-    listLikers           : messageRequesterFn
-      fnName             : 'listLikers'
-      validateOptionsWith: ['id']
+    listReplies: (options, callback) ->
+      SocialApi.models.message.listReplies options.messageId
+        .then (result) -> callback null, mapActivities result
+        .catch (err) -> callback err
 
-    sendMessageToChannel : messageRequesterFn
-      fnName             : 'sendMessageToChannel'
-      validateOptionsWith: ['body', 'channelId']
-      mapperFn           : mapCreatedChannel
+    listLikers: (options, callback) ->
+      SocialApi.models.message.listLikers options.id
+        .then (result) -> callback null, result
+        .catch (err) -> callback err
 
-    initPrivateMessage   : messageRequesterFn
-      fnName             : 'initPrivateMessage'
-      validateOptionsWith: ['body', 'recipients']
-      mapperFn           : mapCreatedChannel
+    sendMessageToChannel: (options, callback) ->
+      SocialApi.models.channel.public options.channelId, (_.omit options, 'channelId')
+        .then (result) -> callback null, mapCreatedChannel result
+        .catch (err) -> callback err
 
-    sendPrivateMessage   : messageRequesterFn
-      fnName             : 'sendPrivateMessage'
-      validateOptionsWith: ['body', 'channelId']
-      mapperFn           : mapCreatedChannel
+    initPrivateMessage: (options, callback) ->
+      SocialApi.models.channel.private.init options
+        .then (result) -> callback null, mapCreatedChannel result
+        .catch (err) -> callback err
 
-    search               : messageRequesterFn
-      fnName             : 'search'
-      validateOptionsWith: ['name']
-      mapperFn           : mapCreatedChannel
+    sendPrivateMessage: (options, callback) ->
+      SocialApi.models.channel.private.send options.channelId, (_.omit options, 'channelId')
+        .then (result) -> callback null, mapCratedChannel result
+        .catch (err) -> callback err
 
-    fetchPrivateMessages : messageRequesterFn
-      fnName             : 'fetchPrivateMessages'
-      mapperFn           : mapCreatedChannel
+    search: (options, callback) ->
+      SocialApi.models.channel.private.search options.name
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
+
+    fetchPrivateMessages: (options, callback) ->
+      SocialApi.models.channel.private.list options
+        .then (result) -> callback null, mapActivity result
+        .catch (err) -> callback err
+
 
     create               : channelRequesterFn
       fnName             : 'create'
@@ -1108,3 +1115,5 @@ module.exports = class SocialApiController extends KDController
         type     : 'DELETE'
         endPoint : "/api/social/notificationsetting/#{options.id}"
       , callback
+
+
