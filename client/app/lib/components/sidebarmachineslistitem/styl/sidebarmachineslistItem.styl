@@ -1,0 +1,218 @@
+$transGreen = rgba(26, 175, 93, .25)
+$transRed   = rgba(233, 72, 53, .25)
+
+.SidebarMachinesListItem--MainLink
+  antialiased()
+  borderBox()
+  color                     $gray-14
+  display                   block
+  font-size                 $fs-regular
+  font-weight               $fw-regular
+  height                    28px
+  line-height               20px
+  noTextDeco()
+  margin-bottom             8px
+  padding                   0px 8px 0px 19px
+  opacity                   1
+  rel()
+  size                      221px 20px
+  text-decoration           none
+
+  &.active
+    color                   #FFF
+
+  &:hover > .MachineSettings
+    opacity                 1
+
+.SidebarMachinesListItem
+  rel()
+
+  &.active
+    .SidebarMachinesListItem--MainLink
+      color                 #FFF
+
+  &.unread
+    .MachineSettings
+      right                 35px
+
+  .SidebarListItem-unreadCount
+    margin-top              1px
+
+  .SidebarListItem-icon
+    abs                     50% 0 0 0px
+    bg                      color transparent
+    border                  3px solid $gray-14
+    borderBox()
+    display                 block
+    rounded                 3px
+    size                    13px 13px
+    vendor                  transform, translateY(-50%)
+  &.Unknown
+  &.Stopped
+  &.NotInitialized
+    .SidebarListItem-icon
+      border-color          $gray-14
+  &.Running
+  &.Starting
+    .SidebarListItem-icon
+      border-color          $green
+  &.Building
+  &.Rebooting
+    .SidebarListItem-icon
+      border-color          $yellow
+  &.Stopping
+  &.Terminating
+  &.Terminated
+    .SidebarListItem-icon
+      border-color          $red
+
+  &.Starting
+    .SidebarListItem-progressbar
+      bg                    color $transGreen
+
+  &.Stopping
+    .SidebarListItem-progressbar
+      bg                    color $transRed
+      > cite
+        bg                  color $red
+
+  &:not(.Running)
+    .Workspaces-section
+      h3
+        cursor              default
+        &:hover
+          color             $gray-8
+
+
+.SidebarListItem-progressbar
+  abs                       0 0 -5px 19px
+  background                none
+  bg                        color transparent
+  border                    none
+  height                    3px
+  kalc                      width, (100% \- 19px)
+  overflow                  hidden
+  rounded                   2px
+  vendor                    transition, color .1s ease
+  &.full
+    > cite
+      margin-left           100%
+
+  > cite
+    bg                      color $green
+    border                  none
+    display                 block
+    height                  100%
+    max-width               100%
+    rounded                 2px
+    shadow                  none
+    vendor                  transition, width .1s ease .05s\,\
+                                        margin .3s ease
+
+
+
+.MachineSettings
+  abs                       3px -5px 0 0
+  opacity                   0
+  r-sprite                  app vm-settings-icon
+  right                     2px
+  vendor                    transition, opacity .1s .1s ease
+
+
+.Workspaces-section
+  opacity                   1
+  vendor                    transition, all .1s ease
+
+  &.out
+    opacity                 0
+    height                  0
+
+  h3
+    antialiased()
+    border-bottom           none
+    color                   $gray-8
+    display                 block
+    font-weight             $fw-regular
+    font-size               $fs-extra-small
+    height                  16px
+    line-height             16px
+    margin-bottom           1px
+    letter-spacing          0.08em
+    padding                 2px 0 0 20px
+    text-transform          uppercase
+    word-spacing            0.2em
+    pointer()
+
+    &:hover
+      color                 white
+
+  .Workspace-item
+    borderBox()
+    display                 block
+    opacity                 1
+    padding                 0 0 0 35px
+    rel()
+    size                    auto 22px
+
+    &.active
+      .Workspace-link
+        color               #FFF
+
+    .Workspace-link
+      line-height           23px
+      font-size             12px
+      overflow              hidden
+      max-width             160px
+      color                 $gray-14
+      ellipsis()
+      noTextDeco()
+      dIBlock()
+
+    &:hover
+      .Workspace-settings
+        opacity             1
+
+    &.unread
+      .Workspace-settings
+        right               35px
+
+
+  .Workspace-add
+    rel()
+    margin-top              5px
+    max-width               none
+
+    input
+      rounded               3px
+      size                  155px, 22px
+      padding               5px
+      font-size             12px
+      margin-left           35px
+
+    .Workspace-cancel
+      dIBlock()
+      r-sprite              'app', 'circle-plus-14'
+      vendor                transform, rotate(45deg)
+      top                   2px
+      rel()
+      pointer()
+      margin-left           15px
+
+  .Workspace-icon
+    abs                     8px 0 0 23px
+    border                  2px solid rgba(255, 255, 255, .2)
+    borderBox()
+    display                 block
+    height                  6px
+    rounded                 100%
+    width                   6px
+
+  .Workspace-settings
+    dIBlock()
+    vendor                  transition, opacity .1s .1s ease
+    pointer()
+    abs()
+    r-sprite                'app', 'vm-settings-icon'
+    right                   2px
+    top                     3px
+    opacity                 0

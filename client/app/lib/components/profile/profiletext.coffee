@@ -2,6 +2,9 @@ React = require 'kd-react'
 
 module.exports = class ProfileText extends React.Component
 
+  @defaultProps =
+    className : ''
+
   getDisplayName: ->
 
     { isExempt, profile } = @props.account
@@ -17,4 +20,4 @@ module.exports = class ProfileText extends React.Component
 
 
   render: ->
-    <span>{@getDisplayName()}</span>
+    <span className={@props.className}>{@getDisplayName()}</span>

@@ -5,10 +5,9 @@ HUBSPOT  = no
 
 teamsModalSelector       = '.TeamsModal--groupCreation'
 companyNameSelector      = '.login-form input[testpath=company-name]'
-sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
+sidebarSectionsSelector  = '.activity-sidebar .SidebarChannelsSection'
 chatItem                 = '.Pane-body .ChatList .ChatItem'
 chatInputSelector        = '.ChatPaneFooter .ChatInputWidget textarea'
-sidebarSectionsSelector  = '.activity-sidebar .SidebarSections'
 invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
 pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
 pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
@@ -292,7 +291,7 @@ module.exports =
 
   moveToSidebarHeader: (browser, plus, channelHeader) ->
 
-    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarChannelsSection .SidebarSection-header"
+    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarSection-header"
     channelPlusSelector           = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
 
     browser
@@ -558,3 +557,42 @@ module.exports =
         .waitForElementVisible    likeButtonUnpressed, 20000
         .pause                    3000
         .assert.elementNotPresent likeButtonPressed
+
+
+  editOrDeletePost: (browser, editPost = no, deletePost = no) ->
+
+    editedmessage       = 'Message after editing'
+    textSelector        = '.ChatItem .SimpleChatListItem.ChatItem-contentWrapper .ChatListItem-itemBodyContainer'
+    menuButton          = '.SimpleChatListItem.ChatItem-contentWrapper:nth-of-type(1) .ButtonWithMenuWrapper button'
+    editButton          = '.ButtonWithMenuItemsList li:nth-child(1)'
+    chatInput           = '.editing .ChatItem-updateMessageForm .ChatInputWidget textarea'
+    editedText          = '.ChatItem .SimpleChatListItem.edited .ChatListItem-itemBodyContainer .ChatItem-contentBody .MessageBody'
+    deleteButton        = '.ButtonWithMenuItemsList li:nth-child(2)'
+    confirmDelete       = '.Modal-DeleteItemPrompt .Modal-buttons .Button--danger'
+    deletedTextSelector = '.Pane-body .ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer'
+
+    browser
+      .waitForElementVisible  textSelector, 20000
+      .moveToElement          textSelector, 10, 10
+      .waitForElementVisible  menuButton, 20000
+      .click                  menuButton
+
+    if editPost
+      browser
+        .waitForElementVisible  editButton, 20000
+        .click                  editButton
+        .waitForElementVisible  chatInput, 20000
+        .clearValue             chatInput
+        .setValue               chatInput, editedmessage
+        .setValue               chatInput, browser.Keys.ENTER
+        .waitForElementVisible  editedText, 20000
+        .assert.containsText    editedText, editedmessage
+
+    if deletePost
+      browser
+        .waitForElementVisible     deleteButton, 20000
+        .click                     deleteButton
+        .waitForElementVisible     confirmDelete, 20000
+        .click                     confirmDelete
+        .pause                     3000 #for the text to be deleted
+        .assert.elementNotPresent  deletedTextSelector

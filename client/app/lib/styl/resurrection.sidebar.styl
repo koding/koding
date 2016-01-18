@@ -469,8 +469,7 @@ sidebarTextShadow()
     color               #fff
 
   .kdlistitemview-sidebar-item
-    -moz-osx-font-smoothing grayscale
-    -webkit-font-smoothing  antialiased
+    antialiased()
     size                    auto 16px
     padding                 0px 15px
     margin-bottom           8px
@@ -830,6 +829,7 @@ sidebarTextShadow()
 
 
 h3.sidebar-title
+  antialiased()
   font-weight               400
   size                      auto 1em
   line-height               16px
@@ -838,11 +838,9 @@ h3.sidebar-title
   text-transform            uppercase
   word-spacing              .2em
   letter-spacing            .05em
-  -moz-osx-font-smoothing   grayscale
   padding                   14px 20px 16px 0
   pointer()
   position                  relative
-  -webkit-font-smoothing    antialiased
   white-space               nowrap
   ellipsis()
 
@@ -992,6 +990,7 @@ h3.sidebar-title
   font-family               SoleilFamily
 
   a.vm
+    antialiased()
     color                   sidebarGray
     borderBox()
     display                 block
@@ -1002,8 +1001,6 @@ h3.sidebar-title
     padding                 0px 8px 0px 19px
     opacity                 1
     size                    218px 20px
-    -moz-osx-font-smoothing grayscale
-    -webkit-font-smoothing  antialiased
     rel()
 
     &.add-app
@@ -1077,6 +1074,7 @@ h3.sidebar-title
           shadow            none
 
   .workspaces-link
+    antialiased()
     border-bottom           none
     color                   $gray-8
     display                 inline
@@ -1089,8 +1087,6 @@ h3.sidebar-title
     padding                 2px 0 0 20px
     text-transform          uppercase
     word-spacing            0.2em
-    -moz-osx-font-smoothing grayscale
-    -webkit-font-smoothing  antialiased
     pointer()
 
     &:hover

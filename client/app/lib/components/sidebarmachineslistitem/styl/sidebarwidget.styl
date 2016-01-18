@@ -1,0 +1,130 @@
+.SidebarWidget
+  .Popover-Wrapper
+    vendor                  transition, top .177s ease, left .177s ease
+    padding                 20px
+    size                    210px auto
+    bg                      color, #FFFFFF
+    border                  1px solid #c1c1c1
+    shadow                  0 0 29px rgba(0,0,0,0.33)
+    rounded                 3px
+    font-family             adelleSans
+
+    &::before
+      content               ''
+      display               block
+      size                  0 0
+      abs()
+      top                   15px
+      left                  -10px
+      border-style          solid
+      border-width          10px 10px 10px 0
+      border-color          transparent #FFFFFF transparent transparent
+
+  .SidebarWidget-Link
+    dIBlock()
+
+    img
+      rounded               3px
+
+  .SidebarWidget-UserDetail
+     text-decoration        none
+     dIBlock()
+     margin-left            10px
+
+     span
+       font-size            13px
+       margin-bottom        5px
+       dBlock()
+
+     .SidebarWidget-FullName
+       color                #52a840
+
+     .SidebarWidget-Nickname
+       color                #626262
+
+       span
+         dIBlock()
+
+  .SidebarWidget-Title
+    color                   #909090
+    font-size               14px
+    margin                  10px 0
+    line-height             20px
+
+  .kdbutton.green
+    fr()
+
+  &.Approved
+
+    .SidebarWidget-Title
+      margin-top            0
+
+    .SidebarWidget-UserView
+      margin-bottom         10px
+
+    .kdbutton.red
+      width                 210px
+
+  &.ConnectedManagedVm
+    .Popover-Wrapper
+      width                 auto
+      padding               30px 60px
+
+    .kdbutton.close
+      float                 none
+      margin                0 auto
+
+  &.StackUpdated
+    .Popover-Wrapper
+      margin-top            10px
+
+      span
+        color               #02a74d
+        font-size           17px
+
+      .kdbutton
+        float               none
+        margin              0 auto
+
+      p
+        dBlock()
+        margin              10px 0
+
+  &.DeleteWorkspace
+    .DeleteWorkspace-Guide
+      border-bottom         1px solid #e0e0e0
+
+      label
+        font-size           12px
+        line-height         20px
+        margin              0
+        font-weight         500
+        padding-left        3px
+        color               #a3a3a3
+
+      .DeleteWorkspace-Understading
+        font-size           14px
+        padding             0 0 9px 2px
+        text-decoration     underline
+        color               #909090
+        margin-top          5px
+        dBlock()
+
+    .DeleteWorkspace-Button
+      left                  50%
+      width                 180px
+      margin                12px 0 10px -90px
+      font-weight           600
+      bg                    color, #d43130
+
+
+    .DeleteWorkspace-Files
+      color                 #a3a3a3
+      font-size             12px
+      text-align            center
+
+      .ReactToggle
+        rel()
+        top                 5px
+        margin-left         10px
+        dIBlock()

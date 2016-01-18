@@ -121,7 +121,7 @@ module.exports = class KodingRouter extends kd.Router
       method += 'WithOptions'
       options = {model:models, route, query}
 
-    callback = =>
+    callback = ({ name, section, models, route, query, passOptions, options, method }) =>
       kd.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
         unless contentDisplay
           console.warn 'no content display'
@@ -139,9 +139,15 @@ module.exports = class KodingRouter extends kd.Router
       groupName = if section is "Groups" then name else "koding"
       groupsController.changeGroup groupName, (err) =>
         showError err if err
-        callback()
+        callback {
+          name, section, models, route,
+          query, passOptions, options, method
+        }
     else
-      callback()
+      callback {
+        name, section, models, route,
+        query, passOptions, options, method
+      }
 
   loadContent: (name, section, slug, route, query, passOptions) ->
 

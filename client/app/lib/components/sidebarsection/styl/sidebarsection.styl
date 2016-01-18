@@ -3,20 +3,25 @@
   padding                   14px 0
   cursor                    pointer
 
+  > .SidebarListItem-unreadCount
+    top                     11px
+    margin-top              0
+
   a
     text-decoration         none
 
 .SidebarSection-headerTitle
+  antialiased()
   font-weight               $fw-regular
   font-size                 $fs-small
   height                    1em
   line-height               16px
   color                     $gray-8
-  -moz-osx-font-smoothing   grayscale
-  -webkit-font-smoothing    antialiased
   word-spacing              0.2em
   letter-spacing            0.08em
   text-transform            uppercase
+  ellipsis()
+
 
 .SidebarSection-secondaryLink
   abs                       50% 0px 0 0
@@ -28,3 +33,10 @@
   .SidebarSection-secondaryLink
     visible()
 
+.SidebarSection-header
+  &.unread
+    .SidebarSection-headerTitle
+      max-width             190px
+
+    .SidebarSection-secondaryLink
+      hidden()

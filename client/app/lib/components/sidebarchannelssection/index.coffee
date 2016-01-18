@@ -25,18 +25,18 @@ module.exports = class SidebarChannelsSection extends React.Component
 
   render: ->
 
-    <div>
-      <SidebarSection
-        title="Channels"
-        titleLink="/AllChannels"
-        secondaryLink="/NewChannel"
-        className="SidebarChannelsSection">
-        <SidebarList
-          previewCount={@props.previewCount}
-          itemComponent={SidebarChannelsListItem}
-          componentProp='SidebarChannelsListItem'
-          threads={@props.threads}
-          selectedId={@props.selectedId} />
-        {@renderMoreLink()}
-      </SidebarSection>
-    </div>
+    <SidebarSection
+      title="Channels"
+      titleLink="/AllChannels"
+      secondaryLink="/NewChannel"
+      className="SidebarChannelsSection">
+      <SidebarList
+        previewCount={@props.previewCount}
+        itemComponent={SidebarChannelsListItem}
+        componentProp='SidebarChannelsListItem'
+        threads={@props.threads}
+        selectedId={@props.selectedId} />
+      {@renderMoreLink()}
+    </SidebarSection>
+
+

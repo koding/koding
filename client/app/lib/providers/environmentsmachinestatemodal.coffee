@@ -25,6 +25,7 @@ whoami                  = require 'app/util/whoami'
 isKoding                = require 'app/util/isKoding'
 showError               = require 'app/util/showError'
 applyMarkdown           = require 'app/util/applyMarkdown'
+isTeamReactSide         = require 'app/util/isTeamReactSide'
 sendDataDogEvent        = require 'app/util/sendDataDogEvent'
 trackInitialTurnOn      = require 'app/util/trackInitialTurnOn'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
@@ -127,7 +128,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @updatePercentage percentage  if percentage?
 
     else
-      @state = status
+
+      [ @oldState, @state ] = [ @state, status ]
 
       if error
 
@@ -197,14 +199,19 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   completeCurrentProcess: (status, initial) ->
 
-    @clearEventTimer()
 
-    return  if @switchToIDEIfNeeded status, initial
+    @clearEventTimer()
 
     @progressBar?.updateBar 100
     @progressBar?.show()
 
-    kd.utils.wait 500, => @buildViews()
+    if @oldState is Building and @state is Running
+      cc = kd.getSingleton 'computeController'
+      cc.once "revive-#{@machineId}", =>
+        @switchToIDEIfNeeded status, initial
+    else
+      unless @switchToIDEIfNeeded status, initial
+        kd.utils.wait 500, => @buildViews()
 
 
   showBusy: (message) ->
@@ -419,7 +426,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @createStateButton()
     else if @state in [ Starting, Building, Pending, Stopping,
                         Terminating, Updating, Rebooting ]
+
       percentage = response?.percentage
+      percentage = 100  if isTeamReactSide() and @state is Stopping
+
       @createProgressBar percentage
       @triggerEventTimer percentage
       @showRandomMarketingSnippet()  if @state is Starting
@@ -753,25 +763,19 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   prepareIDE: (initial) ->
 
-    {appManager, computeController} = kd.singletons
 
-    # FIXME: We shouldn't use computeController.fetchMachine in this case.
-    computeController.fetchMachines (err) =>
+    { appManager } = kd.singletons
 
-      return if showError err
+    environmentDataProvider.fetchMachine @machine.uid, (machine) =>
 
-      environmentDataProvider.fetchMachine @machine.uid, (machine) =>
+      # return showError "Couldn't fetch your VMs"  unless machine
+      unless machine
+        return appManager.tell 'IDE', 'quit'
 
-        # return showError "Couldn't fetch your VMs"  unless machine
-        unless machine
-          return appManager.tell 'IDE', 'quit'
+      @machine = machine
+      @setData machine
 
-        @machine = machine
-        @setData machine
-
-        @emit 'IDEBecameReady', machine
-
-        computeController.showBuildLogs machine  if initial
+      @emit 'IDEBecameReady', machine, initial
 
 
   verifyAccount: ->

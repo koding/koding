@@ -591,28 +591,24 @@ func fetchMachines(ctx context.Context, ids ...string) ([]*models.Machine, error
 		return nil, errors.New("request context is not passed")
 	}
 
-	// we're going to need this helper function
-	// TODO(arslan): as for []*Machineuser we should have custom type for
-	// []*Machines to have helper methods of it.
-	machineFromUserId := func(id bson.ObjectId) *models.Machine {
-		for _, machine := range machines {
-			for _, user := range machine.Users {
-				if user.Id.Hex() == id.Hex() {
-					return machine
-				}
-			}
+	// find whether requested user is among allowed ones
+	var reqUser *models.User
+	for _, u := range users {
+		if u.Name == req.Username {
+			reqUser = u
+			break
 		}
-		return nil
 	}
 
-	// now check if the requested user is inside the allowed users list
-	for _, u := range users {
-		if u.Name != req.Username {
-			continue
-		}
-
-		if m := machineFromUserId(u.ObjectId); m != nil {
-			validMachines[m.ObjectId.Hex()] = m
+	if reqUser != nil {
+		// now check if the requested user is inside the allowed users list
+		for _, m := range machines {
+			for _, user := range m.Users {
+				if user.Id.Hex() == reqUser.ObjectId.Hex() {
+					validMachines[m.ObjectId.Hex()] = m
+					break
+				}
+			}
 		}
 	}
 
