@@ -107,13 +107,12 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       global.location.href = path
 
     when 'stacks'
-      { stack } = info.params
-      # TODO: fetch/get stack by slug and send it to modal
-      # new EnvironmentsModal selected: @getOption 'stack'
-      new EnvironmentsModal()
+      { stackId } = info.params
+      new EnvironmentsModal selected: stackId
 
     when 'machine-settings'
-      { slug } = info.params
+      { slug, state } = info.params
       environmentDataProvider.fetchMachineBySlug slug, (machine) ->
+        modal = new MachineSettingsModal {}, new Machine { machine: remote.revive machine }
+        modal.showPaneByName state  if state
 
-        new MachineSettingsModal {}, new Machine { machine: remote.revive machine }
