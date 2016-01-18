@@ -278,7 +278,7 @@ module.exports =
 
   getMockAccount: ->   return mockjaccount
 
-  getMockGroup: ->     return mockjgroup
+  getMockGroup: ->     return remote.revive mockjgroup
 
   getMockMessage: (args...) -> return mockMessage(args...)
 

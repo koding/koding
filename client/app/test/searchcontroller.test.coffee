@@ -128,7 +128,7 @@ describe 'kd.singletons.search', ->
       { search } = kd.singletons
 
       mockAccount = mock.getMockAccount()
-      mockGroup   = remote.revive mock.getMockGroup()
+      mockGroup   = mock.getMockGroup()
       nickname    = mockAccount.profile.nickname
 
       mock.remote.api.JAccount.one.toReturnPassedParam mockAccount
