@@ -14,6 +14,25 @@ module.exports =
     browser.end()
 
 
+  createChannelWithPurpose: (browser) ->
+ 
+    purpose = "testing the purpose field"
+ 
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user, null, null, purpose)
+    browser.end()
+
+
+  updateChannelPurpose: (browser) ->
+  
+    purpose = "testing the purpose field"
+ 
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user, null, null, purpose)
+    teamsHelpers.updateChannelPurpose(browser)
+    browser.end()
+
+
   sendComment: (browser) ->
 
     message = helpers.getFakeText()
@@ -46,7 +65,7 @@ module.exports =
       .assert.containsText    threadsContainer, channelNames[0]
       .end()
 
-
+  
   leaveChannel: (browser) ->
 
     user                    = teamsHelpers.loginTeam(browser)

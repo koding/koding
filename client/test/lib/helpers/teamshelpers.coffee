@@ -309,9 +309,11 @@ module.exports =
         .click                  sidebarSectionsHeaderSelector
 
 
-  createChannel: (browser, user, channelName, isInvalid) ->
+  createChannel: (browser, user, channelName, isInvalid, purpose) ->
 
-    createChannelModalNameSelector   = '.CreateChannel-Modal .CreateChannel-content .channelName input'
+    channelModalSelector             = '.CreateChannel-Modal .CreateChannel-content'
+    createChannelModalNameSelector   = "#{channelModalSelector} .channelName input"
+    purposeSelector                  = "#{channelModalSelector} .channelPurpose input"
     createChannelModalButtonSelector = '.CreateChannel-Modal .Modal-buttons .Button--danger'
     channelName                    or= helpers.getFakeText().split(' ')[0] + Date.now()
     channelName                      = channelName.substring(0, 19)
@@ -323,6 +325,13 @@ module.exports =
       .waitForElementVisible  '.CreateChannel-Modal', 20000
       .waitForElementVisible  createChannelModalNameSelector, 20000
       .setValue               createChannelModalNameSelector, channelName
+
+      if purpose
+        browser
+          .waitForElementVisible  purposeSelector, 20000
+          .setValue               purposeSelector, purpose
+ 
+    browser
       .waitForElementVisible  createChannelModalButtonSelector, 20000
       .moveToElement          createChannelModalButtonSelector, 32, 12
       .click                  createChannelModalButtonSelector
@@ -342,6 +351,8 @@ module.exports =
         .pause                  2000 # wait for side bar channel list
         .waitForElementVisible  channelLinkOnSidebarSelector, 20000
         .assert.containsText    sidebarSectionsSelector, channelName
+        if purpose
+          browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose',purpose
 
     return channelName
 
@@ -596,3 +607,25 @@ module.exports =
         .click                     confirmDelete
         .pause                     3000 #for the text to be deleted
         .assert.elementNotPresent  deletedTextSelector
+
+
+  updateChannelPurpose: (browser) ->
+
+    editedPurposeText  = "edited text on the purpose field"
+    menuButtonSelector = '.ChannelThreadPane-content .ChannelThreadPane-header .ButtonWithMenuWrapper button'
+    editButtonSelector = '.ButtonWithMenuItemsList.ChannelThreadPane-menuItems li:nth-child(3)'
+    inputTextSelector  = '.ThreadHeader.ChannelThreadPane-header .ChannelThreadPane-purposeWrapper.editing input'
+    editedTextSelector = '.ThreadHeader.ChannelThreadPane-header .ChannelThreadPane-purposeWrapper:not(.editing)'
+
+    browser
+      .waitForElementVisible  menuButtonSelector, 20000
+      .click                  menuButtonSelector
+      .waitForElementVisible  editButtonSelector, 20000
+      .click                  editButtonSelector
+      .waitForElementVisible  inputTextSelector, 20000
+      .clearValue             inputTextSelector
+      .setValue               inputTextSelector, editedPurposeText + browser.Keys.ENTER
+      .pause                  3000 #waiting for the text to change
+      .waitForElementVisible  editedTextSelector, 20000
+      .assert.containsText    editedTextSelector, editedPurposeText
+
