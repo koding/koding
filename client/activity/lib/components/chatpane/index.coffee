@@ -166,6 +166,7 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     <Scroller
+      data-is-scroller=yes
       style={{height: 'auto'}}
       ref='scrollContainer'
       onScroll={@bound 'onScroll'}

@@ -16,7 +16,7 @@ module.exports = findScrollableParent = (element) ->
     if element is document
       continue
 
-    if element.classList.contains 'Scrollable'
+    if element.dataset.isScroller
       return element
 
     style = global.getComputedStyle element
