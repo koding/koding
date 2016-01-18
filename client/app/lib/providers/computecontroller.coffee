@@ -1,6 +1,5 @@
 globals              = require 'globals'
 Promise              = require 'bluebird'
-htmlencode           = require 'htmlencode'
 
 kd                   = require 'kd'
 KDController         = kd.Controller
