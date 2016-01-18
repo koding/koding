@@ -10,12 +10,12 @@ module.exports =
 
     socialWorker : (publicIpAddress) ->
 
-      return "#{SSH_SCRIPT} #{publicIpAddress} 'sudo /opt/koding/run socialworkertests'"
+      return "#{SSH_SCRIPT} #{publicIpAddress} '/opt/koding/run socialworkertests'"
 
 
     nodejsWebServer : (publicIpAddress) ->
 
-      return "#{SSH_SCRIPT} #{publicIpAddress} 'sudo /opt/koding/run nodeservertests'"
+      return "#{SSH_SCRIPT} #{publicIpAddress} '/opt/koding/run nodeservertests'"
 
 
   asArray : (publicIpAddresses) ->
