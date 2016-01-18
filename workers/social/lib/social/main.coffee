@@ -90,10 +90,10 @@ koding = new Bongo {
 
         usertracker.track account.profile.nickname
 
-        { clientIP, clientId: sessionToken } = session
+        { clientIP, clientId: sessionToken, username } = session
 
         callback {
-          sessionToken, context, clientIP,
+          sessionToken, context, clientIP, username
           connection:{ delegate : account }
         }
 
