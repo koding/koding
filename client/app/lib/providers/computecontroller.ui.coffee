@@ -449,7 +449,7 @@ module.exports = class ComputeController_UI
       { computeController } = kd.singletons
       computeController.fetchBaseStackTemplate stack, (err, template) ->
 
-        return kd.warn err  if err
+        return kd.warn err  if err or not template
 
         {content} = template.template
         content   = Encoder.htmlDecode content or ''

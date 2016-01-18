@@ -115,7 +115,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   createExtraViews: ->
 
-    { title, config: { oldOwner } } = @getData()
+    { title, config } = @getData()
 
     @header = new kd.CustomHTMLView
       cssClass : 'stack-info clearfix hidden'
@@ -130,7 +130,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       cssClass : 'title'
       partial  : title
 
-    if oldOwner
+    if oldOwner = config?.oldOwner
       @header.addSubView new kd.CustomHTMLView
         tagName  : 'span'
         cssClass : 'old-owner-desc'

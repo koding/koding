@@ -38,8 +38,8 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
     it 'should fail to create managed vm if ip address is not valid', (done) ->
 
-      withConvertedUser ({ client, account, user }) ->
-        client.r = { account, user }
+      withConvertedUser ({ client, account, user, group }) ->
+        client.r = { account, user, group }
 
         options =
           label       : generateRandomString()

@@ -60,7 +60,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
 
       computeController
         .once 'RenderStacks', => @destroy no
-        .reinitGroupStack stack
+        .reinitStack stack
 
 
   destroy: (goBack = yes) ->
