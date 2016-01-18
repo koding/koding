@@ -1,6 +1,7 @@
 module.exports = class Slugifiable
 
-  { dash, daisy, secure } = require 'bongo'
+  async      = require 'async'
+  { secure } = require 'bongo'
 
   KodingError = require '../error'
 
@@ -141,33 +142,6 @@ module.exports = class Slugifiable
             else
               callback null, nextName
 
-  # @updateAllSlugsResourceIntensively = (options, callback)->
-  #   [callback, options] = [options, callback] unless callback
-  #   options ?= {}
-  #   selector = if options.force then {} else {slug_: $exists: no}
-  #   subclasses = @encapsulatedSubclasses ? [@]
-  #   JName = require '../models/name'
-  #   JName.someData {},{name:1,_id:1,constructorName:1},{},(err,names)->
-  #     console.log "namesArr in"
-  #     names.toArray (err,namesArr)->
-  #       contentTypeQueue = subclasses.map (subclass)->->
-  #         console.log "2"
-  #         subclass.someData {},{title:1,_id:1},{limit:1000},(err,cursor)->
-  #           console.log "3"
-  #           if err
-  #             callback err
-  #           else
-  #             cursor.toArray (err,arr)->
-  #               if err
-  #                 callback err
-  #               else
-  #                 a.contructorName = subclass.name for a in arr
-  #                 console.log "4"
-  #                 console.log "arr ->",arr,"namesArr -> ",namesArr
-  #                 callback null #,arr,namesArr
-  #
-  #       dash contentTypeQueue, callback
-
   @updateSlugsByBatch = (batchSize, konstructors) ->
     konstructors = [konstructors]  unless Array.isArray konstructors
     konstructors.forEach (konstructor) ->
@@ -182,21 +156,22 @@ module.exports = class Slugifiable
     options ?= {}
     selector = if options.force then {} else { slug_: { $exists: no } }
     subclasses = @encapsulatedSubclasses ? [this]
-    contentTypeQueue = subclasses.map (subclass) -> ->
+
+    async.each subclasses, (subclass, next) ->
       subclass.cursor selector, options, (err, cursor) ->
-        if err then console.error err #contentTypeQueue.next err
+        if err then console.error err
         else
           postQueue = []
           cursor.each (err, post) ->
-            if err then console.error err#postQueue.next err
+            if err then console.error err
             else if post?
-              postQueue.push ->
+              postQueue.push (seriesNext) ->
                 post.updateSlug (err, slug) ->
                   callback null, slug
-                  postQueue.next()
+                  seriesNext()
             else
-              daisy postQueue, -> contentTypeQueue.fin()
-    dash contentTypeQueue, callback
+              async.series postQueue, -> next()
+    , callback
 
   updateSlug:(callback) ->
     @createSlug (err, slug) =>
