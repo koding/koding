@@ -48,6 +48,10 @@ module.exports = class EnvironmentListController extends kd.ListViewController
     @getItemsOrdered().forEach (view) =>
       view.header.show()
 
+      if stackId = @getOption 'selected'
+        unless stackId is view.getData().getId()
+          view.setClass 'collapsed'
+
       if stack = @getOption 'selected'
         unless stack.getId() is view.getData().getId()
           view.setClass 'collapsed'
