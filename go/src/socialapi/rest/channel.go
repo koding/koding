@@ -195,8 +195,7 @@ func GetChannel(id int64) (*models.Channel, error) {
 	return cc.Channel, nil
 }
 
-// GetChannelWithToken gets the channel of the account with fivent account's session data.
-
+// GetChannelWithToken gets the channel of the account with given account's session data.
 func GetChannelWithToken(id int64, token string) (*models.Channel, error) {
 	cc, err := GetChannelContainerWithToken(id, token)
 	if err != nil {
