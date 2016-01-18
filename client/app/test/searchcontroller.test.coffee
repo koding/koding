@@ -113,16 +113,6 @@ describe 'kd.singletons.search', ->
 
   describe '::searchAccountsMongo', ->
 
-    it 'should call with seed argument', ->
-
-      { search } = kd.singletons
-
-      expect.spyOn search, 'searchAccountsMongo'
-
-      search.searchAccountsMongo SEED
-
-      expect(search.searchAccountsMongo).toHaveBeenCalledWith SEED
-
     it 'should filter current user from the results', (done) ->
 
       { search } = kd.singletons
