@@ -41,7 +41,7 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     items.map (item, index) =>
       isSelected = index is selectedIndex
 
-      <ChannelParticipantsDropdownItem
+      <ChannelParticipantsDropdownItem.Container
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
