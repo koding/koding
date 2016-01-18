@@ -296,6 +296,10 @@ func fromContext(ctx context.Context) (*kite.Client, *sl.Softlayer) {
 	return k, c
 }
 
+func kiteFromContext(ctx context.Context) *kite.Client {
+	return ctx.Value(kiteKey).(*kite.Client)
+}
+
 func newSoftlayer() *sl.Softlayer {
 	return sl.NewSoftlayer(
 		os.Getenv("SOFTLAYER_USER_NAME"),
