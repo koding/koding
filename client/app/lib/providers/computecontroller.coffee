@@ -431,9 +431,15 @@ module.exports = class ComputeController extends KDController
 
     { mainController, groupsController } = kd.singletons
 
-    handleStackCreate = (err) =>
+    handleStackCreate = (err, newStack) =>
       return kd.warn err  if err
-      @reset yes
+      return kd.warn 'Stack data not found'  unless newStack
+
+      { results : { machines } } = newStack
+      [ machine ] = machines
+
+      @reset yes, ->
+        reloadIDE machine.obj.slug
 
     mainController.ready =>
 
