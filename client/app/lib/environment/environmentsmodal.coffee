@@ -5,6 +5,7 @@ checkFlag                 = require 'app/util/checkFlag'
 StacksModal               = require 'app/stacks/stacksmodal'
 EnvironmentList           = require './environmentlist'
 EnvironmentListController = require './environmentlistcontroller'
+whoami                    = require 'app/util/whoami'
 
 
 module.exports = class EnvironmentsModal extends kd.ModalView
@@ -62,6 +63,10 @@ module.exports = class EnvironmentsModal extends kd.ModalView
         .once 'RenderStacks', => @destroy no
         .reinitStack stack
 
+    whoami().isEmailVerified (err, verified) ->
+      if err or not verified
+        for item in controller.getListItems()
+          item.emit 'ManagedMachineIsNotAllowed'
 
   destroy: (goBack = yes) ->
 
