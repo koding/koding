@@ -119,12 +119,6 @@ koding.connect ->
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log
 
-  if KONFIG.misc?.updateAllSlugs
-    require('./traits/slugifiable').updateSlugsByBatch 100, [
-      require './models/tag'
-      require './models/app'
-    ]
-
   Tracker = require './models/tracker'
   Tracker.setMqClient broker.connection
 
