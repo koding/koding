@@ -12,16 +12,16 @@ module.exports = class ChatPaneContainer extends React.Component
 
   @propsTypes =
     thread        : React.PropTypes.instanceOf immutable.Map()
-    onLoadMore    : React.PropTypes.func
     onInviteClick : React.PropTypes.func
     showItemMenu  : React.PropTypes.bool
+    onLoadMore    : React.PropTypes.func
 
 
   @defaultProps =
     thread        : immutable.Map()
-    onLoadMore    : kd.noop
     onInviteClick : kd.noop
-    showItemMenu  : no
+    showItemMenu  : yes
+    onLoadMore    : kd.noop
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
