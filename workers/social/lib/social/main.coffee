@@ -156,7 +156,12 @@ do ->
   helmet.defaults app
   app.use cors()
 
-  app.post '/xhr', koding.expressify()
+  options =
+    rateLimitEnabled    : KONFIG.nodejsRateLimiter.enabled
+    userRateLimitRules  : KONFIG.nodejsRateLimiter.userRules
+    guestRateLimitRules : KONFIG.nodejsRateLimiter.guestRules
+
+  app.post '/xhr', koding.expressify options
   app.get '/xhr', (req, res) ->
     res.send 'Socialworker is OK'
 
