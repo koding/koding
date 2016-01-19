@@ -7,10 +7,12 @@ import (
 	"time"
 )
 
+// ReadDirRes is the response for reading entries in a dir.
 type ReadDirRes struct {
 	Files []*GetInfoRes `json:"files"`
 }
 
+// GetInfoRes is the response for getting info about a single entry.
 type GetInfoRes struct {
 	Exists   bool        `json:"exists"`
 	FullPath string      `json:"fullPath"`
@@ -24,10 +26,13 @@ type GetInfoRes struct {
 	Writable bool        `json:"writable"`
 }
 
+// ReadFileRes is the response of reading a single file.
 type ReadFileRes struct {
 	Content []byte
 }
 
+// UnmarshalJSON satisfies the json reader interface. This is required since
+// remote returns an map while a struct is more useful here.
 func (f *ReadFileRes) UnmarshalJSON(b []byte) error {
 	var m map[string]string
 	if err := json.Unmarshal(b, &m); err != nil {
@@ -44,6 +49,7 @@ func (f *ReadFileRes) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// GetDiskInfoRes is the response of reading mount info of a disk.
 type GetDiskInfoRes struct {
 	BlockSize   uint32 `json:"blockSize"`
 	BlocksTotal uint64 `json:"blocksTotal"`
@@ -51,6 +57,7 @@ type GetDiskInfoRes struct {
 	BlocksUsed  uint64 `json:"blocksUsed"`
 }
 
+// ExecRes is the response of the command that ran.
 type ExecRes struct {
 	Stdout     string `json:"stdout"`
 	Stderr     string `json:"stderr"`

@@ -80,8 +80,9 @@ func (k *KlientTransport) Trip(methodName string, req interface{}, res interface
 	return raw.Unmarshal(&res)
 }
 
-func (k *KlientTransport) CreateDir(path string, mode os.FileMode) error {
-	// TODO: accept permissions here
+// CreateDir (recursively) creates dir with specified name and mode. It does
+// not send specified mode to remote.
+func (k *KlientTransport) CreateDir(path string, _ os.FileMode) error {
 	req := struct {
 		Path      string
 		Recursive bool
@@ -93,27 +94,8 @@ func (k *KlientTransport) CreateDir(path string, mode os.FileMode) error {
 	return k.Trip("fs.createDirectory", req, &res)
 }
 
-func (k *KlientTransport) Rename(oldPath, newPath string) error {
-	req := struct{ OldPath, NewPath string }{
-		OldPath: oldPath,
-		NewPath: newPath,
-	}
-	var res bool
-	return k.Trip("fs.rename", req, res)
-}
-
-func (k *KlientTransport) Remove(path string) error {
-	req := struct {
-		Path      string
-		Recursive bool
-	}{
-		Path:      path,
-		Recursive: true,
-	}
-	var res bool
-	return k.Trip("fs.remove", req, &res)
-}
-
+// ReadDir returns entries of the dir at specified path. It takes slice of dir
+// names as strings to ignore from listing.
 func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (*ReadDirRes, error) {
 	req := struct {
 		Path          string
@@ -132,6 +114,41 @@ func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (*ReadDir
 	return res, nil
 }
 
+// Rename changes name of the entry from specified old to new name.
+func (k *KlientTransport) Rename(oldPath, newPath string) error {
+	req := struct{ OldPath, NewPath string }{
+		OldPath: oldPath,
+		NewPath: newPath,
+	}
+	var res bool
+	return k.Trip("fs.rename", req, res)
+}
+
+// Remove (recursively) removes the entries in the specificed path.
+func (k *KlientTransport) Remove(path string) error {
+	req := struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      path,
+		Recursive: true,
+	}
+	var res bool
+	return k.Trip("fs.remove", req, &res)
+}
+
+// ReadFile reads file at specificed path and return its contents.
+func (k *KlientTransport) ReadFile(path string) (*ReadFileRes, error) {
+	req := struct{ Path string }{path}
+	res := &ReadFileRes{}
+	if err := k.Trip("fs.readFile", req, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+// WriteFile writes file at specificed path with data.
 func (k *KlientTransport) WriteFile(path string, content []byte) error {
 	req := struct {
 		Path    string
@@ -145,16 +162,8 @@ func (k *KlientTransport) WriteFile(path string, content []byte) error {
 	return k.Trip("fs.writeFile", req, &res)
 }
 
-func (k *KlientTransport) ReadFile(path string) (*ReadFileRes, error) {
-	req := struct{ Path string }{path}
-	res := &ReadFileRes{}
-	if err := k.Trip("fs.readFile", req, &res); err != nil {
-		return res, err
-	}
-
-	return res, nil
-}
-
+// Exec runs specified command. Note, it doesn't set the path from where it
+// executes the command; by default it'll the location from which klient runs.
 func (k *KlientTransport) Exec(cmd string) (*ExecRes, error) {
 	req := struct{ Command string }{cmd}
 	res := &ExecRes{}
@@ -165,6 +174,8 @@ func (k *KlientTransport) Exec(cmd string) (*ExecRes, error) {
 	return res, nil
 }
 
+// GetDiskInfo returns disk info about the mount at the specified path. If a
+// nested path is specified, it returns the top most mount.
 func (k *KlientTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 	req := struct{ Path string }{path}
 	res := &GetDiskInfoRes{}
@@ -178,6 +189,7 @@ func (k *KlientTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 	return res, nil
 }
 
+// GetInfo returns info about the entry at specified path.
 func (k *KlientTransport) GetInfo(path string) (*GetInfoRes, error) {
 	req := struct{ Path string }{path}
 	res := &GetInfoRes{}

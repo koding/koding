@@ -15,6 +15,9 @@ import (
 	"github.com/koding/klient/command"
 )
 
+// NewDiskTransport is the required initializer for DiskTransport. It accepts
+// path where to create cache folder; if empty path is specified it creates a
+// folder at temp location.
 func NewDiskTransport(path string) (*DiskTransport, error) {
 	if path == "" {
 		var err error
@@ -89,10 +92,10 @@ func (d *DiskTransport) WriteFile(path string, data []byte) error {
 	return err
 }
 
+// Exec runs specified command. Note, it doesn't set the path from where it
+// executes the command; this is same behavior as KlientTransport.
 func (d *DiskTransport) Exec(cmd string) (*ExecRes, error) {
 	c := exec.Command("/bin/bash", "-c", cmd)
-	c.Dir = d.Path
-
 	res, err := command.NewOutput(c)
 	if err != nil {
 		return nil, err
@@ -105,10 +108,13 @@ func (d *DiskTransport) Exec(cmd string) (*ExecRes, error) {
 	}, nil
 }
 
+// GetDiskInfo returns disk info about the mount at the specified path. If a
+// nested path is specified, it returns the top most mount.
 func (d *DiskTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 	return getDiskInfo(d.fullPath(path))
 }
 
+// GetInfo returns info about the entry at specified path.
 func (d *DiskTransport) GetInfo(path string) (*GetInfoRes, error) {
 	return getInfo(d.fullPath(path))
 }
@@ -121,7 +127,8 @@ func (d *DiskTransport) fullPath(path string) string {
 ///// COPIED FROM KLIENT. TODO: fix this.
 
 func readDirectory(p string, recursive bool, ignoreFolders []string) ([]*GetInfoRes, error) {
-	ls := make([]*GetInfoRes, 0)
+	var ls []*GetInfoRes
+
 	walkerFn := func(path string, f os.FileInfo, err error) error {
 		// no use in returning root level directory that's being traversed
 		if path == p {

@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -175,12 +176,13 @@ func TestDTExec(t *testing.T) {
 		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
-		Convey("It should run command inside path", func() {
+		Convey("It should run command and return response", func() {
 			// write file so we can check it with exec
 			err := dt.WriteFile("file", []byte{})
 			So(err, ShouldBeNil)
 
-			res, err := dt.Exec("ls")
+			cmd := fmt.Sprintf("ls %s", dt.Path)
+			res, err := dt.Exec(cmd)
 			So(err, ShouldBeNil)
 			So(res.Stdout, ShouldEqual, "file\n")
 			So(res.Stderr, ShouldEqual, "")
