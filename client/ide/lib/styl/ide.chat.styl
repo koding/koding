@@ -1,0 +1,824 @@
+
+
+
+@css {
+/*
+IDE Chat stylesheet
+ide.chat.styl
+*/
+}
+
+pmTitleColor  = #6A6A6A
+pmBorderColor = #E0E0E0
+pmLinkColor   = #B6B6B6
+
+.ChatVideo-actionButtonContainer
+  position                  absolute
+  right                     24px
+  top                       36px
+  z-index                   20
+
+.ChatVideo-actionButton
+  background                #00B057
+  rounded                   3px
+  size                      25px 28px
+  margin-top                6px !important
+  border                    none
+  .icon
+    r-sprite                'ide', 'cam-white'
+
+
+.chat-dropdown .search
+  cursor                    default !important
+
+.chat-dropdown .separator > .kdview
+  hidden()
+
+.chat-view
+  abs                       0 13px 40px 0
+  size                      325px 567px
+  max-height                calc(100vh \- 53px)
+  z-index                   20
+  bg                        color #F8F8F8
+  rounded                   3px 3px 0 0
+  overflow                  hidden
+
+  .custom-link-view.close
+    abs                     15px 19px 0 0
+    size                    20px 20px
+    z-index                 10
+    .icon
+      margin                6px
+      r-sprite              ide 'chat-close'
+      display               block
+
+  a.workspace-name
+    font-family             adelleFamily
+    color                   pmTitleColor
+    font-size               13px
+    height                  20px
+    line-height             20px
+    display                 inline-block
+    padding-left            16px
+    noTextDeco()
+    rel()
+    &:before
+      content               ''
+      r-sprite              ide lock
+      display               inline-block
+      abs                   2px 0 0 0px
+
+  .pm-title-chevron
+    size                    14px 15px
+    bg                      color transparent
+    border                  none
+    padding                 0
+    padding-right           0 !important
+    cursor                  pointer
+    margin-left             11px
+
+    &:focus
+      vendor                box-shadow, none
+
+  .chevron-separator
+    hidden()
+
+  .chevron
+    r-sprite                ide title-chevron
+    top                     5px
+    left                    0
+    abs()
+
+  .general-header
+    padding                 16px 16px 0
+
+    .session-link
+      font-size             11px
+      font-family           adelleFamily
+      line-height           18px
+      color                 pmLinkColor
+      display               block
+      hidden()
+      noTextDeco()
+
+  > .kdtabpaneview
+    padding                 16px
+    borderBox()
+
+    header
+
+      .chat-link
+        height              20px
+        line-height         20px
+        font-size           14px
+        color               #B7B7B7
+        noTextDeco()
+
+        &:before
+          content           ''
+          display           inline-block
+          margin-right      7px
+          r-sprite          'ide', 'chat-back'
+
+    div.buttons
+      abs()
+      padding               16px 0
+      bottom                0
+
+    .kdbutton
+      &[disabled]
+        bg                  color #D0D0D0
+
+      &.green
+        bg                  color #0DA84C
+
+      &.red
+        bg                  color #F56778
+
+      span.button-title
+        font-size           14px
+        font-weight         600
+        line-height         18px
+
+  .kdselectbox
+    height                  24px
+    rounded                 3px
+    borderBox()
+
+    span.title
+      font-size             11px
+      line-height           24px
+      padding               0 29px 0 11px
+    span.arrows
+      r-sprite              ide 'selectbox-arrow'
+      right                 9px
+
+
+  ul.settings
+    line-height             24px
+    padding                 12px 0
+    &.default
+      border-bottom         1px solid pmBorderColor
+      label
+        color               #7B7B7B
+        font-size           13px
+        fl()
+
+    li
+      color                 #5E5E5E
+      font-size             12px
+      cf()
+      label
+        fl()
+      .kdselectbox
+        fr()
+
+
+.chat-view.is-videoActive
+
+  .ChatVideo-actionButtonContainer
+    hidden()
+
+  .message-pane .onboarding
+    top                     10px
+
+  .general-header
+    position                absolute
+    top                     -265px
+    color                   #fff
+    gradient                rgba(0,0,0,.7), rgba(0,0,0,0)
+    display                 block
+    padding                 12px 16px
+    width                   100%
+    z-index                 1
+    borderBox()
+
+  a.workspace-name
+    color                   #ccc
+
+  .kdtabpaneview.privatemessage
+    height                  302px
+    max-height              302px
+    min-height              302px
+
+    .message-pane-scroller
+      height                calc(100% \- 44px)
+
+    .chat-heads
+      position              absolute
+      top                   -52px
+      margin-top            0px
+      vendor                transition, margin-top .177s ease
+
+      .ParticipantHeads .avatarview.is-selectedParticipant img
+        border-color        legendary
+
+      .ParticipantHeads .avatarview.is-talkingParticipant:after
+        vendor              animation, radiate 1s ease infinite
+        opacity             1
+
+      .ParticipantHeads-actionsContainer
+        position            absolute
+        bottom              -50px
+        right               9px
+        z-index             10
+        vendor              transition, bottom .3s ease
+
+        &.is-newButtonActive
+          bottom            -4px
+
+      .ParticipantHeads-button
+        background          #fff
+        rounded             2px
+        size                25px 25px
+        margin-top          6px !important
+        border              2px solid rgba(204, 204, 204, 0.5)
+        contentBox()
+
+      .ParticipantHeads .avatarview
+        rounded             2px
+        overflow            visible
+        margin              6px 6px 0 0
+        rel()
+        img
+          z-index           1
+          rel()
+        &:after
+          background        logoBg
+          z-index           0
+          size              100% 100%
+          abs               0px 0 0 0px
+          shadow            0 0 5px logoBg
+          vendor            transition, opacity .3s ease
+          content           ''
+          opacity           0
+
+      .ParticipantHeads .avatarview img
+        rounded             2px
+        border              2px solid rgba(255,255,255,.5)
+
+    .new-message-form.inline.active
+      top                   -4px
+
+@-webkit-keyframes radiate
+  0%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+  61.2%
+    shadow                  0 0 6px 2px rgba(26,175,93,1)
+  100%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+
+@-moz-keyframes radiate
+  0%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+  61.2%
+    shadow                  0 0 6px 2px rgba(26,175,93,1)
+  100%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+
+
+.ChatVideo--IDEChatVideo
+
+  size                    325px 265px
+  overflow                hidden
+  bg                        color #131313
+
+  .ChatVideo-container
+    size                    100% 100%
+    bg                      color #131313
+
+  .ChatVideo-offlineUserContainer
+    background              url(https://koding-cdn.s3.amazonaws.com/images/one-pixel-dark-square.png)
+    background-size         cover
+
+  .ChatVideo-absoluteContainer
+    position                absolute
+    top                     0
+    left                    0
+    size                    100% 100%
+    bg                      color rgba(0,0,0,0.75)
+
+  .OT_video-poster .profile-like-view
+  .ChatVideo-absoluteContainer span.profile
+  .ChatVideo-cameraDialogContainer span.title
+    top                     50%
+    vendor                  transform, translateY(-50%)
+    line-height             30px
+    width                   100%
+    text-align              center
+    color                   #ccc
+    font-size               14px
+    bg                      color rgba(0,0,0,0.15)
+    padding                 0 50px 0 30px
+    borderBox()
+    abs()
+
+  .ChatVideo-offlineUserContainer span.profile:after
+    content                'is not on the call.'
+
+  .ChatVideo-cameraDialogContainer .NoiseView canvas
+    background              #0c3f0f
+
+  .ChatVideo-controls
+    size                    30px auto
+    position                absolute
+    padding                 0
+    margin                  0
+    top                     50px
+    right                   15px
+    z-index                 10
+
+  .ChatVideoControl
+    size                    30px 30px
+    margin-bottom           5px
+    border-radius           3px
+    padding                 0
+    background              rgba(255, 255, 255, .55)
+
+    &:hover
+      background            rgba(255, 255, 255, 1)
+
+    .icon
+      display               block
+      margin                0 auto !important
+      padding               0
+      float                 none
+      z-index               10
+
+  .ChatVideoControl.ChatVideoControl--audio
+    .icon
+      r-sprite              'ide', 'mic-disabled'
+    &.is-active .icon
+      r-sprite              'ide', 'mic'
+
+  .ChatVideoControl.ChatVideoControl--video
+    .icon
+      r-sprite              'ide', 'cam-disabled'
+    &.is-active .icon
+      r-sprite              'ide', 'cam'
+
+  .ChatVideoControl.ChatVideoControl--speaker
+    .icon
+      r-sprite              'ide', 'speaker-disabled'
+    &.is-active .icon
+      r-sprite              'ide', 'speaker'
+
+  .ChatVideoControl.ChatVideoControl--end
+  .ChatVideoControl.ChatVideoControl--leave
+    .icon
+      r-sprite              'ide', 'standby'
+
+.chat-view
+
+  .kdtabpaneview.privatemessage
+    padding                 0
+    height                  100%
+    max-height              100%
+    min-height              100%
+
+    .new-message-form.inline
+      background            transparent
+      padding               0
+      size                  296px, 37px
+      left                  14px
+      top                   90px
+      opacity               0
+      z-index               -1
+      vendor                transition, opacity .3s ease \, top .3s ease
+
+      .formline.recipient
+        rounded             0
+        border-color        #E9E9E9
+        padding-left        8px
+
+      .kdinput.text
+        height              37px
+        font-size           12px
+
+      &.active
+        top                 78px
+        opacity             1
+        z-index             100
+
+    .chat-heads
+      bg                    color, transparent
+
+      .description
+        display             none
+
+      .activity-settings-menu
+        display             none
+
+    .message-pane-scroller
+      height                calc(100% \- 118px)
+      > .kdscrollview
+        padding             0
+
+    .kdlistview-privatemessage
+      width                 calc(100% \- 28px)
+
+    .kdlistitemview-activity.privatemessage
+      background            transparent
+      margin                0
+      padding-left          22px
+
+      .link-embed-box
+        hidden()
+
+      .avatarview
+        bg                  size, 30px 30px !important
+        size                30px 30px
+        left                -48px
+
+        img
+          width             30px !important
+          height            30px !important
+
+      .settings-menu-wrapper
+        right               15px
+
+      .activity-content-wrapper
+        margin              0 0 0 40px
+
+        .meta
+          margin            6px 0 0px 0
+
+          .profile
+            font-size       12px
+
+          time:before
+            content         ''
+            display         inline-block
+            size            4px 1px
+            bg              color, #D0D0D0
+            vertical-align  super
+            margin          1px 4px 0
+
+        > article
+          font-size         12px
+          line-height       18px
+          margin-top        0
+
+          p
+            padding-right   0
+
+      &.consequent
+        .meta
+          top               0
+          left              -61px
+          margin-top        0
+          width             62px
+
+          time
+            font-size       9px
+
+            &:before
+              display       none
+
+    .reply-input-widget
+      size                  100% auto
+      margin                0
+
+  .participant-view
+    margin-bottom           5px
+
+    &:hover .kick-button
+      display               inline-block
+      visibility            visible
+      color                 #F56778
+      background            transparent
+      border                none
+      height                24px
+
+    &.offline
+      .avatarview
+        opacity             .5
+
+    &.me
+      height                auto
+      margin-top            12px
+
+    .avatarview
+      display               inline-block
+      margin-right          8px
+      size                  32px, 32px
+
+    .name
+      display               inline-block
+      font-size             13px
+      line-height           32px
+      height                32px
+
+    .kick-button
+      hidden()
+
+      &:focus
+        box-shadow          none
+
+    .settings
+      abs()
+      right                 0
+      top                   5px
+
+    .watch-button
+      size                  34px, 24px
+      background            #35AFC3
+      border                none
+      rounded               6px
+      text-align            center
+      line-height           24px
+
+      &.watching
+        background          #24B444
+
+      .icon
+        r-sprite            'ide', 'collab-eye'
+        display             inline-block
+
+    .kdselectbox
+      margin-top            -3px
+
+  .you
+    abs()
+    font-size               12px
+    color                   #6a6a6a
+    right                   0
+    height                  34px
+    line-height             34px
+
+  .everyone
+    padding-top             0 !important
+
+    &.loading
+      text-align            center
+      padding               30px 0
+
+      &.kdloader
+        margin-bottom       5px
+
+      .label
+        color               #6a6a6a
+        font-size           13px
+
+    .name
+      width                 80px
+      vertical-align        top
+      ellipsis()
+
+  .chat-settings .buttons
+    button
+      size                  293px 34px
+
+
+.avatarview.waiting
+  opacity                   .5
+
+.ide
+  .host .avatars
+
+    .avatarview.offline
+      display               inline-block
+      img
+        opacity             .2 !important
+        &:hover
+          opacity           .5 !important
+
+
+  .avatars
+    margin-right            5px
+
+    .avatarview
+      display               inline-block
+      margin                7px 3px 0
+      size                  24px 24px
+      overflow              visible
+      borderBox()
+      rel()
+      &:after
+        content             ''
+        abs                 0px 0 0 0px
+        size                24px 1px
+        vendor              transition, all .3s ease
+        shadow              0 0 0 0 #ff9200
+        bg                  color transparent
+
+      &.watching:after
+        content             ''
+        size                2px 1px
+        abs                 28px 0 0 11px
+        shadow              0 0 5px 2px #ff9200
+        z-index             2
+        background          #ff9200
+
+      &.offline
+        display             none
+        &.watching:after
+          display           none
+      img
+        vertical-align      top
+        borderBox()
+
+.chat-view.loading
+
+  .loader-view
+    text-align              center
+    font-size               13px
+
+    .kdloader
+      abs()
+      height                24px
+      margin                -25px 0 10px
+      top                   50%
+      left                  0
+
+    .label
+      abs()
+      top                   50%
+      width                 100%
+      margin-top            10px
+      color                 #6a6a6a
+
+
+.chat-view .chat-settings
+
+  .progressbar-container
+    size                    293px, 34px
+    border                  none
+    background              #C4C4C4
+
+    .bar
+      background            #00B057
+      z-index               1
+      shadow                none
+
+    span
+      text-align            center
+      text-shadow           none
+      color                 #FFF
+      padding-top           10px
+      font-size             14px
+      font-weight           600
+      z-index               1
+      text-rendering        geometricPrecision
+      text-transform        uppercase
+
+    .kdloader
+      left:                 80px
+      top:                  -3px
+      z-index               2
+
+  .session-settings
+
+    margin-top              25px
+
+    a
+    label
+      color                 #777
+      font-size             14px
+      line-height           1.4em
+
+    label
+      cursor                pointer
+
+    .wrapper
+
+      size                  270px 28px
+      margin                0 auto
+
+      &:hover
+        .guide-link
+          opacity           .5
+
+      .koding-on-off
+
+        display             inline-block
+        fl()
+
+        margin-right        10px
+        vendor              transform, scaleX(0.7) scaleY(0.7)
+
+        &.on
+          bg                color #52A840
+
+      .guide-link
+        fr()
+        opacity             0
+        vendor              transition, opacity .2s .2s ease
+
+        .icon
+          vertical-align    sub
+          r-sprite          'app', '16-info'
+
+
+.chat-view .chat-settings .warning
+
+  hidden()
+
+  span
+    color                 #777
+    font-size             14px
+    line-height           1.4em
+
+  a
+    color                   #0DA84C
+    text-decoration         none
+
+  .key-icon
+
+    r-sprite                'ide', 'key-icon'
+    margin                  5px auto 0
+
+    &:before
+    &:after
+
+      content               ''
+      display               inline-block
+      size                  27px 0
+      abs                   37px
+      border-top            2px solid #E3E3E3
+
+    &:before
+      left                  110px
+
+    &:after
+      right                 110px
+
+.chat-view.onboarding
+  size                      335px 305px
+
+  .chat-settings .warning
+    visible()
+    text-align              center
+
+    span
+      display               inline-block
+      margin-top            15px
+
+    strong
+      color                 #0DA84C
+
+  .settings
+  header.chat-settings
+
+    hidden()
+
+
+.chat-view .message-pane
+
+  .onboarding
+    abs()
+    top                     90px
+    z-index                 2 // acetz!
+    background              #F8F8F8
+
+    .arrow
+      r-sprite              'ide', 'chat-arrow'
+      display               inline-block
+      margin                0 42px 0 50px
+
+    .balloon
+      r-sprite              'ide', 'chat-balloon'
+      display               inline-block
+
+    p
+      color                 #52A840
+      font-size             18px
+      padding               0 30px
+      margin-top            20px
+      line-height           1.4em
+
+      a
+        color               #52A840
+        font-weight         600
+        text-decoration     none
+        pointer()
+
+.chat-view
+
+  .everyone
+    margin-top              12px
+
+    p
+      color                 #7b7b7b
+      font-size             13px
+      margin-top            20px
+      line-height           1.4em
+      text-align            center
+
+      a
+        color               #52A840
+        font-weight         600
+        text-decoration     none
+        pointer()
+
+  .activity-content-wrapper
+
+    > article
+      max-height            270px
+
+.ide
+  .kdlistitemview
+    &.end-session
+    &.leave-session
+      div
+        color               #F56778
