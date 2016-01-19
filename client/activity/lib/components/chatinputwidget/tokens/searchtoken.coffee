@@ -17,17 +17,21 @@ module.exports = SearchToken =
   getConfig: ->
 
     return {
-      component              : SearchDropbox
-      getters                :
-        items                : 'dropboxSearchItems'
-        selectedIndex        : 'searchSelectedIndex'
-        selectedItem         : 'searchSelectedItem'
-        flags                : 'searchFlags'
-      horizontalNavigation   : no
-      handleItemConfirmation : (item, query) ->
+      component            : SearchDropbox
+      getters              :
+        items              : 'dropboxSearchItems'
+        selectedIndex      : 'searchSelectedIndex'
+        selectedItem       : 'searchSelectedItem'
+        flags              : 'searchFlags'
+      horizontalNavigation : no
+      processConfirmedItem : (item, query) ->
         { initialChannelId, id } = item.get('message').toJS()
-        ChannelActions.loadChannel(initialChannelId).then ({ channel }) ->
-          kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
+        return {
+          type     : 'command'
+          value    :
+            name   : '/search'
+            params : { initialChannelId, messageId : id }
+        }
     }
 
 
