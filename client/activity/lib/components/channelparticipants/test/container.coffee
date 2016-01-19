@@ -13,7 +13,7 @@ describe 'ChannelParticipantsContainer', ->
 
   beforeEach ->
 
-    @participants = mock.getMockParticipants 25
+    @participants = mock.getMockParticipants { size: 25 }
     channelId     = 'dummy-channel-id'
     @mockThread   = toImmutable mock.getMockThread { channelId }
 

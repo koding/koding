@@ -10,7 +10,7 @@ describe 'ChannelAllParticipantsMenuView', ->
   { renderIntoDocument } = TestUtils
 
 
-  beforeEach -> @participants = mock.getMockParticipants 25
+  beforeEach -> @participants = mock.getMockParticipants { size: 25 }
 
 
   afterEach -> expect.restoreSpies()

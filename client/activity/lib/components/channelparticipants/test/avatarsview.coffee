@@ -12,7 +12,7 @@ describe 'ChannelParticipantsAvatarsView', ->
 
   beforeEach ->
 
-    @participants = mock.getMockParticipants 25
+    @participants = mock.getMockParticipants { size: 25 }
 
 
   afterEach -> expect.restoreSpies()

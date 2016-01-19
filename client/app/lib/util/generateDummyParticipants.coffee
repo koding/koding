@@ -2,7 +2,7 @@ immutable    = require 'immutable'
 toImmutable  = require 'app/util/toImmutable'
 mockjaccount = require '../../../mocks/mock.jaccount'
 
-module.exports = generateParticipants = (size) ->
+module.exports = generateParticipants = ({ size }) ->
 
   participants = immutable.Map()
 
