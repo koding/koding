@@ -22,18 +22,27 @@ module.exports =
         callback(isActive)
 
 
-  startSession: (browser) ->
+  startSession: (browser, readOnlySession) ->
 
-    chatViewSelector    = '.chat-view.onboarding'
-    startButtonSelector = '.chat-view.onboarding .buttons button.start-session'
+    chatViewSelector      = '.chat-view.onboarding'
+    startButtonSelector   = '.chat-view.onboarding .buttons button.start-session'
+    readOnlySessionButton = '.chat-settings.active .session-settings .read-only .koding-on-off'
 
     @isSessionActive browser, (isActive) ->
       if isActive
         console.log ' ✔ Session is active'
       else
         console.log ' ✔ Session is not started'
+        browser.click  shareButtonSelector
+
+        if readOnlySession
+          browser
+            .waitForElementVisible  readOnlySessionButton, 20000
+            .waitForElementVisible  "#{readOnlySessionButton}.off", 20000 # Assertion
+            .click                  readOnlySessionButton
+            .waitForElementVisible  "#{readOnlySessionButton}.on", 20000 # Assertion
+
         browser
-          .click                  shareButtonSelector
           .waitForElementVisible  chatViewSelector, 20000
           .waitForElementVisible  startButtonSelector, 20000
           .click                  startButtonSelector
@@ -155,7 +164,7 @@ module.exports =
       .waitForElementVisible  chatBox, 20000 # Assertion
 
 
-  startSessionAndInviteUser: (browser, firstUser, secondUser, assertOnline = yes) ->
+  startSessionAndInviteUser: (browser, firstUser, secondUser, assertOnline = yes, readOnlySession) ->
 
     secondUserName         = secondUser.username
     secondUserAvatar       = ".avatars .avatarview[href='/#{secondUserName}']"
@@ -171,7 +180,7 @@ module.exports =
 
       if isActive then browser.end()
       else
-        @startSession browser
+        @startSession browser, readOnlySession
         @inviteUser   browser, secondUserName
 
         browser.waitForElementVisible  secondUserAvatar, 60000
