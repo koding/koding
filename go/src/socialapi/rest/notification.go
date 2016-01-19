@@ -36,7 +36,7 @@ func GlanceNotifications(accountId int64) (interface{}, error) {
 	return res, nil
 }
 
-func FollowNotification(followerId, followeeId int64) (interface{}, error) {
+func FollowNotification(followerId, followeeId int64, token string) (interface{}, error) {
 	c := models.NewChannel()
 	c.GroupName = fmt.Sprintf("FollowerTest-%d", followeeId)
 	c.TypeConstant = models.Channel_TYPE_FOLLOWERS
@@ -47,7 +47,7 @@ func FollowNotification(followerId, followeeId int64) (interface{}, error) {
 		return nil, err
 	}
 
-	return AddChannelParticipant(channel.(*models.Channel).Id, followerId, followerId)
+	return AddChannelParticipant(channel.(*models.Channel).Id, followerId, token, followerId)
 }
 
 func SubscribeMessage(accountId, messageId int64, groupName string) (interface{}, error) {
