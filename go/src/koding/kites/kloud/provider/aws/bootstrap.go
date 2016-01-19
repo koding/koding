@@ -1,4 +1,4 @@
-package kloud
+package awsprovider
 
 import (
 	"encoding/json"
@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 
@@ -16,159 +17,112 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	awssession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/koding/kite"
-	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2/bson"
 )
 
-type AwsBootstrapOutput struct {
-	ACL       string `json:"acl" mapstructure:"acl"`
-	CidrBlock string `json:"cidr_block" mapstructure:"cidr_block"`
-	IGW       string `json:"igw" mapstructure:"igw"`
-	KeyPair   string `json:"key_pair" mapstructure:"key_pair"`
-	RTB       string `json:"rtb" mapstructure:"rtb"`
-	SG        string `json:"sg" mapstructure:"sg"`
-	Subnet    string `json:"subnet" mapstructure:"subnet"`
-	VPC       string `json:"vpc" mapstructure:"vpc"`
-	AMI       string `json:"ami" mapstructure:"ami"`
-}
-
-type TerraformBootstrapRequest struct {
-	// Identifiers contains identifers to be used with terraform
-	Identifiers []string `json:"identifiers"`
-
-	GroupName string `json:"groupName"`
-
-	// Destroy destroys the bootstrap resource associated with the given
-	// identifiers
-	Destroy bool
-}
-
-func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
-	if r.Args == nil {
-		return nil, NewError(ErrNoArguments)
-	}
-
-	var args *TerraformBootstrapRequest
-	if err := r.Args.One().Unmarshal(&args); err != nil {
+// Bootstrap
+func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
+	var arg kloud.BootstrapRequest
+	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
 
-	if len(args.Identifiers) == 0 {
-		return nil, errors.New("identifiers are not passed")
+	if err := arg.Valid(); err != nil {
+		return nil, err
 	}
 
-	if args.GroupName == "" {
-		return nil, errors.New("group name is not passed")
-	}
-
-	if args.Destroy {
-		k.Log.Debug("Bootstrap destroy is called")
+	if arg.Destroy {
+		s.Log.Debug("Bootstrap destroy is called")
 	} else {
-		k.Log.Debug("Bootstrap apply is called")
+		s.Log.Debug("Bootstrap apply is called")
 	}
 
-	ctx := k.ContextCreator(context.Background())
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("session context is not passed")
-	}
-
-	data, err := fetchTerraformData(r.Method, r.Username, args.GroupName, sess.DB, args.Identifiers)
-	if err != nil {
+	if err := s.Builder.BuildCredentials(s.Req.Method, s.Req.Username, arg.GroupName, arg.Identifiers); err != nil {
 		return nil, err
 	}
 
-	k.Log.Debug("Connecting to terraformer kite")
-	tfKite, err := terraformer.Connect(sess.Kite)
+	s.Log.Debug("Connecting to terraformer kite")
+
+	tfKite, err := terraformer.Connect(s.Session.Kite)
 	if err != nil {
 		return nil, err
 	}
 	defer tfKite.Close()
 
-	k.Log.Debug("Iterating over credentials")
-	for _, cred := range data.Creds {
+	s.Log.Debug("Iterating over credentials")
+
+	for _, cred := range s.Builder.Credentials {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		k.Log.Debug("parsing the template")
-		template, err := newTerraformTemplate(awsBootstrap)
-		if err != nil {
-			return nil, err
+		s.Log.Debug("parsing the template")
+
+		if err := s.Builder.BuildTemplate(awsBootstrap); err != nil {
 		}
 
-		k.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
-		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
-			return nil, err
-		}
+		meta := cred.Meta.(*AwsMeta)
 
-		var awsCred struct {
-			Region    string `mapstructure:"region"`
-			AccessKey string `mapstructure:"access_key"`
-			SecretKey string `mapstructure:"secret_key"`
-		}
-
-		if err := mapstructure.Decode(cred.Data, &awsCred); err != nil {
-			return nil, err
-		}
-
-		session := awssession.New(&aws.Config{
-			Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
-			Region:      aws.String(awsCred.Region),
+		sess := awssession.New(&aws.Config{
+			Credentials: credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, ""),
+			Region:      aws.String(meta.Region),
 		})
 
-		iamClient := iam.New(session)
+		iamClient := iam.New(sess)
 
-		k.Log.Debug("Fetching the AWS user information to get the account ID")
+		s.Log.Debug("Fetching the AWS user information to get the account ID")
 		user, err := iamClient.GetUser(nil) // will default to username making the request
 		if err != nil {
 			return nil, err
 		}
 
-		awsAccountID, err := parseAccountID(aws.StringValue(user.User.Arn))
+		awsAccountID, err := stackplan.ParseAccountID(aws.StringValue(user.User.Arn))
 		if err != nil {
 			return nil, err
 		}
 
-		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, awsCred.Region)
-		k.Log.Debug("Going to use the contentID: %s", contentID)
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, meta.Region)
+		s.Log.Debug("Going to use the contentID: %s", contentID)
 
-		keyName := "koding-deployment-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		keyName := "koding-deployment-" + s.Req.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
-		finalBootstrap, err := template.jsonOutput()
+		finalBootstrap, err := s.Builder.Template.JsonOutput()
 		if err != nil {
 			return nil, err
 		}
 
 		finalBootstrap, err = appendAWSTemplateData(finalBootstrap, &awsTemplateData{
 			KeyPairName:     keyName,
-			PublicKey:       k.PublicKeys.PublicKey,
-			EnvironmentName: fmt.Sprintf("Koding-%s-Bootstrap", args.GroupName),
+			PublicKey:       s.Keys.PublicKey,
+			EnvironmentName: fmt.Sprintf("Koding-%s-Bootstrap", arg.GroupName),
 		})
+
+		s.Log.Debug("Final bootstrap template:")
+		s.Log.Debug(finalBootstrap)
+
 		if err != nil {
 			return nil, err
 		}
 
-		// k.Log.Debug("[%s] Final bootstrap:", cred.Identifier)
-		// k.Log.Debug(finalBootstrap)
+		// s.Log.Debug("[%s] Final bootstrap:", cred.Identifier)
+		// s.Log.Debug(finalBootstrap)
 
 		// Important so bootstraping is distributed amongs multiple users. If I
 		// use these keys to bootstrap, any other user should be not create
 		// again, instead they should be fetch and use the existing bootstrap
 		// data.
 
-		awsOutput := &AwsBootstrapOutput{}
+		resp := &AwsMeta{}
 
 		// this is custom because we need to remove the fields if we get a
 		// destroy. So the operator changes from $set to $unset.
 		mongodDBOperator := "$set"
 
-		if args.Destroy {
+		if arg.Destroy {
 			mongodDBOperator = "$unset"
-			k.Log.Info("Destroying bootstrap resources belonging to identifier '%s'", cred.Identifier)
+			s.Log.Info("Destroying bootstrap resources belonging to identifier '%s'", cred.Identifier)
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -177,7 +131,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				return nil, err
 			}
 		} else {
-			k.Log.Info("Creating bootstrap resources belonging to identifier '%s'", cred.Identifier)
+			s.Log.Info("Creating bootstrap resources belonging to identifier '%s'", cred.Identifier)
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
@@ -186,24 +140,32 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 				return nil, err
 			}
 
-			k.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.Identifier, state.RootModule().Outputs)
-			if err := mapstructure.Decode(state.RootModule().Outputs, &awsOutput); err != nil {
+			s.Log.Debug("[%s] state.RootModule().Outputs = %+v\n", cred.Identifier, state.RootModule().Outputs)
+
+			if err := s.Builder.Object.Decode(state.RootModule().Outputs, resp); err != nil {
 				return nil, err
+			}
+
+			s.Log.Debug("[%s] resp = %+v\n", cred.Identifier, resp)
+
+			if !resp.IsBootstrapComplete() {
+				return nil, errors.New("Bootstrap metadata is incomplete: " + cred.Identifier)
 			}
 		}
 
-		k.Log.Debug("[%s] Aws Output: %+v", cred.Identifier, awsOutput)
+		s.Log.Debug("[%s] Bootstrap response: %+v", cred.Identifier, resp)
+
 		if err := modelhelper.UpdateCredentialData(cred.Identifier, bson.M{
 			mongodDBOperator: bson.M{
-				"meta.acl":        awsOutput.ACL,
-				"meta.cidr_block": awsOutput.CidrBlock,
-				"meta.igw":        awsOutput.IGW,
-				"meta.key_pair":   awsOutput.KeyPair,
-				"meta.rtb":        awsOutput.RTB,
-				"meta.sg":         awsOutput.SG,
-				"meta.subnet":     awsOutput.Subnet,
-				"meta.vpc":        awsOutput.VPC,
-				"meta.ami":        awsOutput.AMI,
+				"meta.acl":        resp.ACL,
+				"meta.cidr_block": resp.CidrBlock,
+				"meta.igw":        resp.IGW,
+				"meta.key_pair":   resp.KeyPair,
+				"meta.rtb":        resp.RTB,
+				"meta.sg":         resp.SG,
+				"meta.subnet":     resp.Subnet,
+				"meta.vpc":        resp.VPC,
+				"meta.ami":        resp.AMI,
 			},
 		}); err != nil {
 			return nil, err
