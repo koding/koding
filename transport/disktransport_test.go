@@ -34,7 +34,8 @@ func TestNewDiskTransport(t *testing.T) {
 
 func TestDTCreateDir(t *testing.T) {
 	Convey("CreateDir", t, func() {
-		dt := newDiskTransport()
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
 
 		Convey("It should create dir with mode", func() {
 			err := dt.CreateDir("1", 0700)
@@ -62,11 +63,12 @@ func TestDTCreateDir(t *testing.T) {
 }
 
 func TestDTReadDir(t *testing.T) {
-	Convey("DiskTransport#ReadDir", t, func() {
-		dt := newDiskTransport()
+	Convey("ReadDir", t, func() {
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
 
 		// create dir with a dir inside
-		err := dt.CreateDir("1/a", 0700)
+		err = dt.CreateDir("1/a", 0700)
 		So(err, ShouldBeNil)
 
 		// create file inside dir
@@ -96,9 +98,10 @@ func TestDTReadDir(t *testing.T) {
 
 func TestDTRename(t *testing.T) {
 	Convey("Rename", t, func() {
-		dt := newDiskTransport()
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
 
-		err := dt.WriteFile("file", []byte("hello world!"))
+		err = dt.WriteFile("file", []byte("hello world!"))
 		So(err, ShouldBeNil)
 		statFileCheck(dt.fullPath("file"), 0644)
 
@@ -120,9 +123,10 @@ func TestDTRename(t *testing.T) {
 
 func TestDTRemove(t *testing.T) {
 	Convey("Remove", t, func() {
-		dt := newDiskTransport()
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
 
-		err := dt.WriteFile("file", []byte("hello world!"))
+		err = dt.WriteFile("file", []byte("hello world!"))
 		So(err, ShouldBeNil)
 
 		err = dt.Remove("file")
@@ -136,8 +140,9 @@ func TestDTRemove(t *testing.T) {
 }
 
 func TestDTReadFile(t *testing.T) {
-	Convey("DiskTransport#ReadFile", t, func() {
-		dt := newDiskTransport()
+	Convey("ReadFile", t, func() {
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
 
 		Convey("It should read contents of file", func() {
 			err := dt.WriteFile("file", []byte("hello world!"))
@@ -151,8 +156,9 @@ func TestDTReadFile(t *testing.T) {
 }
 
 func TestDTWriteFile(t *testing.T) {
-	Convey("DiskTransport#WriteFile", t, func() {
-		dt := newDiskTransport()
+	Convey("WriteFile", t, func() {
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
 
 		Convey("It should write file with contents", func() {
 			err := dt.WriteFile("1", []byte{1})
@@ -162,20 +168,14 @@ func TestDTWriteFile(t *testing.T) {
 	})
 }
 
-///// Helpers
-
-func newDiskTransport() *DiskTransport {
-	mountDir, err := ioutil.TempDir("", "mounttest")
-	if err != nil {
-		panic(err)
-	}
-
-	//fmt.Printf("Created temp dir at %s\n", mountDir)
-
-	return &DiskTransport{
-		Path: mountDir,
-	}
+func TestDTGetInfo(t *testing.T) {
+	Convey("GetInfo", t, func() {
+		//dt, err := NewDiskTransport("")
+		//So(err, ShouldBeNil)
+	})
 }
+
+///// Helpers
 
 func statFileCheck(filePath string, mode os.FileMode) {
 	fi, err := os.Stat(filePath)
