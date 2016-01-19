@@ -1,12 +1,11 @@
 package vagrant
 
 import (
-	"errors"
+	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
 )
 
-// Build
 func (m *Machine) Build(ctx context.Context) error {
-	return errors.New("Build not implemented")
+	return m.start(machinestate.NotInitialized, machinestate.Terminating, machinestate.Terminated)
 }

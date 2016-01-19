@@ -33,6 +33,12 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		return errors.New("instance is not available anymore.")
 	}
 
+	// if it's something else (the error from Instance() call above) return it
+	// back
+	if err != nil {
+		return err
+	}
+
 	// update the state to intiial state if something goes wrong, we are going
 	// to change latestate to a more safe state if we passed a certain step
 	// below
@@ -42,12 +48,6 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
-
-	// if it's something else (the error from Instance() call above) return it
-	// back
-	if err != nil {
-		return err
-	}
 
 	m.push("Starting machine", 25, machinestate.Starting)
 

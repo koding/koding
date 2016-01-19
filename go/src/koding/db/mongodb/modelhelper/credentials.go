@@ -2,6 +2,7 @@ package modelhelper
 
 import (
 	"fmt"
+
 	"koding/db/models"
 
 	"gopkg.in/mgo.v2"
@@ -45,5 +46,11 @@ func UpdateCredentialData(identifier string, data bson.M) error {
 func UpdateCredential(identifier string, data bson.M) error {
 	return Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
 		return c.Update(bson.M{"identifier": identifier}, data)
+	})
+}
+
+func SetCredentialVerified(identifier string, verified bool) error {
+	return UpdateCredential(identifier, bson.M{
+		"$set": bson.M{"verified": verified},
 	})
 }
