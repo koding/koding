@@ -8,10 +8,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDT(t *testing.T) {
-	var (
-		_ Transport = (*DiskTransport)(nil)
-	)
+func TestDiskTransport(t *testing.T) {
+	var _ Transport = (*DiskTransport)(nil)
 }
 
 func TestDTCreateDir(t *testing.T) {

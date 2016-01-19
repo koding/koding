@@ -13,7 +13,6 @@ import (
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/transport"
-	"github.com/koding/kite"
 )
 
 var (
@@ -50,7 +49,7 @@ type KodingNetworkFS struct {
 	Watcher Watcher
 
 	// DiskInfo is the cached result of remote disk info.
-	DiskInfo transport.FsGetDiskInfo
+	DiskInfo *transport.GetDiskInfoRes
 
 	// ignoredFolderList is folders for which all operations will return empty
 	// response. If a file has same name as entry in list, it'll NOT be ignored.
@@ -170,13 +169,9 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	// save root directory
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
-	req := struct{ Path string }{rootDir.RemotePath}
-	res := transport.FsGetDiskInfo{}
-
-	if err := t.Trip("fs.getDiskInfo", req, &res); err != nil {
-		if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type != "methodNotFound" {
-			return nil, err
-		}
+	res, err := t.GetDiskInfo(rootDir.RemotePath)
+	if err != nil {
+		return nil, err
 	}
 
 	return &KodingNetworkFS{

@@ -410,7 +410,7 @@ func TestDir(t *testing.T) {
 
 			ft := newFakeTransport()
 			kt := ft.TripResponses["fs.readDirectory"]
-			fl := kt.(transport.FsReadDirectoryRes).Files
+			fl := kt.(transport.ReadDirRes).Files
 
 			d.Transport = ft
 
@@ -624,16 +624,16 @@ func newFakeTransport() *fakeTransport {
 			"fs.createDirectory": true,
 			"fs.remove":          true,
 			"fs.readFile":        map[string]interface{}{"content": c},
-			"fs.getInfo": transport.FsGetInfoRes{
+			"fs.getInfo": transport.GetInfoRes{
 				Exists:   true,
 				IsDir:    true,
 				FullPath: "/remote",
 				Name:     "remote",
 				Mode:     0700 | os.ModeDir,
 			},
-			"fs.readDirectory": transport.FsReadDirectoryRes{
-				Files: []transport.FsGetInfoRes{
-					transport.FsGetInfoRes{
+			"fs.readDirectory": transport.ReadDirRes{
+				Files: []*transport.GetInfoRes{
+					&transport.GetInfoRes{
 						Exists:   true,
 						FullPath: "/remote/folder",
 						IsDir:    true,
@@ -641,7 +641,7 @@ func newFakeTransport() *fakeTransport {
 						Name:     "folder",
 						Size:     1,
 					},
-					transport.FsGetInfoRes{
+					&transport.GetInfoRes{
 						Exists:   true,
 						FullPath: "/remote/file",
 						IsDir:    false,

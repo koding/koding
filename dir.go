@@ -377,7 +377,7 @@ func (d *Dir) updateEntriesFromRemote() error {
 	return nil
 }
 
-func newTempEntry(file transport.FsGetInfoRes) *tempEntry {
+func newTempEntry(file *transport.GetInfoRes) *tempEntry {
 	fileType := fuseutil.DT_File
 	if file.IsDir {
 		fileType = fuseutil.DT_Directory

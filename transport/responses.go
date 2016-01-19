@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-type FsReadDirRes struct {
-	Files []FsGetInfoRes `json:"files"`
+type ReadDirRes struct {
+	Files []*GetInfoRes `json:"files"`
 }
 
-type FsGetInfoRes struct {
+type GetInfoRes struct {
 	Exists   bool        `json:"exists"`
 	FullPath string      `json:"fullPath"`
 	IsBroken bool        `json:"isBroken"`
@@ -24,11 +24,11 @@ type FsGetInfoRes struct {
 	Writable bool        `json:"writable"`
 }
 
-type FsReadFileRes struct {
+type ReadFileRes struct {
 	Content []byte
 }
 
-func (f *FsReadFileRes) UnmarshalJSON(b []byte) error {
+func (f *ReadFileRes) UnmarshalJSON(b []byte) error {
 	var m map[string]string
 	if err := json.Unmarshal(b, &m); err != nil {
 		return err
@@ -44,9 +44,15 @@ func (f *FsReadFileRes) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type FsGetDiskInfo struct {
+type GetDiskInfoRes struct {
 	BlockSize   uint32 `json:"blockSize"`
 	BlocksTotal uint64 `json:"blocksTotal"`
 	BlocksFree  uint64 `json:"blocksFree"`
 	BlocksUsed  uint64 `json:"blocksUsed"`
+}
+
+type ExecRes struct {
+	Stdout     string `json:"stdout"`
+	Stderr     string `json:"stderr"`
+	ExitStatus int    `json:"exitStatus"`
 }

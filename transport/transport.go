@@ -4,11 +4,13 @@ import "os"
 
 // Transport defines communication between this package and user VM.
 type Transport interface {
-	Trip(string, interface{}, interface{}) error
 	CreateDir(string, os.FileMode) error
-	ReadDir(string, []string) (FsReadDirRes, error)
+	ReadDir(string, []string) (*ReadDirRes, error)
 	Rename(string, string) error
 	Remove(string) error
-	ReadFile(string) (FsReadFileRes, error)
+	ReadFile(string) (*ReadFileRes, error)
 	WriteFile(string, []byte) error
+	Exec(string) (*ExecRes, error)
+	GetDiskInfo(string) (*GetDiskInfoRes, error)
+	GetInfo(string) (*GetInfoRes, error)
 }

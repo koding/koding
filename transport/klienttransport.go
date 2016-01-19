@@ -114,7 +114,7 @@ func (k *KlientTransport) Remove(path string) error {
 	return k.Trip("fs.remove", req, &res)
 }
 
-func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (FsReadDirRes, error) {
+func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (*ReadDirRes, error) {
 	req := struct {
 		Path          string
 		Recursive     bool
@@ -124,7 +124,7 @@ func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (FsReadDi
 		Recursive:     true,
 		IgnoreFolders: ignoreFolders,
 	}
-	res := FsReadDirRes{}
+	res := &ReadDirRes{}
 	if err := k.Trip("fs.readDirectory", req, &res); err != nil {
 		return res, err
 	}
@@ -145,11 +145,45 @@ func (k *KlientTransport) WriteFile(path string, content []byte) error {
 	return k.Trip("fs.writeFile", req, &res)
 }
 
-func (k *KlientTransport) ReadFile(path string) (FsReadFileRes, error) {
+func (k *KlientTransport) ReadFile(path string) (*ReadFileRes, error) {
 	req := struct{ Path string }{path}
-	res := FsReadFileRes{}
+	res := &ReadFileRes{}
 	if err := k.Trip("fs.readFile", req, &res); err != nil {
 		return res, err
+	}
+
+	return res, nil
+}
+
+func (k *KlientTransport) Exec(cmd string) (*ExecRes, error) {
+	req := struct{ Command string }{cmd}
+	res := &ExecRes{}
+	if err := k.Trip("exec", req, &res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (k *KlientTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
+	req := struct{ Path string }{path}
+	res := &GetDiskInfoRes{}
+
+	if err := k.Trip("fs.getDiskInfo", req, &res); err != nil {
+		if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type != "methodNotFound" {
+			return nil, err
+		}
+	}
+
+	return res, nil
+}
+
+func (k *KlientTransport) GetInfo(path string) (*GetInfoRes, error) {
+	req := struct{ Path string }{path}
+	res := &GetInfoRes{}
+
+	if err := k.Trip("fs.getInfo", req, &res); err != nil {
+		return nil, err
 	}
 
 	return res, nil

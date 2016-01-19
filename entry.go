@@ -155,9 +155,8 @@ func (e *Entry) UpdateAttrsFromRemote() error {
 func (e *Entry) getAttrsFromRemote() (fuseops.InodeAttributes, error) {
 	var attrs fuseops.InodeAttributes
 
-	req := struct{ Path string }{e.RemotePath}
-	res := transport.FsGetInfoRes{}
-	if err := e.Trip("fs.getInfo", req, &res); err != nil {
+	res, err := e.Transport.GetInfo(e.RemotePath)
+	if err != nil {
 		return attrs, err
 	}
 

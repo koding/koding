@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
+	"syscall"
+
+	"github.com/koding/klient/command"
 )
 
 // DiskTransport is an implementation of Transport that reads files and
@@ -27,13 +31,13 @@ func (d *DiskTransport) CreateDir(path string, mode os.FileMode) error {
 }
 
 // ReadDir returns entries of the dir at specified path.
-func (d *DiskTransport) ReadDir(path string, ignoredDirs []string) (FsReadDirRes, error) {
+func (d *DiskTransport) ReadDir(path string, ignoredDirs []string) (*ReadDirRes, error) {
 	entries, err := readDirectory(d.fullPath(path), true, ignoredDirs)
 	if err != nil {
-		return FsReadDirRes{}, err
+		return &ReadDirRes{}, err
 	}
 
-	return FsReadDirRes{Files: entries}, nil
+	return &ReadDirRes{Files: entries}, nil
 }
 
 // Rename changes name of the entry from specified old to new name.
@@ -47,8 +51,8 @@ func (d *DiskTransport) Remove(path string) error {
 }
 
 // ReadFile reads file at specificed path and return its contents.
-func (d *DiskTransport) ReadFile(path string) (FsReadFileRes, error) {
-	var fsresp = FsReadFileRes{}
+func (d *DiskTransport) ReadFile(path string) (*ReadFileRes, error) {
+	var fsresp = &ReadFileRes{}
 	resp, err := readFile(d.fullPath(path))
 	if err != nil {
 		return fsresp, err
@@ -64,7 +68,7 @@ func (d *DiskTransport) ReadFile(path string) (FsReadFileRes, error) {
 		return fsresp, errors.New("no 'content' in response")
 	}
 
-	return FsReadFileRes{Content: byteContent}, nil
+	return &ReadFileRes{Content: byteContent}, nil
 }
 
 // WriteFile writes file at specificed path with data.
@@ -74,6 +78,30 @@ func (d *DiskTransport) WriteFile(path string, data []byte) error {
 	return err
 }
 
+func (d *DiskTransport) Exec(cmd string) (*ExecRes, error) {
+	c := exec.Command("/bin/bash", "-c", cmd)
+	c.Dir = d.Path
+
+	resp, err := command.NewOutput(c)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ExecRes{
+		Stdout:     resp.Stdout,
+		Stderr:     resp.Stderr,
+		ExitStatus: resp.ExitStatus,
+	}, nil
+}
+
+func (d *DiskTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
+	return getDiskInfo(path)
+}
+
+func (d *DiskTransport) GetInfo(path string) (*GetInfoRes, error) {
+	return getInfo(path)
+}
+
 // fullPath joins the starting path with the specified path.
 func (d *DiskTransport) fullPath(path string) string {
 	return filepath.Join(d.Path, path)
@@ -81,8 +109,8 @@ func (d *DiskTransport) fullPath(path string) string {
 
 ///// COPIED FROM KLIENT. TODO: fix this.
 
-func readDirectory(p string, recursive bool, ignoreFolders []string) ([]FsGetInfoRes, error) {
-	ls := make([]FsGetInfoRes, 0)
+func readDirectory(p string, recursive bool, ignoreFolders []string) ([]*GetInfoRes, error) {
+	ls := make([]*GetInfoRes, 0)
 	walkerFn := func(path string, f os.FileInfo, err error) error {
 		// no use in returning root level directory that's being traversed
 		if path == p {
@@ -120,7 +148,7 @@ func readDirectory(p string, recursive bool, ignoreFolders []string) ([]FsGetInf
 	return ls, nil
 }
 
-func makeFileEntry(fullPath string, fi os.FileInfo) FsGetInfoRes {
+func makeFileEntry(fullPath string, fi os.FileInfo) *GetInfoRes {
 	var (
 		readable bool
 		writable bool
@@ -148,7 +176,7 @@ func makeFileEntry(fullPath string, fi os.FileInfo) FsGetInfoRes {
 		writable = true
 	}
 
-	entry := FsGetInfoRes{
+	entry := &GetInfoRes{
 		Name:     fi.Name(),
 		Exists:   true,
 		FullPath: fullPath,
@@ -231,4 +259,38 @@ func remove(path string, recursive bool) error {
 	}
 
 	return os.Remove(path)
+}
+
+func getDiskInfo(path string) (*GetDiskInfoRes, error) {
+	stfs := syscall.Statfs_t{}
+	if err := syscall.Statfs(path, &stfs); err != nil {
+		return nil, err
+	}
+
+	di := &GetDiskInfoRes{
+		BlockSize:   uint32(stfs.Bsize),
+		BlocksTotal: stfs.Blocks,
+		BlocksFree:  stfs.Bfree,
+	}
+	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
+
+	return di, nil
+}
+
+func getInfo(path string) (*GetInfoRes, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// The file doesn't exists, let the client side let this know
+			// instead of returning error
+			return &GetInfoRes{
+				Name:   path,
+				Exists: false,
+			}, nil
+		}
+
+		return nil, err
+	}
+
+	return makeFileEntry(path, fi), nil
 }
