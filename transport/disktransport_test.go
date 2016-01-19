@@ -12,6 +12,26 @@ func TestDiskTransport(t *testing.T) {
 	var _ Transport = (*DiskTransport)(nil)
 }
 
+func TestNewDiskTransport(t *testing.T) {
+	Convey("NewDiskTransport", t, func() {
+		Convey("It should create temp dir if no path is specified", func() {
+			dt, err := NewDiskTransport("")
+			So(err, ShouldBeNil)
+			So(dt.Path, ShouldNotEqual, "")
+			statDirCheck(dt.Path)
+		})
+
+		Convey("It should use path if specified", func() {
+			mountDir, err := ioutil.TempDir("", "mounttest")
+			So(err, ShouldBeNil)
+
+			dt, err := NewDiskTransport(mountDir)
+			So(err, ShouldBeNil)
+			So(dt.Path, ShouldEqual, mountDir)
+		})
+	})
+}
+
 func TestDTCreateDir(t *testing.T) {
 	Convey("CreateDir", t, func() {
 		dt := newDiskTransport()

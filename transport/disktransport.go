@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -13,6 +14,21 @@ import (
 
 	"github.com/koding/klient/command"
 )
+
+func NewDiskTransport(path string) (*DiskTransport, error) {
+	if path == "" {
+		var err error
+		path, err = ioutil.TempDir("", "fuseklient")
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &DiskTransport{
+		Path: path,
+	}, nil
+}
 
 // DiskTransport is an implementation of Transport that reads files and
 // directories from disk.
