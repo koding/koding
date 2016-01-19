@@ -1,12 +1,12 @@
-kd                        = require 'kd'
-React                     = require 'kd-react'
-immutable                 = require 'immutable'
-ThreadSidebarContentBox   = require 'activity/components/threadsidebarcontentbox'
-ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
-Link                      = require 'app/components/common/link'
-InstallKdModal            = require 'app/providers/managed/installkdmodal'
-isGroupChannel            = require 'app/util/isgroupchannel'
-Scroller                  = require 'app/components/scroller'
+kd                      = require 'kd'
+React                   = require 'kd-react'
+immutable               = require 'immutable'
+Link                    = require 'app/components/common/link'
+InstallKdModal          = require 'app/providers/managed/installkdmodal'
+isGroupChannel          = require 'app/util/isgroupchannel'
+Scroller                = require 'app/components/scroller'
+ChannelParticipants     = require 'activity/components/channelparticipants'
+ThreadSidebarContentBox = require 'activity/components/threadsidebarcontentbox'
 
 module.exports = class ThreadSidebar extends React.Component
 
@@ -26,7 +26,7 @@ module.exports = class ThreadSidebar extends React.Component
     { channel } = @props.channelThread.toJS()
 
     if @props.channelParticipants.size or not isGroupChannel channel
-      return <ChannelParticipantAvatars
+      return <ChannelParticipants.Container
         channelThread={@props.channelThread}
         participants={@props.channelParticipants} />
 
