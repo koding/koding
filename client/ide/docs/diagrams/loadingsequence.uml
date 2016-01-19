@@ -1,0 +1,70 @@
+@startuml
+
+title Loading Sequence Diagram
+hide footbox
+
+participant CollaborationController as CC
+participant StatusBar as SB
+participant SocialHelper as SH
+participant RealtimeHelper as RH
+participant StateMachine as SM
+
+
+CC -> SB : statusBar.emit 'CollaborationLoading'
+
+activate CC #FFBBBB
+CC -> CC : workspace.channelId?
+
+alt workspace has channel id
+
+  activate CC #FFBBBB
+
+  CC -> SH : fetchSocialChannel
+  activate SH #FFBBBB
+  activate CC #FFBBBB
+
+  SH --> CC : socialChannel
+  deactivate SH
+
+  alt channel exists
+
+    CC -> RH : isRealtimeSessionActive
+    activate RH #FFBBBB
+    activate CC #FFBBBB
+
+    RH --> CC : isActive
+    deactivate RH
+
+    alt realtime session active
+
+      CC ->o SM : Resuming
+
+    else no session
+
+      CC ->o SM : ErrorLoading
+
+    end
+
+    deactivate CC
+
+  else no channel
+
+    CC ->o SM : ErrorLoading
+
+  end
+
+  deactivate CC
+  deactivate CC
+
+
+else no channel id
+
+  CC ->o SM : NotStarted
+
+
+end
+
+deactivate CC
+
+
+@enduml

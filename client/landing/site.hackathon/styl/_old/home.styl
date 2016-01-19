@@ -1,0 +1,822 @@
+@import "lib/core.fn"
+
+@css {
+/*
+home Landing stylesheet
+home.styl
+*/
+}
+
+body, input, textarea, select, button
+  text-rendering          optimizeLegibility
+  -webkit-font-smoothing  antialiased
+  vendor                  font-kerning, normal
+
+strong
+  font-weight             bold
+
+#main-panel-wrapper
+  background              none
+
+#main-header nav
+  .at_flat_counter
+  .at-share-tbx-element .at-share-btn .at300bs
+    vendor                filter, grayscale(100%)
+    rounded               4px
+    opacity               .5
+    &:hover
+      opacity             1
+      vendor              filter, grayscale(0%)
+
+body
+  font-family             OpenSansFamily
+
+body.home
+
+  #_atssh
+    display               none
+
+  .about-to-apply
+    section.introduction
+      .form-wrapper
+        padding           20px 10px
+        width             100%
+        max-width         300px
+        .kdbutton
+          margin-top      10px
+
+  .applied
+    section.introduction
+      .form-wrapper
+        padding           20px 10px
+        width             100%
+        max-width         800px
+      figure.scroller
+      h3
+      h4
+        hidden()
+
+  .content-page.home.full section.introduction
+    padding               124px 25px 18px
+    min-height            720px
+    figure.logos
+    span.logos-title
+      abs()
+
+  section.introduction
+    size                  100% 100vh
+    padding               149px 45px 0
+    padding-top           calc(50vh - 175px)
+    text-align            center
+    position              relative
+    overflow              hidden
+    bg                    color black
+    borderBox()
+
+    &:after
+      content             ''
+      z-index             1
+      bg                  color rgba(0, 0, 0, .3)
+      size                100% 100%
+      abs                 0px 0 0 0px
+
+    figure.logos
+      r-sprite              home altogether
+      bottom                50px
+      left                  50%
+      margin-left           -1838px
+      z-index               100
+      vendor                transition, margin-left .3s ease
+      opacity               .5
+      fix()
+      &.no-anim
+        vendor              transition, none
+      i
+        display             none
+
+    span.logos-title
+      bottom              140px
+      left                0
+      color               #999
+      text-align          center
+      display             block
+      width               100%
+      opacity             .5
+      fix()
+
+    figure.scroller
+      size                300px 100px
+      abs                 0 50% 75px 0
+      margin-right        -150px
+      bg                  color transparent
+      cursor              pointer
+      z-index             19
+      &:after
+        content           ''
+        r-sprite          home 'slideshow-next-light'
+        display           block
+        margin            7px 0 0 107px
+        opacity           .5
+        vendor            transform, rotate(90deg)
+        vendor            transition, opacity .2s ease
+      &:hover
+        &:after
+          opacity         1
+      &.out
+        &:after
+          opacity         0
+
+
+    video
+      z-index             0
+      min-width           100%
+      min-height          100%
+      size                auto auto
+      bg                  color black
+      bg                  size cover
+      abs                 0px 0px 0 0
+      opacity             0.001
+      vendor              transition, opacity .5s ease
+      &.in
+        opacity           1
+
+
+    > *
+      position            relative
+      z-index             20
+
+    h1
+      font-weight         300
+      font-size           34px
+      line-height         50px
+      letter-spacing      0.2em
+      color               #f4f4f4
+      margin-bottom       36px
+
+      span
+        color             #848484
+
+    h3
+      font-weight         300
+      font-size           32px
+      line-height         40px
+      letter-spacing      0.1em
+      color               #f4f4f4
+      margin-bottom       30px
+
+      strong
+        font-weight       600
+        color             #fff
+
+    h4
+      font-weight         400
+      font-size           18px
+      line-height         28px
+      letter-spacing      0.1em
+      color               #f4f4f4
+
+      strong
+        font-weight       600
+        color             #fff
+
+      b
+        font-size         40px
+        vertical-align    bottom
+
+    .form-wrapper
+      margin              69px 0
+      padding             10px
+      background          rgba(38,38,38,.8)
+      rounded             6px
+      display             inline-block
+      borderBox()
+
+      p
+        color             white
+        font-size         16px
+        line-height       30px
+        margin-bottom     10px
+        strong
+          font-size       24px
+          font-weight     400
+          display         block
+
+
+
+      .avatar-background
+        abs               -50px 0 0 50%
+        bg                color rgba(0,0,0,.2)
+        // bg                color red
+        size              80px 30px
+        margin            0 0 0 -50px
+        padding           10px
+        rounded           10px 10px 0 0
+        z-index           0
+
+      .avatar
+        rounded           8px
+        size              80px 80px
+        z-index           1
+
+      section
+        margin            0 auto
+
+        &.logged-in
+          margin-top      29px
+
+        .kdlabel
+          color           white
+          width           100%
+          text-align      center
+          margin-right    0
+          a
+            display       block
+            color         #aaa
+            font-size     .8em
+          a:before
+            content       ''
+            display       block
+
+        .kdview
+          margin          0
+
+        .login-input-view
+          background      #fff
+          rounded         3px
+
+        .placeholder-helper
+          top             15px
+          font-size       12px
+          color           #989898
+
+          &.out
+            font-size     12px
+            top           -18px
+            color         #fff
+
+        > div
+          width           190px
+          margin          0 9px 0 0
+          padding         0
+
+        .submit
+          width           150px
+          margin          0
+
+      .input-wrapper
+        margin            0
+        padding           0
+
+      .kdinput
+        width             100%
+        rounded           3px
+        text-align        center
+        border            1px solid transparent
+        background        transparent
+        margin            0
+        padding           10px 14px
+        font-size         12px
+
+
+      .kdbutton
+        padding           0
+        text-align        center
+        width             100%
+        line-height       44px
+        height            44px
+        background        #ffec18
+        color             #313131
+        font-size         14px
+
+        .button-title
+          color           inherit
+
+  .counters
+    letter-spacing      .1em
+    font-weight         200
+    color               #fff
+    font-size           14px
+    background          #2b2b2b
+    height              50px
+    line-height         50px
+    padding             0 26px
+    width               100%
+    text-align          center
+    margin-top          -50px
+    z-index             2
+    left                0
+    overflow            hidden
+    white-space         nowrap
+    abs()
+    borderBox()
+
+    span
+      font-weight       700
+      margin-right      30px
+
+      &:last-of-type
+        margin-right    0
+
+
+  section.content
+    background            #fff
+    rounded               0 0 8px 8px
+    width                 auto
+    max-width             1200px
+    margin                0 auto
+    padding               0
+    position              relative
+    z-index               30
+    borderBox()
+
+    article
+      padding             53px 346px 0 53px
+      font-size           16px
+      color               #111
+      letter-spacing      .05em
+
+      a
+        color             #1563BC
+        borderize         #1563BC
+
+      h4, h5
+        font-weight       400
+        display           inline-block
+        text-transform    uppercase
+        line-height       2em
+        bg                color rgba(0,0,0,.05)
+        color             #313131
+        padding           0 26px// 0 53px
+        margin-left       -26px
+        rel()
+
+      h4
+        font-size         30px
+        z-index           0
+
+      h5
+        font-size         21px
+        padding-bottom    8px
+        z-index           1
+        i
+          color           black
+
+      h6
+        font-weight       600
+        margin-top        28px
+
+      p
+        padding           26px 0 0
+        line-height       22px
+        borderBox()
+
+        &.note
+          font-style      italic
+
+      ul
+        padding           28px 0 0
+
+        ul
+          padding         18px 0 18px 32px
+
+        li
+          line-height     22px
+          margin-bottom   5px
+
+      ol
+        padding           28px 0 0
+        counter-reset     list
+
+        li
+          line-height     32px
+          counter-increment list
+
+          &:before
+            content      counter(list) "."
+            font-weight  bold
+            margin-right 12px
+
+    .sidebar
+      width               280px
+      abs                 46px 0px 0 0
+      text-align          center
+
+      h4
+        margin-bottom     22px
+        font-weight       400
+        display           inline-block
+        text-transform    uppercase
+        line-height       2em
+        bg                color rgba(0,0,0,.05)
+        color             #313131
+        padding           0 13px// 0 53px
+        white-space       nowrap
+
+    aside.partners
+      margin-top          0
+      borderBox()
+
+      img
+        width             70%
+        margin            0 0 30px
+
+  footer
+    text-align            center
+    line-height           217px
+    font-size             14px
+    color                 #909090
+
+    a
+      color               inherit
+      margin-left         3px
+      noTextDeco()
+
+      &:hover
+        borderize(#909090)
+
+
+article.judges
+
+  margin-top        32px
+  padding           0 53px !important
+
+
+  > div
+    margin-top      32px
+    width           100%
+
+  .judge
+    width           150px
+    margin          0 10px 32px
+    text-align      center
+    fl()
+
+  figure
+    padding-bottom  110%
+    bg              position, center center
+    bg              size, cover
+    bg              repeat, no-repeat
+
+  .info
+    padding         21px 0 0
+    font-weight     400
+    line-height     32px
+    text-decoration none
+    color           inherit
+    white-space     nowrap
+
+  .details
+    cite
+    span
+      display       block
+      font-weight   normal
+      font-size     11px
+      line-height   16px
+      white-space   nowrap
+      overflow      hidden
+    cite
+      font-weight   bold
+      white-space   nowrap
+
+article.apis
+  h4
+    margin-bottom   22px
+
+  > a
+    margin-bottom   12px
+    font-weight     400
+    display         inline-block
+    text-transform  uppercase
+    line-height     2em
+    bg              color rgba(0,0,0,.05)
+    color           #313131 !important
+    padding         0 13px// 0 53px
+    white-space     nowrap
+    border-bottom   1px solid rgba(0,0,0,.1) !important
+    &:hover
+      color         white !important
+      border-bottom 1px solid #ccc !important
+      bg            color rgba(0,0,0,.8) !important
+
+  p
+    padding-top     10px
+    font-size       14px
+
+article.additional-prizes
+
+  ul
+    list-style       disc
+    list-style-position       inside
+
+  figure
+    // margin-bottom   30px
+    // cf()
+
+    img
+      // max-width     150px
+      // fl()
+      hidden()
+
+    // figcaption
+    //   padding       15px
+    //   width         calc(100% \- 180px)
+    //   borderBox()
+    //   fl()
+
+
+
+
+.social-buttons
+  display         block
+  list-style      none
+  padding         0
+  margin          0
+  abs             0px 125px 0 0
+  z-index         16
+  opacity         0.01
+  vendor          transition, opacity .3s ease
+  &.loaded
+    opacity       1
+
+
+  > li
+    display       block
+    margin        0 13px 0 0
+    padding       0
+    float         left
+
+    .vhidden
+      hidden()
+
+  .socialite
+    display block
+    position relative
+
+@media only screen and (max-height : 760px)
+  body.home
+    section.introduction
+      height              auto
+      padding-bottom      110px !important
+
+@media only screen and (min-height : 680px) and (max-height : 820px)
+  body.home
+    section.introduction
+      padding-top         calc(50vh - 250px)
+
+
+@media only screen and (min-height : 0px) and (max-height : 680px)
+  body.home
+    section.introduction
+      figure.scroller
+        display            none
+
+
+@media only screen and (min-width : 480px) and (max-width : 640px)
+  body.home
+    section.introduction
+      padding-top           calc(50vh - 225px)
+
+@media only screen and (min-width : 320px) and (max-width : 480px)
+  #main-header .social-buttons
+    display               none
+
+  #main-header
+    padding                 0 25px
+    top                     24px
+    text-align              center
+
+    #koding-logo
+      float                 none
+      display               inline-block
+      width                 auto
+      margin                0 0 24px
+
+    nav
+      display               inline-block
+      margin                0
+      float                 none
+
+      a:first-of-type
+        margin-left         0
+
+
+  body.home
+
+    .content-page.home.full section.introduction
+      figure.logos
+      span.logos-title
+        hidden()
+
+
+    section.introduction
+      padding             124px 25px 18px
+      height              auto
+      background          #000
+
+
+      span.logos-title
+        position            static
+        padding             25px 0 10px
+
+      figure.logos
+        position              relative
+        background            #000
+        opacity               1
+        width                 100%
+        margin                0
+        height                auto
+        padding               0 0 25px 0
+        left                  initial
+        bottom                initial
+
+        vendor                pointer-events, none
+
+
+        i
+          display             block
+          vertical-align      middle
+          margin              26px auto
+          position            relative
+
+          & ~ i:before
+            content           ''
+            display           block
+            size              200px, 1px
+            abs               -13px 0 0 50%
+            margin-left       -100px
+            background        radial-gradient(ellipse at center, rgba(255,255,255,0.25) 0%,rgba(0,0,0,0) 100%)
+
+          &.odesk
+            r-sprite          'sponsors', 'odesk'
+
+          &.kissmetrics
+            r-sprite          'sponsors', 'kissmetrics'
+
+          &.accel
+            r-sprite          'sponsors', 'accel'
+
+          &.udemy
+            r-sprite          'sponsors', 'udemy'
+
+          &.aws
+            r-sprite          'sponsors', 'aws'
+
+          &.tutum
+            r-sprite          'sponsors', 'tutum'
+
+          &.code
+            r-sprite          'sponsors', 'code'
+
+          &.facebook
+            r-sprite          'sponsors', 'facebook'
+
+          &.atlassian
+            r-sprite          'sponsors', 'atlassian'
+
+          &.iron
+            r-sprite          'sponsors', 'iron'
+
+          &.turkcell
+            r-sprite          'sponsors', 'turkcell'
+
+          &.digitalocean
+            r-sprite          'sponsors', 'digitalocean'
+
+          &.deviantart
+            r-sprite          'sponsors', 'deviantart'
+
+          &.baincapital
+            r-sprite          'sponsors', 'baincapital'
+
+          &.eniac
+            r-sprite          'sponsors', 'eniac'
+
+      h1
+        font-size         24px
+        line-height       32px
+
+      h2
+        font-size         22px
+        margin-bottom     16px
+        line-height       28px
+
+      h3
+        font-size         14px
+        line-height       19px
+
+      h4
+        b
+          font-size       30px
+
+      .form-wrapper
+        width             100%
+        margin-bottom     10px
+
+        section
+          width           100%
+
+          &.logged-in
+            margin-top    40px
+
+            .kdlabel a
+              margin-bottom 4px
+
+          > div
+            width         100%
+            margin-bottom 20px
+
+          .submit
+            width         100%
+            margin-bottom 0
+
+        &.logged-in
+          margin-top      85px
+
+    .counters
+      height              auto
+      position            static
+      line-height         28px
+      padding             16px 25px
+      margin              0
+      borderBox()
+
+      span
+        margin            0
+
+      span:after
+        content           ''
+        display           block
+
+    section.content
+      padding             32px 0 0
+
+      .sidebar
+        display           none
+
+      .counters
+        padding           18px 0 0
+        height            auto
+        line-height       27px
+        top               -146px
+        borderBox()
+
+        span
+          margin-right    0
+
+        span:after
+          content         ""
+          display         block
+
+      article
+        padding           24px
+
+        h4
+          font-size       21px
+          line-height     26px
+          padding         10px 10px 10px 26px
+
+        h5
+          font-size       16px
+          padding         10px 10 10px 26px
+
+        p
+          padding         16px 0 0
+          font-size       16px
+          line-height     24px
+
+      article.judges
+        padding           24px
+
+        > div
+          width           100%
+          margin-left     0
+
+        .judge
+          max-width       150px
+          margin          0 10px 32px 0
+
+      aside.partners
+        position          static
+        width             100%
+        padding           34px
+        margin-top        32px
+        text-align        left
+        borderBox()
+
+        h4
+          font-size       21px
+          line-height     26px
+          padding         10px 10px 10px 26px
+          margin-left     -35px
+
+          & ~ h4
+            margin-top    24px
+
+    footer
+      line-height         25px
+      padding             60px 25px
+      border-top          1px solid #dedede
+      background          rgba(0,0,0,.05)
+
+      // a[href='/']
+      //   display           block
