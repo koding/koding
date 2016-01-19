@@ -36,11 +36,6 @@ type DiskTransport struct {
 	Path string
 }
 
-// Trip is a legacy method so it can satisfy Transport interface.
-func (d *DiskTransport) Trip(m string, res interface{}, resp interface{}) error {
-	return nil
-}
-
 // CreateDir (recursively) creates dir with specified name and mode.
 func (d *DiskTransport) CreateDir(path string, mode os.FileMode) error {
 	return os.MkdirAll(d.fullPath(path), mode)
@@ -98,24 +93,24 @@ func (d *DiskTransport) Exec(cmd string) (*ExecRes, error) {
 	c := exec.Command("/bin/bash", "-c", cmd)
 	c.Dir = d.Path
 
-	resp, err := command.NewOutput(c)
+	res, err := command.NewOutput(c)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ExecRes{
-		Stdout:     resp.Stdout,
-		Stderr:     resp.Stderr,
-		ExitStatus: resp.ExitStatus,
+		Stdout:     res.Stdout,
+		Stderr:     res.Stderr,
+		ExitStatus: res.ExitStatus,
 	}, nil
 }
 
 func (d *DiskTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
-	return getDiskInfo(path)
+	return getDiskInfo(d.fullPath(path))
 }
 
 func (d *DiskTransport) GetInfo(path string) (*GetInfoRes, error) {
-	return getInfo(path)
+	return getInfo(d.fullPath(path))
 }
 
 // fullPath joins the starting path with the specified path.

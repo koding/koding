@@ -3,6 +3,8 @@ package transport
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"syscall"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -75,10 +77,10 @@ func TestDTReadDir(t *testing.T) {
 		err = dt.WriteFile("1/b", []byte{})
 		So(err, ShouldBeNil)
 
-		resp, err := dt.ReadDir("1", []string{})
+		res, err := dt.ReadDir("1", []string{})
 		So(err, ShouldBeNil)
 
-		entries := resp.Files
+		entries := res.Files
 
 		Convey("It should create return entries of dir", func() {
 			So(len(entries), ShouldEqual, 2)
@@ -109,9 +111,9 @@ func TestDTRename(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should change name of entry from old to new", func() {
-			resp, err := dt.ReadFile("file1")
+			res, err := dt.ReadFile("file1")
 			So(err, ShouldBeNil)
-			So(string(resp.Content), ShouldEqual, "hello world!")
+			So(string(res.Content), ShouldEqual, "hello world!")
 		})
 
 		Convey("It should remove old entry", func() {
@@ -148,9 +150,9 @@ func TestDTReadFile(t *testing.T) {
 			err := dt.WriteFile("file", []byte("hello world!"))
 			So(err, ShouldBeNil)
 
-			resp, err := dt.ReadFile("file")
+			res, err := dt.ReadFile("file")
 			So(err, ShouldBeNil)
-			So(string(resp.Content), ShouldEqual, "hello world!")
+			So(string(res.Content), ShouldEqual, "hello world!")
 		})
 	})
 }
@@ -168,10 +170,78 @@ func TestDTWriteFile(t *testing.T) {
 	})
 }
 
+func TestDTExec(t *testing.T) {
+	Convey("Exec", t, func() {
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
+
+		Convey("It should run command inside path", func() {
+			// write file so we can check it with exec
+			err := dt.WriteFile("file", []byte{})
+			So(err, ShouldBeNil)
+
+			res, err := dt.Exec("ls")
+			So(err, ShouldBeNil)
+			So(res.Stdout, ShouldEqual, "file\n")
+			So(res.Stderr, ShouldEqual, "")
+			So(res.ExitStatus, ShouldEqual, 0)
+		})
+	})
+}
+
+func TestDTGetDiskInfo(t *testing.T) {
+	Convey("GetDiskInfo", t, func() {
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
+
+		stfs := syscall.Statfs_t{}
+		err = syscall.Statfs(dt.Path, &stfs)
+		So(err, ShouldBeNil)
+
+		Convey("It should return disk info", func() {
+			res, err := dt.GetDiskInfo("")
+			So(err, ShouldBeNil)
+			So(res.BlockSize, ShouldEqual, uint32(stfs.Bsize))
+			So(res.BlocksTotal, ShouldEqual, stfs.Blocks)
+			So(res.BlocksFree, ShouldEqual, stfs.Bfree)
+			So(res.BlocksUsed, ShouldEqual, (res.BlocksTotal - res.BlocksFree))
+		})
+	})
+}
+
 func TestDTGetInfo(t *testing.T) {
 	Convey("GetInfo", t, func() {
-		//dt, err := NewDiskTransport("")
-		//So(err, ShouldBeNil)
+		dt, err := NewDiskTransport("")
+		So(err, ShouldBeNil)
+
+		Convey("It should return info for root entry", func() {
+			res, err := dt.GetInfo("")
+			So(err, ShouldBeNil)
+			So(res.Exists, ShouldBeTrue)
+			So(res.Name, ShouldEqual, filepath.Base(dt.Path))
+		})
+
+		Convey("It should return info for dir", func() {
+			err := dt.CreateDir("folder", 0700)
+			So(err, ShouldBeNil)
+
+			res, err := dt.GetInfo("folder")
+			So(err, ShouldBeNil)
+			So(res.Exists, ShouldBeTrue)
+			So(res.Name, ShouldEqual, "folder")
+			So(res.IsDir, ShouldEqual, true)
+		})
+
+		Convey("It should return info for file", func() {
+			err := dt.WriteFile("file", []byte{})
+			So(err, ShouldBeNil)
+
+			res, err := dt.GetInfo("file")
+			So(err, ShouldBeNil)
+			So(res.Exists, ShouldBeTrue)
+			So(res.Name, ShouldEqual, "file")
+			So(res.IsDir, ShouldEqual, false)
+		})
 	})
 }
 
