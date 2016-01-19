@@ -226,7 +226,8 @@ Configuration = (options={}) ->
     misc                           : {claimGlobalNamesForUsers: no , debugConnectionErrors: yes}
     githubapi                      : githubapi
     recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
-    nodejsRateLimiter              : {enabled : no, guestRules : [{ interval: 3600, limit: 500 }], userRules : [{ interval: 3600, limit: 1000 }]} # limit: request limit per rate limit window, interval: rate limit window duration in seconds
+    # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
+    nodejsRateLimiter              : {enabled : no, guestRules : [{ interval: 3600, limit: 5000 }], userRules : [{ interval: 3600, limit: 10000 }]} # limit: request limit per rate limit window, interval: rate limit window duration in seconds
 
     # -- WORKER CONFIGURATION -- #
 
