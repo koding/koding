@@ -79,7 +79,7 @@ module.exports = class PublicChatPane extends React.Component
     return null  unless @props.thread
 
     <div>
-      <ChatPane
+      <ChatPane.Container
         ref='chatPane'
         key={@props.thread.get 'channelId'}
         thread={@props.thread}
