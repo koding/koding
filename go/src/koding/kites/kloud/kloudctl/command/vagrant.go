@@ -73,10 +73,12 @@ func init() {
 	defaultPublicKey = string(p)
 }
 
+// Vagrant provides an implementation for "vagrant" command.
 type Vagrant struct {
 	*res.Resource
 }
 
+// NewVagrant gives new Vagrant value.
 func NewVagrant() cli.CommandFactory {
 	return func() (cli.Command, error) {
 		f := NewFlag("vagrant", "Client for klient vagrant kite")
@@ -99,6 +101,7 @@ func NewVagrant() cli.CommandFactory {
 	}
 }
 
+// Action is an entry point for "vagrant" subcommand.
 func (v *Vagrant) Action(args []string, k *kite.Client) error {
 	vapi := &vagrantapi.Klient{
 		Kite: k.LocalKite,
@@ -113,6 +116,7 @@ func (v *Vagrant) Action(args []string, k *kite.Client) error {
 
 /// VAGRANT CREATE
 
+// VagrantCreate provides an implementation for "vagrant create" subcommand.
 type VagrantCreate struct {
 	QueryString    string
 	Username       string
@@ -126,6 +130,7 @@ type VagrantCreate struct {
 	data *puser.Value
 }
 
+// NewVagrantCreate gives new VagrantCreate value.
 func NewVagrantCreate() *VagrantCreate {
 	return &VagrantCreate{
 		req:  &vagrantapi.Create{},
@@ -133,6 +138,7 @@ func NewVagrantCreate() *VagrantCreate {
 	}
 }
 
+// Valid implements the kloud.Validator interface.
 func (v *VagrantCreate) Valid() error {
 	if v.QueryString == "" {
 		return errors.New("empty value for -host flag")
@@ -158,10 +164,12 @@ func (v *VagrantCreate) Valid() error {
 	return nil
 }
 
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *VagrantCreate) Name() string {
 	return "create"
 }
 
+// RegisterFlags sets flags for the command - "vagrant create <flags>".
 func (cmd *VagrantCreate) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.QueryString, "host", defaultHost, "QueryString for the Vagramt klient on host.")
 	f.StringVar(&cmd.req.FilePath, "path", "", "Path to the directory containing Vagrantfile of the box.")
@@ -182,6 +190,7 @@ func (cmd *VagrantCreate) RegisterFlags(f *flag.FlagSet) {
 	f.IntVar(&cmd.req.Cpus, "cpus", 2, "CPU cores of the guest vm.")
 }
 
+// Run executes the "vagrant create" subcommand.
 func (cmd *VagrantCreate) Run(ctx context.Context) error {
 	err := cmd.Valid()
 	if err != nil {
@@ -203,6 +212,8 @@ func (cmd *VagrantCreate) Run(ctx context.Context) error {
 	return json.NewEncoder(os.Stdout).Encode(created)
 }
 
+// provisionData creates the base64-json-encoded userdata.Value to be sent
+// altogether with create request.
 func (cmd *VagrantCreate) provisionData(log logging.Logger) (string, error) {
 	kiteID := uuid.NewV4().String()
 
@@ -239,10 +250,12 @@ func (cmd *VagrantCreate) provisionData(log logging.Logger) (string, error) {
 
 /// VAGRANT LIST
 
+// VagrantList provides an implementation for "vagrant list" subcommand.
 type VagrantList struct {
 	QueryString string
 }
 
+// NewVagrantList gives new VagrantList value.
 func NewVagrantList() *VagrantList {
 	return &VagrantList{}
 }
@@ -254,14 +267,17 @@ func (v *VagrantList) Valid() error {
 	return nil
 }
 
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *VagrantList) Name() string {
 	return "list"
 }
 
+// RegisterFlags sets flags for the command - "vagrant list <flags>".
 func (cmd *VagrantList) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.QueryString, "host", defaultHost, "QueryString for the Vagramt klient on host.")
 }
 
+// Run executes the "vagrant list" subcommand.
 func (cmd *VagrantList) Run(ctx context.Context) error {
 	if err := cmd.Valid(); err != nil {
 		return err
@@ -279,14 +295,17 @@ func (cmd *VagrantList) Run(ctx context.Context) error {
 
 /// VAGRANT VERSION
 
+// VagrantVersion provides an implementation for "vagrant version" subcommand.
 type VagrantVersion struct {
 	QueryString string
 }
 
+// NewVagrantVersion gives new VagrantVersion value.
 func NewVagrantVersion() *VagrantVersion {
 	return &VagrantVersion{}
 }
 
+// Valid implements the kloud.Validator interface.
 func (v *VagrantVersion) Valid() error {
 	if v.QueryString == "" {
 		return errors.New("empty value for -host flag")
@@ -294,14 +313,17 @@ func (v *VagrantVersion) Valid() error {
 	return nil
 }
 
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *VagrantVersion) Name() string {
 	return "version"
 }
 
+// RegisterFlags sets flags for the command - "vagrant version <flags>".
 func (cmd *VagrantVersion) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.QueryString, "host", defaultHost, "QueryString for the Vagramt klient on host.")
 }
 
+// Run executes the "vagrant version" subcommand.
 func (cmd *VagrantVersion) Run(ctx context.Context) error {
 	if err := cmd.Valid(); err != nil {
 		return err
@@ -319,15 +341,18 @@ func (cmd *VagrantVersion) Run(ctx context.Context) error {
 
 /// VAGRANT STATUS
 
+// VagrantCreate provides an implementation for "vagrant status" subcommand.
 type VagrantStatus struct {
 	QueryString string
 	BoxPath     string
 }
 
+// NewVagrantStatus gives new VagrantStatus value.
 func NewVagrantStatus() *VagrantStatus {
 	return &VagrantStatus{}
 }
 
+// Valid implements the kloud.Validator interface.
 func (v *VagrantStatus) Valid() error {
 	if v.QueryString == "" {
 		return errors.New("empty value for -host flag")
@@ -338,15 +363,18 @@ func (v *VagrantStatus) Valid() error {
 	return nil
 }
 
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *VagrantStatus) Name() string {
 	return "status"
 }
 
+// RegisterFlags sets flags for the command - "vagrant status <flags>".
 func (cmd *VagrantStatus) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.QueryString, "host", defaultHost, "QueryString for the Vagramt klient on host.")
 	f.StringVar(&cmd.BoxPath, "path", "", "Path to the directory containing Vagrantfile of the box.")
 }
 
+// Run executes the "vagrant status" subcommand.
 func (cmd *VagrantStatus) Run(ctx context.Context) error {
 	if err := cmd.Valid(); err != nil {
 		return err
@@ -363,6 +391,7 @@ func (cmd *VagrantStatus) Run(ctx context.Context) error {
 
 /// VAGRANT CMD
 
+// Vagrant provides generic implementation for simple commands - up, halt, destroy.
 type VagrantCmd struct {
 	QueryString string
 	BoxPath     string
@@ -370,12 +399,14 @@ type VagrantCmd struct {
 	command string
 }
 
+// NewVagrantCmd gives new VagrantCmd value.
 func NewVagrantCmd(command string) *VagrantCmd {
 	return &VagrantCmd{
 		command: command,
 	}
 }
 
+// Valid implements the kloud.Validator interface.
 func (v *VagrantCmd) Valid() error {
 	if v.QueryString == "" {
 		return errors.New("empty value for -host flag")
@@ -386,15 +417,18 @@ func (v *VagrantCmd) Valid() error {
 	return nil
 }
 
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *VagrantCmd) Name() string {
 	return cmd.command
 }
 
+// RegisterFlags sets flags for the command - "vagrant up|halt|destroy <flags>".
 func (cmd *VagrantCmd) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.QueryString, "host", defaultHost, "QueryString for the Vagramt klient on host.")
 	f.StringVar(&cmd.BoxPath, "path", "", "Path to the directory containing Vagrantfile of the box.")
 }
 
+// Run executes the "vagrant up|halt|destroy" subcommand.
 func (cmd *VagrantCmd) Run(ctx context.Context) error {
 	if err := cmd.Valid(); err != nil {
 		return err

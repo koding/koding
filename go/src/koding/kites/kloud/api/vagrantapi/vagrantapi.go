@@ -22,6 +22,7 @@ const (
 	defaultTimeout     = 10 * time.Minute
 )
 
+// State* represent consts for vagrantutil box states.
 const (
 	StatePowerOff   = "poweroff"
 	StatePreparing  = "preparing"
@@ -31,30 +32,30 @@ const (
 	StateSaved      = "saved"
 )
 
-// Create
+// Create represents vagrant.create request and response.
 type Create struct {
-	FilePath      string
-	ProvisionData string
-	Hostname      string
-	Box           string
-	Memory        int
-	Cpus          int
-	CustomScript  string
+	FilePath      string // always absolute for response values
+	ProvisionData string // base64-json-encoded userdata.Value
+	Hostname      string // hostname of the box
+	Box           string // box type
+	Memory        int    // memory in MiB
+	Cpus          int    // number of cores
+	CustomScript  string // custom sh script, plain text
 }
 
-// Command
+// Command represents vagrant.{up,halt,destroy} requests.
 type Command struct {
-	FilePath string
-	Watch    dnode.Function
+	FilePath string         // can be relative or absolute
+	Watch    dnode.Function // internal detail, to receive command output, ended with a magic value
 }
 
-// Status
+// Status response values for vagrant.{list,status} requests.
 type Status struct {
 	FilePath string
 	State    string
 }
 
-// MachineState
+// MachineState maps the State field to machinestate.State value.
 func (s *Status) MachineState() machinestate.State {
 	switch s.State {
 	case StatePowerOff, StateAborted:
@@ -72,7 +73,8 @@ func (s *Status) MachineState() machinestate.State {
 	}
 }
 
-// Klient
+// Klient represents a client for vagrantkite. Spelled with a K, because we
+// can.
 type Klient struct {
 	Kite *kite.Kite
 	Log  logging.Logger
@@ -164,7 +166,7 @@ func protoID(queryString string) string {
 	return protocol.Kite{ID: queryString}.String()
 }
 
-// Create
+// Create calls vagrant.create method on a kite given by the queryString.
 func (k *Klient) Create(queryString string, req *Create) (resp *Create, err error) {
 	resp = &Create{}
 
@@ -175,7 +177,7 @@ func (k *Klient) Create(queryString string, req *Create) (resp *Create, err erro
 	return resp, nil
 }
 
-// List
+// List calls vagrant.list method on a kite given by the queryString.
 func (k *Klient) List(queryString string) ([]*Status, error) {
 	req := struct{ FilePath string }{"."} // workaround for TMS-2106
 	resp := make([]*Status, 0)
@@ -187,7 +189,7 @@ func (k *Klient) List(queryString string) ([]*Status, error) {
 	return resp, nil
 }
 
-// Status
+// Status calls vagrant.status method on a kite given by the queryString.
 func (k *Klient) Status(queryString, boxPath string) (*Status, error) {
 	resp := &Status{}
 	req := struct {
@@ -203,22 +205,22 @@ func (k *Klient) Status(queryString, boxPath string) (*Status, error) {
 	return resp, nil
 }
 
-// Destroy
+// Destroy calls vagrant.destroy method on a kite given by the queryString.
 func (k *Klient) Destroy(queryString, boxPath string) error {
 	return k.cmd(queryString, "vagrant.destroy", boxPath)
 }
 
-// Up
+// Up calls vagrant.up method on a kite given by the queryString.
 func (k *Klient) Up(queryString, boxPath string) error {
 	return k.cmd(queryString, "vagrant.up", boxPath)
 }
 
-// Halt
+// Halt calls vagrant.halt method on a kite given by the queryString.
 func (k *Klient) Halt(queryString, boxPath string) error {
 	return k.cmd(queryString, "vagrant.halt", boxPath)
 }
 
-// Version
+// Version calls vagrant.version method on a kite given by the queryString.
 func (k *Klient) Version(queryString string) (string, error) {
 	req := struct{ FilePath string }{"."} // workaround for TMS-2106
 	var resp string

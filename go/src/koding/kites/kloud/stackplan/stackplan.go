@@ -26,7 +26,7 @@ var (
 	}
 )
 
-// Machine
+// Machine represents a jComputeStack.machine value.
 type Machine struct {
 	Provider        string            `json:"provider"`
 	Label           string            `json:"label"`
@@ -36,34 +36,36 @@ type Machine struct {
 	Attributes      map[string]string `json:"attributes"`
 }
 
-// KiteMap
+// KiteMap maps resource names to kite IDs they own.
 type KiteMap map[string]string
 
 // Stack is struct that contains all necessary information Apply needs to
 // perform successfully.
 type Stack struct {
-	// jMachine ids
+	// Machines is a list of jMachine identifiers.
 	Machines []string
 
-	// jCredential provider to identifiers
+	// Credentials maps jCredential provider to identifiers.
 	Credentials map[string][]string
 
-	// Terraform template
+	// Template is a raw Terraform template.
 	Template string
 }
 
-// Machines
+// Machines is a list of machines.
 type Machines struct {
 	Machines []Machine `json:"machines"`
 }
 
-// Credential
+// Credential represents jCredential{Datas} value. Meta is of a provider-specific
+// type, defined by a ctor func in MetaFuncs map.
 type Credential struct {
 	Provider   string
 	Identifier string
 	Meta       interface{}
 }
 
+// String implememts the fmt.Stringer interface.
 func (m *Machines) String() string {
 	var txt string
 	for i, machine := range m.Machines {
