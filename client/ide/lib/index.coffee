@@ -15,6 +15,7 @@ IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
 isKoding                      = require 'app/util/isKoding'
 showError                     = require 'app/util/showError'
+IDEHelpers                    = require 'ide/idehelpers'
 actionTypes                   = require 'app/flux/environment/actiontypes'
 KDModalView                   = kd.ModalView
 KDSplitView                   = kd.SplitView
@@ -917,9 +918,8 @@ class IDEAppController extends AppController
 
   saveLayoutSize: ->
 
-    username  = nick()
-    key       = @getWorkspaceStorageKey "#{username}-LayoutSize"
-    value     = @getLayoutSizeData()
+    key    = @getWorkspaceLayoutSizeStorageKey nick()
+    value  = @getLayoutSizeData()
 
     @writeToKiteStorage key, value
     @emit 'LayoutSizesSaved'
@@ -927,7 +927,7 @@ class IDEAppController extends AppController
 
   fetchLayoutSize: (callback, username = nick()) ->
 
-    key = "#{username}-LayoutSize"
+    key = @getWorkspaceLayoutSizeStorageKey username
     @fetchFromKiteStorage callback, key
 
 
@@ -939,10 +939,12 @@ class IDEAppController extends AppController
 
   getWorkspaceStorageKey: (prefix) ->
 
-    if prefix
-      return "#{prefix}.wss.#{@workspaceData.slug}"
-    else
-      return "wss.#{@workspaceData.slug}"
+    IDEHelpers.getWorkspaceStorageKey @workspaceData, prefix
+
+
+  getWorkspaceLayoutSizeStorageKey: (username = nick()) ->
+
+    IDEHelpers.getWorkspaceLayoutSizeStorageKey @workspaceData, username
 
 
   registerPane: (pane) ->
@@ -1669,7 +1671,7 @@ class IDEAppController extends AppController
           @goToTabNumber parseInt(match[1], 10) - 1
 
 
-  showUserRemovedModal: ->
+  showUserRemovedModal: (callback = kd.noop) ->
 
     options        =
       title        : 'Machine access revoked'
@@ -1686,7 +1688,7 @@ class IDEAppController extends AppController
               reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
 
             @modal.destroy()
-            @quit()
+            callback()
 
     @showModal options
 
@@ -1717,10 +1719,11 @@ class IDEAppController extends AppController
 
   fetchSnapshot: (callback, username = nick()) ->
 
-    @fetchFromKiteStorage callback, username
+    key = @getWorkspaceStorageKey username
+    @fetchFromKiteStorage callback, key
 
 
-  fetchFromKiteStorage: (callback, prefix) ->
+  fetchFromKiteStorage: (callback, key) ->
 
     if not @mountedMachine or not @mountedMachine.isRunning()
       callback null
@@ -1731,12 +1734,11 @@ class IDEAppController extends AppController
       console.warn 'Failed to fetch data:', err
       callback null
 
-    fetch = (prefix) =>
+    fetch = (key) =>
 
-      key = @getWorkspaceStorageKey prefix
       @mountedMachine.getBaseKite().storageGet key
 
-    fetch prefix
+    fetch key
 
       .then (data) =>
 
