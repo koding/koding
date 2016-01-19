@@ -31,62 +31,36 @@ module.exports = class ChatPaneView extends React.Component
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
+  getScroller: -> @refs.scrollContainer
+
+
   componentDidMount: ->
 
-    scroller = ReactDOM.findDOMNode @refs.scrollContainer
+    scroller = ReactDOM.findDOMNode @getScroller()
     _showScroller scroller
-
-
-  onScroll: -> @setDateMarkersPosition()
-
-
-  setFilteredMarkers: ->
-
-    filter   = Array.prototype.filter
-    chatList = ReactDOM.findDOMNode @refs.ChatList
-    markers  = chatList.querySelectorAll '.DateMarker'
-
-    @filteredMarkers = filter.call markers, (node) ->
-      return node.className.indexOf('DateMarker-fixed') is -1
-
-
-  setDateMarkersPosition: ->
-
-    scroller = ReactDOM.findDOMNode @refs.scrollContainer
-    left = scroller.getBoundingClientRect().left
-    { scrollTop, offsetHeight } = scroller
-
-    return  unless scrollTop and offsetHeight
-
-    @filteredMarkers.forEach (dateMarker) ->
-
-      { offsetTop, offsetWidth } = dateMarker
-      fixedMarker = dateMarker.querySelector '.DateMarker-fixed'
-
-      if offsetTop >= scrollTop
-
-        fixedMarker.style.display = 'none'
-
-      else if scrollTop > offsetTop
-
-        fixedMarker.style.left    = "#{left}px"
-        fixedMarker.style.width   = "#{offsetWidth}px"
-        fixedMarker.style.display = 'block'
 
 
   componentWillUnmount: ->
 
-    scroller = ReactDOM.findDOMNode @refs.scrollContainer
+    scroller = ReactDOM.findDOMNode @getScroller()
     _hideScroller scroller
 
 
-  componentDidUpdate: (prevProps) ->
-
-    @setFilteredMarkers()
-    @setDateMarkersPosition()
+  componentDidUpdate: (prevProps) -> @updateDateMarkersPosition()
 
 
-  getScroller: -> @refs.scrollContainer
+  onScroll: -> @updateDateMarkersPosition()
+
+
+  updateDateMarkersPosition: ->
+
+    scroller = ReactDOM.findDOMNode @getScroller()
+    { scrollTop, offsetHeight } = scroller
+
+    return  unless scrollTop and offsetHeight
+
+    left = scroller.getBoundingClientRect().left
+    @refs.ChatList.updateDateMarkersPosition scrollTop, left
 
 
   renderChannelInfoContainer: ->
@@ -113,7 +87,7 @@ module.exports = class ChatPaneView extends React.Component
     # this delay is a time needed to chat input
     # in order to resize its textarea
     kd.utils.wait 50, =>
-      scrollContainer = ReactDOM.findDOMNode @refs.scrollContainer
+      scrollContainer = ReactDOM.findDOMNode @getScroller()
       scrollToTarget scrollContainer, itemElement
 
 

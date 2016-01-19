@@ -39,6 +39,7 @@ module.exports = class ChatList extends React.Component
 
 
   getDataBindings: ->
+
     return {
       selectedMessageId: ActivityFlux.getters.selectedMessageThreadId
     }
@@ -52,6 +53,8 @@ module.exports = class ChatList extends React.Component
     if currentSelectedId and currentSelectedId isnt prevSelectedId
       target = ReactDOM.findDOMNode @refs.selectedComponent
       scrollToElement target
+
+    @cacheDateMarkers()
 
 
   glance: debounce 1000, {}, ->
@@ -141,6 +144,34 @@ module.exports = class ChatList extends React.Component
     return markers
 
 
+  cacheDateMarkers: ->
+
+    filter    = Array.prototype.filter
+    container = ReactDOM.findDOMNode this
+    markers   = container.querySelectorAll '.DateMarker'
+
+    @dateMarkers = filter.call markers, (node) ->
+      return node.className.indexOf('DateMarker-fixed') is -1
+
+
+  updateDateMarkersPosition: (scrollTop, left) ->
+
+    @dateMarkers.forEach (dateMarker) ->
+
+      { offsetTop, offsetWidth } = dateMarker
+      fixedMarker = dateMarker.querySelector '.DateMarker-fixed'
+
+      if offsetTop >= scrollTop
+
+        fixedMarker.style.display = 'none'
+
+      else if scrollTop > offsetTop
+
+        fixedMarker.style.left    = "#{left}px"
+        fixedMarker.style.width   = "#{offsetWidth}px"
+        fixedMarker.style.display = 'block'
+
+
   renderChildren: ->
 
     { messages, showItemMenu, channelName, channelId, onItemEditStarted } = @props
@@ -191,6 +222,7 @@ module.exports = class ChatList extends React.Component
 
 
   render: ->
+
     <div className={kd.utils.curry 'ChatList', @props.className}>
       {@renderChildren()}
     </div>
