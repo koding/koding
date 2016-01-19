@@ -90,7 +90,15 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @addManagedButton = new kd.ButtonView
       title           : 'Add Your Own Machine'
       cssClass        : 'add-managed-button solid green compact'
-      callback        : => @handleMachineRequest 'managed'
+      callback        : =>
+        return  if @managedMachineIsNotAllowed
+        @handleMachineRequest 'managed'
+
+    @once 'ManagedMachineIsNotAllowed', =>
+      @managedMachineIsNotAllowed = yes
+      @addManagedButton.setClass 'disabled'
+      @addManagedButton.setTooltip
+        title: 'You need to confirm your email address first.'
 
 
   handleStackReinit: ->
@@ -115,7 +123,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   createExtraViews: ->
 
-    { title, config: { oldOwner } } = @getData()
+    { title, config } = @getData()
 
     @header = new kd.CustomHTMLView
       cssClass : 'stack-info clearfix hidden'
@@ -130,7 +138,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       cssClass : 'title'
       partial  : title
 
-    if oldOwner
+    if oldOwner = config?.oldOwner
       @header.addSubView new kd.CustomHTMLView
         tagName  : 'span'
         cssClass : 'old-owner-desc'
@@ -174,6 +182,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           from #{stackRevision[..5]} revision. <br/>
           #{revisionMessage}
         "
+
 
   createStackStateToggle: ->
 

@@ -1,16 +1,17 @@
-kd             = require 'kd'
-expect         = require 'expect'
-remote         = require('app/remote').getInstance()
-FSFile         = require 'app/util/fs/fsfile'
-Machine        = require 'app/providers/machine'
-ideRoutes      = require 'ide/routes.coffee'
-dataProvider   = require 'app/userenvironmentdataprovider'
-mockjaccount   = require './mock.jaccount'
-mockjmachine   = require './mock.jmachine'
-mockjworkspace = require './mock.jworkspace'
-mockMessage    = require 'app/util/generateDummyMessage'
-mockChannel    = require 'app/util/generateDummyChannel'
-mockThread     = require 'app/util/generateDummyThread'
+kd               = require 'kd'
+expect           = require 'expect'
+remote           = require('app/remote').getInstance()
+FSFile           = require 'app/util/fs/fsfile'
+Machine          = require 'app/providers/machine'
+ideRoutes        = require 'ide/routes.coffee'
+dataProvider     = require 'app/userenvironmentdataprovider'
+mockjaccount     = require './mock.jaccount'
+mockjmachine     = require './mock.jmachine'
+mockjworkspace   = require './mock.jworkspace'
+mockMessage      = require 'app/util/generateDummyMessage'
+mockChannel      = require 'app/util/generateDummyChannel'
+mockThread       = require 'app/util/generateDummyThread'
+mockParticipants = require 'app/util/generateDummyParticipants'
 
 mockMachine = new Machine { machine: mockjmachine }
 { socialapi, appManager } = kd.singletons
@@ -230,4 +231,4 @@ module.exports =
 
   getMockThread: (args...)  -> return mockThread(args...)
 
-
+  getMockParticipants: (args...) -> return mockParticipants(args...)

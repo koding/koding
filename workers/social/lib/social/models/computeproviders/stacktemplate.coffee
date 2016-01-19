@@ -7,7 +7,7 @@ module.exports = class JStackTemplate extends Module
 
   { permit }   = require '../group/permissionset'
   Validators   = require '../group/validators'
-  { revive }   = require './computeutils'
+  { revive, checkTemplateUsage } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
 
@@ -50,6 +50,8 @@ module.exports = class JStackTemplate extends Module
         update        :
           (signature Object, Function)
         clone         :
+          (signature Function)
+        generateStack :
           (signature Function)
 
     sharedEvents      :
@@ -149,6 +151,9 @@ module.exports = class JStackTemplate extends Module
 
       if validationError = validateTemplate data.template, group
         return callback validationError
+
+      if data.config?
+        data.config.groupStack = no
 
       stackTemplate = new JStackTemplate
         originId    : delegate.getId()
@@ -285,6 +290,46 @@ module.exports = class JStackTemplate extends Module
     success: (client, accessLevel, callback) ->
 
       @update { $set: { accessLevel } }, callback
+
+
+  generateStack: permit
+
+    advanced: [
+      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, callback) ->
+
+      unless @getAt 'config.verified'
+        return callback new KodingError 'Stack is not verified yet'
+
+      { account, group, user } = client.r
+
+      ComputeProvider = require './computeprovider'
+
+      instanceCount = @machines?.length or 0
+      change        = 'increment'
+
+      ComputeProvider.updateGroupResourceUsage {
+        group, change, instanceCount
+      }, (err) =>
+        return callback err  if err
+
+        checkTemplateUsage this, account, (err) =>
+          return callback err  if err
+
+          account.addStackTemplate this, (err) =>
+
+            details = { account, user, group, client }
+            details.template = this
+
+            ComputeProvider.generateStackFromTemplate details, {}, callback
 
 
   update$: permit

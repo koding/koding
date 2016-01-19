@@ -162,6 +162,10 @@ module.exports = class GroupsController extends kd.Controller
         new kd.NotificationView { title: 'Membership policy has been updated.' }
       showError err
 
+  canEditGroup: ->
+    ['admin', 'owner'].reduce (prole, role) ->
+      prole or (role in _globals.config.roles)
+    , no
 
   ###*
    *  Sets given stack template as current group's default stack template

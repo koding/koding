@@ -41,9 +41,9 @@ module.exports =
 
 
   deletePost: (browser) ->
-  
+
     message = helpers.getFakeText()
-  
+
     user = teamsHelpers.loginTeam(browser)
     teamsHelpers.createChannel(browser, user)
     teamsHelpers.sendComment(browser, message)
@@ -52,22 +52,23 @@ module.exports =
 
 
   editPostUsingUPkey: (browser) ->
-  
+
     message           = helpers.getFakeText()
     chatInputSelector = '.ChatPaneFooter .ChatInputWidget textarea'
     textSelector      = '.ChatItem .SimpleChatListItem.ChatItem-contentWrapper .ChatListItem-itemBodyContainer'
     editingSelector   = '.SimpleChatListItem.editing .ChatItem-updateMessageForm.visible .ChatInputWidget textarea'
     chatItem          = '.Pane-body .ChatList .ChatItem:nth-of-type(3)'
- 
+
     user = teamsHelpers.loginTeam(browser)
     teamsHelpers.createChannel(browser, user)
     teamsHelpers.sendComment(browser, message)
- 
+
     browser
       .waitForElementVisible  textSelector, 20000
       .setValue               chatInputSelector, browser.Keys.UP_ARROW
-      .waitForElementVisible  editingSelector, 20000 
+      .waitForElementVisible  editingSelector, 20000
       .clearValue             editingSelector
+      .pause                  3000 #slow down
       .setValue               editingSelector, 'Message after editing' + browser.Keys.ENTER
       .waitForElementVisible  chatItem, 20000
       .pause                  3000 #waiting for text to be changed

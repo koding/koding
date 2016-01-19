@@ -13,7 +13,6 @@ usertracker = require '../../../usertracker'
 datadog     = require '../../../datadog'
 
 process.on 'uncaughtException', (err) ->
-  exec './beep'
   console.log err, err?.stack
   process.exit 1
 

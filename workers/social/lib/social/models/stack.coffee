@@ -122,11 +122,19 @@ module.exports = class JComputeStack extends jraphical.Module
           ]]
 
 
-  @getStack = (account, _id, callback) ->
+  @getStack = (options, callback) ->
 
-    JComputeStack.one { _id, originId : account.getId() }, (err, stackObj) ->
+    { account, group, stack } = options
+
+    JComputeStack.one {
+      _id      : stack
+      originId : account.getId()
+      group    : group.slug
+    }, (err, stackObj) ->
+
       if err? or not stackObj?
         return callback new KodingError 'A valid stack id required'
+
       callback null, stackObj
 
 
@@ -154,10 +162,24 @@ module.exports = class JComputeStack extends jraphical.Module
       data.account   = client.connection.delegate
       data.groupSlug = client.context.group
 
+      if data.config?
+        data.config.groupStack = no
+
       delete data.baseStackId
       delete data.stackRevision
 
-      JComputeStack.create data, callback
+      JGroup = require './group'
+
+      JGroup.one { slug: data.groupSlug }, (err, group) ->
+        return callback err  if err or not group
+
+        updateGroupResourceUsage data, group, 'increment', (err) ->
+          return callback err  if err
+
+          JComputeStack.create data, (err, stack) ->
+            if err
+            then updateGroupResourceUsage data, group, 'decrement', -> callback err
+            else callback null, stack
 
 
   ###*
@@ -288,6 +310,16 @@ module.exports = class JComputeStack extends jraphical.Module
     , callback
 
 
+  updateGroupResourceUsage = (stack, group, change, callback) ->
+
+    ComputeProvider = require './computeproviders/computeprovider'
+    instanceCount   = (stack.getAt?('machines') ? stack.machines ? []).length
+
+    ComputeProvider.updateGroupResourceUsage {
+      group, change, instanceCount
+    }, callback
+
+
   destroy: (callback) ->
 
     @fetchGroup (err, group) =>
@@ -296,14 +328,9 @@ module.exports = class JComputeStack extends jraphical.Module
       @update { $set: { status: { state: 'Destroying' } } }, (err) =>
         return callback err  if err
 
-        JMachine        = require './computeproviders/machine'
-        ComputeProvider = require './computeproviders/computeprovider'
+        JMachine = require './computeproviders/machine'
 
-        instanceCount   = (@getAt('machines') ? []).length
-
-        ComputeProvider.updateGroupResourceUsage {
-          group, change: 'decrement', instanceCount
-        }, =>
+        updateGroupResourceUsage this, group, 'decrement', =>
 
           machineIds = (machineId for machineId in @machines)
 

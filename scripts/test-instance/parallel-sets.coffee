@@ -64,7 +64,7 @@ module.exports = [
 
   [
     { name: 'ide terminal' }
-    { name: 'pricing invalidcarddetails' }
+    # { name: 'pricing invalidcarddetails' }
   ]
 
   [

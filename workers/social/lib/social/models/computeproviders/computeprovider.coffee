@@ -7,6 +7,7 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 teamutils   = require './teamutils'
 konstraints = require 'konstraints'
 
+MAX_INT     = Math.pow(2, 32) - 1
 
 module.exports = class ComputeProvider extends Base
 
@@ -124,11 +125,11 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback) ->
 
-    { r: { account } } = client
+    { r: { account, group } } = client
     { stack } = options
 
     JComputeStack = require '../stack'
-    JComputeStack.getStack account, stack, (err, revivedStack) =>
+    JComputeStack.getStack { account, group, stack }, (err, revivedStack) =>
       return callback err  if err?
       return callback new KodingError 'No such stack'  unless revivedStack
 
@@ -391,16 +392,20 @@ module.exports = class ComputeProvider extends Base
 
   @updateGroupStackUsage = (group, change, callback) ->
 
-    plan = group.getAt 'config.plan'
-    return callback null  unless plan
+    return callback null  if group.slug is 'koding'
 
-    plan = teamutils.getPlanData plan
+    plan = group.getAt 'config.plan'
+
+    maxAllowed   = MAX_INT
+    if plan
+      plan       = teamutils.getPlanData plan
+      maxAllowed = plan.member
 
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
       type      : 'member_stacks'
-      max       : plan.member
+      max       : maxAllowed
       min       : 0
     , (err) ->
       # no worries about `decrement` errors
@@ -410,18 +415,22 @@ module.exports = class ComputeProvider extends Base
 
   @updateGroupInstanceUsage = (group, change, amount, callback) ->
 
+    return callback null  if group.slug is 'koding'
+
     plan = group.getAt 'config.plan'
-    return callback null  unless plan
     return callback null  if amount is 0
 
-    plan = teamutils.getPlanData plan
+    maxAllowed   = MAX_INT
+    if plan
+      plan       = teamutils.getPlanData plan
+      maxAllowed = plan.maxInstance
 
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
       amount    : amount
       type      : 'member_instances'
-      max       : plan.maxInstance
+      max       : maxAllowed
       min       : 0
     , (err) ->
       # no worries about `decrement` errors
@@ -432,6 +441,8 @@ module.exports = class ComputeProvider extends Base
   @updateGroupResourceUsage = (options, callback) ->
 
     { group, instanceCount, change } = options
+
+    return callback null  if group.slug is 'koding'
 
     @updateGroupStackUsage group, change, (err) =>
       return callback err  if err
@@ -482,14 +493,17 @@ module.exports = class ComputeProvider extends Base
 
       (next) ->
         checkTemplateUsage template, account, (err) ->
-          next err
+          return next err  if err
+          account.addStackTemplate template, (err) ->
+            res.client = client
+            next err
 
       (next) ->
-        account.addStackTemplate template, (err) ->
-          res.client = client
-          next err
 
-      (next) ->
+        # Marking this as groupStack to use it with group resources ~ GG
+        res.template.config ?= {}
+        res.template.config.groupStack = yes
+
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
           if err
             # swallowing errors for followings since we need the real error ~GG

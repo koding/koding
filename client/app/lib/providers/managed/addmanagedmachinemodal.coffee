@@ -132,6 +132,10 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
     console.warn "Couldn't fetch otatoken:", err  if err
 
+    if err.message.indexOf('confirm your email address') > -1
+      new kd.NotificationView title : err.message
+      return @destroy()
+
     @loader.destroy()
     return @code.updatePartial 'Failed to fetch one time access token.'
 

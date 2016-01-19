@@ -42,6 +42,16 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     @notReadyView.hide()  if config.verified
 
 
+  generateStackFromTemplate: ->
+
+    stackTemplate = @getData()
+    stackTemplate.generateStack (err, stack) ->
+
+      unless showError err
+        kd.singletons.computeController.reset yes
+        new kd.NotificationView title: 'Stack generated successfully'
+
+
   editStackTemplate: ->
 
     stackTemplate = @getData()
