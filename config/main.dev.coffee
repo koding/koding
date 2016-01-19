@@ -1529,9 +1529,15 @@ Configuration = (options={}) ->
         mongorestore -h#{boot2dockerbox} -dkoding dump/koding
         rm -rf ./dump
 
-        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+        updatePermissions
+
+      }
+
+      function updatePermissions () {
+
+        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @gokmen) <---#'
         cd #{projectRoot}
-        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+        node #{projectRoot}/scripts/permission-updater -c dev --reset
 
       }
 
@@ -1599,6 +1605,9 @@ Configuration = (options={}) ->
       elif [ "$1" == "services" ]; then
         check_service_dependencies
         services
+
+      elif [ "$1" == "updatepermissions" ]; then
+        updatePermissions
 
       elif [ "$1" == "resetdb" ]; then
 
