@@ -141,7 +141,7 @@ module.exports = class ChatListItem extends React.Component
 
     return null  unless @props.showItemMenu
 
-    <MessageItemMenu ref='MessageItemMenu' message={@props.message}/>
+    <MessageItemMenu ref='MessageItemMenu' message={@props.message} channelId={@props.channelId} />
 
 
   renderEmbedBox: ->

@@ -96,6 +96,7 @@ module.exports = class CommentListItem extends React.Component
 
     <MessageItemMenu
       message={@props.comment}
+      channelId={@props.channelId}
       disableAdminMenuItems:{yes} />
 
 
