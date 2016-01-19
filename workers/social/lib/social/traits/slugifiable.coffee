@@ -142,15 +142,6 @@ module.exports = class Slugifiable
             else
               callback null, nextName
 
-  @updateSlugsByBatch = (batchSize, konstructors) ->
-    konstructors = [konstructors]  unless Array.isArray konstructors
-    konstructors.forEach (konstructor) ->
-      counter = 0
-      konstructor.updateAllSlugs { batchSize }, (err, slug) ->
-        console.log slug
-        if ++counter is batchSize
-          process.nextTick -> updateSlugsByBatch batchSize, konstructor
-
   @updateAllSlugs = (options, callback) ->
     [callback, options] = [options, callback] unless callback
     options ?= {}
