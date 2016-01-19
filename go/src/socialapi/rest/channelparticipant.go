@@ -8,10 +8,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func CreateChannelParticipants(channelId, accountId int64, c int) ([]*models.ChannelParticipant, error) {
+func CreateChannelParticipants(channelId, accountId int64, token string, c int) ([]*models.ChannelParticipant, error) {
 	var participants []*models.ChannelParticipant
 	for i := 0; i < c; i++ {
-		participant, err := CreateChannelParticipant(channelId, accountId)
+		participant, err := CreateChannelParticipant(channelId, accountId, token)
 		if err != nil {
 			return nil, err
 		}
@@ -22,17 +22,18 @@ func CreateChannelParticipants(channelId, accountId int64, c int) ([]*models.Cha
 	return participants, nil
 }
 
-func CreateChannelParticipant(channelId, requesterId int64) (*models.ChannelParticipant, error) {
+func CreateChannelParticipant(channelId, requesterId int64, token string) (*models.ChannelParticipant, error) {
 	account := models.NewAccount()
 	account.OldId = bson.NewObjectId().Hex()
 	account, _ = CreateAccount(account)
-	return AddChannelParticipant(channelId, requesterId, account.Id)
+	return AddChannelParticipant(channelId, requesterId, token, account.Id)
 }
 
-func ListChannelParticipants(channelId, accountId int64) ([]models.ChannelParticipantContainer, error) {
+func ListChannelParticipants(channelId, accountId int64, token string) ([]models.ChannelParticipantContainer, error) {
 
 	url := fmt.Sprintf("/channel/%d/participants?accountId=%d", channelId, accountId)
-	res, err := sendRequest("GET", url, nil)
+	// res, err := sendRequest("GET", url, nil)
+	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}
@@ -45,42 +46,46 @@ func ListChannelParticipants(channelId, accountId int64) ([]models.ChannelPartic
 	return participants, nil
 }
 
-func AddChannelParticipant(channelId, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
+func AddChannelParticipant(channelId, requesterId int64, token string, accountIds ...int64) (*models.ChannelParticipant, error) {
 	url := fmt.Sprintf("/channel/%d/participants/add?accountId=%d", channelId, requesterId)
 	return channelParticipantOp(
 		url,
 		channelId,
 		requesterId,
+		token,
 		accountIds...,
 	)
 }
 
-func DeleteChannelParticipant(channelId int64, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
+func DeleteChannelParticipant(channelId int64, requesterId int64, token string, accountIds ...int64) (*models.ChannelParticipant, error) {
 	url := fmt.Sprintf("/channel/%d/participants/remove?accountId=%d", channelId, requesterId)
 	return channelParticipantOp(
 		url,
 		channelId,
 		requesterId,
+		token,
 		accountIds...,
 	)
 }
 
-func BlockChannelParticipant(channelId int64, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
+func BlockChannelParticipant(channelId int64, requesterId int64, token string, accountIds ...int64) (*models.ChannelParticipant, error) {
 	url := fmt.Sprintf("/channel/%d/participants/block?accountId=%d", channelId, requesterId)
 	return channelParticipantOp(
 		url,
 		channelId,
 		requesterId,
+		token,
 		accountIds...,
 	)
 }
 
-func UnblockChannelParticipant(channelId, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
+func UnblockChannelParticipant(channelId, requesterId int64, token string, accountIds ...int64) (*models.ChannelParticipant, error) {
 	url := fmt.Sprintf("/channel/%d/participants/unblock?accountId=%d", channelId, requesterId)
 	return channelParticipantOp(
 		url,
 		channelId,
 		requesterId,
+		token,
 		accountIds...,
 	)
 }
@@ -101,7 +106,7 @@ func RejectInvitation(channelId int64, token string) error {
 	return err
 }
 
-func InviteChannelParticipant(channelId, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
+func InviteChannelParticipant(channelId, requesterId int64, token string, accountIds ...int64) (*models.ChannelParticipant, error) {
 	url := fmt.Sprintf("/channel/%d/participants/add?accountId=%d", channelId, requesterId)
 
 	res := make([]*models.ChannelParticipant, 0)
@@ -112,7 +117,8 @@ func InviteChannelParticipant(channelId, requesterId int64, accountIds ...int64)
 		res = append(res, c)
 	}
 
-	cps, err := sendModel("POST", url, &res)
+	// cps, err := sendModel("POST", url, &res)
+	cps, err := sendModelWithAuth("POST", url, &res, token)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +128,7 @@ func InviteChannelParticipant(channelId, requesterId int64, accountIds ...int64)
 	return a[0], nil
 }
 
-func channelParticipantOp(url string, channelId, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
+func channelParticipantOp(url string, channelId, requesterId int64, token string, accountIds ...int64) (*models.ChannelParticipant, error) {
 
 	res := make([]*models.ChannelParticipant, 0)
 	for _, accountId := range accountIds {
@@ -131,7 +137,8 @@ func channelParticipantOp(url string, channelId, requesterId int64, accountIds .
 		res = append(res, c)
 	}
 
-	cps, err := sendModel("POST", url, &res)
+	// cps, err := sendModel("POST", url, &res)
+	cps, err := sendModelWithAuth("POST", url, &res, token)
 	if err != nil {
 		return nil, err
 	}
