@@ -20,8 +20,8 @@ func TestNewDiskTransport(t *testing.T) {
 		Convey("It should create temp dir if no path is specified", func() {
 			dt, err := NewDiskTransport("")
 			So(err, ShouldBeNil)
-			So(dt.Path, ShouldNotEqual, "")
-			statDirCheck(dt.Path)
+			So(dt.LocalPath, ShouldNotEqual, "")
+			statDirCheck(dt.LocalPath)
 		})
 
 		Convey("It should use path if specified", func() {
@@ -30,7 +30,7 @@ func TestNewDiskTransport(t *testing.T) {
 
 			dt, err := NewDiskTransport(mountDir)
 			So(err, ShouldBeNil)
-			So(dt.Path, ShouldEqual, mountDir)
+			So(dt.LocalPath, ShouldEqual, mountDir)
 		})
 	})
 }
@@ -181,7 +181,7 @@ func TestDTExec(t *testing.T) {
 			err := dt.WriteFile("file", []byte{})
 			So(err, ShouldBeNil)
 
-			cmd := fmt.Sprintf("ls %s", dt.Path)
+			cmd := fmt.Sprintf("ls %s", dt.LocalPath)
 			res, err := dt.Exec(cmd)
 			So(err, ShouldBeNil)
 			So(res.Stdout, ShouldEqual, "file\n")
@@ -197,7 +197,7 @@ func TestDTGetDiskInfo(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		stfs := syscall.Statfs_t{}
-		err = syscall.Statfs(dt.Path, &stfs)
+		err = syscall.Statfs(dt.LocalPath, &stfs)
 		So(err, ShouldBeNil)
 
 		Convey("It should return disk info", func() {
@@ -220,7 +220,7 @@ func TestDTGetInfo(t *testing.T) {
 			res, err := dt.GetInfo("")
 			So(err, ShouldBeNil)
 			So(res.Exists, ShouldBeTrue)
-			So(res.Name, ShouldEqual, filepath.Base(dt.Path))
+			So(res.Name, ShouldEqual, filepath.Base(dt.LocalPath))
 		})
 
 		Convey("It should return info for dir", func() {

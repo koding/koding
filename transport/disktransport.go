@@ -29,14 +29,14 @@ func NewDiskTransport(path string) (*DiskTransport, error) {
 	}
 
 	return &DiskTransport{
-		Path: path,
+		LocalPath: path,
 	}, nil
 }
 
 // DiskTransport is an implementation of Transport that reads files and
-// directories from disk.
+// dirs from disk.
 type DiskTransport struct {
-	Path string
+	LocalPath string
 }
 
 // CreateDir (recursively) creates dir with specified name and mode.
@@ -119,9 +119,9 @@ func (d *DiskTransport) GetInfo(path string) (*GetInfoRes, error) {
 	return getInfo(d.fullPath(path))
 }
 
-// fullPath joins the starting path with the specified path.
+// fullPath joins the internal root dir path with the specified path.
 func (d *DiskTransport) fullPath(path string) string {
-	return filepath.Join(d.Path, path)
+	return filepath.Join(d.LocalPath, path)
 }
 
 ///// COPIED FROM KLIENT. TODO: fix this.

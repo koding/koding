@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -22,7 +23,10 @@ const (
 type KlientTransport struct {
 	Client *kite.Client
 
-	// The timeout Trip() uses for TellWithTimeout. If left empty, a zero timeout is
+	// RemotePath is path to dir in user VM to be mounted locally.
+	RemotePath string
+
+	// The timeout trip() uses for TellWithTimeout. If left empty, a zero timeout is
 	// used, achieving the same result as Tell(), ie no timeout.
 	TellTimeout time.Duration
 }
@@ -62,24 +66,6 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 	return &KlientTransport{Client: kiteClient}, nil
 }
 
-// Trip is a generic method for communication. It accepts `req` to pass args
-// to Klient and `res` to store unmarshalled response from Klient.
-//
-// If the method timeouts out, then we return syscall.ECONNREFUSED so it'll be
-// shown to user by the kernel.
-func (k *KlientTransport) Trip(methodName string, req interface{}, res interface{}) error {
-	raw, err := k.Client.TellWithTimeout(methodName, k.TellTimeout, req)
-	if err != nil {
-		if kiteError, ok := err.(*kite.Error); ok && kiteError.Type == "timeout" {
-			return syscall.ECONNREFUSED
-		}
-
-		return err
-	}
-
-	return raw.Unmarshal(&res)
-}
-
 // CreateDir (recursively) creates dir with specified name and mode. It does
 // not send specified mode to remote.
 func (k *KlientTransport) CreateDir(path string, _ os.FileMode) error {
@@ -87,11 +73,11 @@ func (k *KlientTransport) CreateDir(path string, _ os.FileMode) error {
 		Path      string
 		Recursive bool
 	}{
-		Path:      path,
+		Path:      k.fullPath(path),
 		Recursive: true,
 	}
 	var res bool
-	return k.Trip("fs.createDirectory", req, &res)
+	return k.trip("fs.createDirectory", req, &res)
 }
 
 // ReadDir returns entries of the dir at specified path. It takes slice of dir
@@ -102,12 +88,12 @@ func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (*ReadDir
 		Recursive     bool
 		IgnoreFolders []string
 	}{
-		Path:          path,
+		Path:          k.fullPath(path),
 		Recursive:     true,
 		IgnoreFolders: ignoreFolders,
 	}
 	res := &ReadDirRes{}
-	if err := k.Trip("fs.readDirectory", req, &res); err != nil {
+	if err := k.trip("fs.readDirectory", req, &res); err != nil {
 		return res, err
 	}
 
@@ -117,11 +103,11 @@ func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (*ReadDir
 // Rename changes name of the entry from specified old to new name.
 func (k *KlientTransport) Rename(oldPath, newPath string) error {
 	req := struct{ OldPath, NewPath string }{
-		OldPath: oldPath,
-		NewPath: newPath,
+		OldPath: k.fullPath(oldPath),
+		NewPath: k.fullPath(newPath),
 	}
 	var res bool
-	return k.Trip("fs.rename", req, res)
+	return k.trip("fs.rename", req, res)
 }
 
 // Remove (recursively) removes the entries in the specificed path.
@@ -130,18 +116,18 @@ func (k *KlientTransport) Remove(path string) error {
 		Path      string
 		Recursive bool
 	}{
-		Path:      path,
+		Path:      k.fullPath(path),
 		Recursive: true,
 	}
 	var res bool
-	return k.Trip("fs.remove", req, &res)
+	return k.trip("fs.remove", req, &res)
 }
 
 // ReadFile reads file at specificed path and return its contents.
 func (k *KlientTransport) ReadFile(path string) (*ReadFileRes, error) {
-	req := struct{ Path string }{path}
+	req := struct{ Path string }{k.fullPath(path)}
 	res := &ReadFileRes{}
-	if err := k.Trip("fs.readFile", req, &res); err != nil {
+	if err := k.trip("fs.readFile", req, &res); err != nil {
 		return res, err
 	}
 
@@ -154,12 +140,12 @@ func (k *KlientTransport) WriteFile(path string, content []byte) error {
 		Path    string
 		Content []byte
 	}{
-		Path:    path,
+		Path:    k.fullPath(path),
 		Content: content,
 	}
 	var res int
 
-	return k.Trip("fs.writeFile", req, &res)
+	return k.trip("fs.writeFile", req, &res)
 }
 
 // Exec runs specified command. Note, it doesn't set the path from where it
@@ -167,7 +153,7 @@ func (k *KlientTransport) WriteFile(path string, content []byte) error {
 func (k *KlientTransport) Exec(cmd string) (*ExecRes, error) {
 	req := struct{ Command string }{cmd}
 	res := &ExecRes{}
-	if err := k.Trip("exec", req, &res); err != nil {
+	if err := k.trip("exec", req, &res); err != nil {
 		return nil, err
 	}
 
@@ -177,10 +163,10 @@ func (k *KlientTransport) Exec(cmd string) (*ExecRes, error) {
 // GetDiskInfo returns disk info about the mount at the specified path. If a
 // nested path is specified, it returns the top most mount.
 func (k *KlientTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
-	req := struct{ Path string }{path}
+	req := struct{ Path string }{k.fullPath(path)}
 	res := &GetDiskInfoRes{}
 
-	if err := k.Trip("fs.getDiskInfo", req, &res); err != nil {
+	if err := k.trip("fs.getDiskInfo", req, &res); err != nil {
 		if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type != "methodNotFound" {
 			return nil, err
 		}
@@ -191,12 +177,37 @@ func (k *KlientTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 
 // GetInfo returns info about the entry at specified path.
 func (k *KlientTransport) GetInfo(path string) (*GetInfoRes, error) {
-	req := struct{ Path string }{path}
+	req := struct{ Path string }{k.fullPath(path)}
 	res := &GetInfoRes{}
 
-	if err := k.Trip("fs.getInfo", req, &res); err != nil {
+	if err := k.trip("fs.getInfo", req, &res); err != nil {
 		return nil, err
 	}
 
 	return res, nil
+}
+
+///// Helpers
+
+// fullPath joins the internal remote path with the specified path.
+func (k *KlientTransport) fullPath(path string) string {
+	return filepath.Join(k.RemotePath, path)
+}
+
+// trip is a generic method for communication. It accepts `req` to pass args
+// to Klient and `res` to store unmarshalled response from Klient.
+//
+// If the method timeouts out, then we return syscall.ECONNREFUSED so it'll be
+// shown to user by the kernel.
+func (k *KlientTransport) trip(methodName string, req interface{}, res interface{}) error {
+	raw, err := k.Client.TellWithTimeout(methodName, k.TellTimeout, req)
+	if err != nil {
+		if kiteError, ok := err.(*kite.Error); ok && kiteError.Type == "timeout" {
+			return syscall.ECONNREFUSED
+		}
+
+		return err
+	}
+
+	return raw.Unmarshal(&res)
 }
