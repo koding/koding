@@ -142,28 +142,6 @@ module.exports = class Slugifiable
             else
               callback null, nextName
 
-  @updateAllSlugs = (options, callback) ->
-    [callback, options] = [options, callback] unless callback
-    options ?= {}
-    selector = if options.force then {} else { slug_: { $exists: no } }
-    subclasses = @encapsulatedSubclasses ? [this]
-
-    async.each subclasses, (subclass, next) ->
-      subclass.cursor selector, options, (err, cursor) ->
-        if err then console.error err
-        else
-          postQueue = []
-          cursor.each (err, post) ->
-            if err then console.error err
-            else if post?
-              postQueue.push (seriesNext) ->
-                post.updateSlug (err, slug) ->
-                  callback null, slug
-                  seriesNext()
-            else
-              async.series postQueue, -> next()
-    , callback
-
   updateSlug:(callback) ->
     @createSlug (err, slug) =>
       if err then callback err
