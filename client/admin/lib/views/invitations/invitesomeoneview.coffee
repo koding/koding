@@ -108,6 +108,7 @@ module.exports = class InviteSomeoneView extends KDView
             buttons           :
               "That's fine"   :
                 itemClass     : kd.ButtonView
+                cssClass      : 'confirm'
                 style         : 'solid green medium'
                 loader        : color: '#444444'
                 callback      : => @handleInvitationRequest invites

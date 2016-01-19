@@ -456,6 +456,8 @@ module.exports =
     emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
     userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
     inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
+    confirmModal             = '.admin-invite-confirm-modal'
+    confirmButton            = "#{confirmModal} button.confirm"
     notificationView         = '.kdnotification'
 
     browser
@@ -464,18 +466,26 @@ module.exports =
       .setValue               emailInputSelector, userEmail
       .waitForElementVisible  inviteMemberButton, 20000
       .click                  inviteMemberButton
-      .waitForElementVisible  notificationView, 20000
-      .assert.containsText    notificationView, 'Invitations are sent to new members.'
-      .pause                  2000 # wait for notification
 
-    if addMoreUser
+    browser.element 'css selector', confirmModal, (result) ->
+      if result.status is 0
+        browser
+          .waitForElementVisible confirmButton, 20000
+          .click                 confirmButton
+
       browser
-        .waitForElementVisible  emailInputSelector, 20000
-    else
-      browser
-        .click                  pendingMembersTab
-        .waitForElementVisible  pendingMemberView, 20000
-        .assert.containsText    pendingMemberView, userEmail
+        .waitForElementVisible  notificationView, 20000
+        .assert.containsText    notificationView, 'Invitations are sent to new members.'
+        .pause                  2000 # wait for notification
+
+      if addMoreUser
+        browser
+          .waitForElementVisible  emailInputSelector, 20000
+      else
+        browser
+          .click                  pendingMembersTab
+          .waitForElementVisible  pendingMemberView, 20000
+          .assert.containsText    pendingMemberView, userEmail
 
     return userEmail
 
