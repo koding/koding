@@ -357,6 +357,19 @@ describe 'kd.singletons.appManager', ->
       expect(Object.keys(appManager.appControllers).length).toBe 0
 
 
+    it 'should quit all instances of given name', (done) ->
+
+      createApps [ 'MultipleInstanceApp' ], yes
+      appManager.create 'MultipleInstanceApp', { forceNew: yes }
+
+      expect(Object.keys(appManager.appControllers).length).toBe 1
+      expect(Object.keys(appManager.appControllers.MultipleInstanceApp.instances).length).toBe 2
+
+      appManager.quitByName 'MultipleInstanceApp', ->
+        expect(Object.keys(appManager.appControllers).length).toBe 0
+        done()
+
+
   describe '::open', ->
 
     it 'should warn if open called with no name', ->
