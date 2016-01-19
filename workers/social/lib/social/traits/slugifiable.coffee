@@ -1,6 +1,7 @@
 module.exports = class Slugifiable
 
-  { dash, daisy, secure } = require 'bongo'
+  async      = require 'async'
+  { secure } = require 'bongo'
 
   KodingError = require '../error'
 
@@ -140,63 +141,6 @@ module.exports = class Slugifiable
               callback err
             else
               callback null, nextName
-
-  # @updateAllSlugsResourceIntensively = (options, callback)->
-  #   [callback, options] = [options, callback] unless callback
-  #   options ?= {}
-  #   selector = if options.force then {} else {slug_: $exists: no}
-  #   subclasses = @encapsulatedSubclasses ? [@]
-  #   JName = require '../models/name'
-  #   JName.someData {},{name:1,_id:1,constructorName:1},{},(err,names)->
-  #     console.log "namesArr in"
-  #     names.toArray (err,namesArr)->
-  #       contentTypeQueue = subclasses.map (subclass)->->
-  #         console.log "2"
-  #         subclass.someData {},{title:1,_id:1},{limit:1000},(err,cursor)->
-  #           console.log "3"
-  #           if err
-  #             callback err
-  #           else
-  #             cursor.toArray (err,arr)->
-  #               if err
-  #                 callback err
-  #               else
-  #                 a.contructorName = subclass.name for a in arr
-  #                 console.log "4"
-  #                 console.log "arr ->",arr,"namesArr -> ",namesArr
-  #                 callback null #,arr,namesArr
-  #
-  #       dash contentTypeQueue, callback
-
-  @updateSlugsByBatch = (batchSize, konstructors) ->
-    konstructors = [konstructors]  unless Array.isArray konstructors
-    konstructors.forEach (konstructor) ->
-      counter = 0
-      konstructor.updateAllSlugs { batchSize }, (err, slug) ->
-        console.log slug
-        if ++counter is batchSize
-          process.nextTick -> updateSlugsByBatch batchSize, konstructor
-
-  @updateAllSlugs = (options, callback) ->
-    [callback, options] = [options, callback] unless callback
-    options ?= {}
-    selector = if options.force then {} else { slug_: { $exists: no } }
-    subclasses = @encapsulatedSubclasses ? [this]
-    contentTypeQueue = subclasses.map (subclass) -> ->
-      subclass.cursor selector, options, (err, cursor) ->
-        if err then console.error err #contentTypeQueue.next err
-        else
-          postQueue = []
-          cursor.each (err, post) ->
-            if err then console.error err#postQueue.next err
-            else if post?
-              postQueue.push ->
-                post.updateSlug (err, slug) ->
-                  callback null, slug
-                  postQueue.next()
-            else
-              daisy postQueue, -> contentTypeQueue.fin()
-    dash contentTypeQueue, callback
 
   updateSlug:(callback) ->
     @createSlug (err, slug) =>

@@ -205,7 +205,7 @@ Configuration = (options={}) ->
     kiteHome                       : kiteHome
     redis                          : redis.url
     monitoringRedis                : "#{prod_simulation_server}:#{redis.port}"
-    misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
+    misc                           : {claimGlobalNamesForUsers: no , debugConnectionErrors: yes}
     githubapi                      : githubapi
     recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
 
