@@ -113,6 +113,23 @@ describe 'kd.singletons.search', ->
 
   describe '::searchAccountsMongo', ->
 
+    it 'should remove "@" character from the seed', (done) ->
+
+      { search } = kd.singletons
+      seed       = '@kodinguser'
+
+      mock.remote.api.JAccount.one.toReturnAccount()
+      mock.groups.getCurrentGroup.toReturnGroup()
+
+      spy = expect.spyOn remote.api.JAccount, 'one'
+
+      search.searchAccountsMongo(seed).then ->
+        expect(spy).toHaveBeenCalledWith {
+          'profile.nickname': 'kodinguser'
+        }
+        done()
+
+
     it 'should filter current user from the results', (done) ->
 
       { search } = kd.singletons
