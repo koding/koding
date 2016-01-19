@@ -8,7 +8,7 @@ var objectMask = &object.Builder{
 	Recursive: true,
 }
 
-// objectMask builds object mask value, which is used in Softlayer API for
+// ObjectMask builds object mask value, which is used in Softlayer API for
 // requesting extra fields which are not being populated on request.
 //
 // ObjectMask assumes each field we want to read from Softlayer API has

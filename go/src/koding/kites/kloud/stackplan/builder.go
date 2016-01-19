@@ -16,7 +16,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// KodingMeta
+// KodingMeta represents "koding_"-prefixed variables injected into Terraform
+// template.
 type KodingMeta struct {
 	Email     string `stackplan:"user_email"`
 	Username  string `stackplan:"user_username"`
@@ -28,16 +29,17 @@ type KodingMeta struct {
 	Slug      string `stackplan:"group_slug"`
 }
 
-// CustomMeta
+// CustomMeta represents private variables injected into Terraform template.
 type CustomMeta map[string]string
 
-// MetaFuncs
+// MetaFuncs is a global lookup map used to initialize meta values for
+// jCredentialDatas document, per provider.
 var MetaFuncs = map[string]func() interface{}{
 	"koding": func() interface{} { return &KodingMeta{} },
 	"custom": func() interface{} { return &CustomMeta{} },
 }
 
-// Builder
+// Builder is used for building Terraform template.
 type Builder struct {
 	Object *object.Builder
 	Log    logging.Logger
@@ -50,7 +52,7 @@ type Builder struct {
 	Template    *Template
 }
 
-// NewBuilder
+// NewBuilder gives new *Builder value.
 func NewBuilder(log logging.Logger) *Builder {
 	return &Builder{
 		Log: log,
@@ -62,7 +64,9 @@ func NewBuilder(log logging.Logger) *Builder {
 	}
 }
 
-// BuildStack
+// BuildStack fetches stack details from MongoDB.
+//
+// When nil error is returned, the  b.Stack field is non-nil.
 func (b *Builder) BuildStack(stackID string) error {
 	computeStack, err := modelhelper.GetComputeStack(stackID)
 	if err != nil {
@@ -105,7 +109,10 @@ func (b *Builder) BuildStack(stackID string) error {
 	return nil
 }
 
-// BuildMachines
+// BuildMachines fetches machines that belongs to existing b.Stack.
+//
+// It validates whether user is allowed to perform apply operation.
+// When nil error is returned, the  b.Machines field is non-nil.
 func (b *Builder) BuildMachines(ctx context.Context) error {
 	ids := b.Stack.Machines
 
@@ -139,7 +146,7 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 	for _, machine := range machines {
 		// machines with empty users are supposed to allowed by default
 		// (gokmen)
-		if machine.Users == nil || len(machine.Users) == 0 {
+		if len(machine.Users) == 0 {
 			validMachines[machine.ObjectId.Hex()] = machine
 			continue
 		}
@@ -205,7 +212,9 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 	return nil
 }
 
-// BuildCredentials
+// BuildCredentials fetches credential details for current b.Stack from MongoDB.
+//
+// When nil error is returned, the b.Koding and  b.Credentials fields are non-nil.
 func (b *Builder) BuildCredentials(method, username, groupname string, identifiers []string) error {
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
@@ -332,7 +341,10 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	return nil
 }
 
-// BuildTemplate
+// BuildTemplate parsers a template from the given content and injects
+// credentials
+//
+// When nil error is returned, the b.Template field is non-nil.
 func (b *Builder) BuildTemplate(content string) error {
 	template, err := ParseTemplate(content)
 	if err != nil {

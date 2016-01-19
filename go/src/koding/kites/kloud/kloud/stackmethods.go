@@ -2,15 +2,13 @@ package kloud
 
 import (
 	"errors"
-	"koding/db/mongodb/modelhelper"
 	"time"
+
+	"koding/db/mongodb/modelhelper"
 
 	"github.com/koding/cache"
 	"github.com/koding/kite"
 )
-
-// TODO(rjeczalik): replace Validator with some library where validation
-// is guided by struct tags.
 
 // Validator validates and returns non-nil error when it's ill-formed.
 //
@@ -153,12 +151,6 @@ type StatusResponse struct {
 	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
-var statusCache = cache.NewMemoryWithTTL(time.Second * 10)
-
-func init() {
-	statusCache.StartGC(time.Second * 5)
-}
-
 // Status
 //
 // Status method is provider-agnostic.
@@ -176,7 +168,7 @@ func (k *Kloud) Status(r *kite.Request) (interface{}, error) {
 	}
 
 	var resp *StatusResponse
-	switch v, err := statusCache.Get(arg.StackID); {
+	switch v, err := k.statusCache.Get(arg.StackID); {
 	case err == cache.ErrNotFound:
 		// TODO(rjeczalik): fetch only status
 		computeStack, err := modelhelper.GetComputeStack(arg.StackID)
@@ -190,7 +182,7 @@ func (k *Kloud) Status(r *kite.Request) (interface{}, error) {
 			ModifiedAt: computeStack.Status.ModifiedAt,
 		}
 
-		statusCache.Set(arg.StackID, resp)
+		k.statusCache.Set(arg.StackID, resp)
 	case err != nil:
 		return nil, err
 	default:

@@ -335,10 +335,18 @@ func CheckKlients(ctx context.Context, kiteIDs KiteMap) error {
 // isVariable checkes whether the given string is a template variable, such as:
 // "${var.region}"
 func IsVariable(v string) bool {
-	return v[0] == '$'
+	return len(v) != 0 && v[0] == '$'
 }
 
 // ParseAccountID parses an AWS arn string to get the Account ID
+//
+// The function assumes arn string comes from an IAM resource, as
+// it treats region empty.
+//
+// For details see:
+//
+//   http://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns
+//
 func ParseAccountID(arn string) (string, error) {
 	// example arn string: "arn:aws:iam::213456789:user/username"
 	// returns: 213456789.

@@ -9,9 +9,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-// LogNameKey is used to pass logging context name to stack handler.
-var LogNameKey struct {
-	byte `key:"logName"`
+// GroupNameKey is used to pass group name to stack handler.
+var GroupNameKey struct {
+	byte `key:"groupName"`
 }
 
 // Stacker is a provider-specific handler that implements team methods.
@@ -54,10 +54,9 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		argCommon.Provider = "aws"
 	}
 
-	// Context name for stack logging.
-	logName := argCommon.GroupName
-	if logName != "" {
-		logName = argCommon.StackID
+	groupName := argCommon.GroupName
+	if groupName == "" {
+		groupName = "koding"
 	}
 
 	p, ok := k.providers[argCommon.Provider].(StackProvider)
@@ -67,7 +66,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 
 	// Build context value.
 	ctx := request.NewContext(context.Background(), r)
-	ctx = context.WithValue(ctx, LogNameKey, logName)
+	ctx = context.WithValue(ctx, GroupNameKey, groupName)
 	if k.PublicKeys != nil {
 		ctx = publickeys.NewContext(ctx, k.PublicKeys)
 	}

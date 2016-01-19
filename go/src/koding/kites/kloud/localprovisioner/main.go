@@ -198,8 +198,8 @@ func applyVagrantCommand() error {
 		return err
 	}
 
-	fmt.Printf("userData = %+v\n", userData)
 	remote := userData.Remote
+	remote.Log.Debug("userData = %+v\n", userData)
 
 	applyArgs := &kloud.ApplyRequest{
 		StackID:   userData.StackID,
@@ -819,8 +819,6 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 		if e.Error != nil {
 			return e.Error
 		}
-
-		// fmt.Printf("e = %+v\n", e)
 
 		event := e.Event
 		if event.Error != "" {

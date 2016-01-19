@@ -14,7 +14,7 @@ func TestInstance(t *testing.T) {
 	d := time.Now()
 	instances, err := c.InstancesByFilter(f)
 	if sl.IsNotFound(err) {
-		t.Skip("dev environment has to instances created to test the API all")
+		t.Skip("dev environment has no instances created to test the API all")
 	}
 	if err != nil {
 		t.Fatalf("InstancesByFilter(%v)=%s", f, err)

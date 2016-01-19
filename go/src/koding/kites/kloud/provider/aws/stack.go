@@ -100,8 +100,8 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		return nil, errors.New("session not available in context")
 	}
 
-	if logName, ok := ctx.Value(kloud.LogNameKey).(string); ok {
-		s.Log = p.Log.New(logName)
+	if groupName, ok := ctx.Value(kloud.GroupNameKey).(string); ok {
+		s.Log = p.Log.New(groupName)
 	} else {
 		s.Log = p.Log
 	}
