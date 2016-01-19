@@ -14,12 +14,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Team
+// Team provides an implementation for "team" command.
 type Team struct {
 	*res.Resource
 }
 
-// NewTeam
+// NewTeam gives new Team value.
 func NewTeam() cli.CommandFactory {
 	return func() (cli.Command, error) {
 		f := NewFlag("team", "Plans/applies/describes/bootstraps team stacks")
@@ -39,7 +39,7 @@ func NewTeam() cli.CommandFactory {
 	}
 }
 
-// Action
+// Action is an entry point for "team" subcommand.
 func (t *Team) Action(args []string, k *kite.Client) error {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
@@ -49,18 +49,19 @@ func (t *Team) Action(args []string, k *kite.Client) error {
 
 /// TEAM PLAN
 
-// TeamPlan
+// TeamPlan provides an implementation for "team plan" subcommand.
 type TeamPlan struct {
 	Provider        string
 	Team            string
 	StackTemplateID string
 }
 
-// NewTeamPlan
+// NewTeamPlan gives new TeamPlan value.
 func NewTeamPlan() *TeamPlan {
 	return &TeamPlan{}
 }
 
+// Valid implements the kloud.Validator interface.
 func (cmd *TeamPlan) Valid() error {
 	if cmd.Provider == "" {
 		return errors.New("empty value for -p flag")
@@ -74,19 +75,19 @@ func (cmd *TeamPlan) Valid() error {
 	return nil
 }
 
-// Name
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *TeamPlan) Name() string {
 	return "plan"
 }
 
-// RegisterFlags
+// RegisterFlags sets the flags for the command - "team plan <flags>".
 func (cmd *TeamPlan) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.Provider, "p", "aws", "Team provider name.")
 	f.StringVar(&cmd.Team, "team", "", "Team name.")
 	f.StringVar(&cmd.StackTemplateID, "tid", "", "Stack template ID.")
 }
 
-// Run
+// Run executes the "team plan" subcommand.
 func (cmd *TeamPlan) Run(ctx context.Context) error {
 	if err := cmd.Valid(); err != nil {
 		return err
@@ -110,7 +111,7 @@ func (cmd *TeamPlan) Run(ctx context.Context) error {
 
 /// TEAM APPLY
 
-// Team Apply
+// TeamApply provides an implementation for "team apply" subcommand.
 type TeamApply struct {
 	Provider string
 	Team     string
@@ -118,11 +119,12 @@ type TeamApply struct {
 	Destroy  bool
 }
 
-// NewTeamApply
+// NewTeamApply gives new TeamApply value.
 func NewTeamApply() *TeamApply {
 	return &TeamApply{}
 }
 
+// Valid implements the kloud.Validator interface.
 func (cmd *TeamApply) Valid() error {
 	if cmd.Provider == "" {
 		return errors.New("empty value for -p flag")
@@ -136,12 +138,12 @@ func (cmd *TeamApply) Valid() error {
 	return nil
 }
 
-// Name
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *TeamApply) Name() string {
 	return "apply"
 }
 
-// RegisterFlags
+// RegisterFlags sets the flags for the command - "team apply <flags>".
 func (cmd *TeamApply) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.Provider, "p", "aws", "Team provider name.")
 	f.StringVar(&cmd.Team, "team", "", "Team name.")
@@ -149,7 +151,7 @@ func (cmd *TeamApply) RegisterFlags(f *flag.FlagSet) {
 	f.BoolVar(&cmd.Destroy, "del", false, "Destroy resources.")
 }
 
-// Run
+// Run executes the "team apply" command.
 func (cmd *TeamApply) Run(ctx context.Context) error {
 	if err := cmd.Valid(); err != nil {
 		return err
@@ -181,18 +183,19 @@ func (cmd *TeamApply) Run(ctx context.Context) error {
 
 /// TEAM DESCRIBE
 
-// TeamAuth
+// TeamAuth provides an implementation for "team auth" subcommand.
 type TeamAuth struct {
 	Provider string
 	Team     string
 	Creds    string
 }
 
-// NewTeamAuth
+// NewTeamAuth gives new TeamAuth value.
 func NewTeamAuth() *TeamAuth {
 	return &TeamAuth{}
 }
 
+// Valid implements the kloud.Validator interface.
 func (cmd *TeamAuth) Valid() error {
 	if cmd.Provider == "" {
 		return errors.New("empty value for -p flag")
@@ -206,19 +209,19 @@ func (cmd *TeamAuth) Valid() error {
 	return nil
 }
 
-// Name
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *TeamAuth) Name() string {
 	return "auth"
 }
 
-// RegisterFlags
+// RegisterFlags sets the flags for the command - "team auth <flags>".
 func (cmd *TeamAuth) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.Provider, "p", "aws", "Team provider name.")
 	f.StringVar(&cmd.Team, "team", "", "Team name.")
 	f.StringVar(&cmd.Creds, "creds", "", "Comma-separated credential identifier list.")
 }
 
-// Run
+// Run executes the "team auth" subcommand.
 func (cmd *TeamAuth) Run(ctx context.Context) error {
 	if err := cmd.Valid(); err != nil {
 		return err
@@ -242,7 +245,7 @@ func (cmd *TeamAuth) Run(ctx context.Context) error {
 
 /// TEAM BOOTSTRAP
 
-// TeamBootstrap
+// TeamBootstrap provides an implementation for "team bootstrap" subcommand.
 type TeamBootstrap struct {
 	Provider string
 	Team     string
@@ -250,11 +253,12 @@ type TeamBootstrap struct {
 	Destroy  bool
 }
 
-// NewTeamBootstrap
+// NewTeamBootstrap gives new TeamBootstrap value.
 func NewTeamBootstrap() *TeamBootstrap {
 	return &TeamBootstrap{}
 }
 
+// Valid implements the kloud.Validator interface.
 func (cmd *TeamBootstrap) Valid() error {
 	if cmd.Provider == "" {
 		return errors.New("empty value for -p flag")
@@ -268,12 +272,12 @@ func (cmd *TeamBootstrap) Valid() error {
 	return nil
 }
 
-// Name
+// Name gives the name of the command, implements the res.Command interface.
 func (cmd *TeamBootstrap) Name() string {
 	return "bootstrap"
 }
 
-// RegisterFlags
+// RegisterFlags sets the flags for the command - "team bootstrap <flags>".
 func (cmd *TeamBootstrap) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.Provider, "p", "aws", "Team provider name.")
 	f.StringVar(&cmd.Team, "team", "", "Team name.")
@@ -281,7 +285,7 @@ func (cmd *TeamBootstrap) RegisterFlags(f *flag.FlagSet) {
 	f.BoolVar(&cmd.Destroy, "del", false, "Destroy resources.")
 }
 
-// Run
+// Run executes the "team bootstrap" subcommand.
 func (cmd *TeamBootstrap) Run(ctx context.Context) error {
 	if err := cmd.Valid(); err != nil {
 		return err
