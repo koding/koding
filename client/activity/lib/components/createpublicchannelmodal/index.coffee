@@ -1,21 +1,21 @@
-kd                                = require 'kd'
-Link                              = require 'app/components/common/link'
-React                             = require 'kd-react'
-ReactDOM                          = require 'react-dom'
-Portal                            = require('react-portal').default
-Avatar                            = require 'app/components/profile/avatar'
-AppFlux                           = require 'app/flux'
-classnames                        = require 'classnames'
-KeyboardKeys                      = require 'app/constants/keyboardKeys'
-ActivityFlux                      = require 'activity/flux'
-ActivityModal                     = require 'app/components/activitymodal'
-KDReactorMixin                    = require 'app/flux/base/reactormixin'
-isPublicChannel                   = require 'app/util/isPublicChannel'
-DropboxInputMixin                 = require 'activity/components/dropbox/dropboxinputmixin'
-CreateChannelFlux                 = require 'activity/flux/createchannel'
-ProfileLinkContainer              = require 'app/components/profile/profilelinkcontainer'
-ChannelParticipantsDropdown       = require 'activity/components/channelparticipantsdropdown'
-CreateChannelParticipantsDropdown = require 'activity/components/createchannelparticipantsdropdown'
+kd                          = require 'kd'
+Link                        = require 'app/components/common/link'
+React                       = require 'kd-react'
+ReactDOM                    = require 'react-dom'
+Portal                      = require('react-portal').default
+Avatar                      = require 'app/components/profile/avatar'
+AppFlux                     = require 'app/flux'
+classnames                  = require 'classnames'
+KeyboardKeys                = require 'app/constants/keyboardKeys'
+ActivityFlux                = require 'activity/flux'
+ActivityModal               = require 'app/components/activitymodal'
+KDReactorMixin              = require 'app/flux/base/reactormixin'
+isPublicChannel             = require 'app/util/isPublicChannel'
+DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
+CreateChannelFlux           = require 'activity/flux/createchannel'
+ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
+ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
+DropdownItem                = require 'activity/components/createchannelparticipantsdropdownitem'
 
 module.exports = class CreatePublicChannelModal extends React.Component
 
@@ -304,15 +304,26 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
   renderAddNewChannelParticipantsDropdown: ->
 
-    <CreateChannelParticipantsDropdown
-      ref             = 'dropdown'
-      query           = { @state.query }
-      value           = { @state.value }
-      visible         = { @state.dropdownVisibility }
-      items           = { @state.dropdownUsers }
-      selectedItem    = { @state.selectedItem }
-      selectedIndex   = { @state.selectedIndex }
-      onItemConfirmed = { @bound 'onDropdownItemConfirmed' }
+    { moveToPrevIndex
+      moveToNextIndex
+      setSelectedIndex
+      setDropdownVisibility } = CreateChannelFlux.actions.user
+
+    <ChannelParticipantsDropdown.Container
+      ref                  = 'dropdown'
+      query                = { @state.query }
+      value                = { @state.value }
+      moveToPrevAction     = { moveToPrevIndex }
+      moveToNextAction     = { moveToNextIndex }
+      onItemSelectedAction = { setSelectedIndex }
+      closeAction          = { setDropdownVisibility }
+      className            = 'CreateChannel-dropbox'
+      visible              = { @state.dropdownVisibility }
+      items                = { @state.dropdownUsers }
+      selectedItem         = { @state.selectedItem }
+      selectedIndex        = { @state.selectedIndex }
+      DropdownItem         = { DropdownItem }
+      onItemConfirmed      = { @bound 'onDropdownItemConfirmed' }
     />
 
 
