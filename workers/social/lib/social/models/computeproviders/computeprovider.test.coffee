@@ -13,6 +13,7 @@
   withConvertedUserAnd } = require  \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
+async                     = require 'async'
 JCounter                  = require '../counter'
 JMachine                  = require './machine'
 teamutils                 = require './teamutils'
@@ -251,6 +252,30 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
           done()
 
+    it 'should fail to increase stack count if plan limit has been reached', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        testGroup.setPlan client, plan: 'default', (err) ->
+          expect(err).to.not.exist
+
+          # checking in parallel to test lock mechanism ~ GG
+
+          async.parallel [
+
+            (fin) ->
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
+                expect(err).to.not.exist
+                fin()
+
+            (fin) ->
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
+                expect(err).to.exist
+                expect(err.message).to.be.equal 'Provided limit has been reached'
+                fin()
+
+          ], done
+
 
   describe '#updateGroupInstanceUsage', ->
 
@@ -288,6 +313,19 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           expect(count).to.be.equal 1
 
           done()
+
+    it 'should fail to increase instance count if plan limit has been reached', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        testGroup.setPlan client, plan: 'default', (err) ->
+          expect(err).to.not.exist
+
+          ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 1, (err) ->
+            expect(err).to.exist
+            expect(err.message).to.be.equal 'Provided limit has been reached'
+
+            done()
 
 
   describe '#updateGroupResourceUsage', ->
@@ -343,6 +381,23 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           , (err, count) ->
             expect(err).to.not.exist
             expect(count).to.be.equal 0
+
+            done()
+
+    it 'should fail to increase resource count if plan limit has been reached', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        { group } = options
+
+        group.setPlan client, plan: 'default', (err) ->
+          expect(err).to.not.exist
+
+          options.change = 'increment'
+
+          ComputeProvider.updateGroupResourceUsage options, (err) ->
+            expect(err).to.exist
+            expect(err.message).to.be.equal 'Provided limit has been reached'
 
             done()
 
