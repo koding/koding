@@ -114,5 +114,9 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       { uid, state } = info.params
       environmentDataProvider.fetchMachineByUId uid, (machine) ->
         modal = new MachineSettingsModal {}, new Machine { machine: remote.revive machine }
-        modal.showPaneByName state  if state
+
+        return  unless state
+
+        # if there is a state, it's the name of the tab of modal. Switch to that.
+        modal.tabView.showPaneByName state  if state
 
