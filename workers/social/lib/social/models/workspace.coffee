@@ -90,7 +90,12 @@ module.exports = class JWorkspace extends Module
 
         @emit 'messageBusEvent', { type: 'social.workspace_created', message: message }
 
-        return callback null, workspace
+        uid       = machineUId
+        eventName = 'NewWorkspaceCreated'
+        options   = { nickname, workspace, uid, eventName }
+
+        notifyUsers options, callback
+
 
     if data.isDefault
     then kallback data.name, data.slug
@@ -102,6 +107,24 @@ module.exports = class JWorkspace extends Module
         { name, slug } = res
 
         kallback name, slug
+
+
+  notifyUsers = (options, callback) ->
+
+    { nickname, workspace, uid, eventName } = options
+
+    JMachine.one { uid }, (err, machine) ->
+
+      return callback err  if err
+
+      users = machine.users.filter (user) -> return user.username isnt nickname
+      users = users.map (user) -> return user.username
+
+      if users.length
+        { notifyByUsernames } = require './notify'
+        notifyByUsernames users, eventName, workspace
+
+      return callback null, workspace
 
 
   generateUniqueName = ({ originId, machineUId, name, index }, callback) ->
@@ -146,8 +169,9 @@ module.exports = class JWorkspace extends Module
 
   @deleteById = secure (client, id, callback) ->
 
+    delegate   = client.connection.delegate
     selector   =
-      originId : client.connection.delegate._id
+      originId : delegate._id
       _id      : ObjectId id
 
     JWorkspace.one selector, (err, ws) ->
@@ -155,7 +179,15 @@ module.exports = class JWorkspace extends Module
       unless ws
         callback new KodingError 'Workspace not found.'
       else
-        ws.remove (err) -> callback err
+        ws.remove (err) ->
+          return callback err  if err
+          options =
+            uid      : ws.machineUId
+            nickname : delegate.profile.nickname
+            workspace: ws
+            eventName: 'WorkspaceRemoved'
+
+          notifyUsers options, callback
 
 
   @deleteByUid = secure (client, uid, callback) ->
