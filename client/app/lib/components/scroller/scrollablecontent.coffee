@@ -71,7 +71,7 @@ module.exports = (Component) ->
     _update: -> @refs.content.getScroller()._update()
 
 
-    scrollTo: (scrollTop) ->
+    scrollToPosition: (scrollTop) ->
 
       scroller  = @refs.content.getScroller()
       container = ReactDOM.findDOMNode scroller

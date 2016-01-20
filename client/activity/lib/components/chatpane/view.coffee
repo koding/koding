@@ -17,6 +17,7 @@ module.exports = class ChatPaneView extends React.Component
     showItemMenu          : React.PropTypes.bool
     isMessagesLoading     : React.PropTypes.bool
     onTopThresholdReached : React.PropTypes.func
+    selectedMessageId     : React.PropTypes.string
 
 
   @defaultProps =
@@ -25,6 +26,7 @@ module.exports = class ChatPaneView extends React.Component
     showItemMenu          : yes
     isMessagesLoading     : no
     onTopThresholdReached : kd.noop
+    selectedMessageId     : ''
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
@@ -112,6 +114,7 @@ module.exports = class ChatPaneView extends React.Component
         channelName={@channel 'name'}
         unreadCount={@channel 'unreadCount'}
         onItemEditStarted={@bound 'onItemEditStarted'}
+        selectedMessageId={@props.selectedMessageId}
       />
     </Scroller>
 

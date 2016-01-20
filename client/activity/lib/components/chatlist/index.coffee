@@ -9,10 +9,8 @@ SimpleChatListItem     = require 'activity/components/chatlistitem/simplechatlis
 DateMarker             = require 'activity/components/datemarker'
 NewMessageMarker       = require 'activity/components/newmessagemarker'
 LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
-KDReactorMixin         = require 'app/flux/base/reactormixin'
 ActivityFlux           = require 'activity/flux'
 Waypoint               = require 'react-waypoint'
-scrollToElement        = require 'app/util/scrollToElement'
 ImmutableRenderMixin   = require 'react-immutable-render-mixin'
 
 debounce = (delay, options, fn) -> _.debounce fn, delay, options
@@ -29,32 +27,14 @@ module.exports = class ChatList extends React.Component
     isMessagesLoading : no
     selectedMessageId : null
     onItemEditStarted : kd.noop
+    selectedMessageId : ''
 
-  constructor: (props) ->
+  componentDidMount: ->
 
-    super props
-
-    @state = { selectedMessageId: @props.selectedMessageId }
     kd.singletons.windowController.addFocusListener @bound 'handleFocus'
 
 
-  getDataBindings: ->
-
-    return {
-      selectedMessageId: ActivityFlux.getters.selectedMessageThreadId
-    }
-
-
-  componentDidUpdate: (prevProps, prevState) ->
-
-    prevSelectedId = prevState.selectedMessageId
-    currentSelectedId = @state.selectedMessageId
-
-    if currentSelectedId and currentSelectedId isnt prevSelectedId
-      target = ReactDOM.findDOMNode @refs.selectedComponent
-      scrollToElement target
-
-    @cacheDateMarkers()
+  componentDidUpdate: -> @cacheDateMarkers()
 
 
   glance: debounce 1000, {}, ->
@@ -174,8 +154,8 @@ module.exports = class ChatList extends React.Component
 
   renderChildren: ->
 
-    { messages, showItemMenu, channelName, channelId, onItemEditStarted } = @props
-    { selectedMessageId } = @state
+    { messages, showItemMenu, channelName } = @props
+    { channelId, onItemEditStarted, selectedMessageId } = @props
 
     lastDifferentOwnerId     = null
     prevMessage              = null
@@ -200,7 +180,6 @@ module.exports = class ChatList extends React.Component
 
       if selectedMessageId is message.get 'id'
         itemProps['isSelected'] = yes
-        itemProps['ref'] = 'selectedComponent'
 
       children = children.concat @getBeforeMarkers message, prevMessage, i
 
@@ -227,5 +206,3 @@ module.exports = class ChatList extends React.Component
       {@renderChildren()}
     </div>
 
-
-React.Component.include.call ChatList, [KDReactorMixin]

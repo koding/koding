@@ -1,10 +1,13 @@
 kd                = require 'kd'
+$                 = require 'jquery'
 React             = require 'kd-react'
 ReactDOM          = require 'react-dom'
 immutable         = require 'immutable'
 ActivityFlux      = require 'activity/flux'
 ChatPaneView      = require './view'
 ScrollableContent = require 'app/components/scroller/scrollablecontent'
+scrollToElement   = require 'app/util/scrollToElement'
+KDReactorMixin    = require 'app/flux/base/reactormixin'
 
 ChatPaneView      = ScrollableContent ChatPaneView
 
@@ -24,6 +27,13 @@ module.exports = class ChatPaneContainer extends React.Component
     onLoadMore    : kd.noop
 
 
+  getDataBindings: ->
+
+    return {
+      selectedMessageId: ActivityFlux.getters.selectedMessageThreadId
+    }
+
+
   flag: (key) -> @props.thread?.getIn ['flags', key]
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
@@ -31,7 +41,7 @@ module.exports = class ChatPaneContainer extends React.Component
   componentDidMount: ->
 
     scrollTop = @flag 'scrollPosition'
-    @refs.view.scrollTo scrollTop  if scrollTop
+    @refs.view.scrollToPosition scrollTop  if scrollTop
 
 
   componentWillUnmount: ->
@@ -44,21 +54,28 @@ module.exports = class ChatPaneContainer extends React.Component
       channel.setScrollPosition (@channel 'id'), scrollTop
 
 
-  componentDidUpdate: (prevProps) ->
+  componentDidUpdate: (prevProps, prevState) ->
 
-    { thread } = prevProps
-    return  unless thread
+    prevSelectedMessageId = prevState.selectedMessageId
+    { selectedMessageId } = @state
+
+    prevThread = prevProps.thread
+    { thread } = @props
+
+    return  unless prevThread and thread
 
     { view } = @refs
 
-    if thread.getIn [ 'flags', 'hasSubmittingMessage' ]
+    if selectedMessageId and selectedMessageId isnt prevSelectedMessageId
+      scrollToElement $("[data-message-id=#{selectedMessageId}]").get(0)
+    else if thread.getIn [ 'flags', 'hasSubmittingMessage' ]
       view.scrollToBottom()
     else if @isThresholdReached
       view.keepPosition()
     else
-      hadEditingMessage        = thread.getIn [ 'flags', 'hasEditingMessage' ]
+      hadEditingMessage        = prevThread.getIn [ 'flags', 'hasEditingMessage' ]
       hasStoppedMessageEditing = not @flag('hasEditingMessage') and hadEditingMessage
-      hasRemovedMessage        = @props.thread?.get('messages').size < thread.get('messages').size
+      hasRemovedMessage        = thread.get('messages').size < prevThread.get('messages').size
 
       view._update()  if hasStoppedMessageEditing or hasRemovedMessage
 
@@ -82,8 +99,10 @@ module.exports = class ChatPaneContainer extends React.Component
 
     <ChatPaneView {...@props}
       ref                   = 'view'
+      selectedMessageId     = { @state.selectedMessageId }
       onTopThresholdReached = { @bound 'onTopThresholdReached' }
       isMessagesLoading     = { @isThresholdReached }>
         {@props.children}
     </ChatPaneView>
 
+ChatPaneContainer.include [KDReactorMixin]

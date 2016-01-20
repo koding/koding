@@ -61,10 +61,13 @@ module.exports = class ChatListItem extends React.Component
 
   getItemProps: ->
 
-    key               : @props.message.get 'id'
+    { message, isSelected } = @props
+
+    key               : message.get 'id'
     className         : classnames
       'ChatItem'      : yes
-      'is-selected'   : @props.isSelected
+      'is-selected'   : isSelected
+    'data-message-id' : message.get 'id'
 
 
   updateMessage: ->
