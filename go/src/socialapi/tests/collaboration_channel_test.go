@@ -339,7 +339,7 @@ func TestCollaborationChannels(t *testing.T) {
 				So(len(history.MessageList), ShouldEqual, 2)
 
 				// add participant
-				_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, ses.ClientId, recipient.Id)
+				_, err = rest.AddChannelParticipant(cc.Channel.Id, ses.ClientId, recipient.Id)
 				So(err, ShouldBeNil)
 
 				history, err = rest.GetHistory(
@@ -366,7 +366,7 @@ func TestCollaborationChannels(t *testing.T) {
 				So(*systemType, ShouldEqual, models.ChannelRequestMessage_TYPE_JOIN)
 
 				// try to add same participant
-				_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, ses.ClientId, recipient.Id)
+				_, err = rest.AddChannelParticipant(cc.Channel.Id, ses.ClientId, recipient.Id)
 				So(err, ShouldBeNil)
 
 				history, err = rest.GetHistory(
@@ -395,7 +395,7 @@ func TestCollaborationChannels(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
 
-				_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, ses.ClientId, recipient.Id)
+				_, err = rest.AddChannelParticipant(cc.Channel.Id, ses.ClientId, recipient.Id)
 				So(err, ShouldBeNil)
 
 				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
