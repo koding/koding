@@ -30,9 +30,8 @@ func CreateChannelParticipant(channelId, requesterId int64, token string) (*mode
 }
 
 func ListChannelParticipants(channelId, accountId int64, token string) ([]models.ChannelParticipantContainer, error) {
-
 	url := fmt.Sprintf("/channel/%d/participants?accountId=%d", channelId, accountId)
-	// res, err := sendRequest("GET", url, nil)
+
 	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
@@ -117,7 +116,6 @@ func InviteChannelParticipant(channelId, requesterId int64, token string, accoun
 		res = append(res, c)
 	}
 
-	// cps, err := sendModel("POST", url, &res)
 	cps, err := sendModelWithAuth("POST", url, &res, token)
 	if err != nil {
 		return nil, err
@@ -137,7 +135,6 @@ func channelParticipantOp(url string, channelId, requesterId int64, token string
 		res = append(res, c)
 	}
 
-	// cps, err := sendModel("POST", url, &res)
 	cps, err := sendModelWithAuth("POST", url, &res, token)
 	if err != nil {
 		return nil, err
