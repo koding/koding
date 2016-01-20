@@ -137,11 +137,9 @@ module.exports = CollaborationController =
 
     @removeWorkspaceSnapshot target
 
-    @setMachineUser [target], no, (err) =>
+    socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
       return callbacks.error err  if err
-      socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
-        return callbacks.error err  if err
-        callbacks.success()
+      callbacks.success()
 
 
   handleParticipantKicked: (username) ->
@@ -152,7 +150,18 @@ module.exports = CollaborationController =
     # remove participant's all data persisted in realtime appInfo
     @removeParticipant username
 
-    # Remove leaved / kicked participants from the mounted machine
+    options = {
+      username
+      machineUId : @mountedMachineUId
+    }
+
+    envHelpers.isUserStillParticipantOnMachine options, (status) =>
+      @removeParticipantFromMachine username  unless status
+
+
+  # Remove leaved / kicked participants from the mounted machine
+  removeParticipantFromMachine: (username) ->
+
     @setMachineUser [username], no, (err) ->
       throwError err  if err
 
