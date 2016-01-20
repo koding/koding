@@ -13,6 +13,7 @@
   withConvertedUserAnd } = require  \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
+JCounter                  = require '../counter'
 JMachine                  = require './machine'
 teamutils                 = require './teamutils'
 ComputeProvider           = require './computeprovider'
@@ -212,6 +213,44 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           expect(plans).to.be.an 'object'
           expect(plans).to.be.deep.equal teamutils.TEAMPLANS
           done()
+
+
+  describe '#updateGroupStackUsage', ->
+
+    testGroup = null
+
+    it 'should increase given group stack count', (done) ->
+
+      withConvertedUser { createGroup: yes }, ({ group }) ->
+
+        testGroup = group
+
+        ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
+          expect(err).to.not.exist
+
+          JCounter.count
+            namespace : testGroup.slug
+            type      : 'member_stacks'
+          , (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.be.equal 1
+
+            done()
+
+    it 'should decrease given group stack count', (done) ->
+
+      ComputeProvider.updateGroupStackUsage testGroup, 'decrement', (err) ->
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : testGroup.slug
+          type      : 'member_stacks'
+        , (err, count) ->
+          expect(err).to.not.exist
+          expect(count).to.be.equal 0
+
+          done()
+
 
 
   describe '#update()', ->
