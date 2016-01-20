@@ -27,7 +27,7 @@ module.exports =
 
     browser.pause 5000 # wait for snapshot restore
 
-    handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
+    handleSelector = '.panel-1 .pane-wrapper .kdtabhandle.kddraggable'
     modalSelector  = '.autoremovepane-confirm'
 
 
@@ -171,6 +171,7 @@ module.exports =
       .click                   'li.open-file'
       .waitForElementVisible   ".pane-wrapper .kdsplitview-panel .#{fileNameSlug}", 20000 # Assertion
       .waitForElementVisible   tabSelector, 20000 # Assertion
+      .pause  3000
       .assert.containsText     tabSelector, fileContent # Assertion
 
 
