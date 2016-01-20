@@ -73,9 +73,10 @@ reply = (id, data) -> request "/message/#{id}/reply", {method: 'post', data}
  * Fetch message with id.
  *
  * @param {String} id
+ * @param {Object=} data
  * @return {Promise}
 ###
-listLikers = (id) -> request "/message/#{id}/interaction/like"
+listLikers = (id, data = {}) -> request "/message/#{id}/interaction/like", {data}
 
 
 ###*
