@@ -60,7 +60,8 @@ func TestFollowedTopics(t *testing.T) {
 					// channel should be nil
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					// followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					So(len(followedChannels), ShouldBeGreaterThanOrEqualTo, 1)
@@ -75,7 +76,7 @@ func TestFollowedTopics(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					So(len(followedChannels), ShouldBeGreaterThanOrEqualTo, 2)
@@ -88,7 +89,7 @@ func TestFollowedTopics(t *testing.T) {
 					// channel should be nil
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					So(len(followedChannels), ShouldBeGreaterThanOrEqualTo, 1)
@@ -100,7 +101,7 @@ func TestFollowedTopics(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 
@@ -109,7 +110,7 @@ func TestFollowedTopics(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err = rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err = rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					lastParticipatedChannelCount := len(followedChannels)
@@ -124,7 +125,7 @@ func TestFollowedTopics(t *testing.T) {
 					// channel should be nil
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					So(len(followedChannels), ShouldBeGreaterThanOrEqualTo, 1)
