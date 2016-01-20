@@ -117,7 +117,7 @@ app.post '/Gravatar'                             , require './handlers/gravatar'
 app.post '/-/gravatar'                           , require './handlers/gravatar'
 app.get  '/-/confirm'                            , require './handlers/confirm'
 app.get  '/-/loginwithtoken'                     , require './handlers/loginwithtoken'
-app.all  '/:name/:section?/:slug?'               , require './handlers/main.coffee'
+app.get  '/:name/:section?/:slug?'               , require './handlers/main.coffee'
 app.get  '*'                                     , require './handlers/root.coffee'
 
 # once bongo is ready we can start listening
