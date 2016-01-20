@@ -47,6 +47,9 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest, context *mode
 		response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
+	req.AccountId = context.Client.Account.Id
+	req.GroupName = context.GroupName
+
 	if err := validatePinRequest(req); err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -54,6 +57,15 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest, context *mode
 	c, err := models.EnsurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	canOpen, err := c.CanOpen(req.AccountId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
 	}
 
 	if err := checkPinMessagePrerequisites(c, req); err != nil {
@@ -96,6 +108,9 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest, context *mo
 		response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
+	req.AccountId = context.Client.Account.Id
+	req.GroupName = context.GroupName
+
 	if err := validatePinRequest(req); err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -114,14 +129,26 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest, context *mo
 	)
 }
 
-func Glance(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
+func Glance(u *url.URL, h http.Header, req *models.PinRequest, context *models.Context) (int, http.Header, interface{}, error) {
 	if err := validatePinRequest(req); err != nil {
 		return response.NewBadRequest(err)
 	}
 
+	req.AccountId = context.Client.Account.Id
+	req.GroupName = context.GroupName
+
 	c, err := models.EnsurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	canOpen, err := c.CanOpen(req.AccountId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
 	}
 
 	if err := checkPinMessagePrerequisites(c, req); err != nil {
