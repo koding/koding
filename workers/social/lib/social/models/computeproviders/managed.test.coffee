@@ -36,7 +36,7 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
   describe '#create()', ->
 
-    it 'should fail to create managed vm if ip address is not valid', (done) ->
+    it 'should be able to create required managed vm data', (done) ->
 
       withConvertedUser ({ client, account, user, group }) ->
         client.r = { account, user, group }
@@ -47,8 +47,9 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
           queryString : '1/2/3/4/5/6/7/8'
 
         expectedQueryString = "///////#{options.queryString.split('/').reverse()[0]}"
+
         Managed.create client, options, (err, managedVm) ->
-          expect(err?.message).to.not.exist
+          expect(err).to.not.exist
           expect(managedVm.label).to.be.equal options.label
           expect(managedVm.meta).to.be.an 'object'
           expect(managedVm.meta.type).to.be.equal Managed.providerSlug
