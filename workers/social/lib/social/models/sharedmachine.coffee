@@ -25,10 +25,8 @@ module.exports = class SharedMachine extends bongo.Base
     setUsers client, uid, options, (err) ->
       return callback err  if err
 
-      { nickname } = client.connection.delegate.profile
-
       notifyByUsernames options.target, 'SharedMachineInvitation', { uid }
-      notifyByUsernames [ nickname ], 'MachineShareListUpdated', options
+      notifyOwner client, options
       callback()
 
 
@@ -36,7 +34,17 @@ module.exports = class SharedMachine extends bongo.Base
 
     asUser  = no
     options = { target, asUser }
-    setUsers client, uid, options, callback
+    setUsers client, uid, options, (err) ->
+      return callback err  if err
+
+      notifyOwner client, options
+      callback()
+
+
+  notifyOwner = (client, options) ->
+
+    { nickname } = client.connection.delegate.profile
+    notifyByUsernames [ nickname ], 'MachineShareListUpdated', options
 
 
   setUsers = (client, uid, options, callback) ->
