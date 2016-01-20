@@ -11,7 +11,6 @@ import (
 
 func SendPrivateChannelRequest(pmr models.ChannelRequest, token string) (*models.ChannelContainer, error) {
 	url := "/privatechannel/init"
-	// res, err := marshallAndSendRequest("POST", url, pmr)
 	res, err := marshallAndSendRequestWithAuth("POST", url, pmr, token)
 	if err != nil {
 		return nil, err
@@ -41,7 +40,6 @@ func fetchPrivateChannels(q *request.Query, endpoint, token string) ([]models.Ch
 	}
 
 	url := fmt.Sprintf("%s?%s", endpoint, v.Encode())
-	// res, err := sendRequest("GET", url, nil)
 	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
