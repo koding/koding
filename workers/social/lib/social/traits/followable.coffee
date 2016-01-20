@@ -3,7 +3,7 @@ KodingError = require '../error.coffee'
 
 module.exports = class Followable
 
-  { Model, dash, secure, ObjectRef } = require 'bongo'
+  { Model, secure, ObjectRef } = require 'bongo'
   { Relationship, Module } = jraphical
   { extend } = require 'underscore'
 

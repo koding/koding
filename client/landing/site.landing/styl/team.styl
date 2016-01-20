@@ -1,0 +1,323 @@
+@import 'lib/core.fonts'
+@import 'lib/core.fn'
+
+modalBackground             = #FAFAFA
+greenLink                   = #27ae60
+dimmedGray                  = #848484
+
+@css {
+/*
+Team stylesheet
+team.styl
+*/
+}
+
+.main-header.team
+  padding                   0 22px
+  max-width                 none
+  top                       32px
+  z-index                   1
+  fix()
+
+.content-area-pane.team
+.content-area-pane.teams
+  font-family               adelleSans
+  bg                        color #111
+
+  &:before
+    background              -webkit-linear-gradient(274deg,#261a4b 0,#402f7c 48%,#4781c0 100%)
+    background              linear-gradient(176deg,#261a4b 0,#402f7c 48%,#4781c0 100%)
+    background              -webkit-radial-gradient(56% 135%,140% 196%,#50b5e7 0,#402f7c 48%,#000 100%)
+    background              radial-gradient(56% 135%,140% 196%,#50b5e7 0,#402f7c 48%,#000 100%)
+
+    content                 ''
+    fix                     0px 0 0 0px
+    size                    100% 100%
+    z-index                 0
+
+.content-page.Team
+  overflow                  auto
+  z-index                   2
+  color                     white
+
+  section
+    width                   60%
+    max-width               600px
+    color                   rgba(255, 255, 255, .8)
+    margin                  0 auto 100px
+    padding                 20px 0
+    font-size               14px
+    line-height             20px
+    text-align              center
+    borderBox()
+
+    p
+      margin-bottom         10px
+
+    a
+      color                 greenLink
+      noTextDeco()
+    i
+      font-weight           bold
+      color                 white
+
+  footer
+    bottom                  22px
+    left                    9px
+    z-index                 2
+    fix()
+    a
+      color                 rgba(255, 255, 255, .5)
+      margin-left           13px
+      font-size             12px
+
+.TeamsModal
+  width                     60%
+  padding                   24px
+  max-width                 530px
+  margin                    110px auto 0
+  bg                        color modalBackground
+  top                       0px
+  color                     #434343
+  z-index                   3
+  rounded                   7px
+  text-align                center
+  shadow                    0 20px 40px rgba(0,0,0,.2)
+  borderBox()
+  rel()
+
+  .login-input-view
+    bg                      color white
+    font-family             openSansFamily
+    width                   85%
+
+  .login-input-view
+    input.kdinput
+      rounded               3px
+      border                3px solid #DAD8D6
+      font-size             20px
+      padding               12px 14px 14px
+      font-weight           400
+      line-height           25px
+
+      &.validation-error
+        border              3px solid #ff6b5d
+
+    &::-webkit-input-placeholder
+      font-weight           400
+      padding-top           3px
+
+
+  > form
+    margin                  30px auto 0
+
+  .TeamsModal-button-link
+    fl()
+    color                   #ADADAD
+    font-size               16px
+    font-weight             300
+    line-height             50px
+    margin-top              21px
+    letter-spacing          .01em
+    a
+      color                 #00b153
+      text-decoration       none
+      &:hover
+        text-decoration     underline
+
+    &.back
+      i
+        display             inline-block
+        rel()
+        top                 -2px
+        r-sprite            'teams', 'back-arrow'
+
+
+  .TeamsModal-button-separator
+    bg                      color, #E8E2DE
+    margin-top              32px
+    size                    100% 1px
+
+  .TeamsModal-button
+    margin-top              21px
+    border                  1px solid transparent
+
+    &:focus
+      border-color          #7dbef1
+
+  p.intro
+    font-size               20px
+    margin                  -10px auto 0
+
+  > h4
+    color                   #00B153
+    font-family             openSansFamily
+    font-size               24px
+    line-height             50px
+    font-weight             600
+
+  > h5
+    font-family             openSansFamily
+    font-size               16px
+    line-height             25px
+    width                   361px
+    margin                  0 auto
+    color                   #909090
+    &.full
+      width                 100%
+
+  p
+    width                   361px
+    margin                  0 auto
+    line-height             23px
+
+    &.full
+      width                 auto
+
+    a
+      color                 greenLink
+      noTextDeco()
+
+
+
+  .dim
+    color                   #9E9E9E
+
+  &.TeamsModal--login
+  &.TeamsModal--create
+  &.TeamsModal--groupCreation
+    width                   425px
+
+    > figure
+      bg                    color #ddd
+      bg                    size cover
+      bg                    position, 50% 50%
+      border                3px solid modalBackground
+      margin                -57px auto 20px
+      rounded               6px
+      size                  64px 64px
+
+    .login-form
+      .login-input-view
+        width               100%
+        margin-bottom       19px !important
+
+        .placeholder-helper
+          color             #ccc
+          font-size         20px
+          top               19px
+
+          &.out
+            color           #999
+            font-size       12px
+            top             -15px
+
+  &.TeamsModal--banned
+    > h5
+      margin                10px auto 50px
+      width                 auto
+      a
+        font-style          italic
+        color               greenLink
+        noTextDeco()
+
+    > p
+      color                 dimmedGray
+      font-style            italic
+
+.TeamsModal-button
+  border                    none
+  font-family               openSansFamily
+  font-size                 16px
+  font-weight               600
+  letter-spacing            .04em
+  line-height               50px
+  padding                   0 30px
+  rounded                   3px
+  size                      auto 50px
+  text-transform            uppercase
+  &.compact
+    height                  24px
+    font-size               10px
+    line-height             16px
+    padding                 4px 7px 0
+
+.TeamsModal-button--green
+  color                     white
+  bg                        color #00B057
+
+.TeamsModal-button--gray
+  color                     white
+  bg                        color #BDC3C7
+
+.TeamsModal-linkButton
+  color                     #929292
+  font-size                 14px
+
+.PasswordStrength
+  height                    5px
+  line-height               5px
+  vertical-align            top
+  opacity                   .5
+  rel()
+
+  &:after
+    abs                     -8px 0 0 0px
+    content                 ''
+    font-size               10px
+
+  &.bad
+  &.weak
+  &.moderate
+  &.good
+  &.excellent
+    opacity                 1
+
+  &.bad
+    &:after
+      color                 #FF6B5D
+      content               'very weak'
+    span
+      width                 20%
+      bg                    color #FF6B5D
+
+  &.weak
+    &:after
+      color                 #FF6B5D
+      content               'weak'
+    span
+      width                 40%
+      bg                    color #FF6B5D
+
+  &.moderate
+    &:after
+      color                 #FBB62B
+      content               'good'
+    span
+      width                 60%
+      bg                    color #FBB62B
+
+  &.good
+    &:after
+      color                 #00B057
+      content               'very good'
+    span
+      width                 80%
+      bg                    color #00B057
+
+  &.excellent
+    &:after
+      color                 #00B057
+      content               'excellent'
+    span
+      width                 100%
+      bg                    color #00B057
+
+  span
+    abs                     0px 0 0 0px
+    bg                      color #EAEAEA
+    display                 inline-block
+    rounded                 4px
+    size                    0% 100%
+    vendor                  transition, all .177s ease
+

@@ -1,12 +1,3 @@
-[submodule "client/ide"]
-	path = client/ide
-	url = git@github.com:koding/IDE.git
-[submodule "client/finder"]
-	path = client/finder
-	url = git@github.com:koding/finder.git
-[submodule "client/landing"]
-	path = client/landing
-	url = git@github.com:koding/landing.git
 [submodule "go/data/geoipdb"]
 	path = go/data/geoipdb
 	url = https://github.com/koding/geolite2-city.git

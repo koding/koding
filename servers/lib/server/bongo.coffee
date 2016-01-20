@@ -7,6 +7,12 @@ Broker     = require 'broker'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 { projectRoot, webserver, mongoReplSet } = KONFIG
 
+redisClient = require('redis').createClient(
+  KONFIG.monitoringRedis.split(':')[1]
+  KONFIG.monitoringRedis.split(':')[0]
+  {}
+)
+
 mongo = "mongodb://#{KONFIG.mongo}"
 
 module.exports = koding = new Bongo
@@ -14,6 +20,7 @@ module.exports = koding = new Bongo
   mongo       : mongoReplSet or mongo
   root        : projectRoot
   models      : 'workers/social/lib/social/models'
+  redisClient : redisClient
   fetchClient : (sessionToken, context, callback) ->
 
     { JUser, JAccount } = koding.models

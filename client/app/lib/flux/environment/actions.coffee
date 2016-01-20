@@ -337,7 +337,7 @@ reinitStackFromWidget = (stack) ->
 
   { computeController } = kd.singletons
   _stack = remote.revive stack.toJS()
-  computeController.reinitGroupStack _stack
+  computeController.reinitStack _stack
 
 
 createWorkspace = (machine, workspace) ->

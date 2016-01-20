@@ -1,0 +1,8 @@
+*.dump
+*.orig
+*.sublime-*
+*.swo
+*.swp
+*-orig.coffee
+.DS_Store
+.idea/*

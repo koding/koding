@@ -75,6 +75,11 @@ func (k *Kloud) NewEventer(id string) eventer.Eventer {
 	return ev
 }
 
+func (k *Kloud) DelEventer(id string) {
+	k.Log.Debug("[event] cleaning up previous events of id: %s", id)
+	delete(k.Eventers, id)
+}
+
 func (k *Kloud) GetEvent(eventId string) (*eventer.Event, error) {
 	// k.Log.Debug("[event] searching eventer for id: %s", eventId)
 	ev, ok := k.Eventers[eventId]

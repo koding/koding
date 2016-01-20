@@ -39,10 +39,23 @@ koding.once 'dbClientReady', ->
     console.error err  if err
 
     unless permissionSet?
-      if argv.hard?
+      if argv.hard or argv.reset
         Bongo.dash workQueue, done
       else
         done()
+      return
+
+    if argv.reset
+
+      newSet = new JPermissionSet {}, { privacy: 'public' }
+      workQueue.push ->
+        permissionSet.update {
+          $set:
+            permissions: newSet.permissions
+        }, (err) ->
+          console.log 'Failed to update permissions', err  if err
+          workQueue.fin()
+
       return
 
     console.log "BEFORE", permissionSet.permissions

@@ -1,0 +1,77 @@
+@import "lib/core.fonts"
+@import "lib/core.fn"
+
+@css {
+/*
+Team User Onboarding stylesheet
+team.onboarding.styl
+*/
+}
+
+yellowBg                   = rgba(255, 253, 223, .5)
+yellowBorder               = rgba(210, 207, 171, .5)
+
+
+.TeamsModal.TeamsModal--onboarding
+  text-align                center
+  width                     550px
+  padding                   48px
+  shadow                    none
+
+  h4
+    font-size               26px
+    line-height             36px
+
+  p
+    font-size               16px
+    line-height             23px
+    width                   auto
+    margin                  41px 0 0
+    &:first-of-type
+      font-size             20px
+      line-height           27px
+      margin-top            0
+      i
+        color               #00b153
+
+
+  .team-members
+    line-height             19px
+    padding                 13px
+    bg                      color yellowBg
+    border                  1px solid yellowBorder
+    margin                  20px 0 14px
+
+    > ul
+      height                38px
+      margin-right          19px
+      fl()
+      li
+        size                38px 38px
+        display             inline-block
+        margin-right        2px
+
+    > span
+      text-align            left
+      width                 auto
+      display               block
+      overflow              hidden
+      color                 #727272
+
+  address
+    font-size               16px
+    display                 block
+    color                   #939393
+    width                   300px
+    border-bottom           1px dashed
+    line-height             50px
+    display                 block
+    margin                  0 auto
+
+  .TeamsModal-button
+    width                   auto
+    margin-top              13px
+    padding                 13px 25px 10px
+    text-transform          none
+    line-height             0
+    borderBox()
