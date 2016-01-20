@@ -63,38 +63,39 @@ func TestChannelParticipantOperations(t *testing.T) {
 				So(channelContainer, ShouldNotBeNil)
 
 				Convey("First user should be able to add second and third users to conversation", func() {
-					_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, secondAccount.Id, thirdAccount.Id)
+					_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, secondAccount.Id, thirdAccount.Id)
 					So(err, ShouldBeNil)
-					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 					So(err, ShouldBeNil)
 					So(participants, ShouldNotBeNil)
 					// it is four because first user is "devrim" here
 					So(len(participants), ShouldEqual, 4)
 
 					Convey("First user should not be able to re-add second participant", func() {
-						_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, secondAccount.Id)
+						_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, secondAccount.Id)
 						So(err, ShouldBeNil)
 
-						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 						So(err, ShouldBeNil)
 						So(participants, ShouldNotBeNil)
 						So(len(participants), ShouldEqual, 4)
 					})
 
 					Convey("Second user should be able to leave conversation", func() {
-						_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, ses.ClientId, secondAccount.Id)
+						// token of account -> secondAccount
+						_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondSes.ClientId, secondAccount.Id)
 						So(err, ShouldBeNil)
 
-						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 						So(err, ShouldBeNil)
 						So(participants, ShouldNotBeNil)
 						So(len(participants), ShouldEqual, 3)
 
 						Convey("A user who is not participant of a conversation should not be able to add another user to the conversation", func() {
-							_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, secondSes.ClientId, forthAccount.Id)
+							_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, secondSes.ClientId, forthAccount.Id)
 							So(err, ShouldNotBeNil)
 
-							participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+							participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 							So(err, ShouldBeNil)
 							So(participants, ShouldNotBeNil)
 							So(len(participants), ShouldEqual, 3)
@@ -102,48 +103,48 @@ func TestChannelParticipantOperations(t *testing.T) {
 					})
 
 					Convey("Channel owner should be able to kick another conversation participant", func() {
-						_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, secondAccount.Id)
+						_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, secondAccount.Id)
 						So(err, ShouldBeNil)
 
-						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 						So(err, ShouldBeNil)
 						So(participants, ShouldNotBeNil)
 						So(len(participants), ShouldEqual, 3)
 					})
 
 					Convey("when a user is blocked", func() {
-						_, err = rest.BlockChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, secondAccount.Id)
+						_, err = rest.BlockChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, secondAccount.Id)
 						So(err, ShouldBeNil)
 
 						Convey("it should not be in channel participant list", func() {
-							participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+							participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 							So(err, ShouldBeNil)
 							So(participants, ShouldNotBeNil)
 							So(len(participants), ShouldEqual, 3)
 						})
 
 						Convey("should not be able to add it back", func() {
-							_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, secondAccount.Id)
+							_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, secondAccount.Id)
 							So(err, ShouldNotBeNil)
 						})
 
 						Convey("should be able to unblock", func() {
-							_, err = rest.UnblockChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, secondAccount.Id)
+							_, err = rest.UnblockChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, secondAccount.Id)
 							So(err, ShouldBeNil)
 
 							Convey("it should not be in channel participant list still", func() {
-								participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+								participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 								So(err, ShouldBeNil)
 								So(participants, ShouldNotBeNil)
 								So(len(participants), ShouldEqual, 3)
 							})
 
 							Convey("when we add the same user as participant", func() {
-								_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, secondAccount.Id, thirdAccount.Id)
+								_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, secondAccount.Id, thirdAccount.Id)
 								So(err, ShouldBeNil)
 
 								Convey("it should be in channel participant list", func() {
-									participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+									participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 									So(err, ShouldBeNil)
 									So(participants, ShouldNotBeNil)
 									So(len(participants), ShouldEqual, 4)
@@ -153,15 +154,15 @@ func TestChannelParticipantOperations(t *testing.T) {
 					})
 
 					Convey("Second user should not be able to kick another conversation participant", func() {
-						_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, secondSes.ClientId, thirdAccount.Id)
+						_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondSes.ClientId, thirdAccount.Id)
 						So(err, ShouldNotBeNil)
 					})
 
 				})
 				Convey("First user should be able to invite second user", func() {
-					_, err = rest.InviteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, secondAccount.Id)
+					_, err = rest.InviteChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, secondAccount.Id)
 					So(err, ShouldBeNil)
-					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 					So(err, ShouldBeNil)
 					So(participants, ShouldNotBeNil)
 					// it is four because first user is "devrim" here
@@ -175,7 +176,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 						err = rest.RejectInvitation(channelContainer.Channel.Id, ses.ClientId)
 						So(err, ShouldBeNil)
 
-						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 						So(err, ShouldBeNil)
 						So(participants, ShouldNotBeNil)
 						So(len(participants), ShouldEqual, 2)
@@ -189,7 +190,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 						err = rest.AcceptInvitation(channelContainer.Channel.Id, ses.ClientId)
 						So(err, ShouldBeNil)
 
-						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId)
+						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerSes.ClientId)
 						So(err, ShouldBeNil)
 						So(participants, ShouldNotBeNil)
 						So(len(participants), ShouldEqual, 3)
@@ -203,10 +204,10 @@ func TestChannelParticipantOperations(t *testing.T) {
 					err = account.ByNick("devrim")
 					So(err, ShouldBeNil)
 
-					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, account.Id, ses.ClientId, account.Id)
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ses.ClientId, account.Id)
 					So(err, ShouldBeNil)
 
-					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerSes.ClientId, ownerAccount.Id)
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, ownerAccount.Id)
 					So(err, ShouldBeNil)
 
 					time.Sleep(1 * time.Second)
@@ -239,7 +240,8 @@ func TestChannelParticipantOperations(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(ch, ShouldNotBeNil)
 
-					_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, ses.ClientId, participant.Id)
+					// account is -> ownerAccount.Id
+					_, err = rest.AddChannelParticipant(ch.Id, ses.ClientId, participant.Id)
 					So(strings.Contains(err.Error(), "can not add participants for bot channel"), ShouldBeTrue)
 				})
 
@@ -259,19 +261,20 @@ func TestChannelParticipantOperations(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(ch, ShouldNotBeNil)
 
-					_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, ses.ClientId, participant.Id)
+					// account is -> ownerAccount.Id
+					_, err = rest.AddChannelParticipant(ch.Id, ses.ClientId, participant.Id)
 					So(err, ShouldBeNil)
 
 					Convey("adding same user again should success", func() {
-						_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, ses.ClientId, participant.Id)
+						_, err = rest.AddChannelParticipant(ch.Id, ses.ClientId, participant.Id)
 						So(err, ShouldBeNil)
 					})
 
-					_, err = rest.DeleteChannelParticipant(ch.Id, ownerAccount.Id, ses.ClientId, participant.Id)
+					_, err = rest.DeleteChannelParticipant(ch.Id, ses.ClientId, participant.Id)
 					So(err, ShouldBeNil)
 
 					Convey("removing same user again should success", func() {
-						_, err = rest.DeleteChannelParticipant(ch.Id, ownerAccount.Id, ses.ClientId, participant.Id)
+						_, err = rest.DeleteChannelParticipant(ch.Id, ses.ClientId, participant.Id)
 						So(err, ShouldBeNil)
 					})
 				})
