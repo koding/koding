@@ -109,7 +109,7 @@ class IDEAppController extends AppController
 
     appManager.on 'AppIsBeingShown', (app) =>
 
-      return  unless app instanceof IDEAppController
+      return  unless app is this
 
       @setActivePaneFocus on, yes
 
@@ -125,16 +125,24 @@ class IDEAppController extends AppController
       if app.getId() is @getId() and not @layoutManager.isSnapshotRestored()
         @layoutManager.restoreSnapshot()
 
-      @bindListeners()
+      @bindListeners()  unless @listenersBound
 
 
   bindListeners: ->
+
+    @listenersBound = yes
 
     @on 'CloseFullScreen', =>
       [ideView] = @ideViews.filter (ideView) -> ideView.isFullScreen
       ideView.emit 'CloseFullScreen'  if ideView
 
     @on 'SnapshotUpdated', @bound 'saveLayoutSize'
+
+    kd.singletons.notificationController.on 'WorkspaceRemoved', (data) =>
+      { machineUId, slug } = data
+
+      if @mountedMachineUId is machineUId and slug is @workspaceData.slug
+        @quit()
 
 
   prepareIDE: (withFakeViews = no) ->
