@@ -71,30 +71,54 @@ func TestDTReadDir(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		// create dir with a dir inside
-		err = dt.CreateDir("1/a", 0700)
+		err = dt.CreateDir("/1/a", 0700)
 		So(err, ShouldBeNil)
 
 		// create file inside dir
-		err = dt.WriteFile("1/b", []byte{})
+		err = dt.WriteFile("/1/b", []byte{})
 		So(err, ShouldBeNil)
 
-		res, err := dt.ReadDir("1", []string{})
-		So(err, ShouldBeNil)
+		Convey("It should return nested entires of dir", func() {
+			res, err := dt.ReadDir("/", true, []string{})
+			So(err, ShouldBeNil)
 
-		entries := res.Files
+			entries := res.Files
+			So(len(entries), ShouldEqual, 3)
+
+			Convey("It should create top level dir", func() {
+				So(entries[0].IsDir, ShouldEqual, true)
+				So(entries[0].Name, ShouldEqual, "1")
+
+				Convey("It should remove remote path prefix", func() {
+					So(entries[0].FullPath, ShouldEqual, "/1")
+				})
+			})
+		})
 
 		Convey("It should create return entries of dir", func() {
+			res, err := dt.ReadDir("/1", false, []string{})
+			So(err, ShouldBeNil)
+
+			entries := res.Files
 			So(len(entries), ShouldEqual, 2)
-		})
 
-		Convey("It should create return dir with info", func() {
-			So(entries[0].IsDir, ShouldEqual, true)
-			So(entries[0].Name, ShouldEqual, "a")
-		})
+			Convey("It should create return dir with info", func() {
+				So(entries[0].IsDir, ShouldEqual, true)
+				So(entries[0].Name, ShouldEqual, "a")
 
-		Convey("It should create return file with info", func() {
-			So(entries[1].IsDir, ShouldEqual, false)
-			So(entries[1].Name, ShouldEqual, "b")
+				Convey("It should remove remote path prefix", func() {
+					So(entries[0].FullPath, ShouldEqual, "/1/a")
+				})
+			})
+
+			Convey("It should create return file with info", func() {
+				So(entries[1].IsDir, ShouldEqual, false)
+				So(entries[1].Name, ShouldEqual, "b")
+
+				Convey("It should remove remote path prefix", func() {
+					So(entries[1].FullPath, ShouldEqual, "/1/b")
+				})
+			})
 		})
 	})
 }
@@ -178,7 +202,7 @@ func TestDTExec(t *testing.T) {
 
 		Convey("It should run command and return response", func() {
 			// write file so we can check it with exec
-			err := dt.WriteFile("file", []byte{})
+			err := dt.WriteFile("/file", []byte{})
 			So(err, ShouldBeNil)
 
 			cmd := fmt.Sprintf("ls %s", dt.LocalPath)
@@ -201,7 +225,7 @@ func TestDTGetDiskInfo(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should return disk info", func() {
-			res, err := dt.GetDiskInfo("")
+			res, err := dt.GetDiskInfo("/")
 			So(err, ShouldBeNil)
 			So(res.BlockSize, ShouldEqual, uint32(stfs.Bsize))
 			So(res.BlocksTotal, ShouldEqual, stfs.Blocks)
@@ -217,32 +241,40 @@ func TestDTGetInfo(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should return info for root entry", func() {
-			res, err := dt.GetInfo("")
+			res, err := dt.GetInfo("/")
 			So(err, ShouldBeNil)
 			So(res.Exists, ShouldBeTrue)
 			So(res.Name, ShouldEqual, filepath.Base(dt.LocalPath))
 		})
 
 		Convey("It should return info for dir", func() {
-			err := dt.CreateDir("folder", 0700)
+			err := dt.CreateDir("/dir", 0700)
 			So(err, ShouldBeNil)
 
-			res, err := dt.GetInfo("folder")
+			res, err := dt.GetInfo("/dir")
 			So(err, ShouldBeNil)
 			So(res.Exists, ShouldBeTrue)
-			So(res.Name, ShouldEqual, "folder")
+			So(res.Name, ShouldEqual, "dir")
 			So(res.IsDir, ShouldEqual, true)
+
+			Convey("It should remove remote path prefix", func() {
+				So(res.FullPath, ShouldEqual, "/dir")
+			})
 		})
 
 		Convey("It should return info for file", func() {
-			err := dt.WriteFile("file", []byte{})
+			err := dt.WriteFile("/file", []byte{})
 			So(err, ShouldBeNil)
 
-			res, err := dt.GetInfo("file")
+			res, err := dt.GetInfo("/file")
 			So(err, ShouldBeNil)
 			So(res.Exists, ShouldBeTrue)
 			So(res.Name, ShouldEqual, "file")
 			So(res.IsDir, ShouldEqual, false)
+
+			Convey("It should remove remote path prefix from file path", func() {
+				So(res.FullPath, ShouldEqual, "/file")
+			})
 		})
 	})
 }

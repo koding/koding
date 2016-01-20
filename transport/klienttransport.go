@@ -82,7 +82,7 @@ func (k *KlientTransport) CreateDir(path string, _ os.FileMode) error {
 
 // ReadDir returns entries of the dir at specified path. It takes slice of dir
 // names as strings to ignore from listing.
-func (k *KlientTransport) ReadDir(path string, ignoreFolders []string) (*ReadDirRes, error) {
+func (k *KlientTransport) ReadDir(path string, recursive bool, ignoreFolders []string) (*ReadDirRes, error) {
 	req := struct {
 		Path          string
 		Recursive     bool

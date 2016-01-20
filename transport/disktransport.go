@@ -15,28 +15,28 @@ import (
 	"github.com/koding/klient/command"
 )
 
+var DiskCachePathPrefix = "fuseklient-diskcache"
+
 // NewDiskTransport is the required initializer for DiskTransport. It accepts
 // path where to create cache folder; if empty path is specified it creates a
 // folder at temp location.
-func NewDiskTransport(path string) (*DiskTransport, error) {
-	if path == "" {
+func NewDiskTransport(diskPath string) (*DiskTransport, error) {
+	if diskPath == "" {
 		var err error
-		path, err = ioutil.TempDir("", "fuseklient")
-
-		if err != nil {
+		if diskPath, err = ioutil.TempDir("", DiskCachePathPrefix); err != nil {
 			return nil, err
 		}
 	}
 
 	return &DiskTransport{
-		LocalPath: path,
+		DiskPath: diskPath,
 	}, nil
 }
 
-// DiskTransport is an implementation of Transport that reads files and
-// dirs from disk.
+// DiskTransport is an implementation of Transport that reads files and dirs
+// from disk.
 type DiskTransport struct {
-	LocalPath string
+	DiskPath string
 }
 
 // CreateDir (recursively) creates dir with specified name and mode.
@@ -45,10 +45,16 @@ func (d *DiskTransport) CreateDir(path string, mode os.FileMode) error {
 }
 
 // ReadDir returns entries of the dir at specified path.
-func (d *DiskTransport) ReadDir(path string, ignoredDirs []string) (*ReadDirRes, error) {
-	entries, err := readDirectory(d.fullPath(path), true, ignoredDirs)
+func (d *DiskTransport) ReadDir(path string, r bool, i []string) (*ReadDirRes, error) {
+	entries, err := readDirectory(d.fullPath(path), r, i)
 	if err != nil {
-		return &ReadDirRes{}, err
+		return nil, err
+	}
+
+	// remove disk path prefix from entries
+	for i, entry := range entries {
+		entry.FullPath = d.relativePath(entry.FullPath)
+		entries[i] = entry
 	}
 
 	return &ReadDirRes{Files: entries}, nil
@@ -66,20 +72,19 @@ func (d *DiskTransport) Remove(path string) error {
 
 // ReadFile reads file at specificed path and return its contents.
 func (d *DiskTransport) ReadFile(path string) (*ReadFileRes, error) {
-	var fsresp = &ReadFileRes{}
 	resp, err := readFile(d.fullPath(path))
 	if err != nil {
-		return fsresp, err
+		return nil, err
 	}
 
 	content, ok := resp["content"]
 	if !ok {
-		return fsresp, errors.New("'content' is not a byte slice")
+		return nil, errors.New("'content' is not a byte slice")
 	}
 
 	byteContent, ok := content.([]byte)
 	if !ok {
-		return fsresp, errors.New("no 'content' in response")
+		return nil, errors.New("no 'content' in response")
 	}
 
 	return &ReadFileRes{Content: byteContent}, nil
@@ -116,17 +121,32 @@ func (d *DiskTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 
 // GetInfo returns info about the entry at specified path.
 func (d *DiskTransport) GetInfo(path string) (*GetInfoRes, error) {
-	return getInfo(d.fullPath(path))
+	res, err := getInfo(d.fullPath(path))
+	if err != nil {
+		return nil, err
+	}
+
+	// remove disk path prefix
+	res.FullPath = d.relativePath(res.FullPath)
+
+	return res, nil
 }
 
-// fullPath joins the internal root dir path with the specified path.
+// fullPath joins the internal root disk path with the specified path. This is
+// used to specify the path in requests.
 func (d *DiskTransport) fullPath(path string) string {
-	return filepath.Join(d.LocalPath, path)
+	return filepath.Join(d.DiskPath, path)
+}
+
+// relativePath removes internal disk path prefix from specified path. This is
+// used when cleaning up responses.
+func (d *DiskTransport) relativePath(path string) string {
+	return strings.TrimPrefix(path, d.DiskPath)
 }
 
 ///// COPIED FROM KLIENT. TODO: fix this.
 
-func readDirectory(p string, recursive bool, ignoreFolders []string) ([]*GetInfoRes, error) {
+func readDirectory(p string, r bool, i []string) ([]*GetInfoRes, error) {
 	var ls []*GetInfoRes
 
 	walkerFn := func(path string, f os.FileInfo, err error) error {
@@ -141,7 +161,7 @@ func readDirectory(p string, recursive bool, ignoreFolders []string) ([]*GetInfo
 
 		// skip ignored folders
 		if f.IsDir() {
-			for _, ignore := range ignoreFolders {
+			for _, ignore := range i {
 				// adding / is required to prevent partial matching
 				if strings.Contains(path, "/"+ignore+"/") {
 					return filepath.SkipDir
@@ -152,7 +172,7 @@ func readDirectory(p string, recursive bool, ignoreFolders []string) ([]*GetInfo
 		fileInfo := makeFileEntry(path, f)
 		ls = append(ls, fileInfo)
 
-		if !recursive && f.IsDir() {
+		if !r && f.IsDir() {
 			return filepath.SkipDir
 		}
 
