@@ -1665,7 +1665,8 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         group = client.context.group
-        trackUserOnRegister disableCaptcha, { user, group, pin }
+        args  = { user, group, pin, firstName, lastName }
+        trackUserOnRegister disableCaptcha, args
 
         queue.next()
 
@@ -1720,11 +1721,11 @@ module.exports = class JUser extends jraphical.Module
 
     return  if disableCaptcha
 
-    subject              = Tracker.types.START_REGISTER
-    { user, group, pin } = args
-    { username, email }  = user
+    subject = Tracker.types.START_REGISTER
+    { user, group, pin, firstName, lastName } = args
+    { username, email } = user
 
-    opts = { pin, email, group, user : { user_id : username, email } }
+    opts = { pin, group, user : { user_id : username, email, firstName, lastName } }
     Tracker.track username, { to : email, subject }, opts
 
 
