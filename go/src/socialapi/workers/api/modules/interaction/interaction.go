@@ -73,10 +73,12 @@ func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.
 	// get query
 	query := c.OverrideQuery(request.GetQuery(u))
 
-	_, err := request.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+
+	query.AccountId = id
 
 	if query.Type == "" {
 		query.Type = models.Interaction_TYPE_LIKE
