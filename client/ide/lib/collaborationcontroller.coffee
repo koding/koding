@@ -155,6 +155,8 @@ module.exports = CollaborationController =
       machineUId : @mountedMachineUId
     }
 
+    # Check collaboration sessions of participant.
+    # If participant has 2 or more active collaboration sessions,  don't remove access from machine
     envHelpers.isUserStillParticipantOnMachine options, (status) =>
       @removeParticipantFromMachine username  unless status
 
