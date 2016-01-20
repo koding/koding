@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
@@ -27,6 +28,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+const latest = "https://s3.amazonaws.com/koding-klient/development/latest-version.txt"
+
 var (
 	defaultHost        = os.Getenv("KLOUDCTL_VAGRANT_HOST")
 	defaultUsername    string
@@ -34,7 +37,7 @@ var (
 	defaultPublicKey   string
 	defaultKontrolURL  string
 	defaultRegisterURL string // tunnel for 127.0.0.1:56790
-	defaultKlientURL   = "https://koding-klient.s3.amazonaws.com/development/latest/klient_0.1.135_development_amd64.deb"
+	defaultKlientURL   string
 )
 
 func init() {
@@ -71,6 +74,26 @@ func init() {
 	}
 
 	defaultPublicKey = string(p)
+
+	resp, err := http.Get(latest)
+	if err != nil {
+		log.Println("unable to get klient latest version:", err)
+		return
+	}
+	if resp.StatusCode != 200 {
+		log.Println("unable to get klient latest version:", resp.StatusCode)
+		return
+	}
+	defer resp.Body.Close()
+
+	p, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("unable to get klient latest version:", err)
+		return
+	}
+
+	defaultKlientURL = fmt.Sprintf("https://koding-klient.s3.amazonaws.com/devel"+
+		"opment/latest/klient_0.1.%s_development_amd64.deb", bytes.TrimSpace(p))
 }
 
 // Vagrant provides an implementation for "vagrant" command.
