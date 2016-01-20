@@ -1239,8 +1239,10 @@ module.exports = class SocialApiController extends KDController
         .map (id) -> "id=#{id}"
         .join "&"
 
+      type = options.type or ''
+
       doXhrRequest
-        endPoint: "/api/social/channel/by/participants?#{serialized}"
+        endPoint: "/api/social/channel/by/participants?#{serialized}&type=#{type}"
         type: 'GET'
       , (err, result) ->
         return callback err  if err
