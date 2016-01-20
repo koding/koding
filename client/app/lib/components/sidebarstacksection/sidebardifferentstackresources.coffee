@@ -3,7 +3,6 @@ Link                = require 'app/components/common/link'
 React               = require 'kd-react'
 SidebarSection      = require 'app/components/sidebarsection'
 KDReactorMixin      = require 'app/flux/base/reactormixin'
-EnvironmentsModal   = require 'app/environment/environmentsmodal'
 
 
 module.exports = class SidebarDifferentStackResources extends React.Component
@@ -15,7 +14,7 @@ module.exports = class SidebarDifferentStackResources extends React.Component
   handleOnClick: ->
 
     # Legacy class.
-    new EnvironmentsModal
+    kd.singletons.router.handleRoute '/Stacks'
 
 
   render: ->
