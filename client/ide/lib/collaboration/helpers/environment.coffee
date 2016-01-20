@@ -97,18 +97,18 @@ isUserStillParticipantOnMachine = (options, callback) ->
 
   { username, machineUId } = options
 
-  remote.cacheable username, (err, accounts) =>
+  remote.cacheable username, (err, accounts) ->
 
     return callback no  if err
     return callback no  unless accounts.length
 
     { socialApiId } = accounts.first
 
-    userEnvironmentDataProvider.fetchWorkspacesByMachineUId machineUId, (workspaces) =>
+    userEnvironmentDataProvider.fetchWorkspacesByMachineUId machineUId, (workspaces) ->
 
       workspaces = workspaces.filter (w) -> w  if w.channelId
 
-      socialHelpers.fetchParticipantsCollaborationChannels socialApiId, (err, channels) =>
+      socialHelpers.fetchParticipantsCollaborationChannels socialApiId, (err, channels) ->
 
         return callback no  if err
 
