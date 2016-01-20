@@ -551,7 +551,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       click: (event) =>
         if 'managed-disconnect' in event.target.classList
           kd.utils.stopDOMEvent event
-          kd.singletons.handleRoute "/Machines/#{@machine.slug}/Advanced"
+          kd.singletons.handleRoute "/Machines/#{@machine.uid}/Advanced"
 
     @container.addSubView @label
 

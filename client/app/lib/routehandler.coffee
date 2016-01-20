@@ -111,8 +111,8 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       new EnvironmentsModal selected: stackId
 
     when 'machine-settings'
-      { slug, state } = info.params
-      environmentDataProvider.fetchMachineBySlug slug, (machine) ->
+      { uid, state } = info.params
+      environmentDataProvider.fetchMachineByUId uid, (machine) ->
         modal = new MachineSettingsModal {}, new Machine { machine: remote.revive machine }
         modal.showPaneByName state  if state
 

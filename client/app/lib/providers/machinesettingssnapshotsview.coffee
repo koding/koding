@@ -203,7 +203,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
           return modal.showError()
 
         modal.destroy()
-        kd.singletons.router.handleRoute "/Machines/#{machine.slug}/Snapshots"
+        kd.singletons.router.handleRoute "/Machines/#{machine.uid}/Snapshots"
 
 
   ###*

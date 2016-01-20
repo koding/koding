@@ -41,7 +41,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
       cssClass      : 'settings-link'
       partial       : 'settings'
       tagName       : 'span'
-      click         : -> kd.singletons.handleRoute "/Machines/#{machine.slug}"
+      click         : -> kd.singletons.handleRoute "/Machines/#{machine.uid}"
 
     # more to come like os, version etc.
     @vminfo =

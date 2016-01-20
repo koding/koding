@@ -135,7 +135,7 @@ module.exports = class NavigationMachineItem extends JView
 
     return  if not @settingsEnabled()
 
-    kd.singletons.router.handleRoute "/Machines/#{@machine.slug}"
+    kd.singletons.router.handleRoute "/Machines/#{@machine.uid}"
 
 
   getPopupPosition: (extraTop = 0) ->

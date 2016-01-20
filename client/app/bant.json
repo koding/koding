@@ -14,7 +14,7 @@
     "/:name": "name",
     "/Reset/:token": "reset",
     "/Stacks/:stackId?": "stacks",
-    "/Machines/:slug/:state?": "machine-settings"
+    "/Machines/:uid/:state?": "machine-settings"
   },
   "sprites": [
     "./lib/sprites"
