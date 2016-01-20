@@ -40,7 +40,7 @@ func TestChannelHistory(t *testing.T) {
 					var channelParticipant *models.ChannelParticipant
 					var err error
 					Convey("We should be able to create a participant first", func() {
-						channelParticipant, err = rest.CreateChannelParticipant(channel.Id, account.Id, ses.ClientId)
+						channelParticipant, err = rest.CreateChannelParticipant(channel.Id, ses.ClientId)
 						So(err, ShouldBeNil)
 						So(channelParticipant, ShouldNotBeNil)
 
