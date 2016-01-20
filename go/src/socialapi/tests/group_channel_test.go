@@ -74,7 +74,9 @@ func TestGroupChannel(t *testing.T) {
 				channels, err := rest.FetchChannelsByQuery(account.Id, &request.Query{
 					GroupName: groupName,
 					Type:      models.Channel_TYPE_GROUP,
-				})
+				},
+					ses.ClientId,
+				)
 				So(err, ShouldBeNil)
 				So(len(channels), ShouldEqual, 2)
 				So(channels[0].TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)
