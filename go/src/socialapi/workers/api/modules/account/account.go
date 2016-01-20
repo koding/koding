@@ -19,7 +19,12 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 		return response.NewBadRequest(err)
 	}
 
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	query := request.GetQuery(u)
+	query = c.OverrideQuery(query)
 	if query.AccountId == 0 {
 		query.AccountId = accountId
 	}
@@ -54,7 +59,12 @@ func GetAccountFromSession(u *url.URL, h http.Header, _ interface{}, c *models.C
 }
 
 func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	query := request.GetQuery(u)
+	query = c.OverrideQuery(query)
 
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -70,8 +80,10 @@ func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *model
 	return response.HandleResultAndError(cp.ParticipatedChannelCount(a, query))
 }
 
-func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func ListPosts(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
+	query = context.OverrideQuery(query)
+
 	buildMessageQuery := query.Clone()
 
 	accountId, err := request.GetURIInt64(u, "id")
@@ -104,8 +116,9 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	)
 }
 
-func FetchPostCount(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func FetchPostCount(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
+	query = context.OverrideQuery(query)
 
 	accountId, err := request.GetId(u)
 	if err != nil {
@@ -152,10 +165,14 @@ func FetchPostCount(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	return response.NewOK(res)
 }
 
-func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+func Follow(u *url.URL, h http.Header, req *models.Account, context *models.Context) (int, http.Header, interface{}, error) {
 	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
 	return response.HandleResultAndError(
@@ -172,10 +189,18 @@ func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 	return response.NewOK(req)
 }
 
-func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, req *models.Account, context *models.Context) (int, http.Header, interface{}, error) {
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	if accountId != context.Client.Account.Id {
+		return response.NewAccessDenied(models.ErrAccessDenied)
 	}
 
 	if accountId == 0 {
@@ -204,22 +229,27 @@ func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 	return response.NewOK(acc)
 }
 
-func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+func Unfollow(u *url.URL, h http.Header, req *models.Account, context *models.Context) (int, http.Header, interface{}, error) {
 	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	return response.HandleResultAndError(req.Unfollow(targetId))
 }
 
-func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, error) {
+func CheckOwnership(u *url.URL, h http.Header, context *models.Context) (int, http.Header, interface{}, error) {
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	query := request.GetQuery(u)
+	query = context.OverrideQuery(query)
 
 	ownershipResponse := func(err error) (int, http.Header, interface{}, error) {
 		var success bool
