@@ -73,7 +73,7 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
           (next) ->
             withConvertedUser { role: 'admin' }, (data) ->
               _client = data.client
-              group.setPlan _client, plan: 'default', (err) ->
+              group.setPlan _client, { plan: 'default' }, (err) ->
                 expect(err).to.not.exist
                 next()
 

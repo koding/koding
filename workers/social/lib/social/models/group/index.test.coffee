@@ -484,7 +484,7 @@ runTests = -> describe 'workers.social.group.index', ->
         options = { createGroup: yes, role: 'admin' }
 
         withConvertedUser options, ({ client, group }) ->
-          group.setPlan client, plan: 'default', (err) ->
+          group.setPlan client, { plan: 'default' }, (err) ->
             expect(err).to.exist
             expect(err.message).to.be.equal 'Access denied'
 
@@ -498,7 +498,7 @@ runTests = -> describe 'workers.social.group.index', ->
         options = { role: 'admin' }
 
         withConvertedUser options, ({ client, group }) ->
-          group.setPlan client, plan: 'default', (err) ->
+          group.setPlan client, { plan: 'default' }, (err) ->
             expect(err).to.exist
             expect(err.message).to.be.equal 'Setting a plan on koding is not allowed'
 
@@ -509,7 +509,7 @@ runTests = -> describe 'workers.social.group.index', ->
         withConvertedUser { createGroup: 'yes' }, ({ group }) ->
 
           withConvertedUser { role: 'admin' }, ({ client }) ->
-            group.setPlan client, plan: generateRandomString(), (err) ->
+            group.setPlan client, { plan: generateRandomString() }, (err) ->
               expect(err).to.exist
 
               done()
@@ -525,7 +525,7 @@ runTests = -> describe 'workers.social.group.index', ->
           withConvertedUser { role: 'admin' }, (data) ->
             _client = data.client
 
-            group.setPlan _client, plan: 'default', (err) ->
+            group.setPlan _client, { plan: 'default' }, (err) ->
               expect(err).to.not.exist
               expect(group.getAt 'config.plan').to.be.equal 'default'
 
@@ -537,7 +537,7 @@ runTests = -> describe 'workers.social.group.index', ->
 
           expect(testGroup.getAt 'config.plan').to.be.equal 'default'
 
-          testGroup.setPlan client, plan: 'noplan', (err) ->
+          testGroup.setPlan client, { plan: 'noplan' }, (err) ->
             expect(err).to.not.exist
             expect(testGroup.getAt 'config.plan').to.not.exist
 

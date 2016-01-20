@@ -256,7 +256,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup.setPlan client, plan: 'default', (err) ->
+        testGroup.setPlan client, { plan: 'default' }, (err) ->
           expect(err).to.not.exist
 
           # checking in parallel to test lock mechanism ~ GG
@@ -318,7 +318,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       withConvertedUser { role: 'admin' }, ({ client }) ->
 
-        testGroup.setPlan client, plan: 'default', (err) ->
+        testGroup.setPlan client, { plan: 'default' }, (err) ->
           expect(err).to.not.exist
 
           ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 1, (err) ->
@@ -390,7 +390,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         { group } = options
 
-        group.setPlan client, plan: 'default', (err) ->
+        group.setPlan client, { plan: 'default' }, (err) ->
           expect(err).to.not.exist
 
           options.change = 'increment'
