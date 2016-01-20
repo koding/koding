@@ -1,5 +1,7 @@
 StackTemplate = require './stacktemplate'
 
+async = require 'async'
+
 { daisy
   expect
   withDummyClient
@@ -7,7 +9,9 @@ StackTemplate = require './stacktemplate'
   expectAccessDenied
   generateRandomString
   checkBongoConnectivity }    = require '../../../../testhelper'
-{ generateStackTemplateData
+
+{ generateStackMachineData
+  generateStackTemplateData
   withConvertedUserAndStackTemplate } = require \
   '../../../../testhelper/models/computeproviders/stacktemplatehelper'
 
@@ -175,6 +179,64 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           ]
 
           daisy queue
+
+
+  describe 'generateStack()', ->
+
+    describe 'when user doesnt have the permission', ->
+
+      it 'should fail to generate stack from the template', (done) ->
+
+        withConvertedUserAndStackTemplate ({ stackTemplate }) ->
+          expectAccessDenied stackTemplate, 'generateStack', done
+
+
+    describe 'when user has the permission', ->
+
+      it 'should be able to generate a stack from the template', (done) ->
+
+        options = machines: generateStackMachineData 2
+
+        withConvertedUserAndStackTemplate options, ({ client, stackTemplate }) ->
+
+          async.series [
+
+            (next) ->
+              stackTemplate.generateStack client, (err) ->
+                expect(err.message).to.be.equal 'Stack is not verified yet'
+                next()
+
+            (next) ->
+              config = verified: yes
+              stackTemplate.update$ client, { config }, (err) ->
+                expect(err).to.not.exist
+                next()
+
+            (next) ->
+              stackTemplate.generateStack client, (err, res) ->
+                expect(err).to.not.exist
+
+                { stack, results: { machines } } = res
+
+                expect(machines).to.exist
+                expect(machines).to.have.length 2
+
+                machines.forEach ({ err, obj: machine }, index) ->
+                  expect(err).to.not.exist
+                  expect(machine).to.exist
+                  expect(machine.label).to.be.equal options.machines[index].label
+                  expect(machine.generatedFrom).to.exist
+                  expect(machine.generatedFrom.templateId).to.be.equal stackTemplate._id
+                  expect(machine.generatedFrom.revision).to.be.equal stackTemplate.template.sum
+
+                expect(stack).to.exist
+                expect(stack.machines).to.have.length 2
+                expect(stack.baseStackId).to.be.equal stackTemplate._id
+                expect(stack.stackRevision).to.be.equal stackTemplate.template.sum
+
+                next()
+
+          ], done
 
 
   describe 'update$()', ->
