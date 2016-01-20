@@ -14,6 +14,7 @@
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
 JMachine                  = require './machine'
+teamutils                 = require './teamutils'
 ComputeProvider           = require './computeprovider'
 { PROVIDERS, revive }     = require './computeutils'
 { notImplementedMessage } = require './providerinterface'
@@ -184,6 +185,32 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         ComputeProvider.fetchPlans client, (err, usage) ->
           expect(err).to.not.exist
           expect(usage).to.be.an 'object'
+          done()
+
+
+  describe '#fetchTeamPlans', ->
+
+    it 'should fail if user doesnt have a valid session', (done) ->
+
+      expectAccessDenied ComputeProvider, 'fetchTeamPlans', done
+
+    it 'should fail if user doesnt have permission', (done) ->
+
+      withConvertedUser ({ client }) ->
+
+        ComputeProvider.fetchTeamPlans client, (err, plans) ->
+          expect(err).to.exist
+          expect(err.message).to.be.equal 'Access denied'
+          done()
+
+    it 'should be able to fetch team plans for koding admins', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        ComputeProvider.fetchTeamPlans client, (err, plans) ->
+          expect(err).to.not.exist
+          expect(plans).to.be.an 'object'
+          expect(plans).to.be.deep.equal teamutils.TEAMPLANS
           done()
 
 

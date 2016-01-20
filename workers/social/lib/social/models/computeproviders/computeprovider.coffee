@@ -61,15 +61,16 @@ module.exports = class ComputeProvider extends Base
 
   @providers      = PROVIDERS
 
+
   @fetchProviders = secure (client, callback) ->
     callback null, Object.keys PROVIDERS
-
 
 
   @ping = (client, options, callback) ->
 
     { provider } = options
     provider.ping client, options, callback
+
 
   @ping$ = permit 'ping machines',
     success: revive {
@@ -183,7 +184,6 @@ module.exports = class ComputeProvider extends Base
 
 
   @update = secure revive
-
 
     shouldReviveClient   : yes
     shouldPassCredential : yes
