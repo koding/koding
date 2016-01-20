@@ -9,6 +9,8 @@ ScrollableContent = require 'app/components/scroller/scrollablecontent'
 scrollToElement   = require 'app/util/scrollToElement'
 KDReactorMixin    = require 'app/flux/base/reactormixin'
 
+ensureScrollableElementIsVisible = require 'app/util/ensureScrollableElementIsVisible'
+
 ChatPaneView      = ScrollableContent ChatPaneView
 
 module.exports = class ChatPaneContainer extends React.Component
@@ -66,15 +68,29 @@ module.exports = class ChatPaneContainer extends React.Component
 
     { view } = @refs
 
+    hadEditingMessage = prevThread.getIn [ 'flags', 'hasEditingMessage' ]
+    hasEditingMessage = @flag 'hasEditingMessage'
+
     if selectedMessageId and selectedMessageId isnt prevSelectedMessageId
-      scrollToElement $("[data-message-id=#{selectedMessageId}]").get(0)
-    else if thread.getIn [ 'flags', 'hasSubmittingMessage' ]
+      item = $("[data-message-id=#{selectedMessageId}]").get(0)
+      scrollToElement item
+
+    else if @flag 'hasSubmittingMessage'
       view.scrollToBottom()
+
     else if @isThresholdReached
       view.keepPosition()
+
+    else if hasEditingMessage and not hadEditingMessage
+      message = thread.get('messages').find (msg) -> msg.get '__isEditing'
+      if message
+        item = $("[data-message-id=#{message.get 'id'}]").get(0)
+
+        # this delay is needed for chat input to resize its textarea
+        kd.utils.wait 50, -> ensureScrollableElementIsVisible item
+
     else
-      hadEditingMessage        = prevThread.getIn [ 'flags', 'hasEditingMessage' ]
-      hasStoppedMessageEditing = not @flag('hasEditingMessage') and hadEditingMessage
+      hasStoppedMessageEditing = not hasEditingMessage and hadEditingMessage
       hasRemovedMessage        = thread.get('messages').size < prevThread.get('messages').size
 
       view._update()  if hasStoppedMessageEditing or hasRemovedMessage

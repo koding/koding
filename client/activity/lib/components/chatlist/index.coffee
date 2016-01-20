@@ -26,8 +26,6 @@ module.exports = class ChatList extends React.Component
     unreadCount       : 0
     isMessagesLoading : no
     selectedMessageId : null
-    onItemEditStarted : kd.noop
-    selectedMessageId : ''
 
   componentDidMount: ->
 
@@ -155,7 +153,7 @@ module.exports = class ChatList extends React.Component
   renderChildren: ->
 
     { messages, showItemMenu, channelName } = @props
-    { channelId, onItemEditStarted, selectedMessageId } = @props
+    { channelId, selectedMessageId } = @props
 
     lastDifferentOwnerId     = null
     prevMessage              = null
@@ -171,7 +169,6 @@ module.exports = class ChatList extends React.Component
         showItemMenu  : showItemMenu
         channelName   : channelName
         channelId     : channelId
-        onEditStarted : onItemEditStarted
 
       createdAt = message.get 'createdAt'
 

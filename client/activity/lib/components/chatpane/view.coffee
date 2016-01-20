@@ -82,17 +82,6 @@ module.exports = class ChatPaneView extends React.Component
       onInviteClick={@props.onInviteClick} />
 
 
-  onItemEditStarted: (itemElement) ->
-
-    return  unless itemElement
-
-    # this delay is a time needed to chat input
-    # in order to resize its textarea
-    kd.utils.wait 50, =>
-      scrollContainer = ReactDOM.findDOMNode @getScroller()
-      scrollToTarget scrollContainer, itemElement
-
-
   renderBody: ->
 
     return null  unless @props.thread
@@ -113,7 +102,6 @@ module.exports = class ChatPaneView extends React.Component
         channelId={@channel 'id'}
         channelName={@channel 'name'}
         unreadCount={@channel 'unreadCount'}
-        onItemEditStarted={@bound 'onItemEditStarted'}
         selectedMessageId={@props.selectedMessageId}
       />
     </Scroller>
