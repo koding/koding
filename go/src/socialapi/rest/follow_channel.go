@@ -6,9 +6,10 @@ import (
 	"socialapi/models"
 )
 
-func FetchFollowedChannels(accountId int64, groupName string) ([]*models.ChannelContainer, error) {
-	url := fmt.Sprintf("/account/%d/channels?accountId=%d&groupName=%s", accountId, accountId, groupName)
-	res, err := sendRequest("GET", url, nil)
+func FetchFollowedChannels(accountId int64, token string) ([]*models.ChannelContainer, error) {
+	url := fmt.Sprintf("/account/%d/channels", accountId)
+
+	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}
