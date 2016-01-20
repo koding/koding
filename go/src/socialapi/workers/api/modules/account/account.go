@@ -189,18 +189,14 @@ func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 	return response.NewOK(req)
 }
 
-func Update(u *url.URL, h http.Header, req *models.Account, context *models.Context) (int, http.Header, interface{}, error) {
+// Update modifies account data to the lates version by default all requests
+// coming to this handler are trusted & validity of the parameters are not
+// checked.
+//
+func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
-	}
-
-	if !context.IsLoggedIn() {
-		return response.NewBadRequest(models.ErrNotLoggedIn)
-	}
-
-	if accountId != context.Client.Account.Id {
-		return response.NewAccessDenied(models.ErrAccessDenied)
 	}
 
 	if accountId == 0 {
