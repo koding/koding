@@ -137,7 +137,7 @@ module.exports = CollaborationController =
 
     @removeWorkspaceSnapshot target
 
-    socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
+    socialHelpers.kickParticipants @socialChannel, [account], (err, result) ->
       return callbacks.error err  if err
       callbacks.success()
 
