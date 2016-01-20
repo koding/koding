@@ -135,7 +135,7 @@ app.post '/-/gravatar'                           , require './handlers/gravatar'
 app.get  '/Hackathon2014/:section?'              , require './handlers/hackathon'
 app.get  '/-/confirm'                            , require './handlers/confirm'
 app.get  '/:name?/Develop/?*'                    , (req, res) -> res.redirect 301, '/'
-app.all  '/:name/:section?/:slug?'               , require './handlers/main.coffee'
+app.get  '/:name/:section?/:slug?'               , require './handlers/main.coffee'
 app.get  '*'                                     , require './handlers/root.coffee'
 
 # once bongo is ready we can start listening
