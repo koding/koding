@@ -116,11 +116,10 @@ func handleChannelListResponse(channelList []models.Channel, q *request.Query) (
 // but only returns topic channels
 func Search(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
+	q = context.OverrideQuery(q)
 	if q.Type != models.Channel_TYPE_LINKED_TOPIC {
 		q.Type = models.Channel_TYPE_TOPIC
 	}
-
-	q.AccountId = context.Client.Account.Id
 
 	channelList, err := models.NewChannel().Search(q)
 	if err != nil {
@@ -132,7 +131,7 @@ func Search(u *url.URL, h http.Header, _ interface{}, context *models.Context) (
 
 // ByName finds topics by their name
 func ByName(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	q := request.GetQuery(u)
+	q := context.OverrideQuery(request.GetQuery(u))
 
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
@@ -168,7 +167,7 @@ func ByParticipants(u *url.URL, h http.Header, _ interface{}, context *models.Co
 	}
 
 	query := request.GetQuery(u)
-	query.GroupName = context.GroupName
+	query = context.OverrideQuery(query)
 
 	participantsStr, ok := u.Query()["id"]
 	if !ok {
@@ -221,8 +220,8 @@ func Get(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
-	q := request.GetQuery(u)
 
+	q := request.GetQuery(u)
 	q = context.OverrideQuery(q)
 
 	c := models.NewChannel()
@@ -281,7 +280,7 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 }
 
 func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	q := request.GetQuery(u)
+	q := context.OverrideQuery(request.GetQuery(u))
 	if context.Client != nil && context.Client.Account != nil {
 		q.AccountId = context.Client.Account.Id
 	}
@@ -335,6 +334,15 @@ func Delete(u *url.URL, h http.Header, req *models.Channel, context *models.Cont
 
 	if req.TypeConstant == models.Channel_TYPE_GROUP {
 		return response.NewBadRequest(errors.New("You can not delete group channel"))
+	}
+
+	canOpen, err := req.CanOpen(context.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
 	}
 
 	// TO-DO
