@@ -290,6 +290,62 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
+  describe '#updateGroupResourceUsage', ->
+
+    options = null
+
+    it 'should increase given group resource count', (done) ->
+
+      withConvertedUser { createGroup: yes }, ({ group }) ->
+
+        options         =
+          group         : group
+          instanceCount : 3
+          change        : 'increment'
+
+        ComputeProvider.updateGroupResourceUsage options, (err) ->
+
+          expect(err).to.not.exist
+
+          JCounter.count
+            namespace : options.group.slug
+            type      : 'member_instances'
+          , (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.be.equal 3
+
+            JCounter.count
+              namespace : options.group.slug
+              type      : 'member_stacks'
+            , (err, count) ->
+              expect(err).to.not.exist
+              expect(count).to.be.equal 1
+
+              done()
+
+    it 'should decrease given group resource count', (done) ->
+
+      options.change = 'decrement'
+
+      ComputeProvider.updateGroupResourceUsage options, (err) ->
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : options.group.slug
+          type      : 'member_instances'
+        , (err, count) ->
+          expect(err).to.not.exist
+          expect(count).to.be.equal 0
+
+          JCounter.count
+            namespace : options.group.slug
+            type      : 'member_stacks'
+          , (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.be.equal 0
+
+            done()
+
 
   describe '#update()', ->
 
