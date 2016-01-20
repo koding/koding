@@ -58,7 +58,7 @@ func TestChannelCreation(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(channel1, ShouldNotBeNil)
 
-					_, err = rest.AddChannelParticipant(channel1.Id, account.Id, ses.ClientId, account.Id)
+					_, err = rest.AddChannelParticipant(channel1.Id, ses.ClientId, account.Id)
 					So(err, ShouldBeNil)
 
 					Convey("owner should be able to update it", func() {
@@ -88,7 +88,7 @@ func TestChannelCreation(t *testing.T) {
 						})
 					})
 					Convey("participant should be able to update only purpose, not name or payload", func() {
-						_, err = rest.AddChannelParticipant(channel1.Id, account.Id, ses.ClientId, nonOwnerAccount.Id)
+						_, err = rest.AddChannelParticipant(channel1.Id, ses.ClientId, nonOwnerAccount.Id)
 						So(err, ShouldBeNil)
 
 						updatedPurpose := "ChannelPurposeUpdated"
@@ -171,7 +171,7 @@ func TestChannelCreation(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(channel1, ShouldNotBeNil)
 
-					channelParticipant, err := rest.AddChannelParticipant(channel1.Id, nonOwnerAccount.Id, noses.ClientId, nonOwnerAccount.Id)
+					channelParticipant, err := rest.AddChannelParticipant(channel1.Id, noses.ClientId, nonOwnerAccount.Id)
 					// there should be an err
 					So(err, ShouldNotBeNil)
 					// channel should be nil
@@ -189,7 +189,7 @@ func TestChannelCreation(t *testing.T) {
 					So(channel1, ShouldNotBeNil)
 
 					// add first participant
-					channelParticipant1, err := rest.AddChannelParticipant(channel1.Id, account.Id, ses.ClientId, nonOwnerAccount.Id)
+					channelParticipant1, err := rest.AddChannelParticipant(channel1.Id, ses.ClientId, nonOwnerAccount.Id)
 					// there should be an err
 					So(err, ShouldBeNil)
 					// channel should be nil
@@ -201,13 +201,13 @@ func TestChannelCreation(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(nonOwnerAccount2, ShouldNotBeNil)
 
-					channelParticipant2, err := rest.AddChannelParticipant(channel1.Id, account.Id, ses.ClientId, nonOwnerAccount2.Id)
+					channelParticipant2, err := rest.AddChannelParticipant(channel1.Id, ses.ClientId, nonOwnerAccount2.Id)
 					// there should be an err
 					So(err, ShouldBeNil)
 					// channel should be nil
 					So(channelParticipant2, ShouldNotBeNil)
 
-					participants, err := rest.ListChannelParticipants(channel1.Id, account.Id, ses.ClientId)
+					participants, err := rest.ListChannelParticipants(channel1.Id, ses.ClientId)
 					// there should be an err
 					So(err, ShouldBeNil)
 					So(participants, ShouldNotBeNil)
@@ -229,7 +229,7 @@ func TestChannelCreation(t *testing.T) {
 					So(channel1, ShouldNotBeNil)
 
 					// add first participant
-					channelParticipant1, err := rest.AddChannelParticipant(channel1.Id, account.Id, ses.ClientId, nonOwnerAccount.Id)
+					channelParticipant1, err := rest.AddChannelParticipant(channel1.Id, ses.ClientId, nonOwnerAccount.Id)
 					// there should be an err
 					So(err, ShouldBeNil)
 					// channel should be nil
@@ -245,13 +245,13 @@ func TestChannelCreation(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(nonOwnerSes2, ShouldNotBeNil)
 
-					channelParticipant2, err := rest.AddChannelParticipant(channel1.Id, account.Id, ses.ClientId, nonOwnerAccount2.Id)
+					channelParticipant2, err := rest.AddChannelParticipant(channel1.Id, ses.ClientId, nonOwnerAccount2.Id)
 					// there should be an err
 					So(err, ShouldBeNil)
 					// channel should be nil
 					So(channelParticipant2, ShouldNotBeNil)
 
-					participants, err := rest.ListChannelParticipants(channel1.Id, nonOwnerAccount2.Id, nonOwnerSes2.ClientId)
+					participants, err := rest.ListChannelParticipants(channel1.Id, nonOwnerSes2.ClientId)
 					// there should be an err
 					So(err, ShouldBeNil)
 					So(participants, ShouldNotBeNil)
@@ -354,7 +354,7 @@ func createChannelAndParticipants(
 
 	for _, participant := range participants {
 		// add first participant
-		channelParticipant1, err := rest.AddChannelParticipant(tc1.Id, admin.Id, token, participant)
+		channelParticipant1, err := rest.AddChannelParticipant(tc1.Id, token, participant)
 		So(err, ShouldBeNil)
 		So(channelParticipant1, ShouldNotBeNil)
 	}
