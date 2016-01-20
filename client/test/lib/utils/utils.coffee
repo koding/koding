@@ -14,7 +14,7 @@ module.exports =
       username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
-      teamSlug = name.toLowerCase().replace(/\s/g, '-').replace('.', '')
+      teamSlug = name.toLowerCase().replace(/\s/g, '-').replace(/'/g, '').replace('.', '')
 
       email = "kodingtestuser+#{username}@koding.com"
 
