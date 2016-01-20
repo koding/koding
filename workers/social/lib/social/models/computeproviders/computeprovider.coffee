@@ -22,7 +22,6 @@ module.exports = class ComputeProvider extends Base
 
   JMachine       = require './machine'
   JWorkspace     = require '../workspace'
-  JStackTemplate = require './stacktemplate'
 
   @COUNTER_TYPE  =
     stacks       : 'member_stacks'
@@ -320,6 +319,7 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  unless plan
 
+    JStackTemplate = require './stacktemplate'
     JStackTemplate.one$ client, { _id: stackTemplateId }, (err, data) =>
 
       return callback err  if err
@@ -369,6 +369,7 @@ module.exports = class ComputeProvider extends Base
 
       # Remove all stack templates in the group
       (next) ->
+        JStackTemplate = require './stacktemplate'
         JStackTemplate.remove {
           group: group.slug
         }, skip 'JStackTemplate', next
