@@ -96,7 +96,7 @@ module.exports = class InviteSomeoneView extends KDView
 
   notifyAdminInvites: (invites, admins) ->
 
-    title = if admins.length > 1 then "You're adding admin users" else "You're adding an admin"
+    title = if admins.length > 1 then "You're adding admins" else "You're adding an admin"
     @confirmModal = modal = new kd.ModalViewWithForms
       title                   : title
       overlay                 : yes
