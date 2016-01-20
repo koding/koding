@@ -73,6 +73,16 @@ func TestBuilder(t *testing.T) {
 			"prefix+field+other+foos+foo": "",
 			"prefix+field+other+barbar":   "s",
 		},
+	}, { // i=6
+		&map[string]*map[string]string{"foo": {"bar": "s"}},
+		object.Object{
+			"prefix+foo+bar": "s",
+		},
+	}, { // i=7
+		struct{ Field *map[string]interface{} }{Field: &map[string]interface{}{"value": "s"}},
+		object.Object{
+			"prefix+field+value": "s",
+		},
 	}}
 
 	for i, cas := range cases {
