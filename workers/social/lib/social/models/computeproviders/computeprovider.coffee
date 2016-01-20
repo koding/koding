@@ -24,6 +24,10 @@ module.exports = class ComputeProvider extends Base
   JWorkspace     = require '../workspace'
   JStackTemplate = require './stacktemplate'
 
+  @COUNTER_TYPE  =
+    stacks       : 'member_stacks'
+    instances    : 'member_instances'
+
   @share()
 
   @set
@@ -404,7 +408,7 @@ module.exports = class ComputeProvider extends Base
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
-      type      : 'member_stacks'
+      type      : @COUNTER_TYPE.stacks
       max       : maxAllowed
       min       : 0
     , (err) ->
@@ -429,7 +433,7 @@ module.exports = class ComputeProvider extends Base
     JCounter[change]
       namespace : group.getAt 'slug'
       amount    : amount
-      type      : 'member_instances'
+      type      : @COUNTER_TYPE.instances
       max       : maxAllowed
       min       : 0
     , (err) ->

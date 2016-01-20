@@ -230,7 +230,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
           JCounter.count
             namespace : testGroup.slug
-            type      : 'member_stacks'
+            type      : ComputeProvider.COUNTER_TYPE.stacks
           , (err, count) ->
             expect(err).to.not.exist
             expect(count).to.be.equal 1
@@ -244,7 +244,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         JCounter.count
           namespace : testGroup.slug
-          type      : 'member_stacks'
+          type      : ComputeProvider.COUNTER_TYPE.stacks
         , (err, count) ->
           expect(err).to.not.exist
           expect(count).to.be.equal 0
@@ -268,7 +268,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
           JCounter.count
             namespace : testGroup.slug
-            type      : 'member_instances'
+            type      : ComputeProvider.COUNTER_TYPE.instances
           , (err, count) ->
             expect(err).to.not.exist
             expect(count).to.be.equal 2
@@ -282,7 +282,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         JCounter.count
           namespace : testGroup.slug
-          type      : 'member_instances'
+          type      : ComputeProvider.COUNTER_TYPE.instances
         , (err, count) ->
           expect(err).to.not.exist
           expect(count).to.be.equal 1
@@ -309,14 +309,14 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
           JCounter.count
             namespace : options.group.slug
-            type      : 'member_instances'
+            type      : ComputeProvider.COUNTER_TYPE.instances
           , (err, count) ->
             expect(err).to.not.exist
             expect(count).to.be.equal 3
 
             JCounter.count
               namespace : options.group.slug
-              type      : 'member_stacks'
+              type      : ComputeProvider.COUNTER_TYPE.stacks
             , (err, count) ->
               expect(err).to.not.exist
               expect(count).to.be.equal 1
@@ -332,14 +332,14 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
         JCounter.count
           namespace : options.group.slug
-          type      : 'member_instances'
+          type      : ComputeProvider.COUNTER_TYPE.instances
         , (err, count) ->
           expect(err).to.not.exist
           expect(count).to.be.equal 0
 
           JCounter.count
             namespace : options.group.slug
-            type      : 'member_stacks'
+            type      : ComputeProvider.COUNTER_TYPE.stacks
           , (err, count) ->
             expect(err).to.not.exist
             expect(count).to.be.equal 0
