@@ -51,9 +51,10 @@ create = ->
  * List replies of a message with id.
  *
  * @param {String} id
+ * @param {Object=} data
  * @return {Promise}
 ###
-listReplies = (id) -> request "/message/#{id}/reply"
+listReplies = (id, data = {}) -> request "/message/#{id}/reply", {data}
 
 
 ###*
