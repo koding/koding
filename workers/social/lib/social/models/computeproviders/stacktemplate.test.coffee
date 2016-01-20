@@ -1,6 +1,5 @@
-StackTemplate = require './stacktemplate'
-
-async = require 'async'
+async           = require 'async'
+StackTemplate   = require './stacktemplate'
 
 { daisy
   expect
@@ -36,7 +35,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
     describe 'when user has the permission', ->
 
-      it 'should fail if title is not set', (done) ->
+      it 'should be able to create stack template', (done) ->
 
         withConvertedUser ({ client }) ->
 
@@ -195,7 +194,9 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should be able to generate a stack from the template', (done) ->
 
-        options = machines: generateStackMachineData 2
+        options       =
+          machines    : generateStackMachineData 2
+          createGroup : yes
 
         withConvertedUserAndStackTemplate options, ({ client, stackTemplate }) ->
 

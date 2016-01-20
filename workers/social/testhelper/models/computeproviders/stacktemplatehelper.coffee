@@ -61,7 +61,7 @@ withConvertedUserAndStackTemplate = (options, callback) ->
   [options, callback] = [callback, options]  unless callback
   options            ?= {}
 
-  withConvertedUser (data) ->
+  withConvertedUser options, (data) ->
     { client }        = data
     stackTemplateData = generateStackTemplateData client, options
 
