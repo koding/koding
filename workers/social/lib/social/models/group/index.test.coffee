@@ -468,6 +468,82 @@ runTests = -> describe 'workers.social.group.index', ->
         async.series queue
 
 
+  describe 'setPlan()', ->
+
+    describe 'when permissions are not valid', ->
+
+      it 'should fail if user is not an admin', (done) ->
+
+        options = { createGroup : yes }
+        withConvertedUser options, ({ client, group }) ->
+          expectAccessDenied group, 'setPlan', done
+
+
+      it 'should fail if user an admin in a group but not in koding', (done) ->
+
+        options = { createGroup: yes, role: 'admin' }
+
+        withConvertedUser options, ({ client, group }) ->
+          group.setPlan client, plan: 'default', (err) ->
+            expect(err).to.exist
+            expect(err.message).to.be.equal 'Access denied'
+
+            done()
+
+
+    describe 'when permissions are ok', ->
+
+      it 'should fail if user wants to set plan for koding group', (done) ->
+
+        options = { role: 'admin' }
+
+        withConvertedUser options, ({ client, group }) ->
+          group.setPlan client, plan: 'default', (err) ->
+            expect(err).to.exist
+            expect(err.message).to.be.equal 'Setting a plan on koding is not allowed'
+
+            done()
+
+      it 'should fail if plan is not supported', (done) ->
+
+        withConvertedUser { createGroup: 'yes' }, ({ group }) ->
+
+          withConvertedUser { role: 'admin' }, ({ client }) ->
+            group.setPlan client, plan: generateRandomString(), (err) ->
+              expect(err).to.exist
+
+              done()
+
+      testGroup = null
+
+      it 'should allow to change if provided plan is valid', (done) ->
+
+        withConvertedUser { createGroup: 'yes' }, ({ group }) ->
+
+          testGroup = group
+
+          withConvertedUser { role: 'admin' }, (data) ->
+            _client = data.client
+
+            group.setPlan _client, plan: 'default', (err) ->
+              expect(err).to.not.exist
+              expect(group.getAt 'config.plan').to.be.equal 'default'
+
+              done()
+
+      it 'should reset plan if "noplan" is provided as plan', (done) ->
+
+        withConvertedUser { role: 'admin' }, ({ client }) ->
+
+          expect(testGroup.getAt 'config.plan').to.be.equal 'default'
+
+          testGroup.setPlan client, plan: 'noplan', (err) ->
+            expect(err).to.not.exist
+            expect(testGroup.getAt 'config.plan').to.not.exist
+
+            done()
+
+
 beforeTests()
 
 runTests()
