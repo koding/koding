@@ -47,7 +47,7 @@ func FollowNotification(followerId, followeeId int64, token string) (interface{}
 		return nil, err
 	}
 
-	return AddChannelParticipant(channel.(*models.Channel).Id, followerId, token, followerId)
+	return AddChannelParticipant(channel.(*models.Channel).Id, token, followerId)
 }
 
 func SubscribeMessage(accountId, messageId int64, groupName string) (interface{}, error) {
