@@ -252,6 +252,44 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
+  describe '#updateGroupInstanceUsage', ->
+
+    testGroup = null
+
+    it 'should increase given group instance count', (done) ->
+
+      withConvertedUser { createGroup: yes }, ({ group }) ->
+
+        testGroup = group
+
+        ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 2, (err) ->
+
+          expect(err).to.not.exist
+
+          JCounter.count
+            namespace : testGroup.slug
+            type      : 'member_instances'
+          , (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.be.equal 2
+
+            done()
+
+    it 'should decrease given group instance count', (done) ->
+
+      ComputeProvider.updateGroupInstanceUsage testGroup, 'decrement', 1, (err) ->
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : testGroup.slug
+          type      : 'member_instances'
+        , (err, count) ->
+          expect(err).to.not.exist
+          expect(count).to.be.equal 1
+
+          done()
+
+
 
   describe '#update()', ->
 
