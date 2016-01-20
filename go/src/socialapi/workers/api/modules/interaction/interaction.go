@@ -42,13 +42,14 @@ func Delete(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Cont
 	return response.NewOK(nil)
 }
 
-func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	messageId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	query := request.GetQuery(u)
+	query := context.OverrideQuery(request.GetQuery(u))
+
 	if query.Type == "" {
 		query.Type = "like"
 	}
@@ -70,14 +71,12 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 
 	// get query
-	query := request.GetQuery(u)
+	query := c.OverrideQuery(request.GetQuery(u))
 
-	id, err := request.GetURIInt64(u, "id")
+	_, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
-
-	query.AccountId = id
 
 	if query.Type == "" {
 		query.Type = models.Interaction_TYPE_LIKE
