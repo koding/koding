@@ -232,7 +232,7 @@ module.exports = class ChatInputContainer extends React.Component
 
   onDropboxItemConfirmed: ->
 
-    { dropboxQuery, dropboxConfig } = @state
+    { dropboxQuery, dropboxConfig, value } = @state
     return  unless dropboxConfig
 
     selectedItem      = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
@@ -240,7 +240,7 @@ module.exports = class ChatInputContainer extends React.Component
     if not selectedItem
       @submit()
     else
-      confirationResult = dropboxConfig.get('processConfirmedItem') selectedItem, dropboxQuery
+      confirationResult = dropboxConfig.get('processConfirmedItem') selectedItem, dropboxQuery, value
       @onDropboxClose()
 
       { type, value } = confirationResult

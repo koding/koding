@@ -12,7 +12,7 @@ module.exports = ChannelToken =
     currentWord = textHelpers.getWordByPosition value, position
     return  unless currentWord
 
-    matchResult = currentWord.match /^#(.*)/
+    matchResult = currentWord.match /^#([a-z0-9]*)$/
     return matchResult[1]  if matchResult
 
 
@@ -25,10 +25,19 @@ module.exports = ChannelToken =
         selectedIndex      : 'channelsSelectedIndex'
         selectedItem       : 'channelsSelectedItem'
       horizontalNavigation : no
-      processConfirmedItem : (item, query) ->
+      processConfirmedItem : (item, query, value) ->
+        if item
+          return {
+            type  : 'text'
+            value : "##{item.get 'name'} "
+          }
+
+        channelName = ChannelToken.extractQuery value
         return {
-          type  : 'text'
-          value : "##{item.get 'name'} "
+          type     : 'command'
+          value    :
+            name   : 'CreateChannel'
+            params : { channelName }
         }
     }
 

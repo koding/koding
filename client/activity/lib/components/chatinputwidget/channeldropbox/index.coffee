@@ -4,6 +4,7 @@ immutable            = require 'immutable'
 classnames           = require 'classnames'
 PortalDropbox        = require 'activity/components/dropbox/portaldropbox'
 ChannelDropboxItem   = require './item'
+DropboxItem          = require 'activity/components/dropboxitem'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 ScrollableDropbox    = require 'activity/components/dropbox/scrollabledropbox'
 
@@ -51,19 +52,30 @@ class ChannelDropbox extends React.Component
       />
 
 
+  renderNewChannelSuggestion: ->
+
+    { items } = @props
+    return  if items.size > 0
+
+    <DropboxItem className='DropboxItem-singleLine DropboxItem-separated ChannelDropboxItem ChannelDropbox-newChannelSuggestion'>
+      Do you want to create this channel?
+    </DropboxItem>
+
+
   render: ->
 
-    { items, onClose } = @props
+    { items, query, onClose } = @props
 
     <PortalDropbox
       className = 'ChannelDropbox'
-      visible   = { items.size > 0 }
+      visible   = { items.size > 0 or Boolean query }
       onClose   = { onClose }
       type      = 'dropup'
       title     = 'Channels'
       ref       = 'dropbox'
     >
       {@renderList()}
+      {@renderNewChannelSuggestion()}
     </PortalDropbox>
 
 
