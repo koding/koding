@@ -75,6 +75,7 @@
     "optimist": "0.3.1",
     "papertrail": "1.0.2",
     "progress": "0.0.4",
+    "ratelimit.js": "1.7.0",
     "read": "1.0.5",
     "redis": "0.12.1",
     "request": "2.54.0",

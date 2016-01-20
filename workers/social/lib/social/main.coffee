@@ -23,6 +23,12 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', { value: KONFIG }
 { mq, email, social, mongoReplSet, socialapi } = KONFIG
 
+redisClient = require('redis').createClient(
+  KONFIG.monitoringRedis.split(':')[1]
+  KONFIG.monitoringRedis.split(':')[0]
+  {}
+)
+
 mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
 
 mqOptions = extend {}, mq
@@ -45,6 +51,7 @@ koding = new Bongo {
   mq          : broker
   mqConfig    : mqConfig
   metrics     : datadog
+  redisClient : redisClient
 
 
   kite          :
@@ -90,10 +97,10 @@ koding = new Bongo {
 
         usertracker.track account.profile.nickname
 
-        { clientIP, clientId: sessionToken } = session
+        { clientIP, clientId: sessionToken, username } = session
 
         callback {
-          sessionToken, context, clientIP,
+          sessionToken, context, clientIP, username
           connection:{ delegate : account }
         }
 
@@ -134,7 +141,7 @@ helmet = require 'helmet'
 app = express()
 
 do ->
-  usertracker.start()
+  usertracker.start redisClient
 
   # start monitoring nodejs metrics (memory, gc, cpu etc...)
   nodejsProfiler = new NodejsProfiler 'socialWorker'
@@ -149,7 +156,8 @@ do ->
   helmet.defaults app
   app.use cors()
 
-  app.post '/xhr', koding.expressify()
+  options = { rateLimitOptions : KONFIG.nodejsRateLimiter }
+  app.post '/xhr', koding.expressify options
   app.get '/xhr', (req, res) ->
     res.send 'Socialworker is OK'
 
