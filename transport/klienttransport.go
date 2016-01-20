@@ -97,6 +97,12 @@ func (k *KlientTransport) ReadDir(path string, recursive bool, ignoreFolders []s
 		return res, err
 	}
 
+	// remove remote path prefix from entries
+	for i, entry := range res.Files {
+		entry.FullPath = k.relativePath(entry.FullPath)
+		res.Files[i] = entry
+	}
+
 	return res, nil
 }
 
@@ -184,14 +190,24 @@ func (k *KlientTransport) GetInfo(path string) (*GetInfoRes, error) {
 		return nil, err
 	}
 
+	// remove disk path prefix
+	res.FullPath = k.relativePath(res.FullPath)
+
 	return res, nil
 }
 
 ///// Helpers
 
-// fullPath joins the internal remote path with the specified path.
+// fullPath prefixes remoate path with the specified path. This is used to
+// specify the path in requests.
 func (k *KlientTransport) fullPath(path string) string {
 	return filepath.Join(k.RemotePath, path)
+}
+
+// relativePath removes remote path prefix from specified path. This is used
+// when cleaning up responses.
+func (k *KlientTransport) relativePath(path string) string {
+	return strings.TrimPrefix(path, k.RemotePath)
 }
 
 // trip is a generic method for communication. It accepts `req` to pass args

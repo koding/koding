@@ -132,7 +132,7 @@ func (d *DiskTransport) GetInfo(path string) (*GetInfoRes, error) {
 	return res, nil
 }
 
-// fullPath joins the internal root disk path with the specified path. This is
+// fullPath prefixes internal root disk path with the specified path. This is
 // used to specify the path in requests.
 func (d *DiskTransport) fullPath(path string) string {
 	return filepath.Join(d.DiskPath, path)
