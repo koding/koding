@@ -19,10 +19,16 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 		return response.NewBadRequest(err)
 	}
 
-	query := request.GetQuery(u)
-	if query.AccountId == 0 {
-		query.AccountId = accountId
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
+
+	if accountId != c.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
+	query := request.GetQuery(u)
+	query = c.OverrideQuery(query)
 
 	if query.Type == "" {
 		query.Type = models.Channel_TYPE_TOPIC
@@ -54,41 +60,47 @@ func GetAccountFromSession(u *url.URL, h http.Header, _ interface{}, c *models.C
 }
 
 func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
-
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	if accountId != c.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
+	query := request.GetQuery(u)
+	query = c.OverrideQuery(query)
 
 	if query.Type == "" {
 		query.Type = models.Channel_TYPE_TOPIC
 	}
 	cp := models.NewChannelParticipant()
-	a := &models.Account{Id: accountId}
+	a := &models.Account{Id: query.AccountId}
 
 	return response.HandleResultAndError(cp.ParticipatedChannelCount(a, query))
 }
 
-func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func ListPosts(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
+	query = context.OverrideQuery(query)
+
 	buildMessageQuery := query.Clone()
 
-	accountId, err := request.GetURIInt64(u, "id")
+	accountId, err := request.GetId(u)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	// Get Group Channel
-	selector := map[string]interface{}{
-		"group_name":    query.GroupName,
-		"type_constant": models.Channel_TYPE_GROUP,
-	}
-
-	c := models.NewChannel()
-	if err := c.One(bongo.NewQS(selector)); err != nil {
+	c, err := models.Cache.Channel.ByGroupName(query.GroupName)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
+
 	// fetch only channel messages
 	query.Type = models.ChannelMessage_TYPE_POST
 	query.AccountId = accountId
@@ -104,34 +116,18 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	)
 }
 
-func FetchPostCount(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func FetchPostCount(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
+	query = context.OverrideQuery(query)
 
 	accountId, err := request.GetId(u)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	// Get Group Channel
-	selector := map[string]interface{}{
-		"group_name":    query.GroupName,
-		"type_constant": models.Channel_TYPE_GROUP,
-	}
-
-	// first check channel existence
-	c := models.NewChannel()
-	if err := c.One(bongo.NewQS(selector)); err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	// check if user can open the channel
-	ok, err := c.CanOpen(accountId)
+	c, err := models.Cache.Channel.ByGroupName(query.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
-	}
-
-	if !ok {
-		return response.NewAccessDenied(nil)
 	}
 
 	// fetch user post count in koding channel
@@ -152,10 +148,14 @@ func FetchPostCount(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	return response.NewOK(res)
 }
 
-func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+func Follow(u *url.URL, h http.Header, req *models.Account, context *models.Context) (int, http.Header, interface{}, error) {
 	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
 	return response.HandleResultAndError(
@@ -172,6 +172,10 @@ func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 	return response.NewOK(req)
 }
 
+// Update modifies account data to the lates version by default all requests
+// coming to this handler are trusted & validity of the parameters are not
+// checked.
+//
 func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -204,10 +208,14 @@ func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 	return response.NewOK(acc)
 }
 
-func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+func Unfollow(u *url.URL, h http.Header, req *models.Account, context *models.Context) (int, http.Header, interface{}, error) {
 	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
 	return response.HandleResultAndError(req.Unfollow(targetId))

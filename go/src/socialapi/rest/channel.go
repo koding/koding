@@ -53,14 +53,14 @@ func CountHistory(channelId int64) (*models.CountResponse, error) {
 	return &count, nil
 }
 
-func FetchChannelsByQuery(accountId int64, q *request.Query) ([]*models.Channel, error) {
+func FetchChannelsByQuery(accountId int64, q *request.Query, token string) ([]*models.Channel, error) {
 	v, err := query.Values(q)
 	if err != nil {
 		return nil, err
 	}
 
 	url := fmt.Sprintf("/account/%d/channels?%s", accountId, v.Encode())
-	res, err := sendRequest("GET", url, nil)
+	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}
