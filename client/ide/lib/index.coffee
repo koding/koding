@@ -1583,8 +1583,10 @@ class IDEAppController extends AppController
 
     if destroy
       kd.singletons.appManager.quit this, =>
-        route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
-        kd.singletons.router.handleRoute route
+        # fetch data to ensure target workspace is still exist
+        environmentDataProvider.fetch =>
+          route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
+          kd.singletons.router.handleRoute route
 
       @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 
