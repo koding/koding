@@ -1,14 +1,10 @@
-package awsprovider
+package vagrant
 
 import (
 	"errors"
-	"fmt"
-
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/stackplan"
-	"koding/kites/kloud/terraformer"
-	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
 )
@@ -22,8 +18,8 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	if err := arg.Valid(); err != nil {
 		return nil, err
-	}
 
+	}
 	s.Log.Debug("Fetching template for id %s", arg.StackTemplateID)
 	stackTemplate, err := modelhelper.GetStackTemplate(arg.StackTemplateID)
 	if err != nil {
@@ -43,15 +39,6 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	}
 
 	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
-
-	// TODO(arslan): make one single persistent connection if needed, for now
-	// this is ok.
-	tfKite, err := terraformer.Connect(s.Session.Kite)
-	if err != nil {
-		return nil, err
-	}
-	defer tfKite.Close()
-
 	s.Log.Debug("Parsing template:\n%s", stackTemplate.Template.Content)
 
 	if err := s.Builder.BuildTemplate(stackTemplate.Template.Content); err != nil {
@@ -62,62 +49,20 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	var region string
-	for _, cred := range s.Builder.Credentials {
-		// rest is aws related
-		if cred.Provider != "aws" {
-			continue
-		}
-
-		meta := cred.Meta.(*AwsMeta)
-		if meta.Region == "" {
-			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
-		}
-
-		if err := s.SetAwsRegion(meta.Region); err != nil {
-			return nil, err
-		}
-
-		region = meta.Region
-
-		break
-	}
-
 	s.Log.Debug("Plan: stack template before injecting Koding data")
 	s.Log.Debug("%v", s.Builder.Template)
 
-	s.Log.Debug("Injecting AWS data")
+	s.Log.Debug("Injecting Vagrant data")
 
-	if _, err := s.InjectAWSData(ctx, s.Req.Username); err != nil {
-		return nil, err
-	}
-
-	out, err := s.Builder.Template.JsonOutput()
+	hostQueryString, _, err := s.InjectVagrantData(ctx, s.Req.Username)
 	if err != nil {
 		return nil, err
 	}
 
-	stackTemplate.Template.Content = out
-
-	tfReq := &tf.TerraformRequest{
-		Content:   stackTemplate.Template.Content,
-		ContentID: s.Req.Username + "-" + arg.StackTemplateID,
-		Variables: nil,
-	}
-
-	s.Log.Debug("Calling plan with content")
-	s.Log.Debug("%+v", tfReq)
-
-	plan, err := tfKite.Plan(tfReq)
+	machines, err := s.machinesFromTemplate(s.Builder.Template, hostQueryString)
 	if err != nil {
 		return nil, err
 	}
-
-	machines, err := stackplan.MachinesFromPlan(plan)
-	if err != nil {
-		return nil, err
-	}
-	machines.AppendRegion(region)
 
 	s.Log.Debug("Machines planned to be created: %+v", machines)
 

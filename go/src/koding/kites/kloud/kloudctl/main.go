@@ -18,6 +18,7 @@ func main() {
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"team":            command.NewTeam(),
+		"vagrant":         command.NewVagrant(),
 		"group":           command.NewGroup(),
 		"ping":            command.NewPing(),
 		"event":           command.NewEvent(),
