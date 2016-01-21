@@ -1,13 +1,17 @@
 { Base, secure, signature } = require 'bongo'
-KodingError = require '../../error'
 
-{ argv }    = require 'optimist'
-{ series }  = require 'async'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
-teamutils   = require './teamutils'
-konstraints = require 'konstraints'
+{ argv }     = require 'optimist'
+KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
 
-MAX_INT     = Math.pow(2, 32) - 1
+async        = require 'async'
+konstraints  = require 'konstraints'
+
+teamutils    = require './teamutils'
+KodingError  = require '../../error'
+KodingLogger = require '../kodinglogger'
+
+MAX_INT      = Math.pow(2, 32) - 1
+
 
 module.exports = class ComputeProvider extends Base
 
@@ -290,7 +294,7 @@ module.exports = class ComputeProvider extends Base
               create machineInfo
 
 
-      series queue, -> callback null, { stack, results }
+      async.series queue, -> callback null, { stack, results }
 
 
   # Just takes the plan name and the stack template content generates rules
@@ -338,7 +342,7 @@ module.exports = class ComputeProvider extends Base
         return callback err  if err
         next()
 
-    series queue, -> callback null
+    async.series queue, -> callback null
 
 
   # WARNING! This will destroy all the resources related with given group!
@@ -352,7 +356,7 @@ module.exports = class ComputeProvider extends Base
       console.log "[#{type}] Failed to destroy group resource:", err  if err
       next()
 
-    series [
+    async.series [
 
       # Remove all machines in the group
       (next) ->
@@ -479,7 +483,7 @@ module.exports = class ComputeProvider extends Base
     # we need to check plan limits for the current group and create the stack
     # and related machines here, this is very critical for multiple stacks ~ GG
 
-    series [
+    async.series [
 
       (next) ->
         fetchGroupStackTemplate client, (err, _res) ->
