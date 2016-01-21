@@ -516,8 +516,10 @@ module.exports = class ComputeProvider extends Base
         instanceCount = template.machines?.length or 0
         change        = 'increment'
 
+        details = { template, account }
+
         ComputeProvider.updateGroupResourceUsage {
-          group, change, instanceCount
+          group, change, instanceCount, details
         }, (err) ->
           next err
 

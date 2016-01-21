@@ -316,8 +316,10 @@ module.exports = class JStackTemplate extends Module
       instanceCount = @machines?.length or 0
       change        = 'increment'
 
+      details = { account, template: this }
+
       ComputeProvider.updateGroupResourceUsage {
-        group, change, instanceCount
+        group, change, instanceCount, details
       }, (err) =>
         return callback err  if err
 

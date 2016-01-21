@@ -51,7 +51,16 @@ checkPlans = (options, callback) ->
   else
 
     ComputeProvider = require './computeprovider'
-    ComputeProvider.updateGroupInstanceUsage group, change, 1, (err) ->
+
+    options = {
+      instanceCount : 1
+      instanceOnly  : yes
+      details       : { account, provider: 'managed' }
+      change        : 'increment'
+      group
+    }
+
+    ComputeProvider.updateGroupResourceUsage options, (err) ->
       callback err
 
 
