@@ -973,6 +973,8 @@ module.exports = CollaborationController =
       @setMachineSharingStatus off, (err) ->
         throwError err  if err
 
+      @clearParticipantsWorkspaces()
+
       socialHelpers.destroyChannel @socialChannel, (err) ->
         throwError err  if err
 
@@ -980,6 +982,23 @@ module.exports = CollaborationController =
         throwError err  if err
 
       callback()
+
+
+  clearParticipantsWorkspaces: ->
+
+    { users } = @mountedMachine.data
+
+    @listChatParticipants (accounts) =>
+      accounts.forEach (account) =>
+        { nickname } = account.profile
+
+        machineUser  = _.find users, {
+          username  : nickname
+          owner     : no # Don't remove host's workspace
+          approved  : yes
+        }
+
+        @removeWorkspaceSnapshot nickname  if machineUser
 
 
   handleCollaborationEndedForHost: ->
