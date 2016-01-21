@@ -2,14 +2,13 @@ kd                  = require 'kd'
 React               = require 'kd-react'
 ReactDOM            = require 'react-dom'
 immutable           = require 'immutable'
-ActivityFlux        = require 'activity/flux'
 Scroller            = require 'app/components/scroller'
-scrollToTarget      = require 'app/util/scrollToTarget'
 ChatList            = require 'activity/components/chatlist'
 ChannelInfo         = require 'activity/components/channelinfo'
 EmojiPreloaderMixin = require 'activity/components/emojipreloadermixin'
+ScrollableContent   = require 'app/components/scroller/scrollablecontent'
 
-module.exports = class ChatPaneView extends React.Component
+class ChatPaneView extends React.Component
 
   @propsTypes =
     thread                : React.PropTypes.instanceOf immutable.Map()
@@ -120,6 +119,9 @@ module.exports = class ChatPaneView extends React.Component
 
 
 React.Component.include.call ChatPaneView, [EmojiPreloaderMixin]
+
+
+module.exports = ScrollableContent ChatPaneView
 
 
 _hideScroller = (scroller) -> scroller?.style.opacity = 0

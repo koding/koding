@@ -5,13 +5,10 @@ ReactDOM          = require 'react-dom'
 immutable         = require 'immutable'
 ActivityFlux      = require 'activity/flux'
 ChatPaneView      = require './view'
-ScrollableContent = require 'app/components/scroller/scrollablecontent'
 scrollToElement   = require 'app/util/scrollToElement'
 KDReactorMixin    = require 'app/flux/base/reactormixin'
 
 ensureScrollableElementIsVisible = require 'app/util/ensureScrollableElementIsVisible'
-
-ChatPaneView      = ScrollableContent ChatPaneView
 
 module.exports = class ChatPaneContainer extends React.Component
 
