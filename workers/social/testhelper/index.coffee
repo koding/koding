@@ -184,15 +184,15 @@ generateRandomUserArray =  (count, callback) ->
   userArray = []
 
   for i in [0...count]
-    queue.push ->
+    queue.push (next) ->
       JUser.createUser generateUserInfo(), (err, user_) ->
         expect(err).to.not.exist
         userArray.push user_
-        queue.next()
+        next()
 
-  queue.push -> callback userArray
+  queue.push (next) -> callback userArray
 
-  daisy queue
+  async.series queue
 
 
 expectAccessDenied = (caller, callee, args..., callback) ->
