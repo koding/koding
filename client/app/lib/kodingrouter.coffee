@@ -4,7 +4,6 @@ remote               = require('./remote').getInstance()
 isLoggedIn           = require './util/isLoggedIn'
 showError            = require './util/showError'
 isGroup              = require './util/isGroup'
-isKoding             = require './util/isKoding'
 KodingAppsController = require './kodingappscontroller'
 
 

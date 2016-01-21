@@ -14,7 +14,6 @@ showError = require 'app/util/showError'
 Promise = require 'bluebird'
 TopicFollowButton = require 'app/commonviews/topicfollowbutton'
 Encoder = require 'htmlencode'
-isKoding = require 'app/util/isKoding'
 isTeamReactSide = require 'app/util/isTeamReactSide'
 
 

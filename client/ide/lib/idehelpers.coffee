@@ -3,7 +3,6 @@ remote                = require('app/remote').getInstance()
 globals               = require 'globals'
 actions               = require 'app/flux/environment/actions'
 FSHelper              = require 'app/util/fs/fshelper'
-isKoding              = require 'app/util/isKoding'
 showError             = require 'app/util/showError'
 actiontypes           = require 'app/flux/environment/actiontypes'
 dataProvider          = require 'app/userenvironmentdataprovider'

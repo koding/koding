@@ -1,5 +1,4 @@
 kd           = require 'kd'
-isKoding     = require 'app/util/isKoding'
 actionTypes  = require '../actions/actiontypes'
 getGroup     = require 'app/util/getGroup'
 getters      = require '../getters'
