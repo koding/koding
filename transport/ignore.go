@@ -1,6 +1,6 @@
 package transport
 
-var DefaultDirIgnoreList = []string{
+var defaultDirIgnoreList = []string{
 	".svn",
 	".hg",
 	".build",

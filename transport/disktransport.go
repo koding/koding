@@ -15,7 +15,7 @@ import (
 	"github.com/koding/klient/command"
 )
 
-var DiskCachePathPrefix = "fuseklient-diskcache"
+var diskCachePathPrefix = "fuseklient-diskcache"
 
 // NewDiskTransport is the required initializer for DiskTransport. It accepts
 // path where to create cache folder; if empty path is specified it creates a
@@ -23,7 +23,7 @@ var DiskCachePathPrefix = "fuseklient-diskcache"
 func NewDiskTransport(diskPath string, ignoreDirs []string) (*DiskTransport, error) {
 	if diskPath == "" {
 		var err error
-		if diskPath, err = ioutil.TempDir("", DiskCachePathPrefix); err != nil {
+		if diskPath, err = ioutil.TempDir("", diskCachePathPrefix); err != nil {
 			return nil, err
 		}
 	}

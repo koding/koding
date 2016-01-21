@@ -35,7 +35,7 @@ func NewKlientTransport(c *kite.Client, t time.Duration) (*KlientTransport, erro
 	return &KlientTransport{
 		Client:      c,
 		TellTimeout: t,
-		IgnoreDirs:  DefaultDirIgnoreList,
+		IgnoreDirs:  defaultDirIgnoreList,
 	}, nil
 }
 
