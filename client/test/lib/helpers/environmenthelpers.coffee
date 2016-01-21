@@ -19,14 +19,22 @@ module.exports =
     vmSelector    = ".activity-sidebar .sidebar-machine-box.#{vmName} .running"
 
     browser
-      .pause                   5000 # wait for sidebar redraw
-      .waitForElementVisible   vmSelector, 20000
-      .moveToElement           vmSelector + ' span', 125, 20
-      .click                   vmSelector + ' span'
-      .waitForElementVisible   modalSelector, 20000 # Assertion
-      .pause                   2500
-      .waitForElementVisible   itemSelector, 20000
-      .click                   itemSelector
+      .pause   5000 # wait for sidebar redraw
+      .element 'css selector', modalSelector, (result) ->
+        if result.status is 0
+          browser
+            .waitForElementVisible   itemSelector, 20000
+            .click                   itemSelector
+        else
+          browser
+            .waitForElementVisible   vmSelector, 20000
+            .moveToElement           vmSelector + ' span', 125, 20
+            .click                   vmSelector + ' span'
+            .waitForElementVisible   modalSelector, 20000 # Assertion
+            .pause                   2500
+            .waitForElementVisible   itemSelector, 20000
+            .click                   itemSelector
+
 
 
   openDiskUsageSettings: (browser, vmName) ->

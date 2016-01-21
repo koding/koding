@@ -35,6 +35,10 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
+			nonOwnerSes, err := models.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
+			So(err, ShouldBeNil)
+			So(nonOwnerSes, ShouldNotBeNil)
+
 			groupChannel, err := rest.CreateChannelByGroupNameAndType(
 				account.Id,
 				groupName,
@@ -66,7 +70,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := rest.AddChannelParticipant(channel.Id, account.Id, nonOwnerAccount.Id)
+				channelParticipant, err := rest.AddChannelParticipant(channel.Id, ses.ClientId, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
@@ -77,7 +81,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := rest.AddChannelParticipant(channel.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
+				channelParticipant, err := rest.AddChannelParticipant(channel.Id, nonOwnerSes.ClientId, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
@@ -88,7 +92,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := rest.DeleteChannelParticipant(channel.Id, account.Id, nonOwnerAccount.Id)
+				channelParticipant, err := rest.DeleteChannelParticipant(channel.Id, ses.ClientId, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
@@ -99,7 +103,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := rest.DeleteChannelParticipant(channel.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
+				channelParticipant, err := rest.DeleteChannelParticipant(channel.Id, nonOwnerSes.ClientId, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil

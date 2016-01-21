@@ -2,7 +2,6 @@ kd = require 'kd'
 
 curryIn = require 'app/util/curryIn'
 
-EnvironmentsModal     = require 'app/environment/environmentsmodal'
 SidebarOwnMachineList = require './sidebarownmachineslist'
 
 

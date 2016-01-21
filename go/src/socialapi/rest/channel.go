@@ -90,7 +90,8 @@ func FetchChannelByName(accountId int64, name, groupName, typeConstant, token st
 
 func FetchChannelContainerByName(accountId int64, name, groupName, typeConstant, token string) (*models.ChannelContainer, error) {
 	url := fmt.Sprintf("/channel/name/%s?groupName=%s&type=%s&accountId=%d", name, groupName, typeConstant, accountId)
-	res, err := sendRequest("GET", url, nil)
+
+	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}
@@ -194,8 +195,9 @@ func GetChannel(id int64) (*models.Channel, error) {
 	return cc.Channel, nil
 }
 
-func GetChannelWithAccountId(id, accountId int64) (*models.Channel, error) {
-	cc, err := GetChannelContainerWithAccountId(id, accountId)
+// GetChannelWithToken gets the channel of the account with given account's session data.
+func GetChannelWithToken(id int64, token string) (*models.Channel, error) {
+	cc, err := GetChannelContainerWithToken(id, token)
 	if err != nil {
 		return nil, err
 	}
@@ -203,10 +205,10 @@ func GetChannelWithAccountId(id, accountId int64) (*models.Channel, error) {
 	return cc.Channel, nil
 }
 
-func GetChannelContainer(id int64) (*models.ChannelContainer, error) {
+func GetChannelContainerWithToken(id int64, token string) (*models.ChannelContainer, error) {
 	url := fmt.Sprintf("/channel/%d", id)
 	cc := models.NewChannelContainer()
-	cmI, err := sendModel("GET", url, cc)
+	cmI, err := sendModelWithAuth("GET", url, cc, token)
 	if err != nil {
 		return nil, err
 	}
@@ -214,8 +216,8 @@ func GetChannelContainer(id int64) (*models.ChannelContainer, error) {
 	return cmI.(*models.ChannelContainer), nil
 }
 
-func GetChannelContainerWithAccountId(id, accountId int64) (*models.ChannelContainer, error) {
-	url := fmt.Sprintf("/channel/%d?accountId=%d", id, accountId)
+func GetChannelContainer(id int64) (*models.ChannelContainer, error) {
+	url := fmt.Sprintf("/channel/%d", id)
 	cc := models.NewChannelContainer()
 	cmI, err := sendModel("GET", url, cc)
 	if err != nil {

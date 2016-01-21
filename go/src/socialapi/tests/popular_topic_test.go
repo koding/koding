@@ -81,7 +81,7 @@ func TestPopularTopic(t *testing.T) {
 			So(popularTopics[1].IsParticipant, ShouldBeFalse)
 			So(popularTopics[2].IsParticipant, ShouldBeFalse)
 			// follow the first topic
-			channelParticipant, err := rest.AddChannelParticipant(popularTopics[0].Channel.Id, account.Id, account.Id)
+			channelParticipant, err := rest.AddChannelParticipant(popularTopics[0].Channel.Id, ses.ClientId, account.Id)
 			So(err, ShouldBeNil)
 			So(channelParticipant, ShouldNotBeNil)
 

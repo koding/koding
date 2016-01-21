@@ -5,7 +5,6 @@ isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require 'app/commonviews/kodingswitch'
 isTeamReactSide        = require 'app/util/isTeamReactSide'
-MachineSettingsModal   = require '../providers/machinesettingsmodal'
 ComputeErrorUsageModal = require '../providers/computeerrorusagemodal'
 
 
@@ -42,7 +41,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
       cssClass      : 'settings-link'
       partial       : 'settings'
       tagName       : 'span'
-      click         : -> new MachineSettingsModal {}, machine
+      click         : -> kd.singletons.handleRoute "/Machines/#{machine.uid}"
 
     # more to come like os, version etc.
     @vminfo =

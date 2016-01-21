@@ -1,6 +1,10 @@
-kd      = require 'kd'
-remote  = require('app/remote').getInstance()
-sinkrow = require 'sinkrow'
+_                           = require 'lodash'
+kd                          = require 'kd'
+remote                      = require('app/remote').getInstance()
+sinkrow                     = require 'sinkrow'
+socialHelpers               = require './social'
+userEnvironmentDataProvider = require 'app/userenvironmentdataprovider'
+
 
 ###*
  * Detaches social channel of given workspace.
@@ -89,9 +93,38 @@ fetchMissingParticipants = (machine, usernames, callback) ->
     .catch callback
 
 
+isUserStillParticipantOnMachine = (options, callback) ->
+
+  { username, machineUId } = options
+
+  remote.cacheable username, (err, accounts) ->
+
+    return callback no  if err
+    return callback no  unless accounts.length
+
+    { socialApiId } = accounts.first
+
+    userEnvironmentDataProvider.fetchWorkspacesByMachineUId machineUId, (workspaces) ->
+
+      workspaces = workspaces.filter (w) -> w  if w.channelId
+
+      socialHelpers.fetchParticipantsCollaborationChannels socialApiId, (err, channels) ->
+
+        return callback no  if err
+
+        anyActiveSession = no
+
+        workspaces.forEach (w) ->
+          channel = _.find channels, _id : w.channelId
+          anyActiveSession = yes  if channel
+
+        callback anyActiveSession
+
+
 module.exports = {
   detachSocialChannel
   updateWorkspace
   setMachineUser
   fetchMissingParticipants
+  isUserStillParticipantOnMachine
 }

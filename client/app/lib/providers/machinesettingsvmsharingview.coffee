@@ -36,6 +36,8 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
     @listController.getListView().on 'KickUserRequested', @bound 'kickUser'
 
+    kd.singletons.notificationController.on 'MachineShareListUpdated', @bound 'initList'
+
 
   initList: ->
 

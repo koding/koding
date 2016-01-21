@@ -122,6 +122,14 @@ module.exports = UserEnvironmentDataProvider =
     callback workspace
 
 
+  fetchWorkspacesByMachineUId: (machineUId, callback) ->
+
+    for obj in @getAllMachines()
+      if obj.machine.uid is machineUId
+        callback obj.workspaces
+        break
+
+
   machineFetcher_: (field, expectedValue, callback) ->
 
     m = null

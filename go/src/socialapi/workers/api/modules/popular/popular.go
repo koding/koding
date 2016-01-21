@@ -57,7 +57,8 @@ func getIds(key string, query *request.Query, c *models.Context) ([]int64, error
 }
 
 func ListTopics(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+	q := request.GetQuery(u)
+	query := ctx.OverrideQuery(q)
 
 	statisticName := u.Query().Get("statisticName")
 
@@ -134,17 +135,27 @@ func fetchMoreChannels(query *request.Query) ([]models.Channel, error) {
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+	q := request.GetQuery(u)
+	query := ctx.OverrideQuery(q)
 	query.Type = models.ChannelMessage_TYPE_POST
+	groupName := ctx.GroupName
 
 	channelName := u.Query().Get("channelName")
 
-	if query.GroupName == "" || channelName == "" {
+	// TO-DO ~mehmetali
+	// dont need to get groupName parameter from query
+	// we have group name parameter in context..!!
+	//=====
+	// if query.GroupName == "" || channelName == "" {
+	// 	return response.NewBadRequest(errors.New("groupName and channelName are required"))
+	// }
+
+	if groupName == "" || channelName == "" {
 		return response.NewBadRequest(errors.New("groupName and channelName are required"))
 	}
 
 	key := (&popularpost.KeyName{
-		GroupName:   query.GroupName,
+		GroupName:   groupName,
 		ChannelName: channelName,
 		Time:        time.Now().UTC(),
 	}).Weekly()

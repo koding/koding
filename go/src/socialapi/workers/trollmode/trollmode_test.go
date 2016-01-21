@@ -147,11 +147,11 @@ func TestMarkedAsTroll(t *testing.T) {
 		// mark channel
 		Convey("private channels of a troll should be marked as exempt", func() {
 			// fetch from api, because we need to test system from there
-			privatemessageChannel1, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel1, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel1.Id, ShouldBeGreaterThan, 0)
 
-			privatemessageChannel2, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel2, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel2.Id, ShouldBeGreaterThan, 0)
 
@@ -181,11 +181,11 @@ func TestMarkedAsTroll(t *testing.T) {
 		// mark channel_participant
 		Convey("participations of a troll should not be marked as exempt", func() {
 			// fetch from api, because we need to test system from there
-			privatemessageChannel1, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel1, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel1.Id, ShouldBeGreaterThan, 0)
 
-			privatemessageChannel2, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel2, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel2.Id, ShouldBeGreaterThan, 0)
 
@@ -321,7 +321,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// update channel data while creating
 		Convey("when a troll creates a channel, meta_bits should be set", func() {
-			privatemessageChannel1, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel1, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel1.Id, ShouldBeGreaterThan, 0)
 
@@ -336,7 +336,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// update channel_participant data while creating
 		Convey("when a troll is added to a channel as participant, meta_bits should be set", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -353,7 +353,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// update channel_message_list data while creating
 		Convey("when a troll content is added to a channel, meta_bits should be set", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(normalUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(normalSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -377,7 +377,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// update channel_message data while creating
 		Convey("when a troll posts a status update, meta_bits should be set", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(normalUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(normalSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -484,7 +484,7 @@ func TestMarkedAsTroll(t *testing.T) {
 		// channel
 		Convey("when a troll creates a private channel, normal user should not be able to see it", func() {
 
-			privatemessageChannel, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -524,7 +524,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// channel
 		Convey("when a troll creates a private channel, normal user should not be able to see it with `ShowExempt` flag", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -565,7 +565,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// channel_participant
 		Convey("when a troll joins a channel, they should not be in the participant list for normal users", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -589,7 +589,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// channel_participant
 		Convey("when a troll joins a channel, they should not be in the participant list for troll users", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -614,7 +614,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// channel_message_list
 		Convey("when an exempt content is added to a channel, they should not be listed in regarding channel", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(normalUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(normalSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -649,7 +649,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// channel_message_list
 		Convey("when an exempt content is added to a channel, they should be listed in regarding channel for troll users", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -890,7 +890,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// private messsage
 		Convey("listing private messages should work for troll users", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -900,6 +900,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					AccountId:  trollUser.Id,
 					ShowExempt: true,
 				},
+				trollSes.ClientId,
 			)
 
 			So(err, ShouldBeNil)
@@ -918,7 +919,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// private messsage
 		Convey("listing private messages should work for normal users", func() {
-			privatemessageChannel, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			privatemessageChannel, err := createPrivateMessageChannel(trollSes.ClientId)
 			So(err, ShouldBeNil)
 			So(privatemessageChannel.Id, ShouldBeGreaterThan, 0)
 
@@ -949,6 +950,7 @@ func TestMarkedAsTroll(t *testing.T) {
 					AccountId:  trollUser.Id,
 					ShowExempt: true,
 				},
+				ses.ClientId,
 			)
 
 			So(err, ShouldBeNil)
@@ -974,15 +976,13 @@ func TestMarkedAsTroll(t *testing.T) {
 	})
 }
 
-func createPrivateMessageChannel(accountId int64, groupName string) (*models.Channel, error) {
+func createPrivateMessageChannel(token string) (*models.Channel, error) {
 	pmr := models.ChannelRequest{}
-	pmr.AccountId = accountId
 	pmr.Body = "this is a body for private message @sinan"
-	pmr.GroupName = groupName
 	pmr.Recipients = []string{"sinan"}
 
 	// create first private channel
-	cmc, err := rest.SendPrivateChannelRequest(pmr)
+	cmc, err := rest.SendPrivateChannelRequest(pmr, token)
 	if err != nil {
 		return nil, err
 	}

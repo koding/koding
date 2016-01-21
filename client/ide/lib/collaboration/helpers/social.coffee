@@ -183,6 +183,15 @@ fetchAccount = (options, callback) ->
     callback null, options
 
 
+fetchParticipantsCollaborationChannels = (socialApiId, callback) ->
+
+  options         =
+    type          : 'collaboration'
+    participants  : [socialApiId]
+
+  kd.singletons.socialapi.channel.byParticipants options, callback
+
+
 module.exports = {
   fetchParticipants
   addParticipants
@@ -195,4 +204,5 @@ module.exports = {
   initChannel
   sendActivationMessage
   fetchAccount
+  fetchParticipantsCollaborationChannels
 }

@@ -1172,8 +1172,7 @@ module.exports = class ComputeController extends KDController
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
 
-        EnvironmentsModal = require 'app/environment/environmentsmodal'
-        new EnvironmentsModal
+        return kd.singletons.router.handleRoute '/Stacks'
 
       else
         @createDefaultStack()
