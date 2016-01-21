@@ -1,25 +1,3 @@
-kd          = require 'kd'
-React       = require 'kd-react'
-immutable   = require 'immutable'
-Avatar      = require 'app/components/profile/avatar'
-DropBoxItem = require 'activity/components/dropboxitem'
+module.exports           = require './view'
+module.exports.Container = require './container'
 
-module.exports = class ChannelParticipantsDropdownItem extends React.Component
-
-  @defaultProps =
-    item       : immutable.Map()
-    isSelected : no
-    index      : 0
-
-
-  render: ->
-
-    { item } = @props
-    <DropBoxItem {...@props} className="ChannelParticipantsDropdownItem">
-      <Avatar
-        className='ChannelParticipantAvatars-avatar'
-        width={30}
-        account={item.toJS()}
-        height={30} />
-      <span>{item.getIn ['profile', 'nickname']}</span>
-    </DropBoxItem>
