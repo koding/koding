@@ -77,8 +77,8 @@ func CheckChannelOwnership(acc *models.Account, channel *models.Channel) (bool, 
 	})
 }
 
-func FetchAccountActivities(acc *models.Account, channel *models.Channel, token string) ([]*models.ChannelMessageContainer, error) {
-	url := fmt.Sprintf("/account/%d/posts?groupName=%s&accountId=%d", acc.Id, channel.GroupName, acc.Id)
+func FetchAccountActivities(accId int64, token string) ([]*models.ChannelMessageContainer, error) {
+	url := fmt.Sprintf("/account/%d/posts", accId)
 
 	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
@@ -94,8 +94,8 @@ func FetchAccountActivities(acc *models.Account, channel *models.Channel, token 
 	return arr, nil
 }
 
-func FetchAccountActivityCount(acc *models.Account, channel *models.Channel, token string) (*models.CountResponse, error) {
-	url := fmt.Sprintf("/account/%d/posts/count?groupName=%s&accountId=%d", acc.Id, channel.GroupName, acc.Id)
+func FetchAccountActivityCount(accId int64, token string) (*models.CountResponse, error) {
+	url := fmt.Sprintf("/account/%d/posts/count", accId)
 
 	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
