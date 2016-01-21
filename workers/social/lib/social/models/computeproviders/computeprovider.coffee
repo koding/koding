@@ -422,7 +422,9 @@ module.exports = class ComputeProvider extends Base
       callback if change is 'increment' then err else null
 
 
-  @updateGroupInstanceUsage = (group, change, amount, callback) ->
+  @updateGroupInstanceUsage = (options, callback) ->
+
+    { group, change, amount } = options
 
     return callback null  if group.slug is 'koding'
 
@@ -453,9 +455,10 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  if group.slug is 'koding'
 
+    options = { group, change, amount: instanceCount }
     @updateGroupStackUsage group, change, (err) =>
       return callback err  if err
-      @updateGroupInstanceUsage group, change, instanceCount, (err) =>
+      @updateGroupInstanceUsage options, (err) =>
         if err and change is 'increment'
           @updateGroupStackUsage group, 'decrement', ->
             callback err

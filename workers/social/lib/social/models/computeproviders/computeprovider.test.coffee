@@ -289,7 +289,12 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should increase given group instance count', (done) ->
 
-      ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 2, (err) ->
+      options  =
+        group  : testGroup
+        change : 'increment'
+        amount : 2
+
+      ComputeProvider.updateGroupInstanceUsage options, (err) ->
 
         expect(err).to.not.exist
 
@@ -304,7 +309,12 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should decrease given group instance count', (done) ->
 
-      ComputeProvider.updateGroupInstanceUsage testGroup, 'decrement', 1, (err) ->
+      options  =
+        group  : testGroup
+        change : 'decrement'
+        amount : 1
+
+      ComputeProvider.updateGroupInstanceUsage options, (err) ->
         expect(err).to.not.exist
 
         JCounter.count
@@ -323,7 +333,12 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         testGroup.setPlan client, { plan: 'default' }, (err) ->
           expect(err).to.not.exist
 
-          ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 1, (err) ->
+          options  =
+            group  : testGroup
+            change : 'increment'
+            amount : 1
+
+          ComputeProvider.updateGroupInstanceUsage options, (err) ->
             expect(err).to.exist
             expect(err.message).to.be.equal 'Provided limit has been reached'
 
