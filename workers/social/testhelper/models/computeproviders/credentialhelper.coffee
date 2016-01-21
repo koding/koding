@@ -1,5 +1,4 @@
-{ daisy
-  expect
+{ expect
   withConvertedUser
   generateRandomEmail
   generateRandomString } = require '../../index'
