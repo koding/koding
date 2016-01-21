@@ -66,9 +66,9 @@ module.exports =
     browser
       .waitForElementVisible  textSelector, 20000
       .setValue               chatInputSelector, browser.Keys.UP_ARROW
+      .pause                  3000 # Wait for textarea
       .waitForElementVisible  editingSelector, 20000
       .clearValue             editingSelector
-      .pause                  3000 #slow down
       .setValue               editingSelector, 'Message after editing' + browser.Keys.ENTER
       .waitForElementVisible  chatItem, 20000
       .pause                  3000 #waiting for text to be changed
