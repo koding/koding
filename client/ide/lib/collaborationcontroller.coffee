@@ -148,6 +148,7 @@ module.exports = CollaborationController =
     @removeParticipantCursorWidget username
     # remove participant's all data persisted in realtime appInfo
     @removeParticipant username
+    @removeWorkspaceSnapshot username
 
     options = {
       username
@@ -242,12 +243,16 @@ module.exports = CollaborationController =
 
   setWatchMap: ->
 
-    return  if @myWatchMap.values().length
+    if @myWatchMap.values().length
+      @emit 'WatchMapIsReady'
+      return
 
     @listChatParticipants (accounts) =>
       accounts.forEach (account) =>
-        {nickname} = account.profile
+        { nickname } = account.profile
         @myWatchMap.set nickname, nickname
+
+      @emit 'WatchMapIsReady'
 
 
   activateRealtimeManagerForHost: ->
@@ -622,18 +627,23 @@ module.exports = CollaborationController =
   ###
   resurrectParticipantSnapshot: ->
 
-    @whenRealtimeReady =>
-
+    doResurrection_ = =>
       @removeInitialViews()
-      mapLength = @myWatchMap.values()?.length
 
-      ## The `mapLength=0` meant the participant joined the collaboration just now.
-      if not mapLength or @amIWatchingChangeOwner(@collaborationHost)
+      if @amIWatchingChangeOwner @collaborationHost
         @getHostSnapshot (snapshot) =>
           @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
       else
         @fetchSnapshot (snapshot) =>
           @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
+
+
+    @whenRealtimeReady =>
+
+      if @myWatchMap.values()?.length
+        doResurrection_()
+      else
+        @once 'WatchMapIsReady', doResurrection_
 
 
   showShareButton: ->
@@ -972,6 +982,8 @@ module.exports = CollaborationController =
       @setMachineSharingStatus off, (err) ->
         throwError err  if err
 
+      @clearParticipantsWorkspaces()
+
       socialHelpers.destroyChannel @socialChannel, (err) ->
         throwError err  if err
 
@@ -979,6 +991,23 @@ module.exports = CollaborationController =
         throwError err  if err
 
       callback()
+
+
+  clearParticipantsWorkspaces: ->
+
+    { users } = @mountedMachine.data
+
+    @listChatParticipants (accounts) =>
+      accounts.forEach (account) =>
+        { nickname } = account.profile
+
+        machineUser  = _.find users, {
+          username  : nickname
+          owner     : no # Don't remove host's workspace
+          approved  : yes
+        }
+
+        @removeWorkspaceSnapshot nickname  if machineUser
 
 
   handleCollaborationEndedForHost: ->
