@@ -117,8 +117,8 @@ module.exports = class JWorkspace extends Module
 
       return callback err  if err
 
-      users = machine.users.filter (user) -> return user.username isnt nickname
-      users = users.map (user) -> return user.username
+      users = machine.users.filter (user) -> user.username isnt nickname
+      users = users.map (user) -> user.username
 
       if users.length
         { notifyByUsernames } = require './notify'
