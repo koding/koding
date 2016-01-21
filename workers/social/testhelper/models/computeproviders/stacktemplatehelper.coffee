@@ -7,6 +7,20 @@ JStackTemplate = require  \
   '../../../../social/lib/social/models/computeproviders/stacktemplate'
 
 
+generateStackMachineData = (count = 1) ->
+
+  machines = []
+  for i in [1..count]
+    machines.push
+      label         : "testvm-#{i}"
+      region        : 'us-east-1'
+      provider      : 'aws'
+      source_ami    : 'ami-a6926dce'
+      instance_type : 't2.nano'
+
+  return machines
+
+
 generateStackTemplateData = (client, data) ->
 
   data        ?= {}
@@ -47,7 +61,7 @@ withConvertedUserAndStackTemplate = (options, callback) ->
   [options, callback] = [callback, options]  unless callback
   options            ?= {}
 
-  withConvertedUser (data) ->
+  withConvertedUser options, (data) ->
     { client }        = data
     stackTemplateData = generateStackTemplateData client, options
 
@@ -60,6 +74,7 @@ withConvertedUserAndStackTemplate = (options, callback) ->
 
 module.exports = {
   createStackTemplate
+  generateStackMachineData
   generateStackTemplateData
   withConvertedUserAndStackTemplate
 }

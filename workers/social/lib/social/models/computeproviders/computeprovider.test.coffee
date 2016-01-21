@@ -13,7 +13,10 @@
   withConvertedUserAnd } = require  \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
+async                     = require 'async'
+JCounter                  = require '../counter'
 JMachine                  = require './machine'
+teamutils                 = require './teamutils'
 ComputeProvider           = require './computeprovider'
 { PROVIDERS, revive }     = require './computeutils'
 { notImplementedMessage } = require './providerinterface'
@@ -185,6 +188,220 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           expect(err).to.not.exist
           expect(usage).to.be.an 'object'
           done()
+
+
+  describe '#fetchTeamPlans', ->
+
+    it 'should fail if user doesnt have a valid session', (done) ->
+
+      expectAccessDenied ComputeProvider, 'fetchTeamPlans', done
+
+    it 'should fail if user doesnt have permission', (done) ->
+
+      withConvertedUser ({ client }) ->
+
+        ComputeProvider.fetchTeamPlans client, (err, plans) ->
+          expect(err).to.exist
+          expect(err.message).to.be.equal 'Access denied'
+          done()
+
+    it 'should be able to fetch team plans for koding admins', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        ComputeProvider.fetchTeamPlans client, (err, plans) ->
+          expect(err).to.not.exist
+          expect(plans).to.be.an 'object'
+          expect(plans).to.be.deep.equal teamutils.TEAMPLANS
+          done()
+
+
+  describe '#updateGroupStackUsage', ->
+
+    testGroup = null
+
+    before (done) ->
+      withConvertedUser { createGroup: yes }, ({ group }) ->
+        testGroup = group
+        done()
+
+    it 'should increase given group stack count', (done) ->
+
+      ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : testGroup.slug
+          type      : ComputeProvider.COUNTER_TYPE.stacks
+        , (err, count) ->
+          expect(err).to.not.exist
+          expect(count).to.be.equal 1
+
+          done()
+
+    it 'should decrease given group stack count', (done) ->
+
+      ComputeProvider.updateGroupStackUsage testGroup, 'decrement', (err) ->
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : testGroup.slug
+          type      : ComputeProvider.COUNTER_TYPE.stacks
+        , (err, count) ->
+          expect(err).to.not.exist
+          expect(count).to.be.equal 0
+
+          done()
+
+    it 'should fail to increase stack count if plan limit has been reached', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        testGroup.setPlan client, { plan: 'default' }, (err) ->
+          expect(err).to.not.exist
+
+          # checking in parallel to test lock mechanism ~ GG
+
+          async.parallel [
+
+            (fin) ->
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
+                expect(err).to.not.exist
+                fin()
+
+            (fin) ->
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
+                expect(err).to.exist
+                expect(err.message).to.be.equal 'Provided limit has been reached'
+                fin()
+
+          ], done
+
+
+  describe '#updateGroupInstanceUsage', ->
+
+    testGroup = null
+
+    before (done) ->
+      withConvertedUser { createGroup: yes }, ({ group }) ->
+        testGroup = group
+        done()
+
+    it 'should increase given group instance count', (done) ->
+
+      ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 2, (err) ->
+
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : testGroup.slug
+          type      : ComputeProvider.COUNTER_TYPE.instances
+        , (err, count) ->
+          expect(err).to.not.exist
+          expect(count).to.be.equal 2
+
+          done()
+
+    it 'should decrease given group instance count', (done) ->
+
+      ComputeProvider.updateGroupInstanceUsage testGroup, 'decrement', 1, (err) ->
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : testGroup.slug
+          type      : ComputeProvider.COUNTER_TYPE.instances
+        , (err, count) ->
+          expect(err).to.not.exist
+          expect(count).to.be.equal 1
+
+          done()
+
+    it 'should fail to increase instance count if plan limit has been reached', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        testGroup.setPlan client, { plan: 'default' }, (err) ->
+          expect(err).to.not.exist
+
+          ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 1, (err) ->
+            expect(err).to.exist
+            expect(err.message).to.be.equal 'Provided limit has been reached'
+
+            done()
+
+
+  describe '#updateGroupResourceUsage', ->
+
+    options = null
+
+    it 'should increase given group resource count', (done) ->
+
+      withConvertedUser { createGroup: yes }, ({ group }) ->
+
+        options         =
+          group         : group
+          instanceCount : 3
+          change        : 'increment'
+
+        ComputeProvider.updateGroupResourceUsage options, (err) ->
+
+          expect(err).to.not.exist
+
+          JCounter.count
+            namespace : options.group.slug
+            type      : ComputeProvider.COUNTER_TYPE.instances
+          , (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.be.equal 3
+
+            JCounter.count
+              namespace : options.group.slug
+              type      : ComputeProvider.COUNTER_TYPE.stacks
+            , (err, count) ->
+              expect(err).to.not.exist
+              expect(count).to.be.equal 1
+
+              done()
+
+    it 'should decrease given group resource count', (done) ->
+
+      options.change = 'decrement'
+
+      ComputeProvider.updateGroupResourceUsage options, (err) ->
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : options.group.slug
+          type      : ComputeProvider.COUNTER_TYPE.instances
+        , (err, count) ->
+          expect(err).to.not.exist
+          expect(count).to.be.equal 0
+
+          JCounter.count
+            namespace : options.group.slug
+            type      : ComputeProvider.COUNTER_TYPE.stacks
+          , (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.be.equal 0
+
+            done()
+
+    it 'should fail to increase resource count if plan limit has been reached', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        { group } = options
+
+        group.setPlan client, { plan: 'default' }, (err) ->
+          expect(err).to.not.exist
+
+          options.change = 'increment'
+
+          ComputeProvider.updateGroupResourceUsage options, (err) ->
+            expect(err).to.exist
+            expect(err.message).to.be.equal 'Provided limit has been reached'
+
+            done()
 
 
   describe '#update()', ->

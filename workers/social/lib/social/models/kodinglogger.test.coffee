@@ -131,7 +131,7 @@ runTests = -> describe 'KodingLogger', ->
 
   describe '# send', ->
 
-    it 'should send a log to papertrail', (done) ->
+    it.skip 'should send a log to papertrail', (done) ->
 
       scope = 'log'
       group = 'testgroup'

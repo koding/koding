@@ -22,7 +22,10 @@ module.exports = class ComputeProvider extends Base
 
   JMachine       = require './machine'
   JWorkspace     = require '../workspace'
-  JStackTemplate = require './stacktemplate'
+
+  @COUNTER_TYPE  =
+    stacks       : 'member_stacks'
+    instances    : 'member_instances'
 
   @share()
 
@@ -61,15 +64,16 @@ module.exports = class ComputeProvider extends Base
 
   @providers      = PROVIDERS
 
+
   @fetchProviders = secure (client, callback) ->
     callback null, Object.keys PROVIDERS
-
 
 
   @ping = (client, options, callback) ->
 
     { provider } = options
     provider.ping client, options, callback
+
 
   @ping$ = permit 'ping machines',
     success: revive {
@@ -183,7 +187,6 @@ module.exports = class ComputeProvider extends Base
 
 
   @update = secure revive
-
 
     shouldReviveClient   : yes
     shouldPassCredential : yes
@@ -316,6 +319,7 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  unless plan
 
+    JStackTemplate = require './stacktemplate'
     JStackTemplate.one$ client, { _id: stackTemplateId }, (err, data) =>
 
       return callback err  if err
@@ -365,6 +369,7 @@ module.exports = class ComputeProvider extends Base
 
       # Remove all stack templates in the group
       (next) ->
+        JStackTemplate = require './stacktemplate'
         JStackTemplate.remove {
           group: group.slug
         }, skip 'JStackTemplate', next
@@ -404,7 +409,7 @@ module.exports = class ComputeProvider extends Base
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
-      type      : 'member_stacks'
+      type      : @COUNTER_TYPE.stacks
       max       : maxAllowed
       min       : 0
     , (err) ->
@@ -429,7 +434,7 @@ module.exports = class ComputeProvider extends Base
     JCounter[change]
       namespace : group.getAt 'slug'
       amount    : amount
-      type      : 'member_instances'
+      type      : @COUNTER_TYPE.instances
       max       : maxAllowed
       min       : 0
     , (err) ->
