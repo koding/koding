@@ -60,7 +60,6 @@ func TestFollowedTopics(t *testing.T) {
 					// channel should be nil
 					So(channelParticipant, ShouldNotBeNil)
 
-					// followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
 					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
