@@ -36,7 +36,7 @@ describe 'SharedMachineListItemsStore', ->
       expect(store).toBe machineListItem
 
 
-    it 'should remove list item by id from store', ->
+    it 'should remove item by id from store', ->
 
       id              = mock.getMockMachine()._id
       machineListItem = mock.getMockReactComponent()
