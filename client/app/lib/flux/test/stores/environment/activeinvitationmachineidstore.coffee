@@ -33,7 +33,7 @@ describe 'ActiveInvitationMachineIdStore', ->
         id : _id
       }
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe _id
 
@@ -44,7 +44,7 @@ describe 'ActiveInvitationMachineIdStore', ->
         id : null
       }
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe null
 
@@ -57,7 +57,7 @@ describe 'ActiveInvitationMachineIdStore', ->
         id : _id
       }
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe _id
 
@@ -66,6 +66,6 @@ describe 'ActiveInvitationMachineIdStore', ->
         forceUpdate : yes
       }
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe newMachineId
