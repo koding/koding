@@ -95,6 +95,7 @@ module.exports =
       .click                  saveButtonSelector
       .waitForElementVisible  "#{tabHandleSelector} #{titleSelector}", 20000 # Assertion
       .waitForElementVisible  filesTabSelector, 20000
+      .pause                  3000 # wait for create file
       .assert.containsText    filesTabSelector, newName # Assertion
 
     if text
@@ -148,6 +149,7 @@ module.exports =
       .waitForElementVisible  'li.open-file', 20000
       .click                  'li.open-file'
       .waitForElementVisible  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
+      .pause                  3000 # wait for text
       .assert.containsText    activeEditorSelector, text # Assertion
 
 
