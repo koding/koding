@@ -243,12 +243,16 @@ module.exports = CollaborationController =
 
   setWatchMap: ->
 
-    return  if @myWatchMap.values().length
+    if @myWatchMap.values().length
+      @emit 'WatchMapIsReady'
+      return
 
     @listChatParticipants (accounts) =>
       accounts.forEach (account) =>
-        {nickname} = account.profile
+        { nickname } = account.profile
         @myWatchMap.set nickname, nickname
+
+      @emit 'WatchMapIsReady'
 
 
   activateRealtimeManagerForHost: ->
@@ -623,18 +627,23 @@ module.exports = CollaborationController =
   ###
   resurrectParticipantSnapshot: ->
 
-    @whenRealtimeReady =>
-
+    doResurrection_ = =>
       @removeInitialViews()
-      mapLength = @myWatchMap.values()?.length
 
-      ## The `mapLength=0` meant the participant joined the collaboration just now.
-      if not mapLength or @amIWatchingChangeOwner(@collaborationHost)
+      if @amIWatchingChangeOwner @collaborationHost
         @getHostSnapshot (snapshot) =>
           @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
       else
         @fetchSnapshot (snapshot) =>
           @layoutManager.resurrectSnapshot snapshot, yes  if snapshot
+
+
+    @whenRealtimeReady =>
+
+      if @myWatchMap.values()?.length
+        doResurrection_()
+      else
+        @once 'WatchMapIsReady', doResurrection_
 
 
   showShareButton: ->
