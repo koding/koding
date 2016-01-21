@@ -21,7 +21,7 @@ checkBongoConnectivity = (callback) ->
   bongo = new Bongo
     root   : __dirname
     mongo  : mongo
-    models :  '../lib/social/models'
+    models : '../lib/social/models'
 
   bongo.once 'dbClientReady', ->
     callback()
@@ -135,11 +135,11 @@ withCreatedUser = (opts, callback) ->
 generateDummyUserFormData = (opts = {}) ->
 
   dummyUserFormData =
-    email                     : generateRandomEmail()
-    agree                     : 'on'
-    password                  : 'testpass'
-    username                  : generateRandomUsername()
-    passwordConfirm           : 'testpass'
+    email           : generateRandomEmail()
+    agree           : 'on'
+    password        : 'testpass'
+    username        : generateRandomUsername()
+    passwordConfirm : 'testpass'
 
   dummyUserFormData = _.extend dummyUserFormData, opts
 
@@ -164,7 +164,7 @@ generateCredentials = (opts = {}) ->
 generateUserInfo = (opts = {}) ->
 
   userInfo =
-    email           : "kodingtestuser+#{generateRandomString()}@gmail.com"
+    email           : generateRandomEmail()
     username        : generateRandomUsername()
     password        : 'testpass'
     lastName        : 'user'
@@ -203,9 +203,9 @@ expectAccessDenied = (caller, callee, args..., callback) ->
       expect(err?.message).to.be.equal 'Access denied'
       callback()
 
-    if    args.length > 0
-    then  caller[callee] client, args..., kallback
-    else  caller[callee] client, kallback
+    if   args.length > 0
+    then caller[callee] client, args..., kallback
+    else caller[callee] client, kallback
 
 
 fetchRelation = (options, callback) ->
@@ -249,7 +249,7 @@ expectRelation = {
   toNotExist : (options, callback) ->
     fetchRelation options, (relationship) ->
       expect(relationship).to.not.exist
-      callback relationship
+      callback()
 
 }
 
