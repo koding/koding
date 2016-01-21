@@ -723,18 +723,6 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 		_, ok := k.liveNodes[i]
 		So(ok, ShouldBeFalse)
 	})
-
-	Convey("KodingNetworkFS#isDirIgnored", tt, func() {
-		k := newknfs(t)
-		k.ignoredFolderList["ignored"] = struct{}{}
-
-		So(k.isDirIgnored(fuseutil.DT_Directory, "ignored"), ShouldBeTrue)
-		So(k.isDirIgnored(fuseutil.DT_Directory, "notignored"), ShouldBeFalse)
-
-		Convey("It should only ignore folders", func() {
-			So(k.isDirIgnored(fuseutil.DT_File, "ignored"), ShouldBeFalse)
-		})
-	})
 }
 
 func _unmount(k *KodingNetworkFS) error {
@@ -752,10 +740,9 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	}
 
 	c := &Config{
-		LocalPath:     mountDir,
-		IgnoreFolders: []string{"node_modules"},
-		NoPrefetch:    true,
-		NoWatch:       true,
+		Path:       mountDir,
+		NoPrefetch: true,
+		NoWatch:    true,
 	}
 	k, err := NewKodingNetworkFS(t, c)
 	if err != nil {

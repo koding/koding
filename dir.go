@@ -386,7 +386,7 @@ func newTempEntry(file *transport.GetInfoRes) *tempEntry {
 }
 
 func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
-	res, err := d.Transport.ReadDir(d.Path, false, []string{})
+	res, err := d.Transport.ReadDir(d.Path, false)
 	if err != nil {
 		return nil, err
 	}

@@ -17,11 +17,6 @@ type Config struct {
 	// FuseConfig determines if fuse library debug logs are turned on.
 	FuseDebug bool `default:false`
 
-	// IgnoreFolders are the remote folders which will be ignored, ie not
-	// downloaded or be available for folder operations. Use this to ignore
-	// folders like .git, logs/, bin/ etc.
-	IgnoreFolders []string
-
 	// NoIgnore determines whether to ignore default or user specified folders.
 	// Use this to turn off default ignoring of folders.
 	NoIgnore bool `default:false`

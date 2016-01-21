@@ -50,10 +50,6 @@ type KodingNetworkFS struct {
 	// DiskInfo is the cached result of remote disk info.
 	DiskInfo *transport.GetDiskInfoRes
 
-	// ignoredFolderList is folders for which all operations will return empty
-	// response. If a file has same name as entry in list, it'll NOT be ignored.
-	ignoredFolderList map[string]struct{}
-
 	// RWMutex protects the fields below.
 	sync.RWMutex
 
@@ -135,22 +131,9 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		return nil, err
 	}
 
-	ignoredFolderList := map[string]struct{}{}
-	ignoreFolders := []string{}
-
 	// watch for changes on remote optionally
 	if !c.NoWatch {
 		go WatchForRemoteChanges(rootDir, watcher)
-	}
-
-	// ignore fetching folders from remote optionally
-	if !c.NoIgnore {
-		ignoreFolders = append(DefaultFolderIgnoreList, c.IgnoreFolders...)
-
-		// add default and user specified list of folders to map for easy checking
-		for index := range ignoreFolders {
-			ignoredFolderList[ignoreFolders[index]] = struct{}{}
-		}
 	}
 
 	// don't prefetch folder/file metadata optionally
@@ -158,8 +141,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		// remove entries fetched above or it'll have double entries
 		rootDir.Reset()
 
-		dirInit := NewDirInitializer(t, rootDir, ignoreFolders)
-		if err := dirInit.Initialize(); err != nil {
+		if err := NewDirInitializer(t, rootDir).Initialize(); err != nil {
 			return nil, err
 		}
 	}
@@ -173,13 +155,12 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	}
 
 	return &KodingNetworkFS{
-		MountPath:         c.Path,
-		MountConfig:       mountConfig,
-		RWMutex:           sync.RWMutex{},
-		Watcher:           watcher,
-		DiskInfo:          res,
-		ignoredFolderList: ignoredFolderList,
-		liveNodes:         liveNodes,
+		MountPath:   c.Path,
+		MountConfig: mountConfig,
+		RWMutex:     sync.RWMutex{},
+		Watcher:     watcher,
+		DiskInfo:    res,
+		liveNodes:   liveNodes,
 	}, nil
 }
 
@@ -234,10 +215,6 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 		return err
 	}
 
-	if k.isDirIgnored(entry.GetType(), op.Name) {
-		return fuse.ENOENT
-	}
-
 	k.setEntry(entry.GetID(), entry)
 
 	op.Entry.Child = entry.GetID()
@@ -277,10 +254,6 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 
 	var bytesRead int
 	for _, e := range entries {
-		if k.isDirIgnored(e.Type, e.Name) {
-			continue
-		}
-
 		c := fuseutil.WriteDirent(op.Dst[bytesRead:], e)
 		if c == 0 {
 			break
@@ -650,13 +623,6 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 	k.Lock()
 	delete(k.liveNodes, id)
 	k.Unlock()
-}
-
-// isIgnoredDir returns true if entry is a directory and is in list of ignored
-// list of entries.
-func (k *KodingNetworkFS) isDirIgnored(t fuseutil.DirentType, name string) bool {
-	_, ok := k.ignoredFolderList[name]
-	return ok && t == fuseutil.DT_Directory
 }
 
 func (k *KodingNetworkFS) entryChanged(e Node) {

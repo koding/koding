@@ -1,10 +1,7 @@
 package transport
 
 import (
-	"fmt"
-	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -29,41 +26,17 @@ type KlientTransport struct {
 	// The timeout trip() uses for TellWithTimeout. If left empty, a zero timeout is
 	// used, achieving the same result as Tell(), ie no timeout.
 	TellTimeout time.Duration
+
+	IgnoreDirs []string
 }
 
 // NewKlientTransport initializes KlientTransport with Klient connection.
-func NewKlientTransport(klientIP string) (*KlientTransport, error) {
-	k := kite.New(kiteName, kiteVersion)
-
-	kiteClient := k.NewClient(fmt.Sprintf("http://%s:56789/kite", klientIP))
-
-	// os/user has issues with cross compiling, so we may want to use
-	// the following library instead:
-	//
-	// 	https://github.com/mitchellh/go-homedir
-	usr, err := user.Current()
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := ioutil.ReadFile(fmt.Sprintf(
-		"%s/.fuseklient/keys/%s.kite.key", usr.HomeDir, klientIP,
-	))
-	if err != nil {
-		return nil, err
-	}
-
-	kiteClient.Auth = &kite.Auth{
-		Type: "kiteKey",
-		Key:  strings.TrimSpace(string(data)),
-	}
-	kiteClient.Reconnect = true
-
-	if err := kiteClient.DialTimeout(kiteTimeout); err != nil {
-		return nil, err
-	}
-
-	return &KlientTransport{Client: kiteClient}, nil
+func NewKlientTransport(c *kite.Client, t time.Duration) (*KlientTransport, error) {
+	return &KlientTransport{
+		Client:      c,
+		TellTimeout: t,
+		IgnoreDirs:  DefaultDirIgnoreList,
+	}, nil
 }
 
 // CreateDir (recursively) creates dir with specified name and mode. It does
@@ -82,15 +55,15 @@ func (k *KlientTransport) CreateDir(path string, _ os.FileMode) error {
 
 // ReadDir returns entries of the dir at specified path. It takes slice of dir
 // names as strings to ignore from listing.
-func (k *KlientTransport) ReadDir(path string, recursive bool, ignoreFolders []string) (*ReadDirRes, error) {
+func (k *KlientTransport) ReadDir(path string, r bool) (*ReadDirRes, error) {
 	req := struct {
 		Path          string
 		Recursive     bool
 		IgnoreFolders []string
 	}{
 		Path:          k.fullPath(path),
-		Recursive:     true,
-		IgnoreFolders: ignoreFolders,
+		Recursive:     r,
+		IgnoreFolders: k.IgnoreDirs,
 	}
 	res := &ReadDirRes{}
 	if err := k.trip("fs.readDirectory", req, &res); err != nil {

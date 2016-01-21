@@ -20,7 +20,7 @@ var DiskCachePathPrefix = "fuseklient-diskcache"
 // NewDiskTransport is the required initializer for DiskTransport. It accepts
 // path where to create cache folder; if empty path is specified it creates a
 // folder at temp location.
-func NewDiskTransport(diskPath string) (*DiskTransport, error) {
+func NewDiskTransport(diskPath string, ignoreDirs []string) (*DiskTransport, error) {
 	if diskPath == "" {
 		var err error
 		if diskPath, err = ioutil.TempDir("", DiskCachePathPrefix); err != nil {
@@ -44,9 +44,11 @@ func (d *DiskTransport) CreateDir(path string, mode os.FileMode) error {
 	return os.MkdirAll(d.fullPath(path), mode)
 }
 
-// ReadDir returns entries of the dir at specified path.
-func (d *DiskTransport) ReadDir(path string, r bool, i []string) (*ReadDirRes, error) {
-	entries, err := readDirectory(d.fullPath(path), r, i)
+// ReadDir returns entries of the dir at specified path. If specified it can
+// return nested entries of the dir in a flat data structure. The entires are
+// lexically ordered.
+func (d *DiskTransport) ReadDir(path string, r bool) (*ReadDirRes, error) {
+	entries, err := readDirectory(d.fullPath(path), r, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -18,17 +18,16 @@ type DirInitializer struct {
 	DirEntriesList map[string]*Dir
 }
 
-func NewDirInitializer(t transport.Transport, root *Dir, ignoreFolders []string) *DirInitializer {
+func NewDirInitializer(t transport.Transport, root *Dir) *DirInitializer {
 	return &DirInitializer{
 		Transport:      t,
 		RootDir:        root,
-		IgnoreFolders:  ignoreFolders,
 		DirEntriesList: map[string]*Dir{root.Path: root},
 	}
 }
 
 func (d *DirInitializer) Initialize() error {
-	res, err := d.Transport.ReadDir(d.RootDir.Path, true, d.IgnoreFolders)
+	res, err := d.Transport.ReadDir(d.RootDir.Path, true)
 	if err != nil {
 		return err
 	}

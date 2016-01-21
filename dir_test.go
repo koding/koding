@@ -544,12 +544,8 @@ func TestDir(t *testing.T) {
 				So(child.ID, ShouldEqual, 2)
 			})
 
-			Convey("It should set local path for child entry nested in parent", func() {
-				So(child.LocalPath, ShouldEqual, "/local/dir")
-			})
-
-			Convey("It should set remote path for child entry nested in parent", func() {
-				So(child.RemotePath, ShouldEqual, "/remote/dir")
+			Convey("It should set path for child entry nested in parent", func() {
+				So(child.Path, ShouldEqual, "/local/dir")
 			})
 
 			Convey("It should set specificed name and entry type for child entry", func() {
@@ -657,7 +653,7 @@ func newFakeTransport() *fakeTransport {
 
 func newDir() *Dir {
 	t := newFakeTransport()
-	n := NewRootEntry(t, "/remote", "/local")
+	n := NewRootEntry(t, "/local")
 	n.ID = fuseops.InodeID(fuseops.RootInodeID + 1)
 
 	i := NewIDGen()
