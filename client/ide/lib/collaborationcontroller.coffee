@@ -148,6 +148,7 @@ module.exports = CollaborationController =
     @removeParticipantCursorWidget username
     # remove participant's all data persisted in realtime appInfo
     @removeParticipant username
+    @removeWorkspaceSnapshot username
 
     options = {
       username
