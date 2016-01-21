@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/hcl/json/parser"
 	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/config/lang"
+	"github.com/koding/logging"
 )
 
 type Template struct {
@@ -22,21 +23,23 @@ type Template struct {
 
 	node *ast.ObjectList `json:"-"`
 	b    *object.Builder `json:"-"`
+	log  logging.Logger  `json:"-"`
 }
 
 // newTerraformTemplate parses the content and returns a terraformTemplate
 // instance
-func ParseTemplate(content string) (*Template, error) {
+func ParseTemplate(content string, log logging.Logger) (*Template, error) {
 	template := &Template{
 		Resource: make(map[string]interface{}),
 		Provider: make(map[string]interface{}),
 		Variable: make(map[string]interface{}),
 		Output:   make(map[string]interface{}),
 		b: &object.Builder{
-			Tag:       "stackplan",
+			Tag:       "hcl",
 			Sep:       "_",
 			Recursive: true,
 		},
+		log: log.New("template"),
 	}
 
 	err := json.Unmarshal([]byte(content), &template)
@@ -223,6 +226,8 @@ func (t *Template) FillVariables(prefix string) error {
 // InjectVariables
 func (t *Template) InjectVariables(prefix string, meta interface{}) error {
 	for k, v := range t.b.New(prefix).Build(meta) {
+		t.log.Debug("Injecting variable: %s=%q", k, v)
+
 		t.Variable[k] = map[string]interface{}{
 			"default": v,
 		}
