@@ -459,18 +459,24 @@ module.exports = class ComputeProvider extends Base
 
       if err and change is 'increment'
 
-        { account, template, provider } = details
-        user = account?.getAt?('profile.nickname') ? 'an unknown user'
+        { account, template, provider } = details ? {}
+        user     = account?.getAt?('profile.nickname') ? 'an unknown user'
+        provider = if provider? then "#{provider} " else ''
+        template = if template?.title?
+        then "Stack: #{template.title} - #{template._id}"
+        else ''
 
         KodingLogger.warn group, \
-          "#{user} failed to create #{item} due to plan limitations."
+          "#{user} failed to create #{provider}#{item} due to plan limitations. #{template}"
 
       callback err
 
     options = { group, change, amount: instanceCount }
 
     if instanceOnly
-      @updateGroupInstanceUsage options, handleResult
+      @updateGroupInstanceUsage options, (err) ->
+        handleResult err, 'machine'
+
       return
 
     @updateGroupStackUsage group, change, (err) =>
