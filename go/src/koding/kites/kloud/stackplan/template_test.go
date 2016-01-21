@@ -2,12 +2,16 @@ package stackplan_test
 
 import (
 	"fmt"
-	"koding/kites/kloud/stackplan"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
 	"testing"
+
+	"koding/kites/common"
+	"koding/kites/kloud/provider"
+	"koding/kites/kloud/provider/aws"
+	"koding/kites/kloud/stackplan"
 )
 
 const testTemplate = `{
@@ -34,8 +38,10 @@ const testTemplate = `{
     }
 }`
 
+var log = common.NewLogger("test", true)
+
 func TestTerraformTemplate_NewNil(t *testing.T) {
-	template, err := stackplan.ParseTemplate(testTemplate)
+	template, err := stackplan.ParseTemplate(testTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +64,7 @@ func TestTerraformTemplate_NewNil(t *testing.T) {
 }
 
 func TestTerraformTemplate_InjectKodingData(t *testing.T) {
-	template, err := stackplan.ParseTemplate(testTemplate)
+	template, err := stackplan.ParseTemplate(testTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +126,7 @@ func TestTerraformTemplate_InjectKodingData(t *testing.T) {
 }
 
 func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
-	template, err := stackplan.ParseTemplate(testTemplate)
+	template, err := stackplan.ParseTemplate(testTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +168,7 @@ func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 }
 
 func TestTerraformTemplate_DecodeProvider(t *testing.T) {
-	template, err := stackplan.ParseTemplate(testTemplate)
+	template, err := stackplan.ParseTemplate(testTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +209,7 @@ func TestTerraformTemplate_ShadowVariables(t *testing.T) {
         }
     }
 }`
-	template, err := stackplan.ParseTemplate(userTestTemplate)
+	template, err := stackplan.ParseTemplate(userTestTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -240,7 +246,7 @@ func TestTerraformTemplate_DetectUserVariables(t *testing.T) {
         }
     }
 }`
-	template, err := stackplan.ParseTemplate(userTestTemplate)
+	template, err := stackplan.ParseTemplate(userTestTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -300,7 +306,7 @@ func TestTerraformTemplate_FillVariables(t *testing.T) {
         }
     }
 }`
-	template, err := stackplan.ParseTemplate(userTestTemplate)
+	template, err := stackplan.ParseTemplate(userTestTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -327,7 +333,6 @@ func TestTerraformTemplate_FillVariables(t *testing.T) {
 	equals(t, "", variable.UserInputFoo.Default)
 }
 
-// TODO(rjeczalik): move to provider/aws
 func TestTerraformTemplate_SetAWSRegion(t *testing.T) {
 	missingRegionTemplate := `{
     "variable": {
@@ -352,16 +357,16 @@ func TestTerraformTemplate_SetAWSRegion(t *testing.T) {
     }
 }`
 
-	template, err := stackplan.ParseTemplate(missingRegionTemplate)
+	template, err := stackplan.ParseTemplate(missingRegionTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return
-
-	// if err := template.SetAwsRegion("us-east-1"); err != nil {
-	//	t.Fatal(err)
-	// }
+	// TODO(rjeczalik): move the test to provider/aws
+	s := &awsprovider.Stack{BaseStack: &provider.BaseStack{Builder: &stackplan.Builder{Template: template}}}
+	if err := s.SetAwsRegion("us-east-1"); err != nil {
+		t.Fatal(err)
+	}
 
 	var provider struct {
 		Aws struct {
@@ -404,7 +409,7 @@ func TestTerraformTemplate_Encoding(t *testing.T) {
 	    }
 	}`
 
-	template, err := stackplan.ParseTemplate(userTestTemplate)
+	template, err := stackplan.ParseTemplate(userTestTemplate, log)
 	if err != nil {
 		t.Fatal(err)
 	}
