@@ -60,6 +60,8 @@ module.exports = class KodingLogger
 
       group = if typeof requester is 'string'
         requester
+      else if requester.slug?
+        requester.slug
       else if requester.context?.group?
         requester.context.group
       else
