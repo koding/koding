@@ -116,7 +116,7 @@ module.exports = class JSession extends Model
   @fetchSessionByData = (data, callback) ->
     @one data, (err, session) =>
       return callback err  if err
-      return callback null, { session }  if session?
+      return callback null, session  if session?
       @createNewSession data, callback
 
 
