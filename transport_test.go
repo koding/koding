@@ -35,7 +35,7 @@ func (f *fakeTransport) CreateDir(path string, mode os.FileMode) error {
 	return nil
 }
 
-func (f *fakeTransport) ReadDir(path string, i []string) (*transport.ReadDirRes, error) {
+func (f *fakeTransport) ReadDir(path string, r bool, i []string) (*transport.ReadDirRes, error) {
 	var res *transport.ReadDirRes
 	return res, f.Trip("fs.readDirectory", nil, &res)
 }

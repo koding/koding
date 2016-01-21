@@ -5,11 +5,8 @@ type Config struct {
 	// IP is ip of user VM to connect.
 	IP string `required:"true"`
 
-	// RemotePath is path to folder in user VM to be mounted locally.
-	RemotePath string `required:"true"`
-
-	// LocalPath is path to folder in local to serve as mount point.
-	LocalPath string `required:"true"`
+	// Path is path to folder in local to serve as mount point.
+	Path string `required:"true"`
 
 	// MountName is identifier for the mounted folder.
 	MountName string `default:"fuseklient"`

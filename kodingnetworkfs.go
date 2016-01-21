@@ -31,7 +31,6 @@ var (
 // * Communication with Kernel and maintaining list of live nodes are the only
 //   operations that should happen here.
 type KodingNetworkFS struct {
-
 	// NotImplementedFileSystem is the default implementation for
 	// `fuseutil.FileSystem` interface methods. Any interface methods that are
 	// unimplemented return `fuse.ENOSYS` as error. This lets us implement only
@@ -66,8 +65,8 @@ type KodingNetworkFS struct {
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
 func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, error) {
 	// create mount point if it doesn't exist
-	// TODO: don't allow ~ in conf.LocalPath since Go doesn't expand it
-	if err := os.MkdirAll(c.LocalPath, 0755); err != nil {
+	// TODO: don't allow ~ in conf.Path since Go doesn't expand it
+	if err := os.MkdirAll(c.Path, 0755); err != nil {
 		return nil, err
 	}
 
@@ -78,7 +77,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 		// VolumeName is the name of the folder shown in applications like Finder
 		// in OSX.
-		VolumeName: path.Base(c.LocalPath),
+		VolumeName: path.Base(c.Path),
 
 		// DisableWritebackCaching disables write cache in Kernel. Without this if
 		// a file changes in the user VM, when user checks local, file will not have
@@ -111,10 +110,9 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	localUser, localGroup := getLocalUserInfo()
 
 	// create root entry
-	rootEntry := NewRootEntry(t, c.RemotePath, c.LocalPath)
-	rootEntry.Name = path.Base(c.RemotePath)
-	rootEntry.RemotePath = c.RemotePath
-	rootEntry.LocalPath = c.LocalPath
+	rootEntry := NewRootEntry(t, c.Path)
+	rootEntry.Name = "/"
+	rootEntry.Path = "/"
 	rootEntry.Uid = localUser
 	rootEntry.Gid = localGroup
 
@@ -125,7 +123,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
-	watcher := NewFindWatcher(t, rootDir.RemotePath)
+	watcher := NewFindWatcher(t, rootEntry.Path)
 
 	// update entries for root directory
 	if err := rootDir.Expire(); err != nil {
@@ -169,13 +167,13 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	// save root directory
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
-	res, err := t.GetDiskInfo(rootDir.RemotePath)
+	res, err := t.GetDiskInfo(rootDir.Name)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KodingNetworkFS{
-		MountPath:         c.LocalPath,
+		MountPath:         c.Path,
 		MountConfig:       mountConfig,
 		RWMutex:           sync.RWMutex{},
 		Watcher:           watcher,
@@ -664,6 +662,6 @@ func (k *KodingNetworkFS) isDirIgnored(t fuseutil.DirentType, name string) bool 
 func (k *KodingNetworkFS) entryChanged(e Node) {
 	file, ok := e.(*File)
 	if ok {
-		k.Watcher.AddTimedIgnore(file.LocalPath, 1*time.Minute)
+		k.Watcher.AddTimedIgnore(file.Path, 1*time.Minute)
 	}
 }

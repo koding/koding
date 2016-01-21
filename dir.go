@@ -3,8 +3,6 @@ package fuseklient
 import (
 	"fmt"
 	"os"
-	"path"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -110,8 +108,7 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 		return nil, fuse.EEXIST
 	}
 
-	path := filepath.Join(d.RemotePath, name)
-	if err := d.Transport.CreateDir(path, 0755); err != nil {
+	if err := d.Transport.CreateDir(name, 0755); err != nil {
 		return nil, err
 	}
 
@@ -209,10 +206,7 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
-	oldPath := filepath.Join(d.RemotePath, oldName)
-	newPath := filepath.Join(newDir.RemotePath, newName)
-
-	if err := d.Transport.Rename(oldPath, newPath); err != nil {
+	if err := d.Transport.Rename(oldName, newName); err != nil {
 		return nil, err
 	}
 
@@ -319,8 +313,7 @@ func (d *Dir) removeEntry(name string) (Node, error) {
 		return nil, err
 	}
 
-	path := path.Join(d.RemotePath, name)
-	if err := d.Transport.Remove(path); err != nil {
+	if err := d.Transport.Remove(name); err != nil {
 		return nil, err
 	}
 
@@ -393,7 +386,7 @@ func newTempEntry(file *transport.GetInfoRes) *tempEntry {
 }
 
 func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
-	res, err := d.Transport.ReadDir(d.RemotePath, []string{})
+	res, err := d.Transport.ReadDir(d.Path, false, []string{})
 	if err != nil {
 		return nil, err
 	}

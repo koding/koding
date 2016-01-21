@@ -149,11 +149,11 @@ func (f *File) syncToRemote() error {
 
 func (f *File) writeContentToRemote(content []byte) error {
 	f.IsDirty = false
-	return f.Transport.WriteFile(f.RemotePath, content)
+	return f.Transport.WriteFile(f.Path, content)
 }
 
 func (f *File) updateContentFromRemote() error {
-	res, err := f.Transport.ReadFile(f.RemotePath)
+	res, err := f.Transport.ReadFile(f.Path)
 	if err != nil {
 		return err
 	}
