@@ -23,11 +23,12 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
+	if accountId != c.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
 	query := request.GetQuery(u)
 	query = c.OverrideQuery(query)
-	if query.AccountId == 0 {
-		query.AccountId = accountId
-	}
 
 	if query.Type == "" {
 		query.Type = models.Channel_TYPE_TOPIC
@@ -59,23 +60,27 @@ func GetAccountFromSession(u *url.URL, h http.Header, _ interface{}, c *models.C
 }
 
 func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
-	if !c.IsLoggedIn() {
-		return response.NewBadRequest(models.ErrNotLoggedIn)
-	}
-
-	query := request.GetQuery(u)
-	query = c.OverrideQuery(query)
-
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	if accountId != c.Client.Account.Id {
+		return response.NewBadRequest(models.ErrAccessDenied)
+	}
+
+	query := request.GetQuery(u)
+	query = c.OverrideQuery(query)
+
 	if query.Type == "" {
 		query.Type = models.Channel_TYPE_TOPIC
 	}
 	cp := models.NewChannelParticipant()
-	a := &models.Account{Id: accountId}
+	a := &models.Account{Id: query.AccountId}
 
 	return response.HandleResultAndError(cp.ParticipatedChannelCount(a, query))
 }
@@ -86,21 +91,16 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}, context *models.Context
 
 	buildMessageQuery := query.Clone()
 
-	accountId, err := request.GetURIInt64(u, "id")
+	accountId, err := request.GetId(u)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	// Get Group Channel
-	selector := map[string]interface{}{
-		"group_name":    query.GroupName,
-		"type_constant": models.Channel_TYPE_GROUP,
-	}
-
-	c := models.NewChannel()
-	if err := c.One(bongo.NewQS(selector)); err != nil {
+	c, err := models.Cache.Channel.ByGroupName(query.GroupName)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
+
 	// fetch only channel messages
 	query.Type = models.ChannelMessage_TYPE_POST
 	query.AccountId = accountId
@@ -125,26 +125,9 @@ func FetchPostCount(u *url.URL, h http.Header, _ interface{}, context *models.Co
 		return response.NewBadRequest(err)
 	}
 
-	// Get Group Channel
-	selector := map[string]interface{}{
-		"group_name":    query.GroupName,
-		"type_constant": models.Channel_TYPE_GROUP,
-	}
-
-	// first check channel existence
-	c := models.NewChannel()
-	if err := c.One(bongo.NewQS(selector)); err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	// check if user can open the channel
-	ok, err := c.CanOpen(accountId)
+	c, err := models.Cache.Channel.ByGroupName(query.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
-	}
-
-	if !ok {
-		return response.NewAccessDenied(nil)
 	}
 
 	// fetch user post count in koding channel
@@ -238,14 +221,13 @@ func Unfollow(u *url.URL, h http.Header, req *models.Account, context *models.Co
 	return response.HandleResultAndError(req.Unfollow(targetId))
 }
 
-func CheckOwnership(u *url.URL, h http.Header, context *models.Context) (int, http.Header, interface{}, error) {
+func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, error) {
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	query := request.GetQuery(u)
-	query = context.OverrideQuery(query)
 
 	ownershipResponse := func(err error) (int, http.Header, interface{}, error) {
 		var success bool
