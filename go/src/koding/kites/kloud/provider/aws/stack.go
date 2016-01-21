@@ -64,7 +64,7 @@ func (meta *AwsMeta) Valid() error {
 	return nil
 }
 
-// Stack
+// Stack implements the kloud.StackProvider interface.
 type Stack struct {
 	*provider.BaseStack
 }

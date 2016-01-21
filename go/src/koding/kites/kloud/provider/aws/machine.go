@@ -1,13 +1,14 @@
 package awsprovider
 
 import (
+	"time"
+
 	"koding/db/models"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
-	"time"
 
 	"github.com/koding/logging"
 	"github.com/mitchellh/mapstructure"
@@ -57,15 +58,12 @@ func (m *Machine) GetMeta() (*Meta, error) {
 // list to nil. Once called any other call will not have any
 // effect.
 func (m *Machine) runCleanupFunctions() {
-	if m.cleanFuncs == nil {
-		return
-	}
+	fns := m.cleanFuncs
+	m.cleanFuncs = nil
 
-	for _, fn := range m.cleanFuncs {
+	for _, fn := range fns {
 		fn()
 	}
-
-	m.cleanFuncs = nil
 }
 
 func (m *Machine) PublicIpAddress() string {

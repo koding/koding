@@ -12,14 +12,15 @@ import (
 )
 
 func (m *Machine) Stop(ctx context.Context) (err error) {
-	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is stopping", machinestate.Stopping); err != nil {
-		return err
-	}
-
 	// update the state to intiial state if something goes wrong, we are going
 	// to change latestate to a more safe state if we passed a certain step
 	// below
 	latestState := m.State()
+
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is stopping", machinestate.Stopping); err != nil {
+		return err
+	}
+
 	defer func() {
 		if err != nil {
 			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
