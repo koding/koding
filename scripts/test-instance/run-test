@@ -11,17 +11,17 @@ EOF
 
 set -o errexit
 
+SCRIPTS=$(dirname $0)
+
 HOST=$1
 
 shift # Remove HOST option from positional parameter array.
 
 OPTIONS=$*
 
-ssh -o 'StrictHostKeyChecking no' \
-    -i $(dirname $0)/koding-test-instances-2015-06.pem \
-    ubuntu@$HOST \
-    NIGHTWATCH_OPTIONS="'$NIGHTWATCH_OPTIONS'" \
-    "sudo -E /opt/koding/client/test/run.sh $OPTIONS" &
+$SCRIPTS/ssh \
+  NIGHTWATCH_OPTIONS="'$NIGHTWATCH_OPTIONS'" \
+  "/opt/koding/client/test/run.sh $OPTIONS" &
 
 PID=$!
 
