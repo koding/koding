@@ -10,7 +10,7 @@ PublicChatPane       = require 'activity/components/publicchatpane'
 PublicFeedPane       = require 'activity/components/publicfeedpane'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
 getGroup             = require 'app/util/getGroup'
-isFeedEnabled        = require 'app/util/isFeedEnabled'
+isKoding             = require 'app/util/isKoding'
 
 
 module.exports = class ChannelThreadPane extends React.Component
@@ -64,7 +64,7 @@ module.exports = class ChannelThreadPane extends React.Component
 
     return  unless thread = @state.channelThread
 
-    if not isFeedEnabled()
+    if not isKoding()
       <ChannelThreadHeader
         className="ChannelThreadPane-header"
         thread={thread}
@@ -76,7 +76,7 @@ module.exports = class ChannelThreadPane extends React.Component
 
   renderPaneByTypeConstant: (thread) ->
 
-    if isFeedEnabled()
+    if isKoding()
       <section className='ThreadPane-feedWrapper'>
         <PublicFeedPane
           ref='pane'
@@ -101,7 +101,7 @@ module.exports = class ChannelThreadPane extends React.Component
   renderSidebar: ->
 
     return null  unless thread = @state.channelThread
-    return null  if isFeedEnabled()
+    return null  if isKoding()
 
     <aside className='ChannelThreadPane-sidebar'>
       <ThreadSidebar
