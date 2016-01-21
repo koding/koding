@@ -8,7 +8,6 @@ KDProgressBarView            = kd.ProgressBarView
 
 nick                         = require 'app/util/nick'
 Machine                      = require 'app/providers/machine'
-isKoding                     = require 'app/util/isKoding'
 groupifyLink                 = require 'app/util/groupifyLink'
 isMachineSettingsIconEnabled = require 'app/util/isMachineSettingsIconEnabled'
 userEnvironmentDataProvider  = require 'app/userenvironmentdataprovider'

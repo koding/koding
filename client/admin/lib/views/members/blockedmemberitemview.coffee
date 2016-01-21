@@ -1,7 +1,6 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 whoami                 = require 'app/util/whoami'
-isKoding               = require 'app/util/isKoding'
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 

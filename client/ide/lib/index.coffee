@@ -13,7 +13,6 @@ Encoder                       = require 'htmlencode'
 Machine                       = require 'app/providers/machine'
 IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
-isKoding                      = require 'app/util/isKoding'
 showError                     = require 'app/util/showError'
 actionTypes                   = require 'app/flux/environment/actiontypes'
 KDModalView                   = kd.ModalView

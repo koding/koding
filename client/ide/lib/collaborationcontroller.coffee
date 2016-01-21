@@ -9,7 +9,6 @@ KDModalView                   = kd.ModalView
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
-isKoding                      = require 'app/util/isKoding'
 isTeamReactSide               = require 'app/util/isTeamReactSide'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'

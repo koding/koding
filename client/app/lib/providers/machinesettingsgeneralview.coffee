@@ -2,7 +2,6 @@ kd                     = require 'kd'
 KDView                 = kd.View
 Encoder                = require 'htmlencode'
 Machine                = require './machine'
-isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 selectText             = require 'app/util/selectText'
 KodingSwitch           = require '../commonviews/kodingswitch'
