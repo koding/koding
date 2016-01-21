@@ -16,7 +16,7 @@ module.exports =
     matchedWordSelector         = '.content-search-result pre p.match'
     activeUntitledFileSelector  = "#{paneSelector} .untitledtxt.active"
     activeEditorSelector        = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
-    fileNameSelector            = '.content-search-result .filename:first-child > span'
+    fileNameSelector            = '.content-search-result .filename > span'
 
     ideHelpers.openNewFile(browser)
     ideHelpers.openContextMenu(browser)
