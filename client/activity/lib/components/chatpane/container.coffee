@@ -8,8 +8,6 @@ ChatPaneView      = require './view'
 scrollToElement   = require 'app/util/scrollToElement'
 KDReactorMixin    = require 'app/flux/base/reactormixin'
 
-ensureScrollableElementIsVisible = require 'app/util/ensureScrollableElementIsVisible'
-
 module.exports = class ChatPaneContainer extends React.Component
 
   @propsTypes =
@@ -70,7 +68,7 @@ module.exports = class ChatPaneContainer extends React.Component
 
     if selectedMessageId and selectedMessageId isnt prevSelectedMessageId
       item = $("[data-message-id=#{selectedMessageId}]").get(0)
-      scrollToElement item
+      scrollToElement item, yes
 
     else if @flag 'hasSubmittingMessage'
       view.scrollToBottom()
@@ -84,7 +82,7 @@ module.exports = class ChatPaneContainer extends React.Component
         item = $("[data-message-id=#{message.get 'id'}]").get(0)
 
         # this delay is needed for chat input to resize its textarea
-        kd.utils.wait 50, -> ensureScrollableElementIsVisible item
+        kd.utils.wait 50, -> scrollToElement item
 
     else
       hasStoppedMessageEditing = not hasEditingMessage and hadEditingMessage
