@@ -451,19 +451,37 @@ module.exports = class ComputeProvider extends Base
 
   @updateGroupResourceUsage = (options, callback) ->
 
-    { group, instanceCount, change } = options
+    { group, instanceCount, instanceOnly, change, details } = options
 
     return callback null  if group.slug is 'koding'
 
+    handleResult = (err, item) ->
+
+      if err and change is 'increment'
+
+        { account, template, provider } = details
+        user = account?.getAt?('profile.nickname') ? 'an unknown user'
+
+        KodingLogger.warn group, \
+          "#{user} failed to create #{item} due to plan limitations."
+
+      callback err
+
     options = { group, change, amount: instanceCount }
+
+    if instanceOnly
+      @updateGroupInstanceUsage options, handleResult
+      return
+
     @updateGroupStackUsage group, change, (err) =>
-      return callback err  if err
+      return handleResult err, 'stack'  if err
+
       @updateGroupInstanceUsage options, (err) =>
         if err and change is 'increment'
           @updateGroupStackUsage group, 'decrement', ->
-            callback err
+            handleResult err, 'machine'
         else
-          callback err
+          handleResult err, 'resource'
 
 
   @createGroupStack = (client, options, callback) ->
