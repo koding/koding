@@ -35,6 +35,7 @@ module.exports = ChannelToken =
         channelName = ChannelToken.extractQuery value
         return {
           type     : 'command'
+          reset    : no
           value    :
             name   : 'CreateChannel'
             params : { channelName }

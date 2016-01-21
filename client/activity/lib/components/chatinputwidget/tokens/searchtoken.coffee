@@ -28,6 +28,7 @@ module.exports = SearchToken =
         { initialChannelId, id } = item.get('message').toJS()
         return {
           type     : 'command'
+          reset    : yes
           value    :
             name   : '/search'
             params : { initialChannelId, messageId : id }

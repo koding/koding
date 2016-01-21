@@ -33,8 +33,6 @@ executeCommand = (command, channel) ->
 
       options = { type : 'topic', name : channelName }
       createPublicChannel(options)
-        .then ({ channel }) ->
-          kd.singletons.router.handleRoute "/Channels/#{channel.name}"
         .catch (err) ->
           kd.log 'Error during "Create Channel" command execution', err
 
