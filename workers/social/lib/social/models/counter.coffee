@@ -54,14 +54,15 @@ module.exports  = class JCounter extends Module
     operation = { $inc: { current: amount } }
     options   = { new: yes, upsert: yes }
 
-    JCounter.findAndModify query, null, operation, options, (err, counter) ->
+    JCounter.findAndModify query, null, operation, options, (err, result) ->
       if err
         if err.code is DUPLICATE_ERR
           callback new KodingError 'Provided limit has been reached'
         else
           callback err
       else
-        callback null, counter.current
+        { current } = result.value
+        callback null, current
 
 
   parse = (options, direction) ->
