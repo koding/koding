@@ -220,23 +220,24 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     testGroup = null
 
+    before (done) ->
+      withConvertedUser { createGroup: yes }, ({ group }) ->
+        testGroup = group
+        done()
+
     it 'should increase given group stack count', (done) ->
 
-      withConvertedUser { createGroup: yes }, ({ group }) ->
+      ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
+        expect(err).to.not.exist
 
-        testGroup = group
-
-        ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
+        JCounter.count
+          namespace : testGroup.slug
+          type      : ComputeProvider.COUNTER_TYPE.stacks
+        , (err, count) ->
           expect(err).to.not.exist
+          expect(count).to.be.equal 1
 
-          JCounter.count
-            namespace : testGroup.slug
-            type      : ComputeProvider.COUNTER_TYPE.stacks
-          , (err, count) ->
-            expect(err).to.not.exist
-            expect(count).to.be.equal 1
-
-            done()
+          done()
 
     it 'should decrease given group stack count', (done) ->
 
@@ -281,24 +282,25 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     testGroup = null
 
+    before (done) ->
+      withConvertedUser { createGroup: yes }, ({ group }) ->
+        testGroup = group
+        done()
+
     it 'should increase given group instance count', (done) ->
 
-      withConvertedUser { createGroup: yes }, ({ group }) ->
+      ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 2, (err) ->
 
-        testGroup = group
+        expect(err).to.not.exist
 
-        ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 2, (err) ->
-
+        JCounter.count
+          namespace : testGroup.slug
+          type      : ComputeProvider.COUNTER_TYPE.instances
+        , (err, count) ->
           expect(err).to.not.exist
+          expect(count).to.be.equal 2
 
-          JCounter.count
-            namespace : testGroup.slug
-            type      : ComputeProvider.COUNTER_TYPE.instances
-          , (err, count) ->
-            expect(err).to.not.exist
-            expect(count).to.be.equal 2
-
-            done()
+          done()
 
     it 'should decrease given group instance count', (done) ->
 
