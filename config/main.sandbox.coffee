@@ -554,6 +554,26 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
           }
           {
+            location    : "~ /api/social/message/(.*)"
+            proxyPass   : "http://socialapi/message/$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/channel/(.*)"
+            proxyPass   : "http://socialapi/channel/$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/privatechannel/(.*)"
+            proxyPass   : "http://socialapi/privatechannel/$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/popular/(.*)"
+            proxyPass   : "http://socialapi/popular/$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/activity/(.*)"
+            proxyPass   : "http://socialapi/activity/$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/search-key"
             proxyPass   : "http://socialapi/search-key$1$is_args$args"
           }
