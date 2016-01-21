@@ -259,10 +259,8 @@ class Haydar extends events.EventEmitter
       rewriteMap : rewriteMap
       noParse    : [
         'jquery',
-        'underscore',
-        'lodash',
+        'lodash-compat',
         'emojify',
-        'kd-shim-algoliasearch', 'algoliasearch',
         'accounting',
         'timeago'
       ]
@@ -323,9 +321,16 @@ class Haydar extends events.EventEmitter
         else
 
           if opts.extractJsSourcemaps
+            strSrc = src.toString()
+            newSrc = []
+            chunkSize = 10 * 1024 * 1024 # 10 MB
+            for index in (index for index in strSrc.length by chunkSize)
+              chunk = strSrc.substring index, (index + chunkSize)
+              newSrc.push convert.removeMapFileComments chunk
+
             s = fs.createWriteStream outfile
             asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(
-              asStream(convert.removeMapFileComments(src.toString()))
+              asStream(newSrc.join())
             ).pipe(s)
 
             s.once 'finish', ->

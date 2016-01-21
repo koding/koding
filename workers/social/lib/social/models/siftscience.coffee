@@ -62,7 +62,7 @@ module.exports = class SiftScience
 
 
   @send = (client, event, data, callback) ->
-    siftScience = require('yield-siftscience') KONFIG.siftScience
+    siftScience = require('yield-siftscience') { api_key: KONFIG.siftScience }
 
     @fetchUserInfo client, (err, userInfo) ->
       return callback err   if err

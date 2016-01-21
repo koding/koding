@@ -4,9 +4,9 @@ KodingError = require '../error'
 { argv } = require 'optimist'
 KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 
-module.exports = class DataDog extends Base
+dogapi = require 'dogapi'
 
-  dogapi = require 'dogapi'
+module.exports = class DataDog extends Base
 
   @share()
 
@@ -18,9 +18,8 @@ module.exports = class DataDog extends Base
 
 
   { api_key, app_key }   = KONFIG.datadog
-  DogApi                 = new dogapi {
-    api_key, app_key
-  }
+
+  dogapi.initialize { api_key, app_key }
 
 
   Events =
@@ -118,7 +117,9 @@ module.exports = class DataDog extends Base
       Tracker  = require './tracker'
       Tracker.track nickname, { subject : ev.text }, data.tags
 
-    DogApi.add_event { title, text, tags }, (err, res, status) ->
+    props = { tags }
+
+    dogapi.event.create title, text, props, (err, res, status) ->
 
       if err?
         console.error '[DataDog] Failed to create event:', err
@@ -163,7 +164,7 @@ module.exports = class DataDog extends Base
 
       metrics.push { metric, tags, points }
 
-    DogApi.add_metrics { series: metrics }, (err) ->
+    dogapi.metric.send_all metrics, (err) ->
 
       if err?
         console.error '[DataDog] Failed to create event:', err

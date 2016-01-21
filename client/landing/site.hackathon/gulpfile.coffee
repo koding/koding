@@ -94,7 +94,7 @@ gulp.task 'clean', req 'task.clean'
 
 gulp.task 'libs', req 'task.libs'
 
-gulp.task 'build', buildTasks
+gulp.task 'build', buildTasks, -> process.exit()
 
 gulp.task 'watch', ['build'].concat watchersTasks
 

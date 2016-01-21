@@ -1351,13 +1351,13 @@ Configuration = (options={}) ->
 
         while IFS=".", read MAJOR MINOR REVISION; do
           MISMATCH=1
-          if [[ $MAJOR -eq 0 && $MINOR -eq 10 ]]; then
+          if [[ $MAJOR -eq 4 && $MINOR -eq 2 ]]; then
             MISMATCH=
           fi
         done < <(echo $VERSION)
 
         if [[ -n "$MISMATCH" ]]; then
-          echo "error: node version is $VERSION, it must be 0.10.x"
+          echo "error: node version is $VERSION, it must be 4.2.x"
           exit 1
         fi
       }
@@ -1366,15 +1366,13 @@ Configuration = (options={}) ->
         VERSION=$(npm --version)
 
         while IFS=".", read MAJOR MINOR REVISION; do
-          if [[ $MAJOR -lt 2 ]]; then
-            MISMATCH=1
-          elif [[ $MAJOR -eq 2 && $MINOR -lt 9 ]]; then
+          if [[ $MAJOR -lt 3 ]]; then
             MISMATCH=1
           fi
         done < <(echo $VERSION)
 
         if [[ -n "$MISMATCH" ]]; then
-          echo "error: npm version is $VERSION, it must be 2.9.x or greater"
+          echo "error: npm version is $VERSION, it must be 3.x or greater"
           exit 1
         fi
       }
@@ -1740,7 +1738,7 @@ Configuration = (options={}) ->
         #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social"
 
       elif [ "$1" == "nodeservertests" ]; then
-        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers"
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers/lib/server"
 
       # To run specific test directory or a single test file
       elif [ "$1" == "nodetestfiles" ]; then

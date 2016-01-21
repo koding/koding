@@ -8,5 +8,4 @@ module.exports = (version) ->
   sites    = folders.filter (folder) -> folder.search(/^site\./) is 0 and folder isnt 'site.boilerplate'
   commands = ("gulp --gulpfile ./#{siteDir}/gulpfile.coffee build --uglify" for siteDir in sites)
 
-  gulp.src ''
-    .pipe shell commands
+  return shell commands

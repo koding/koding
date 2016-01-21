@@ -4,7 +4,7 @@ cd $(dirname $0)/../..
 
 HOST=$1
 PRIVATE_KEY='scripts/test-instance/koding-test-instances-2015-06.pem'
-USER='ubuntu'
+USER='root'
 
 # Discard positional parameter $1 to pass rest to `ssh` command
 shift

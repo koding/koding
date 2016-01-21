@@ -2,7 +2,7 @@
 # This file contains the shell scripts to be executed on the test instance(s)
 ###
 
-pemFilePath = './scripts/test-instance/koding-test-instances-2015-06.pem'
+SSH_SCRIPT = "#{__dirname}/../test-instance/ssh"
 
 module.exports =
 
@@ -10,18 +10,12 @@ module.exports =
 
     socialWorker : (publicIpAddress) ->
 
-      return "ssh -o 'StrictHostKeyChecking no' \
-      -i #{pemFilePath} \
-      ubuntu@#{publicIpAddress} \
-      'sudo /opt/koding/run socialworkertests'"
+      return "#{SSH_SCRIPT} #{publicIpAddress} '/opt/koding/run socialworkertests'"
 
 
     nodejsWebServer : (publicIpAddress) ->
 
-      return "ssh -o 'StrictHostKeyChecking no' \
-      -i #{pemFilePath} \
-      ubuntu@#{publicIpAddress} \
-      'sudo /opt/koding/run nodeservertests'"
+      return "#{SSH_SCRIPT} #{publicIpAddress} '/opt/koding/run nodeservertests'"
 
 
   asArray : (publicIpAddresses) ->

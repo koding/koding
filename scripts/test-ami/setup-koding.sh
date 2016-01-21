@@ -2,6 +2,8 @@
 
 # Set up working environment
 
+source /etc/environment
+
 REPOSITORY_PATH=/opt/koding
 
 ## Clone repository
@@ -14,7 +16,7 @@ cd $REPOSITORY_PATH
 npm install --unsafe-perm
 
 ./configure
-sudo ./run buildservices force || :
+./run buildservices force || :
 
 
 # Cleanup

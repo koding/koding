@@ -1,67 +1,47 @@
-#!/usr/bin/env coffee
-# this file runs shell-scripts on the test instance(s) via ssh
+#!/bin/bash
 
-if process.env.DISABLE_TESTS
-  console.log "Tests are disabled"
-  return
+[ -n "$DISABLE_TEST" ] && exit 0
 
-{ exec }                           = require 'child_process'
-{ getNextInstancePublicIpAddress } = require './helper'
+SCRIPTS=$(dirname $0)/..
 
-async                             = require 'async'
-shellCommands                     = require './shell-commands'
+TASKS="nodeservertests socialworkertests"
 
+INSTANCE_DATA_FILE=$1
+INSTANCE_COUNT=$(wc -l $INSTANCE_DATA_FILE | awk '{print $1}')
 
-addEventListenersToChildProcess = (child) ->
+OUTPUT_DIR=$(mktemp -d)
 
-  output = ''
+function run_task() {
+  TASK=$1
+  HOST=$(echo $2 | awk '{print $2}')
+  OUTFILE=$OUTPUT_DIR/$TASK.log
 
-  child.stdout.on 'data', (data) ->
-    output += data
+  $SCRIPTS/test-instance/ssh \
+    $HOST "/opt/koding/run $TASK" \
+    2>&1 > $OUTFILE
 
-  child.stderr.on 'data', (data) ->
-    output += data
+  EXIT_CODE=$?
+  echo $EXIT_CODE > $OUTPUT_DIR/$TASK.exit_code
+}
 
-  child.on 'exit', (code) ->
-    process.stdout.write output
+LINE_NUMBER=0
 
-    # if child exits with a non-zero code, exit the main process as well
-    if code isnt 0
-      console.log "exited child process with code #{code}"
-      process.exit code
+for TASK in $TASKS; do
+  LINE_NUMBER=$(($LINE_NUMBER + 1))
+  INSTANCE=$(sed -n "${LINE_NUMBER}p" $INSTANCE_DATA_FILE)
+  run_task $TASK "$INSTANCE" &
+  LINE_NUMBER=$(($LINE_NUMBER % $INSTANCE_COUNT))
+done
 
+wait
 
-iterator = (item, cb) ->
+EXIT_CODE=0
 
-  child = exec item, (err, stdout, stderr) ->
+for TASK in $TASKS; do
+  TASK_EXIT_CODE=$(cat $OUTPUT_DIR/$TASK.exit_code)
+  [ $TASK_EXIT_CODE -eq 0 ] && continue
+  EXIT_CODE=$TASK_EXIT_CODE
+  cat $OUTPUT_DIR/$TASK.log
+done
 
-    console.log "---------exec error: ---------\n[#{err}]"  if err
-
-    # passing err parameter null
-    cb(null)
-
-  addEventListenersToChildProcess child
-
-
-# runs shell scripts in series in test instance via ssh
-start = ->
-
-  unless instanceData = process.argv[2]
-    console.error 'error: instance data file is not specified'
-    process.exit 1
-
-  # if there is only one instance, run both tests in the same instance
-  shellCommandsArray = shellCommands.asArray {
-    socialWorker    : getNextInstancePublicIpAddress instanceData
-    nodejsWebServer : getNextInstancePublicIpAddress instanceData
-  }
-
-  async.each shellCommandsArray, iterator, (err) ->
-    console.log err  if err
-    process.exit()
-
-
-start()
-
-
-
+exit $EXIT_CODE
