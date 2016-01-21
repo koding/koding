@@ -1,8 +1,8 @@
-kd         = require 'kd'
-React      = require 'kd-react'
-immutable  = require 'immutable'
+kd          = require 'kd'
+React       = require 'kd-react'
+immutable   = require 'immutable'
+Avatar      = require 'app/components/profile/avatar'
 DropBoxItem = require 'activity/components/dropboxitem'
-Avatar     = require 'app/components/profile/avatar'
 
 module.exports = class ChannelParticipantsDropdownItem extends React.Component
 

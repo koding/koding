@@ -67,8 +67,10 @@ module.exports = class GroupStackSettings extends kd.View
       return  unless stackTemplate
       @setRoute "/edit/#{stackTemplate._id}"
 
-    @initialView.on 'CreateNewStack',   @lazyBound 'setRoute', '/new'
-    @initialView.on 'NoTemplatesFound', @lazyBound 'setRoute', '/welcome'
+    @initialView.on 'CreateNewStack', @lazyBound 'setRoute', '/new'
+
+    if kd.singletons.groupsController.canEditGroup()
+      @initialView.on 'NoTemplatesFound', @lazyBound 'setRoute', '/welcome'
 
 
   requestEditStack: (stackTemplate) ->

@@ -1,6 +1,5 @@
 globals              = require 'globals'
 Promise              = require 'bluebird'
-htmlencode           = require 'htmlencode'
 
 kd                   = require 'kd'
 KDController         = kd.Controller
@@ -417,27 +416,37 @@ module.exports = class ComputeController extends KDController
   # create helpers on top of remote.ComputeProvider
   #
 
-  create: (options, callback)->
+  create: (options, callback) ->
+
     remote.api.ComputeProvider.create options, (err, machine) =>
       return callback err  if err?
+
       @reset yes, -> callback null, machine
 
 
-  createDefaultStack: (force) ->
+  createDefaultStack: (force, template) ->
 
     return  unless isLoggedIn()
 
-    {mainController, groupsController} = kd.singletons
+    { mainController, groupsController } = kd.singletons
 
-    create = =>
-      remote.api.ComputeProvider.createGroupStack (err, res) =>
-        return kd.warn err  if err
-        @reset yes
+    handleStackCreate = (err, newStack) =>
+      return kd.warn err  if err
+      return kd.warn 'Stack data not found'  unless newStack
+
+      { results : { machines } } = newStack
+      [ machine ] = machines
+
+      @reset yes, ->
+        reloadIDE machine.obj.slug
 
     mainController.ready =>
 
-      if force or groupsController.currentGroupHasStack()
-        create()  if @stacks.length is 0
+      if template
+        template.generateStack handleStackCreate
+      else if force or groupsController.currentGroupHasStack()
+        if @stacks.length is 0
+          remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
 
@@ -1080,13 +1089,13 @@ module.exports = class ComputeController extends KDController
 
   fetchBaseStackTemplate: (stack, callback = kd.noop) ->
 
-    return callback null, ''  unless stack?.baseStackId
+    return callback null  unless stack?.baseStackId
 
     { baseStackId } = stack
 
     remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
       return callback err  if err
-      return callback null, template or {}
+      return callback null, template
 
 
   ###*
@@ -1135,6 +1144,16 @@ module.exports = class ComputeController extends KDController
     return null
 
 
+  reloadIDE = (machineSlug) ->
+
+    route   = '/IDE'
+    if machineSlug
+      route = "/IDE/#{machineSlug}"
+
+    kd.singletons.appManager.quitByName 'IDE', ->
+      kd.singletons.router.handleRoute route
+
+
   ###*
    * Reinit's given stack or groups default stack
    * If stack given, it asks for re-init and first deletes and then calls
@@ -1142,7 +1161,7 @@ module.exports = class ComputeController extends KDController
    * If not given it tries to find default one and does the same thing, if it
    * can't find the default one, asks to user what to do next.
   ###
-  reinitGroupStack: (stack) ->
+  reinitStack: (stack) ->
 
     stack ?= @getGroupStack()
 
@@ -1153,8 +1172,7 @@ module.exports = class ComputeController extends KDController
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
 
-        EnvironmentsModal = require 'app/environment/environmentsmodal'
-        new EnvironmentsModal
+        return kd.singletons.router.handleRoute '/Stacks'
 
       else
         @createDefaultStack()
@@ -1170,19 +1188,23 @@ module.exports = class ComputeController extends KDController
 
     @ui.askFor 'reinitStack', {}, =>
 
-      @destroyStack stack, (err) =>
+      @fetchBaseStackTemplate stack, (err, template) =>
 
-        return showError err  if err
+        groupStack = stack.config?.groupStack
 
-        @reset()
+        @destroyStack stack, (err) =>
 
-          .once 'RenderStacks', (stacks) ->
+          return showError err  if err
 
-            new kd.NotificationView
-              title : 'Stack reinitialized'
+          @reset()
 
-            kd.singletons.appManager.quitByName 'IDE'
-            kd.utils.defer ->
-              kd.singletons.router.handleRoute '/IDE'
+            .once 'RenderStacks', (stacks = []) ->
 
-          .createDefaultStack()
+              new kd.NotificationView
+                title : 'Stack reinitialized'
+
+              reloadIDE stacks[0]?.machines[0]?.slug
+
+          if template and not groupStack
+          then @createDefaultStack no, template
+          else @createDefaultStack()

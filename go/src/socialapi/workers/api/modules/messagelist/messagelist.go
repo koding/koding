@@ -13,15 +13,13 @@ import (
 )
 
 func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-
 	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	query := request.GetQuery(u)
-	// for now set account id here - minumun code change
-	query.AccountId = context.Client.Account.Id
+	query = context.OverrideQuery(query)
 
 	c, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
@@ -88,7 +86,7 @@ func TempList(u *url.URL, h http.Header, _ interface{}, context *models.Context)
 	}
 
 	query := request.GetQuery(u)
-	query.AccountId = context.Client.Account.Id
+	query = context.OverrideQuery(query)
 
 	c, err := models.Cache.Channel.ById(channelId)
 	if err != nil {

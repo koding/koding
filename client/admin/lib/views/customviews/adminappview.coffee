@@ -53,13 +53,7 @@ module.exports = class AdminAppView extends kd.ModalView
 
     super
 
-    group = kd.getSingleton('groupsController').getCurrentGroup()
-    group?.canEditGroup (err, success) =>
-      if err or not success
-        {entryPoint} = globals.config
-        kd.singletons.router.handleRoute '/Activity', { entryPoint }
-      else
-        @createTabs()
+    kd.singletons.mainController.ready @bound 'createTabs'
 
 
   createTabs: ->
@@ -67,7 +61,8 @@ module.exports = class AdminAppView extends kd.ModalView
     group        = @getData()
     { tabData }  = @getOptions()
 
-    items = []
+    items   = []
+    myRoles = _globals.config.roles
 
     for own sectionKey, section of tabData
 
@@ -75,6 +70,12 @@ module.exports = class AdminAppView extends kd.ModalView
         continue
 
       for item in section.items
+
+        role = if item.role? then item.role else 'admin'
+
+        if role not in myRoles
+          continue
+
         items.push item
 
         if item.subTabs

@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"os"
+	"time"
 
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/dnsstorage"
@@ -9,6 +10,7 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/idlock"
 
+	"github.com/koding/cache"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"golang.org/x/net/context"
@@ -25,6 +27,9 @@ type Kloud struct {
 	// rename to providers once finished
 	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
 	providers map[string]interface{}
+
+	// statusCache is used to cache stack statuses for describeStack calls.
+	statusCache *cache.MemoryTTL
 
 	// Domainer is responsible of managing dns records
 	Domainer dnsclient.Client
@@ -60,11 +65,14 @@ type Kloud struct {
 // New creates a new Kloud instance without initializing the default providers.
 func New() *Kloud {
 	kld := &Kloud{
-		idlock:    idlock.New(),
-		Log:       logging.NewLogger(NAME),
-		Eventers:  make(map[string]eventer.Eventer),
-		providers: make(map[string]interface{}, 0),
+		idlock:      idlock.New(),
+		Log:         logging.NewLogger(NAME),
+		Eventers:    make(map[string]eventer.Eventer),
+		providers:   make(map[string]interface{}, 0),
+		statusCache: cache.NewMemoryWithTTL(time.Second * 10),
 	}
+
+	kld.statusCache.StartGC(time.Second * 5)
 
 	return kld
 }

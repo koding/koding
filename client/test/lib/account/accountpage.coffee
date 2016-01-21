@@ -8,20 +8,20 @@ linkSelector  = postSelector + ' .meta a.profile'
 module.exports =
 
 
-  seePostsInAccountPage: (browser) ->
+  # seePostsInAccountPage: (browser) ->
 
-    user = helpers.beginTest(browser)
-    post = helpers.postActivity(browser, no)
+  #   user = helpers.beginTest(browser)
+  #   post = helpers.postActivity(browser, no)
 
-    postInPageSelector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+  #   postInPageSelector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
 
-    browser
-      .waitForElementVisible   linkSelector, 25000
-      .click                   linkSelector
-      .waitForElementVisible   '.member.content-display', 25000
-      .waitForElementVisible   postInPageSelector, 25000
-      .assert.containsText     postInPageSelector, post
-      .end()
+  #   browser
+  #     .waitForElementVisible   linkSelector, 25000
+  #     .click                   linkSelector
+  #     .waitForElementVisible   '.member.content-display', 25000
+  #     .waitForElementVisible   postInPageSelector, 25000
+  #     .assert.containsText     postInPageSelector, post
+  #     .end()
 
 
   zoomPhoto: (browser) ->

@@ -1,0 +1,260 @@
+@import "lib/core.fonts"
+@import "lib/core.fn"
+
+modalBackground             = #FAFAFA
+greenLink                   = #27ae60
+
+@css {
+/*
+Team Group Creation stylesheet
+team.group.creation.styl
+*/
+}
+
+.content-page.Team
+
+  // GENERIC SIGNUPFORM CUSTOMIZATIONS
+
+  .TeamsModal
+    .login-input-view.validation-error
+      .kdinput
+        border              3px solid #e79a8f
+
+  .kdtabpaneview .TeamsModal.TeamsModal--groupCreation
+    min-width               550px
+    margin-bottom           100px
+
+    > figure
+      bg                    color #ddd
+      bg                    size cover
+      bg                    position, 50% 50%
+      border                3px solid modalBackground
+      margin                -57px auto 20px
+      overflow              hidden
+      rounded               6px
+      size                  64px 64px
+
+    .login-input-view
+      margin                0 auto 26px
+      rel()
+      &.tr
+        bg                  color transparent
+
+      input.kdinput
+        text-align          center
+        bg                  color transparent
+        borderBox()
+        &:focus
+          shadow            0 0 5px rgba(0,0,0,.1)
+
+      > span
+        abs                 3px 0 0 3px
+        color               #666
+        font-size           15px
+        font-weight         600
+        font-family         openSansFamily
+        line-height         54px
+        padding-left        25px
+        size                127px 54px
+        text-align          left
+        z-index             4
+        borderBox()
+
+    .TeamsModal-button
+      float                 right
+
+    .TeamsModal-linkButton.skip
+      abs                   0 150px 40px 0
+
+    .TeamsModal-button-link.back a
+      color                 #999
+
+    form
+      margin-top            20px
+
+  // LOGIN/CREATE TAB STYLE CUSTOMIZATIONS
+
+  .TeamsModal--create
+  .TeamsModal--groupCreation
+  .kdtabpaneview.login .TeamsModal
+    margin-bottom           0
+
+    > form
+      margin-top            10px
+
+    .login-input-view
+      margin                0 0 19px
+
+      input.kdinput
+        text-align          center
+
+    .TeamsModal-button
+      margin                19px auto
+      float                 none
+      width                 auto
+
+  // DOMAIN TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.domain .TeamsModal
+
+    .login-input-view
+      overflow              hidden
+      width                 100%
+      border                3px solid #DAD8D6
+
+      &.validation-error
+        border-color        #f13a18
+
+      input.kdinput
+        border              none
+        text-align          right
+        width               auto
+        max-width           calc(100% \- 120px)
+        padding             12px 0
+        box-shadow          none !important
+        outline             none
+        font-size           20px
+
+      span
+        rel()
+        color               #999
+        font-size           20px !important // If you want to change this property, you must update font-size of "fake-view"
+        font-weight         400
+        line-height         52px
+        padding-left        0
+        left                initial
+        top                 0
+
+      .fake-view
+        font-family         adelleSans
+        font-size           21px // Set +1 value to leave a bit margin
+        font-weight         400
+        max-width           none
+        abs()
+
+    .TeamsModal-button
+      fr()
+
+  // ALLOWED DOMAIN TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.email-domains .TeamsModal
+
+    > h5
+      width                 100%
+
+    .login-input-view
+
+      &:first-child
+        text-align          left
+
+      input.kdinput.checkbox
+        margin-right        12px
+
+      input.kdinput
+        padding-left        61px
+        text-align          left
+
+      span
+        abs                 1px 0 0 1px
+        size                42px 42px
+        border-right        1px solid #DBDBDB
+        text-align          center
+
+  // INVITE TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.invite .TeamsModal
+
+    .login-input-view
+        margin-bottom       5px
+
+    p.dim
+      abs                   0 0 26px 44px
+      width                 calc(100% - 250px)
+      text-align            left
+
+
+    .TeamsModal-button.add
+      float                 none
+      margin                15px 0 0
+      display               block
+      width                 auto
+
+  // JOIN TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.join .TeamsModal
+
+    > h5 i
+      color                 #00B057
+
+  // USERNAME TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.register .TeamsModal
+  .kdtabpaneview.username .TeamsModal
+
+    > h5
+      width                 335px
+      &.full
+        width               100%
+
+
+    .login-input-view
+      margin-bottom         11px
+
+    .PasswordStrength
+      top                   -30px
+      left                  5px
+      rounded               3px
+      width                 calc(100% - 10px)
+      z-index               4
+
+    p.dim
+      margin                25px auto
+
+    .TeamsModal-button
+      text-transform        none
+
+    .TeamsModal-button-link.back
+      a
+        color               #999
+      // &:before
+      //   content             ''
+      //   bg                  color red
+      //   size                20px 40px
+
+  // STACKS TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.stacks .TeamsModal
+
+    > h5
+      width                 100%
+      margin-bottom         40px
+
+    figure
+      bg                    image, url('/a/site.landing/images/teams/stacks.jpg')
+      size                  462px 246px
+      bg                    size cover
+      display               block
+      border                6px solid #efefef
+      rounded               3px
+      borderBox()
+
+  // CONGRATS TAB STYLE CUSTOMIZATIONS
+
+  .kdtabpaneview.congrats .TeamsModal
+
+    > h4
+      margin                20px 0
+
+    > h5
+      width                 100%
+      margin-bottom         20px
+
+    figure.congrats
+      r-sprite              teams congrats
+      margin                0 auto
+
+    button.TeamsModal-button.TeamsModal-button--green
+      width                 100%
+      float                 none
+      text-transform        none
+

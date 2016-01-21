@@ -25,6 +25,36 @@ validate = ({ ipAddress, queryString, storage }) ->
 getKiteIdOnly = (queryString) ->
   "///////#{queryString.split('/').reverse()[0]}"
 
+checkPlans = (options, callback) ->
+
+  { client, provider, change } = options
+  { r: { group, user, account } } = client
+
+  if group.slug is 'koding'
+
+    return callback null  if change is 'decrement'
+
+    { fetchUserPlan, fetchUsage } = require './computeutils'
+
+    fetchUserPlan client, (err, userPlan) ->
+      fetchUsage client, { provider }, (err, usage) ->
+        return callback err  if err?
+
+        if usage.total >= userPlan.managed
+          return callback new KodingError """
+            Total limit of #{userPlan.managed}
+            managed vm limit has been reached.
+          """, 'UsageLimitReached'
+
+        callback null
+
+  else
+
+    ComputeProvider = require './computeprovider'
+    ComputeProvider.updateGroupInstanceUsage group, change, 1, (err) ->
+      callback err
+
+
 module.exports = class Managed extends ProviderInterface
 
   @providerSlug = 'managed'
@@ -46,29 +76,21 @@ module.exports = class Managed extends ProviderInterface
     queryString = getKiteIdOnly queryString
     provider    = @providerSlug
 
-    { guessNextLabel, fetchUserPlan, fetchUsage } = require './computeutils'
+    { guessNextLabel } = require './computeutils'
 
     guessNextLabel { user, group, label, provider }, (err, label) ->
-      fetchUserPlan client, (err, userPlan) ->
-        fetchUsage client, { provider }, (err, usage) ->
+      checkPlans { client, provider, change: 'increment' }, (err) ->
+        return callback err  if err?
 
-          return callback err  if err?
+        meta =
+          type          : Managed.providerSlug
+          storage_size  : 0 # sky is the limit.
+          alwaysOn      : no
 
-          if usage.total >= userPlan.managed
-            return callback new KodingError """
-              Total limit of #{userPlan.managed}
-              managed vm limit has been reached.
-            """, 'UsageLimitReached'
-
-          meta =
-            type          : Managed.providerSlug
-            storage_size  : 0 # sky is the limit.
-            alwaysOn      : no
-
-          callback null, {
-            meta, label, credential: client.r.user.username
-            postCreateOptions: { queryString, ipAddress }
-          }
+        callback null, {
+          meta, label, credential: client.r.user.username
+          postCreateOptions: { queryString, ipAddress }
+        }
 
 
   @postCreate = (client, options, callback) ->
@@ -99,8 +121,14 @@ module.exports = class Managed extends ProviderInterface
 
     JMachine.one selector, (err, machine) ->
       if err or not machine
-      then callback new KodingError 'Machine not found.'
-      else machine.destroy client, callback
+        callback new KodingError 'Machine not found.'
+      else
+        machine.destroy client, (err) ->
+          return callback err  if err
+
+          checkPlans {
+            client, provider: @providerSlug, change: 'decrement'
+          }, (err) -> callback null
 
 
   updateMachine = (selector, fieldsToUpdate, callback) ->

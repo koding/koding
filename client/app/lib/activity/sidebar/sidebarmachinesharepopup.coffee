@@ -238,6 +238,6 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
 
   TITLES =
-    'shared machine' : 'wants to share their VM with you.'
+    'shared machine' : 'wants to share their VM with you. <span class="footnote">* Rejecting this will destroy any existing collaboration sessions with this machine.</span>'
     'collaboration'  : 'wants to collaborate with you on their VM.'
     'approved'       : 'Shared with you by'

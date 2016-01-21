@@ -201,7 +201,7 @@ module.exports = class JProposedDomain extends jraphical.Module
     domainData.hostnameAlias = hostnameAlias  if hostnameAlias?
 
     JComputeStack = require './stack'
-    JComputeStack.getStack account, stack, (err, stack) ->
+    JComputeStack.getStack { account, group, stack }, (err, stack) ->
       return callback err  if err?
 
       domain = new JProposedDomain domainData

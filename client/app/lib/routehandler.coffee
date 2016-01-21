@@ -107,13 +107,16 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       global.location.href = path
 
     when 'stacks'
-      { stack } = info.params
-      # TODO: fetch/get stack by slug and send it to modal
-      # new EnvironmentsModal selected: @getOption 'stack'
-      new EnvironmentsModal()
+      { stackId } = info.params
+      new EnvironmentsModal selected: stackId
 
     when 'machine-settings'
-      { slug } = info.params
-      environmentDataProvider.fetchMachineBySlug slug, (machine) ->
+      { uid, state } = info.params
+      environmentDataProvider.fetchMachineByUId uid, (machine) ->
+        modal = new MachineSettingsModal {}, new Machine { machine: remote.revive machine }
 
-        new MachineSettingsModal {}, new Machine { machine: remote.revive machine }
+        return  unless state
+
+        # if there is a state, it's the name of the tab of modal. Switch to that.
+        modal.tabView.showPaneByName state  if state
+

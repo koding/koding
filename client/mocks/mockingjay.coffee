@@ -1,18 +1,22 @@
-kd             = require 'kd'
-expect         = require 'expect'
-remote         = require('app/remote').getInstance()
-FSFile         = require 'app/util/fs/fsfile'
-Machine        = require 'app/providers/machine'
-ideRoutes      = require 'ide/routes.coffee'
-dataProvider   = require 'app/userenvironmentdataprovider'
-mockjaccount   = require './mock.jaccount'
-mockjmachine   = require './mock.jmachine'
-mockjworkspace = require './mock.jworkspace'
-mockMessage    = require 'app/util/generateDummyMessage'
-mockChannel    = require 'app/util/generateDummyChannel'
-mockThread     = require 'app/util/generateDummyThread'
+kd               = require 'kd'
+expect           = require 'expect'
+remote           = require('app/remote').getInstance()
+FSFile           = require 'app/util/fs/fsfile'
+Machine          = require 'app/providers/machine'
+ideRoutes        = require 'ide/routes.coffee'
+dataProvider     = require 'app/userenvironmentdataprovider'
+mockjaccount     = require './mock.jaccount'
+mockjgroup       = require './mock.jgroup'
+mockjmachine     = require './mock.jmachine'
+mockjworkspace   = require './mock.jworkspace'
+mockMessage      = require 'app/util/generateDummyMessage'
+mockChannel      = require 'app/util/generateDummyChannel'
+mockThread       = require 'app/util/generateDummyThread'
+mockParticipants = require 'app/util/generateDummyParticipants'
 
 mockMachine = new Machine { machine: mockjmachine }
+mockGroup   = remote.revive mockjgroup
+
 { socialapi, appManager } = kd.singletons
 
 
@@ -171,7 +175,49 @@ module.exports =
           callback null, { id: '6075644514008039523' }
 
 
+  groups:
+
+    getCurrentGroup:
+
+      toReturnGroup: ->
+
+        { groupsController } = kd.singletons
+
+        expect.spyOn(groupsController, 'getCurrentGroup').andReturn mockGroup
+
+
+  search:
+
+    getIndex:
+
+      toReturnIndex: (success = yes) ->
+
+        { search } = kd.singletons
+
+        expect.spyOn(search, 'getIndex').andReturn {
+          search : (seed, callback, options) ->
+            objectID    = mockjaccount._id
+            { profile } = mockjaccount
+            { firstName, lastName } = profile
+
+            callback success, {
+              hits : [
+                { objectID, firstName, lastName, nick: profile.nickname }
+              ]
+            }
+        }
+
+
   remote:
+
+    cacheableAsync:
+
+      toReturnPassedParam: (param) ->
+
+        new Promise (resolve, reject) ->
+
+          return resolve param
+
 
     api:
 
@@ -189,6 +235,16 @@ module.exports =
 
             expect.spyOn(remote.api.JAccount, 'some').andCall (query, options, callback) ->
               callback null, [ mockjaccount ]
+
+        one:
+
+          toReturnAccount: ->
+
+            new Promise (resolve, reject) ->
+
+              promise = new Promise (resolve, reject) -> resolve mockjaccount
+
+              expect.spyOn(remote.api.JAccount, 'one').andReturn promise
 
 
   appManager:
@@ -224,10 +280,12 @@ module.exports =
 
   getMockAccount: ->   return mockjaccount
 
+  getMockGroup: ->     return mockGroup
+
   getMockMessage: (args...) -> return mockMessage(args...)
 
   getMockChannel: (args...) -> return mockChannel(args...)
 
   getMockThread: (args...)  -> return mockThread(args...)
 
-
+  getMockParticipants: (args...) -> return mockParticipants(args...)

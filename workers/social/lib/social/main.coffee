@@ -13,7 +13,6 @@ usertracker = require '../../../usertracker'
 datadog     = require '../../../datadog'
 
 process.on 'uncaughtException', (err) ->
-  exec './beep'
   console.log err, err?.stack
   process.exit 1
 
@@ -23,6 +22,12 @@ Broker = require 'broker'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', { value: KONFIG }
 { mq, email, social, mongoReplSet, socialapi } = KONFIG
+
+redisClient = require('redis').createClient(
+  KONFIG.monitoringRedis.split(':')[1]
+  KONFIG.monitoringRedis.split(':')[0]
+  {}
+)
 
 mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
 
@@ -46,6 +51,7 @@ koding = new Bongo {
   mq          : broker
   mqConfig    : mqConfig
   metrics     : datadog
+  redisClient : redisClient
 
 
   kite          :
@@ -91,10 +97,10 @@ koding = new Bongo {
 
         usertracker.track account.profile.nickname
 
-        { clientIP, clientId: sessionToken } = session
+        { clientIP, clientId: sessionToken, username } = session
 
         callback {
-          sessionToken, context, clientIP,
+          sessionToken, context, clientIP, username
           connection:{ delegate : account }
         }
 
@@ -110,8 +116,6 @@ koding.on 'authenticateUser', (client, callback) ->
 koding.on 'errFirstDetected', (err) -> console.error err
 
 koding.connect ->
-  (require './init').init koding
-
   # create default roles for groups
   JGroupRole = require './models/group/role'
 
@@ -121,12 +125,6 @@ koding.connect ->
 
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log
-
-  if KONFIG.misc?.updateAllSlugs
-    require('./traits/slugifiable').updateSlugsByBatch 100, [
-      require './models/tag'
-      require './models/app'
-    ]
 
   Tracker = require './models/tracker'
   Tracker.setMqClient broker.connection
@@ -143,7 +141,7 @@ helmet = require 'helmet'
 app = express()
 
 do ->
-  usertracker.start()
+  usertracker.start redisClient
 
   # start monitoring nodejs metrics (memory, gc, cpu etc...)
   nodejsProfiler = new NodejsProfiler 'socialWorker'
@@ -158,7 +156,8 @@ do ->
   helmet.defaults app
   app.use cors()
 
-  app.post '/xhr', koding.expressify()
+  options = { rateLimitOptions : KONFIG.nodejsRateLimiter }
+  app.post '/xhr', koding.expressify options
   app.get '/xhr', (req, res) ->
     res.send 'Socialworker is OK'
 
