@@ -285,6 +285,9 @@ module.exports =
 
   getMockGroup: ->     return mockGroup
 
+
+  getMockCollaborationChannel : -> return mockcollaborationchannel
+
   getMockMessage: (args...) -> return mockMessage(args...)
 
   getMockChannel: (args...) -> return mockChannel(args...)
