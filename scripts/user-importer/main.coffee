@@ -116,36 +116,36 @@ createUsers = (users)->
         , 10000
 
 
+fs  = require 'fs'
 csv = require 'csv'
 
 try
 
-  console.log "Reading ./scripts/user-importer/team.csv ..."
-  csv()
+  data = fs.readFileSync './scripts/user-importer/team.csv'
 
-    .from.options trim: yes
-    .from './scripts/user-importer/team.csv'
-    .to.array (team)->
+  csv.parse data, { trim: yes }, (err, members) ->
 
-      header = team.shift()
-      users  = []
+    header = members.shift()
+    users  = []
 
-      team.forEach (member)->
+    members.forEach (member) ->
 
-        item = {
-          passwordStatus : "valid"
-          foreignAuth    : null
-          silence        : no
-        }
+      return  if member.length isnt header.length
 
-        for column, i in header
-          item[column] = member[i]
+      item = {
+        passwordStatus : "valid"
+        foreignAuth    : null
+        silence        : no
+      }
 
-        users.push item
+      for column, i in header
+        item[column] = member[i]
 
-      console.log "Read completed, #{users.length} item found."
-      createUsers users
-      console.log 'User import completed'
+      users.push item
+
+    console.log "Read completed, #{users.length} item found."
+    createUsers users
+    console.log 'User import completed'
 
 catch e
 
