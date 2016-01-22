@@ -22,79 +22,59 @@
 module.exports = [
 
   [
-    { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
-    { name: 'activity likeunlike' }
-  ]
-
-  [
-    { name: 'pricing payment' }
-    { name: 'activity post' }
-    { name: 'staticpages loggedout' }
+    { name: 'messages privatemessage' }
   ]
 
   [
     { name: 'messages privatemessage' }
-    { name: 'account accountsettings' }
-    { name: 'activity postwith' }
   ]
 
   [
-    { name: 'activity edit' }
-    { name: 'activity delete' }
-    { name: 'teams teamschannels' }
+    { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'unittests' }
-    { name: 'activity others' }
-    { name: 'account accountpage' }
+    { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'ide file' }
-    { name: 'ide folder' }
+    { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'ide search' }
-    { name: 'ide workspace' }
+    { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'ide terminal' }
-    # { name: 'pricing invalidcarddetails' }
+    { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'ide general' }
-    { name: 'ide layout' }
-    { name: 'teams inviteteams' }
+    { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'collaboration collaboration' }
-    { name: 'environments snapshot' }
+   { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+    { name: 'messages privatemessage' }
+  ]
+
+  # [
+  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
+
+  [
+    { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'environments vm' }
-    { name: 'teams teamspostwith' }
+   { name: 'messages privatemessage' }
   ]
 
   [
-    { name: 'environments paidaccount' }
-  ]
-
-  [
-    { name: 'environments domain' }
-    { name: 'teams teams' }
-    { name: 'teams teamslikeunlike' }
+    { name: 'messages privatemessage' }
   ]
 
   [
