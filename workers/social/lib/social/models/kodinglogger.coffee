@@ -96,6 +96,8 @@ module.exports = class KodingLogger
       logger = @connect()
       logger.info message
 
+    return message
+
 
   @close = ->
 
