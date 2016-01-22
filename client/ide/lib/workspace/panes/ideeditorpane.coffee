@@ -134,6 +134,8 @@ module.exports = class IDEEditorPane extends IDEPane
 
   updateContent: (content, isSaved = no) ->
 
+    return if @rtm and @rtm.isReady
+
     scrollTop = @getAceScrollTop()
     cursor    = @getCursor()
     @setContent content, no
