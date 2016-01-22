@@ -93,7 +93,7 @@ module.exports = class FeedItem extends React.Component
         <div className="FeedItem-headerContentWrapper MediaObject">
           <div className="MediaObject-media">
             <ProfileLinkContainer origin={message.get('account').toJS()}>
-              <Avatar className="FeedItem-Avatar" width={35} height={35} />
+              <Avatar width={35} height={35} />
             </ProfileLinkContainer>
           </div>
           <div>
