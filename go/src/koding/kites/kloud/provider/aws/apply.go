@@ -427,13 +427,8 @@ func updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
-		switch tf.Provider {
-		case "aws":
+		if tf.Provider == "aws" {
 			if err := updateAWS(ctx, tf, machine.ObjectId); err != nil {
-				return err
-			}
-		case "vagrantkite":
-			if err := updateVagrantKite(ctx, tf, machine.ObjectId); err != nil {
 				return err
 			}
 		}
@@ -460,24 +455,5 @@ func updateAWS(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectI
 		"status.state":       machinestate.Running.String(),
 		"status.modifiedAt":  time.Now().UTC(),
 		"status.reason":      "Created with kloud.apply",
-	}})
-}
-
-// TODO(rjeczalik): move to provider/vagrant
-func updateVagrantKite(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
-	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
-		"provider":            tf.Provider,
-		"queryString":         tf.QueryString,
-		"ipAddress":           tf.Attributes["ipAddress"],
-		"meta.filePath":       tf.Attributes["filePath"],
-		"meta.memory":         tf.Attributes["memory"],
-		"meta.cpus":           tf.Attributes["cpus"],
-		"meta.box":            tf.Attributes["box"],
-		"meta.hostname":       tf.Attributes["hostname"],
-		"meta.klientHostURL":  tf.Attributes["klientHostURL"],
-		"meta.klientGuestURL": tf.Attributes["klientGuestURL"],
-		"status.state":        machinestate.Running.String(),
-		"status.modifiedAt":   time.Now().UTC(),
-		"status.reason":       "Created with kloud.apply",
 	}})
 }

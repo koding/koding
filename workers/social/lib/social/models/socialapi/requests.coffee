@@ -193,9 +193,9 @@ addParticipants = (data, callback) ->
 removeParticipants = (data, callback) ->
   url = "#{socialProxyUrl}/channel/#{data.channelId}/participants/remove"
 
-  { channelId, accountId } = data
+  { channelId, accountId, sessionToken } = data
   # fetch channel details
-  channelById { id: channelId, accountId }, (err, channel) ->
+  channelById { id: channelId, accountId, sessionToken }, (err, channel) ->
     return callback err if err?
     return callback { message: 'Channel not found' } unless channel?.channel
 
@@ -232,7 +232,7 @@ doChannelParticipantOperation = (data, url, callback) ->
 
   # make the object according to channel participant data
   req = ({ accountId, statusConstant } for accountId in data.accountIds)
-
+  req.sessionToken = data.sessionToken
   url = "#{url}?accountId=#{data.accountId}"
   post url, req, callback
 

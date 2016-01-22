@@ -1,8 +1,6 @@
 kd                = require 'kd'
 KDCustomHTMLView  = kd.CustomHTMLView
 
-EnvironmentsModal = require 'app/environment/environmentsmodal'
-
 CustomLinkView    = require 'app/customlinkview'
 SidebarMachineBox = require 'app/activity/sidebar/sidebarmachinebox'
 
@@ -46,7 +44,15 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
       @header.setAttribute 'title', title
 
 
-  headerClickHandler: -> new EnvironmentsModal selected: @getOption 'stack'
+  headerClickHandler: ->
+
+    stack = @getOption 'stack'
+
+    route = if stack
+    then "/Stacks/#{stack.getId()}"
+    else "/Stacks"
+
+    kd.singletons.router.handleRoute route
 
 
   addMachineBoxes: (boxes) ->

@@ -445,8 +445,9 @@ module.exports = class ComputeController extends KDController
       if template
         template.generateStack handleStackCreate
       else if force or groupsController.currentGroupHasStack()
-        if @stacks.length is 0
-          remote.api.ComputeProvider.createGroupStack handleStackCreate
+        for stack in @stacks
+          return  if stack.config?.groupStack
+        remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
 
@@ -1172,8 +1173,7 @@ module.exports = class ComputeController extends KDController
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
 
-        EnvironmentsModal = require 'app/environment/environmentsmodal'
-        new EnvironmentsModal
+        return kd.singletons.router.handleRoute '/Stacks'
 
       else
         @createDefaultStack()

@@ -199,7 +199,7 @@ Configuration = (options={}) ->
     basevirtualhost : "koding.me"
     hostedzone      : "koding.me"
 
-  KONFIG              =
+  KONFIG =
     configName                     : configName
     environment                    : environment
     ebEnvName                      : options.ebEnvName
@@ -223,9 +223,11 @@ Configuration = (options={}) ->
     kiteHome                       : kiteHome
     redis                          : redis.url
     monitoringRedis                : redis.url
-    misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
+    misc                           : {claimGlobalNamesForUsers: no , debugConnectionErrors: yes}
     githubapi                      : githubapi
     recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
+    # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
+    nodejsRateLimiter              : {enabled : no, guestRules : [{ interval: 3600, limit: 5000 }], userRules : [{ interval: 3600, limit: 10000 }]} # limit: request limit per rate limit window, interval: rate limit window duration in seconds
 
     # -- WORKER CONFIGURATION -- #
 
@@ -1529,9 +1531,15 @@ Configuration = (options={}) ->
         mongorestore -h#{boot2dockerbox} -dkoding dump/koding
         rm -rf ./dump
 
-        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+        updatePermissions
+
+      }
+
+      function updatePermissions () {
+
+        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @gokmen) <---#'
         cd #{projectRoot}
-        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+        node #{projectRoot}/scripts/permission-updater -c dev --reset
 
       }
 
@@ -1599,6 +1607,9 @@ Configuration = (options={}) ->
       elif [ "$1" == "services" ]; then
         check_service_dependencies
         services
+
+      elif [ "$1" == "updatepermissions" ]; then
+        updatePermissions
 
       elif [ "$1" == "resetdb" ]; then
 

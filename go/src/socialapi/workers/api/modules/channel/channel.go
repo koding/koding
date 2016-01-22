@@ -3,6 +3,7 @@ package channel
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -77,22 +78,25 @@ func Create(u *url.URL, h http.Header, req *models.Channel, context *models.Cont
 }
 
 // List lists only topic channels
-func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
 	q := request.GetQuery(u)
+
+	query := context.OverrideQuery(q)
 	// only list topic or linked topic channels
-	if q.Type != models.Channel_TYPE_LINKED_TOPIC {
-		q.Type = models.Channel_TYPE_TOPIC
+	if query.Type != models.Channel_TYPE_LINKED_TOPIC {
+		query.Type = models.Channel_TYPE_TOPIC
 	}
 
-	// TODO refactor this function just to return channel ids
+	// TODO
+	// refactor this function just to return channel ids
 	// we cache wisely
-	channelList, err := c.List(q)
+	channelList, err := c.List(query)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return handleChannelListResponse(channelList, q)
+	return handleChannelListResponse(channelList, query)
 }
 
 func handleChannelListResponse(channelList []models.Channel, q *request.Query) (int, http.Header, interface{}, error) {
@@ -110,11 +114,13 @@ func handleChannelListResponse(channelList []models.Channel, q *request.Query) (
 
 // Search searchs database against given channel name
 // but only returns topic channels
-func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Search(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
+	q = context.OverrideQuery(q)
 	if q.Type != models.Channel_TYPE_LINKED_TOPIC {
 		q.Type = models.Channel_TYPE_TOPIC
 	}
+
 	channelList, err := models.NewChannel().Search(q)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -124,8 +130,12 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 }
 
 // ByName finds topics by their name
-func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := request.GetQuery(u)
+func ByName(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	q := context.OverrideQuery(request.GetQuery(u))
+
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
 
 	if q.Type == "" {
 		q.Type = models.Channel_TYPE_TOPIC
@@ -157,7 +167,7 @@ func ByParticipants(u *url.URL, h http.Header, _ interface{}, context *models.Co
 	}
 
 	query := request.GetQuery(u)
-	query.GroupName = context.GroupName
+	query = context.OverrideQuery(query)
 
 	participantsStr, ok := u.Query()["id"]
 	if !ok {
@@ -205,12 +215,14 @@ func ByParticipants(u *url.URL, h http.Header, _ interface{}, context *models.Co
 	return response.HandleResultAndError(cc, cc.Err())
 }
 
-func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+
 	q := request.GetQuery(u)
+	q = context.OverrideQuery(q)
 
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {
@@ -268,7 +280,7 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 }
 
 func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	q := request.GetQuery(u)
+	q := context.OverrideQuery(request.GetQuery(u))
 	if context.Client != nil && context.Client.Account != nil {
 		q.AccountId = context.Client.Account.Id
 	}
@@ -306,7 +318,10 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 	return response.NewOK(res)
 }
 
-func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+func Delete(u *url.URL, h http.Header, req *models.Channel, context *models.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
 
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -320,6 +335,29 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	if req.TypeConstant == models.Channel_TYPE_GROUP {
 		return response.NewBadRequest(errors.New("You can not delete group channel"))
 	}
+
+	canOpen, err := req.CanOpen(context.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewBadRequest(models.ErrCannotOpenChannel)
+	}
+
+	// TO-DO
+	// add super-admin check here
+	if req.CreatorId != context.Client.Account.Id {
+		isAdmin, err := modelhelper.IsAdmin(context.Client.Account.Nick, req.GroupName)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if !isAdmin {
+			return response.NewAccessDenied(models.ErrAccessDenied)
+		}
+	}
+
 	if err := req.Delete(); err != nil {
 		return response.NewBadRequest(err)
 	}

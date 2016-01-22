@@ -8,12 +8,10 @@ KDProgressBarView            = kd.ProgressBarView
 
 nick                         = require 'app/util/nick'
 Machine                      = require 'app/providers/machine'
-isKoding                     = require 'app/util/isKoding'
 groupifyLink                 = require 'app/util/groupifyLink'
 isMachineSettingsIconEnabled = require 'app/util/isMachineSettingsIconEnabled'
 userEnvironmentDataProvider  = require 'app/userenvironmentdataprovider'
 
-MachineSettingsModal         = require 'app/providers/machinesettingsmodal'
 SidebarMachineSharePopup     = require 'app/activity/sidebar/sidebarmachinesharepopup'
 SidebarMachineConnectedPopup = require 'app/activity/sidebar/sidebarmachineconnectedpopup'
 
@@ -136,7 +134,7 @@ module.exports = class NavigationMachineItem extends JView
 
     return  if not @settingsEnabled()
 
-    new MachineSettingsModal {}, @machine
+    kd.singletons.router.handleRoute "/Machines/#{@machine.uid}"
 
 
   getPopupPosition: (extraTop = 0) ->

@@ -54,41 +54,41 @@ func TestFollowedTopics(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("user should be able to follow one topic", func() {
-					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, account.Id, account.Id)
+					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, ses.ClientId, account.Id)
 					// there should be an err
 					So(err, ShouldBeNil)
 					// channel should be nil
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					So(len(followedChannels), ShouldBeGreaterThanOrEqualTo, 1)
 				})
 
 				Convey("user should be able to follow two topic", func() {
-					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, account.Id, account.Id)
+					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, ses.ClientId, account.Id)
 					So(err, ShouldBeNil)
 					So(channelParticipant, ShouldNotBeNil)
 
-					channelParticipant, err = rest.AddChannelParticipant(topicChannel2.Id, account.Id, account.Id)
+					channelParticipant, err = rest.AddChannelParticipant(topicChannel2.Id, ses.ClientId, account.Id)
 					So(err, ShouldBeNil)
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					So(len(followedChannels), ShouldBeGreaterThanOrEqualTo, 2)
 				})
 
 				Convey("user should be participant of the followed topic", func() {
-					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, account.Id, account.Id)
+					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, ses.ClientId, account.Id)
 					// there should be an err
 					So(err, ShouldBeNil)
 					// channel should be nil
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					So(len(followedChannels), ShouldBeGreaterThanOrEqualTo, 1)
@@ -96,20 +96,20 @@ func TestFollowedTopics(t *testing.T) {
 				})
 
 				Convey("user should not be a participant of the un-followed topic", func() {
-					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, account.Id, account.Id)
+					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, ses.ClientId, account.Id)
 					So(err, ShouldBeNil)
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 
 					currentParticipatedChannelCount := len(followedChannels)
-					channelParticipant, err = rest.DeleteChannelParticipant(topicChannel1.Id, account.Id, account.Id)
+					channelParticipant, err = rest.DeleteChannelParticipant(topicChannel1.Id, ses.ClientId, account.Id)
 					So(err, ShouldBeNil)
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err = rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err = rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					lastParticipatedChannelCount := len(followedChannels)
@@ -118,13 +118,13 @@ func TestFollowedTopics(t *testing.T) {
 				})
 
 				Convey("participant count of the followed topic should be greater than 0", func() {
-					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, account.Id, account.Id)
+					channelParticipant, err := rest.AddChannelParticipant(topicChannel1.Id, ses.ClientId, account.Id)
 					// there should be an err
 					So(err, ShouldBeNil)
 					// channel should be nil
 					So(channelParticipant, ShouldNotBeNil)
 
-					followedChannels, err := rest.FetchFollowedChannels(account.Id, topicChannel1.GroupName)
+					followedChannels, err := rest.FetchFollowedChannels(account.Id, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(followedChannels, ShouldNotBeNil)
 					So(len(followedChannels), ShouldBeGreaterThanOrEqualTo, 1)

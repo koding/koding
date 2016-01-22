@@ -1,8 +1,6 @@
 package stackplan
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -11,12 +9,10 @@ import (
 
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
-	pUser "koding/kites/kloud/scripts/provisionklient/userdata"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite/protocol"
-	uuid "github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 )
 
@@ -30,43 +26,46 @@ var (
 	}
 )
 
-// Machine
+// Machine represents a jComputeStack.machine value.
 type Machine struct {
-	Provider    string            `json:"provider"`
-	Label       string            `json:"label"`
-	Region      string            `json:"region"`
-	QueryString string            `json:"queryString,omitempty"`
-	Attributes  map[string]string `json:"attributes"`
+	Provider        string            `json:"provider"`
+	Label           string            `json:"label"`
+	Region          string            `json:"region"`
+	QueryString     string            `json:"queryString,omitempty"`
+	HostQueryString string            `json:"hostQueryString,omitempty"`
+	Attributes      map[string]string `json:"attributes"`
 }
 
-// KiteMap
+// KiteMap maps resource names to kite IDs they own.
 type KiteMap map[string]string
 
 // Stack is struct that contains all necessary information Apply needs to
 // perform successfully.
 type Stack struct {
-	// jMachine ids
+	// Machines is a list of jMachine identifiers.
 	Machines []string
 
-	// jCredential provider to identifiers
+	// Credentials maps jCredential provider to identifiers.
 	Credentials map[string][]string
 
-	// Terraform template
+	// Template is a raw Terraform template.
 	Template string
 }
 
-// Machines
+// Machines is a list of machines.
 type Machines struct {
 	Machines []Machine `json:"machines"`
 }
 
-// Credential
+// Credential represents jCredential{Datas} value. Meta is of a provider-specific
+// type, defined by a ctor func in MetaFuncs map.
 type Credential struct {
 	Provider   string
 	Identifier string
 	Meta       interface{}
 }
 
+// String implememts the fmt.Stringer interface.
 func (m *Machines) String() string {
 	var txt string
 	for i, machine := range m.Machines {
@@ -86,6 +85,13 @@ func (m *Machines) AppendQueryString(queryStrings map[string]string) {
 	for i, machine := range m.Machines {
 		queryString := queryStrings[machine.Label]
 		machine.QueryString = protocol.Kite{ID: queryString}.String()
+		m.Machines[i] = machine
+	}
+}
+
+func (m *Machines) AppendHostQueryString(s string) {
+	for i, machine := range m.Machines {
+		machine.HostQueryString = protocol.Kite{ID: s}.String()
 		m.Machines[i] = machine
 	}
 }
@@ -178,7 +184,11 @@ func MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				return nil, err
 			}
 
-			if resourceType != "instance" {
+			if resourceType == "instance" && provider != "aws" {
+				continue
+			}
+
+			if resourceType == "build" && provider != "vagrantkite" {
 				continue
 			}
 
@@ -207,90 +217,6 @@ func parseResource(resource string) (string, string, string, error) {
 	label := resourceSplitted[1]        // foo.bar
 
 	return provider, resourceType, label, nil
-}
-
-// TODO(rjeczalik): move to provider/vagrant package
-func InjectVagrantData(ctx context.Context, template *Template, username string) (KiteMap, error) {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("session context is not passed")
-	}
-
-	var resource struct {
-		VagrantBuild map[string]map[string]interface{} `hcl:"vagrantkite_build"`
-	}
-
-	if err := template.DecodeResource(&resource); err != nil {
-		return nil, err
-	}
-
-	if len(resource.VagrantBuild) == 0 {
-		sess.Log.Debug("No Vagrant build available")
-		return nil, nil
-	}
-
-	kiteIDs := make(KiteMap)
-
-	for resourceName, box := range resource.VagrantBuild {
-		kiteID := uuid.NewV4().String()
-
-		kiteKey, err := sess.Userdata.Keycreator.Create(username, kiteID)
-		if err != nil {
-			return nil, err
-		}
-
-		klientURL, err := sess.Userdata.Bucket.LatestDeb()
-		if err != nil {
-			return nil, err
-		}
-		klientURL = sess.Userdata.Bucket.URL(klientURL)
-
-		// get the registerURL if passed via template
-		var registerURL string
-		if r, ok := box["registerURL"]; ok {
-			if ru, ok := r.(string); ok {
-				registerURL = ru
-			}
-		}
-
-		// get the kontrolURL if passed via template
-		var kontrolURL string
-		if k, ok := box["kontrolURL"]; ok {
-			if ku, ok := k.(string); ok {
-				kontrolURL = ku
-			}
-		}
-
-		data := pUser.Value{
-			Username:        username,
-			Groups:          []string{"sudo"},
-			Hostname:        username, // no typo here. hostname = username
-			KiteKey:         kiteKey,
-			LatestKlientURL: klientURL,
-			RegisterURL:     registerURL,
-			KontrolURL:      kontrolURL,
-		}
-
-		// pass the values as a JSON encoded as bae64. Our script will decode
-		// and unmarshall and use it inside the Vagrant box
-		val, err := json.Marshal(&data)
-		if err != nil {
-			return nil, err
-		}
-
-		kiteIDs[resourceName] = kiteID
-		encoded := base64.StdEncoding.EncodeToString(val)
-		box["provisionData"] = encoded
-		resource.VagrantBuild[resourceName] = box
-	}
-
-	template.Resource["vagrantkite_build"] = resource.VagrantBuild
-
-	if err := template.hclUpdate(); err != nil {
-		return nil, err
-	}
-
-	return kiteIDs, nil
 }
 
 func CheckKlients(ctx context.Context, kiteIDs KiteMap) error {

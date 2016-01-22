@@ -15,8 +15,8 @@ import (
 
 var ErrSkipActivity = errors.New("skip activity")
 
-func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	query := context.OverrideQuery(request.GetQuery(u))
 
 	if query.Id == 0 {
 		return response.NewBadRequest(errors.New("channel id is not set"))
@@ -41,8 +41,8 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	)
 }
 
-func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant, context *models.Context) (int, http.Header, interface{}, error) {
+	query := context.OverrideQuery(request.GetQuery(u))
 
 	if err := checkChannelPrerequisites(
 		query.Id,
@@ -120,8 +120,8 @@ func notifyParticipants(channel *models.Channel, event string, participants []*m
 
 }
 
-func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant, context *models.Context) (int, http.Header, interface{}, error) {
+	query := context.OverrideQuery(request.GetQuery(u))
 
 	if err := checkChannelPrerequisites(
 		query.Id,
@@ -170,8 +170,8 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	return response.NewOK(participants)
 }
 
-func BlockMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+func BlockMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant, context *models.Context) (int, http.Header, interface{}, error) {
+	query := context.OverrideQuery(request.GetQuery(u))
 
 	if err := checkChannelPrerequisites(
 		query.Id,
@@ -213,8 +213,8 @@ func BlockMulti(u *url.URL, h http.Header, participants []*models.ChannelPartici
 	return response.NewOK(participants)
 }
 
-func UnblockMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+func UnblockMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant, context *models.Context) (int, http.Header, interface{}, error) {
+	query := context.OverrideQuery(request.GetQuery(u))
 
 	if err := checkChannelPrerequisites(
 		query.Id,
@@ -246,8 +246,8 @@ func UnblockMulti(u *url.URL, h http.Header, participants []*models.ChannelParti
 	return response.NewOK(participants)
 }
 
-func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelParticipant) (int, http.Header, interface{}, error) {
-	query := request.GetQuery(u)
+func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelParticipant, context *models.Context) (int, http.Header, interface{}, error) {
+	query := context.OverrideQuery(request.GetQuery(u))
 
 	participant.ChannelId = query.Id
 	// only requester can update their last seen date
@@ -277,7 +277,7 @@ func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelPartic
 
 func AcceptInvite(u *url.URL, h http.Header, participant *models.ChannelParticipant, ctx *models.Context) (int, http.Header, interface{}, error) {
 
-	query := request.GetQuery(u)
+	query := ctx.OverrideQuery(request.GetQuery(u))
 
 	participant.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
 	cp, err := updateStatus(participant, query, ctx)
@@ -301,7 +301,7 @@ func AcceptInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 
 func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticipant, ctx *models.Context) (int, http.Header, interface{}, error) {
 
-	query := request.GetQuery(u)
+	query := ctx.OverrideQuery(request.GetQuery(u))
 	participant.StatusConstant = models.ChannelParticipant_STATUS_LEFT
 	cp, err := updateStatus(participant, query, ctx)
 	if err != nil {
@@ -383,7 +383,7 @@ func updateStatus(participant *models.ChannelParticipant, query *request.Query, 
 
 func checkChannelPrerequisites(channelId, requesterId int64, participants []*models.ChannelParticipant) error {
 	if channelId == 0 || requesterId == 0 {
-		return errors.New("values are not set")
+		return fmt.Errorf("values are not set. channelId: %d, requesterId: %d", channelId, requesterId)
 	}
 
 	if len(participants) == 0 {

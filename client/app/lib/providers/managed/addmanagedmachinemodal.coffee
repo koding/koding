@@ -2,7 +2,6 @@ kd              = require 'kd'
 whoami          = require 'app/util/whoami'
 globals         = require 'globals'
 actions         = require 'app/flux/environment/actions'
-isKoding        = require 'app/util/isKoding'
 isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
 

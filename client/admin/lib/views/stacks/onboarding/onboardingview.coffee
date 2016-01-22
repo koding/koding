@@ -9,7 +9,7 @@ GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
 CLONE_REPO_TEMPLATES  =
-  github              : 'git clone git@github.com/your-organization/reponame.git'
+  github              : 'git clone git@github.com:your-organization/reponame.git'
   bitbucket           : 'git clone git@bitbucket.org/your-organization/reponame.git'
   gitlab              : 'git clone git@gitlab.com/your-organization/reponame.git'
   yourgitserver       : 'git clone git@yourgitserver.com/reponame.git'
@@ -162,7 +162,7 @@ module.exports = class OnboardingView extends JView
         selectedServices.push (toggle.getOption 'package' or toggle.getOption 'name')  if toggle.getValue()
 
       if selectedServices.length
-        serverConfig.user_data = "apt-get -y install #{selectedServices.join ' '}"
+        serverConfig.user_data = "apt-get update -y\napt-get -y install #{selectedServices.join ' '}"
 
     stackTemplate    =
       provider       : PROVIDER_TEMPLATES[selectedProvider]

@@ -201,6 +201,7 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	u.Host = net.JoinHostPort(host, "56790")
 
 	d.SetId(queryString)
+	d.Set("filePath", result.FilePath)
 	d.Set("klientHostURL", klientRef.URL())
 	d.Set("klientGuestURL", u.String())
 	d.Set("hostname", result.Hostname)

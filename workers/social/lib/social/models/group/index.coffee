@@ -45,9 +45,7 @@ module.exports = class JGroup extends Module
     permissions     :
       'grant permissions'                 : []
       'open group'                        : ['member', 'moderator']
-      'list members'                      :
-        public                            : ['moderator', 'member']
-        private                           : ['moderator', 'member']
+      'list members'                      : ['moderator', 'member']
       'read group activity'               :
         public                            : ['guest', 'member', 'moderator']
         private                           : ['member', 'moderator']
@@ -77,9 +75,7 @@ module.exports = class JGroup extends Module
       'delete channel'          : ['member', 'moderator']
 
       # JTag related permissions
-      'read tags'               :
-        public                  : ['member', 'moderator']
-        private                 : ['member', 'moderator']
+      'read tags'               : ['member', 'moderator']
       'create tags'             : ['member', 'moderator']
       'freetag content'         : ['member', 'moderator']
       'browse content by tag'   : ['member', 'moderator']
@@ -1089,6 +1085,10 @@ module.exports = class JGroup extends Module
     success  : (client, data, callback) ->
 
       TEAMPLANS = require '../computeproviders/teamplans'
+
+      if (@getAt 'slug') is 'koding'
+        return callback new KodingError \
+          'Setting a plan on koding is not allowed'
 
       { plan, overrides } = data
 

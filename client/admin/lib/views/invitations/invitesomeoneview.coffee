@@ -72,6 +72,7 @@ module.exports = class InviteSomeoneView extends KDView
   inviteMembers: ->
 
     invites = []
+    admins  = []
 
     for view in @inputViews
       value = view.email.getValue().trim()
@@ -84,8 +85,50 @@ module.exports = class InviteSomeoneView extends KDView
         showError 'That doesn\'t seem like a valid email address.'
         return view.email.setClass 'validation-error'
 
-      invites.push view.serialize()
+      invites.push invite = view.serialize()
+      admins.push invite.email  if invite.role is 'admin'
 
+    if admins.length
+      @notifyAdminInvites invites, admins
+    else
+      @handleInvitationRequest invites
+
+
+  notifyAdminInvites: (invites, admins) ->
+
+    title = if admins.length > 1 then "You're adding admins" else "You're adding an admin"
+    @confirmModal = modal = new kd.ModalViewWithForms
+      title                   : title
+      overlay                 : yes
+      height                  : 'auto'
+      cssClass                : 'admin-invite-confirm-modal'
+      tabs                    :
+        forms                 :
+          confirm             :
+            buttons           :
+              "That's fine"   :
+                itemClass     : kd.ButtonView
+                cssClass      : 'confirm'
+                style         : 'solid green medium'
+                loader        : color: '#444444'
+                callback      : => @handleInvitationRequest invites
+              Cancel          :
+                itemClass     : kd.ButtonView
+                style         : 'solid medium'
+                callback      : -> modal.destroy()
+            fields            :
+              planDetails     :
+                type          : 'hidden'
+                nextElement   :
+                  planDetails :
+                    cssClass  : 'content'
+                    itemClass : kd.View
+                    partial   : "You're inviting <strong>#{admins.join ', '}</strong> as admin, they will have access to all team settings including your stack scripts (excluding your keys)."
+
+    modal.overlay.setClass 'second-overlay'
+
+
+  handleInvitationRequest: (invites) ->
 
     remote.api.JInvitation.create invitations: invites, (err) =>
       if err
@@ -101,6 +144,8 @@ module.exports = class InviteSomeoneView extends KDView
         title    : 'Invitations are sent to new members.'
         duration : 5000
 
+      @confirmModal?.destroy()
+      @confirmModal = null
       @emit 'NewInvitationsAdded'
 
 

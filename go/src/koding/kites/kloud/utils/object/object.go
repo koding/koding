@@ -91,6 +91,9 @@ func (b *Builder) build(v interface{}, obj Object) {
 
 func (b *Builder) buildMapObject(v interface{}, obj Object) {
 	m := reflect.ValueOf(v)
+	if m.Type().Kind() == reflect.Ptr {
+		m = m.Elem()
+	}
 	for _, vkey := range m.MapKeys() {
 		key := vkey.String()
 		if key == "" {

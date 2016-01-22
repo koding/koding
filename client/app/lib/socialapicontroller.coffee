@@ -7,7 +7,7 @@ remote = require('./remote').getInstance()
 checkFlag = require './util/checkFlag'
 whoami = require './util/whoami'
 kd = require 'kd'
-isKoding = require './util/isKoding'
+isFeedEnabled = require './util/isFeedEnabled'
 KDController = kd.Controller
 MessageEventManager = require './messageeventmanager'
 
@@ -139,7 +139,7 @@ module.exports = class SocialApiController extends KDController
 
     m = new remote.api.SocialMessage plain
 
-    m.account = if isKoding()
+    m.account = unless isFeedEnabled()
       mapAccounts(accountOldId)[0]
     else
       if isIntegrationMessage m
@@ -303,7 +303,7 @@ module.exports = class SocialApiController extends KDController
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
 
-    if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
+    if isFeedEnabled() and item.typeConstant in ['privatemessage', 'bot']
       item._originalName = item._originalName or item.name
       item.name = data.purpose
       item.purpose = item.payload?.description or ''
@@ -838,6 +838,250 @@ module.exports = class SocialApiController extends KDController
     fetchDataFromEmbedly : (args...) ->
       remote.api.SocialMessage.fetchDataFromEmbedly args...
 
+
+  channelv2:
+
+    byId: (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/#{id}"
+      , callback
+
+    byName: (options, callback) ->
+      { name } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/name/#{name}"
+      , callback
+
+    update: (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{id}/update"
+        data     : options
+      , callback
+
+    list: (options, callback) ->
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel"
+      , callback
+
+    delete: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{id}/delete"
+        data     : options
+      , callback
+
+    searchTopics: (options, callback) ->
+      { name } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/search"
+      , callback
+
+    byParticipants: (options, callback) ->
+
+      serialized = options.participants
+        .map (id) -> "id=#{id}"
+        .join "&"
+
+      doXhrRequest
+        endPoint: "/api/social/channel/by/participants?#{serialized}"
+        type: 'GET'
+      , (err, result) ->
+        return callback err  if err
+        return callback null, mapChannels result
+
+
+    createChannelWithParticipants: (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{id}/update"
+        data     : options
+      , callback
+
+
+    fetchActivities      : (options = {}, callback = kd.noop)->
+
+      # show exempt content if only requester is admin or exempt herself
+      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+
+      options.showExempt or= showExempt
+
+      err = {message: "An error occurred"}
+
+      endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
+      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+        return callback err  if err
+
+        return callback null, mapActivities response
+
+    fetchActivitiesWithComments : (options = {}, callback = kd.noop)->
+
+      # show exempt content if only requester is admin or exempt herself
+      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+
+      options.showExempt or= showExempt
+
+      err = {message: "An error occurred"}
+
+      endPoint = "/api/social/channel/#{options.id}/list?#{serialize(options)}"
+      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+        return callback err  if err
+
+        return callback null, mapActivities response
+
+    fetchPopularPosts: (options, callback) ->
+      { channelName } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/popular/posts/#{channelName}?limit=10"
+      , callback
+
+    fetchPopularTopics: (options, callback) ->
+      { type } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/popular/topics/#{type}"
+      , callback
+
+    fetchPinnedMessages: (options, callback) ->
+
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/activity/pin/list"
+      , callback
+
+    # add if control if options have -> accountId & messageId & groupName
+    pin: (options, callback) ->
+
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/activity/pin/add"
+        data     : options
+      , callback
+
+    # add if control if options have -> accountId & messageId & groupName
+    unpin: (options, callback) ->
+
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/activity/pin/remove"
+        data     : options
+      , callback
+
+    # follow -> addParticipants function
+    follow: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/participants/add"
+        data     : options
+      , callback
+
+    # unfollow -> removeParticipants function
+    unfollow: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/participants/remove"
+        data     : options
+      , callback
+
+    listParticipants: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/#{channelId}/participants"
+      , callback
+
+    addParticipants: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/participants/add"
+        data     : options
+      , callback
+
+    removeParticipants: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/participants/remove"
+        data     : options
+      , callback
+
+    leave: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/participants/remove"
+        data     : options
+      , callback
+
+    acceptInvite: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/invitation/accept"
+        data     : options
+      , callback
+
+    rejectInvite: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/invitation/reject"
+        data     : options
+      , callback
+
+    # kickParticipants calls leave endpoint, but required extra accountIds
+    kickParticipants: (options, callback) ->
+      { channelId , accountIds } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/participants/remove"
+        data     : options
+      , callback
+
+    fetchFollowedChannels: (options, callback) ->
+      { accountId } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/account/#{accountId}/channels"
+      , callback
+
+    fetchProfileFeed: (options, callback) ->
+      { targetId } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/account/#{targetId}/posts"
+      , callback
+
+    glancePinnedPost: (options, callback) ->
+      { accountId, messageId, groupName } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/activity/pin/glance"
+        data     : options
+      , callback
+
+    updateLastSeenTime: (options, callback) ->
+      { accountId, channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/participant/#{accountId}/presence"
+        data     : options
+      , callback
+
+
+
   channel:
     byId                 : channelRequesterFn
       fnName             : 'byId'
@@ -995,8 +1239,10 @@ module.exports = class SocialApiController extends KDController
         .map (id) -> "id=#{id}"
         .join "&"
 
+      type = options.type or ''
+
       doXhrRequest
-        endPoint: "/api/social/channel/by/participants?#{serialized}"
+        endPoint: "/api/social/channel/by/participants?#{serialized}&type=#{type}"
         type: 'GET'
       , (err, result) ->
         return callback err  if err

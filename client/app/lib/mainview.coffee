@@ -18,6 +18,7 @@ TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 actionTypes             = require 'activity/flux/actions/actiontypes'
 isTeamReactSide         = require 'app/util/isTeamReactSide'
+isFeedEnabled           = require 'app/util/isFeedEnabled'
 
 
 module.exports = class MainView extends KDView
@@ -161,6 +162,10 @@ module.exports = class MainView extends KDView
     @aside.addSubView @logoWrapper
 
     if isTeamReactSide()
+      SidebarView = require './components/sidebar/view'
+      @aside.addSubView @sidebar = new SidebarView
+      return
+    else if isFeedEnabled()
       SidebarView = require './components/sidebar/view'
       @aside.addSubView @sidebar = new SidebarView
       return
