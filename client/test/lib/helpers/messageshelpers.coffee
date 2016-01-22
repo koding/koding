@@ -67,9 +67,10 @@ module.exports =
             when messageWithLink
               browser
                 .waitForElementVisible    linkSelector, 20000
-                .assert.containsText      linkSelector, 'The Free Encyclopedia' 
+                .assert.containsText      linkSelector, 'The Free Encyclopedia'
             else
               browser
+                .pause                   7500 # wait for a koding user
                 .assert.containsText     '.message-pane.privatemessage', message # Assertion
                 .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
                 if purpose
