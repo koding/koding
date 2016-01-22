@@ -112,11 +112,15 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
     when 'machine-settings'
       { uid, state } = info.params
-      environmentDataProvider.fetchMachineByUId uid, (machine) ->
-        modal = new MachineSettingsModal {}, new Machine { machine: remote.revive machine }
+      { computeController, router } = kd.singletons
 
-        return  unless state
+      computeController.ready ->
+        machine = computeController.findMachineFromMachineUId uid
+        unless machine
+          new kd.NotificationView title: 'No machine found'
+          return router.handleRoute '/IDE'
+
+        modal = new MachineSettingsModal {}, machine
 
         # if there is a state, it's the name of the tab of modal. Switch to that.
         modal.tabView.showPaneByName state  if state
-
