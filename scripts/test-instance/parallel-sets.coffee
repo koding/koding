@@ -22,83 +22,50 @@
 module.exports = [
 
   [
-    { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
     { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'pricing payment' }
-    { name: 'activity post' }
-    { name: 'staticpages loggedout' }
+   { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'messages privatemessage' }
-    { name: 'account accountsettings' }
-    { name: 'activity postwith' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'activity edit' }
-    { name: 'activity delete' }
-    { name: 'teams teamschannels' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'unittests' }
-    { name: 'activity others' }
-    { name: 'account accountpage' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'ide file' }
-    { name: 'ide folder' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'ide search' }
-    { name: 'ide workspace' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'ide terminal' }
-    # { name: 'pricing invalidcarddetails' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'ide general' }
-    { name: 'ide layout' }
-    { name: 'teams inviteteams' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'collaboration collaboration' }
-    { name: 'environments snapshot' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    { name: 'environments vm' }
-    { name: 'teams teamspostwith' }
+    { name: 'activity likeunlike' }
   ]
-
-  [
-    { name: 'environments paidaccount' }
-  ]
-
-  [
-    { name: 'environments domain' }
-    { name: 'teams teams' }
-    { name: 'teams teamslikeunlike' }
-  ]
-
-  [
-    # { name: 'environments vm-advanced' }
-  ]
-
 ]
