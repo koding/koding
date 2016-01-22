@@ -1151,8 +1151,7 @@ module.exports = CollaborationController =
       machineBox.removeWorkspace @workspaceData.getId()
     else
       activitySidebar.removeMachineNode @mountedMachine
-
-    environmentDataProvider.removeCollaborationMachine @mountedMachine
+      environmentDataProvider.removeCollaborationMachine @mountedMachine
 
 
   ensureMachineShare: (usernames, callback) ->
