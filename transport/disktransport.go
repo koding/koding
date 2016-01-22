@@ -39,14 +39,10 @@ type DiskTransport struct {
 	DiskPath string
 }
 
-// CreateDir (recursively) creates dir with specified name and mode.
 func (d *DiskTransport) CreateDir(path string, mode os.FileMode) error {
 	return os.MkdirAll(d.fullPath(path), mode)
 }
 
-// ReadDir returns entries of the dir at specified path. If specified it can
-// return nested entries of the dir in a flat data structure. The entires are
-// lexically ordered.
 func (d *DiskTransport) ReadDir(path string, r bool) (*ReadDirRes, error) {
 	entries, err := readDirectory(d.fullPath(path), r, nil)
 	if err != nil {
@@ -62,17 +58,14 @@ func (d *DiskTransport) ReadDir(path string, r bool) (*ReadDirRes, error) {
 	return &ReadDirRes{Files: entries}, nil
 }
 
-// Rename changes name of the entry from specified old to new name.
 func (d *DiskTransport) Rename(oldName, newName string) error {
 	return rename(d.fullPath(oldName), d.fullPath(newName))
 }
 
-// Remove (recursively) removes the entries in the specificed path.
 func (d *DiskTransport) Remove(path string) error {
 	return remove(d.fullPath(path), true)
 }
 
-// ReadFile reads file at specificed path and return its contents.
 func (d *DiskTransport) ReadFile(path string) (*ReadFileRes, error) {
 	resp, err := readFile(d.fullPath(path))
 	if err != nil {
@@ -92,15 +85,12 @@ func (d *DiskTransport) ReadFile(path string) (*ReadFileRes, error) {
 	return &ReadFileRes{Content: byteContent}, nil
 }
 
-// WriteFile writes file at specificed path with data.
 func (d *DiskTransport) WriteFile(path string, data []byte) error {
 	// path, data, doNotOverwrite, append
 	_, err := writeFile(d.fullPath(path), data, false, false)
 	return err
 }
 
-// Exec runs specified command. Note, it doesn't set the path from where it
-// executes the command; this is same behavior as KlientTransport.
 func (d *DiskTransport) Exec(cmd string) (*ExecRes, error) {
 	c := exec.Command("/bin/bash", "-c", cmd)
 	res, err := command.NewOutput(c)
@@ -115,13 +105,10 @@ func (d *DiskTransport) Exec(cmd string) (*ExecRes, error) {
 	}, nil
 }
 
-// GetDiskInfo returns disk info about the mount at the specified path. If a
-// nested path is specified, it returns the top most mount.
 func (d *DiskTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 	return getDiskInfo(d.fullPath(path))
 }
 
-// GetInfo returns info about the entry at specified path.
 func (d *DiskTransport) GetInfo(path string) (*GetInfoRes, error) {
 	res, err := getInfo(d.fullPath(path))
 	if err != nil {
