@@ -7,6 +7,7 @@ getListSelectedItem        = require 'activity/util/getListSelectedItem'
 getGroup                   = require 'app/util/getGroup'
 SidebarPublicChannelsTabs  = require 'activity/constants/sidebarpublicchannelstabs'
 ResultStates               = require 'activity/constants/resultStates'
+isKoding = require 'app/util/isKoding'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -51,6 +52,7 @@ FollowedPublicChannelIdsStore = [
 ChannelThreadsStore = [
   ChannelThreadsStore
   (threads) ->
+    return threads  if isKoding()
     groupChannelId = getGroup().socialApiChannelId
     threads.filter (thread) -> thread.get('channelId') isnt groupChannelId
 ]
@@ -58,6 +60,7 @@ ChannelThreadsStore = [
 
 allChannels = [
   ChannelsStore, (channels) ->
+    return channels  if isKoding()
     channels.filterNot (channel) -> 'group' is channel.get 'typeConstant'
 ]
 
@@ -180,9 +183,17 @@ followedPublicChannels = [
   FollowedPublicChannelIdsStore
   allChannels
   (ids, channels) ->
-    ids
+    followedChannels = ids
       .map (id) -> channels.get id
       .sortBy (c) -> c.get 'name'
+
+    if isKoding()
+      { socialApiChannelId } = getGroup()
+      groupChannel = channels.get socialApiChannelId
+      if groupChannel
+        followedChannels = followedChannels.set socialApiChannelId, groupChannel
+
+    return followedChannels
 ]
 
 # Maps followed public channel ids with relevant channel instances.

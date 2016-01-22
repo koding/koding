@@ -5,7 +5,7 @@ remote                   = require('app/remote').getInstance()
 globals                  = require 'globals'
 getGroup                 = require 'app/util/getGroup'
 checkFlag                = require 'app/util/checkFlag'
-isKoding                 = require 'app/util/isKoding'
+isFeedEnabled            = require 'app/util/isFeedEnabled'
 AppStorage               = require 'app/appstorage'
 AppController            = require 'app/appcontroller'
 KodingAppsController     = require 'app/kodingappscontroller'
@@ -31,7 +31,7 @@ module.exports = class ActivityAppController extends AppController
 
     {appStorageController, appManager} = kd.singletons
 
-    unless isKoding()
+    if isFeedEnabled()
       appManager.on 'FrontAppIsChanged', (currentApp, oldApp) =>
         if currentApp isnt oldApp and oldApp is this
           {thread, message} = ActivityFlux.actions
@@ -149,7 +149,7 @@ module.exports = class ActivityAppController extends AppController
     unless e.which is keyboardKeys.ESC
       kd.utils.stopDOMEvent e
 
-    if isKoding()
+    if isFeedEnabled()
       switch e.model.name
         when 'prevwindow' then @getView().openPrev()
         when 'nextwindow' then @getView().openNext()

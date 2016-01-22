@@ -10,6 +10,7 @@ FSHelper                        = require '../../util/fs/fshelper'
 isKoding                        = require 'app/util/isKoding'
 showError                       = require '../../util/showError'
 groupifyLink                    = require '../../util/groupifyLink'
+isFeedEnabled                   = require 'app/util/isFeedEnabled'
 ComputeHelpers                  = require 'app/providers/computehelpers'
 CustomLinkView                  = require '../../customlinkview'
 ChatSearchModal                 = require './chatsearchmodal'
@@ -86,7 +87,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     router
       .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
-    if isKoding()
+    unless isFeedEnabled()
       notificationController
         .on 'AddedToChannel',            @bound 'accountAddedToChannel'
         .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
@@ -96,6 +97,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
         .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
         .on 'ParticipantUpdated',        @bound 'handleGlanced'
+        .on 'NewWorkspaceCreated',       @bound 'updateMachines'
+        .on 'WorkspaceRemoved',          @bound 'updateMachines'
         # .on 'ReplyRemoved',              (update) -> log update.event, update
         # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 

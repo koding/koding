@@ -1086,6 +1086,10 @@ module.exports = class JGroup extends Module
 
       TEAMPLANS = require '../computeproviders/teamplans'
 
+      if (@getAt 'slug') is 'koding'
+        return callback new KodingError \
+          'Setting a plan on koding is not allowed'
+
       { plan, overrides } = data
 
       if plan not in (plans = Object.keys(TEAMPLANS).concat 'noplan')

@@ -86,7 +86,6 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	s.Log.Debug("Plan: stack template before injecting Koding data")
 	s.Log.Debug("%v", s.Builder.Template)
 
-	// TODO(rjeczalik): rework injectAWSData
 	s.Log.Debug("Injecting AWS data")
 
 	if _, err := s.InjectAWSData(ctx, s.Req.Username); err != nil {
