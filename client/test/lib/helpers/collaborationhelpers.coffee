@@ -109,7 +109,7 @@ module.exports =
       .click                  chatSettingsIcon
 
 
-  inviteUser: (browser, username) ->
+  inviteUser: (browser, username, selectUser = yes) ->
 
     console.log " ✔ Inviting #{username} to collaboration session"
 
@@ -121,16 +121,19 @@ module.exports =
       .waitForElementVisible   '.kdautocompletewrapper input', 20000
       .setValue                '.kdautocompletewrapper input', username
       .pause                   5000
-      .element                 'css selector', chatSelecor, (result) ->
-        if result.status is 0
-          browser.click        chatSelecor
-        else
-          browser
-            .click             '.ParticipantHeads-button--new'
-            .pause             500
-            .click             '.ParticipantHeads-button--new'
-            .pause             500
-            .click             chatSelecor
+
+    if selectUser
+      browser
+        .element                 'css selector', chatSelecor, (result) ->
+          if result.status is 0
+            browser.click        chatSelecor
+          else
+            browser
+              .click             '.ParticipantHeads-button--new'
+              .pause             500
+              .click             '.ParticipantHeads-button--new'
+              .pause             500
+              .click             chatSelecor
 
 
   closeChatPage: (browser) ->
