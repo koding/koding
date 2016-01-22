@@ -71,6 +71,7 @@ module.exports = [
 
   [
    { name: 'messages privatemessage' }
+  ]
 
   [
     { name: 'messages privatemessage' }
