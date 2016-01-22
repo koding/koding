@@ -319,7 +319,7 @@ module.exports = class SocialChannel extends Base
 
       return  callback new KodingError 'channel id not provided'  unless options.channelId?
 
-
+      options.sessionToken = client.sessionToken 
       return deleteChannel options, (err) ->
 
         return callback err  if err
