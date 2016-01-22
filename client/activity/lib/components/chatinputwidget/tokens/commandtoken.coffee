@@ -1,4 +1,5 @@
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
+helpers           = require '../helpers'
 CommandDropbox    = require '../commanddropbox'
 
 module.exports = CommandToken =
@@ -20,9 +21,7 @@ module.exports = CommandToken =
         selectedIndex      : 'commandsSelectedIndex'
         selectedItem       : 'commandsSelectedItem'
       horizontalNavigation : no
-      processConfirmedItem : (item, query) ->
-        return {
-          type  : 'text'
-          value : "#{item.get 'name'} #{item.get 'paramPrefix', ''}"
-        }
+      submit               : ({ selectedItem, query, value, position }) ->
+        newWord = "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
+        return helpers.replaceWordAtPosition value, position, newWord
     }

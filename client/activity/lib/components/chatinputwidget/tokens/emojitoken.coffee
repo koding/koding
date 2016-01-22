@@ -1,4 +1,5 @@
 textHelpers       = require 'activity/util/textHelpers'
+helpers           = require '../helpers'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
 EmojiDropbox      = require '../emojidropbox'
 formatEmojiName   = require 'activity/util/formatEmojiName'
@@ -26,10 +27,9 @@ module.exports = EmojiToken =
         selectedIndex      : 'emojisSelectedIndex'
         selectedItem       : 'emojisSelectedItem'
       horizontalNavigation : yes
-      processConfirmedItem : (item, query) ->
-        EmojiActions.incrementUsageCount item
-        return {
-          type  : 'text'
-          value : "#{formatEmojiName item} "
-        }
+      submit               : ({ selectedItem, query, value, position }) ->
+        EmojiActions.incrementUsageCount selectedItem
+
+        newWord = "#{formatEmojiName selectedItem} "
+        return helpers.replaceWordAtPosition value, position, newWord
     }

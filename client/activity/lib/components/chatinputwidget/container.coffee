@@ -223,26 +223,20 @@ module.exports = class ChatInputContainer extends React.Component
     { dropboxQuery, dropboxConfig, value } = @state
     return  unless dropboxConfig
 
-    selectedItem      = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
+    selectedItem = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
+    return @submit()  unless selectedItem
 
-    if not selectedItem
-      @submit()
-    else
-      confirationResult = dropboxConfig.get('processConfirmedItem') selectedItem, dropboxQuery, value
-      @onDropboxClose()
+    position = @refs.input.getCursorPosition()
+    params   = { selectedItem, query : dropboxQuery, value, position }
 
-      { type, value, reset } = confirationResult
-      if type is 'command'
-        @props.onCommand? { command : value }
-        @resetValue()  if reset
-        return
+    { newValue, newPosition, command } = dropboxConfig.get('submit') params
 
-      position = @refs.input.getCursorPosition()
-      { newValue, newPosition } = helpers.replaceWordAtPosition @state.value, position, value
+    @onDropboxClose()
+    @props.onCommand? { command }  if command
+    @setValue newValue
 
-      @setValue newValue
-      kd.utils.defer =>
-        @refs.input.setCursorPosition newPosition
+    kd.utils.defer =>
+      @refs.input.setCursorPosition newPosition ? 0
 
 
   onSelectBoxVisible: ->

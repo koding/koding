@@ -24,15 +24,13 @@ module.exports = SearchToken =
         selectedItem       : 'searchSelectedItem'
         flags              : 'searchFlags'
       horizontalNavigation : no
-      processConfirmedItem : (item, query) ->
-        { initialChannelId, id } = item.get('message').toJS()
-        return {
-          type     : 'command'
-          reset    : yes
-          value    :
-            name   : '/search'
-            params : { initialChannelId, messageId : id }
+      submit               : ({ selectedItem, query, value, position }) ->
+        { initialChannelId, id } = selectedItem.get('message').toJS()
+        command = {
+          name   : '/search'
+          params : { initialChannelId, messageId : id }
         }
+        return { newValue : '', command }
     }
 
 
