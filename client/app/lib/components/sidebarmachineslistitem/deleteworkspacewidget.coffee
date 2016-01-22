@@ -39,7 +39,7 @@ module.exports = class DeleteWorkspaceWidget extends React.Component
 
   handleOnClose: ->
 
-    kd.utils.defer =>
+    kd.utils.defer ->
       actions.hideDeleteWorkspaceWidget()
 
 
