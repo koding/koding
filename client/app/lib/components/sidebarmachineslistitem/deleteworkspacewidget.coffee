@@ -40,7 +40,7 @@ module.exports = class DeleteWorkspaceWidget extends React.Component
   handleOnClose: ->
 
     kd.utils.defer =>
-      actions.hideDeleteWorkspaceWidget @props.workspace.get '_id'
+      actions.hideDeleteWorkspaceWidget()
 
 
   handleDeleteAllFiles: (status) ->
