@@ -61,6 +61,9 @@ func NewDefaultError(err error) []byte {
 }
 
 func (sh *SitemapHandler) FetchRoot(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	return
+
 	res, err := sh.fetcher.FetchRoot()
 	if err != nil {
 		handleError(w, err, "An error occurred while fetching sitemap")
@@ -71,6 +74,9 @@ func (sh *SitemapHandler) FetchRoot(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (sh *SitemapHandler) FetchByName(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	return
+
 	fileName := r.URL.Query().Get("name")
 
 	names := strings.Split(fileName, ".")
