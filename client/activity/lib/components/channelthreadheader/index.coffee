@@ -110,21 +110,30 @@ module.exports = class ChannelThreadHeader extends React.Component
   onKeyDown: (event) ->
 
     { ENTER, ESC } = KeyboardKeys
-    thread         = @state.channelThread
+    { thread }     = @state
 
     if event.which is ESC
       _originalPurpose = @channel '_originalPurpose'
       purpose = _originalPurpose or @channel 'purpose'
       thread  = thread.setIn ['channel', 'purpose'], purpose
-      @setState channelThread: thread
+      @setState { thread }
       return @setState editingPurpose: no
 
     if event.which is ENTER
-      id = @channel 'id'
-      purpose = @channel('purpose').trim()
+      id           = @channel 'id'
+      typeConstant = @channel 'typeConstant'
+      purpose      = @channel('purpose').trim()
+
+      options = { id }
+
+      if typeConstant is 'privatemessage'
+        options.payload = { description: purpose }
+      else
+        options.purpose = purpose
+
       { updateChannel } = ActivityFlux.actions.channel
 
-      updateChannel({ id, purpose }).then => @setState editingPurpose: no
+      updateChannel(options).then => @setState { editingPurpose: no }
 
 
   renderPurposeArea: ->
