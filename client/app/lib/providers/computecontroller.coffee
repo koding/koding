@@ -445,8 +445,9 @@ module.exports = class ComputeController extends KDController
       if template
         template.generateStack handleStackCreate
       else if force or groupsController.currentGroupHasStack()
-        if @stacks.length is 0
-          remote.api.ComputeProvider.createGroupStack handleStackCreate
+        for stack in @stacks
+          return  if stack.config?.groupStack
+        remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
 

@@ -58,11 +58,12 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         title       : 'RE-INIT STACK'
         callback    : @bound 'handleStackReinit'
 
-      @deleteStackButton = new kd.ButtonView
-        cssClass : 'solid compact red delete-stack'
-        title    : 'Delete Stack'
-        loader   : yes
-        callback : @bound 'handleStackDelete'
+      unless stack.config?.groupStack
+        @deleteStackButton = new kd.ButtonView
+          cssClass : 'solid compact red delete-stack'
+          title    : 'Delete Stack'
+          loader   : yes
+          callback : @bound 'handleStackDelete'
 
     if isKoding()
       @addVMButton = new kd.ButtonView
