@@ -57,7 +57,7 @@ class ChannelDropbox extends React.Component
     { items } = @props
     return  if items.size > 0
 
-    <DropboxItem className='DropboxItem-singleLine DropboxItem-separated ChannelDropboxItem ChannelDropbox-newChannelSuggestion'>
+    <DropboxItem className='DropboxItem-singleLine ChannelDropbox-newChannelSuggestion'>
       Do you want to create this channel?
     </DropboxItem>
 
