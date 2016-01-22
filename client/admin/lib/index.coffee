@@ -1,6 +1,7 @@
 kd                         = require 'kd'
 AppController              = require 'app/appcontroller'
 
+LogsView                   = require './views/logs'
 AdminAPIView               = require './views/api/adminapiview'
 AdminAppView               = require './views/customviews/adminappview'
 TeamInviteView             = require './views/koding-admin/teaminviteview'
@@ -47,6 +48,7 @@ module.exports = class AdminAppController extends AppController
         }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings,       role: 'member' }
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
+        { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 }
       ]
     koding     :
       title    : 'Koding Administration'
