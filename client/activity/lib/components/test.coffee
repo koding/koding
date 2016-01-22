@@ -14,4 +14,4 @@ require './commentinputwidget/test'
 require './common/test'
 require './sidebarwidgets/test'
 require './commentlist/test'
-
+require './chatlist/test'
