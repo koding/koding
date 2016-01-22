@@ -1,8 +1,9 @@
 kd                              = require 'kd'
-VideoCollaborationModel         = require 'app/videocollaboration/model'
+bowser                          = require 'bowser'
+showError                       = require 'app/util/showError'
 socialHelpers                   = require './collaboration/helpers/social'
 isVideoFeatureEnabled           = require 'app/util/isVideoFeatureEnabled'
-showError                       = require 'app/util/showError'
+VideoCollaborationModel         = require 'app/videocollaboration/model'
 LimitedVideoCollaborationModal  = require './views/collaboration/limitedvideocollaborationmodal'
 
 
@@ -25,11 +26,10 @@ module.exports = VideoCollaborationController =
 
   prepareVideoCollaboration: ->
 
-    { userAgent } = global.navigator
-
-    if /^((?!chrome|android).)*safari/i.test userAgent
+    if bowser.safari or bowser.msie or bowser.msedge
+      browser = if bowser.safari then 'Safari' else 'Internet Explorer'
       showError """
-        The video component is not supported for Safari.<br />
+        The video component is not supported for #{browser}.<br />
         To enable this functionality, please use Google Chrome or Firefox.
       """
       return

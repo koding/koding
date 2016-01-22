@@ -48,6 +48,7 @@ MarketingController            = require './marketing/marketingcontroller'
 MachineShareManager            = require './machinesharemanager'
 KodingFluxReactor              = require './flux/base/reactor'
 DesktopNotificationsController = require './desktopnotificationscontroller'
+bowser                         = require 'bowser'
 
 
 module.exports           = class MainController extends KDController
@@ -353,11 +354,7 @@ module.exports           = class MainController extends KDController
       unless connectedState.connected
         logToExternalWithTime "Connect to backend"
 
-        {userAgent} = global.navigator
-        isSafari    = /Safari/.test userAgent
-        notChrome   = not /Chrome/.test userAgent
-
-        if isSafari and notChrome
+        if bowser.safari
         then useChrome()
         else fail()
 

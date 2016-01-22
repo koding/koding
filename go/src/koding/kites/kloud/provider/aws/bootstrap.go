@@ -61,6 +61,7 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 		s.Log.Debug("parsing the template")
 
 		if err := s.Builder.BuildTemplate(awsBootstrap); err != nil {
+			return nil, err
 		}
 
 		meta := cred.Meta.(*AwsMeta)
@@ -105,9 +106,6 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		// s.Log.Debug("[%s] Final bootstrap:", cred.Identifier)
-		// s.Log.Debug(finalBootstrap)
 
 		// Important so bootstraping is distributed amongs multiple users. If I
 		// use these keys to bootstrap, any other user should be not create

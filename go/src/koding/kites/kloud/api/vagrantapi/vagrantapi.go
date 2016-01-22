@@ -22,14 +22,16 @@ const (
 	defaultTimeout     = 10 * time.Minute
 )
 
-// State* represent consts for vagrantutil box states.
+// State represent consts for vagrantutil box states.
+type State string
+
 const (
-	StatePowerOff   = "poweroff"
-	StatePreparing  = "preparing"
-	StateRunning    = "running"
-	StateNotCreated = "notcreated"
-	StateAborted    = "aborted"
-	StateSaved      = "saved"
+	StatePowerOff   = State("poweroff")
+	StatePreparing  = State("preparing")
+	StateRunning    = State("running")
+	StateNotCreated = State("notcreated")
+	StateAborted    = State("aborted")
+	StateSaved      = State("saved")
 )
 
 // Create represents vagrant.create request and response.
@@ -52,12 +54,12 @@ type Command struct {
 // Status response values for vagrant.{list,status} requests.
 type Status struct {
 	FilePath string
-	State    string
+	State    State
 }
 
 // MachineState maps the State field to machinestate.State value.
-func (s *Status) MachineState() machinestate.State {
-	switch s.State {
+func (s State) MachineState() machinestate.State {
+	switch s {
 	case StatePowerOff, StateAborted:
 		return machinestate.Stopped
 	case StateSaved:
@@ -200,7 +202,7 @@ func (k *Klient) Status(queryString, boxPath string) (*Status, error) {
 		return nil, err
 	}
 
-	resp.State = strings.ToLower(resp.State) // workaround for TMS-2106
+	resp.State = State(strings.ToLower(string(resp.State))) // workaround for TMS-2106
 
 	return resp, nil
 }

@@ -93,11 +93,8 @@ class IDEAppController extends AppController
     @silent    = no
     @workspace = new IDEWorkspace { layoutOptions }
     @ideViews  = []
-
-    # todo:
-    # - following two should be abstracted out into a separate api
-    @layout = ndpane(16)
-    @layoutMap = new Array(16*16)
+    @layout    = ndpane 16
+    @layoutMap = new Array 16 * 16
 
     { windowController, appManager } = kd.singletons
     windowController.addFocusListener @bound 'handleWindowFocus'
@@ -105,10 +102,11 @@ class IDEAppController extends AppController
     @layoutManager = new IDELayoutManager delegate : this
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
+    @bindListeners()
 
     appManager.on 'AppIsBeingShown', (app) =>
 
-      return  unless app instanceof IDEAppController
+      return  unless app is this
 
       @setActivePaneFocus on, yes
 
@@ -121,10 +119,8 @@ class IDEAppController extends AppController
 
       @runOnboarding()  if @isMachineRunning()
 
-      if app.getId() is @getId() and not @layoutManager.isSnapshotRestored()
+      unless @layoutManager.isSnapshotRestored()
         @layoutManager.restoreSnapshot()
-
-      @bindListeners()
 
 
   bindListeners: ->
@@ -134,6 +130,12 @@ class IDEAppController extends AppController
       ideView.emit 'CloseFullScreen'  if ideView
 
     @on 'SnapshotUpdated', @bound 'saveLayoutSize'
+
+    kd.singletons.notificationController.on 'WorkspaceRemoved', (data) =>
+      { machineUId, slug } = data
+
+      if @mountedMachineUId is machineUId and slug is @workspaceData.slug
+        @quit()
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -1580,8 +1582,10 @@ class IDEAppController extends AppController
 
     if destroy
       kd.singletons.appManager.quit this, =>
-        route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
-        kd.singletons.router.handleRoute route
+        # fetch data to ensure target workspace is still exist
+        environmentDataProvider.fetch =>
+          route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
+          kd.singletons.router.handleRoute route
 
       @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 

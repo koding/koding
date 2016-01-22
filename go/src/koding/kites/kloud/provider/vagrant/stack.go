@@ -3,6 +3,7 @@ package vagrant
 import (
 	"errors"
 
+	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stackplan"
@@ -55,6 +56,8 @@ func (meta *VagrantMeta) SetDefaults() (updated bool) {
 // Stack
 type Stack struct {
 	*provider.BaseStack
+
+	api *vagrantapi.Klient
 }
 
 // Ensure Provider implements the kloud.StackProvider interface.
@@ -69,7 +72,13 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		return nil, err
 	}
 
+	api := &vagrantapi.Klient{
+		Kite: bs.Session.Kite,
+		Log:  bs.Log.New("vagrantapi"),
+	}
+
 	return &Stack{
 		BaseStack: bs,
+		api:       api,
 	}, nil
 }
