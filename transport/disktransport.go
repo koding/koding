@@ -20,7 +20,7 @@ var diskCachePathPrefix = "fuseklient-diskcache"
 // NewDiskTransport is the required initializer for DiskTransport. It accepts
 // path where to create cache folder; if empty path is specified it creates a
 // folder at temp location.
-func NewDiskTransport(diskPath string, ignoreDirs []string) (*DiskTransport, error) {
+func NewDiskTransport(diskPath string) (*DiskTransport, error) {
 	if diskPath == "" {
 		var err error
 		if diskPath, err = ioutil.TempDir("", diskCachePathPrefix); err != nil {

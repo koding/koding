@@ -18,7 +18,7 @@ func TestDiskTransport(t *testing.T) {
 func TestNewDiskTransport(t *testing.T) {
 	Convey("NewDiskTransport", t, func() {
 		Convey("It should create temp dir if no path is specified", func() {
-			dt, err := NewDiskTransport("", nil)
+			dt, err := NewDiskTransport("")
 			So(err, ShouldBeNil)
 			So(dt.DiskPath, ShouldNotEqual, "")
 			statDirCheck(dt.DiskPath)
@@ -28,7 +28,7 @@ func TestNewDiskTransport(t *testing.T) {
 			mountDir, err := ioutil.TempDir("", "mounttest")
 			So(err, ShouldBeNil)
 
-			dt, err := NewDiskTransport(mountDir, nil)
+			dt, err := NewDiskTransport(mountDir)
 			So(err, ShouldBeNil)
 			So(dt.DiskPath, ShouldEqual, mountDir)
 		})
@@ -37,7 +37,7 @@ func TestNewDiskTransport(t *testing.T) {
 
 func TestDTCreateDir(t *testing.T) {
 	Convey("CreateDir", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		Convey("It should create dir with mode", func() {
@@ -67,7 +67,7 @@ func TestDTCreateDir(t *testing.T) {
 
 func TestDTReadDir(t *testing.T) {
 	Convey("ReadDir", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		// create dir with a dir inside
@@ -125,7 +125,7 @@ func TestDTReadDir(t *testing.T) {
 
 func TestDTRename(t *testing.T) {
 	Convey("Rename", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		err = dt.WriteFile("file", []byte("hello world!"))
@@ -150,7 +150,7 @@ func TestDTRename(t *testing.T) {
 
 func TestDTRemove(t *testing.T) {
 	Convey("Remove", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		err = dt.WriteFile("file", []byte("hello world!"))
@@ -168,7 +168,7 @@ func TestDTRemove(t *testing.T) {
 
 func TestDTReadFile(t *testing.T) {
 	Convey("ReadFile", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		Convey("It should read contents of file", func() {
@@ -184,7 +184,7 @@ func TestDTReadFile(t *testing.T) {
 
 func TestDTWriteFile(t *testing.T) {
 	Convey("WriteFile", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		Convey("It should write file with contents", func() {
@@ -197,7 +197,7 @@ func TestDTWriteFile(t *testing.T) {
 
 func TestDTExec(t *testing.T) {
 	Convey("Exec", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		Convey("It should run command and return response", func() {
@@ -217,7 +217,7 @@ func TestDTExec(t *testing.T) {
 
 func TestDTGetDiskInfo(t *testing.T) {
 	Convey("GetDiskInfo", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		stfs := syscall.Statfs_t{}
@@ -237,7 +237,7 @@ func TestDTGetDiskInfo(t *testing.T) {
 
 func TestDTGetInfo(t *testing.T) {
 	Convey("GetInfo", t, func() {
-		dt, err := NewDiskTransport("", nil)
+		dt, err := NewDiskTransport("")
 		So(err, ShouldBeNil)
 
 		Convey("It should return info for root entry", func() {
