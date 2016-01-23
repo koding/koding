@@ -14,8 +14,8 @@ module.exports =
 
     for [1..10]
 
-      name     = faker.Name.findName()
-      username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
+      name     = faker.name.findName()
+      username = faker.helpers.slugify(faker.internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
       teamSlug = name.toLowerCase().replace(/\s/g, '-').replace(/'/g, '').replace('.', '')
@@ -33,10 +33,10 @@ module.exports =
 
   getPassword: ->
 
-    password = faker.Helpers.slugify(faker.Internet.userName())
+    password = faker.helpers.slugify(faker.internet.userName())
 
     while password.length < 12
-      password = faker.Helpers.slugify(faker.Internet.userName())
+      password = faker.helpers.slugify(faker.internet.userName())
 
     return password
 
