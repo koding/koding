@@ -18,6 +18,9 @@ var mentionRegex = ve.New().
 	Find("@").
 	BeginCapture().
 	Word().
+	Maybe("-").
+	Maybe(".").
+	Word().
 	EndCapture().
 	Regex()
 
