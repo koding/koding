@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"math/rand"
 	"socialapi/request"
 	"socialapi/workers/common/tests"
@@ -613,6 +614,92 @@ func TestChannelMessagePayload(t *testing.T) {
 
 			val = cm.GetPayload("heya")
 			So(val, ShouldBeNil)
+		})
+
+	})
+}
+
+func TestChannelMesssageMentionRegex(t *testing.T) {
+	Convey("while getting user name with regular expression ", t, func() {
+
+		Convey("mentioned name can contain only numbers in body message", func() {
+			user := "@123456"
+			body := fmt.Sprintf("Hi my name is %s only numbers!!", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can be able to end of the line", func() {
+			user := "@mehmetali"
+			body := fmt.Sprintf("Hi my name is %s", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can be able to beginning of the line", func() {
+			user := "@mehmetali"
+			body := fmt.Sprintf("%s Hi my name is ", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can be any word or number", func() {
+			user := "@mehmetali123"
+			body := fmt.Sprintf("Hi my name is %s ", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can be any number word ", func() {
+			user := "@123mehmetali"
+			body := fmt.Sprintf("Hi my name is %s ", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can be any word or symbol ", func() {
+			user := "@mehmet-ali"
+			body := fmt.Sprintf("Hi my name is %s ", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can be any word & symbol & number ", func() {
+			user := "@mehmet-ali1"
+			body := fmt.Sprintf("Hi my name is %s ", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can contain dot", func() {
+			user := "@mehmet.ali1"
+			body := fmt.Sprintf("Hi my name is %s ", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can contain underscore", func() {
+			user := "@mehmet_ali1"
+			body := fmt.Sprintf("Hi my name is %s ", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned name can contain combination numbers&symbols", func() {
+			user := "@mehmet1-1ali1"
+			body := fmt.Sprintf("Hi my name is %s ", user)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name[0][0], ShouldEqual, user)
 		})
 
 	})
