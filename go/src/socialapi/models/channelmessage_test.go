@@ -627,22 +627,34 @@ func TestChannelMesssageMentionRegex(t *testing.T) {
 			body := fmt.Sprintf("Hi my name is %s only numbers!!", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
-		Convey("mentioned name can be able to end of the line", func() {
+		Convey("mentioned name can be at the end of the line", func() {
 			user := "@mehmetali"
 			body := fmt.Sprintf("Hi my name is %s", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
-		Convey("mentioned name can be able to beginning of the line", func() {
+		Convey("mentioned name can be at the beginning of the line", func() {
 			user := "@mehmetali"
 			body := fmt.Sprintf("%s Hi my name is ", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
@@ -651,6 +663,10 @@ func TestChannelMesssageMentionRegex(t *testing.T) {
 			body := fmt.Sprintf("Hi my name is %s ", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
@@ -659,6 +675,10 @@ func TestChannelMesssageMentionRegex(t *testing.T) {
 			body := fmt.Sprintf("Hi my name is %s ", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
@@ -667,6 +687,10 @@ func TestChannelMesssageMentionRegex(t *testing.T) {
 			body := fmt.Sprintf("Hi my name is %s ", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
@@ -675,6 +699,10 @@ func TestChannelMesssageMentionRegex(t *testing.T) {
 			body := fmt.Sprintf("Hi my name is %s ", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
@@ -683,6 +711,10 @@ func TestChannelMesssageMentionRegex(t *testing.T) {
 			body := fmt.Sprintf("Hi my name is %s ", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
@@ -691,6 +723,10 @@ func TestChannelMesssageMentionRegex(t *testing.T) {
 			body := fmt.Sprintf("Hi my name is %s ", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
 		})
 
@@ -699,7 +735,25 @@ func TestChannelMesssageMentionRegex(t *testing.T) {
 			body := fmt.Sprintf("Hi my name is %s ", user)
 			name := mentionRegex.FindAllStringSubmatch(body, -1)
 
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 0)
+			So(len(name), ShouldBeGreaterThan, 0)
 			So(name[0][0], ShouldEqual, user)
+		})
+
+		Convey("mentioned names can be more than 1 in the body", func() {
+			user := "@mehmet1-1ali1"
+			user2 := "@testerMehmetAli"
+			body := fmt.Sprintf("Hi my name is %s and %s ", user, user2)
+			name := mentionRegex.FindAllStringSubmatch(body, -1)
+
+			So(name, ShouldNotBeNil)
+			So(name[0], ShouldNotBeNil)
+			So(len(name[0]), ShouldBeGreaterThan, 1)
+			So(len(name), ShouldBeGreaterThan, 1)
+			So(name[0][0], ShouldEqual, user)
+			So(name[1][0], ShouldEqual, user2)
 		})
 
 	})
