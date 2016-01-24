@@ -26,7 +26,7 @@ module.exports =
 
       users.push { name, email, username, password, teamSlug, fakeText }
 
-    fs.writeFileSync 'users.json', formatter users, 'utf-8'
+    fs.writeFileSync 'users.json', formatter(users)
 
     return users
 
