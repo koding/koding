@@ -590,6 +590,11 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/account/channels$is_args$args"
           }
           {
+            location    : "~ /api/social/secure(.*)"
+            proxyPass   : "http://socialapi/secure/$1$is_args$args"
+            internalOnly: yes
+          }
+          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
