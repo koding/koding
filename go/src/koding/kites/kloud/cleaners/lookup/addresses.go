@@ -202,6 +202,8 @@ func (a *Addresses) NotPaid(opts *NotPaidOptions) *Addresses {
 }
 
 // Release releases all address for the given region/client
+//
+// TODO(rjeczalik): add logger
 func (a *Addresses) Release(client *amazon.Client) {
 	if len(a.m) == 0 {
 		return
@@ -210,9 +212,22 @@ func (a *Addresses) Release(client *amazon.Client) {
 	addresses := a.m[client]
 	fmt.Printf("Releasing %d addresses for region %s\n", len(addresses), client.Region)
 	for _, addr := range addresses {
-		err := client.ReleaseAddress(aws.StringValue(addr.AllocationId))
+		ip := aws.StringValue(addr.PublicIp)
+
+		assocID := aws.StringValue(addr.AssociationId)
+		if assocID != "" {
+			// EIP is in-use, disassociate it first.
+			err := client.DisassociateAddress(assocID)
+			if err != nil {
+				// Even when it fails, will try to release the EIP.
+				fmt.Printf("[%s] disassociate %s EIP error: %s\n", client.Region, ip, err)
+			}
+		}
+
+		allocID := aws.StringValue(addr.AllocationId)
+		err := client.ReleaseAddress(allocID)
 		if err != nil {
-			fmt.Printf("[%s] release ip address error: %s\n", client.Region, err)
+			fmt.Printf("[%s] release %s EIP error: %s\n", client.Region, ip, err)
 		}
 	}
 
