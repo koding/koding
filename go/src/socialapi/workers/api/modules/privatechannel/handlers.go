@@ -52,7 +52,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Count,
 			Name:     "privatechannel-count",
 			Type:     handler.GetRequest,
-			Endpoint: "/privatechannel/count",
+			Endpoint: "/secure/privatechannel/count",
 		},
 	)
 
