@@ -25,11 +25,10 @@ type Cleaner struct {
 	DNS      *dnsclient.Route53
 	DNSDev   *dnsclient.Route53
 	Domains  dnsstorage.Storage
-	DryRun   bool
-	Debug    bool
 
-	Hook Hook
-	Log  logging.Logger
+	Hook   Hook
+	Log    logging.Logger
+	Config *Config
 }
 
 type Artifacts struct {
@@ -94,9 +93,8 @@ func NewCleaner(conf *Config) *Cleaner {
 		DNSDev:   dnsdev,
 		Domains:  domains,
 		Hook:     hook,
-		Log:      logging.NewLogger("cleaner"),
-		DryRun:   conf.DryRun,
-		Debug:    conf.Debug,
+		Log:      common.NewLogger("cleaner", conf.Debug),
+		Config:   conf,
 	}
 }
 
@@ -111,10 +109,12 @@ func (c *Cleaner) IsPaid() (func(string) bool, error) {
 		return nil, err
 	}
 
-	set := make(map[string]struct{}, 0)
+	set := make(map[string]struct{}, len(accounts))
 	for _, account := range accounts {
 		set[account.Profile.Nickname] = struct{}{}
 	}
+
+	c.Log.Debug("Paying users (%d): %v", len(set), set)
 
 	return func(username string) bool {
 		_, ok := set[username]
