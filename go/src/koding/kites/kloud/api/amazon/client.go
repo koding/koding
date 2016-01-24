@@ -105,13 +105,22 @@ func (c *Client) AllocateAddress(domainType string) (allocID, publicIP string, e
 	return aws.StringValue(resp.AllocationId), aws.StringValue(resp.PublicIp), nil
 }
 
-// AssociateAddress is a wrapper for (*ec2.EC2).AssociateAddres.
+// AssociateAddress is a wrapper for (*ec2.EC2).AssociateAddress.
 func (c *Client) AssociateAddress(instanceID, allocID string) error {
 	params := &ec2.AssociateAddressInput{
 		InstanceId:   aws.String(instanceID),
 		AllocationId: aws.String(allocID),
 	}
 	_, err := c.EC2.AssociateAddress(params)
+	return awsError(err)
+}
+
+// DisassociateAddress is a wrapper for (*ec2.EC2).DisassociateAddress.
+func (c *Client) DisassociateAddress(assocID string) error {
+	params := &ec2.DisassociateAddressInput{
+		AssociationId: aws.String(assocID),
+	}
+	_, err := c.EC2.DisassociateAddress(params)
 	return awsError(err)
 }
 
