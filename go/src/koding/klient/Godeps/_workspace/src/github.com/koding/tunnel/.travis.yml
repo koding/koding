@@ -1,7 +1,0 @@
-language: go
-go: 
-  - 1.4
-  - tip
-script:
-  - go build -v
-  - go test -v -race
