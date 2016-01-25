@@ -14,7 +14,7 @@ import (
 	"runtime"
 	"sort"
 
-	"github.com/koding/klient/Godeps/_workspace/src/gopkg.in/fatih/set.v0"
+	"gopkg.in/fatih/set.v0"
 )
 
 const (

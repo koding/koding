@@ -4,11 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/session"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 const (

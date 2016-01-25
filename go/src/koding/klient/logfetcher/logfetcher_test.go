@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
+	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
 
 var (

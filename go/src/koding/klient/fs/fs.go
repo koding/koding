@@ -10,9 +10,9 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
-	"github.com/koding/klient/Godeps/_workspace/src/gopkg.in/fsnotify.v1"
+	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
+	"gopkg.in/fsnotify.v1"
 )
 
 var (

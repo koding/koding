@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/koding/klient/build/util"
+	"koding/klient/build/util"
 )
 
 type Darwin struct {

@@ -3,7 +3,7 @@ package usage
 import (
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/kite"
 )
 
 var MethodName = "klient.usage"

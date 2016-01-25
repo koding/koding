@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/koding/klient/info/publicip"
+	"koding/klient/info/publicip"
 )
 
 const (

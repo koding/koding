@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/tunnel"
-	"github.com/koding/klient/protocol"
+	"github.com/boltdb/bolt"
+	"github.com/koding/kite"
+	"github.com/koding/tunnel"
+	"koding/klient/protocol"
 )
 
 const (

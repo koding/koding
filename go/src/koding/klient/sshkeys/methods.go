@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/kite"
 )
 
 // List returns a list of all keys with their respective fingerrpints for the

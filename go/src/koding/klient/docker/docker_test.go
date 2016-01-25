@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	dockerclient "github.com/fsouza/go-dockerclient"
+	"github.com/koding/kite"
 )
 
 var (

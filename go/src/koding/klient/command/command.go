@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/kite"
 )
 
 // Output defines the response of an executed command.

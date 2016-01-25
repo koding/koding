@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/boltdb/bolt"
+	"github.com/koding/kite"
 )
 
 type Collaboration struct {

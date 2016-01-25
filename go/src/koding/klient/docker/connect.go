@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 
-	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
+	dockerclient "github.com/fsouza/go-dockerclient"
+	"github.com/koding/kite/dnode"
 )
 
 // Server is the type of object that is sent to the connected client.

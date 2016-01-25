@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"testing"
 
-	. "github.com/koding/klient/Godeps/_workspace/src/github.com/smartystreets/goconvey/convey"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func newTestExporter() (Exporter, error) {

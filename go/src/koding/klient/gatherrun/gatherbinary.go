@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/koding/klient/command"
+	"koding/klient/command"
 )
 
 type Options map[string]interface{}

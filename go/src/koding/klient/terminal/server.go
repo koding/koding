@@ -3,8 +3,8 @@ package terminal
 import (
 	"syscall"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
-	"github.com/koding/klient/terminal/pty"
+	"github.com/koding/kite/dnode"
+	"koding/klient/terminal/pty"
 )
 
 // Server is the type of object that is sent to the connected client.

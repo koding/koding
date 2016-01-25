@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/koding/klient/build/deps"
-	"github.com/koding/klient/build/util"
+	"koding/klient/build/deps"
+	"koding/klient/build/util"
 )
 
 type Tar struct {

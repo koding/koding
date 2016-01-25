@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/koding/klient/info/publicip"
+	"koding/klient/info/publicip"
 )
 
 func (k *Klient) register() error {

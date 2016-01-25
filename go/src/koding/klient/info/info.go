@@ -1,6 +1,6 @@
 package info
 
-import "github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+import "github.com/koding/kite"
 
 type info struct {
 	// ProviderName is the name of the machine (vm or otherwise) provider,

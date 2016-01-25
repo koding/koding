@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/koding/klient/app"
-	"github.com/koding/klient/protocol"
-	"github.com/koding/klient/registration"
+	"koding/klient/app"
+	"koding/klient/protocol"
+	"koding/klient/registration"
 )
 
 var (

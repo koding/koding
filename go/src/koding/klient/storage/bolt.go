@@ -3,7 +3,7 @@ package storage
 import (
 	"errors"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
+	"github.com/boltdb/bolt"
 )
 
 const DataBucket = "userdata"

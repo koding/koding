@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
-	"github.com/koding/klient/protocol"
+	"github.com/koding/kite"
+	"github.com/koding/kite/config"
+	"koding/klient/protocol"
 )
 
 // Register registers with the username to the given kontrolURL via the users

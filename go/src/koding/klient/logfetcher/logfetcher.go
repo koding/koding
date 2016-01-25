@@ -6,9 +6,10 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/ActiveState/tail"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
+	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
+
+	"github.com/hpcloud/tail"
 )
 
 type Request struct {

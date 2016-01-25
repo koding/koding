@@ -11,10 +11,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go-charset/charset"
-	_ "github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go-charset/data"
-	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
+	dockerclient "github.com/fsouza/go-dockerclient"
+	"github.com/koding/kite"
 )
 
 // Docker defines the main configuration. One instance is running as one Docker

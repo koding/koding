@@ -3,8 +3,8 @@ package info
 import (
 	"runtime"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/ec2dynamicdata"
-	"github.com/koding/klient/fix"
+	"github.com/koding/ec2dynamicdata"
+	"koding/klient/fix"
 )
 
 const (

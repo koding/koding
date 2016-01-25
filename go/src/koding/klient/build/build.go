@@ -13,7 +13,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/koding/klient/build/build"
+	"koding/klient/build/build"
 )
 
 var (
@@ -58,9 +58,9 @@ func buildKlient() error {
 		symbolvalue = "0.1." + strconv.Itoa(*flagBuildNumber)
 	}
 
-	ldflags := fmt.Sprintf("-X github.com/koding/klient/protocol.Version %s", symbolvalue)
+	ldflags := fmt.Sprintf("-X koding/klient/protocol.Version %s", symbolvalue)
 	if *flagEnvironment != "" {
-		ldflags += fmt.Sprintf(" -X github.com/koding/klient/protocol.Environment %s", *flagEnvironment)
+		ldflags += fmt.Sprintf(" -X koding/klient/protocol.Environment %s", *flagEnvironment)
 	}
 
 	kclient := pkg{

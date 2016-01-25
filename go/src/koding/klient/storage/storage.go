@@ -3,8 +3,8 @@ package storage
 import (
 	"errors"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/boltdb/bolt"
+	"github.com/koding/kite"
 )
 
 var ErrKeyNotFound = errors.New("key not found")

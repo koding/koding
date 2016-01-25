@@ -12,8 +12,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/koding/klient/build/deps"
-	"github.com/koding/klient/build/util"
+	"koding/klient/build/deps"
+	"koding/klient/build/util"
 )
 
 type Deb struct {

@@ -6,9 +6,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/fix"
-	"github.com/koding/klient/protocol"
+	"github.com/koding/kite"
+	"koding/klient/fix"
+	"koding/klient/protocol"
 )
 
 const (

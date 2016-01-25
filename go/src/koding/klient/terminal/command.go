@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/passwd"
+	"github.com/koding/passwd"
 )
 
 const (
