@@ -11,7 +11,7 @@ BUILD_DIR=build/lib
 REVISION=$(node -e "process.stdout.write(require('../.config.json').rev)")
 export REVISION=${REVISION:0:7}
 
-make compile
+make --quiet compile
 
 function get_test_group_path() {
   echo $BUILD_DIR/$TEST_GROUP
