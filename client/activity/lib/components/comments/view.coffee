@@ -2,7 +2,7 @@ kd                 = require 'kd'
 React              = require 'kd-react'
 classnames         = require 'classnames'
 immutable          = require 'immutable'
-CommentList        = require './commentlist'
+CommentList        = require 'activity/components/commentlist'
 CommentInputWidget = require 'activity/components/commentinputwidget'
 
 module.exports = class CommentsView extends React.Component
@@ -31,7 +31,7 @@ module.exports = class CommentsView extends React.Component
   render: ->
 
     <div className='CommentsWrapper'>
-      <CommentList
+      <CommentList.Container
         ref            = 'CommentList'
         comments       = { @props.comments }
         channelId      = { @props.channelId }
