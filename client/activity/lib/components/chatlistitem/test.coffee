@@ -14,7 +14,9 @@ MessageBody             = require 'activity/components/common/messagebody'
 MessageItemMenu         = require 'activity/components/messageitemmenu'
 EmbedBox                = require 'activity/components/embedbox'
 ChatInputEmbedExtractor = require 'activity/components/chatinputembedextractor'
-
+ChannelToken            = require 'activity/components/chatinputwidget/tokens/channeltoken'
+EmojiToken              = require 'activity/components/chatinputwidget/tokens/emojitoken'
+MentionToken            = require 'activity/components/chatinputwidget/tokens/mentiontoken'
 
 describe 'ChatListItem', ->
 
@@ -45,6 +47,25 @@ describe 'ChatListItem', ->
       _id           : 2
       profile       : { nickname : 'john', firstName : '', lastName : '' }
       isIntegration : yes
+
+  editingMessage = toImmutable
+    id              : 2
+    body            : 'Humans visited Arctic earlier than thought'
+    __isEditing     : yes
+    interactions    : { like : { actorsCount : 4 } }
+    repliesCount    : 1
+    createdAt       : '2016-01-15'
+    link            :
+      link_embed    : 'https://www.sciencenews.org/'
+      link_embed    :
+        type        : 'link'
+        description : 'Science News'
+        title       : 'Science News'
+    account         :
+      _id           : 2
+      profile       : { nickname : 'john', firstName : '', lastName : '' }
+      isIntegration : yes
+
 
   describe '::render', ->
 
@@ -112,3 +133,20 @@ describe 'ChatListItem', ->
       )
       embedBox = TestUtils.findRenderedComponentWithType result, EmbedBox
       expect(embedBox.props.data).toEqual messageWithEmbedData.get('link').toJS()
+
+
+    it 'renders a chat item in edit mode', ->
+
+      result = TestUtils.renderIntoDocument(
+        <ChatListItem message={message} />
+      )
+      expect(-> TestUtils.findRenderedComponentWithType result, ChatInputEmbedExtractor).toThrow()
+
+      result = TestUtils.renderIntoDocument(
+        <ChatListItem message={editingMessage} channelId=1 />
+      )
+      inputEmbedExtractor = TestUtils.findRenderedComponentWithType result, ChatInputEmbedExtractor
+      expect(inputEmbedExtractor.props.messageId).toEqual editingMessage.get 'id'
+      expect(inputEmbedExtractor.props.channelId).toEqual 1
+      expect(inputEmbedExtractor.props.value).toEqual editingMessage.get 'body'
+      expect(inputEmbedExtractor.props.tokens).toEqual [ChannelToken, EmojiToken, MentionToken]
