@@ -518,6 +518,37 @@ Admin main styles
   .logs-commonview
     padding-top             20px
 
+  .kdlistitemview-log
+    font-family             monospace
+    font-size               12px
+    line-height             22px
+    border-bottom           1px solid #ddd
+    borderBox()
+
+    &.info
+      background            #EFF5FF
+
+    &.warn
+      background            #FFFBE5
+
+    &.error
+      background            #FFEFEF
+
+    &:hover
+      .time
+        visible()
+
+    .time
+      right                 0
+      bottom                -100%
+      background            #666
+      color                 white
+      padding               0 3px
+      z-index               1
+      hidden()
+      abs()
+
+
 // members, teams tab styling
 .AppModal--admin .member-related
 

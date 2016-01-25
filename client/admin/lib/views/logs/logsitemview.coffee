@@ -7,20 +7,19 @@ module.exports = class LogsItemView extends kd.ListItemView
 
   JView.mixin @prototype
 
+  messageParser = /^(\[(\w+)\:(\w+)\]?)(.*)/
+
   constructor: (options = {}, data) ->
 
-    options.type or= 'member'
+    [ raw, tag, scope, group, message ] = messageParser.exec data.message
+
+    data.message     = message
+    options.type   or= 'log'
+    options.cssClass = scope
 
     super options, data
 
 
   pistachio: ->
 
-    { createdAt } = @getData()
-
-    """
-      <div class="details">
-        <p class="code">{code{#(message)}}</p>
-        <p class="time">Logged #{timeago createdAt}</p>
-      </div>
-    """
+    "{{#(message)}}{span.time{#(createdAt)}}"
