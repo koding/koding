@@ -14,20 +14,18 @@ module.exports = class LogsListView extends kd.View
 
     super options, data
 
-    @createListController()
-
-
-  createListController: ->
+  viewAppended: ->
 
     @list           = new LogsList
     @listController = new LogsListController
       view    : @list
       wrapper : yes
+      scope   : @getOption 'scope'
 
     @listView = @listController.getView()
     @listController.fetchLogs()
 
-
-  viewAppended: ->
-
     @addSubView @listView
+
+
+  reload: -> @listController.fetchLogs()
