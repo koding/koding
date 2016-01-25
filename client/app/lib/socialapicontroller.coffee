@@ -7,7 +7,7 @@ remote = require('./remote').getInstance()
 checkFlag = require './util/checkFlag'
 whoami = require './util/whoami'
 kd = require 'kd'
-isKoding = require './util/isKoding'
+isFeedEnabled = require './util/isFeedEnabled'
 KDController = kd.Controller
 MessageEventManager = require './messageeventmanager'
 
@@ -139,7 +139,7 @@ module.exports = class SocialApiController extends KDController
 
     m = new remote.api.SocialMessage plain
 
-    m.account = if isKoding()
+    m.account = unless isFeedEnabled()
       mapAccounts(accountOldId)[0]
     else
       if isIntegrationMessage m
@@ -303,7 +303,7 @@ module.exports = class SocialApiController extends KDController
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
 
-    if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
+    if isFeedEnabled() and item.typeConstant in ['privatemessage', 'bot']
       item._originalName = item._originalName or item.name
       item.name = data.purpose
       item.purpose = item.payload?.description or ''

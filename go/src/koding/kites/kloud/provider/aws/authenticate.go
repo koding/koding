@@ -3,14 +3,13 @@ package awsprovider
 import (
 	"errors"
 	"fmt"
+
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/kloud"
 
-	"golang.org/x/net/context"
-
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"gopkg.in/mgo.v2/bson"
+	"golang.org/x/net/context"
 )
 
 // Authenticate
@@ -52,9 +51,7 @@ func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
 		_, err := amazon.NewClient(opts)
 		verified := err == nil // verified says whether client was successfully authenticated
 
-		if err := modelhelper.UpdateCredential(cred.Identifier, bson.M{
-			"$set": bson.M{"verified": verified},
-		}); err != nil {
+		if err := modelhelper.SetCredentialVerified(cred.Identifier, verified); err != nil {
 			return nil, err
 		}
 

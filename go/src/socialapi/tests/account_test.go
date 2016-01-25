@@ -120,7 +120,7 @@ func TestAccountFetchProfile(t *testing.T) {
 			So(post, ShouldNotBeNil)
 
 			Convey("it should list latest posts when there is no time interval in query", func() {
-				cmc, err := rest.FetchAccountActivities(account, channel)
+				cmc, err := rest.FetchAccountActivities(account.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(len(cmc), ShouldEqual, 1)
 				So(cmc[0].Message.Body, ShouldEqual, post.Body)
@@ -149,7 +149,7 @@ func TestAccountProfilePostCount(t *testing.T) {
 			So(post, ShouldNotBeNil)
 
 			Convey("it should fetch all post count when they are not troll", func() {
-				cr, err := rest.FetchAccountActivityCount(account, channel)
+				cr, err := rest.FetchAccountActivityCount(account.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cr, ShouldNotBeNil)
 				So(cr.TotalCount, ShouldEqual, 1)
@@ -158,7 +158,7 @@ func TestAccountProfilePostCount(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				cr, err = rest.FetchAccountActivityCount(account, channel)
+				cr, err = rest.FetchAccountActivityCount(account.Id, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cr, ShouldNotBeNil)
 				So(cr.TotalCount, ShouldEqual, 2)

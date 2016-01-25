@@ -5,7 +5,6 @@ remote          = require('app/remote').getInstance()
 actions         = require 'app/flux/environment/actions'
 globals         = require 'globals'
 Machine         = require 'app/providers/machine'
-isKoding        = require 'app/util/isKoding'
 lazyrouter      = require 'app/lazyrouter'
 dataProvider    = require 'app/userenvironmentdataprovider'
 registerRoutes  = require 'app/util/registerRoutes'

@@ -30,7 +30,7 @@ type StackProvider interface {
 // StackFunc handles execution of a single team method.
 type StackFunc func(Stacker, context.Context) (interface{}, error)
 
-// stackMethod
+// stackMethod routes the team method call to a requested provider.
 func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) {
 	if r.Args == nil {
 		return nil, NewError(ErrNoArguments)

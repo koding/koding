@@ -108,7 +108,7 @@ module.exports = class FeedPane extends React.Component
       </aside>
       <FeedThreadHeader
         className="FeedThreadPane-header"
-        thread={@props.thread} />
+        channel={@props.thread.get 'channel'} />
       <FeedInputWidget channelId={channelId} />
       <FeedPaneTabContainer thread={@props.thread} />
       <FeedList
