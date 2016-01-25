@@ -902,7 +902,7 @@ module.exports = class SocialApiController extends KDController
       { id } = options
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/channel/#{id}/update"
+        endPoint : "/api/social/channel/initwithparticipants"
         data     : options
       , callback
 

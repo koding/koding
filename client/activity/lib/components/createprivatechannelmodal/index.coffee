@@ -1,25 +1,25 @@
-_                                 = require 'lodash'
-kd                                = require 'kd'
-Link                              = require 'app/components/common/link'
-React                             = require 'kd-react'
-ReactDOM                          = require 'react-dom'
-Portal                            = require('react-portal').default
-Avatar                            = require 'app/components/profile/avatar'
-whoami                            = require 'app/util/whoami'
-AppFlux                           = require 'app/flux'
-classnames                        = require 'classnames'
-toImmutable                       = require 'app/util/toImmutable'
-KeyboardKeys                      = require 'app/constants/keyboardKeys'
-ActivityFlux                      = require 'activity/flux'
-ActivityModal                     = require 'app/components/activitymodal'
-KDReactorMixin                    = require 'app/flux/base/reactormixin'
-isPublicChannel                   = require 'app/util/isPublicChannel'
-DropboxInputMixin                 = require 'activity/components/dropbox/dropboxinputmixin'
-CreateChannelFlux                 = require 'activity/flux/createchannel'
-ProfileLinkContainer              = require 'app/components/profile/profilelinkcontainer'
-PreExistingChannelBox             = require './preexistingchannelbox'
-ChannelParticipantsDropdown       = require 'activity/components/channelparticipantsdropdown'
-CreateChannelParticipantsDropdown = require 'activity/components/createchannelparticipantsdropdown'
+_                           = require 'lodash'
+kd                          = require 'kd'
+Link                        = require 'app/components/common/link'
+React                       = require 'kd-react'
+ReactDOM                    = require 'react-dom'
+Portal                      = require('react-portal').default
+Avatar                      = require 'app/components/profile/avatar'
+whoami                      = require 'app/util/whoami'
+AppFlux                     = require 'app/flux'
+classnames                  = require 'classnames'
+toImmutable                 = require 'app/util/toImmutable'
+KeyboardKeys                = require 'app/constants/keyboardKeys'
+ActivityFlux                = require 'activity/flux'
+ActivityModal               = require 'app/components/activitymodal'
+KDReactorMixin              = require 'app/flux/base/reactormixin'
+isPublicChannel             = require 'app/util/isPublicChannel'
+DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
+CreateChannelFlux           = require 'activity/flux/createchannel'
+ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
+PreExistingChannelBox       = require './preexistingchannelbox'
+ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
+DropdownItem                = require 'activity/components/createchannelparticipantsdropdownitem'
 
 module.exports = class CreatePrivateChannelModal extends React.Component
 
@@ -362,15 +362,26 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
   renderAddNewChannelParticipantsDropdown: ->
 
-    <CreateChannelParticipantsDropdown
-      ref             = 'dropdown'
-      query           = { @state.query }
-      value           = { @state.value }
-      visible         = { @state.dropdownVisibility }
-      items           = { @state.dropdownUsers }
-      selectedItem    = { @state.selectedItem }
-      selectedIndex   = { @state.selectedIndex }
-      onItemConfirmed = { @bound 'onDropdownItemConfirmed' }
+    { moveToPrevIndex
+      moveToNextIndex
+      setSelectedIndex
+      setDropdownVisibility } = CreateChannelFlux.actions.user
+
+    <ChannelParticipantsDropdown.Container
+      ref                  = 'dropdown'
+      className            = 'CreateChannel-dropbox'
+      query                = { @state.query }
+      value                = { @state.value }
+      moveToPrevAction     = { moveToPrevIndex }
+      moveToNextAction     = { moveToNextIndex }
+      onItemSelectedAction = { setSelectedIndex }
+      closeAction          = { setDropdownVisibility }
+      items                = { @state.dropdownUsers }
+      selectedItem         = { @state.selectedItem }
+      selectedIndex        = { @state.selectedIndex }
+      visible              = { @state.dropdownVisibility }
+      DropdownItem         = { DropdownItem }
+      onItemConfirmed      = { @bound 'onDropdownItemConfirmed' }
     />
 
 

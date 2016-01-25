@@ -9,7 +9,6 @@ type ElasticIPs struct {
 	Lookup *lookup.Lookup
 
 	nonused *lookup.Addresses
-	err     error
 }
 
 func (e *ElasticIPs) Process() {
@@ -23,10 +22,6 @@ func (e *ElasticIPs) Run() {
 }
 
 func (e *ElasticIPs) Result() string {
-	if e.err != nil {
-		return fmt.Sprintf("elasticIPs: error '%s'", e.err.Error())
-	}
-
 	return fmt.Sprintf("Released(removed) %d non associated elastic IP addresses",
 		e.nonused.Count())
 }
@@ -35,5 +30,34 @@ func (e *ElasticIPs) Info() *taskInfo {
 	return &taskInfo{
 		Title: "ElasticIPs",
 		Desc:  "Release(delete) elasticIPs which are not associated to any instance",
+	}
+}
+
+type DowngradedElasticIPs struct {
+	Lookup  *lookup.Lookup
+	Options *lookup.NotPaidOptions
+
+	nonpaid *lookup.Addresses
+}
+
+func (e *DowngradedElasticIPs) Process() {
+	addressess := e.Lookup.FetchIpAddresses()
+
+	e.nonpaid = addressess.NotPaid(e.Options)
+}
+
+func (e *DowngradedElasticIPs) Run() {
+	e.nonpaid.ReleaseAll()
+}
+
+func (e *DowngradedElasticIPs) Result() string {
+	return fmt.Sprintf("Released (removed) %d non-paid elastic IP addresses",
+		e.nonpaid.Count())
+}
+
+func (e *DowngradedElasticIPs) Info() *taskInfo {
+	return &taskInfo{
+		Title: "DowngradedElasticIPs",
+		Desc:  "Release (delete) elasticIPs which are used by non-paying users",
 	}
 }

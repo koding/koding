@@ -297,8 +297,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @removeItem id
 
-    @machineListsByName['shared']?.removeWorkspaceByChannelId id
-
     # TODO update participants in sidebar
     # TODO I have added these lines for channel data synchronization,
     # but do not think that this is the right place for doing this.

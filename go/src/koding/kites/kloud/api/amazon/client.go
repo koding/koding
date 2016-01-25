@@ -105,13 +105,22 @@ func (c *Client) AllocateAddress(domainType string) (allocID, publicIP string, e
 	return aws.StringValue(resp.AllocationId), aws.StringValue(resp.PublicIp), nil
 }
 
-// AssociateAddress is a wrapper for (*ec2.EC2).AssociateAddres.
+// AssociateAddress is a wrapper for (*ec2.EC2).AssociateAddress.
 func (c *Client) AssociateAddress(instanceID, allocID string) error {
 	params := &ec2.AssociateAddressInput{
 		InstanceId:   aws.String(instanceID),
 		AllocationId: aws.String(allocID),
 	}
 	_, err := c.EC2.AssociateAddress(params)
+	return awsError(err)
+}
+
+// DisassociateAddress is a wrapper for (*ec2.EC2).DisassociateAddress.
+func (c *Client) DisassociateAddress(assocID string) error {
+	params := &ec2.DisassociateAddressInput{
+		AssociationId: aws.String(assocID),
+	}
+	_, err := c.EC2.DisassociateAddress(params)
 	return awsError(err)
 }
 
@@ -522,6 +531,30 @@ func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 		c.Log.Warning("more than one instance found with id=%s: %+v", id, instances)
 	}
 	return instances[0], nil
+}
+
+// InstancesByIDs is a wrapper for (*ec2.EC2).DescribeInstancesPages with ids filter.
+func (c *Client) InstancesByIDs(ids ...string) ([]*ec2.Instance, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("passed empty ID list")
+	}
+	params := &ec2.DescribeInstancesInput{
+		InstanceIds: make([]*string, len(ids)),
+	}
+	for i, id := range ids {
+		params.InstanceIds[i] = aws.String(id)
+	}
+	instances, err := c.instances(params)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(instances) == 0 {
+		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with ids=%s", ids))
+	}
+	if len(instances) != len(ids) {
+		c.Log.Warning("requested to stop %d instances; stopped %d", len(ids), len(instances))
+	}
+	return instances, nil
 }
 
 // InstancesByFilters is a wrapper for (*ec2.EC2).DescribeInstancesPages  with

@@ -1740,7 +1740,7 @@ Configuration = (options={}) ->
         #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social"
 
       elif [ "$1" == "nodeservertests" ]; then
-        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers"
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers/lib/server"
 
       # To run specific test directory or a single test file
       elif [ "$1" == "nodetestfiles" ]; then
