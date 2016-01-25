@@ -12,7 +12,7 @@ ProfileText          = require 'app/components/profile/profiletext'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
 MessageItemMenu      = require 'activity/components/messageitemmenu'
 ActivityFlux         = require 'activity/flux'
-CommentInputWidget   = require './commentinputwidget'
+CommentInputWidget   = require 'activity/components/commentinputwidget'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
 module.exports = class CommentListItem extends React.Component
@@ -84,12 +84,12 @@ module.exports = class CommentListItem extends React.Component
 
     return  unless comment.get '__isEditing'
 
-    <CommentInputWidget
-      hasValue = { @state.hasValue }
-      postComment={ @bound 'updateComment' }
-      commentValue={ @state.commentValue }
-      cancelEdit={ @bound 'cancelEdit' }
-      handleCommentInputChange={ @bound 'handleCommentInputChange' } />
+    <CommentInputWidget.Container
+      hasValue     = { @state.hasValue }
+      commentValue = { @state.commentValue }
+      cancelEdit   = { @bound 'cancelEdit' }
+      postComment  = { @bound 'updateComment' }
+      onChange     = { @bound 'handleCommentInputChange' } />
 
 
   renderCommentItemMenu: ->
