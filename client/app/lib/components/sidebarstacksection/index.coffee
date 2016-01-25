@@ -84,8 +84,8 @@ module.exports = class SidebarStackSection extends React.Component
       ref='sidebarSection'
       className={kd.utils.curry 'SidebarStackSection', @props.className}
       title={@props.stack.get 'title'}
-      titleLink='/Stacks'
-      secondaryLink='/Stacks'
+      titleLink='' # Set empty string
+      secondaryLink='' # Set empty string
       unreadCount={@getStackUnreadCount()}
       unreadCountClickHandler={@unreadCountClickHandler}
       >
