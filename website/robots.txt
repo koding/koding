@@ -9,6 +9,6 @@ Disallow: /ResendToken
 Disallow: /Verify
 
 User-agent: *
-Disallow: 
+Disallow: /
 
 Sitemap: https://koding.com/sitemap.xml

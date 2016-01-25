@@ -439,7 +439,7 @@ post = (url, data, callback) ->
   request reqOptions, wrapCallback callback
 
 deleteReq = (url, data, callback) ->
-  [data, callback] = [callback, null] unless callback
+  [data, callback] = [null, data] unless callback
 
   reqOptions =
     url    : "#{localDomain}#{url}"
