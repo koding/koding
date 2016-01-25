@@ -12,7 +12,7 @@ describe 'ChannelParticipantsView', ->
   { Simulate, renderIntoDocument, isCompositeComponent } = TestUtils
 
 
-  beforeEach -> @participants = mock.getMockParticipants 25
+  beforeEach -> @participants = mock.getMockParticipants { size: 25 }
 
 
   afterEach  -> expect.restoreSpies()
@@ -88,7 +88,7 @@ describe 'ChannelParticipantsView', ->
 
     it 'should calculate correct preview count for less than max_preview_count', ->
 
-      participants = mock.getMockParticipants 12
+      participants = mock.getMockParticipants { size: 12 }
 
       view = renderIntoDocument(<View participants={participants}/>)
 
@@ -97,7 +97,7 @@ describe 'ChannelParticipantsView', ->
 
     it 'should calculate correct preview count for max_preview_count', ->
 
-      participants = mock.getMockParticipants 19
+      participants = mock.getMockParticipants { size: 19 }
 
       view = renderIntoDocument(<View participants={participants}/>)
 
@@ -127,7 +127,7 @@ describe 'ChannelParticipantsView', ->
 
     it 'should not render show more count part', ->
 
-      participants = mock.getMockParticipants 12
+      participants = mock.getMockParticipants { size: 12 }
 
       view = renderIntoDocument(<View participants={participants}/>)
 
