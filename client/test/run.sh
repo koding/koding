@@ -11,45 +11,56 @@ BUILD_DIR=build/lib
 REVISION=$(node -e "process.stdout.write(require('../.config.json').rev)")
 export REVISION=${REVISION:0:7}
 
-run() {
-  SUITE=$1
-  SUBSUITE=$2
-  TESTNAME=$3
-
-  if [ -z "$SUITE" ]; then
-    for i in ./$BUILD_DIR/*;do
-      if [ -d "$i" ];then
-          if [ "$i" == "./$BUILD_DIR/helpers" ] || [ "$i" == "./$BUILD_DIR/utils" ]; then
-            echo "skipping $i"
-          else
-            echo "running $i test suite"
-            $NIGHTWATCH_CMD --group $i
-          fi
-      fi
-    done
-  else
-    echo "running single test suite: $SUITE $SUBSUITE"
-
-    if [ -z "$SUBSUITE" ]; then
-      $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE
-    elif [ -z "$TESTNAME" ]; then
-      $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js
-    else
-      $NIGHTWATCH_CMD --test ./$BUILD_DIR/$SUITE/$SUBSUITE.js --testcase $TESTNAME
-    fi
-  fi
-}
-
 make compile
 
-run $1 $2 $3
+function get_test_group_path() {
+  echo $BUILD_DIR/$TEST_GROUP
+}
 
-CODE=$?
+function get_test_suite_path() {
+  echo $(get_test_group_path)/$TEST_SUITE.js
+}
 
-if [ "$(hostname)" == 'wercker-test-instance' ]; then
-  if [ $CODE -ne 0 ]; then
-    mv users.json users-$1-$2.json
+function run_test_suite() {
+  TEST_FILE=$(get_test_suite_path $TEST_GROUP $TEST_SUITE)
+  $NIGHTWATCH_CMD --test $TEST_FILE $*
+}
+
+function run_test_group() {
+  $NIGHTWATCH_CMD --group $(get_test_group_path)
+}
+
+function run_all_test_groups() {
+  find $BUILD_DIR/ -name '*.js' \
+       ! -path "$BUILD_DIR/helpers/*" \
+       ! -path "$BUILD_DIR/utils/*" \
+       -exec $NIGHTWATCH_CMD --group {} \;
+}
+
+function finish() {
+  CODE=$1
+
+  if [ "$(hostname)" == 'wercker-test-instance' ]; then
+    if [ $CODE -ne 0 ]; then
+      mv users.json users-$1-$2.json
+    fi
   fi
+
+  exit $CODE
+}
+
+TEST_GROUP=$1
+TEST_SUITE=$2
+TEST_CASE=$3
+
+if [ -n "$TEST_CASE" ]; then
+  run_test_suite --testcase $TEST_CASE
+elif [ -n "$TEST_SUITE" ]; then
+  run_test_suite
+elif [ -n "$TEST_GROUP" ]; then
+  run_test_group
+else
+  run_all_test_groups
 fi
 
-exit $CODE
+finish $!
