@@ -39,21 +39,23 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	// Note: this endpoint is only used socialapi, not in node part..
 	m.AddHandler(
 		handler.Request{
 			Handler:  BlockMulti,
 			Name:     "participant-multi-block",
 			Type:     handler.PostRequest,
-			Endpoint: "/channel/{id}/participants/block",
+			Endpoint: "/secure/channel/{id}/participants/block",
 		},
 	)
 
+	// Note: this endpoint is only used socialapi, not in node part..
 	m.AddHandler(
 		handler.Request{
 			Handler:  UnblockMulti,
 			Name:     "participant-multi-unblock",
 			Type:     handler.PostRequest,
-			Endpoint: "/channel/{id}/participants/unblock",
+			Endpoint: "/secure/channel/{id}/participants/unblock",
 		},
 	)
 
