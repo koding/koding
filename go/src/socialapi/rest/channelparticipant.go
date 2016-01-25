@@ -66,7 +66,7 @@ func DeleteChannelParticipant(channelId int64, token string, accountIds ...int64
 }
 
 func BlockChannelParticipant(channelId int64, token string, accountIds ...int64) (*models.ChannelParticipant, error) {
-	url := fmt.Sprintf("/channel/%d/participants/block", channelId)
+	url := fmt.Sprintf("/secure/channel/%d/participants/block", channelId)
 	return channelParticipantOp(
 		url,
 		channelId,
@@ -76,7 +76,7 @@ func BlockChannelParticipant(channelId int64, token string, accountIds ...int64)
 }
 
 func UnblockChannelParticipant(channelId int64, token string, accountIds ...int64) (*models.ChannelParticipant, error) {
-	url := fmt.Sprintf("/channel/%d/participants/unblock", channelId)
+	url := fmt.Sprintf("/secure/channel/%d/participants/unblock", channelId)
 	return channelParticipantOp(
 		url,
 		channelId,
