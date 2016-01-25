@@ -5,7 +5,6 @@ ReactDOM               = require 'react-dom'
 moment                 = require 'moment'
 immutable              = require 'immutable'
 ChatListItem           = require 'activity/components/chatlistitem'
-SimpleChatListItem     = require 'activity/components/chatlistitem/simplechatlistitem'
 DateMarker             = require 'activity/components/datemarker'
 NewMessageMarker       = require 'activity/components/newmessagemarker'
 LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
@@ -180,13 +179,12 @@ module.exports = class ChatList extends React.Component
 
       children = children.concat @getBeforeMarkers message, prevMessage, i
 
-      if lastDifferentOwnerId and lastDifferentOwnerId is message.get('accountId') and isLessThanFiveMinutes
-        children.push \
-          <SimpleChatListItem {...itemProps } />
-      else
+      isSimpleItem = lastDifferentOwnerId and lastDifferentOwnerId is message.get('accountId') and isLessThanFiveMinutes
+      children.push \
+          <ChatListItem.Container {...itemProps } isSimple={isSimpleItem} />
+
+      unless isSimpleItem
         lastDifferentOwnerId = message.get 'accountId'
-        children.push \
-          <ChatListItem {...itemProps} />
 
       lastMessageCreatedAt = new Date(createdAt).getTime()
 
