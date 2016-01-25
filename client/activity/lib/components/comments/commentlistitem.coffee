@@ -111,7 +111,7 @@ module.exports = class CommentListItem extends React.Component
           <Avatar className='FeedItem-Avatar' width={35} height={35} />
         </ProfileLinkContainer>
       </div>
-      <ProfileLinkContainer key={comment.getIn(['account', 'id'])} origin={comment.get('account').toJS()}>
+      <ProfileLinkContainer key={comment.getIn(['account', '_id'])} origin={comment.get('account').toJS()}>
         <ProfileText />
       </ProfileLinkContainer>
       <div className='CommentListItem-body'>
