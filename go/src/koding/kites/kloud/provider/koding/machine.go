@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/plans"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/logging"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/mgo.v2"
@@ -229,4 +230,28 @@ func (m *Machine) Unlock() error {
 	// Unlock does not return an error
 	m.Locker.Unlock(m.ObjectId.Hex())
 	return nil
+}
+
+func (m *Machine) releaseEIP() {
+	// try to release/delete a public elastic IP, if there is an error we don't
+	// care (the instance might not have an elastic IP, aka a free user.
+	m.Log.Debug("Releasing attached public IP: %s", m.IpAddress)
+
+	if addrs, err := m.Session.AWSClient.AddressesByIP(m.IpAddress); err == nil {
+		for _, addr := range addrs {
+			m.Log.Debug("Got an elastic IP %+v. Going to relaease it", addr)
+
+			assocID := aws.StringValue(addr.AssociationId)
+			if assocID != "" {
+				// if the instance is running, try to disassociate EIP from
+				// the instance
+				m.Session.AWSClient.DisassociateAddress(assocID)
+			}
+
+			allocID := aws.StringValue(addr.AllocationId)
+			if allocID != "" {
+				m.Session.AWSClient.ReleaseAddress(allocID)
+			}
+		}
+	}
 }
