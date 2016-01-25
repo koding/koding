@@ -31,10 +31,10 @@ module.exports = class CommentInputWidget extends React.Component
     kd.utils.moveCaretToEnd textInput
 
 
-  onFocus: (event) -> @setState focusOnInput: yes
+  onFocus: -> @setState { focusOnInput: yes }
 
 
-  onBlur: (event) -> @setState focusOnInput: no
+  onBlur: -> @setState { focusOnInput: no }
 
 
   onKeyDown: (event) ->
@@ -65,7 +65,7 @@ module.exports = class CommentInputWidget extends React.Component
         onBlur      = { @bound 'onBlur' }
         placeholder = 'Type your comment'
         onKeyDown   = { @bound 'onKeyDown' }
-        onChange    = { @props.handleCommentInputChange }
+        onChange    = { @props.onChange }
         value       = { @props.commentValue }
         className   = 'CommentInputWidget-input'/>
       <button
