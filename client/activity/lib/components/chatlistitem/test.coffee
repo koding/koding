@@ -17,6 +17,8 @@ ChatInputEmbedExtractor = require 'activity/components/chatinputembedextractor'
 ChannelToken            = require 'activity/components/chatinputwidget/tokens/channeltoken'
 EmojiToken              = require 'activity/components/chatinputwidget/tokens/emojitoken'
 MentionToken            = require 'activity/components/chatinputwidget/tokens/mentiontoken'
+ChatInputWidget         = require 'activity/components/chatinputwidget'
+ActivityFlux            = require 'activity/flux'
 
 describe 'ChatListItem', ->
 
@@ -150,3 +152,68 @@ describe 'ChatListItem', ->
       expect(inputEmbedExtractor.props.channelId).toEqual 1
       expect(inputEmbedExtractor.props.value).toEqual editingMessage.get 'body'
       expect(inputEmbedExtractor.props.tokens).toEqual [ChannelToken, EmojiToken, MentionToken]
+
+
+  describe '::onSubmit', ->
+
+    it 'should be called when edited message is saved', ->
+
+      props =
+        message   : editingMessage
+        channelId : 1
+        onSubmit  : kd.noop
+      spy = expect.spyOn props, 'onSubmit'
+
+      result = TestUtils.renderIntoDocument(
+        <ChatListItem {...props} />
+      )
+
+      newValue = "#{editingMessage.get('body')}!!!"
+
+      inputWidget = TestUtils.findRenderedComponentWithType result, ChatInputWidget.Container
+      inputWidget.setState { value : newValue }
+
+      submitButton = TestUtils.findRenderedDOMComponentWithClass result, 'submit'
+      TestUtils.Simulate.click submitButton
+
+      expect(spy).toHaveBeenCalledWith newValue
+
+
+  describe '::onCancelEdit', ->
+
+    it 'should be called when message editing is cancelled', ->
+
+      props =
+        message      : editingMessage
+        channelId    : 1
+        onCancelEdit : kd.noop
+      spy = expect.spyOn props, 'onCancelEdit'
+
+      result = TestUtils.renderIntoDocument(
+        <ChatListItem {...props} />
+      )
+
+      cancelButton = TestUtils.findRenderedDOMComponentWithClass result, 'cancel'
+      TestUtils.Simulate.click cancelButton
+
+      expect(spy).toHaveBeenCalled()
+
+
+  describe '::onCloseEmbedBox', ->
+
+    it 'should be called when embed box is closed', ->
+
+      props =
+        message         : editingMessage
+        channelId       : 1
+        onCloseEmbedBox : kd.noop
+      spy = expect.spyOn props, 'onCloseEmbedBox'
+
+      result = TestUtils.renderIntoDocument(
+        <ChatListItem {...props} />
+      )
+
+      closeButton = TestUtils.findRenderedDOMComponentWithClass result, 'close-button'
+      TestUtils.Simulate.click closeButton
+
+      expect(spy).toHaveBeenCalled()
