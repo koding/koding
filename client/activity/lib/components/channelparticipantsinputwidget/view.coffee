@@ -2,7 +2,9 @@ kd                          = require 'kd'
 React                       = require 'kd-react'
 immutable                   = require 'immutable'
 classnames                  = require 'classnames'
+ActivityFlux                = require 'activity/flux'
 ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
+DropdownItem                = require 'activity/components/channelparticipantsdropdownitem'
 
 module.exports = class ChannelParticipantsInputWidgetView extends React.Component
 
@@ -39,16 +41,22 @@ module.exports = class ChannelParticipantsInputWidgetView extends React.Componen
 
   renderDropdown: ->
 
-    <ChannelParticipantsDropdown
-      ref             = 'dropdown'
-      query           = { @props.query }
-      value           = { @props.value }
-      items           = { @props.items }
-      visible         = { @props.visible }
-      selectedItem    = { @props.selectedItem }
-      selectedIndex   = { @props.selectedIndex }
-      onItemConfirmed = { @props.onItemConfirmed }
-    />
+    { user, channel } = ActivityFlux.actions
+
+    <ChannelParticipantsDropdown.Container
+      ref                  = 'dropdown'
+      query                = { @props.query }
+      value                = { @props.value }
+      items                = { @props.items }
+      DropdownItem         = { DropdownItem }
+      visible              = { @props.visible }
+      selectedItem         = { @props.selectedItem }
+      selectedIndex        = { @props.selectedIndex }
+      onItemConfirmed      = { @props.onItemConfirmed }
+      moveToNextAction     = { user.moveToNextChannelParticipantIndex }
+      moveToPrevAction     = { user.moveToPrevChannelParticipantIndex }
+      onItemSelectedAction = { user.setChannelParticipantsSelectedIndex }
+      closeAction          = { channel.setChannelParticipantsDropdownVisibility } />
 
 
   render: ->
