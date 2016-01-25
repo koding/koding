@@ -130,4 +130,9 @@ Please unmount and try again, or contact support@koding.com if this issue persis
 	FailedDownloadUpdate = fmt.Sprintf(
 		"Error: Failed to download the update.\n%s", retryOrContactSupport,
 	)
+
+	// FailedCacheFolder is used when remote.cacheFolder fails.
+	FailedCacheFolder = fmt.Sprintf(
+		"Error: Failed to cache the requested folder.\n%s", retryOrContactSupport,
+	)
 )
