@@ -61,7 +61,7 @@ func init() {
 	}
 }
 
-func TestCreate(t *testing.T) {
+func TestDockerCreate(t *testing.T) {
 	resp, err := remote.Tell("create", struct {
 		Name  string
 		Image string
@@ -82,7 +82,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestStart(t *testing.T) {
+func TestDockerStart(t *testing.T) {
 	container, err := getContainer(TestContainerName)
 	if err != nil {
 		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
@@ -111,7 +111,7 @@ func TestStart(t *testing.T) {
 	}
 }
 
-func TestConnect(t *testing.T) {
+func TestDockerConnect(t *testing.T) {
 	container, err := getContainer(TestContainerName)
 	if err != nil {
 		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
@@ -127,7 +127,7 @@ func TestConnect(t *testing.T) {
 	}
 }
 
-func TestStop(t *testing.T) {
+func TestDockerStop(t *testing.T) {
 	container, err := getContainer(TestContainerName)
 	if err != nil {
 		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
@@ -152,7 +152,7 @@ func TestStop(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestDockerList(t *testing.T) {
 	container, err := getContainer(TestContainerName)
 	if err != nil {
 		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
@@ -163,7 +163,7 @@ func TestList(t *testing.T) {
 	}
 }
 
-func TestRemoveContainer(t *testing.T) {
+func TestDockerRemoveContainer(t *testing.T) {
 	container, err := getContainer(TestContainerName)
 	if err != nil {
 		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)

@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"koding/klient/testutil"
+
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 )
@@ -23,7 +25,17 @@ var (
 	// remote defines a remote user calling the fs kite
 	remote  *kite.Client
 	remote2 *kite.Client
+
+	testfile1 = "testdata/testfile1.txt.tmp"
 )
+
+func init() {
+	// NOTE(rjeczalik): copy testdata/testfile1.txt so after test execution
+	// the file is not modified.
+	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
+		panic(err)
+	}
+}
 
 func init() {
 	fs = kite.New("fs", "0.0.1")
@@ -353,9 +365,7 @@ func TestGlob(t *testing.T) {
 }
 
 func TestReadFile(t *testing.T) {
-	testFile := "testdata/testfile1.txt"
-
-	content, err := ioutil.ReadFile(testFile)
+	content, err := ioutil.ReadFile(testfile1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -363,7 +373,7 @@ func TestReadFile(t *testing.T) {
 	resp, err := remote.Tell("readFile", struct {
 		Path string
 	}{
-		Path: testFile,
+		Path: testfile1,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -556,7 +566,6 @@ func TestWriteFile(t *testing.T) {
 }
 
 func TestUniquePath(t *testing.T) {
-	testFile := "testdata/testfile1.txt"
 	tempFiles := []string{}
 
 	defer func() {
@@ -569,7 +578,7 @@ func TestUniquePath(t *testing.T) {
 		resp, err := remote.Tell("uniquePath", struct {
 			Path string
 		}{
-			Path: testFile,
+			Path: testfile1,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -598,12 +607,10 @@ func TestUniquePath(t *testing.T) {
 }
 
 func TestGetInfo(t *testing.T) {
-	testFile := "testdata/testfile1.txt"
-
 	resp, err := remote.Tell("getInfo", struct {
 		Path string
 	}{
-		Path: testFile,
+		Path: testfile1,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -615,12 +622,12 @@ func TestGetInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if f.Name != filepath.Base(testFile) {
-		t.Errorf("got %s expecting %s", f.Name, testFile)
+	if f.Name != filepath.Base(testfile1) {
+		t.Errorf("got %s expecting %s", f.Name, testfile1)
 	}
 
 	if !f.Exists {
-		t.Errorf("file %s should exists", testFile)
+		t.Errorf("file %s should exists", testfile1)
 	}
 }
 
@@ -697,15 +704,13 @@ func TestPermissions(t *testing.T) {
 }
 
 func TestSetPermissions(t *testing.T) {
-	testFile := "testdata/testfile1.txt"
-
 	testPerm := 0755
 	resp, err := remote.Tell("setPermissions", struct {
 		Path      string
 		Mode      os.FileMode
 		Recursive bool
 	}{
-		Path: testFile,
+		Path: testfile1,
 		Mode: os.FileMode(testPerm),
 	})
 	if err != nil {
@@ -716,7 +721,7 @@ func TestSetPermissions(t *testing.T) {
 		t.Fatal("setPermissions should return true")
 	}
 
-	f, err := os.Open(testFile)
+	f, err := os.Open(testfile1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -767,7 +772,7 @@ func TestRename(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testNewPath := "kite.txt"
+	testNewPath := filepath.Join(filepath.Dir(testFile.Name()), "kite.txt")
 	defer os.Remove(testNewPath)
 
 	resp, err := remote.Tell("rename", struct {
@@ -863,7 +868,7 @@ func TestMove(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	testFile, err := filepath.Abs("testdata/testfile1.txt")
+	testFile, err := filepath.Abs(testfile1)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2,21 +2,31 @@ package terminal
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
+
+	"koding/kites/common"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 )
 
+var testLog = common.NewLogger("test", true)
+
 func TestTerminal(t *testing.T) {
+	screen, err := exec.LookPath("screen")
+	if err != nil {
+		t.Fatalf("unable to find screen: %s", err)
+	}
+
 	terminal := kite.New("terminal", "0.0.1")
 	terminal.Config.DisableConcurrency = true
 	terminal.Config.DisableAuthentication = true
 	terminal.Config.Port = 3636
 
-	termInstance := &Terminal{}
+	termInstance := New(testLog, screen)
 	terminal.HandleFunc("connect", termInstance.Connect)
 
 	go terminal.Run()
@@ -24,8 +34,10 @@ func TestTerminal(t *testing.T) {
 
 	client := kite.New("client", "0.0.1")
 	client.Config.DisableAuthentication = true
+	client.Log = testLog
+
 	remote := client.NewClient("http://127.0.0.1:3636/kite")
-	err := remote.Dial()
+	err = remote.Dial()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,15 +69,29 @@ func TestTerminal(t *testing.T) {
 
 	// Two commands are run to make sure that the order of the keys are preserved.
 	// If not, sometimes inputs are mixed in a way that is non-deterministic.
-	term.Input.Call(`say kite`)
+	err = term.Input.Call(`say kite`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// time.Sleep(100 * time.Millisecond)
-	term.ControlSequence.Call("\r")
+	err = term.ControlSequence.Call("\r")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// time.Sleep(100 * time.Millisecond)
 
-	term.Input.Call(`python -c "print 123455+1"`)
+	err = term.Input.Call(`python -c "print 123455+1"`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// time.Sleep(100 * time.Millisecond)
-	term.ControlSequence.Call("\r")
+	err = term.ControlSequence.Call("\r")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	fullOutput := ""
 	for {

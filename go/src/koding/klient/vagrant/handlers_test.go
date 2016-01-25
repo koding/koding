@@ -22,6 +22,7 @@ var (
 	localVagrant *vagrantutil.Vagrant
 	vagrantName  = "vagrantTest"
 	handlers     *Handlers
+	home         = "./testdata"
 )
 
 func TestMain(m *testing.M) {
@@ -35,7 +36,7 @@ func TestMain(m *testing.M) {
 		log.Fatalln(err)
 	}
 
-	handlers = NewHandlers()
+	handlers = NewHandlers(home)
 
 	vagrantKite.HandleFunc("list", handlers.List)
 	vagrantKite.HandleFunc("create", handlers.Create)
@@ -65,10 +66,10 @@ func TestMain(m *testing.M) {
 func TestPath(t *testing.T) {
 	methods := []string{"list", "create", "destroy", "halt", "status", "up", "version"}
 	for _, name := range methods {
-		_, err := remote.Tell(name, struct{ Path string }{})
+		_, err := remote.Tell(name, struct{ FilePath string }{})
 		if err != nil {
 			// all methods should return "path is missing" if no paths are passed
-			if !strings.Contains(err.Error(), "path is missing") {
+			if !strings.Contains(err.Error(), "[filePath] is missing") {
 				t.Error(err)
 			}
 		}
@@ -103,11 +104,11 @@ func TestWatch(t *testing.T) {
 	})
 
 	_, err := remote.Tell("fakeWatch", struct {
-		Path  string
-		Watch dnode.Function
+		FilePath string
+		Watch    dnode.Function
 	}{
-		Path:  vagrantName,
-		Watch: dnode.Function(watch),
+		FilePath: vagrantName,
+		Watch:    dnode.Function(watch),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -126,9 +127,9 @@ func TestVersionHandler(t *testing.T) {
 	}
 
 	out, err := remote.Tell("version", struct {
-		Path string
+		FilePath string
 	}{
-		Path: vagrantName,
+		FilePath: vagrantName,
 	})
 	if err != nil {
 		t.Fatal(err)

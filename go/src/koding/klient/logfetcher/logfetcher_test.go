@@ -10,15 +10,28 @@ import (
 	"testing"
 	"time"
 
+	"koding/klient/testutil"
+
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 )
 
 var (
-	lf      *kite.Kite
-	remote  *kite.Client
-	remote2 *kite.Client
+	lf        *kite.Kite
+	remote    *kite.Client
+	remote2   *kite.Client
+	testfile1 = "testdata/testfile1.txt.tmp"
+	testfile2 = "testdata/testfile2.txt.tmp"
 )
+
+func init() {
+	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
+		panic(err)
+	}
+	if err := testutil.FileCopy("testdata/testfile2.txt", testfile2); err != nil {
+		panic(err)
+	}
+}
 
 func init() {
 	lf := kite.New("logfetcher", "0.0.1")
@@ -47,9 +60,7 @@ func init() {
 }
 
 func TestTail(t *testing.T) {
-	testFile := "testdata/testfile1.txt"
-
-	initialText, err := ioutil.ReadFile(testFile)
+	initialText, err := ioutil.ReadFile(testfile1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +72,7 @@ func TestTail(t *testing.T) {
 	})
 
 	_, err = remote.Tell("tail", &Request{
-		Path:  testFile,
+		Path:  testfile1,
 		Watch: watchFunc,
 	})
 	if err != nil {
@@ -76,7 +87,7 @@ func TestTail(t *testing.T) {
 		t.Errorf("\nWant: %v\nGot : %v\n", lines, watchResult)
 	}
 
-	file, err := os.OpenFile(testFile, os.O_APPEND|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(testfile1, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +96,7 @@ func TestTail(t *testing.T) {
 	file.WriteString("Tail3\n")
 	file.Close()
 
-	modifiedText, err := ioutil.ReadFile(testFile)
+	modifiedText, err := ioutil.ReadFile(testfile1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,8 +111,6 @@ func TestTail(t *testing.T) {
 }
 
 func TestMultipleTail(t *testing.T) {
-	testFile := "testdata/testfile2.txt"
-
 	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
 		line := r.One().MustString()
@@ -109,7 +118,7 @@ func TestMultipleTail(t *testing.T) {
 	})
 
 	_, err := remote.Tell("tail", &Request{
-		Path:  testFile,
+		Path:  testfile2,
 		Watch: watchFunc,
 	})
 	if err != nil {
@@ -123,7 +132,7 @@ func TestMultipleTail(t *testing.T) {
 	})
 
 	_, err = remote2.Tell("tail", &Request{
-		Path:  testFile,
+		Path:  testfile2,
 		Watch: watchFunc2,
 	})
 	if err != nil {
@@ -132,7 +141,7 @@ func TestMultipleTail(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	file, err := os.OpenFile(testFile, os.O_APPEND|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(testfile2, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,5 +189,4 @@ func TestMultipleTail(t *testing.T) {
 	if currentWatchLen+2 != len(watchResult) {
 		t.Errorf("WatchFunc2 is not triggered, got %d should have %d", len(watchResult), currentWatchLen+2)
 	}
-
 }
