@@ -9,7 +9,7 @@ module.exports = class LogsListView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    options.cssClass   = 'members-commonview'
+    options.cssClass   = 'logs-commonview'
     options.itemLimit ?= 20
 
     super options, data

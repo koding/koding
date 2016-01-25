@@ -14,7 +14,7 @@ module.exports = class LogsView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'member-related apitokens'
+    options.cssClass = 'logs-related'
 
     super options, data
 
@@ -34,7 +34,7 @@ module.exports = class LogsView extends kd.View
       tabHandleClass       : AdminSubTabHandleView
 
     @tabView.tabHandleContainer.addSubView new kd.ButtonView
-      cssClass : 'solid compact green add-new'
+      cssClass : 'solid compact green reload'
       title    : 'Reload'
       callback : =>
         @tabView.activePane.getMainView().reload()
