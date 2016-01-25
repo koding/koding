@@ -131,8 +131,13 @@ Please unmount and try again, or contact support@koding.com if this issue persis
 		"Error: Failed to download the update.\n%s", retryOrContactSupport,
 	)
 
-	// FailedCacheFolder is used when remote.cacheFolder fails.
-	FailedCacheFolder = fmt.Sprintf(
-		"Error: Failed to cache the requested folder.\n%s", retryOrContactSupport,
+	// FailedPrefetchFolder is used when remote.cacheFolder fails.
+	FailedPrefetchFolder = fmt.Sprintf(
+		"Error: Failed to prefetch the requested folder.\n%s", retryOrContactSupport,
 	)
+
+	// PrefetchAllAndMetaTogether is used when the user supplies both --prefetchall
+	// and --noprefetchmeta, as they are incompatible flags.
+	PrefetchAllAndMetaTogether = `Error: Cannot use both noprefetchmeta and prefetchall flags at the same time.
+Please try again with just the --prefetchall flag.`
 )

@@ -25,13 +25,20 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	var (
-		name       = c.Args()[0]
-		localPath  = c.Args()[1]
-		remotePath = c.String("remotepath") // note the lowercase of all chars
-		noIgnore   = c.Bool("noignore")     // note the lowercase of all chars
-		noPrefetch = c.Bool("noprefetch")   // note the lowercase of all chars
-		noWatch    = c.Bool("nowatch")      // note the lowercase of all chars
+		name           = c.Args()[0]
+		localPath      = c.Args()[1]
+		remotePath     = c.String("remotepath")   // note the lowercase of all chars
+		noIgnore       = c.Bool("noignore")       // note the lowercase of all chars
+		noPrefetchMeta = c.Bool("noprefetchmeta") // note the lowercase of all chars
+		noWatch        = c.Bool("nowatch")        // note the lowercase of all chars
+		prefetchAll    = c.Bool("prefetchall")    // note the lowercase of all chars
 	)
+
+	if noPrefetchMeta && prefetchAll {
+		log.Errorf("noPrefetchMeta and prefetchAll were both supplied")
+		fmt.Println(PrefetchAllAndMetaTogether)
+		return 1
+	}
 
 	// allow scp like declaration, ie `<machine name>:/path/to/remote`
 	if strings.Contains(name, ":") {
@@ -105,7 +112,7 @@ func MountCommand(c *cli.Context) int {
 		Name:       name,
 		LocalPath:  localPath,
 		NoIgnore:   noIgnore,
-		NoPrefetch: noPrefetch,
+		NoPrefetch: noPrefetchMeta,
 		NoWatch:    noWatch,
 	}
 
@@ -114,71 +121,83 @@ func MountCommand(c *cli.Context) int {
 		mountRequest.RemotePath = remotePath
 	}
 
-	fmt.Println("Caching project...")
-	bar := pb.StartNew(100)
-	bar.SetMaxWidth(100)
+	if prefetchAll {
+		fmt.Printf("Prefetching remote path...")
 
-	// doneErr is used to wait until the cache progress is done, and also send
-	// any error encountered. We simply send nil if there is no error.
-	doneErr := make(chan error)
+		// The creation of the pb objection presents a CLI progress bar to the user.
+		bar := pb.StartNew(100)
+		bar.SetMaxWidth(100)
 
-	cacheProgressCallback := func(par *dnode.Partial) {
-		type Progress struct {
-			Progress int   `json:progress`
-			Error    error `json:error`
+		// doneErr is used to wait until the cache progress is done, and also send
+		// any error encountered. We simply send nil if there is no error.
+		doneErr := make(chan error)
+
+		// The callback, used to update the progress bar as remote.cache downloads
+		cacheProgressCallback := func(par *dnode.Partial) {
+			type Progress struct {
+				Progress int   `json:progress`
+				Error    error `json:error`
+			}
+			// TODO: Why is this an array from Klient? How can this be written cleaner?
+			ps := []Progress{Progress{}}
+			par.MustUnmarshal(&ps)
+			p := ps[0]
+
+			if p.Error != nil {
+				doneErr <- p.Error
+				log.Errorf("remote.cacheFolder progress callback returned an error. err:%s", err)
+				fmt.Println(
+					defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+				)
+			}
+
+			bar.Set(p.Progress)
+
+			// TODO: Disable the callback here, so that it's impossible to double call
+			// the progress after competion - to avoid weird/bad UX and errors.
+			if p.Progress == 100 {
+				doneErr <- nil
+			}
 		}
-		// TODO: Why is this an array from Klient? How can this be written cleaner?
-		ps := []Progress{Progress{}}
-		par.MustUnmarshal(&ps)
-		p := ps[0]
 
-		if p.Error != nil {
-			doneErr <- p.Error
-			log.Errorf("remote.cacheFolder progress callback returned an error. err:%s", err)
-			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedCacheFolder))
+		cacheReq := struct {
+			Name        string         `json:"name"`
+			LocalPath   string         `json:"localPath"`
+			RemotePath  string         `json:"remotePath"`
+			Progress    dnode.Function `json:"progress"`
+			Username    string         `json:"username"`
+			SSHAuthSock string         `json:"sshAuthSock"`
+		}{
+			Name: name,
+			// TODO: Put the cache somewhere meaningful
+			LocalPath:   fmt.Sprintf("%s.cache", localPath),
+			RemotePath:  mountRequest.RemotePath,
+			Progress:    dnode.Callback(cacheProgressCallback),
+			Username:    util.GetEnvByKey(os.Environ(), "USER"),
+			SSHAuthSock: util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
 		}
 
-		bar.Set(p.Progress)
-
-		// TODO: Disable the callback here, so that it's impossible to double call
-		// the progress after competion - to avoid weird/bad UX and errors.
-		if p.Progress == 100 {
-			doneErr <- nil
+		if _, err := k.Tell("remote.cacheFolder", cacheReq); err != nil {
+			log.Errorf("remote.cacheFolder returned an error. err:%s", err)
+			fmt.Println(
+				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+			)
+			return 1
 		}
+
+		if err := <-doneErr; err != nil {
+			log.Errorf(
+				"remote.cacheFolder progress callback returned an error. err:%s", err,
+			)
+			fmt.Println(
+				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+			)
+		}
+
+		bar.FinishPrint("Prefetching complete.")
 	}
 
-	cacheReq := struct {
-		Name        string         `json:"name"`
-		LocalPath   string         `json:"localPath"`
-		RemotePath  string         `json:"remotePath"`
-		Progress    dnode.Function `json:"progress"`
-		Username    string         `json:"username"`
-		SSHAuthSock string         `json:"sshAuthSock"`
-	}{
-		Name: name,
-		// TODO: Put the cache somewhere meaningful
-		LocalPath:   fmt.Sprintf("%s.cache", localPath),
-		RemotePath:  mountRequest.RemotePath,
-		Progress:    dnode.Callback(cacheProgressCallback),
-		Username:    util.GetEnvByKey(os.Environ(), "USER"),
-		SSHAuthSock: util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
-	}
-
-	resp, err := k.Tell("remote.cacheFolder", cacheReq)
-	if err != nil {
-		log.Errorf("remote.cacheFolder returned an error. err:%s", err)
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedCacheFolder))
-		return 1
-	}
-
-	if err := <-doneErr; err != nil {
-		log.Errorf("remote.cacheFolder progress callback returned an error. err:%s", err)
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedCacheFolder))
-	}
-
-	bar.FinishPrint("Caching complete.")
-
-	resp, err = k.Tell("remote.mountFolder", mountRequest)
+	resp, err := k.Tell("remote.mountFolder", mountRequest)
 	if err != nil && klientctlerrors.IsExistingMountErr(err) {
 		util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
