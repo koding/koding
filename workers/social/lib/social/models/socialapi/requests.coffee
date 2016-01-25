@@ -50,7 +50,7 @@ fetchActivityCount = (data, callback) ->
   if not data.channelId
     return callback new KodingError 'Request is not valid for fetching activity count'
 
-  url = "#{socialProxyUrl}/channel/#{data.channelId}/history/count"
+  url = "#{socialProxyUrl}/secure/channel/#{data.channelId}/history/count"
   get url, data, callback
 
 fetchGroupChannels = (data, callback) ->
