@@ -106,12 +106,16 @@ module.exports = class ChatPaneContainer extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
+  onGlance: -> ActivityFlux.actions.channel.glance @channel 'id'
+
+
   render: ->
 
     <ChatPaneView {...@props}
       ref                   = 'view'
       selectedMessageId     = { @state.selectedMessageId }
       onTopThresholdReached = { @bound 'onTopThresholdReached' }
+      onGlance              = { @bound 'onGlance' }
       isMessagesLoading     = { @isThresholdReached }>
         {@props.children}
     </ChatPaneView>

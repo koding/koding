@@ -17,6 +17,7 @@ class ChatPaneView extends React.Component
     isMessagesLoading     : React.PropTypes.bool
     onTopThresholdReached : React.PropTypes.func
     selectedMessageId     : React.PropTypes.string
+    onGlance              : React.PropTypes.func
 
 
   @defaultProps =
@@ -26,6 +27,7 @@ class ChatPaneView extends React.Component
     isMessagesLoading     : no
     onTopThresholdReached : kd.noop
     selectedMessageId     : ''
+    onGlance              : kd.noop
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
@@ -102,6 +104,7 @@ class ChatPaneView extends React.Component
         channelName={@channel 'name'}
         unreadCount={@channel 'unreadCount'}
         selectedMessageId={@props.selectedMessageId}
+        onGlance={@props.onGlance}
       />
     </Scroller>
 
