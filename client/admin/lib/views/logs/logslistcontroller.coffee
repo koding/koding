@@ -15,7 +15,7 @@ module.exports = class LogsListController extends kd.ListViewController
     super options, data
 
 
-  fetchLogs: ->
+  fetchLogs: (options = {})->
 
     return if @isFetching
 
@@ -24,11 +24,11 @@ module.exports = class LogsListController extends kd.ListViewController
 
     @isFetching = yes
 
-    @fetchLogsFromAPI {}, (err, res) =>
+    @fetchLogsFromAPI options, (err, res) =>
 
       return  if showError err
 
-      { data: { logs }} = res
+      { data: { logs } } = res
       @listLogs logs
 
       @isFetching = no
@@ -38,9 +38,18 @@ module.exports = class LogsListController extends kd.ListViewController
 
     type     = 'GET'
     endPoint = '/-/api/logs'
+    args     = []
+
+    if (scope = @getOption 'scope') and scope isnt 'all'
+      args.push "scope=#{scope}"
+
+    if q = options.query
+      args.push "q=#{query}"
+
+    if args.length > 0
+      endPoint = "#{endPoint}?#{args.join ','}"
 
     doXhrRequest { endPoint, type }, (err, res) ->
-      console.log ">>>>>>", err, res
       callback err, res
 
 
