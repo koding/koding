@@ -69,6 +69,20 @@ func (a *Addresses) Count() int {
 	return count
 }
 
+func (a *Addresses) InstanceIDs() []string {
+	var ids []string
+
+	for _, addrs := range a.m {
+		for _, addr := range addrs {
+			if id := aws.StringValue(addr.InstanceId); id != "" {
+				ids = append(ids, id)
+			}
+		}
+	}
+
+	return ids
+}
+
 // NotAssociated returns a list of addresses which are not
 // associated
 func (a *Addresses) NotAssociated() *Addresses {
