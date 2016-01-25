@@ -9,6 +9,7 @@ SidebarNoStacks                = require 'app/components/sidebarstacksection/sid
 SidebarStackSection            = require 'app/components/sidebarstacksection'
 SidebarChannelsSection         = require 'app/components/sidebarchannelssection'
 SidebarMessagesSection         = require 'app/components/sidebarmessagessection'
+SidebarStackHeaderSection      = require 'app/components/sidebarstacksection/sidebarstackheadersection'
 SidebarSharedMachinesSection   = require 'app/components/sidebarsharedmachinessection'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
@@ -79,16 +80,7 @@ module.exports = class Sidebar extends React.Component
           machine={machine} />
 
 
-  renderStack: (stack) ->
-    <SidebarStackSection
-      key={stack.get '_id'}
-      previewCount={PREVIEW_COUNT}
-      selectedId={@state.selectedThreadId}
-      stack={stack}
-      machines={stack.get 'machines'}/>
-
-
-  renderStacks: ->
+  divideStacks:  ->
 
     stackSections = []
     stackList     =
@@ -103,14 +95,31 @@ module.exports = class Sidebar extends React.Component
       stackList[provider].push stack
 
     # Render stacks of koding as first.
-    stackList.koding.forEach (stack) =>
-      stackSections.push @renderStack stack
+    stackList.koding.forEach (stack) => stackSections.push @renderStack stack
 
     # Now render stack of managed vms last
-    stackList.managed.forEach (stack) =>
-      stackSections.push @renderStack stack
+    stackList.managed.forEach (stack) => stackSections.push @renderStack stack
 
     return stackSections
+
+
+  renderStack: (stack) ->
+
+    <SidebarStackSection
+      key={stack.get '_id'}
+      previewCount={PREVIEW_COUNT}
+      selectedId={@state.selectedThreadId}
+      stack={stack}
+      machines={stack.get 'machines'}/>
+
+
+  renderStacks: ->
+
+    return null  unless @state.stacks?.size
+
+    <SidebarStackHeaderSection>
+      {@divideStacks()}
+    </SidebarStackHeaderSection>
 
 
   renderNoStacks: ->
