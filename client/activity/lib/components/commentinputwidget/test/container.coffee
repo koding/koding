@@ -1,13 +1,8 @@
 kd           = require 'kd'
 React        = require 'kd-react'
-ReactDOM     = require 'react-dom'
 expect       = require 'expect'
 Container    = require '../container'
 TestUtils    = require 'react-addons-test-utils'
-ActivityFlux = require 'activity/flux'
-immutable    = require 'immutable'
-toImmutable  = require 'app/util/toImmutable'
-mock         = require '../../../../../mocks/mockingjay'
 KeyboardKeys = require 'app/constants/keyboardKeys'
 
 
