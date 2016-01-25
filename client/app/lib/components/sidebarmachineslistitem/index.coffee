@@ -130,6 +130,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderWorkspaceSection: ->
 
+    return null  unless isKoding()
     return null  if @state.collapsed
     return null  unless @machine 'isApproved'
     return null  unless isMachineRunning @props.machine
