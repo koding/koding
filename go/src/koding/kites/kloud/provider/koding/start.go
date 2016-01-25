@@ -76,12 +76,11 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	m.push("Starting machine", 10, machinestate.Starting)
 
 	// check if the user has something else than their current instance type
-	// and revert back to t2.micro. This is lazy auto healing of instances that
+	// and revert back to t2.nano. This is lazy auto healing of instances that
 	// were created because there were no capacity for their specific instance
 	// type.
-	if aws.StringValue(instance.InstanceType) != meta.InstanceType {
-		m.Log.Warning("instance is using '%s'. Changing back to '%s'",
-			aws.StringValue(instance.InstanceType), meta.InstanceType)
+	if typ := aws.StringValue(instance.InstanceType); typ != "" && typ != meta.InstanceType {
+		m.Log.Warning("instance is using %q. Changing back to %q", typ, meta.InstanceType)
 
 		params := &ec2.ModifyInstanceAttributeInput{
 			InstanceId: aws.String(meta.InstanceId),
@@ -89,6 +88,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 				Value: aws.String(plans.Instances[meta.InstanceType].String()),
 			},
 		}
+
 		if err := m.Session.AWSClient.ModifyInstance(params); err != nil {
 			m.Log.Warning("couldn't change instance to '%s' again. err: %s",
 				meta.InstanceType, err)
@@ -128,7 +128,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		// assigned yet (Elastic IP's are assigned only during the Build). We
 		// lookup the IP from the Elastic IPs, if it's not available (returns an
 		// error) we proceed and create it.
-		if m.Payment.Plan != "free" { // check this first to avoid an additional AWS call
+		if plan, ok := plans.Plans[m.Payment.Plan]; ok && plan != plans.Free {
 			m.Log.Debug("Checking if IP is an Elastic IP for paying user: (ip: %s)", m.IpAddress)
 
 			_, err = m.Session.AWSClient.AddressesByIP(m.IpAddress)

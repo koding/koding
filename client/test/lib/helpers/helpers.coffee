@@ -416,7 +416,7 @@ module.exports =
         .click                     workspaceSelector + ' + .ws-settings-icon'
         .waitForElementVisible     modalSelector, 20000
         .click                     modalSelector + ' button.red'
-        .waitForElementNotVisible  workspaceSelector, 20000
+        .waitForElementNotPresent  workspaceSelector, 20000
 
 
   waitForVMRunning: require './waitforvmrunning'

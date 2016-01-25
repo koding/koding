@@ -30,12 +30,12 @@ module.exports = (req, res) ->
   { JSession } = koding.models
 
   JSession.one { clientId }, (err, session) ->
-    if err or not session
-      redirectOauth err, req, res, { provider }
-      return
+    return redirectOauth err, req, res, { provider }  if err or not session
+
+    { foreignAuth } = session
+    return redirectToOauth 'Invalid auth session', req, res, { provider }  unless foreignAuth
 
     { username }           = session.data
-    { foreignAuth }        = session
     { requestTokenSecret } = foreignAuth[provider]
 
     client = new OAuth request_url, access_url, key, secret, version,
@@ -43,21 +43,16 @@ module.exports = (req, res) ->
 
     client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,
       (err, oauthAccessToken, oauthAccessTokenSecret, results) ->
-        if err
-          redirectOauth err, req, res, { provider }
-          return
+        return redirectOauth err, req, res, { provider }  if err
 
         client.get 'https://api.twitter.com/1.1/account/verify_credentials.json',
           oauthAccessToken, oauthAccessTokenSecret, (error, data) ->
-            if err
-              redirectOauth err, req, res, { provider }
-              return
+            return redirectOauth err, req, res, { provider }  if err
 
             try
               response = JSON.parse data
             catch e
-              redirectOauth 'twitter: parsing json', req, res, { provider }
-              return
+              return redirectOauth 'twitter: parsing json', req, res, { provider }
 
             [firstName, restOfNames...] = response.name.split ' '
             lastName = restOfNames.join ' '
@@ -71,8 +66,6 @@ module.exports = (req, res) ->
             twitter.profile           = response
 
             saveOauthToSession twitter, clientId, provider, (err) ->
-              if err
-                redirectOauth err, req, res, { provider }
-                return
+              return redirectOauth err, req, res, { provider }  if err
 
               redirectOauth null, req, res, { provider }

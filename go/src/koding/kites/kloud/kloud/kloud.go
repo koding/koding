@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"os"
+	"sync"
 	"time"
 
 	"koding/kites/kloud/contexthelper/publickeys"
@@ -42,6 +43,9 @@ type Kloud struct {
 
 	// Eventers is providing an event mechanism for each method.
 	Eventers map[string]eventer.Eventer
+
+	// mu protects Eventers
+	mu sync.RWMutex
 
 	// idlock provides multiple locks per id
 	idlock *idlock.IdLock

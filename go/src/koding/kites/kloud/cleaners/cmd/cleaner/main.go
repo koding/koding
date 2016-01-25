@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"koding/kites/kloud/cleaners/lookup"
 	"os"
 	"sync"
 	"time"
@@ -40,10 +41,21 @@ type Config struct {
 		URL string
 	}
 
-	DryRun     bool
-	Interval   string `required:"true"`
-	Debug      bool
-	MaxResults int `default:"500"`
+	DryRun      bool
+	Interval    string `required:"true"`
+	EIPInterval string `default:"1h"`
+	Debug       bool
+	MaxResults  int `default:"500"`
+	BatchLimit  int `default:"200"` // NOTE: AWS does not allow batching more than 200 items
+
+	// EIPOnly when true makes cleaner run only Elastic IP related tasks.
+	EIPOnly bool
+
+	// StoppedOnly says whether to clean EIP from stopped instnace of non-paying
+	// users
+	//
+	// By default cleaned also from running ones as well.
+	StoppedOnly bool
 }
 
 type task interface {
@@ -99,36 +111,106 @@ func realMain() error {
 	m.MustLoad(conf)
 
 	cl := NewCleaner(conf)
-	if cl.Debug {
+	if cl.Config.Debug {
 		cl.Log.Warning("Debug mode is enabled.")
 	}
-	if cl.DryRun {
+	if cl.Config.DryRun {
 		cl.Log.Warning("Dry run is enabled.")
-		if !cl.Debug {
+		if !cl.Config.Debug {
 			cl.Slack("Cleaner started in dry-run mode", "", "")
 		}
 	}
+	if cl.Config.EIPOnly {
+		cl.Log.Warning("Running only EIP related tasks")
+	}
+
 	interval, err := time.ParseDuration(conf.Interval)
 	if err != nil {
 		return err
 	}
 
-	for {
-		cl.Run()
-		time.Sleep(interval)
+	shortInterval, err := time.ParseDuration(conf.EIPInterval)
+	if err != nil {
+		return err
 	}
+
+	// time.Ticker always sends first tick after the specified duration,
+	// in order to have tasks executed after the process is started,
+	// we create proxy tickers with first tick enqueued.
+	tick := make(chan time.Time, 1)
+	tickEIP := make(chan time.Time, 1)
+
+	tick <- time.Now()
+	tickEIP <- time.Now()
+
+	go func() {
+		for t := range time.Tick(interval) {
+			tick <- t
+		}
+	}()
+
+	go func() {
+		for t := range time.Tick(shortInterval) {
+			tickEIP <- t
+		}
+	}()
+
+	for {
+		select {
+		case <-tick:
+			cl.Run()
+		case <-tickEIP:
+			cl.RunEIP()
+		}
+	}
+
+	select {}
 }
 
 func (c *Cleaner) Run() {
-	c.Log.Info("Cleaner start to collect artifacts...")
+	c.Log.Info("Cleaner started long run ...")
+	defer c.Log.Info("Cleaner finished long run")
+
 	if err := c.collectAndProcess(); err != nil {
 		c.Log.Error(err.Error())
 	}
-	c.Log.Info("Cleaner is done collecting artifacts.")
+}
+
+func (c *Cleaner) RunEIP() {
+	c.Log.Info("Cleaner started Elastic IP run ...")
+	defer c.Log.Info("Cleaner finished Elastic IP run")
+
+	tasks := []task{
+		&ElasticIPs{
+			Lookup: c.AWS,
+		},
+	}
+
+	isPaid, err := c.IsPaid()
+	if err != nil {
+		c.Log.Error(err.Error())
+	} else {
+		tasks = append(tasks, &DowngradedElasticIPs{
+			Lookup: c.AWS,
+			Options: &lookup.NotPaidOptions{
+				BatchLimit: c.Config.BatchLimit,
+				CleanAll:   !c.Config.StoppedOnly,
+				IsPaid:     isPaid,
+				Log:        c.Log.New("not-paid"),
+			},
+		})
+	}
+
+	c.process(tasks...)
 }
 
 // collectAndRun collects any necessary resource and processes all task
 func (c *Cleaner) collectAndProcess() error {
+	if c.Config.EIPOnly {
+		c.Log.Debug("skipping running tasks other than EIP ones")
+		return nil
+	}
+
 	artifacts, err := c.Collect()
 	if err != nil {
 		return err
@@ -144,9 +226,6 @@ func (c *Cleaner) collectAndProcess() error {
 		},
 		&TestDomains{
 			DNS: c.DNSDev,
-		},
-		&ElasticIPs{
-			Lookup: c.AWS,
 		},
 		&AlwaysOn{
 			MongoDB:          c.MongoDB,
@@ -192,7 +271,7 @@ func (c *Cleaner) process(tasks ...task) {
 		wg.Add(1)
 		go func(t task) {
 			t.Process()
-			if !c.DryRun {
+			if !c.Config.DryRun {
 				t.Run()
 			}
 			out <- t
@@ -214,11 +293,11 @@ func (c *Cleaner) process(tasks ...task) {
 		info := t.Info()
 		c.Log.Info("%s: %s", info.Title, msg)
 
-		if c.DryRun {
+		if c.Config.DryRun {
 			info.Title += info.Title + " (dry-run)"
 		}
 
-		if !c.Debug {
+		if !c.Config.Debug {
 			c.Slack(info.Title, info.Desc, msg) // send to slack channel
 		}
 
