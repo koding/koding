@@ -1,8 +1,9 @@
-bongo    = require 'bongo'
+bongo       = require 'bongo'
 { secure, signature } = bongo
-crypto   = require 'crypto'
-oauth    = require 'oauth'
-parser   = require 'url'
+crypto      = require 'crypto'
+oauth       = require 'oauth'
+parser      = require 'url'
+KodingError = require '../error'
 
 module.exports = class OAuth extends bongo.Base
   @share()
@@ -103,6 +104,7 @@ module.exports = class OAuth extends bongo.Base
     JSession = require './session'
     JSession.one { clientId: client.sessionToken }, (err, session) ->
       return callback err  if err
+      return callback new KodingError 'Session not found'  unless session
 
       query = {}
       query["foreignAuth.#{provider}"] = credentials
