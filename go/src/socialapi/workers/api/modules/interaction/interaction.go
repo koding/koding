@@ -12,6 +12,11 @@ import (
 
 func Add(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Context) (int, http.Header, interface{}, error) {
 	var err error
+
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	req.AccountId = ctx.Client.Account.Id
 	req, err = prepareInteraction(u, req)
 	if err != nil {
@@ -28,6 +33,11 @@ func Add(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Context
 
 func Delete(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Context) (int, http.Header, interface{}, error) {
 	var err error
+
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	req.AccountId = ctx.Client.Account.Id
 	req, err = prepareInteraction(u, req)
 	if err != nil {
@@ -114,6 +124,22 @@ func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interactio
 
 	if req.AccountId == 0 {
 		return nil, errors.New("AccountId is not set")
+	}
+	message, err := models.Cache.Message.ById(messageId)
+	if err != nil {
+		return nil, err
+	}
+	channel, err := models.Cache.Channel.ById(message.InitialChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	canOpen, err := channel.CanOpen(req.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	if !canOpen {
+		return nil, models.ErrCannotOpenChannel
 	}
 
 	interactionType := u.Query().Get("type")
