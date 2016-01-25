@@ -1,12 +1,14 @@
-kd           = require 'kd'
-React        = require 'kd-react'
-ReactDOM     = require 'react-dom'
-expect       = require 'expect'
-TestUtils    = require 'react-addons-test-utils'
-toImmutable  = require 'app/util/toImmutable'
-ChatList     = require './index'
-ChatListItem = require 'activity/components/chatlistitem'
-DateMarker   = require 'activity/components/datemarker'
+kd               = require 'kd'
+React            = require 'kd-react'
+ReactDOM         = require 'react-dom'
+expect           = require 'expect'
+TestUtils        = require 'react-addons-test-utils'
+toImmutable      = require 'app/util/toImmutable'
+ChatList         = require './index'
+ChatListItem     = require 'activity/components/chatlistitem'
+DateMarker       = require 'activity/components/datemarker'
+Waypoint         = require 'react-waypoint'
+NewMessageMarker = require 'activity/components/newmessagemarker'
 
 describe 'ChatList', ->
 
@@ -72,3 +74,18 @@ describe 'ChatList', ->
       expect(items.length).toEqual 2
       expect(items.first.props.date).toEqual messages.first().get 'createdAt'
       expect(items[1].props.date).toEqual messages.last().get 'createdAt'
+
+
+    it 'renders unread message marker', ->
+
+      result = TestUtils.renderIntoDocument(
+        <ChatList messages={messages} />
+      )
+      expect(-> TestUtils.findRenderedComponentWithType result, NewMessageMarker).toThrow()
+      expect(-> TestUtils.findRenderedComponentWithType result, Waypoint).toThrow()
+
+      result = TestUtils.renderIntoDocument(
+        <ChatList messages={messages} unreadCount=1 />
+      )
+      expect(TestUtils.findRenderedComponentWithType result, NewMessageMarker).toExist()
+      expect(TestUtils.findRenderedComponentWithType result, Waypoint).toExist()
