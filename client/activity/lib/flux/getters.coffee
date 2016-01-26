@@ -228,10 +228,8 @@ selectedChannelPopularMessages = [
 selectedChannelThread = [
   channelThreads
   selectedChannel
-  MessageLikersStore
   selectedChannelPopularMessages
-  allUsers
-  (threads, channel, likers, popularMessages, users) ->
+  (threads, channel, popularMessages) ->
     return null  unless channel
     thread = threads.get channel.get('id')
     thread = thread.set 'channel', channel

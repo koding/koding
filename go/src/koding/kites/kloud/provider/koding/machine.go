@@ -3,6 +3,7 @@ package koding
 import (
 	"fmt"
 	"koding/db/models"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
@@ -11,6 +12,7 @@ import (
 	"koding/kites/kloud/plans"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/logging"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/mgo.v2"
@@ -229,4 +231,41 @@ func (m *Machine) Unlock() error {
 	// Unlock does not return an error
 	m.Locker.Unlock(m.ObjectId.Hex())
 	return nil
+}
+
+func (m *Machine) releaseEIP() {
+	// try to release/delete a public elastic IP, if there is an error we don't
+	// care (the instance might not have an elastic IP, aka a free user.
+	addrs, err := m.Session.AWSClient.AddressesByIP(m.IpAddress)
+	if err != nil {
+		if !amazon.IsNotFound(err) {
+			m.Log.Warning("querying for %q Elastic IPs failed: %s", m.IpAddress, err)
+		}
+		return
+	}
+
+	m.Log.Debug("releasing Elastic IPs (%d): %s", len(addrs), m.IpAddress)
+
+	for _, addr := range addrs {
+		m.Log.Debug("Got an elastic IP %+v. Going to relaease it", addr)
+		ip := aws.StringValue(addr.PublicIp)
+
+		assocID := aws.StringValue(addr.AssociationId)
+		if assocID != "" {
+			// if the instance is running, try to disassociate EIP from
+			// the instance
+			err := m.Session.AWSClient.DisassociateAddress(assocID)
+			if err != nil {
+				m.Log.Warning("disassociating Elastic IP failed: ip=%s, assocID=%s, err=%s", ip, assocID, err)
+			}
+		}
+
+		allocID := aws.StringValue(addr.AllocationId)
+		if allocID != "" {
+			err := m.Session.AWSClient.ReleaseAddress(allocID)
+			if err != nil {
+				m.Log.Warning("releasing Elastic IP failed: ip=%s, allocID=%s, err=%s", ip, allocID, err)
+			}
+		}
+	}
 }
