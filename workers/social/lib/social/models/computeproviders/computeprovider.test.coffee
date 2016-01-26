@@ -265,17 +265,14 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           async.parallel [
 
             (fin) ->
-              ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
-                expect(err).to.not.exist
-                fin()
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
 
             (fin) ->
-              ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
-                expect(err).to.exist
-                expect(err.message).to.be.equal 'Provided limit has been reached'
-                fin()
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
 
-          ], done
+          ], (err) ->
+            expect(err?.message).to.be.equal 'Provided limit has been reached'
+            done()
 
 
   describe '#updateGroupInstanceUsage', ->
