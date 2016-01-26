@@ -75,7 +75,7 @@ if [ -n "$TEST_CASE" ]; then
     fi
   fi
   run_test_case
-  EXIT_CODE=$!
+  EXIT_CODE=$?
   cleanup
   exit $EXIT_CODE
 elif [ -n "$TEST_SUITE" ]; then
