@@ -1,0 +1,6 @@
+require './mostreadarticleswidget'
+require './postingguidelineswidget'
+require './mostactivechannelswidget'
+require './socialmediawidget.coffee'
+require './activityannouncementwidget'
+require './mostactivechannellistitem.coffee'
