@@ -12,5 +12,4 @@ require './channelparticipantsdropdown/test'
 require './comments/test'
 require './commentinputwidget/test'
 require './common/test'
-
-
+require './sidebarwidgets/test'
