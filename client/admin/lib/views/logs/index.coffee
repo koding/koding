@@ -26,6 +26,10 @@ module.exports = class LogsView extends kd.View
 
       @tabView.showPaneByIndex index
 
+    kd.singletons.notificationController.on 'MemberWarning', =>
+      @tabView.showPaneByIndex 0
+      @handleReload()
+
 
   createTabView: ->
 
@@ -36,8 +40,7 @@ module.exports = class LogsView extends kd.View
     @tabView.tabHandleContainer.addSubView new kd.ButtonView
       cssClass : 'solid compact green reload'
       title    : 'Reload'
-      callback : =>
-        @tabView.activePane.getMainView().reload()
+      callback : @bound 'handleReload'
 
     Object.keys(SCOPES).forEach (scope) =>
       @tabView.addPane new kd.TabPaneView
@@ -51,3 +54,6 @@ module.exports = class LogsView extends kd.View
 
   setRoute: (route = '') ->
     kd.singletons.router.handleRoute "/Admin/Logs#{route}"
+
+  handleReload: ->
+    @tabView.activePane.getMainView().reload()
