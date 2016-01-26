@@ -107,7 +107,7 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
 
     @editWidgetWrapper.addSubView new KDButtonView
       style     : 'solid green mini fr done-button'
-      title     : 'DONE'
+      title     : 'UPDATE'
       callback  : =>
         @editWidget.submit @editWidget.input.getValue()
 
