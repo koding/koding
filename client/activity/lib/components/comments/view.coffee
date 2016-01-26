@@ -3,7 +3,7 @@ React              = require 'kd-react'
 classnames         = require 'classnames'
 immutable          = require 'immutable'
 CommentList        = require './commentlist'
-CommentInputWidget = require './commentinputwidget'
+CommentInputWidget = require 'activity/components/commentinputwidget'
 
 module.exports = class CommentsView extends React.Component
 
@@ -38,7 +38,7 @@ module.exports = class CommentsView extends React.Component
         onMentionClick = { @props.onMentionClick }
         messageId      = { @props.messageId }
         repliesCount   = { @props.repliesCount }/>
-      <CommentInputWidget
+      <CommentInputWidget.Container
         ref          = 'CommentInputWidget'
         hasValue     = { @props.hasValue }
         onChange     = { @props.onChange }
