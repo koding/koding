@@ -13,6 +13,25 @@ import (
 	"golang.org/x/net/context"
 )
 
+// TraceKey is key for storing TraceID string in context.Context.
+// When a kite's request contains debug field (in the payload) set to
+// true, kloud generates unique TraceID, enables debug logging for
+// whole codepath, and sends the TraceID to other microservices
+// if needed (e.g. terraformer).
+var TraceKey struct {
+	byte `key:"traceKey"`
+}
+
+func TraceFromContext(ctx context.Context) (string, bool) {
+	traceID, ok := ctx.Value(TraceKey).(string)
+
+	if !ok || traceID == "" {
+		return "", false
+	}
+
+	return traceID, true
+}
+
 type ControlResult struct {
 	EventId string `json:"eventId"`
 }
@@ -50,6 +69,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	var args struct {
 		MachineId string
 		Provider  string
+		Debug     bool
 	}
 
 	if err := r.Args.One().Unmarshal(&args); err != nil {
@@ -108,6 +128,11 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 
 	if k.ContextCreator != nil {
 		ctx = k.ContextCreator(ctx)
+	}
+
+	// if debug is enabled, generate TraceID and pass it with the context
+	if args.Debug {
+		ctx = k.setTraceID(r.Username, r.Method, ctx)
 	}
 
 	// old events are not needed anymore, so we're just going to remove them.
@@ -203,6 +228,7 @@ func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {
 	var args struct {
 		MachineId string
 		Provider  string
+		Debug     bool
 	}
 
 	if err := r.Args.One().Unmarshal(&args); err != nil {
@@ -247,6 +273,10 @@ func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {
 	}
 
 	ctx := request.NewContext(context.Background(), r)
+
+	if args.Debug {
+		ctx = k.setTraceID(r.Username, r.Method, ctx)
+	}
 
 	return p.Machine(ctx, args.MachineId)
 }

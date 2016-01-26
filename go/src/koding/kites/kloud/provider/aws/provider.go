@@ -142,6 +142,11 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		Log:         p.Log.New(machine.ObjectId.Hex()),
 	}
 
+	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+		opts.Log = opts.Log.New(traceID)
+		opts.Log.SetLevel(logging.DEBUG)
+	}
+
 	amazonClient, err := amazon.NewWithOptions(machine.Meta, opts)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)

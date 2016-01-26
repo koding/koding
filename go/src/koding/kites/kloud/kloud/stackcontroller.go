@@ -14,6 +14,16 @@ var GroupNameKey struct {
 	byte `key:"groupName"`
 }
 
+func GroupFromContext(ctx context.Context) (string, bool) {
+	groupName, ok := ctx.Value(GroupNameKey).(string)
+
+	if !ok || groupName == "" {
+		return "", false
+	}
+
+	return groupName, true
+}
+
 // Stacker is a provider-specific handler that implements team methods.
 type Stacker interface {
 	Apply(context.Context) (interface{}, error)
@@ -42,6 +52,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		Provider  string `json:"provider"`
 		StackID   string `json:"stackId,omitempty"`
 		GroupName string `json:"groupName,omitempty"`
+		Debug     bool   `json:"debug,omitempty"`
 	}
 
 	// Unamrshal common arguments.
@@ -70,12 +81,18 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	if k.PublicKeys != nil {
 		ctx = publickeys.NewContext(ctx, k.PublicKeys)
 	}
+
 	if k.ContextCreator != nil {
 		ctx = k.ContextCreator(ctx)
 	}
+
 	if argCommon.StackID != "" {
 		evID := r.Method + "-" + argCommon.StackID
 		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
+	}
+
+	if argCommon.Debug {
+		ctx = k.setTraceID(r.Username, r.Method, ctx)
 	}
 
 	// Create stack handler.
