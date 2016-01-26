@@ -122,7 +122,7 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	if prefetchAll {
-		fmt.Printf("Prefetching remote path...")
+		fmt.Println("Prefetching remote path...")
 
 		// The creation of the pb objection presents a CLI progress bar to the user.
 		bar := pb.StartNew(100)
