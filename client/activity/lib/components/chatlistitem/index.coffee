@@ -31,7 +31,6 @@ module.exports = class ChatListItem extends React.Component
     showItemMenu  : yes
     isSelected    : no
     channelId     : ''
-    onEditStarted : kd.noop
 
   constructor: (props) ->
 
@@ -61,10 +60,13 @@ module.exports = class ChatListItem extends React.Component
 
   getItemProps: ->
 
-    key               : @props.message.get 'id'
+    { message, isSelected } = @props
+
+    key               : message.get 'id'
     className         : classnames
       'ChatItem'      : yes
-      'is-selected'   : @props.isSelected
+      'is-selected'   : isSelected
+    'data-message-id' : message.get 'id'
 
 
   updateMessage: ->
@@ -84,12 +86,6 @@ module.exports = class ChatListItem extends React.Component
 
     messageId = @props.message.get '_id'
     ActivityFlux.actions.message.unsetMessageEditMode messageId, @props.channelId, yes
-
-
-  onEditStarted: ->
-
-    element = ReactDOM.findDOMNode this
-    @props.onEditStarted? element
 
 
   getEditModeClassNames: -> classnames
@@ -132,7 +128,6 @@ module.exports = class ChatListItem extends React.Component
         onEsc     = { @bound 'cancelEdit' }
         ref       = 'editInput'
         tokens    = { [ChannelToken, EmojiToken, MentionToken] }
-        onReady   = { @bound 'onEditStarted' }
       />
     </div>
 
@@ -141,7 +136,7 @@ module.exports = class ChatListItem extends React.Component
 
     return null  unless @props.showItemMenu
 
-    <MessageItemMenu ref='MessageItemMenu' message={@props.message}/>
+    <MessageItemMenu ref='MessageItemMenu' message={@props.message} channelId={@props.channelId} />
 
 
   renderEmbedBox: ->

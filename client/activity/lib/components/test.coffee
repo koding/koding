@@ -9,5 +9,7 @@ require './channelparticipants/test'
 require './channelparticipantsinputwidget/test'
 require './channelparticipantsdropdownitem/test'
 require './channelparticipantsdropdown/test'
+require './comments/test'
+require './commentinputwidget/test'
 
 

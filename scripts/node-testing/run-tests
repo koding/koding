@@ -4,6 +4,8 @@
 
 SCRIPTS=$(dirname $0)/..
 
+export MOCHA_VERBOSE=1
+
 TASKS="nodeservertests socialworkertests"
 
 INSTANCE_DATA_FILE=$1
