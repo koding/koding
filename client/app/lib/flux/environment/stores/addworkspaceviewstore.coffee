@@ -8,7 +8,7 @@ module.exports  = class AddWorkspaceViewStore extends KodingFluxStore
 
   @getterPath = 'AddWorkspaceViewStore'
 
-  getInitialState: -> null
+  getInitialState: -> immutable.Map()
 
 
   initialize: ->
@@ -17,7 +17,12 @@ module.exports  = class AddWorkspaceViewStore extends KodingFluxStore
     @on actions.HIDE_ADD_WORKSPACE_VIEW, @hide
 
 
-  show: (machines, id) -> id
+  show: (machines, id) ->
+
+    machines.withMutations (machines) ->
+      machines.set id, id
 
 
-  hide: (machines) -> null
+  hide: (machines, id) ->
+
+    machines.remove id
