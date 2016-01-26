@@ -78,7 +78,16 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
                 next()
 
           (next) ->
-            ComputeProvider.updateGroupInstanceUsage group, 'increment', 1, (err) ->
+
+            _options = {
+              instanceCount : 1
+              instanceOnly  : yes
+              details       : { account, provider: 'managed' }
+              change        : 'increment'
+              group
+            }
+
+            ComputeProvider.updateGroupResourceUsage _options, (err) ->
               expect(err).to.not.exist
               next()
 
