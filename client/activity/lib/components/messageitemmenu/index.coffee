@@ -18,6 +18,7 @@ module.exports = class MessageItemMenu extends React.Component
   @defaultProps =
     disableAdminMenuItems : no
     message               : immutable.Map()
+    channelId             : ''
 
   constructor: (props) ->
 
