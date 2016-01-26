@@ -29,15 +29,19 @@ _bindMachineEvents = (environmentData) ->
 
       _eventsCache.machine[id] = yes
 
-      computeController.on "public-#{id}", (event) ->
+      publicHandler = (event) ->
         reactor.dispatch actions.MACHINE_UPDATED, { id, event }
+      computeController.off "public-#{id}", publicHandler
+      computeController.on  "public-#{id}", publicHandler
 
-      computeController.on "revive-#{id}", (newMachine) ->
+      reviveHandler = (newMachine) ->
         return loadMachines()  unless newMachine
         reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
+      computeController.off "revive-#{id}", reviveHandler
+      computeController.on  "revive-#{id}", reviveHandler
 
       if stack = computeController.findStackFromMachineId id
-        computeController.on "apply-#{stack._id}", (event) ->
+        applyHandler = (event) ->
           reactor.dispatch actions.MACHINE_UPDATED, { id, event }
 
 
