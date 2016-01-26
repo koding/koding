@@ -9,43 +9,14 @@ ChatListItem     = require 'activity/components/chatlistitem'
 DateMarker       = require 'activity/components/datemarker'
 Waypoint         = require 'react-waypoint'
 NewMessageMarker = require 'activity/components/newmessagemarker'
+mockingjay       = require '../../../../mocks/mockingjay'
 
 describe 'ChatList', ->
 
   messages = toImmutable [
-    {
-      id              : 1
-      body            : 'Archaeologists develop new theories about how Stonehenge was built'
-      interactions    : { like : { actorsCount : 1 } }
-      repliesCount    : 2
-      createdAt       : '2016-01-01'
-      account         :
-        _id           : 1
-        profile       : { nickname : 'nick', firstName : '', lastName : '' }
-        isIntegration : yes
-    }
-    {
-      id              : 2
-      body            : 'NASA is searching for the next generation of space explorers'
-      interactions    : { like : { actorsCount : 3 } }
-      repliesCount    : 5
-      createdAt       : '2016-01-01'
-      account         :
-        _id           : 2
-        profile       : { nickname : 'john', firstName : '', lastName : '' }
-        isIntegration : yes
-    }
-    {
-      id              : 3
-      body            : 'A bike lane in the Netherlands has been designed to harness energy from the sun'
-      interactions    : { like : { actorsCount : 2 } }
-      repliesCount    : 3
-      createdAt       : '2016-01-15'
-      account         :
-        _id           : 3
-        profile       : { nickname : 'alex', firstName : '', lastName : '' }
-        isIntegration : yes
-    }
+    mockingjay.getMockMessage('test 1', { createdAt : '2016-01-01', id : 1 })
+    mockingjay.getMockMessage('test 2', { createdAt : '2016-01-15', id : 2 })
+    mockingjay.getMockMessage('test 3', { createdAt : '2016-01-15', id : 3 })
   ]
 
   describe '::render', ->

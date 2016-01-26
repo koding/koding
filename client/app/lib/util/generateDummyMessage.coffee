@@ -2,7 +2,7 @@ whoami = require './whoami'
 extend = require('util')._extend
 
 # Generates a fake SocialMessage object
-module.exports = (body) ->
+module.exports = (body, customProps) ->
 
   now       = new Date
   isoNow    = now.toISOString()
@@ -10,7 +10,7 @@ module.exports = (body) ->
   account = extend whoami(),
     constructorName: 'JAccount'
 
-  fakeObject         =
+  result              =
     isFake            : yes
     on                : -> this
     watch             : -> this
@@ -25,4 +25,7 @@ module.exports = (body) ->
         isInteracted  : no
         actorsCount   : 0
         actorsPreview : []
- 
+
+  result = extend result, customProps  if customProps
+
+  return result

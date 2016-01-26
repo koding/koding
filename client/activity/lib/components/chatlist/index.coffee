@@ -189,7 +189,9 @@ module.exports = class ChatList extends React.Component
 
       children = children.concat @getBeforeMarkers message, prevMessage, i
 
-      isSimpleItem = lastDifferentOwnerId and lastDifferentOwnerId is message.get('accountId') and isLessThanFiveMinutes
+      accountId     = message.get 'accountId'
+      isSameOwnerId = lastDifferentOwnerId and lastDifferentOwnerId is accountId
+      isSimpleItem  = isSameOwnerId and isLessThanFiveMinutes
       children.push \
           <ChatListItem.Container {...itemProps } isSimple={isSimpleItem} />
 

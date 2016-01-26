@@ -7,6 +7,7 @@ toImmutable             = require 'app/util/toImmutable'
 ChatListItem            = require 'activity/components/chatlistitem'
 ProfileText             = require 'app/components/profile/profiletext'
 Avatar                  = require 'app/components/profile/avatar'
+ProfileLinkContainer    = require 'app/components/profile/profilelinkcontainer'
 MessageLink             = require 'activity/components/messagelink'
 MessageTime             = require 'activity/components/chatlistitem/messagetime'
 ActivityLikeLink        = require 'activity/components/chatlistitem/activitylikelink'
@@ -18,56 +19,29 @@ ChannelToken            = require 'activity/components/chatinputwidget/tokens/ch
 EmojiToken              = require 'activity/components/chatinputwidget/tokens/emojitoken'
 MentionToken            = require 'activity/components/chatinputwidget/tokens/mentiontoken'
 ChatInputWidget         = require 'activity/components/chatinputwidget'
-ActivityFlux            = require 'activity/flux'
+mockingjay              = require '../../../../mocks/mockingjay'
 
 describe 'ChatListItem', ->
 
-  message = toImmutable
-    id              : 1
-    body            : 'Middleweight black hole suspected near Milky Way’s center'
-    interactions    : { like : { actorsCount : 1 } }
-    repliesCount    : 2
-    createdAt       : '2016-01-01'
-    account         :
-      _id           : 1
-      profile       : { nickname : 'nick', firstName : '', lastName : '' }
-      isIntegration : yes
+  message = toImmutable(
+    mockingjay.getMockMessage 'qwerty'
+  )
 
-  messageWithEmbedData = toImmutable
-    id              : 2
-    body            : 'Humans visited Arctic earlier than thought'
-    interactions    : { like : { actorsCount : 4 } }
-    repliesCount    : 1
-    createdAt       : '2016-01-15'
-    link            :
-      link_embed    : 'https://www.sciencenews.org/'
-      link_embed    :
-        type        : 'link'
-        description : 'Science News'
-        title       : 'Science News'
-    account         :
-      _id           : 2
-      profile       : { nickname : 'john', firstName : '', lastName : '' }
-      isIntegration : yes
+  messageWithEmbedData = toImmutable(
+    mockingjay.getMockMessage(
+      '12345'
+       {
+          link            :
+            link_url      : 'https://www.sciencenews.org/'
+            link_embed    :
+              type        : 'link'
+              description : 'Science News'
+              title       : 'Science News'
+       }
+    )
+  )
 
-  editingMessage = toImmutable
-    id              : 2
-    body            : 'Humans visited Arctic earlier than thought'
-    __isEditing     : yes
-    interactions    : { like : { actorsCount : 4 } }
-    repliesCount    : 1
-    createdAt       : '2016-01-15'
-    link            :
-      link_embed    : 'https://www.sciencenews.org/'
-      link_embed    :
-        type        : 'link'
-        description : 'Science News'
-        title       : 'Science News'
-    account         :
-      _id           : 2
-      profile       : { nickname : 'john', firstName : '', lastName : '' }
-      isIntegration : yes
-
+  editingMessage = messageWithEmbedData.set '__isEditing', yes
 
   describe '::render', ->
 
@@ -77,11 +51,13 @@ describe 'ChatListItem', ->
         <ChatListItem message={message} />
       )
 
-      profileText = TestUtils.findRenderedComponentWithType result, ProfileText
-      expect(profileText.props.account).toEqual message.get('account').toJS()
-
-      profileAvatar = TestUtils.findRenderedComponentWithType result, Avatar
-      expect(profileAvatar.props.account).toEqual message.get('account').toJS()
+      accountId = message.getIn [ 'account', '_id' ]
+      profileContainers = TestUtils.scryRenderedComponentsWithType result, ProfileLinkContainer
+      expect(profileContainers.length).toBe 2
+      expect(profileContainers[0].props.origin._id).toBe accountId
+      expect(profileContainers[1].props.origin._id).toBe accountId
+      expect(TestUtils.findRenderedComponentWithType result, Avatar).toExist()
+      expect(TestUtils.findRenderedComponentWithType result, ProfileText).toExist()
 
       messageLink = TestUtils.findRenderedComponentWithType result, MessageLink
       expect(messageLink.props.message).toBe message
@@ -101,12 +77,14 @@ describe 'ChatListItem', ->
       result = TestUtils.renderIntoDocument(
         <ChatListItem message={message} />
       )
-      expect(-> TestUtils.findRenderedDOMComponentWithClass result, 'is-selected').toThrow()
+      selectedItem = TestUtils.scryRenderedDOMComponentsWithClass(result, 'is-selected').first
+      expect(selectedItem).toNotExist()
 
       result = TestUtils.renderIntoDocument(
         <ChatListItem message={message} isSelected=yes />
       )
-      expect(TestUtils.findRenderedDOMComponentWithClass result, 'is-selected').toExist()
+      selectedItem = TestUtils.findRenderedDOMComponentWithClass result, 'is-selected'
+      expect(selectedItem).toExist()
 
 
     it 'renders a chat item with menu', ->
@@ -114,7 +92,8 @@ describe 'ChatListItem', ->
       result = TestUtils.renderIntoDocument(
         <ChatListItem message={message} showItemMenu={no} />
       )
-      expect(-> TestUtils.findRenderedComponentWithType result, MessageItemMenu).toThrow()
+      menu = TestUtils.scryRenderedComponentsWithType(result, MessageItemMenu).first
+      expect(menu).toNotExist()
 
       result = TestUtils.renderIntoDocument(
         <ChatListItem message={message} showItemMenu={yes} />
@@ -128,7 +107,8 @@ describe 'ChatListItem', ->
       result = TestUtils.renderIntoDocument(
         <ChatListItem message={message} />
       )
-      expect(-> TestUtils.findRenderedComponentWithType result, EmbedBox).toThrow()
+      embedBox = TestUtils.scryRenderedComponentsWithType(result, EmbedBox).first
+      expect(embedBox).toNotExist()
 
       result = TestUtils.renderIntoDocument(
         <ChatListItem message={messageWithEmbedData} />
@@ -142,16 +122,17 @@ describe 'ChatListItem', ->
       result = TestUtils.renderIntoDocument(
         <ChatListItem message={message} />
       )
-      expect(-> TestUtils.findRenderedComponentWithType result, ChatInputEmbedExtractor).toThrow()
+      embedExtractor = TestUtils.scryRenderedComponentsWithType(result, ChatInputEmbedExtractor).first
+      expect(embedExtractor).toNotExist()
 
       result = TestUtils.renderIntoDocument(
         <ChatListItem message={editingMessage} channelId=1 />
       )
-      inputEmbedExtractor = TestUtils.findRenderedComponentWithType result, ChatInputEmbedExtractor
-      expect(inputEmbedExtractor.props.messageId).toEqual editingMessage.get 'id'
-      expect(inputEmbedExtractor.props.channelId).toEqual 1
-      expect(inputEmbedExtractor.props.value).toEqual editingMessage.get 'body'
-      expect(inputEmbedExtractor.props.tokens).toEqual [ChannelToken, EmojiToken, MentionToken]
+      embedExtractor = TestUtils.findRenderedComponentWithType result, ChatInputEmbedExtractor
+      expect(embedExtractor.props.messageId).toEqual editingMessage.get 'id'
+      expect(embedExtractor.props.channelId).toEqual 1
+      expect(embedExtractor.props.value).toEqual editingMessage.get 'body'
+      expect(embedExtractor.props.tokens).toEqual [ChannelToken, EmojiToken, MentionToken]
 
 
   describe '::onSubmit', ->
