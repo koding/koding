@@ -451,6 +451,7 @@ module.exports = class ComputeProvider extends Base
 
   @updateGroupResourceUsage = (options, callback) ->
 
+    { notifyAdmins } = require '../notify'
     { group, instanceCount, instanceOnly, change, details } = options
 
     return callback null  if group.slug is 'koding'
@@ -466,8 +467,13 @@ module.exports = class ComputeProvider extends Base
         then "Stack: #{template.title} - #{template._id}"
         else ''
 
-        KodingLogger.warn group, \
-          "#{user} failed to create #{provider}#{item} due to plan limitations. #{template}"
+        message = "
+          #{user} failed to create #{provider}#{item} due to
+          plan limitations. #{template}
+        "
+
+        KodingLogger.warn group, message
+        notifyAdmins group, 'MemberWarning', message
 
       callback err
 
