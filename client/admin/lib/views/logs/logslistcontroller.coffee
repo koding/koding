@@ -24,13 +24,9 @@ module.exports = class LogsListController extends kd.ListViewController
 
     @isFetching = yes
 
-    @fetchLogsFromAPI options, (err, res) =>
-
+    @fetchLogsFromAPI options, (err, logs) =>
       return  if showError err
-
-      { data: { logs } } = res
       @listLogs logs
-
       @isFetching = no
 
 
@@ -50,7 +46,13 @@ module.exports = class LogsListController extends kd.ListViewController
       endPoint = "#{endPoint}?#{args.join ','}"
 
     doXhrRequest { endPoint, type }, (err, res) ->
-      callback err, res
+
+      return callback err  if err
+
+      { data: { logs } } = res
+      logs.reverse()
+
+      callback null, logs
 
 
   listLogs: (logs) ->
