@@ -331,34 +331,35 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     options = null
 
-    it 'should increase given group resource count', (done) ->
-
+    before (done) ->
       withConvertedUser { createGroup: yes }, ({ group }) ->
-
         options         =
           group         : group
           instanceCount : 3
           change        : 'increment'
+        done()
 
-        ComputeProvider.updateGroupResourceUsage options, (err) ->
+    it 'should increase given group resource count', (done) ->
 
+      ComputeProvider.updateGroupResourceUsage options, (err) ->
+
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : options.group.slug
+          type      : ComputeProvider.COUNTER_TYPE.instances
+        , (err, count) ->
           expect(err).to.not.exist
+          expect(count).to.be.equal 3
 
           JCounter.count
             namespace : options.group.slug
-            type      : ComputeProvider.COUNTER_TYPE.instances
+            type      : ComputeProvider.COUNTER_TYPE.stacks
           , (err, count) ->
             expect(err).to.not.exist
-            expect(count).to.be.equal 3
+            expect(count).to.be.equal 1
 
-            JCounter.count
-              namespace : options.group.slug
-              type      : ComputeProvider.COUNTER_TYPE.stacks
-            , (err, count) ->
-              expect(err).to.not.exist
-              expect(count).to.be.equal 1
-
-              done()
+            done()
 
     it 'should decrease given group resource count', (done) ->
 
