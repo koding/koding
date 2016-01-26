@@ -34,6 +34,9 @@ func MountCommand(c *cli.Context) int {
 		prefetchAll    = c.Bool("prefetchall")    // note the lowercase of all chars
 	)
 
+	// temporarily disable watcher
+	noWatch = true
+
 	if noPrefetchMeta && prefetchAll {
 		log.Errorf("noPrefetchMeta and prefetchAll were both supplied")
 		fmt.Println(PrefetchAllAndMetaTogether)
