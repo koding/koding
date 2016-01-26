@@ -1,22 +1,33 @@
+mock                  = require '../../../../../../mocks/mockingjay'
 expect                = require 'expect'
 Reactor               = require 'app/flux/base/reactor'
 actionTypes           = require 'app/flux/environment/actiontypes'
 ActiveMachineStore    = require 'app/flux/environment/stores/activemachinestore'
 
-MACHINE_ID = '5682d0191fdc0f8127e75280'
+MACHINE_ID = mock.getMockMachine()._id
 
 describe 'ActiveMachineStore', ->
 
   beforeEach ->
     @reactor = new Reactor
-    @reactor.registerStores [ActiveMachineStore]
+    @reactor.registerStores activeMachine : ActiveMachineStore
+
+
+  describe '#getInitialState', ->
+
+    it 'should be null', ->
+
+      store = @reactor.evaluate(['activeMachine'])
+
+      expect(store).toBe null
+
 
   describe '#setMachineId', ->
 
-    it 'add active machine id', ->
+    it 'add active machine id to store', ->
 
       @reactor.dispatch actionTypes.MACHINE_SELECTED, MACHINE_ID
 
-      store = @reactor.evaluateToJS [ActiveMachineStore.getterPath]
+      store = @reactor.evaluate(['activeMachine'])
 
       expect(store).toEqual(MACHINE_ID)
