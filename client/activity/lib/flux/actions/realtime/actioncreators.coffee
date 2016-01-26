@@ -1,5 +1,6 @@
-kd = require 'kd'
-actions = require '../actiontypes'
+kd              = require 'kd'
+AppFlux         = require 'app/flux'
+actions         = require '../actiontypes'
 isPublicChannel = require 'app/util/isPublicChannel'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -42,7 +43,8 @@ bindChannelEvents = (channel) ->
       userId    = account._id
       channelId = channel.id
 
-      dispatch actions.ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, { channelId, userId }
+      AppFlux.actions.user.loadAccount(userId).then ->
+        dispatch actions.ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, { channelId, userId }
 
 
 bindMessageEvents = (message) ->
