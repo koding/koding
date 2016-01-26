@@ -51,9 +51,14 @@ module.exports = class Sidebar extends React.Component
       @setState { showNoStacksWidget : yes }  unless stacks.length
 
     EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
+
     actions.channel.loadFollowedPublicChannels()
     actions.channel.loadFollowedPrivateChannels()
 
+    # These listeners needs to be listen those events only once ~ GG
+    kd.singletons.notificationController
+      .on 'SharedMachineInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
+      .on 'CollaborationInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
 
   setActiveInvitationMachineId: ->
 
