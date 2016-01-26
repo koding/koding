@@ -62,6 +62,8 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
   ###
   handleLoadMessageSuccess: (threads, { channelId, message }) ->
 
+    return threads  if message.typeConstant is 'reply'
+
     return addMessage threads, channelId, message.id
 
 
