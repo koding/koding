@@ -27,12 +27,12 @@ describe 'MostReadArticlesWidget', ->
 
     it 'should render children with correct values', ->
 
-      mostreadarticleswidget = renderIntoDocument(<MostReadArticlesWidget />)
+      mostReadArticlesWidget = renderIntoDocument(<MostReadArticlesWidget />)
 
-      h3        = findRenderedDOMComponentWithTag mostreadarticleswidget, 'h3'
-      archeries = scryRenderedDOMComponentsWithTag mostreadarticleswidget, 'a'
+      h3        = findRenderedDOMComponentWithTag mostReadArticlesWidget, 'h3'
+      archeries = scryRenderedDOMComponentsWithTag mostReadArticlesWidget, 'a'
 
-      arch_values = [
+      archValues = [
         'How to ssh into your VM?'
         'Using the Koding Package Manager'
         'What is Koding?'
@@ -41,4 +41,4 @@ describe 'MostReadArticlesWidget', ->
         'More guides on Koding University...'
       ]
 
-      expect(arrayEqual archeries, arch_values).toBeTruthy()
+      expect(arrayEqual archeries, archValues).toBeTruthy()

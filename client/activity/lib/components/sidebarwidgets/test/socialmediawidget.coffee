@@ -12,11 +12,11 @@ describe 'SocialMediaWidget', ->
 
     it 'should rendered widget and children with correct classnames', ->
 
-      socialmediawidget = renderIntoDocument(<SocialMediaWidget />)
+      socialMediaWidget = renderIntoDocument(<SocialMediaWidget />)
 
-      div      = findRenderedDOMComponentWithClass socialmediawidget, 'SocialMediaWidget'
-      twitter  = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social twitter'
-      facebook = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social facebook'
+      div      = findRenderedDOMComponentWithClass socialMediaWidget, 'SocialMediaWidget'
+      twitter  = findRenderedDOMComponentWithClass socialMediaWidget, 'FeedThreadSidebar-social twitter'
+      facebook = findRenderedDOMComponentWithClass socialMediaWidget, 'FeedThreadSidebar-social facebook'
 
       expect(div).toExist()
       expect(twitter).toExist()
@@ -25,10 +25,10 @@ describe 'SocialMediaWidget', ->
 
     it 'should render children', ->
 
-      socialmediawidget = renderIntoDocument(<SocialMediaWidget />)
+      socialMediaWidget = renderIntoDocument(<SocialMediaWidget />)
 
-      twitter  = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social twitter'
-      facebook = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social facebook'
+      twitter  = findRenderedDOMComponentWithClass socialMediaWidget, 'FeedThreadSidebar-social twitter'
+      facebook = findRenderedDOMComponentWithClass socialMediaWidget, 'FeedThreadSidebar-social facebook'
 
       expect(twitter.props.children).toEqual 'Koding on Twitter'
       expect(facebook.props.children).toEqual 'Koding on Facebook'
