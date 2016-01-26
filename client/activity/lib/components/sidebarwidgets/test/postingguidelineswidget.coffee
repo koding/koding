@@ -42,31 +42,32 @@ describe 'PostingGuideLinesWidget', ->
       expect(h3.props.children).toEqual 'Posting Guidelines'
 
 
-		it 'should render Link component', ->
+    it 'should render Link component', ->
 
-			postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ true } />)
+      postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ true } />)
 
-			{ children } = postingGuideLinesWidget.props
+      { children } = postingGuideLinesWidget.props
 
-			readMeLink   = findRenderedDOMComponentWithClass postingGuideLinesWidget, 'ActivityGuideWidget-readMore'
-			hideInfoLink = findRenderedDOMComponentWithClass postingGuideLinesWidget, 'ActivityGuideWidget-hideInfo'
+      readMeLink   = findRenderedDOMComponentWithClass postingGuideLinesWidget, 'ActivityGuideWidget-readMore'
+      hideInfoLink = findRenderedDOMComponentWithClass postingGuideLinesWidget, 'ActivityGuideWidget-hideInfo'
 
-			expect(readMeLink).toExist()
-			expect(hideInfoLink).toExist()
+      expect(readMeLink).toExist()
+      expect(hideInfoLink).toExist()
 
 
-		describe '::onClick', ->
+    describe '::onClick', ->
 
-			it 'should create action onClick to Link components and check state', ->
+      it 'should create action onClick to Link components and check state', ->
 
-				event = document.createEvent 'Event'
-				postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ false } />)
+        event = document.createEvent 'Event'
+        postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ false } />)
 
-				readMeLink = ReactDOM.findDOMNode postingGuideLinesWidget.refs.ReadMore
+        readMeLink = ReactDOM.findDOMNode postingGuideLinesWidget.refs.ReadMore
 
-				Simulate.click readMeLink, event
-				expect(postingGuideLinesWidget.state.isExpanded).toBeTruthy()
+        Simulate.click readMeLink, event
+        expect(postingGuideLinesWidget.state.isExpanded).toBeTruthy()
 
-				hideInfoLink = ReactDOM.findDOMNode postingGuideLinesWidget.refs.HideInfo
-				Simulate.click hideInfoLink, event
-				expect(postingGuideLinesWidget.state.isExpanded).toEqual false
+        hideInfoLink = ReactDOM.findDOMNode postingGuideLinesWidget.refs.HideInfo
+        Simulate.click hideInfoLink, event
+
+        expect(postingGuideLinesWidget.state.isExpanded).toEqual false
