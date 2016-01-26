@@ -70,6 +70,11 @@ _bindStackEvents = ->
       reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
 
+handleMemberWarning = (message) ->
+
+  console.warn "[member:warning]", message
+
+
 handleSharedMachineInvitation = (sharedMachine)->
 
   # Inconsistent property definition.
@@ -395,6 +400,7 @@ module.exports = {
   createWorkspace
   setMachineListItem
   unsetMachineListItem
+  handleMemberWarning
   handleSharedMachineInvitation
   setActiveInvitationMachineId
   setActiveLeavingSharedMachineId

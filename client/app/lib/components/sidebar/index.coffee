@@ -59,6 +59,8 @@ module.exports = class Sidebar extends React.Component
     kd.singletons.notificationController
       .on 'SharedMachineInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
       .on 'CollaborationInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
+      .on 'MemberWarning',           EnvironmentFlux.actions.handleMemberWarning
+
 
   setActiveInvitationMachineId: ->
 
