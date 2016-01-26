@@ -1,6 +1,6 @@
 require './mostreadarticleswidget'
 require './postingguidelineswidget'
 require './mostactivechannelswidget'
-require './socialmediawidget.coffee'
+require './socialmediawidget'
 require './activityannouncementwidget'
 require './mostactivechannellistitem'

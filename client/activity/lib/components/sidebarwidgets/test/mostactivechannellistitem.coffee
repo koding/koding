@@ -25,18 +25,18 @@ describe 'MostActiveChannelListItem', ->
       shallowRenderer = createRenderer()
       shallowRenderer.render(<MostActiveChannelListItem channel={channel}/>)
 
-      mostactivechannellistitem = shallowRenderer.getRenderOutput()
+      mostActiveChannelListItem = shallowRenderer.getRenderOutput()
 
-      expect(mostactivechannellistitem.props.className).toEqual 'MostActiveChannelItem'
+      expect(mostActiveChannelListItem.props.className).toEqual 'MostActiveChannelItem'
 
     it 'should render children with correct class name for isParticipant true', ->
 
       options = { typeConstant : 'bot' }
       channel = toImmutable(mock.getMockChannel options)
 
-      mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
+      mostActiveChannelListItem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
 
-      button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
+      button = findRenderedDOMComponentWithTag mostActiveChannelListItem, 'Button'
 
       expect(button.props.className).toInclude('following')
 
@@ -47,9 +47,9 @@ describe 'MostActiveChannelListItem', ->
       channel = toImmutable(mock.getMockChannel options)
       channel = channel.set 'isParticipant', false
 
-      mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
+      mostActiveChannelListItem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
 
-      button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
+      button = findRenderedDOMComponentWithTag mostActiveChannelListItem, 'Button'
 
       expect(button.props.className).toExclude('following')
 
@@ -65,9 +65,9 @@ describe 'MostActiveChannelListItem', ->
       channel = toImmutable(mock.getMockChannel options)
 
       event = document.createEvent 'Event'
-      mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
+      mostActiveChannelListItem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
 
-      button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
+      button = findRenderedDOMComponentWithTag mostActiveChannelListItem, 'Button'
 
       Simulate.click button, event
 
@@ -84,9 +84,9 @@ describe 'MostActiveChannelListItem', ->
       channel = channel.set 'isParticipant', false
 
       event = document.createEvent 'Event'
-      mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
+      mostActiveChannelListItem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
 
-      button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
+      button = findRenderedDOMComponentWithTag mostActiveChannelListItem, 'Button'
 
       Simulate.click button, event
 

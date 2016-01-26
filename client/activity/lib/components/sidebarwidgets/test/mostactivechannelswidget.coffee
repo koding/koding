@@ -20,9 +20,10 @@ describe 'MostActiveChannelsWidget', ->
       shallowRenderer = createRenderer()
       shallowRenderer.render(<MostActiveChannelsWidget popularChannels={ immutable.Map() }  />)
 
-      mostactivechannelswidget = shallowRenderer.getRenderOutput()
+      mostActiveChannelsWidget = shallowRenderer.getRenderOutput()
 
-      expect(mostactivechannelswidget.props.className).toEqual 'MostActiveChannelsWidget ActivitySidebar-widget'
+      expect(mostActiveChannelsWidget.props.className).toEqual 'MostActiveChannelsWidget ActivitySidebar-widget'
+
 
     it 'should render children and fill default popularChannels ', ->
 
@@ -30,10 +31,10 @@ describe 'MostActiveChannelsWidget', ->
 
       channels = toImmutable mock.getMockChannels 10
 
-      mostactivechannelswidget = renderIntoDocument(<MostActiveChannelsWidget popularChannels={channels}/>)
+      mostActiveChannelsWidget = renderIntoDocument(<MostActiveChannelsWidget popularChannels={channels}/>)
 
-      h3  = findRenderedDOMComponentWithTag mostactivechannelswidget, 'h3'
-      div = findRenderedDOMComponentWithClass mostactivechannelswidget, 'renderChannelList'
+      h3  = findRenderedDOMComponentWithTag mostActiveChannelsWidget, 'h3'
+      div = findRenderedDOMComponentWithClass mostActiveChannelsWidget, 'renderChannelList'
 
       expect(h3.props.children).toEqual 'Most active channels'
       expect(div.children.length).toEqual MAX_PREVIEW_COUNT

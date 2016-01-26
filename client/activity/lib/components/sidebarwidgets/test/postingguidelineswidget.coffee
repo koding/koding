@@ -55,19 +55,19 @@ describe 'PostingGuideLinesWidget', ->
       expect(hideInfoLink).toExist()
 
 
-    describe '::onClick', ->
+  describe '::onClick', ->
 
-      it 'should create action onClick to Link components and check state', ->
+    it 'should create action onClick to Link components and check state', ->
 
-        event = document.createEvent 'Event'
-        postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ false } />)
+      event = document.createEvent 'Event'
+      postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ false } />)
 
-        readMeLink = ReactDOM.findDOMNode postingGuideLinesWidget.refs.ReadMore
+      readMeLink = ReactDOM.findDOMNode postingGuideLinesWidget.refs.ReadMore
 
-        Simulate.click readMeLink, event
-        expect(postingGuideLinesWidget.state.isExpanded).toBeTruthy()
+      Simulate.click readMeLink, event
+      expect(postingGuideLinesWidget.state.isExpanded).toBeTruthy()
 
-        hideInfoLink = ReactDOM.findDOMNode postingGuideLinesWidget.refs.HideInfo
-        Simulate.click hideInfoLink, event
+      hideInfoLink = ReactDOM.findDOMNode postingGuideLinesWidget.refs.HideInfo
+      Simulate.click hideInfoLink, event
 
-        expect(postingGuideLinesWidget.state.isExpanded).toEqual false
+      expect(postingGuideLinesWidget.state.isExpanded).toEqual false
