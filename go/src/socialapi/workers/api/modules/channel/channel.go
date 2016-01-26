@@ -366,6 +366,10 @@ func Delete(u *url.URL, h http.Header, req *models.Channel, context *models.Cont
 }
 
 func Update(u *url.URL, h http.Header, req *models.Channel, c *models.Context) (int, http.Header, interface{}, error) {
+	if !c.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+	
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
