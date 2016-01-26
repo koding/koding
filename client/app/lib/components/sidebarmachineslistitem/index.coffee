@@ -20,6 +20,7 @@ isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
 SharingMachineInvitationWidget = require './sharingmachineinvitationwidget'
 
+
 module.exports = class SidebarMachinesListItem extends React.Component
 
   @defaultProps =
@@ -248,7 +249,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  unless @props.showInSidebar
 
     status      = @machine ['status', 'state']
-    activeClass = if @state.activeMachine is @machine('_id') then ' active' else ''
+    activeClass = ''
+
+    if @state.activeMachine is @machine('_id')
+      activeClass = 'active'
+      actions.setActiveStackId @props.stack.get('_id')  if @props.stack
 
     unread = if @getTotalUnreadCount() and @state.collapsed
     then 'unread'
