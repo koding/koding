@@ -10,7 +10,7 @@ MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
 MessageItemMenu      = require 'activity/components/messageitemmenu'
-CommentInputWidget   = require 'activity/components/comments/commentinputwidget'
+CommentInputWidget   = require 'activity/components/commentinputwidget'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
 module.exports = class CommentListItemView extends React.Component
