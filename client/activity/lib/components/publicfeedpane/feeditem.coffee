@@ -66,7 +66,7 @@ module.exports = class FeedItem extends React.Component
 
   renderFeedItemMenu: ->
 
-    <MessageItemMenu message={@props.message}/>
+    <MessageItemMenu message={@props.message} channelId={@props.channelId}/>
 
 
   renderEditMode: ->

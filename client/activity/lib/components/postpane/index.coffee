@@ -56,7 +56,7 @@ module.exports = class PostPane extends React.Component
 
   render: ->
     <Modal className='PostPane-modal' isOpen={yes} onClose={@bound 'onClose'}>
-      <ChatPane
+      <ChatPane.Container
         thread={@props.thread}
         className="PostPane"
         messages={@props.messages}
