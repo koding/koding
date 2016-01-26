@@ -2,7 +2,6 @@ package fuseklient
 
 import (
 	"io"
-	"time"
 
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/transport"
@@ -172,8 +171,6 @@ func (f *File) updateContentFromRemote() error {
 
 	f.Content = content
 	f.Attrs.Size = uint64(len(f.Content))
-	f.Attrs.Mtime = time.Now()
-	f.Attrs.Ctime = time.Now()
 
 	return nil
 }
