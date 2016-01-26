@@ -3,6 +3,11 @@
 	"ignore": "test",
 	"package": [
 		{
+			"path": "github.com/cheggaaa/pb",
+			"revision": "a9a708f18ae43493d86f3fd5b0cd04df679b170b",
+			"revisionTime": "2016-01-11T19:32:51+03:00"
+		},
+		{
 			"path": "github.com/codegangsta/cli",
 			"revision": "a65b733b303f0055f8d324d805f393cd3e7a7904",
 			"revisionTime": "2015-09-08T18:48:53-07:00"

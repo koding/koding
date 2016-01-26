@@ -107,12 +107,16 @@ func main() {
 					Usage: "Disable ignoring of default remote folders.",
 				},
 				cli.BoolFlag{
-					Name:  "noprefetch, p",
+					Name:  "noprefetchmeta, p",
 					Usage: "Disable prefetching of folder metadata on mount.",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
 					Usage: "Disable watching for changes on remote machine.",
+				},
+				cli.BoolFlag{
+					Name:  "prefetchall, a",
+					Usage: "Enable prefetching of the entire remote directory for improved performance.",
 				},
 			},
 			Action: Exit(CheckUpdateFirst(MountCommand)),
