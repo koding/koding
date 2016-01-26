@@ -326,10 +326,10 @@ module.exports =
       .waitForElementVisible  createChannelModalNameSelector, 20000
       .setValue               createChannelModalNameSelector, channelName
 
-      if purpose
-        browser
-          .waitForElementVisible  purposeSelector, 20000
-          .setValue               purposeSelector, purpose
+    if purpose
+      browser
+        .waitForElementVisible  purposeSelector, 20000
+        .setValue               purposeSelector, purpose
  
     browser
       .waitForElementVisible  createChannelModalButtonSelector, 20000
@@ -351,8 +351,9 @@ module.exports =
         .pause                  2000 # wait for side bar channel list
         .waitForElementVisible  channelLinkOnSidebarSelector, 20000
         .assert.containsText    sidebarSectionsSelector, channelName
-        if purpose
-          browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose',purpose
+        
+    if purpose
+      browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose',purpose
 
     return channelName
 
