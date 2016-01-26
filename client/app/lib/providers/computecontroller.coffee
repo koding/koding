@@ -439,8 +439,9 @@ module.exports = class ComputeController extends KDController
       { results : { machines } } = newStack
       [ machine ] = machines
 
-      @reset yes, ->
+      @reset yes, =>
         reloadIDE machine.obj.slug
+        @checkGroupStacks()
 
     mainController.ready =>
 
@@ -1201,8 +1202,6 @@ module.exports = class ComputeController extends KDController
 
               new kd.NotificationView
                 title : 'Stack reinitialized'
-
-              reloadIDE stacks[0]?.machines[0]?.slug
 
           if template and not groupStack
           then @createDefaultStack no, template
