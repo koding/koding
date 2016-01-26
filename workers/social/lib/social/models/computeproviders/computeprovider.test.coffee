@@ -1,4 +1,5 @@
 { daisy
+  async
   expect
   ObjectId
   withDummyClient
@@ -13,7 +14,6 @@
   withConvertedUserAnd } = require  \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
-async                     = require 'async'
 JCounter                  = require '../counter'
 JMachine                  = require './machine'
 teamutils                 = require './teamutils'
