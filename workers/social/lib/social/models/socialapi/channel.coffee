@@ -17,8 +17,6 @@ module.exports = class SocialChannel extends Base
 
     sharedMethods :
       static      :
-        byId                 :
-          (signature Object, Function)
         byName               :
           (signature Object, Function)
         fetchActivities      :
@@ -141,12 +139,6 @@ module.exports = class SocialChannel extends Base
   @checkChannelParticipation = secureRequest
     fnName   : 'checkChannelParticipation'
     validate : ['name', 'type']
-
-
-  # byId - fetch channel by id
-  @byId = secureRequest
-    fnName  : 'channelById'
-    validate: ['id']
 
   # byName - fetch channel by name
   @byName = secureRequest

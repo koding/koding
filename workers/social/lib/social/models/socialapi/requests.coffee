@@ -348,12 +348,6 @@ messageBySlug = (data, callback) ->
   url = "#{socialProxyUrl}/message/slug/#{data.slug}"
   get url, data, callback
 
-channelById = (data, callback) ->
-  if not data.id
-    return callback new KodingError 'id should be set'
-  url = "#{socialProxyUrl}/channel/#{data.id}"
-  get url, data, callback
-
 channelByName = (data, callback) ->
   if not data.name
     return callback new KodingError 'name should be set'
@@ -501,7 +495,6 @@ module.exports = {
   messageBySlug
   checkChannelParticipation
   messageById
-  channelById
   channelByName
   glancePinnedPost
   glanceNotifications
