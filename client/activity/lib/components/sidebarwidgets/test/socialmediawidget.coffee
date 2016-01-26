@@ -5,30 +5,30 @@ SocialMediaWidget = require '../socialmediawidget'
 
 describe 'SocialMediaWidget', ->
 
-	{ renderIntoDocument
-	 findRenderedDOMComponentWithClass } = TestUtils
+  { renderIntoDocument
+   findRenderedDOMComponentWithClass } = TestUtils
 
-	describe '::render', ->
+  describe '::render', ->
 
-		it 'should rendered widget and children with correct classnames', ->
+    it 'should rendered widget and children with correct classnames', ->
 
-			socialmediawidget = renderIntoDocument(<SocialMediaWidget />)
+      socialmediawidget = renderIntoDocument(<SocialMediaWidget />)
 
-			div      = findRenderedDOMComponentWithClass socialmediawidget, 'SocialMediaWidget'
-			twitter  = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social twitter'
-			facebook = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social facebook'
+      div      = findRenderedDOMComponentWithClass socialmediawidget, 'SocialMediaWidget'
+      twitter  = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social twitter'
+      facebook = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social facebook'
 
-			expect(div).toExist()
-			expect(twitter).toExist()
-			expect(facebook).toExist()
+      expect(div).toExist()
+      expect(twitter).toExist()
+      expect(facebook).toExist()
 
 
-		it 'should render children', ->
+    it 'should render children', ->
 
-			socialmediawidget = renderIntoDocument(<SocialMediaWidget />)
+      socialmediawidget = renderIntoDocument(<SocialMediaWidget />)
 
-			twitter  = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social twitter'
-			facebook = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social facebook'
+      twitter  = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social twitter'
+      facebook = findRenderedDOMComponentWithClass socialmediawidget, 'FeedThreadSidebar-social facebook'
 
-			expect(twitter.props.children).toEqual 'Koding on Twitter'
-			expect(facebook.props.children).toEqual 'Koding on Facebook'
+      expect(twitter.props.children).toEqual 'Koding on Twitter'
+      expect(facebook.props.children).toEqual 'Koding on Facebook'

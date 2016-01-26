@@ -10,84 +10,84 @@ MostActiveChannelListItem = require '../mostactivechannellistitem'
 
 describe 'MostActiveChannelListItem', ->
 
-	{ Simulate
-	 createRenderer
-	 renderIntoDocument
-	 findRenderedDOMComponentWithTag } = TestUtils
+  { Simulate
+   createRenderer
+   renderIntoDocument
+   findRenderedDOMComponentWithTag } = TestUtils
 
-	describe '::render', ->
+  describe '::render', ->
 
-		it 'should render widget with correct class name', ->
+    it 'should render widget with correct class name', ->
 
-			options = { typeConstant : 'bot' }
-			channel = toImmutable(mock.getMockChannel options)
+      options = { typeConstant : 'bot' }
+      channel = toImmutable(mock.getMockChannel options)
 
-			shallowRenderer = createRenderer()
-			shallowRenderer.render(<MostActiveChannelListItem channel={channel}/>)
+      shallowRenderer = createRenderer()
+      shallowRenderer.render(<MostActiveChannelListItem channel={channel}/>)
 
-			mostactivechannellistitem = shallowRenderer.getRenderOutput()
+      mostactivechannellistitem = shallowRenderer.getRenderOutput()
 
-			expect(mostactivechannellistitem.props.className).toEqual 'MostActiveChannelItem'
+      expect(mostactivechannellistitem.props.className).toEqual 'MostActiveChannelItem'
 
-		it 'should render children with correct class name for isParticipant true', ->
+    it 'should render children with correct class name for isParticipant true', ->
 
-			options = { typeConstant : 'bot' }
-			channel = toImmutable(mock.getMockChannel options)
+      options = { typeConstant : 'bot' }
+      channel = toImmutable(mock.getMockChannel options)
 
-			mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
+      mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
 
-			button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
+      button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
 
-			expect(button.props.className).toInclude('following')
-
-
-		it 'should render children with correct class name for isParticipant false', ->
-
-			options = { typeConstant : 'bot' }
-			channel = toImmutable(mock.getMockChannel options)
-			channel = channel.set 'isParticipant', false
-
-			mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
-
-			button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
-
-			expect(button.props.className).toExclude('following')
+      expect(button.props.className).toInclude('following')
 
 
-	describe '::onClick', ->
+    it 'should render children with correct class name for isParticipant false', ->
 
-		it 'should create action for unfollowChannel with correct channel id on onClick event', ->
+      options = { typeConstant : 'bot' }
+      channel = toImmutable(mock.getMockChannel options)
+      channel = channel.set 'isParticipant', false
 
-			{ channel } = ActivityFlux.actions
-			spy     = expect.spyOn channel, 'unfollowChannel'
+      mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
 
-			options = { typeConstant : 'bot' }
-			channel = toImmutable(mock.getMockChannel options)
+      button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
 
-			event = document.createEvent 'Event'
-			mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
-
-			button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
-
-			Simulate.click button, event
-
-			expect(spy).toHaveBeenCalledWith channel.get 'id'
+      expect(button.props.className).toExclude('following')
 
 
-		it 'should create action for followChannel with correct channel id on onClick event', ->
+  describe '::onClick', ->
 
-			{ channel } = ActivityFlux.actions
-			spy = expect.spyOn channel, 'followChannel'
+    it 'should create action for unfollowChannel with correct channel id on onClick event', ->
 
-			options = { typeConstant : 'bot' }
-			channel = toImmutable(mock.getMockChannel options)
-			channel = channel.set 'isParticipant', false
+      { channel } = ActivityFlux.actions
+      spy     = expect.spyOn channel, 'unfollowChannel'
 
-			event = document.createEvent 'Event'
-			mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
+      options = { typeConstant : 'bot' }
+      channel = toImmutable(mock.getMockChannel options)
 
-			button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
+      event = document.createEvent 'Event'
+      mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
 
-			Simulate.click button, event
+      button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
 
-			expect(spy).toHaveBeenCalledWith channel.get 'id'
+      Simulate.click button, event
+
+      expect(spy).toHaveBeenCalledWith channel.get 'id'
+
+
+    it 'should create action for followChannel with correct channel id on onClick event', ->
+
+      { channel } = ActivityFlux.actions
+      spy = expect.spyOn channel, 'followChannel'
+
+      options = { typeConstant : 'bot' }
+      channel = toImmutable(mock.getMockChannel options)
+      channel = channel.set 'isParticipant', false
+
+      event = document.createEvent 'Event'
+      mostactivechannellistitem = renderIntoDocument(<MostActiveChannelListItem channel={channel} />)
+
+      button = findRenderedDOMComponentWithTag mostactivechannellistitem, 'Button'
+
+      Simulate.click button, event
+
+      expect(spy).toHaveBeenCalledWith channel.get 'id'

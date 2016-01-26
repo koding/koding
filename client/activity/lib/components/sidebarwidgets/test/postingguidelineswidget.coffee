@@ -7,39 +7,39 @@ PostingGuideLinesWidget = require '../postingguidelineswidget'
 
 describe 'PostingGuideLinesWidget', ->
 
-	{ Simulate
-	 createRenderer
-	 renderIntoDocument
-	 findRenderedDOMComponentWithTag
-	 findRenderedDOMComponentWithClass } = TestUtils
+  { Simulate
+   createRenderer
+   renderIntoDocument
+   findRenderedDOMComponentWithTag
+   findRenderedDOMComponentWithClass } = TestUtils
 
-	describe '::render', ->
+  describe '::render', ->
 
-		it 'should render widget and props', ->
+    it 'should render widget and props', ->
 
-			postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ true } />)
-			expect(postingGuideLinesWidget.props.isExpanded).toEqual(true)
+      postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ true } />)
+      expect(postingGuideLinesWidget.props.isExpanded).toEqual(true)
 
-			notPostingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ false } />)
-			expect(notPostingGuideLinesWidget.props.isExpanded).toEqual(false)
-
-
-		it 'should render widget with correct class name', ->
-
-			shallowRenderer = createRenderer()
-			shallowRenderer.render(<PostingGuideLinesWidget isExpanded={ true } />)
-
-			postingGuideLinesWidget = shallowRenderer.getRenderOutput()
-			expect(postingGuideLinesWidget.props.className).toEqual('ActivityGuideWidget ActivitySidebar-widget')
+      notPostingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ false } />)
+      expect(notPostingGuideLinesWidget.props.isExpanded).toEqual(false)
 
 
-		it 'should render correct child value', ->
+    it 'should render widget with correct class name', ->
 
-				postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ true } />)
+      shallowRenderer = createRenderer()
+      shallowRenderer.render(<PostingGuideLinesWidget isExpanded={ true } />)
 
-				h3 = findRenderedDOMComponentWithTag postingGuideLinesWidget, 'h3'
+      postingGuideLinesWidget = shallowRenderer.getRenderOutput()
+      expect(postingGuideLinesWidget.props.className).toEqual('ActivityGuideWidget ActivitySidebar-widget')
 
-				expect(h3.props.children).toEqual 'Posting Guidelines'
+
+    it 'should render correct child value', ->
+
+      postingGuideLinesWidget = renderIntoDocument(<PostingGuideLinesWidget isExpanded={ true } />)
+
+      h3 = findRenderedDOMComponentWithTag postingGuideLinesWidget, 'h3'
+
+      expect(h3.props.children).toEqual 'Posting Guidelines'
 
 
 		it 'should render Link component', ->
