@@ -2,9 +2,6 @@
   rel()
   margin-top                10px
 
-  .SidebarMachinesListItem--MainLink
-    width                   211px
-
   .SidebarStackSection 
     &.active
       h4
@@ -22,14 +19,21 @@
     .SidebarSection-secondaryLink
       top                   10px
 
+    .SidebarSection-headerIcon
+      rel()
+      borderBox()
+      dIBlock()
+      top                   -2px
+      border                2px solid rgba(255, 255, 255, .2)
+      height                6px
+      rounded               100%
+      width                 6px
+      margin-right          5px
+
   .SidebarSection
     margin-bottom           0
 
-    .SidebarSection-body
-      rel()
-      left                  10px
-
-    .SidebarSection-header
+    .SidebarSection-header a
       cursor                default
 
   &:last-of-type

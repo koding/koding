@@ -1,6 +1,7 @@
 kd                 = require 'kd'
 Link               = require 'app/components/common/link'
 React              = require 'kd-react'
+isKoding           = require 'app/util/isKoding'
 classnames         = require 'classnames'
 UnreadCount        = require 'app/components/sidebarmachineslistitem/unreadcount'
 CreateChannelFlux  = require 'activity/flux/createchannel'
@@ -35,6 +36,13 @@ module.exports = class SidebarSection extends React.Component
       href={@props.secondaryLink} />
 
 
+  renderHeaderIcon: ->
+
+    return null  if isKoding()
+
+    <cite className='SidebarSection-headerIcon' />
+
+
   renderHeader: ->
 
     unreadCount = if @props.unreadCount
@@ -44,6 +52,7 @@ module.exports = class SidebarSection extends React.Component
     <header className="SidebarSection-header #{unreadCount}">
       <Link href={@props.titleLink}>
         <h4 className='SidebarSection-headerTitle'>
+          {@renderHeaderIcon()}
           {@props.title}
         </h4>
       </Link>
@@ -53,6 +62,7 @@ module.exports = class SidebarSection extends React.Component
 
 
   render: ->
+
     <section className={classnames 'SidebarSection', @props.className}>
       {@renderHeader()}
       <div className='SidebarSection-body'>
