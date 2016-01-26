@@ -19,6 +19,8 @@ module.exports =
     require './stores/activeinvitationmachineidstore'
     require './stores/activeleavingsharedmachineidstore'
     require './stores/differentstackresourcesstore'
+    require './stores/activestackstore'
   ]
 
   register: (reactor) -> reactor.registerStores @stores
+  

@@ -300,6 +300,12 @@ setSelectedMachineId = (machineId) ->
   kd.singletons.reactor.dispatch actions.MACHINE_SELECTED, machineId
 
 
+setActiveStackId = (stackId) ->
+
+  kd.utils.defer ->
+    kd.singletons.reactor.dispatch actions.STACK_IS_ACTIVE, stackId
+
+
 showDeleteWorkspaceWidget = (workspaceId) ->
 
   kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, workspaceId
@@ -402,4 +408,5 @@ module.exports = {
   setActiveInvitationMachineId
   setActiveLeavingSharedMachineId
   reinitStackFromWidget
+  setActiveStackId
 }

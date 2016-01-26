@@ -5,6 +5,7 @@ ReactDOM                       = require 'react-dom'
 remote                         = require('app/remote').getInstance()
 actions                        = require 'app/flux/environment/actions'
 Machine                        = require 'app/providers/machine'
+isKoding                       = require 'app/util/isKoding'
 UnreadCount                    = require './unreadcount'
 getMachineLink                 = require 'app/util/getMachineLink'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
@@ -18,6 +19,7 @@ SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
 SharingMachineInvitationWidget = require './sharingmachineinvitationwidget'
+
 
 module.exports = class SidebarMachinesListItem extends React.Component
 
@@ -38,8 +40,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     status = @machine ['status', 'state']
 
+    collapsed = if isKoding() then status isnt Machine.State.Running else yes
+
     @state = {
-      collapsed : status isnt Machine.State.Running
+      collapsed
       showLeaveSharedMachineWidget : no
     }
 
@@ -97,9 +101,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
       actions.setActiveInvitationMachineId { machine: @props.machine }
       actions.setActiveLeavingSharedMachineId null
 
-    @setState { collapsed: not @state.collapsed }
+    @setState { collapsed : not @state.collapsed }  if isKoding()
 
-    unless isMachineRunning @props.machine
+    return  unless @props.machine.get 'isApproved'
+
+    if not isMachineRunning(@props.machine) or not isKoding()
       kd.singletons.router.handleRoute getMachineLink @props.machine
 
 
@@ -130,6 +136,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderWorkspaceSection: ->
 
+    return null  unless isKoding()
     return null  if @state.collapsed
     return null  unless @machine 'isApproved'
     return null  unless isMachineRunning @props.machine
@@ -242,7 +249,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  unless @props.showInSidebar
 
     status      = @machine ['status', 'state']
-    activeClass = if @state.activeMachine is @machine('_id') then ' active' else ''
+    activeClass = ''
+
+    if @state.activeMachine is @machine('_id')
+      activeClass = 'active'
+      actions.setActiveStackId @props.stack.get('_id')  if @props.stack
 
     unread = if @getTotalUnreadCount() and @state.collapsed
     then 'unread'
