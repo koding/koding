@@ -295,8 +295,8 @@ module.exports = class DefineStackView extends KDView
 
   processTemplate: (stackTemplate) ->
 
-    { groupsController } = kd.singletons
-    canEditGroup         = groupsController.canEditGroup()
+    { groupsController, computeController } = kd.singletons
+    canEditGroup = groupsController.canEditGroup()
 
     setToGroup = (method = 'add') =>
 
@@ -349,6 +349,8 @@ module.exports = class DefineStackView extends KDView
               Your stack script has been successfully saved.
               You can now close the stack editor or continue editing your stack.
             """
+
+          computeController.checkGroupStacks()
 
         else
           setToGroup()
@@ -666,7 +668,6 @@ module.exports = class DefineStackView extends KDView
       computeController.reset yes
 
       @emit 'Reload'
-      @emit 'Completed', stackTemplate  if completed
 
 
   handleSetDefaultTemplate: (completed = yes) ->
