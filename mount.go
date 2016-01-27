@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"path"
 	"path/filepath"
 	"strings"
@@ -15,6 +16,8 @@ import (
 	"github.com/koding/klientctl/klientctlerrors"
 	"github.com/koding/klientctl/util"
 )
+
+type userGetter func() (*user.User, error)
 
 // MountCommand mounts a folder on remote machine to local folder by machine
 // name.
@@ -125,79 +128,9 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	if prefetchAll {
-		fmt.Println("Prefetching remote path...")
-
-		// The creation of the pb objection presents a CLI progress bar to the user.
-		bar := pb.StartNew(100)
-		bar.SetMaxWidth(100)
-
-		// doneErr is used to wait until the cache progress is done, and also send
-		// any error encountered. We simply send nil if there is no error.
-		doneErr := make(chan error)
-
-		// The callback, used to update the progress bar as remote.cache downloads
-		cacheProgressCallback := func(par *dnode.Partial) {
-			type Progress struct {
-				Progress int   `json:progress`
-				Error    error `json:error`
-			}
-			// TODO: Why is this an array from Klient? How can this be written cleaner?
-			ps := []Progress{Progress{}}
-			par.MustUnmarshal(&ps)
-			p := ps[0]
-
-			if p.Error != nil {
-				doneErr <- p.Error
-				log.Errorf("remote.cacheFolder progress callback returned an error. err:%s", err)
-				fmt.Println(
-					defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
-				)
-			}
-
-			bar.Set(p.Progress)
-
-			// TODO: Disable the callback here, so that it's impossible to double call
-			// the progress after competion - to avoid weird/bad UX and errors.
-			if p.Progress == 100 {
-				doneErr <- nil
-			}
+		if exit := mountCommandPrefetchAll(os.Stdout, k, user.Current, name, localPath, remotePath); exit != 0 {
+			return exit
 		}
-
-		cacheReq := struct {
-			Name        string         `json:"name"`
-			LocalPath   string         `json:"localPath"`
-			RemotePath  string         `json:"remotePath"`
-			Progress    dnode.Function `json:"progress"`
-			Username    string         `json:"username"`
-			SSHAuthSock string         `json:"sshAuthSock"`
-		}{
-			Name: name,
-			// TODO: Put the cache somewhere meaningful
-			LocalPath:   fmt.Sprintf("%s.cache", localPath),
-			RemotePath:  mountRequest.RemotePath,
-			Progress:    dnode.Callback(cacheProgressCallback),
-			Username:    util.GetEnvByKey(os.Environ(), "USER"),
-			SSHAuthSock: util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
-		}
-
-		if _, err := k.Tell("remote.cacheFolder", cacheReq); err != nil {
-			log.Errorf("remote.cacheFolder returned an error. err:%s", err)
-			fmt.Println(
-				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
-			)
-			return 1
-		}
-
-		if err := <-doneErr; err != nil {
-			log.Errorf(
-				"remote.cacheFolder progress callback returned an error. err:%s", err,
-			)
-			fmt.Println(
-				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
-			)
-		}
-
-		bar.FinishPrint("Prefetching complete.")
 	}
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
@@ -246,6 +179,127 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	fmt.Println("Mount success.")
+
+	return 0
+}
+
+// TODO: A temporary function which will be converted to a private method once
+// MountCommand is converted to a struct based CLI Interface. Once it's a private
+// method, we won't have to pass in so much via args.
+func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string) int {
+	usr, err := getUser()
+	if err != nil {
+		log.Errorf("Failed to get OS User. err:%s", err)
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		fmt.Println(GenericInternalError)
+		return 1
+	}
+
+	sshKey := &SSHKey{
+		KeyPath:   path.Join(usr.HomeDir, SSHDefaultKeyDir),
+		KeyName:   SSHDefaultKeyName,
+		Transport: k,
+	}
+
+	if !sshKey.KeysExist() {
+		util.MustConfirm("The 'prefetchAll' flag needs to create public/private rsa key pair. Continue? [Y|n]")
+	}
+
+	remoteUsername, err := sshKey.GetUsername(machineName)
+	if err != nil {
+		log.Errorf("Error getting remote username. err:%s", err)
+		fmt.Println(FailedGetSSHKey)
+		return 1
+	}
+
+	if err := sshKey.PrepareForSSH(machineName); err != nil {
+		if strings.Contains(err.Error(), "user: unknown user") {
+			log.Errorf("Cannot ssh into managed machines. err:%s", err)
+			fmt.Println(CannotSSHManaged)
+			return 1
+		}
+
+		log.Errorf("Error getting ssh key. err:%s", err)
+		fmt.Println(FailedGetSSHKey)
+		return 1
+	}
+
+	fmt.Println("Prefetching remote path...")
+
+	// The creation of the pb objection presents a CLI progress bar to the user.
+	bar := pb.StartNew(100)
+	bar.SetMaxWidth(100)
+
+	// doneErr is used to wait until the cache progress is done, and also send
+	// any error encountered. We simply send nil if there is no error.
+	doneErr := make(chan error)
+
+	// The callback, used to update the progress bar as remote.cache downloads
+	cacheProgressCallback := func(par *dnode.Partial) {
+		type Progress struct {
+			Progress int   `json:progress`
+			Error    error `json:error`
+		}
+		// TODO: Why is this an array from Klient? How can this be written cleaner?
+		ps := []Progress{Progress{}}
+		par.MustUnmarshal(&ps)
+		p := ps[0]
+
+		if p.Error != nil {
+			doneErr <- p.Error
+			log.Errorf("remote.cacheFolder progress callback returned an error. err:%s", err)
+			fmt.Println(
+				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+			)
+		}
+
+		bar.Set(p.Progress)
+
+		// TODO: Disable the callback here, so that it's impossible to double call
+		// the progress after competion - to avoid weird/bad UX and errors.
+		if p.Progress == 100 {
+			doneErr <- nil
+		}
+	}
+
+	cacheReq := struct {
+		Name              string         `json:"name"`
+		LocalPath         string         `json:"localPath"`
+		RemotePath        string         `json:"remotePath"`
+		Progress          dnode.Function `json:"progress"`
+		Username          string         `json:"username"`
+		SSHAuthSock       string         `json:"sshAuthSock"`
+		SSHPrivateKeyPath string         `json:"sshPrivateKeyPath"`
+	}{
+		Name: machineName,
+		// TODO: Put the cache somewhere meaningful
+		LocalPath:         fmt.Sprintf("%s.cache", localPath),
+		RemotePath:        remotePath,
+		Progress:          dnode.Callback(cacheProgressCallback),
+		Username:          remoteUsername,
+		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
+		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
+	}
+
+	if _, err := k.Tell("remote.cacheFolder", cacheReq); err != nil {
+		log.Errorf("remote.cacheFolder returned an error. err:%s", err)
+		fmt.Println(
+			defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+		)
+		return 1
+	}
+
+	if err := <-doneErr; err != nil {
+		log.Errorf(
+			"remote.cacheFolder progress callback returned an error. err:%s", err,
+		)
+		fmt.Println(
+			defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+		)
+	}
+
+	bar.FinishPrint("Prefetching complete.")
 
 	return 0
 }
