@@ -70,7 +70,7 @@ TEST_CASE=$3
 
 if [ -n "$TEST_CASE" ]; then
   if [ -n "$IGNORED_TEST_CASES" ]; then
-    if echo $IGNORED_TEST_CASES | grep $TEST_GROUP/$TEST_SUITE/$TEST_CASE; then
+    if echo -e "$IGNORED_TEST_CASES" | grep $TEST_GROUP/$TEST_SUITE/$TEST_CASE; then
       exit 0
     fi
   fi
