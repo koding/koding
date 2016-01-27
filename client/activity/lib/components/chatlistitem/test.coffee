@@ -157,7 +157,7 @@ describe 'ChatListItem', ->
       submitButton = TestUtils.findRenderedDOMComponentWithClass result, 'submit'
       TestUtils.Simulate.click submitButton
 
-      expect(spy).toHaveBeenCalledWith newValue
+      expect(spy).toHaveBeenCalled()
 
 
   describe '::onCancelEdit', ->
