@@ -52,9 +52,10 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
-	s.Log.Debug("Parsing template:\n%s", stackTemplate.Template.Content)
+	contentID := s.Req.Username + "-" + arg.StackTemplateID
+	s.Log.Debug("Parsing template (%s):\n%s", contentID, stackTemplate.Template.Content)
 
-	if err := s.Builder.BuildTemplate(stackTemplate.Template.Content); err != nil {
+	if err := s.Builder.BuildTemplate(stackTemplate.Template.Content, contentID); err != nil {
 		return nil, err
 	}
 
@@ -101,8 +102,9 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	tfReq := &tf.TerraformRequest{
 		Content:   stackTemplate.Template.Content,
-		ContentID: s.Req.Username + "-" + arg.StackTemplateID,
+		ContentID: contentID,
 		Variables: nil,
+		TraceID:   s.TraceID,
 	}
 
 	s.Log.Debug("Calling plan with content")

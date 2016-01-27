@@ -164,9 +164,10 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 	}
 	defer tfKite.Close()
 
-	s.Log.Debug("Building template")
+	contentID := username + "-" + stackID
+	s.Log.Debug("Building template %s", contentID)
 
-	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template); err != nil {
+	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template, contentID); err != nil {
 		return err
 	}
 
@@ -201,8 +202,9 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 
 	tfReq := &tf.TerraformRequest{
 		Content:   s.Builder.Stack.Template,
-		ContentID: username + "-" + stackID,
+		ContentID: contentID,
 		Variables: nil,
+		TraceID:   s.TraceID,
 	}
 
 	s.Log.Debug("Calling terraform.destroy method with context:")
@@ -275,9 +277,10 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 	}
 	defer tfKite.Close()
 
-	s.Log.Debug("Building template")
+	contentID := username + "-" + stackID
+	s.Log.Debug("Building template: %s", contentID)
 
-	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template); err != nil {
+	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template, contentID); err != nil {
 		return err
 	}
 
@@ -352,8 +355,9 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 
 	tfReq := &tf.TerraformRequest{
 		Content:   s.Builder.Stack.Template,
-		ContentID: username + "-" + stackID,
+		ContentID: contentID,
 		Variables: nil,
+		TraceID:   s.TraceID,
 	}
 	s.Log.Debug("Final stack template. Calling terraform.apply method:")
 	s.Log.Debug("%+v", tfReq)

@@ -58,12 +58,6 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		s.Log.Debug("parsing the template")
-
-		if err := s.Builder.BuildTemplate(awsBootstrap); err != nil {
-			return nil, err
-		}
-
 		meta := cred.Meta.(*AwsMeta)
 
 		sess := awssession.New(&aws.Config{
@@ -84,8 +78,12 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			return nil, err
 		}
 
-		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, meta.Region)
-		s.Log.Debug("Going to use the contentID: %s", contentID)
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, cred.Identifier)
+		s.Log.Debug("Building template: %s", contentID)
+
+		if err := s.Builder.BuildTemplate(awsBootstrap, contentID); err != nil {
+			return nil, err
+		}
 
 		keyName := "koding-deployment-" + s.Req.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
@@ -124,6 +122,7 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			_, err := tfKite.Destroy(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
+				TraceID:   s.TraceID,
 			})
 			if err != nil {
 				return nil, err
@@ -133,6 +132,7 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			state, err := tfKite.Apply(&tf.TerraformRequest{
 				Content:   finalBootstrap,
 				ContentID: contentID,
+				TraceID:   s.TraceID,
 			})
 			if err != nil {
 				return nil, err

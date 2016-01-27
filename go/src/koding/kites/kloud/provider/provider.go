@@ -15,7 +15,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-// BaseStack
+// BaseStack provides shared implementation of team handler for use
+// with external provider-specific handlers.
 type BaseStack struct {
 	Log     logging.Logger
 	Req     *kite.Request
@@ -26,9 +27,11 @@ type BaseStack struct {
 	// to initialize the Stack.
 	Keys    *publickeys.Keys
 	Eventer eventer.Eventer
+
+	TraceID string
 }
 
-// NewBaseStack
+// NewBaseStack builds new base stack for the given context value.
 func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
 	bs := &BaseStack{}
 
@@ -41,10 +44,16 @@ func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
 		return nil, errors.New("session not available in context")
 	}
 
-	if groupName, ok := ctx.Value(kloud.GroupNameKey).(string); ok {
+	if groupName, ok := kloud.GroupFromContext(ctx); ok {
 		bs.Log = log.New(groupName)
 	} else {
 		bs.Log = log
+	}
+
+	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+		bs.Log = bs.Log.New(traceID)
+		bs.Log.SetLevel(logging.DEBUG)
+		bs.TraceID = traceID
 	}
 
 	if keys, ok := publickeys.FromContext(ctx); ok {

@@ -351,11 +351,11 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 }
 
 // BuildTemplate parsers a template from the given content and injects
-// credentials
+// credentials.
 //
 // When nil error is returned, the b.Template field is non-nil.
-func (b *Builder) BuildTemplate(content string) error {
-	template, err := ParseTemplate(content, b.Log)
+func (b *Builder) BuildTemplate(content, contentID string) error {
+	template, err := ParseTemplate(content, b.Log.New(contentID))
 	if err != nil {
 		return err
 	}

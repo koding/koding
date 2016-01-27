@@ -14,6 +14,7 @@ import (
 	"github.com/koding/cache"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 )
 
@@ -105,4 +106,10 @@ func (k *Kloud) AddProvider(providerName string, provider interface{}) error {
 
 	k.providers[providerName] = provider
 	return nil
+}
+
+func (k *Kloud) setTraceID(user, method string, ctx context.Context) context.Context {
+	traceID := uuid.NewV4().String()
+	k.Log.Info("Tracing request for user=%s, method=%s: %s", user, method, traceID)
+	return context.WithValue(ctx, TraceKey, traceID)
 }
