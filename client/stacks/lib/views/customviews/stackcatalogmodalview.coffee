@@ -109,11 +109,11 @@ module.exports = class StackCatalogModalView extends kd.ModalView
 
   handleOverlayClick: ->
 
-    stacksPane = @tabs.getPaneByName 'Stacks'
+    activePane = @tabs.getActivePane()
 
-    return @destroy()  unless stacksPane
+    return @destroy()  if activePane.name is 'Your Stacks'
 
-    { mainView }    = stacksPane
+    { mainView }    = activePane
     { editorView }  = mainView?.defineStackView?.stackTemplateView
 
     unless editorView?.getAce().isContentChanged()
