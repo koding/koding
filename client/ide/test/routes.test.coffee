@@ -165,7 +165,7 @@ describe 'IDE.routes', ->
       expect(call).toBe no  for call in calls
 
 
-    it 'should call activitySidebar.selectWorkspace', ->
+    it.skip 'should call activitySidebar.selectWorkspace', ->
 
       data                     = { machine: mockMachine, workspace: mockWorkspace }
       { activitySidebar }      = kd.singletons.mainView

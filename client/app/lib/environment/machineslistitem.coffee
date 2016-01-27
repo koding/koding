@@ -24,10 +24,10 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     @labelLink      = new kd.CustomHTMLView
       cssClass      : 'label-link'
-      tagName       : 'span'
+      tagName       : 'a'
       partial       : label
-      click         : ->
-        kd.singletons.router.handleRoute "/IDE/#{slug}"
+      attributes    :
+        href        : "/IDE/#{slug}"
 
     alwaysOn = yes  if isManaged
 
@@ -40,8 +40,9 @@ module.exports = class MachinesListItem extends kd.ListItemView
     @settingsLink   = new kd.CustomHTMLView
       cssClass      : 'settings-link'
       partial       : 'settings'
-      tagName       : 'span'
-      click         : -> kd.singletons.handleRoute "/Machines/#{machine.uid}"
+      tagName       : 'a'
+      attributes    :
+        href        : "/Machines/#{machine.uid}"
 
     # more to come like os, version etc.
     @vminfo =

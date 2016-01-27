@@ -22,8 +22,8 @@ func (e *ElasticIPs) Run() {
 }
 
 func (e *ElasticIPs) Result() string {
-	return fmt.Sprintf("Released(removed) %d non associated elastic IP addresses",
-		e.nonused.Count())
+	return fmt.Sprintf("Released (removed) %d non associated elastic IP addresses: %v",
+		e.nonused.Count(), e.nonused.InstanceIDs())
 }
 
 func (e *ElasticIPs) Info() *taskInfo {
@@ -51,8 +51,8 @@ func (e *DowngradedElasticIPs) Run() {
 }
 
 func (e *DowngradedElasticIPs) Result() string {
-	return fmt.Sprintf("Released (removed) %d non-paid elastic IP addresses",
-		e.nonpaid.Count())
+	return fmt.Sprintf("Released (removed) %d non-paid elastic IP addresses: %v",
+		e.nonpaid.Count(), e.nonpaid.InstanceIDs())
 }
 
 func (e *DowngradedElasticIPs) Info() *taskInfo {

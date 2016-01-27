@@ -2,6 +2,7 @@ package koding
 
 import (
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/plans"
 
 	"golang.org/x/net/context"
 )
@@ -50,6 +51,11 @@ func (m *Machine) StopMachine(ctx context.Context) (err error) {
 		if err := m.Session.DNSClient.Delete(domain.Name); err != nil {
 			m.Log.Warning("couldn't delete domain %s", err)
 		}
+	}
+
+	// try to release EIP if the user's plan is a free one
+	if plan, ok := plans.Plans[m.Payment.Plan]; ok && plan == plans.Free {
+		m.releaseEIP()
 	}
 
 	return nil

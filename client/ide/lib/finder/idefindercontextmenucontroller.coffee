@@ -1,4 +1,5 @@
-kd = require 'kd'
+kd        = require 'kd'
+isKoding  = require 'app/util/isKoding'
 
 NFinderContextMenuController = require 'finder/filetree/controllers/nfindercontextmenucontroller'
 NSetPermissionsView = require 'finder/filetree/itemsubviews/nsetpermissionsview'
@@ -57,7 +58,7 @@ module.exports = class IDEFinderContextMenuController extends NFinderContextMenu
     else
       delete items.Collapse
 
-    unless fileData.machine.isMine()
+    if not fileData.machine.isMine() or not isKoding()
       delete items['Workspace from here']
 
     return items

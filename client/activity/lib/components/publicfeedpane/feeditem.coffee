@@ -66,7 +66,7 @@ module.exports = class FeedItem extends React.Component
 
   renderFeedItemMenu: ->
 
-    <MessageItemMenu message={@props.message}/>
+    <MessageItemMenu message={@props.message} channelId={@props.channelId}/>
 
 
   renderEditMode: ->
@@ -127,9 +127,9 @@ module.exports = class FeedItem extends React.Component
           <SocialShareLink messageId={message.get('id')} />
         </div>
         <MessageLikeSummary message={message} className="FeedItem-summary" />
-        <Comments
-          ref='Comments'
-          message={ @props.message }
-          channelId={ @props.channelId } />
+        <Comments.Container
+          ref       = 'Comments'
+          message   = { @props.message }
+          channelId = { @props.channelId } />
       </footer>
     </div>

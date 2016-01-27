@@ -4,8 +4,12 @@ module.exports = (machine, workspace) ->
 
   switch machine.get 'type'
     when 'own'
-      return "/IDE/#{machine.get('slug') or machine.get('label')}/#{workspaceSlug}"
+      return "/IDE/#{machine.get('slug') or machine.get('label')}/"
     when 'collaboration'
-      return "/IDE/#{workspace.get 'channelId'}"
+
+      workspaces = machine.get('workspaces').toJS()
+      workspace  = workspaces[(Object.keys workspaces).first]
+
+      return "/IDE/#{workspace.channelId}"
     when 'shared', 'reassigned'
       return "/IDE/#{machine.get 'uid'}/#{workspaceSlug}"

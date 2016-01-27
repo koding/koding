@@ -18,7 +18,7 @@ describe 'ChannelThreadsStore', ->
 
   describe '#handleLoadMessageSuccess', ->
 
-    it 'adds successful message to store', ->
+    it 'should add successful message to store', ->
 
       message = id: '567'
       reactor.dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, message }
@@ -26,6 +26,25 @@ describe 'ChannelThreadsStore', ->
       storeState = reactor.evaluateToJS ['channelThreads']
 
       expect(storeState[channelId]['messages']['567']).toEqual '567'
+
+
+    it 'should not add message to store if typeConstant is reply', ->
+
+      message =
+        id           : '566'
+        typeConstant : 'privatemessage'
+
+      reply   =
+        id           : '567'
+        typeConstant : 'reply'
+
+      reactor.dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, message }
+      reactor.dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, message: reply }
+
+      storeState = reactor.evaluateToJS ['channelThreads']
+
+      expect(storeState[channelId]['messages']['566']).toEqual '566'
+      expect(storeState[channelId]['messages']['567']).toEqual undefined
 
 
   describe '#handleCreateMessageBegin', ->

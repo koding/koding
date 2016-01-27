@@ -1,6 +1,7 @@
 kd                  = require 'kd'
 Link                = require 'app/components/common/link'
 React               = require 'kd-react'
+classnames          = require 'classnames'
 SidebarSection      = require 'app/components/sidebarsection'
 KDReactorMixin      = require 'app/flux/base/reactormixin'
 
@@ -18,10 +19,9 @@ module.exports = class SidebarDifferentStackResources extends React.Component
 
 
   render: ->
-    <SidebarSection
-      className={@props.className}
-      title='Stacks' >
-      <div>
+
+    <section className={classnames 'SidebarSection', @props.className}>
+      <div className='SidebarSection-body'>
         <p>
           You have different resources in your stacks.
           Please re-initialize your stacks.
@@ -30,4 +30,4 @@ module.exports = class SidebarDifferentStackResources extends React.Component
           Show Stacks
         </Link>
       </div>
-    </SidebarSection>
+    </section>

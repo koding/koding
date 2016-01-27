@@ -2,6 +2,7 @@ kd                      = require 'kd'
 React                   = require 'kd-react'
 Link                    = require 'app/components/common/link'
 ReactDOM                = require 'react-dom'
+classnames              = require 'classnames'
 ActivityFlux            = require 'activity/flux'
 SidebarSection          = require 'app/components/sidebarsection'
 isUserGroupAdmin        = require 'app/util/isusergroupadmin'
@@ -61,9 +62,9 @@ module.exports = class SidebarNoStacks extends React.Component
 
     return null  unless @state.isReady
 
-    <SidebarSection
-      className={@props.className}
-      title='Stacks' >
-      {@renderContent()}
-    </SidebarSection>
+    <section className={classnames 'SidebarSection', @props.className}>
+      <div className='SidebarSection-body'>
+        {@renderContent()}
+      </div>
+    </section>
 

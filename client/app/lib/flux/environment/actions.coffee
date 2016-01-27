@@ -29,27 +29,23 @@ _bindMachineEvents = (environmentData) ->
 
       _eventsCache.machine[id] = yes
 
-      computeController.on "public-#{id}", (event) ->
+      publicHandler = (event) ->
         reactor.dispatch actions.MACHINE_UPDATED, { id, event }
+      computeController.off "public-#{id}", publicHandler
+      computeController.on  "public-#{id}", publicHandler
 
-      computeController.on "revive-#{id}", (newMachine) ->
+      reviveHandler = (newMachine) ->
         return loadMachines()  unless newMachine
         reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
+      computeController.off "revive-#{id}", reviveHandler
+      computeController.on  "revive-#{id}", reviveHandler
 
       if stack = computeController.findStackFromMachineId id
-        computeController.on "apply-#{stack._id}", (event) ->
+        applyHandler = (event) ->
           reactor.dispatch actions.MACHINE_UPDATED, { id, event }
 
-
-  # TODO: when a machine shared/collaborate, SharedMachineInvitation and
-  # CollaborationInvitation event listeners trigger two times.
-  # szkl can you check it why trigger these events two times?
-  # When we fix it this problem, gokhansongul will create a new pr for deleting
-  # forceUpdate parameter from ActiveInvitationMachineIdStore setMachineId event handler
-
-  kd.singletons.notificationController
-    .on 'SharedMachineInvitation', handleSharedMachineInvitation
-    .on 'CollaborationInvitation', handleSharedMachineInvitation
+        computeController.off "apply-#{stack._id}", applyHandler
+        computeController.on  "apply-#{stack._id}", applyHandler
 
 
 _bindStackEvents = ->
@@ -72,6 +68,11 @@ _bindStackEvents = ->
 
     computeController.on 'GroupStacksConsistent', ->
       reactor.dispatch actions.GROUP_STACKS_CONSISTENT
+
+
+handleMemberWarning = (message) ->
+
+  console.warn "[member:warning]", message
 
 
 handleSharedMachineInvitation = (sharedMachine)->
@@ -300,6 +301,12 @@ setSelectedMachineId = (machineId) ->
   kd.singletons.reactor.dispatch actions.MACHINE_SELECTED, machineId
 
 
+setActiveStackId = (stackId) ->
+
+  kd.utils.defer ->
+    kd.singletons.reactor.dispatch actions.STACK_IS_ACTIVE, stackId
+
+
 showDeleteWorkspaceWidget = (workspaceId) ->
 
   kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, workspaceId
@@ -399,7 +406,10 @@ module.exports = {
   createWorkspace
   setMachineListItem
   unsetMachineListItem
+  handleMemberWarning
+  handleSharedMachineInvitation
   setActiveInvitationMachineId
   setActiveLeavingSharedMachineId
   reinitStackFromWidget
+  setActiveStackId
 }

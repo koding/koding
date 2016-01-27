@@ -1,6 +1,13 @@
 JName = require './name'
 JUser = require './user'
 
+notifyAdmins = (group, name, data) ->
+
+  group.fetchAdmins (err, admins = []) ->
+    return console.error 'Failed to fetch admins:', err, group  if err
+    admins.forEach (admin) ->
+      admin.sendNotification name, data
+
 
 notifyByUsernames = (usernames, name, data) ->
 
@@ -18,5 +25,6 @@ notifyByUsernames = (usernames, name, data) ->
 
 
 module.exports = {
+  notifyAdmins
   notifyByUsernames
 }

@@ -67,6 +67,8 @@ module.exports = class ComputeController extends KDController
         @storage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
         @emit 'ready'
 
+        @checkGroupStackRevisions()
+
         @info machine for machine in @machines
 
 
@@ -437,8 +439,9 @@ module.exports = class ComputeController extends KDController
       { results : { machines } } = newStack
       [ machine ] = machines
 
-      @reset yes, ->
+      @reset yes, =>
         reloadIDE machine.obj.slug
+        @checkGroupStacks()
 
     mainController.ready =>
 
@@ -451,12 +454,8 @@ module.exports = class ComputeController extends KDController
       else
         @emit 'StacksNotConfigured'
 
-      @checkGroupStackRevisions()
-
 
   # remote.ComputeProvider and Kloud kite public methods
-  #
-
   info: (machine)->
 
     if @eventListener.followUpcomingEvents machine, yes
@@ -1203,8 +1202,6 @@ module.exports = class ComputeController extends KDController
 
               new kd.NotificationView
                 title : 'Stack reinitialized'
-
-              reloadIDE stacks[0]?.machines[0]?.slug
 
           if template and not groupStack
           then @createDefaultStack no, template

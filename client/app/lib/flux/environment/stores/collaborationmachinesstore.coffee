@@ -23,7 +23,7 @@ module.exports = class CollaborationMachinesStore extends KodingFluxStore
         machines.set machine._id, machine._id
 
 
-  rejectInvitation: (machines, id ) ->
+  rejectInvitation: (machines, id) ->
 
     return machines  unless machines.has id
 

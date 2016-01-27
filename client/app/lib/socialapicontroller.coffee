@@ -304,11 +304,19 @@ module.exports = class SocialApiController extends KDController
     item.payload             = data.payload
 
     if isFeedEnabled() and item.typeConstant in ['privatemessage', 'bot']
-      item._originalName = item._originalName or item.name
-      item.name = data.purpose
-      item.purpose = item.payload?.description or ''
+      # if cache founded this is an update operation so we have to change purpose
+      # with data payload description value. Otherwise this is a create private message
+      # operation and we have to set item name with purpose value of data and
+      # item purpose with payload description
+      if cacheFound
+        item.payload.description = data.payload?.description or ''
+        item.purpose             = data.payload?.description or ''
+      else
+        item._originalName = item._originalName or item.name
+        item.name          = data.purpose
+        item.purpose       = item.payload?.description or ''
     else
-      item.name = data.name
+      item.name    = data.name
       item.purpose = data.purpose
 
     item.participantCount    = channel.participantCount

@@ -1,4 +1,5 @@
 { daisy
+  async
   expect
   ObjectId
   withDummyClient
@@ -13,7 +14,6 @@
   withConvertedUserAnd } = require  \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
-async                     = require 'async'
 JCounter                  = require '../counter'
 JMachine                  = require './machine'
 teamutils                 = require './teamutils'
@@ -265,17 +265,14 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           async.parallel [
 
             (fin) ->
-              ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
-                expect(err).to.not.exist
-                fin()
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
 
             (fin) ->
-              ComputeProvider.updateGroupStackUsage testGroup, 'increment', (err) ->
-                expect(err).to.exist
-                expect(err.message).to.be.equal 'Provided limit has been reached'
-                fin()
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
 
-          ], done
+          ], (err) ->
+            expect(err?.message).to.be.equal 'Provided limit has been reached'
+            done()
 
 
   describe '#updateGroupInstanceUsage', ->
@@ -289,7 +286,12 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should increase given group instance count', (done) ->
 
-      ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 2, (err) ->
+      options  =
+        group  : testGroup
+        change : 'increment'
+        amount : 2
+
+      ComputeProvider.updateGroupInstanceUsage options, (err) ->
 
         expect(err).to.not.exist
 
@@ -304,7 +306,12 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should decrease given group instance count', (done) ->
 
-      ComputeProvider.updateGroupInstanceUsage testGroup, 'decrement', 1, (err) ->
+      options  =
+        group  : testGroup
+        change : 'decrement'
+        amount : 1
+
+      ComputeProvider.updateGroupInstanceUsage options, (err) ->
         expect(err).to.not.exist
 
         JCounter.count
@@ -323,7 +330,12 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         testGroup.setPlan client, { plan: 'default' }, (err) ->
           expect(err).to.not.exist
 
-          ComputeProvider.updateGroupInstanceUsage testGroup, 'increment', 1, (err) ->
+          options  =
+            group  : testGroup
+            change : 'increment'
+            amount : 1
+
+          ComputeProvider.updateGroupInstanceUsage options, (err) ->
             expect(err).to.exist
             expect(err.message).to.be.equal 'Provided limit has been reached'
 
@@ -334,34 +346,35 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     options = null
 
-    it 'should increase given group resource count', (done) ->
-
+    before (done) ->
       withConvertedUser { createGroup: yes }, ({ group }) ->
-
         options         =
           group         : group
           instanceCount : 3
           change        : 'increment'
+        done()
 
-        ComputeProvider.updateGroupResourceUsage options, (err) ->
+    it 'should increase given group resource count', (done) ->
 
+      ComputeProvider.updateGroupResourceUsage options, (err) ->
+
+        expect(err).to.not.exist
+
+        JCounter.count
+          namespace : options.group.slug
+          type      : ComputeProvider.COUNTER_TYPE.instances
+        , (err, count) ->
           expect(err).to.not.exist
+          expect(count).to.be.equal 3
 
           JCounter.count
             namespace : options.group.slug
-            type      : ComputeProvider.COUNTER_TYPE.instances
+            type      : ComputeProvider.COUNTER_TYPE.stacks
           , (err, count) ->
             expect(err).to.not.exist
-            expect(count).to.be.equal 3
+            expect(count).to.be.equal 1
 
-            JCounter.count
-              namespace : options.group.slug
-              type      : ComputeProvider.COUNTER_TYPE.stacks
-            , (err, count) ->
-              expect(err).to.not.exist
-              expect(count).to.be.equal 1
-
-              done()
+            done()
 
     it 'should decrease given group resource count', (done) ->
 
