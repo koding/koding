@@ -64,11 +64,24 @@ function cleanup() {
   fi
 }
 
+RESERVED_TEST_CASE_NAMES="
+before beforeEach \
+after afterEach \
+beforeTest afterTest \
+beforeClass afterClass \
+beforeMethod afterMethod \
+beforeSuite afterSuite \
+beforeGroups afterGroups \
+"
+
 TEST_GROUP=$1
 TEST_SUITE=$2
 TEST_CASE=$3
 
 if [ -n "$TEST_CASE" ]; then
+  for NAME in $RESERVED_TEST_CASE_NAMES; do
+    [[ "$TEST_CASE" = "$NAME" ]] && exit 0
+  done
   if [ -n "$IGNORED_TEST_CASES" ]; then
     if echo -e "$IGNORED_TEST_CASES" | grep $TEST_GROUP/$TEST_SUITE/$TEST_CASE; then
       exit 0
