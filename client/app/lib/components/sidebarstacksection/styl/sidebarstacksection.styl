@@ -1,0 +1,57 @@
+.SidebarTeamSection
+  rel()
+
+  > .SidebarSection-headerTitle
+    margin                  15px 0
+    color                   #656565
+
+  .SidebarStackSection
+    h4
+      color                 #818181
+
+    &.active
+      h4
+        color               #E1E1E1
+
+    .SidebarSection-body
+      rel()
+      left                  13px
+
+      .SidebarMachinesListItem--MainLink
+        color               #818181
+        width               208px
+
+        &.active
+          color             #E1E1E1
+
+  .SidebarSection-headerTitle
+    dBlock()
+    width                   100%
+    text-transform          capitalize
+    noTextDeco()
+
+    &:hover .SidebarSection-secondaryLink
+      visible()
+
+    .SidebarSection-secondaryLink
+      top                   10px
+
+    .SidebarSection-headerIcon
+      rel()
+      borderBox()
+      dIBlock()
+      top                   -2px
+      border                2px solid rgba(255, 255, 255, .2)
+      height                6px
+      rounded               100%
+      width                 6px
+      margin-right          5px
+
+  .SidebarSection
+    margin-bottom           30px
+
+    .SidebarSection-header a
+      cursor                default
+
+  &:last-of-type
+    margin-bottom           0

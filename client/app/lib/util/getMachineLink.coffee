@@ -4,7 +4,7 @@ module.exports = (machine, workspace) ->
 
   switch machine.get 'type'
     when 'own'
-      return "/IDE/#{machine.get('slug') or machine.get('label')}/#{workspaceSlug}"
+      return "/IDE/#{machine.get('slug') or machine.get('label')}/"
     when 'collaboration'
       return "/IDE/#{workspace.get 'channelId'}"
     when 'shared', 'reassigned'
