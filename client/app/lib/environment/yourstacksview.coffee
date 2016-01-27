@@ -8,16 +8,12 @@ EnvironmentListController = require './environmentlistcontroller'
 whoami                    = require 'app/util/whoami'
 
 
-module.exports = class EnvironmentsModal extends kd.ModalView
+module.exports = class YourStacksView extends kd.View
 
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'environments-modal', options.cssClass
-    options.width    = if isKoding() then 742 else 772
-    options.overlay  = yes
-
-    options.title = "Your #{if isKoding() then 'Machines' else 'Stacks'}"
-
+    options.width    = 772
 
     super options, data
 
@@ -28,21 +24,9 @@ module.exports = class EnvironmentsModal extends kd.ModalView
       scrollView : no
       selected   : options.selected
 
-
-    if checkFlag 'super-admin'
-
-      advancedButton = new kd.ButtonView
-        title    : 'ADVANCED'
-        cssClass : 'compact solid green advanced'
-        callback : -> new StacksModal
-
-      # Hack to add button outside of modal container
-      @addSubView advancedButton, '.kdmodal-inner'
-
-
     @addSubView controller.getView()
 
-    listView.on 'ModalDestroyRequested', @bound 'destroy'
+    listView.on 'ModalDestroyRequested', @bound 'destroyModal'
 
     { computeController, appManager } = kd.singletons
 
@@ -60,7 +44,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
     listView.on 'StackReinitRequested', (stack) =>
 
       computeController
-        .once 'RenderStacks', => @destroy no
+        .once 'RenderStacks', @bound 'destroyModal'
         .reinitStack stack
 
     whoami().isEmailVerified (err, verified) ->
@@ -68,8 +52,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
         for item in controller.getListItems()
           item.emit 'ManagedMachineIsNotAllowed'
 
-  destroy: (goBack = yes) ->
 
-    super
+  destroyModal: ->
 
-    kd.singletons.router.back()  if goBack
+    @getDelegate().parent.destroy()
