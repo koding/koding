@@ -1,13 +1,17 @@
 { Base, secure, signature } = require 'bongo'
-KodingError = require '../../error'
 
-{ argv }    = require 'optimist'
-{ series }  = require 'async'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
-teamutils   = require './teamutils'
-konstraints = require 'konstraints'
+{ argv }     = require 'optimist'
+KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
 
-MAX_INT     = Math.pow(2, 32) - 1
+async        = require 'async'
+konstraints  = require 'konstraints'
+
+teamutils    = require './teamutils'
+KodingError  = require '../../error'
+KodingLogger = require '../kodinglogger'
+
+MAX_INT      = Math.pow(2, 32) - 1
+
 
 module.exports = class ComputeProvider extends Base
 
@@ -290,7 +294,7 @@ module.exports = class ComputeProvider extends Base
               create machineInfo
 
 
-      series queue, -> callback null, { stack, results }
+      async.series queue, -> callback null, { stack, results }
 
 
   # Just takes the plan name and the stack template content generates rules
@@ -338,7 +342,7 @@ module.exports = class ComputeProvider extends Base
         return callback err  if err
         next()
 
-    series queue, -> callback null
+    async.series queue, -> callback null
 
 
   # WARNING! This will destroy all the resources related with given group!
@@ -352,7 +356,7 @@ module.exports = class ComputeProvider extends Base
       console.log "[#{type}] Failed to destroy group resource:", err  if err
       next()
 
-    series [
+    async.series [
 
       # Remove all machines in the group
       (next) ->
@@ -418,7 +422,9 @@ module.exports = class ComputeProvider extends Base
       callback if change is 'increment' then err else null
 
 
-  @updateGroupInstanceUsage = (group, change, amount, callback) ->
+  @updateGroupInstanceUsage = (options, callback) ->
+
+    { group, change, amount } = options
 
     return callback null  if group.slug is 'koding'
 
@@ -445,18 +451,49 @@ module.exports = class ComputeProvider extends Base
 
   @updateGroupResourceUsage = (options, callback) ->
 
-    { group, instanceCount, change } = options
+    { notifyAdmins } = require '../notify'
+    { group, instanceCount, instanceOnly, change, details } = options
 
     return callback null  if group.slug is 'koding'
 
+    handleResult = (err, item) ->
+
+      if err and change is 'increment'
+
+        { account, template, provider } = details ? {}
+        user     = account?.getAt?('profile.nickname') ? 'an unknown user'
+        provider = if provider? then "#{provider} " else ''
+        template = if template?.title?
+        then "Stack: #{template.title} - #{template._id}"
+        else ''
+
+        message = "
+          #{user} failed to create #{provider}#{item} due to
+          plan limitations. #{template}
+        "
+
+        KodingLogger.warn group, message
+        notifyAdmins group, 'MemberWarning', message
+
+      callback err
+
+    options = { group, change, amount: instanceCount }
+
+    if instanceOnly
+      @updateGroupInstanceUsage options, (err) ->
+        handleResult err, 'machine'
+
+      return
+
     @updateGroupStackUsage group, change, (err) =>
-      return callback err  if err
-      @updateGroupInstanceUsage group, change, instanceCount, (err) =>
+      return handleResult err, 'stack'  if err
+
+      @updateGroupInstanceUsage options, (err) =>
         if err and change is 'increment'
           @updateGroupStackUsage group, 'decrement', ->
-            callback err
+            handleResult err, 'machine'
         else
-          callback err
+          handleResult err, 'resource'
 
 
   @createGroupStack = (client, options, callback) ->
@@ -479,7 +516,7 @@ module.exports = class ComputeProvider extends Base
     # we need to check plan limits for the current group and create the stack
     # and related machines here, this is very critical for multiple stacks ~ GG
 
-    series [
+    async.series [
 
       (next) ->
         fetchGroupStackTemplate client, (err, _res) ->
@@ -491,8 +528,10 @@ module.exports = class ComputeProvider extends Base
         instanceCount = template.machines?.length or 0
         change        = 'increment'
 
+        details = { template, account }
+
         ComputeProvider.updateGroupResourceUsage {
-          group, change, instanceCount
+          group, change, instanceCount, details
         }, (err) ->
           next err
 

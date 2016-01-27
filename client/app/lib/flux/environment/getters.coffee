@@ -21,6 +21,8 @@ sharedMachineListItems            = [['SharedMachineListItemsStore'], withEmptyM
 ActiveInvitationMachineIdStore    = ['ActiveInvitationMachineIdStore']
 ActiveLeavingSharedMachineIdStore = ['ActiveLeavingSharedMachineIdStore']
 DifferentStackResourcesStore      = ['DifferentStackResourcesStore']
+ActiveStackStore                  = ['ActiveStackStore']
+
 
 workspacesWithChannels = [
   WorkspacesStore
@@ -127,6 +129,7 @@ module.exports = {
   addWorkspaceView : AddWorkspaceViewStore
   activeWorkspace : ActiveWorkspaceStore
   activeMachine : ActiveMachineStore
+  activeStack : ActiveStackStore
   deleteWorkspaceWidget : DeleteWorkspaceWidgetStore
   connectedManagedMachine : ConnectedManagedMachineStore
   activeInvitationMachineId: ActiveInvitationMachineIdStore

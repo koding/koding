@@ -2,6 +2,8 @@ kd                        = require 'kd'
 React                     = require 'kd-react'
 immutable                 = require 'immutable'
 SidebarSection            = require 'app/components/sidebarsection'
+KDReactorMixin            = require 'app/flux/base/reactormixin'
+EnvironmentFlux           = require 'app/flux/environment'
 StackUpdatedWidget        = require './stackupdatedwidget'
 getBoundingClientReact    = require 'app/util/getBoundingClientReact'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
@@ -10,7 +12,6 @@ SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 module.exports = class SidebarStackSection extends React.Component
 
   @defaultProps =
-    selectedId  : null
     stack       : immutable.Map()
 
 
@@ -22,6 +23,10 @@ module.exports = class SidebarStackSection extends React.Component
       coordinates :
         left      : 0
         top       : 0
+
+
+  getDataBindings: ->
+    activeStack : EnvironmentFlux.getters.activeStack
 
 
   componentWillReceiveProps: -> @setCoordinates()
@@ -80,15 +85,21 @@ module.exports = class SidebarStackSection extends React.Component
 
     return null  unless @props.stack.get('machines').length
 
+    className  = 'SidebarStackSection'
+    className += ' active'  if @state.activeStack is @props.stack.get '_id'
+
     <SidebarSection
       ref='sidebarSection'
-      className={kd.utils.curry 'SidebarStackSection', @props.className}
+      className={kd.utils.curry className, @props.className}
       title={@props.stack.get 'title'}
-      titleLink='/Stacks'
-      secondaryLink='/Stacks'
+      titleLink='' # Set empty string
+      secondaryLink='' # Set empty string
       unreadCount={@getStackUnreadCount()}
       unreadCountClickHandler={@unreadCountClickHandler}
       >
       {@renderMachines()}
       {@renderStackUpdatedWidget()}
     </SidebarSection>
+
+
+React.Component.include.call SidebarStackSection, [KDReactorMixin]
