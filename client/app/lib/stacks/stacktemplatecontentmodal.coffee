@@ -2,7 +2,7 @@ kd = require 'kd'
 
 Encoder = require 'htmlencode'
 
-StackTemplateEditorView = require 'admin/views/stacks/editors/stacktemplateeditorview'
+StackTemplateEditorView = require 'stacks/views/stacks/editors/stacktemplateeditorview'
 
 module.exports = class StackTemplateContentModal extends kd.ModalView
 

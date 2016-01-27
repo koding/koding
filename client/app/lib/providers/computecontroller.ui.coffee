@@ -22,7 +22,7 @@ TerminalModal        = require '../terminal/terminalmodal'
 
 MissingDataView      = require './missingdataview'
 
-{ jsonToYaml }       = require 'admin/views/stacks/yamlutils'
+{ jsonToYaml }       = require 'stacks/views/stacks/yamlutils'
 
 
 module.exports = class ComputeController_UI
