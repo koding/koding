@@ -10,7 +10,6 @@ registerRoutes = require './util/registerRoutes'
 isKoding       = require './util/isKoding'
 
 Machine                 = require 'app/providers/machine'
-EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
