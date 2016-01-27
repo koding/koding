@@ -49,7 +49,7 @@ function run_test_group() {
 }
 
 function run_all_test_groups() {
-  for FILE in $(find $BUILD_DIR -type d -mindepth 1 -maxdepth 1 \
+  for FILE in $(find $BUILD_DIR -mindepth 1 -maxdepth 1 -type d \
        ! -path "$BUILD_DIR/helpers" \
        ! -path "$BUILD_DIR/utils"); do
     $BASH_SOURCE ${FILE#$BUILD_DIR/}
