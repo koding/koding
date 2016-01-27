@@ -114,10 +114,10 @@ func main() {
 					Name:  "nowatch, w",
 					Usage: "Disable watching for changes on remote machine.",
 				},
-				//cli.BoolFlag{
-				//	Name:  "prefetchall, a",
-				//	Usage: "Enable prefetching of the entire remote directory for improved performance.",
-				//},
+				cli.BoolFlag{
+					Name:  "prefetchall, a",
+					Usage: "Enable prefetching of the entire remote directory for improved performance.",
+				},
 			},
 			Action: Exit(CheckUpdateFirst(MountCommand)),
 		},
