@@ -871,6 +871,7 @@ module.exports = class SocialApiController extends KDController
         data     : options
       , callback
 
+    # list - lists group's topic channels
     list: (options, callback) ->
       doXhrRequest
         type     : 'GET'
@@ -885,6 +886,7 @@ module.exports = class SocialApiController extends KDController
         data     : options
       , callback
 
+    # searchTopics - search topics for autocompletion
     searchTopics: (options, callback) ->
       { name } = options
       doXhrRequest
@@ -945,6 +947,8 @@ module.exports = class SocialApiController extends KDController
 
         return callback null, mapActivities response
 
+    # fetchPopularPosts -  lists group specific popular posts
+    # it can be daily, weekly, monthly
     fetchPopularPosts: (options, callback) ->
       { channelName } = options
       doXhrRequest
@@ -952,6 +956,8 @@ module.exports = class SocialApiController extends KDController
         endPoint : "/api/social/popular/posts/#{channelName}?limit=10"
       , callback
 
+    # fetchPopularTopics - lists group specific popular topics
+    # it can be daily, weekly, monthly
     fetchPopularTopics: (options, callback) ->
       { type } = options
       doXhrRequest
@@ -959,6 +965,7 @@ module.exports = class SocialApiController extends KDController
         endPoint : "/api/social/popular/topics/#{type}"
       , callback
 
+    # fetchPinnedMessages - fetch user's pinned messages
     fetchPinnedMessages: (options, callback) ->
 
       doXhrRequest
@@ -1058,6 +1065,7 @@ module.exports = class SocialApiController extends KDController
         data     : options
       , callback
 
+    # fetchFollowedChannels - lists followed channels(topics) of an account
     fetchFollowedChannels: (options, callback) ->
       { accountId } = options
       doXhrRequest
@@ -1065,6 +1073,8 @@ module.exports = class SocialApiController extends KDController
         endPoint : "/api/social/account/#{accountId}/channels"
       , callback
 
+    # fetchProfileFeed - lists all activities of an account
+    # within a specified group
     fetchProfileFeed: (options, callback) ->
       { targetId } = options
       doXhrRequest
@@ -1080,6 +1090,7 @@ module.exports = class SocialApiController extends KDController
         data     : options
       , callback
 
+    # updateLastSeenTime - updates user's channel presence data
     updateLastSeenTime: (options, callback) ->
       { accountId, channelId } = options
       doXhrRequest
