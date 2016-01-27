@@ -39,7 +39,7 @@ func ParseTemplate(content string, log logging.Logger) (*Template, error) {
 			Sep:       "_",
 			Recursive: true,
 		},
-		log: log.New("template"),
+		log: log,
 	}
 
 	err := json.Unmarshal([]byte(content), &template)

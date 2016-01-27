@@ -38,10 +38,12 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
-	s.Log.Debug("Parsing template:\n%s", stackTemplate.Template.Content)
+	contentID := s.Req.Username + "-" + arg.StackTemplateID
 
-	if err := s.Builder.BuildTemplate(stackTemplate.Template.Content); err != nil {
+	s.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", s.Builder.Koding, s.Builder.Template)
+	s.Log.Debug("Parsing template (%s):\n%s", contentID, stackTemplate.Template.Content)
+
+	if err := s.Builder.BuildTemplate(stackTemplate.Template.Content, contentID); err != nil {
 		return nil, err
 	}
 

@@ -128,6 +128,11 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	// attach user specific log
 	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
+	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+		machine.Log = machine.Log.New(traceID)
+		machine.Log.SetLevel(logging.DEBUG)
+	}
+
 	sess := &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,

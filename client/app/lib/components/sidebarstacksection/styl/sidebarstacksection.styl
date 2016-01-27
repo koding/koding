@@ -4,6 +4,7 @@
   > .SidebarSection-headerTitle
     margin                  15px 0
     color                   #656565
+    vendor                  transition, all .3s ease
 
   .SidebarStackSection
     h4
@@ -16,6 +17,7 @@
     .SidebarSection-body
       rel()
       left                  13px
+      vendor                transition, all .3s ease
 
       .SidebarMachinesListItem--MainLink
         color               #818181
@@ -55,3 +57,22 @@
 
   &:last-of-type
     margin-bottom           0
+
+#kdmaincontainer
+  &.collapsed
+    .SidebarTeamSection
+
+      > .SidebarSection-headerTitle
+        opacity             0
+
+      .SidebarSection-body
+        left                0
+
+      .SidebarMachinesListItem--MainLink
+        rel()
+        width               100%
+        padding-right       0
+
+        .SidebarListItem-unreadCount
+          right             2px !important
+          top               -2px !important

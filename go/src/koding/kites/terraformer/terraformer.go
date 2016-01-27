@@ -57,6 +57,7 @@ type TerraformRequest struct {
 	Content   string
 	Variables map[string]string
 	ContentID string
+	TraceID   string
 }
 
 // New creates a new terraformer
@@ -145,7 +146,7 @@ func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	c, err := t.Context.Get(args.ContentID)
+	c, err := t.Context.Get(args.ContentID, args.TraceID)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +177,7 @@ func (t *Terraformer) apply(r *kite.Request, destroy bool) (*terraform.State, er
 		return nil, err
 	}
 
-	c, err := t.Context.Get(args.ContentID)
+	c, err := t.Context.Get(args.ContentID, args.TraceID)
 	if err != nil {
 		return nil, err
 	}
