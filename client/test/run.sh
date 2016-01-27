@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [[ "$BASH_SOURCE" = /* ]]; then
+  RUN_SCRIPT=$BASH_SOURCE
+else
+  RUN_SCRIPT=$(pwd)/$BASH_SOURCE
+fi
+
 cd $(dirname $0)
 
 NIGHTWATCH_BIN="../node_modules/.bin/nightwatch"
@@ -32,14 +38,14 @@ function run_test_case() {
 
 function run_test_suite() {
   for TEST_CASE in $(list_test_cases); do
-    $BASH_SOURCE $TEST_GROUP $TEST_SUITE $TEST_CASE
+    $RUN_SCRIPT $TEST_GROUP $TEST_SUITE $TEST_CASE
   done
 }
 
 function run_test_suite_file() {
   FILE=$1
   TEST_SUITE=$(basename -s '.js' $FILE)
-  $BASH_SOURCE $TEST_GROUP $TEST_SUITE
+  $RUN_SCRIPT $TEST_GROUP $TEST_SUITE
 }
 
 function run_test_group() {
@@ -52,7 +58,7 @@ function run_all_test_groups() {
   for FILE in $(find $BUILD_DIR -mindepth 1 -maxdepth 1 -type d \
        ! -path "$BUILD_DIR/helpers" \
        ! -path "$BUILD_DIR/utils"); do
-    $BASH_SOURCE ${FILE#$BUILD_DIR/}
+    $RUN_SCRIPT ${FILE#$BUILD_DIR/}
   done
 }
 
