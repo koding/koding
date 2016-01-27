@@ -58,7 +58,7 @@ function run_all_test_groups() {
 
 function cleanup() {
   if [ "$(hostname)" == 'wercker-test-instance' ]; then
-    if [ $CODE -ne 0 ]; then
+    if [ "$EXIT_CODE" -ne 0 ]; then
       mv users.json users-$TEST_GROUP-$$TEST_SUITE-$TEST_CASE.json
     fi
   fi
@@ -75,7 +75,7 @@ if [ -n "$TEST_CASE" ]; then
     fi
   fi
   run_test_case
-  EXIT_CODE=$!
+  EXIT_CODE=$?
   cleanup
   exit $EXIT_CODE
 elif [ -n "$TEST_SUITE" ]; then
