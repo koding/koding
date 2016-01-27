@@ -35,8 +35,6 @@ func (d *DirInitializer) Initialize() error {
 	d.DirEntriesList = map[string]*Dir{d.RootDir.Path: d.RootDir}
 
 	for _, file := range res.Files {
-		fmt.Println("DirInitializer#Initialize", file.FullPath, d.RootDir.Path)
-
 		// ignore root directory since it was set above
 		if file.FullPath == d.RootDir.Path {
 			continue
