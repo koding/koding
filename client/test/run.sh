@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [[ "$BASH_SOURCE" = /* ]]; then
+  RUN_SCRIPT=$BASH_SOURCE
+else
+  RUN_SCRIPT=$(pwd)/$BASH_SOURCE
+fi
+
 cd $(dirname $0)
 
 NIGHTWATCH_BIN="../node_modules/.bin/nightwatch"
@@ -32,14 +38,14 @@ function run_test_case() {
 
 function run_test_suite() {
   for TEST_CASE in $(list_test_cases); do
-    $BASH_SOURCE $TEST_GROUP $TEST_SUITE $TEST_CASE
+    $RUN_SCRIPT $TEST_GROUP $TEST_SUITE $TEST_CASE
   done
 }
 
 function run_test_suite_file() {
   FILE=$1
   TEST_SUITE=$(basename -s '.js' $FILE)
-  $BASH_SOURCE $TEST_GROUP $TEST_SUITE
+  $RUN_SCRIPT $TEST_GROUP $TEST_SUITE
 }
 
 function run_test_group() {
@@ -49,10 +55,10 @@ function run_test_group() {
 }
 
 function run_all_test_groups() {
-  for FILE in $(find $BUILD_DIR -type d -mindepth 1 -maxdepth 1 \
+  for FILE in $(find $BUILD_DIR -mindepth 1 -maxdepth 1 -type d \
        ! -path "$BUILD_DIR/helpers" \
        ! -path "$BUILD_DIR/utils"); do
-    $BASH_SOURCE ${FILE#$BUILD_DIR/}
+    $RUN_SCRIPT ${FILE#$BUILD_DIR/}
   done
 }
 
@@ -64,13 +70,26 @@ function cleanup() {
   fi
 }
 
+RESERVED_TEST_CASE_NAMES="
+before beforeEach \
+after afterEach \
+beforeTest afterTest \
+beforeClass afterClass \
+beforeMethod afterMethod \
+beforeSuite afterSuite \
+beforeGroups afterGroups \
+"
+
 TEST_GROUP=$1
 TEST_SUITE=$2
 TEST_CASE=$3
 
 if [ -n "$TEST_CASE" ]; then
+  for NAME in $RESERVED_TEST_CASE_NAMES; do
+    [[ "$TEST_CASE" = "$NAME" ]] && exit 0
+  done
   if [ -n "$IGNORED_TEST_CASES" ]; then
-    if echo $IGNORED_TEST_CASES | grep $TEST_GROUP/$TEST_SUITE/$TEST_CASE; then
+    if echo -e "$IGNORED_TEST_CASES" | grep $TEST_GROUP/$TEST_SUITE/$TEST_CASE; then
       exit 0
     fi
   fi
