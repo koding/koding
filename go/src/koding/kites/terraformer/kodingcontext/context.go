@@ -31,7 +31,7 @@ var (
 )
 
 type Context interface {
-	Get(string) (*KodingContext, error)
+	Get(string, string) (*KodingContext, error)
 	Shutdown() error
 }
 
@@ -78,7 +78,7 @@ func Close() {
 
 // Get creates a new context out of an existing one, this can be called
 // multiple times instead of creating a new Context with New function
-func (c *context) Get(contentID string) (*KodingContext, error) {
+func (c *context) Get(contentID, traceID string) (*KodingContext, error) {
 	if contentID == "" {
 		return nil, errors.New("contentID is not set")
 	}
@@ -88,15 +88,7 @@ func (c *context) Get(contentID string) (*KodingContext, error) {
 		return nil, err
 	}
 
-	kc := newKodingContext(sc)
-	kc.Providers = c.Providers
-	kc.Provisioners = c.Provisioners
-	kc.LocalStorage = c.LocalStorage
-	kc.RemoteStorage = c.RemoteStorage
-	kc.ContentID = contentID
-	kc.log = c.log
-
-	return kc, nil
+	return c.newKodingContext(sc, contentID, traceID), nil
 }
 
 // BroadcastForceShutdown sends a message to the current operations

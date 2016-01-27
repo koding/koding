@@ -10,14 +10,24 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-func newKodingContext(sc <-chan struct{}) *KodingContext {
-	b := new(bytes.Buffer)
+func (c *context) newKodingContext(sc <-chan struct{}, contentID, traceID string) *KodingContext {
+	errorBuf := new(bytes.Buffer)
 
-	return &KodingContext{
-		Buffer:       b,
-		ui:           NewUI(b),
+	kc := &KodingContext{
+		context: context{
+			Providers:     c.Providers,
+			Provisioners:  c.Provisioners,
+			LocalStorage:  c.LocalStorage,
+			RemoteStorage: c.RemoteStorage,
+			log:           c.log,
+		},
+		ContentID:    contentID,
+		Buffer:       errorBuf,
+		ui:           NewUI(errorBuf, traceID),
 		ShutdownChan: sc,
 	}
+
+	return kc
 }
 
 // Context holds the required operational parameters for any kind of terraform

@@ -1,7 +1,9 @@
 package kodingcontext
 
 import (
+	"fmt"
 	"io"
+	"os"
 
 	"github.com/mitchellh/cli"
 )
@@ -15,13 +17,29 @@ const (
 )
 
 // NewUI returns a cli.UI
-func NewUI(w io.Writer) *cli.PrefixedUi {
-	return &cli.PrefixedUi{
-		AskPrefix:    OutputPrefix,
-		OutputPrefix: OutputPrefix,
-		InfoPrefix:   OutputPrefix,
-		ErrorPrefix:  ErrorPrefix,
+func NewUI(w io.Writer, traceID string) *cli.PrefixedUi {
+	if traceID == "" {
+		return &cli.PrefixedUi{
+			AskPrefix:    OutputPrefix,
+			OutputPrefix: OutputPrefix,
+			InfoPrefix:   OutputPrefix,
+			ErrorPrefix:  ErrorPrefix,
+			Ui: &cli.BasicUi{
+				Writer: w,
+			},
+		}
+	}
 
-		Ui: &cli.BasicUi{Writer: w},
+	prefix := fmt.Sprintf("[%s] %s", traceID, OutputPrefix)
+
+	return &cli.PrefixedUi{
+		AskPrefix:    prefix,
+		OutputPrefix: prefix,
+		InfoPrefix:   prefix,
+		ErrorPrefix:  ErrorPrefix,
+		Ui: &cli.BasicUi{
+			Writer:      os.Stderr,
+			ErrorWriter: io.MultiWriter(os.Stderr, w),
+		},
 	}
 }
