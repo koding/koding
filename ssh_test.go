@@ -15,51 +15,53 @@ func TestSSHCommand(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		s := SSHCommand{
-			KeyPath:   tempSSHDir,
-			KeyName:   "key",
-			Transport: &fakeTransport{},
+			SSHKey: &SSHKey{
+				KeyPath:   tempSSHDir,
+				KeyName:   "key",
+				Transport: &fakeTransport{},
+			},
 		}
 
 		Convey("It should return public key path", func() {
-			key := s.publicKeyPath()
+			key := s.PublicKeyPath()
 			So(key, ShouldEqual, path.Join(tempSSHDir, "key.pub"))
 		})
 
 		Convey("It should return private key path", func() {
-			key := s.privateKeyPath()
+			key := s.PrivateKeyPath()
 			So(key, ShouldEqual, path.Join(tempSSHDir, "key"))
 		})
 
 		Convey("It should return error if invalid key exists", func() {
-			err := ioutil.WriteFile(s.privateKeyPath(), []byte("a"), 0700)
+			err := ioutil.WriteFile(s.PrivateKeyPath(), []byte("a"), 0700)
 			So(err, ShouldBeNil)
 
-			err = ioutil.WriteFile(s.publicKeyPath(), []byte("a"), 0700)
+			err = ioutil.WriteFile(s.PublicKeyPath(), []byte("a"), 0700)
 			So(err, ShouldBeNil)
 
-			err = s.prepareForSSH("name")
+			err = s.PrepareForSSH("name")
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldContainSubstring, "ssh: no key found")
 		})
 
 		Convey("It generates and saves key to remote if key doesn't exist", func() {
-			err := s.prepareForSSH("name")
+			err := s.PrepareForSSH("name")
 			So(err, ShouldBeNil)
 
-			firstContents, err := ioutil.ReadFile(s.publicKeyPath())
+			firstContents, err := ioutil.ReadFile(s.PublicKeyPath())
 			So(err, ShouldBeNil)
 
-			publicExists := s.publicKeyExists()
+			publicExists := s.PublicKeyExists()
 			So(publicExists, ShouldBeTrue)
 
-			privateExists := s.privateKeyExists()
+			privateExists := s.PrivateKeyExists()
 			So(privateExists, ShouldBeTrue)
 
 			Convey("It returns key if it exists", func() {
-				err := s.prepareForSSH("name")
+				err := s.PrepareForSSH("name")
 				So(err, ShouldBeNil)
 
-				secondContents, err := ioutil.ReadFile(s.publicKeyPath())
+				secondContents, err := ioutil.ReadFile(s.PublicKeyPath())
 				So(err, ShouldBeNil)
 
 				So(string(firstContents), ShouldEqual, string(secondContents))

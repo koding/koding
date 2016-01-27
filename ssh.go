@@ -32,17 +32,7 @@ import (
 // a random integer. Klient requires a non empty comment; by adding a random
 // integer to end of comment this command can be used by multiple computers.
 type SSHCommand struct {
-	// KeyPath is the directory that stores the ssh keys pairs. It's defaults
-	// to `.ssh/` in the user's home directory.
-	KeyPath string
-
-	// KeyName is the file name of the SSH key pair. It defaults to `kd-ssh-key`.
-	KeyName string
-
-	// Transport is communication layer between this and local klient. This is
-	// used to add SSH public key to `~/.ssh/authorized_keys` on the remote
-	// machine.
-	Transport
+	*SSHKey
 }
 
 // SSHCommandFactory is the factory method for SSHCommand.
@@ -81,9 +71,11 @@ func NewSSHCommand() (*SSHCommand, error) {
 	}
 
 	return &SSHCommand{
-		KeyPath:   path.Join(usr.HomeDir, SSHDefaultKeyDir),
-		KeyName:   SSHDefaultKeyName,
-		Transport: klientKite,
+		SSHKey: &SSHKey{
+			KeyPath:   path.Join(usr.HomeDir, SSHDefaultKeyDir),
+			KeyName:   SSHDefaultKeyName,
+			Transport: klientKite,
+		},
 	}, nil
 }
 
@@ -93,19 +85,18 @@ func (s *SSHCommand) run(c *cli.Context) int {
 		return 1
 	}
 
-	if !s.keysExist() {
+	if !s.KeysExist() {
 		util.MustConfirm("'ssh' command needs to create public/private rsa key pair. Continue? [Y|n]")
 	}
 
-	sshKey, err := s.getSSHIp(c.Args()[0])
+	sshKey, err := s.GetSSHIp(c.Args()[0])
 	if err != nil {
-		// TODO: Is this the right error?
-		log.Errorf("Error getting ssh key. err:%s", err)
+		log.Errorf("Error getting username and hostname combination. err:%s", err)
 		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
 
-	if err := s.prepareForSSH(c.Args()[0]); err != nil {
+	if err := s.PrepareForSSH(c.Args()[0]); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
 			log.Errorf("Cannot ssh into managed machines. err:%s", err)
 			fmt.Println(CannotSSHManaged)
@@ -117,7 +108,7 @@ func (s *SSHCommand) run(c *cli.Context) int {
 		return 1
 	}
 
-	cmd := exec.Command("ssh", "-i", s.privateKeyPath(), sshKey, "-o", "ServerAliveInterval=300", "-o", "ServerAliveCountMax=3")
+	cmd := exec.Command("ssh", "-i", s.PrivateKeyPath(), sshKey, "-o", "ServerAliveInterval=300", "-o", "ServerAliveCountMax=3")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -130,9 +121,37 @@ func (s *SSHCommand) run(c *cli.Context) int {
 	return 0
 }
 
-// getSSHIp returns the username and the hostname of the remove machine to ssh.
+// PrepareForSSH wrappers SSHKey.PrepareForSSH, additionally printing some basic
+// information to the user.
+func (s *SSHCommand) PrepareForSSH(name string) error {
+	if s.KeysExist() {
+		fmt.Printf("Using existing keypair at: %s \n", s.PublicKeyPath())
+	} else {
+		fmt.Printf("Creating new keypair at: %s \n", s.PublicKeyPath())
+	}
+
+	return s.SSHKey.PrepareForSSH(name)
+}
+
+// SSHKey implements methods for dealing with creating a KD local and remote ssh key,
+// and adding it to the remote via klient's remote.sshKeysAdd
+type SSHKey struct {
+	// KeyPath is the directory that stores the ssh keys pairs. It's defaults
+	// to `.ssh/` in the user's home directory.
+	KeyPath string
+
+	// KeyName is the file name of the SSH key pair. It defaults to `kd-ssh-key`.
+	KeyName string
+
+	// Transport is communication layer between this and local klient. This is
+	// used to add SSH public key to `~/.ssh/authorized_keys` on the remote
+	// machine.
+	Transport
+}
+
+// GetSSHIp returns the username and the hostname of the remove machine to ssh.
 // It assume user exists on the remove machine with the same Koding username.
-func (s *SSHCommand) getSSHIp(name string) (string, error) {
+func (s *SSHKey) GetSSHIp(name string) (string, error) {
 	res, err := s.Tell("remote.list")
 	if err != nil {
 		return "", err
@@ -152,18 +171,98 @@ func (s *SSHCommand) getSSHIp(name string) (string, error) {
 	return "", fmt.Errorf("No machine found with specified name: `%s`", name)
 }
 
-// prepareForSSH checks if SSH key pair exists, if not it generates a new one
+// GetUsername returns the username of the remote machine.
+// It assume user exists on the remote machine with the same Koding username.
+func (s *SSHKey) GetUsername(name string) (string, error) {
+	res, err := s.Tell("remote.list")
+	if err != nil {
+		return "", err
+	}
+
+	var infos []kiteInfo
+	if err := res.Unmarshal(&infos); err != nil {
+		return "", err
+	}
+
+	for _, info := range infos {
+		if strings.HasPrefix(info.VMName, name) {
+			return info.Hostname, nil
+		}
+	}
+
+	return "", fmt.Errorf("No machine found with specified name: `%s`", name)
+}
+
+// GenerateAndSaveKey generates a new SSH key pair and saves it to local.
+func (s *SSHKey) GenerateAndSaveKey() ([]byte, error) {
+	var perms os.FileMode = 400
+
+	publicKey, privateKey, err := sshkey.Generate()
+	if err != nil {
+		return nil, err
+	}
+
+	publicKey += fmt.Sprintf(" koding-%d", rand.Int31())
+
+	// save ssh private key
+	err = ioutil.WriteFile(s.PrivateKeyPath(), []byte(privateKey), perms)
+	if err != nil {
+		return nil, err
+	}
+
+	// save ssh public key
+	err = ioutil.WriteFile(s.PublicKeyPath(), []byte(publicKey), perms)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(publicKey), nil
+}
+
+// PublicKeyExists checks if a file exists at the PublicKeyPath
+func (s *SSHKey) PublicKeyExists() bool {
+	if _, err := os.Stat(s.PublicKeyPath()); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+// PrivateKeyExists checks if a file eists at the PrivateKeyPath
+func (s *SSHKey) PrivateKeyExists() bool {
+	if _, err := os.Stat(s.PrivateKeyPath()); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+// PublicKeyPath returns the public key path, based on the private key path
+func (s *SSHKey) PublicKeyPath() string {
+	return fmt.Sprintf("%s.pub", s.PrivateKeyPath())
+}
+
+// PrivateKeyPath returns the private key path, based on the SSHKey.KeyPath and
+// KeyName values.
+func (s *SSHKey) PrivateKeyPath() string {
+	return path.Join(s.KeyPath, s.KeyName)
+}
+
+// KeysExist checks whether both keys exist.
+func (s *SSHKey) KeysExist() bool {
+	return s.PublicKeyExists() && s.PrivateKeyExists()
+}
+
+// PrepareForSSH checks if SSH key pair exists, if not it generates a new one
 // and saves it. It adds the key pair to remote machine each time.
-func (s *SSHCommand) prepareForSSH(name string) error {
+func (s *SSHKey) PrepareForSSH(name string) error {
 	var (
 		contents []byte
 		err      error
 	)
 
-	if s.keysExist() {
-		fmt.Printf("Using existing keypair at: %s \n", s.publicKeyPath())
-
-		if contents, err = ioutil.ReadFile(s.publicKeyPath()); err != nil {
+	if s.KeysExist() {
+		if contents, err = ioutil.ReadFile(s.PublicKeyPath()); err != nil {
 			return err
 		}
 
@@ -172,9 +271,7 @@ func (s *SSHCommand) prepareForSSH(name string) error {
 			return err
 		}
 	} else {
-		fmt.Printf("Creating new keypair at: %s \n", s.publicKeyPath())
-
-		if contents, err = s.generateAndSaveKey(); err != nil {
+		if contents, err = s.GenerateAndSaveKey(); err != nil {
 			return err
 		}
 	}
@@ -195,58 +292,4 @@ func (s *SSHCommand) prepareForSSH(name string) error {
 	}
 
 	return err
-}
-
-// generateAndSaveKey generates a new SSH key pair and saves it to local.
-func (s *SSHCommand) generateAndSaveKey() ([]byte, error) {
-	var perms os.FileMode = 400
-
-	publicKey, privateKey, err := sshkey.Generate()
-	if err != nil {
-		return nil, err
-	}
-
-	publicKey += fmt.Sprintf(" koding-%d", rand.Int31())
-
-	// save ssh private key
-	err = ioutil.WriteFile(s.privateKeyPath(), []byte(privateKey), perms)
-	if err != nil {
-		return nil, err
-	}
-
-	// save ssh public key
-	err = ioutil.WriteFile(s.publicKeyPath(), []byte(publicKey), perms)
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(publicKey), nil
-}
-
-func (s *SSHCommand) publicKeyExists() bool {
-	if _, err := os.Stat(s.publicKeyPath()); os.IsNotExist(err) {
-		return false
-	}
-
-	return true
-}
-
-func (s *SSHCommand) privateKeyExists() bool {
-	if _, err := os.Stat(s.privateKeyPath()); os.IsNotExist(err) {
-		return false
-	}
-
-	return true
-}
-
-func (s *SSHCommand) publicKeyPath() string {
-	return fmt.Sprintf("%s.pub", s.privateKeyPath())
-}
-
-func (s *SSHCommand) privateKeyPath() string {
-	return path.Join(s.KeyPath, s.KeyName)
-}
-
-func (s *SSHCommand) keysExist() bool {
-	return s.publicKeyExists() && s.privateKeyExists()
 }
