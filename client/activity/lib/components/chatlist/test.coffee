@@ -52,11 +52,15 @@ describe 'ChatList', ->
       result = TestUtils.renderIntoDocument(
         <ChatList messages={messages} />
       )
-      expect(-> TestUtils.findRenderedComponentWithType result, NewMessageMarker).toThrow()
-      expect(-> TestUtils.findRenderedComponentWithType result, Waypoint).toThrow()
+      newMessageMarker = TestUtils.scryRenderedComponentsWithType(result, NewMessageMarker).first
+      expect(newMessageMarker).toNotExist()
+      waypoint = TestUtils.scryRenderedComponentsWithType(result, Waypoint).first
+      expect(waypoint).toNotExist()
 
       result = TestUtils.renderIntoDocument(
         <ChatList messages={messages} unreadCount=1 />
       )
-      expect(TestUtils.findRenderedComponentWithType result, NewMessageMarker).toExist()
-      expect(TestUtils.findRenderedComponentWithType result, Waypoint).toExist()
+      newMessageMarker = TestUtils.findRenderedComponentWithType result, NewMessageMarker
+      expect(newMessageMarker).toExist()
+      waypoint = TestUtils.findRenderedComponentWithType result, Waypoint
+      expect(waypoint).toExist()

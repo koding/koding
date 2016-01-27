@@ -7,64 +7,14 @@ toImmutable = require 'app/util/toImmutable'
 ChatPane    = require './view'
 ChatList    = require 'activity/components/chatlist'
 ChannelInfo = require 'activity/components/channelinfo'
+mockingjay  = require '../../../../mocks/mockingjay'
+
 
 describe 'ChatPane', ->
 
-  messages = toImmutable [
-    {
-      id              : 1
-      body            : 'Will Computers Ever Truly Understand Humans?'
-      interactions    : { like : { actorsCount : 1 } }
-      repliesCount    : 2
-      createdAt       : '2016-01-01'
-      account         :
-        _id           : 1
-        profile       : { nickname : 'nick', firstName : '', lastName : '' }
-        isIntegration : yes
-    }
-    {
-      id              : 2
-      body            : 'Brain-Computer Duel: Do We Have Free Will?'
-      interactions    : { like : { actorsCount : 3 } }
-      repliesCount    : 5
-      createdAt       : '2016-01-01'
-      account         :
-        _id           : 2
-        profile       : { nickname : 'john', firstName : '', lastName : '' }
-        isIntegration : yes
-    }
-    {
-      id              : 3
-      body            : 'Researchers Get Remote Access to Robots'
-      interactions    : { like : { actorsCount : 2 } }
-      repliesCount    : 3
-      createdAt       : '2016-01-15'
-      account         :
-        _id           : 3
-        profile       : { nickname : 'alex', firstName : '', lastName : '' }
-        isIntegration : yes
-    }
-  ]
-
-  thread = toImmutable {
-    flags                 :
-      reachedFirstMessage : no
-    channel               :
-      id                  : 1
-      name                : 'qwerty'
-      unreadCount         : 1
-    messages
-  }
-
-  threadWithAllLoadedMessages = toImmutable {
-    flags                 :
-      reachedFirstMessage : yes
-    channel               :
-      id                  : 2
-      name                : 'qwerty'
-      unreadCount         : 2
-    messages
-  }
+  thread = toImmutable mockingjay.getMockThread { channelId : 1 }
+  thread = thread.setIn [ 'channel', 'unreadCount' ], 1
+  threadWithFlags = toImmutable mockingjay.getMockThread { channelId : 2, flags : { reachedFirstMessage : yes } }
 
   describe '::render', ->
 
@@ -73,15 +23,16 @@ describe 'ChatPane', ->
       result = TestUtils.renderIntoDocument(
         <ChatPane thread={thread} />
       )
-      expect(-> TestUtils.findRenderedComponentWithType result, ChannelInfo).toThrow()
+      channelInfo = TestUtils.scryRenderedComponentsWithType(result, ChannelInfo).first
+      expect(channelInfo).toNotExist()
 
       result = TestUtils.renderIntoDocument(
-        <ChatPane thread={threadWithAllLoadedMessages} />
+        <ChatPane thread={threadWithFlags} />
       )
 
       channelInfo = TestUtils.findRenderedComponentWithType result, ChannelInfo
       expect(channelInfo).toExist()
-      expect(channelInfo.props.channel).toBe threadWithAllLoadedMessages.get 'channel'
+      expect(channelInfo.props.channel).toBe threadWithFlags.get 'channel'
 
     it 'renders ChatList', ->
 
@@ -104,7 +55,7 @@ describe 'ChatPane', ->
     it 'should be called when "Invite" link is clicked', ->
 
       props =
-        thread        : threadWithAllLoadedMessages
+        thread        : threadWithFlags
         onInviteClick : kd.noop
       spy = expect.spyOn props, 'onInviteClick'
 
