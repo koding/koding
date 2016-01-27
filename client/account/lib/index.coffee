@@ -147,7 +147,7 @@ module.exports = class AccountAppController extends AppController
 
     # Temporary solution to hide this from other users ~ GG
     if checkFlag('super-admin') or not isKoding()
-      items.push { slug : 'Credentials',   title : 'Credentials',   listHeader: 'Your Credentials',          listType: 'credentials'   }
+      items.push { slug : 'Credentials',  title : 'Your credentials',  listHeader: 'Your Credentials',  listType: 'credentials' }
 
     @navController.instantiateListItems items
 
