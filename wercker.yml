@@ -86,7 +86,7 @@ build:
     - script:
         name: test klient
         code: |
-            go test -v koding/klient/client koding/klient/fs koding/klient/gatherrun koding/klient/info koding/klient/logfetcher koding/klient/sshkeys koding/klient/storage
+            ./scripts/test-klient.sh
     - script:
         name: build social api
         code: scripts/wercker/run-command go/src/socialapi/build.sh

@@ -52,8 +52,6 @@ s3cmd del $S3DIR/latest-version.txt
 echo $NEWBUILDNO > latest-version.txt
 s3cmd -P put latest-version.txt $S3DIR/latest-version.txt
 
-# upload/update install.sh
-  
 #  Update install.sh file
 s3cmd del s3://koding-klient/install.sh
 s3cmd -P put install.sh s3://koding-klient/install.sh
