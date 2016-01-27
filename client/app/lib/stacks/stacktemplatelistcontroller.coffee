@@ -1,6 +1,6 @@
 kd                          = require 'kd'
 remote                      = require('app/remote').getInstance()
-
+whoami                      = require 'app/util/whoami'
 getGroup                    = require 'app/util/getGroup'
 showError                   = require 'app/util/showError'
 AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
@@ -23,9 +23,12 @@ module.exports = class StackTemplateListController extends AccountListViewContro
     @showLazyLoader()
 
     { JStackTemplate } = remote.api
+    { viewType  }      = @getOptions()
 
     currentGroup = getGroup()
     query        = { group: currentGroup.slug }
+
+    query.originId = whoami()._id  unless viewType is 'group'
 
     # TODO Add Pagination here ~ GG
     # TMS-1919: This is TODO needs to be done ~ GG
@@ -39,6 +42,9 @@ module.exports = class StackTemplateListController extends AccountListViewContro
       stackTemplates ?= []
       stackTemplates.map (template) ->
         template.inuse = template._id in (currentGroup.stackTemplates or [])
+
+      if viewType is 'group'
+        stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
 
       @instantiateListItems stackTemplates
 
