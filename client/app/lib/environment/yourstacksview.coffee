@@ -1,14 +1,16 @@
 kd                        = require 'kd'
+whoami                    = require 'app/util/whoami'
 isKoding                  = require 'app/util/isKoding'
 showError                 = require 'app/util/showError'
 checkFlag                 = require 'app/util/checkFlag'
 StacksModal               = require 'app/stacks/stacksmodal'
 EnvironmentList           = require './environmentlist'
+KDCustomScrollView        = kd.CustomScrollView
 EnvironmentListController = require './environmentlistcontroller'
-whoami                    = require 'app/util/whoami'
 
 
-module.exports = class YourStacksView extends kd.View
+module.exports = class YourStacksView extends KDCustomScrollView
+
 
   constructor: (options = {}, data) ->
 
@@ -24,7 +26,7 @@ module.exports = class YourStacksView extends kd.View
       scrollView : no
       selected   : options.selected
 
-    @addSubView controller.getView()
+    @wrapper.addSubView controller.getView()
 
     listView.on 'ModalDestroyRequested', @bound 'destroyModal'
 

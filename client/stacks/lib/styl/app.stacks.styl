@@ -6,6 +6,23 @@ Stacks main styles
 
 .AppModal.AppModal--admin
 
+  &.StackCatalogModal
+    .close-icon
+      right                 0 !important
+
+    .kdtabpaneview
+      &.your-stacks
+        padding-top         40px
+        height              calc(100% \- 40px)
+
+        .kdscrolltrack
+          &.vertical
+            right           -3px
+
+        .kdlistview-default
+          &.multi-stack
+            width           calc(100% \- 10px)
+
   .kdcustomscrollview
     styleScrollBars         rgba(0, 0, 0, .15)
 
