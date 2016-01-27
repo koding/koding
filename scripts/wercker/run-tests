@@ -78,9 +78,18 @@ runTest = (job, next) ->
 
   { setId, instance, test } = job
   { NIGHTWATCH_OPTIONS }    = test
+  { IGNORED_TEST_CASES }    = process.env
+
+  env = {}
+
+  if IGNORED_TEST_CASES
+    env['IGNORED_TEST_CASES'] = IGNORED_TEST_CASES
+
+  if NIGHTWATCH_OPTIONS
+    env['NIGHTWATCH_OPTIONS'] = NIGHTWATCH_OPTIONS
 
   args  = [instance.publicIpAddress, test.name]
-  opts  = if NIGHTWATCH_OPTIONS then { env: { NIGHTWATCH_OPTIONS } }
+  opts  = { env }
   child = child_process.execFile runTestScript, args, opts, do (job) ->
 
     (error, stdout, stderr) ->
