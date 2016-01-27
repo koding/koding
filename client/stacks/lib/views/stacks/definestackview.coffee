@@ -52,7 +52,7 @@ module.exports = class DefineStackView extends KDView
     @addSubView new kd.CustomHTMLView
       tagName  : 'header'
       cssClass : 'breadcrumb'
-      partial  : "<span>Stacks</span> &gt; <span class='active'>#{breadcrumbTitle}</span>"
+      partial  : "<span class='active'>#{breadcrumbTitle}</span>"
 
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
