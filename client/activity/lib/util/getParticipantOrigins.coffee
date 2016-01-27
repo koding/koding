@@ -5,11 +5,14 @@ module.exports = getParticipantOrigins = (channel) ->
 
   { lastMessage, participantsPreview, participantCount } = channel.toJS()
 
+  isLastMessageOwnerLeave = false
+  isLastMessageOwnerLeave = lastMessage.payload?.systemType? and lastMessage.payload?.systemType  == 'leave'
+
   lastMessageOwner = lastMessage?.account
 
-  origins = if lastMessageOwner and not isMyPost(lastMessage) then [lastMessageOwner] else []
+  origins = if lastMessageOwner and not isMyPost(lastMessage) and not isLastMessageOwnerLeave then [lastMessageOwner] else []
   owners  = [whoami()._id]
-  owners.push lastMessageOwner._id  if lastMessageOwner
+  owners.push lastMessageOwner._id  if lastMessageOwner and not isLastMessageOwnerLeave
 
   filtered = participantsPreview.filter (p) ->
     return not (p._id in owners)
