@@ -84,6 +84,10 @@ build:
         name: build go binaries
         code: scripts/wercker/run-command go/build.sh
     - script:
+        name: test klient
+        code: |
+            go test -v koding/klient/client koding/klient/fs koding/klient/gatherrun koding/klient/info koding/klient/logfetcher koding/klient/sshkeys koding/klient/storage
+    - script:
         name: build social api
         code: scripts/wercker/run-command go/src/socialapi/build.sh
     - script:
@@ -248,3 +252,13 @@ deploy:
         key-id: $S3_KEY_ID
         key-secret: $S3_KEY_SECRET
         opts: "--no-mime-magic --guess-mime-type"
+
+  s3-klientkite-development:
+      script:
+          name: deploy klient
+          script: ./scripts/deploy-klient.sh
+
+  s3-klientkite-production:
+      script:
+          name: deploy klient
+          script: ./scripts/deploy-klient.sh
