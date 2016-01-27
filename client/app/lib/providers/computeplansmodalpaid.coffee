@@ -282,5 +282,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       @createVMButton.hideLoader()
       @destroy()
 
-      kd.singletons.router.handleRoute '/IDE'
+      route = if location.pathname is '/IDE'
+      then "/IDE/#{machine.slug}"
+      else '/IDE'
+
+      kd.singletons.router.handleRoute route
 
