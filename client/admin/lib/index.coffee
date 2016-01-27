@@ -72,7 +72,6 @@ module.exports = class AdminAppController extends AppController
       width        : 1000
       height       : '90%'
       overlay      : yes
-      overlayClick : no
       tabData      : NAV_ITEMS
     , data
 
