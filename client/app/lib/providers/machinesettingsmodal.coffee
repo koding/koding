@@ -39,6 +39,8 @@ module.exports = class MachineSettingsModal extends KDModalView
     options.width     = 805
     options.height    = 445
     options.overlay  ?= yes
+    options.overlayOptions =
+      cssClass : 'second-overlay'
 
     super options, data
 
