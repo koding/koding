@@ -24,7 +24,7 @@ module.exports = class ChatListItemView extends React.Component
   @include [ImmutableRenderMixin]
 
   @propTypes =
-    channelName     : React.PropTypes.string
+    message         : React.PropTypes.instanceOf immutable.Map
     showItemMenu    : React.PropTypes.bool
     isSelected      : React.PropTypes.bool
     channelId       : React.PropTypes.string
@@ -33,21 +33,13 @@ module.exports = class ChatListItemView extends React.Component
     onCloseEmbedBox : React.PropTypes.func
 
   @defaultProps =
-    channelName     : ''
+    message         : immutable.Map()
     showItemMenu    : yes
     isSelected      : no
     channelId       : ''
     onSubmit        : kd.noop
     onCancelEdit    : kd.noop
     onCloseEmbedBox : kd.noop
-
-
-  componentDidUpdate: (prevProps, prevState) ->
-
-    isInEditMode  = @props.message.get '__isEditing'
-    wasInEditMode = prevProps.message.get '__isEditing'
-
-    @refs.editInput.focus()  if isInEditMode and not wasInEditMode
 
 
   isEditedMessage: ->
@@ -67,19 +59,6 @@ module.exports = class ChatListItemView extends React.Component
       'ChatItem'      : yes
       'is-selected'   : isSelected
     'data-message-id' : message.get 'id'
-
-
-  updateMessage: ->
-
-    value = @refs.editInput.getValue().trim()
-
-    unless value
-      return @refs.MessageItemMenu.showDeletePostPromptModal()
-
-    @props.onSubmit value
-
-
-  cancelEdit: -> @props.onCancelEdit()
 
 
   getEditModeClassNames: -> classnames
@@ -111,15 +90,15 @@ module.exports = class ChatListItemView extends React.Component
         {makeProfileLink message.get 'account'}
       </span>
       <div className="ChatItem-editActions">
-        <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
-        <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
+        <button className="ChatItem-editAction submit" onClick={@props.onSubmit}>enter to save</button>
+        <button className="ChatItem-editAction cancel" onClick={@props.onCancelEdit}>esc to cancel</button>
       </div>
       <ChatInputEmbedExtractor
         messageId = { message.get 'id' }
         channelId = { @props.channelId }
         value     = { messageBody }
-        onSubmit  = { @bound 'updateMessage' }
-        onEsc     = { @bound 'cancelEdit' }
+        onSubmit  = { @props.onSubmit }
+        onEsc     = { @props.onCancelEdit }
         ref       = 'editInput'
         tokens    = { [ChannelToken, EmojiToken, MentionToken] }
       />
