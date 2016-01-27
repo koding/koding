@@ -13,6 +13,7 @@ import (
 	"github.com/cheggaaa/pb"
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite/dnode"
+	"github.com/koding/klient/remote/req"
 	"github.com/koding/klientctl/klientctlerrors"
 	"github.com/koding/klientctl/util"
 )
@@ -107,19 +108,12 @@ func MountCommand(c *cli.Context) int {
 		}
 	}
 
-	mountRequest := struct {
-		Name       string `json:"name"`
-		LocalPath  string `json:"localPath"`
-		RemotePath string `json:"remotePath"`
-		NoIgnore   bool   `json:"noIgnore"`
-		NoPrefetch bool   `json:"noPrefetch"`
-		NoWatch    bool   `json:"noWatch"`
-	}{
-		Name:       name,
-		LocalPath:  localPath,
-		NoIgnore:   noIgnore,
-		NoPrefetch: noPrefetchMeta,
-		NoWatch:    noWatch,
+	mountRequest := req.MountFolder{
+		Name:           name,
+		LocalPath:      localPath,
+		NoIgnore:       noIgnore,
+		NoPrefetchMeta: noPrefetchMeta,
+		NoWatch:        noWatch,
 	}
 
 	// RemotePath is optional
@@ -270,23 +264,22 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 		}
 	}
 
-	cacheReq := struct {
-		Name              string         `json:"name"`
-		LocalPath         string         `json:"localPath"`
-		RemotePath        string         `json:"remotePath"`
-		Progress          dnode.Function `json:"progress"`
-		Username          string         `json:"username"`
-		SSHAuthSock       string         `json:"sshAuthSock"`
-		SSHPrivateKeyPath string         `json:"sshPrivateKeyPath"`
-	}{
+	rReq := req.Cache{
 		Name: machineName,
 		// TODO: Put the cache somewhere meaningful
 		LocalPath:         fmt.Sprintf("%s.cache", localPath),
 		RemotePath:        remotePath,
-		Progress:          dnode.Callback(cacheProgressCallback),
 		Username:          remoteUsername,
 		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
 		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
+	}
+
+	cacheReq := struct {
+		req.Cache
+		Progress dnode.Function `json:"progress"`
+	}{
+		Cache:    rReq,
+		Progress: dnode.Callback(cacheProgressCallback),
 	}
 
 	if _, err := k.Tell("remote.cacheFolder", cacheReq); err != nil {

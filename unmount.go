@@ -6,6 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
+	"github.com/koding/klient/remote/req"
 )
 
 // UnmountCommand unmounts a previously mounted folder by machine name.
@@ -67,7 +68,10 @@ func unmount(kite *kite.Client, name, path string) error {
 		fmt.Println(FailedToUnlockMount)
 	}
 
-	req := struct{ Name, LocalPath string }{Name: name, LocalPath: path}
+	req := req.UnmountFolder{
+		Name:      name,
+		LocalPath: path,
+	}
 
 	// currently there's no return response to care about
 	_, err := kite.Tell("remote.unmountFolder", req)
