@@ -78,7 +78,7 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			return nil, err
 		}
 
-		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, meta.Region)
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, arg.GroupName, cred.Identifier)
 		s.Log.Debug("Building template: %s", contentID)
 
 		if err := s.Builder.BuildTemplate(awsBootstrap, contentID); err != nil {
