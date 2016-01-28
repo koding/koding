@@ -23,39 +23,6 @@ module.exports = class LoginView extends JView
 
   pendingSignupRequest = no
 
-  backgroundImages  = [
-    [ 'Charlie Foster', 'http://www.flickr.com/photos/charliefoster/' ]
-    [ 'Dietmar Becker', 'http://pican.de/' ]
-    [ 'Marcin Czerwinski', 'http://www.station75.com/' ]
-    [ 'Marcin Czerwinski', 'http://www.station75.com/' ]
-    [ 'Anton Sulsky', 'http://www.flickr.com/photos/discomethod/sets/72157635620513053/' ]
-    [ 'Joeri Römer', 'http://www.jfrwebdesign.nl/' ]
-    [ 'Zugr', 'http://be.net/Zugr' ]
-    [ 'Mark Doda', '' ]
-    [ 'Rick Waalders', 'http://www.twitter.com/rickwaalders' ]
-    [ 'Vadim Sherbakov', 'http://madebyvadim.com/' ]
-    [ 'Zwaddi', '' ]
-    [ 'Zugr', 'http://be.net/Zugr' ]
-    [ 'Romain Briaux', 'http://www.romainbriaux.fr/' ]
-    [ 'petradr', 'https://twitter.com/Petchy19' ]
-    [ 'Riley Briggs', 'http://rileyb.me/' ]
-    [ 'Chloe Benko-Prieur', 'http://chloecolorphotography.tumblr.com/' ]
-  ]
-
-  backgroundImageNr = MainControllerLoggedOut.loginImageIndex
-
-  do ->
-    image      = new Image
-    bgImageUrl = "/a/site.landing/images/unsplash/#{backgroundImageNr}.jpg"
-    image.src  = bgImageUrl
-
-    image.classList.add 'off-screen-login-image'
-
-    document.head.appendChild (new KDCustomHTMLView {
-      tagName    : 'style'
-      partial    : ".kdview.login-screen:after { background-image : url('#{bgImageUrl}')}"
-    }).getElement()
-
 
   constructor:(options = {}, data)->
 
