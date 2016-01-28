@@ -1,14 +1,15 @@
 kd                         = require 'kd'
-AppController              = require 'app/appcontroller'
+AdminAppController         = require 'admin/index'
 StackCatalogModalView      = require './views/customviews/stackcatalogmodalview'
 
 YourStacksView             = require 'app/environment/yourstacksview'
 MyStackTemplatesView       = require './views/stacks/my/mystacktemplatesview'
 GroupStackTemplatesView    = require './views/stacks/group/groupstacktemplatesview'
 
+
 require('./routehandler')()
 
-module.exports = class StacksAppController extends AppController
+module.exports = class StacksAppController extends AdminAppController
 
   @options     =
     name       : 'Stacks'
@@ -26,7 +27,7 @@ module.exports = class StacksAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    data         or= kd.singletons.groupsController.getCurrentGroup()
+    data          ?= kd.singletons.groupsController.getCurrentGroup()
     options.view   = new StackCatalogModalView
       title        : 'Stack Catalog'
       cssClass     : 'AppModal AppModal--admin StackCatalogModal team-settings'
@@ -40,47 +41,4 @@ module.exports = class StacksAppController extends AppController
     super options, data
 
 
-  openSection: (section, query, action, identifier) ->
-
-    targetPane = null
-
-    @mainView.ready =>
-      @mainView.tabs.panes.forEach (pane) ->
-        paneAction = pane.getOption 'action'
-        paneSlug   = pane.getOption 'slug'
-
-        if identifier and action is paneAction
-          targetPane = pane
-        else if paneSlug is section
-          targetPane = pane
-
-      if targetPane
-        @mainView.tabs.showPane targetPane
-        targetPaneView = targetPane.getMainView()
-        if identifier
-          targetPaneView.handleIdentifier? identifier, action
-        else
-          targetPaneView.handleAction? action
-
-        if identifier or action
-          targetPaneView.emit 'SubTabRequested', action, identifier
-          { parentTabTitle } = targetPane.getOptions()
-
-          if parentTabTitle
-            for handle in @getView().tabs.handles
-              if handle.getOption('title') is parentTabTitle
-                handle.setClass 'active'
-      else
-        kd.singletons.router.handleRoute '/Stacks'
-
-
-  loadView: (modal) ->
-
-    modal.once 'KDObjectWillBeDestroyed', ->
-      { router } = kd.singletons
-      previousRoutes = router.visitedRoutes.filter (route) -> not /^\/Stacks.*/.test(route)
-      if previousRoutes.length > 0
-      then router.handleRoute previousRoutes.last
-      else router.handleRoute router.getDefaultRoute()
-
-  fetchNavItems: (cb) -> cb NAV_ITEMS
+  checkRoute: (route) -> /^\/Stacks.*/.test route

@@ -64,8 +64,8 @@ module.exports = class AdminAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    data         or= kd.singletons.groupsController.getCurrentGroup()
-    options.view   = new AdminAppView
+    data          ?= kd.singletons.groupsController.getCurrentGroup()
+    options.view  ?= new AdminAppView
       title        : 'Team Settings'
       cssClass     : 'AppModal AppModal--admin team-settings'
       width        : 1000
@@ -108,16 +108,20 @@ module.exports = class AdminAppController extends AppController
               if handle.getOption('title') is parentTabTitle
                 handle.setClass 'active'
       else
-        kd.singletons.router.handleRoute '/Admin/General'
+        kd.singletons.router.handleRoute "/#{@options.name}"
+
+
+  checkRoute: (route) -> /^\/Admin.*/.test route
 
 
   loadView: (modal) ->
 
-    modal.once 'KDObjectWillBeDestroyed', ->
+    modal.once 'KDObjectWillBeDestroyed', =>
       { router } = kd.singletons
-      previousRoutes = router.visitedRoutes.filter (route) -> not /^\/Admin.*/.test(route)
+      previousRoutes = router.visitedRoutes.filter (route) => not @checkRoute route
       if previousRoutes.length > 0
       then router.handleRoute previousRoutes.last
       else router.handleRoute router.getDefaultRoute()
+
 
   fetchNavItems: (cb) -> cb NAV_ITEMS
