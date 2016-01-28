@@ -12,12 +12,7 @@ workspace             = mock.getMockWorkspace()
 { _id }               = workspace
 
 
-ENV_DATA =
-  collaboration : []
-  shared        : []
-  own           : [
-    { machine : mock.getMockJMachine(), workspaces : [ workspace ] }
-  ]
+ENV_DATA = mock.envDataProvider.fetch.toReturnLoadDataWithOwnMachine()
 
 
 describe 'WorkspacesStore', ->
