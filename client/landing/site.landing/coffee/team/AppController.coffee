@@ -5,6 +5,7 @@ TeamView = require './AppView'
 FLOW_ROUTES  =
   'signup'        : '/Teams'
   'domain'        : '/Team/Domain'
+  'payment'       : '/Team/Payment'
   'username'      : '/Team/Username'
   'welcome'       : '/Team/Welcome'
   'join'          : '/Team/Join'
