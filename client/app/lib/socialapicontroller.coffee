@@ -301,7 +301,7 @@ module.exports = class SocialApiController extends KDController
     item.isParticipant       = channel.isParticipant
     item.accountOldId        = channel.accountOldId
     # we only allow name, purpose and payload to be updated
-    item.payload             = data.payload
+    item.payload             = data.payload or {}
 
     if isFeedEnabled() and item.typeConstant in ['privatemessage', 'bot']
       # if cache founded this is an update operation so we have to change purpose
