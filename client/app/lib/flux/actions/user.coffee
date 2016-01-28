@@ -17,18 +17,23 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 ###
 loadAccount = (id) ->
 
-  origin = generateOrigin id
+  new Promise (resolve, reject)->
 
-  { reactor } = kd.singletons
+    origin = generateOrigin id
 
-  reactor.dispatch actions.LOAD_USER_BEGIN, { id, origin }
+    { reactor } = kd.singletons
 
-  fetchAccount origin, (err, account) ->
-    if err
-      reactor.dispatch actions.LOAD_USER_FAIL, { err, id, origin }
-      return
+    reactor.dispatch actions.LOAD_USER_BEGIN, { id, origin }
 
-    reactor.dispatch actions.LOAD_USER_SUCCESS, { id, origin, account }
+    fetchAccount origin, (err, account) ->
+      if err
+        reactor.dispatch actions.LOAD_USER_FAIL, { err, id, origin }
+        reject { err, id }
+        return
+
+      reactor.dispatch actions.LOAD_USER_SUCCESS, { id, origin, account }
+
+      resolve { account }
 
 
 ###*
