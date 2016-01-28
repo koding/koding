@@ -4,12 +4,7 @@ require './core/utils'
 require './core/KD.extend.coffee'
 
 # register appclasses
-require './about/AppController'
-require './home/AppController'
 require './login/AppController'
-require './features/AppController'
-require './legal/AppController'
-require './pricing/AppController'
 require './team/AppController'
 require './teams/AppController'
 
@@ -23,14 +18,14 @@ do ->
 
     require './core/routes.coffee'
     require './login/routes.coffee'
-    require './pricing/routes.coffee'
-    require './legal/routes.coffee'
-    require './features/routes.coffee'
     require './teams/routes.coffee'
     require './team/routes.coffee'
 
   setGroup = (err, group) ->
     registerRoutes()
+    require './pricing/routes.coffee'
+    require './legal/routes.coffee'
+    require './features/routes.coffee'
     KD.config.group = group  if group
     # BIG BANG
     new MainController group
