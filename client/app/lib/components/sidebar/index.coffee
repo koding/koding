@@ -183,7 +183,12 @@ module.exports = class Sidebar extends React.Component
         {@renderInvitationWidget()}
       </div>
       <div className='Sidebar-logo-wrapper'>
-        <img className='Sidebar-footer-logo' src='/a/images/logos/Sidebar-footer-logo.svg' />
+        <object
+          type='image/svg+xml'
+          data='/a/images/logos/Sidebar-footer-logo.svg'
+          className='Sidebar-footer-logo'>
+          Koding Logo
+        </object>
       </div>
     </Scroller>
 
