@@ -227,20 +227,27 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 
 	fmt.Println("Prefetching remote path...")
 
-	// The creation of the pb objection presents a CLI progress bar to the user.
-	bar := pb.StartNew(100)
-	bar.SetMaxWidth(100)
-
 	// doneErr is used to wait until the cache progress is done, and also send
 	// any error encountered. We simply send nil if there is no error.
 	doneErr := make(chan error)
 
+	// The creation of the pb objection presents a CLI progress bar to the user.
+	var bar *pb.ProgressBar
+
 	// The callback, used to update the progress bar as remote.cache downloads
 	cacheProgressCallback := func(par *dnode.Partial) {
+		// initialize bar if nil; do it in callback so the user isn't shown an
+		// empty bar while waiting for first entry
+		if bar == nil {
+			bar = pb.StartNew(100)
+			bar.SetMaxWidth(100)
+		}
+
 		type Progress struct {
 			Progress int   `json:progress`
 			Error    error `json:error`
 		}
+
 		// TODO: Why is this an array from Klient? How can this be written cleaner?
 		ps := []Progress{Progress{}}
 		par.MustUnmarshal(&ps)
