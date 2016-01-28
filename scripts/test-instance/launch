@@ -43,7 +43,7 @@ userData =
   """
 
 params =
-  ImageId          : (require './instance-ami.coffee').current
+  ImageId          : (require './ami').id
   InstanceType     : 'm4.large'
   MinCount         : argv.count
   MaxCount         : argv.count
@@ -79,11 +79,13 @@ tag = ->
       "rv-#{argv['commit'].substring 0, 7}"
 
   Resources = InstanceIds
-  Key   = 'Name'
-  Value = "test-#{refspec}"
-  Tags  = [{Key, Value}]
 
-  EC2.createTags {Resources, Tags}, ->
+  Tags = []
+  addTag = (Key, Value) -> Tags.push { Key, Value }
+  addTag 'Name', "test-#{refspec}"
+  addTag 'Role', 'test-instance'
+
+  EC2.createTags { Resources, Tags }, (err, res) ->
 
 
 monitor = ->
