@@ -2,6 +2,7 @@ package fs
 
 import (
 	"encoding/base64"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -29,18 +30,20 @@ var (
 	testfile1 = "testdata/testfile1.txt.tmp"
 )
 
-func init() {
+func TestMain(m *testing.M) {
+	flag.Parse()
+
 	// NOTE(rjeczalik): copy testdata/testfile1.txt so after test execution
 	// the file is not modified.
 	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
 		panic(err)
 	}
-}
 
-func init() {
+	kiteURL := testutil.GenKiteURL()
+
 	fs = kite.New("fs", "0.0.1")
 	fs.Config.DisableAuthentication = true
-	fs.Config.Port = 3636
+	fs.Config.Port = kiteURL.Port()
 	fs.HandleFunc("readDirectory", ReadDirectory)
 	fs.HandleFunc("glob", Glob)
 	fs.HandleFunc("readFile", ReadFile)
@@ -57,22 +60,27 @@ func init() {
 
 	go fs.Run()
 	<-fs.ServerReadyNotify()
+	defer fs.Close()
 
 	remoteKite := kite.New("remote", "0.0.1")
 	remoteKite.Config.Username = "remote"
-	remote = remoteKite.NewClient("http://127.0.0.1:3636/kite")
+	remote = remoteKite.NewClient(kiteURL.String())
 	err := remote.Dial()
 	if err != nil {
 		log.Fatal("err")
 	}
+	defer remoteKite.Close()
 
 	remoteKite2 := kite.New("remote2", "0.0.1")
 	remoteKite2.Config.Username = "remote2"
-	remote2 = remoteKite2.NewClient("http://127.0.0.1:3636/kite")
+	remote2 = remoteKite2.NewClient(kiteURL.String())
 	err = remote2.Dial()
 	if err != nil {
 		log.Fatal("err")
 	}
+	defer remoteKite2.Close()
+
+	os.Exit(m.Run())
 }
 
 func benchmarkReadDirectory(b *testing.B, numberOfFiles int) {

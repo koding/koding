@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"koding/kites/common"
+	"koding/klient/testutil"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -16,6 +17,8 @@ import (
 var testLog = common.NewLogger("test", true)
 
 func TestTerminal(t *testing.T) {
+	kiteURL := testutil.GenKiteURL()
+
 	screen, err := exec.LookPath("screen")
 	if err != nil {
 		t.Fatalf("unable to find screen: %s", err)
@@ -24,23 +27,25 @@ func TestTerminal(t *testing.T) {
 	terminal := kite.New("terminal", "0.0.1")
 	terminal.Config.DisableConcurrency = true
 	terminal.Config.DisableAuthentication = true
-	terminal.Config.Port = 3636
+	terminal.Config.Port = kiteURL.Port()
 
 	termInstance := New(testLog, screen)
 	terminal.HandleFunc("connect", termInstance.Connect)
 
 	go terminal.Run()
 	<-terminal.ServerReadyNotify()
+	defer terminal.Close()
 
 	client := kite.New("client", "0.0.1")
 	client.Config.DisableAuthentication = true
 	client.Log = testLog
 
-	remote := client.NewClient("http://127.0.0.1:3636/kite")
+	remote := client.NewClient(kiteURL.String())
 	err = remote.Dial()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer remote.Close()
 
 	termClient := newTermHandler()
 

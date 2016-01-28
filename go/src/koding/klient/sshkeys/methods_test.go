@@ -1,7 +1,10 @@
 package sshkeys
 
 import (
+	"flag"
+	"koding/klient/testutil"
 	"log"
+	"os"
 	"os/user"
 	"strings"
 	"testing"
@@ -24,16 +27,20 @@ var (
 	remote *kite.Client
 )
 
-func init() {
+func TestMain(m *testing.M) {
+	flag.Parse()
+	kiteURL := testutil.GenKiteURL()
+
 	sshkeys = kite.New("sshkeys", "0.0.1")
 	sshkeys.Config.DisableAuthentication = true
-	sshkeys.Config.Port = 3636
+	sshkeys.Config.Port = kiteURL.Port()
 	sshkeys.HandleFunc("list", List)
 	sshkeys.HandleFunc("add", Add)
 	sshkeys.HandleFunc("delete", Delete)
 
 	go sshkeys.Run()
 	<-sshkeys.ServerReadyNotify()
+	defer sshkeys.Close()
 
 	u, err := user.Current()
 	if err != nil {
@@ -42,11 +49,14 @@ func init() {
 
 	remoteKite := kite.New("remote", "0.0.1")
 	remoteKite.Config.Username = u.Username
-	remote = remoteKite.NewClient("http://127.0.0.1:3636/kite")
+	remote = remoteKite.NewClient(kiteURL.String())
 	err = remote.Dial()
 	if err != nil {
 		log.Fatal("err")
 	}
+	defer remoteKite.Close()
+
+	os.Exit(m.Run())
 }
 
 func TestAdd(t *testing.T) {

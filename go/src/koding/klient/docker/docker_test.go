@@ -2,10 +2,13 @@ package docker
 
 import (
 	"errors"
+	"flag"
 	"log"
 	"os"
 	"strings"
 	"testing"
+
+	"koding/klient/testutil"
 
 	dockerclient "github.com/fsouza/go-dockerclient"
 	"github.com/koding/kite"
@@ -18,10 +21,14 @@ var (
 	ErrNotFound       = errors.New("not found")
 )
 
-func init() {
+func TestMain(m *testing.M) {
+	flag.Parse()
+
+	kiteURL := testutil.GenKiteURL()
+
 	d = kite.New("docker", "0.0.1")
 	d.Config.DisableAuthentication = true
-	d.Config.Port = 3636
+	d.Config.Port = kiteURL.Port()
 	d.Config.Username = "dockertest"
 
 	dockerHost := os.Getenv("DOCKER_HOST")
@@ -53,12 +60,16 @@ func init() {
 
 	go d.Run()
 	<-d.ServerReadyNotify()
+	defer d.Close()
 
-	remote = d.NewClient("http://127.0.0.1:3636/kite")
+	remote = d.NewClient(kiteURL.String())
 	err := remote.Dial()
 	if err != nil {
 		log.Fatal("err")
 	}
+	defer remote.Close()
+
+	os.Exit(m.Run())
 }
 
 func TestDockerCreate(t *testing.T) {
