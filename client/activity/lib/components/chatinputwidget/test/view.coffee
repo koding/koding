@@ -90,7 +90,7 @@ describe 'ChatInputWidget.View', ->
       result = TestUtils.renderIntoDocument(
         <ChatInputWidget data={data} />
       )
-      console.log 'result ', result
+
       component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
       expect(component).toExist()
 
