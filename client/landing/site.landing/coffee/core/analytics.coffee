@@ -1,3 +1,5 @@
+$ = require 'jquery'
+
 module.exports = class Analytics
 
   request = (path, method, data) ->
