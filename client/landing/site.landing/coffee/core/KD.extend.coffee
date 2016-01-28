@@ -1,31 +1,10 @@
 KD.extend
-  newKodingLaunchDate: do ->
-    d = new Date()
-    d.setUTCFullYear 2014
-    d.setUTCMonth 7
-    d.setUTCDate 30
-    d.setUTCHours 17
-    d.setUTCMinutes 0
-    d
-
-  setVersionCookie: ({ meta:{ createdAt }}) ->
-    if (new Date createdAt) > KD.newKodingLaunchDate
-      Cookies.set 'koding082014', 'koding082014'
 
   config       : {}
   apiUri       : null
   appsUri      : null
-  singleton    : KD.getSingleton.bind KD
   appClasses   : {}
   appScripts   : {}
-  appLabels    : {}
-  navItems     : []
-  navItemIndex : {}
-  mixpanel     : -> warn 'MIXPANEL DEPRECATED!!! fixen sie @senthil'  if KD.config.environment isnt 'production'
-
-  whoami:-> KD.userAccount
-
-  isLoggedIn:-> KD.whoami()?.type is 'registered'
 
   registerAppClass:(fn, options = {})->
 
@@ -107,23 +86,5 @@ KD.extend
   unregisterAppScript:(name)-> delete @appScripts[name]
 
   resetAppScripts    :-> @appScripts = {}
-
-  disableLogs:->
-    for method in ['log','warn','error','trace','info','time','timeEnd']
-      window[method] = noop
-      KD[method]     = noop
-    delete KD.logsEnabled
-    return "Logs are disabled now."
-
-  enableLogs:(state = yes)->
-    return KD.disableLogs()  unless state
-    KD.log     = window.log     = console.log.bind     console
-    KD.warn    = window.warn    = console.warn.bind    console
-    KD.error   = window.error   = console.error.bind   console
-    KD.info    = window.info    = console.info.bind    console
-    KD.time    = window.time    = console.time.bind    console
-    KD.timeEnd = window.timeEnd = console.timeEnd.bind console
-    KD.logsEnabled = yes
-    return "Logs are enabled now."
 
   runningInFrame: -> window.top isnt window.self
