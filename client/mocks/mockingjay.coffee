@@ -50,6 +50,45 @@ module.exports =
       expect.spyOn(dataProvider, 'ensureDefaultWorkspace').andCall (callback) ->
         callback()
 
+    fetch:
+
+      toReturnMockMachineAndWorkspace: ->
+
+        { machine : mockjmachine, workspaces : [ mockjworkspace ] }
+
+
+      toReturnLoadDataWithCollaborationMachine: ->
+
+        item = @toReturnMockMachineAndWorkspace()
+
+        return {
+          collaboration : [ item ]
+          shared        : []
+          own           : []
+        }
+
+
+      toReturnLoadDataWithSharedMachine: ->
+
+        item = @toReturnMockMachineAndWorkspace()
+
+        return {
+          collaboration : []
+          shared        : [ item ]
+          own           : []
+        }
+
+
+      toReturnLoadDataWithOwnMachine: ->
+
+        item = @toReturnMockMachineAndWorkspace()
+
+        return {
+          collaboration : []
+          shared        : []
+          own           : [ item ]
+        }
+
 
     fetchWorkspaceByMachineUId:
 
