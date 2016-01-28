@@ -588,6 +588,21 @@ func TestDir(t *testing.T) {
 		})
 	})
 
+	Convey("Dir#GetPathForEntry", t, func() {
+		Convey("It should return fullpath for dir", func() {
+			d := newDir()
+			e := &tempEntry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
+
+			n, err := d.initializeChild(e)
+			So(err, ShouldBeNil)
+
+			nestedDir, _ := n.(*Dir)
+			fullpath := nestedDir.GetPathForEntry("file")
+
+			So(fullpath, ShouldEqual, "/local/dir/file")
+		})
+	})
+
 	Convey("Dir#removeChild", t, func() {
 		Convey("It should remove an entry", func() {
 			d := newDir()

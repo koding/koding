@@ -208,7 +208,10 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
-	if err := d.Transport.Rename(oldName, newName); err != nil {
+	oldPath := d.GetPathForEntry(oldName)
+	newPath := newDir.GetPathForEntry(newName)
+
+	if err := d.Transport.Rename(oldPath, newPath); err != nil {
 		return nil, err
 	}
 
@@ -305,6 +308,13 @@ func (d *Dir) Reset() error {
 	d.EntriesList = map[string]Node{}
 
 	return nil
+}
+
+// GetPathForEntry returns full relative path for entry, ie. it combines the
+// full path of dir from the mount with the entry. It does not check if entry
+// exists.
+func (d *Dir) GetPathForEntry(name string) string {
+	return filepath.Join(d.Path, name)
 }
 
 ///// Private helpers
