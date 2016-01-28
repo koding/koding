@@ -1,9 +1,6 @@
-Bongo                           = require 'bongo'
-koding                          = require './../bongo'
+async                           = require 'async'
 request                         = require 'request'
 querystring                     = require 'querystring'
-
-{ daisy }                       = Bongo
 { expect }                      = require 'chai'
 { generateOptoutRequestParams } = require '../../../testhelper/handler/optouthelper'
 
@@ -15,37 +12,35 @@ runTests = -> describe 'server.handlers.optout', ->
 
     optoutRequestParams = generateOptoutRequestParams()
 
-    queue       = []
-    methods     = ['put', 'patch', 'delete']
+    queue   = []
+    methods = ['put', 'patch', 'delete']
 
-    addRequestToQueue = (queue, method) -> queue.push ->
+    addRequestToQueue = (queue, method) -> queue.push (next) ->
       optoutRequestParams.method = method
       request optoutRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 404
-        queue.next()
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 404
+        next()
 
     for method in methods
       addRequestToQueue queue, method
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 301 and redirect and set useOldKoding cookie', (done) ->
 
-    cookieJar           = request.jar()
+    cookieJar = request.jar()
 
     optoutRequestParams = generateOptoutRequestParams
       jar : cookieJar
 
-    url                 = optoutRequestParams.url
+    url = optoutRequestParams.url
 
     request.post optoutRequestParams, (err, res, body) ->
-      expect(err)                           .to.not.exist
-      expect(res.statusCode)                .to.be.equal 301
-      expect(cookieJar.getCookieString url) .to.contain 'useOldKoding=true'
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 301
+      expect(cookieJar.getCookieString url).to.contain 'useOldKoding=true'
       done()
 
 
