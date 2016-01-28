@@ -4,6 +4,7 @@ module.exports = class TeamView extends kd.View
   TABS =
     login           : require './tabs/teamlogintab'
     domain          : require './tabs/teamdomaintab'
+    payment         : require './tabs/teampaymenttab'
     username        : require './tabs/teamusernametab'
     join            : require './tabs/teamjointab'
     welcome         : require './tabs/teamwelcometab'
