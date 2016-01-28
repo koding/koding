@@ -39,7 +39,8 @@ module.exports = (options, callback) ->
       <script>
         window._runtimeOptions = {
           google    : #{JSON.stringify KONFIG.client.runtimeOptions.google},
-          recaptcha : #{JSON.stringify KONFIG.client.runtimeOptions.recaptcha}
+          recaptcha : #{JSON.stringify KONFIG.client.runtimeOptions.recaptcha},
+          stripe    : #{JSON.stringify KONFIG.client.runtimeOptions.stripe}
         }
       </script>
 
