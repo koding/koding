@@ -8,7 +8,6 @@ querystring = require 'querystring'
 { argv }   = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 mongo       = KONFIG.mongoReplSet or "mongodb://#{ KONFIG.mongo }"
-{ daisy }   = Bongo
 { expect }  = require 'chai'
 
 
@@ -168,7 +167,6 @@ module.exports = {
   _
   hat
   async
-  daisy
   expect
   request
   generateUrl
