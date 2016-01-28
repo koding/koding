@@ -2,7 +2,6 @@ kd                      = require 'kd'
 React                   = require 'kd-react'
 Link                    = require 'app/components/common/link'
 ReactDOM                = require 'react-dom'
-classnames              = require 'classnames'
 ActivityFlux            = require 'activity/flux'
 SidebarSection          = require 'app/components/sidebarsection'
 isUserGroupAdmin        = require 'app/util/isusergroupadmin'
@@ -39,12 +38,9 @@ module.exports = class SidebarNoStacks extends React.Component
   renderContent: ->
 
     if @state.isGroupAdmin
-      <div>
-        <label>No stacks</label>
-        <Link href='/Stacks/Group-Stack-Templates'>
-          Create a stack
-        </Link>
-      </div>
+      <label>
+        <Link href='/Welcome'>No stacks</Link>
+      </label>
     else
       <div>
         <p>
@@ -52,9 +48,7 @@ module.exports = class SidebarNoStacks extends React.Component
           fully configured yet, please
           contact your team admin.
         </p>
-        <Link href='/Messages/New' onClick={@bound 'handleOnClick'}>
-          Message admin
-        </Link>
+        <Link href='/Messages/New' onClick={@bound 'handleOnClick'}>Message admin</Link>
       </div>
 
 
@@ -62,9 +56,11 @@ module.exports = class SidebarNoStacks extends React.Component
 
     return null  unless @state.isReady
 
-    <section className={classnames 'SidebarSection', @props.className}>
-      <div className='SidebarSection-body'>
+    <div className='SidebarTeamSection'>
+      <SidebarSection
+        className={@props.className}
+        title='Stacks' >
         {@renderContent()}
-      </div>
-    </section>
+      </SidebarSection>
+    </div>
 
