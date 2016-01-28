@@ -46,23 +46,6 @@ fetchChannelActivities = (data, callback) ->
   url = "#{socialProxyUrl}/channel/#{data.channelId}/history"
   get url, data, callback
 
-fetchActivityCount = (data, callback) ->
-  if not data.channelId
-    return callback new KodingError 'Request is not valid for fetching activity count'
-
-  url = "#{socialProxyUrl}/channel/#{data.channelId}/history/count"
-  get url, data, callback
-
-fetchGroupChannels = (data, callback) ->
-  if not data.groupName or not data.accountId
-    return callback new KodingError 'Request is not valid for fetching channel'
-
-  # topic fetch is crashing so we forced for a limit here
-  data.limit = 15
-
-  url = "#{socialProxyUrl}/channel"
-  get url, data, callback
-
 fetchMessage = (data, callback) ->
   if not data.id
     return callback new KodingError 'Message id is not set'
@@ -181,11 +164,6 @@ listNotifications = (data, callback) ->
   url = "#{socialProxyUrl}/notification/#{data.accountId}"
   get url, data, callback
 
-listParticipants = (data, callback) ->
-  return callback new KodingError 'Request is not valid'  unless data.channelId
-  url = "#{socialProxyUrl}/channel/#{data.channelId}/participants"
-  get url, data, callback
-
 addParticipants = (data, callback) ->
   url = "#{socialProxyUrl}/channel/#{data.channelId}/participants/add"
   doChannelParticipantOperation data, url, callback
@@ -200,24 +178,6 @@ removeParticipants = (data, callback) ->
     return callback { message: 'Channel not found' } unless channel?.channel
 
     doChannelParticipantOperation data, url, callback
-
-acceptInvite = (data, callback) ->
-
-  unless data.channelId or data.accountId
-    return callback new KodingError 'Request is not valid'
-
-  url = "#{socialProxyUrl}/channel/#{data.channelId}/invitation/accept"
-
-  post url, data, callback
-
-rejectInvite = (data, callback) ->
-
-  unless data.channelId or data.accountId
-    return callback new KodingError 'Request is not valid'
-
-  url = "#{socialProxyUrl}/channel/#{data.channelId}/invitation/reject"
-
-  post url, data, callback
 
 doChannelParticipantOperation = (data, url, callback) ->
   return callback new KodingError 'Request is not valid'  unless data.channelId
@@ -346,6 +306,12 @@ messageBySlug = (data, callback) ->
   if not data.slug
     return callback new KodingError 'slug should be set'
   url = "#{socialProxyUrl}/message/slug/#{data.slug}"
+  get url, data, callback
+
+channelById = (data, callback) ->
+  if not data.id
+    return callback new KodingError 'id should be set'
+  url = "#{socialProxyUrl}/channel/#{data.id}"
   get url, data, callback
 
 channelByName = (data, callback) ->
@@ -495,6 +461,7 @@ module.exports = {
   messageBySlug
   checkChannelParticipation
   messageById
+  channelById
   channelByName
   glancePinnedPost
   glanceNotifications
@@ -512,11 +479,8 @@ module.exports = {
   sendPrivateMessage
   fetchFollowedChannels
   fetchFollowedChannelCount
-  listParticipants
   addParticipants
   removeParticipants
-  acceptInvite
-  rejectInvite
   fetchPinnedMessages
   pinMessage
   unpinMessage
@@ -535,8 +499,6 @@ module.exports = {
   createChannel
   fetchMessage
   fetchChannelActivities
-  fetchActivityCount
-  fetchGroupChannels
   followUser
   unfollowUser
   createGroupNotification
