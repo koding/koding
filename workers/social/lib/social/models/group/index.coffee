@@ -492,8 +492,7 @@ module.exports = class JGroup extends Module
         account = client.connection.delegate
 
         shareCredentials { group, account }, (err) ->
-          console.error err  if err
-          console.log 'shared credentials'
+          console.log 'shared credentials', err
           queue.next()
 
     ]
