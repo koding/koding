@@ -2,10 +2,6 @@
 
 set -euo pipefail
 
-# install debuild and s3cmd commands
-sudo apt-get update
-sudo apt-get install -y ubuntu-dev-tools s3cmd
-
 # configure s3cmd
 echo '[default]' > ~/.s3cfg
 echo "access_key=$S3_ACCESS_KEY" >> ~/.s3cfg
