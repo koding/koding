@@ -34,6 +34,7 @@ type KlientTransport struct {
 func NewKlientTransport(c *kite.Client, t time.Duration, r string) (*KlientTransport, error) {
 	return &KlientTransport{
 		Client:      c,
+		RemotePath:  r,
 		TellTimeout: t,
 		IgnoreDirs:  defaultDirIgnoreList,
 	}, nil
