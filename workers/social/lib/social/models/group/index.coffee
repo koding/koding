@@ -487,6 +487,15 @@ module.exports = class JGroup extends Module
           console.log 'created socialApiId ids'
           queue.next()
 
+      ->
+        { shareCredentials } = require '../computeproviders/teamutils'
+        account = client.connection.delegate
+
+        shareCredentials { group, account }, (err) ->
+          console.error err  if err
+          console.log 'shared credentials'
+          queue.next()
+
     ]
 
     if 'private' is group.privacy
