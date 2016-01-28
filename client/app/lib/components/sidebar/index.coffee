@@ -170,6 +170,11 @@ module.exports = class Sidebar extends React.Component
       threads={@state.privateChannels} />
 
 
+  renderSidebarLogo: ->
+
+    <img className='Sidebar-footer-logo' src='/a/images/logos/Sidebar-footer-logo.svg' />
+
+
   render: ->
 
     <Scroller className={kd.utils.curry 'activity-sidebar', @props.className}>
@@ -180,6 +185,7 @@ module.exports = class Sidebar extends React.Component
       {@renderChannels()}
       {@renderMessages()}
       {@renderInvitationWidget()}
+      {@renderSidebarLogo()}
     </Scroller>
 
 
