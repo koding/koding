@@ -4,6 +4,41 @@ TEAMPLANS   = require './teamplans'
 konstraints = require 'konstraints'
 { clone }   = require 'underscore'
 
+
+shareCredentials = (options, callback) ->
+
+  { account, group } = options
+
+  return callback null  unless group.config?.plan?
+
+  JCredential = require './credential'
+  JCredential.one { 'meta.trial': yes }, (err, credential) ->
+
+    if err or not credential
+      err ?= new KodingError 'No credential found to share with team'
+      return callback err
+
+    scope = { user: yes, owner: no }
+
+    # First share with the group so everyone in this group
+    # can build stack with this credential
+
+    credential.setPermissionFor group, scope, (err) ->
+      return callback err  if err
+
+      # Then share with the admin so admin can select this credential
+      # while creating the stacktemplate
+      #
+      # TODO: What if group admin wants to add more admins to his team,
+      # new team admins won't be able to see this credential in credential
+      # lists. But they still will be able to use it for building stack.
+
+      credential.setPermissionFor account, scope, (err) ->
+        return callback err  if err
+
+        callback null
+
+
 # returns plan data, if plan not found it fallbacks to default
 getPlanData = (plan) ->
 
@@ -95,4 +130,6 @@ generateConstraints = (plan) ->
   return rules
 
 
-module.exports = { generateConstraints, getPlanData, TEAMPLANS }
+module.exports = {
+  generateConstraints, getPlanData, shareCredentials, TEAMPLANS
+}
