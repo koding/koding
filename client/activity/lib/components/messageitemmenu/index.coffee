@@ -182,9 +182,9 @@ module.exports = class MessageItemMenu extends React.Component
 
     result = []
 
-    if @canEditPost then result.push @getEditMenuItem()
+    if @canEditPost() then result.push @getEditMenuItem()
 
-    if @canDeletePost then result.push @getDeleteMenuItem()
+    if @canDeletePost() then result.push @getDeleteMenuItem()
 
     return result
 
