@@ -1,7 +1,7 @@
 .SidebarSection-header
   position                  relative
   padding                   0
-  margin-bottom             10px
+  margin-bottom             13px
   cursor                    pointer
 
   > .SidebarListItem-unreadCount
@@ -12,17 +12,18 @@
     text-decoration         none
 
 .SidebarSection-headerTitle
-  antialiased()
   font-weight               $fw-regular
   font-size                 $fs-small
   height                    16px
   line-height               16px
   color                     $gray-8
   word-spacing              0.2em
-  letter-spacing            0.08em
   text-transform            uppercase
   ellipsis()
+  antialiased()
 
+.SidebarSection-body
+  padding-left              2px
 
 .SidebarSection-secondaryLink
   abs                       50% 0px 0 0

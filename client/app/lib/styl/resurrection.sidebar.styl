@@ -661,21 +661,21 @@ sidebarTextShadow()
       rounded             3px
 
     a.login-link
-      color               #fff
+      color                 #fff
 
   .sidebar-bottom-links
-    text-align            center
-    abs                   0 0 26px 0px
-    font-size             14px
-    font-weight           400
-    width                 100%
+    text-align              center
+    abs                     0 0 26px 0px
+    font-size               14px
+    font-weight             400
+    width                   100%
 
     a
-      color               #777777
+      color                 #777777
       noTextDeco()
 
       &~a
-        margin-left       12px
+        margin-left         12px
 
 
   a.kdlistitemview-sidebar-item
@@ -683,10 +683,16 @@ sidebarTextShadow()
     noTextDeco()
 
     &.public-feed-link
-      margin-top      13px
-      padding         0 8px
-      height          28px
-      line-height     28px
+      margin-top            13px
+      padding               0 8px
+      height                28px
+      line-height           28px
+
+  .Sidebar-footer-logo
+    width                   112px
+    margin                  40px auto
+    rel()
+    dBlock()
 
 .account-area
   bottom                    0
@@ -696,24 +702,24 @@ sidebarTextShadow()
   vendor                    transition, width .3s ease
 
   > div
-    display         inline-block
-    width           auto
-    vertical-align  top
+    width                   auto
+    vertical-align          top
+    dIBlock()
 
   .acc-icon
-    size            50px 46px
-    display         block
-    abs             -1px 0px 0 0
+    size                    50px 46px
+    abs                     -1px 0px 0 0
     borderBox()
+    dBlock()
 
   .acc-icon.active
-    bg              color, #1D1D1D
-    border-left     1px solid #323232
+    bg                      color, #1D1D1D
+    border-left             1px solid #323232
 
   .acc-icon .icon
-    display         block
-    padding-bottom  1px
-    margin          21px auto
+    display                 block
+    padding-bottom          1px
+    margin                  21px auto
 
   .acc-notification-icon
     &.active
