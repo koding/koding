@@ -13,6 +13,7 @@ toImmutable               = require 'app/util/toImmutable'
 mockThread                = require 'app/util/generateDummyThread'
 mockChannel               = require 'app/util/generateDummyChannel'
 mockjworkspace            = require './mock.jworkspace'
+mockjcomputestack         = require './mock.jcomputestack'
 mockParticipants          = require 'app/util/generateDummyParticipants'
 mockReactComponent        = require './mock.reactComponent'
 mockcollaborationchannel  = require './mock.collaborationchannel'
@@ -332,6 +333,8 @@ module.exports =
   getMockImmutableWorkspace : -> return toImmutable mockjworkspace
 
   getMockCollaborationChannel : -> return mockcollaborationchannel
+
+  getMockJComputeStack: -> return mockjcomputestack
 
   getMockMessage: (args...) -> return mockMessage(args...)
 
