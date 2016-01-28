@@ -1,5 +1,4 @@
-{ daisy
-  expect
+{ expect
   request
   generateRandomString
   generateRandomUsername
