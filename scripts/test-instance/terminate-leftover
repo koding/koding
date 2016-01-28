@@ -20,11 +20,10 @@ run = ->
     process.exit 1
 
   {DryRun, ExpirationTime} = getOptions argv
-  imageIds = (require './instance-ami').list
 
   Filters = [
-    { Name: 'image-id', Values: imageIds }
     { Name: 'instance-state-name', Values: ['running'] }
+    { Name: 'tag:Role', Values: ['test-instance'] }
   ]
 
   EC2.describeInstances {Filters}, (err, data) ->

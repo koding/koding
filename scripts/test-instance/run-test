@@ -20,6 +20,7 @@ OPTIONS=$*
 ssh -o 'StrictHostKeyChecking no' \
     -i $(dirname $0)/koding-test-instances-2015-06.pem \
     ubuntu@$HOST \
+    IGNORED_TEST_CASES="'$IGNORED_TEST_CASES'" \
     NIGHTWATCH_OPTIONS="'$NIGHTWATCH_OPTIONS'" \
     "sudo -E /opt/koding/client/test/run.sh $OPTIONS" &
 

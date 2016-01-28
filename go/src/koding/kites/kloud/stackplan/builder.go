@@ -33,11 +33,29 @@ type KodingMeta struct {
 // CustomMeta represents private variables injected into Terraform template.
 type CustomMeta map[string]string
 
+// GenericMeta represents generic meta for jCredentialDatas like userInput.
+type GenericMeta map[string]string
+
+func genericMetaFunc() interface{} {
+	return &GenericMeta{}
+}
+
 // MetaFuncs is a global lookup map used to initialize meta values for
 // jCredentialDatas document, per provider.
 var MetaFuncs = map[string]func() interface{}{
 	"koding": func() interface{} { return &KodingMeta{} },
 	"custom": func() interface{} { return &CustomMeta{} },
+}
+
+// metaFunc returns a meta object builder by looking up registered providers.
+//
+// If no builder was found it returns a builder GenericMeta.
+func metaFunc(provider string) func() interface{} {
+	fn, ok := MetaFuncs[provider]
+	if ok {
+		return fn
+	}
+	return genericMetaFunc
 }
 
 // Builder is used for building Terraform template.
@@ -318,15 +336,12 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 			return errors.New("provider was not found for identifer: " + c.Identifier)
 		}
 
-		metaFunc, ok := MetaFuncs[provider]
-		if !ok {
-			return errors.New("metadata not recognized for provider: " + provider)
-		}
+		fn := metaFunc(provider)
 
 		cred := &Credential{
 			Provider:   provider,
 			Identifier: c.Identifier,
-			Meta:       metaFunc(),
+			Meta:       fn(),
 		}
 
 		if err := b.Object.Decode(c.Meta, cred.Meta); err != nil {
