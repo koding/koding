@@ -15,14 +15,11 @@ MainControllerLoggedOut               = require './../core/maincontrollerloggedo
 
 module.exports = class LoginView extends JView
 
-  RECAPTCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
-
-  stop           = KD.utils.stopDOMEvent
-  ENTER          = 13
-  USERNAME_VALID = no
-
+  RECAPTCHA_JS         = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
+  stop                 = KD.utils.stopDOMEvent
+  ENTER                = 13
+  USERNAME_VALID       = no
   pendingSignupRequest = no
-
 
   constructor:(options = {}, data)->
 
