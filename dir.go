@@ -3,6 +3,7 @@ package fuseklient
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -108,7 +109,8 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 		return nil, fuse.EEXIST
 	}
 
-	if err := d.Transport.CreateDir(name, 0755); err != nil {
+	path := filepath.Join(d.Path, name)
+	if err := d.Transport.CreateDir(path, 0755); err != nil {
 		return nil, err
 	}
 
