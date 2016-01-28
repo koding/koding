@@ -86,9 +86,11 @@ module.exports = class PostingGuideLinesWidget extends React.Component
         </ol>
       </div>
       <Link
+        ref='ReadMore'
         className='ActivityGuideWidget-readMore'
         onClick={@bound 'showMoreClick'}>read more...</Link>
       <Link
+        ref = 'HideInfo'
         className='ActivityGuideWidget-hideInfo'
         onClick={@bound 'hideInfoClick'}>hide info...</Link>
     </div>
