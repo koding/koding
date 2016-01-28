@@ -54,7 +54,7 @@ build:
         envvar: INSTANCE_IP
     - script:
         name: create data files
-        code: touch INSTANCE_DATA CLIENT_TEST
+        code: touch INSTANCE_DATA
     - script:
         name: launch test instance
         code: |
@@ -160,7 +160,6 @@ build:
     - script:
         name: testing client started
         code: |
-          echo started > CLIENT_TEST
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     - script:
         name: run test suites
@@ -186,10 +185,9 @@ build:
     - script:
         name: cleanup
         code: |
-          export CLIENT_TEST=$(cat CLIENT_TEST)
           scripts/wercker/destroy-user-machines INSTANCE_DATA
           scripts/wercker/after-step-cleanup INSTANCE_DATA
-          rm -f INSTANCE_DATA CLIENT_TEST
+          rm -f INSTANCE_DATA
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
