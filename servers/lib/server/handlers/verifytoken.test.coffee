@@ -46,7 +46,7 @@ runTests = -> describe 'server.handlers.verifytoken', ->
     for method in methods
       addRequestToQueue queue, method
 
-    async.series queue,done
+    async.series queue, done
 
 
   it 'should redirect to VerificationFailed page if token is invalid', (done) ->
