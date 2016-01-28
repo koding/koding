@@ -34,7 +34,7 @@ type KodingMeta struct {
 type CustomMeta map[string]string
 
 // GenericMeta represents generic meta for jCredentialDatas like userInput.
-type GenericMeta map[string]string
+type GenericMeta map[string]interface{}
 
 func genericMetaFunc() interface{} {
 	return &GenericMeta{}

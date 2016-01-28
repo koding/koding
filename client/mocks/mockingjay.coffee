@@ -15,6 +15,7 @@ mockChannel        = require 'app/util/generateDummyChannel'
 mockThread         = require 'app/util/generateDummyThread'
 mockParticipants   = require 'app/util/generateDummyParticipants'
 mockMessages       = require 'app/util/generateDummyMessages'
+mockChannels       = require 'app/util/generateDummyChannels'
 
 mockMachine = new Machine { machine: mockjmachine }
 mockGroup   = remote.revive mockjgroup
@@ -287,6 +288,8 @@ module.exports =
   getMockMessage: (args...) -> return mockMessage(args...)
 
   getMockChannel: (args...) -> return mockChannel(args...)
+
+  getMockChannels: (args...) -> return mockChannels(args...)
 
   getMockThread: (args...)  -> return mockThread(args...)
 
