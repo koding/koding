@@ -2,9 +2,6 @@ package fuseklient
 
 // Config contains user customizable options for mounting.
 type Config struct {
-	// IP is ip of user VM to connect.
-	IP string `required:"true"`
-
 	// Path is path to folder in local to serve as mount point.
 	Path string `required:"true"`
 
