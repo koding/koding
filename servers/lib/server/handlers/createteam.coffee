@@ -1,4 +1,5 @@
 _                                       = require 'underscore'
+async                                   = require 'async'
 Bongo                                   = require 'bongo'
 koding                                  = require './../bongo'
 { argv }                                = require 'optimist'
@@ -6,7 +7,6 @@ KONFIG                                  = require('koding-config-manager').load 
 
 { uniq }                                = require 'underscore'
 { hostname, environment }               = KONFIG
-{ dash, daisy }                         = Bongo
 { getClientId, handleClientIdNotFound } = require './../helpers'
 { validateTeamDomain }                  = require '../../../../workers/social/lib/social/models/user/validators'
 
@@ -26,7 +26,7 @@ module.exports = (req, res, next) ->
 
   clientId                       = getClientId req, res
 
-  { JUser, JGroup, JInvitation, JTeamInvitation } = koding.models
+  { JUser, JGroup, JInvitation } = koding.models
 
   return handleClientIdNotFound res, req  unless clientId
 
@@ -39,14 +39,15 @@ module.exports = (req, res, next) ->
 
   queue = [
 
-    ->
+    (next) ->
       { teamAccessCode } = body
       # if we dont have teamaccesscode just continue
 
-      validateTeamInvitation = validateTeamInvitationKallback res, queue
-      JTeamInvitation.byCode teamAccessCode, validateTeamInvitation
+      validateTeamInvitation teamAccessCode, (err) ->
+        return res.status(400).send err  if err
+        next()
 
-    ->
+    (next) ->
       koding.fetchClient clientId, context, (client_) ->
 
         client = client_
@@ -61,9 +62,9 @@ module.exports = (req, res, next) ->
         body.emailFrequency         or= {}
         # convert string boolean to boolean
         body.emailFrequency.marketing = newsletter is 'true'
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # checking if group slug is same with the username
       if slug.toLowerCase?() is body.username?.toLowerCase?()
         message = 'Sorry, your group domain and your username can not be the same!'
@@ -74,9 +75,9 @@ module.exports = (req, res, next) ->
         return res.status(500).send 'an error occured'  if err
         return res.status(403).send "Sorry,
           Team URL '#{slug}.#{hostname}' is already in use"  if group
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # checking if user exists by trying to login the user
       JUser.login client.sessionToken, body, (err, result) ->
         errorMessage          = err?.message
@@ -89,9 +90,9 @@ module.exports = (req, res, next) ->
         # setting alreadyMember to true if error is not unknownUsernameError
         # ignoring other errors here since our only concern is checking if user exists
         alreadyMember = errorMessage isnt unknownUsernameError
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # generating callback function to be used in both login and convert
       createGroup = createGroupKallback client, req, res, body
 
@@ -101,16 +102,17 @@ module.exports = (req, res, next) ->
 
   ]
 
-  daisy queue
+  async.series queue
 
 
-validateTeamInvitationKallback = (res, queue) ->
+validateTeamInvitation = (teamAccessCode, callback) ->
 
-  return (err, invitation) ->
-    return res.status(400).send err.message                     if err
-    return res.status(400).send 'Team Invitation is not found'  if not invitation
-    return res.status(400).send 'Team Invitation is not valid'  if not invitation.isValid()
-    return queue.next()
+  { JTeamInvitation } = koding.models
+  JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
+    return callback err.message                     if err
+    return callback 'Team Invitation is not found'  if not invitation
+    return callback 'Team Invitation is not valid'  if not invitation.isValid()
+    return callback null
 
 
 createGroupKallback = (client, req, res, body) ->
@@ -188,19 +190,19 @@ afterGroupCreateKallback = (res, params) ->
     queue = [
 
       # add other parallel operations here
-      -> createInvitations client, invitees, (err) ->
+      (fin) -> createInvitations client, invitees, (err) ->
           console.error 'Err while creating invitations', err  if err
-          queue.fin()
+          fin()
 
-      ->
+      (fin) ->
         JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
-          return queue.fin()  if err or not invitation
+          return fin()  if err or not invitation
           invitation.markAsUsed (err) ->
             console.error err  if err
-            queue.fin()
+            fin()
     ]
 
-    dash queue, (err) ->
+    async.parallel queue, (err) ->
       # do not block group creation
       console.error 'Error while creating group artifacts', body, err if err
 
