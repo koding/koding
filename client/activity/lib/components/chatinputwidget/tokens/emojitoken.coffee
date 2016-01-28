@@ -20,13 +20,16 @@ module.exports = EmojiToken =
   getConfig: ->
 
     return {
-      component              : EmojiDropbox
-      getters                :
-        items                : 'dropboxEmojis'
-        selectedIndex        : 'emojisSelectedIndex'
-        selectedItem         : 'emojisSelectedItem'
-      horizontalNavigation   : yes
-      handleItemConfirmation : (item, query) ->
+      component            : EmojiDropbox
+      getters              :
+        items              : 'dropboxEmojis'
+        selectedIndex      : 'emojisSelectedIndex'
+        selectedItem       : 'emojisSelectedItem'
+      horizontalNavigation : yes
+      processConfirmedItem : (item, query) ->
         EmojiActions.incrementUsageCount item
-        return "#{formatEmojiName item} "
+        return {
+          type  : 'text'
+          value : "#{formatEmojiName item} "
+        }
     }

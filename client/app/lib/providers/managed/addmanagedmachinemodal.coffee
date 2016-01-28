@@ -1,6 +1,8 @@
 kd              = require 'kd'
 whoami          = require 'app/util/whoami'
 globals         = require 'globals'
+actions         = require 'app/flux/environment/actions'
+isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
 
 
@@ -51,7 +53,11 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   machineFoundCallback: (info, machine) ->
 
-    kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
+    if isTeamReactSide()
+      actions.showManagedMachineAddedModal info, machine._id
+    else
+      kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
+
     @destroy()
 
 
@@ -124,6 +130,10 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
   handleError: (err) ->
 
     console.warn "Couldn't fetch otatoken:", err  if err
+
+    if err.message.indexOf('confirm your email address') > -1
+      new kd.NotificationView title : err.message
+      return @destroy()
 
     @loader.destroy()
     return @code.updatePartial 'Failed to fetch one time access token.'

@@ -12,6 +12,11 @@ import (
 
 func Add(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Context) (int, http.Header, interface{}, error) {
 	var err error
+
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	req.AccountId = ctx.Client.Account.Id
 	req, err = prepareInteraction(u, req)
 	if err != nil {
@@ -28,6 +33,11 @@ func Add(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Context
 
 func Delete(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Context) (int, http.Header, interface{}, error) {
 	var err error
+
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
 	req.AccountId = ctx.Client.Account.Id
 	req, err = prepareInteraction(u, req)
 	if err != nil {
@@ -42,13 +52,14 @@ func Delete(u *url.URL, h http.Header, req *models.Interaction, ctx *models.Cont
 	return response.NewOK(nil)
 }
 
-func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	messageId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	query := request.GetQuery(u)
+	query := context.OverrideQuery(request.GetQuery(u))
+
 	if query.Type == "" {
 		query.Type = "like"
 	}
@@ -70,7 +81,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 
 	// get query
-	query := request.GetQuery(u)
+	query := c.OverrideQuery(request.GetQuery(u))
 
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -113,6 +124,22 @@ func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interactio
 
 	if req.AccountId == 0 {
 		return nil, errors.New("AccountId is not set")
+	}
+	message, err := models.Cache.Message.ById(messageId)
+	if err != nil {
+		return nil, err
+	}
+	channel, err := models.Cache.Channel.ById(message.InitialChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	canOpen, err := channel.CanOpen(req.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	if !canOpen {
+		return nil, models.ErrCannotOpenChannel
 	}
 
 	interactionType := u.Query().Get("type")

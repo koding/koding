@@ -147,7 +147,7 @@ koding.once 'dbClientReady', ->
   console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
 
   # start user tracking
-  usertracker.start()
+  usertracker.start koding.redisClient
 
   # start monitoring nodejs metrics (memory, gc, cpu etc...)
   nodejsProfiler = new NodejsProfiler 'nodejs.webserver'

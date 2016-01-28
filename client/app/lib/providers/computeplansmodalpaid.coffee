@@ -275,9 +275,16 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     computeController.create {
       provider : "koding", stack, storage, region, snapshotId
-    }, (err, machine)=>
+    }, (err, machine) =>
 
       return  if showError err
 
       @createVMButton.hideLoader()
       @destroy()
+
+      route = if location.pathname is '/IDE'
+      then "/IDE/#{machine.slug}"
+      else '/IDE'
+
+      kd.singletons.router.handleRoute route
+

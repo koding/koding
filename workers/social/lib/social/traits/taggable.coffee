@@ -1,7 +1,8 @@
 module.exports = class Taggable
 
-  { ObjectRef, daisy, secure } = require 'bongo'
-  { Relationship } = require 'jraphical'
+  async                 = require 'async'
+  { Relationship }      = require 'jraphical'
+  { ObjectRef, secure } = require 'bongo'
 
   getTaggedContentRole  : -> @constructor.taggedContentRole or 'tagged'
   getTagRole            : -> @constructor.tagRole           or 'tag'
@@ -22,22 +23,23 @@ module.exports = class Taggable
       else unless tags.length then callback null
       else
         JTag.handleFreetags client, tags, (err, tag) =>
-          if err then callback err
-          else
-            daisy queue = [
-              =>
-                @addTag tag, (err) ->
-                  if err then callback err
-                  else do queue.next
-              =>
-                incCount = {}
-                incCount["counts.#{taggedContentRole}"] = taggedCount
-                tag.update { $set: incCount }, (err) =>
-                  if err then callback err
-                  else if ++tagCount is tags.length
-                    @emit 'TagsChanged', tags unless options.silent
-                    callback null
-            ]
+          return callback err  if err
+
+          async.series [
+
+            (next) =>
+              @addTag tag, next
+
+            (next) =>
+              incCount = {}
+              incCount["counts.#{taggedContentRole}"] = taggedCount
+              tag.update { $set: incCount }, (err) =>
+                return next err  if err
+                if ++tagCount is tags.length
+                  @emit 'TagsChanged', tags unless options.silent
+                next()
+
+          ], callback
 
   removeAllTags: secure (client, options, callback) ->
     [callback, options] = [options, callback] unless callback

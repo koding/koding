@@ -1,0 +1,40 @@
+@startuml
+
+title IDE Collaboration State Diagram
+
+[*] --> Loading
+Loading -> NotStarted        : no realtime document
+Loading --> ErrorLoading     : error while loading
+ErrorLoading --> Loading     : retry loading
+ErrorLoading --> NotStarted  : gracefully fail
+NotStarted --> Preparing     : host clicked share button
+Preparing --> Prepared       : session is prepared to be created
+Preparing --> ErrorPreparing : failed to prepare session
+ErrorPrepared --> Preparing  : retry prepare
+ErrorPrepared --> NotStarted : give up preparing
+Prepared --> Creating        : host clicked start session button
+Creating --> Active          : session is created
+Creating --> ErrorCreating   : failed to create session
+ErrorCreating --> Creating   : retry create
+ErrorCreating --> NotStarted : give up creating
+ErrorResuming_ --> Resuming  : retry resuming
+Resuming --> ErrorResuming_  : failed to resume
+Loading --> Resuming         : previous session data found
+Resuming --> Active          : session is recovered
+Active --> Ending            : kicked, left or ended
+Ending --> [*]               : dispose machine and create new one
+
+Loading        : initial session check
+NotStarted     : there is no session
+Preparing      : preparing session for creating session
+ErrorPreparing : error handling for preparing
+Prepared       : session is prepared to be created
+Active         : an active session is going on
+Creating       : session is starting
+Resuming       : user already in that session
+Ending         : session ending started
+ErrorLoading   : error handling for loading
+ErrorCreating  : failed to create session
+ErrorResuming_ : failed to resume session
+
+@enduml

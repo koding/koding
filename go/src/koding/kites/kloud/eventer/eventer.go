@@ -25,6 +25,9 @@ type Eventer interface {
 	// the content of the stack.
 	Show() *Event
 
+	// ID gives an id of the eventer.
+	ID() string
+
 	// Close closes the eventer and shuts down input to the stack. No other
 	// events can be inserted after close is invoked. After close Show() should
 	// show the latest item.
@@ -111,6 +114,10 @@ func (e *Events) Show() *Event {
 	}
 
 	return e.events[len(e.events)-1]
+}
+
+func (e *Events) ID() string {
+	return e.eventId
 }
 
 func (e *Events) Close() {

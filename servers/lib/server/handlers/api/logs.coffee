@@ -5,6 +5,8 @@
 errors          = require './errors'
 KodingLogger    = require '../../../../models/kodinglogger'
 
+# TODO Add request caching here ~ GG
+
 module.exports  = (req, res, next) ->
 
   verifySessionOrApiToken req, res, (data) ->

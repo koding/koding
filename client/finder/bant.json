@@ -1,0 +1,10 @@
+{
+  "name": "finder",
+  "main": "./lib/index.coffee",
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl/*.styl"
+  ]
+}

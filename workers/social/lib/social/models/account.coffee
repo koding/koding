@@ -1264,21 +1264,28 @@ module.exports = class JAccount extends jraphical.Module
     errorCallback = ->
       callback new KodingError 'Invalid session'
 
-    unless sessionToken
-      return errorCallback()
+    return errorCallback()  unless sessionToken
 
-    JSession         = require './session'
-    { v4: createId } = require 'node-uuid'
+    @isEmailVerified (err, isVerified) ->
 
-    JSession.one { clientId: sessionToken }, (err, session) ->
+      return callback err  if err
 
-      if err or not session
-        return errorCallback()
+      if not isVerified
+        message = 'Sorry, you need to confirm your email address first.'
+        return callback new KodingError message
 
-      [otaToken] = createId().split '-'
-      session.update { $set: { otaToken } }, (err) ->
-        if err then errorCallback()
-        else callback null, otaToken
+      JSession         = require './session'
+      { v4: createId } = require 'node-uuid'
+
+      JSession.one { clientId: sessionToken }, (err, session) ->
+
+        if err or not session
+          return errorCallback()
+
+        [otaToken] = createId().split '-'
+        session.update { $set: { otaToken } }, (err) ->
+          if err then errorCallback()
+          else callback null, otaToken
 
 
   ###*

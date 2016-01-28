@@ -176,9 +176,14 @@ module.exports = class ComputeHelpers
 
             callback()
 
-            unless showError err
-              if redirectAfterCreation
-                kd.singletons.router.handleRoute "/IDE/#{machine.slug}"
+            return  if showError err
+            return  unless redirectAfterCreation
+
+            route = if location.pathname is '/IDE'
+            then "/IDE/#{machine.slug}"
+            else '/IDE'
+
+            kd.singletons.router.handleRoute route
 
 
   @reviveProvisioner = (machine, callback)->

@@ -1,11 +1,16 @@
 { Base, secure, signature } = require 'bongo'
-KodingError = require '../../error'
 
-{ argv }    = require 'optimist'
-{ series }  = require 'async'
-KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
-teamutils   = require './teamutils'
-konstraints = require 'konstraints'
+{ argv }     = require 'optimist'
+KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
+
+async        = require 'async'
+konstraints  = require 'konstraints'
+
+teamutils    = require './teamutils'
+KodingError  = require '../../error'
+KodingLogger = require '../kodinglogger'
+
+MAX_INT      = Math.pow(2, 32) - 1
 
 
 module.exports = class ComputeProvider extends Base
@@ -21,7 +26,10 @@ module.exports = class ComputeProvider extends Base
 
   JMachine       = require './machine'
   JWorkspace     = require '../workspace'
-  JStackTemplate = require './stacktemplate'
+
+  @COUNTER_TYPE  =
+    stacks       : 'member_stacks'
+    instances    : 'member_instances'
 
   @share()
 
@@ -60,15 +68,16 @@ module.exports = class ComputeProvider extends Base
 
   @providers      = PROVIDERS
 
+
   @fetchProviders = secure (client, callback) ->
     callback null, Object.keys PROVIDERS
-
 
 
   @ping = (client, options, callback) ->
 
     { provider } = options
     provider.ping client, options, callback
+
 
   @ping$ = permit 'ping machines',
     success: revive {
@@ -124,11 +133,11 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback) ->
 
-    { r: { account } } = client
+    { r: { account, group } } = client
     { stack } = options
 
     JComputeStack = require '../stack'
-    JComputeStack.getStack account, stack, (err, revivedStack) =>
+    JComputeStack.getStack { account, group, stack }, (err, revivedStack) =>
       return callback err  if err?
       return callback new KodingError 'No such stack'  unless revivedStack
 
@@ -182,7 +191,6 @@ module.exports = class ComputeProvider extends Base
 
 
   @update = secure revive
-
 
     shouldReviveClient   : yes
     shouldPassCredential : yes
@@ -286,7 +294,7 @@ module.exports = class ComputeProvider extends Base
               create machineInfo
 
 
-      series queue, -> callback null, { stack, results }
+      async.series queue, -> callback null, { stack, results }
 
 
   # Just takes the plan name and the stack template content generates rules
@@ -315,6 +323,7 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  unless plan
 
+    JStackTemplate = require './stacktemplate'
     JStackTemplate.one$ client, { _id: stackTemplateId }, (err, data) =>
 
       return callback err  if err
@@ -333,7 +342,7 @@ module.exports = class ComputeProvider extends Base
         return callback err  if err
         next()
 
-    series queue, -> callback null
+    async.series queue, -> callback null
 
 
   # WARNING! This will destroy all the resources related with given group!
@@ -347,7 +356,7 @@ module.exports = class ComputeProvider extends Base
       console.log "[#{type}] Failed to destroy group resource:", err  if err
       next()
 
-    series [
+    async.series [
 
       # Remove all machines in the group
       (next) ->
@@ -364,6 +373,7 @@ module.exports = class ComputeProvider extends Base
 
       # Remove all stack templates in the group
       (next) ->
+        JStackTemplate = require './stacktemplate'
         JStackTemplate.remove {
           group: group.slug
         }, skip 'JStackTemplate', next
@@ -391,16 +401,20 @@ module.exports = class ComputeProvider extends Base
 
   @updateGroupStackUsage = (group, change, callback) ->
 
-    plan = group.getAt 'config.plan'
-    return callback null  unless plan
+    return callback null  if group.slug is 'koding'
 
-    plan = teamutils.getPlanData plan
+    plan = group.getAt 'config.plan'
+
+    maxAllowed   = MAX_INT
+    if plan
+      plan       = teamutils.getPlanData plan
+      maxAllowed = plan.member
 
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
-      type      : 'member_stacks'
-      max       : plan.member
+      type      : @COUNTER_TYPE.stacks
+      max       : maxAllowed
       min       : 0
     , (err) ->
       # no worries about `decrement` errors
@@ -408,20 +422,26 @@ module.exports = class ComputeProvider extends Base
       callback if change is 'increment' then err else null
 
 
-  @updateGroupInstanceUsage = (group, change, amount, callback) ->
+  @updateGroupInstanceUsage = (options, callback) ->
+
+    { group, change, amount } = options
+
+    return callback null  if group.slug is 'koding'
 
     plan = group.getAt 'config.plan'
-    return callback null  unless plan
     return callback null  if amount is 0
 
-    plan = teamutils.getPlanData plan
+    maxAllowed   = MAX_INT
+    if plan
+      plan       = teamutils.getPlanData plan
+      maxAllowed = plan.maxInstance
 
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
       amount    : amount
-      type      : 'member_instances'
-      max       : plan.maxInstance
+      type      : @COUNTER_TYPE.instances
+      max       : maxAllowed
       min       : 0
     , (err) ->
       # no worries about `decrement` errors
@@ -431,16 +451,49 @@ module.exports = class ComputeProvider extends Base
 
   @updateGroupResourceUsage = (options, callback) ->
 
-    { group, instanceCount, change } = options
+    { notifyAdmins } = require '../notify'
+    { group, instanceCount, instanceOnly, change, details } = options
+
+    return callback null  if group.slug is 'koding'
+
+    handleResult = (err, item) ->
+
+      if err and change is 'increment'
+
+        { account, template, provider } = details ? {}
+        user     = account?.getAt?('profile.nickname') ? 'an unknown user'
+        provider = if provider? then "#{provider} " else ''
+        template = if template?.title?
+        then "Stack: #{template.title} - #{template._id}"
+        else ''
+
+        message = "
+          #{user} failed to create #{provider}#{item} due to
+          plan limitations. #{template}
+        "
+
+        KodingLogger.warn group, message
+        notifyAdmins group, 'MemberWarning', message
+
+      callback err
+
+    options = { group, change, amount: instanceCount }
+
+    if instanceOnly
+      @updateGroupInstanceUsage options, (err) ->
+        handleResult err, 'machine'
+
+      return
 
     @updateGroupStackUsage group, change, (err) =>
-      return callback err  if err
-      @updateGroupInstanceUsage group, change, instanceCount, (err) =>
+      return handleResult err, 'stack'  if err
+
+      @updateGroupInstanceUsage options, (err) =>
         if err and change is 'increment'
           @updateGroupStackUsage group, 'decrement', ->
-            callback err
+            handleResult err, 'machine'
         else
-          callback err
+          handleResult err, 'resource'
 
 
   @createGroupStack = (client, options, callback) ->
@@ -463,7 +516,7 @@ module.exports = class ComputeProvider extends Base
     # we need to check plan limits for the current group and create the stack
     # and related machines here, this is very critical for multiple stacks ~ GG
 
-    series [
+    async.series [
 
       (next) ->
         fetchGroupStackTemplate client, (err, _res) ->
@@ -475,21 +528,26 @@ module.exports = class ComputeProvider extends Base
         instanceCount = template.machines?.length or 0
         change        = 'increment'
 
+        details = { template, account }
+
         ComputeProvider.updateGroupResourceUsage {
-          group, change, instanceCount
+          group, change, instanceCount, details
         }, (err) ->
           next err
 
       (next) ->
         checkTemplateUsage template, account, (err) ->
-          next err
+          return next err  if err
+          account.addStackTemplate template, (err) ->
+            res.client = client
+            next err
 
       (next) ->
-        account.addStackTemplate template, (err) ->
-          res.client = client
-          next err
 
-      (next) ->
+        # Marking this as groupStack to use it with group resources ~ GG
+        res.template.config ?= {}
+        res.template.config.groupStack = yes
+
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
           if err
             # swallowing errors for followings since we need the real error ~GG

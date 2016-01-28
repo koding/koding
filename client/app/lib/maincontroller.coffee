@@ -48,6 +48,7 @@ MarketingController            = require './marketing/marketingcontroller'
 MachineShareManager            = require './machinesharemanager'
 KodingFluxReactor              = require './flux/base/reactor'
 DesktopNotificationsController = require './desktopnotificationscontroller'
+bowser                         = require 'bowser'
 
 
 module.exports           = class MainController extends KDController
@@ -181,13 +182,13 @@ module.exports           = class MainController extends KDController
     globals.userAccount = account
     connectedState.connected = yes
 
-    @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
+    @on 'pageLoaded.as.loggedIn', (account) -> # ignore othter parameters
       setPreferredDomain account if account
 
     unless firstLoad
       (kd.getSingleton 'kontrol').reauthenticate()
 
-    account.fetchMyPermissionsAndRoles (err, res)=>
+    account.fetchMyPermissionsAndRoles (err, res) =>
 
       return kd.warn err  if err
 
@@ -199,7 +200,6 @@ module.exports           = class MainController extends KDController
       account.setLastLoginTimezoneOffset lastLoginTimezoneOffset: tzOffset, (err) ->
 
         kd.warn err  if err
-
 
       @ready @emit.bind this, "AccountChanged", account, firstLoad
 
@@ -354,11 +354,7 @@ module.exports           = class MainController extends KDController
       unless connectedState.connected
         logToExternalWithTime "Connect to backend"
 
-        {userAgent} = global.navigator
-        isSafari    = /Safari/.test userAgent
-        notChrome   = not /Chrome/.test userAgent
-
-        if isSafari and notChrome
+        if bowser.safari
         then useChrome()
         else fail()
 
@@ -405,6 +401,7 @@ module.exports           = class MainController extends KDController
     fluxModules = [
       require 'activity/flux'
       require 'app/flux'
+      require 'app/flux/environment'
     ]
 
     fluxModules.forEach (fluxModule) ->

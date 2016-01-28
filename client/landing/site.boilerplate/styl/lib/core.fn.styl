@@ -1,0 +1,61 @@
+@import 'core.kdfn'
+@import '../sprite@1x'
+@import '../sprite@2x'
+
+
+// CONSTANTS
+
+imagePath            = '../images/'
+
+// FONTS
+
+proximaFamily  = 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
+openSansFamily = 'Open Sans', 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
+monoFamily     = 'SourceCodePro', 'UbuntuMono', 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+asapFamily     = 'Asap', 'Helvetica Neue', Helvetica, sans-serif
+
+// sloganFont     = 'foco', 'Open Sans', 'Helvetica Neue', Helvetica, sans-serif
+tagLineFont    = 'Museo Sans', 'Open Sans', 'Helvetica Neue', Helvetica, sans-serif
+sloganFont     = tagLineFont
+
+// COLORS
+
+logoBg               = #1aaf5d
+
+// FUNCTIONS
+
+__pixRatio = 1.5
+retinaQuery = 'all and (-webkit-min-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery = retinaQuery + '(min--moz-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery = retinaQuery + '(-o-min-device-pixel-ratio:' + __pixRatio + '/1),'
+retinaQuery = retinaQuery + '(min-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery = retinaQuery + '(min-resolution:' + unit(__pixRatio*92, dpi) + '),'
+retinaQuery = retinaQuery + '(min-resolution:' + unit(__pixRatio, dppx) + ')'
+
+r-sprite(folder, name)
+
+  spName   = '$' + folder + '_' + name
+  sp1x     = lookup(spName)
+
+  if sp1x
+    sprite sp1x
+  else
+    return
+
+  @media retinaQuery
+
+    sp2x = lookup(spName + '__2x')
+
+    if sp2x
+      bg image, url(sp2x[8])
+      bg position, (sp2x[2]/2 sp2x[3]/2)
+      bg size, (sp2x[6]/2 sp2x[7]/2)
+
+
+borderize(color)
+  noTextDeco()
+  color           color
+  border-bottom   1px solid color
+
+noAnim()
+  vendor                transition, none!important

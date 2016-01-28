@@ -102,6 +102,7 @@ import (
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/sshutil"
+	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/userdata"
 	"koding/kites/terraformer"
 
@@ -323,7 +324,7 @@ func TestTerraformBootstrap(t *testing.T) {
 
 	remote := userData.Remote
 
-	args := &kloud.TerraformBootstrapRequest{
+	args := &kloud.BootstrapRequest{
 		Identifiers: userData.Identifiers,
 		GroupName:   groupname,
 	}
@@ -358,7 +359,7 @@ func TestTerraformStack(t *testing.T) {
 
 	remote := userData.Remote
 
-	args := &kloud.TerraformBootstrapRequest{
+	args := &kloud.BootstrapRequest{
 		Identifiers: userData.Identifiers,
 		GroupName:   groupname,
 	}
@@ -377,8 +378,8 @@ func TestTerraformStack(t *testing.T) {
 		}
 	}()
 
-	planArgs := &kloud.TerraformPlanRequest{
-		StackTemplateId: userData.StackTemplateId,
+	planArgs := &kloud.PlanRequest{
+		StackTemplateID: userData.StackTemplateId,
 		GroupName:       groupname,
 	}
 
@@ -387,7 +388,7 @@ func TestTerraformStack(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var planResult *kloud.Machines
+	var planResult *stackplan.Machines
 	if err := resp.Unmarshal(&planResult); err != nil {
 		t.Fatal(err)
 	}
@@ -411,8 +412,8 @@ func TestTerraformStack(t *testing.T) {
 		}
 	}
 
-	applyArgs := &kloud.TerraformApplyRequest{
-		StackId:   userData.StackId,
+	applyArgs := &kloud.ApplyRequest{
+		StackID:   userData.StackId,
 		GroupName: groupname,
 	}
 
@@ -448,8 +449,8 @@ func TestTerraformStack(t *testing.T) {
 		t.Error(err)
 	}
 
-	destroyArgs := &kloud.TerraformApplyRequest{
-		StackId:   userData.StackId,
+	destroyArgs := &kloud.ApplyRequest{
+		StackID:   userData.StackId,
 		Destroy:   true,
 		GroupName: groupname,
 	}
@@ -1385,13 +1386,10 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 		panic(err)
 	}
 
-	slclient, err := sl.NewSoftlayer(
+	slclient := sl.NewSoftlayer(
 		os.Getenv("KLOUD_TESTACCOUNT_SLUSERNAME"),
 		os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
 	)
-	if err != nil {
-		panic(err)
-	}
 
 	kdp := &koding.Provider{
 		DB:             db,

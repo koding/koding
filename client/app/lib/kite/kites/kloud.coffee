@@ -9,6 +9,9 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
   SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer']
 
+  debugEnabled = ->
+    kd.singletons.computeController._kloudDebug
+
   getProvider = (machineId)->
     kd.singletons.computeController.machinesById[machineId]?.provider
 
@@ -20,6 +23,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     return group?.slug ? 'koding'
 
   @createMethod = (ctx, { method, rpcMethod }) ->
+
     ctx[method] = (payload) ->
 
       if payload?.machineId? and provider = getProvider payload.machineId
@@ -33,6 +37,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
         payload.provider = provider
 
       payload.groupName = getGroupName()
+      payload.debug = yes  if debugEnabled()
 
       @tell rpcMethod, payload
 
@@ -162,7 +167,10 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     provider  = getProvider machineId
     groupName = getGroupName()
 
-    @tell 'info', { machineId, provider, groupName }
+    payload   = { machineId, provider, groupName }
+    payload.debug = yes  if debugEnabled()
+
+    @tell 'info', payload
 
       .then (info) =>
 

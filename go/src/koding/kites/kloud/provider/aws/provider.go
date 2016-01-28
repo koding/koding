@@ -47,10 +47,14 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	// thing. (Because findAndModify() also returns "not found" for the case
 	// where the id exist but someone else is the assignee).
 	machine := &Machine{}
-	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
+	err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(&machine.Machine)
-	}); err == mgo.ErrNotFound {
+	})
+	if err == mgo.ErrNotFound {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	req, ok := request.FromContext(ctx)
@@ -136,6 +140,11 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
 		Region:      meta.Region,
 		Log:         p.Log.New(machine.ObjectId.Hex()),
+	}
+
+	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+		opts.Log = opts.Log.New(traceID)
+		opts.Log.SetLevel(logging.DEBUG)
 	}
 
 	amazonClient, err := amazon.NewWithOptions(machine.Meta, opts)

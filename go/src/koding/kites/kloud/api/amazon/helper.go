@@ -1,6 +1,7 @@
 package amazon
 
 import (
+	"errors"
 	"net/url"
 	"sort"
 	"strings"
@@ -39,6 +40,33 @@ func NewSession(opts *ClientOptions) *session.Session {
 		cfg.Logger = NewLogger(opts.Log.Debug)
 	}
 	return session.New(cfg, NewTransport(opts))
+}
+
+// IsRunning tells whether given instance is in a running state.
+//
+// The state name is also compared apart from state codes described in:
+//
+//   http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceState.html
+//
+// The reason for it is that Amazon add internal state to the codes,
+// so the running instance can have 272 internal state code, which
+// is undocumented.
+func IsRunning(i *ec2.Instance) (bool, error) {
+	if i.State == nil {
+		return false, errors.New("empty instance state")
+	}
+
+	code := aws.Int64Value(i.State.Code)
+	if code == 0 {
+		return false, errors.New("empty instance state code")
+	}
+
+	name := strings.ToLower(aws.StringValue(i.State.Name))
+	if name == "" {
+		return false, errors.New("empty instance state name")
+	}
+
+	return code == 16 || name == "running", nil
 }
 
 // TagsMatch returns true when tags contains all tags described by the m map.
@@ -94,6 +122,31 @@ func NewTags(tags map[string]string) []*ec2.Tag {
 		t = append(t, tag)
 	}
 	return t
+}
+
+// FromTags does the reverse what NewTags does - it converts AWS tags to
+// tag map.
+//
+// Every tag with empty key is ignored.
+func FromTags(tags []*ec2.Tag) map[string]string {
+	if len(tags) == 0 {
+		return nil
+	}
+	m := make(map[string]string, len(tags))
+	for _, tag := range tags {
+		k := aws.StringValue(tag.Key)
+		v := aws.StringValue(tag.Value)
+
+		if k == "" {
+			continue
+		}
+
+		m[k] = v
+	}
+	if len(m) == 0 {
+		return nil
+	}
+	return m
 }
 
 // NewFilters is a conveniance function for building AWS fitler slice from the

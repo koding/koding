@@ -507,6 +507,48 @@ Admin main styles
       opacity               .5
 
 
+.AppModal--admin .team-logs
+
+  .kdbutton.reload
+    abs                     20px, 0px
+
+  .logs-related
+    margin-top              40px
+
+  .logs-commonview
+    padding-top             20px
+
+  .kdlistitemview-log
+    font-family             monospace
+    font-size               12px
+    line-height             22px
+    border-bottom           1px solid #ddd
+    borderBox()
+
+    &.info
+      background            #EFF5FF
+
+    &.warn
+      background            #FFFBE5
+
+    &.error
+      background            #FFEFEF
+
+    &:hover
+      .time
+        visible()
+
+    .time
+      right                 0
+      bottom                -100%
+      background            #666
+      color                 white
+      padding               0 3px
+      z-index               1
+      hidden()
+      abs()
+
+
 // members, teams tab styling
 .AppModal--admin .member-related
 
@@ -604,7 +646,6 @@ Admin main styles
   .settings-visible
     .settings-icon
       vendor                transform, rotate(270deg)
-      width                 10px
       margin-left           6px
 
   .clear
@@ -1044,6 +1085,10 @@ Admin main styles
       right                 0
       margin-left           0
       pointer()
+
+
+.admin-invite-confirm-modal strong
+  font-weight               bold
 
 
 // stack settings styling
@@ -1707,6 +1752,7 @@ Admin main styles
       display               inline-block
       padding               0 10px
       text-transform        uppercase
+      font-size             12px
       height                29px
       line-height           29px
       color                 #FFF

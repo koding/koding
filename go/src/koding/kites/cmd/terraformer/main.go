@@ -2,9 +2,10 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
+
 	"koding/kites/common"
 	"koding/kites/terraformer"
-	"log"
 
 	"github.com/koding/multiconfig"
 )

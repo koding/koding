@@ -1,9 +1,10 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
+actions                = require 'app/flux/environment/actions'
 isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require 'app/commonviews/kodingswitch'
-MachineSettingsModal   = require '../providers/machinesettingsmodal'
+isTeamReactSide        = require 'app/util/isTeamReactSide'
 ComputeErrorUsageModal = require '../providers/computeerrorusagemodal'
 
 
@@ -23,10 +24,10 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     @labelLink      = new kd.CustomHTMLView
       cssClass      : 'label-link'
-      tagName       : 'span'
+      tagName       : 'a'
       partial       : label
-      click         : ->
-        kd.singletons.router.handleRoute "/IDE/#{slug}"
+      attributes    :
+        href        : "/IDE/#{slug}"
 
     alwaysOn = yes  if isManaged
 
@@ -39,8 +40,9 @@ module.exports = class MachinesListItem extends kd.ListItemView
     @settingsLink   = new kd.CustomHTMLView
       cssClass      : 'settings-link'
       partial       : 'settings'
-      tagName       : 'span'
-      click         : -> new MachineSettingsModal {}, machine
+      tagName       : 'a'
+      attributes    :
+        href        : "/Machines/#{machine.uid}"
 
     # more to come like os, version etc.
     @vminfo =
@@ -93,15 +95,15 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     { computeController } = kd.singletons
 
-    stack = computeController.findStackFromMachineId machine._id
-
-
-    config = stack.config ?= {}
+    stack   = computeController.findStackFromMachineId machine._id
+    config  = stack.config ?= {}
 
     config.sidebar ?= {}
     config.sidebar[machine.uid] = { visibility: state }
 
     stack.modify { config }
+
+    actions.loadStacks yes  if isTeamReactSide()
 
 
   pistachio: ->

@@ -1,6 +1,5 @@
 globals              = require 'globals'
 Promise              = require 'bluebird'
-htmlencode           = require 'htmlencode'
 
 kd                   = require 'kd'
 KDController         = kd.Controller
@@ -11,6 +10,7 @@ isKoding             = require 'app/util/isKoding'
 FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
+actions              = require 'app/flux/environment/actions'
 
 remote               = require('../remote').getInstance()
 Machine              = require './machine'
@@ -66,6 +66,8 @@ module.exports = class ComputeController extends KDController
 
         @storage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
         @emit 'ready'
+
+        @checkGroupStackRevisions()
 
         @info machine for machine in @machines
 
@@ -193,9 +195,9 @@ module.exports = class ComputeController extends KDController
 
   fetchStacks: do (queue=[]) ->
 
-    (callback = kd.noop) -> kd.singletons.mainController.ready =>
+    (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
 
-      if @stacks.length > 0
+      if @stacks.length > 0 and not force
         callback null, @stacks
         kd.info "Stacks returned from cache."
         return
@@ -416,36 +418,44 @@ module.exports = class ComputeController extends KDController
   # create helpers on top of remote.ComputeProvider
   #
 
-  create: (options, callback)->
+  create: (options, callback) ->
+
     remote.api.ComputeProvider.create options, (err, machine) =>
       return callback err  if err?
+
       @reset yes, -> callback null, machine
 
 
-  createDefaultStack: (force) ->
+  createDefaultStack: (force, template) ->
 
     return  unless isLoggedIn()
 
-    {mainController, groupsController} = kd.singletons
+    { mainController, groupsController } = kd.singletons
 
-    create = =>
-      remote.api.ComputeProvider.createGroupStack (err, res) =>
-        return kd.warn err  if err
-        @reset yes
+    handleStackCreate = (err, newStack) =>
+      return kd.warn err  if err
+      return kd.warn 'Stack data not found'  unless newStack
+
+      { results : { machines } } = newStack
+      [ machine ] = machines
+
+      @reset yes, =>
+        reloadIDE machine.obj.slug
+        @checkGroupStacks()
 
     mainController.ready =>
 
-      if force or groupsController.currentGroupHasStack()
-        create()  if @stacks.length is 0
+      if template
+        template.generateStack handleStackCreate
+      else if force or groupsController.currentGroupHasStack()
+        for stack in @stacks
+          return  if stack.config?.groupStack
+        remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
 
-      @checkGroupStackRevisions()
-
 
   # remote.ComputeProvider and Kloud kite public methods
-  #
-
   info: (machine)->
 
     if @eventListener.followUpcomingEvents machine, yes
@@ -722,6 +732,7 @@ module.exports = class ComputeController extends KDController
     .then (res) =>
 
       stack.destroy callback
+      actions.reinitStack stack._id
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
@@ -1078,13 +1089,13 @@ module.exports = class ComputeController extends KDController
 
   fetchBaseStackTemplate: (stack, callback = kd.noop) ->
 
-    return callback null, ''  unless stack?.baseStackId
+    return callback null  unless stack?.baseStackId
 
     { baseStackId } = stack
 
     remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
       return callback err  if err
-      return callback null, template or {}
+      return callback null, template
 
 
   ###*
@@ -1133,6 +1144,16 @@ module.exports = class ComputeController extends KDController
     return null
 
 
+  reloadIDE = (machineSlug) ->
+
+    route   = '/IDE'
+    if machineSlug
+      route = "/IDE/#{machineSlug}"
+
+    kd.singletons.appManager.quitByName 'IDE', ->
+      kd.singletons.router.handleRoute route
+
+
   ###*
    * Reinit's given stack or groups default stack
    * If stack given, it asks for re-init and first deletes and then calls
@@ -1140,7 +1161,7 @@ module.exports = class ComputeController extends KDController
    * If not given it tries to find default one and does the same thing, if it
    * can't find the default one, asks to user what to do next.
   ###
-  reinitGroupStack: (stack) ->
+  reinitStack: (stack) ->
 
     stack ?= @getGroupStack()
 
@@ -1151,8 +1172,7 @@ module.exports = class ComputeController extends KDController
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
 
-        EnvironmentsModal = require 'app/environment/environmentsmodal'
-        new EnvironmentsModal
+        return kd.singletons.router.handleRoute '/Stacks'
 
       else
         @createDefaultStack()
@@ -1168,19 +1188,21 @@ module.exports = class ComputeController extends KDController
 
     @ui.askFor 'reinitStack', {}, =>
 
-      @destroyStack stack, (err) =>
+      @fetchBaseStackTemplate stack, (err, template) =>
 
-        return showError err  if err
+        groupStack = stack.config?.groupStack
 
-        @reset()
+        @destroyStack stack, (err) =>
 
-          .once 'RenderStacks', (stacks) ->
+          return showError err  if err
 
-            new kd.NotificationView
-              title : 'Stack reinitialized'
+          @reset()
 
-            kd.singletons.appManager.quitByName 'IDE'
-            kd.utils.defer ->
-              kd.singletons.router.handleRoute '/IDE'
+            .once 'RenderStacks', (stacks = []) ->
 
-          .createDefaultStack()
+              new kd.NotificationView
+                title : 'Stack reinitialized'
+
+          if template and not groupStack
+          then @createDefaultStack no, template
+          else @createDefaultStack()

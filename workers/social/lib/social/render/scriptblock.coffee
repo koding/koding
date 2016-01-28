@@ -1,7 +1,7 @@
 # coffeelint: disable=cyclomatic_complexity
 module.exports = (options = {}, callback) ->
 
-  { dash }  = require 'bongo'
+  async     = require 'async'
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
 
@@ -85,13 +85,15 @@ module.exports = (options = {}, callback) ->
     """
 
   queue = [
-    ->
+
+    (fin) ->
       socialApiCacheFn = require '../cache/socialapi'
       socialApiCacheFn options, (err, data) ->
         console.error 'could not get prefetched data', err  if err
         socialapidata = data
-        queue.fin()
-    ->
+        fin()
+
+    (fin) ->
       groupName = session?.groupName or 'koding'
 
       # due to some reason, I suspect JSON.stringify somewhere, undefined
@@ -104,30 +106,34 @@ module.exports = (options = {}, callback) ->
 
         currentGroup = group  if group
 
-        queue.fin()
-    ->
+        fin()
+
+    (fin) ->
       bongoModels.JWorkspace.fetchByMachines$ client, (err, workspaces) ->
         console.log err  if err
         userWorkspaces = workspaces or []
-        queue.fin()
-    ->
+        fin()
+
+    (fin) ->
       bongoModels.JMachine.some$ client, {}, (err, machines) ->
         console.log err  if err
         userMachines = machines or []
-        queue.fin()
-    ->
+        fin()
+
+    (fin) ->
       bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
         userEnvironmentData = data
-        queue.fin()
-    ->
+        fin()
+
+    (fin) ->
       client.connection.delegate.fetchUser (err, user) ->
         if err
           console.error '[scriptblock] user not found', err
-          return queue.fin()
+          return fin()
 
         if user then userId = user.getId()
         else console.error '[scriptblock] user not found', err
-        queue.fin()
+        fin()
   ]
 
-  dash queue, -> callback null, createHTML(), socialapidata
+  async.parallel queue, -> callback null, createHTML(), socialapidata

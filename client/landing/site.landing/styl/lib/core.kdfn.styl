@@ -1,0 +1,162 @@
+//
+// THIS IS A COPY OF KDFN - find a better way to reuse this
+//
+
+/* FONTS */
+serif                       = Georgia, Times New Roman, Serif
+sans                        = Helvetica, Geneva, Arial
+lucida                      = 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif
+mono                        = 'Monaco','Andale Mono','Courier New',monospace
+
+/* COLORS */
+light-green                 = #7ebe4c
+dark-green                  = #5d9721
+browser-bg                  = #f8f8f8
+k-orange                    = #FF9200
+normal-text                 = #222
+dimmed-text                 = #666
+link-color                  = #07c
+page-text                   = #787878
+grouppage-link              = #f8b45f
+linkColor1                  = #ff9200
+selectedBgColor             = #1aaf5d
+
+/* FUNCTIONS */
+
+ellipsis()
+  text-overflow             ellipsis
+  overflow                  hidden
+  white-space               nowrap
+
+vendor(prop, rest...)
+  -ms-{prop}                rest
+  -webkit-{prop}            rest
+  -moz-{prop}               rest
+  {prop}                    rest
+
+size()
+  width                     arguments[0]
+  height                    arguments[1]
+
+rounded()
+  border-radius             arguments
+
+shadow()
+  box-shadow                arguments
+
+gradient()
+  bg                        image, -moz-linear-gradient(100% 100% 90deg, arguments[1], arguments[0]) arguments[2]
+  bg                        image, -webkit-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
+  bg                        image, -khtml-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
+  bg                        image, -o-linear-gradient(arguments[0], arguments[1]) arguments[2];
+
+fl()
+  display                   block
+  float                     left
+
+fr()
+  display                   block
+  float                     right
+
+noTextSelection()
+  vendor                    user-select, none
+
+bg(prop, args)
+  background-{prop}         args
+
+hidden()
+  display                   none
+  visibility                hidden
+
+visible()
+  display                   block
+  visibility                visible
+
+invisible()
+  visibility                hidden
+
+borderBox()
+  vendor                    box-sizing, border-box
+
+contentBox()
+  vendor                    box-sizing, content-box
+
+noTextDeco()
+  excludeHoverState = arguments[0]
+  text-decoration           none
+  if excludeHoverState
+    &:hover
+      text-decoration       underline
+  else
+    &:hover
+      text-decoration       none
+
+_applyCoordinates()
+  t = arguments[0]
+  r = arguments[1]
+  b = arguments[2]
+  l = arguments[3]
+  top                       t if t
+  right                     r if r
+  bottom                    b if b
+  left                      l if l
+
+abs()
+  _applyCoordinates         arguments
+  position                  absolute
+
+fix()
+  _applyCoordinates         arguments
+  position                  fixed
+
+rel()
+  position                  relative
+
+sta()
+  position                  static
+
+pointer()
+  cursor                    pointer
+
+kalc()
+
+  if arguments[2]
+    suffix = '!important'
+  else
+    suffix = ''
+
+  long   = '-webkit-calc(' + arguments[1] + ')' + suffix
+  short  = 'calc(' + arguments[1] + ')' + suffix
+
+  {arguments[0]}            unquote(long)
+  {arguments[0]}            unquote(short)
+
+flex()
+  display                   -webkit-box
+  display                   -moz-box
+  display                   flex
+
+cf()
+  /**
+   * For modern browsers
+   * 1. The space content is one way to avoid an Opera bug when the
+   *    contenteditable attribute is included anywhere else in the document.
+   *    Otherwise it causes space to appear at the top and bottom of elements
+   *    that are clearfixed.
+   * 2. The use of `table` rather than `block` is only necessary if using
+   *    `:before` to contain the top-margins of child elements.
+   */
+
+  &:before
+  &:after
+    content                 " "   /* 1 */
+    display                 table /* 2 */
+
+
+  &:after
+    clear                   both
+
+
+//
+// KDFN COPY ENDS
+//

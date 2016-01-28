@@ -9,6 +9,10 @@ lazyrouter     = require './lazyrouter'
 registerRoutes = require './util/registerRoutes'
 isKoding       = require './util/isKoding'
 
+Machine                 = require 'app/providers/machine'
+EnvironmentsModal       = require 'app/environment/environmentsmodal'
+MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 getAction = (formName) -> switch formName
   when 'login'    then 'log in'
@@ -101,3 +105,22 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       recoverPath.clear()
       kd.singletons.mainController.doLogout()
       global.location.href = path
+
+    when 'stacks'
+      { stackId } = info.params
+      new EnvironmentsModal selected: stackId
+
+    when 'machine-settings'
+      { uid, state } = info.params
+      { computeController, router } = kd.singletons
+
+      computeController.ready ->
+        machine = computeController.findMachineFromMachineUId uid
+        unless machine
+          new kd.NotificationView title: 'No machine found'
+          return router.handleRoute '/IDE'
+
+        modal = new MachineSettingsModal {}, machine
+
+        # if there is a state, it's the name of the tab of modal. Switch to that.
+        modal.tabView.showPaneByName state  if state

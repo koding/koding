@@ -2,6 +2,8 @@ package kloud
 
 import (
 	"os"
+	"sync"
+	"time"
 
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/dnsstorage"
@@ -9,8 +11,10 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/idlock"
 
+	"github.com/koding/cache"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 )
 
@@ -26,6 +30,9 @@ type Kloud struct {
 	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
 	providers map[string]interface{}
 
+	// statusCache is used to cache stack statuses for describeStack calls.
+	statusCache *cache.MemoryTTL
+
 	// Domainer is responsible of managing dns records
 	Domainer dnsclient.Client
 
@@ -37,6 +44,9 @@ type Kloud struct {
 
 	// Eventers is providing an event mechanism for each method.
 	Eventers map[string]eventer.Eventer
+
+	// mu protects Eventers
+	mu sync.RWMutex
 
 	// idlock provides multiple locks per id
 	idlock *idlock.IdLock
@@ -60,11 +70,14 @@ type Kloud struct {
 // New creates a new Kloud instance without initializing the default providers.
 func New() *Kloud {
 	kld := &Kloud{
-		idlock:    idlock.New(),
-		Log:       logging.NewLogger(NAME),
-		Eventers:  make(map[string]eventer.Eventer),
-		providers: make(map[string]interface{}, 0),
+		idlock:      idlock.New(),
+		Log:         logging.NewLogger(NAME),
+		Eventers:    make(map[string]eventer.Eventer),
+		providers:   make(map[string]interface{}, 0),
+		statusCache: cache.NewMemoryWithTTL(time.Second * 10),
 	}
+
+	kld.statusCache.StartGC(time.Second * 5)
 
 	return kld
 }
@@ -93,4 +106,10 @@ func (k *Kloud) AddProvider(providerName string, provider interface{}) error {
 
 	k.providers[providerName] = provider
 	return nil
+}
+
+func (k *Kloud) setTraceID(user, method string, ctx context.Context) context.Context {
+	traceID := uuid.NewV4().String()
+	k.Log.Info("Tracing request for user=%s, method=%s: %s", user, method, traceID)
+	return context.WithValue(ctx, TraceKey, traceID)
 }

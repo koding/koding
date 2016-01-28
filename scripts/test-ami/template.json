@@ -49,12 +49,12 @@
     {
       "type": "shell",
       "script": "provision.sh",
-      "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'"
+      "execute_command": "{{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
       "type": "shell",
       "script": "setup-koding.sh",
-      "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+      "execute_command": "{{ .Vars }} sudo -E '{{ .Path }}'",
       "environment_vars": [
         "CI=true",
         "wercker=true"

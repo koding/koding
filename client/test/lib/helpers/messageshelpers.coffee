@@ -67,16 +67,15 @@ module.exports =
             when messageWithLink
               browser
                 .waitForElementVisible    linkSelector, 20000
-                .assert.containsText      linkSelector, 'The Free Encyclopedia' 
+                .assert.containsText      linkSelector, 'The Free Encyclopedia'
             else
               browser
+                .pause                   7500 # wait for a koding user
                 .assert.containsText     '.message-pane.privatemessage', message # Assertion
                 .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
                 if purpose
                   browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
                 else
-                  browser.assert.containsText '.activity-sidebar .messages', users[0].username # Assertion
-
                   for user in users
                     browser.waitForElementPresent "#{sidebarTextSelector} [href='/#{user.username}']", 20000
 

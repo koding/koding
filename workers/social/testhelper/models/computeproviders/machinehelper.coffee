@@ -1,5 +1,5 @@
 { _
-  daisy
+  async
   expect } = require '../../../testhelper/index'
 
 JUser      = require '../../../lib/social/models/user/index'
@@ -20,13 +20,13 @@ generateMachineParams = (client, opts, callback) ->
 
 generateMachineParamsByAccount = (account, callback) ->
 
-  _client =
+  client =
     connection :
       delegate : account
     context    :
       group    : 'koding'
 
-  generateMachineParams _client, (err, data) ->
+  generateMachineParams client, (err, data) ->
     return callback err  if err
     callback null, data
 
@@ -40,29 +40,24 @@ createUserAndMachine = (userInfo, callback) ->
 
   queue = [
 
-    ->
+    (next) ->
       JUser.createUser userInfo, (err, user_, account_) ->
-        return callback err  if err
         [user, account] = [user_, account_]
-        queue.next()
+        next err
 
-    ->
+    (next) ->
       generateMachineParamsByAccount account, (err, data) ->
-        return callback err  if err
         machineParams = data
-        queue.next()
+        next err
 
-    ->
+    (next) ->
       JMachine.create machineParams, (err, machine_) ->
-        return callback err  if err
         machine = machine_
-        queue.next()
-
-    -> callback null, { machine, user, account }
+        next err
 
   ]
 
-  daisy queue
+  async.series queue, (err) -> callback err, { machine, user, account }
 
 
 fetchMachinesByUsername = (username, callback) ->
@@ -74,27 +69,27 @@ fetchMachinesByUsername = (username, callback) ->
     callback machines
 
 
-
 createMachine = (client, opts, callback) ->
 
   [opts, callback] = [callback, opts]  unless callback
   machineParams    = {}
+  machine          = null
 
   queue = [
 
-    ->
+    (next) ->
       generateMachineParams client, opts, (err, data) ->
-        return callback err  if err
         machineParams = data
-        queue.next()
+        next err
 
-    ->
-      JMachine.create machineParams, (err, machine) ->
-        callback err, { machine }
+    (next) ->
+      JMachine.create machineParams, (err, machine_) ->
+        machine = machine_
+        next err
 
   ]
 
-  daisy queue
+  async.series queue, (err) -> callback err, { machine }
 
 
 

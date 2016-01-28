@@ -35,7 +35,7 @@ module.exports = [
   ]
 
   [
-    { name: 'messages privatemessage' }
+    # { name: 'messages privatemessage' }
     { name: 'account accountsettings' }
     { name: 'activity postwith' }
   ]
@@ -64,7 +64,7 @@ module.exports = [
 
   [
     { name: 'ide terminal' }
-    { name: 'pricing invalidcarddetails' }
+    # { name: 'pricing invalidcarddetails' }
   ]
 
   [
@@ -97,8 +97,8 @@ module.exports = [
     { name: 'teams teamslikeunlike' }
   ]
 
-  [
-    # { name: 'environments vm-advanced' }
-  ]
+  # [
+  #   { name: 'environments vm-advanced' }
+  # ]
 
 ]

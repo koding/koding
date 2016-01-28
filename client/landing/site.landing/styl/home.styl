@@ -1,0 +1,868 @@
+@import "lib/core.fn"
+
+@css {
+/*
+home Landing stylesheet
+home.styl
+*/
+}
+
+body.home
+  -webkit-font-smoothing  antialiased
+
+  .main-header
+
+    .hiring-badge
+      visible()
+
+    nav
+      a.signup
+        hidden()
+
+  #kdmaincontainer.blur
+    vendor                filter, blur(5px)
+
+  #main-panel-wrapper
+    background            #f0f0f0
+
+  .login-form.register
+    margin                0 auto 50px auto
+    max-width             620px
+    padding               8px
+    rounded               8px
+    bg                    color rgba(0,0,0,.1)
+    z-index               10
+    rel()
+
+    &.noanim .login-input-view .placeholder-helper
+      vendor              transition, none!important
+      position            absolute
+
+    section
+      a.gh
+      a.fb
+      a.go
+        size              32px 32px
+        margin            3px 0 0 57px
+        opacity           .7
+        fl()
+        span.title
+          hidden()
+
+      a.gh
+        r-sprite          home 'gh-home'
+        &:hover
+          r-sprite        home 'gh-home-white'
+
+      a.fb
+        r-sprite          home 'fb-home'
+        &:hover
+          r-sprite        home 'fb-home-white'
+
+      a.go
+        r-sprite          home 'go-home'
+        &:hover
+          r-sprite        home 'go-home-white'
+
+      &:hover .buttons-extra
+        opacity         1
+        right           -112px
+
+      .dots-extra
+        r-sprite          home 'dots-home'
+        opacity           .7
+        abs               10px 6px 0 0
+
+      .buttons-extra
+        opacity           0
+        abs               -8px -75px 0 0
+        z-index           -1
+        padding           9px 8px 12px 8px
+        width             auto
+        rounded           8px
+        bg                color rgba(0,0,0,.1)
+        vendor            transition, right .177s .177s ease\, opacity .177s .177s ease
+        &:before
+          content         ''
+          abs             0px 0 0 -20px
+          width           32px
+          height          55px
+        &:hover
+          opacity         1
+          visibility      visible
+          right           -112px
+        a
+          margin          3px 5px 0 5px
+
+      > div
+        width             calc(50% - 110px)
+        padding-right     5px
+        rel()
+        borderBox()
+
+        &:before
+          content         ''
+          z-index         10
+          abs             12px 0 0 18px
+
+        &:nth-child(3)
+          padding-right   0
+
+        &.email:before
+          r-sprite        home 'input-email'
+
+        &.username:before
+          r-sprite        home 'input-username'
+
+        &.password:before
+          r-sprite        features 'ide-permissions'
+          opacity         0.15
+
+        &.submit
+          width           108px
+
+        &.submit:after
+          content         'OR'
+          font-size       12px
+          text-transform  uppercase
+          color           rgba(0,0,0,.5)
+          font-size       12px
+          font-weight     700
+          padding         0 15px 0 9px
+          opacity         .99
+          border-right    1px solid rgba(0,0,0,.1)
+          abs             5px 0 0 100%
+
+
+        .kdbutton.solid.medium
+          bg                color #F6E556
+          width             100%
+          rounded           4px
+          padding           0
+          span.button-title
+            text-transform  uppercase
+            color           #39473E
+            font-size       12px
+            font-weight     700
+            opacity         .99
+
+        .login-input-view
+          rounded         4px
+          bg              color white
+          margin-bottom   0
+          input
+            rounded       4px
+            margin        0
+            font-size     14px
+            font-weight   400
+            font-family   openSansFamily
+            text-align    left
+            padding       8px 14px 8px 43px
+          .placeholder-helper
+            text-align    left
+            top           4px
+            padding       0 15px 0 44px
+            borderBox()
+            &.out
+              top         -32px
+              color       white
+              &.puff
+                opacity   1
+
+
+  //Introduction section
+
+  .content-page.home
+    padding               0
+    max-width             100%
+
+    > section > div
+      max-width             1290px
+      padding               0px 45px
+      margin                0 auto
+      display               block
+      position              relative
+      borderBox()
+
+    // shining effect behind the screenshots
+    section.introduction > div:after
+      opacity           0
+      content           ''
+      abs               0 0 -12% 50%
+      vendor            transform, translateX(-50%)
+      size              120%, 0
+      padding-bottom    65%
+      z-index           0
+      vendor            transition, opacity 2s 2s ease
+
+    section.introduction.shine > div:after
+      opacity           1
+
+    &.anim
+      &:before
+        vendor            transition, box-shadow .5s ease
+      section.introduction
+        vendor            transition, background-color .5s ease
+
+    &.green
+      section.introduction
+        bg                color, #1AAF5E
+
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(255, 253, 112, 0.65) 0%, rgba(255, 253, 112, 0) 65%);
+
+    &.gray
+      section.introduction
+        bg                color, #7E8C8D
+        &:before
+          opacity         .5
+
+    &.blue
+      section.introduction
+        bg                color, #2E97DE
+
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(236, 240, 241, 0.65) 0%, rgba(236, 240, 241, 0) 65%);
+
+    &.dark-blue
+      section.introduction
+        bg                color, #2C3E51
+        div.submit:after
+          color           rgba(255, 255, 255, .6)
+          border-right    1px solid rgba(255, 255, 255, .1)
+        &:before
+          opacity         .3
+        a.gh
+          r-sprite        home 'gh-home-white'
+          &:hover
+            opacity       1
+        .dots-extra
+          r-sprite        home 'dots-home-white'
+        a.fb
+          r-sprite        home 'fb-home-white'
+          &:hover
+            opacity       1
+        a.go
+          r-sprite        home 'go-home-white'
+          &:hover
+            opacity       1
+
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(66, 88, 110, 0.65) 0%, rgba(66, 88, 110, 0) 65%);
+
+    &.orange
+      section.introduction
+        bg                color, #FF6A28
+
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(241, 196, 15, 0.65) 0%,rgba(241, 196, 15, 0) 65%);
+
+    &.red
+      section.introduction
+        bg                color, #EA4B36
+
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(230, 126, 34,0.65) 0%,rgba(230, 126, 34,0) 65%);
+
+  section.introduction
+    height                877px
+    padding               134px 0 0
+    text-align            center
+    bg                    color, #FFFFFF
+    position              relative
+    overflow              hidden
+    borderBox()
+
+    &:before
+      content             ""
+      display             block
+      size                100% 100%
+      bg                  image, url(imagePath + "home-pat.png")
+      abs                 0px
+
+    > div
+      size                100% 100%
+      z-index             2
+
+    article
+      font-size           22px
+      line-height         32px
+      font-weight         400
+      padding             0
+      width               100%
+      borderBox()
+      fl()
+
+      h1, h2
+        color             white
+        text-shadow       0 1px rgba(0, 0, 0, .4)
+
+      h1
+        vendor            transition, opacity .2s ease
+        font-size         42px
+        font-weight       bold
+        font-family       tagLineFont
+        margin            0 0 32px
+        letter-spacing    .02em
+        opacity           1
+        &.flip
+          opacity         0
+
+      h2
+        font-family       sloganFont
+        margin            0 auto 34px auto
+        max-width         800px
+        font-weight       400
+
+
+  // screenshots Section
+
+  section.screenshots
+    abs                   335px 0 0
+    size                  100% 542px
+    padding-top           50px
+    overflow              hidden
+    z-index               2
+    borderBox()
+
+    a.custom-link-view.ss-button
+      top                 250px
+      display             block
+      left                50%
+      z-index             100
+      vendor              transform, scale(.8)
+      -webkit-transition  -webkit-transform .2s ease
+      -moz-transition     -moz-transform .2s ease
+      transition          transform .2s ease
+      abs()
+
+      &:hover
+        vendor            transform, scale(1)
+
+      .icon
+        display           block
+
+      &.next
+        margin-left       502px
+
+        .icon
+          r-sprite        home 'slideshow-next'
+
+      &.prev
+        margin-left       -554px
+
+        .icon
+          r-sprite        home 'slideshow-prev'
+
+    > div
+      position            absolute !important
+      height              417px
+      width               970px
+      margin              initial !important
+      padding             0 !important
+      left                calc(50vw \- 487px)
+      vendor              transform-style, preserve-3d
+      vendor              perspective, 700
+
+    figure
+      top                 0
+      opacity             0
+      background          none !important
+      vendor              transform, translateX(0) translateY(0) translateZ(0)
+      -webkit-transition  -webkit-transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      -moz-transition     -moz-transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      transition          transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      contentBox()
+      abs()
+
+      &:after
+        content           ''
+        size              6px 6px
+        rounded           3px
+        bg                color rgba(255, 255, 255, .3)
+        abs               10px 0 0 15px
+        shadow            9px 0 0 rgba(255, 255, 255, .3),\
+                          18px 0 0 rgba(255, 255, 255, .3)
+      &:before
+        rounded           6px 6px 0 0
+        content           ''
+        display           block
+        bg                color rgba(0, 0, 0, .1)
+        size              100% 25px
+
+      img
+        shadow            0 5px 21px rgba(0, 0, 0, .75)
+        width             100%
+        height            571px
+        bg                color #3A3E41
+        margin-top        2px
+
+      .info-dot
+        size                15px, 15px
+        rounded             50%
+        opacity             0
+        vendor              transition, opacity .7s ease
+        cursor              pointer
+        border              2px solid #fff
+        shadow              0 0 4px rgba(0, 0, 0, .3)
+        abs()
+
+        &:after
+          content           attr(data-content)
+          display           block
+          abs               0 0 20px 50%
+          white-space       pre
+          vendor            transform, translateX(-50%)
+          text-align        center
+          line-height       19px
+          background        rgba(0, 0, 0, .8)
+          color             #fff
+          font-size         14px
+          padding           16px
+          opacity           0
+          vendor            transition, opacity .3s ease \, bottom .3s ease
+          vendor            pointer-events, none
+          rounded           4px
+          border            1px solid #000
+
+      &.current
+        opacity           1
+        vendor            transform, translateX(0) translateY(12px) translateZ(0px)
+        z-index           20
+
+        img
+          opacity         1
+
+        .info-dot
+          opacity         1
+          vendor          animation, throbberAnim 1.5s infinite ease forwards
+
+          &:hover
+            vendor        animation, none
+
+            &:after
+              opacity     1
+              bottom      26px
+
+      &.prev
+      &.next
+        opacity           .6
+        z-index           10
+        abs()
+
+      &.prev
+        vendor            transform, translateX(-70px) translateY(50px) translateZ(-20px) rotateZ(-2deg)
+
+      &.next
+        vendor            transform, translateX(70px) translateY(50px) translateZ(-20px) rotateZ(2deg)
+
+
+
+  // Features Section
+
+  section.used-at
+    margin                0 auto
+    height                224px
+    bg                    color #F0F0F0
+    rel()
+
+    > div
+      &:after
+        content           ''
+        top               77px
+        size              838px 1px
+        background        #f0f0f0
+        background        -moz-linear-gradient(left,  #f0f0f0 0%, #d8d8d8 20%, #d8d8d8 80%, #f0f0f0 100%)
+        background        -webkit-gradient(linear, left top, right top, color-stop(0%,#f0f0f0), color-stop(20%,#d8d8d8), color-stop(80%,#d8d8d8), color-stop(100%,#f0f0f0))
+        background        -webkit-linear-gradient(left,  #f0f0f0 0%,#d8d8d8 20%,#d8d8d8 80%,#f0f0f0 100%)
+        background        linear-gradient(to right,  #f0f0f0 0%,#d8d8d8 20%,#d8d8d8 80%,#f0f0f0 100%)
+        z-index           0
+        abs               0 0 0 50%
+        margin-left       -419px
+
+    nav.slideshow-nav
+      size                300px 30px
+      margin-left         -150px
+      abs                 10px 0 0 50%
+      z-index             10
+      text-align          center
+      a.custom-link-view
+        size              10px 10px
+        rounded           5px
+        bg                color #ccc
+        shadow            inset 0 1px 0 rgba(0, 0, 0, .5)
+        display           inline-block
+        margin-left       5px
+
+        &:first-child
+          margin-left     0
+
+        &.active
+          bg              color #aaa
+
+        span.title
+          hidden()
+
+    h3
+      margin-top          66px
+      font-family         sloganFont
+      font-size           22px
+      font-weight         300
+      letter-spacing      5px
+      display             inline-block
+      bg                  color #F0F0F0
+      color               #747474
+      z-index             1
+      width               410px
+      text-align          center
+      left                50%
+      margin-left         -205px
+      opacity             .99
+      rel()
+
+    figure
+      margin              28px auto
+      display             block
+      r-sprite            home 'used-by-logos'
+
+// Smartphones and tablets [Commons]
+@media only screen and (min-width : 320px) and (max-width : 1024px)
+  body.home
+    .content-page.home
+      section.screenshots
+        height            178px
+        top               559px
+
+        .info-dot
+          display         none
+
+        > div
+          width           100%
+          height          auto
+
+          figure
+            opacity       0
+            height        auto
+
+            &:after
+              left        42px
+
+            &.current
+              opacity     1
+              vendor      transform, none
+              padding     0 34px
+              borderBox()
+
+            img
+              height      auto
+
+      section.used-at
+        height            0
+
+        > div
+          display         none
+
+        nav.slideshow-nav
+          abs             -22px 0 0 0
+          width           auto
+          height          22px
+          margin          0
+          padding         0 10px 0 7px
+          vendor          transform, translateX(-50%)
+          background      rgba(0,0,0,.2)
+          rounded         10px 10px 0 0
+
+          .nav-dot
+            shadow        none
+            background    rgba(255, 255, 255, .4)
+            margin-left   3px
+            vertical-align bottom
+
+            &.active
+              background  #fff
+
+
+  footer.main-footer
+    .footer-block
+      width             100%
+      float             none
+      text-align        center
+      margin            0
+
+      &~.footer-block
+        margin-top      18px
+        border-top      1px solid rgba(255,255,255,.05)
+        position        relative
+        text-align      center
+
+        a
+          display       inline-block
+          margin        45px 6px 0
+
+          &:not(.social)
+            abs         0px 0 0 0px
+            opacity     .6
+            width       100%
+            text-align  center
+            margin      0
+
+
+// Smartphones
+
+@media only screen and (min-width : 320px) and (max-width : 767px)
+  .main-header
+    height                61px
+    line-height           61px
+    top                   0
+    left                  0
+    vendor                transform, none
+    padding               0
+    text-align            center
+    vendor                transition, top .3s ease\, background-color .177s ease
+    shadow                0 0px 10px rgba(0,0,0,.2)
+
+    .hamburger-menu
+      display               block
+      abs                   0px 0 0 0px
+      size                  61px, 61px
+      background            none
+      border                none
+      shadow                none
+      text-align            center
+      line-height           61px
+      padding               0
+      cursor                pointer
+      vendor                transition, background .177s ease
+
+      .icon
+        width             14px
+        height            3px
+        background        #000
+        display           inline-block
+        position          relative
+        vertical-align    middle
+        opacity           .3
+
+        &:after
+        &:before
+          content         ''
+          display         block
+          width           100%
+          height          3px
+          background      inherit
+          position        absolute
+          left            0
+
+        &:before
+          top             -5px
+
+        &:after
+          top             5px
+
+      &.active
+        background        #232323
+
+
+    .koding-header-logo
+      display             inline-block
+      float               none
+      margin              0
+      vertical-align      middle
+
+    nav.full-menu
+      display             none
+
+  .main-header.mobile-menu-active
+    background-color      rgba(35, 35, 35, .6)
+
+  body.home
+    .main-header
+
+      .hamburger-menu .icon
+        background          #fff
+
+      &.hiring-badge-in
+        .koding-header-logo
+          margin            0 0 0 -100px
+
+      .hiring-badge
+        top                 18px
+        left                50%
+        margin-left         8px
+        padding             0 5px
+        line-height         1.3
+        font-size           11px
+        width               130px
+        max-width           130px
+
+        &:after
+          content           'Join our Hackathon WIN $100K!'
+
+        span
+          padding-left    13px
+
+    .content-page.home
+      > section
+        > div
+          padding-right   20px
+          padding-left    20px
+          z-index         initial
+
+      section.introduction
+        padding-top       102px
+        height            737px
+
+        > div:after
+          size            200%, 0
+          padding-bottom  115%
+
+        article
+          h1
+            font-size     18px
+            font-weight   700
+            line-height   24px
+            margin-bottom 18px
+
+          h2
+            font-size     14px
+            line-height   19px
+
+      .login-form.register
+        padding           13px 13px 7px 13px
+        position          relative
+
+        section > div
+          width           100%
+          float           none
+          padding         0
+          margin-bottom   6px
+
+          &.submit:after
+            abs           63px 0 0 0px
+            width         100%
+            padding       0
+            border        none
+            content       'OR SIGN UP USING'
+
+        .dots-extra
+          hidden()
+
+        .buttons-extra
+          abs             185px 0 0 50%
+          width           100px
+          margin          0px 0px 0px -22px
+          z-index         5
+          opacity         1
+          bg              color, transparent
+          &:before
+            hidden()
+
+        a.gh
+        a.go
+        a.fb
+          opacity         .8
+
+        a.gh
+          abs             185px 0 0 50%
+          margin          2px 0 0 -72px
+
+        a.go
+          margin-right    17px
+
+      section.screenshots
+        top               479px
+        height            258px
+
+        > div
+          left            auto
+
+          figure
+            padding       0 34px
+
+      section.used-at
+        > div:after
+          display         none
+
+        h3
+          width           100%
+          position        static
+          margin          42px 0 0
+          text-align      center
+          font-size       18px
+          font-weight     400
+          letter-spacing  normal
+
+        figure
+          display         none
+
+// Tablets
+
+@media only screen and (min-width : 768px)  and (max-width : 1024px)
+  body.home
+    > section
+        > div
+          padding-right   60px
+          padding-left    60px
+
+    .content-page.home
+      section.introduction
+        padding-top       168px
+
+        article
+          h1
+            font-size     33px
+            font-weight   700
+            line-height   40px
+            margin-bottom 26px
+
+          h2
+            font-size     20px
+            line-height   26px
+
+      section.screenshots
+        height            384px
+        top               493px
+
+        > div
+          left            auto
+
+        > div figure
+          width           100%
+
+          &:after
+            left          92px
+
+          &.current
+            padding       0 84px
+
+      section.used-at
+        > div:after
+          width           768px
+
+        figure
+          display         none
+
+
+@-webkit-keyframes throbberAnim
+  50%
+    -webkit-transform     scale(1.2)
+
+@-moz-keyframes throbberAnim
+  50%
+    -moz-transform     scale(1.2)
+
+@-webkit-keyframes fadeInRight
+  0%
+    opacity               0
+    -webkit-transform     translateX(30px)
+  100%
+    opacity               1
+    -webkit-transform     translateX(0)
+
+@-moz-keyframes fadeInRight
+  0%
+    opacity                0
+    -moz-transform         translateX(30px)
+  100%
+    opacity                1
+    -moz-transform         translateX(0)

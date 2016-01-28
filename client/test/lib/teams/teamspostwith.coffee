@@ -55,11 +55,11 @@ module.exports =
     browser.end()
 
 
-  # postMessageWithEmoji: (browser) ->
+  postMessageWithEmoji: (browser) ->
 
-  #   messageWithEmoji = ':smiley: :+1:'
+    messageWithEmoji = ':smiley: :+1:'
 
-  #   user = teamsHelpers.loginTeam(browser)
-  #   teamsHelpers.createChannel(browser, user)
-  #   teamsHelpers.sendComment(browser, messageWithEmoji, 'messageWithEmoji')
-  #   browser.end()
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
+    teamsHelpers.sendComment(browser, messageWithEmoji, 'messageWithEmoji')
+    browser.end()

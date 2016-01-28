@@ -1,5 +1,6 @@
 $                    = require 'jquery'
 _                    = require 'lodash'
+async                = require 'async'
 globals              = require 'globals'
 getAppOptions        = require './util/getAppOptions'
 getAppClass          = require './util/getAppClass'
@@ -237,29 +238,29 @@ class ApplicationManager extends KDObject
     kd.utils.defer -> callback? appInstance
 
 
-  quit:(appInstance, callback = kd.noop)->
+  quit: (appInstance, callback = kd.noop) ->
     view = appInstance.getView?()
     destroyer = if view? then view else appInstance
     appInstance.beforeQuit?()
     destroyer.destroy()
     callback()
 
-
-  quitAll:->
+  quitAll: ->
 
     for own name, apps of @appControllers
       @quit app  for app in apps.instances
 
 
-  quitByName: (name, closeAllInstances = yes) ->
+  quitByName: (name, callback = kd.noop) ->
+
     appController = @appControllers[name]
     return  unless appController
 
-    if closeAllInstances
-      instances = appController.instances
-      @quit instances.first while instances.length > 0
-    else
-      @quit appController.instances[appController.lastActiveIndex]
+    instances = appController.instances
+    queue     = instances.map (instance) =>
+      (next) => @quit instance, next
+
+    async.series queue, callback
 
 
   get:(name)->

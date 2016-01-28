@@ -1,4 +1,4 @@
-{ dash }       = require 'bongo'
+async          = require 'async'
 SocialChannel  = require '../models/socialapi/channel'
 SocialMessage  = require '../models/socialapi/message'
 JAccount       = require '../models/account'
@@ -87,13 +87,13 @@ module.exports = (options = {}, callback) ->
 
 handleQueue = (fetchActivitiesForNavigatedURL, reqs, params, callback) ->
 
-  queue = reqs.map (req) -> ->
+  queue = reqs.map (req) -> (fin) ->
     req.fn (err, data) ->
       queue.localPrefetchedFeeds or= {}
       queue.localPrefetchedFeeds[req.key] = data
-      queue.fin()
+      fin()
 
-  queue.push ->
+  queue.push (fin) ->
     fetchActivitiesForNavigatedURL params, (err, data) ->
       queue.localPrefetchedFeeds or= {}
 
@@ -104,6 +104,6 @@ handleQueue = (fetchActivitiesForNavigatedURL, reqs, params, callback) ->
         data:    data
 
       queue.localPrefetchedFeeds.navigated = res unless err?
-      queue.fin()
+      fin()
 
-  dash queue, -> callback null, queue.localPrefetchedFeeds
+  async.parallel queue, -> callback null, queue.localPrefetchedFeeds

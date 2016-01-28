@@ -1,4 +1,3 @@
-zlib                  = require 'compress-buffer'
 traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
@@ -182,7 +181,7 @@ Configuration = (options={}) ->
     basevirtualhost : "koding.me"
     hostedzone      : "koding.me"
 
-  KONFIG              =
+  KONFIG =
     configName                     : configName
     environment                    : environment
     ebEnvName                      : options.ebEnvName
@@ -206,9 +205,11 @@ Configuration = (options={}) ->
     kiteHome                       : kiteHome
     redis                          : redis.url
     monitoringRedis                : "#{prod_simulation_server}:#{redis.port}"
-    misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
+    misc                           : {claimGlobalNamesForUsers: no , debugConnectionErrors: yes}
     githubapi                      : githubapi
     recaptcha                      : {enabled : recaptcha.enabled  , url : "https://www.google.com/recaptcha/api/siteverify", secret : "6Ld8wwkTAAAAAJoSJ07Q_6ysjQ54q9sJwC5w4xP_" }
+    # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
+    nodejsRateLimiter              : {enabled : no, guestRules : [{ interval: 3600, limit: 5000 }], userRules : [{ interval: 3600, limit: 10000 }]} # limit: request limit per rate limit window, interval: rate limit window duration in seconds
 
     # -- WORKER CONFIGURATION -- #
     vmwatcher                      : {port          : "6400"                      , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey   , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-sandbox" }
@@ -251,7 +252,6 @@ Configuration = (options={}) ->
     segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : '2b62c0cbea188dc6'
-    prerenderToken                 : 'rmhVl6TMAbAO4GQJyAI3'
     tokbox                         : tokbox
     disabledFeatures               : disabledFeatures
     contentRotatorUrl              : 'http://koding.github.io'
@@ -824,18 +824,6 @@ Configuration = (options={}) ->
   #-------------------------------------------------------------------------#
 
   KONFIG.JSON = JSON.stringify KONFIG
-
-  b64z = (str,strict=yes,compress=yes)->
-    if str
-      _b64 = new Buffer(str)
-      _b64 = zlib.compress _b64 if compress
-      # log "[b64z] before #{str.length} after #{_b64.length}"
-      return _b64.toString('base64')
-    else
-      if strict
-        throw "base64 STRING is empty, check main.#{configName}.coffee. this will break the prod machine, exiting."
-      else
-        return ""
 
   generateRunFile = (KONFIG) ->
     return """

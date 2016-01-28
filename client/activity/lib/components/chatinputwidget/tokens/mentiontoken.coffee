@@ -26,13 +26,17 @@ module.exports = MentionToken =
         selectedIndex      : 'mentionsSelectedIndex'
         selectedItem       : 'mentionsSelectedItem'
       horizontalNavigation : no
-      handleItemConfirmation : (item, query) ->
+      processConfirmedItem : (item, query) ->
         names = item.get 'names'
         if names
           name = findNameByQuery(names.toJS(), query) ? names.first()
         else
           name = item.getIn ['profile', 'nickname']
-        return "@#{name} "
+
+        return {
+          type  : 'text'
+          value : "@#{name} "
+        }
     }
 
 

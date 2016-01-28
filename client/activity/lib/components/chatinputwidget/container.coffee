@@ -129,6 +129,28 @@ module.exports = class ChatInputContainer extends React.Component
   focus: -> @refs.input.focus()
 
 
+  tryExecuteCommand: (command) ->
+
+    unless command
+      value   = @state.value.trim()
+      command = parseStringToCommand value
+
+    if command
+      @props.onCommand? { command }
+      @setValue ''
+      return yes
+
+    return no
+
+
+  submit: ->
+
+    value = @state.value.trim()
+    @props.onSubmit? { value }
+
+    @setValue ''
+
+
   onEnter: (event) ->
 
     return  if event.shiftKey
@@ -137,15 +159,7 @@ module.exports = class ChatInputContainer extends React.Component
 
     return @onDropboxItemConfirmed()  if @state.dropboxConfig
 
-    value = @state.value.trim()
-    command = parseStringToCommand value
-
-    if command
-      @props.onCommand? { command }
-    else
-      @props.onSubmit? { value }
-
-    @setValue ''
+    @tryExecuteCommand() or @submit()
 
 
   onRightArrow: (event) ->
@@ -222,13 +236,15 @@ module.exports = class ChatInputContainer extends React.Component
     return  unless dropboxConfig
 
     selectedItem      = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
-    confirationResult = dropboxConfig.get('handleItemConfirmation') selectedItem, dropboxQuery
+    confirationResult = dropboxConfig.get('processConfirmedItem') selectedItem, dropboxQuery
 
     @onDropboxClose()
-    return  unless typeof confirationResult is 'string'
+
+    { type, value } = confirationResult
+    return @tryExecuteCommand value  if type is 'command'
 
     position = @refs.input.getCursorPosition()
-    { newValue, newPosition } = helpers.replaceWordAtPosition @state.value, position, confirationResult
+    { newValue, newPosition } = helpers.replaceWordAtPosition @state.value, position, value
 
     @setValue newValue
 

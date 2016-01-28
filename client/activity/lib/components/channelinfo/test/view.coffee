@@ -65,21 +65,21 @@ describe 'ChannelInfoView', ->
       expect(infoContainerName.textContent).toEqual 'This is a private conversation.'
 
 
-    it 'should show special label when channel is created by logged in user', ->
+    # it 'should show special label when channel is created by logged in user', (done) ->
 
-      accountOldId = whoami().id
-      createdAt    = new Date()
-      options      = { typeConstant : 'topic', accountOldId, createdAt }
-      channel      = toImmutable mock.getMockChannel options
+    #   accountOldId = whoami().id
+    #   createdAt    = new Date()
+    #   options      = { typeConstant : 'topic', accountOldId, createdAt }
+    #   channel      = toImmutable mock.getMockChannel options
 
-      channelInfoView = renderIntoDocument(<ChannelInfoView channel={channel}/>)
-      profileLink     = ReactDOM.findDOMNode(channelInfoView).querySelector '.ChannelInfoContainer-profileLink'
+    #   channelInfoView = renderIntoDocument(<ChannelInfoView channel={channel}/>)
+    #   profileLink     = ReactDOM.findDOMNode(channelInfoView).querySelector '.ChannelInfoContainer-profileLink'
 
-      # first render 'a koding user' then it updates to 'you', so we wait a second
-      # then check the textContent
-      kd.utils.wait 1000, ->
-
-        expect(profileLink.textContent).toEqual ', created by you today.'
+    #   # first render 'a koding user' then it updates to 'you', so we wait a second
+    #   # then check the textContent
+    #   kd.utils.wait 1000, ->
+    #     expect(profileLink.textContent).toEqual ', created by you today.'
+    #     done()
 
 
   describe '::onClick', ->

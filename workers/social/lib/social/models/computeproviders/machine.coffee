@@ -771,8 +771,13 @@ module.exports = class JMachine extends Module
       permanent : yes
 
     @shareWith options, (err) =>
-      options = { action: 'deny', @uid }
+      options               = { action: 'deny', @uid }
+      [ owner ]             = @users.filter (user) -> return user.owner
+      { notifyByUsernames } = require '../notify'
+
       client.connection.delegate.sendNotification 'MachineShareActionTaken', options
+      notifyByUsernames [ owner.username ], 'MachineShareListUpdated', options
+
       callback err
 
 

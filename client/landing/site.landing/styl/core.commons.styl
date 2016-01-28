@@ -1,0 +1,784 @@
+@import "lib/core.fn"
+
+@css {
+/*
+Commons stylesheet
+resurrection.commons.styl
+*/
+}
+
+html.app
+  .main-header
+    nav
+      margin            -37px 18px 0 0
+
+// When app class is added to html tag
+// layout becomes 100% width and height
+// so that apps can control their own
+// scrollviews and add their chrome frames
+html
+body
+  height            100%
+
+body
+  font-family       openSansFamily
+  font-weight       400
+
+  &.noscroll
+    overflow        hidden
+
+  &.logged-in
+    .main-header
+      nav
+        hidden()
+
+  > .invisible
+    display         none
+
+input
+textarea
+button
+  font-family       openSansFamily
+
+.kdview
+  overflow          visible
+
+.no-anim
+  noAnim()
+
+.mobile-menu
+  height            0
+  overflow          hidden
+  background        #232323
+  vendor            transition, height .3s ease\, margin-top .3s ease\, padding-top .3s ease
+  borderBox()
+
+  a
+    display         block
+    line-height     37px
+    font-size       14px
+    color           #f6f6f6
+    font-weight     600
+    padding         0 27px 0 22px
+    noTextDeco()
+    borderBox()
+
+    &:after
+      content       ''
+      r-sprite      'home', 'mobile-menu-arrow'
+      margin        14px 0 0 0
+      fr()
+
+    &:hover
+      opacity       .5
+
+.hamburger-menu
+  display           none
+
+figure.hackathon-header
+  bg                        color, rgba(255, 0, 0, .75)
+  color                     white
+
+
+
+#kdmaincontainer
+  width             auto
+
+#main-panel-wrapper
+  min-height          100%
+  z-index             1
+  bg                  color, white
+  vendor              transition, box-shadow .177s ease
+
+#main-tab-view
+  overflow            visible
+  height              auto
+
+.main-header
+  margin                    0
+  size                      100% 55px
+  z-index                   1000
+  overflow                  visible
+  max-width                 1290px
+  shadow                    none
+  padding                   0 45px
+  abs                       48px 0 0 50%
+  vendor                    transform, translateX(-50%)
+  z-index                   15
+  borderBox()
+
+  .inner-container
+    bg                      color, transparent
+
+  .logotype
+    font-size               24px
+    color                   #444
+    font-weight             700
+    line-height             16px
+    color                   #fff
+    font-family             sloganFont
+    -webkit-font-smoothing  antialiased
+    noTextDeco()
+    visible()
+    fl()
+
+  .koding-header-logo
+    margin                  0 14px 0 0
+    size                    auto auto
+    bg                      color transparent
+    position                static
+    fl()
+
+    cite
+      r-sprite              app 'logo-full-white'
+      margin                0
+      display               block
+
+  .hiring-badge
+    font-size               12px
+    font-family             Oxygen
+    letter-spacing          0.77px
+    line-height             29px
+    text-decoration         none
+    text-align              center
+    color                   #535353
+    bg                      color #F7E747
+    rounded                 3px
+    abs                     -4px 0 0 155px
+    size                    auto 29px
+    padding                 0 20px
+    margin-left             30px
+    vendor                  transition, all .3s ease-out
+    opacity                 0
+    hidden()
+
+    &:after
+      font-weight           bold
+      content               'Join our Global Hackathon with $100k grand prize!'
+
+    &:before
+      content               ''
+      abs                   6px 0 0 -5px
+      size                  0 0
+      border-style          solid
+      border-width          8px 8px 8px 0
+      border-color          transparent #f7e847 transparent transparent
+
+  &.hiring-badge-in
+    .hiring-badge
+      opacity               1
+      margin-left           0
+
+  nav.full-menu
+    line-height             18px
+    fr()
+
+    a
+      font-size             14px
+      margin-left           12px
+      font-family           openSansFamily
+      color                 white
+      padding-bottom        1px
+      noTextDeco()
+
+      &.active
+        font-weight     600
+        border-bottom   1px solid white
+
+      &:last-child
+        visibility      visible
+
+      &.buttonized
+        padding         7px 13px
+        rounded         4px
+        white-space     nowrap
+        margin-left     21px
+        font-size       14px
+        font-weight     600
+
+      &.buttonized.white
+        border          1px solid rgba(255, 255, 255, .5)
+
+      &.buttonized.green
+        border          1px solid rgba(39, 174, 96, .5)
+        background      rgba(39, 174, 96, 1)
+        color           #fff
+
+      &.buttonized.login
+      .buttonized.signup
+        text-transform  uppercase
+
+
+
+.koding-header-logo
+  size              57px 55px
+  bg                color, logoBg
+  z-index           11
+  top               0
+  left              0
+  abs()
+
+  &.staging
+    bg              color #ff9200 // old koding orange
+
+  &.sandbox
+    bg              color #0099cc
+
+  &.vagrant
+    bg              color purple
+
+  &.custom
+    bg              color transparent
+    bg              position, center center
+    bg              repeat, no-repeat
+    cite
+      hidden()
+
+  cite
+    r-sprite        app 'nav-logo'
+    margin          0 0 0 1px
+    display         block
+
+
+#kdmaincontainer.scale
+    vendor            animation, shrink 1s ease-out
+    vendor            animation-iteration-count, 1
+    vendor            transform-style, preserve-3d
+    vendor            transform, scale(0)
+
+
+
+.kdnotification
+  a
+    color               inherit
+
+
+validationRed = rgba(217, 58, 55, 1)
+.kdtooltip.validation-error
+.kdtooltip.validation-error.just-text
+  min-width                   none
+  max-width                   234px
+  min-height                  none
+
+  div.wrapper
+    bg                        color, validationRed
+    shadow                    none
+    padding                   10px 15px
+    min-height                auto
+    min-width                 auto
+    rounded                   4px
+    p
+      font-size               14px
+      font-weight             600
+      text-align              center
+      line-height             18px
+      -webkit-font-smoothing  antialiased
+
+  &.placement-right
+    &:after
+      border-right-color    validationRed
+
+  &.placement-left
+    &:after
+      border-left-color     validationRed
+
+  &.placement-bottom
+    &:after
+      border-bottom-color   validationRed
+
+  &.placement-top
+    &:after
+      border-top-color      validationRed
+
+    &.direction-left:after
+      right                 9px
+
+.content-page
+  margin                    0 auto
+  size                      auto auto
+
+  > .kdtabview
+    height              100%
+    font-size           14px
+    fl()
+
+
+//
+// SOLID BUTTON STYLES
+//
+
+.kdbutton.solid
+  bg                   color #3c4043
+  border               none
+  rounded              3px
+  padding              0 20px
+  margin               0
+  height               55px
+  borderBox()
+  span.button-title
+    padding            0
+    color              rgba(227, 227, 227, 0.8)
+    font-size          18px
+    letter-spacing     .6px
+    line-height        55px
+    text-rendering     geometricPrecision
+  span.icon
+    margin             18px 0 0 0
+  &:hover
+    bg                 color #4A4E52
+  &:active
+    bg                 color logoBg
+    span.button-title
+      color            white
+  &:focus
+    shadow             0 0 10px -2px logoBg
+  &.icon-only
+    span.icon
+      margin           0
+
+.kdbutton.solid.green
+  bg                   color #61C17F
+  span.button-title
+    color              white
+  &:hover
+  &:active
+  &:focus
+    bg                 color #2DBEA1
+    span.button-title
+      color            white
+  &:focus
+    shadow             0 0 10px -2px logoBg
+
+.kdbutton.solid.compact
+  height               30px
+  padding              0 16px
+  span
+    line-height        30px
+    font-size          12px
+
+.kdbutton.compact.light-gray
+  bg                   color, transparent !important
+  border               2px solid #CBCBCB
+  span
+    color              #858585 !important
+    line-height        26px
+
+.kdbutton.solid.yellow
+  bg                   color #ff9f00
+  span.button-title
+    color              #ac4a00
+  &:hover
+  &:active
+  &:focus
+    bg                 color #ac4a00
+    span.button-title
+      color            #ff9f00
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.clear
+  bg                   color transparent
+  rounded              0
+  span.button-title
+    color              #444
+  &:hover
+  &:active
+  &:focus
+    background         none
+    shadow             none
+    span.button-title
+      color            #222
+
+.kdbutton.solid.light-gray
+  bg                   color #C0C0C0
+  span.button-title
+    color              white
+  &:hover
+  &:active
+  &:focus
+    bg                 color #a0a0a0
+    span.button-title
+      color            whitesmoke
+  &:focus
+    shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.small
+  margin              0
+  padding             0 25px
+  size                auto 26px
+  rounded             10px
+  text-align          center
+  span.button-title
+    font-size         13px
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
+
+.kdbutton.solid.mini
+  margin              0
+  padding             0 10px
+  size                auto 20px
+  rounded             6px
+  text-align          center
+  span.button-title
+    font-size         12px
+    line-height       1
+  span.icon
+    margin            2px 0 0 0
+
+.kdbutton.solid.medium
+  margin              0
+  padding             0 25px
+  size                auto 40px
+  text-align          center
+  span.button-title
+    font-size         14px
+    font-weight       400
+    line-height       42px
+  span.icon
+    margin            12px 12px 0 0
+
+.kdbutton.solid.red
+  bg                   color #D75B5B
+  span.button-title
+    color              white
+  span.icon
+    margin             18px 0 0 0
+  &:hover
+  &:active
+  &:focus
+    bg                 color #e14a35
+  &:focus
+    shadow             0 0 10px -2px logoBg
+
+  &.shadowed
+    shadow             0 2px 0 0 #a33e2f
+    .button-title
+      text-shadow      0 -1px 2px rgba(0, 0, 0, .75)
+
+.kdbutton.w-loader.loading
+  .button-title
+  .icon
+    opacity            0
+
+  .kdloader
+    size               auto, auto
+    vendor             transform, translateX(-50%) translateY(-50%)
+
+
+//
+// KODING RESURRECTION MODAL THEME
+//
+
+// .kdmodal.resurrection
+
+.fbauth-failed-modal
+  &.kdmodal
+    bg                    color #FAFAFA
+    rounded               3px
+    shadow                0 12px 19px rgba(0,0,0,.50)
+    border                1px solid #979797
+    position              fixed !important
+    font-family           adelleSans
+
+    .kdmodal-inner
+      background          #fafafa
+      margin              15px 25px 25px
+
+      .close-icon
+        r-sprite          app, "modal-close-icon"
+        top               10px
+        right             10px
+
+        &:hover
+          r-sprite          app, "modal-close-icon"
+
+    .kdmodal-title
+      cursor              move
+      line-height         30px !important
+      font-weight         400
+      color               #00B057 !important
+      margin-bottom       15px !important
+      padding             0 !important
+      background          none !important
+      border              none !important
+
+      .title
+        font-size         20px !important
+
+    .kdmodal-content
+      margin              15px 0 0 0 !important
+      padding             0 !important
+      font-size           16px !important
+      line-height         22px !important
+
+      .modalformline
+        padding           0
+        overflow          visible
+
+        &:last-child
+          border-bottom   1px solid transparent
+
+      .avatarview
+        cite.staff
+          hidden()
+
+
+    .kdmodal-buttons
+    .formline.button-field
+      margin              24px 0 0 0 !important
+      background          none !important
+      border-top          none !important
+      height              auto !important
+
+      .kdbutton
+        height            37px
+        fr()
+
+        .button-title
+          line-height     36px !important
+
+        &.to-left
+          margin-left     0
+          margin-right    12px
+          fl()
+
+  &.kdoverlay
+    fix()
+
+    &.second-overlay
+      z-index             10001
+
+
+.kdmodal
+  bg                    color white
+  rounded               6px
+  shadow                0 0 32px rgba(0,0,0,.46)
+  position              fixed !important
+
+  .kdmodal-inner
+    margin              45px
+
+    .close-icon
+      r-sprite            app, "modal-close-icon"
+      top               14px
+      right             14px
+
+      &:hover
+        r-sprite          app, "modal-close-icon"
+
+  .kdmodal-title
+    cursor              move
+    line-height         normal !important
+    font-weight         400
+    color               #50595a !important
+    margin-bottom       15px !important
+    padding             0 !important
+    background          none !important
+    border              none !important
+
+    .title
+      font-size         24px !important
+
+  .kdmodal-content
+    margin              15px 0 0 0 !important
+    padding             0 !important
+    font-size           16px !important
+    line-height         22px !important
+
+    .ban
+      color             #1aaf5d
+
+    .modalformline
+      padding           0
+      overflow          visible
+
+      &:last-child
+        border-bottom   1px solid transparent
+
+
+  .kdmodal-buttons
+  .formline.button-field
+    margin              24px 0 0 0 !important
+    background          none !important
+    // looks better i think w/o - SY
+    // border-top          2px solid #f3f4f5 !important
+    height              73px !important
+
+    .kdbutton
+      fr()
+
+      &.to-left
+        margin-left     0
+        margin-right    12px
+        fl()
+
+      &:not(.solid)
+        size            auto, 45px
+        background      none
+        border-width    3px
+        border-style    solid
+        margin          22px 0 0 12px !important
+        padding         0 24px !important
+        rounded         23px
+        font-size       18px
+        text-transform  uppercase
+        font-family     'Proxima Nova'
+
+    .modal-clean-red
+      border-color      #e94b35
+      color             #e94b35
+
+    .modal-clean-green
+      border-color      #1aaf5d
+      color             #1aaf5d
+
+    .modal-cancel
+      border-color      #bdc3c7
+      color             #bdc3c7
+
+.kdoverlay
+  fix()
+
+
+
+
+@css {
+/*
+resurrection.commons.styl
+FOOTER VIEW
+*/
+}
+
+
+footer.main-footer
+  padding               56px 0
+  font-family           openSansFamily
+  font-weight           400
+  background            #F0F0F0
+  border-top            1px solid #E8E8E8
+  height                auto
+
+  .inner-container
+    max-width           1290px
+    padding             0px 45px
+    margin              0 auto
+    display             block
+    position            relative
+    borderBox()
+
+  .footer-block
+    width               50%
+    font-size           0
+    borderBox()
+    fl()
+    &:last-child
+      text-align        right
+
+    a
+      vertical-align     middle
+      font-size          14px
+      line-height        22px
+      color              #747474
+      display            inline
+      margin-right       12px
+      noTextDeco()
+
+  a.social
+    display             inline-block
+    margin-right        8px
+    size                32px, 32px
+    background          #cacaca
+    rounded             50%
+    text-align          center
+    padding             7px 0 0 0
+    borderBox()
+
+    &:after
+      content           ''
+      display           inline-block
+
+    &.tw
+      &:hover
+        background      #55acee
+
+      &:after
+        r-sprite        home 'social-tw'
+
+    &.fb
+      &:hover
+        background      #3b5998
+
+      &:after
+        r-sprite        home 'social-fb'
+
+
+.two-factor-code-modal
+
+  .closeModal
+    hidden()
+
+  .kdmodal-title span.title
+    rel()
+    top                     -6px
+    font-size               14px !important
+    padding                 1px 0
+
+    a
+      noTextDeco()
+      abs()
+      right                 0
+      color                 #555
+      border-bottom         1px dotted
+
+  .kdmodal-content
+    overflow                visible
+
+    .login-input-view
+      margin                0 0 17px 0
+
+      input
+        text-align          center
+
+      .kdinput.text.medium
+        bg                  color, transparent
+        rounded             3px
+
+      .placeholder-helper
+        abs()
+        top                 11px
+        font-size           14px
+        text-align          center
+        size                100%, auto
+        color               #53585C
+        vendor              transition, top .1s ease\,\
+                                    opacity .3s .3s ease\,\
+                                    font-size .1s ease
+
+        &.out
+          top               -23px
+          font-size         12px
+
+    .kdbutton.solid.green
+      size                  100% auto
+      bg                    color, #1aaf5d
+
+      .button-title
+        font-weight         600
+
+// Smartphones and tablets [Commons]
+@media only screen and (min-width : 320px) and (max-width : 1250px)
+  .mobile-menu
+    &.active
+      padding-top           10px
+      height                158px
+      margin-top            -158px
+
+  .main-header.mobile-menu-active
+    top                     158px !important
+
+    nav a
+      color                 #f6f6f6 !important
+
+    .hamburger-menu.active
+      background            transparent

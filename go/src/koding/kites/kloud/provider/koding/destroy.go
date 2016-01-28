@@ -5,8 +5,6 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 
-	"github.com/aws/aws-sdk-go/aws"
-
 	"gopkg.in/mgo.v2"
 
 	"golang.org/x/net/context"
@@ -70,15 +68,7 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 		}
 	}
 
-	// try to release/delete a public elastic IP, if there is an error we don't
-	// care (the instance might not have an elastic IP, aka a free user.
-	m.Log.Debug("Releasing attached public IP's")
-	if addresses, err := m.Session.AWSClient.AddressesByIP(m.IpAddress); err == nil {
-		for _, address := range addresses {
-			m.Log.Debug("Got an elastic IP %+v. Going to relaease it", address)
-			m.Session.AWSClient.ReleaseAddress(aws.StringValue(address.AllocationId))
-		}
-	}
+	m.releaseEIP()
 
 	// clean up these details, the instance doesn't exist anymore
 	m.Meta["instanceName"] = ""

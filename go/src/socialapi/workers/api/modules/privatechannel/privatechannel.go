@@ -12,17 +12,37 @@ import (
 	"github.com/koding/bongo"
 )
 
-func Init(u *url.URL, h http.Header, req *models.ChannelRequest) (int, http.Header, interface{}, error) {
+func Init(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	req.AccountId = ctx.Client.Account.Id
+	req.GroupName = ctx.GroupName
+
 	return response.HandleResultAndError(req.Create())
 }
 
-func Send(u *url.URL, h http.Header, req *models.ChannelRequest) (int, http.Header, interface{}, error) {
+func Send(u *url.URL, h http.Header, req *models.ChannelRequest, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	req.AccountId = ctx.Client.Account.Id
+	req.GroupName = ctx.GroupName
+
 	return response.HandleResultAndError(req.Send())
 }
 
-func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := request.GetQuery(u)
-
+func List(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+	query := request.GetQuery(u)
+	q := ctx.OverrideQuery(query)
 	channelList, err := getPrivateChannels(q)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -31,8 +51,14 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	return response.HandleResultAndError(buildContainer(channelList, q))
 }
 
-func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := request.GetQuery(u)
+func Search(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	query := request.GetQuery(u)
+	q := ctx.OverrideQuery(query)
 
 	if q.Name == "" {
 		return response.NewBadRequest(errors.New("search string not set"))
@@ -46,10 +72,16 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return response.HandleResultAndError(buildContainer(channelList, q))
 }
 
-func Count(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := request.GetQuery(u)
+func Count(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	// check if user logged in or not
+	if !ctx.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
 
-	query := getUserChannelsQuery(q)
+	q := request.GetQuery(u)
+	qry := ctx.OverrideQuery(q)
+
+	query := getUserChannelsQuery(qry)
 
 	// add exempt clause if needed
 	if !q.ShowExempt {

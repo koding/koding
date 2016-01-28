@@ -62,6 +62,10 @@ func (k *Kloud) Event(r *kite.Request) (interface{}, error) {
 
 func (k *Kloud) NewEventer(id string) eventer.Eventer {
 	k.Log.Debug("[event] creating a new eventer for id: %s", id)
+
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
 	ev, ok := k.Eventers[id]
 	if ok {
 		// for now we delete old events, but in the future we might store them
@@ -75,9 +79,19 @@ func (k *Kloud) NewEventer(id string) eventer.Eventer {
 	return ev
 }
 
+func (k *Kloud) DelEventer(id string) {
+	k.Log.Debug("[event] cleaning up previous events of id: %s", id)
+
+	k.mu.Lock()
+	delete(k.Eventers, id)
+	k.mu.Unlock()
+}
+
 func (k *Kloud) GetEvent(eventId string) (*eventer.Event, error) {
 	// k.Log.Debug("[event] searching eventer for id: %s", eventId)
+	k.mu.RLock()
 	ev, ok := k.Eventers[eventId]
+	k.mu.RUnlock()
 	if !ok {
 		k.Log.Debug("[event] couldn't find eventer for id: %s", eventId)
 		return nil, NewError(ErrEventNotFound)

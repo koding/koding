@@ -36,13 +36,8 @@ module.exports.track = (username) ->
 
   allUsers[username] = ''
 
-module.exports.start = ->
-  redis = require 'redis'
-  redisClient = redis.createClient(
-    KONFIG.monitoringRedis.split(':')[1]
-    KONFIG.monitoringRedis.split(':')[0]
-    {}
-  )
+module.exports.start = (redisClientInstance) ->
+  redisClient = redisClientInstance
 
   redisClient.on 'error', (err) -> console.log 'redis err', err
   redisClient.on 'connect', -> console.log 'connected to redis'
