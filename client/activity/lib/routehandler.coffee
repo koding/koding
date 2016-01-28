@@ -34,7 +34,7 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
   # FIXME: Remove this call before public release. ~Umut
   kd.singletons.mainController.ready ->
     if type in reactivityRouteTypes
-      if isFeedEnabled()
+      if not isKoding() or isFeedEnabled()
       then handleReactivity info, ctx
       # unless reactivity is enabled redirect reactivity routes to `Public`
       else ctx.handleRoute '/Activity/Public'
