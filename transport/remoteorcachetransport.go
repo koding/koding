@@ -17,13 +17,17 @@ type RemoteOrCacheTransport struct {
 	CacheTransport  Transport
 }
 
-//// RemoteOrCacheTransport is an initializer for RemoteOrCacheTransport.
-//func NewRemoteOrCacheTransport(rt, ct Transport) *RemoteOrCacheTransport {
-//  return &RemoteOrCacheTransport{
-//    RemoteTransport: rt,
-//    CacheTransport: ct,
-//  }
-//}
+// NewRemoteOrCacheTransport is an initializer for RemoteOrCacheTransport.
+func NewRemoteOrCacheTransport(rt *RemoteTransport, dt *DiskTransport) *RemoteOrCacheTransport {
+	// DiskTransport does not ignore any dirs, if RemoteTransport ignores some
+	// dirs it'll lead to state mismatch; hence don't ignore any dirs
+	rt.SetIgnoreDirs(nil)
+
+	return &RemoteOrCacheTransport{
+		RemoteTransport: rt,
+		CacheTransport:  dt,
+	}
+}
 
 // CreateDir is sent to RemoteTransport only.
 func (o *RemoteOrCacheTransport) CreateDir(path string, mode os.FileMode) error {
