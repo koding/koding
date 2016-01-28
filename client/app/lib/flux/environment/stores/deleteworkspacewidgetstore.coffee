@@ -9,15 +9,15 @@ module.exports = class DeleteWorkspaceWidgetStore extends KodingFluxStore
   @getterPath = 'DeleteWorkspaceWidgetStore'
 
 
-  getInitialState: -> immutable.Map()
+  getInitialState: -> null
 
 
   initialize: ->
 
-    @on actions.SHOW_DELETE_WORKSPACE_WIDGET, @add
-    @on actions.HIDE_DELETE_WORKSPACE_WIDGET, @delete
+    @on actions.SHOW_DELETE_WORKSPACE_WIDGET, @show
+    @on actions.HIDE_DELETE_WORKSPACE_WIDGET, @hide
 
 
-  add: (workspaceItems, id) -> id
+  show: (workspaceItems, id) -> id
 
-  delete: (workspaceItems, id) -> null
+  hide: (workspaceItems) -> null

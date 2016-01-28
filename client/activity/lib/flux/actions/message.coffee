@@ -241,6 +241,8 @@ createMessage = (channelId, body, payload) ->
   type = channel.typeConstant
 
   fetchEmbedPayload { body, payload }, (err, embedPayload) ->
+    return  if err
+
     payload = mergeEmbedPayload payload, embedPayload
 
     options = { channelId, clientRequestId, body, payload, type }

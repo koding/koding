@@ -11,7 +11,7 @@ module.exports = EmojiToken =
     return  if not value or isWithinCodeBlock value, position
 
     currentWord = textHelpers.getWordByPosition value, position
-    return  unless currentWord
+    return  unless currentWord and currentWord.length > 2
 
     matchResult = currentWord.match /^\:([^:]+)$/
     return matchResult[1]  if matchResult

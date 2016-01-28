@@ -6,6 +6,7 @@ createLocation            = require 'history/lib/createLocation'
 handlers                  = require './routehandlers'
 lazyrouter                = require 'app/lazyrouter'
 isFeedEnabled             = require 'app/util/isFeedEnabled'
+isKoding                  = require 'app/util/isKoding'
 { RoutingContext, match } = require 'react-router'
 
 reactivityRouteTypes = [
@@ -34,7 +35,7 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
   # FIXME: Remove this call before public release. ~Umut
   kd.singletons.mainController.ready ->
     if type in reactivityRouteTypes
-      if isFeedEnabled()
+      if not isKoding() or isFeedEnabled()
       then handleReactivity info, ctx
       # unless reactivity is enabled redirect reactivity routes to `Public`
       else ctx.handleRoute '/Activity/Public'
