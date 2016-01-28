@@ -740,9 +740,9 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	}
 
 	c := &Config{
-		Path:       mountDir,
-		NoPrefetch: true,
-		NoWatch:    true,
+		Path:           mountDir,
+		NoPrefetchMeta: true,
+		NoWatch:        true,
 	}
 	k, err := NewKodingNetworkFS(t, c)
 	if err != nil {

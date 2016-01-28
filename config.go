@@ -21,7 +21,7 @@ type Config struct {
 	// NoPrefetch determines if we should fetch metadata on mount time. This makes
 	// mounts slightly slower, however it speeds up regular read directory a LOT.
 	// It fetches metadata recursively directories, but not contents of files.
-	NoPrefetch bool `default:false`
+	NoPrefetchMeta bool `default:false`
 
 	// NoWatch determines if we should watch for remote file changes and send
 	// them to local. Without this any changes that happen on remote won't be

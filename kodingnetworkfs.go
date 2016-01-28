@@ -137,7 +137,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	}
 
 	// don't prefetch folder/file metadata optionally
-	if !c.NoPrefetch {
+	if !c.NoPrefetchMeta {
 		// remove entries fetched above or it'll have double entries
 		rootDir.Reset()
 
