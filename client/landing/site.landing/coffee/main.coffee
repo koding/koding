@@ -23,9 +23,6 @@ do ->
 
   setGroup = (err, group) ->
     registerRoutes()
-    require './pricing/routes.coffee'
-    require './legal/routes.coffee'
-    require './features/routes.coffee'
     KD.config.group = group  if group
     # BIG BANG
     new MainController group
