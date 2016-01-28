@@ -18,9 +18,10 @@ type Config struct {
 	// Use this to turn off default ignoring of folders.
 	NoIgnore bool `default:false`
 
-	// NoPrefetch determines if we should fetch metadata on mount time. This makes
-	// mounts slightly slower, however it speeds up regular read directory a LOT.
-	// It fetches metadata recursively directories, but not contents of files.
+	// NoPrefetchMeta determines if we should fetch metadata on mount time. This
+	// makes mounts slightly slower, however it speeds up regular read directory
+	// a LOT. It fetches metadata recursively directories, but not contents of
+	// the files.
 	NoPrefetchMeta bool `default:false`
 
 	// NoWatch determines if we should watch for remote file changes and send
