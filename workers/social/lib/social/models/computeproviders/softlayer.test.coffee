@@ -70,7 +70,6 @@ runTests = -> describe 'workers.social.models.computeproviders.softlayer', ->
               expect(err).to.not.exist
               expect(data.meta).to.be.an 'object'
               expect(data.meta.type).to.be.equal 'softlayer'
-              expect(data.meta.datacenter).to.be.equal 'sjc01'
               expect(data.meta.storage_size).to.be.equal 25
               expect(data.meta.alwaysOn).to.be.false
               expect(data.label).to.be.a 'string'
