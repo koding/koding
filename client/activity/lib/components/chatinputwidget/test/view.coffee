@@ -25,6 +25,20 @@ describe 'ChatInputWidget.View', ->
     query         : 'wh'
   }
 
+  dataWithOneChar = {
+    dropboxConfig : toImmutable {
+      component   : EmojiDropbox
+      getters     : {
+        'items'
+        'selectedIndex'
+        'query'
+      }
+    }
+    items         : toImmutable [ 'whale', 'white_check_mark', 'white_circle' ]
+    selectedIndex : 1
+    query         : 'w'
+  }
+
   describe '::render', ->
 
     it 'renders input with provided prop value and placeholder', ->
@@ -40,6 +54,36 @@ describe 'ChatInputWidget.View', ->
       value = input.value
       expect(value).toEqual value
       expect(input.getAttribute 'placeholder').toEqual placeholder
+
+    it 'renders input with provided prop value with common emoji and placeholder', ->
+
+      value       = ':)'
+      placeholder = 'Type here...'
+      result = TestUtils.renderIntoDocument(
+        <ChatInputWidget placeholder={placeholder} data={{ value }} />
+      )
+
+      input = TestUtils.findRenderedDOMComponentWithTag result, 'textarea'
+
+      value = input.value
+      expect(value).toEqual value
+      expect(input.getAttribute 'placeholder').toEqual placeholder
+
+
+    it 'renders input with provided prop value with common emoji and meaningless word  and placeholder', ->
+
+      value       = ':pasdasdas'
+      placeholder = 'Type here...'
+      result = TestUtils.renderIntoDocument(
+        <ChatInputWidget placeholder={placeholder} data={{ value }} />
+      )
+
+      input = TestUtils.findRenderedDOMComponentWithTag result, 'textarea'
+
+      value = input.value
+      expect(value).toEqual value
+      expect(input.getAttribute 'placeholder').toEqual placeholder
+
 
     it 'renders dropbox according to dropbox config and passed data', ->
 
@@ -66,6 +110,21 @@ describe 'ChatInputWidget.View', ->
       )
 
       expect(-> TestUtils.findRenderedComponentWithType  result, EmojiDropbox).toThrow()
+
+    it 'renders dropbox according to dropbox config and passed data with single character', ->
+
+      result = TestUtils.renderIntoDocument(
+        <ChatInputWidget data={dataWithOneChar} />
+      )
+
+      component = TestUtils.findRenderedComponentWithType result, EmojiDropbox
+      expect(component).toExist()
+      dropbox = TestUtils.findRenderedComponentWithType component, PortalDropbox
+      content = dropbox.getContentElement()
+      title   = content.parentNode.querySelector '.Dropbox-subtitle'
+      items   = content.querySelectorAll '.DropboxItem'
+
+      expect(title.textContent).toNotEqual ":#{data.query}"
 
 
   describe '::onChange', ->
