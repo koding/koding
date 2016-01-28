@@ -51,11 +51,6 @@ gulp.task 'imagemin', ['sprites'], req 'task.imagemin'
 gulp.task 'coffee', req 'task.coffee'
 
 
-# BUILD FRAMEWORK FROM NODE MODULE
-
-gulp.task 'build-kd', req 'task.build-kd'
-
-
 # WATCHERS
 
 watchersTasks = [ 'watch-styles', 'watch-coffee', 'watch-sprites' ]
@@ -72,7 +67,7 @@ gulp.task 'watch-coffee', ['coffee'], -> watchLogger 'cyan', gulp.watch COFFEE_P
 
 gulp.task 'watchers', watchersTasks
 
-buildTasks = ['build-kd', 'libs', 'sprites', 'styles', 'coffee']
+buildTasks = ['libs', 'sprites', 'styles', 'coffee']
 buildTasks.push 'imagemin'  if argv.imageMin
 
 # EXPORT
