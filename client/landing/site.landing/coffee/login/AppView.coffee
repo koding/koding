@@ -139,8 +139,6 @@ module.exports = class LoginView extends JView
         closeTimer : 4000
         container  : this
 
-    KD.utils.defer => @setClass 'shown'
-
   pistachio:->
       # {{> @loginOptions}}
       # {{> @registerOptions}}
