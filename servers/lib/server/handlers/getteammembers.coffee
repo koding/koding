@@ -1,7 +1,7 @@
 Bongo                  = require 'bongo'
 koding                 = require './../bongo'
+async                  = require 'async'
 
-{ daisy }              = Bongo
 { isLoggedIn }         = require './../helpers'
 { generateFakeClient } = require './../client'
 
@@ -17,15 +17,15 @@ handleTokenedRequest = (params, res, next) ->
 
   queue = [
 
-    ->
+    (next) ->
       return res.status(403).send 'not authorized'  unless token
 
       # fetch invitation
       JInvitation.byCode token, (err, token_) ->
         return res.status(403).send 'not authorized'  if err or not token_
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # fetch the group that we have in token
       JGroup.one { slug : name }, (err, group_) ->
         return res.status(500).send 'an error occured'  if err
@@ -34,9 +34,9 @@ handleTokenedRequest = (params, res, next) ->
         group = group_
         # override group name with the one in token
         client.context.group = group.slug
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # fetch members of that group
       group.fetchMembers {}, options, (err, members) ->
         return res.status(500).send 'an error occured'  if err
@@ -44,7 +44,7 @@ handleTokenedRequest = (params, res, next) ->
 
   ]
 
-  daisy queue
+  async.series queue
 
 
 # fetch last members of a group, if we have a permission issue for the current
@@ -61,25 +61,25 @@ module.exports = (req, res, next) ->
 
   queue = [
 
-    ->
+    (next) ->
       isLoggedIn req, res, (err, loggedIn, account) ->
         return res.status(500).send 'an error occured'  if err
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       JGroup.one { slug : name }, (err, group_) ->
         return res.status(500).send 'an error occured'  if err
         return res.status(404).send 'no group found'    unless group_
         group = group_
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       generateFakeClient req, res, (err, client_) ->
         return res.status(500).send 'an error occured'  if err
         client = client_
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       options       = {}
       options.sort  = { 'meta.createdAt' : -1 }
       options.limit = Math.min limit ? 10, 25
@@ -96,4 +96,4 @@ module.exports = (req, res, next) ->
 
   ]
 
-  daisy queue
+  async.series queue
