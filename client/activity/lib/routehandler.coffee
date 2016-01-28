@@ -6,6 +6,7 @@ createLocation            = require 'history/lib/createLocation'
 handlers                  = require './routehandlers'
 lazyrouter                = require 'app/lazyrouter'
 isFeedEnabled             = require 'app/util/isFeedEnabled'
+isKoding                  = require 'app/util/isKoding'
 { RoutingContext, match } = require 'react-router'
 
 reactivityRouteTypes = [
