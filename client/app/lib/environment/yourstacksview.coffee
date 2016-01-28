@@ -21,10 +21,13 @@ module.exports = class YourStacksView extends KDCustomScrollView
 
     listView     = new EnvironmentList
     controller   = new EnvironmentListController
-      view       : listView
-      wrapper    : no
-      scrollView : no
-      selected   : options.selected
+      view              : listView
+      wrapper           : no
+      selected          : options.selected
+      scrollView        : no
+      noItemFoundWidget : new kd.CustomHTMLView
+        cssClass        : 'no-item-found'
+        partial         : "You don't have any stacks."
 
     @wrapper.addSubView controller.getView()
 
