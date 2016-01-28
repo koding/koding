@@ -31,7 +31,7 @@ type KlientTransport struct {
 }
 
 // NewKlientTransport initializes KlientTransport with Klient connection.
-func NewKlientTransport(c *kite.Client, t time.Duration) (*KlientTransport, error) {
+func NewKlientTransport(c *kite.Client, t time.Duration, r string) (*KlientTransport, error) {
 	return &KlientTransport{
 		Client:      c,
 		TellTimeout: t,
