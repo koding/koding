@@ -1,5 +1,6 @@
 _           = require 'underscore'
 hat         = require 'hat'
+async       = require 'async'
 Bongo       = require 'bongo'
 request     = require 'request'
 querystring = require 'querystring'
@@ -166,6 +167,7 @@ convertToArray = (commaSeparatedData = '') ->
 module.exports = {
   _
   hat
+  async
   daisy
   expect
   request
