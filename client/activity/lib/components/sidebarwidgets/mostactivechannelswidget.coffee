@@ -24,7 +24,7 @@ module.exports = class MostActiveChannelsWidget extends React.Component
   render: ->
     <div className='MostActiveChannelsWidget ActivitySidebar-widget'>
       <h3>Most active channels</h3>
-      <div>
+      <div className='renderChannelList'>
         {@renderChannelList()}
       </div>
     </div>
