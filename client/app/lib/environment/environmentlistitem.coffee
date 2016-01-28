@@ -41,6 +41,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     @machinesList = controller.getView()
 
+    @on 'ModalDestroyRequested', @bound 'destroyModal'
+
 
   createButtons: ->
 
@@ -109,7 +111,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleStackDelete: ->
 
-    @getDelegate().emit 'ModalDestroyRequested'
+    @destroyModal()
 
     { computeController } = kd.singletons
     computeController.ui.askFor 'deleteStack', {}, =>
@@ -118,8 +120,13 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleMachineRequest: (provider) ->
 
-    @getDelegate().emit 'ModalDestroyRequested'
+    @destroyModal()
     ComputeHelpers.handleNewMachineRequest { provider }
+
+
+  destroyModal: ->
+
+    @getDelegate().emit 'ModalDestroyRequested'
 
 
   createExtraViews: ->
@@ -213,7 +220,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         then computeController.stopStack  stack
         else computeController.startStack stack
 
-        @getDelegate().emit 'ModalDestroyRequested'
+        @destroyModal()
 
     if notready
       @stackStateToggle.setTooltip
