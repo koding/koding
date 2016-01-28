@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   request }                     = require '../../../testhelper'
 { testCsrfToken }               = require '../../../testhelper/handler'
@@ -16,40 +16,38 @@ runTests = -> describe 'server.handlers.logout', ->
 
     logoutRequestParams = generateLogoutRequestParams()
 
-    queue       = []
-    methods     = ['put', 'patch', 'delete']
+    queue   = []
+    methods = ['put', 'patch', 'delete']
 
-    addRequestToQueue = (queue, method) -> queue.push ->
+    addRequestToQueue = (queue, method) -> queue.push (next) ->
       logoutRequestParams.method = method
       request logoutRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 404
-        queue.next()
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 404
+        next()
 
     for method in methods
       addRequestToQueue queue, method
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 301 and redirect and clear cookies', (done) ->
 
-    cookieJar           = request.jar()
+    cookieJar = request.jar()
 
     logoutRequestParams = generateLogoutRequestParams
       jar : cookieJar
 
-    url                 = logoutRequestParams.url
+    url = logoutRequestParams.url
 
     request.post logoutRequestParams, (err, res, body) ->
       cookieString = cookieJar.getCookieString url
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 301
-      expect(cookieString)    .to.not.contain 'clientId'
-      expect(cookieString)    .to.not.contain 'useOldKoding'
-      expect(cookieString)    .to.not.contain 'koding082014'
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 301
+      expect(cookieString).to.not.contain 'clientId'
+      expect(cookieString).to.not.contain 'useOldKoding'
+      expect(cookieString).to.not.contain 'koding082014'
       done()
 
 
