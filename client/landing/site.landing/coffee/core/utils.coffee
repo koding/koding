@@ -1,4 +1,7 @@
-utils.extend utils,
+$ = require 'jquery'
+kd = require 'kd.js'
+
+kd.utils.extend kd.utils,
 
 
   clearKiteCaches: ->
@@ -84,7 +87,7 @@ utils.extend utils,
 
         return  unless input.valid
 
-        KD.utils.validateEmail { email, tfcode: tfcodeValue, password : passValue },
+        kd.utils.validateEmail { email, tfcode: tfcodeValue, password : passValue },
           success : (res) ->
 
             return location.replace '/'  if res is 'User is logged in!'
@@ -104,25 +107,25 @@ utils.extend utils,
 
 
   checkedPasswords: {}
-  checkPasswordStrength: KD.utils.debounce 300, (password, callback) ->
+  checkPasswordStrength: kd.utils.debounce 300, (password, callback) ->
 
     return callback msg : 'No password specified!'  unless password
-    return callback null, res                       if res = KD.utils.checkedPasswords[password]
+    return callback null, res                       if res = kd.utils.checkedPasswords[password]
 
     $.ajax
       url         : "/-/password-strength"
       type        : 'POST'
       data        : { password }
       success     : (res) ->
-        KD.utils.checkedPasswords[res.password] = res
+        kd.utils.checkedPasswords[res.password] = res
         callback null, res
       error       : ({responseJSON}) -> callback msg : responseJSON
 
 
   storeNewTeamData: (formName, formData) ->
 
-    KD.team              ?= {}
-    { team }              = KD
+    kd.team              ?= {}
+    { team }              = kd
     team[formName]        = formData
     localStorage.teamData = JSON.stringify team
 
@@ -130,18 +133,18 @@ utils.extend utils,
   clearTeamData: ->
 
     localStorage.teamData = null
-    KD.team = null
+    kd.team = null
 
 
   getTeamData: ->
 
-    return KD.team  if KD.team
+    return kd.team  if kd.team
 
     return {}  unless data = localStorage.teamData
 
     try
       team    = JSON.parse data
-      KD.team = team
+      kd.team = team
 
     return team  if team
     return {}
@@ -150,7 +153,7 @@ utils.extend utils,
   slugifyCompanyName: (team) ->
 
     if name = team.signup?.companyName
-    then teamName = KD.utils.slugify name
+    then teamName = kd.utils.slugify name
     else teamName = ''
 
     return teamName
@@ -158,7 +161,7 @@ utils.extend utils,
 
   createFormData = (teamData) ->
 
-    teamData ?= KD.utils.getTeamData()
+    teamData ?= kd.utils.getTeamData()
     formData  = {}
 
     for own step, fields of teamData when not ('boolean' is typeof fields)
@@ -188,10 +191,10 @@ utils.extend utils,
       data      : formData
       type      : 'POST'
       success   : callbacks.success or ->
-        KD.utils.clearTeamData()
+        kd.utils.clearTeamData()
         location.href = formData.redirect
       error     : callbacks.error  or ({responseText}) ->
-        new KDNotificationView title : responseText
+        new kd.NotificationView title : responseText
 
 
   routeIfInvitationTokenIsValid: (token, callbacks) ->
@@ -242,7 +245,7 @@ utils.extend utils,
     formData.agree           = 'on'
     formData.passwordConfirm = formData.password
     formData.redirect        = '/'
-    formData.slug            = KD.config.group.slug
+    formData.slug            = kd.config.group.slug
 
     $.ajax
       url       : "/-/teams/join"
@@ -250,7 +253,7 @@ utils.extend utils,
       type      : 'POST'
       success   : callbacks.success or -> location.href = formData.redirect
       error     : callbacks.error   or ({responseText}) ->
-        new KDNotificationView title : responseText
+        new kd.NotificationView title : responseText
 
 
   earlyAccess: (data, callbacks = {}) ->
@@ -262,13 +265,13 @@ utils.extend utils,
       data      : data
       type      : 'POST'
       success   : callbacks.success or ->
-        new KDNotificationView
+        new kd.NotificationView
           title    : "Thank you! We'll let you know when we launch it!"
           duration : 3000
       error     : callbacks.error   or ({responseText}) ->
         if responseText is 'Already applied!'
           responseText = "Thank you! We'll let you know when we launch it!"
-        new KDNotificationView
+        new kd.NotificationView
           title    : responseText
           duration : 3000
 
@@ -309,8 +312,8 @@ utils.extend utils,
 
   getGroupLogo : ->
 
-    { group } = KD.config
-    logo      = new KDCustomHTMLView tagName : 'figure'
+    { group } = kd.config
+    logo      = new kd.CustomHTMLView tagName : 'figure'
 
     if group.customize?.logo
       logo.setCss 'background-image', "url(#{group.customize.logo})"
@@ -330,7 +333,7 @@ utils.extend utils,
 
   # Prevents recaptcha from showing up in signup form
   # (but not backend); Used for testing.
-  disableRecaptcha: -> KD.config.recaptcha.enabled = no
+  disableRecaptcha: -> kd.config.recaptcha.enabled = no
 
 
   # Used to store last used OAuth, ie 'github', 'facebook' etc. between refreshes.

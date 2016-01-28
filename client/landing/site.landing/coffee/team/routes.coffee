@@ -1,13 +1,15 @@
+kd = require 'kd.js'
+
 do ->
 
-  handleRoot = -> KD.singletons.router.handleRoute '/'
+  handleRoot = -> kd.singletons.router.handleRoute '/'
 
-  KD.registerRoutes 'Team',
+  kd.registerRoutes 'Team',
 
     '/Team'       : handleRoot
-    '/Team/Login' : -> KD.singletons.router.handleRoute '/Team'
+    '/Team/Login' : -> kd.singletons.router.handleRoute '/Team'
     '/Team/:step' : ({ params : { step }, query }) ->
 
-      { router } = KD.singletons
+      { router } = kd.singletons
       router.openSection 'Team', null, null, (app) ->
         app.jumpTo step.toLowerCase(), query  if step

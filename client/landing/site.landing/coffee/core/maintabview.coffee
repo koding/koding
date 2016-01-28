@@ -1,6 +1,7 @@
+kd = require 'kd.js'
 MainTabPane = require './maintabpaneview'
 
-module.exports = class MainTabView extends KDTabView
+module.exports = class MainTabView extends kd.TabView
 
   constructor:(options,data)->
 
@@ -8,7 +9,7 @@ module.exports = class MainTabView extends KDTabView
 
     super options,data
 
-    @router = KD.getSingleton 'router'
+    @router = kd.getSingleton 'router'
 
 
   removePane: (pane) ->
@@ -19,7 +20,7 @@ module.exports = class MainTabView extends KDTabView
 
     index = @getPaneIndex pane
 
-    pane.emit 'KDTabPaneDestroy'
+    pane.emit 'kd.TabPaneDestroy'
 
     isActivePane = @getActivePane() is pane
     @panes.splice index, 1

@@ -1,7 +1,9 @@
+$ = require 'jquery'
+kd = require 'kd.js'
 # Api:
-#   KD.singletons.oauthController.openPopup "github"
-#   KD.singletons.oauthController.authCompleted null, "github"
-module.exports = class OAuthController extends KDController
+#   kd.singletons.oauthController.openPopup "github"
+#   kd.singletons.oauthController.authCompleted null, "github"
+module.exports = class OAuthController extends kd.Controller
 
   constructor: (options = {}) ->
 
@@ -34,7 +36,7 @@ module.exports = class OAuthController extends KDController
 
     if err then notify err
     else
-      {mainController} = KD.singletons
+      {mainController} = kd.singletons
       mainController.emit "ForeignAuthPopupClosed", provider
       mainController.emit "ForeignAuthCompleted", provider
 
@@ -49,17 +51,17 @@ module.exports = class OAuthController extends KDController
 
   setupOauthListeners:->
 
-    {mainController} = KD.singletons
+    {mainController} = kd.singletons
     mainController.once "ForeignAuthCompleted", (provider)=>
 
-      isUserLoggedIn = KD.isLoggedIn()
+      isUserLoggedIn = kd.isLoggedIn()
 
       params = {isUserLoggedIn, provider}
 
       @doOAuth params, (err, resp)=>
 
         if err
-          return new KDNotificationView title: "OAuth integration failed"
+          return new kd.NotificationView title: "OAuth integration failed"
 
         {isNewUser, userInfo, returnUrl} = resp
 
@@ -79,10 +81,10 @@ module.exports = class OAuthController extends KDController
 
   handleNewUser: (userInfo)->
 
-    KD.utils.storeLastUsedProvider userInfo.provider
-    KD.singletons.router.handleRoute '/'
+    kd.utils.storeLastUsedProvider userInfo.provider
+    kd.singletons.router.handleRoute '/'
 
-    KD.singletons.router.requireApp 'Home', (homeController)->
+    kd.singletons.router.requireApp 'Home', (homeController)->
       homeView = homeController.getView()
       { signUpForm } = homeView
 
@@ -92,4 +94,4 @@ module.exports = class OAuthController extends KDController
   notify = (err)->
 
     message = if err then err.message else "Something went wrong"
-    new KDNotificationView title : message
+    new kd.NotificationView title : message

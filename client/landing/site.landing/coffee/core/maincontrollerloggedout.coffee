@@ -1,12 +1,15 @@
+$ = require 'jquery'
+kd = require 'kd.js'
+
 require './utils'
-require './KD.extend.coffee'
+require './kd.extend.coffee'
 KodingRouter                 = require './kodingrouter'
 OAuthController              = require './oauthcontroller'
 MainView                     = require './mainview'
 MainViewController           = require './mainviewcontroller'
-{ getGroupNameFromLocation } = KD.utils
+{ getGroupNameFromLocation } = kd.utils
 
-module.exports = class MainControllerLoggedOut extends KDController
+module.exports = class MainControllerLoggedOut extends kd.Controller
 
   constructor:(options = {}, data)->
 
@@ -17,17 +20,17 @@ module.exports = class MainControllerLoggedOut extends KDController
     @createSingletons()
     @setupPageAnalyticsEvent()
 
-    KD.utils.defer =>
+    kd.utils.defer =>
       # Keep referrer (if available) in memory
-      @_referrer = KD.utils.getReferrer()
+      @_referrer = kd.utils.getReferrer()
 
   createSingletons:->
 
-    KD.registerSingleton 'mainController',            this
-    KD.registerSingleton 'router',           router = new KodingRouter
-    KD.registerSingleton 'mainView',             mv = new MainView
-    KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
-    KD.registerSingleton 'oauthController',           new OAuthController
+    kd.registerSingleton 'mainController',            this
+    kd.registerSingleton 'router',           router = new KodingRouter
+    kd.registerSingleton 'mainView',             mv = new MainView
+    kd.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
+    kd.registerSingleton 'oauthController',           new OAuthController
 
     @mainViewController = mvc
     mv.appendToDomBody()
@@ -39,13 +42,13 @@ module.exports = class MainControllerLoggedOut extends KDController
 
   setupPageAnalyticsEvent:->
 
-    KD.singletons.router.on "RouteInfoHandled", (route) ->
+    kd.singletons.router.on "RouteInfoHandled", (route) ->
 
       return  unless route
 
       name = route.path.split('/')[1] or '/'
 
-      KD.utils.analytics.page name
+      kd.utils.analytics.page name
 
 
   login: (formData, callback) ->
@@ -60,10 +63,10 @@ module.exports = class MainControllerLoggedOut extends KDController
 
     if redirectTo is 'Pricing'
       { planInterval, planTitle } = formData
-      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = kd.utils.stringifyQuery {planTitle, planInterval}
       query = "?#{query}"
 
-    KD.utils.clearKiteCaches()
+    kd.utils.clearKiteCaches()
 
     $.ajax
       url         : '/Login'
@@ -80,13 +83,13 @@ module.exports = class MainControllerLoggedOut extends KDController
           callback? { err: 'TwoFactorEnabled' }
           return
         else
-          new KDNotificationView title : responseText
+          new kd.NotificationView title : responseText
 
         @emit 'LoginFailed'
 
 
   handleBanned = (responseText) ->
-    new KDModalView
+    new kd.ModalView
       title        : "Account banned due to policy violation(s)."
       content      : responseText
       overlay      : yes

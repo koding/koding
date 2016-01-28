@@ -1,4 +1,5 @@
-KD.extend
+kd = require 'kd.js'
+kd.extend
 
   config       : {}
   apiUri       : null
@@ -10,13 +11,13 @@ KD.extend
 
     return error "AppClass is missing a name!"  unless options.name
 
-    if KD.appClasses[options.name]
+    if kd.appClasses[options.name]
 
-      if KD.config.apps[options.name]
+      if kd.config.apps[options.name]
         return warn "AppClass #{options.name} cannot be used, since its conflicting with an internal Koding App."
       else
         warn "AppClass #{options.name} is already registered or the name is already taken!"
-        warn "Removing the old one. It was ", KD.appClasses[options.name]
+        warn "Removing the old one. It was ", kd.appClasses[options.name]
         @unregisterAppClass options.name
 
     options.multiple      ?= no           # a Boolean
@@ -40,7 +41,7 @@ KD.extend
     else if routes
     then @registerRoutes name, routes
 
-    Object.defineProperty KD.appClasses, name,
+    Object.defineProperty kd.appClasses, name,
       configurable  : yes
       enumerable    : yes
       writable      : no
@@ -58,26 +59,26 @@ KD.extend
       slug    : slug ? '/'
       handler : handler or route.handler or null
 
-    if route.slug isnt '/' or appName is 'KDMainApp'
+    if route.slug isnt '/' or appName is 'kd.MainApp'
 
       {slug, handler} = route
 
       cb = ->
-        router = KD.getSingleton 'router'
+        router = kd.getSingleton 'router'
         handler ?= ({params:{name}, query}) ->
           router.openSection appName, name, query
         router.addRoute slug, handler
 
-      if router = KD.singletons.router then cb()
-      else KDRouter.on 'RouterIsReady', cb
+      if router = kd.singletons.router then cb()
+      else kd.Router.on 'RouterIsReady', cb
 
-  unregisterAppClass :(name)-> delete KD.appClasses[name]
+  unregisterAppClass :(name)-> delete kd.appClasses[name]
 
-  getAppClass        :(name)-> KD.appClasses[name]?.fn or null
+  getAppClass        :(name)-> kd.appClasses[name]?.fn or null
 
-  getAppOptions      :(name)-> KD.appClasses[name]?.options or null
+  getAppOptions      :(name)-> kd.appClasses[name]?.options or null
 
-  getAppVersion      :(name)-> KD.appClasses[name]?.options?.version or null
+  getAppVersion      :(name)-> kd.appClasses[name]?.options?.version or null
 
   getAppScript       :(name)-> @appScripts[name] or null
 

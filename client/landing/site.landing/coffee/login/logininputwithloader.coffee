@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginInputView = require './logininputview'
 
 module.exports = class LoginInputViewWithLoader extends LoginInputView
@@ -5,7 +6,7 @@ module.exports = class LoginInputViewWithLoader extends LoginInputView
   constructor:(options, data)->
     super
 
-    @loader = new KDLoaderView
+    @loader = new kd.LoaderView
       cssClass      : "input-loader"
       size          :
         width       : 32

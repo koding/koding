@@ -1,7 +1,8 @@
+kd = require 'kd.js'
 JView          = require './../../core/jview'
 MainHeaderView = require './../../core/mainheaderview'
 
-module.exports = class TeamDomainTab extends KDFormView
+module.exports = class TeamDomainTab extends kd.FormView
 
   JView.mixin @prototype
 
@@ -11,13 +12,13 @@ module.exports = class TeamDomainTab extends KDFormView
 
     super options, data
 
-    team = KD.utils.getTeamData()
+    team = kd.utils.getTeamData()
 
-    @inputView = new KDCustomHTMLView
+    @inputView = new kd.CustomHTMLView
       cssClass     : 'login-input-view'
       click        : => @input.setFocus()
 
-    @inputView.addSubView @input = new KDInputView
+    @inputView.addSubView @input = new kd.InputView
       placeholder  : 'your-team'
       attributes   : 10
       name         : 'slug'
@@ -34,20 +35,20 @@ module.exports = class TeamDomainTab extends KDFormView
       { width }         = element.getBoundingClientRect()
       @input.setWidth width or 100
 
-    @inputView.addSubView @suffix = new KDView
+    @inputView.addSubView @suffix = new kd.View
       tagName      : 'span'
       partial      : '.koding.com'
 
-    @inputView.addSubView @fakeView = new KDCustomHTMLView
+    @inputView.addSubView @fakeView = new kd.CustomHTMLView
       tagName      : 'div'
       cssClass     : 'fake-view'
 
-    @backLink = new KDCustomHTMLView
+    @backLink = new kd.CustomHTMLView
       tagName      : 'span'
       cssClass     : 'TeamsModal-button-link back'
       partial      : "<i></i> <a href=\"/Teams/#{team.invitation.teamAccessCode}\">Back</a>"
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title        : 'NEXT'
       style        : 'TeamsModal-button TeamsModal-button--green'
       attributes   : testpath  : 'domain-button'

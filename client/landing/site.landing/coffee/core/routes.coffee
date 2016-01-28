@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 do ->
 
   KODING = 'koding'
@@ -7,8 +8,8 @@ do ->
     # don't load the root content when we're just consuming a hash fragment
     return if location.hash.length
 
-    { router } = KD.singletons
-    { groupName, group, environment } = KD.config
+    { router } = kd.singletons
+    { groupName, group, environment } = kd.config
 
     # root is home if group is koding
     if groupName is 'koding'
@@ -28,19 +29,19 @@ do ->
 
   handleInvitation = ({params : {token}, query}) ->
 
-    KD.utils.routeIfInvitationTokenIsValid token,
+    kd.utils.routeIfInvitationTokenIsValid token,
       success   : ({email}) ->
-        KD.utils.storeNewTeamData 'invitation', { token, email }
-        KD.singletons.router.handleRoute '/Welcome'
+        kd.utils.storeNewTeamData 'invitation', { token, email }
+        kd.singletons.router.handleRoute '/Welcome'
       error     : ({responseText}) ->
-        new KDNotificationView title : responseText
-        KD.singletons.router.handleRoute '/'
+        new kd.NotificationView title : responseText
+        kd.singletons.router.handleRoute '/'
 
 
   handleTeamOnboardingRoute = (section, {params, query}) ->
 
-    { groupName, group, environment } = KD.config
-    { router }                        = KD.singletons
+    { groupName, group, environment } = kd.config
+    { router }                        = kd.singletons
 
     # if group is koding or if the route doesnt have a subdomain we route to root.
     return router.handleRoute '/'  if groupName is KODING
@@ -51,7 +52,7 @@ do ->
       return location.replace newUrl
 
     # if we dont have a valid email fetched from the invitation token we warn and route to root.
-    unless KD.utils.getTeamData().invitation?.email
+    unless kd.utils.getTeamData().invitation?.email
       console.warn 'No valid invitation found!'
       return router.handleRoute '/'
 
@@ -61,11 +62,11 @@ do ->
   handleTeamRoute = (section, {params, query}) ->
 
     # we open the team creation or onboarding section
-    return KD.singletons.router.openSection 'Team', null, null, (app) ->
+    return kd.singletons.router.openSection 'Team', null, null, (app) ->
       app.jumpTo section, params, query
 
 
-  KD.registerRoutes 'Core',
+  kd.registerRoutes 'Core',
     '/'                    : handleRoot
     ''                     : handleRoot
     # the routes below are subdomain routes

@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginViewInlineForm = require './../../login/loginviewinlineform'
 LoginInputView      = require './../../login/logininputview'
 
@@ -10,7 +11,7 @@ module.exports = class TeamLoginAndCreateTabForm extends LoginViewInlineForm
 
     super options, data
 
-    { username, email } = KD.utils.getTeamData().signup
+    { username, email } = kd.utils.getTeamData().signup
 
     @username = new LoginInputView
       inputOptions        :
@@ -43,12 +44,12 @@ module.exports = class TeamLoginAndCreateTabForm extends LoginViewInlineForm
         attributes        :
           testpath        : 'login-form-tfcode'
 
-    @backLink = new KDCustomHTMLView
+    @backLink = new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link back'
       partial  : '<i></i> <a href="/Team/Domain">Back</a>'
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title      : 'Sign in'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'

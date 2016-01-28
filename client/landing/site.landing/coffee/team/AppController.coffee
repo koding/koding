@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 TeamView = require './AppView'
 
 FLOW_ROUTES  =
@@ -42,16 +43,16 @@ isPreviousStepCompleted = (flow, step) ->
 
   result = yes
   for step in flow.slice(0, index)
-    unless KD.utils.getTeamData()[step]
+    unless kd.utils.getTeamData()[step]
       result = no
       break
 
   return result
 
 
-module.exports = class TeamAppController extends KDViewController
+module.exports = class TeamAppController extends kd.ViewController
 
-  KD.registerAppClass this,
+  kd.registerAppClass this,
     name : 'Team'
 
   constructor: (options = {}, data) ->
@@ -68,7 +69,7 @@ module.exports = class TeamAppController extends KDViewController
     flow = getFlow(step)
     if flow and not isPreviousStepCompleted flow, step
       prevStep = getPreviousStep flow, step
-      KD.singletons.router.handleRoute getRouteFromStep prevStep
+      kd.singletons.router.handleRoute getRouteFromStep prevStep
       return
 
     appView = @getView()

@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginViewInlineForm      = require './../login/loginviewinlineform'
 LoginInputView           = require './../login/logininputview'
 LoginInputViewWithLoader = require './../login/logininputwithloader'
@@ -8,7 +9,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
 
     super
 
-    team        = KD.utils.getTeamData()
+    team        = kd.utils.getTeamData()
     email       = team.invitation?.email
     companyName = team.signup?.companyName
 
@@ -40,7 +41,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
     @email.inputReceivedKeyup()        if email
     @companyName.inputReceivedKeyup()  if companyName
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title       : 'Sign up'
       icon        : yes
       style       : 'TeamsModal-button TeamsModal-button--green'

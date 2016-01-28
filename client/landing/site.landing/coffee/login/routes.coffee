@@ -1,32 +1,34 @@
+kd = require 'kd.js'
+
 do ->
 
   handler = (callback) -> (options) ->
     cb = (app) -> callback app, options
-    groupName = KD.utils.getGroupNameFromLocation()
+    groupName = kd.utils.getGroupNameFromLocation()
 
     # we need to remove this and make it selectively only
     # for login and register routes
     # redeem/reset etc should work for groups - SY
-    return KD.singletons.router.handleRoute '/'  if groupName isnt 'koding'
+    return kd.singletons.router.handleRoute '/'  if groupName isnt 'koding'
 
-    KD.singletons.router.openSection 'Login', null, null, cb
+    kd.singletons.router.openSection 'Login', null, null, cb
 
 
   handleVerified = ->
-    new KDNotificationView title: "Thanks for verifying"
+    new kd.NotificationView title: "Thanks for verifying"
     @clear()
 
   handleVerificationFailed = ->
-    new KDNotificationView title: "Verification failed!"
+    new kd.NotificationView title: "Verification failed!"
     @clear()
 
   handleResetRoute = ({params:{token}}) ->
-    KD.singletons.router.openSection 'Login', null, null, (app) ->
+    kd.singletons.router.openSection 'Login', null, null, (app) ->
       app.getView().setCustomDataToForm('reset', {recoveryToken:token})
       app.getView().animateToForm('reset')
 
 
-  KD.registerRoutes 'Login',
+  kd.registerRoutes 'Login',
 
     '/Login/:token?' : handler (app, options)->
       app.getView().animateToForm 'login'

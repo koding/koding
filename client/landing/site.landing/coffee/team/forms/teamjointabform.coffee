@@ -1,8 +1,9 @@
+kd = require 'kd.js'
 JView           = require './../../core/jview'
 LoginInputView  = require './../../login/logininputview'
 
 
-module.exports = class TeamJoinTabForm extends KDFormView
+module.exports = class TeamJoinTabForm extends kd.FormView
 
   JView.mixin @prototype
 
@@ -14,7 +15,7 @@ module.exports = class TeamJoinTabForm extends KDFormView
 
   getButton: (title) ->
 
-    new KDButtonView
+    new kd.ButtonView
       title   : title
       style   : 'TeamsModal-button TeamsModal-button--green'
       type    : 'submit'
@@ -23,7 +24,7 @@ module.exports = class TeamJoinTabForm extends KDFormView
 
   getButtonLink: (partial, callback) ->
 
-    new KDCustomHTMLView
+    new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link'
       partial  : partial

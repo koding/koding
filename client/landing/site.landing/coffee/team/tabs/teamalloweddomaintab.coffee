@@ -1,8 +1,9 @@
+kd = require 'kd.js'
 JView                    = require './../../core/jview'
 MainHeaderView           = require './../../core/mainheaderview'
 TeamAllowedDomainTabForm = require './../forms/teamalloweddomaintabform'
 
-module.exports = class TeamAllowedDomainTab extends KDTabPaneView
+module.exports = class TeamAllowedDomainTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
@@ -10,7 +11,7 @@ module.exports = class TeamAllowedDomainTab extends KDTabPaneView
 
     super options, data
 
-    { mainController } = KD.singletons
+    { mainController } = kd.singletons
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -19,8 +20,8 @@ module.exports = class TeamAllowedDomainTab extends KDTabPaneView
     name = @getOption 'name'
     @form = new TeamAllowedDomainTabForm
       callback : (formData) ->
-        KD.utils.storeNewTeamData name, formData
-        KD.singletons.router.handleRoute '/Team/Invite'
+        kd.utils.storeNewTeamData name, formData
+        kd.singletons.router.handleRoute '/Team/Invite'
 
 
   pistachio: ->

@@ -9,7 +9,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
     super
 
-    teamData = KD.utils.getTeamData()
+    teamData = kd.utils.getTeamData()
 
     @username = new LoginInputView
       cssClass        : 'hidden'
@@ -22,7 +22,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     @tfcode     = @getTFCode()
     @button     = @getButton 'Done!'
     @buttonLink = @getButtonLink "Not you? <a href='#'>Create an account!</a>", (event) =>
-      KD.utils.stopDOMEvent event
+      kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
 
       @emit 'FormNeedsToBeChanged', no, no
@@ -33,7 +33,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
   submit: (formData) ->
 
-    teamData = KD.utils.getTeamData()
+    teamData = kd.utils.getTeamData()
     teamData.signup.alreadyMember = yes
 
     super formData
@@ -48,7 +48,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
       <p class='dim'>
         Your email address indicates that you're already a Koding user,
         please type your password to proceed.<br>
-        <a href='//#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
+        <a href='//#{kd.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
       </p>
       <div class='TeamsModal-button-separator'></div>
       {{> @button}}

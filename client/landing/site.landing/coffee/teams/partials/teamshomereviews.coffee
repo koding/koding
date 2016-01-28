@@ -1,4 +1,5 @@
-module.exports = class TeamsHomeReviews extends KDView
+kd = require 'kd.js'
+module.exports = class TeamsHomeReviews extends kd.View
 
   IMAGEPATH = '/a/site.landing/images/teams/reviewers'
   ITEMS     = [

@@ -1,7 +1,9 @@
 console.time 'Koding.com loaded'
 
+kd = require 'kd.js'
+
 require './core/utils'
-require './core/KD.extend.coffee'
+require './core/kd.extend.coffee'
 
 # register appclasses
 require './login/AppController'
@@ -23,17 +25,17 @@ do ->
 
   setGroup = (err, group) ->
     registerRoutes()
-    KD.config.group = group  if group
+    kd.config.group = group  if group
     # BIG BANG
     new MainController group
 
 
-  KD.config             or= {}
-  KD.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
-  KD.config.groupName     = groupName = KD.utils.getGroupNameFromLocation()
-  KD.config.recaptcha     = window._runtimeOptions.recaptcha
-  KD.config.google        = window._runtimeOptions.google
+  kd.config             or= {}
+  kd.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
+  kd.config.groupName     = groupName = kd.utils.getGroupNameFromLocation()
+  kd.config.recaptcha     = window._runtimeOptions.recaptcha
+  kd.config.google        = window._runtimeOptions.google
 
   if groupName is 'koding'
   then setGroup()
-  else KD.utils.checkIfGroupExists groupName, setGroup
+  else kd.utils.checkIfGroupExists groupName, setGroup

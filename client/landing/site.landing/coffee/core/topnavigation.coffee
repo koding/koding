@@ -1,7 +1,8 @@
+kd = require 'kd.js'
 CustomLinkView = require './customlinkview'
 kookies        = require 'kookies'
 
-module.exports = class TopNavigation extends KDCustomHTMLView
+module.exports = class TopNavigation extends kd.CustomHTMLView
 
   menu = [
     { title : 'Koding University', href : 'http://learn.koding.com',  name : 'about' }
@@ -20,7 +21,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
     @menu = {}
 
-    {mainView} = KD.singletons
+    {mainView} = kd.singletons
     mainView.on 'MainTabPaneShown', @bound 'setActiveItem'
 
 

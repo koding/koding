@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 JView             = require './../../core/jview'
 mailServices      = [
   'gmail.com', 'hotmail.com', 'outlook.com', 'icloud.com'
@@ -5,7 +6,7 @@ mailServices      = [
   'aol.com', 'mail.com', 'mail.ru'
   ]
 
-module.exports = class TeamAllowedDomainTabForm extends KDFormView
+module.exports = class TeamAllowedDomainTabForm extends kd.FormView
 
   JView.mixin @prototype
 
@@ -15,16 +16,16 @@ module.exports = class TeamAllowedDomainTabForm extends KDFormView
 
     super options, data
 
-    team = KD.utils.getTeamData()
+    team = kd.utils.getTeamData()
     if email = team.signup?.email
       domain = email.split('@').last
       domain = null  if domain in mailServices
 
-    @label = new KDLabelView
+    @label = new kd.LabelView
       title : 'Allow sign up and team discovery with a specific email address'
       for   : 'allow'
 
-    @checkbox = new KDInputView
+    @checkbox = new kd.InputView
       defaultValue : on
       type         : 'checkbox'
       name         : 'allow'
@@ -35,12 +36,12 @@ module.exports = class TeamAllowedDomainTabForm extends KDFormView
         then @showExtras()
         else @hideExtras()
 
-    @input = new KDInputView
+    @input = new kd.InputView
       placeholder  : 'domain.com, other.edu'
       name         : 'domains'
       defaultValue : domain  if domain
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title      : 'NEXT'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'allowed-domain-button'

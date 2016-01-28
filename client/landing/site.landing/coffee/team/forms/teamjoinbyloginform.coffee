@@ -18,26 +18,26 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
           messages    : { required: 'Please enter a username.' }
 
 
-    teamData                = KD.utils.getTeamData()
+    teamData                = kd.utils.getTeamData()
     if teamData.profile
       { firstName, nickname } = teamData.profile
       name     = "#{firstName or '@'+nickname}"
       partial  = "Are you #{name}? <a href='#'>Login here!</a>"
       callback = (event) =>
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         return  unless event.target.tagName is 'A'
         @emit 'FormNeedsToBeChanged', yes, no
     else
       name     = "#{firstName or '@'+nickname}"
       partial  = "Don't have an account? <a href='#'>Sign up!</a>"
       callback = (event) =>
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         return  unless event.target.tagName is 'A'
         @emit 'FormNeedsToBeChanged', no, no
 
     @password   = @getPassword()
     @tfcode     = @getTFCode()
-    @button     = @getButton "Join #{KD.config.groupName}!"
+    @button     = @getButton "Join #{kd.config.groupName}!"
     @buttonLink = @getButtonLink partial, callback
 
     @on 'FormSubmitFailed', @button.bound 'hideLoader'
@@ -45,7 +45,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
 
   submit: (formData) ->
 
-    teamData = KD.utils.getTeamData()
+    teamData = kd.utils.getTeamData()
     teamData.signup.alreadyMember = yes
 
     super formData
@@ -58,7 +58,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
     {{> @password}}
     {{> @tfcode}}
     <p class='dim'>
-      <a href='//#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
+      <a href='//#{kd.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
     </p>
     <div class='TeamsModal-button-separator'></div>
     {{> @buttonLink}}

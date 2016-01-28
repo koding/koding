@@ -1,29 +1,30 @@
-module.exports = class LoginOptions extends KDView
+kd = require 'kd.js'
+module.exports = class LoginOptions extends kd.View
   viewAppended:->
 
-    inFrame = KD.runningInFrame()
+    inFrame = kd.runningInFrame()
 
-    @addSubView new KDHeaderView
+    @addSubView new kd.HeaderView
       type      : "small"
       title     : "SIGN IN WITH:"
 
-    @addSubView optionsHolder = new KDCustomHTMLView
+    @addSubView optionsHolder = new kd.CustomHTMLView
       tagName   : "ul"
       cssClass  : "login-options"
 
-    optionsHolder.addSubView new KDCustomHTMLView
+    optionsHolder.addSubView new kd.CustomHTMLView
       tagName   : "li"
       cssClass  : "koding active"
       partial   : "koding"
       tooltip   :
         title   : "<p class='login-tip'>Sign in with Koding</p>"
 
-    optionsHolder.addSubView new KDCustomHTMLView
+    optionsHolder.addSubView new kd.CustomHTMLView
       tagName   : "li"
       cssClass  : "github #{if inFrame then 'hidden' else ''}"
       partial   : "github"
       click     : ->
-        return new KDNotificationView title: "Login restricted"
-        #KD.singletons.oauthController.openPopup "github"
+        return new kd.NotificationView title: "Login restricted"
+        #kd.singletons.oauthController.openPopup "github"
       tooltip   :
         title   : "<p class='login-tip'>Sign in with GitHub</p>"

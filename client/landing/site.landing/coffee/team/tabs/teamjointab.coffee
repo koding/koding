@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 _                               = require 'lodash'
 articlize                       = require 'indefinite-article'
 MainHeaderView                  = require './../../core/mainheaderview'
@@ -7,29 +8,29 @@ TeamJoinWithInvitedAccountForm  = require './../forms/teamjoinwithinvitedaccount
 TeamLoginAndCreateTabForm       = require './../forms/teamloginandcreatetabform'
 
 
-module.exports = class TeamJoinTab extends KDTabPaneView
+module.exports = class TeamJoinTab extends kd.TabPaneView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = KD.utils.curry 'username', options.cssClass
+    options.cssClass = kd.utils.curry 'username', options.cssClass
 
     super options, data
 
-    teamData       = KD.utils.getTeamData()
+    teamData       = kd.utils.getTeamData()
     @alreadyMember = teamData.signup?.alreadyMember
-    domains        = KD.config.group.allowedDomains
+    domains        = kd.config.group.allowedDomains
 
     @addSubView new MainHeaderView { cssClass: 'team', navItems: [] }
-    @addSubView @wrapper = new KDCustomHTMLView { cssClass: 'TeamsModal TeamsModal--groupCreation' }
+    @addSubView @wrapper = new kd.CustomHTMLView { cssClass: 'TeamsModal TeamsModal--groupCreation' }
 
-    teamTitle  = KD.config.group.title
-    modalTitle = "Join #{KD.utils.createTeamTitlePhrase teamTitle}"
+    teamTitle  = kd.config.group.title
+    modalTitle = "Join #{kd.utils.createTeamTitlePhrase teamTitle}"
 
     @putAvatar()  if @alreadyMember
 
-    @wrapper.addSubView @intro = new KDCustomHTMLView { tagName: 'p', cssClass: 'intro', partial: '' }
-    @wrapper.addSubView new KDCustomHTMLView { tagName: 'h4', partial: modalTitle }
-    @wrapper.addSubView new KDCustomHTMLView { tagName: 'h5', partial: @getDescription() }
+    @wrapper.addSubView @intro = new kd.CustomHTMLView { tagName: 'p', cssClass: 'intro', partial: '' }
+    @wrapper.addSubView new kd.CustomHTMLView { tagName: 'h4', partial: modalTitle }
+    @wrapper.addSubView new kd.CustomHTMLView { tagName: 'h5', partial: @getDescription() }
     @addForm()
 
 
@@ -58,7 +59,7 @@ module.exports = class TeamJoinTab extends KDTabPaneView
 
   clearValidations: ->
 
-    inputs = KDFormView.findChildInputs this
+    inputs = kd.FormView.findChildInputs this
 
     _.each inputs, (input) ->
       input.emit 'ValidationFeedbackCleared' # Reset the validations
@@ -78,18 +79,18 @@ module.exports = class TeamJoinTab extends KDTabPaneView
 
   putAvatar: ->
 
-    @wrapper.addSubView @avatar = new KDCustomHTMLView { tagName: 'figure' }
+    @wrapper.addSubView @avatar = new kd.CustomHTMLView { tagName: 'figure' }
 
-    { getProfile, getGravatarUrl, getTeamData } = KD.utils
+    { getProfile, getGravatarUrl, getTeamData } = kd.utils
     { invitation: { email } }                   = getTeamData()
 
     getProfile email,
       error   : ->
       success : (profile) =>
         { hash, firstName, nickname } = profile
-        KD.utils.storeNewTeamData 'profile', profile
+        kd.utils.storeNewTeamData 'profile', profile
         @intro.updatePartial "Hey #{firstName or '@' + nickname},"
-        @avatar.addSubView new KDCustomHTMLView
+        @avatar.addSubView new kd.CustomHTMLView
           tagName    : 'img'
           attributes : { src: getGravatarUrl 64, hash }
 
@@ -98,7 +99,7 @@ module.exports = class TeamJoinTab extends KDTabPaneView
     desc = if @alreadyMember
       "Please enter your <i>koding.com</i> password."
     else if domains?.length > 1
-      domainsPartial = KD.utils.getAllowedDomainsPartial domains
+      domainsPartial = kd.utils.getAllowedDomainsPartial domains
       "You must have an email address from one of these domains #{domainsPartial} to join"
     else if domains?.length is 1
       "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
@@ -111,8 +112,8 @@ module.exports = class TeamJoinTab extends KDTabPaneView
     { username } = formData
     success      = =>
       track 'submitted join a team form'
-      KD.utils.storeNewTeamData 'join', formData
-      KD.utils.joinTeam
+      kd.utils.storeNewTeamData 'join', formData
+      kd.utils.joinTeam
         error : ({responseText}) =>
           @form.emit 'FormSubmitFailed'
 
@@ -121,11 +122,11 @@ module.exports = class TeamJoinTab extends KDTabPaneView
             @form.showTwoFactor()
           else
             track 'failed to join a team'
-            new KDNotificationView title : responseText
+            new kd.NotificationView title : responseText
 
     if @alreadyMember then success()
     else
-      KD.utils.usernameCheck username,
+      kd.utils.usernameCheck username,
         success : ->
           track 'entered a valid username'
           success()
@@ -133,7 +134,7 @@ module.exports = class TeamJoinTab extends KDTabPaneView
           track 'entered an invalid username'
 
           unless responseJSON
-            return new KDNotificationView
+            return new kd.NotificationView
               title: 'Something went wrong'
 
           {forbidden, kodingUser} = responseJSON
@@ -141,7 +142,7 @@ module.exports = class TeamJoinTab extends KDTabPaneView
           else if kodingUser then "Sorry, \"#{username}\" is already taken!"
           else                    "Sorry, there is a problem with \"#{username}\"!"
 
-          new KDNotificationView title : msg
+          new kd.NotificationView title : msg
           @form.emit 'FormSubmitFailed'
 
 
@@ -149,4 +150,4 @@ track = (action) ->
 
   category = 'TeamJoin'
   label    = 'JoinTab'
-  KD.utils.analytics.track action, { category, label }
+  kd.utils.analytics.track action, { category, label }

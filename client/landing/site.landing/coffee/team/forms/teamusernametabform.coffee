@@ -1,8 +1,9 @@
+kd = require 'kd.js'
 JView           = require './../../core/jview'
 LoginInputView  = require './../../login/logininputview'
 
 
-module.exports = class TeamUsernameTabForm extends KDFormView
+module.exports = class TeamUsernameTabForm extends kd.FormView
 
   JView.mixin @prototype
 
@@ -12,17 +13,17 @@ module.exports = class TeamUsernameTabForm extends KDFormView
 
     super options, data
 
-    @label = new KDLabelView
+    @label = new kd.LabelView
       title : 'Occasionally Koding can share relevant announcements with me.'
       for   : 'newsletter'
 
-    @checkbox = new KDInputView
+    @checkbox = new kd.InputView
       defaultValue : on
       type         : 'checkbox'
       name         : 'newsletter'
       label        : @label
 
-    team        = KD.utils.getTeamData()
+    team        = kd.utils.getTeamData()
     emailPrefix = email.split('@').first  if email = team.signup?.email
     username    = emailPrefix  if emailPrefix?.length > 3
 
@@ -45,7 +46,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
             # rangeLength  : 'blur'
             regExp       : 'keyup'
 
-    @passwordStrength = ps = new KDCustomHTMLView
+    @passwordStrength = ps = new kd.CustomHTMLView
       tagName  : 'figure'
       cssClass : 'PasswordStrength'
       partial  : '<span></span>'
@@ -75,7 +76,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
             oldPass = null
             return
 
-          KD.utils.checkPasswordStrength pass, (err, report) ->
+          kd.utils.checkPasswordStrength pass, (err, report) ->
             oldPass = pass
 
             return if pass isnt report.password  # to avoid late responded ajax calls
@@ -83,12 +84,12 @@ module.exports = class TeamUsernameTabForm extends KDFormView
             ps.unsetClass strength.join ' '
             ps.setClass strength[report.score]
 
-    @backLink = new KDCustomHTMLView
+    @backLink = new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link back'
       partial  : '<i></i> <a href="/Team/Domain">Back</a>'
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title      : 'Done!'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'

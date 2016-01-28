@@ -1,9 +1,10 @@
+kd = require 'kd.js'
 JView           = require './../../core/jview'
 CustomLinkView  = require './../../core/customlinkview'
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
 
-module.exports = class TeamLoginTab extends KDTabPaneView
+module.exports = class TeamLoginTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
@@ -11,8 +12,8 @@ module.exports = class TeamLoginTab extends KDTabPaneView
 
     super options, data
 
-    { mainController } = KD.singletons
-    { group }          = KD.config
+    { mainController } = kd.singletons
+    { group }          = kd.config
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -21,7 +22,7 @@ module.exports = class TeamLoginTab extends KDTabPaneView
         { title : 'Features',    href : '/Features',                name : 'features' }
       ]
 
-    @logo = KD.utils.getGroupLogo()
+    @logo = kd.utils.getGroupLogo()
 
     # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
     @form = new LoginInlineForm
@@ -44,16 +45,16 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       @form.username.input.setValue decodeURIComponent username  # decode in case it is an email
       @form.username.inputReceivedKeyup()
 
-    @inviteDesc = new KDCustomHTMLView
+    @inviteDesc = new kd.CustomHTMLView
       tagName : 'p'
-      partial : "<p>To be able to login to <a href='/'>#{KD.config.groupName}.koding.com</a>, you need to be invited by team administrators.</p>"
+      partial : "<p>To be able to login to <a href='/'>#{kd.config.groupName}.koding.com</a>, you need to be invited by team administrators.</p>"
 
     domains = group.allowedDomains
 
     return  if not domains or not domains.first
 
     @inviteDesc.updatePartial if domains.length > 1
-      domainsPartial = KD.utils.getAllowedDomainsPartial domains
+      domainsPartial = kd.utils.getAllowedDomainsPartial domains
       "If you have an email address from one of these domains #{domainsPartial}, you can <a href='/Team/Join'>join here</a>."
     else "If you have a <i>#{domains.first}</i> email address, you can <a href='/Team/Join'>join here</a>."
 
@@ -64,12 +65,12 @@ module.exports = class TeamLoginTab extends KDTabPaneView
     {{> @header }}
     <div class="TeamsModal TeamsModal--login">
       {{> @logo}}
-      <h4><span>Sign in to</span> #{KD.config.group.title}</h4>
+      <h4><span>Sign in to</span> #{kd.config.group.title}</h4>
       {{> @form}}
     </div>
     <section>
       {{> @inviteDesc}}
-      <p>Trying to create a team? <a href="//#{KD.utils.getMainDomain()}/Teams" target="_self">Sign up on the home page</a> to get started.</p>
+      <p>Trying to create a team? <a href="//#{kd.utils.getMainDomain()}/Teams" target="_self">Sign up on the home page</a> to get started.</p>
     </section>
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
@@ -81,4 +82,4 @@ track = (action) ->
 
   category = 'Team'
   label    = 'LoginForm'
-  KD.utils.analytics.track action, { category, label }
+  kd.utils.analytics.track action, { category, label }

@@ -7,12 +7,12 @@ module.exports = class TeamsView extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = KD.utils.curry 'Team', options.cssClass
+    options.cssClass = kd.utils.curry 'Team', options.cssClass
 
     super options, data
 
-    { mainController } = KD.singletons
-    { group }          = KD.config
+    { mainController } = kd.singletons
+    { group }          = kd.config
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -28,19 +28,19 @@ module.exports = class TeamsView extends JView
         track 'submitted signup form', { category: 'TeamSignUp' }
 
         finalize = (email) ->
-          KD.utils.storeNewTeamData 'signup', formData
-          KD.singletons.router.handleRoute '/Team/Domain'
+          kd.utils.storeNewTeamData 'signup', formData
+          kd.singletons.router.handleRoute '/Team/Domain'
 
           return  unless email
 
-          KD.utils.getProfile email,
+          kd.utils.getProfile email,
             error   : ->
             success : (profile) ->
               formData.profile = profile  if profile
-              KD.utils.storeNewTeamData 'signup', formData
+              kd.utils.storeNewTeamData 'signup', formData
 
         { email } = formData
-        KD.utils.validateEmail { email },
+        kd.utils.validateEmail { email },
           success : ->
             track 'entered an unregistered email'
             formData.alreadyMember = no
@@ -70,4 +70,4 @@ track = (action) ->
 
   category = 'TeamSignup'
   label    = 'SignupForm'
-  KD.utils.analytics.track action, { category, label }
+  kd.utils.analytics.track action, { category, label }

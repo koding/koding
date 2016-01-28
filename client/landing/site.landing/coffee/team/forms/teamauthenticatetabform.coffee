@@ -1,6 +1,7 @@
+kd = require 'kd.js'
 JView = require './../../core/jview'
 
-module.exports = class TeamAuthenticateTabForm extends KDFormView
+module.exports = class TeamAuthenticateTabForm extends kd.FormView
 
   JView.mixin @prototype
 
@@ -10,32 +11,32 @@ module.exports = class TeamAuthenticateTabForm extends KDFormView
 
     super options, data
 
-    @label = new KDLabelView
+    @label = new kd.LabelView
       title : 'Occasionally Koding can share relevant announcements with me.'
       for   : 'newsletter'
 
-    @checkbox = new KDInputView
+    @checkbox = new kd.InputView
       defaultValue : on
       type         : 'checkbox'
       name         : 'newsletter'
       label        : @label
 
-    team     = KD.utils.getTeamData()
+    team     = kd.utils.getTeamData()
     username = email.split('@').first  if email = team.signup?.email
 
-    @username = new KDInputView
+    @username = new kd.InputView
       placeholder  : 'username'
       name         : 'username'
       defaultValue : username  if username
 
-    @passwordStrength = ps = new KDCustomHTMLView
+    @passwordStrength = ps = new kd.CustomHTMLView
       tagName  : 'figure'
       cssClass : 'PasswordStrength'
       partial  : '<span></span>'
 
     # make this a reusable component - SY
     oldPass   = null
-    @password = new KDInputView
+    @password = new kd.InputView
       type          : 'password'
       name          : 'password'
       placeholder   : '*********'
@@ -57,7 +58,7 @@ module.exports = class TeamAuthenticateTabForm extends KDFormView
           oldPass = null
           return
 
-        KD.utils.checkPasswordStrength pass, (err, report) ->
+        kd.utils.checkPasswordStrength pass, (err, report) ->
           oldPass = pass
 
           return if pass isnt report.password  #to avoid late responded ajax calls
@@ -67,7 +68,7 @@ module.exports = class TeamAuthenticateTabForm extends KDFormView
 
 
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title      : 'Continue to environment setup'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'
