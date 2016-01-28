@@ -9,14 +9,16 @@ module.exports = class AdminAppView extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.testPath   = 'groups-admin'
-    options.useRouter ?= yes
+    options.testPath         = 'groups-admin'
+    options.useRouter       ?= yes
+    options.paneViewClass  or= AdminMainTabPaneView
 
     super options, data
 
     @addSubView @nav     = new kd.TabHandleContainer
       cssClass           : 'AppModal-nav'
-    @addSubView @tabs    = new AdminMainTabPaneView
+
+    @addSubView @tabs    = new options.paneViewClass
       tabHandleContainer : @nav
       useRouter          : @getOption 'useRouter'
     , data
