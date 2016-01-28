@@ -150,6 +150,7 @@ module.exports = class MessageItemMenu extends React.Component
     onClose            : @bound "closeMarkUserAsTrollModal"
     buttonConfirmTitle : "YES, THIS USER IS DEFINITELY A TROLL"
 
+
   canEditPost: ->
 
     canEdit    = hasPermission 'edit posts'
@@ -176,6 +177,7 @@ module.exports = class MessageItemMenu extends React.Component
 
     return @props.message.get('accountId') is whoami().socialApiId
 
+
   getMenuItems: ->
 
     result = []
@@ -195,41 +197,6 @@ module.exports = class MessageItemMenu extends React.Component
   getDeleteMenuItem: ->
 
     return {title: 'Delete Post', key: 'showdeletepostprompt', onClick: @bound 'showDeletePostPromptModal'}
-
-
-  getMarkUserMenuItem: ->
-
-    markUserMenuItem =
-      key: 'markuserastroll',
-      title: 'Mark User as Troll',
-      onClick: @bound 'showMarkUserAsTrollPromptModal'
-
-    if @state.isOwnerExempt
-      markUserMenuItem =
-        key: 'unmarkuserastroll',
-        title: 'Unmark User as Troll',
-        onClick: @bound 'unMarkUserAsTroll'
-
-    return markUserMenuItem
-
-
-  getAdminMenuItems: ->
-
-    adminMenuItems = [
-      @getMarkUserMenuItem()
-      {
-        title   : 'Block User'
-        key     : 'blockuser'
-        onClick : @bound 'showBlockUserPromptModal'
-      }
-      {
-        title   : 'Impersonate User'
-        key     : 'impersonateuser'
-        onClick : @bound 'impersonateUser'
-      }
-    ]
-
-    return @getDefaultMenuItems().concat adminMenuItems
 
 
   render: ->
