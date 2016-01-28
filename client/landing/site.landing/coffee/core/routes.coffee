@@ -12,7 +12,8 @@ do ->
 
     # root is home if group is koding
     if groupName is 'koding'
-      return router.openSection 'Home', null, null, (app)->
+      return router.openSection 'Login', null, null, (app)->
+        app.getView().animateToForm 'login'
         app.handleQuery options
 
 
