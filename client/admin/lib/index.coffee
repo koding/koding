@@ -46,7 +46,6 @@ module.exports = class AdminAppController extends AppController
             { title : 'Configure',  action: 'Configure',        viewClass : AdminIntegrationParentView }
           ]
         }
-        # { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings,       role: 'member' }
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
         { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 }
       ]
