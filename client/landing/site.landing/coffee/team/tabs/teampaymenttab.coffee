@@ -133,7 +133,6 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
       when 'has-payment-method'
         @form.setClass 'hidden'
         wrapper = @$().find '.has-payment-method-wrapper'
-        console.log {wrapper}
         wrapper.toggleClass 'hidden', off
 
 
