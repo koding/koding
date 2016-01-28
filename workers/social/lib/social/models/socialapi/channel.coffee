@@ -15,66 +15,6 @@ module.exports = class SocialChannel extends Base
       # but SocialChannel requests will not be batched
       bypassBatch   : yes
 
-    sharedMethods :
-      static      :
-        byName               :
-          (signature Object, Function)
-        fetchActivities      :
-          (signature Object, Function)
-        fetchActivityCount   :
-          (signature Object, Function)
-        fetchChannels        :
-          (signature Object, Function)
-        fetchParticipants    :
-          (signature Object, Function)
-        listParticipants     :
-          (signature Object, Function)
-        addParticipants      :
-          (signature Object, Function)
-        removeParticipants   :
-          (signature Object, Function)
-        leave                :
-          (signature Object, Function)
-        acceptInvite         :
-          (signature Object, Function)
-        rejectInvite         :
-          (signature Object, Function)
-        fetchPopularTopics   :
-          (signature Object, Function)
-        fetchPopularPosts    :
-          (signature Object, Function)
-        fetchPinnedMessages  :
-          (signature Object, Function)
-        pinMessage           :
-          (signature Object, Function)
-        unpinMessage         :
-          (signature Object, Function)
-        fetchFollowedChannels:
-          (signature Object, Function)
-        fetchFollowedChannelCount:
-          (signature Object, Function)
-        searchTopics         :
-          (signature Object, Function)
-        fetchProfileFeed     :
-          (signature Object, Function)
-        fetchProfileFeedCount:
-          (signature Object, Function)
-        updateLastSeenTime   :
-          (signature Object, Function)
-        glancePinnedPost     :
-          (signature Object, Function)
-        cycleChannel:
-          (signature Object, Function)
-        delete:
-          (signature Object, Function)
-        update:
-          (signature Object, Function)
-        fetchBotChannel:
-          (signature Object, Function)
-        create:
-          (signature Object, Function)
-        createChannelWithParticipants:
-          (signature Object, Function)
 
     schema             :
       id               : Number
@@ -140,6 +80,11 @@ module.exports = class SocialChannel extends Base
     fnName   : 'checkChannelParticipation'
     validate : ['name', 'type']
 
+  # byId - fetch channel by id
+  @byId = secureRequest
+    fnName  : 'channelById'
+    validate: ['id']
+
   # byName - fetch channel by name
   @byName = secureRequest
     fnName  : 'channelByName'
@@ -174,9 +119,6 @@ module.exports = class SocialChannel extends Base
   # it can be daily, weekly, monthly
   @fetchPopularPosts     = secureRequest { fnName: 'fetchPopularPosts' }
 
-  # fetchChannels - lists group's topic channels
-  @fetchChannels         = secureRequest { fnName: 'fetchGroupChannels' }
-
   # fetchFollowedChannels - lists followed channels(topics) of an account
   @fetchFollowedChannels = secureRequest { fnName: 'fetchFollowedChannels' }
 
@@ -186,10 +128,6 @@ module.exports = class SocialChannel extends Base
   # updateLastSeenTime - updates user's channel presence data
   @updateLastSeenTime = secureRequest
     fnName  : 'updateLastSeenTime'
-    validate: ['channelId']
-
-  @listParticipants = secureRequest
-    fnName  : 'listParticipants'
     validate: ['channelId']
 
   @addParticipants = secureRequest
@@ -205,30 +143,6 @@ module.exports = class SocialChannel extends Base
 
   @createChannelWithParticipants = permit 'send private message',
     success: createChannelWithParticipantsHelper
-
-  @leave = secure (client, data, callback) ->
-    return callback new KodingError 'channel id is required for leaving a channel'  unless data.channelId
-
-    { delegate } = client.connection
-    data.accountIds = [ delegate.socialApiId ]  unless data.accountIds
-
-    doRequest 'removeParticipants', client, data, callback
-
-  @acceptInvite = secure (client, data, callback) ->
-    return callback new KodingError 'channel id is required for accepting an invitation'  unless data.channelId
-
-    { delegate } = client.connection
-    data.accountId = delegate.socialApiId
-
-    doRequest 'acceptInvite', client, data, callback
-
-  @rejectInvite = secure (client, data, callback) ->
-    return callback new KodingError 'channel id is required for rejecting an invitation'  unless data.channelId
-
-    { delegate } = client.connection
-    data.accountId = delegate.socialApiId
-
-    doRequest 'rejectInvite', client, data, callback
 
   # glancePinnedPost - updates user's lastSeenDate for pinned posts
   @glancePinnedPost = secureRequest
@@ -262,10 +176,6 @@ module.exports = class SocialChannel extends Base
       return callback err  if err
 
       doRequest 'fetchChannelActivities', client, options, callback
-
-  @fetchActivityCount = (options, callback) ->
-    { fetchActivityCount } = require './requests'
-    fetchActivityCount options, callback
 
   # fetchGroupActivities - fetch public activities of a group
   @fetchGroupActivities = secure (client, options, callback) ->
