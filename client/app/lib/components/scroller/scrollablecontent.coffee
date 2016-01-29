@@ -32,10 +32,12 @@ module.exports = (Component) ->
       @scrollToBottom()  if @shouldScrollToBottom @getScrollParams()
 
 
+    getScroller: -> @refs.content.refs.scroller
+
+
     getScrollParams: ->
 
-      scroller  = @refs.content.getScroller()
-      container = ReactDOM.findDOMNode scroller
+      container = ReactDOM.findDOMNode @getScroller()
 
       { scrollTop, offsetHeight, scrollHeight } = container
 
@@ -52,8 +54,7 @@ module.exports = (Component) ->
 
     scrollToBottom: ->
 
-      scroller  = @refs.content.getScroller()
-      container = ReactDOM.findDOMNode scroller
+      container = ReactDOM.findDOMNode @getScroller()
 
       container.scrollTop = container.scrollHeight
 
@@ -62,19 +63,14 @@ module.exports = (Component) ->
 
       { scrollTop, scrollHeight } = @prevScrollParams
 
-      scroller  = @refs.content.getScroller()
-      container = ReactDOM.findDOMNode scroller
+      container = ReactDOM.findDOMNode @getScroller()
 
       container.scrollTop = scrollTop + (container.scrollHeight - scrollHeight)
 
 
-    _update: -> @refs.content.getScroller()._update()
-
-
     scrollToPosition: (scrollTop) ->
 
-      scroller  = @refs.content.getScroller()
-      container = ReactDOM.findDOMNode scroller
+      container = ReactDOM.findDOMNode @getScroller()
 
       container.scrollTop = scrollTop
 

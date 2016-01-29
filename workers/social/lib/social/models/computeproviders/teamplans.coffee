@@ -24,12 +24,12 @@ module.exports = clone
     restrictions       : BASIC_RESTRICTIONS
 
   trial                :
-    member             : 5  # max number, can be overwritten in group data
+    member             : 3  # max number, can be overwritten in group data
                             # by a super-admin (an admin in Koding group)
-    validFor           : 30 # in days (1 month)
+    validFor           : 21 # in days (1 month)
     instancePerMember  : 1  # allows one instance per member
-    allowedInstances   : [ 't2.nano', 't2.micro' ]
-    maxInstance        : 10 # maximum instance count for this group (total)
+    allowedInstances   : [ 't2.nano' ]
+    maxInstance        : 3 # maximum instance count for this group (total)
     storagePerInstance : 5  # means 25GB storage for this plan in total (max).
                             # 5 member x 1 instancePerMember = 5 instances
                             # 5GB per instance x 5 instances = 25GB in total
