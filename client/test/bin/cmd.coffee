@@ -28,6 +28,7 @@ argv = require 'yargs'
 os = require 'os'
 fs = require 'fs'
 path = require 'path'
+jar  = require 'selenium-server-standalone-jar'
 
 cliArgs = ['help', '$0', 'h', 'url', '_', 'nightwatch', 'start-selenium']
 
@@ -45,7 +46,7 @@ else if platform is 'darwin'
   platform = 'mac32'
 
 nwConfig.selenium.start_process = argv.startSelenium
-nwConfig.selenium.server_path = path.resolve __dirname, nwConfig.selenium.server_path
+nwConfig.selenium.server_path = jar.path
 
 nwConfig.selenium.log_path = path.resolve __dirname, nwConfig.selenium.log_path
 nwConfig.test_settings.default.screenshots.path =
