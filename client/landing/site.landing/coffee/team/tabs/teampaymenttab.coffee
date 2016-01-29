@@ -17,10 +17,9 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
     @hasPaymentMethodView = new KDCustomHTMLView
       cssClass: 'payment-method-entry-form has-payment-method-wrapper'
 
-    @hasPaymentMethodView.addSubView new KDCustomHTMLView
+    @hasPaymentMethodView.addSubView @hasPaymentLabel = new KDCustomHTMLView
       tagName: 'div'
       cssClass: 'has-payment-method-label'
-      partial: '<span>Looks like we already got your info.</span>'
 
     @hasPaymentMethodView.addSubView new KDCustomHTMLView
       tagName: 'a'
@@ -138,6 +137,9 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
         @form.setClass 'hidden'
         wrapper = @$().find '.has-payment-method-wrapper'
         wrapper.toggleClass 'hidden', off
+
+        {payment: {last4}} = KD.utils.getTeamData()
+        @hasPaymentLabel.updatePartial "<span>We have **** **** **** #{last4} on file.</span>"
 
 
   pistachio: ->
