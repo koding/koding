@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klient/remote/req"
 	"github.com/koding/klientctl/util"
 	"github.com/koding/sshkey"
 
@@ -276,10 +277,7 @@ func (s *SSHKey) PrepareForSSH(name string) error {
 		}
 	}
 
-	req := struct {
-		Name string
-		Key  []byte
-	}{
+	req := req.SSHKeyAdd{
 		Name: name,
 		Key:  contents,
 	}

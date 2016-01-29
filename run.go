@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klient/remote/req"
 )
 
 // ErrNotInMount happens when command is run from outside a mount.
@@ -120,11 +121,7 @@ func (r *RunCommand) runOnRemote(localPath string, cmdWithArgsStr string) (*Exec
 }
 
 func (r *RunCommand) runOnMachine(machine, fullCmdPath string, cmdWithArgsStr string) (*ExecRes, error) {
-	req := struct {
-		Machine string
-		Command string
-		Path    string
-	}{
+	req := req.Exec{
 		Machine: machine,
 		Command: cmdWithArgsStr,
 		Path:    fullCmdPath,
