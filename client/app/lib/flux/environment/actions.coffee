@@ -312,9 +312,9 @@ showDeleteWorkspaceWidget = (workspaceId) ->
   kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, workspaceId
 
 
-hideDeleteWorkspaceWidget = (workspaceId) ->
+hideDeleteWorkspaceWidget = ->
 
-  kd.singletons.reactor.dispatch actions.HIDE_DELETE_WORKSPACE_WIDGET, workspaceId
+  kd.singletons.reactor.dispatch actions.HIDE_DELETE_WORKSPACE_WIDGET
 
 
 showManagedMachineAddedModal = (info, id) ->

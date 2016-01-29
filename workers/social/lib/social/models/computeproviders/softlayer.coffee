@@ -51,7 +51,7 @@ module.exports = class Softlayer extends ProviderInterface
           meta            =
             type          : 'softlayer'
             storage_size  : storage
-            datacenter    : 'sjc01'
+          # datacenter    : 'hou02'
             alwaysOn      : no
 
           callback null, { meta, label, credential: client.r.user.username }

@@ -9,10 +9,10 @@ Configuration = (options={}) ->
 
   boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
-  slKeys =
-    vm_kloud:
-      username : "SL793093"
-      apiKey   : "f2f8cf4da8618aa3c467f692af0deb22f56cfe5f49cffbc3b0611ad13e4d5a99"
+  slKeys       =
+    vm_kloud   :
+      username : "IBM839677"
+      apiKey   : "1664173c843a22d223247837da5cab6d4de7d06f238606e1523458d59eca72d0"
 
   awsKeys =
     # s3 full access

@@ -156,13 +156,14 @@ module.exports = class ComputeHelpers
 
         machines ?= []
 
-        if err? or machines.length > 0
+        if err? or machines.length > 0 and provider isnt 'softlayer'
+
           new ComputePlansModalFree options
           cc._inprogress = no
 
           callback()
 
-        else if machines.length is 0
+        else
 
           stack   = cc.stacks.first._id
           storage = plans[plan]?.storage or 3
