@@ -276,7 +276,7 @@ dropboxUserMentions = (stateId) -> [
   currentCommand stateId
   ActivityFluxGetters.notSelectedChannelParticipants
   (query, config, allUsers, participants, command, notParticipants) ->
-    return  unless config and config.getIn(['getters', 'items']) is 'dropboxMentions'
+    return  unless config and config.getIn(['getters', 'userMentions']) is 'dropboxUserMentions'
 
     isInviteCommand = command?.name is '/invite'
 
@@ -307,7 +307,7 @@ dropboxChannelMentions = (stateId) -> [
   ChannelMentionsStore
   currentCommand stateId
   (query, config, mentions, command) ->
-    return  unless config and config.getIn(['getters', 'items']) is 'dropboxMentions'
+    return  unless config and config.getIn(['getters', 'channelMentions']) is 'dropboxChannelMentions'
 
     return immutable.List()  if command?.name is '/invite'
     return mentions  unless query
@@ -317,27 +317,15 @@ dropboxChannelMentions = (stateId) -> [
       return findNameByQuery mention.get('names').toJS(), query
 ]
 
-
-# Returns dropbox user mentions and channel mentions
-# combined into one object
-dropboxMentions = (stateId) -> [
-  dropboxUserMentions stateId
-  dropboxChannelMentions stateId
-  (userMentions, channelMentions) ->
-    return  unless userMentions and channelMentions
-    return  { userMentions, channelMentions }
-]
-
-
 # Returns mentions dropbox selected index. It's a common index
 # for dropbox user and channel mentions
 mentionsSelectedIndex = (stateId) -> [
-  dropboxMentions stateId
+  dropboxUserMentions stateId
+  dropboxChannelMentions stateId
   dropboxRawSelectedIndex stateId
-  (mentions, index) ->
-    return -1  unless mentions
+  (userMentions, channelMentions, index) ->
+    return -1  unless userMentions and channelMentions
 
-    { userMentions, channelMentions } = mentions
     list = userMentions.concat channelMentions
     return calculateListSelectedIndex list, index
 ]
@@ -345,12 +333,12 @@ mentionsSelectedIndex = (stateId) -> [
 
 # Returns mentions dropbox selected item
 mentionsSelectedItem = (stateId) -> [
-  dropboxMentions stateId
+  dropboxUserMentions stateId
+  dropboxChannelMentions stateId
   mentionsSelectedIndex stateId
-  (mentions, index) ->
-    return  unless mentions
+  (userMentions, channelMentions, index) ->
+    return  unless userMentions and channelMentions
 
-    { userMentions, channelMentions } = mentions
     list = userMentions.concat channelMentions
     return getListSelectedItem list, index
 ]
@@ -462,7 +450,8 @@ module.exports = {
   emojisSelectedIndex
   emojisSelectedItem
 
-  dropboxMentions
+  dropboxUserMentions
+  dropboxChannelMentions
   mentionsSelectedIndex
   mentionsSelectedItem
 
