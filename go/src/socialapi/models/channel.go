@@ -340,7 +340,7 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 		})
 
 	if !q.ShowExempt {
-		bq.Where("meta_bits <> ?", Troll)
+		bq = bq.Where("meta_bits <> ?", Troll)
 
 	}
 	res := bq.Pluck("account_id", &participantIds)
