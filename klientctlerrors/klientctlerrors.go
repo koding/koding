@@ -56,8 +56,44 @@ func IsDialFailedErr(err error) bool {
 	return false
 }
 
+// IsListReconnectingErr checks if the message is either the SessionNotEstablished
+// sendErr or the getKites error. Two errors that, during getKites from kontrol,
+// mean we are in the process of reconnecting to kontrol.
+//
+// This function explicitly refers to List reconnecting, because other things
+// reconnecting will respond differently. Eg, a Remote reconnecting has no involvement
+// with GetKites failures, etc.
+func IsListReconnectingErr(err error) bool {
+	return IsSessionNotEstablishedFailure(err) || IsGetKitesFailure(err)
+}
+
+// IsSessionNotEstablishedFailure checks if the given error is the Kite XHR Transport
+// error of Session Not Established.
+// It does so by checking both the kite.Error type, and the message - to be as sure
+// as possible.
+func IsSessionNotEstablishedFailure(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	kiteErr, ok := err.(*kite.Error)
+	switch {
+	case !ok:
+		return false
+	case kiteErr.Type != "sendErr":
+		return false
+	case err.Error() == `sendError: can't send, session is not established yet`:
+		return false
+	default:
+		return true
+	}
+}
+
 // IsGetKitesFailure checks if the given error is a getKites error. It does so by
 // checking both the kite.Error type, and the message - to be as sure as possible.
+//
+// Note that this is explicitly checking GetKodingKites, as that is the only method
+// remote.list and kd list uses.
 func IsGetKitesFailure(err error) bool {
 	if err == nil {
 		return false

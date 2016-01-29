@@ -344,7 +344,7 @@ func getListErrRes(err error, healthChecker *HealthChecker) string {
 
 	// Because healthChecker couldn't find anything wrong, but we know there is an
 	// err, check to see if it's a getKites err
-	if klientctlerrors.IsGetKitesFailure(err) {
+	if klientctlerrors.IsListReconnectingErr(err) {
 		return ReconnectingToKontrol
 	} else {
 		return FailedListMachines
