@@ -11,8 +11,8 @@ mockingjay    = require '../../../../../mocks/mockingjay'
 describe 'SearchDropbox', ->
 
   items = toImmutable [
-    { message : mockingjay.getMockMessage 'Life on Mars' }
-    { message : mockingjay.getMockMessage 'Expedition on Mars' }
+    { message : mockingjay.getMockMessage 'Life on Mars', { id : '1' } }
+    { message : mockingjay.getMockMessage 'Expedition on Mars', { id : '2' } }
   ]
 
 
