@@ -9,9 +9,11 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/cheggaaa/pb"
 	"github.com/codegangsta/cli"
+	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/klient/remote/req"
 	"github.com/koding/klientctl/klientctlerrors"
@@ -29,13 +31,14 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	var (
-		name           = c.Args()[0]
-		localPath      = c.Args()[1]
-		remotePath     = c.String("remotepath")   // note the lowercase of all chars
-		noIgnore       = c.Bool("noignore")       // note the lowercase of all chars
-		noPrefetchMeta = c.Bool("noprefetchmeta") // note the lowercase of all chars
-		noWatch        = c.Bool("nowatch")        // note the lowercase of all chars
-		prefetchAll    = c.Bool("prefetchall")    // note the lowercase of all chars
+		name             = c.Args()[0]
+		localPath        = c.Args()[1]
+		remotePath       = c.String("remotepath")    // note the lowercase of all chars
+		noIgnore         = c.Bool("noignore")        // note the lowercase of all chars
+		noPrefetchMeta   = c.Bool("noprefetchmeta")  // note the lowercase of all chars
+		noWatch          = c.Bool("nowatch")         // note the lowercase of all chars
+		prefetchAll      = c.Bool("prefetchall")     // note the lowercase of all chars
+		prefetchInterval = c.Int("prefetchinterval") // note the lowercase of all chars
 	)
 
 	// temporarily disable watcher
@@ -122,7 +125,7 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	if prefetchAll {
-		if exit := mountCommandPrefetchAll(os.Stdout, k, user.Current, name, localPath, remotePath); exit != 0 {
+		if exit := mountCommandPrefetchAll(os.Stdout, k, user.Current, name, localPath, remotePath, prefetchInterval); exit != 0 {
 			return exit
 		}
 	}
@@ -180,7 +183,7 @@ func MountCommand(c *cli.Context) int {
 // TODO: A temporary function which will be converted to a private method once
 // MountCommand is converted to a struct based CLI Interface. Once it's a private
 // method, we won't have to pass in so much via args.
-func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string) int {
+func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string, interval int) int {
 	usr, err := getUser()
 	if err != nil {
 		log.Errorf("Failed to get OS User. err:%s", err)
@@ -238,8 +241,8 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 		}
 
 		type Progress struct {
-			Progress int   `json:progress`
-			Error    error `json:error`
+			Progress int        `json:progress`
+			Error    kite.Error `json:error`
 		}
 
 		// TODO: Why is this an array from Klient? How can this be written cleaner?
@@ -247,7 +250,7 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 		par.MustUnmarshal(&ps)
 		p := ps[0]
 
-		if p.Error != nil {
+		if p.Error.Message != "" {
 			doneErr <- p.Error
 			log.Errorf("remote.cacheFolder progress callback returned an error. err:%s", err)
 			fmt.Println(
@@ -276,9 +279,11 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 
 	cacheReq := struct {
 		req.Cache
+		Interval time.Duration  `json:"interval"`
 		Progress dnode.Function `json:"progress"`
 	}{
 		Cache:    rReq,
+		Interval: time.Duration(interval) * time.Second,
 		Progress: dnode.Callback(cacheProgressCallback),
 	}
 

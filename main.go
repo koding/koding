@@ -118,6 +118,10 @@ func main() {
 					Name:  "prefetchall, a",
 					Usage: "Enable prefetching of the entire remote directory for improved performance.",
 				},
+				cli.IntFlag{
+					Name:  "prefetchinterval",
+					Usage: "Sets how frequently prefetch will run, in seconds. Setting to zero disables prefetch interval.",
+				},
 			},
 			Action: Exit(CheckUpdateFirst(MountCommand)),
 		},
