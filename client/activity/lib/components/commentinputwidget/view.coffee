@@ -29,8 +29,15 @@ module.exports = class CommentInputWidgetView extends React.Component
     'hidden'               : not @props.focusOnInput and not @props.hasValue
 
 
-  render: ->
+  onKeyDown: (event) ->
 
+    if event.keyCode is 13 and event.metaKey
+      @props.postComment()
+      # event.preventDefault()
+      # event.stopPropagation()
+
+  render: ->
+    console.log 'props ', @props
     imAccount   = { id: whoami()._id, constructorName: 'JAccount'}
 
     <div className='CommentInputWidget'>
@@ -44,7 +51,7 @@ module.exports = class CommentInputWidgetView extends React.Component
         onFocus     = { @props.onFocus }
         onBlur      = { @props.onBlur }
         placeholder = 'Type your comment'
-        onKeyDown   = { @props.onKeyDown }
+        onKeyDown   = { @bound 'onKeyDown' }
         onChange    = { @props.onChange }
         value       = { @props.commentValue }
         className   = 'CommentInputWidget-input'/>

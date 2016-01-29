@@ -40,15 +40,21 @@ module.exports = class FeedInputWidget extends React.Component
       .then => @setState { value: '', previewMode: no }
 
 
+  onKeyDown: (event) ->
+
+    if event.keyCode is 13 and event.metaKey
+      @onSubmit event
+
   render: ->
 
     firstName   = Encoder.htmlDecode(whoami().profile.firstName)
-    placeholder = "Hey #{firstName}, share something interesting or ask a question."
+    placeholder = "Hey #{firstName}, share something interesting or ask a questionsssss."
 
     <div className='FeedInputWidget'>
       <AutoSizeTextarea
         placeholder={placeholder}
         value={@state.value}
+        onKeyDown = {@bound 'onKeyDown'}
         onChange={@bound 'onChange'} />
       <div className='FeedInputWidget-buttonBar'>
         <Button
