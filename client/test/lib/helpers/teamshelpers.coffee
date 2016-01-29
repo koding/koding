@@ -141,6 +141,7 @@ module.exports =
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
+
     hasNotTeamAccessPage = '.TeamsModal--select'
 
     browser.url url
