@@ -119,13 +119,8 @@ func TestMessageSaved(t *testing.T) {
 			account := models.CreateAccountWithTest()
 			groupChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, "koding")
 
-			topicChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupChannel.GroupName)
-			cp, err := topicChannel.AddParticipant(account.Id)
-			So(err, ShouldBeNil)
-			So(cp, ShouldNotBeNil)
-
 			// just a random topic name
-			topicName := topicChannel.Name
+			topicName := models.RandomName()
 
 			c := models.NewChannelMessage()
 			c.InitialChannelId = groupChannel.Id
@@ -134,7 +129,7 @@ func TestMessageSaved(t *testing.T) {
 			c.TypeConstant = models.ChannelMessage_TYPE_POST
 
 			// create with unscoped
-			err = bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
+			err := bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
 			So(err, ShouldBeNil)
 
 			So(controller.MessageSaved(c), ShouldBeNil)
