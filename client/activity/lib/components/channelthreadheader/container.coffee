@@ -69,8 +69,14 @@ module.exports = class ChannelThreadHeaderContainer extends React.Component
     # if channel isn't a team channel,
     # add "Leave channel" at the 2nd position of the list
     unless isGroupChannel channel
+
+      isPrivate = channel.typeConstant is 'privatemessage'
+      title = if isPrivate
+      then 'Leave conversation'
+      else 'Leave channel'
+
       result.splice 1, 0, {
-        title   : 'Leave channel'
+        title   : title
         key     : 'leavechannel'
         onClick : @props.onLeaveChannel
       }
