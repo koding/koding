@@ -48,10 +48,11 @@ module.exports = class TeamDomainTab extends KDTabPaneView
     then teamName = slug
     else teamName = KD.utils.slugifyCompanyName team
 
-    @form.input.setValue teamName
-    @form.input.setAttribute 'size', teamName.length
+    { input } = @form
 
-    @form.input.emit 'ValidationFeedbackCleared'
+    input.setValue teamName
+    input.emit 'input'
+    input.emit 'ValidationFeedbackCleared'
 
 
   showError: (error) ->
