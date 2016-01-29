@@ -457,3 +457,12 @@ func formatParticipantIds(participantIds []int64) string {
 
 	return string(result)
 }
+
+func (p *ChannelRequest) PopulateAddedBy(addedBy int64) {
+	if p.Payload == nil {
+		p.Payload = gorm.Hstore{}
+	}
+
+	addedByStr := strconv.FormatInt(addedBy, 10)
+	p.Payload["addedBy"] = &addedByStr
+}
