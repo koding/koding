@@ -4,6 +4,7 @@ whoami                 = require 'app/util/whoami'
 Encoder                = require 'htmlencode'
 AutoSizeTextarea       = require 'app/components/common/autosizetextarea'
 Button                 = require 'app/components/common/button'
+KeyboardKeys           = require 'app/constants/keyboardKeys'
 ActivityFlux           = require 'activity/flux'
 FeedInputWidgetPreview = require './feedinputwidgetpreview'
 
@@ -42,13 +43,14 @@ module.exports = class FeedInputWidget extends React.Component
 
   onKeyDown: (event) ->
 
-    if event.keyCode is 13 and event.metaKey
+    if event.metaKey and event.keyCode is KeyboardKeys.ENTER
       @onSubmit event
+
 
   render: ->
 
     firstName   = Encoder.htmlDecode(whoami().profile.firstName)
-    placeholder = "Hey #{firstName}, share something interesting or ask a questionsssss."
+    placeholder = "Hey #{firstName}, share something interesting or ask a question."
 
     <div className='FeedInputWidget'>
       <AutoSizeTextarea
