@@ -11,7 +11,7 @@ KDReactorMixin    = require 'app/flux/base/reactormixin'
 module.exports = class ChatPaneContainer extends React.Component
 
   @propsTypes =
-    thread        : React.PropTypes.instanceOf immutable.Map()
+    thread        : React.PropTypes.instanceOf immutable.Map
     onInviteClick : React.PropTypes.func
     showItemMenu  : React.PropTypes.bool
     onLoadMore    : React.PropTypes.func
@@ -37,14 +37,21 @@ module.exports = class ChatPaneContainer extends React.Component
 
   componentDidMount: ->
 
+    { view } = @refs
+
+    view.refs.content.show()
     scrollTop = @flag 'scrollPosition'
-    @refs.view.scrollToPosition scrollTop  if scrollTop
+    view.scrollToPosition scrollTop  if scrollTop
 
 
   componentWillUnmount: ->
 
-    { scrollTop } = @refs.view.getScrollParams()
+    { view } = @refs
+
+    { scrollTop } = view.getScrollParams()
     { channel }   = ActivityFlux.actions
+
+    view.refs.content.hide()
 
     kd.utils.defer =>
       channel.setLastSeenTime (@channel 'id'), Date.now()
@@ -88,9 +95,27 @@ module.exports = class ChatPaneContainer extends React.Component
       hasStoppedMessageEditing = not hasEditingMessage and hadEditingMessage
       hasRemovedMessage        = thread.get('messages').size < prevThread.get('messages').size
 
-      view._update()  if hasStoppedMessageEditing or hasRemovedMessage
+      view.getScroller()._update()  if hasStoppedMessageEditing or hasRemovedMessage
+
+    @updateDateMarkersPosition()
 
     @isThresholdReached = no
+
+
+  onScroll: -> @updateDateMarkersPosition()
+
+
+  updateDateMarkersPosition: ->
+
+    { view }    = @refs
+    { content } = view.refs
+    scroller = ReactDOM.findDOMNode view.getScroller()
+    { scrollTop, offsetHeight } = scroller
+
+    return  unless scrollTop and offsetHeight
+
+    left = scroller.getBoundingClientRect().left
+    content.refs.ChatList.updateDateMarkersPosition scrollTop, left
 
 
   onTopThresholdReached: (event) ->
@@ -106,12 +131,17 @@ module.exports = class ChatPaneContainer extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
+  onGlance: -> ActivityFlux.actions.channel.glance @channel 'id'
+
+
   render: ->
 
     <ChatPaneView {...@props}
       ref                   = 'view'
       selectedMessageId     = { @state.selectedMessageId }
       onTopThresholdReached = { @bound 'onTopThresholdReached' }
+      onGlance              = { @bound 'onGlance' }
+      onScroll              = { @bound 'onScroll' }
       isMessagesLoading     = { @isThresholdReached }>
         {@props.children}
     </ChatPaneView>

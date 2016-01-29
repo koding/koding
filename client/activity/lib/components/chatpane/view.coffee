@@ -11,12 +11,14 @@ ScrollableContent   = require 'app/components/scroller/scrollablecontent'
 class ChatPaneView extends React.Component
 
   @propsTypes =
-    thread                : React.PropTypes.instanceOf immutable.Map()
+    thread                : React.PropTypes.instanceOf immutable.Map
     onInviteClick         : React.PropTypes.func
     showItemMenu          : React.PropTypes.bool
     isMessagesLoading     : React.PropTypes.bool
     onTopThresholdReached : React.PropTypes.func
     selectedMessageId     : React.PropTypes.string
+    onGlance              : React.PropTypes.func
+    onScroll              : React.PropTypes.func
 
 
   @defaultProps =
@@ -26,42 +28,24 @@ class ChatPaneView extends React.Component
     isMessagesLoading     : no
     onTopThresholdReached : kd.noop
     selectedMessageId     : ''
+    onGlance              : kd.noop
+    onScroll              : kd.noop
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
-  getScroller: -> @refs.scrollContainer
+  show: ->
+
+    scroller = ReactDOM.findDOMNode @refs.scroller
+    scroller.style.opacity = 1
 
 
-  componentDidMount: ->
+  hide: ->
 
-    scroller = ReactDOM.findDOMNode @getScroller()
-    _showScroller scroller
-
-
-  componentWillUnmount: ->
-
-    scroller = ReactDOM.findDOMNode @getScroller()
-    _hideScroller scroller
-
-
-  componentDidUpdate: (prevProps) -> @updateDateMarkersPosition()
-
-
-  onScroll: -> @updateDateMarkersPosition()
-
-
-  updateDateMarkersPosition: ->
-
-    scroller = ReactDOM.findDOMNode @getScroller()
-    { scrollTop, offsetHeight } = scroller
-
-    return  unless scrollTop and offsetHeight
-
-    left = scroller.getBoundingClientRect().left
-    @refs.ChatList.updateDateMarkersPosition scrollTop, left
+    scroller = ReactDOM.findDOMNode @refs.scroller
+    scroller.style.opacity = 0
 
 
   renderChannelInfoContainer: ->
@@ -88,8 +72,8 @@ class ChatPaneView extends React.Component
     <Scroller
       data-is-scroller=yes
       style={{height: 'auto'}}
-      ref='scrollContainer'
-      onScroll={@bound 'onScroll'}
+      ref='scroller'
+      onScroll={@props.onScroll}
       hasMore={@props.thread.get('messages').size}
       onTopThresholdReached={@props.onTopThresholdReached}>
       {@renderChannelInfoContainer()}
@@ -102,6 +86,7 @@ class ChatPaneView extends React.Component
         channelName={@channel 'name'}
         unreadCount={@channel 'unreadCount'}
         selectedMessageId={@props.selectedMessageId}
+        onGlance={@props.onGlance}
       />
     </Scroller>
 
@@ -118,13 +103,7 @@ class ChatPaneView extends React.Component
     </div>
 
 
-React.Component.include.call ChatPaneView, [EmojiPreloaderMixin]
+ChatPaneView.include [EmojiPreloaderMixin]
 
 
 module.exports = ScrollableContent ChatPaneView
-
-
-_hideScroller = (scroller) -> scroller?.style.opacity = 0
-
-
-_showScroller = (scroller) -> scroller?.style.opacity = 1
