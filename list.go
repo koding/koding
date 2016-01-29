@@ -52,7 +52,7 @@ func ListCommand(c *cli.Context) int {
 	infos, err := getListOfMachines(k)
 	if err != nil {
 		log.Errorf("Error listing machines. err:%s", err)
-		fmt.Println(FailedListMachines)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
@@ -105,16 +105,12 @@ func ListCommand(c *cli.Context) int {
 func getListOfMachines(kite *kite.Client) ([]kiteInfo, error) {
 	res, err := kite.Tell("remote.list")
 	if err != nil {
-		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error fetching list of machines from %s: '%s'", KlientName, err,
-		))
+		return nil, err
 	}
 
 	var infos []kiteInfo
 	if err := res.Unmarshal(&infos); err != nil {
-		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error fetching list of machines from %s: '%s'", KlientName, err,
-		))
+		return nil, err
 	}
 
 	return infos, nil

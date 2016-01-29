@@ -140,4 +140,18 @@ Please unmount and try again, or contact support@koding.com if this issue persis
 	// and --noprefetchmeta, as they are incompatible flags.
 	PrefetchAllAndMetaTogether = `Error: Cannot use both noprefetchmeta and prefetchall flags at the same time.
 Please try again with just the --prefetchall flag.`
+
+	// FailedDialingRemote is the generic message for when the local klient failed
+	// to dial a remote klient. The api user of this message should also run a health
+	// check, meaning that if this message is printed the users local internet
+	// *should* be working and the blame for the failed dialing likely belongs to
+	// the remote klient's internet.
+	//
+	// Note that of course, a race condition created by spotty internet in the above
+	// scenario could create a false positive, blaming the remote end when it was
+	// just a local internet hiccup.
+	FailedDialingRemote = fmt.Sprintf(
+		`Error: Unable to communicate with the remote machine. Please ensure that the
+remote machine is running & accessible and try again.`,
+	)
 )
