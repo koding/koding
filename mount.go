@@ -134,19 +134,33 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
-	if err != nil && klientctlerrors.IsExistingMountErr(err) {
-		util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
+	if err != nil {
+		switch {
+		case klientctlerrors.IsExistingMountErr(err):
+			util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
-		// unmount using mount path
-		if err := unmount(k, "", localPath); err != nil {
-			log.Errorf("Error unmounting (remounting). err:%s", err)
-			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
+			// unmount using mount path
+			if err := unmount(k, "", localPath); err != nil {
+				log.Errorf("Error unmounting (remounting). err:%s", err)
+				fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
+				return 1
+			}
+
+			resp, err = k.Tell("remote.mountFolder", mountRequest)
+			if err != nil {
+				log.Errorf("Error mounting (remounting). err:%s", err)
+				fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
+				return 1
+			}
+
+		case klientctlerrors.IsDialFailedErr(err):
+			log.Errorf("Error dialing remote klient. err:%s", err)
+			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
 			return 1
-		}
 
-		resp, err = k.Tell("remote.mountFolder", mountRequest)
-		if err != nil {
-			log.Errorf("Error mounting (remounting). err:%s", err)
+		default:
+			// catch any remaining errors
+			log.Errorf("Error mounting directory. err:%s", err)
 			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
 			return 1
 		}

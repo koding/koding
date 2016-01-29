@@ -3,6 +3,8 @@ package klientctlerrors
 import (
 	"errors"
 	"strings"
+
+	"github.com/koding/kite"
 )
 
 // Error types, used when needing to return new instances with
@@ -36,6 +38,18 @@ func IsExistingMountErr(err error) bool {
 
 	// fuse doesnt have errs to compare against
 	if strings.Contains(err.Error(), fuseExistingMountErr) {
+		return true
+	}
+
+	return false
+}
+
+func IsDialFailedErr(e error) bool {
+	if e == nil {
+		return false
+	}
+
+	if kiteErr, ok := e.(*kite.Error); ok && kiteErr.Type == "dialing failed" {
 		return true
 	}
 
