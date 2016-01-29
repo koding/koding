@@ -272,6 +272,7 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 		// TODO: Put the cache somewhere meaningful
 		LocalPath:         fmt.Sprintf("%s.cache", localPath),
 		RemotePath:        remotePath,
+		Interval:          time.Duration(interval) * time.Second,
 		Username:          remoteUsername,
 		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
 		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
@@ -279,11 +280,9 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 
 	cacheReq := struct {
 		req.Cache
-		Interval time.Duration  `json:"interval"`
 		Progress dnode.Function `json:"progress"`
 	}{
 		Cache:    rReq,
-		Interval: time.Duration(interval) * time.Second,
 		Progress: dnode.Callback(cacheProgressCallback),
 	}
 
