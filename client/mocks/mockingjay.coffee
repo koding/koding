@@ -1,21 +1,24 @@
-kd                 = require 'kd'
-expect             = require 'expect'
-remote             = require('app/remote').getInstance()
-FSFile             = require 'app/util/fs/fsfile'
-Machine            = require 'app/providers/machine'
-ideRoutes          = require 'ide/routes.coffee'
-dataProvider       = require 'app/userenvironmentdataprovider'
-mockjaccount       = require './mock.jaccount'
-mockjgroup         = require './mock.jgroup'
-mockjmachine       = require './mock.jmachine'
-mockjworkspace     = require './mock.jworkspace'
-mockReactComponent = require './mock.reactComponent'
-mockMessage        = require 'app/util/generateDummyMessage'
-mockChannel        = require 'app/util/generateDummyChannel'
-mockThread         = require 'app/util/generateDummyThread'
-mockParticipants   = require 'app/util/generateDummyParticipants'
-mockMessages       = require 'app/util/generateDummyMessages'
-mockChannels       = require 'app/util/generateDummyChannels'
+kd                        = require 'kd'
+expect                    = require 'expect'
+remote                    = require('app/remote').getInstance()
+FSFile                    = require 'app/util/fs/fsfile'
+Machine                   = require 'app/providers/machine'
+ideRoutes                 = require 'ide/routes.coffee'
+mockjgroup                = require './mock.jgroup'
+mockjmachine              = require './mock.jmachine'
+mockjaccount              = require './mock.jaccount'
+dataProvider              = require 'app/userenvironmentdataprovider'
+mockMessage               = require 'app/util/generateDummyMessage'
+toImmutable               = require 'app/util/toImmutable'
+mockThread                = require 'app/util/generateDummyThread'
+mockChannel               = require 'app/util/generateDummyChannel'
+mockjworkspace            = require './mock.jworkspace'
+mockParticipants          = require 'app/util/generateDummyParticipants'
+mockReactComponent        = require './mock.reactComponent'
+mockcollaborationchannel  = require './mock.collaborationchannel'
+mockMessages              = require 'app/util/generateDummyMessages'
+mockChannels              = require 'app/util/generateDummyChannels'
+
 
 mockMachine = new Machine { machine: mockjmachine }
 mockGroup   = remote.revive mockjgroup
@@ -46,6 +49,45 @@ module.exports =
 
       expect.spyOn(dataProvider, 'ensureDefaultWorkspace').andCall (callback) ->
         callback()
+
+    fetch:
+
+      toReturnMockMachineAndWorkspace: ->
+
+        { machine : mockjmachine, workspaces : [ mockjworkspace ] }
+
+
+      toReturnLoadDataWithCollaborationMachine: ->
+
+        item = @toReturnMockMachineAndWorkspace()
+
+        return {
+          collaboration : [ item ]
+          shared        : []
+          own           : []
+        }
+
+
+      toReturnLoadDataWithSharedMachine: ->
+
+        item = @toReturnMockMachineAndWorkspace()
+
+        return {
+          collaboration : []
+          shared        : [ item ]
+          own           : []
+        }
+
+
+      toReturnLoadDataWithOwnMachine: ->
+
+        item = @toReturnMockMachineAndWorkspace()
+
+        return {
+          collaboration : []
+          shared        : []
+          own           : [ item ]
+        }
 
 
     fetchWorkspaceByMachineUId:
@@ -284,6 +326,12 @@ module.exports =
   getMockAccount: ->   return mockjaccount
 
   getMockGroup: ->     return mockGroup
+
+  getMockImmutableMachine : -> return toImmutable mockMachine
+
+  getMockImmutableWorkspace : -> return toImmutable mockjworkspace
+
+  getMockCollaborationChannel : -> return mockcollaborationchannel
 
   getMockMessage: (args...) -> return mockMessage(args...)
 
