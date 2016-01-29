@@ -156,10 +156,7 @@ module.exports = class MessageItemMenu extends React.Component
     canEdit    = hasPermission 'edit posts'
     canEditOwn = hasPermission 'edit own posts'
 
-    flag = false
-    flag = true if canEdit or (canEditOwn and @isMyMessage())
-
-    return flag
+    return canEdit or (canEditOwn and @isMyMessage())
 
 
   canDeletePost: ->
@@ -167,10 +164,7 @@ module.exports = class MessageItemMenu extends React.Component
     canDelete    = hasPermission 'delete posts'
     canDeleteOwn = hasPermission 'delete own posts'
 
-    flag = false
-    flag = true if canDelete or (canDeleteOwn and @isMyMessage())
-
-    return flag
+    return canDelete or (canDeleteOwn and @isMyMessage())
 
 
   isMyMessage: ->
