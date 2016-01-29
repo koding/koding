@@ -249,11 +249,17 @@ func (p *ChannelRequest) AddInitActivity(c *Channel, participantIds []int64) (*C
 		p.Payload = gorm.Hstore{}
 	}
 
+	acc, err := Cache.Account.ById(c.CreatorId)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(participantIds) > 0 {
 		payload := formatParticipantIds(participantIds)
 		p.Payload["initialParticipants"] = &payload
 		activity := ChannelRequestMessage_TYPE_INIT
 		p.Payload["systemType"] = &activity
+		p.PopulateAddedBy(acc.Id)
 	}
 
 	cm, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
