@@ -13,7 +13,6 @@ import (
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/transport"
-	"github.com/koding/kite"
 )
 
 var (
@@ -32,7 +31,6 @@ var (
 // * Communication with Kernel and maintaining list of live nodes are the only
 //   operations that should happen here.
 type KodingNetworkFS struct {
-
 	// NotImplementedFileSystem is the default implementation for
 	// `fuseutil.FileSystem` interface methods. Any interface methods that are
 	// unimplemented return `fuse.ENOSYS` as error. This lets us implement only
@@ -50,11 +48,7 @@ type KodingNetworkFS struct {
 	Watcher Watcher
 
 	// DiskInfo is the cached result of remote disk info.
-	DiskInfo transport.FsGetDiskInfo
-
-	// ignoredFolderList is folders for which all operations will return empty
-	// response. If a file has same name as entry in list, it'll NOT be ignored.
-	ignoredFolderList map[string]struct{}
+	DiskInfo *transport.GetDiskInfoRes
 
 	// RWMutex protects the fields below.
 	sync.RWMutex
@@ -67,8 +61,8 @@ type KodingNetworkFS struct {
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
 func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, error) {
 	// create mount point if it doesn't exist
-	// TODO: don't allow ~ in conf.LocalPath since Go doesn't expand it
-	if err := os.MkdirAll(c.LocalPath, 0755); err != nil {
+	// TODO: don't allow ~ in conf.Path since Go doesn't expand it
+	if err := os.MkdirAll(c.Path, 0755); err != nil {
 		return nil, err
 	}
 
@@ -79,7 +73,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 		// VolumeName is the name of the folder shown in applications like Finder
 		// in OSX.
-		VolumeName: path.Base(c.LocalPath),
+		VolumeName: path.Base(c.Path),
 
 		// DisableWritebackCaching disables write cache in Kernel. Without this if
 		// a file changes in the user VM, when user checks local, file will not have
@@ -112,10 +106,9 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	localUser, localGroup := getLocalUserInfo()
 
 	// create root entry
-	rootEntry := NewRootEntry(t, c.RemotePath, c.LocalPath)
-	rootEntry.Name = path.Base(c.RemotePath)
-	rootEntry.RemotePath = c.RemotePath
-	rootEntry.LocalPath = c.LocalPath
+	rootEntry := NewRootEntry(t, c.Path)
+	rootEntry.Name = "/"
+	rootEntry.Path = "/"
 	rootEntry.Uid = localUser
 	rootEntry.Gid = localGroup
 
@@ -126,7 +119,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
-	watcher := NewFindWatcher(t, rootDir.RemotePath)
+	watcher := NewFindWatcher(t, rootEntry.Path)
 
 	// update entries for root directory
 	if err := rootDir.Expire(); err != nil {
@@ -138,31 +131,17 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		return nil, err
 	}
 
-	ignoredFolderList := map[string]struct{}{}
-	ignoreFolders := []string{}
-
 	// watch for changes on remote optionally
 	if !c.NoWatch {
 		go WatchForRemoteChanges(rootDir, watcher)
 	}
 
-	// ignore fetching folders from remote optionally
-	if !c.NoIgnore {
-		ignoreFolders = append(DefaultFolderIgnoreList, c.IgnoreFolders...)
-
-		// add default and user specified list of folders to map for easy checking
-		for index := range ignoreFolders {
-			ignoredFolderList[ignoreFolders[index]] = struct{}{}
-		}
-	}
-
 	// don't prefetch folder/file metadata optionally
-	if !c.NoPrefetch {
+	if !c.NoPrefetchMeta {
 		// remove entries fetched above or it'll have double entries
 		rootDir.Reset()
 
-		dirInit := NewDirInitializer(t, rootDir, ignoreFolders)
-		if err := dirInit.Initialize(); err != nil {
+		if err := NewDirInitializer(t, rootDir).Initialize(); err != nil {
 			return nil, err
 		}
 	}
@@ -170,23 +149,18 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	// save root directory
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
-	req := struct{ Path string }{rootDir.RemotePath}
-	res := transport.FsGetDiskInfo{}
-
-	if err := t.Trip("fs.getDiskInfo", req, &res); err != nil {
-		if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type != "methodNotFound" {
-			return nil, err
-		}
+	res, err := t.GetDiskInfo(rootDir.Name)
+	if err != nil {
+		return nil, err
 	}
 
 	return &KodingNetworkFS{
-		MountPath:         c.LocalPath,
-		MountConfig:       mountConfig,
-		RWMutex:           sync.RWMutex{},
-		Watcher:           watcher,
-		DiskInfo:          res,
-		ignoredFolderList: ignoredFolderList,
-		liveNodes:         liveNodes,
+		MountPath:   c.Path,
+		MountConfig: mountConfig,
+		RWMutex:     sync.RWMutex{},
+		Watcher:     watcher,
+		DiskInfo:    res,
+		liveNodes:   liveNodes,
 	}, nil
 }
 
@@ -241,10 +215,6 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 		return err
 	}
 
-	if k.isDirIgnored(entry.GetType(), op.Name) {
-		return fuse.ENOENT
-	}
-
 	k.setEntry(entry.GetID(), entry)
 
 	op.Entry.Child = entry.GetID()
@@ -284,10 +254,6 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 
 	var bytesRead int
 	for _, e := range entries {
-		if k.isDirIgnored(e.Type, e.Name) {
-			continue
-		}
-
 		c := fuseutil.WriteDirent(op.Dst[bytesRead:], e)
 		if c == 0 {
 			break
@@ -659,16 +625,9 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 	k.Unlock()
 }
 
-// isIgnoredDir returns true if entry is a directory and is in list of ignored
-// list of entries.
-func (k *KodingNetworkFS) isDirIgnored(t fuseutil.DirentType, name string) bool {
-	_, ok := k.ignoredFolderList[name]
-	return ok && t == fuseutil.DT_Directory
-}
-
 func (k *KodingNetworkFS) entryChanged(e Node) {
 	file, ok := e.(*File)
 	if ok {
-		k.Watcher.AddTimedIgnore(file.LocalPath, 1*time.Minute)
+		k.Watcher.AddTimedIgnore(file.Path, 1*time.Minute)
 	}
 }

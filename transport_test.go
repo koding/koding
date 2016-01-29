@@ -3,9 +3,11 @@ package fuseklient
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/koding/fuseklient/transport"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -27,6 +29,47 @@ func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}
 	}
 
 	return json.Unmarshal(bytes, &res)
+}
+
+func (f *fakeTransport) CreateDir(path string, mode os.FileMode) error {
+	return nil
+}
+
+func (f *fakeTransport) ReadDir(path string, r bool) (*transport.ReadDirRes, error) {
+	var res *transport.ReadDirRes
+	return res, f.Trip("fs.readDirectory", nil, &res)
+}
+
+func (f *fakeTransport) Rename(oldPath, newPath string) error {
+	return nil
+}
+
+func (f *fakeTransport) Remove(path string) error {
+	return nil
+}
+
+func (f *fakeTransport) WriteFile(path string, content []byte) error {
+	return nil
+}
+
+func (f *fakeTransport) ReadFile(path string) (*transport.ReadFileRes, error) {
+	var res *transport.ReadFileRes
+	return res, f.Trip("fs.readFile", nil, &res)
+}
+
+func (f *fakeTransport) Exec(path string) (*transport.ExecRes, error) {
+	var res *transport.ExecRes
+	return res, f.Trip("exec", nil, &res)
+}
+
+func (f *fakeTransport) GetDiskInfo(path string) (*transport.GetDiskInfoRes, error) {
+	var res *transport.GetDiskInfoRes
+	return res, f.Trip("fs.getDiskInfo", nil, &res)
+}
+
+func (f *fakeTransport) GetInfo(path string) (*transport.GetInfoRes, error) {
+	var res *transport.GetInfoRes
+	return res, f.Trip("fs.getInfo", nil, &res)
 }
 
 func TestFakeTransport(t *testing.T) {

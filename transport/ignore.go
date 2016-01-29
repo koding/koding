@@ -1,6 +1,6 @@
-package fuseklient
+package transport
 
-var DefaultFolderIgnoreList = []string{
+var defaultDirIgnoreList = []string{
 	".svn",
 	".hg",
 	".build",

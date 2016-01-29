@@ -1,7 +1,7 @@
 package fuseklient
 
 import (
-	"path"
+	"path/filepath"
 	"sync"
 
 	"github.com/jacobsa/fuse"
@@ -23,11 +23,9 @@ type Entry struct {
 	// ID is the unique identifier. This is used by Kernel to make requests.
 	ID fuseops.InodeID
 
-	// LocalPath is full path on locally mounted folder.
-	LocalPath string
-
-	// RemotePath is full path on user VM.
-	RemotePath string
+	// Path is the full path on locally mounted folder. Note it does not contain
+	// the remote path prefix, that's in transport.
+	Path string
 
 	// Uid is the user id that'll always be used in spite of what remote returns.
 	Uid uint32
@@ -52,32 +50,30 @@ type Entry struct {
 }
 
 // NewRootEntry is the required initializer for the root entry.
-func NewRootEntry(t transport.Transport, remotePath, localPath string) *Entry {
+func NewRootEntry(t transport.Transport, path string) *Entry {
 	return &Entry{
-		Transport:  t,
-		Parent:     nil, // root entry has no parent
-		ID:         fuseops.RootInodeID,
-		LocalPath:  localPath,
-		RemotePath: remotePath,
-		RWMutex:    sync.RWMutex{},
-		Name:       "root",
-		Forgotten:  false,
-		Attrs:      fuseops.InodeAttributes{},
+		Transport: t,
+		Parent:    nil, // root entry has no parent
+		ID:        fuseops.RootInodeID,
+		Path:      path,
+		RWMutex:   sync.RWMutex{},
+		Name:      "root",
+		Forgotten: false,
+		Attrs:     fuseops.InodeAttributes{},
 	}
 }
 
 // NewEntry is the required initializer for Entry.
 func NewEntry(p *Dir, name string) *Entry {
 	e := &Entry{
-		Transport:  p.Transport,
-		Parent:     p,
-		ID:         p.IDGen.Next(),
-		LocalPath:  path.Join(p.LocalPath, name),
-		RemotePath: path.Join(p.RemotePath, name),
-		RWMutex:    sync.RWMutex{},
-		Name:       name,
-		Forgotten:  false,
-		Attrs:      p.Attrs,
+		Transport: p.Transport,
+		Parent:    p,
+		ID:        p.IDGen.Next(),
+		Path:      filepath.Join(p.Path, name),
+		RWMutex:   sync.RWMutex{},
+		Name:      name,
+		Forgotten: false,
+		Attrs:     p.Attrs,
 	}
 
 	e.Attrs.Nlink = 0
@@ -155,9 +151,8 @@ func (e *Entry) UpdateAttrsFromRemote() error {
 func (e *Entry) getAttrsFromRemote() (fuseops.InodeAttributes, error) {
 	var attrs fuseops.InodeAttributes
 
-	req := struct{ Path string }{e.RemotePath}
-	res := transport.FsGetInfoRes{}
-	if err := e.Trip("fs.getInfo", req, &res); err != nil {
+	res, err := e.Transport.GetInfo(e.Name)
+	if err != nil {
 		return attrs, err
 	}
 

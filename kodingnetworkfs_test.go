@@ -25,12 +25,12 @@ func TestKodingNetworkFS(tt *testing.T) {
 		Convey("It should mount and unmount a directory", func() {
 			t := &fakeTransport{
 				TripResponses: map[string]interface{}{
-					"fs.readDirectory": transport.FsReadDirectoryRes{
-						Files: []transport.FsGetInfoRes{},
+					"fs.readDirectory": transport.ReadDirRes{
+						Files: []*transport.GetInfoRes{},
 					},
-					"fs.getInfo":                transport.FsGetInfoRes{Exists: true},
-					"fs.readRecursiveDirectory": transport.FsReadDirectoryRes{},
-					"fs.getDiskInfo":            transport.FsGetDiskInfo{},
+					"fs.getInfo":                &transport.GetInfoRes{Exists: true},
+					"fs.readRecursiveDirectory": &transport.ReadDirRes{},
+					"fs.getDiskInfo":            &transport.GetDiskInfoRes{},
 				},
 			}
 			k := newknfs(t)
@@ -54,7 +54,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 				"fs.rename":          true,
 				"fs.remove":          true,
 				"fs.readFile":        map[string]interface{}{"content": c},
-				"fs.getInfo": transport.FsGetInfoRes{
+				"fs.getInfo": transport.GetInfoRes{
 					Exists:   true,
 					IsDir:    true,
 					FullPath: "/remote",
@@ -62,10 +62,10 @@ func TestKodingNetworkFS(tt *testing.T) {
 					Mode:     0700 | os.ModeDir,
 					Time:     millenium,
 				},
-				"fs.readRecursiveDirectory": transport.FsReadDirectoryRes{},
-				"fs.readDirectory": transport.FsReadDirectoryRes{
-					Files: []transport.FsGetInfoRes{
-						transport.FsGetInfoRes{
+				"fs.readRecursiveDirectory": transport.ReadDirRes{},
+				"fs.readDirectory": transport.ReadDirRes{
+					Files: []*transport.GetInfoRes{
+						&transport.GetInfoRes{
 							Exists:   true,
 							IsDir:    false,
 							FullPath: "/remote/file",
@@ -76,7 +76,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 						},
 					},
 				},
-				"fs.getDiskInfo": transport.FsGetDiskInfo{
+				"fs.getDiskInfo": &transport.GetDiskInfoRes{
 					BlockSize:   8192,
 					BlocksTotal: 10000,
 					BlocksFree:  9000,
@@ -637,10 +637,10 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 	i := fuseops.InodeID(fuseops.RootInodeID + 1)
 	t := &fakeTransport{
 		TripResponses: map[string]interface{}{
-			"fs.readDirectory":          transport.FsReadDirectoryRes{},
-			"fs.getInfo":                transport.FsGetInfoRes{Exists: true},
-			"fs.readRecursiveDirectory": transport.FsReadDirectoryRes{},
-			"fs.getDiskInfo":            transport.FsGetDiskInfo{},
+			"fs.readDirectory":          &transport.ReadDirRes{},
+			"fs.getInfo":                &transport.GetInfoRes{Exists: true},
+			"fs.readRecursiveDirectory": &transport.ReadDirRes{},
+			"fs.getDiskInfo":            &transport.GetDiskInfoRes{},
 		},
 	}
 
@@ -723,18 +723,6 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 		_, ok := k.liveNodes[i]
 		So(ok, ShouldBeFalse)
 	})
-
-	Convey("KodingNetworkFS#isDirIgnored", tt, func() {
-		k := newknfs(t)
-		k.ignoredFolderList["ignored"] = struct{}{}
-
-		So(k.isDirIgnored(fuseutil.DT_Directory, "ignored"), ShouldBeTrue)
-		So(k.isDirIgnored(fuseutil.DT_Directory, "notignored"), ShouldBeFalse)
-
-		Convey("It should only ignore folders", func() {
-			So(k.isDirIgnored(fuseutil.DT_File, "ignored"), ShouldBeFalse)
-		})
-	})
 }
 
 func _unmount(k *KodingNetworkFS) error {
@@ -752,10 +740,9 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	}
 
 	c := &Config{
-		LocalPath:     mountDir,
-		IgnoreFolders: []string{"node_modules"},
-		NoPrefetch:    true,
-		NoWatch:       true,
+		Path:           mountDir,
+		NoPrefetchMeta: true,
+		NoWatch:        true,
 	}
 	k, err := NewKodingNetworkFS(t, c)
 	if err != nil {

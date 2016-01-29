@@ -410,7 +410,7 @@ func TestDir(t *testing.T) {
 
 			ft := newFakeTransport()
 			kt := ft.TripResponses["fs.readDirectory"]
-			fl := kt.(transport.FsReadDirectoryRes).Files
+			fl := kt.(transport.ReadDirRes).Files
 
 			d.Transport = ft
 
@@ -544,12 +544,8 @@ func TestDir(t *testing.T) {
 				So(child.ID, ShouldEqual, 2)
 			})
 
-			Convey("It should set local path for child entry nested in parent", func() {
-				So(child.LocalPath, ShouldEqual, "/local/dir")
-			})
-
-			Convey("It should set remote path for child entry nested in parent", func() {
-				So(child.RemotePath, ShouldEqual, "/remote/dir")
+			Convey("It should set path for child entry nested in parent", func() {
+				So(child.Path, ShouldEqual, "/local/dir")
 			})
 
 			Convey("It should set specificed name and entry type for child entry", func() {
@@ -592,6 +588,21 @@ func TestDir(t *testing.T) {
 		})
 	})
 
+	Convey("Dir#GetPathForEntry", t, func() {
+		Convey("It should return fullpath for dir", func() {
+			d := newDir()
+			e := &tempEntry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
+
+			n, err := d.initializeChild(e)
+			So(err, ShouldBeNil)
+
+			nestedDir, _ := n.(*Dir)
+			fullpath := nestedDir.GetPathForEntry("file")
+
+			So(fullpath, ShouldEqual, "/local/dir/file")
+		})
+	})
+
 	Convey("Dir#removeChild", t, func() {
 		Convey("It should remove an entry", func() {
 			d := newDir()
@@ -624,16 +635,16 @@ func newFakeTransport() *fakeTransport {
 			"fs.createDirectory": true,
 			"fs.remove":          true,
 			"fs.readFile":        map[string]interface{}{"content": c},
-			"fs.getInfo": transport.FsGetInfoRes{
+			"fs.getInfo": transport.GetInfoRes{
 				Exists:   true,
 				IsDir:    true,
 				FullPath: "/remote",
 				Name:     "remote",
 				Mode:     0700 | os.ModeDir,
 			},
-			"fs.readDirectory": transport.FsReadDirectoryRes{
-				Files: []transport.FsGetInfoRes{
-					transport.FsGetInfoRes{
+			"fs.readDirectory": transport.ReadDirRes{
+				Files: []*transport.GetInfoRes{
+					&transport.GetInfoRes{
 						Exists:   true,
 						FullPath: "/remote/folder",
 						IsDir:    true,
@@ -641,7 +652,7 @@ func newFakeTransport() *fakeTransport {
 						Name:     "folder",
 						Size:     1,
 					},
-					transport.FsGetInfoRes{
+					&transport.GetInfoRes{
 						Exists:   true,
 						FullPath: "/remote/file",
 						IsDir:    false,
@@ -657,7 +668,7 @@ func newFakeTransport() *fakeTransport {
 
 func newDir() *Dir {
 	t := newFakeTransport()
-	n := NewRootEntry(t, "/remote", "/local")
+	n := NewRootEntry(t, "/local")
 	n.ID = fuseops.InodeID(fuseops.RootInodeID + 1)
 
 	i := NewIDGen()

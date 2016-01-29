@@ -7,11 +7,13 @@ import (
 	"time"
 )
 
-type FsReadDirectoryRes struct {
-	Files []FsGetInfoRes `json:"files"`
+// ReadDirRes is the response for reading entries in a dir.
+type ReadDirRes struct {
+	Files []*GetInfoRes `json:"files"`
 }
 
-type FsGetInfoRes struct {
+// GetInfoRes is the response for getting info about a single entry.
+type GetInfoRes struct {
 	Exists   bool        `json:"exists"`
 	FullPath string      `json:"fullPath"`
 	IsBroken bool        `json:"isBroken"`
@@ -24,11 +26,14 @@ type FsGetInfoRes struct {
 	Writable bool        `json:"writable"`
 }
 
-type FsReadFileRes struct {
+// ReadFileRes is the response of reading a single file.
+type ReadFileRes struct {
 	Content []byte
 }
 
-func (f *FsReadFileRes) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON satisfies the json reader interface. This is required since
+// remote returns an map while a struct is more useful here.
+func (f *ReadFileRes) UnmarshalJSON(b []byte) error {
 	var m map[string]string
 	if err := json.Unmarshal(b, &m); err != nil {
 		return err
@@ -44,9 +49,17 @@ func (f *FsReadFileRes) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type FsGetDiskInfo struct {
+// GetDiskInfoRes is the response of reading mount info of a disk.
+type GetDiskInfoRes struct {
 	BlockSize   uint32 `json:"blockSize"`
 	BlocksTotal uint64 `json:"blocksTotal"`
 	BlocksFree  uint64 `json:"blocksFree"`
 	BlocksUsed  uint64 `json:"blocksUsed"`
+}
+
+// ExecRes is the response of the command that ran.
+type ExecRes struct {
+	Stdout     string `json:"stdout"`
+	Stderr     string `json:"stderr"`
+	ExitStatus int    `json:"exitStatus"`
 }

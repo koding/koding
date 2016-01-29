@@ -111,15 +111,8 @@ func (f *FindWatcher) getChangedFiles() ([]string, error) {
 		min = 1
 	}
 	cmd := fmt.Sprintf("find '%s' -mmin -%v", f.RemotePath, min)
-
-	req := struct{ Command string }{cmd}
-	var res struct {
-		Stdout     string `json:"stdout"`
-		Stderr     string `json:"stderr"`
-		ExitStatus int    `json:"exitStatus"`
-	}
-
-	if err := f.Trip("exec", req, &res); err != nil {
+	res, err := f.Transport.Exec(cmd)
+	if err != nil {
 		return nil, err
 	}
 

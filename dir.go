@@ -3,7 +3,6 @@ package fuseklient
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -110,15 +109,8 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 		return nil, fuse.EEXIST
 	}
 
-	req := struct {
-		Path      string
-		Recursive bool
-	}{
-		Path:      filepath.Join(d.RemotePath, name),
-		Recursive: true,
-	}
-	var res bool
-	if err := d.Trip("fs.createDirectory", req, &res); err != nil {
+	path := filepath.Join(d.Path, name)
+	if err := d.Transport.CreateDir(path, 0755); err != nil {
 		return nil, err
 	}
 
@@ -216,13 +208,10 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
-	req := struct{ OldPath, NewPath string }{
-		OldPath: filepath.Join(d.RemotePath, oldName),
-		NewPath: filepath.Join(newDir.RemotePath, newName),
-	}
-	var res bool
+	oldPath := d.GetPathForEntry(oldName)
+	newPath := newDir.GetPathForEntry(newName)
 
-	if err := d.Trip("fs.rename", req, res); err != nil {
+	if err := d.Transport.Rename(oldPath, newPath); err != nil {
 		return nil, err
 	}
 
@@ -321,6 +310,13 @@ func (d *Dir) Reset() error {
 	return nil
 }
 
+// GetPathForEntry returns full relative path for entry, ie. it combines the
+// full path of dir from the mount with the entry. It does not check if entry
+// exists.
+func (d *Dir) GetPathForEntry(name string) string {
+	return filepath.Join(d.Path, name)
+}
+
 ///// Private helpers
 
 func (d *Dir) removeEntry(name string) (Node, error) {
@@ -329,15 +325,7 @@ func (d *Dir) removeEntry(name string) (Node, error) {
 		return nil, err
 	}
 
-	req := struct {
-		Path      string
-		Recursive bool
-	}{
-		Path:      path.Join(d.RemotePath, name),
-		Recursive: true,
-	}
-	var res bool
-	if err := d.Trip("fs.remove", req, &res); err != nil {
+	if err := d.Transport.Remove(name); err != nil {
 		return nil, err
 	}
 
@@ -394,7 +382,7 @@ func (d *Dir) updateEntriesFromRemote() error {
 	return nil
 }
 
-func newTempEntry(file transport.FsGetInfoRes) *tempEntry {
+func newTempEntry(file *transport.GetInfoRes) *tempEntry {
 	fileType := fuseutil.DT_File
 	if file.IsDir {
 		fileType = fuseutil.DT_Directory
@@ -410,9 +398,8 @@ func newTempEntry(file transport.FsGetInfoRes) *tempEntry {
 }
 
 func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
-	req := struct{ Path string }{d.RemotePath}
-	res := transport.FsReadDirectoryRes{}
-	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
+	res, err := d.Transport.ReadDir(d.Path, false)
+	if err != nil {
 		return nil, err
 	}
 

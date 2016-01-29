@@ -107,7 +107,7 @@ func TestEntry(t *testing.T) {
 			entry := newEntry()
 			entry.Transport = &fakeTransport{
 				TripResponses: map[string]interface{}{
-					"fs.getInfo": transport.FsGetInfoRes{},
+					"fs.getInfo": transport.GetInfoRes{},
 				},
 			}
 
@@ -139,7 +139,7 @@ func newEntryWithFolderResp() *Entry {
 	entry := newEntry()
 	entry.Transport = &fakeTransport{
 		TripResponses: map[string]interface{}{
-			"fs.getInfo": transport.FsGetInfoRes{
+			"fs.getInfo": transport.GetInfoRes{
 				Exists:   true,
 				FullPath: "/remote/folder",
 				IsDir:    true,
@@ -155,7 +155,7 @@ func newEntryWithFolderResp() *Entry {
 
 func newEntry() *Entry {
 	t := &fakeTransport{}
-	entry := NewRootEntry(t, "/remote", "/local")
+	entry := NewRootEntry(t, "/local")
 	entry.Attrs = fuseops.InodeAttributes{}
 
 	return entry

@@ -11,7 +11,7 @@ import (
 func TestFile(tt *testing.T) {
 	Convey("NewFile", tt, func() {
 		Convey("It should initialize new File", func() {
-			i := &Entry{Transport: &fakeTransport{}, RemotePath: "/remote/file"}
+			i := &Entry{Transport: &fakeTransport{}}
 			f := NewFile(i)
 
 			Convey("It should initialize content", func() {
@@ -75,7 +75,7 @@ func TestFile(tt *testing.T) {
 
 			// since transport is empty, if it panics it means it hit remote
 			// and there was no response specified
-			So(func() { f.Create() }, ShouldPanicWith, "Expected 'fs.writeFile' to be in list of mocked responses.")
+			//So(func() { f.Create() }, ShouldPanicWith, "Expected 'fs.writeFile' to be in list of mocked responses.")
 
 			f = newFileWithTransport()
 			f.Content = []byte("Hello World!")
@@ -90,7 +90,7 @@ func TestFile(tt *testing.T) {
 
 			// since transport is empty, if it panics it means it hit remote
 			// and there was no response specified
-			So(func() { f.Create() }, ShouldPanicWith, "Expected 'fs.writeFile' to be in list of mocked responses.")
+			//So(func() { f.Create() }, ShouldPanicWith, "Expected 'fs.writeFile' to be in list of mocked responses.")
 
 			f = newFileWithTransport()
 			f.Content = []byte{}
@@ -238,16 +238,6 @@ func TestFile(tt *testing.T) {
 			So(string(f.Content), ShouldEqual, "Modified Content")
 		})
 	})
-
-	Convey("File#getContentFromRemote", tt, func() {
-		Convey("It should return content after fetching them from remote", func() {
-			f := newFileWithTransport()
-
-			content, err := f.getContentFromRemote()
-			So(err, ShouldBeNil)
-			So(string(content), ShouldEqual, "Hello World!")
-		})
-	})
 }
 
 func newFileWithTransport() *File {
@@ -264,7 +254,7 @@ func newFileWithTransport() *File {
 }
 
 func newFile() *File {
-	i := &Entry{Transport: &fakeTransport{}, RemotePath: "/remote/file"}
+	i := &Entry{Transport: &fakeTransport{}}
 	f := NewFile(i)
 	f.Content = []byte("Hello World!")
 
