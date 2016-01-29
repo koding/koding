@@ -4,6 +4,7 @@ ReactDOM             = require 'react-dom'
 FeedList             = require './feedlist'
 Scroller             = require 'app/components/scroller'
 immutable            = require 'immutable'
+checkFlag            = require 'app/util/checkFlag'
 FeedInputWidget      = require './feedinputwidget'
 FeedPaneTabContainer = require './feedpanetabcontainer'
 FeedThreadHeader     = require './feedthreadheader'
@@ -90,11 +91,24 @@ module.exports = class FeedPane extends React.Component
       isOpened={@state.isOpened} />
 
 
+  renderFeedInputWidgetAndTabContainer: (channelId, thread, isAnnouncementChannel) ->
+
+    if not checkFlag('super-admin') and  isAnnouncementChannel
+      return null
+    else
+      <div>
+        <FeedInputWidget channelId={ channelId } />
+        <FeedPaneTabContainer thread={ thread } />
+      </div>
+
+
   renderBody: ->
 
     return null  unless @props.thread
 
-    channelId = @props.thread.get 'channelId'
+    channelId   = @props.thread.get 'channelId'
+    typeConstant = @props.thread.getIn(['channel', 'typeConstant'])
+    isAnnouncementChannel = (typeConstant == 'announcement') ? true : false
 
     <Scroller
       onScroll={@bound 'onScroll'}
@@ -109,8 +123,8 @@ module.exports = class FeedPane extends React.Component
       <FeedThreadHeader
         className="FeedThreadPane-header"
         channel={@props.thread.get 'channel'} />
-      <FeedInputWidget channelId={channelId} />
-      <FeedPaneTabContainer thread={@props.thread} />
+      { @renderFeedInputWidgetAndTabContainer channelId, @props.thread, isAnnouncementChannel }
+
       <FeedList
         channelId={channelId}
         isMessagesLoading={@isThresholdReached}
