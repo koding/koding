@@ -33,12 +33,12 @@ func MountCommand(c *cli.Context) int {
 	var (
 		name             = c.Args()[0]
 		localPath        = c.Args()[1]
-		remotePath       = c.String("remotepath")    // note the lowercase of all chars
-		noIgnore         = c.Bool("noignore")        // note the lowercase of all chars
-		noPrefetchMeta   = c.Bool("noprefetchmeta")  // note the lowercase of all chars
-		noWatch          = c.Bool("nowatch")         // note the lowercase of all chars
-		prefetchAll      = c.Bool("prefetchall")     // note the lowercase of all chars
-		prefetchInterval = c.Int("prefetchinterval") // note the lowercase of all chars
+		remotePath       = c.String("remotepath")     // note the lowercase of all chars
+		noIgnore         = c.Bool("noignore")         // note the lowercase of all chars
+		noPrefetchMeta   = c.Bool("noprefetch-meta")  // note the lowercase of all chars
+		noWatch          = c.Bool("nowatch")          // note the lowercase of all chars
+		prefetchAll      = c.Bool("prefetch-all")     // note the lowercase of all chars
+		prefetchInterval = c.Int("prefetch-interval") // note the lowercase of all chars
 	)
 
 	// temporarily disable watcher
