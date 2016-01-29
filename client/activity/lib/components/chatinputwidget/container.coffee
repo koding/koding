@@ -138,7 +138,7 @@ module.exports = class ChatInputContainer extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    return @onDropboxItemConfirmed()  if @state.dropboxConfig
+    return  if @onDropboxItemConfirmed()
 
     value   = @state.value.trim()
     command = parseStringToCommand value
@@ -224,12 +224,13 @@ module.exports = class ChatInputContainer extends React.Component
     return  unless dropboxConfig
 
     selectedItem = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
-    return @submit()  unless selectedItem
+    position     = @refs.input.getCursorPosition()
+    params       = { selectedItem, query : dropboxQuery, value, position }
 
-    position = @refs.input.getCursorPosition()
-    params   = { selectedItem, query : dropboxQuery, value, position }
+    result = dropboxConfig.get('submit') params
+    return  unless result
 
-    { newValue, newPosition, command } = dropboxConfig.get('submit') params
+    { newValue, newPosition, command } = result
 
     @onDropboxClose()
     @props.onCommand? { command }  if command
@@ -237,6 +238,8 @@ module.exports = class ChatInputContainer extends React.Component
 
     kd.utils.defer =>
       @refs.input.setCursorPosition newPosition ? 0
+
+    return yes
 
 
   onSelectBoxVisible: ->

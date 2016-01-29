@@ -25,6 +25,8 @@ module.exports = SearchToken =
         flags              : 'searchFlags'
       horizontalNavigation : no
       submit               : ({ selectedItem, query, value, position }) ->
+        return  unless selectedItem
+
         { initialChannelId, id } = selectedItem.get('message').toJS()
         command = {
           name   : '/search'

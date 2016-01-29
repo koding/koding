@@ -28,6 +28,8 @@ module.exports = EmojiToken =
         selectedItem       : 'emojisSelectedItem'
       horizontalNavigation : yes
       submit               : ({ selectedItem, query, value, position }) ->
+        return  unless selectedItem
+
         EmojiActions.incrementUsageCount selectedItem
 
         newWord = "#{formatEmojiName selectedItem} "

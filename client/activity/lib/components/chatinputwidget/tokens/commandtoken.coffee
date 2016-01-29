@@ -22,6 +22,8 @@ module.exports = CommandToken =
         selectedItem       : 'commandsSelectedItem'
       horizontalNavigation : no
       submit               : ({ selectedItem, query, value, position }) ->
+        return  unless selectedItem
+
         newWord = "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
         return helpers.replaceWordAtPosition value, position, newWord
     }

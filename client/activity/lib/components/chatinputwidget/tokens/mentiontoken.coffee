@@ -28,6 +28,8 @@ module.exports = MentionToken =
         selectedItem       : 'mentionsSelectedItem'
       horizontalNavigation : no
       submit               : ({ selectedItem, query, value, position }) ->
+        return  unless selectedItem
+
         names = selectedItem.get 'names'
         if names
           name = findNameByQuery(names.toJS(), query) ? names.first()
