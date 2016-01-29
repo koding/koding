@@ -65,13 +65,12 @@ module.exports = class ChannelThreadPane extends React.Component
     return  unless thread = @state.channelThread
 
     if not isKoding()
-      <ChannelThreadHeader
+      <ChannelThreadHeader.Container
         className="ChannelThreadPane-header"
         thread={thread}
         onInvitePeople={@bound 'invitePeople'}
         onLeaveChannel={@bound 'leaveChannel'}
-        onShowNotificationSettings={@bound 'showNotificationSettingsModal'}>
-      </ChannelThreadHeader>
+        onShowNotificationSettings={@bound 'showNotificationSettingsModal'} />
 
 
   renderPaneByTypeConstant: (thread) ->
