@@ -245,7 +245,7 @@ module.exports = class JCredential extends jraphical.Module
             callback null, []
 
 
-  setPermissionFor: (target, { user, owner }, callback) ->
+  setPermissionFor: (target, { user, owner, role }, callback) ->
 
     Relationship.remove
       targetId : @getId()
@@ -253,8 +253,9 @@ module.exports = class JCredential extends jraphical.Module
     , (err) =>
 
       if user
-        as = if owner then 'owner' else 'user'
-        target.addCredential this, { as }, (err) -> callback err
+        options      = { as: if owner then 'owner' else 'user' }
+        options.data = { role }  if role
+        target.addCredential this, options, (err) -> callback err
       else
         callback err
 
