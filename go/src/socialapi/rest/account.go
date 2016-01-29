@@ -95,7 +95,7 @@ func FetchAccountActivities(accId int64, token string) ([]*models.ChannelMessage
 }
 
 func FetchAccountActivityCount(accId int64, token string) (*models.CountResponse, error) {
-	url := fmt.Sprintf("/account/%d/posts/count", accId)
+	url := fmt.Sprintf("/secure/account/%d/posts/count", accId)
 
 	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {

@@ -24,7 +24,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  GetAccountFromSession,
 			Name:     "account-info",
 			Type:     handler.GetRequest,
-			Endpoint: "/account",
+			Endpoint: "/secure/account",
 		},
 	)
 
@@ -33,7 +33,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  ParticipatedChannelCount,
 			Name:     "account-channel-list-count",
 			Type:     handler.GetRequest,
-			Endpoint: "/account/{id}/channels/count",
+			Endpoint: "/secure/account/{id}/channels/count",
 			Securer:  models.AccountReadSecurer,
 		},
 	)
@@ -54,7 +54,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  FetchPostCount,
 			Name:     "account-post-count",
 			Type:     handler.GetRequest,
-			Endpoint: "/account/{id}/posts/count",
+			Endpoint: "/secure/account/{id}/posts/count",
 		},
 	)
 
@@ -64,7 +64,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Follow,
 			Name:     "account-follow",
 			Type:     handler.PostRequest,
-			Endpoint: "/account/{id}/follow",
+			Endpoint: "/secure/account/{id}/follow",
 			Securer:  models.AccountSecurer,
 		},
 	)
@@ -75,7 +75,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Register,
 			Name:     "account-create",
 			Type:     handler.PostRequest,
-			Endpoint: "/account",
+			Endpoint: "/secure/account",
 			Securer:  models.AccountReadSecurer,
 		},
 	)
@@ -85,7 +85,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Update,
 			Name:     "account-update",
 			Type:     handler.PostRequest,
-			Endpoint: "/account/{id}",
+			Endpoint: "/secure/account/{id}",
 			Securer:  models.AccountSecurer,
 		},
 	)
@@ -96,7 +96,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Unfollow,
 			Name:     "account-unfollow",
 			Type:     handler.PostRequest,
-			Endpoint: "/account/{id}/unfollow",
+			Endpoint: "/secure/account/{id}/unfollow",
 			Securer:  models.AccountSecurer,
 		},
 	)
@@ -107,7 +107,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  CheckOwnership,
 			Name:     "account-owns",
 			Type:     handler.GetRequest,
-			Endpoint: "/account/{id}/owns",
+			Endpoint: "/secure/account/{id}/owns",
 			Securer:  models.AccountReadSecurer,
 		},
 	)

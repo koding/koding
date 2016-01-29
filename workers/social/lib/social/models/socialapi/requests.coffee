@@ -24,14 +24,14 @@ wrapCallback = (callback) ->
 createAccount = ({ id, nickname }, callback) ->
   if not id or not nickname
     return callback new KodingError 'Request is not valid for creating account'
-  url = "#{socialProxyUrl}/account"
+  url = "#{socialProxyUrl}/secure/account"
   post url, { oldId: id, nick: nickname }, callback
 
 updateAccount = (data, callback) ->
   { id, nick } = data
   if not id or not nick
     return callback new KodingError 'Request is not valid for updating account'
-  url = "#{socialProxyUrl}/account/#{id}"
+  url = "#{socialProxyUrl}/secure/account/#{id}"
   post url, data , callback
 
 createChannel = (data, callback) ->
@@ -50,7 +50,7 @@ fetchActivityCount = (data, callback) ->
   if not data.channelId
     return callback new KodingError 'Request is not valid for fetching activity count'
 
-  url = "#{socialProxyUrl}/channel/#{data.channelId}/history/count"
+  url = "#{socialProxyUrl}/secure/channel/#{data.channelId}/history/count"
   get url, data, callback
 
 fetchGroupChannels = (data, callback) ->
@@ -254,7 +254,7 @@ fetchFollowedChannelCount = (data, callback) ->
   if not data.accountId or not data.groupName
     return callback new KodingError 'Request is not valid'
 
-  url = "#{socialProxyUrl}/account/#{data.accountId}/channels/count"
+  url = "#{socialProxyUrl}/secure/account/#{data.accountId}/channels/count"
   get url, data, callback
 
 createChannelWithParticipants = (data, callback) ->
@@ -284,7 +284,7 @@ fetchPrivateMessages = (data, callback) ->
   get url, data, callback
 
 fetchPrivateMessageCount = (data, callback) ->
-  url = "#{socialProxyUrl}/privatechannel/count"
+  url = "#{socialProxyUrl}/secure/privatechannel/count"
   get url, data, callback
 
 searchChats = (data, callback) ->
@@ -333,7 +333,7 @@ fetchProfileFeed = (data, callback) ->
 fetchProfileFeedCount = (data, callback) ->
   if not data.targetId
     return callback new KodingError 'targetId should be set'
-  url = "#{socialProxyUrl}/account/#{data.targetId}/posts/count"
+  url = "#{socialProxyUrl}/secure/account/#{data.targetId}/posts/count"
   get url, data, callback
 
 messageById = (data, callback) ->
@@ -398,7 +398,7 @@ deleteChannel = (data, callback) ->
   post url, data, callback
 
 checkOwnership = (data, callback) ->
-  url = "#{socialProxyUrl}/account/#{data.accountId}/owns"
+  url = "#{socialProxyUrl}/secure/account/#{data.accountId}/owns"
   get url, data, callback
 
 createNotificationSetting = (data, callback) ->

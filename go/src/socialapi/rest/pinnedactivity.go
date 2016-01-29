@@ -6,7 +6,7 @@ import (
 )
 
 func FetchPinnedActivityChannel(accountId int64, groupName string) (*models.Channel, error) {
-	url := fmt.Sprintf("/activity/pin/channel?accountId=%d&groupName=%s", accountId, groupName)
+	url := fmt.Sprintf("/secure/activity/pin/channel?accountId=%d&groupName=%s", accountId, groupName)
 	cm := models.NewChannel()
 	cmI, err := sendModel("GET", url, cm)
 	if err != nil {

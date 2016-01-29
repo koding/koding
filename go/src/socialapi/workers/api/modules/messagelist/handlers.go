@@ -36,7 +36,7 @@ func AddHandlers(m *mux.Mux) {
 		handler.Request{
 			Handler:  Count,
 			Name:     "channel-history-count",
-			Endpoint: "/channel/{id}/history/count",
+			Endpoint: "secure/channel/{id}/history/count",
 			Type:     handler.GetRequest,
 			Securer:  models.MessageListReadSecurer,
 		},

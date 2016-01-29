@@ -14,7 +14,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  GetPinnedActivityChannel,
 			Name:     "activity-pin-get-channel",
 			Type:     handler.GetRequest,
-			Endpoint: "/activity/pin/channel",
+			Endpoint: "/secure/activity/pin/channel",
 			Securer:  models.PinnedActivityReadSecurer,
 		},
 	)

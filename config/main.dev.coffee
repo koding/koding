@@ -514,53 +514,13 @@ Configuration = (options={}) ->
           # add something new, thoroughly test it in sandbox. Most of the problems are not occuring
           # in dev environment
           {
-            location    : "~ /api/social/channel/(.*)/history/count"
-            proxyPass   : "http://socialapi/channel/$1/history/count$is_args$args"
-          }
-          {
-            location    : "~ /api/social/channel/(.*)/history"
-            proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
-          }
-          {
-            location    : "~ /api/social/channel/(.*)/list"
-            proxyPass   : "http://socialapi/channel/$1/list$is_args$args"
-          }
-          {
-            location    : "~ /api/social/channel/by/(.*)"
-            proxyPass   : "http://socialapi/channel/by/$1$is_args$args"
-          }
-          {
-            location    : "~ /api/social/channel/(.*)/notificationsetting"
-            proxyPass   : "http://socialapi/channel/$1/notificationsetting$is_args$args"
-          }
-          {
-            location    : "~ /api/social/notificationsetting/(.*)"
-            proxyPass   : "http://socialapi/notificationsetting/$1$is_args$args"
-          }
-          {
-            location    : "~ /api/social/collaboration/ping"
-            proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
-          }
-          {
-            location    : "~ /api/social/search-key"
-            proxyPass   : "http://socialapi/search-key$1$is_args$args"
-          }
-          {
-            location    : "~ /api/social/sshkey"
-            proxyPass   : "http://socialapi/sshkey$1$is_args$args"
-          }
-          {
-            location    : "~ /api/social/moderation/(.*)"
-            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
-          }
-          {
-            location    : "~ /api/social/account/channels"
-            proxyPass   : "http://socialapi/account/channels$is_args$args"
+            location    : "~ /api/social/secure(.*)"
+            proxyPass   : "http://socialapi/secure/$1$is_args$args"
+            internalOnly: yes
           }
           {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
-            internalOnly: yes
           }
           {
             location    : "~ /sitemap(.*).xml"
