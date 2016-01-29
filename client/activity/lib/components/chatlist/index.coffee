@@ -143,7 +143,14 @@ module.exports = class ChatList extends React.Component
       return node.className.indexOf('DateMarker-fixed') is -1
 
 
-  updateDateMarkersPosition: (scrollTop, left) ->
+  updateDateMarkersPosition: ->
+
+    return  unless @scrollableParent
+
+    { scrollTop, offsetHeight } = @scrollableParent
+    return  unless scrollTop and offsetHeight
+
+    left = @scrollableParent.getBoundingClientRect().left
 
     @dateMarkers.forEach (dateMarker) ->
 
