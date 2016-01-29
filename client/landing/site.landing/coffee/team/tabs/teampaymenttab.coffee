@@ -24,7 +24,7 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
     @hasPaymentMethodView.addSubView new KDCustomHTMLView
       tagName: 'a'
       cssClass: 'use-different-card-link'
-      partial: '<div class="use-different-card-label">Use different card</div>'
+      partial: '<div class="use-different-card-label">Do you want to use a different card?</div>'
       attributes: href: '#'
       click: @bound 'cleanupPaymentTeamData'
 
