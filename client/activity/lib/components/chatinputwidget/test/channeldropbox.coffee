@@ -6,13 +6,13 @@ TestUtils      = require 'react-addons-test-utils'
 toImmutable    = require 'app/util/toImmutable'
 ChannelDropbox = require '../channeldropbox'
 helpers        = require './helpers'
+mockingjay     = require '../../../../../mocks/mockingjay'
+
 
 describe 'ChannelDropbox', ->
 
-  channels = toImmutable [
-    { id : 1, name : 'qwerty' }
-    { id : 2, name : 'test' }
-  ]
+  channels = mockingjay.getMockChannels(2).toList()
+
 
   afterEach -> helpers.clearDropboxes()
 

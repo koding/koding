@@ -6,32 +6,13 @@ TestUtils     = require 'react-addons-test-utils'
 toImmutable   = require 'app/util/toImmutable'
 SearchDropbox = require '../searchdropbox'
 helpers       = require './helpers'
+mockingjay    = require '../../../../../mocks/mockingjay'
 
 describe 'SearchDropbox', ->
 
   items = toImmutable [
-    {
-      message           : 
-        id              : 1
-        body            : 'Life on Mars'
-        interactions    : { like : { actorsCount : 1 } }
-        repliesCount    : 2
-        account         :
-          id            : 1
-          profile       : { nickname : 'nick', firstName : '', lastName : '' }
-          isIntegration : yes
-    }
-    {
-      message           : 
-        id              : 2
-        body            : 'Expedition on Mars'
-        interactions    : { like : { actorsCount : 3 } }
-        repliesCount    : 5
-        account         :
-          id            : 2
-          profile       : { nickname : 'john', firstName : '', lastName : '' }
-          isIntegration : yes
-    }
+    { message : mockingjay.getMockMessage 'Life on Mars' }
+    { message : mockingjay.getMockMessage 'Expedition on Mars' }
   ]
 
 

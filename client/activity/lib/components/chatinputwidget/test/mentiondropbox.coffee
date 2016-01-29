@@ -1,23 +1,18 @@
-kd             = require 'kd'
-React          = require 'kd-react'
-ReactDOM       = require 'react-dom'
-expect         = require 'expect'
-TestUtils      = require 'react-addons-test-utils'
-toImmutable    = require 'app/util/toImmutable'
-MentionDropbox = require '../mentiondropbox'
-helpers        = require './helpers'
+kd                   = require 'kd'
+React                = require 'kd-react'
+ReactDOM             = require 'react-dom'
+expect               = require 'expect'
+TestUtils            = require 'react-addons-test-utils'
+toImmutable          = require 'app/util/toImmutable'
+MentionDropbox       = require '../mentiondropbox'
+helpers              = require './helpers'
+generateDummyAccount = require 'app/util/generateDummyAccount'
 
 describe 'MentionDropbox', ->
 
   userMentions = toImmutable [
-    {
-      id      : 1
-      profile : { nickname : 'nick' }
-    }
-    {
-      id      : 2
-      profile : { nickname : 'john', firstName : 'John', lastName : 'Johnson' }
-    }
+    generateDummyAccount 1, 'nick', '', ''
+    generateDummyAccount 2, 'john', 'John', 'Johnson'
   ]
 
   channelMentions = toImmutable [
