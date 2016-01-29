@@ -44,12 +44,12 @@ func IsExistingMountErr(err error) bool {
 	return false
 }
 
-func IsDialFailedErr(e error) bool {
-	if e == nil {
+func IsDialFailedErr(err error) bool {
+	if err == nil {
 		return false
 	}
 
-	if kiteErr, ok := e.(*kite.Error); ok && kiteErr.Type == "dialing failed" {
+	if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type == "dialing failed" {
 		return true
 	}
 
