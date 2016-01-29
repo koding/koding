@@ -107,7 +107,7 @@ module.exports = class FeedPane extends React.Component
 
     channelId   = @props.thread.get 'channelId'
     typeConstant = @props.thread.getIn(['channel', 'typeConstant'])
-    isAnnouncementChannel = (typeConstant == 'announcement') ? true : false
+    isAnnouncementChannel = typeConstant is 'announcement'
 
     <Scroller
       onScroll={@bound 'onScroll'}
