@@ -3,7 +3,6 @@ React                = require 'kd-react'
 Avatar               = require 'app/components/profile/avatar'
 Link                 = require 'app/components/common/link'
 TimeAgo              = require 'app/components/common/timeago'
-Encoder              = require 'htmlencode'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 MessageLink          = require 'activity/components/messagelink'
@@ -11,61 +10,25 @@ MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
 MessageItemMenu      = require 'activity/components/messageitemmenu'
-ActivityFlux         = require 'activity/flux'
 CommentInputWidget   = require 'activity/components/commentinputwidget'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
-module.exports = class CommentListItem extends React.Component
+module.exports = class CommentListItemView extends React.Component
+
+  @propTypes =
+    hasValue      : React.PropTypes.bool
+    commentValue  : React.PropTypes.string
+    updateComment : React.PropTypes.func.isRequired
+    cancelEdit    : React.PropTypes.func.isRequired
+    onClick       : React.PropTypes.func.isRequired
+    onChange      : React.PropTypes.func.isRequired
+    comment       : React.PropTypes.instanceOf immutable.Map
+
 
   @defaultProps =
-    channelId      : null
-    comment        : immutable.Map()
-    onMentionClick : kd.noop
-
-  constructor: (props) ->
-
-    super
-
-    @state =
-      hasValue     : yes
-      commentValue : @props.comment.get('body') or ''
-      focusOnInput : no
-
-
-  onClick: (event) ->
-
-    kd.utils.stopDOMEvent event
-
-    { onMentionClick, comment } = @props
-
-    onMentionClick comment
-
-
-  updateComment: ->
-
-    commentId = @props.comment.get '_id'
-    { message } = ActivityFlux.actions
-
-    message.unsetMessageEditMode commentId, @props.channelId
-    message.editMessage commentId, @state.commentValue.trim()
-
-
-  cancelEdit: ->
-
-    { comment, channelId } = @props
-    { message } = ActivityFlux.actions
-
-    @setState { commentValue: comment.get 'body' }
-
-    message.unsetMessageEditMode comment.get '_id', channelId
-
-
-  handleCommentInputChange: (event) ->
-
-    hasValue = no
-    value    = event.target.value
-    hasValue = yes  if value.trim()
-    @setState { hasValue: hasValue, commentValue: value }
+    hasValue      : no
+    commentValue  : ''
+    comment       : immutable.Map()
 
 
   getClassNames: ->
@@ -84,35 +47,36 @@ module.exports = class CommentListItem extends React.Component
 
     return  unless comment.get '__isEditing'
 
-    <CommentInputWidget.Container
-      hasValue     = { @state.hasValue }
-      commentValue = { @state.commentValue }
-      cancelEdit   = { @bound 'cancelEdit' }
-      postComment  = { @bound 'updateComment' }
-      onChange     = { @bound 'handleCommentInputChange' } />
+    <CommentInputWidget
+      ref          = 'CommentInputWidget'
+      hasValue     = { @props.hasValue }
+      postComment  = { @props.updateComment }
+      commentValue = { @props.commentValue }
+      cancelEdit   = { @props.cancelEdit }
+      onChange     = { @props.onChange } />
 
 
   renderCommentItemMenu: ->
 
     <MessageItemMenu
-      message={@props.comment}
-      channelId={@props.channelId}
-      disableAdminMenuItems:{yes} />
+      disableAdminMenuItems = { yes }
+      message               = { @props.comment } />
 
 
   render: ->
 
     { comment } = @props
+
     return null  unless comment
 
     <div className={@getClassNames()}>
       {@renderCommentItemMenu()}
       <div className='MediaObject-media'>
         <ProfileLinkContainer origin={comment.get('account').toJS()}>
-          <Avatar className='FeedItem-Avatar' width={35} height={35} />
+          <Avatar width={35} height={35} />
         </ProfileLinkContainer>
       </div>
-      <ProfileLinkContainer key={comment.getIn(['account', '_id'])} origin={comment.get('account').toJS()}>
+      <ProfileLinkContainer key={comment.getIn(['account', 'id'])} origin={comment.get('account').toJS()}>
         <ProfileText />
       </ProfileLinkContainer>
       <div className='CommentListItem-body'>
@@ -122,7 +86,7 @@ module.exports = class CommentListItem extends React.Component
       <div className='CommentListItem-footer'>
         <TimeAgo from={comment.get 'createdAt'} className='CommentListItem-date' />
         {makeLike comment}
-        <Link onClick={ @bound 'onClick' }>Mention</Link>
+        <Link ref='MentionLink' onClick={ @props.onClick }>Mention</Link>
       </div>
     </div>
 
@@ -135,9 +99,9 @@ makeLike = (comment) ->
   text  = 'Unlike'  if comment.getIn ['interactions', 'like', 'isInteracted']
 
   <ActivityLikeLink
-    renderCount={yes}
-    messageId={comment.get('id')}
-    shouldSetTooltipPosition={yes}
-    interactions={comment.get('interactions').toJS()}>
-    {text}
+    renderCount              = { yes }
+    shouldSetTooltipPosition = { yes }
+    messageId                = { comment.get('id') }
+    interactions             = { comment.get('interactions').toJS() } >
+    { text }
   </ActivityLikeLink>
