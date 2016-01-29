@@ -25,6 +25,7 @@ executeCommand = (command, channel) ->
         channelActions.unfollowChannel channelId
     when '/search'
       { initialChannelId, messageId } = params
+      return  unless initialChannelId and messageId
       channelActions.loadChannel(initialChannelId).then ({ channel }) ->
         kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{messageId}"
     when 'CreateChannel'
