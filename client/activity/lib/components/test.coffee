@@ -13,3 +13,5 @@ require './comments/test'
 require './commentinputwidget/test'
 require './common/test'
 require './sidebarwidgets/test'
+require './commentlist/test'
+
