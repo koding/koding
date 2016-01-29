@@ -93,13 +93,12 @@ module.exports = class FeedPane extends React.Component
 
   renderFeedInputWidgetAndTabContainer: (channelId, thread, isAnnouncementChannel) ->
 
-    if not checkFlag('super-admin') and  isAnnouncementChannel
-      return null
-    else
-      <div>
-        <FeedInputWidget channelId={ channelId } />
-        <FeedPaneTabContainer thread={ thread } />
-      </div>
+    return null  if not checkFlag('super-admin') and isAnnouncementChannel
+
+    <div>
+      <FeedInputWidget channelId={ channelId } />
+      <FeedPaneTabContainer thread={ thread } />
+    </div>
 
 
   renderBody: ->
