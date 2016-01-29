@@ -20,7 +20,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       inputOptions       :
         name             : "password"
         type             : "password"
-        testPath         : "recover-password"
+        attributes        :
+          testpath        : 'register-password'
         placeholder      : "Password"
         focus            : =>
           @password.icon.unsetTooltip()

@@ -49,10 +49,6 @@ module.exports =
       browser
         .waitForElementVisible  '.hero.block .container', 50000
         .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
-    else
-      browser
-        .waitForElementVisible  '[testpath=main-header]', 50000
-        .click                  'nav:not(.mobile-menu) [testpath=login-link]'
 
     browser
       .waitForElementVisible  '[testpath=login-container]', 50000
@@ -99,14 +95,16 @@ module.exports =
         .waitForElementVisible  homePageSelector, 20000
         .waitForElementVisible  "#{homePageSelector} a[href='/Register']", 20000
         .click                  "#{homePageSelector} a[href='/Register']"
-        .pause 3000
+        .pause                  3000
         .waitForElementVisible  '.form-area .main-part', 20000
         .setValue               '.login-form .email input[name=email]', user.email
         .setValue               '.login-form .password input[name=password]', user.password
     else
       browser
-        .setValue  'input[name=email]', user.email
-        .setValue  'input[name=password]', user.password
+        .url                    "#{url}/Register"
+        .pause                  3000
+        .setValue               'input[testpath=register-form-email]', user.email
+        .setValue               'input[testpath=register-password]', user.password
 
     browser.click       '[testpath=signup-button]'
 
