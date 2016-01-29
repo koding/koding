@@ -130,26 +130,7 @@ module.exports = class ChatInputContainer extends React.Component
   focus: -> @refs.input.focus()
 
 
-  tryExecuteCommand: (command) ->
-
-    unless command
-      value   = @state.value.trim()
-      command = parseStringToCommand value
-
-    if command
-      @props.onCommand? { command }
-      @setValue ''
-      return yes
-
-    return no
-
-
-  submit: ->
-
-    value = @state.value.trim()
-    @props.onSubmit? { value }
-
-    @setValue ''
+  resetValue: -> @setValue ''
 
 
   onEnter: (event) ->
@@ -158,9 +139,16 @@ module.exports = class ChatInputContainer extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    return @onDropboxItemConfirmed()  if @state.dropboxConfig
+    return  if @onDropboxItemConfirmed()
 
-    @tryExecuteCommand() or @submit()
+    value   = @state.value.trim()
+    command = parseStringToCommand value
+    if command
+      @props.onCommand? { command }
+    else
+      @props.onSubmit? { value }
+
+    @resetValue()
 
 
   onRightArrow: (event) ->
@@ -233,26 +221,26 @@ module.exports = class ChatInputContainer extends React.Component
 
   onDropboxItemConfirmed: ->
 
-    { dropboxQuery, dropboxConfig } = @state
+    { dropboxQuery, dropboxConfig, value } = @state
     return  unless dropboxConfig
 
-    selectedItem      = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
+    selectedItem = @state[dropboxConfig.getIn ['getters', 'selectedItem']]
+    position     = @refs.input.getCursorPosition()
+    params       = { selectedItem, query : dropboxQuery, value, position }
 
-    if not selectedItem
-      @submit()
-    else
-      confirationResult = dropboxConfig.get('processConfirmedItem') selectedItem, dropboxQuery
-      @onDropboxClose()
+    result = dropboxConfig.get('submit') params
+    return  unless result
 
-      { type, value } = confirationResult
-      return @tryExecuteCommand value  if type is 'command'
+    { newValue, newPosition, command } = result
 
-      position = @refs.input.getCursorPosition()
-      { newValue, newPosition } = helpers.replaceWordAtPosition @state.value, position, value
+    @onDropboxClose()
+    @props.onCommand? { command }  if command
+    @setValue newValue
 
-      @setValue newValue
-      kd.utils.defer =>
-        @refs.input.setCursorPosition newPosition
+    kd.utils.defer =>
+      @refs.input.setCursorPosition newPosition ? 0
+
+    return yes
 
 
   onSelectBoxVisible: ->

@@ -1,4 +1,5 @@
 textHelpers       = require 'activity/util/textHelpers'
+helpers           = require '../helpers'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
 AppFlux           = require 'app/flux'
 MentionDropbox    = require '../mentiondropbox'
@@ -27,17 +28,16 @@ module.exports = MentionToken =
         selectedIndex      : 'mentionsSelectedIndex'
         selectedItem       : 'mentionsSelectedItem'
       horizontalNavigation : no
-      processConfirmedItem : (item, query) ->
-        names = item.get 'names'
+      submit               : ({ selectedItem, query, value, position }) ->
+        return  unless selectedItem
+
+        names = selectedItem.get 'names'
         if names
           name = findNameByQuery(names.toJS(), query) ? names.first()
         else
-          name = item.getIn ['profile', 'nickname']
+          name = selectedItem.getIn ['profile', 'nickname']
 
-        return {
-          type  : 'text'
-          value : "@#{name} "
-        }
+        return helpers.replaceWordAtPosition value, position, "@#{name} "
     }
 
 

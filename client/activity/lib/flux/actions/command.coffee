@@ -1,6 +1,7 @@
-kd             = require 'kd'
-channelActions = require './channel'
-getGroup       = require 'app/util/getGroup'
+kd                = require 'kd'
+channelActions    = require './channel'
+getGroup          = require 'app/util/getGroup'
+CreateChannelFlux = require 'activity/flux/createchannel'
 
 
 cleanUsername = (name) -> if name.indexOf('@') is 0 then name.substring(1) else name
@@ -23,9 +24,18 @@ executeCommand = (command, channel) ->
       else
         channelActions.unfollowChannel channelId
     when '/search'
-        { initialChannelId, messageId } = params
-        channelActions.loadChannel(initialChannelId).then ({ channel }) ->
-          kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{messageId}"
+      { initialChannelId, messageId } = params
+      return  unless initialChannelId and messageId
+      channelActions.loadChannel(initialChannelId).then ({ channel }) ->
+        kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{messageId}"
+    when 'CreateChannel'
+      { createPublicChannel } = CreateChannelFlux.actions.channel
+      { channelName } = params
+
+      options = { type : 'topic', name : channelName }
+      createPublicChannel(options)
+        .catch (err) ->
+          kd.log 'Error during "Create Channel" command execution', err
 
 
 module.exports = {
