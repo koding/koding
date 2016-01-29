@@ -18,25 +18,15 @@ shareCredentials = (options, callback) ->
       err ?= new KodingError 'No credential found to share with team'
       return callback err
 
-    scope = { user: yes, owner: no }
+    scope = { user: yes, owner: no, role: 'admin' }
 
-    # First share with the group so everyone in this group
+    # Share with the group so everyone in this group
     # can build stack with this credential
+    #
+    # But also provide role as admin so admins can see
+    # this credential in their credentials list
 
-    credential.setPermissionFor group, scope, (err) ->
-      return callback err  if err
-
-      # Then share with the admin so admin can select this credential
-      # while creating the stacktemplate
-      #
-      # TODO: What if group admin wants to add more admins to his team,
-      # new team admins won't be able to see this credential in credential
-      # lists. But they still will be able to use it for building stack.
-
-      credential.setPermissionFor account, scope, (err) ->
-        return callback err  if err
-
-        callback null
+    credential.setPermissionFor group, scope, callback
 
 
 # returns plan data, if plan not found it fallbacks to default
