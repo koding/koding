@@ -61,13 +61,13 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
             @showError response.error or 'There is something wrong, try again.'
             return
 
-          @switchViews {state: 'has-payment-method'}
           track 'payment method success'
 
           KD.utils.storeNewTeamData name,
             token: response.id
             last4: response.card.last4
 
+          @switchViews {state: 'has-payment-method'}
           KD.singletons.router.handleRoute '/Team/Username'
 
 
@@ -131,6 +131,7 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
     switch options.state
       when 'form'
+
         @$().find('.has-payment-method-wrapper').toggleClass 'hidden', on
         @form.unsetClass 'hidden'
       when 'has-payment-method'
