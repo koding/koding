@@ -2,27 +2,22 @@ kd              = require 'kd'
 React           = require 'kd-react'
 Link            = require 'app/components/common/link'
 immutable       = require 'immutable'
-CommentListItem = require './commentlistitem'
-ActivityFlux    = require 'activity/flux'
+CommentListItem = require 'activity/components/comments/commentlistitem'
 
-module.exports = class CommentList extends React.Component
+module.exports = class CommentListView extends React.Component
 
-  defaultProps=
+  @propTypes =
+    repliesCount    : React.PropTypes.number
+    channelId       : React.PropTypes.string
+    onMentionClick  : React.PropTypes.func.isRequired
+    showMoreComment : React.PropTypes.func.isRequired
+    comments        : React.PropTypes.instanceOf immutable.Map
+
+
+  defaultProps =
     repliesCount   : 0
-    messageId      : null
     channelId      : null
-    comments       : immutable.List()
-    onMentionClick : kd.noop
-
-
-  showMoreComment: ->
-
-    { comments, messageId } = @props
-
-    limit = 10
-    from  = comments.first().get 'createdAt'
-
-    ActivityFlux.actions.message.loadComments messageId, { from, limit }
+    comments       : immutable.Map()
 
 
   renderShowMoreComments: ->
@@ -42,7 +37,7 @@ module.exports = class CommentList extends React.Component
     else
       repliesText = "Show 10 of #{repliesCount - commentSize} replies"
 
-    <Link onClick={ @bound 'showMoreComment' } className='CommentList-showMoreComment'>{repliesText}</Link>
+    <Link onClick={ @props.showMoreComment } className='CommentList-showMoreComment'>{repliesText}</Link>
 
 
   renderList: ->
@@ -56,8 +51,6 @@ module.exports = class CommentList extends React.Component
 
 
   render: ->
-
-    { reply } = @props
 
     <div className='CommentList'>
       {@renderShowMoreComments()}

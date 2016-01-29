@@ -13,14 +13,14 @@ describe 'ActiveInvitationMachineIdStore', ->
   beforeEach ->
 
     @reactor = new Reactor
-    @reactor.registerStores [ActiveInvitationMachineIdStore]
+    @reactor.registerStores activeInvitationMachineId : ActiveInvitationMachineIdStore
 
 
   describe '#getInitialState', ->
 
     it 'should be null', ->
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe null
 
@@ -33,7 +33,7 @@ describe 'ActiveInvitationMachineIdStore', ->
         id : _id
       }
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe _id
 
@@ -44,7 +44,7 @@ describe 'ActiveInvitationMachineIdStore', ->
         id : null
       }
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe null
 
@@ -57,7 +57,7 @@ describe 'ActiveInvitationMachineIdStore', ->
         id : _id
       }
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe _id
 
@@ -66,6 +66,6 @@ describe 'ActiveInvitationMachineIdStore', ->
         forceUpdate : yes
       }
 
-      store = @reactor.evaluateToJS [ActiveInvitationMachineIdStore.getterPath]
+      store = @reactor.evaluate(['activeInvitationMachineId'])
 
       expect(store).toBe newMachineId
