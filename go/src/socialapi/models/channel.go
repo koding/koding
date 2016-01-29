@@ -272,6 +272,11 @@ func (c *Channel) removeParticipation(typeConstant string, participantIds ...int
 		return ErrChannelIdIsNotSet
 	}
 
+	participants := make([]*ChannelParticipant, 0)
+	pe := NewParticipantEvent()
+	pe.Id = c.Id
+	pe.ChannelToken = c.Token
+
 	for _, participantId := range participantIds {
 		cp := NewChannelParticipant()
 		cp.ChannelId = c.Id
@@ -285,6 +290,13 @@ func (c *Channel) removeParticipation(typeConstant string, participantIds ...int
 
 		if err != nil {
 			return err
+		}
+
+		participants = append(participants, cp)
+
+		acc, err := Cache.Account.ById(participantId)
+		if err == nil {
+			pe.Tokens = append(pe.Tokens, acc.Token)
 		}
 
 		if cp.StatusConstant == typeConstant {
@@ -304,6 +316,9 @@ func (c *Channel) removeParticipation(typeConstant string, participantIds ...int
 		}
 	}
 
+	pe.Participants = participants
+	bongo.B.PublishEvent(ChannelParticipant_Removed_From_Channel_Event, pe)
+
 	return nil
 }
 
@@ -315,19 +330,22 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 		return participantIds, ErrChannelIdIsNotSet
 	}
 
-	query := &bongo.Query{
-		Selector: map[string]interface{}{
-			"channel_id":      c.Id,
-			"status_constant": ChannelParticipant_STATUS_ACTIVE,
-		},
-		Pluck: "account_id",
-	}
-
-	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
-
 	cp := NewChannelParticipant()
-	err := cp.Some(&participantIds, query)
-	if err != nil {
+	bq := bongo.B.DB.
+		Table(cp.BongoName()).
+		Where("channel_id = ?", c.Id).
+		Where("status_constant in (?)",
+		[]string{ChannelParticipant_STATUS_ACTIVE,
+			ChannelParticipant_STATUS_REQUEST_PENDING,
+		})
+
+	if !q.ShowExempt {
+		bq.Where("meta_bits <> ?", Troll)
+
+	}
+	res := bq.Pluck("account_id", &participantIds)
+
+	if err := bongo.CheckErr(res); err != nil {
 		return nil, err
 	}
 
