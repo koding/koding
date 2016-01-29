@@ -55,3 +55,23 @@ func IsDialFailedErr(err error) bool {
 
 	return false
 }
+
+// IsGetKitesFailure checks if the given error is a getKites error. It does so by
+// checking both the kite.Error type, and the message - to be as sure as possible.
+func IsGetKitesFailure(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	kiteErr, ok := err.(*kite.Error)
+	switch {
+	case !ok:
+		return false
+	case kiteErr.Type != "timeout":
+		return false
+	case !strings.HasPrefix(err.Error(), `timeout: No response to "getKodingKites"`):
+		return false
+	default:
+		return true
+	}
+}
