@@ -22,16 +22,14 @@ build:
           git fetch --force --quiet origin
     - script:
         name: create version file
-        code: |
-          $WERCKER_ROOT/scripts/create_version.sh
+        code: $WERCKER_ROOT/scripts/create_version.sh
     - script:
         name: build started
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
     - script:
         name: check package.json files
-        code: |
-          scripts/check_package_json_constraints.sh
+        code: scripts/check_package_json_constraints.sh
     - script:
         name: setup nvm
         code: |
@@ -48,20 +46,15 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
     - script:
         name: change mod of test instace private key
-        code: |
-          chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
+        code: chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
     - mktemp:
         envvar: INSTANCE_IP
     - script:
         name: create data files
-        code: touch INSTANCE_DATA CLIENT_TEST
+        code: touch INSTANCE_DATA
     - script:
-        name: launch test instance
-        code: |
-          INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
-          echo $INSTANCE_OPTIONS
-          scripts/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
-          cat INSTANCE_DATA
+        name: launch test hosts
+        code: scripts/wercker/run-command scripts/wercker/launch-test-hosts
     - script:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
@@ -81,8 +74,7 @@ build:
         code: scripts/install-npm.sh -d client -u
     - script:
         name: run coffeelint
-        code: |
-          ./scripts/lint-coffeescript.sh
+        code: scripts/wercker/run-command scripts/lint-coffeescript.sh
     - script:
         name: build client
         code: |
@@ -90,81 +82,57 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
-        code: go/build.sh
+        code: scripts/wercker/run-command go/build.sh
     - script:
         name: build social api
-        cwd: go/src/socialapi
-        code: |
-          make configure
-          make install
-          make build
+        code: scripts/wercker/run-command go/src/socialapi/build.sh
     - script:
         name: build backend finished
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
+        code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
     - script:
         name: check social api code quality
-        code: |
-          ./scripts/check_socialapi_code_quality.sh
+        code: scripts/wercker/run-command scripts/check_socialapi_code_quality.sh
     - script:
         name: testing backend started
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
+        code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
     - script:
         name: create postgresql tables
-        cwd: go
-        code: |
-          mkdir -p src/socialapi/db/sql/kontrol
-          cp src/github.com/koding/kite/kontrol/*.sql src/socialapi/db/sql/kontrol/
-          src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
-          bin/migrate -url "postgres://$WERCKER_POSTGRESQL_HOST:$WERCKER_POSTGRESQL_PORT/$WERCKER_POSTGRESQL_DATABASE?user=$WERCKER_POSTGRESQL_USERNAME&password=$WERCKER_POSTGRESQL_PASSWORD" -path "src/socialapi/db/sql/migrations" up
+        code: scripts/wercker/run-command scripts/wercker/create-postgresql-tables
     - script:
         name: prepare test data
-        code: |
-          go run ./go/src/socialapi/workers/cmd/migrator/main.go -c ./go/src/socialapi/config/test.toml
+        code: scripts/wercker/run-command go run go/src/socialapi/workers/cmd/migrator/main.go -c go/src/socialapi/config/test.toml
     - script:
         name: test social api
-        code: |
-          sudo -E scripts/wercker/init-socialapi.sh
-          tail -n 100 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
-          tail -n 100 /var/log/koding/social-webhook.log
-          tail -n 100 /var/log/koding/social-webhookmiddleware.log
-          cd go/src/socialapi
-          EXTRAS="-story=true" make testapi config=./config/test.toml
+        code: scripts/wercker/run-command scripts/wercker/test-social-api
     - script:
         name: test janitor
-        code: ./run janitortests
+        code: scripts/wercker/run-command ./run janitortests
     - script:
         name: test gatheringestor
-        code: ./run gatheringestortests
+        code: scripts/wercker/run-command ./run gatheringestortests
     - script:
         name: test koding mongo models
-        code: ./run gomodeltests
+        code: scripts/wercker/run-command ./run gomodeltests
     - script:
         name: test vmwatcher
-        code: ./run vmwatchertests
+        code: scripts/wercker/run-command ./run vmwatchertests
     - script:
         name: testing backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
     - script:
         name: check connectivity
-        code: scripts/wercker/check-connectivity $(pwd)/INSTANCE_DATA
+        code: scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
     - script:
         name: test nodejs
-        code: |
-          echo "testing nodejs (social worker, nodejs web server)"
-          scripts/node-testing/run-tests $(pwd)/INSTANCE_DATA
+        code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA
     - script:
         name: testing client started
         code: |
-          echo started > CLIENT_TEST
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     - script:
         name: run test suites
-        code: scripts/wercker/run-tests $(pwd)/INSTANCE_DATA
+        code: scripts/wercker/run-command scripts/wercker/run-tests INSTANCE_DATA
     - script:
         name: testing client finished
         code: |
@@ -177,7 +145,6 @@ build:
     - script:
         name: setup nvm
         code: |
-
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
@@ -185,11 +152,7 @@ build:
         code: scripts/wercker/upload-logs INSTANCE_DATA
     - script:
         name: cleanup
-        code: |
-          export CLIENT_TEST=$(cat CLIENT_TEST)
-          scripts/wercker/destroy-user-machines INSTANCE_DATA
-          scripts/wercker/after-step-cleanup INSTANCE_DATA
-          rm -f INSTANCE_DATA CLIENT_TEST
+        code: scripts/wercker/cleanup INSTANCE_DATA
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
@@ -254,8 +217,6 @@ deploy:
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
-
-
     - koding/eb-deploy@0.0.8:
         access-key: $S3_KEY_ID
         secret-key: $S3_KEY_SECRET

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+sudo -E $WERCKER_ROOT/scripts/wercker/init-socialapi.sh
+
+tail -n 100 /var/log/koding/social-api.log
+tail -n 100 /var/log/koding/social-populartopic.log
+tail -n 100 /var/log/koding/social-pinnedpost.log
+tail -n 100 /var/log/koding/social-webhook.log
+tail -n 100 /var/log/koding/social-webhookmiddleware.log
+
+cd $WERCKER_ROOT/go/src/socialapi
+EXTRAS="-story=true" make testapi config=config/test.toml
+
+exit 0
