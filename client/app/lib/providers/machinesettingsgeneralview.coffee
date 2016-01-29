@@ -1,17 +1,21 @@
-kd                     = require 'kd'
-KDView                 = kd.View
-Encoder                = require 'htmlencode'
-Machine                = require './machine'
-showError              = require 'app/util/showError'
-selectText             = require 'app/util/selectText'
-KodingSwitch           = require '../commonviews/kodingswitch'
-KDLoaderView           = kd.LoaderView
-CustomLinkView         = require '../customlinkview'
-CopyTooltipView        = require 'app/components/common/copytooltipview'
-KDCustomHTMLView       = kd.CustomHTMLView
-KDHitEnterInputView    = kd.HitEnterInputView
-KDFormViewWithFields   = kd.FormViewWithFields
-ComputeErrorUsageModal = require './computeerrorusagemodal'
+kd                        = require 'kd'
+KDView                    = kd.View
+Encoder                   = require 'htmlencode'
+Machine                   = require './machine'
+isKoding                  = require 'app/util/isKoding'
+showError                 = require 'app/util/showError'
+selectText                = require 'app/util/selectText'
+KodingSwitch              = require '../commonviews/kodingswitch'
+KDLoaderView              = kd.LoaderView
+CustomLinkView            = require '../customlinkview'
+CopyTooltipView           = require 'app/components/common/copytooltipview'
+KDCustomHTMLView          = kd.CustomHTMLView
+KDHitEnterInputView       = kd.HitEnterInputView
+KDFormViewWithFields      = kd.FormViewWithFields
+ComputeErrorUsageModal    = require './computeerrorusagemodal'
+
+StackTemplateReadmeModal  = require 'app/stacks/stacktemplatereadmemodal'
+StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
 
 
 module.exports = class MachineSettingsGeneralView extends KDView
@@ -113,7 +117,8 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
   bindViewEvents: ->
 
-    { nickname, nickEdit, buildlogs, publicIp } = @form.inputs
+    { hasClass } = kd.dom
+    { nickname, nickEdit, buildlogs, publicIp, stackInfo } = @form.inputs
 
     nickname.on 'click', (e) =>
 
@@ -146,6 +151,34 @@ module.exports = class MachineSettingsGeneralView extends KDView
       publicIp.showTooltip()
 
 
+    stackInfoProcess = no
+
+    stackInfo.on 'click', (event) =>
+
+      return  if stackInfoProcess
+
+      { target } = event
+
+      @getStackTemplate (err, template) =>
+
+        stackInfoProcess = no
+        return  unless template
+
+        if hasClass target, 'readme'
+          new StackTemplateReadmeModal {}, template
+        else if hasClass target, 'template'
+          new StackTemplateContentModal {}, template
+
+
+  getStackTemplate: (callback) ->
+
+    { computeController } = kd.singletons
+    { templateId }        =  @machine.jMachine.generatedFrom
+
+    computeController.fetchBaseStackTemplate { baseStackId : templateId }, (err, template) ->
+      callback err, template
+
+
   createForm: ->
 
     isAws       = @machine.provider is 'aws'
@@ -153,7 +186,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
     accessUri   = "http://#{@machine.domain}"
     isManaged   = @machine.isManaged()
     logsMessage = if @machine.isRunning() \
-      then "<span class='logs-link'>show logs</span>"
+      then "<span class='link-view'>show logs</span>"
       else "Please turn on the machine to see logs"
 
     publicIpView = new KDView
@@ -215,3 +248,11 @@ module.exports = class MachineSettingsGeneralView extends KDView
           cssClass      : if isAws then 'custom-link-view' else 'hidden'
           itemClass     : KDView
           partial       : logsMessage
+        stackInfo       :
+          label         : 'Stack information'
+          cssClass      : if isKoding() then 'hidden' else 'custom-link-view stack-information'
+          itemClass     : KDView
+          partial       : """
+            <span class="link-view template">Show Template</span>
+            <span class="link-view readme">Show Readme</span>
+          """
