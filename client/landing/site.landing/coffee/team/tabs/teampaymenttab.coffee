@@ -64,7 +64,11 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
           @switchViews {state: 'has-payment-method'}
           track 'payment method success'
-          KD.utils.storeNewTeamData name, {token: response.id}
+
+          KD.utils.storeNewTeamData name,
+            token: response.id
+            last4: response.card.last4
+
           KD.singletons.router.handleRoute '/Team/Username'
 
 
