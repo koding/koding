@@ -253,6 +253,6 @@ module.exports = class MachineSettingsGeneralView extends KDView
           cssClass      : if isKoding() then 'hidden' else 'custom-link-view stack-information'
           itemClass     : KDView
           partial       : """
-            <span class="link-view template">Show Template</span>
-            <span class="link-view readme">Show Readme</span>
+            <span class="link-view template">show template</span>
+            <span class="link-view readme">show readme</span>
           """
