@@ -11,6 +11,7 @@ LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
 ActivityFlux           = require 'activity/flux'
 Waypoint               = require 'react-waypoint'
 ImmutableRenderMixin   = require 'react-immutable-render-mixin'
+findScrollableParent   = require 'app/util/findScrollableParent'
 
 debounce = (delay, options, fn) -> _.debounce fn, delay, options
 
@@ -40,6 +41,7 @@ module.exports = class ChatList extends React.Component
   componentDidMount: ->
 
     kd.singletons.windowController.addFocusListener @bound 'handleFocus'
+    @scrollableParent = findScrollableParent ReactDOM.findDOMNode this
 
 
   componentDidUpdate: -> @cacheDateMarkers()
@@ -106,7 +108,7 @@ module.exports = class ChatList extends React.Component
     # put glancer waypoint only if all the unread messages are loaded, and on
     # the screen. Once it enters to the screen, it will glance the channel.
     if index is messages.size - unreadCount and not isMessagesLoading
-      markers.push <Waypoint onEnter={@bound 'onGlancerEnter'} />
+      markers.push <Waypoint onEnter={@bound 'onGlancerEnter'} scrollableParent={@scrollableParent} />
 
     return markers
 
