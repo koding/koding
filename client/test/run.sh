@@ -80,9 +80,9 @@ beforeSuite afterSuite \
 beforeGroups afterGroups \
 "
 
-TEST_GROUP=$1
-TEST_SUITE=$2
-TEST_CASE=$3
+export TEST_GROUP=$1
+export TEST_SUITE=$2
+export TEST_CASE=$3
 
 if [ -n "$TEST_CASE" ]; then
   for NAME in $RESERVED_TEST_CASE_NAMES; do
