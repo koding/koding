@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klientctl/klientctlerrors"
 )
 
 const kiteHTTPResponse = "Welcome to SockJS!\n"
@@ -330,4 +331,22 @@ func IsKlientRunning(a string) bool {
 	}
 
 	return true
+}
+
+func getListErrRes(err error, healthChecker *HealthChecker) string {
+	res, ok := defaultHealthChecker.CheckAllWithResponse()
+
+	// If the health check response is not okay, return that because it's likely
+	// more informed (such as no internet, etc)
+	if !ok {
+		return res
+	}
+
+	// Because healthChecker couldn't find anything wrong, but we know there is an
+	// err, check to see if it's a getKites err
+	if klientctlerrors.IsListReconnectingErr(err) {
+		return ReconnectingToKontrol
+	}
+
+	return FailedListMachines
 }

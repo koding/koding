@@ -72,6 +72,19 @@ var (
 		"Error: Failed to list machines.\n%s", waitRetryOrContactSupport,
 	)
 
+	// ReconnectingToKontrol is used when we have encountered specific errors pertaining
+	// to being disconnected from kontrol. This should be used *after* a proper health
+	// check, because if their internet is down, it's more meaningful than saying
+	// we are reconnecting to Koding.
+	//
+	// Plus, if they get no internet, and *then* reconnecting, it shows we are making
+	// progress in restoring functionality.
+	ReconnectingToKontrol = fmt.Sprintf(
+		`%s has been disconnected from Koding, and is in the process of reconnecting.
+Please wait a few minutes and try again.`,
+		Name,
+	)
+
 	// CannotMountDirNotExist is used when the user chooses not to make the dir on
 	// mount. Can't mount to something that doesn't exist.
 	CannotMountDirNotExist = "Error: Cannot mount a directory that does not exist, exiting..."

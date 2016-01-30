@@ -52,7 +52,7 @@ func ListCommand(c *cli.Context) int {
 	infos, err := getListOfMachines(k)
 	if err != nil {
 		log.Errorf("Error listing machines. err:%s", err)
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
+		fmt.Println(getListErrRes(err, defaultHealthChecker))
 		return 1
 	}
 
