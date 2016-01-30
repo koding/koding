@@ -49,37 +49,18 @@ module.exports =
     browser.end()
 
 
-  loginFromHomepageSignupForm: (browser) ->
-
-    user = utils.getUser()
-
-    helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
-
-    browser
-      .waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
-      .end()
-
-
   loginFromSignupModal: (browser) ->
 
     user = utils.getUser()
-    url = helpers.getUrl()
-
-    if HUBSPOT
-       url = "#{url}/Register"
+    url  = helpers.getUrl()
+    url  = "#{url}/Register"
 
     browser
       .url(url)
       .maximizeWindow()
 
-    unless HUBSPOT
-      browser
-        .waitForElementVisible  '[testpath=main-header]', 50000
-        .click                  'nav:not(.mobile-menu) [testpath=login-link]'
-        .waitForElementVisible  '[testpath=login-container]', 50000
-        .click                  '.login-footer .signup-link a.register'
-
     browser
+      .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '.main-part [testpath=register-form-email]', user.email
       .setValue               '.main-part input[name=password]', user.password
       .click                  '.main-part [testpath=signup-button]'
