@@ -306,6 +306,46 @@ func (c *Softlayer) XInstancesByFilter(filter *Filter) (Instances, error) {
 	return *req.Resource.(*Instances), nil
 }
 
+// InstanceEntriesByFilter fetches all instance entries and performs client-side
+// filtering using the given filter.
+//
+// If no instance entries are found that matches the filter, non-nil error
+// is returned.
+// If filter is nil, all instance entries are returned.
+func (c *Softlayer) InstanceEntriesByFilter(filter *Filter) (InstanceEntries, error) {
+	req := &ResourceRequest{
+		Name:       "Instance",
+		Path:       "SoftLayer_Account/getVirtualGuests.json",
+		Filter:     filter,
+		ObjectMask: instanceEntryMask,
+		Resource:   &InstanceEntries{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+	return *req.Resource.(*InstanceEntries), nil
+}
+
+// XInstancesByFilter queries for keys, which are filtered on the server side
+// with the given filter.
+//
+// If no instances are found that matches the filter, non-nil error is returned.
+// If filter is nil, all instances are returned.
+func (c *Softlayer) XInstanceEntriesByFilter(filter *Filter) (InstanceEntries, error) {
+	req := &ResourceRequest{
+		Name:       "Instance",
+		Path:       "SoftLayer_Account/getVirtualGuests.json",
+		Filter:     filter,
+		FilterName: "virtualGuests",
+		ObjectMask: instanceEntryMask,
+		Resource:   &InstanceEntries{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+	return *req.Resource.(*InstanceEntries), nil
+}
+
 // VlansByFilter fetches all vlans and performs client-side filtering
 // using the given filter.
 //
