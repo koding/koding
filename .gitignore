@@ -76,6 +76,7 @@ client/test/users.json
 client/test/build
 client/test/output
 client/test/logs
+client/test/globals.js
 
 supervisor.html
 .supervisor/*
