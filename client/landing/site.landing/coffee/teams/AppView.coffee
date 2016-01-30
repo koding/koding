@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 MainHeaderView  = require './../core/mainheaderview'
 JView           = require './../core/jview'
 TeamsSignupForm = require './teamssignupform'
