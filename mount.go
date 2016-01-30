@@ -116,7 +116,9 @@ func MountCommand(c *cli.Context) int {
 		LocalPath:      localPath,
 		NoIgnore:       noIgnore,
 		NoPrefetchMeta: noPrefetchMeta,
+		PrefetchAll:    prefetchAll,
 		NoWatch:        noWatch,
+		CachePath:      getCachePath(localPath),
 	}
 
 	// RemotePath is optional
@@ -282,9 +284,8 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 	}
 
 	rReq := req.Cache{
-		Name: machineName,
-		// TODO: Put the cache somewhere meaningful
-		LocalPath:         fmt.Sprintf("%s.cache", localPath),
+		Name:              machineName,
+		LocalPath:         getCachePath(localPath),
 		RemotePath:        remotePath,
 		Interval:          time.Duration(interval) * time.Second,
 		Username:          remoteUsername,
@@ -379,4 +380,9 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 	}
 
 	return os.Mkdir(p, 0655)
+}
+
+func getCachePath(path string) string {
+	// TODO: Put the cache somewhere meaningful
+	return fmt.Sprintf("%s.cache", path)
 }
