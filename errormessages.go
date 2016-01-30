@@ -81,7 +81,7 @@ var (
 	// progress in restoring functionality.
 	ReconnectingToKontrol = fmt.Sprintf(
 		`%s has been disconnected from Koding, and is in the process of reconnecting.
-Please wait several minutes and try again.`,
+Please wait a few minutes and try again.`,
 		Name,
 	)
 
