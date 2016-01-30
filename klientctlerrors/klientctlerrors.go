@@ -72,21 +72,10 @@ func IsListReconnectingErr(err error) bool {
 // It does so by checking both the kite.Error type, and the message - to be as sure
 // as possible.
 func IsSessionNotEstablishedFailure(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	kiteErr, ok := err.(*kite.Error)
-	switch {
-	case !ok:
-		return false
-	case kiteErr.Type != "sendErr":
-		return false
-	case err.Error() == `sendError: can't send, session is not established yet`:
-		return false
-	default:
-		return true
-	}
+	return isKiteOfTypeErr(
+		err, "sendErr",
+		`sendError: can't send, session is not established yet`,
+	)
 }
 
 // IsGetKitesFailure checks if the given error is a getKites error. It does so by
@@ -95,6 +84,13 @@ func IsSessionNotEstablishedFailure(err error) bool {
 // Note that this is explicitly checking GetKodingKites, as that is the only method
 // remote.list and kd list uses.
 func IsGetKitesFailure(err error) bool {
+	return isKiteOfTypeErr(
+		err, "timeout",
+		`timeout: No response to "getKodingKites"`,
+	)
+}
+
+func isKiteOfTypeErr(err error, t, m string) bool {
 	if err == nil {
 		return false
 	}
@@ -103,9 +99,9 @@ func IsGetKitesFailure(err error) bool {
 	switch {
 	case !ok:
 		return false
-	case kiteErr.Type != "timeout":
+	case kiteErr.Type != t:
 		return false
-	case !strings.HasPrefix(err.Error(), `timeout: No response to "getKodingKites"`):
+	case !strings.HasPrefix(err.Error(), m):
 		return false
 	default:
 		return true
