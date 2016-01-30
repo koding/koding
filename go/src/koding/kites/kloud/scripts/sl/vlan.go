@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"text/tabwriter"
 	"text/template"
 
@@ -22,6 +24,7 @@ var vlanResource = &res.Resource{
 	Description: "Manage vlans.",
 	Commands: map[string]res.Command{
 		"list": new(vlanList),
+		"edit": new(vlanEdit),
 	},
 }
 
@@ -64,10 +67,41 @@ func (cmd *vlanList) Run(ctx context.Context) error {
 func printVlans(vlans sl.VLANs) {
 	w := &tabwriter.Writer{}
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	fmt.Fprintln(w, "ID\tInternal ID\tTotal\tAvailable\tInstances\tDatacenter")
+	fmt.Fprintln(w, "ID\tInternal ID\tTotal\tAvailable\tInstances\tDatacenter\tTags")
 	for _, v := range vlans {
-		fmt.Fprintf(w, "%d\t%d\t%d\t%d\t%d\t%s\n", v.ID, v.InternalID, v.Subnet.Total,
-			v.Subnet.Available, v.InstanceCount, v.Subnet.Datacenter.Name)
+		fmt.Fprintf(w, "%d\t%d\t%d\t%d\t%d\t%s\t%s\n", v.ID, v.InternalID, v.Subnet.Total,
+			v.Subnet.Available, v.InstanceCount, v.Subnet.Datacenter.Name, v.Tags)
 	}
 	w.Flush()
+}
+
+// vlanEdit implements an edit command
+type vlanEdit struct {
+	id   int
+	tags string
+}
+
+func (*vlanEdit) Name() string {
+	return "edit"
+}
+
+func (cmd *vlanEdit) RegisterFlags(f *flag.FlagSet) {
+	f.IntVar(&cmd.id, "id", 0, "Vlan ID to set tags for.")
+	f.StringVar(&cmd.tags, "tags", "", "Comma-separated key=value list of tags to set.")
+}
+
+func (cmd *vlanEdit) Valid() error {
+	if cmd.id == 0 {
+		return errors.New("empty value for -id flag")
+	}
+	return nil
+}
+
+func (cmd *vlanEdit) Run(ctx context.Context) error {
+	if err := cmd.Valid(); err != nil {
+		return err
+	}
+
+	tags := sl.NewTags(strings.Split(cmd.tags, ","))
+	return client.VlanSetTags(cmd.id, tags)
 }

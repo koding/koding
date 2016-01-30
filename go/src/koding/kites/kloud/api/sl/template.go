@@ -23,9 +23,9 @@ func NewTags(kv []string) Tags {
 	t := make(Tags)
 	for _, kv := range kv {
 		if i := strings.IndexRune(kv, '='); i != -1 {
-			t[kv[:i]] = kv[i+1:]
+			t[strings.TrimSpace(kv[:i])] = strings.TrimSpace(kv[i+1:])
 		} else {
-			t[kv] = ""
+			t[strings.TrimSpace(kv)] = ""
 		}
 	}
 	return t
