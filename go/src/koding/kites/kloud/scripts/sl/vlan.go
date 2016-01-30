@@ -64,10 +64,10 @@ func (cmd *vlanList) Run(ctx context.Context) error {
 func printVlans(vlans sl.VLANs) {
 	w := &tabwriter.Writer{}
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	fmt.Fprintln(w, "ID\tName\tTotal\tAvailable\tDatacenter")
+	fmt.Fprintln(w, "ID\tInternal ID\tTotal\tAvailable\tInstances\tDatacenter")
 	for _, v := range vlans {
-		fmt.Fprintf(w, "%d\t%s\t%d\t%d\t%s\n", v.ID, v.Name, v.Subnet.Total,
-			v.Subnet.Available, v.Subnet.Datacenter.Name)
+		fmt.Fprintf(w, "%d\t%d\t%d\t%d\t%d\t%s\n", v.ID, v.InternalID, v.Subnet.Total,
+			v.Subnet.Available, v.InstanceCount, v.Subnet.Datacenter.Name)
 	}
 	w.Flush()
 }
