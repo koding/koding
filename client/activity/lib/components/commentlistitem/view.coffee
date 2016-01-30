@@ -47,12 +47,13 @@ module.exports = class CommentListItemView extends React.Component
 
     return  unless comment.get '__isEditing'
 
-    <CommentInputWidget
+    <CommentInputWidget.Container
       ref          = 'CommentInputWidget'
       hasValue     = { @props.hasValue }
       postComment  = { @props.updateComment }
       commentValue = { @props.commentValue }
       cancelEdit   = { @props.cancelEdit }
+      isEditing    = { comment.get '__isEditing' }
       onChange     = { @props.onChange } />
 
 
