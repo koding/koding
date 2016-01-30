@@ -3,6 +3,7 @@ package softlayer
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
@@ -120,12 +121,12 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		PostInstallScriptUri: PostInstallScriptUri,
 	}
 
-	if meta.VlanID != 0 {
-		m.Log.Debug("Assigning custom VLAN: %d", meta.VlanID)
+	if vlanID := m.findAvailableVlan(meta); vlanID != 0 {
+		m.Log.Debug("Assigning VLAN: %d", vlanID)
 
 		virtualGuestTemplate.PrimaryBackendNetworkComponent = &datatypes.PrimaryBackendNetworkComponent{
 			NetworkVlan: datatypes.NetworkVlan{
-				Id: meta.VlanID,
+				Id: vlanID,
 			},
 		}
 	}
@@ -231,6 +232,47 @@ func (m *Machine) lookupImage(tag, datacenter string) (globalID string, err erro
 	m.Log.Warning("no templates found for tag=%q, datacenter=%q - falling back to global", tag, datacenter)
 
 	return global[0].GlobalID, nil
+}
+
+func (m *Machine) findAvailableVlan(meta *Meta) int {
+	if meta.VlanID != 0 {
+		return meta.VlanID
+	}
+
+	f := &sl.Filter{
+		Datacenter: meta.Datacenter,
+		Tags: sl.Tags{
+			"koding-env": m.Session.Kite.Config.Environment,
+		},
+	}
+
+	vlans, err := m.Session.SLClient.VlansByFilter(f)
+	if err != nil {
+		m.Log.Warning("failed querying for vlans with filter=%+v: %s", f, err)
+		return 0
+	}
+
+	var available int
+	for i, vlan := range vlans {
+		capacity, err := strconv.ParseInt(vlan.Tags["koding-vlan-cap"], 10, 32)
+
+		m.Log.Debug("checking vlan=%d (%d/%d)", vlan.ID, vlan.InstanceCount, capacity)
+
+		// Arbitrary picked value - if vlan is has more than 20% capacity
+		// we're using it. This check is here to help not to overassign
+		// instances to vlan, e.g. when vlan is 249/250 and 10 concurrent requests
+		// chooses this vlan.
+		if err == nil && vlan.InstanceCount < int(0.8*float64(capacity)+0.5) {
+			return vlan.ID
+		}
+
+		// Otherwise we pick the least crowded vlan.
+		if vlans[available].InstanceCount > vlan.InstanceCount {
+			available = i
+		}
+	}
+
+	return vlans[available].ID
 }
 
 func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string) error {
