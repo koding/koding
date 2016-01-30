@@ -29,9 +29,13 @@ func NewRemoteOrCacheTransport(rt *RemoteTransport, dt *DiskTransport) *RemoteOr
 	}
 }
 
-// CreateDir is sent to RemoteTransport only.
+// CreateDir is sent to RemoteTransport, then CacheTransport.
 func (o *RemoteOrCacheTransport) CreateDir(path string, mode os.FileMode) error {
-	return o.RemoteTransport.CreateDir(path, mode)
+	if err := o.RemoteTransport.CreateDir(path, mode); err != nil {
+		return err
+	}
+
+	return o.CacheTransport.CreateDir(path, mode)
 }
 
 // ReadDir is sent to CacheTransport only.
@@ -39,14 +43,22 @@ func (o *RemoteOrCacheTransport) ReadDir(path string, r bool) (*ReadDirRes, erro
 	return o.CacheTransport.ReadDir(path, r)
 }
 
-// Rename is sent to RemoteTransport only.
+// Rename is sent to RemoteTransport, then CacheTransport.
 func (o *RemoteOrCacheTransport) Rename(oldName, newName string) error {
-	return o.RemoteTransport.Rename(oldName, newName)
+	if err := o.RemoteTransport.Rename(oldName, newName); err != nil {
+		return nil
+	}
+
+	return o.CacheTransport.Rename(oldName, newName)
 }
 
-// Remove is sent to RemoteTransport only.
+// Remove is sent to RemoteTransport, then CacheTransport.
 func (o *RemoteOrCacheTransport) Remove(path string) error {
-	return o.RemoteTransport.Remove(path)
+	if err := o.RemoteTransport.Remove(path); err != nil {
+		return nil
+	}
+
+	return o.CacheTransport.Remove(path)
 }
 
 // ReadFile is sent to CacheTransport only.
@@ -54,9 +66,13 @@ func (o *RemoteOrCacheTransport) ReadFile(path string) (*ReadFileRes, error) {
 	return o.CacheTransport.ReadFile(path)
 }
 
-// WriteFile is sent to RemoteTransport only.
+// WriteFile is sent to RemoteTransport, then CacheTransport.
 func (o *RemoteOrCacheTransport) WriteFile(path string, data []byte) error {
-	return o.RemoteTransport.WriteFile(path, data)
+	if err := o.RemoteTransport.WriteFile(path, data); err != nil {
+		return nil
+	}
+
+	return o.CacheTransport.WriteFile(path, data)
 }
 
 // Exec is sent to RemoteTransport only.
