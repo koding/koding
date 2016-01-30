@@ -3,5 +3,5 @@ module.exports = getDefaultNotificationSettings = ->
     isMuted        : no
     isSuppressed   : no
     mobileSetting  : 'all'
-    desktopSetting : 'all'
+    desktopSetting : 'personal'
   }
