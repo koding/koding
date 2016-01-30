@@ -13,7 +13,8 @@
     "/Unsubscribe/:token/:email/:opt?": "unsubscribe",
     "/:name": "name",
     "/Reset/:token": "reset",
-    "/Machines/:uid/:state?": "machine-settings"
+    "/Machines/:uid/:state?": "machine-settings",
+    "/Your-Machines/:stackId?": "your-machines"
   },
   "sprites": [
     "./lib/sprites"

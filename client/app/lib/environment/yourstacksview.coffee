@@ -14,8 +14,9 @@ module.exports = class YourStacksView extends KDCustomScrollView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'environments-modal', options.cssClass
-    options.width    = 772
+    options.cssClass    = kd.utils.curry 'environments-modal', options.cssClass
+    options.width       = 772
+    options.overlay    ?= yes
 
     super options, data
 
@@ -27,7 +28,17 @@ module.exports = class YourStacksView extends KDCustomScrollView
       scrollView        : no
       noItemFoundWidget : new kd.CustomHTMLView
         cssClass        : 'no-item-found'
-        partial         : "You don't have any stacks."
+        partial         : "You don't have any #{if isKoding() then 'machines' else 'stacks'}."
+
+    if checkFlag 'super-admin' and isKoding()
+
+      advancedButton = new kd.ButtonView
+        title    : 'ADVANCED'
+        cssClass : 'compact solid green advanced'
+        callback : -> new StacksModal
+
+      # Hack to add button outside of modal container
+      @addSubView advancedButton, '.kdmodal-inner'
 
     @wrapper.addSubView controller.getView()
 
@@ -52,12 +63,14 @@ module.exports = class YourStacksView extends KDCustomScrollView
         .once 'RenderStacks', @bound 'destroyModal'
         .reinitStack stack
 
-    whoami().isEmailVerified (err, verified) ->
+    whoami().isEmailVerified? (err, verified) ->
       if err or not verified
         for item in controller.getListItems()
           item.emit 'ManagedMachineIsNotAllowed'
 
 
   destroyModal: ->
+
+    return @emit 'DestroyParent'  if isKoding()
 
     @getDelegate().parent.destroy()

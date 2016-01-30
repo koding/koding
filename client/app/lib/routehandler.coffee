@@ -10,6 +10,7 @@ registerRoutes = require './util/registerRoutes'
 isKoding       = require './util/isKoding'
 
 Machine                 = require 'app/providers/machine'
+EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
@@ -104,6 +105,10 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       recoverPath.clear()
       kd.singletons.mainController.doLogout()
       global.location.href = path
+
+     when 'your-machines'
+      { stackId } = info.params
+      new EnvironmentsModal selected: stackId
 
     when 'machine-settings'
       { uid, state } = info.params
