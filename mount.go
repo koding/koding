@@ -41,6 +41,11 @@ func MountCommand(c *cli.Context) int {
 		prefetchInterval = c.Int("prefetch-interval") // note the lowercase of all chars
 	)
 
+	if prefetchInterval == 0 {
+		prefetchInterval = 10
+		log.Infof("Setting interval to default, %d", prefetchInterval)
+	}
+
 	// temporarily disable watcher
 	noWatch = true
 
