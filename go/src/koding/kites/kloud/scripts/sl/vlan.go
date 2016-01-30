@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"text/template"
@@ -12,6 +13,7 @@ import (
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/utils/res"
 
+	datatypes "github.com/maximilien/softlayer-go/data_types"
 	"golang.org/x/net/context"
 )
 
@@ -25,6 +27,7 @@ var vlanResource = &res.Resource{
 	Commands: map[string]res.Command{
 		"list": new(vlanList),
 		"edit": new(vlanEdit),
+		"init": new(vlanInit),
 	},
 }
 
@@ -104,4 +107,96 @@ func (cmd *vlanEdit) Run(ctx context.Context) error {
 
 	tags := sl.NewTags(strings.Split(cmd.tags, ","))
 	return client.VlanSetTags(cmd.id, tags)
+}
+
+// vlanInit implements the an init command
+type vlanInit struct {
+	id       int
+	capacity int
+	env      string
+}
+
+func (*vlanInit) Name() string {
+	return "init"
+}
+
+func (cmd *vlanInit) Valid() error {
+	if cmd.id == 0 {
+		return errors.New("empty value for -id flag")
+	}
+	if cmd.env == "" {
+		return errors.New("empty value for -env flag")
+	}
+	return nil
+}
+
+func (cmd *vlanInit) RegisterFlags(f *flag.FlagSet) {
+	f.IntVar(&cmd.id, "id", 0, "Vlan ID to init.")
+	f.IntVar(&cmd.capacity, "cap", 0, "Vlan instance capacity.")
+	f.StringVar(&cmd.env, "env", "", "Koding environment to init the Vlan for.")
+}
+
+func (cmd *vlanInit) Run(ctx context.Context) error {
+	if err := cmd.Valid(); err != nil {
+		return err
+	}
+
+	// TODO(rjeczalik): add sl.VlansByID
+	vlans, err := client.VlansByFilter(&sl.Filter{ID: cmd.id})
+	if err != nil {
+		return err
+	}
+	if len(vlans) != 1 {
+		return fmt.Errorf("want 1 vlan, got %d: %+v", len(vlans), vlans)
+	}
+	vlan := vlans[0]
+
+	// If VLAN has one attached instance to it and the instance is removed,
+	// the VLAN is removed as well. That's why we're adding dummy instance
+	// to persist the VLAN as reference-counting is race-prone in
+	// systems with eventual consistency.
+	if vlan.InstanceCount == 0 {
+		// TODO(rjeczalik): add instance creation API
+
+		instance := datatypes.SoftLayer_Virtual_Guest_Template{
+			Hostname:          "vlanguard",
+			Domain:            "koding.io",
+			StartCpus:         1,
+			MaxMemory:         1024,
+			HourlyBillingFlag: true,
+			LocalDiskFlag:     true,
+			Datacenter: datatypes.Datacenter{
+				Name: vlan.Subnet.Datacenter.Name,
+			},
+			PrimaryBackendNetworkComponent: &datatypes.PrimaryBackendNetworkComponent{
+				NetworkVlan: datatypes.NetworkVlan{
+					Id: cmd.id,
+				},
+			},
+			OperatingSystemReferenceCode: "UBUNTU_LATEST",
+		}
+
+		svc, err := client.GetSoftLayer_Virtual_Guest_Service()
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Creating vlanguard instance for vlan id=%d\n", cmd.id)
+
+		if _, err = svc.CreateObject(instance); err != nil {
+			return err
+		}
+	}
+
+	tags := vlan.Tags
+	tags["koding-env"] = cmd.env
+	if cmd.capacity > 0 {
+		// Softlayer has no mean to discover VLAN capacity, as the subnets
+		// are being added on demand. However the IBM guys said e.g.
+		// the capacity for VLAN used for testing is 250 instances and
+		// each VLAN shouldn't have more instances attached...
+		tags["koding-vlan-cap"] = strconv.Itoa(cmd.capacity)
+	}
+
+	return client.VlanSetTags(vlan.ID, tags)
 }
