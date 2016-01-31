@@ -11,6 +11,7 @@ It is written in coffee-script and it's compiled when the app is built.
 
 ```bash
 $ cd koding/elektron
+$ npm i
 $ npm start
 ```
 
