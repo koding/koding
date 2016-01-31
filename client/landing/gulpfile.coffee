@@ -2,19 +2,8 @@ fs      = require 'fs'
 gulp    = require 'gulp'
 shell   = require 'gulp-shell'
 prompt  = require 'gulp-prompt'
-nodemon = require 'gulp-nodemon'
 argv    = require('minimist') process.argv
 req     = (module) -> require "./gulptasks/#{module}"
-
-# CONSTANTS
-
-SERVER_FILE = "./server/server.coffee"
-SERVER_PATH = ["./server/**/*.coffee"]
-
-
-# HELPERS
-
-{watchLogger, log} = req 'helper.logger'
 
 
 # CREATE SITE FROM BOILERPLATE
@@ -22,14 +11,6 @@ SERVER_PATH = ["./server/**/*.coffee"]
 gulp.task 'site', req 'task.site'
 
 
-# BUILD SERVER
-
-gulp.task 'serve', -> server = nodemon script: SERVER_FILE
-
-
-# WATCHERS
-
-gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve']
 
 
 # BUILD
@@ -94,10 +75,6 @@ gulp.task 'default', ->
       {siteName, watch, serve, newSite, uglify, port} = res
 
       return req('task.site') newSite  if newSite
-
-      if serve
-        server = require SERVER_FILE
-        server siteName, parseInt port, 10
 
       gulp.src ''
         .pipe shell [
