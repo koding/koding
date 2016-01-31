@@ -33,8 +33,10 @@ var vlanResource = &res.Resource{
 
 // vlanList implements a list command
 type vlanList struct {
-	template string
-	id       int
+	template   string
+	env        string
+	datacenter string
+	id         int
 }
 
 func (*vlanList) Name() string {
@@ -43,12 +45,20 @@ func (*vlanList) Name() string {
 
 func (cmd *vlanList) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.template, "t", "", "Applies given text/template to slice of datacenters.")
+	f.StringVar(&cmd.env, "env", "", "Koding environment of the VLAN.")
+	f.StringVar(&cmd.datacenter, "dc", "", "Softlayer datacenter name of the VLAN.")
 	f.IntVar(&cmd.id, "id", 0, "Prints VLAN given by the ID.")
 }
 
 func (cmd *vlanList) Run(ctx context.Context) error {
 	f := &sl.Filter{
-		ID: cmd.id,
+		ID:         cmd.id,
+		Datacenter: cmd.datacenter,
+	}
+	if cmd.env != "" {
+		f.Tags = sl.Tags{
+			"koding-env": cmd.env,
+		}
 	}
 	vlans, err := client.VlansByFilter(f)
 	if err != nil {
