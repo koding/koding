@@ -37,6 +37,7 @@ function run_test_case() {
 }
 
 function run_test_suite() {
+  export TEST_SUITE_HOOK_DIR=$(mktemp -d)
   for TEST_CASE in $(list_test_cases); do
     $RUN_SCRIPT $TEST_GROUP $TEST_SUITE $TEST_CASE
   done

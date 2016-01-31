@@ -51,3 +51,22 @@ module.exports =
 
       users = @generateUsers()
       return if index is -1 then users else users[index]
+
+
+  getHookFilePath: (type) ->
+
+    hookDir = process.env.TEST_SUITE_HOOK_DIR
+    { TEST_GROUP, TEST_SUITE } = process.env
+
+    return "#{hookDir}/#{TEST_GROUP}_#{TEST_SUITE}_#{type}"
+
+
+  registerSuiteHook: (type) -> fs.writeFileSync @getHookFilePath(type), ''
+
+
+  suiteHookHasRun: (type) ->
+    try
+      fs.statSync @getHookFilePath type
+      return yes
+    catch
+      return no
