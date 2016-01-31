@@ -10,9 +10,12 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   ENTER = 13
 
   constructor:(options={},data)->
+
     super options, data
 
     @emailIsAvailable = no
+    @gravatars        ?= {}
+
     @on 'EmailIsAvailable'   , => @emailIsAvailable = yes
     @on 'EmailIsNotAvailable', => @emailIsAvailable = no
 
@@ -174,8 +177,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     isEmail = if kd.InputValidator.ruleEmail @email.input then no else yes
 
     return unless isEmail
-
-    @gravatars ?= {}
 
     return @emit 'gravatarInfoFetched', @gravatars[email]  if @gravatars[email]
 
