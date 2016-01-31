@@ -27,7 +27,6 @@ module.exports = class ChannelThreadHeaderContainer extends React.Component
 
     @state =
       editingPurpose : no
-      isModalOpen    : no
       thread         : @props.thread
 
 
@@ -141,7 +140,6 @@ module.exports = class ChannelThreadHeaderContainer extends React.Component
       menuItems      = { @getMenuItems() }
       className      = { @props.className }
       onClose        = { @bound 'onClose' }
-      isModalOpen    = { @state.isModalOpen }
       onKeyDown      = { @bound 'onKeyDown' }
       onVideoStart   = { @bound 'onVideoStart' }
       editingPurpose = { @state.editingPurpose }

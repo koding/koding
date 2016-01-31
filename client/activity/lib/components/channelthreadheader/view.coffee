@@ -13,7 +13,6 @@ module.exports = class ChannelThreadHeaderView extends React.Component
   @propTypes =
     menuItems                : React.PropTypes.array
     className                : React.PropTypes.string
-    isModalOpen              : React.PropTypes.bool
     editingPurpose           : React.PropTypes.bool
     onKeyDown                : React.PropTypes.func.isRequired
     onVideoStart             : React.PropTypes.func.isRequired
@@ -25,7 +24,6 @@ module.exports = class ChannelThreadHeaderView extends React.Component
   @defaultProps =
     menuItems                : []
     className                : ''
-    isModalOpen              : no
     editingPurpose           : no
     thread                   : immutable.Map()
 
@@ -64,7 +62,4 @@ module.exports = class ChannelThreadHeaderView extends React.Component
         items={@props.menuItems} />
       {@renderPurposeArea()}
       <StartVideoCallLink onStart={@props.onVideoStart}/>
-      <VideoComingSoonModal
-        onClose={@props.onClose}
-        isOpen={@props.isModalOpen}/>
     </div>
