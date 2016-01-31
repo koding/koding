@@ -14,9 +14,10 @@ module.exports = class ChannelThreadHeaderView extends React.Component
     menuItems                : React.PropTypes.array
     className                : React.PropTypes.string
     editingPurpose           : React.PropTypes.bool
+    isVideoActive            : React.PropTypes.bool.isRequired
     onKeyDown                : React.PropTypes.func.isRequired
     onVideoStart             : React.PropTypes.func.isRequired
-    onClose                  : React.PropTypes.func.isRequired
+    onVideoEnd               : React.PropTypes.func.isRequired
     onChange                 : React.PropTypes.func.isRequired
     thread                   : React.PropTypes.instanceOf immutable.Map
 
@@ -61,5 +62,8 @@ module.exports = class ChannelThreadHeaderView extends React.Component
         listClass='ChannelThreadPane-menuItems'
         items={@props.menuItems} />
       {@renderPurposeArea()}
-      <StartVideoCallLink onStart={@props.onVideoStart}/>
+      <StartVideoCallLink
+        isActive={@props.isVideoActive}
+        onEnd={@props.onVideoEnd}
+        onStart={@props.onVideoStart} />
     </div>
