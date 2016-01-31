@@ -10,7 +10,6 @@ GLOBAL.SITE_NAME = site
 {
   STYLES_PATH, COFFEE_PATH
   INDEX_PATH, SPRITES_PATH
-  SERVER_FILE, SERVER_PATH
   BUILD_PATH
 } = req 'helper.constants'
 
@@ -18,11 +17,6 @@ GLOBAL.SITE_NAME = site
 # HELPERS
 
 {watchLogger, log} = req 'helper.logger'
-
-
-# BUILD SERVER
-
-gulp.task 'serve', ['build'], -> server = nodemon script: SERVER_FILE
 
 
 # STYLUS COMPILATION
