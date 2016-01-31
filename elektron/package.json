@@ -4,7 +4,6 @@
   "description": "Koding Desktop App",
   "main": "./lib/main.js",
   "scripts": {
-    "test": "make test",
     "prestart": "coffee --compile --output lib/ src/",
     "start": "electron ./lib/main.js",
     "preapp-mac": "coffee --compile --output lib/ src/",
