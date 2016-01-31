@@ -24,6 +24,8 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
     @on actions.SET_MESSAGE_EDIT_MODE, @handleSetMessageEditMode
     @on actions.UNSET_MESSAGE_EDIT_MODE, @handleUnsetMessageEditMode
     @on actions.SET_CHANNEL_RESULT_STATE, @handleChangeResultState
+    @on actions.CHANNEL_VIDEO_START, @handleVideoStart
+    @on actions.CHANNEL_VIDEO_END, @handleVideoEnd
 
 
   handleLoadChannel: (channelFlags, { channelId }) ->
@@ -83,6 +85,18 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'resultListState'], resultState
+
+
+  handleVideoStart: (channelFlags, { channelId }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'isVideoActive'], yes
+
+
+  handleVideoEnd: (channelFlags, { channelId }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'isVideoActive'], no
 
 
 helper =

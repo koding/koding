@@ -533,6 +533,20 @@ changeResultState = (channelId, resultState) ->
   dispatch SET_CHANNEL_RESULT_STATE, { resultState, channelId }
 
 
+startVideo = (channelId) ->
+
+  { CHANNEL_VIDEO_START } = actionTypes
+
+  dispatch CHANNEL_VIDEO_START, { channelId }
+
+
+endVideo = (channelId) ->
+
+  { CHANNEL_VIDEO_END } = actionTypes
+
+  dispatch CHANNEL_VIDEO_END, { channelId }
+
+
 module.exports = {
   followChannel
   unfollowChannel
@@ -559,4 +573,6 @@ module.exports = {
   setLastSeenTime
   updateChannel
   changeResultState
+  startVideo
+  endVideo
 }
