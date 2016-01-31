@@ -37,6 +37,7 @@ function run_test_case() {
 }
 
 function run_test_suite() {
+  export TEST_SUITE_HOOK_DIR=$(mktemp -d)
   for TEST_CASE in $(list_test_cases); do
     $RUN_SCRIPT $TEST_GROUP $TEST_SUITE $TEST_CASE
   done
@@ -80,9 +81,9 @@ beforeSuite afterSuite \
 beforeGroups afterGroups \
 "
 
-TEST_GROUP=$1
-TEST_SUITE=$2
-TEST_CASE=$3
+export TEST_GROUP=$1
+export TEST_SUITE=$2
+export TEST_CASE=$3
 
 if [ -n "$TEST_CASE" ]; then
   for NAME in $RESERVED_TEST_CASE_NAMES; do
