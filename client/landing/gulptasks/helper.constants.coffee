@@ -1,6 +1,6 @@
 argv = require('minimist') process.argv
 site = SITE_NAME or argv.site or 'landing'
-base = "#{__dirname}/.."
+base = __dirname.replace '/gulptasks', ''
 
 module.exports =
   STYLES_PATH     : [
