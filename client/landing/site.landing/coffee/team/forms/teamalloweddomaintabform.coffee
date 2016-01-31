@@ -1,6 +1,7 @@
-kd = require 'kd.js'
-JView             = require './../../core/jview'
-mailServices      = [
+kd           = require 'kd.js'
+utils        = require './../../core/utils'
+JView        = require './../../core/jview'
+mailServices = [
   'gmail.com', 'hotmail.com', 'outlook.com', 'icloud.com'
   'yahoo.com', 'gmx.de', 'yandex.ru', 'yandex.com'
   'aol.com', 'mail.com', 'mail.ru'
@@ -16,7 +17,7 @@ module.exports = class TeamAllowedDomainTabForm extends kd.FormView
 
     super options, data
 
-    team = kd.utils.getTeamData()
+    team = utils.getTeamData()
     if email = team.signup?.email
       domain = email.split('@').last
       domain = null  if domain in mailServices

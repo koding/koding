@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd             = require 'kd.js'
+utils          = require './../../core/utils'
 JView          = require './../../core/jview'
 MainHeaderView = require './../../core/mainheaderview'
 
@@ -12,7 +13,7 @@ module.exports = class TeamDomainTab extends kd.FormView
 
     super options, data
 
-    team = kd.utils.getTeamData()
+    team = utils.getTeamData()
 
     @inputView = new kd.CustomHTMLView
       cssClass     : 'login-input-view'

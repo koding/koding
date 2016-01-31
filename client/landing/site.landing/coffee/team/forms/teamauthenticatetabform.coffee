@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd    = require 'kd.js'
+utils = require './../../core/utils'
 JView = require './../../core/jview'
 
 module.exports = class TeamAuthenticateTabForm extends kd.FormView
@@ -21,7 +22,7 @@ module.exports = class TeamAuthenticateTabForm extends kd.FormView
       name         : 'newsletter'
       label        : @label
 
-    team     = kd.utils.getTeamData()
+    team     = utils.getTeamData()
     username = email.split('@').first  if email = team.signup?.email
 
     @username = new kd.InputView
@@ -58,7 +59,7 @@ module.exports = class TeamAuthenticateTabForm extends kd.FormView
           oldPass = null
           return
 
-        kd.utils.checkPasswordStrength pass, (err, report) ->
+        utils.checkPasswordStrength pass, (err, report) ->
           oldPass = pass
 
           return if pass isnt report.password  #to avoid late responded ajax calls

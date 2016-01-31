@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd                = require 'kd.js'
+utils             = require './../../core/utils'
 JView             = require './../../core/jview'
 MainHeaderView    = require './../../core/mainheaderview'
 TeamInviteTabForm = require './../forms/teaminvitetabform'
@@ -20,7 +21,7 @@ module.exports = class TeamInviteTab extends kd.TabPaneView
 
     @form = new TeamInviteTabForm
       callback: (formData) ->
-        kd.utils.storeNewTeamData name, formData
+        utils.storeNewTeamData name, formData
         kd.singletons.router.handleRoute '/Team/Username'
 
 

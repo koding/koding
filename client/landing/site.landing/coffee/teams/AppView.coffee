@@ -1,7 +1,14 @@
-kd = require 'kd.js'
+kd              = require 'kd.js'
+utils           = require './../core/utils'
 MainHeaderView  = require './../core/mainheaderview'
 JView           = require './../core/jview'
 TeamsSignupForm = require './teamssignupform'
+
+track = (action) ->
+
+  category = 'TeamSignup'
+  label    = 'SignupForm'
+  utils.analytics.track action, { category, label }
 
 module.exports = class TeamsView extends JView
 
@@ -29,19 +36,19 @@ module.exports = class TeamsView extends JView
         track 'submitted signup form', { category: 'TeamSignUp' }
 
         finalize = (email) ->
-          kd.utils.storeNewTeamData 'signup', formData
+          utils.storeNewTeamData 'signup', formData
           kd.singletons.router.handleRoute '/Team/Domain'
 
           return  unless email
 
-          kd.utils.getProfile email,
+          utils.getProfile email,
             error   : ->
             success : (profile) ->
               formData.profile = profile  if profile
-              kd.utils.storeNewTeamData 'signup', formData
+              utils.storeNewTeamData 'signup', formData
 
         { email } = formData
-        kd.utils.validateEmail { email },
+        utils.validateEmail { email },
           success : ->
             track 'entered an unregistered email'
             formData.alreadyMember = no
@@ -65,10 +72,3 @@ module.exports = class TeamsView extends JView
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
     """
-
-
-track = (action) ->
-
-  category = 'TeamSignup'
-  label    = 'SignupForm'
-  kd.utils.analytics.track action, { category, label }

@@ -1,5 +1,6 @@
-$ = require 'jquery'
-kd = require 'kd.js'
+$     = require 'jquery'
+kd    = require 'kd.js'
+utils = require './utils'
 # Api:
 #   kd.singletons.oauthController.openPopup "github"
 #   kd.singletons.oauthController.authCompleted null, "github"
@@ -81,7 +82,7 @@ module.exports = class OAuthController extends kd.Controller
 
   handleNewUser: (userInfo)->
 
-    kd.utils.storeLastUsedProvider userInfo.provider
+    utils.storeLastUsedProvider userInfo.provider
     kd.singletons.router.handleRoute '/'
 
     kd.singletons.router.requireApp 'Home', (homeController)->

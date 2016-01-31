@@ -1,7 +1,16 @@
-kd = require 'kd.js'
+kd                        = require 'kd.js'
+utils                     = require './../../core/utils'
 MainHeaderView            = require './../../core/mainheaderview'
 TeamUsernameTabForm       = require './../forms/teamusernametabform'
 TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
+
+
+track = (action) ->
+
+  category = 'TeamSignup'
+  label    = 'AccountTab'
+  utils.analytics.track action, { category, label }
+
 
 module.exports = class TeamUsernameTab extends kd.TabPaneView
 
@@ -14,7 +23,7 @@ module.exports = class TeamUsernameTab extends kd.TabPaneView
 
   createSubViews: ->
 
-    teamData = kd.utils.getTeamData()
+    teamData = utils.getTeamData()
     { @alreadyMember, profile } = teamData.signup
 
     @addSubView new MainHeaderView
@@ -58,7 +67,7 @@ module.exports = class TeamUsernameTab extends kd.TabPaneView
 
   show: ->
 
-    teamData = kd.utils.getTeamData()
+    teamData = utils.getTeamData()
     { alreadyMember } = teamData.signup
     if alreadyMember isnt @alreadyMember
       @form = null
@@ -72,17 +81,17 @@ module.exports = class TeamUsernameTab extends kd.TabPaneView
 
     { username } = formData
 
-    teamData = kd.utils.getTeamData()
+    teamData = utils.getTeamData()
     { slug } = teamData.domain
     if username is slug
       return new kd.NotificationView title : "Sorry, your group domain and your username can not be the same!"
 
     success = =>
-      kd.utils.storeNewTeamData 'username', formData
-      kd.utils.createTeam
+      utils.storeNewTeamData 'username', formData
+      utils.createTeam
         success : (data) ->
           track 'succeeded to create a team'
-          kd.utils.clearTeamData()
+          utils.clearTeamData()
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
         error : ({responseText}) =>
@@ -99,7 +108,7 @@ module.exports = class TeamUsernameTab extends kd.TabPaneView
     unless checkUsername
     then success()
     else
-      kd.utils.usernameCheck username,
+      utils.usernameCheck username,
         success : ->
           track 'entered a valid username'
           success()
@@ -116,10 +125,3 @@ module.exports = class TeamUsernameTab extends kd.TabPaneView
           else                    "Sorry, there is a problem with \"#{username}\"!"
 
           new kd.NotificationView title : msg
-
-
-track = (action) ->
-
-  category = 'TeamSignup'
-  label    = 'AccountTab'
-  kd.utils.analytics.track action, { category, label }

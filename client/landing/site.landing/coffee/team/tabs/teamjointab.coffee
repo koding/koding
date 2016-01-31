@@ -1,12 +1,18 @@
-kd = require 'kd.js'
-_                               = require 'lodash'
-articlize                       = require 'indefinite-article'
-MainHeaderView                  = require './../../core/mainheaderview'
-TeamJoinByLoginForm             = require './../forms/teamjoinbyloginform'
-TeamJoinBySignupForm            = require './../forms/teamjoinbysignupform'
-TeamJoinWithInvitedAccountForm  = require './../forms/teamjoinwithinvitedaccountform'
-TeamLoginAndCreateTabForm       = require './../forms/teamloginandcreatetabform'
+kd                             = require 'kd.js'
+_                              = require 'lodash'
+articlize                      = require 'indefinite-article'
+utils                          = require './../../core/utils'
+MainHeaderView                 = require './../../core/mainheaderview'
+TeamJoinByLoginForm            = require './../forms/teamjoinbyloginform'
+TeamJoinBySignupForm           = require './../forms/teamjoinbysignupform'
+TeamJoinWithInvitedAccountForm = require './../forms/teamjoinwithinvitedaccountform'
+TeamLoginAndCreateTabForm      = require './../forms/teamloginandcreatetabform'
 
+track = (action) ->
+
+  category = 'TeamJoin'
+  label    = 'JoinTab'
+  utils.analytics.track action, { category, label }
 
 module.exports = class TeamJoinTab extends kd.TabPaneView
 
@@ -16,7 +22,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
     super options, data
 
-    teamData       = kd.utils.getTeamData()
+    teamData       = utils.getTeamData()
     @alreadyMember = teamData.signup?.alreadyMember
     domains        = kd.config.group.allowedDomains
 
@@ -24,7 +30,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     @addSubView @wrapper = new kd.CustomHTMLView { cssClass: 'TeamsModal TeamsModal--groupCreation' }
 
     teamTitle  = kd.config.group.title
-    modalTitle = "Join #{kd.utils.createTeamTitlePhrase teamTitle}"
+    modalTitle = "Join #{utils.createTeamTitlePhrase teamTitle}"
 
     @putAvatar()  if @alreadyMember
 
@@ -81,14 +87,14 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
     @wrapper.addSubView @avatar = new kd.CustomHTMLView { tagName: 'figure' }
 
-    { getProfile, getGravatarUrl, getTeamData } = kd.utils
+    { getProfile, getGravatarUrl, getTeamData } = utils
     { invitation: { email } }                   = getTeamData()
 
     getProfile email,
       error   : ->
       success : (profile) =>
         { hash, firstName, nickname } = profile
-        kd.utils.storeNewTeamData 'profile', profile
+        utils.storeNewTeamData 'profile', profile
         @intro.updatePartial "Hey #{firstName or '@' + nickname},"
         @avatar.addSubView new kd.CustomHTMLView
           tagName    : 'img'
@@ -99,7 +105,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     desc = if @alreadyMember
       "Please enter your <i>koding.com</i> password."
     else if domains?.length > 1
-      domainsPartial = kd.utils.getAllowedDomainsPartial domains
+      domainsPartial = utils.getAllowedDomainsPartial domains
       "You must have an email address from one of these domains #{domainsPartial} to join"
     else if domains?.length is 1
       "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
@@ -112,8 +118,8 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     { username } = formData
     success      = =>
       track 'submitted join a team form'
-      kd.utils.storeNewTeamData 'join', formData
-      kd.utils.joinTeam
+      utils.storeNewTeamData 'join', formData
+      utils.joinTeam
         error : ({responseText}) =>
           @form.emit 'FormSubmitFailed'
 
@@ -126,7 +132,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
     if @alreadyMember then success()
     else
-      kd.utils.usernameCheck username,
+      utils.usernameCheck username,
         success : ->
           track 'entered a valid username'
           success()
@@ -144,10 +150,3 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
           new kd.NotificationView title : msg
           @form.emit 'FormSubmitFailed'
-
-
-track = (action) ->
-
-  category = 'TeamJoin'
-  label    = 'JoinTab'
-  kd.utils.analytics.track action, { category, label }

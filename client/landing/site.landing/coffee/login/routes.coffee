@@ -1,10 +1,11 @@
-kd = require 'kd.js'
+kd    = require 'kd.js'
+utils = require './../core/utils'
 
 do ->
 
   handler = (callback) -> (options) ->
     cb = (app) -> callback app, options
-    groupName = kd.utils.getGroupNameFromLocation()
+    groupName = utils.getGroupNameFromLocation()
 
     # we need to remove this and make it selectively only
     # for login and register routes

@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd              = require 'kd.js'
+utils           = require './../../core/utils'
 JView           = require './../../core/jview'
 TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'
@@ -10,7 +11,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
 
     super
 
-    teamData = kd.utils.getTeamData()
+    teamData = utils.getTeamData()
 
     @email = new LoginInputView
       inputOptions      :
@@ -71,7 +72,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
             oldPass = null
             return
 
-          kd.utils.checkPasswordStrength pass, (err, report) ->
+          utils.checkPasswordStrength pass, (err, report) ->
             oldPass = pass
 
             return if pass isnt report.password  # to avoid late responded ajax calls
@@ -91,7 +92,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
 
   submit: (formData) ->
 
-    teamData = kd.utils.getTeamData()
+    teamData = utils.getTeamData()
     teamData.signup.alreadyMember = no
 
     super formData

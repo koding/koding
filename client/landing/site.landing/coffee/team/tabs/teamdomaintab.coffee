@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd                = require 'kd.js'
+utils             = require './../../core/utils'
 JView             = require './../../core/jview'
 MainHeaderView    = require './../../core/mainheaderview'
 TeamDomainTabForm = require './../forms/teamdomaintabform'
@@ -24,15 +25,15 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
         track 'submitted domain form'
 
         formData.slug = formData.slug.toLowerCase?()
-        kd.utils.verifySlug formData.slug,
+        utils.verifySlug formData.slug,
           success : =>
             track 'entered a valid domain'
             @form.input.parent.unsetClass 'validation-error'
-            kd.utils.storeNewTeamData name, formData
+            utils.storeNewTeamData name, formData
             # removed these steps
             # temp putting these empty values here to not break stuff - SY
-            kd.utils.storeNewTeamData 'email-domains', domains : ''
-            kd.utils.storeNewTeamData 'invite', invitee1 : '', invitee2 : '', invitee3 : ''
+            utils.storeNewTeamData 'email-domains', domains : ''
+            utils.storeNewTeamData 'invite', invitee1 : '', invitee2 : '', invitee3 : ''
             kd.singletons.router.handleRoute '/Team/Username'
 
           error   : (error) =>
@@ -43,11 +44,11 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
 
     super
 
-    team = kd.utils.getTeamData()
+    team = utils.getTeamData()
 
     if slug = team.domain?.slug
     then teamName = slug
-    else teamName = kd.utils.slugifyCompanyName team
+    else teamName = utils.slugifyCompanyName team
 
     { input } = @form
 
@@ -80,4 +81,4 @@ track = (action) ->
   category = 'TeamSignup'
   label    = 'DomainTab'
 
-  kd.utils.analytics.track action, { category, label }
+  utils.analytics.track action, { category, label }

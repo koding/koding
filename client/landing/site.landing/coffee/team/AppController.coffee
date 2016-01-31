@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd       = require 'kd.js'
+utils    = require './../core/utils'
 TeamView = require './AppView'
 
 FLOW_ROUTES  =
@@ -43,7 +44,7 @@ isPreviousStepCompleted = (flow, step) ->
 
   result = yes
   for step in flow.slice(0, index)
-    unless kd.utils.getTeamData()[step]
+    unless utils.getTeamData()[step]
       result = no
       break
 

@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd                  = require 'kd.js'
+utils               = require './../../core/utils'
 LoginViewInlineForm = require './../../login/loginviewinlineform'
 LoginInputView      = require './../../login/logininputview'
 
@@ -11,7 +12,7 @@ module.exports = class TeamLoginAndCreateTabForm extends LoginViewInlineForm
 
     super options, data
 
-    { username, email } = kd.utils.getTeamData().signup
+    { username, email } = utils.getTeamData().signup
 
     @username = new LoginInputView
       inputOptions        :

@@ -1,8 +1,16 @@
-kd = require 'kd.js'
+kd              = require 'kd.js'
+utils           = require './../../core/utils'
 JView           = require './../../core/jview'
 CustomLinkView  = require './../../core/customlinkview'
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
+
+track = (action) ->
+
+  category = 'Team'
+  label    = 'LoginForm'
+  utils.analytics.track action, { category, label }
+
 
 module.exports = class TeamLoginTab extends kd.TabPaneView
 
@@ -22,7 +30,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
         { title : 'Features',    href : '/Features',                name : 'features' }
       ]
 
-    @logo = kd.utils.getGroupLogo()
+    @logo = utils.getGroupLogo()
 
     # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
     @form = new LoginInlineForm
@@ -54,7 +62,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
     return  if not domains or not domains.first
 
     @inviteDesc.updatePartial if domains.length > 1
-      domainsPartial = kd.utils.getAllowedDomainsPartial domains
+      domainsPartial = utils.getAllowedDomainsPartial domains
       "If you have an email address from one of these domains #{domainsPartial}, you can <a href='/Team/Join'>join here</a>."
     else "If you have a <i>#{domains.first}</i> email address, you can <a href='/Team/Join'>join here</a>."
 
@@ -70,16 +78,9 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
     </div>
     <section>
       {{> @inviteDesc}}
-      <p>Trying to create a team? <a href="//#{kd.utils.getMainDomain()}/Teams" target="_self">Sign up on the home page</a> to get started.</p>
+      <p>Trying to create a team? <a href="//#{utils.getMainDomain()}/Teams" target="_self">Sign up on the home page</a> to get started.</p>
     </section>
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
     """
-
-
-track = (action) ->
-
-  category = 'Team'
-  label    = 'LoginForm'
-  kd.utils.analytics.track action, { category, label }

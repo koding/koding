@@ -1,5 +1,6 @@
-$ = require 'jquery'
-kd = require 'kd.js'
+$                        = require 'jquery'
+kd                       = require 'kd.js'
+utils                    = require './../core/utils'
 LoginViewInlineForm      = require './loginviewinlineform'
 LoginInputView           = require './logininputview'
 LoginInputViewWithLoader = require './logininputwithloader'
@@ -49,7 +50,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         placeholder       : 'Email address'
         attributes        :
           testpath        : 'register-form-email'
-        validate          : kd.utils.getEmailValidator
+        validate          : utils.getEmailValidator
           container       : this
           password        : @password
           tfcode          : @tfcode
@@ -144,7 +145,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       password  : @password.input.getValue()
       tfcode    : @tfcode.input.getValue()
 
-    if data.tfcode then kd.utils.validateEmail data,
+    if data.tfcode then utils.validateEmail data,
       success : (res) ->
         return location.replace '/'  if res is 'User is logged in!'
 

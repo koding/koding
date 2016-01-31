@@ -1,6 +1,7 @@
-kd = require 'kd.js'
-JView              = require './../../core/jview'
-MainHeaderView     = require './../../core/mainheaderview'
+kd             = require 'kd.js'
+utils          = require './../../core/utils'
+JView          = require './../../core/jview'
+MainHeaderView = require './../../core/mainheaderview'
 
 createAvatar = (profile) ->
 
@@ -22,7 +23,7 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
     super options, data
 
     { mainController } = kd.singletons
-    teamData           = kd.utils.getTeamData()
+    teamData           = utils.getTeamData()
     name               = @getOption 'name'
 
     @header = new MainHeaderView
@@ -34,8 +35,8 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
       style      : 'TeamsModal-button TeamsModal-button--green correct'
       callback   : ->
         go = ->
-          kd.utils.storeNewTeamData 'signup', formData
-          kd.utils.storeNewTeamData name, yes
+          utils.storeNewTeamData 'signup', formData
+          utils.storeNewTeamData name, yes
           kd.singletons.router.handleRoute '/Join'
 
         formData          = {}
@@ -44,7 +45,7 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
         formData.username = email
         formData.slug     = kd.config.group.slug
 
-        kd.utils.validateEmail { email },
+        utils.validateEmail { email },
           success : -> formData.alreadyMember = no; go()
           error   : -> formData.alreadyMember = yes; go()
 
@@ -60,9 +61,9 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
   decorateTeamMembers: ->
 
     name      = kd.config.groupName
-    { token } = kd.utils.getTeamData().invitation
+    { token } = utils.getTeamData().invitation
 
-    kd.utils.fetchTeamMembers { name, token }, (err, members) =>
+    utils.fetchTeamMembers { name, token }, (err, members) =>
 
       return  if err or not members
 
@@ -88,7 +89,7 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
       </div>
       <p>
         Your invitation was sent to:
-        <address>#{kd.utils.getTeamData().invitation.email}</address>
+        <address>#{utils.getTeamData().invitation.email}</address>
       </p>
       <p>
         Is the email address above correct?<br/>

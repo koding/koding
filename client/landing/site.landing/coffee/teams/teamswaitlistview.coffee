@@ -1,10 +1,11 @@
-kd = require 'kd.js'
-CustomLinkView             = require './../core/customlinkview'
-MainHeaderView             = require './../core/mainheaderview'
-JView                      = require './../core/jview'
-TeamsHomeFeaturesSection   = require './partials/teamshomefeaturessection'
-TeamsSignupForm            = require './teamssignupform'
-TeamsLaunchForm            = require './teamslaunchform'
+kd                       = require 'kd.js'
+utils                    = require './../core/utils'
+CustomLinkView           = require './../core/customlinkview'
+MainHeaderView           = require './../core/mainheaderview'
+JView                    = require './../core/jview'
+TeamsHomeFeaturesSection = require './partials/teamshomefeaturessection'
+TeamsSignupForm          = require './teamssignupform'
+TeamsLaunchForm          = require './teamslaunchform'
 
 
 module.exports = class TeamsWaitListView extends JView
@@ -51,7 +52,7 @@ module.exports = class TeamsWaitListView extends JView
     @form = new TeamsLaunchForm
       cssClass : 'TeamsModal--middle login-form pre-launch'
       callback : (formData) =>
-        kd.utils.earlyAccess formData,
+        utils.earlyAccess formData,
           success : @bound 'earlyAccessSuccess'
           error   : @bound 'earlyAccessFailure'
 

@@ -1,4 +1,6 @@
-kd = require 'kd.js'
+kd    = require 'kd.js'
+utils = require './utils'
+
 do ->
 
   KODING = 'koding'
@@ -29,9 +31,9 @@ do ->
 
   handleInvitation = ({params : {token}, query}) ->
 
-    kd.utils.routeIfInvitationTokenIsValid token,
+    utils.routeIfInvitationTokenIsValid token,
       success   : ({email}) ->
-        kd.utils.storeNewTeamData 'invitation', { token, email }
+        utils.storeNewTeamData 'invitation', { token, email }
         kd.singletons.router.handleRoute '/Welcome'
       error     : ({responseText}) ->
         new kd.NotificationView title : responseText
@@ -52,7 +54,7 @@ do ->
       return location.replace newUrl
 
     # if we dont have a valid email fetched from the invitation token we warn and route to root.
-    unless kd.utils.getTeamData().invitation?.email
+    unless utils.getTeamData().invitation?.email
       console.warn 'No valid invitation found!'
       return router.handleRoute '/'
 

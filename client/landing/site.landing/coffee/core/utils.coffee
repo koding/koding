@@ -1,8 +1,25 @@
 $ = require 'jquery'
 kd = require 'kd.js'
 
-kd.utils.extend kd.utils,
 
+createFormData = (teamData) ->
+
+  teamData ?= utils.getTeamData()
+  formData  = {}
+
+  for own step, fields of teamData when not ('boolean' is typeof fields)
+    for own field, value of fields
+      if step is 'invite'
+        unless formData.invitees
+        then formData.invitees  = value
+        else formData.invitees += ",#{value}"
+      else
+        formData[field] = value
+
+  return formData
+
+
+module.exports = utils = {
 
   clearKiteCaches: ->
 
@@ -87,7 +104,7 @@ kd.utils.extend kd.utils,
 
         return  unless input.valid
 
-        kd.utils.validateEmail { email, tfcode: tfcodeValue, password : passValue },
+        utils.validateEmail { email, tfcode: tfcodeValue, password : passValue },
           success : (res) ->
 
             return location.replace '/'  if res is 'User is logged in!'
@@ -110,14 +127,14 @@ kd.utils.extend kd.utils,
   checkPasswordStrength: kd.utils.debounce 300, (password, callback) ->
 
     return callback msg : 'No password specified!'  unless password
-    return callback null, res                       if res = kd.utils.checkedPasswords[password]
+    return callback null, res                       if res = utils.checkedPasswords[password]
 
     $.ajax
       url         : "/-/password-strength"
       type        : 'POST'
       data        : { password }
       success     : (res) ->
-        kd.utils.checkedPasswords[res.password] = res
+        utils.checkedPasswords[res.password] = res
         callback null, res
       error       : ({responseJSON}) -> callback msg : responseJSON
 
@@ -159,23 +176,6 @@ kd.utils.extend kd.utils,
     return teamName
 
 
-  createFormData = (teamData) ->
-
-    teamData ?= kd.utils.getTeamData()
-    formData  = {}
-
-    for own step, fields of teamData when not ('boolean' is typeof fields)
-      for own field, value of fields
-        if step is 'invite'
-          unless formData.invitees
-          then formData.invitees  = value
-          else formData.invitees += ",#{value}"
-        else
-          formData[field] = value
-
-    return formData
-
-
   createTeam: (callbacks = {}) ->
 
     formData = createFormData()
@@ -191,7 +191,7 @@ kd.utils.extend kd.utils,
       data      : formData
       type      : 'POST'
       success   : callbacks.success or ->
-        kd.utils.clearTeamData()
+        utils.clearTeamData()
         location.href = formData.redirect
       error     : callbacks.error  or ({responseText}) ->
         new kd.NotificationView title : responseText
@@ -350,3 +350,5 @@ kd.utils.extend kd.utils,
     # doesn't duplicate the word `the` if the title already has it in the beginning
     # doesn't duplicate the word `team` if the title already has it at the end
     "#{if title.search(/^the/i) < 0 then 'the' else ''} #{title} #{if title.search(/team$/i) < 0 then 'team' else ''}"
+
+}

@@ -18,7 +18,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
           messages    : { required: 'Please enter a username.' }
 
 
-    teamData                = kd.utils.getTeamData()
+    teamData                = utils.getTeamData()
     if teamData.profile
       { firstName, nickname } = teamData.profile
       name     = "#{firstName or '@'+nickname}"
@@ -45,7 +45,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
 
   submit: (formData) ->
 
-    teamData = kd.utils.getTeamData()
+    teamData = utils.getTeamData()
     teamData.signup.alreadyMember = yes
 
     super formData
@@ -58,7 +58,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
     {{> @password}}
     {{> @tfcode}}
     <p class='dim'>
-      <a href='//#{kd.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
+      <a href='//#{utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
     </p>
     <div class='TeamsModal-button-separator'></div>
     {{> @buttonLink}}

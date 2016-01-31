@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd                = require 'kd.js'
+utils             = require './../core/utils'
 TeamsView         = require './AppView'
 TeamsWaitListView = require './teamswaitlistview'
 
@@ -8,7 +9,7 @@ module.exports = class TeamsAppController extends kd.ViewController
 
   constructor: (options = {}, data) ->
 
-    if kd.utils.getTeamData().invitation?.teamAccessCode
+    if utils.getTeamData().invitation?.teamAccessCode
     then options.view = new TeamsView { cssClass: 'content-page' }
     else options.view = new TeamsWaitListView { cssClass: 'content-page teams' }
 

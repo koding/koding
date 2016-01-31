@@ -1,8 +1,8 @@
 console.time 'Koding.com loaded'
 
-kd = require 'kd.js'
+kd    = require 'kd.js'
+utils = require './core/utils'
 
-require './core/utils'
 require './core/kd.extend.coffee'
 
 # register appclasses
@@ -32,10 +32,10 @@ do ->
 
   kd.config             or= {}
   kd.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
-  kd.config.groupName     = groupName = kd.utils.getGroupNameFromLocation()
+  kd.config.groupName     = groupName = utils.getGroupNameFromLocation()
   kd.config.recaptcha     = window._runtimeOptions.recaptcha
   kd.config.google        = window._runtimeOptions.google
 
   if groupName is 'koding'
   then setGroup()
-  else kd.utils.checkIfGroupExists groupName, setGroup
+  else utils.checkIfGroupExists groupName, setGroup

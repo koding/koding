@@ -1,6 +1,7 @@
-kd = require 'kd.js'
-JView              = require './../../core/jview'
-MainHeaderView     = require './../../core/mainheaderview'
+kd             = require 'kd.js'
+utils          = require './../../core/utils'
+JView          = require './../../core/jview'
+MainHeaderView = require './../../core/mainheaderview'
 
 module.exports = class TeamStacksTab extends kd.TabPaneView
 
@@ -21,7 +22,7 @@ module.exports = class TeamStacksTab extends kd.TabPaneView
       title      : 'Next'
       style      : 'TeamsModal-button TeamsModal-button--green'
       callback   : ->
-        kd.utils.storeNewTeamData name, yes
+        utils.storeNewTeamData name, yes
         kd.singletons.router.handleRoute '/Team/Congrats'
 
     @on 'PaneDidShow', => @next.setFocus()

@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd                       = require 'kd.js'
+utils                    = require './../core/utils'
 LoginViewInlineForm      = require './../login/loginviewinlineform'
 LoginInputView           = require './../login/logininputview'
 LoginInputViewWithLoader = require './../login/logininputwithloader'
@@ -9,7 +10,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
 
     super
 
-    team        = kd.utils.getTeamData()
+    team        = utils.getTeamData()
     email       = team.invitation?.email
     companyName = team.signup?.companyName
 

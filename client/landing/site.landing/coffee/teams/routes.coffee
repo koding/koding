@@ -1,10 +1,12 @@
-kd = require 'kd.js'
+kd    = require 'kd.js'
+utils = require './../core/utils'
+
 do ->
 
   handleRoute = ({params, query}) ->
 
     { router } = kd.singletons
-    groupName  = kd.utils.getGroupNameFromLocation()
+    groupName  = utils.getGroupNameFromLocation()
 
     # redirect to main.domain/Teams since it doesn't make sense to
     # advertise teams on a team domain - SY
@@ -26,17 +28,17 @@ do ->
 
     return kd.singletons.router.handleRoute '/'  unless token
 
-    kd.utils.routeIfInvitationTokenIsValid token,
+    utils.routeIfInvitationTokenIsValid token,
       success   : ({email}) ->
 
         # Remember already typed companyName when user is seeing "Create a team" page with refresh twice or more
-        if teamData = kd.utils.getTeamData()
+        if teamData = utils.getTeamData()
 
           # Make sure about invitation is same.
           if token is teamData.invitation?.teamAccessCode and teamData.signup
-            kd.utils.storeNewTeamData 'signup', teamData.signup
+            utils.storeNewTeamData 'signup', teamData.signup
 
-        kd.utils.storeNewTeamData 'invitation', { teamAccessCode: token, email }
+        utils.storeNewTeamData 'invitation', { teamAccessCode: token, email }
 
         handleRoute { params, query }
       error     : ({responseText}) ->

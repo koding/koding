@@ -1,6 +1,7 @@
-kd = require 'kd.js'
-JView           = require './../../core/jview'
-LoginInputView  = require './../../login/logininputview'
+kd             = require 'kd.js'
+utils          = require './../../core/utils'
+JView          = require './../../core/jview'
+LoginInputView = require './../../login/logininputview'
 
 
 module.exports = class TeamUsernameTabForm extends kd.FormView
@@ -23,7 +24,7 @@ module.exports = class TeamUsernameTabForm extends kd.FormView
       name         : 'newsletter'
       label        : @label
 
-    team        = kd.utils.getTeamData()
+    team        = utils.getTeamData()
     emailPrefix = email.split('@').first  if email = team.signup?.email
     username    = emailPrefix  if emailPrefix?.length > 3
 
@@ -76,7 +77,7 @@ module.exports = class TeamUsernameTabForm extends kd.FormView
             oldPass = null
             return
 
-          kd.utils.checkPasswordStrength pass, (err, report) ->
+          utils.checkPasswordStrength pass, (err, report) ->
             oldPass = pass
 
             return if pass isnt report.password  # to avoid late responded ajax calls

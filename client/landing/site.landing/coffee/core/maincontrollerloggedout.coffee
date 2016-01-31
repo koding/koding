@@ -1,13 +1,11 @@
-$ = require 'jquery'
-kd = require 'kd.js'
-
-require './utils'
-require './kd.extend.coffee'
-KodingRouter                 = require './kodingrouter'
-OAuthController              = require './oauthcontroller'
-MainView                     = require './mainview'
-MainViewController           = require './mainviewcontroller'
-{ getGroupNameFromLocation } = kd.utils
+$                  = require 'jquery'
+kd                 = require 'kd.js'
+utils              = require './utils'
+KodingRouter       = require './kodingrouter'
+OAuthController    = require './oauthcontroller'
+MainView           = require './mainview'
+MainViewController = require './mainviewcontroller'
+utils              = require './utils'
 
 module.exports = class MainControllerLoggedOut extends kd.Controller
 
@@ -22,7 +20,7 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
 
     kd.utils.defer =>
       # Keep referrer (if available) in memory
-      @_referrer = kd.utils.getReferrer()
+      @_referrer = utils.getReferrer()
 
   createSingletons:->
 
@@ -48,14 +46,14 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
 
       name = route.path.split('/')[1] or '/'
 
-      kd.utils.analytics.page name
+      utils.analytics.page name
 
 
   login: (formData, callback) ->
 
     {username, password, tfcode, redirectTo} = formData
 
-    groupName = getGroupNameFromLocation()
+    groupName = utils.getGroupNameFromLocation()
     _csrf     = Cookies.get '_csrf'
 
     redirectTo ?= ''
@@ -66,7 +64,7 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
       query = kd.utils.stringifyQuery {planTitle, planInterval}
       query = "?#{query}"
 
-    kd.utils.clearKiteCaches()
+    utils.clearKiteCaches()
 
     $.ajax
       url         : '/Login'

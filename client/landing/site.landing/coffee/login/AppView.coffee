@@ -1,5 +1,6 @@
-$ = require 'jquery'
-kd = require 'kd.js'
+$                                     = require 'jquery'
+kd                                    = require 'kd.js'
+utils                                 = require './../core/utils'
 JView                                 = require './../core/jview'
 CustomLinkView                        = require './../core/customlinkview'
 LoginInputView                        = require './logininputview'
@@ -12,7 +13,7 @@ ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
 LoginOptions                          = require './loginoptions'
 RegisterOptions                       = require './registeroptions'
 MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
-{ getGroupNameFromLocation }          = kd.utils
+{ getGroupNameFromLocation }          = utils
 
 
 module.exports = class LoginView extends JView
@@ -264,7 +265,7 @@ module.exports = class LoginView extends JView
 
     fields = {}
     size   = 80
-    src    = kd.utils.getGravatarUrl size, requestHash
+    src    = utils.getGravatarUrl size, requestHash
 
     fields.photo =
       itemClass  : kd.CustomHTMLView
@@ -407,7 +408,7 @@ module.exports = class LoginView extends JView
     usernameCheckTimer = kd.utils.wait delay, =>
       return  unless @signupModal?
 
-      kd.utils.usernameCheck username,
+      utils.usernameCheck username,
         success : =>
 
           usernameCheckTimer = null
@@ -458,7 +459,7 @@ module.exports = class LoginView extends JView
 
   recaptchaEnabled: ->
 
-    return kd.config.recaptcha.enabled and kd.utils.getLastUsedProvider() isnt 'github'
+    return kd.config.recaptcha.enabled and utils.getLastUsedProvider() isnt 'github'
 
 
   checkBeforeRegister: ->
@@ -496,7 +497,7 @@ module.exports = class LoginView extends JView
 
     unless formData.referrer
       {mainController}  = kd.singletons
-      referrer          = kd.utils.getReferrer() or mainController._referrer
+      referrer          = utils.getReferrer() or mainController._referrer
       formData.referrer = referrer  if referrer
 
     form or= @registerForm
@@ -519,7 +520,7 @@ module.exports = class LoginView extends JView
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : ->
-        kd.utils.removeLastUsedProvider()
+        utils.removeLastUsedProvider()
 
         expiration = new Date Date.now() + (60 * 60 * 1000) # an hour
         document.cookie = "newRegister=true;expires=#{expiration.toUTCString()}"
