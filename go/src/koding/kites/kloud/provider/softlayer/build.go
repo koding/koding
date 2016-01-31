@@ -129,6 +129,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 				Id: vlanID,
 			},
 		}
+	} else {
+		m.Log.Warning("unable to get koding VLAN; falling back to default")
 	}
 
 	m.Log.Debug("Creating the server instance with following data: %+v", virtualGuestTemplate)
