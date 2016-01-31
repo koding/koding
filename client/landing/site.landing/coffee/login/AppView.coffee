@@ -15,47 +15,11 @@ MainControllerLoggedOut               = require './../core/maincontrollerloggedo
 
 module.exports = class LoginView extends JView
 
-  RECAPTCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
-
-  stop           = KD.utils.stopDOMEvent
-  ENTER          = 13
-  USERNAME_VALID = no
-
+  RECAPTCHA_JS         = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
+  stop                 = KD.utils.stopDOMEvent
+  ENTER                = 13
+  USERNAME_VALID       = no
   pendingSignupRequest = no
-
-  backgroundImages  = [
-    [ 'Charlie Foster', 'http://www.flickr.com/photos/charliefoster/' ]
-    [ 'Dietmar Becker', 'http://pican.de/' ]
-    [ 'Marcin Czerwinski', 'http://www.station75.com/' ]
-    [ 'Marcin Czerwinski', 'http://www.station75.com/' ]
-    [ 'Anton Sulsky', 'http://www.flickr.com/photos/discomethod/sets/72157635620513053/' ]
-    [ 'Joeri Römer', 'http://www.jfrwebdesign.nl/' ]
-    [ 'Zugr', 'http://be.net/Zugr' ]
-    [ 'Mark Doda', '' ]
-    [ 'Rick Waalders', 'http://www.twitter.com/rickwaalders' ]
-    [ 'Vadim Sherbakov', 'http://madebyvadim.com/' ]
-    [ 'Zwaddi', '' ]
-    [ 'Zugr', 'http://be.net/Zugr' ]
-    [ 'Romain Briaux', 'http://www.romainbriaux.fr/' ]
-    [ 'petradr', 'https://twitter.com/Petchy19' ]
-    [ 'Riley Briggs', 'http://rileyb.me/' ]
-    [ 'Chloe Benko-Prieur', 'http://chloecolorphotography.tumblr.com/' ]
-  ]
-
-  backgroundImageNr = MainControllerLoggedOut.loginImageIndex
-
-  do ->
-    image      = new Image
-    bgImageUrl = "/a/site.landing/images/unsplash/#{backgroundImageNr}.jpg"
-    image.src  = bgImageUrl
-
-    image.classList.add 'off-screen-login-image'
-
-    document.head.appendChild (new KDCustomHTMLView {
-      tagName    : 'style'
-      partial    : ".kdview.login-screen:after { background-image : url('#{bgImageUrl}')}"
-    }).getElement()
-
 
   constructor:(options = {}, data)->
 
@@ -172,8 +136,6 @@ module.exports = class LoginView extends JView
         closeTimer : 4000
         container  : this
 
-    KD.utils.defer => @setClass 'shown'
-
   pistachio:->
       # {{> @loginOptions}}
       # {{> @registerOptions}}
@@ -216,7 +178,7 @@ module.exports = class LoginView extends JView
       </div>
     </div>
     <footer>
-      <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a><a href="#{backgroundImages[backgroundImageNr][1]}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr][0]}</a>
+      <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
     """
 

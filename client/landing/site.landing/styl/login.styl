@@ -37,31 +37,21 @@ body.login
     text-decoration       underline
 
 
-img.off-screen-login-image
-  abs               -10000px -10000px
-
-
 .kdview.login-screen
-  background          #111617
-  text-align          center
-  position            relative
-  overflow            auto
+  background                #261a4b
+  text-align                center
+  position                  relative
+  overflow                  auto
   borderBox()
   &:after
-    size              100% 100%
-    top               0
-    left              0
-    bg                size cover
-    opacity           0.001
-    content           ""
-    z-index           0
-    vendor            transition, opacity .3s ease
-
-    abs()
-
-  &.shown
-    &:after
-      opacity         1
+    background              -webkit-linear-gradient(274deg,#261a4b 0,#402f7c 48%,#4781c0 100%)
+    background              linear-gradient(176deg,#261a4b 0,#402f7c 48%,#4781c0 100%)
+    background              -webkit-radial-gradient(56% 135%,140% 196%,#50b5e7 0,#402f7c 48%,#000 100%)
+    background              radial-gradient(56% 135%,140% 196%,#50b5e7 0,#402f7c 48%,#000 100%)
+    content                 ''
+    fix                     0px 0 0 0px
+    size                    100% 100%
+    z-index                 0
 
   .koding-logo
     rounded           2px
@@ -73,7 +63,7 @@ img.off-screen-login-image
     fix()
 
     cite
-      r-sprite        home 'logo'
+      r-sprite        app 'logo'
       margin          14px
       display         block
 
@@ -132,13 +122,13 @@ img.off-screen-login-image
         margin-left     10px
         cursor          pointer
       .gh
-        r-sprite        home, 'ext-github'
+        r-sprite        app, 'ext-github'
       .go
-        r-sprite        home, 'ext-gplus'
+        r-sprite        app, 'ext-gplus'
       .fb
-        r-sprite        home, 'ext-facebook'
+        r-sprite        app, 'ext-facebook'
       .tw
-        r-sprite        home, 'ext-twitter'
+        r-sprite        app, 'ext-twitter'
 
   a
     color               #1aaf5d

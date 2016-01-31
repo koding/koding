@@ -1,7 +1,6 @@
 CustomLinkView             = require './../core/customlinkview'
 MainHeaderView             = require './../core/mainheaderview'
 JView                      = require './../core/jview'
-FooterView                 = require './../home/footerview'
 TeamsHomeFeaturesSection   = require './partials/teamshomefeaturessection'
 TeamsSignupForm            = require './teamssignupform'
 TeamsLaunchForm            = require './teamslaunchform'
