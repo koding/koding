@@ -7,17 +7,20 @@ module.exports = class SidebarChannelsListItem extends React.Component
   @propTypes =
     active  : React.PropTypes.bool
     channel : React.PropTypes.instanceOf immutable.Map
+    flags   : React.PropTypes.instanceOf immutable.Map
 
 
   @defaultProps =
     active  : no
     channel : immutable.Map()
+    flags   : immutable.Map()
 
 
   render: ->
 
     <SidebarListItem
       title={@props.channel.get 'name'}
+      isVideoActive={@props.flags.get 'isVideoActive'}
       unreadCount={@props.channel.get 'unreadCount'}
       active={@props.active}
       href={prepareThreadLink @props.channel} />
