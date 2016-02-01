@@ -67,6 +67,12 @@ do ->
     return kd.singletons.router.openSection 'Team', null, null, (app) ->
       app.jumpTo section, params, query
 
+  handleOauth = ({params, query}) ->
+
+    return kd.singletons.router.openSection 'Login', null, null, (app) ->
+      if query.provider
+        kd.singletons.oauthController.authCompleted null, query.provider
+
 
   kd.registerRoutes 'Core',
     '/'                    : handleRoot
@@ -74,6 +80,7 @@ do ->
     # the routes below are subdomain routes
     # e.g. team.koding.com/Invitation
     '/Invitation/:token'   : handleInvitation
+    '/Account/Oauth'       : handleOauth
     '/Welcome'             : handleTeamOnboardingRoute.bind this, 'welcome'
     '/Join'                : handleTeamOnboardingRoute.bind this, 'join'
     '/Authenticate/:step?' : handleTeamOnboardingRoute.bind this, 'stacks'
