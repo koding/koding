@@ -218,7 +218,16 @@ func newKite(conf *Config) *kite.Kite {
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
 
-	dnsInstance := dnsclient.NewRoute53Client(c, conf.HostedZone)
+	dnsOpts := &dnsclient.Options{
+		Creds:      c,
+		HostedZone: conf.HostedZone,
+		Log:        common.NewLogger("kloud-dns", conf.DebugMode),
+	}
+	dnsInstance, err := dnsclient.NewRoute53Client(dnsOpts)
+	if err != nil {
+		panic(err)
+	}
+
 	dnsStorage := dnsstorage.NewMongodbStorage(db)
 	userdata := &userdata.Userdata{
 		Keycreator: &keycreator.Key{
