@@ -27,7 +27,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
       cssClass : 'team'
       navItems : [
         { title : 'Blog',        href : 'http://blog.koding.com',      name : 'blog' }
-        { title : 'Features',    href : 'https://koding.com/Features', name : 'features', attributes: target: '_blank' }
+        { title : 'Features',    href : 'https://www.koding.com/Features', name : 'features', attributes: target: '_blank' }
       ]
 
     @logo = utils.getGroupLogo()
@@ -81,6 +81,6 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
       <p>Trying to create a team? <a href="//#{utils.getMainDomain()}/Teams" target="_self">Sign up on the home page</a> to get started.</p>
     </section>
     <footer>
-      <a href="https://koding.com/Legal" target="_blank">Acceptable user policy</a><a href="https://koding.com/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://koding.com/Legal/Terms" target="_blank">Terms of service</a><a href="https://koding.com/Legal/Privacy" target="_blank">Privacy policy</a>
+      <a href="https://www.koding.com/Legal" target="_blank">Acceptable user policy</a><a href="https://www.koding.com/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://www.koding.com/Legal/Terms" target="_blank">Terms of service</a><a href="https://www.koding.com/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
     """
