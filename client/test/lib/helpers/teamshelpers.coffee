@@ -644,15 +644,13 @@ module.exports =
     sidebarModal                = ".kdview.with-sidebar.desktop .Sidebar-ReactView .SidebarSection.SidebarMessagesSection .SidebarSection-header"
     sidebarSelector             = "#{sidebarModal}"
     createMessageButton         = "#{sidebarModal} .SidebarSection-secondaryLink"
-    emptyInviteMembersInputText = '.Reactivity.Modal.CreateChannel-Modal .Modal-content .Reactivity-formfield.inviteMembers.dropdown .CreateChannel-participantsWrapper'
-    createChatButton            = '.Modal-buttons .Button.Modal-Button.Button--primary'
-    markedAsInvalidInputText    = '.Reactivity-formfield.inviteMembers.dropdown.invalid .CreateChannel-participantsWrapper'
+    emptyInviteMembersInputText = '.CreateChannel-Modal .CreateChannel-content .channelName input'
+    createChatButton            = '.CreateChannel-Modal .Modal-buttons button:first-child'
+    markedAsInvalidInputText    = '.CreateChannel-content .channelName.invalid'
+
+    @moveToSidebarHeader(browser, yes)
 
     browser
-      .waitForElementVisible  sidebarSelector, 20000
-      .moveToElement          sidebarSelector, 10, 10
-      .waitForElementVisible  createMessageButton, 20000
-      .click                  createMessageButton
       .waitForElementVisible  emptyInviteMembersInputText, 20000
       .waitForElementVisible  createChatButton, 20000
       .click                  createChatButton
