@@ -1,8 +1,18 @@
+kd                        = require 'kd.js'
+utils                     = require './../../core/utils'
 MainHeaderView            = require './../../core/mainheaderview'
 TeamUsernameTabForm       = require './../forms/teamusernametabform'
 TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
 
-module.exports = class TeamUsernameTab extends KDTabPaneView
+
+track = (action) ->
+
+  category = 'TeamSignup'
+  label    = 'AccountTab'
+  utils.analytics.track action, { category, label }
+
+
+module.exports = class TeamUsernameTab extends kd.TabPaneView
 
   constructor:(options = {}, data)->
 
@@ -13,23 +23,23 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
   createSubViews: ->
 
-    teamData = KD.utils.getTeamData()
+    teamData = utils.getTeamData()
     { @alreadyMember, profile } = teamData.signup
 
     @addSubView new MainHeaderView
       cssClass : 'team'
       navItems : []
 
-    @addSubView wrapper = new KDCustomHTMLView
+    @addSubView wrapper = new kd.CustomHTMLView
       cssClass : 'TeamsModal TeamsModal--groupCreation'
 
     if @alreadyMember
 
-      wrapper.addSubView new KDCustomHTMLView
+      wrapper.addSubView new kd.CustomHTMLView
         tagName : 'h4'
         partial : "Sign in"
 
-      wrapper.addSubView new KDCustomHTMLView
+      wrapper.addSubView new kd.CustomHTMLView
         tagName  : 'h5'
         cssClass : 'full'
         partial  : 'Almost there! Sign in with your Koding account.'
@@ -41,11 +51,11 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
     else
 
-      wrapper.addSubView new KDCustomHTMLView
+      wrapper.addSubView new kd.CustomHTMLView
         tagName : 'h4'
         partial : 'Make an account'
 
-      wrapper.addSubView new KDCustomHTMLView
+      wrapper.addSubView new kd.CustomHTMLView
         tagName : 'h5'
         partial : 'Pick a username and a password to log in with. Or use your existing Koding login.'
 
@@ -57,7 +67,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
   show: ->
 
-    teamData = KD.utils.getTeamData()
+    teamData = utils.getTeamData()
     { alreadyMember } = teamData.signup
     if alreadyMember isnt @alreadyMember
       @form = null
@@ -71,17 +81,17 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
     { username } = formData
 
-    teamData = KD.utils.getTeamData()
+    teamData = utils.getTeamData()
     { slug } = teamData.domain
     if username is slug
-      return new KDNotificationView title : "Sorry, your group domain and your username can not be the same!"
+      return new kd.NotificationView title : "Sorry, your group domain and your username can not be the same!"
 
     success = =>
-      KD.utils.storeNewTeamData 'username', formData
-      KD.utils.createTeam
+      utils.storeNewTeamData 'username', formData
+      utils.createTeam
         success : (data) ->
           track 'succeeded to create a team'
-          KD.utils.clearTeamData()
+          utils.clearTeamData()
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
         error : ({responseText}) =>
@@ -92,13 +102,13 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
             @form.showTwoFactor()
           else
             track 'failed to create a team'
-            new KDNotificationView title : responseText
+            new kd.NotificationView title : responseText
 
 
     unless checkUsername
     then success()
     else
-      KD.utils.usernameCheck username,
+      utils.usernameCheck username,
         success : ->
           track 'entered a valid username'
           success()
@@ -106,7 +116,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
           track 'entered an invalid username'
 
           unless responseJSON
-            return new KDNotificationView
+            return new kd.NotificationView
               title: 'Something went wrong'
 
           {forbidden, kodingUser} = responseJSON
@@ -114,11 +124,4 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
           else if kodingUser then "Sorry, \"#{username}\" is already taken!"
           else                    "Sorry, there is a problem with \"#{username}\"!"
 
-          new KDNotificationView title : msg
-
-
-track = (action) ->
-
-  category = 'TeamSignup'
-  label    = 'AccountTab'
-  KD.utils.analytics.track action, { category, label }
+          new kd.NotificationView title : msg

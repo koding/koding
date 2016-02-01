@@ -1,4 +1,5 @@
-module.exports = class TeamView extends KDView
+kd = require 'kd.js'
+module.exports = class TeamView extends kd.View
 
   TABS =
     login           : require './tabs/teamlogintab'
@@ -17,7 +18,7 @@ module.exports = class TeamView extends KDView
 
     super options, data
 
-    @addSubView @tabView = new KDTabView
+    @addSubView @tabView = new kd.TabView
       tagName             : 'main'
       hideHandleContainer : yes
 
@@ -27,7 +28,7 @@ module.exports = class TeamView extends KDView
 
   showTab: (step, query) ->
 
-    return KD.singletons.router.handleRoute '/Teams'  unless TABS[step]
+    return kd.singletons.router.handleRoute '/Teams'  unless TABS[step]
 
     if tab = @tabView.getPaneByName step
     then @tabView.showPane tab

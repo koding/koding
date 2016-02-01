@@ -1,7 +1,9 @@
-JView              = require './../../core/jview'
-MainHeaderView     = require './../../core/mainheaderview'
+kd             = require 'kd.js'
+utils          = require './../../core/utils'
+JView          = require './../../core/jview'
+MainHeaderView = require './../../core/mainheaderview'
 
-module.exports = class TeamCongratzTab extends KDTabPaneView
+module.exports = class TeamCongratzTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
@@ -9,21 +11,21 @@ module.exports = class TeamCongratzTab extends KDTabPaneView
 
     super options, data
 
-    { mainController } = KD.singletons
+    { mainController } = kd.singletons
     name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : []
 
-    teamData = KD.utils.getTeamData()
+    teamData = utils.getTeamData()
     { slug } = teamData.domain
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title      : "Sign in to #{slug}.koding.com"
       style      : 'TeamsModal-button TeamsModal-button--green'
       callback   : ->
-        KD.utils.clearTeamData()
+        utils.clearTeamData()
         { protocol, host } = location
         location.href      = "#{protocol}//#{slug}.#{host}"
 

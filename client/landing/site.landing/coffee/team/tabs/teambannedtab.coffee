@@ -1,7 +1,8 @@
+kd = require 'kd.js'
 JView              = require './../../core/jview'
 MainHeaderView     = require './../../core/mainheaderview'
 
-module.exports = class TeamBannedTab extends KDTabPaneView
+module.exports = class TeamBannedTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
@@ -23,7 +24,7 @@ module.exports = class TeamBannedTab extends KDTabPaneView
     {{> @header }}
     <div class="TeamsModal TeamsModal--banned">
       <h4>Your access is revoked!</h4>
-      <h5>We are sorry, one of the administrators has banned you from the team <a href='/'>#{KD.config.groupName}</a>.</h5>
+      <h5>We are sorry, one of the administrators has banned you from the team <a href='/'>#{kd.config.groupName}</a>.</h5>
       <p>If you think this is due to an error, please contact the team admins.</p>
     </div>
     """

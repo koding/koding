@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginViewInlineForm = require './loginviewinlineform'
 LoginInputView      = require './logininputview'
 
@@ -45,7 +46,7 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
 
     @tfcode.hide()
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title       : 'SIGN IN'
       style       : 'solid medium green'
       attributes  :

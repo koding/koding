@@ -1,6 +1,6 @@
 console.time 'Koding.com loaded'
 require './core/utils'
-require './core/KD.extend.coffee'
+require './core/kd.extend.coffee'
 
 # register appclasses
 Home  = require './home/AppController'

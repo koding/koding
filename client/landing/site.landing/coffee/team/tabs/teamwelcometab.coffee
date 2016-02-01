@@ -1,5 +1,7 @@
-JView              = require './../../core/jview'
-MainHeaderView     = require './../../core/mainheaderview'
+kd             = require 'kd.js'
+utils          = require './../../core/utils'
+JView          = require './../../core/jview'
+MainHeaderView = require './../../core/mainheaderview'
 
 createAvatar = (profile) ->
 
@@ -12,7 +14,7 @@ createAvatar = (profile) ->
   return el
 
 
-module.exports = class TeamWelcomeTab extends KDTabPaneView
+module.exports = class TeamWelcomeTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
@@ -20,34 +22,34 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
 
     super options, data
 
-    { mainController } = KD.singletons
-    teamData           = KD.utils.getTeamData()
+    { mainController } = kd.singletons
+    teamData           = utils.getTeamData()
     name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : []
 
-    @correct = new KDButtonView
+    @correct = new kd.ButtonView
       title      : 'Yes, that\'s the right address'
       style      : 'TeamsModal-button TeamsModal-button--green correct'
       callback   : ->
         go = ->
-          KD.utils.storeNewTeamData 'signup', formData
-          KD.utils.storeNewTeamData name, yes
-          KD.singletons.router.handleRoute '/Join'
+          utils.storeNewTeamData 'signup', formData
+          utils.storeNewTeamData name, yes
+          kd.singletons.router.handleRoute '/Join'
 
         formData          = {}
         { email }         = teamData.invitation
         formData.join     = yes
         formData.username = email
-        formData.slug     = KD.config.group.slug
+        formData.slug     = kd.config.group.slug
 
-        KD.utils.validateEmail { email },
+        utils.validateEmail { email },
           success : -> formData.alreadyMember = no; go()
           error   : -> formData.alreadyMember = yes; go()
 
-    @membersDesc = new KDCustomHTMLView
+    @membersDesc = new kd.CustomHTMLView
       tagName: 'span'
 
     @decorateTeamMembers()
@@ -58,14 +60,14 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
 
   decorateTeamMembers: ->
 
-    name      = KD.config.groupName
-    { token } = KD.utils.getTeamData().invitation
+    name      = kd.config.groupName
+    { token } = utils.getTeamData().invitation
 
-    KD.utils.fetchTeamMembers { name, token }, (err, members) =>
+    utils.fetchTeamMembers { name, token }, (err, members) =>
 
       return  if err or not members
 
-      if memberCount = KD.config.group.counts?.members
+      if memberCount = kd.config.group.counts?.members
         @membersDesc.updatePartial "#{memberCount} of your team members are<br/>already here."
       else
         @membersDesc.updatePartial "<i>@#{members.first.profile.nickname}</i> has invited you to join."
@@ -80,14 +82,14 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
     {{> @header }}
     <div class="TeamsModal TeamsModal--onboarding">
       <h4>Welcome</h4>
-      <p>You are about to join to <i>#{KD.config.group.title}</i> on Koding</p>
+      <p>You are about to join to <i>#{kd.config.group.title}</i> on Koding</p>
       <div class='team-members clearfix hidden'>
         <ul></ul>
         {{> @membersDesc}}
       </div>
       <p>
         Your invitation was sent to:
-        <address>#{KD.utils.getTeamData().invitation.email}</address>
+        <address>#{utils.getTeamData().invitation.email}</address>
       </p>
       <p>
         Is the email address above correct?<br/>

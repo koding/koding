@@ -10,7 +10,6 @@ GLOBAL.SITE_NAME = site
 {
   STYLES_PATH, COFFEE_PATH
   INDEX_PATH, SPRITES_PATH
-  SERVER_FILE, SERVER_PATH
   BUILD_PATH
 } = req 'helper.constants'
 
@@ -18,11 +17,6 @@ GLOBAL.SITE_NAME = site
 # HELPERS
 
 {watchLogger, log} = req 'helper.logger'
-
-
-# BUILD SERVER
-
-gulp.task 'serve', ['build'], -> server = nodemon script: SERVER_FILE
 
 
 # STYLUS COMPILATION
@@ -51,11 +45,6 @@ gulp.task 'imagemin', ['sprites'], req 'task.imagemin'
 gulp.task 'coffee', req 'task.coffee'
 
 
-# BUILD FRAMEWORK FROM NODE MODULE
-
-gulp.task 'build-kd', req 'task.build-kd'
-
-
 # WATCHERS
 
 watchersTasks = [ 'watch-styles', 'watch-coffee', 'watch-sprites' ]
@@ -72,7 +61,7 @@ gulp.task 'watch-coffee', ['coffee'], -> watchLogger 'cyan', gulp.watch COFFEE_P
 
 gulp.task 'watchers', watchersTasks
 
-buildTasks = ['build-kd', 'libs', 'sprites', 'styles', 'coffee']
+buildTasks = ['libs', 'sprites', 'styles', 'coffee']
 buildTasks.push 'imagemin'  if argv.imageMin
 
 # EXPORT

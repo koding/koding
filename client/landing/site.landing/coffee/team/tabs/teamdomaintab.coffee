@@ -1,8 +1,10 @@
+kd                = require 'kd.js'
+utils             = require './../../core/utils'
 JView             = require './../../core/jview'
 MainHeaderView    = require './../../core/mainheaderview'
 TeamDomainTabForm = require './../forms/teamdomaintabform'
 
-module.exports = class TeamDomainTab extends KDTabPaneView
+module.exports = class TeamDomainTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
@@ -10,7 +12,7 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
     super options, data
 
-    { mainController } = KD.singletons
+    { mainController } = kd.singletons
     name               = @getOption 'name'
 
     @header = new MainHeaderView
@@ -23,16 +25,16 @@ module.exports = class TeamDomainTab extends KDTabPaneView
         track 'submitted domain form'
 
         formData.slug = formData.slug.toLowerCase?()
-        KD.utils.verifySlug formData.slug,
+        utils.verifySlug formData.slug,
           success : =>
             track 'entered a valid domain'
             @form.input.parent.unsetClass 'validation-error'
-            KD.utils.storeNewTeamData name, formData
+            utils.storeNewTeamData name, formData
             # removed these steps
             # temp putting these empty values here to not break stuff - SY
-            KD.utils.storeNewTeamData 'email-domains', domains : ''
-            KD.utils.storeNewTeamData 'invite', invitee1 : '', invitee2 : '', invitee3 : ''
-            KD.singletons.router.handleRoute '/Team/Username'
+            utils.storeNewTeamData 'email-domains', domains : ''
+            utils.storeNewTeamData 'invite', invitee1 : '', invitee2 : '', invitee3 : ''
+            kd.singletons.router.handleRoute '/Team/Username'
 
           error   : (error) =>
             @showError error or 'That domain is invalid or taken, please try another one.'
@@ -42,11 +44,11 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
     super
 
-    team = KD.utils.getTeamData()
+    team = utils.getTeamData()
 
     if slug = team.domain?.slug
     then teamName = slug
-    else teamName = KD.utils.slugifyCompanyName team
+    else teamName = utils.slugifyCompanyName team
 
     { input } = @form
 
@@ -59,7 +61,7 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
     track 'entered an invalid domain'
     @form.input.parent.setClass 'validation-error'
-    new KDNotificationView { title : error }
+    new kd.NotificationView { title : error }
 
 
   pistachio: ->
@@ -79,4 +81,4 @@ track = (action) ->
   category = 'TeamSignup'
   label    = 'DomainTab'
 
-  KD.utils.analytics.track action, { category, label }
+  utils.analytics.track action, { category, label }
