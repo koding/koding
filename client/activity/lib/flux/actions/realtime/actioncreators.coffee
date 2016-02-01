@@ -12,6 +12,7 @@ _cache = channel: {}, message: {}
 bindChannelEvents = (channel) ->
 
   return  if _cache.channel[channel.id]
+  return  if channel.typeConstant is 'group'
 
   _cache.channel[channel.id] = yes
 
@@ -94,7 +95,6 @@ bindNotificationEvents = ->
 
   kd.singletons.notificationController
     .on 'MessageAddedToChannel', (payload) ->
-
       { channel : { id, name }, channelMessage, unreadCount } = payload
       if _isChannelInitiationEvent payload.channelMessage
         { addedBy } = channelMessage.payload
