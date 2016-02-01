@@ -1,12 +1,13 @@
-kd                = require 'kd'
-$                 = require 'jquery'
-React             = require 'kd-react'
-ReactDOM          = require 'react-dom'
-immutable         = require 'immutable'
-ActivityFlux      = require 'activity/flux'
-ChatPaneView      = require './view'
-scrollToElement   = require 'app/util/scrollToElement'
-KDReactorMixin    = require 'app/flux/base/reactormixin'
+kd                    = require 'kd'
+$                     = require 'jquery'
+React                 = require 'kd-react'
+ReactDOM              = require 'react-dom'
+immutable             = require 'immutable'
+ActivityFlux          = require 'activity/flux'
+ChatPaneView          = require './view'
+scrollToElement       = require 'app/util/scrollToElement'
+getScrollablePosition = require 'app/util/getScrollablePosition'
+KDReactorMixin        = require 'app/flux/base/reactormixin'
 
 module.exports = class ChatPaneContainer extends React.Component
 
@@ -74,8 +75,8 @@ module.exports = class ChatPaneContainer extends React.Component
     hasEditingMessage = @flag 'hasEditingMessage'
 
     if selectedMessageId and selectedMessageId isnt prevSelectedMessageId
-      item = $("[data-message-id=#{selectedMessageId}]").get(0)
-      scrollToElement item, yes
+      element = helper.getMessageElement selectedMessageId
+      scrollToElement element, yes
 
     else if @flag 'hasSubmittingMessage'
       view.scrollToBottom()
@@ -86,10 +87,10 @@ module.exports = class ChatPaneContainer extends React.Component
     else if hasEditingMessage and not hadEditingMessage
       message = thread.get('messages').find (msg) -> msg.get '__isEditing'
       if message
-        item = $("[data-message-id=#{message.get 'id'}]").get(0)
+        element = helper.getMessageElement message.get 'id'
 
         # this delay is needed for chat input to resize its textarea
-        kd.utils.wait 50, -> scrollToElement item
+        kd.utils.wait 50, -> scrollToElement element
 
     else
       hasStoppedMessageEditing = not hasEditingMessage and hadEditingMessage
@@ -98,11 +99,15 @@ module.exports = class ChatPaneContainer extends React.Component
       view.getScroller()._update()  if hasStoppedMessageEditing or hasRemovedMessage
 
     @updateDateMarkersPosition()
+    @updateUnreadMessagesLabel()
 
     @isThresholdReached = no
 
 
-  onScroll: -> @updateDateMarkersPosition()
+  onScroll: ->
+
+    @updateDateMarkersPosition()
+    @updateUnreadMessagesLabel()
 
 
   updateDateMarkersPosition: ->
@@ -129,6 +134,24 @@ module.exports = class ChatPaneContainer extends React.Component
   onGlance: -> ActivityFlux.actions.channel.glance @channel 'id'
 
 
+  updateUnreadMessagesLabel: ->
+
+    unreadCount = @channel 'unreadCount'
+    return  unless unreadCount
+
+    messages = @props.thread.get('messages').toList()
+    message  = messages.get messages.size - unreadCount
+    return  unless message
+
+    { view }    = @refs
+    { content } = view.refs
+    element     = helper.getMessageElement message.get 'id'
+    label       = content.refs.unreadCountLabel
+    position    = getScrollablePosition element
+
+    label.setPosition position
+
+
   render: ->
 
     <ChatPaneView {...@props}
@@ -140,5 +163,13 @@ module.exports = class ChatPaneContainer extends React.Component
       isMessagesLoading     = { @isThresholdReached }>
         {@props.children}
     </ChatPaneView>
+
+
+  helper =
+
+    getMessageElement: (messageId) ->
+
+      return $("[data-message-id=#{messageId}]").get(0)
+
 
 ChatPaneContainer.include [KDReactorMixin]

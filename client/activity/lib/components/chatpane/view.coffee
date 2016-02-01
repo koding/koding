@@ -5,6 +5,7 @@ immutable           = require 'immutable'
 Scroller            = require 'app/components/scroller'
 ChatList            = require 'activity/components/chatlist'
 ChannelInfo         = require 'activity/components/channelinfo'
+UnreadMessagesLabel = require './unreadmessageslabel'
 EmojiPreloaderMixin = require 'activity/components/emojipreloadermixin'
 ScrollableContent   = require 'app/components/scroller/scrollablecontent'
 
@@ -96,6 +97,7 @@ class ChatPaneView extends React.Component
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="Pane-contentWrapper">
         <section className="Pane-body" ref="ChatPaneBody">
+          <UnreadMessagesLabel ref='unreadCountLabel' unreadCount={@channel 'unreadCount'} />
           {@renderBody()}
           {@props.children}
         </section>

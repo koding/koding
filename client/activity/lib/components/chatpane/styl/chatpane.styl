@@ -35,3 +35,36 @@
 .ChatList
   width                     100%
 
+.ChatPane-unreadMessages
+  abs()
+  z-index                   100
+  kalc                      width, 100% \- 20px
+  bg                        color, #43a1df
+  color                     #fff
+  padding                   0px 5px 3px 5px
+  margin                    0 10px
+  borderBox()
+  text-align                center
+
+  &.fixedOnTop
+    top                     0px
+    rounded                 0 0 5px 5px
+
+  &.fixedOnBottom
+    bottom                  0px
+    rounded                 5px 5px 0 0
+
+  .jumpButton
+    fl()
+    font-size               11px
+    padding-top             1px
+    text-transform          uppercase
+
+  .counterText
+    font-size               14px
+
+  .markAsRead
+    fr()
+    font-size               11px
+    padding-top             1px
+    text-transform          uppercase
