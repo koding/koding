@@ -72,18 +72,21 @@ var (
 
 func init() {
 	var err error
-	if ConfigFolder, err = createFolderAtHome(".config/koding"); err != nil {
+	if ConfigFolder, err = createFolderAtHome(".config", "koding"); err != nil {
 		panic(err)
 	}
 }
 
-func createFolderAtHome(cf string) (string, error) {
+func createFolderAtHome(cf ...string) (string, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return "", err
 	}
 
-	folderName := filepath.Join(usr.HomeDir, cf)
+	args := []string{usr.HomeDir}
+	args = append(args, cf...)
+
+	folderName := filepath.Join(args...)
 	if err := os.MkdirAll(folderName, 0755); err != nil {
 		return "", err
 	}

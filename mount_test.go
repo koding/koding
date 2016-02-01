@@ -156,3 +156,12 @@ func TestAskToCreate(t *testing.T) {
 		})
 	})
 }
+
+func TestCachePath(t *testing.T) {
+	Convey("It should store cache folder under config in home", t, func() {
+		expectedPath := filepath.Join(ConfigFolder, "t.cache")
+
+		path := getCachePath("t")
+		So(path, ShouldEqual, expectedPath)
+	})
+}
