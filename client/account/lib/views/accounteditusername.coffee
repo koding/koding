@@ -57,8 +57,11 @@ module.exports = class AccountEditUsername extends JView
       style          : 'solid small gray'
       cssClass       : 'use-gravatar'
       title          : 'Use Gravatar'
+      loader         : yes
       callback       : =>
-        @account.modify "profile.avatar": ""
+        @account.modify 'profile.avatar' : '', (err) =>
+          console.warn err  if err
+          @useGravatarBtn.hideLoader()
 
     @userProfileFormFields =
       firstName          :
