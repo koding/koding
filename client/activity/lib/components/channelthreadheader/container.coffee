@@ -60,11 +60,16 @@ module.exports = class ChannelThreadHeaderContainer extends React.Component
       title   : 'Update purpose'
       key     : 'updatepurpose'
       onClick : @bound 'onUpdatePurpose'
-    ,
-      title   : 'Notification settings'
-      key     : 'notificationsettings'
-      onClick : @props.onShowNotificationSettings
     ]
+
+    # notification settings should be visible only public channels
+    if channel.typeConstant isnt 'privatemessage'
+      notificationSettings =
+        title   : 'Notification settings'
+        key     : 'notificationsettings'
+        onClick : @props.onShowNotificationSettings
+
+      result.push notificationSettings
 
     # if channel isn't a team channel,
     # add "Leave channel" at the 2nd position of the list
