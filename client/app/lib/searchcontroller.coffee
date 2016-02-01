@@ -114,14 +114,13 @@ module.exports = class SearchController extends KDObject
     val       = seed.replace /^@/, ''
     nickname  = nick()
     query     =
-      'profile.nickname': val
+      'profile.nickname': { $regex: "^#{val}", $options: 'i' }
 
     { groupsController } = kd.singletons
 
-    remote.api.JAccount.one(query).then (account) ->
+    new Promise (resolve, reject) ->
 
-      new Promise (resolve, reject) ->
-
+      remote.api.JAccount.one(query).then (account) ->
         # Filter accounts according to the current group.
         # If user which is coming from the result isn't a member of the current group
         # don't show it in auto complete
