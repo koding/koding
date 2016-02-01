@@ -5,7 +5,7 @@ module.exports = class MainViewController extends kd.ViewController
 
     for id, view of kd.instances when view.getElement?
       if el is view.getElement()
-        log view
+        console.log view
         break
 
     logViewByElement el.parentNode  unless el.parentNode is document.body
