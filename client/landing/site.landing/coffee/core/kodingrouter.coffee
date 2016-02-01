@@ -11,7 +11,7 @@ module.exports = class KodingRouter extends kd.Router
 
     super()
 
-    @on 'AlreadyHere', -> log "You're already here!"
+    @on 'AlreadyHere', -> console.log "You're already here!"
 
 
   listen: ->
