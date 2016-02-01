@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginViewInlineForm      = require './../login/loginviewinlineform'
 LoginInputView           = require './../login/logininputview'
 LoginInputViewWithLoader = require './../login/logininputwithloader'
@@ -18,7 +19,7 @@ module.exports = class TeamsLaunchForm extends LoginViewInlineForm
           messages   :
             email    : 'Please type a valid email address.'
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title       : 'Sign up for early access'
       style       : 'solid medium green'
       attributes  : testpath : 'signup-company-button'

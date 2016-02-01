@@ -10,7 +10,7 @@ featuresPageUrl = rootPath + '/Features'
 activityPageUrl = rootPath + '/Activity/Public/Recent'
 
 hubspotlinkSelector  = '.header .header__logo'
-logoSelector         = '[testpath=main-header] a.koding-header-logo'
+logoSelector         = '[testpath=login-container] a.koding-logo'
 
 module.exports =
 
@@ -51,7 +51,7 @@ module.exports =
         .waitForElementVisible  hubspotlinkSelector, 20000
     else
       browser
-        .waitForElementVisible  '.content-page.legal', 25000
+        .waitForElementVisible  '[testpath=login-container]', 25000
         .waitForElementVisible  logoSelector, 20000
 
     browser.end()
@@ -67,8 +67,7 @@ module.exports =
         .waitForElementVisible  hubspotlinkSelector, 20000
     else
       browser
-        .waitForElementVisible  '.content-page.pricing', 25000
-        .waitForElementVisible  '.content-page.pricing .plans', 25000
+        .waitForElementVisible  '[testpath=login-container]', 25000
         .waitForElementVisible  logoSelector, 20000
 
     browser.end()
@@ -84,8 +83,7 @@ module.exports =
         .waitForElementVisible  hubspotlinkSelector, 20000
     else
       browser
-        .waitForElementVisible  '.content-page.about', 25000
-        .waitForElementVisible  '.content-page.about .introduction', 25000
+        .waitForElementVisible  '[testpath=login-container]', 25000
 
     browser.end()
 
@@ -100,9 +98,7 @@ module.exports =
         .waitForElementVisible  hubspotlinkSelector, 20000
     else
       browser
-        .waitForElementVisible  '.content-page.features', 25000
-        .waitForElementVisible  '.feature-tabs .tab-handles', 25000
-        .waitForElementVisible  '.feature-tabs .tab-contents', 25000
+        .waitForElementVisible  '[testpath=login-container]', 25000
 
     browser.end()
 

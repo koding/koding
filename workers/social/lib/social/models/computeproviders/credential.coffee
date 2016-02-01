@@ -176,6 +176,37 @@ module.exports = class JCredential extends jraphical.Module
       @fetchByIdentifier client, identifier, callback
 
 
+  fetchRelationships = (options, callback) ->
+
+    try
+      { relSelector, client } = options
+      { context: { group: slug }, connection: { delegate } } = client
+    catch e
+      return callback new KodingError 'Insufficient arguments provided', e
+
+    JGroup.one { slug }, (err, group) ->
+
+      if err or not group
+        err ?= new KodingError 'Group not found!'
+        return callback err
+
+      group.fetchRolesByAccount delegate, (err, roles = []) ->
+        return callback err  if err
+
+        if 'admin' in roles
+          relSelector['$or'] = [
+            { sourceId    : delegate.getId() }
+            {
+              'data.role' : 'admin'
+              sourceId    : group.getId()
+            }
+          ]
+        else
+          relSelector.sourceId = delegate.getId()
+
+        Relationship.someData relSelector, { targetId: 1, as: 1 }, callback
+
+
   @some$ = permit 'list credentials',
 
     success: (client, selector, options, callback) ->
@@ -186,16 +217,13 @@ module.exports = class JCredential extends jraphical.Module
       { delegate } = client.connection
       items        = []
 
-      relSelector  =
-        targetName : 'JCredential'
-        sourceId   : delegate.getId()
+      relSelector = { targetName: 'JCredential' }
 
       if selector.as? and selector.as in ['owner', 'user']
         relSelector.as = selector.as
         delete selector.as
 
-      Relationship.someData relSelector, { targetId:1, as:1 }, (err, cursor) =>
-
+      fetchRelationships { client, relSelector }, (err, cursor) =>
         return callback err  if err?
 
         cursor.toArray (err, arr) =>
@@ -245,7 +273,7 @@ module.exports = class JCredential extends jraphical.Module
             callback null, []
 
 
-  setPermissionFor: (target, { user, owner }, callback) ->
+  setPermissionFor: (target, { user, owner, role }, callback) ->
 
     Relationship.remove
       targetId : @getId()
@@ -253,8 +281,9 @@ module.exports = class JCredential extends jraphical.Module
     , (err) =>
 
       if user
-        as = if owner then 'owner' else 'user'
-        target.addCredential this, { as }, (err) -> callback err
+        options      = { as: if owner then 'owner' else 'user' }
+        options.data = { role }  if role
+        target.addCredential this, options, (err) -> callback err
       else
         callback err
 

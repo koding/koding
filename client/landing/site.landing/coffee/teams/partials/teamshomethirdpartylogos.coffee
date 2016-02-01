@@ -1,4 +1,5 @@
-module.exports = class TeamsHomeThirdPartyLogos extends KDView
+kd = require 'kd.js'
+module.exports = class TeamsHomeThirdPartyLogos extends kd.View
 
 
   IMAGEPATH = '/a/site.landing/images/teams/'

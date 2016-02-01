@@ -1,7 +1,5 @@
 #!/bin/bash
 
-[ -n "$DISABLE_TEST" ] && exit 0
-
 SCRIPTS=$(dirname $0)/..
 
 export MOCHA_VERBOSE=1

@@ -1,9 +1,12 @@
+kd    = require 'kd.js'
+utils = require './../core/utils'
+
 do ->
 
   handleRoute = ({params, query}) ->
 
-    { router } = KD.singletons
-    groupName  = KD.utils.getGroupNameFromLocation()
+    { router } = kd.singletons
+    groupName  = utils.getGroupNameFromLocation()
 
     # redirect to main.domain/Teams since it doesn't make sense to
     # advertise teams on a team domain - SY
@@ -15,7 +18,7 @@ do ->
 
     cb = (app) -> app.handleQuery query  if query
 
-    KD.singletons.router.openSection 'Teams', null, null, cb
+    kd.singletons.router.openSection 'Teams', null, null, cb
 
 
   handleInvitation = (routeInfo) ->
@@ -23,27 +26,27 @@ do ->
     { params, query } = routeInfo
     { token }         = params
 
-    return KD.singletons.router.handleRoute '/'  unless token
+    return kd.singletons.router.handleRoute '/'  unless token
 
-    KD.utils.routeIfInvitationTokenIsValid token,
+    utils.routeIfInvitationTokenIsValid token,
       success   : ({email}) ->
 
         # Remember already typed companyName when user is seeing "Create a team" page with refresh twice or more
-        if teamData = KD.utils.getTeamData()
+        if teamData = utils.getTeamData()
 
           # Make sure about invitation is same.
           if token is teamData.invitation?.teamAccessCode and teamData.signup
-            KD.utils.storeNewTeamData 'signup', teamData.signup
+            utils.storeNewTeamData 'signup', teamData.signup
 
-        KD.utils.storeNewTeamData 'invitation', { teamAccessCode: token, email }
+        utils.storeNewTeamData 'invitation', { teamAccessCode: token, email }
 
         handleRoute { params, query }
       error     : ({responseText}) ->
-        new KDNotificationView title : responseText
-        KD.singletons.router.handleRoute '/'
+        new kd.NotificationView title : responseText
+        kd.singletons.router.handleRoute '/'
 
 
-  KD.registerRoutes 'Teams',
+  kd.registerRoutes 'Teams',
 
     '/Teams'       : handleRoute
     '/Teams/:token': handleInvitation

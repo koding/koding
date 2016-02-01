@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginViewInlineForm = require './loginviewinlineform'
 LoginInputView      = require './logininputview'
 
@@ -18,7 +19,7 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your email."
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title       : "RECOVER PASSWORD"
       style       : "solid medium green"
       type        : 'submit'

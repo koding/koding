@@ -1,13 +1,14 @@
+kd = require 'kd.js'
 JView = require './jview'
 
-module.exports = module.exports = class CustomLinkView extends KDCustomHTMLView
+module.exports = module.exports = class CustomLinkView extends kd.CustomHTMLView
 
   JView.mixin @prototype
 
   constructor:(options = {}, data = {})->
 
     options.tagName or= 'a'
-    options.cssClass  = KD.utils.curry 'custom-link-view', options.cssClass
+    options.cssClass  = kd.utils.curry 'custom-link-view', options.cssClass
     data.title       ?= options.title
 
     options.attributes ?= {}
@@ -23,9 +24,9 @@ module.exports = module.exports = class CustomLinkView extends KDCustomHTMLView
 
     if options.icon
       options.icon.tagName  = 'span'
-      options.icon.cssClass = KD.utils.curry 'icon', options.icon.cssClass
+      options.icon.cssClass = kd.utils.curry 'icon', options.icon.cssClass
 
-      @icon = new KDCustomHTMLView options.icon
+      @icon = new kd.CustomHTMLView options.icon
 
   pistachio:->
 

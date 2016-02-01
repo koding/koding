@@ -26,6 +26,7 @@ checkForQuery = (stateId, value, position, tokens) ->
   { query, token } = result
 
   config = token.getConfig query
+
   dispatch SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query, config }
 
   token.triggerAction? stateId, query

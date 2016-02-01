@@ -1,3 +1,5 @@
+kd              = require 'kd.js'
+utils           = require './../../core/utils'
 JView           = require './../../core/jview'
 TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'
@@ -9,7 +11,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
 
     super
 
-    teamData = KD.utils.getTeamData()
+    teamData = utils.getTeamData()
 
     @email = new LoginInputView
       inputOptions      :
@@ -40,7 +42,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
           events         :
             regExp       : 'keyup'
 
-    @passwordStrength = ps = new KDCustomHTMLView
+    @passwordStrength = ps = new kd.CustomHTMLView
       tagName  : 'figure'
       cssClass : 'PasswordStrength'
       partial  : '<span></span>'
@@ -70,7 +72,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
             oldPass = null
             return
 
-          KD.utils.checkPasswordStrength pass, (err, report) ->
+          utils.checkPasswordStrength pass, (err, report) ->
             oldPass = pass
 
             return if pass isnt report.password  # to avoid late responded ajax calls
@@ -80,7 +82,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
 
     @button     = @getButton 'Sign up & join'
     @buttonLink = @getButtonLink "Have an account? <a href='#'>Log in now</a>", (event) =>
-      KD.utils.stopDOMEvent event
+      kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
       @emit 'FormNeedsToBeChanged', yes, yes
 
@@ -90,7 +92,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
 
   submit: (formData) ->
 
-    teamData = KD.utils.getTeamData()
+    teamData = utils.getTeamData()
     teamData.signup.alreadyMember = no
 
     super formData

@@ -4,6 +4,7 @@ whoami                 = require 'app/util/whoami'
 Encoder                = require 'htmlencode'
 AutoSizeTextarea       = require 'app/components/common/autosizetextarea'
 Button                 = require 'app/components/common/button'
+KeyboardKeys           = require 'app/constants/keyboardKeys'
 ActivityFlux           = require 'activity/flux'
 FeedInputWidgetPreview = require './feedinputwidgetpreview'
 
@@ -40,6 +41,12 @@ module.exports = class FeedInputWidget extends React.Component
       .then => @setState { value: '', previewMode: no }
 
 
+  onKeyDown: (event) ->
+
+    if event.metaKey and event.keyCode is KeyboardKeys.ENTER
+      @onSubmit event
+
+
   render: ->
 
     firstName   = Encoder.htmlDecode(whoami().profile.firstName)
@@ -49,6 +56,7 @@ module.exports = class FeedInputWidget extends React.Component
       <AutoSizeTextarea
         placeholder={placeholder}
         value={@state.value}
+        onKeyDown = {@bound 'onKeyDown'}
         onChange={@bound 'onChange'} />
       <div className='FeedInputWidget-buttonBar'>
         <Button

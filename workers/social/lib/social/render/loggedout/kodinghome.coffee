@@ -24,7 +24,6 @@ module.exports = (options, callback) ->
       <link href="https://plus.google.com/+KodingInc" rel="publisher" />
       <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
 
-      <link rel="stylesheet" href="/a/site.#{site}/css/kd.css?#{KONFIG.version}" />
       <link rel="stylesheet" href="/a/site.#{site}/css/main.css?#{KONFIG.version}" />
     </head>
     <body class='home'>
@@ -47,10 +46,6 @@ module.exports = (options, callback) ->
       #{addSiteScripts site}
 
       <script src="/a/site.#{site}/js/libs.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{site}/js/kd.libs.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{site}/js/kd.js?#{KONFIG.version}"></script>
-      <script>KD.userAccount=#{userAccount}</script>
-      <script>KD.campaignStats=#{campaignStats}</script>
       <script src="/a/site.#{site}/js/main.js?#{KONFIG.version}"></script>
     </body>
     </html>

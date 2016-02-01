@@ -30,7 +30,7 @@ module.exports = class ChannelMentionItem extends React.Component
           @{ highlightedName }{ if index is secondaryNames.size - 1 then '' else ', ' }
         </span>
 
-    <span>
+    <span className='ChannelMentionItem-mentionList'>
       @{ names.first() }
       { if secondaryItems then <span> [{ secondaryItems }]</span> }
     </span>
@@ -43,12 +43,15 @@ module.exports = class ChannelMentionItem extends React.Component
 
     return  unless description
 
-    <span className='MentionDropboxItem-secondaryText'>({description})</span>
+    <span className='MentionDropboxItem-secondaryText ChannelMentionItem-description'>
+      ({description})
+    </span>
 
 
   render: ->
 
-    <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated MentionDropboxItem">
+    className = 'DropboxItem-singleLine DropboxItem-separated MentionDropboxItem ChannelMentionItem'
+    <DropboxItem {...@props} className={className}>
       <div className='MentionDropboxItem-names'>
         { @renderNames() }
         { @renderDescription() }

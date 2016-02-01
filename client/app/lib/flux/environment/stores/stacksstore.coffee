@@ -28,7 +28,8 @@ module.exports = class StacksStore extends KodingFluxStore
   load: (stacks, jstacks) ->
 
     stacks.withMutations (stacks) ->
-      jstacks.forEach _convertMachinesToIds
+      jstacks.forEach (jstack) ->
+        stacks.set jstack._id, _convertMachinesToIds jstack
 
 
   updateStack: (stacks, stack) ->

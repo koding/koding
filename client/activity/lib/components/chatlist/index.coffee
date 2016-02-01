@@ -5,18 +5,28 @@ ReactDOM               = require 'react-dom'
 moment                 = require 'moment'
 immutable              = require 'immutable'
 ChatListItem           = require 'activity/components/chatlistitem'
-SimpleChatListItem     = require 'activity/components/chatlistitem/simplechatlistitem'
 DateMarker             = require 'activity/components/datemarker'
 NewMessageMarker       = require 'activity/components/newmessagemarker'
 LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
 ActivityFlux           = require 'activity/flux'
 Waypoint               = require 'react-waypoint'
 ImmutableRenderMixin   = require 'react-immutable-render-mixin'
+findScrollableParent   = require 'app/util/findScrollableParent'
 
 debounce = (delay, options, fn) -> _.debounce fn, delay, options
 
 
 module.exports = class ChatList extends React.Component
+
+  @propTypes =
+    messages          : React.PropTypes.object
+    showItemMenu      : React.PropTypes.bool
+    channelId         : React.PropTypes.string
+    channelName       : React.PropTypes.string
+    unreadCount       : React.PropTypes.number
+    isMessagesLoading : React.PropTypes.bool
+    selectedMessageId : React.PropTypes.string
+    onGlance          : React.PropTypes.func
 
   @defaultProps =
     messages          : immutable.List()
@@ -26,10 +36,12 @@ module.exports = class ChatList extends React.Component
     unreadCount       : 0
     isMessagesLoading : no
     selectedMessageId : null
+    onGlance          : kd.noop
 
   componentDidMount: ->
 
     kd.singletons.windowController.addFocusListener @bound 'handleFocus'
+    @scrollableParent = findScrollableParent ReactDOM.findDOMNode this
 
 
   componentDidUpdate: -> @cacheDateMarkers()
@@ -37,8 +49,7 @@ module.exports = class ChatList extends React.Component
 
   glance: debounce 1000, {}, ->
 
-    if kd.singletons.windowController.isFocused()
-      ActivityFlux.actions.channel.glance @props.channelId
+    @props.onGlance()  if kd.singletons.windowController.isFocused()
 
 
   handleFocus: (focused) ->
@@ -97,7 +108,7 @@ module.exports = class ChatList extends React.Component
     # put glancer waypoint only if all the unread messages are loaded, and on
     # the screen. Once it enters to the screen, it will glance the channel.
     if index is messages.size - unreadCount and not isMessagesLoading
-      markers.push <Waypoint onEnter={@bound 'onGlancerEnter'} />
+      markers.push <Waypoint onEnter={@bound 'onGlancerEnter'} scrollableParent={@scrollableParent} />
 
     return markers
 
@@ -132,7 +143,14 @@ module.exports = class ChatList extends React.Component
       return node.className.indexOf('DateMarker-fixed') is -1
 
 
-  updateDateMarkersPosition: (scrollTop, left) ->
+  updateDateMarkersPosition: ->
+
+    return  unless @scrollableParent
+
+    { scrollTop, offsetHeight } = @scrollableParent
+    return  unless scrollTop and offsetHeight
+
+    left = @scrollableParent.getBoundingClientRect().left
 
     @dateMarkers.forEach (dateMarker) ->
 
@@ -180,13 +198,14 @@ module.exports = class ChatList extends React.Component
 
       children = children.concat @getBeforeMarkers message, prevMessage, i
 
-      if lastDifferentOwnerId and lastDifferentOwnerId is message.get('accountId') and isLessThanFiveMinutes
-        children.push \
-          <SimpleChatListItem {...itemProps } />
-      else
+      accountId     = message.get 'accountId'
+      isSameOwnerId = lastDifferentOwnerId and lastDifferentOwnerId is accountId
+      isSimpleItem  = isSameOwnerId and isLessThanFiveMinutes
+      children.push \
+          <ChatListItem.Container {...itemProps } isSimple={isSimpleItem} />
+
+      unless isSimpleItem
         lastDifferentOwnerId = message.get 'accountId'
-        children.push \
-          <ChatListItem {...itemProps} />
 
       lastMessageCreatedAt = new Date(createdAt).getTime()
 

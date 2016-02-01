@@ -12,6 +12,7 @@ BlockUserModal        = require 'app/components/blockusermodal'
 ActivityPromptModal   = require 'app/components/activitypromptmodal'
 MarkUserAsTrollModal  = require 'app/components/markuserastrollmodal'
 showErrorNotification = require 'app/util/showErrorNotification'
+hasPermission         = require 'app/util/hasPermission'
 
 module.exports = class MessageItemMenu extends React.Component
 
@@ -150,54 +151,46 @@ module.exports = class MessageItemMenu extends React.Component
     buttonConfirmTitle : "YES, THIS USER IS DEFINITELY A TROLL"
 
 
+  canEditPost: ->
+
+    canEdit    = hasPermission 'edit posts'
+    canEditOwn = hasPermission 'edit own posts'
+
+    return canEdit or (canEditOwn and @isMyMessage())
+
+
+  canDeletePost: ->
+
+    canDelete    = hasPermission 'delete posts'
+    canDeleteOwn = hasPermission 'delete own posts'
+
+    return canDelete or (canDeleteOwn and @isMyMessage())
+
+
+  isMyMessage: ->
+
+    return @props.message.get('accountId') is whoami().socialApiId
+
+
   getMenuItems: ->
 
-    if checkFlag('super-admin') and not @props.disableAdminMenuItems
-    then @getAdminMenuItems()
-    else @getDefaultMenuItems()
+    result = []
+
+    if @canEditPost() then result.push @getEditMenuItem()
+
+    if @canDeletePost() then result.push @getDeleteMenuItem()
+
+    return result
 
 
-  getDefaultMenuItems: ->
+  getEditMenuItem: ->
 
-    return [
-      {title: 'Edit Post'  , key: 'editpost'            , onClick: @bound 'editPost'}
-      {title: 'Delete Post', key: 'showdeletepostprompt', onClick: @bound 'showDeletePostPromptModal'}
-    ]
+    return {title: 'Edit Post'  , key: 'editpost'            , onClick: @bound 'editPost'}
 
 
-  getMarkUserMenuItem: ->
+  getDeleteMenuItem: ->
 
-    markUserMenuItem =
-      key: 'markuserastroll',
-      title: 'Mark User as Troll',
-      onClick: @bound 'showMarkUserAsTrollPromptModal'
-
-    if @state.isOwnerExempt
-      markUserMenuItem =
-        key: 'unmarkuserastroll',
-        title: 'Unmark User as Troll',
-        onClick: @bound 'unMarkUserAsTroll'
-
-    return markUserMenuItem
-
-
-  getAdminMenuItems: ->
-
-    adminMenuItems = [
-      @getMarkUserMenuItem()
-      {
-        title   : 'Block User'
-        key     : 'blockuser'
-        onClick : @bound 'showBlockUserPromptModal'
-      }
-      {
-        title   : 'Impersonate User'
-        key     : 'impersonateuser'
-        onClick : @bound 'impersonateUser'
-      }
-    ]
-
-    return @getDefaultMenuItems().concat adminMenuItems
+    return {title: 'Delete Post', key: 'showdeletepostprompt', onClick: @bound 'showDeletePostPromptModal'}
 
 
   render: ->
@@ -205,7 +198,8 @@ module.exports = class MessageItemMenu extends React.Component
     { message } = @props
 
     return null  unless message
-    return null  if (message.get('accountId') isnt whoami().socialApiId) and not checkFlag('super-admin')
+
+    return null  if not @canEditPost() or not @canDeletePost()
 
     <div className={@props.className}>
       <ButtonWithMenu items={@getMenuItems()} />

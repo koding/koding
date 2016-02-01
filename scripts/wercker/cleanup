@@ -1,0 +1,10 @@
+#!/bin/bash
+
+INSTANCE_DATA=$1
+
+$WERCKER_ROOT/scripts/wercker/destroy-user-machines $INSTANCE_DATA
+$WERCKER_ROOT/scripts/wercker/after-step-cleanup $INSTANCE_DATA
+
+rm -f $INSTANCE_DATA
+
+exit 0
