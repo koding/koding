@@ -127,6 +127,8 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	if prefetchAll {
+		fmt.Println("Prefetch all feature is currently in beta.")
+
 		if exit := mountCommandPrefetchAll(os.Stdout, k, user.Current, name, localPath, remotePath, prefetchInterval); exit != 0 {
 			return exit
 		}
