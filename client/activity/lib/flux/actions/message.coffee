@@ -583,6 +583,7 @@ disableEditedEmbedPayload = (messageId) ->
 
 
 module.exports = {
+  loadMessage
   loadMessages
   loadMessageBySlug
   ensureMessage
