@@ -261,9 +261,7 @@ Please run the following command:
 			res = fmt.Sprintf(`Error: You do not appear to have a properly working internet connection.`)
 
 		case ErrHealthNoKontrolHTTPResponse:
-			res = fmt.Sprintf(`Error: koding.com does not appear to be responding.
-If this problem persists, please contact us at: support@koding.com
-`)
+			res = fmt.Sprintf(`Error: koding.com does not appear to be responding.`)
 
 		default:
 			res = fmt.Sprintf("Unknown remote healthcheck error: %s", err.Error())
