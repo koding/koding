@@ -14,7 +14,7 @@ func TestLock(t *testing.T) {
 		var err error
 
 		// use temp dir for config folder or tests will fail when there's a mount
-		lockFolderName, err = ioutil.TempDir("", "fuseklientconfig")
+		ConfigFolder, err = ioutil.TempDir("", "fuseklientconfig")
 		So(err, ShouldBeNil)
 
 		mountPath, err := ioutil.TempDir("", "fuseklient")
@@ -22,14 +22,6 @@ func TestLock(t *testing.T) {
 
 		lockFile, err := getLockFileName(mountPath)
 		So(err, ShouldBeNil)
-
-		Convey("It should get or create config folder", func() {
-			configFolder, err := getOrCreateConfigFolder()
-			So(err, ShouldBeNil)
-
-			_, err = os.Stat(configFolder)
-			So(err, ShouldBeNil)
-		})
 
 		Convey("It should return error if lock file already exists", func() {
 			_, err = os.Create(lockFile)

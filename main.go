@@ -108,7 +108,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "noprefetch-meta, p",
-					Usage: "Disable prefetching of folder metadata on mount.",
+					Usage: "Disable prefetching of folder metadata.",
 				},
 				cli.BoolFlag{
 					Name:  "nowatch, w",
@@ -116,11 +116,11 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "prefetch-all, a",
-					Usage: "Enable prefetching of the entire remote directory for improved performance.",
+					Usage: "Enable prefetching contents of the remote directory.",
 				},
 				cli.IntFlag{
 					Name:  "prefetch-interval",
-					Usage: "Sets how frequently prefetch will run, in seconds. Setting to zero disables prefetch interval.",
+					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
 				},
 			},
 			Action: Exit(CheckUpdateFirst(MountCommand)),

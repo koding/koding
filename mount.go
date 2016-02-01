@@ -123,7 +123,7 @@ func MountCommand(c *cli.Context) int {
 		NoPrefetchMeta: noPrefetchMeta,
 		PrefetchAll:    prefetchAll,
 		NoWatch:        noWatch,
-		CachePath:      getCachePath(localPath),
+		CachePath:      getCachePath(name),
 	}
 
 	// RemotePath is optional
@@ -132,6 +132,8 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	if prefetchAll {
+		fmt.Println("Prefetch all feature is currently in beta.")
+
 		if exit := mountCommandPrefetchAll(os.Stdout, k, user.Current, name, localPath, remotePath, prefetchInterval); exit != 0 {
 			return exit
 		}
@@ -290,7 +292,7 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 
 	rReq := req.Cache{
 		Name:              machineName,
-		LocalPath:         getCachePath(localPath),
+		LocalPath:         getCachePath(machineName),
 		RemotePath:        remotePath,
 		Interval:          time.Duration(interval) * time.Second,
 		Username:          remoteUsername,
@@ -387,7 +389,7 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 	return os.Mkdir(p, 0655)
 }
 
-func getCachePath(path string) string {
-	// TODO: Put the cache somewhere meaningful
-	return fmt.Sprintf("%s.cache", path)
+func getCachePath(name string) string {
+	cacheName := fmt.Sprintf("%s.cache", name)
+	return filepath.Join(ConfigFolder, cacheName)
 }
