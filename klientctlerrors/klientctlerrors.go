@@ -74,7 +74,7 @@ func IsListReconnectingErr(err error) bool {
 func IsSessionNotEstablishedFailure(err error) bool {
 	return isKiteOfTypeErr(
 		err, "sendError",
-		`sendError: can't send, session is not established yet`,
+		`can't send, session is not established yet`,
 	)
 }
 
@@ -86,7 +86,7 @@ func IsSessionNotEstablishedFailure(err error) bool {
 func IsGetKitesFailure(err error) bool {
 	return isKiteOfTypeErr(
 		err, "timeout",
-		`timeout: No response to "getKodingKites"`,
+		`No response to "getKodingKites"`,
 	)
 }
 
@@ -101,7 +101,7 @@ func isKiteOfTypeErr(err error, t, m string) bool {
 		return false
 	case kiteErr.Type != t:
 		return false
-	case !strings.HasPrefix(err.Error(), m):
+	case !strings.HasPrefix(kiteErr.Message, m):
 		return false
 	default:
 		return true
