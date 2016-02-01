@@ -125,15 +125,20 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
     buttonConfirmClassName : 'Button--primary'
 
 
+  getContentClassName: -> classnames
+    'ChannelNotifications-content': yes
+    'isMuted' : @state.channelNotificationSettings.get 'isMuted'
+
+
   render: ->
 
     return null  unless @state.channelNotificationSettings
 
     <ActivityModal {...@getModalProps()}>
-      <div className='ChannelNotifications-content'>
-        <fieldset className='Reactivity-fieldset'>
+      <div className={@getContentClassName()}>
+        <fieldset className='Reactivity-fieldset desktopNotifications'>
           <legend className='Reactivity-legend'>Web notifications:</legend>
-          <RadioGroup name="webNotifications" ref='webNotifications'
+          <RadioGroup name='webNotifications' ref='webNotifications'
             value={ @state.channelNotificationSettings.get 'desktopSetting' }
             onChange={@bound 'onWebNotificationsChange'}>
             <div className='Reactivity-formfield'>
@@ -156,7 +161,7 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
             </div>
           </RadioGroup>
         </fieldset>
-        <fieldset className='Reactivity-fieldset'>
+        <fieldset className='Reactivity-fieldset channelNotifications'>
           <legend className='Reactivity-legend'>@channel notifications:</legend>
           <div className='Reactivity-formfield'>
             <label className='Reactivity-label'>
