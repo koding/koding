@@ -272,7 +272,7 @@ func (c *Channel) removeParticipation(typeConstant string, participantIds ...int
 		return ErrChannelIdIsNotSet
 	}
 
-	participants := make([]*ChannelParticipant, 0)
+	var participants []*ChannelParticipant
 	pe := NewParticipantEvent()
 	pe.Id = c.Id
 	pe.ChannelToken = c.Token
