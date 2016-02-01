@@ -9,9 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/boltdb/bolt"
-	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -28,6 +25,11 @@ import (
 	klienttunnel "koding/klient/tunnel"
 	"koding/klient/usage"
 	"koding/klient/vagrant"
+
+	"github.com/boltdb/bolt"
+	"github.com/koding/kite"
+	"github.com/koding/kite/config"
+	kiteproto "github.com/koding/kite/protocol"
 )
 
 var (
@@ -96,7 +98,8 @@ type KlientConfig struct {
 	VagrantHome string
 
 	TunnelServerAddr string
-	TunnelLocalAddr  string
+
+	TunnelLocalAddr string
 }
 
 // NewKlient returns a new Klient instance
@@ -343,35 +346,41 @@ func (k *Klient) RegisterMethods() {
 	})
 }
 
+func (k *Klient) test() {
+	k.log.Debug("Klient testing")
+
+	query := &kiteproto.KontrolQuery{
+		Environment: "production",
+	}
+	kites, err := k.kite.GetKites(query)
+	if err != nil {
+		k.log.Error("GetKites(%# v)=%s", query, err)
+	}
+
+	k.log.Debug("Kites (%d) = %# v", len(kites), kites)
+}
+
 // Run registers klient to Kontrol and starts the kite server. It also runs any
 // necessary workers in the background.
 func (k *Klient) Run() {
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
 	isKoding, _ := info.CheckKoding()
-	//if !isKoding {
-	//	// Open Pandora's box
-	//	if err := k.tunnelclient.Start(k.kite, &tunnel.ClientConfig{
-	//		ServerAddr: k.config.TunnelServerAddr,
-	//		LocalAddr:  k.config.TunnelLocalAddr,
-	//		Debug:      k.config.Debug,
-	//	}); err != nil {
-	//		k.log.Error("Could not start tunneling: '%s'", err)
-	//	}
-	//}
 
 	k.startUpdater()
 
-	if isKoding && protocol.Environment == "managed" {
+	if protocol.Environment == "managed" && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
-		panic(errors.New(
-			"This binary of Klient cannot run on a Koding provided VM",
-		))
+		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
 
-	if err := k.register(); err != nil {
+	useTunnel := protocol.Environment == "managed" && !isKoding
+
+	if err := k.register(useTunnel); err != nil {
 		panic(err)
 	}
+
+	k.test()
 
 	if isKoding {
 		go gatherrun.Run(k.config.Environment, k.kite.Config.Username)

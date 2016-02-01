@@ -5,10 +5,11 @@ import (
 	"net/url"
 	"strconv"
 
+	"koding/kites/tunnelproxy"
 	"koding/klient/info/publicip"
 )
 
-func (k *Klient) register() error {
+func (k *Klient) register(useTunnel bool) error {
 	ip, err := publicip.PublicIP()
 	if err != nil {
 		return err
@@ -32,6 +33,13 @@ func (k *Klient) register() error {
 		}
 
 		registerURL = u
+	} else if useTunnel {
+		host, err := k.setupTunnel()
+		if err != nil {
+			k.log.Error("Couldn't setup tunnel connection: %s", err)
+		} else {
+			registerURL.Host = host
+		}
 	}
 
 	if registerURL == nil {
@@ -43,9 +51,26 @@ func (k *Klient) register() error {
 		k.kite.Config.KontrolURL = k.config.KontrolURL
 	}
 
+	// test if registerURL
+
 	k.log.Info("Register to kontrol '%s' via the URL value: '%s'",
 		k.kite.Config.KontrolURL, registerURL)
 
 	k.kite.RegisterHTTPForever(registerURL)
 	return nil
+}
+
+func (k *Klient) setupTunnel() (string, error) {
+	opts := &tunnelproxy.ClientOptions{
+		ServerAddr: k.config.TunnelServerAddr,
+		LocalAddr:  k.config.TunnelLocalAddr,
+		Debug:      k.config.Debug,
+		NoTLS:      k.kite.TLSConfig == nil,
+	}
+
+	if opts.LocalAddr == "" && k.config.Port != 0 {
+		opts.LocalAddr = "127.0.0.1:" + strconv.Itoa(k.config.Port)
+	}
+
+	return k.tunnelclient.Start(opts)
 }
