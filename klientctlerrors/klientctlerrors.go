@@ -73,7 +73,7 @@ func IsListReconnectingErr(err error) bool {
 // as possible.
 func IsSessionNotEstablishedFailure(err error) bool {
 	return isKiteOfTypeErr(
-		err, "sendErr",
+		err, "sendError",
 		`sendError: can't send, session is not established yet`,
 	)
 }
