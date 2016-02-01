@@ -1,12 +1,13 @@
 _                        = require 'lodash'
 kd                       = require 'kd'
-Link                     = require 'app/components/common/link'
 React                    = require 'kd-react'
 ReactDOM                 = require 'react-dom'
+classnames               = require 'classnames'
+RadioGroup               = require 'react-radio'
 ActivityFlux             = require 'activity/flux'
 ActivityModal            = require 'app/components/activitymodal'
 KDReactorMixin           = require 'app/flux/base/reactormixin'
-RadioGroup               = require 'react-radio'
+Link                     = require 'app/components/common/link'
 NotificationSettingsFlux = require 'activity/flux/channelnotificationsettings'
 
 
@@ -85,19 +86,19 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
   onWebNotificationsChange: (value) ->
 
     channelNotificationSettings = @state.channelNotificationSettings.set 'desktopSetting', value
-    @setState channelNotificationSettings : channelNotificationSettings
+    @setState { channelNotificationSettings }
 
 
   onChannelNotificationsChange: (event) ->
 
     channelNotificationSettings = @state.channelNotificationSettings.set 'isSuppressed', event.target.checked
-    @setState channelNotificationSettings : channelNotificationSettings
+    @setState { channelNotificationSettings }
 
 
   onMuteChange: (event) ->
 
     channelNotificationSettings = @state.channelNotificationSettings.set 'isMuted', event.target.checked
-    @setState channelNotificationSettings : channelNotificationSettings
+    @setState { channelNotificationSettings }
 
 
   onClose: (event) ->
