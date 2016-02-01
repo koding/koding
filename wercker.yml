@@ -215,7 +215,7 @@ deploy:
 
           rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
-          zip -q --symlinks -r $(cat $WERCKER_ROOT/ARCHIVE_NAME) .
+          zip -q --symlinks -r $(cat $WERCKER_ROOT/ARCHIVE_NAME) . || :
 
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
     - script:
