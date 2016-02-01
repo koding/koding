@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 )
@@ -17,18 +16,13 @@ var (
 	// lockExtension is the extension of lock files used to identify that file
 	// is a lock file.
 	lockExtension = ".lock"
-
-	// lockFolderName is the name of the folder where the locks are stored.
-	// Klient uses .config/koding folder to store internal files so we store
-	// the lock files there as well.
-	lockFolderName = filepath.Join(".config", "koding")
 )
 
 // Lock locks a folder by creating a .lock file corresponding to that folder.
 // This lock file is to be used by external tools to understand a particular
 // folder is a kd mounted folder.
 //
-// Lock files are stored in lockFolderName in base64 so it can be stored flat.
+// Lock files are stored in ConfigFolder in base64 so it can be stored flat.
 // The file contains the string name of the machine that's mounted in the path.
 func Lock(path, machine string) error {
 	lockFile, err := getLockFileName(path)
@@ -62,12 +56,7 @@ func Unlock(path string) error {
 // It returns fully qualified local paths regardless of how lock stores the data
 // internally.
 func GetMountedPathsFromLocks() ([]string, error) {
-	configFolder, err := getOrCreateConfigFolder()
-	if err != nil {
-		return nil, err
-	}
-
-	filesInfo, err := ioutil.ReadDir(configFolder)
+	filesInfo, err := ioutil.ReadDir(ConfigFolder)
 	if err != nil {
 		return nil, err
 	}
@@ -178,32 +167,12 @@ func IsPathInMountedPath(localPath string) (bool, error) {
 // getLockFileName returns name of lock file for mounted folder. It uses
 // absolute path in lock file name even when relative path is given.
 func getLockFileName(path string) (string, error) {
-	configFolder, err := getOrCreateConfigFolder()
-	if err != nil {
-		return "", err
-	}
-
 	// clean trailing seperators at end of path
 	// base64 path, so we can store it in flat in config directory
 	path64 := base64.StdEncoding.EncodeToString([]byte(filepath.Clean(path)))
 
 	// prefix config folder and suffix extension
-	lockFile := filepath.Join(configFolder, path64+lockExtension)
+	lockFile := filepath.Join(ConfigFolder, path64+lockExtension)
 
 	return lockFile, nil
-}
-
-// getOrCreateConfigFolder creates config folder unless it exists.
-func getOrCreateConfigFolder() (string, error) {
-	usr, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-
-	folderName := filepath.Join(usr.HomeDir, lockFolderName)
-	if err := os.MkdirAll(folderName, 0755); err != nil {
-		return "", nil
-	}
-
-	return folderName, nil
 }

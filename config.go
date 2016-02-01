@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/user"
+	"path/filepath"
 	"runtime"
 )
 
@@ -59,5 +62,31 @@ const (
 	SSHDefaultKeyName = "kd-ssh-key"
 )
 
-// KiteVersion is the version identifier used to connect to Kontrol.
-var KiteVersion = fmt.Sprintf("0.0.%d", Version)
+var (
+	// KiteVersion is the version identifier used to connect to Kontrol.
+	KiteVersion = fmt.Sprintf("0.0.%d", Version)
+
+	// ConfigFolder is folder where config and other related info are stored.
+	ConfigFolder string
+)
+
+func init() {
+	var err error
+	if ConfigFolder, err = createFolderAtHome(".config/koding"); err != nil {
+		panic(err)
+	}
+}
+
+func createFolderAtHome(cf string) (string, error) {
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+
+	folderName := filepath.Join(usr.HomeDir, cf)
+	if err := os.MkdirAll(folderName, 0755); err != nil {
+		return "", err
+	}
+
+	return folderName, nil
+}
