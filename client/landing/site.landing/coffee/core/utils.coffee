@@ -21,8 +21,6 @@ createFormData = (teamData) ->
 
 module.exports = utils = {
 
-  isLoggedIn: -> kd.userAccount
-
   clearKiteCaches: ->
 
     if window.localStorage?

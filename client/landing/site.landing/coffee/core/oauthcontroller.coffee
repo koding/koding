@@ -55,9 +55,7 @@ module.exports = class OAuthController extends kd.Controller
     {mainController} = kd.singletons
     mainController.once "ForeignAuthCompleted", (provider)=>
 
-      isUserLoggedIn = utils.isLoggedIn()
-
-      params = {isUserLoggedIn, provider}
+      params = {isUserLoggedIn: no, provider}
 
       @doOAuth params, (err, resp)=>
 
