@@ -64,8 +64,7 @@ func handleNewSubscription(token, accId, email string, plan *paymentmodels.Plan)
 		return err
 	}
 
-	_, err = CreateSubscription(customer, plan)
-	if err != nil {
+	if _, err = CreateSubscription(customer, plan); err != nil {
 		deleteCustomer(customer)
 		return err
 	}
@@ -75,8 +74,7 @@ func handleNewSubscription(token, accId, email string, plan *paymentmodels.Plan)
 
 func handleUserNoSub(customer *paymentmodels.Customer, token string, plan *paymentmodels.Plan) error {
 	if token != "" {
-		err := UpdateCreditCard(customer.OldId, token)
-		if err != nil {
+		if err := UpdateCreditCard(customer.OldId, token); err != nil {
 			return err
 		}
 	}
@@ -92,8 +90,7 @@ func handleCancel(customer *paymentmodels.Customer) error {
 	}
 
 	for _, sub := range subscriptions {
-		err = CancelSubscription(customer, &sub)
-		if err != nil {
+		if err = CancelSubscription(customer, &sub); err != nil {
 			Log.Error(err.Error())
 		}
 	}
@@ -106,13 +103,11 @@ func handleCancel(customer *paymentmodels.Customer) error {
 func deleteCustomer(customer *paymentmodels.Customer) {
 	removeCreditCardHelper(customer)
 
-	err := stripeCustomer.Del(customer.ProviderCustomerId)
-	if err != nil {
+	if err := stripeCustomer.Del(customer.ProviderCustomerId); err != nil {
 		Log.Error("Error deleting customer from Stripe: %v", err)
 	}
 
-	err = customer.Delete()
-	if err != nil {
+	if err := customer.Delete(); err != nil {
 		Log.Error("Removing cc failed for customer: %v. %v", customer.Id, err)
 	}
 }

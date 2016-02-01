@@ -54,10 +54,8 @@ func CreatePlan(id, title, nameForStripe string, interval paymentplan.PlanInterv
 		Interval: getStripePlanInterval(interval),
 	}
 
-	_, err := stripePlan.New(planParams)
-	if err != nil {
-		err = handleStripeError(err)
-		if !IsPlanAlredyExistsErr(err) {
+	if _, err := stripePlan.New(planParams); err != nil {
+		if err = handleStripeError(err); !IsPlanAlredyExistsErr(err) {
 			return nil, err
 		}
 	}
@@ -70,7 +68,7 @@ func CreatePlan(id, title, nameForStripe string, interval paymentplan.PlanInterv
 		AmountInCents:  amount,
 	}
 
-	err = planModel.Create()
+	err := planModel.Create()
 
 	return planModel, err
 }
