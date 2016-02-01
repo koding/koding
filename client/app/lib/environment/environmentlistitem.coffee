@@ -58,7 +58,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         title       : 'RE-INIT STACK'
         callback    : @bound 'handleStackReinit'
 
-      unless stack.config?.groupStack
+      config = stack.config ? {}
+      if not config.groupStack or config.oldOwner
         @deleteStackButton = new kd.ButtonView
           cssClass : 'solid compact red delete-stack'
           title    : 'Delete Stack'
