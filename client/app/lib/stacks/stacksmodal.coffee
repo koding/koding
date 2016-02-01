@@ -7,7 +7,7 @@ module.exports = class StacksModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'stacks-modal your-stacks', options.cssClass
+    options.cssClass = kd.utils.curry 'stacks-modal my-stacks', options.cssClass
     options.width    = 742
     options.title    = 'Your Stacks'
     options.overlay  = yes

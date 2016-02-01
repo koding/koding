@@ -19,9 +19,9 @@ module.exports = class StacksAppController extends AdminAppController
     teams      :
       title    : 'Stack Catalog'
       items    : [
-        { slug : 'Your-Stacks',   title : 'Your Stacks',            viewClass : YourStacksView }
-        { slug : 'My-Stacks',     title : 'My Stack Templates',     viewClass : MyStackTemplatesView }
-        { slug : 'Group-Stacks',  title : 'Group Stack Templates',  viewClass : GroupStackTemplatesView }
+        { slug : 'My-Stacks',               title : 'My Stacks',              viewClass : YourStacksView }
+        { slug : 'My-Stack-Templates',      title : 'My Stack Templates',     viewClass : MyStackTemplatesView }
+        { slug : 'Group-Stack-Templates',   title : 'Group Stack Templates',  viewClass : GroupStackTemplatesView }
       ]
 
 

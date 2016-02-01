@@ -6,7 +6,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.title     or= 'Your Machines'
+    options.title     or= 'My Machines'
     options.width     or= 742
     options.cssClass    = kd.utils.curry 'environments-modal', options.cssClass
     options.overlay    ?= yes
