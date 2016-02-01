@@ -2,12 +2,16 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestConfigFolder(t *testing.T) {
+	// cleanup any artificats from old runs
+	os.RemoveAll(filepath.Join(ConfigFolder, ".test"))
+
 	Convey("It should create folder at home", t, func() {
 		folder, err := createFolderAtHome(".test/koding")
 		So(err, ShouldBeNil)
