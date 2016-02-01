@@ -230,6 +230,43 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       return no
 
 
+  handleOauthData: (oauthData) ->
+
+    @oauthData = oauthData
+    { input }  = @email
+
+    { username, firstName, lastName } = oauthData
+
+    console.log {oauthData, input}
+
+    if oauthData.email
+      input.setValue oauthData.email
+      @email.placeholder.setClass 'out'
+      @emailIsAvailable = yes
+    else
+      modal = new KDModalView
+        cssClass        : "fbauth-failed-modal"
+        title           : "OAuth authentication failed"
+        content         : "Sorry, but we could not get a valid email address from your OAuth provider. Please select another method to register."
+        buttons         :
+          OK            :
+            cssClass    : "solid green medium"
+            title       : "OK"
+            callback    : -> modal.destroy()
+
+
+    @once 'gravatarInfoFetched', (gravatar) =>
+      # oath username has more priority over gravatar username
+      gravatar.preferredUsername = username  if username
+      gravatar.name =
+        givenName  : firstName
+        familyName : lastName
+
+      input.validate()
+
+    @fetchGravatarInfo input.getValue()
+
+
   pistachio:->
     """
     <section class='main-part'>
