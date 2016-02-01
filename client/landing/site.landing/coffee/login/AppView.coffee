@@ -357,7 +357,7 @@ module.exports = class LoginView extends JView
         partial  : 'Profile info fetched from Gravatar.'
         cssClass : 'description'
 
-    @signupModal.once 'kd.ObjectWillBeDestroyed', =>
+    @signupModal.once 'KDObjectWillBeDestroyed', =>
       kd.utils.killWait usernameCheckTimer
       usernameCheckTimer = null
 
