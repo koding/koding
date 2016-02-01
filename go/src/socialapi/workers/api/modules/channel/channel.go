@@ -307,12 +307,22 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 	}
 
 	if !canOpen {
-		return response.NewAccessDenied(
-			fmt.Errorf(
-				"account (%d) tried to retrieve the unattended private channel (%d)",
-				q.AccountId,
-				channel.Id,
-			))
+		cp := models.NewChannelParticipant()
+		cp.ChannelId = channel.Id
+		isInvited, err := cp.IsInvited(q.AccountId)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if !isInvited {
+			return response.NewAccessDenied(
+				fmt.Errorf(
+					"account (%d) tried to retrieve the unattended channel (%d)",
+					q.AccountId,
+					channel.Id,
+				),
+			)
+		}
 	}
 
 	return response.NewOK(res)

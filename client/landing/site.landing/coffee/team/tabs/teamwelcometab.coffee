@@ -23,8 +23,6 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
     super options, data
 
     { mainController } = kd.singletons
-    teamData           = utils.getTeamData()
-    name               = @getOption 'name'
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -33,21 +31,7 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
     @correct = new kd.ButtonView
       title      : 'Yes, that\'s the right address'
       style      : 'TeamsModal-button TeamsModal-button--green correct'
-      callback   : ->
-        go = ->
-          utils.storeNewTeamData 'signup', formData
-          utils.storeNewTeamData name, yes
-          kd.singletons.router.handleRoute '/Join'
-
-        formData          = {}
-        { email }         = teamData.invitation
-        formData.join     = yes
-        formData.username = email
-        formData.slug     = kd.config.group.slug
-
-        utils.validateEmail { email },
-          success : -> formData.alreadyMember = no; go()
-          error   : -> formData.alreadyMember = yes; go()
+      callback   : @bound 'next'
 
     @membersDesc = new kd.CustomHTMLView
       tagName: 'span'
@@ -55,7 +39,32 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
     @decorateTeamMembers()
 
     # temp
-    @correct.click()
+    @next()
+
+
+  next: ->
+
+    teamData = utils.getTeamData()
+    name     = @getOption 'name'
+
+    go = ->
+      utils.storeNewTeamData 'signup', formData
+      utils.storeNewTeamData name, yes
+      kd.singletons.router.handleRoute '/Join'
+
+    formData          = {}
+    { email }         = teamData.invitation
+    formData.join     = yes
+    formData.username = email
+    formData.slug     = kd.config.group.slug
+
+    utils.validateEmail { email },
+      success : ->
+        formData.alreadyMember = no
+        go()
+      error   : ->
+        formData.alreadyMember = yes
+        go()
 
 
   decorateTeamMembers: ->

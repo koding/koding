@@ -572,7 +572,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			// fetch participants of this channel
 			c := models.NewChannel()
 			c.Id = privatemessageChannel.Id
-			participants, err := c.FetchParticipantIds(&request.Query{})
+			participants, err := c.FetchParticipantIds(&request.Query{ShowExempt: false})
 			tests.ResultedWithNoErrorCheck(participants, err)
 			So(len(participants), ShouldEqual, 1)
 
