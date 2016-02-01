@@ -51,8 +51,6 @@ func (k *Klient) register(useTunnel bool) error {
 		k.kite.Config.KontrolURL = k.config.KontrolURL
 	}
 
-	// test if registerURL
-
 	k.log.Info("Register to kontrol '%s' via the URL value: '%s'",
 		k.kite.Config.KontrolURL, registerURL)
 
@@ -65,6 +63,7 @@ func (k *Klient) setupTunnel() (string, error) {
 		ServerAddr: k.config.TunnelServerAddr,
 		LocalAddr:  k.config.TunnelLocalAddr,
 		Debug:      k.config.Debug,
+		Config:     k.kite.Config,
 		NoTLS:      k.kite.TLSConfig == nil,
 	}
 

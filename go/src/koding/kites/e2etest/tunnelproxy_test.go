@@ -62,7 +62,6 @@ func TestE2E_Tunnelproxy(t *testing.T) {
 	localServer := Test.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		received <- r
 		w.WriteHeader(204)
-		w.(http.Flusher).Flush()
 	}))
 
 	// Create and start Tunnel Client. It takes care of forwarding requests

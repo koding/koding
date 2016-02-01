@@ -24,7 +24,6 @@ func main() {
 
 	m := multiconfig.New()
 	m.MustLoad(&opts)
-	m.MustValidate(&opts)
 
 	server, err := tunnelproxy.NewServer(&opts)
 	if err != nil {

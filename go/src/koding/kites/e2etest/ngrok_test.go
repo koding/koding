@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"koding/kites/kloud/utils"
 	"net"
 	"net/http"
@@ -101,7 +100,6 @@ func (n *Ngrok) Start(subdomain, localAddr string) (string, error) {
 			return "", fmt.Errorf("timed out after %s waiting for %s to be ready", n.StartTimeout, tunnelURL)
 		}
 		if err == nil {
-			io.Copy(ioutil.Discard, resp.Body) // drain body
 			resp.Body.Close()
 
 			// 404 means tunnel not found

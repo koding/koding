@@ -29,7 +29,6 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	kiteproto "github.com/koding/kite/protocol"
 )
 
 var (
@@ -346,20 +345,6 @@ func (k *Klient) RegisterMethods() {
 	})
 }
 
-func (k *Klient) test() {
-	k.log.Debug("Klient testing")
-
-	query := &kiteproto.KontrolQuery{
-		Environment: "production",
-	}
-	kites, err := k.kite.GetKites(query)
-	if err != nil {
-		k.log.Error("GetKites(%# v)=%s", query, err)
-	}
-
-	k.log.Debug("Kites (%d) = %# v", len(kites), kites)
-}
-
 // Run registers klient to Kontrol and starts the kite server. It also runs any
 // necessary workers in the background.
 func (k *Klient) Run() {
@@ -379,8 +364,6 @@ func (k *Klient) Run() {
 	if err := k.register(useTunnel); err != nil {
 		panic(err)
 	}
-
-	k.test()
 
 	if isKoding {
 		go gatherrun.Run(k.config.Environment, k.kite.Config.Username)

@@ -21,12 +21,10 @@ import (
 // TODO(rjecalik): improve dnsclient, Route53 does not handle concurrent
 // request, the caller must queue them.
 
-// publicIP
 func publicIP() (string, error) {
 	return ec2dynamicdata.GetMetadata(ec2dynamicdata.PublicIPv4)
 }
 
-// ServerConfig
 type ServerOptions struct {
 	// Server config.
 	BaseVirtualHost string `json:"baseVirtualHost" required:"true"`
@@ -49,7 +47,8 @@ type ServerOptions struct {
 	Metrics *metrics.DogStatsD `json:"-"`
 }
 
-// Server
+// Server represents tunneling server that handles managing authorization
+// of the tunneling sessions for the clients.
 type Server struct {
 	Server *tunnel.Server
 	DNS    *dnsclient.Route53
@@ -58,7 +57,7 @@ type Server struct {
 	record *dnsclient.Record
 }
 
-// NewServer
+// NewServer gives new tunneling server for the given options.
 func NewServer(opts *ServerOptions) (*Server, error) {
 	optsCopy := *opts
 
@@ -87,7 +86,6 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		Creds:      credentials.NewStaticCredentials(optsCopy.AccessKey, optsCopy.SecretKey, ""),
 		HostedZone: optsCopy.HostedZone,
 		Log:        optsCopy.Log,
-		// SyncTimeout: 1 * time.Minute,
 	}
 	dns, err := dnsclient.NewRoute53Client(dnsOpts)
 	if err != nil {
@@ -106,7 +104,7 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	}, nil
 }
 
-// RegisterResult
+// RegisterResult represents response value for the register method.
 type RegisterResult struct {
 	VirtualHost string `virtualHost"`
 	Domain      string `json:"domain"`
@@ -124,7 +122,7 @@ func (s *Server) domain(username string) string {
 	return username + "." + s.opts.BaseVirtualHost
 }
 
-// Register
+// Register creates a virtual host and DNS record for the user.
 func (s *Server) Register(r *kite.Request) (interface{}, error) {
 	res := &RegisterResult{
 		VirtualHost: s.virtualHost(r.Username),
@@ -159,7 +157,6 @@ func (s *Server) upsert(domain string) error {
 	return s.DNS.UpsertRecord(&rec)
 }
 
-// metricsFunc
 func (s *Server) metricsFunc() kite.HandlerFunc {
 	if s.opts.Metrics == nil {
 		return nil
@@ -178,7 +175,7 @@ func (s *Server) metricsFunc() kite.HandlerFunc {
 	}
 }
 
-// NewServerKite
+// NewServerKite creates a server kite for the given server.
 func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	k := kite.New(name, version)
 
