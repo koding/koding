@@ -81,9 +81,13 @@ func TestMessageSaved(t *testing.T) {
 			account, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
 
 			topicChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
+			cp, err := topicChannel.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
+			So(cp, ShouldNotBeNil)
 
 			// just a random topic name
 			topicName := topicChannel.Name
+
 			c := models.NewChannelMessage()
 			c.InitialChannelId = topicChannel.Id
 			c.AccountId = account.Id
@@ -91,7 +95,7 @@ func TestMessageSaved(t *testing.T) {
 			c.TypeConstant = models.ChannelMessage_TYPE_POST
 
 			// create with unscoped
-			err := bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
+			err = bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
 			So(err, ShouldBeNil)
 
 			So(controller.MessageSaved(c), ShouldBeNil)
@@ -102,6 +106,13 @@ func TestMessageSaved(t *testing.T) {
 				So(m, ShouldNotBeNil)
 				So(m.Id, ShouldEqual, c.Id)
 			})
+
+			Convey("unread count of topic channel should be 0", func() {
+				cml := models.NewChannelMessageList()
+				unreadCount, err := cml.UnreadCount(cp)
+				So(err, ShouldBeNil)
+				So(unreadCount, ShouldEqual, 0)
+			})
 		})
 
 		Convey("newly created channels of koding group", func() {
@@ -109,7 +120,8 @@ func TestMessageSaved(t *testing.T) {
 			groupChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, "koding")
 
 			// just a random topic name
-			topicName := models.RandomGroupName()
+			topicName := models.RandomName()
+
 			c := models.NewChannelMessage()
 			c.InitialChannelId = groupChannel.Id
 			c.AccountId = account.Id
