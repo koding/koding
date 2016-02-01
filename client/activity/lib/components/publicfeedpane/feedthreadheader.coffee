@@ -10,7 +10,7 @@ module.exports = class FeedThreadHeader extends React.Component
 
   @propTypes =
     className : React.PropTypes.string
-    channel   : React.PropTypes.instanceOf immutable.Map()
+    channel   : React.PropTypes.instanceOf immutable.Map
 
 
   @defaultProps =

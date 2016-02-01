@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginViewInlineForm = require './loginviewinlineform'
 LoginInputView      = require './logininputview'
 
@@ -18,7 +19,7 @@ module.exports = class ResendEmailConfirmationLinkInlineForm extends LoginViewIn
           messages    :
             required  : "Please enter your username or email."
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title       : "Resend email"
       style       : "solid green medium"
       type        : 'submit'

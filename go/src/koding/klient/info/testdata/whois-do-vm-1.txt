@@ -1,0 +1,92 @@
+
+#
+# ARIN WHOIS data and services are subject to the Terms of Use
+# available at: https://www.arin.net/whois_tou.html
+#
+# If you see inaccuracies in the results, please report at
+# http://www.arin.net/public/whoisinaccuracy/index.xhtml
+#
+
+
+#
+# Query terms are ambiguous.  The query is assumed to be:
+#     "n 45.55.25.20"
+#
+# Use "?" to get help.
+#
+
+#
+# The following results may also be obtained via:
+# http://whois.arin.net/rest/nets;q=45.55.25.20?showDetails=true&showARIN=false&showNonArinTopLevelNet=false&ext=netref2
+#
+
+NetRange:       45.55.0.0 - 45.55.255.255
+CIDR:           45.55.0.0/16
+NetName:        DIGITALOCEAN-11
+NetHandle:      NET-45-55-0-0-1
+Parent:         NET45 (NET-45-0-0-0-0)
+NetType:        Direct Allocation
+OriginAS:       AS393406, AS14061, AS62567, AS46652
+Organization:   Digital Ocean, Inc. (DO-13)
+RegDate:        2015-02-05
+Updated:        2015-02-05
+Comment:        http://www.digitalocean.com
+Comment:        Simple Cloud Hosting
+Ref:            http://whois.arin.net/rest/net/NET-45-55-0-0-1
+
+
+OrgName:        Digital Ocean, Inc.
+OrgId:          DO-13
+Address:        101 Ave of the Americas
+Address:        10th Floor
+City:           New York
+StateProv:      NY
+PostalCode:     10013
+Country:        US
+RegDate:        2012-05-14
+Updated:        2014-10-23
+Comment:        http://www.digitalocean.com
+Comment:        Simple Cloud Hosting
+Ref:            http://whois.arin.net/rest/org/DO-13
+
+
+OrgTechHandle: URETS-ARIN
+OrgTechName:   Uretsky, Ben
+OrgTechPhone:  +1-646-397-8051
+OrgTechEmail:  abuse@digitalocean.com
+OrgTechRef:    http://whois.arin.net/rest/poc/URETS-ARIN
+
+OrgTechHandle: SOCHA-ARIN
+OrgTechName:   Socha, Bryan
+OrgTechPhone:  +1-347-875-6044
+OrgTechEmail:  bryan@digitalocean.com
+OrgTechRef:    http://whois.arin.net/rest/poc/SOCHA-ARIN
+
+OrgTechHandle: NOC32014-ARIN
+OrgTechName:   Network Operations Center
+OrgTechPhone:  +1-347-875-6044
+OrgTechEmail:  noc@digitalocean.com
+OrgTechRef:    http://whois.arin.net/rest/poc/NOC32014-ARIN
+
+OrgNOCHandle: NOC32014-ARIN
+OrgNOCName:   Network Operations Center
+OrgNOCPhone:  +1-347-875-6044
+OrgNOCEmail:  noc@digitalocean.com
+OrgNOCRef:    http://whois.arin.net/rest/poc/NOC32014-ARIN
+
+OrgAbuseHandle: URETS-ARIN
+OrgAbuseName:   Uretsky, Ben
+OrgAbusePhone:  +1-646-397-8051
+OrgAbuseEmail:  abuse@digitalocean.com
+OrgAbuseRef:    http://whois.arin.net/rest/poc/URETS-ARIN
+
+
+#
+# ARIN WHOIS data and services are subject to the Terms of Use
+# available at: https://www.arin.net/whois_tou.html
+#
+# If you see inaccuracies in the results, please report at
+# http://www.arin.net/public/whoisinaccuracy/index.xhtml
+#
+
+

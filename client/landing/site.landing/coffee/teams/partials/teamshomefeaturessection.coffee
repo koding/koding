@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 JView                    = require './../../core/jview'
 TeamsHomeReviews         = require './teamshomereviews'
 TeamsHomeThirdPartyLogos = require './teamshomethirdpartylogos'
@@ -12,7 +13,7 @@ module.exports = class TeamsHomeFeaturesSection extends JView
 
     @teamsHomeReviews  = new TeamsHomeReviews
 
-    @moreStoriesButton = new KDButtonView
+    @moreStoriesButton = new kd.ButtonView
       cssClass  : 'solid more-stories'
       icon      : yes
       title     : 'MORE STORIES'

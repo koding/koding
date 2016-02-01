@@ -11,8 +11,11 @@ build: clean compile configure
 
 compile: $(TARGETS)
 
-configure:
+configure: globals.js
 	@bin/cmd.coffee browser $(TEST_EXTRAS)
+
+globals.js:
+	@coffee -c globals.coffee
 
 build/%.js: %.coffee
 	@mkdir -p $(@D)
@@ -21,4 +24,4 @@ build/%.js: %.coffee
 clean:
 	@rm -fr build
 
-.PHONY: build
+.PHONY: build globals.js

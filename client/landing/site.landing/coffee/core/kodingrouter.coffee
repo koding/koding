@@ -1,4 +1,5 @@
-module.exports = class KodingRouter extends KDRouter
+kd = require 'kd.js'
+module.exports = class KodingRouter extends kd.Router
 
   constructor: (@defaultRoute) ->
 
@@ -19,7 +20,7 @@ module.exports = class KodingRouter extends KDRouter
 
     return if @userRoute
 
-    KD.utils.defer =>
+    kd.utils.defer =>
       @handleRoute @defaultRoute,
         shouldPushState : yes
         replaceState    : yes
@@ -34,7 +35,7 @@ module.exports = class KodingRouter extends KDRouter
 
   openSection: (name, group, query, callback) ->
 
-    {mainView}    = KD.singletons
+    {mainView}    = kd.singletons
     {mainTabView} = mainView
 
     if pane = mainTabView.getPaneByName name
@@ -46,7 +47,7 @@ module.exports = class KodingRouter extends KDRouter
 
   showApp: (name, callback)->
 
-    {mainView : {mainTabView}} = KD.singletons
+    {mainView : {mainTabView}} = kd.singletons
 
     @requireApp name, (app, pane) =>
       mainTabView.showPane pane
@@ -55,13 +56,13 @@ module.exports = class KodingRouter extends KDRouter
 
   requireApp: (name, callback)->
 
-    {mainView : {mainTabView}} = KD.singletons
+    {mainView : {mainTabView}} = kd.singletons
 
     if app = @appControllers[name]
       pane = mainTabView.getPaneByName name
       return callback? app, pane
 
-    AppClass              = KD.getAppClass name
+    AppClass              = kd.getAppClass name
     app                   = new AppClass
     view                  = app.getView()
     pane                  = mainTabView.createTabPane {name, shouldShow : no}, view

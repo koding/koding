@@ -1,13 +1,14 @@
+kd = require 'kd.js'
 JView          = require './../../core/jview'
 CustomLinkView = require './../../core/customlinkview'
 
-module.exports = class TeamInviteTabForm extends KDFormView
+module.exports = class TeamInviteTabForm extends kd.FormView
 
   JView.mixin @prototype
   count = 0
   createInput = ->
     count++
-    new KDInputView
+    new kd.InputView
       placeholder : "email@domain.com"
       name        : "invitee#{count}"
 
@@ -18,11 +19,11 @@ module.exports = class TeamInviteTabForm extends KDFormView
 
     super options, data
 
-    @label = new KDLabelView
+    @label = new kd.LabelView
       title : 'Allow sign up and team discovery with a company email address'
       for   : 'allow'
 
-    @checkbox = new KDInputView
+    @checkbox = new kd.InputView
       defaultValue : on
       type         : 'checkbox'
       name         : 'allow'
@@ -32,12 +33,12 @@ module.exports = class TeamInviteTabForm extends KDFormView
     @input2 = createInput()
     @input3 = createInput()
 
-    @add = new KDButtonView
+    @add = new kd.ButtonView
       title    : 'ADD INVITATION'
       style    : 'TeamsModal-button compact TeamsModal-button--gray add'
       callback : @bound 'addInvitee'
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title      : 'NEXT'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'invite-button'
@@ -47,7 +48,7 @@ module.exports = class TeamInviteTabForm extends KDFormView
   addInvitee: ->
 
     input   = createInput()
-    wrapper = new KDCustomHTMLView cssClass : 'login-input-view'
+    wrapper = new kd.CustomHTMLView cssClass : 'login-input-view'
     wrapper.addSubView input
     @addSubView wrapper, '.additional'
     input.setFocus()

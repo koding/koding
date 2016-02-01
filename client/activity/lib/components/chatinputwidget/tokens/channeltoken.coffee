@@ -1,4 +1,5 @@
 textHelpers       = require 'activity/util/textHelpers'
+helpers           = require '../helpers'
 isWithinCodeBlock = require 'app/util/isWithinCodeBlock'
 ChannelActions    = require 'activity/flux/actions/channel'
 ChannelDropbox    = require '../channeldropbox'
@@ -12,7 +13,7 @@ module.exports = ChannelToken =
     currentWord = textHelpers.getWordByPosition value, position
     return  unless currentWord
 
-    matchResult = currentWord.match /^#(.*)/
+    matchResult = currentWord.match /^#([a-z0-9]*)$/
     return matchResult[1]  if matchResult
 
 
@@ -25,11 +26,19 @@ module.exports = ChannelToken =
         selectedIndex      : 'channelsSelectedIndex'
         selectedItem       : 'channelsSelectedItem'
       horizontalNavigation : no
-      processConfirmedItem : (item, query) ->
-        return {
-          type  : 'text'
-          value : "##{item.get 'name'} "
-        }
+      submit : ({ selectedItem, query, value, position }) ->
+        isCommand = not selectedItem?
+
+        newWord = "##{ if isCommand then query else selectedItem.get 'name' } "
+        result  = helpers.replaceWordAtPosition value, position, newWord
+
+        if isCommand
+          result.command = {
+            name   : 'CreateChannel'
+            params : { channelName : query }
+          }
+
+        return result
     }
 
 

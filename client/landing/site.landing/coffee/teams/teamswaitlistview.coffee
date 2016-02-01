@@ -1,10 +1,11 @@
-CustomLinkView             = require './../core/customlinkview'
-MainHeaderView             = require './../core/mainheaderview'
-JView                      = require './../core/jview'
-FooterView                 = require './../home/footerview'
-TeamsHomeFeaturesSection   = require './partials/teamshomefeaturessection'
-TeamsSignupForm            = require './teamssignupform'
-TeamsLaunchForm            = require './teamslaunchform'
+kd                       = require 'kd.js'
+utils                    = require './../core/utils'
+CustomLinkView           = require './../core/customlinkview'
+MainHeaderView           = require './../core/mainheaderview'
+JView                    = require './../core/jview'
+TeamsHomeFeaturesSection = require './partials/teamshomefeaturessection'
+TeamsSignupForm          = require './teamssignupform'
+TeamsLaunchForm          = require './teamslaunchform'
 
 
 module.exports = class TeamsWaitListView extends JView
@@ -14,21 +15,21 @@ module.exports = class TeamsWaitListView extends JView
 
     super options, data
 
-    { mainController, router } = KD.singletons
+    { mainController, router } = kd.singletons
 
-    teamsLogo = new KDCustomHTMLView
+    teamsLogo = new kd.CustomHTMLView
       tagName   : 'a'
       cssClass  : 'teams-header-logo'
       partial   : '<cite>Koding</cite> Teams'
       click     : (event) ->
-        KD.utils.stopDOMEvent event
-        KD.singletons.router.handleRoute '/'
+        kd.utils.stopDOMEvent event
+        kd.singletons.router.handleRoute '/'
 
-    @thanks = new KDCustomHTMLView
+    @thanks = new kd.CustomHTMLView
       cssClass : 'ribbon hidden'
       partial  : '<span>Thank You!</span>'
 
-    @comingSoon = new KDCustomHTMLView
+    @comingSoon = new kd.CustomHTMLView
       cssClass : 'ribbon hidden'
       partial  : '<span>Coming Soon!</span>'
 
@@ -40,22 +41,22 @@ module.exports = class TeamsWaitListView extends JView
         { title : 'Features',          href : '/Features',                name : 'features' }
       ]
 
-    @title = new KDCustomHTMLView
+    @title = new kd.CustomHTMLView
       tagName : 'h1'
       partial : 'Announcing Koding for Teams!'
 
-    @subTitle = new KDCustomHTMLView
+    @subTitle = new kd.CustomHTMLView
       tagName  : 'h2'
       partial  : '<span><i>your-company.koding.com</i><i>your-university.koding.com</i><i>your-class.koding.com</i><i>your-project.koding.com</i></span>'
 
     @form = new TeamsLaunchForm
       cssClass : 'TeamsModal--middle login-form pre-launch'
       callback : (formData) =>
-        KD.utils.earlyAccess formData,
+        utils.earlyAccess formData,
           success : @bound 'earlyAccessSuccess'
           error   : @bound 'earlyAccessFailure'
 
-    @features = new KDCustomHTMLView
+    @features = new kd.CustomHTMLView
       tagName : 'ul'
       partial : """
 
@@ -81,7 +82,7 @@ module.exports = class TeamsWaitListView extends JView
       @comingSoon.hide()
       @thanks.show()
 
-    new KDNotificationView
+    new kd.NotificationView
       title    : responseText
       duration : 3000
 
@@ -91,7 +92,7 @@ module.exports = class TeamsWaitListView extends JView
     @form.hide()
     @comingSoon.hide()
     @thanks.show()
-    new KDNotificationView
+    new kd.NotificationView
       title    : "We'll let you know when we launch it!"
       duration : 3000
 
@@ -100,7 +101,7 @@ module.exports = class TeamsWaitListView extends JView
 
     $els = @subTitle.$('span i')
     i    = 0
-    KD.utils.repeat 2000, ->
+    kd.utils.repeat 2000, ->
       $els.css 'opacity', 0
       $els[i].style.opacity = 1
       i = if i is $els.length - 1 then 0 else i + 1

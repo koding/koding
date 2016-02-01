@@ -1,5 +1,25 @@
-utils.extend utils,
+$ = require 'jquery'
+kd = require 'kd.js'
 
+
+createFormData = (teamData) ->
+
+  teamData ?= utils.getTeamData()
+  formData  = {}
+
+  for own step, fields of teamData when not ('boolean' is typeof fields)
+    for own field, value of fields
+      if step is 'invite'
+        unless formData.invitees
+        then formData.invitees  = value
+        else formData.invitees += ",#{value}"
+      else
+        formData[field] = value
+
+  return formData
+
+
+module.exports = utils = {
 
   clearKiteCaches: ->
 
@@ -84,7 +104,7 @@ utils.extend utils,
 
         return  unless input.valid
 
-        KD.utils.validateEmail { email, tfcode: tfcodeValue, password : passValue },
+        utils.validateEmail { email, tfcode: tfcodeValue, password : passValue },
           success : (res) ->
 
             return location.replace '/'  if res is 'User is logged in!'
@@ -104,25 +124,25 @@ utils.extend utils,
 
 
   checkedPasswords: {}
-  checkPasswordStrength: KD.utils.debounce 300, (password, callback) ->
+  checkPasswordStrength: kd.utils.debounce 300, (password, callback) ->
 
     return callback msg : 'No password specified!'  unless password
-    return callback null, res                       if res = KD.utils.checkedPasswords[password]
+    return callback null, res                       if res = utils.checkedPasswords[password]
 
     $.ajax
       url         : "/-/password-strength"
       type        : 'POST'
       data        : { password }
       success     : (res) ->
-        KD.utils.checkedPasswords[res.password] = res
+        utils.checkedPasswords[res.password] = res
         callback null, res
       error       : ({responseJSON}) -> callback msg : responseJSON
 
 
   storeNewTeamData: (formName, formData) ->
 
-    KD.team              ?= {}
-    { team }              = KD
+    kd.team              ?= {}
+    { team }              = kd
     team[formName]        = formData
     localStorage.teamData = JSON.stringify team
 
@@ -130,18 +150,18 @@ utils.extend utils,
   clearTeamData: ->
 
     localStorage.teamData = null
-    KD.team = null
+    kd.team = null
 
 
   getTeamData: ->
 
-    return KD.team  if KD.team
+    return kd.team  if kd.team
 
     return {}  unless data = localStorage.teamData
 
     try
       team    = JSON.parse data
-      KD.team = team
+      kd.team = team
 
     return team  if team
     return {}
@@ -150,27 +170,10 @@ utils.extend utils,
   slugifyCompanyName: (team) ->
 
     if name = team.signup?.companyName
-    then teamName = KD.utils.slugify name
+    then teamName = kd.utils.slugify name
     else teamName = ''
 
     return teamName
-
-
-  createFormData = (teamData) ->
-
-    teamData ?= KD.utils.getTeamData()
-    formData  = {}
-
-    for own step, fields of teamData when not ('boolean' is typeof fields)
-      for own field, value of fields
-        if step is 'invite'
-          unless formData.invitees
-          then formData.invitees  = value
-          else formData.invitees += ",#{value}"
-        else
-          formData[field] = value
-
-    return formData
 
 
   createTeam: (callbacks = {}) ->
@@ -188,10 +191,10 @@ utils.extend utils,
       data      : formData
       type      : 'POST'
       success   : callbacks.success or ->
-        KD.utils.clearTeamData()
+        utils.clearTeamData()
         location.href = formData.redirect
       error     : callbacks.error  or ({responseText}) ->
-        new KDNotificationView title : responseText
+        new kd.NotificationView title : responseText
 
 
   routeIfInvitationTokenIsValid: (token, callbacks) ->
@@ -242,7 +245,7 @@ utils.extend utils,
     formData.agree           = 'on'
     formData.passwordConfirm = formData.password
     formData.redirect        = '/'
-    formData.slug            = KD.config.group.slug
+    formData.slug            = kd.config.group.slug
 
     $.ajax
       url       : "/-/teams/join"
@@ -250,7 +253,7 @@ utils.extend utils,
       type      : 'POST'
       success   : callbacks.success or -> location.href = formData.redirect
       error     : callbacks.error   or ({responseText}) ->
-        new KDNotificationView title : responseText
+        new kd.NotificationView title : responseText
 
 
   earlyAccess: (data, callbacks = {}) ->
@@ -262,13 +265,13 @@ utils.extend utils,
       data      : data
       type      : 'POST'
       success   : callbacks.success or ->
-        new KDNotificationView
+        new kd.NotificationView
           title    : "Thank you! We'll let you know when we launch it!"
           duration : 3000
       error     : callbacks.error   or ({responseText}) ->
         if responseText is 'Already applied!'
           responseText = "Thank you! We'll let you know when we launch it!"
-        new KDNotificationView
+        new kd.NotificationView
           title    : responseText
           duration : 3000
 
@@ -309,8 +312,8 @@ utils.extend utils,
 
   getGroupLogo : ->
 
-    { group } = KD.config
-    logo      = new KDCustomHTMLView tagName : 'figure'
+    { group } = kd.config
+    logo      = new kd.CustomHTMLView tagName : 'figure'
 
     if group.customize?.logo
       logo.setCss 'background-image', "url(#{group.customize.logo})"
@@ -330,7 +333,7 @@ utils.extend utils,
 
   # Prevents recaptcha from showing up in signup form
   # (but not backend); Used for testing.
-  disableRecaptcha: -> KD.config.recaptcha.enabled = no
+  disableRecaptcha: -> kd.config.recaptcha.enabled = no
 
 
   # Used to store last used OAuth, ie 'github', 'facebook' etc. between refreshes.
@@ -347,3 +350,5 @@ utils.extend utils,
     # doesn't duplicate the word `the` if the title already has it in the beginning
     # doesn't duplicate the word `team` if the title already has it at the end
     "#{if title.search(/^the/i) < 0 then 'the' else ''} #{title} #{if title.search(/team$/i) < 0 then 'team' else ''}"
+
+}

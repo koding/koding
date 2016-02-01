@@ -1,8 +1,9 @@
+kd = require 'kd.js'
 LoginView = require './AppView'
 
-module.exports = class LoginAppsController extends KDViewController
+module.exports = class LoginAppsController extends kd.ViewController
 
-  KD.registerAppClass this, name  : 'Login'
+  kd.registerAppClass this, name  : 'Login'
 
 
   constructor:(options = {}, data)->
@@ -29,7 +30,7 @@ module.exports = class LoginAppsController extends KDViewController
 
   setStorageData: (key, value) ->
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+    @appStorage = kd.getSingleton('appStorageController').storage 'Login', '1.0'
     @appStorage.fetchStorage (storage) =>
       @appStorage.setValue key, value, (err) ->
         warn "Failed to set #{key} information"  if err

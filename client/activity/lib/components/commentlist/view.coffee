@@ -2,7 +2,8 @@ kd              = require 'kd'
 React           = require 'kd-react'
 Link            = require 'app/components/common/link'
 immutable       = require 'immutable'
-CommentListItem = require 'activity/components/comments/commentlistitem'
+CommentListItem = require 'activity/components/commentlistitem'
+ActivityFlux    = require 'activity/flux'
 
 module.exports = class CommentListView extends React.Component
 
@@ -43,11 +44,11 @@ module.exports = class CommentListView extends React.Component
   renderList: ->
 
     @props.comments.toList().map (comment) =>
-      <CommentListItem
-        channelId={@props.channelId}
-        comment={comment}
-        key={comment.get 'id'}
-        onMentionClick={ @props.onMentionClick } />
+      <CommentListItem.Container
+        comment        = { comment }
+        key            = { comment.get 'id' }
+        channelId      = { @props.channelId }
+        onMentionClick = { @props.onMentionClick } />
 
 
   render: ->

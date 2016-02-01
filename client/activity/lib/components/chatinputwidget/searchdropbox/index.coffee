@@ -69,7 +69,7 @@ class SearchDropbox extends React.Component
 
   renderEmptyQueryMessage: ->
 
-    <DropboxItem className="DropboxItem-singleLine">
+    <DropboxItem className="DropboxItem-singleLine emptyQueryMessage">
       nothing found yet, continue typing...
     </DropboxItem>
 

@@ -1,4 +1,5 @@
-module.exports = module.exports = class JView extends KDView
+kd = require 'kd.js'
+module.exports = module.exports = class JView extends kd.View
 
   @mixin = (target) ->
     target.viewAppended = @::viewAppended

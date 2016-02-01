@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginViewInlineForm = require './loginviewinlineform'
 LoginInputView      = require './logininputview'
 
@@ -17,7 +18,7 @@ module.exports = class RedeemInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your invite code."
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title       : "REDEEM"
       style       : "solid medium green"
       type        : 'submit'

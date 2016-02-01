@@ -4,6 +4,31 @@ TEAMPLANS   = require './teamplans'
 konstraints = require 'konstraints'
 { clone }   = require 'underscore'
 
+
+shareCredentials = (options, callback) ->
+
+  { account, group } = options
+
+  return callback null  unless group.config?.plan?
+
+  JCredential = require './credential'
+  JCredential.one { 'meta.trial': yes }, (err, credential) ->
+
+    if err or not credential
+      err ?= new KodingError 'No credential found to share with team'
+      return callback err
+
+    scope = { user: yes, owner: no, role: 'admin' }
+
+    # Share with the group so everyone in this group
+    # can build stack with this credential
+    #
+    # But also provide role as admin so admins can see
+    # this credential in their credentials list
+
+    credential.setPermissionFor group, scope, callback
+
+
 # returns plan data, if plan not found it fallbacks to default
 getPlanData = (plan) ->
 
@@ -95,4 +120,6 @@ generateConstraints = (plan) ->
   return rules
 
 
-module.exports = { generateConstraints, getPlanData, TEAMPLANS }
+module.exports = {
+  generateConstraints, getPlanData, shareCredentials, TEAMPLANS
+}

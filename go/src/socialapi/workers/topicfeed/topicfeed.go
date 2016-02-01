@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
+	"time"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
@@ -100,6 +101,24 @@ func (f *Controller) ensureChannelMessages(parentChannel *models.Channel, data *
 		if err != nil {
 			return err
 		}
+
+		cp, err := tc.FetchParticipant(data.AccountId)
+		// if account is not a member of the channel, just skip
+		if err == bongo.RecordNotFound {
+			continue
+		}
+
+		if err != nil {
+			return err
+		}
+
+		oneSecondLater := time.Now().UTC().Add(time.Second * 1)
+		// do not show unread count as 1 to user
+		err = cp.RawUpdateLastSeenAt(oneSecondLater)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return nil

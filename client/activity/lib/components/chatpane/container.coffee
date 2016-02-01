@@ -109,13 +109,8 @@ module.exports = class ChatPaneContainer extends React.Component
 
     { view }    = @refs
     { content } = view.refs
-    scroller = ReactDOM.findDOMNode view.getScroller()
-    { scrollTop, offsetHeight } = scroller
 
-    return  unless scrollTop and offsetHeight
-
-    left = scroller.getBoundingClientRect().left
-    content.refs.ChatList.updateDateMarkersPosition scrollTop, left
+    content.refs.ChatList.updateDateMarkersPosition()
 
 
   onTopThresholdReached: (event) ->

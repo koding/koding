@@ -254,6 +254,7 @@ func (p *ChannelRequest) AddInitActivity(c *Channel, participantIds []int64) (*C
 		p.Payload["initialParticipants"] = &payload
 		activity := ChannelRequestMessage_TYPE_INIT
 		p.Payload["systemType"] = &activity
+		p.PopulateAddedBy(c.CreatorId)
 	}
 
 	cm, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
@@ -450,4 +451,13 @@ func formatParticipantIds(participantIds []int64) string {
 	result, _ := json.Marshal(pids)
 
 	return string(result)
+}
+
+func (p *ChannelRequest) PopulateAddedBy(addedBy int64) {
+	if p.Payload == nil {
+		p.Payload = gorm.Hstore{}
+	}
+
+	addedByStr := strconv.FormatInt(addedBy, 10)
+	p.Payload["addedBy"] = &addedByStr
 }
