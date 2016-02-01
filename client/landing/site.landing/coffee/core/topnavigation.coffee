@@ -5,11 +5,11 @@ kookies        = require 'kookies'
 module.exports = class TopNavigation extends kd.CustomHTMLView
 
   menu = [
-    { title : 'Koding University', href : 'http://learn.koding.com',  name : 'about' }
-    { title : 'Teams',             href : '/Teams',                   name : 'teams' }
-    { title : 'Features',          href : '/Features',                name : 'features' }
-    { title : 'Sign In',           href : '/Login',                   name : 'buttonized white login',  attributes : testpath : 'login-link' }
-    { title : 'Sign Up',           href : '/Register',                name : 'buttonized green signup', attributes : testpath : 'signup-link' }
+    { title : 'Koding University', href : 'http://learn.koding.com',     name : 'about' }
+    { title : 'Teams',             href : '/Teams',                      name : 'teams' }
+    { title : 'Features',          href : 'https://koding.com/Features', name : 'features', attributes: target: '_blank' }
+    { title : 'Sign In',           href : '/Login',                      name : 'buttonized white login',  attributes : testpath : 'login-link' }
+    { title : 'Sign Up',           href : '/Register',                   name : 'buttonized green signup', attributes : testpath : 'signup-link' }
   ]
 
   constructor: (options = {}, data) ->
