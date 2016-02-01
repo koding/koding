@@ -1,3 +1,4 @@
+kd              = require 'kd.js'
 JView           = require './../../core/jview'
 MainHeaderView  = require './../../core/mainheaderview'
 TeamPaymentForm = require './../forms/teampaymenttabform'
@@ -12,7 +13,7 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
     name = @getOption 'name'
 
-    teamData = KD.utils.getTeamData()
+    teamData = kd.utils.getTeamData()
 
     @hasPaymentMethodView = new KDCustomHTMLView
       cssClass: 'payment-method-entry-form has-payment-method-wrapper'
@@ -63,15 +64,15 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
           track 'payment method success'
 
-          KD.utils.storeNewTeamData name,
+          kd.utils.storeNewTeamData name,
             token: response.id
             last4: response.card.last4
 
           @switchViews {state: 'has-payment-method'}
-          KD.singletons.router.handleRoute '/Team/Username'
+          kd.singletons.router.handleRoute '/Team/Username'
 
 
-    team = KD.utils.getTeamData()
+    team = kd.utils.getTeamData()
 
     @button = new KDButtonView
       title: 'NEXT'
@@ -97,8 +98,8 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
   submit: ->
 
-    if KD.utils.getTeamData().payment?.token?
-      KD.singletons.router.handleRoute '/Team/Username'
+    if kd.utils.getTeamData().payment?.token?
+      kd.singletons.router.handleRoute '/Team/Username'
     else
       @form.submit()
 
@@ -108,10 +109,10 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
     return  if global.Stripe
 
-    KD.utils.defer =>
+    kd.utils.defer =>
       @form.toggleInputs off
       loadScript 'https://js.stripe.com/v2/', =>
-        Stripe.setPublishableKey KD.config.stripe.token
+        Stripe.setPublishableKey kd.config.stripe.token
         @form.toggleInputs on
 
 
@@ -123,7 +124,7 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
   cleanupPaymentTeamData: ->
 
-    KD.utils.storeNewTeamData 'payment', null
+    kd.utils.storeNewTeamData 'payment', null
     @switchViews {state: 'form'}
 
 
@@ -139,7 +140,7 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
         wrapper = @$().find '.has-payment-method-wrapper'
         wrapper.toggleClass 'hidden', off
 
-        {payment: {last4}} = KD.utils.getTeamData()
+        {payment: {last4}} = kd.utils.getTeamData()
         @hasPaymentLabel.updatePartial "<span>We have **** **** **** #{last4} on file.</span>"
 
 
@@ -165,7 +166,7 @@ track = (action) ->
   category = 'TeamSignup'
   label    = 'PaymentTab'
 
-  KD.utils.analytics.track action, { category, label }
+  kd.utils.analytics.track action, { category, label }
 
 
 loadScript = (url, callback) ->

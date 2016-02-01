@@ -1,10 +1,12 @@
+kd = require 'kd.js'
+
 module.exports = class TeamPaymentTabForm extends KDFormViewWithFields
 
-  getInitialState: -> KD.utils.dict()
+  getInitialState: -> kd.utils.dict()
 
   constructor: (options = {}, data) ->
 
-    @state = KD.utils.extend @getInitialState(), options.state
+    @state = kd.utils.extend @getInitialState(), options.state
 
     clearValidationErrors = (input, event) ->
       input.unsetTooltip()
@@ -29,7 +31,7 @@ module.exports = class TeamPaymentTabForm extends KDFormViewWithFields
         rules        :
           clear      : clearValidationErrors
 
-          checkCC    : KD.utils.debounce 100, (input, event) ->
+          checkCC    : kd.utils.debounce 100, (input, event) ->
             val = $.trim input.getValue().replace(/-|\s/g,"")
             returnResult = result = Stripe.card.validateCardNumber val
             result = if result then no else 'Card number is not valid'
@@ -41,7 +43,7 @@ module.exports = class TeamPaymentTabForm extends KDFormViewWithFields
               @unsetClass cssClass  if cssClass
               val = $.trim input.getValue().replace(/-|\s/g,"")
               cssClass = Stripe.card.cardType(val).toLowerCase()
-              cssClass = KD.utils.slugify cssClass
+              cssClass = kd.utils.slugify cssClass
               @setClass cssClass
 
         events       :
@@ -149,7 +151,7 @@ module.exports = class TeamPaymentTabForm extends KDFormViewWithFields
       cssClass     : 'hidden'
 
     options.fields   = fields
-    options.cssClass = KD.utils.curry 'payment-method-entry-form clearfix', options.cssClass
+    options.cssClass = kd.utils.curry 'payment-method-entry-form clearfix', options.cssClass
     options.name     = 'method'
 
     super options, data
