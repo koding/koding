@@ -641,9 +641,6 @@ module.exports =
 
   createPrivateChat: (browser) ->
 
-    sidebarModal                = ".kdview.with-sidebar.desktop .Sidebar-ReactView .SidebarSection.SidebarMessagesSection .SidebarSection-header"
-    sidebarSelector             = "#{sidebarModal}"
-    createMessageButton         = "#{sidebarModal} .SidebarSection-secondaryLink"
     emptyInviteMembersInputText = '.CreateChannel-Modal .CreateChannel-content .channelName input'
     createChatButton            = '.CreateChannel-Modal .Modal-buttons button:first-child'
     markedAsInvalidInputText    = '.CreateChannel-content .channelName.invalid'
