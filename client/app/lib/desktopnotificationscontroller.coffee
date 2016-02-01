@@ -25,6 +25,7 @@ isPermitted = (callback) ->
 defaultOptions =
   title   : ''
   message : ''
+  route   : '/'
   timeout : 4000
   iconUrl : '/a/images/logos/logo_notifications.png'
 
@@ -43,10 +44,15 @@ module.exports = class DesktopNotificationsController extends kd.Controller
 
     return unless  isSupported()
     isPermitted ->
-      options = _.assign {}, defaultOptions, options
+      options      = _.assign {}, defaultOptions, options
+
+      focusToRoute = ->
+        window.focus()
+        kd.singletons.router.handleRoute options.route
 
       notification = new Notification options.title, { body: options.message, icon: options.iconUrl }
-      notification.onclick = options.onClick
+
+      notification.onclick = options.onClick || focusToRoute
       setTimeout  ->
         notification.close()
       , options.timeout
