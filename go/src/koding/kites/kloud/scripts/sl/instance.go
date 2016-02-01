@@ -32,6 +32,7 @@ var instanceResource = &res.Resource{
 type instanceList struct {
 	template string
 	hostname string
+	env      string
 	id       int
 	entries  bool
 }
@@ -43,6 +44,7 @@ func (*instanceList) Name() string {
 func (cmd *instanceList) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.template, "t", "", "Applies given text/template to slice of datacenters.")
 	f.StringVar(&cmd.hostname, "hostname", "", "Filters instances by hostname.")
+	f.StringVar(&cmd.env, "env", "", "Filters instances by environment.")
 	f.IntVar(&cmd.id, "id", 0, "Filters instances by id.")
 	f.BoolVar(&cmd.entries, "entries", false, "Lists entries only.")
 }
@@ -69,6 +71,11 @@ func (cmd *instanceList) list() (interface{}, error) {
 	f := &sl.Filter{
 		Hostname: cmd.hostname,
 		ID:       cmd.id,
+	}
+	if cmd.env != "" {
+		f.Tags = sl.Tags{
+			"koding-env": cmd.env,
+		}
 	}
 	if cmd.entries {
 		return client.InstanceEntriesByFilter(f)
@@ -108,6 +115,7 @@ func (cmd *instanceDelete) Name() string {
 
 func (cmd *instanceDelete) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.list.hostname, "hostname", "", "Filters instances by hostname.")
+	f.StringVar(&cmd.list.env, "env", "", "Filters instances by environment.")
 	f.IntVar(&cmd.list.id, "id", 0, "Filters instances by id.")
 	f.BoolVar(&cmd.dry, "dry-run", false, "Dry run.")
 	cmd.list.entries = true
