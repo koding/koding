@@ -1,5 +1,6 @@
 kd                              = require 'kd'
 bowser                          = require 'bowser'
+isKoding                        = require 'app/util/isKoding'
 showError                       = require 'app/util/showError'
 socialHelpers                   = require './collaboration/helpers/social'
 isVideoFeatureEnabled           = require 'app/util/isVideoFeatureEnabled'
@@ -207,6 +208,8 @@ module.exports = VideoCollaborationController =
   canUserStartVideo: (callback = kd.noop) ->
 
     { paymentController } = kd.singletons
+
+    return callback()  unless isKoding()
 
     @whenRealtimeReady =>
 
