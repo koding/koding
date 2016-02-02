@@ -4,7 +4,9 @@ ApplicationMenu = require './applicationmenu'
 IPCReporter     = require './ipcreporter'
 path            = require 'path'
 
-ROOT_URL      = 'http://dev.koding.com:8090/Teams'
+# temp
+# get this from config or runtime options - SY
+ROOT_URL = 'https://koding.com/Teams'
 
 module.exports = ->
 
