@@ -96,8 +96,8 @@ module.exports = class FeedPane extends React.Component
     return null  if not checkFlag('super-admin') and isAnnouncementChannel
 
     <div>
-      <FeedInputWidget channelId={ channelId } />
-      <FeedPaneTabContainer thread={ thread } />
+      <FeedInputWidget.Container channelId = { channelId } />
+      <FeedPaneTabContainer thread = { thread } />
     </div>
 
 
