@@ -42,7 +42,7 @@ load = (channelId) ->
 
       dispatch LOAD_CHANNEL_NOTIFICATION_SETTINGS_SUCCESS, { channelId, channelNotificationSettings }
 
-      resolve { channelId }
+      resolve { channelId, settings: channelNotificationSettings }
 
 
 updateSettings = (channelId, channelNotificationSettings) ->

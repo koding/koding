@@ -1,7 +1,9 @@
-kd              = require 'kd'
-AppFlux         = require 'app/flux'
-actions         = require '../actiontypes'
-isPublicChannel = require 'app/util/isPublicChannel'
+kd                   = require 'kd'
+AppFlux              = require 'app/flux'
+whoami               = require 'app/util/whoami'
+actions              = require '../actiontypes'
+isPublicChannel      = require 'app/util/isPublicChannel'
+desktopNotifications = require './desktopnotifications'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -10,12 +12,17 @@ _cache = channel: {}, message: {}
 bindChannelEvents = (channel) ->
 
   return  if _cache.channel[channel.id]
+  return  if channel.typeConstant is 'group'
 
   _cache.channel[channel.id] = yes
 
   kd.singletons.socialapi.onChannelReady channel, ->
 
     channel.on 'MessageAdded', (message) ->
+
+      unless _isChannelInitiationEvent message
+        desktopNotifications.postMessageReceivedNotification message, channel
+
       bindMessageEvents message
 
       _channel = kd.singletons.socialapi.retrieveCachedItemById message.initialChannelId
@@ -88,7 +95,11 @@ bindNotificationEvents = ->
 
   kd.singletons.notificationController
     .on 'MessageAddedToChannel', (payload) ->
-      { channel : { id }, channelMessage, unreadCount } = payload
+      { channel : { id, name }, channelMessage, unreadCount } = payload
+      if _isChannelInitiationEvent payload.channelMessage
+        { addedBy } = channelMessage.payload
+
+        desktopNotifications.postAddedToChannelNotification name, addedBy
 
       # TODO: FIXME
       # The reason we are doing these extra fetches is that right now backend
@@ -136,6 +147,22 @@ bindNotificationEvents = ->
       { unreadCount } = channel
 
       _dispatchFn { unreadCount, channel }
+
+      { message } = options.lastMessage
+
+      if _isChannelInitiationEvent message
+        { addedBy } = message.payload
+        desktopNotifications.postAddedToChannelNotification channel.name, addedBy
+
+    .on 'NotificationAdded', (options)->
+
+      if options.type is 'mention'
+        desktopNotifications.postMentionedNotification options
+
+
+_isChannelInitiationEvent = (message) ->
+  systemType = message.payload?.systemType
+  return systemType and systemType is 'initiate'
 
 
 ###*
