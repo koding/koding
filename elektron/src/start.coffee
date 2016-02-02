@@ -13,6 +13,7 @@ module.exports = ->
     height : 800
     webPreferences    :
       preload         : path.resolve path.join __dirname, 'noderequire.js'
+      nodeIntegration : no
 
   # and load the index.html of the app.
   mainWindow.loadURL ROOT_URL
