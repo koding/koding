@@ -1,16 +1,12 @@
-Bongo                                     = require 'bongo'
-koding                                    = require './../bongo'
-request                                   = require 'request'
-querystring                               = require 'querystring'
-
-{ daisy }                                 = Bongo
-{ expect }                                = require 'chai'
-{ generateRandomEmail
+{ async
+  expect
+  request
+  querystring
+  generateRandomEmail
   generateRandomString
-  generateRandomUsername }                = require '../../../testhelper'
+  generateRandomUsername }        = require '../../../testhelper'
 { generateValidateRequestBody
-  generateValidateRequestParams }         = require '../../../testhelper/handler/validatehelper'
-
+  generateValidateRequestParams } = require '../../../testhelper/handler/validatehelper'
 
 
 # here we have actual tests
@@ -22,61 +18,51 @@ runTests = -> describe 'server.handlers.validate', ->
       body       :
         username : generateRandomUsername()
 
-    queue       = []
-    methods     = ['put', 'patch', 'delete']
+    queue   = []
+    methods = ['put', 'patch', 'delete']
 
-    addRequestToQueue = (queue, method) -> queue.push ->
+    addRequestToQueue = (queue, method) -> queue.push (next) ->
       validateRequestParams.method = method
       request validateRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 404
-        queue.next()
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 404
+        next()
 
     for method in methods
       addRequestToQueue queue, method
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 400 if fields params is not set', (done) ->
 
-    validateRequestParams       = generateValidateRequestParams()
-    validateRequestParams.body  = null
+    validateRequestParams      = generateValidateRequestParams()
+    validateRequestParams.body = null
 
     request.post validateRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal 'Bad request'
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
+      expect(body).to.be.equal 'Bad request'
       done()
 
 
   it.skip 'should send HTTP 200 if both email and username is not in use', (done) ->
 
-    queue = [
+    validateRequestParams = generateValidateRequestParams()
 
-      ->
-        validateRequestParams      = generateValidateRequestParams()
+    # querystring fails encoding nested objects
+    stringifiedFields = JSON.stringify
+      email    : generateRandomEmail()
+      username : generateRandomUsername()
 
-        # querystring fails encoding nested objects
-        stringifiedFields          = JSON.stringify
-          email    : generateRandomEmail()
-          username : generateRandomUsername()
+    validateRequestParams.body = "fields=#{stringifiedFields}"
 
-        validateRequestParams.body = "fields=#{stringifiedFields}"
+    request.post validateRequestParams, (err, res, body) ->
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
+      expect(body).to.be.equal 'asd'
+      queue.next()
 
-        request.post validateRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          expect(body)            .to.be.equal 'asd'
-          queue.next()
-
-      -> done()
-
-    ]
-
-    daisy queue
 
 
 runTests()

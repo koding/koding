@@ -1,32 +1,16 @@
-JUser            = null
-JAccount         = null
-
-Bongo            = require 'bongo'
-koding           = require './../bongo'
-request          = require 'request'
-
-{ daisy }        = Bongo
-{ expect }       = require 'chai'
-
-{ generateRandomEmail
+{ async
+  expect
+  request
+  generateRandomEmail
   generateRandomString }            = require '../../../testhelper'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
 { generateGetProfileRequestParams } = require '../../../testhelper/handler/getprofilehelper'
 
+JUser    = require '../../../models/user'
+JAccount = require '../../../models/account'
+
 # begin tests
 describe 'server.handlers.getprofile', ->
-
-  beforeEach (done) ->
-
-    # including models before each test case, requiring them outside of
-    # tests suite is causing undefined errors
-    {
-      JUser
-      JAccount
-    } = koding.models
-
-    done()
-
 
   it 'should send HTTP 404 if user is not found for the given email.', (done) ->
 
@@ -36,16 +20,14 @@ describe 'server.handlers.getprofile', ->
 
     methods.forEach (method) ->
       requestParams = generateGetProfileRequestParams { email, method }
-      queue.push ->
+      queue.push (next) ->
         request requestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 404
-          expect(body)            .to.be.equal 'no user found'
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 404
+          expect(body).to.be.equal 'no user found'
+          next()
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 200 if user is found for the given email.', (done) ->
@@ -63,20 +45,18 @@ describe 'server.handlers.getprofile', ->
 
     profileRequestParams  = generateGetProfileRequestParams { email, method : 'post' }
 
-    queue.push ->
+    queue.push (next) ->
 
       request registerRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 200
-        queue.next()
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 200
+        next()
 
-    queue.push ->
+    queue.push (next) ->
 
       request profileRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 200
-        queue.next()
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 200
+        next()
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done

@@ -1,10 +1,9 @@
 Bongo                                     = require 'bongo'
 koding                                    = require './../bongo'
-request                                   = require 'request'
-
-{ daisy }                                 = Bongo
-{ expect }                                = require 'chai'
-{ generateUrl
+{ async
+  expect
+  request
+  generateUrl
   generateRandomEmail
   generateRandomString
   generateRandomUsername }                = require '../../../testhelper'
@@ -34,28 +33,26 @@ runTests = -> describe 'server.handlers.verifytoken', ->
       body    :
         email : generateRandomEmail()
 
-    queue       = []
-    methods     = ['post', 'put', 'patch', 'delete']
+    queue   = []
+    methods = ['post', 'put', 'patch', 'delete']
 
-    addRequestToQueue = (queue, method) -> queue.push ->
+    addRequestToQueue = (queue, method) -> queue.push (next) ->
       verifyTokenRequestParams.method = method
       request verifyTokenRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 404
-        queue.next()
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 404
+        next()
 
     for method in methods
       addRequestToQueue queue, method
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should redirect to VerificationFailed page if token is invalid', (done) ->
 
-    token                     = 'invalidToken'
-    url                       = generateUrl
+    token = 'invalidToken'
+    url   = generateUrl
       route : "Verify/#{token}"
 
     verifyTokenRequestParams = generateVerifyTokenRequestParams
@@ -63,9 +60,9 @@ runTests = -> describe 'server.handlers.verifytoken', ->
       token : token
 
     request.get verifyTokenRequestParams, (err, res, body) ->
-      expect(err)               .to.not.exist
-      expect(res.statusCode)    .to.be.equal 200
-      expect(res.request.href)  .to.contain 'VerificationFailed'
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 200
+      expect(res.request.href).to.contain 'VerificationFailed'
       done()
 
 
@@ -78,7 +75,7 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
     queue = [
 
-      ->
+      (next) ->
         # generationg a new user
         registerRequestParams = generateRegisterRequestParams
           body       :
@@ -86,11 +83,11 @@ runTests = -> describe 'server.handlers.verifytoken', ->
             username : username
 
         request.post registerRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         # generating a new token
         certificate = new JPasswordRecovery {
           email        : email
@@ -102,9 +99,9 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
         certificate.save (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting newly created token to be verified
         url                       = generateUrl
           route : "Verify/#{token}"
@@ -114,16 +111,14 @@ runTests = -> describe 'server.handlers.verifytoken', ->
           token : token
 
         request.get verifyTokenRequestParams, (err, res, body) ->
-          expect(err)               .to.not.exist
-          expect(res.statusCode)    .to.be.equal 200
-          expect(res.request.href)  .to.contain 'Verified'
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(res.request.href).to.contain 'Verified'
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
   it 'should redirect to VerificationFailed page if token is expired, redeemed or invalidated', (done) ->
@@ -136,13 +131,13 @@ runTests = -> describe 'server.handlers.verifytoken', ->
     url         = generateUrl
       route : "Verify/#{token}"
 
-    verifyTokenRequestParams  = generateVerifyTokenRequestParams
+    verifyTokenRequestParams = generateVerifyTokenRequestParams
       url   : url
       token : token
 
     queue = [
 
-      ->
+      (next) ->
         # generationg a new user
         registerRequestParams = generateRegisterRequestParams
           body       :
@@ -150,11 +145,11 @@ runTests = -> describe 'server.handlers.verifytoken', ->
             username : username
 
         request.post registerRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         # generating a new token
         certificate = new JPasswordRecovery {
           email        : email
@@ -166,83 +161,81 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
         certificate.save (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expiring token
         certificate.expire (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting expired token not to pass verification
         request.get verifyTokenRequestParams, (err, res, body) ->
-          expect(err)               .to.not.exist
-          expect(res.statusCode)    .to.be.equal 200
-          expect(res.request.href)  .to.contain 'VerificationFailed'
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(res.request.href).to.contain 'VerificationFailed'
+          next()
 
-      ->
+      (next) ->
         # activating token again
         certificate.update { $set: { status: 'active' } }, (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting activated token to pass verification
         request.get verifyTokenRequestParams, (err, res, body) ->
-          expect(err)               .to.not.exist
-          expect(res.statusCode)    .to.be.equal 200
-          expect(res.request.href)  .to.contain 'Verified'
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(res.request.href).to.contain 'Verified'
+          next()
 
-      ->
+      (next) ->
         # redeeming token
         certificate.redeem (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting redeemed token not to pass verification
         request.get verifyTokenRequestParams, (err, res, body) ->
-          expect(err)               .to.not.exist
-          expect(res.statusCode)    .to.be.equal 200
-          expect(res.request.href)  .to.contain 'VerificationFailed'
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(res.request.href).to.contain 'VerificationFailed'
+          next()
 
-      ->
+      (next) ->
         # activating token again
         certificate.update { $set: { status: 'active' } }, (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting activated token to pass verification
         request.get verifyTokenRequestParams, (err, res, body) ->
-          expect(err)               .to.not.exist
-          expect(res.statusCode)    .to.be.equal 200
-          expect(res.request.href)  .to.contain 'Verified'
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(res.request.href).to.contain 'Verified'
+          next()
 
-      ->
+      (next) ->
         # invalidating token
         certificate.update { $set: { status: 'invalidated' } }, (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting invalidated token not to pass verification
         request.get verifyTokenRequestParams, (err, res, body) ->
-          expect(err)               .to.not.exist
-          expect(res.statusCode)    .to.be.equal 200
-          expect(res.request.href)  .to.contain 'VerificationFailed'
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(res.request.href).to.contain 'VerificationFailed'
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
 runTests()

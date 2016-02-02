@@ -1,7 +1,7 @@
 hat                                = require 'hat'
+async                              = require 'async'
 koding                             = require '../../bongo'
 apiErrors                          = require './errors'
-{ daisy }                          = require 'bongo'
 { getClientId
   handleClientIdNotFound
   checkAuthorizationBearerHeader } = require '../../helpers'
@@ -31,13 +31,13 @@ module.exports = createUser = (req, res, next) ->
 
   queue = [
 
-    ->
+    (next) ->
       validateData { token, username, suggestedUsername }, (err, data) ->
         return sendApiError res, err  if err
         { username, apiToken } = data
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # creating a client which will be used in JUser.convert
       context = { group : apiToken.group }
       koding.fetchClient clientId, context, (client_) ->
@@ -49,10 +49,9 @@ module.exports = createUser = (req, res, next) ->
 
         clientIPAddress = req.headers['x-forwarded-for'] or req.connection?.remoteAddress
         client.clientIP = (clientIPAddress.split ',')[0]  if clientIPAddress
+        next()
 
-        queue.next()
-
-    ->
+    (next) ->
       # registering a new user to the apiToken group
       password = passwordConfirm = hat()
 
@@ -83,7 +82,7 @@ module.exports = createUser = (req, res, next) ->
 
   ]
 
-  daisy queue
+  async.series queue
 
 
 validateData = (data, callback) ->
@@ -104,33 +103,33 @@ handleUsername = (username, suggestedUsername, callback) ->
   queue = []
 
   if username
-    queue.push ->
+    queue.push (next) ->
       validateUsername username, (err) ->
         # return username if it is valid
         return callback null, username  unless err
         # return if there is no suggestedUsername
         return callback err  unless suggestedUsername
-        queue.next()
+        next()
 
   if suggestedUsername
-    queue.push ->
+    queue.push (next) ->
       # if suggestedUsername length is not valid, return error without trying
       unless isSuggestedUsernameLengthValid suggestedUsername
         return callback apiErrors.outOfRangeSuggestedUsername
-      queue.next()
+      next()
 
     # try usernames with different suffixes 10 times
     for i in [0..10]
-      queue.push ->
+      queue.push (next) ->
         _username = "#{suggestedUsername}#{hat(32)}"
         validateUsername _username, (err) ->
           return callback null, _username  unless err
-          queue.next()
+          next()
 
     # if username is still invalid, let it go
     queue.push -> callback apiErrors.usernameAlreadyExists
 
-  daisy queue
+  async.series queue
 
 
 validateUsername = (username, callback) ->

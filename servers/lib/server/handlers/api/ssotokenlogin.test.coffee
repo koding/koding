@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   request
   generateRandomEmail
@@ -85,27 +85,27 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
 
       queue = [
 
-        ->
+        (next) ->
           # making a create user and create ssoToken request for that user
           createUserAndSsoToken apiToken.code, (data) ->
             { username, token } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # fetching account
           JAccount.one { 'profile.nickname' : username }, (err, account_) ->
             expect(err).to.not.exist
             account = account_
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # leaving create user from api token group
           client = { connection : { delegate : account } }
           account.leaveFromAllGroups client, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # trying to use sso token without being a member of the group
           ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
             qs  : { token }
@@ -115,13 +115,11 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
             expect(err).to.not.exist
             expect(res.statusCode).to.be.equal 400
             expect(JSON.parse body).to.be.deep.equal { error : apiErrors.notGroupMember }
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   it 'should send HTTP and be able to login user with valid request', (done) ->
