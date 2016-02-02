@@ -3,7 +3,7 @@ BrowserWindow   = electron.BrowserWindow
 ApplicationMenu = require './applicationmenu'
 path            = require 'path'
 
-ROOT_URL      = 'http://jarjar.dev.koding.com:8090'
+ROOT_URL      = 'http://dev.koding.com:8090/Teams'
 
 module.exports = ->
 
