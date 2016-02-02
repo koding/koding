@@ -141,16 +141,16 @@ module.exports =
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
-    hasNotTeamAccessPage = '.main-wrapper .login-form .email'
+    hasNotTeamAccessPage = '.TeamsModal--select'
 
     browser.url url
     browser.maximizeWindow()
 
     browser.element 'css selector', hasNotTeamAccessPage, (result) =>
       if result.status is 0
-        @getInvitationAndCreateTeam(browser)
+        @getInvitationAndCreateTeam browser
       else
-        @loginToTeam(browser, user)
+        @loginToTeam browser, user
 
     return user
 
