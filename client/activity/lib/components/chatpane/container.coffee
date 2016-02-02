@@ -104,18 +104,30 @@ module.exports = class ChatPaneContainer extends React.Component
     @isThresholdReached = no
 
 
-  onScroll: ->
-
-    @updateDateMarkersPosition()
-    @updateUnreadMessagesLabel()
-
-
   updateDateMarkersPosition: ->
 
     { view }    = @refs
     { content } = view.refs
 
     content.refs.ChatList.updateDateMarkersPosition()
+
+
+  updateUnreadMessagesLabel: ->
+
+    unreadCount = @channel 'unreadCount'
+    return  unless unreadCount
+
+    messages = @props.thread.get('messages').toList()
+    message  = messages.get messages.size - unreadCount
+    return  unless message
+
+    { view }    = @refs
+    { content } = view.refs
+    element     = helper.getMessageElement message.get 'id'
+    label       = content.refs.UnreadCountLabel
+    position    = getScrollablePosition element
+
+    label.setPosition position
 
 
   onTopThresholdReached: (event) ->
@@ -131,36 +143,37 @@ module.exports = class ChatPaneContainer extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
+  onScroll: ->
+
+    @updateDateMarkersPosition()
+    @updateUnreadMessagesLabel()
+
+
   onGlance: -> ActivityFlux.actions.channel.glance @channel 'id'
 
 
-  updateUnreadMessagesLabel: ->
+  onJumpToUnreadMessages: ->
 
     unreadCount = @channel 'unreadCount'
-    return  unless unreadCount
-
-    messages = @props.thread.get('messages').toList()
-    message  = messages.get messages.size - unreadCount
+    messages    = @props.thread.get('messages').toList()
+    message     = messages.get messages.size - unreadCount
     return  unless message
 
-    { view }    = @refs
-    { content } = view.refs
-    element     = helper.getMessageElement message.get 'id'
-    label       = content.refs.unreadCountLabel
-    position    = getScrollablePosition element
-
-    label.setPosition position
+    element = helper.getMessageElement message.get 'id'
+    scrollToElement element, yes
 
 
   render: ->
 
     <ChatPaneView {...@props}
-      ref                   = 'view'
-      selectedMessageId     = { @state.selectedMessageId }
-      onTopThresholdReached = { @bound 'onTopThresholdReached' }
-      onGlance              = { @bound 'onGlance' }
-      onScroll              = { @bound 'onScroll' }
-      isMessagesLoading     = { @isThresholdReached }>
+      ref                    = 'view'
+      selectedMessageId      = { @state.selectedMessageId }
+      isMessagesLoading      = { @isThresholdReached }
+      onTopThresholdReached  = { @bound 'onTopThresholdReached' }
+      onGlance               = { @bound 'onGlance' }
+      onScroll               = { @bound 'onScroll' }
+      onJumpToUnreadMessages = { @bound 'onJumpToUnreadMessages' }
+    >
         {@props.children}
     </ChatPaneView>
 

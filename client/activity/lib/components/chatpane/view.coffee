@@ -12,25 +12,27 @@ ScrollableContent   = require 'app/components/scroller/scrollablecontent'
 class ChatPaneView extends React.Component
 
   @propsTypes =
-    thread                : React.PropTypes.instanceOf immutable.Map
-    onInviteClick         : React.PropTypes.func
-    showItemMenu          : React.PropTypes.bool
-    isMessagesLoading     : React.PropTypes.bool
-    onTopThresholdReached : React.PropTypes.func
-    selectedMessageId     : React.PropTypes.string
-    onGlance              : React.PropTypes.func
-    onScroll              : React.PropTypes.func
+    thread                 : React.PropTypes.instanceOf immutable.Map
+    onInviteClick          : React.PropTypes.func
+    showItemMenu           : React.PropTypes.bool
+    isMessagesLoading      : React.PropTypes.bool
+    onTopThresholdReached  : React.PropTypes.func
+    selectedMessageId      : React.PropTypes.string
+    onGlance               : React.PropTypes.func
+    onScroll               : React.PropTypes.func
+    onJumpToUnreadMessages : React.PropTypes.func
 
 
   @defaultProps =
-    thread                : immutable.Map()
-    onInviteClick         : kd.noop
-    showItemMenu          : yes
-    isMessagesLoading     : no
-    onTopThresholdReached : kd.noop
-    selectedMessageId     : ''
-    onGlance              : kd.noop
-    onScroll              : kd.noop
+    thread                 : immutable.Map()
+    onInviteClick          : kd.noop
+    showItemMenu           : yes
+    isMessagesLoading      : no
+    onTopThresholdReached  : kd.noop
+    selectedMessageId      : ''
+    onGlance               : kd.noop
+    onScroll               : kd.noop
+    onJumpToUnreadMessages : kd.noop
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
@@ -97,7 +99,12 @@ class ChatPaneView extends React.Component
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="Pane-contentWrapper">
         <section className="Pane-body" ref="ChatPaneBody">
-          <UnreadMessagesLabel ref='unreadCountLabel' unreadCount={@channel 'unreadCount'} />
+          <UnreadMessagesLabel
+            ref='UnreadCountLabel'
+            unreadCount={@channel 'unreadCount'}
+            onJump={@props.onJumpToUnreadMessages}
+            onMarkAsRead={@props.onGlance}
+          />
           {@renderBody()}
           {@props.children}
         </section>
