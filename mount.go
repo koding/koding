@@ -16,7 +16,6 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/klient/remote/req"
-	"github.com/koding/klient/remote/utils"
 	"github.com/koding/klientctl/klientctlerrors"
 	"github.com/koding/klientctl/util"
 )
@@ -398,7 +397,7 @@ func getMachineFromName(infos []kiteInfo, name string) (kiteInfo, bool) {
 		infoNames = append(infoNames, info.VMName)
 	}
 
-	matchedName, ok := utils.MatchFullOrShortcut(infoNames, name)
+	matchedName, ok := util.MatchFullOrShortcut(infoNames, name)
 	if !ok {
 		return kiteInfo{}, false
 	}
