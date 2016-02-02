@@ -16,11 +16,6 @@ pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.p
 module.exports =
 
 
-  setCookie: (browser) ->
-
-    helpers.setCookie(browser, 'team-access', 'true')
-
-
   openTeamsPage: (browser) ->
 
     teamsSelector = '[testpath=main-header] .full-menu a.teams'
