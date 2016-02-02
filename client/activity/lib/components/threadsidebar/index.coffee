@@ -59,8 +59,8 @@ module.exports = class ThreadSidebar extends React.Component
       </ThreadSidebarContentBox>
 
       <ThreadSidebarContentBox className="help-support" title="HELP & SUPPORT">
-        <a href="http://learn.koding.com/guides/collaboration/">Using collaboration</a>
-        <a href="http://learn.koding.com/categories/ssh/">How to ssh into your VMs?</a>
-        <a href="http://learn.koding.com"><i>See more...</i></a>
+        <a href="https://koding.com/docs/collaboration/">Using collaboration</a>
+        <a href="https://koding.com/docs/topic/ssh/">How to ssh into your VMs?</a>
+        <a href="https://koding.com/docs/index"><i>See more...</i></a>
       </ThreadSidebarContentBox>
     </Scroller>

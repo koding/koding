@@ -8,23 +8,23 @@ module.exports = class MachineSettingsGuidesView extends KDView
   Guides = [
     {
       title : 'Making your VM secure using Ubuntu UFW'
-      link  : 'http://learn.koding.com/guides/enable-ufw/'
+      link  : 'https://koding.com/docs/enable-ufw/'
     }
     {
       title : 'Connect with SSH, from Unix'
-      link  : 'http://learn.koding.com/guides/ssh-into-your-vm/'
+      link  : 'https://koding.com/docs/ssh-into-your-vm/'
     }
     {
       title : 'Getting started with the Koding Package Manager'
-      link  : 'http://learn.koding.com/guides/getting-started-kpm/'
+      link  : 'https://koding.com/docs/getting-started-kpm/'
     }
     {
       title : 'Installing MySQL'
-      link  : 'http://learn.koding.com/guides/installing-mysql/'
+      link  : 'https://koding.com/docs/installing-mysql/'
     }
     {
       title : 'How can I do real-time collaboration on Koding?'
-      link  : 'http://learn.koding.com/guides/collaboration/'
+      link  : 'https://koding.com/docs/collaboration/'
     }
   ]
 
@@ -38,7 +38,7 @@ module.exports = class MachineSettingsGuidesView extends KDView
     if @getData().isManaged()
       Guides[0] =
         title : 'Learn more about connecting your own VM'
-        link  : 'http://learn.koding.com/guides/connect-your-machine/'
+        link  : 'https://koding.com/docs/connect-your-machine/'
 
       Guides.splice 1, 2
 

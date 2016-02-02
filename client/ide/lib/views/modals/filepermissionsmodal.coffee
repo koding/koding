@@ -9,7 +9,7 @@ module.exports = class FilePermissionsModal extends KDModalView
       <div class="modalformline">
         <p>
           #{options.contentText}
-          Read more about permissions <a class="help" href="http://learn.koding.com/permissions" target="_blank">here</a>.
+          Read more about permissions <a class="help" href="https://koding.com/docs/understanding-file-permissions" target="_blank">here</a>.
         </p>
       </div>
     """
