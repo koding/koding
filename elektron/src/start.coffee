@@ -1,6 +1,7 @@
 electron        = require 'electron'
 BrowserWindow   = electron.BrowserWindow
 ApplicationMenu = require './applicationmenu'
+IPCReporter     = require './ipcreporter'
 path            = require 'path'
 
 ROOT_URL      = 'http://dev.koding.com:8090/Teams'
@@ -28,8 +29,8 @@ module.exports = ->
   # Set application menu
   new ApplicationMenu
 
-  # Set badge for notification counts
-  electron.app.dock.setBadge '・'
+  # Start listening the web app
+  new IPCReporter
 
   # Emitted when the window is closed.
   mainWindow.on 'closed', ->
