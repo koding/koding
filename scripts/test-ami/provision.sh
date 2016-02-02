@@ -101,6 +101,8 @@ npm install --global nightwatch
 git config --global user.email 'sysops@koding.com'
 git config --global user.name 'Koding Bot'
 
+cp $HOME/.gitconfig ~root/
+
 ## nginx
 
 update-rc.d nginx disable all
