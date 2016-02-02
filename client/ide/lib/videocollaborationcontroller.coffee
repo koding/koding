@@ -196,6 +196,14 @@ module.exports = VideoCollaborationController =
     @chat?.emit args...
 
 
+  isVideoActive: (callback) ->
+
+    state = @videoModel.state.active
+
+    callback? state
+    return state
+
+
   canUserStartVideo: (callback = kd.noop) ->
 
     { paymentController } = kd.singletons
