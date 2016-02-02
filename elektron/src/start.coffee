@@ -9,8 +9,11 @@ module.exports = ->
 
   # Create the browser window.
   mainWindow = new BrowserWindow
-    width  : 1280
-    height : 800
+    width             : 1280
+    height            : 800
+    show              : yes
+    acceptFirstMouse  : yes
+    backgroundColor   : '#131313'
     webPreferences    :
       partition       : 'persist:koding'
       preload         : path.resolve path.join __dirname, 'noderequire.js'
