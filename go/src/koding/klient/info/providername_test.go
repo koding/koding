@@ -53,7 +53,7 @@ func runRegexCheckTest(t *testing.T, checker ProviderChecker,
 // WhoisQuery has very basic behavior currently - so we're just
 // running a couple simple query tests.
 func TestWhoisQuery(t *testing.T) {
-	res, err := WhoisQuery("koding.com", "whois.arin.net", 1*time.Second)
+	res, err := WhoisQuery("koding.com", "whois.arin.net", 6*time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
