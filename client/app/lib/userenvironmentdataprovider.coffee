@@ -3,7 +3,7 @@ nick    = require 'app/util/nick'
 globals = require 'globals'
 remote  = require('app/remote').getInstance()
 Machine = require 'app/providers/machine'
-sinkrow = require 'sinkrow'
+async   = require 'async'
 
 KDNotificationView = kd.NotificationView
 
@@ -238,23 +238,21 @@ module.exports = UserEnvironmentDataProvider =
 
     queue = @getMyMachines().concat @getSharedMachines()
 
-      .map ({machine, workspaces}) =>
+      .map ({machine, workspaces}) => (fin) =>
 
-        =>
+        kd.utils.defer =>
 
-          kd.utils.defer =>
+          for workspace in workspaces when workspace.isDefault
+            return fin()
 
-            for workspace in workspaces when workspace.isDefault
-              return queue.fin()
+          @createDefaultWorkspace machine, (err, workspace) ->
 
-            @createDefaultWorkspace machine, (err, workspace) ->
+            return fin()  if err
 
-              return queue.fin()  if err
+            workspaces.push workspace  if workspace
+            fin()
 
-              workspaces.push workspace  if workspace
-              queue.fin()
-
-    sinkrow.dash queue, callback
+    async.parallel queue, callback
 
 
   removeCollaborationMachine: (machine) ->
