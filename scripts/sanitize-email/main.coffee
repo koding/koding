@@ -4,7 +4,6 @@ path = require 'path'
 _ = require 'underscore'
 
 Bongo   = require 'bongo'
-{daisy} = Bongo
 
 argv   = require('minimist') process.argv
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
