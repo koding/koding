@@ -407,6 +407,15 @@ module.exports = class ComputeController_UI
     { stack, errorMessage, title, subtitle, cssClass, message } = options
 
     cssClass ?= ''
+
+    if /^Bootstrap data is incomplete/.test errorMessage
+      errorMessage = """
+        Failed to complete request due to error with the provided credential.
+        Please contact with your team admin.
+
+        #{errorMessage}
+      """
+
     message   = if message then "<div class='message'>#{message}</div>" else ''
 
     modal     = new kd.ModalView
