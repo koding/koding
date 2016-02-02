@@ -408,7 +408,7 @@ module.exports = class ComputeController_UI
 
     cssClass ?= ''
 
-    if /^Bootstrap data is incomplete/.test errorMessage
+    if /^invalid bootstrap metadata for/.test errorMessage
       errorMessage = """
         Failed to complete request due to error with the provided credential.
         Please contact with your team admin.
