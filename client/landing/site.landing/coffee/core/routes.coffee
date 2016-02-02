@@ -34,7 +34,25 @@ do ->
     utils.routeIfInvitationTokenIsValid token,
       success   : ({email}) ->
         utils.storeNewTeamData 'invitation', { token, email }
-        kd.singletons.router.handleRoute '/Welcome'
+        teamData = utils.getTeamData()
+
+        go = ->
+          utils.storeNewTeamData 'signup', formData
+          utils.storeNewTeamData 'welcome', yes
+          kd.singletons.router.handleRoute '/Join'
+
+        formData          = {}
+        formData.join     = yes
+        formData.username = email
+        formData.slug     = kd.config.group.slug
+
+        utils.validateEmail { email },
+          success : ->
+            formData.alreadyMember = no
+            go()
+          error   : ->
+            formData.alreadyMember = yes
+            go()
       error     : ({responseText}) ->
         new kd.NotificationView title : responseText
         kd.singletons.router.handleRoute '/'
@@ -81,7 +99,7 @@ do ->
     # e.g. team.koding.com/Invitation
     '/Invitation/:token'   : handleInvitation
     '/Account/Oauth'       : handleOauth
-    '/Welcome'             : handleTeamOnboardingRoute.bind this, 'welcome'
+    # '/Welcome'             : handleTeamOnboardingRoute.bind this, 'welcome'
     '/Join'                : handleTeamOnboardingRoute.bind this, 'join'
     '/Authenticate/:step?' : handleTeamOnboardingRoute.bind this, 'stacks'
     '/Congratz'            : handleTeamOnboardingRoute.bind this, 'congratz'
