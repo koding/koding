@@ -8,7 +8,8 @@ module.exports = class StackCatalogModalView extends AdminAppView
 
   constructor: (options = {}, data) ->
 
-    options.paneViewClass = StackCatalogMainTabPaneView
+    options.paneViewClass or= StackCatalogMainTabPaneView
+    options.checkRoles     ?= no
 
     super options, data
 
