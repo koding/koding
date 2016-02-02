@@ -27,7 +27,7 @@ defaultOptions =
   message : ''
   route   : '/'
   timeout : 4000
-  iconUrl : '/a/images/logos/logo_notifications.png'
+  iconUrl : '/a/images/logos/notify_logo.png'
 
 
 module.exports = class DesktopNotificationsController extends kd.Controller
