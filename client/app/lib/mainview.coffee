@@ -4,7 +4,7 @@ KDCustomScrollView      = kd.CustomScrollView
 KDScrollView            = kd.ScrollView
 KDButtonView            = kd.ButtonView
 KDView                  = kd.View
-sinkrow                 = require 'sinkrow'
+async                   = require 'async'
 globals                 = require 'globals'
 remote                  = require('./remote').getInstance()
 isLoggedIn              = require './util/isLoggedIn'
@@ -295,11 +295,11 @@ module.exports = class MainView extends KDView
       remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
         if err then kd.log 'current system status:',err
         else if statuses and Array.isArray statuses
-          queue   = statuses.map (status)=>=>
+          queue = statuses.map (status) => (next) =>
             @createGlobalNotification status
-            kd.utils.wait 500, -> queue.next()
+            kd.utils.wait 500, -> next()
 
-          sinkrow.daisy queue.reverse()
+          async.series queue.reverse()
 
   handleSystemMessage:(message)->
 
