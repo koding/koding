@@ -249,17 +249,11 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 	doneErr := make(chan error)
 
 	// The creation of the pb objection presents a CLI progress bar to the user.
-	var bar *pb.ProgressBar
+	bar := pb.StartNew(100)
+	bar.SetMaxWidth(100)
 
 	// The callback, used to update the progress bar as remote.cache downloads
 	cacheProgressCallback := func(par *dnode.Partial) {
-		// initialize bar if nil; do it in callback so the user isn't shown an
-		// empty bar while waiting for first entry
-		if bar == nil {
-			bar = pb.StartNew(100)
-			bar.SetMaxWidth(100)
-		}
-
 		type Progress struct {
 			Progress int        `json:progress`
 			Error    kite.Error `json:error`
