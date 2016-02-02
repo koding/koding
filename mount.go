@@ -109,11 +109,8 @@ func MountCommand(c *cli.Context) int {
 		return 1
 	}
 
-	// allow for shortcuts when specifying name
-	for _, info := range infos {
-		if strings.HasPrefix(info.VMName, name) {
-			name = info.VMName
-		}
+	if info, ok := getMachineFromName(infos, name); ok {
+		name = info.VMName
 	}
 
 	mountRequest := req.MountFolder{
@@ -392,4 +389,24 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 func getCachePath(name string) string {
 	cacheName := fmt.Sprintf("%s.cache", name)
 	return filepath.Join(ConfigFolder, cacheName)
+}
+
+func getMachineFromName(infos []kiteInfo, name string) (kiteInfo, bool) {
+	infoNames := make([]string, len(infos), len(infos))
+	for _, info := range infos {
+		infoNames = append(infoNames, info.VMName)
+	}
+
+	matchedName, ok := util.MatchFullOrShortcut(infoNames, name)
+	if !ok {
+		return kiteInfo{}, false
+	}
+
+	for _, info := range infos {
+		if info.VMName == matchedName {
+			return info, true
+		}
+	}
+
+	return kiteInfo{}, false
 }

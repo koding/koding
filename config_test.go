@@ -27,7 +27,7 @@ func TestConfigFolder(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			defer func() {
-				err := os.RemoveAll(folder)
+				err := os.RemoveAll(filepath.Join(ConfigFolder, "_test"))
 				So(err, ShouldBeNil)
 			}()
 		})
