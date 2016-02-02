@@ -12,9 +12,7 @@ describe 'FeedInputWidgetView', ->
   { Simulate
    createRenderer
    renderIntoDocument
-   findRenderedDOMComponentWithClass
-   findRenderedDOMComponentWithTag
-   scryRenderedDOMComponentsWithTag } = TestUtils
+   findRenderedDOMComponentWithClass } = TestUtils
 
   beforeEach ->
     @props =
