@@ -7,6 +7,7 @@ import (
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stackplan"
 
+	"github.com/fatih/structs"
 	"golang.org/x/net/context"
 )
 
@@ -16,13 +17,8 @@ func init() {
 
 var _ kloud.Validator = (*AwsMeta)(nil)
 
-// AwsMeta represents jCredentialDatas.meta for "aws" provider.
-type AwsMeta struct {
-	Region    string `json:"region" bson:"region" hcl:"region"`
-	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key"`
-	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key"`
-
-	// Bootstrap metadata:
+// BootstrapMeta represents data created during bootstrap process.
+type BootstrapMeta struct {
 	ACL       string `json:"acl" bson:"acl" hcl:"acl"`
 	CidrBlock string `json:"cidr_block" bson:"cidr_block" hcl:"cidr_block"`
 	IGW       string `json:"igw" bson:"igw" hcl:"igw"`
@@ -34,20 +30,21 @@ type AwsMeta struct {
 	AMI       string `json:"ami" bson:"ami" hcl:"ami"`
 }
 
-// IsBootstrapComplete says whether all bootstrap-related fields are non-zero.
-func (meta *AwsMeta) IsBootstrapComplete() bool {
-	// TODO(rjeczalik): automate, add tag option?
-	bootstrap := []string{
-		meta.ACL, meta.CidrBlock, meta.IGW, meta.KeyPair, meta.RTB,
-		meta.SG, meta.Subnet, meta.VPC, meta.AMI,
+// Valid implements the kloud.Validator interface.
+func (meta *BootstrapMeta) Valid() error {
+	if !structs.HasZero(meta) {
+		return errors.New("at least one field is missing or empty")
 	}
-	for _, s := range bootstrap {
-		if s == "" {
-			return false
-		}
-	}
+	return nil
+}
 
-	return true
+// AwsMeta represents jCredentialDatas.meta for "aws" provider.
+type AwsMeta struct {
+	Region    string `json:"region" bson:"region" hcl:"region"`
+	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key"`
+	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key"`
+
+	BootstrapMeta `bson:",inline" hcl:",squash"`
 }
 
 // Valid implements the kloud.Validator interface.
