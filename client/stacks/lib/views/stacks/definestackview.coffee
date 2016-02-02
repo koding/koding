@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 jspath               = require 'jspath'
+Encoder              = require 'htmlencode'
 
 KDView               = kd.View
 KDTabView            = kd.TabView
@@ -44,6 +45,9 @@ module.exports = class DefineStackView extends KDView
     options.delegate = this
 
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
+
+    if stackTemplate?.title
+      stackTemplate.title = Encoder.htmlDecode stackTemplate.title
 
     title           = stackTemplate?.title or 'Default stack template'
     content         = stackTemplate?.template?.content

@@ -73,4 +73,4 @@ module.exports = class YourStacksView extends KDCustomScrollView
 
     return @emit 'DestroyParent'  if isKoding()
 
-    @getDelegate().parent.destroy()
+    @getDelegate().parent?.destroy()
