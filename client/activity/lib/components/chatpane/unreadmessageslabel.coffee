@@ -21,12 +21,15 @@ module.exports = class ChatPaneUnreadMessagesLabel extends React.Component
     element = ReactDOM.findDOMNode this
     return  unless element
 
-    return @close()  if position.visible
+    isAbove = position is 'above'
+    isBelow = position is 'below'
+
+    return @close()  unless isAbove or isBelow
 
     element.className = classnames
       'ChatPane-unreadMessages' : yes
-      'fixedOnTop'              : position.relativePosition is 'above'
-      'fixedOnBottom'           : position.relativePosition is 'below'
+      'fixedOnTop'              : isAbove
+      'fixedOnBottom'           : isBelow
 
 
   close: ->
@@ -55,7 +58,7 @@ module.exports = class ChatPaneUnreadMessagesLabel extends React.Component
     { unreadCount } = @props
     return null  unless unreadCount > 0
 
-    <div className='ChatPane-unreadMessages fixedOnTop' onClick={@bound 'onJump'}>
+    <div className='ChatPane-unreadMessages' onClick={@bound 'onJump'}>
       <span className='jumpButton'>Jump</span>
       <span className='counterText'>
         { "#{unreadCount} new #{formatPlural unreadCount, 'message', no}" }

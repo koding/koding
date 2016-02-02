@@ -118,7 +118,10 @@ module.exports = class ChatList extends React.Component
     # put glancer waypoint only if all the unread messages are loaded, and on
     # the screen. Once it enters to the screen, it will glance the channel.
     if index is messages.size - unreadCount and not isMessagesLoading
-      markers.push <Waypoint onEnter={@bound 'onGlancerEnter'} scrollableParent={@scrollableParent} />
+      markers.push <Waypoint
+        onEnter={@bound 'onGlancerEnter'}
+        scrollableParent={@scrollableParent}
+        fireOnRapidScroll=no />
 
     return markers
 

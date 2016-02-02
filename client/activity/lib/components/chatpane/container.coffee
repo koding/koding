@@ -42,7 +42,10 @@ module.exports = class ChatPaneContainer extends React.Component
 
     view.refs.content.show()
     scrollTop = @flag 'scrollPosition'
-    view.scrollToPosition scrollTop  if scrollTop
+    if scrollTop
+      view.scrollToPosition scrollTop
+    else
+      view.scrollToBottom()
 
 
   componentWillUnmount: ->
@@ -115,19 +118,30 @@ module.exports = class ChatPaneContainer extends React.Component
   updateUnreadMessagesLabel: ->
 
     unreadCount = @channel 'unreadCount'
-    return  unless unreadCount
-
     messages = @props.thread.get('messages').toList()
-    message  = messages.get messages.size - unreadCount
-    return  unless message
+    element  = helper.getFirstUnreadMessageElement messages, unreadCount
+    return  unless element
 
     { view }    = @refs
     { content } = view.refs
-    element     = helper.getMessageElement message.get 'id'
     label       = content.refs.UnreadCountLabel
     position    = getScrollablePosition element
 
     label.setPosition position
+
+
+  onGlance: (force) ->
+
+    unless force
+      unreadCount = @channel 'unreadCount'
+      messages    = @props.thread.get('messages').toList()
+      element     = helper.getFirstUnreadMessageElement messages, unreadCount
+      return  unless element
+
+      position = getScrollablePosition element
+      return  unless position is 'inside'
+
+    ActivityFlux.actions.channel.glance @channel 'id'
 
 
   onTopThresholdReached: (event) ->
@@ -149,18 +163,13 @@ module.exports = class ChatPaneContainer extends React.Component
     @updateUnreadMessagesLabel()
 
 
-  onGlance: -> ActivityFlux.actions.channel.glance @channel 'id'
-
-
   onJumpToUnreadMessages: ->
 
     unreadCount = @channel 'unreadCount'
     messages    = @props.thread.get('messages').toList()
-    message     = messages.get messages.size - unreadCount
-    return  unless message
+    element     = helper.getFirstUnreadMessageElement messages, unreadCount
 
-    element = helper.getMessageElement message.get 'id'
-    scrollToElement element, yes
+    scrollToElement element, yes  if element
 
 
   render: ->
@@ -183,6 +192,16 @@ module.exports = class ChatPaneContainer extends React.Component
     getMessageElement: (messageId) ->
 
       return $("[data-message-id=#{messageId}]").get(0)
+
+
+    getFirstUnreadMessageElement: (messages, unreadCount) ->
+
+      return  unless unreadCount
+
+      message = messages.get messages.size - unreadCount
+      return  unless message
+
+      return helper.getMessageElement message.get 'id'
 
 
 ChatPaneContainer.include [KDReactorMixin]
