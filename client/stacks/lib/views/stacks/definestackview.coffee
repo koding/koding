@@ -167,7 +167,7 @@ module.exports = class DefineStackView extends KDView
           <span class="icon"></span>
           <div class="text">
             <p>To learn about stack files</p>
-            <a href="http://learn.koding.com/stacktemplate">Check out our docs</a>
+            <a href="https://koding.com/docs/creating-an-aws-stack">Check out our docs</a>
           </div>
         </div>
       """

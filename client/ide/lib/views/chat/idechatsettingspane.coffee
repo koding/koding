@@ -133,7 +133,7 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
     @createMuteHostSettingElements()
 
 
-  WATCH_MODE_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#watch_mode'
+  WATCH_MODE_GUIDE_LINK = 'https://koding.com/docs/collaboration/#watch_mode'
 
   createUnwatchSettingElements: ->
 
@@ -169,7 +169,7 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
     kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'unwatch', state
 
 
-  READ_ONLY_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#read_only'
+  READ_ONLY_GUIDE_LINK = 'https://koding.com/docs/collaboration/#read_only'
 
   createReadOnlySettingElements: ->
 
@@ -205,7 +205,7 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
     kd.singletons.appManager.tell 'IDE', 'setInitialSessionSetting', 'readOnly', state
 
 
-  MUTE_HOST_GUIDE_LINK = 'http://learn.koding.com/guides/collaboration/#mute_host'
+  MUTE_HOST_GUIDE_LINK = 'https://koding.com/docs/collaboration/#mute_host'
 
   createMuteHostSettingElements: ->
 

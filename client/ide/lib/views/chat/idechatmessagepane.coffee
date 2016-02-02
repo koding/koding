@@ -277,7 +277,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     menu =
       'Search'     : { cssClass : 'disabled', callback: kd.noop }
       'Minimize'   : { callback : @getDelegate().bound 'end' }
-      'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration' }
+      'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'https://koding.com/docs/collaboration' }
       # 'Settings' : { callback : @getDelegate().bound 'showSettingsPane' }
 
     isHost = not @isInSession

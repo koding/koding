@@ -146,7 +146,7 @@ module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Koding University'
-      href       : 'http://learn.koding.com'
+      href       : 'https://koding.com/docs/index'
       target     : '_blank'
 
     @avatarPopupContent.addSubView new CustomLinkView

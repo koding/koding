@@ -41,7 +41,7 @@ module.exports = class PostingGuideLinesWidget extends React.Component
           <li>
             Take a look at&nbsp;
             <a
-              href='http://learn.koding.com'
+              href='https://koding.com/docs/index'
               target='_blank'>Koding University</a>
             &nbsp; in case your question is of the category
             “how do I…” Chances are high that have a handy guide for you.
@@ -70,7 +70,7 @@ module.exports = class PostingGuideLinesWidget extends React.Component
           <li>
             Use Markdown whenever possible (posting code fragments, links, images, etc.)
             Our handy Markdown guide can be found&nbsp;
-            <a href='http://learn.koding.com/guides/markdown/' target='_blank'>here</a>.&nbsp;
+            <a href='https://koding.com/docs/markdown/' target='_blank'>here</a>.&nbsp;
             Preview your Markdown before posting using the M↓ button.
           </li>
           <li>

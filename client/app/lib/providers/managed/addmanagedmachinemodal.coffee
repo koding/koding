@@ -38,7 +38,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         <span>
           <strong>Leave this dialogue box open</strong> until you see a notification in the sidebar
           that the connection has been successful.
-          <a href="http://learn.koding.com/guides/connect-your-machine" target="_blank">Learn more about this feature.</a>
+          <a href="https://koding.com/docs/connect-your-own-machine-to-koding" target="_blank">Learn more about this feature.</a>
         </span>
       """
 

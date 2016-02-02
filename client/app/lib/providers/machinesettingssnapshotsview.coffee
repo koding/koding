@@ -68,7 +68,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     @addSubView new kd.CustomHTMLView
       cssClass : 'learn-more'
       partial  : """
-        <a target="_blank" href="http://learn.koding.com/guides/vm-snapshot">Learn more about
+        <a target="_blank" href="https://koding.com/docs/vm-snapshot">Learn more about
         Snapshots</a>
       """
 

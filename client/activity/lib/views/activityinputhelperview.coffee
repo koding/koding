@@ -31,7 +31,7 @@ module.exports = class ActivityInputHelperView extends KDCustomHTMLView
         title  : "You don't need to type help in your post, just ask your question."
     wordpress  :
       niceName : 'WordPress'
-      link     : 'http://learn.koding.com/?s=wordpress'
+      link     : 'https://koding.com/docs/topic/wordpress'
 
 
   constructor: (options = {}, data) ->

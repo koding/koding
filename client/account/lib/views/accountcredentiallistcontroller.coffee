@@ -192,7 +192,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
             <li>Attach the AdministratorAccess policy</li>
             <li>Add the Access Key ID and Secret here</li>
           </ol>
-          <p>Need some help? <a href='http://learn.koding.com/aws-provider-setup'>Follow our guide</a>
+          <p>Need some help? <a href='https://koding.com/docs/creating-an-aws-stack'>Follow our guide</a>
           '''
 
     { ui }    = kd.singletons.computeController
