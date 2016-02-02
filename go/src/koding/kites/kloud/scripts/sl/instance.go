@@ -121,18 +121,29 @@ func (cmd *instanceDelete) RegisterFlags(f *flag.FlagSet) {
 	cmd.list.entries = true
 }
 
-func (cmd *instanceDelete) Run(ctx context.Context) error {
-	if cmd.list.hostname == "" || cmd.list.id == 0 {
-		return errors.New("denying delete of all instances")
+func (cmd *instanceDelete) ids() ([]int, error) {
+	if cmd.list.id != 0 {
+		return []int{cmd.list.id}, nil
 	}
 	v, err := cmd.list.list()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	entries := v.(sl.InstanceEntries)
 	ids := make([]int, len(entries))
 	for i, e := range entries {
 		ids[i] = e.ID
+	}
+	return ids, nil
+}
+
+func (cmd *instanceDelete) Run(ctx context.Context) error {
+	if cmd.list.hostname == "" && cmd.list.id == 0 {
+		return errors.New("denying delete of all instances")
+	}
+	ids, err := cmd.ids()
+	if err != nil {
+		return err
 	}
 	if cmd.dry {
 		fmt.Println("Going to delete instances:", ids)
