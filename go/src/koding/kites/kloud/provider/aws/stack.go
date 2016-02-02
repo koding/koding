@@ -7,7 +7,6 @@ import (
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stackplan"
 
-	"github.com/fatih/structs"
 	"golang.org/x/net/context"
 )
 
@@ -17,8 +16,13 @@ func init() {
 
 var _ kloud.Validator = (*AwsMeta)(nil)
 
-// BootstrapMeta represents data created during bootstrap process.
-type BootstrapMeta struct {
+// AwsMeta represents jCredentialDatas.meta for "aws" provider.
+type AwsMeta struct {
+	Region    string `json:"region" bson:"region" hcl:"region"`
+	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key"`
+	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key"`
+
+	// Bootstrap metadata.
 	ACL       string `json:"acl" bson:"acl" hcl:"acl"`
 	CidrBlock string `json:"cidr_block" bson:"cidr_block" hcl:"cidr_block"`
 	IGW       string `json:"igw" bson:"igw" hcl:"igw"`
@@ -30,21 +34,35 @@ type BootstrapMeta struct {
 	AMI       string `json:"ami" bson:"ami" hcl:"ami"`
 }
 
-// Valid implements the kloud.Validator interface.
-func (meta *BootstrapMeta) Valid() error {
-	if !structs.HasZero(meta) {
-		return errors.New("at least one field is missing or empty")
+func (meta *AwsMeta) BootstrapValid() error {
+	if meta.ACL == "" {
+		return errors.New("acl is empty or missing")
+	}
+	if meta.CidrBlock == "" {
+		return errors.New("CIDR block is empty or missing")
+	}
+	if meta.IGW == "" {
+		return errors.New("IGW is empty or missing")
+	}
+	if meta.KeyPair == "" {
+		return errors.New("key pair is empty or missing")
+	}
+	if meta.RTB == "" {
+		return errors.New("RTB is empty or missing")
+	}
+	if meta.SG == "" {
+		return errors.New("SG is empty or missing")
+	}
+	if meta.Subnet == "" {
+		return errors.New("subnet is empty or missing")
+	}
+	if meta.VPC == "" {
+		return errors.New("VPC is empty or missing")
+	}
+	if meta.AMI == "" {
+		return errors.New("AMI is empty or missing")
 	}
 	return nil
-}
-
-// AwsMeta represents jCredentialDatas.meta for "aws" provider.
-type AwsMeta struct {
-	Region    string `json:"region" bson:"region" hcl:"region"`
-	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key"`
-	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key"`
-
-	BootstrapMeta `bson:",inline" hcl:",squash"`
 }
 
 // Valid implements the kloud.Validator interface.
