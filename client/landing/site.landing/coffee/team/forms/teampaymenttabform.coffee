@@ -1,6 +1,6 @@
 kd = require 'kd.js'
 
-module.exports = class TeamPaymentTabForm extends KDFormViewWithFields
+module.exports = class TeamPaymentTabForm extends kd.FormViewWithFields
 
   getInitialState: -> kd.utils.dict()
 
@@ -172,7 +172,7 @@ module.exports = class TeamPaymentTabForm extends KDFormViewWithFields
       when 'cvc'
         cardCVC.setValidationResult 'checkCVC', 'CVC is not valid'
       else
-        new KDNotificationView { title: error.message }
+        new kd.NotificationView { title: error.message }
 
 
   cleanFormExceptName: ->

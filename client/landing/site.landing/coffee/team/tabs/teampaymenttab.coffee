@@ -3,7 +3,7 @@ JView           = require './../../core/jview'
 MainHeaderView  = require './../../core/mainheaderview'
 TeamPaymentForm = require './../forms/teampaymenttabform'
 
-module.exports = class TeamPaymentTab extends KDTabPaneView
+module.exports = class TeamPaymentTab extends kd.TabPaneView
 
   JView.mixin @prototype
 
@@ -15,14 +15,14 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
     teamData = kd.utils.getTeamData()
 
-    @hasPaymentMethodView = new KDCustomHTMLView
+    @hasPaymentMethodView = new kd.CustomHTMLView
       cssClass: 'payment-method-entry-form has-payment-method-wrapper'
 
-    @hasPaymentMethodView.addSubView @hasPaymentLabel = new KDCustomHTMLView
+    @hasPaymentMethodView.addSubView @hasPaymentLabel = new kd.CustomHTMLView
       tagName: 'div'
       cssClass: 'has-payment-method-label'
 
-    @hasPaymentMethodView.addSubView new KDCustomHTMLView
+    @hasPaymentMethodView.addSubView new kd.CustomHTMLView
       tagName: 'a'
       cssClass: 'use-different-card-link'
       partial: '<div class="use-different-card-label">Do you want to use a different card?</div>'
@@ -74,14 +74,14 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
 
     team = kd.utils.getTeamData()
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title: 'NEXT'
       style: 'TeamsModal-button TeamsModal-button--green'
       attributes: testpath: 'payment-button'
       loader: off
       callback: @bound 'submit'
 
-    @backLink = new KDCustomHTMLView
+    @backLink = new kd.CustomHTMLView
       tagName      : 'span'
       cssClass     : 'TeamsModal-button-link back'
       partial      : "<i></i> <a href=\"/Team/Domain\">Back</a>"
@@ -119,7 +119,7 @@ module.exports = class TeamPaymentTab extends KDTabPaneView
   showError: (error) ->
 
     track 'payment method error'
-    new KDNotificationView { title : error }
+    new kd.NotificationView { title : error }
 
 
   cleanupPaymentTeamData: ->
@@ -171,7 +171,7 @@ track = (action) ->
 
 loadScript = (url, callback) ->
 
-  global.document.head.appendChild (new KDCustomHTMLView
+  global.document.head.appendChild (new kd.CustomHTMLView
     tagName    : 'script'
     attributes :
       type     : 'text/javascript'
