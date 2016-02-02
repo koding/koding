@@ -93,7 +93,7 @@ module.exports = class TeamSelectorView extends JView
 
     """
     {{> @header }}
-    <div class="TeamsModal TeamsModal--create">
+    <div class="TeamsModal TeamsModal--select">
       <h4>Sign in to your team</h4>
       {{> @form}}
     </div>
