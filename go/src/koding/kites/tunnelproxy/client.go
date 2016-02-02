@@ -21,12 +21,13 @@ const (
 )
 
 type ClientOptions struct {
-	ServerAddr string
-	LocalAddr  string
-	Debug      bool
-	Config     *config.Config
-	Log        logging.Logger
-	NoTLS      bool
+	ServerAddr  string
+	LocalAddr   string
+	VirtualHost string
+	Debug       bool
+	Config      *config.Config
+	Log         logging.Logger
+	NoTLS       bool
 
 	Timeout time.Duration // used in tests; for production no timeout
 }
@@ -60,11 +61,6 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		kite: kite.New(ClientKiteName, ClientKiteVersion),
 		opts: &optsCopy,
 	}
-	c.kite.Config = c.opts.Config
-
-	go c.kite.Run()
-	<-c.kite.ServerReadyNotify()
-
 	c.kite.Config = c.opts.Config
 
 	tserverURL := &url.URL{
@@ -103,6 +99,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 }
 
 func (c *Client) Start() error {
+	c.opts.Log.Info("Connecting to tunnel server: %s", c.opts.ServerAddr)
 	go c.Client.Start()
 	<-c.Client.StartNotify()
 	return c.waitDNS()
@@ -122,10 +119,15 @@ func (c *Client) Close() (err error) {
 }
 
 func (c *Client) register() (string, error) {
-	resp, err := c.tserver.TellWithTimeout("register", c.opts.Timeout)
+	req := &RegisterRequest{
+		VirtualHost: c.opts.VirtualHost,
+	}
+	resp, err := c.tserver.TellWithTimeout("register", c.opts.Timeout, req)
 	if err != nil {
 		return "", err
 	}
+
+	c.opts.Log.Debug("Register response: %q", resp.Raw)
 
 	var res RegisterResult
 	if err := resp.Unmarshal(&res); err != nil {
@@ -133,7 +135,6 @@ func (c *Client) register() (string, error) {
 	}
 
 	c.VirtualHost = res.VirtualHost
-	c.opts.Log.Info("tunnel publish host: %s", res.VirtualHost)
 
 	return res.Secret, nil
 }

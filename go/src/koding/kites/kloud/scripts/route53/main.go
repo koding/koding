@@ -6,11 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 
+	"koding/kites/common"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils/res"
 )
@@ -46,9 +48,17 @@ func main() {
 	}
 
 	opts := &dnsclient.Options{
-		Creds:      credentials.NewStaticCredentials(accessKey, secretKey, ""),
-		HostedZone: hostedZone,
+		Creds:       credentials.NewStaticCredentials(accessKey, secretKey, ""),
+		HostedZone:  hostedZone,
+		Log:         common.NewLogger("dnsclient", os.Getenv("ROUTE53_DEBUG") == "1"),
+		SyncTimeout: 5 * time.Minute,
 	}
+
+	if d, err := time.ParseDuration(os.Getenv("ROUTE53_TIMEOUT")); err == nil {
+		opts.SyncTimeout = d
+	}
+
+	opts.Log.Debug("Options: %# v", opts)
 
 	var err error
 	client, err = dnsclient.NewRoute53Client(opts)
@@ -79,6 +89,13 @@ type recordsList struct {
 }
 
 func (cmd *recordsList) list() (dnsclient.Records, error) {
+	if cmd.filter.IP == "" && cmd.filter.TTL == 0 && cmd.filter.Type == "" && cmd.filter.Name != "" {
+		rec, err := client.Get(cmd.filter.Name)
+		if err != nil {
+			return nil, err
+		}
+		return dnsclient.Records{rec}, nil
+	}
 	records, err := client.GetAll("")
 	if err != nil {
 		return nil, err
@@ -166,12 +183,18 @@ func (cmd *recordsAdd) Run(context.Context) error {
 		return err
 	}
 
+	fmt.Println("upserting record and waiting for the operation to complete...")
 	err := client.UpsertRecord(&cmd.record)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("added", &cmd.record)
+	rec, err := client.Get(cmd.record.Name)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("added record: %# v\n", rec)
 	return nil
 }
 

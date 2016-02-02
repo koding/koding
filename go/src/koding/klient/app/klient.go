@@ -97,8 +97,8 @@ type KlientConfig struct {
 	VagrantHome string
 
 	TunnelServerAddr string
-
-	TunnelLocalAddr string
+	TunnelLocalAddr  string
+	NoTunnel         bool
 }
 
 // NewKlient returns a new Klient instance
@@ -359,9 +359,9 @@ func (k *Klient) Run() {
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
 
-	useTunnel := protocol.Environment == "managed" && !isKoding
-
-	if err := k.register(useTunnel); err != nil {
+	// TODO(rjeczalik): check if k.kite.Config.Port is accessible from outside,
+	// don't start tunnel for managed hosts with public IP.
+	if err := k.register(!isKoding && !k.config.NoTunnel); err != nil {
 		panic(err)
 	}
 

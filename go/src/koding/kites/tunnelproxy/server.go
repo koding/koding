@@ -1,8 +1,12 @@
 package tunnelproxy
 
 import (
+	"errors"
+	"fmt"
 	"net"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"koding/artifact"
 	"koding/kites/common"
@@ -27,13 +31,13 @@ func publicIP() (string, error) {
 
 type ServerOptions struct {
 	// Server config.
-	BaseVirtualHost string `json:"baseVirtualHost" required:"true"`
+	BaseVirtualHost string `json:"baseVirtualHost"`
 	HostedZone      string `json:"hostedZone" required:"true"`
 	AccessKey       string `json:"accessKey" required:"true"`
 	SecretKey       string `json:"secretKey" required:"true"`
 
 	// Server kite config.
-	Port        int            `json:"port"`
+	Port        int            `json:"port" required:"true"`
 	Region      string         `json:"region" required:"true"`
 	Environment string         `json:"environment" required:"true"`
 	Config      *config.Config `json:"kiteConfig"`
@@ -86,6 +90,7 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		Creds:      credentials.NewStaticCredentials(optsCopy.AccessKey, optsCopy.SecretKey, ""),
 		HostedZone: optsCopy.HostedZone,
 		Log:        optsCopy.Log,
+		Debug:      optsCopy.Debug,
 	}
 	dns, err := dnsclient.NewRoute53Client(dnsOpts)
 	if err != nil {
@@ -93,8 +98,10 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	}
 
 	if optsCopy.BaseVirtualHost == "" {
-		optsCopy.BaseVirtualHost = dns.HostedZone()
+		optsCopy.BaseVirtualHost = optsCopy.HostedZone
 	}
+
+	optsCopy.Log.Debug("Server options: %# v", &optsCopy)
 
 	return &Server{
 		Server: server,
@@ -104,29 +111,62 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	}, nil
 }
 
-// RegisterResult represents response value for the register method.
+// RegisterRequest represents request value for register method.
+type RegisterRequest struct {
+	// VirtualHost is a URL host requested by a client under which
+	// new tunnel should be registered. The URL must be rooted
+	// at <username>.<basehost> otherwise request will
+	// be rejected.
+	VirtualHost string `json:"virtualHost,omitempty"`
+}
+
+// RegisterResult represents response value for register method.
 type RegisterResult struct {
-	VirtualHost string `virtualHost"`
+	VirtualHost string `json:"virtualHost"`
+	Secret      string `json:"identifier"`
 	Domain      string `json:"domain"`
-	Secret      string `json:"secret"`
 }
 
-func (s *Server) virtualHost(username string) string {
-	return username + "." + s.opts.BaseVirtualHost
-}
+func (s *Server) virtualHost(user, virtualHost string) (string, error) {
+	vhost := user + "." + s.opts.BaseVirtualHost
 
-func (s *Server) domain(username string) string {
-	if host, _, err := net.SplitHostPort(s.opts.BaseVirtualHost); err == nil {
-		return username + "." + host
+	if virtualHost != "" {
+		if !strings.HasSuffix(virtualHost, vhost) {
+			return "", fmt.Errorf("virtual host %q must be rooted at %q for user %s", virtualHost, vhost, user)
+		}
+
+		vhost = virtualHost
 	}
-	return username + "." + s.opts.BaseVirtualHost
+
+	return vhost, nil
+}
+
+func (s *Server) domain(vhost string) string {
+	if host, _, err := net.SplitHostPort(vhost); err == nil {
+		return host
+	}
+	return vhost
 }
 
 // Register creates a virtual host and DNS record for the user.
 func (s *Server) Register(r *kite.Request) (interface{}, error) {
+	var req RegisterRequest
+
+	if r.Args != nil {
+		err := r.Args.One().Unmarshal(&req)
+		if err != nil {
+			return nil, errors.New("invalid request: " + err.Error())
+		}
+	}
+
+	vhost, err := s.virtualHost(r.Username, req.VirtualHost)
+	if err != nil {
+		return nil, err
+	}
+
 	res := &RegisterResult{
-		VirtualHost: s.virtualHost(r.Username),
-		Domain:      s.domain(r.Username),
+		VirtualHost: vhost,
+		Domain:      s.domain(vhost),
 		Secret:      utils.RandString(32),
 	}
 
@@ -144,7 +184,8 @@ func (s *Server) Register(r *kite.Request) (interface{}, error) {
 		s.opts.Log.Debug("deleting vhost=%s and domain=%s", res.VirtualHost, res.Domain)
 		s.Server.DeleteHost(res.VirtualHost)
 		// TODO(rjeczalik): Route53 does not handle concurrent requests
-		return s.DNS.Delete(res.Domain)
+		//return s.DNS.Delete(res.Domain)
+		return nil
 	})
 
 	return res, nil
@@ -213,7 +254,7 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	k.HandleFunc("register", s.Register)
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
-	k.HandleHTTP("/{rest:.*}", s.Server)
+	k.HandleHTTP("/{rest:.*}", forward("/klient", s.Server))
 
 	if s.opts.RegisterURL == nil {
 		s.opts.RegisterURL = k.RegisterURL(false)
@@ -224,4 +265,11 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	}
 
 	return k, nil
+}
+
+func forward(path string, handler http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, path)
+		handler.ServeHTTP(w, r)
+	}
 }

@@ -25,7 +25,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/plans"
 	awsprovider "koding/kites/kloud/provider/aws"
@@ -249,7 +248,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	authorizedUsers := map[string]string{
-		"kloudctl":       command.KloudSecretKey,
+		"kloudctl":       kloud.KloudSecretKey,
 		"janitor":        conf.JanitorSecretKey,
 		"vmwatcher":      conf.VmwatcherSecretKey,
 		"paymentwebhook": conf.PaymentwebhookSecretKey,

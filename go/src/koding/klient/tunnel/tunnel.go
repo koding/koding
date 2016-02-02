@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"koding/kites/tunnelproxy"
@@ -40,8 +41,14 @@ func NewClient(db *bolt.DB) *TunnelClient {
 
 // Start setups the client and connects to a tunnel server based on the given
 // configuration. It's non blocking and should be called only once.
-func (t *TunnelClient) Start(opts *tunnelproxy.ClientOptions) (string, error) {
-	t.updateOptions(opts)
+func (t *TunnelClient) Start(opts *tunnelproxy.ClientOptions, vhost string) (string, error) {
+	if err := t.updateOptions(opts); err != nil {
+		return "", err
+	}
+
+	if vh, err := url.Parse(vhost); err == nil {
+		opts.VirtualHost = vh.Host
+	}
 
 	opts.Log.Debug("Connecting to tunnel server IP: '%s'", opts.ServerAddr)
 
@@ -54,6 +61,8 @@ func (t *TunnelClient) Start(opts *tunnelproxy.ClientOptions) (string, error) {
 		return "", err
 	}
 
+	t.client = client
+
 	return t.client.VirtualHost, nil
 }
 
@@ -62,10 +71,10 @@ func (t *TunnelClient) updateOptions(opts *tunnelproxy.ClientOptions) error {
 	var tunnelServerPort = "80"
 	var tunnelHost = ""
 	switch protocol.Environment {
+	case "managed", "production":
+		tunnelHost = "tunnelproxy.koding.com"
 	case "development":
 		tunnelHost = "devtunnelproxy.koding.com"
-	case "production":
-		tunnelHost = "tunnelproxy.koding.com"
 	}
 
 	// Nothing is passed via command line flag, fallback to default values
@@ -100,6 +109,10 @@ func (t *TunnelClient) updateOptions(opts *tunnelproxy.ClientOptions) error {
 
 		tunnelServerPort = port
 		opts.ServerAddr = host
+	}
+
+	if opts.ServerAddr == "" {
+		return errors.New("no tunnel server available for the given environment: " + protocol.Environment)
 	}
 
 	// Check if the addr is valid IP, the user might pass to us a valid IP.  If

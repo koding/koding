@@ -21,7 +21,7 @@ import (
 
 // VagrantResource
 type VagrantResource struct {
-	Build map[string]map[string]interface{} `hcl:"vagrantkite_build`
+	Build map[string]map[string]interface{} `hcl:"vagrantkite_build"`
 }
 
 func (s *Stack) updateCredential(cred *stackplan.Credential) error {
@@ -62,7 +62,11 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		return "", nil, err
 	}
 
-	if err := s.Builder.Template.InjectVariables(cred.Provider, cred.Meta); err != nil {
+	t := s.Builder.Template
+
+	s.Log.Debug("Injecting vagrant credentials: %# v", cred.Meta)
+
+	if err := t.InjectVariables(cred.Provider, cred.Meta); err != nil {
 		return "", nil, err
 	}
 
@@ -70,12 +74,12 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 	var res VagrantResource
 
-	if err := s.Builder.Template.DecodeResource(&res); err != nil {
+	if err := t.DecodeResource(&res); err != nil {
 		return "", nil, err
 	}
 
 	if len(res.Build) == 0 {
-		s.Log.Debug("No Vagrant build available")
+		s.Log.Debug("No Vagrant build available: %# v", &res)
 		return hostQueryString, nil, nil
 	}
 
@@ -102,6 +106,8 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 				registerURL = ru
 			}
 		}
+
+		// TODO Inject tunnel
 
 		// get the kontrolURL if passed via template
 		var kontrolURL string
@@ -161,9 +167,9 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		res.Build[resourceName] = box
 	}
 
-	s.Builder.Template.Resource["vagrantkite_build"] = res.Build
+	t.Resource["vagrantkite_build"] = res.Build
 
-	if err := s.Builder.Template.Flush(); err != nil {
+	if err := t.Flush(); err != nil {
 		return "", nil, err
 	}
 
@@ -172,7 +178,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString string) (*stackplan.Machines, error) {
 	var res VagrantResource
-	if err := t.DecodeResource(&s); err != nil {
+	if err := t.DecodeResource(&res); err != nil {
 		return nil, err
 	}
 

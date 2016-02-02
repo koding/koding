@@ -3,7 +3,6 @@ package dnsclient
 import (
 	"errors"
 	"fmt"
-	"path"
 	"strings"
 	"time"
 
@@ -23,11 +22,9 @@ var defaultLog = logging.NewLogger("kloud-dns")
 
 type Route53 struct {
 	*route53.Route53
-	hostedZone string
-	ZoneId     string
-	Log        logging.Logger
+	ZoneId string
 
-	sync time.Duration
+	opts *Options
 }
 
 type Options struct {
@@ -40,6 +37,7 @@ type Options struct {
 	//
 	// 0 means we're not waiting at all.
 	SyncTimeout time.Duration
+	Debug       bool
 }
 
 func (opts *Options) log() logging.Logger {
@@ -51,10 +49,12 @@ func (opts *Options) log() logging.Logger {
 
 // NewRoute53Client initializes a new DNSClient interface instance based on AWS Route53
 func NewRoute53Client(opts *Options) (*Route53, error) {
+	optsCopy := *opts
+
 	awsOpts := &amazon.ClientOptions{
 		Credentials: opts.Creds,
 		Region:      "us-east-1", // our route53 is based on this region, so we use it
-		Log:         opts.log(),
+		Log:         optsCopy.log(),
 	}
 	dns := route53.New(amazon.NewSession(awsOpts))
 
@@ -71,11 +71,7 @@ func NewRoute53Client(opts *Options) (*Route53, error) {
 	var dnsName = opts.HostedZone + "." // DNS name ends with a ".", e.g. "dev.koding.io."
 	for _, h := range hostedZones.HostedZones {
 		if aws.StringValue(h.Name) == dnsName {
-			// The h.Id looks like "/hostedzone/Z2T644TMIB2JZM", we're interested
-			// only in the last part - "Z2T644TMIB2JZM".
-			if s := aws.StringValue(h.Id); s != "" {
-				zoneId = path.Base(s)
-			}
+			zoneId = aws.StringValue(h.Id)
 		}
 	}
 
@@ -84,11 +80,9 @@ func NewRoute53Client(opts *Options) (*Route53, error) {
 	}
 
 	return &Route53{
-		Route53:    dns,
-		hostedZone: opts.HostedZone,
-		ZoneId:     zoneId,
-		Log:        opts.log(),
-		sync:       opts.SyncTimeout,
+		Route53: dns,
+		ZoneId:  zoneId,
+		opts:    &optsCopy,
 	}, nil
 }
 
@@ -106,7 +100,7 @@ func (r *Route53) Upsert(domain, newIP string) error {
 
 // UpsertRecord creates or updates a DNS record.
 func (r *Route53) UpsertRecord(rec *Record) error {
-	r.Log.Debug("upserting record: %# v", rec)
+	r.opts.Log.Debug("upserting record: %# v", rec)
 	params := &route53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(r.ZoneId),
 		ChangeBatch: &route53.ChangeBatch{
@@ -134,7 +128,16 @@ func (r *Route53) change(params *route53.ChangeResourceRecordSetsInput) error {
 		return r.errorf("%s failed: %s", comment, err)
 	}
 
-	return r.wait(r.sync, comment, aws.StringValue(resp.ChangeInfo.Id))
+	id := aws.StringValue(resp.ChangeInfo.Id)
+
+	if r.opts.SyncTimeout == 0 && r.opts.Debug {
+		// If no timeout is requested and we're in debug mode,
+		// show DNS operation progress.
+		go r.wait(5*time.Minute, comment, id)
+		return nil
+	}
+
+	return r.wait(r.opts.SyncTimeout, comment, id)
 }
 
 func (r *Route53) wait(timeout time.Duration, comment, id string) error {
@@ -156,7 +159,7 @@ func (r *Route53) wait(timeout time.Duration, comment, id string) error {
 			status = strings.ToLower(aws.StringValue(resp.ChangeInfo.Status))
 		}
 
-		r.Log.Debug("%s: checking %s status=%s, err=%v", comment, id, status, err)
+		r.opts.Log.Debug("%s: checking %s status=%s, err=%v", comment, id, status, err)
 
 		if status == "insync" {
 			return nil
@@ -172,7 +175,7 @@ func (r *Route53) wait(timeout time.Duration, comment, id string) error {
 
 // Domain retrieves the record set for the given domain name
 func (r *Route53) Get(domain string) (*Record, error) {
-	r.Log.Debug("fetching domain record for domain: %s", domain)
+	r.opts.Log.Debug("fetching domain record for domain: %s", domain)
 	resp, err := r.get(domain)
 	if err != nil {
 		return nil, r.error(err)
@@ -197,7 +200,7 @@ func (r *Route53) Get(domain string) (*Record, error) {
 // of Route53 it only returns up to 100 records. Subsequent calls retrieve the
 // first 100.
 func (r *Route53) GetAll(name string) ([]*Record, error) {
-	r.Log.Debug("fetching domain records for name: %s", name)
+	r.opts.Log.Debug("fetching domain records for name: %s", name)
 	resp, err := r.get(name)
 	if err != nil {
 		return nil, r.error(err)
@@ -240,7 +243,7 @@ func (r *Route53) Rename(oldDomain, newDomain string) error {
 	if err != nil {
 		return err
 	}
-	r.Log.Debug("updating domain name of IP %s from %q to %q", record.IP, oldDomain, newDomain)
+	r.opts.Log.Debug("updating domain name of IP %s from %q to %q", record.IP, oldDomain, newDomain)
 	params := &route53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(r.ZoneId),
 		ChangeBatch: &route53.ChangeBatch{
@@ -290,7 +293,7 @@ func (r *Route53) Delete(domain string) error {
 
 // DeleteRecord deletes the given record.
 func (r *Route53) DeleteRecord(rec *Record) error {
-	r.Log.Debug("deleting record: %v", rec)
+	r.opts.Log.Debug("deleting record: %v", rec)
 	params := &route53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(r.ZoneId),
 		ChangeBatch: &route53.ChangeBatch{
@@ -315,11 +318,11 @@ func (r *Route53) DeleteRecord(rec *Record) error {
 }
 
 func (r *Route53) HostedZone() string {
-	return r.hostedZone
+	return r.opts.HostedZone
 }
 
 func (r *Route53) Validate(domain, username string) error {
-	hostedZone := r.hostedZone
+	hostedZone := r.HostedZone()
 
 	if domain == "" {
 		return r.errorf("Domain name argument is empty")
@@ -351,7 +354,7 @@ func (r *Route53) Validate(domain, username string) error {
 
 func (r *Route53) errorf(format string, v ...interface{}) error {
 	err := fmt.Errorf(format, v...)
-	r.Log.Error(err.Error())
+	r.opts.Log.Error(err.Error())
 	return err
 }
 
@@ -359,7 +362,7 @@ func (r *Route53) error(err error) error {
 	// Ignore ErrNoRecord errors, as they're expected
 	// and handled by the caller.
 	if err != ErrNoRecord {
-		r.Log.Error("%q", err)
+		r.opts.Log.Error("%q", err)
 	}
 	return err
 }
