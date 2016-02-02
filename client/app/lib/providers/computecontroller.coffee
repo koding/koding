@@ -1,5 +1,6 @@
 globals              = require 'globals'
 Promise              = require 'bluebird'
+Encoder              = require 'htmlencode'
 
 kd                   = require 'kd'
 KDController         = kd.Controller
@@ -227,10 +228,11 @@ module.exports = class ComputeController extends KDController
 
           @stacksById = {}
           stacks.forEach (stack) =>
-            @stacksById[stack._id] = stack
+            stack.title    = Encoder.htmlDecode stack.title
             stack.machines = stack.machines
               .filter (machineId) => @machinesById[machineId]
               .map    (machineId) => @machinesById[machineId]
+            @stacksById[stack._id] = stack
 
           @stacks   = stacks
           @machines = machines
