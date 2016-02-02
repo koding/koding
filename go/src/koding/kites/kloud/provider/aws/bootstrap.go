@@ -2,7 +2,6 @@ package awsprovider
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -146,8 +145,8 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 
 			s.Log.Debug("[%s] resp = %+v\n", cred.Identifier, resp)
 
-			if !resp.IsBootstrapComplete() {
-				return nil, errors.New("Bootstrap metadata is incomplete: " + cred.Identifier)
+			if err := resp.BootstrapValid(); err != nil {
+				return nil, fmt.Errorf("invalid bootstrap metadata for %q: %s", cred.Identifier, err)
 			}
 		}
 

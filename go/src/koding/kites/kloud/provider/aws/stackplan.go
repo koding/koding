@@ -58,8 +58,8 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string) (stackplan.K
 
 		meta = cred.Meta.(*AwsMeta)
 
-		if !meta.IsBootstrapComplete() {
-			return nil, fmt.Errorf("Bootstrap data is incomplete: %+v", meta)
+		if err := meta.BootstrapValid(); err != nil {
+			return nil, fmt.Errorf("invalid bootstrap metadata for %q: %s", cred.Identifier, err)
 		}
 
 		break
