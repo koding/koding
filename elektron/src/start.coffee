@@ -12,6 +12,7 @@ module.exports = ->
     width  : 1280
     height : 800
     webPreferences    :
+      partition       : 'persist:koding'
       preload         : path.resolve path.join __dirname, 'noderequire.js'
       nodeIntegration : no
 
