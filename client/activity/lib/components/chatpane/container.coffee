@@ -1,4 +1,5 @@
 kd                    = require 'kd'
+_                     = require 'lodash'
 $                     = require 'jquery'
 React                 = require 'kd-react'
 ReactDOM              = require 'react-dom'
@@ -8,6 +9,8 @@ ChatPaneView          = require './view'
 scrollToElement       = require 'app/util/scrollToElement'
 getScrollablePosition = require 'app/util/getScrollablePosition'
 KDReactorMixin        = require 'app/flux/base/reactormixin'
+
+debounce = (delay, options, fn) -> _.debounce fn, delay, options
 
 module.exports = class ChatPaneContainer extends React.Component
 
@@ -33,14 +36,22 @@ module.exports = class ChatPaneContainer extends React.Component
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
+
+
   channel: (key) -> @props.thread?.getIn ['channel', key]
+
+
+  getViewContent: ->
+
+    { view } = @refs
+    return view.refs.content
 
 
   componentDidMount: ->
 
     { view } = @refs
 
-    view.refs.content.show()
+    @getViewContent().show()
     scrollTop = @flag 'scrollPosition'
     if scrollTop
       view.scrollToPosition scrollTop
@@ -55,7 +66,7 @@ module.exports = class ChatPaneContainer extends React.Component
     { scrollTop } = view.getScrollParams()
     { channel }   = ActivityFlux.actions
 
-    view.refs.content.hide()
+    @getViewContent().hide()
 
     kd.utils.defer =>
       channel.setLastSeenTime (@channel 'id'), Date.now()
@@ -64,13 +75,22 @@ module.exports = class ChatPaneContainer extends React.Component
 
   componentDidUpdate: (prevProps, prevState) ->
 
+    return  unless prevProps.thread and @props.thread
+
+    @scrollAfterUpdate prevProps, prevState
+    @updateDateMarkersPosition()
+    @updateUnreadMessagesLabel()
+
+    @isThresholdReached = no
+
+
+  scrollAfterUpdate: (prevProps, prevState) ->
+
     prevSelectedMessageId = prevState.selectedMessageId
     { selectedMessageId } = @state
 
     prevThread = prevProps.thread
     { thread } = @props
-
-    return  unless prevThread and thread
 
     { view } = @refs
 
@@ -101,18 +121,10 @@ module.exports = class ChatPaneContainer extends React.Component
 
       view.getScroller()._update()  if hasStoppedMessageEditing or hasRemovedMessage
 
-    @updateDateMarkersPosition()
-    @updateUnreadMessagesLabel()
-
-    @isThresholdReached = no
-
 
   updateDateMarkersPosition: ->
 
-    { view }    = @refs
-    { content } = view.refs
-
-    content.refs.ChatList.updateDateMarkersPosition()
+    @getViewContent().refs.ChatList.updateDateMarkersPosition()
 
 
   updateUnreadMessagesLabel: ->
@@ -122,26 +134,28 @@ module.exports = class ChatPaneContainer extends React.Component
     element  = helper.getFirstUnreadMessageElement messages, unreadCount
     return  unless element
 
-    { view }    = @refs
-    { content } = view.refs
-    label       = content.refs.UnreadCountLabel
-    position    = getScrollablePosition element
+    label    = @getViewContent().refs.UnreadCountLabel
+    position = getScrollablePosition element
 
     label.setPosition position
 
 
-  onGlance: (force) ->
-
-    unless force
-      unreadCount = @channel 'unreadCount'
-      messages    = @props.thread.get('messages').toList()
-      element     = helper.getFirstUnreadMessageElement messages, unreadCount
-      return  unless element
-
-      position = getScrollablePosition element
-      return  unless position is 'inside'
+  glance: ->
 
     ActivityFlux.actions.channel.glance @channel 'id'
+
+
+  onGlance: debounce 300, {}, ->
+
+    unreadCount = @channel 'unreadCount'
+    messages    = @props.thread.get('messages').toList()
+    element     = helper.getFirstUnreadMessageElement messages, unreadCount
+    return  unless element
+
+    position = getScrollablePosition element
+    return  unless position is 'inside'
+
+    kd.utils.wait 500, @bound 'glance'
 
 
   onTopThresholdReached: (event) ->
@@ -180,6 +194,7 @@ module.exports = class ChatPaneContainer extends React.Component
       isMessagesLoading      = { @isThresholdReached }
       onTopThresholdReached  = { @bound 'onTopThresholdReached' }
       onGlance               = { @bound 'onGlance' }
+      onMarkAsRead           = { @bound 'glance' }
       onScroll               = { @bound 'onScroll' }
       onJumpToUnreadMessages = { @bound 'onJumpToUnreadMessages' }
     >

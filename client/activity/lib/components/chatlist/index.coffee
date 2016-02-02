@@ -1,4 +1,3 @@
-_                      = require 'lodash'
 kd                     = require 'kd'
 React                  = require 'kd-react'
 ReactDOM               = require 'react-dom'
@@ -12,9 +11,6 @@ ActivityFlux           = require 'activity/flux'
 Waypoint               = require 'react-waypoint'
 ImmutableRenderMixin   = require 'react-immutable-render-mixin'
 findScrollableParent   = require 'app/util/findScrollableParent'
-
-debounce = (delay, options, fn) -> _.debounce fn, delay, options
-
 
 module.exports = class ChatList extends React.Component
 
@@ -57,7 +53,7 @@ module.exports = class ChatList extends React.Component
     window.removeEventListener 'resize', @bound 'handleResize'
 
 
-  glance: debounce 1000, {}, ->
+  glance: ->
 
     @props.onGlance()  if kd.singletons.windowController.isFocused()
 

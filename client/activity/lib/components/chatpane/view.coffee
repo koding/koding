@@ -51,9 +51,6 @@ class ChatPaneView extends React.Component
     scroller.style.opacity = 0
 
 
-  onMarkAsRead: -> @props.onGlance yes
-
-
   renderChannelInfoContainer: ->
 
     return null  unless @props.thread
@@ -106,7 +103,7 @@ class ChatPaneView extends React.Component
             ref='UnreadCountLabel'
             unreadCount={@channel 'unreadCount'}
             onJump={@props.onJumpToUnreadMessages}
-            onMarkAsRead={@bound 'onMarkAsRead'}
+            onMarkAsRead={@props.onMarkAsRead}
           />
           {@renderBody()}
           {@props.children}
