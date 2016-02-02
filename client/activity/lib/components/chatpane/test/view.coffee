@@ -4,13 +4,13 @@ ReactDOM    = require 'react-dom'
 expect      = require 'expect'
 TestUtils   = require 'react-addons-test-utils'
 toImmutable = require 'app/util/toImmutable'
-ChatPane    = require './view'
+ChatPane    = require '../view'
 ChatList    = require 'activity/components/chatlist'
 ChannelInfo = require 'activity/components/channelinfo'
-mockingjay  = require '../../../../mocks/mockingjay'
+mockingjay  = require '../../../../../mocks/mockingjay'
 
 
-describe 'ChatPane', ->
+describe 'ChatPaneView', ->
 
   getMockThread = (args...) -> toImmutable mockingjay.getMockThread(args...)
 
