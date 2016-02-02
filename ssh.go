@@ -163,10 +163,8 @@ func (s *SSHKey) GetSSHIp(name string) (string, error) {
 		return "", err
 	}
 
-	for _, info := range infos {
-		if strings.HasPrefix(info.VMName, name) {
-			return fmt.Sprintf("%s@%s", info.Hostname, info.IP), nil
-		}
+	if info, ok := getMachineFromName(infos, name); ok {
+		return fmt.Sprintf("%s@%s", info.Hostname, info.IP), nil
 	}
 
 	return "", fmt.Errorf("No machine found with specified name: `%s`", name)
@@ -185,10 +183,8 @@ func (s *SSHKey) GetUsername(name string) (string, error) {
 		return "", err
 	}
 
-	for _, info := range infos {
-		if strings.HasPrefix(info.VMName, name) {
-			return info.Hostname, nil
-		}
+	if info, ok := getMachineFromName(infos, name); ok {
+		return info.Hostname, nil
 	}
 
 	return "", fmt.Errorf("No machine found with specified name: `%s`", name)

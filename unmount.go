@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
@@ -40,13 +39,11 @@ func UnmountCommand(c *cli.Context) int {
 		return 1
 	}
 
-	// remove lock file
-	for _, info := range infos {
-		if strings.HasPrefix(info.VMName, name) && len(info.MountedPaths) > 0 {
-			name = info.VMName
-			if err := Unlock(info.MountedPaths[0]); err != nil {
-				fmt.Printf("Warning: unlocking failed: %s", err)
-			}
+	info, ok := getMachineFromName(infos, name)
+	if ok && len(info.MountedPaths) > 0 {
+		name = info.VMName
+		if err := Unlock(info.MountedPaths[0]); err != nil {
+			fmt.Printf("Warning: unlocking failed: %s", err)
 		}
 	}
 
