@@ -12,6 +12,7 @@ module.exports = class AdminAppView extends kd.ModalView
     options.testPath         = 'groups-admin'
     options.useRouter       ?= yes
     options.paneViewClass  or= AdminMainTabPaneView
+    options.checkRoles      ?= yes
 
     super options, data
 
@@ -58,8 +59,8 @@ module.exports = class AdminAppView extends kd.ModalView
 
   createTabs: ->
 
-    group        = @getData()
-    { tabData }  = @getOptions()
+    group                     = @getData()
+    { tabData, checkRoles }   = @getOptions()
 
     items   = []
     myRoles = _globals.config.roles
@@ -73,7 +74,7 @@ module.exports = class AdminAppView extends kd.ModalView
 
         role = if item.role? then item.role else 'admin'
 
-        if role not in myRoles
+        if checkRoles and role not in myRoles
           continue
 
         items.push item
