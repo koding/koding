@@ -40,15 +40,21 @@ module.exports = class MachinesListItem extends kd.ListItemView
     @settingsLink   = new kd.CustomHTMLView
       cssClass      : 'settings-link'
       partial       : 'settings'
-      tagName       : 'a'
-      attributes    :
-        href        : "/Machines/#{machine.uid}"
+      tagName       : 'span'
+      click         : =>
+        @destroyModal()
+        kd.singletons.router.handleRoute "/Machines/#{machine.uid}"
 
     # more to come like os, version etc.
     @vminfo =
       instance_type : machine.jMachine.meta?.instance_type or ''
 
     @createSidebarToggle()
+
+
+  destroyModal: ->
+
+    @getDelegate().parent.emit 'ModalDestroyRequested'
 
 
   createSidebarToggle: ->

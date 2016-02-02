@@ -1,72 +1,22 @@
-kd                        = require 'kd'
-isKoding                  = require 'app/util/isKoding'
-showError                 = require 'app/util/showError'
-checkFlag                 = require 'app/util/checkFlag'
-StacksModal               = require 'app/stacks/stacksmodal'
-EnvironmentList           = require './environmentlist'
-EnvironmentListController = require './environmentlistcontroller'
-whoami                    = require 'app/util/whoami'
+kd              = require 'kd'
+YourStacksView  = require 'app/environment/yourstacksview'
 
 
 module.exports = class EnvironmentsModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'environments-modal', options.cssClass
-    options.width    = if isKoding() then 742 else 772
-    options.overlay  = yes
-
-    options.title = "Your #{if isKoding() then 'Machines' else 'Stacks'}"
-
+    options.title     or= 'My Machines'
+    options.width     or= 742
+    options.cssClass    = kd.utils.curry 'environments-modal', options.cssClass
+    options.overlay    ?= yes
 
     super options, data
 
-    listView     = new EnvironmentList
-    controller   = new EnvironmentListController
-      view       : listView
-      wrapper    : no
-      scrollView : no
-      selected   : options.selected
+    @addSubView yourStacks = new YourStacksView
 
+    yourStacks.on 'DestroyParent', @bound 'destroy'
 
-    if checkFlag 'super-admin'
-
-      advancedButton = new kd.ButtonView
-        title    : 'ADVANCED'
-        cssClass : 'compact solid green advanced'
-        callback : -> new StacksModal
-
-      # Hack to add button outside of modal container
-      @addSubView advancedButton, '.kdmodal-inner'
-
-
-    @addSubView controller.getView()
-
-    listView.on 'ModalDestroyRequested', @bound 'destroy'
-
-    { computeController, appManager } = kd.singletons
-
-    listView.on 'StackDeleteRequested', (stack) =>
-
-      computeController.destroyStack stack, (err) =>
-        return  if showError err
-
-        new kd.NotificationView
-          title : 'Stack deleted'
-
-        computeController.reset yes
-        @destroy()
-
-    listView.on 'StackReinitRequested', (stack) =>
-
-      computeController
-        .once 'RenderStacks', => @destroy no
-        .reinitStack stack
-
-    whoami().isEmailVerified (err, verified) ->
-      if err or not verified
-        for item in controller.getListItems()
-          item.emit 'ManagedMachineIsNotAllowed'
 
   destroy: (goBack = yes) ->
 

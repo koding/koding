@@ -9,14 +9,16 @@ module.exports = class AdminAppView extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.testPath   = 'groups-admin'
-    options.useRouter ?= yes
+    options.testPath         = 'groups-admin'
+    options.useRouter       ?= yes
+    options.paneViewClass  or= AdminMainTabPaneView
 
     super options, data
 
     @addSubView @nav     = new kd.TabHandleContainer
       cssClass           : 'AppModal-nav'
-    @addSubView @tabs    = new AdminMainTabPaneView
+
+    @addSubView @tabs    = new options.paneViewClass
       tabHandleContainer : @nav
       useRouter          : @getOption 'useRouter'
     , data
@@ -24,8 +26,6 @@ module.exports = class AdminAppView extends kd.ModalView
     @nav.unsetClass 'kdtabhandlecontainer'
 
     @setListeners()
-
-    @overlay.once 'click', @bound 'handleOverlayClick'
 
 
   _windowDidResize: (e) ->
@@ -131,16 +131,3 @@ module.exports = class AdminAppView extends kd.ModalView
       @tabs.showPane pane
 
     pane?.mainView?.emit 'SearchInputChanged', searchValue
-
-
-  handleOverlayClick: ->
-
-    stacksPane = @tabs.getPaneByName 'Stacks'
-
-    return @destroy()  unless stacksPane
-
-    { mainView }    = stacksPane
-    { editorView }  = mainView?.defineStackView?.stackTemplateView
-
-    unless editorView?.getAce().isContentChanged()
-      @destroy()

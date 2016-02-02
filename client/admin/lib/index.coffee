@@ -10,7 +10,7 @@ AdminMembersView           = require './views/members/adminmembersview'
 AdministrationView         = require './views/koding-admin/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
 TopicModerationView        = require './views/moderation/topicmoderationview'
-GroupStackSettings         = require './views/stacks/groupstacksettings'
+# GroupStackSettings         = require './views/stacks/groupstacksettings'
 OnboardingAdminView        = require './views/onboarding/onboardingadminview'
 AdminInvitationsView       = require './views/invitations/admininvitationsview'
 GroupPermissionsView       = require './views/permissions/grouppermissionsview'
@@ -46,7 +46,6 @@ module.exports = class AdminAppController extends AppController
             { title : 'Configure',  action: 'Configure',        viewClass : AdminIntegrationParentView }
           ]
         }
-        { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings,       role: 'member' }
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
         { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 }
       ]
@@ -65,14 +64,13 @@ module.exports = class AdminAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    data         or= kd.singletons.groupsController.getCurrentGroup()
-    options.view   = new AdminAppView
+    data          ?= kd.singletons.groupsController.getCurrentGroup()
+    options.view  ?= new AdminAppView
       title        : 'Team Settings'
       cssClass     : 'AppModal AppModal--admin team-settings'
       width        : 1000
       height       : '90%'
       overlay      : yes
-      overlayClick : no
       tabData      : NAV_ITEMS
     , data
 
@@ -110,16 +108,20 @@ module.exports = class AdminAppController extends AppController
               if handle.getOption('title') is parentTabTitle
                 handle.setClass 'active'
       else
-        kd.singletons.router.handleRoute '/Admin/General'
+        kd.singletons.router.handleRoute "/#{@options.name}"
+
+
+  checkRoute: (route) -> /^\/Admin.*/.test route
 
 
   loadView: (modal) ->
 
-    modal.once 'KDObjectWillBeDestroyed', ->
+    modal.once 'KDObjectWillBeDestroyed', =>
       { router } = kd.singletons
-      previousRoutes = router.visitedRoutes.filter (route) -> not /^\/Admin.*/.test(route)
+      previousRoutes = router.visitedRoutes.filter (route) => not @checkRoute route
       if previousRoutes.length > 0
       then router.handleRoute previousRoutes.last
       else router.handleRoute router.getDefaultRoute()
+
 
   fetchNavItems: (cb) -> cb NAV_ITEMS

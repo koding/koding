@@ -19,6 +19,7 @@ module.exports = class StackTemplateListView extends kd.View
       view       : @list
       wrapper    : no
       scrollView : no
+      viewType   : options.viewType
 
     @listView = @listController.getView()
 
