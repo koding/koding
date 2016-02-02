@@ -120,13 +120,13 @@ module.exports = class SearchController extends KDObject
       # Filter accounts according to the current group.
       # If user which is coming from the result isn't a member of the current group
       # don't show it in auto complete
-        group.isMember account, (err, isMember) ->
-          return reject err  if err
+      group.isMember account, (err, isMember) ->
+        return reject err  if err
 
-          if isMember and account.profile.nickname isnt nickname
-            return resolve [account]
-          else
-            return resolve []
+        if isMember and account.profile.nickname isnt nickname
+          return resolve [account]
+        else
+          return resolve []
 
     new Promise (resolve, reject) ->
 
