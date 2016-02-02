@@ -1,10 +1,11 @@
-module.exports = class MainViewController extends KDViewController
+kd = require 'kd.js'
+module.exports = class MainViewController extends kd.ViewController
 
   logViewByElement = (el) ->
 
-    for id, view of KD.instances when view.getElement?
+    for id, view of kd.instances when view.getElement?
       if el is view.getElement()
-        log view
+        console.log view
         break
 
     logViewByElement el.parentNode  unless el.parentNode is document.body
@@ -16,15 +17,15 @@ module.exports = class MainViewController extends KDViewController
 
     mainView = @getView()
 
-    {repeat, killRepeat} = KD.utils
+    {repeat, killRepeat} = kd.utils
 
-    {windowController, mainController, router} = KD.singletons
+    {windowController, mainController, router} = kd.singletons
 
     mainView.on 'MainTabPaneShown', (pane) =>
       @mainTabPaneChanged mainView, pane
       @setBodyClass pane.name.toLowerCase()
 
-    if KD.config?.environment isnt 'production'
+    if kd.config?.environment isnt 'production'
       window.addEventListener 'click', (event) =>
         if event.metaKey and event.altKey
           logViewByElement event.target
@@ -39,8 +40,8 @@ module.exports = class MainViewController extends KDViewController
     (name)->
 
       {body} = document
-      KDView.setElementClass body, 'remove', previousClass  if previousClass
-      KDView.setElementClass body, 'add', name
+      kd.View.setElementClass body, 'remove', previousClass  if previousClass
+      kd.View.setElementClass body, 'add', name
       previousClass = name
 
 

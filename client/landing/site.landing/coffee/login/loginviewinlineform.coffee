@@ -1,8 +1,9 @@
+kd = require 'kd.js'
 JView = require './../core/jview'
 _     = require 'lodash'
 
 
-module.exports = class LoginViewInlineForm extends KDFormView
+module.exports = class LoginViewInlineForm extends kd.FormView
 
   JView.mixin @prototype
 
@@ -13,9 +14,9 @@ module.exports = class LoginViewInlineForm extends KDFormView
 
     @on 'FormValidationFailed', @button.bound 'hideLoader'
 
-    inputs = KDFormView.findChildInputs this
+    inputs = kd.FormView.findChildInputs this
 
-    KD.singletons.router.on 'RouteInfoHandled', ->
+    kd.singletons.router.on 'RouteInfoHandled', ->
       _.each inputs, (input) ->
         input.emit 'ValidationFeedbackCleared' # Reset the validations
 

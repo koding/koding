@@ -43,6 +43,9 @@ module.exports = class CommentInputWidgetContainer extends React.Component
     if event.which is KeyboardKeys.ESC
       @props.cancelEdit()
 
+    if event.metaKey and event.keyCode is KeyboardKeys.ENTER
+      @props.postComment()
+
 
   render: ->
 

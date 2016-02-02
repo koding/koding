@@ -72,7 +72,7 @@ module.exports = class CommandDropbox extends React.Component
 
     <PortalDropbox
       className = 'CommandDropbox'
-      visible   = { query? }
+      visible   = { Boolean(query) }
       onClose   = { onClose }
       type      = 'dropup'
       title     = 'Commands matching'

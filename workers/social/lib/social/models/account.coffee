@@ -659,7 +659,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ 'sinan', 'devrim', 'gokmen', 'fatihacet',
                   'sent-hil', 'cihangirsavas', 'leeolayvar', 'stefanbc',
-                  'szkl', 'nitin', 'usirin', 'kodinglearn', 'rjeczalik' ] # kodinglearn is nitin's impersonation account
+                  'szkl', 'nitin', 'usirin', 'kodinglearn', 'rjeczalik', 'caikoding'] # kodinglearn is nitin's impersonation account
 
 
   isEmailVerified: (callback) ->

@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 JView = require './../core/jview'
 
 module.exports = class LoginInputView extends JView
@@ -6,9 +7,9 @@ module.exports = class LoginInputView extends JView
   constructor:(options = {}, data)->
 
     {inputOptions}            = options
-    options.cssClass          = KD.utils.curry 'login-input-view', options.cssClass
+    options.cssClass          = kd.utils.curry 'login-input-view', options.cssClass
     inputOptions            or= {}
-    inputOptions.cssClass     = KD.utils.curry 'thin medium', inputOptions.cssClass
+    inputOptions.cssClass     = kd.utils.curry 'thin medium', inputOptions.cssClass
     inputOptions.decorateValidation = no
 
     {placeholder, validate}   = inputOptions
@@ -20,9 +21,9 @@ module.exports = class LoginInputView extends JView
 
     super options, null
 
-    @input       = new KDInputView inputOptions, data
-    @icon        = new KDCustomHTMLView cssClass : 'validation-icon'
-    @placeholder = new KDCustomHTMLView
+    @input       = new kd.InputView inputOptions, data
+    @icon        = new kd.CustomHTMLView cssClass : 'validation-icon'
+    @placeholder = new kd.CustomHTMLView
       cssClass   : 'placeholder-helper'
       partial    : placeholder# or inputOptions.name
 

@@ -12,7 +12,8 @@ class MentionDropbox extends React.Component
 
   @propTypes =
     query           : React.PropTypes.string
-    items           : React.PropTypes.object
+    userMentions    : React.PropTypes.instanceOf immutable.List
+    channelMentions : React.PropTypes.instanceOf immutable.List
     selectedItem    : React.PropTypes.instanceOf immutable.Map
     selectedIndex   : React.PropTypes.number
     onItemSelected  : React.PropTypes.func
@@ -22,7 +23,8 @@ class MentionDropbox extends React.Component
 
   @defaultProps =
     query           : ''
-    items           : { userMentions: immutable.List(), channelMentions: immutable.List() }
+    userMentions    : immutable.List()
+    channelMentions : immutable.List()
     selectedItem    : null
     selectedIndex   : 0
     onItemSelected  : kd.noop
@@ -43,9 +45,7 @@ class MentionDropbox extends React.Component
 
   renderUserMentions: ->
 
-    { items, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
-
-    { userMentions } = items
+    { userMentions, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
 
     userMentions.map (item, index) =>
       isSelected = index is selectedIndex
@@ -63,9 +63,7 @@ class MentionDropbox extends React.Component
 
   renderChannelMentions: ->
 
-    { items, channelMentions, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
-
-    { userMentions, channelMentions } = items
+    { userMentions, channelMentions, selectedIndex, query, onItemSelected, onItemConfirmed } = @props
 
     channelMentions.map (item, index) =>
       index += userMentions.size
@@ -84,7 +82,7 @@ class MentionDropbox extends React.Component
 
   render: ->
 
-    { userMentions, channelMentions } = @props.items
+    { userMentions, channelMentions } = @props
 
     <PortalDropbox
       className = 'MentionDropbox'

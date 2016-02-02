@@ -1,3 +1,4 @@
+kd = require 'kd.js'
 LoginViewInlineForm = require './loginviewinlineform'
 LoginInputView      = require './logininputview'
 
@@ -35,7 +36,7 @@ module.exports = class ResetInlineForm extends LoginViewInlineForm
             required  : "Please confirm your password."
             match     : "Password confirmation doesn't match!"
 
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title : "Reset password"
       style : "solid green medium"
       type  : 'submit'

@@ -1,3 +1,6 @@
+$                        = require 'jquery'
+kd                       = require 'kd.js'
+utils                    = require './../core/utils'
 LoginViewInlineForm      = require './loginviewinlineform'
 LoginInputView           = require './logininputview'
 LoginInputViewWithLoader = require './logininputwithloader'
@@ -7,9 +10,12 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   ENTER = 13
 
   constructor:(options={},data)->
+
     super options, data
 
     @emailIsAvailable = no
+    @gravatars        ?= {}
+
     @on 'EmailIsAvailable'   , => @emailIsAvailable = yes
     @on 'EmailIsNotAvailable', => @emailIsAvailable = no
 
@@ -20,7 +26,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       inputOptions       :
         name             : "password"
         type             : "password"
-        testPath         : "recover-password"
+        attributes        :
+          testpath        : 'register-password'
         placeholder      : "Password"
         focus            : =>
           @password.icon.unsetTooltip()
@@ -46,7 +53,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         placeholder       : 'Email address'
         attributes        :
           testpath        : 'register-form-email'
-        validate          : KD.utils.getEmailValidator
+        validate          : utils.getEmailValidator
           container       : this
           password        : @password
           tfcode          : @tfcode
@@ -64,7 +71,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     {buttonTitle} = @getOptions()
 
     @button?.destroy()
-    @button = new KDButtonView
+    @button = new kd.ButtonView
       title         : buttonTitle or 'CREATE ACCOUNT'
       type          : 'button'
       style         : 'solid green medium'
@@ -89,7 +96,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     @bind2FAEvents()
 
-    KD.singletons.router.on 'RouteInfoHandled', =>
+    kd.singletons.router.on 'RouteInfoHandled', =>
       @email.icon.unsetTooltip()
       @password.icon.unsetTooltip()
 
@@ -109,13 +116,13 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   bind2FAEvents: ->
 
     @on 'TwoFactorEnabled', =>
-      modal = new KDModalView
+      modal = new kd.ModalView
         title     : 'Two-Factor Authentication <a href="http://learn.koding.com/guides/2-factor-auth/" target="_blank">What is 2FA?</a>'
         width     : 400
         overlay   : yes
         cssClass  : 'two-factor-code-modal'
 
-      modal.addSubView form = new KDFormView
+      modal.addSubView form = new kd.FormView
       form.addSubView @tfcode = @create2FAInput()
       form.addSubView @createPost2FACodeButton()
 
@@ -124,7 +131,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
   createPost2FACodeButton: ->
 
-    return @post2FACodeButton = new KDButtonView
+    return @post2FACodeButton = new kd.ButtonView
       title         : 'SIGN IN'
       type          : 'submit'
       style         : 'solid green medium'
@@ -141,21 +148,21 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       password  : @password.input.getValue()
       tfcode    : @tfcode.input.getValue()
 
-    if data.tfcode then KD.utils.validateEmail data,
+    if data.tfcode then utils.validateEmail data,
       success : (res) ->
         return location.replace '/'  if res is 'User is logged in!'
 
       error   : ({responseText}) =>
         @post2FACodeButton.hideLoader()
         title = if /Bad Request/i.test responseText then 'Access Denied!' else responseText
-        new KDNotificationView { title }
+        new kd.NotificationView { title }
     else
        @post2FACodeButton.hideLoader()
 
 
   reset: ->
 
-    inputs = KDFormView.findChildInputs this
+    inputs = kd.FormView.findChildInputs this
     input.clearValidationFeedback() for input in inputs
 
     super
@@ -167,11 +174,9 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
   fetchGravatarInfo : (email) ->
 
-    isEmail = if KDInputValidator.ruleEmail @email.input then no else yes
+    isEmail = if kd.InputValidator.ruleEmail @email.input then no else yes
 
     return unless isEmail
-
-    @gravatars ?= {}
 
     return @emit 'gravatarInfoFetched', @gravatars[email]  if @gravatars[email]
 
@@ -211,7 +216,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
   submitForm: (event) ->
 
-    # KDInputView doesn't give clear results with
+    # kd.InputView doesn't give clear results with
     # async results that's why we maintain those
     # results manually in @emailIsAvailable
     # at least for now - SY
@@ -223,6 +228,43 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       @password.input.validate()
       @email.input.validate()
       return no
+
+
+  handleOauthData: (oauthData) ->
+
+    @oauthData = oauthData
+    { input }  = @email
+
+    { username, firstName, lastName } = oauthData
+
+    console.log {oauthData, input}
+
+    if oauthData.email
+      input.setValue oauthData.email
+      @email.placeholder.setClass 'out'
+      @emailIsAvailable = yes
+    else
+      modal = new KDModalView
+        cssClass        : "fbauth-failed-modal"
+        title           : "OAuth authentication failed"
+        content         : "Sorry, but we could not get a valid email address from your OAuth provider. Please select another method to register."
+        buttons         :
+          OK            :
+            cssClass    : "solid green medium"
+            title       : "OK"
+            callback    : -> modal.destroy()
+
+
+    @once 'gravatarInfoFetched', (gravatar) =>
+      # oath username has more priority over gravatar username
+      gravatar.preferredUsername = username  if username
+      gravatar.name =
+        givenName  : firstName
+        familyName : lastName
+
+      input.validate()
+
+    @fetchGravatarInfo input.getValue()
 
 
   pistachio:->

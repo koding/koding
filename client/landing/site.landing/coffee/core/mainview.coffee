@@ -1,12 +1,13 @@
+kd = require 'kd.js'
 CustomLinkView = require './customlinkview'
 MainTabView    = require './maintabview'
 
-module.exports = class MainView extends KDView
+module.exports = class MainView extends kd.View
 
   constructor: (options = {}, data)->
 
     options.domId    = 'kdmaincontainer'
-    options.cssClass = if KD.isLoggedInOnLoad then 'with-sidebar' else ''
+    options.cssClass = if kd.isLoggedInOnLoad then 'with-sidebar' else ''
 
     super options, data
 
@@ -32,6 +33,6 @@ module.exports = class MainView extends KDView
 
 
     @mainTabView.on 'AllPanesClosed', ->
-      KD.singletons.router.handleRoute '/Activity'
+      kd.singletons.router.handleRoute '/Activity'
 
     @addSubView @mainTabView

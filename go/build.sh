@@ -45,6 +45,7 @@ services=(
   koding/kites/kloud/cleaners/cmd/cleaner
   koding/kites/kloud/scripts/userdebug
   koding/kites/kloud/scripts/sl
+  koding/klient
 
   github.com/koding/kite/kitectl
   github.com/canthefason/go-watcher

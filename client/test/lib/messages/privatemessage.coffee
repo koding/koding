@@ -11,6 +11,10 @@ module.exports =
 
     @users = utils.getUser(no, -1).slice 1, 8
 
+    if utils.suiteHookHasRun 'before'
+    then return
+    else utils.registerSuiteHook 'before'
+
     for user in @users
       helpers.beginTest(browser, user)
       helpers.doLogout(browser)

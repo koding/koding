@@ -1715,8 +1715,8 @@ paymentGrayLighter  = #f8f8f8
       margin-top            5px
       text-align            right
 
-  .buildlogs
-    .logs-link
+  .custom-link-view
+    span.link-view
       font-size             13px
       color                 #52A840
       text-decoration       underline
@@ -2324,13 +2324,6 @@ paymentGrayLighter  = #f8f8f8
     cursor                  pointer
 
 
-.add-managed-vm
-  .copy-tooltip-view
-    .select-all
-      right                 0 !important
-      bottom                0 !important
-
-
 .install-kd-modal
 .add-managed-vm
 
@@ -2409,6 +2402,7 @@ paymentGrayLighter  = #f8f8f8
     border                  1px solid #DEDEDE
     rounded                 2px
     size                    350px 43px
+    rel()
     borderBox()
 
     .kdinput
@@ -2431,8 +2425,8 @@ paymentGrayLighter  = #f8f8f8
       size                  60px, 43px
       text-align            center
       line-height           43px
-      right                 10px
-      bottom                61px
+      right                 0
+      bottom                -1px
       z-index               1
       rounded               0 2px 2px 0
       borderBox()
@@ -2450,9 +2444,6 @@ paymentGrayLighter  = #f8f8f8
 
     code
       padding               1px 4px
-
-  .code .select-all
-    bottom                  41px
 
 
 .kdmodal.delete-files-modal

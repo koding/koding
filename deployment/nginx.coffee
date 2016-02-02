@@ -249,6 +249,15 @@ module.exports.create = (KONFIG, environment)->
         access_log off;
       }
 
+      location @assets {
+        proxy_pass            http://s3.amazonaws.com/koding-assets$uri;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 1;
+
+        resolver 8.8.8.8;
+      }
+
       # no need to send static file serving requests to webserver
       # serve static content from nginx
       location /a/ {
@@ -260,6 +269,7 @@ module.exports.create = (KONFIG, environment)->
           }"}
 
         root #{KONFIG.projectRoot}/website/;
+        try_files $uri @assets;
         # no need to send those requests to nginx access_log
         access_log off;
       }

@@ -1,14 +1,15 @@
+kd = require 'kd.js'
 CustomLinkView = require './customlinkview'
 kookies        = require 'kookies'
 
-module.exports = class TopNavigation extends KDCustomHTMLView
+module.exports = class TopNavigation extends kd.CustomHTMLView
 
   menu = [
-    { title : 'Koding University', href : 'http://learn.koding.com',  name : 'about' }
-    { title : 'Teams',             href : '/Teams',                   name : 'teams' }
-    { title : 'Features',          href : '/Features',                name : 'features' }
-    { title : 'Sign In',           href : '/Login',                   name : 'buttonized white login',  attributes : testpath : 'login-link' }
-    { title : 'Sign Up',           href : '/Register',                name : 'buttonized green signup', attributes : testpath : 'signup-link' }
+    { title : 'Koding University', href : 'http://learn.koding.com',         name : 'about' }
+    { title : 'Teams',             href : '/Teams',                          name : 'teams' }
+    { title : 'Features',          href : 'https://www.koding.com/Features', name : 'features', attributes: target: '_blank' }
+    { title : 'Sign In',           href : '/Login',                          name : 'buttonized white login',  attributes : testpath : 'login-link' }
+    { title : 'Sign Up',           href : '/Register',                       name : 'buttonized green signup', attributes : testpath : 'signup-link' }
   ]
 
   constructor: (options = {}, data) ->
@@ -20,7 +21,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
     @menu = {}
 
-    {mainView} = KD.singletons
+    {mainView} = kd.singletons
     mainView.on 'MainTabPaneShown', @bound 'setActiveItem'
 
 

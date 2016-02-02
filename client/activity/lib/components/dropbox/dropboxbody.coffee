@@ -3,12 +3,19 @@ React        = require 'kd-react'
 ReactDOM     = require 'react-dom'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
+Header       = require './dropboxheader'
 
 module.exports = class DropboxBody extends React.Component
 
+  @propTypes =
+    className        : React.PropTypes.string
+    contentClassName : React.PropTypes.string
+    type             : React.PropTypes.string
+
   @defaultProps =
-    className : ''
-    type      : 'dropdown'
+    className        : ''
+    contentClassName : ''
+    type             : 'dropdown'
 
 
   getContentElement: -> ReactDOM.findDOMNode @refs.content
@@ -39,31 +46,14 @@ module.exports = class DropboxBody extends React.Component
     return classnames classes
 
 
-  renderSubtitle: ->
-
-    { subtitle } = @props
-    return  unless subtitle
-
-    <span className="Dropbox-subtitle">{ subtitle }</span>
-
-
-  renderHeader: ->
-
-    { title } = @props
-    return unless title
-
-    <div className='Dropbox-header'>
-      { title }
-      { @renderSubtitle() }
-    </div>
-
-
   render: ->
 
-    containerClassName = @getContainerClassName()
-    contentClassName   = @getContentClassName()
+    { title, subtitle } = @props
+    containerClassName  = @getContainerClassName()
+    contentClassName    = @getContentClassName()
+
     <div className={containerClassName} ref='dropbox'>
-      { @renderHeader() }
+      <Header title={title} subtitle={subtitle} />
       <div className={contentClassName} ref='content'>
         <div className='Dropbox-content'>
           { @props.children }
