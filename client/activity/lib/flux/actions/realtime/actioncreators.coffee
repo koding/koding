@@ -165,6 +165,30 @@ _isChannelInitiationEvent = (message) ->
   return systemType and systemType is 'initiate'
 
 
+bindAppBadgeNotifiers = ->
+
+  return  unless window.nodeRequire
+
+  { ipcRenderer } = nodeRequire 'electron'
+  { getters }     = require 'activity/flux'
+
+  calculateUnreads = (channels) ->
+    channels      = channels.toJS()
+    unreadPublic  = 0
+    unreadPrivate = 0
+    for id, channel of channels
+      switch channel.typeConstant
+        when 'topic'          then unreadPublic  += channel.unreadCount
+        when 'privatemessage' then unreadPrivate += channel.unreadCount
+
+    return ipcRenderer.send 'badge-reset'  if unreadPrivate + unreadPublic is 0
+
+    ipcRenderer.send 'badge-unread'                      if unreadPublic
+    ipcRenderer.send 'badge-unread', "#{unreadPrivate}"  if unreadPrivate
+
+  kd.singletons.reactor.observe  getters.allChannels, calculateUnreads
+
+
 ###*
  * Takes a dispatcher and returns a function that will dispatch a unread count
  * event to that dispatcher.
@@ -200,4 +224,5 @@ module.exports = {
   bindChannelEvents
   bindMessageEvents
   bindNotificationEvents
+  bindAppBadgeNotifiers
 }
