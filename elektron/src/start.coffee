@@ -1,6 +1,7 @@
 electron        = require 'electron'
 BrowserWindow   = electron.BrowserWindow
 ApplicationMenu = require './applicationmenu'
+path            = require 'path'
 
 ROOT_URL      = 'http://jarjar.dev.koding.com:8090'
 
@@ -10,6 +11,8 @@ module.exports = ->
   mainWindow = new BrowserWindow
     width  : 1280
     height : 800
+    webPreferences    :
+      preload         : path.resolve path.join __dirname, 'noderequire.js'
 
   # and load the index.html of the app.
   mainWindow.loadURL ROOT_URL
