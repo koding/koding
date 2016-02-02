@@ -1,23 +1,68 @@
 package sl
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sort"
 )
 
-// Resource
+// Resource defines an operations that need to be supported by
+// a concrete resource type.
 type Resource interface {
 	sort.Interface
 	Filter(*Filter)
 }
 
-// ResourceDecoder
+// ResourceDecoder provides a mean to optionally perform additional decoding
+// of a resource after unmarshalling.
 type ResorceDecoder interface {
 	Decode()
 }
 
-// RequestResource
+// TagRequest is a generic POST request that tags Softlayer resources.
+//
+// It overwrites all tags. The TODO is to make it not.
+type TagRequest struct {
+	Name    string // name of the resource
+	Service string // API path to resource's service
+	ID      int    // resource's ID
+	Tags    Tags   // tags to be set for a resource
+}
+
+func (c *Softlayer) tag(req *TagRequest) error {
+	body := map[string]interface{}{
+		"parameters": []interface{}{req.Tags.Ref()},
+	}
+	p, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	path := fmt.Sprintf("%s/%d/setTags.json", req.Service, req.ID)
+	p, err = c.DoRawHttpRequest(path, "POST", bytes.NewBuffer(p))
+	if err != nil {
+		return err
+	}
+
+	if err := checkError(p); err != nil {
+		return err
+	}
+
+	var ok bool
+	if err := json.Unmarshal(p, &ok); err != nil {
+		return err
+	}
+
+	if !ok {
+		return fmt.Errorf("failed setting tags for %s id=%d", req.Name, req.ID)
+	}
+
+	return nil
+
+}
+
+// RequestResource is a generic GET request for Softlayer resources.
 type ResourceRequest struct {
 	Name       string   // name of the resource
 	Path       string   // API path to fetch the resource
@@ -27,7 +72,6 @@ type ResourceRequest struct {
 	Resource   Resource // resource value
 }
 
-// fetch
 func (c *Softlayer) get(req *ResourceRequest) error {
 	var p []byte
 	var err error
