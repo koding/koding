@@ -347,6 +347,8 @@ func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) erro
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
+	defer debug(time.Now(), "Name=%s", op.Name)
+
 	dir, err := k.getDir(op.Parent)
 	if err != nil {
 		return err

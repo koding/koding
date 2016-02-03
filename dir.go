@@ -325,7 +325,8 @@ func (d *Dir) removeEntry(name string) (Node, error) {
 		return nil, err
 	}
 
-	if err := d.Transport.Remove(name); err != nil {
+	path := filepath.Join(d.Path, name)
+	if err := d.Transport.Remove(path); err != nil {
 		return nil, err
 	}
 

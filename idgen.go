@@ -39,12 +39,12 @@ type HandleIDGen struct {
 	LastID fuseops.HandleID
 }
 
-// NewIDGen is the required initializer for IDGen. It sets LastID to
-// fuseops.RootInodeID, ie 1 since that's the default ID for root.
+// NewHandleIDGen is the required initializer for HandleID.
 func NewHandleIDGen() *HandleIDGen {
 	return &HandleIDGen{Mutex: sync.Mutex{}}
 }
 
+// Next returns next available fuseops.HandleID
 func (h *HandleIDGen) Next() fuseops.HandleID {
 	h.Lock()
 	defer h.Unlock()
