@@ -4,7 +4,7 @@ IMAGE_EMOJIS = [
   'broken_heart'
   'confounded'
   'flushed'
-  'flowning'
+  'frowning'
   'grinning'
   'heart'
   'kissing_heart'
