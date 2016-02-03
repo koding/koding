@@ -8,12 +8,12 @@ InputWidget             = require 'activity/components/channelparticipantsinputw
 
 module.exports = class ChannelParticipantsView extends React.Component
 
-  PREVIEW_COUNT     = 0
   MAX_PREVIEW_COUNT = 19
 
   @propTypes =
     query                             : React.PropTypes.string
     value                             : React.PropTypes.string
+    maxPreviewCount                   : React.PropTypes.number
     visible                           : React.PropTypes.bool
     isParticipant                     : React.PropTypes.bool
     addNewParticipantMode             : React.PropTypes.bool
@@ -21,33 +21,34 @@ module.exports = class ChannelParticipantsView extends React.Component
     onNewParticipantButtonClick       : React.PropTypes.func.isRequired
     onShowMoreParticipantsButtonClick : React.PropTypes.func.isRequired
     channelId                         : React.PropTypes.string.isRequired
-    participants                      : React.PropTypes.instanceOf immutable.Map
+    participants                     : React.PropTypes.instanceOf immutable.Map
     items                             : React.PropTypes.instanceOf immutable.List
 
 
   @defaultProps =
-    query                            : ''
-    value                            : ''
-    visible                          : no
-    isParticipant                    : no
-    addNewParticipantMode            : no
-    showAllParticipants              : no
-    selectedItem                     : null
-    selectedIndex                    : null
-    participants                     : immutable.Map()
-    items                            : immutable.List()
+    query                 : ''
+    value                 : ''
+    maxPreviewCount       : MAX_PREVIEW_COUNT
+    visible               : no
+    isParticipant         : no
+    addNewParticipantMode : no
+    showAllParticipants   : no
+    selectedItem          : null
+    selectedIndex         : null
+    participants          : immutable.Map()
+    items                 : immutable.List()
 
 
   getPreviewCount: ->
 
-    { participants } = @props
+    { participants, maxPreviewCount } = @props
 
-    diff = participants.size - MAX_PREVIEW_COUNT
+    diff = participants.size - maxPreviewCount
 
-    PREVIEW_COUNT = switch
-      when diff is 0 then MAX_PREVIEW_COUNT
+    switch
+      when diff is 0 then maxPreviewCount
       when diff < 0 then participants.size
-      else MAX_PREVIEW_COUNT - 1
+      else maxPreviewCount - 1
 
 
   renderPreviewAvatars: ->
@@ -66,7 +67,7 @@ module.exports = class ChannelParticipantsView extends React.Component
 
     return null  unless @props.participants
 
-    moreCount = @props.participants.size - PREVIEW_COUNT
+    moreCount = @props.participants.size - @getPreviewCount()
 
     return null  unless moreCount > 0
 
