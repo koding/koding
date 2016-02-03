@@ -7,7 +7,8 @@ KONFIG                                  = require('koding-config-manager').load 
 
 { uniq }                                = require 'underscore'
 { hostname, environment }               = KONFIG
-{ getClientId, handleClientIdNotFound } = require './../helpers'
+{ generateAPIError
+  getClientId, handleClientIdNotFound } = require './../helpers'
 { validateTeamDomain }                  = require '../../../../workers/social/lib/social/models/user/validators'
 
 module.exports = (req, res, next) ->
@@ -44,7 +45,7 @@ module.exports = (req, res, next) ->
       # if we dont have teamaccesscode just continue
 
       validateTeamInvitation teamAccessCode, (err) ->
-        return res.status(400).send err  if err
+        return next generateAPIError 400, err  if err
         next()
 
     (next) ->
@@ -54,7 +55,7 @@ module.exports = (req, res, next) ->
         # when there is an error in the fetchClient, it returns message in it
         if client.message
           console.error JSON.stringify { req, client }
-          return res.status(500).send client.message
+          return next generateAPIError 500, client.message
 
         client.clientIP = (clientIPAddress.split ',')[0]
 
@@ -68,12 +69,12 @@ module.exports = (req, res, next) ->
       # checking if group slug is same with the username
       if slug.toLowerCase?() is body.username?.toLowerCase?()
         message = 'Sorry, your group domain and your username can not be the same!'
-        return  res.status(400).send message
+        return next generateAPIError 400, message
 
       # checking if group slug was already used
       JGroup.one { slug }, (err, group) ->
-        return res.status(500).send 'an error occured'  if err
-        return res.status(403).send "Sorry,
+        return next generateAPIError 500, 'an error occured'  if err
+        return next generateAPIError 403, "Sorry,
           Team URL '#{slug}.#{hostname}' is already in use"  if group
         next()
 
@@ -85,24 +86,24 @@ module.exports = (req, res, next) ->
 
         # send HTTP 400 if somehow alreadyMember is true but user doesnt exist
         if alreadyMember and errorMessage is unknownUsernameError
-          return res.status(400).send unknownUsernameError
+          return next generateAPIError 400, unknownUsernameError
 
         # setting alreadyMember to true if error is not unknownUsernameError
         # ignoring other errors here since our only concern is checking if user exists
         alreadyMember = errorMessage isnt unknownUsernameError
         next()
 
-    (next) ->
-      # generating callback function to be used in both login and convert
-      createGroup = createGroupKallback client, req, res, body
-
-      if alreadyMember
-      then JUser.login client.sessionToken, body, createGroup
-      else JUser.convert client, body, createGroup
-
   ]
 
-  async.series queue
+  async.series queue, (err) ->
+    return res.status(err.status).send err.message  if err
+
+    # generating callback function to be used in both login and convert
+    createGroup = createGroupKallback client, req, res, body
+
+    if alreadyMember
+    then JUser.login client.sessionToken, body, createGroup
+    else JUser.convert client, body, createGroup
 
 
 validateTeamInvitation = (teamAccessCode, callback) ->
