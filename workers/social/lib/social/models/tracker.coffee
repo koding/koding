@@ -49,12 +49,15 @@ module.exports = class Tracker extends bongo.Base
     category: 'NewAccount', label: 'VerifyAccount'
   }
 
-  @identifyAndTrack = (username, event, eventProperties = {}) ->
-    @identify username
-    @track username, event, eventProperties
+  @identifyAndTrack = (username, event, eventProperties = {}, callback = ->) ->
+    @identify username, {}, (err) =>
+      return callback err  if err
+
+      @track username, event, eventProperties, callback
 
 
-  @identify = (username, traits = {}) ->
+  @identify = (username, traits = {}, callback = ->) ->
+
     return  unless KONFIG.sendEventsToSegment
 
     # use `forcedRecipientEmail` for both username and email
@@ -69,6 +72,7 @@ module.exports = class Tracker extends bongo.Base
     # from Go/other systems are being sent
     analytics.flush (err, batch) ->
       console.error "flushing identify failed: #{err} @sent-hil"  if err
+      callback err
 
 
   @track$ = secure (client, subject, options = {}, callback) ->
@@ -86,9 +90,11 @@ module.exports = class Tracker extends bongo.Base
 
     callback()
 
+  errMQClientNotSet = new Error 'Tracker: RabbitMQ client not set'
 
-  @track = (username, event, options = {}) ->
-    return  unless KONFIG.sendEventsToSegment
+  @track = (username, event, options = {}, callback = ->) ->
+
+    return callback null  unless KONFIG.sendEventsToSegment
 
     _.extend options, @properties[event.subject]
 
@@ -101,15 +107,18 @@ module.exports = class Tracker extends bongo.Base
     event.properties   = @addDefaults { options, username }
 
     unless mqClient
-      return console.error 'Tracker: RabbitMQ client not set'
+      console.error errMQClientNotSet
+      return callback errMQClientNotSet
 
     sendMessage = ->
       mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) ->
         unless exchange
-          return console.error "Tracker: Exchange not found to queue: #{exchangeName}"
+          err = new Error "Tracker: Exchange not found to queue: #{exchangeName}"
+          console.error err
+          return callback err
 
-        exchange.publish '', event, { type: EVENT_TYPE }
-        exchange.close()
+        exchange.publish '', event, { type: EVENT_TYPE }, (errored, err) =>
+          return callback err
 
     if mqClient.readyEmitted then sendMessage()
     else mqClient.on 'ready', -> sendMessage()
