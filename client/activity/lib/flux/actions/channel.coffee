@@ -245,6 +245,7 @@ loadPopularChannels = (options = {}) ->
         loadChannel channel.id
 
       Promise.all(promises).then (channels) ->
+        channels = channels.map (item) -> item.channel
         dispatch LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
         resolve { channels }
 
