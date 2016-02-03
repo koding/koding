@@ -40,6 +40,7 @@ type Config struct {
 	TopDir     string
 	Debug      bool
 	NoClean    bool
+	NoPublic   bool
 	NgrokDebug bool // ngrok prints so intensively its debug is enabled separately
 	DockerHost string
 	Username   string

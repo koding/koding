@@ -15,19 +15,20 @@ func TestE2E_Tunnelproxy(t *testing.T) {
 	ktrl.Start()
 	defer ktrl.Close()
 
-	// We start tunnel in a tunnel, so we can have more tunnels.
-	n, err := NewNgrok()
-	if err != nil {
-		t.Fatalf("error creating ngrok tunnel: %s", err)
-	}
-
 	// Create and start Tunnel Server.
 	serverCfg, serverURL := Test.GenKiteConfig()
-	serverURL.Host, err = n.StartTCP(serverURL.Host)
-	if err != nil {
-		t.Fatalf("error starting ngrok tunnel: %s", err)
+	if Test.NoPublic {
+		// We start tunnel in a tunnel, so we can have more tunnels.
+		n, err := NewNgrok()
+		if err != nil {
+			t.Fatalf("error creating ngrok tunnel: %s", err)
+		}
+		serverURL.Host, err = n.StartTCP(serverURL.Host)
+		if err != nil {
+			t.Fatalf("error starting ngrok tunnel: %s", err)
+		}
+		defer n.Stop()
 	}
-	defer n.Stop()
 
 	baseHost := Test.HostedZone + ":" + port(serverURL.Host)
 	Test.CleanRoute53 = append(Test.CleanRoute53, baseHost)
