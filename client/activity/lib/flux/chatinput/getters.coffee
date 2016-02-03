@@ -193,24 +193,25 @@ dropboxRawSelectedIndex = (stateId) -> [
 ]
 
 
-# Returns a list of channels depending on the current dropbox query
-# If query if empty, returns popular channels
-# Otherwise, returns channels filtered by query
+# Returns a list of public channels depending on the current dropbox query
+# If query if empty, returns all public channels
+# Otherwise, returns public channels filtered by query
 dropboxChannels = (stateId) -> [
   dropboxQuery stateId
   dropboxConfig stateId
   ActivityFluxGetters.allChannels
-  ActivityFluxGetters.popularChannels
-  (query, config, allChannels, popularChannels) ->
+  (query, config, allChannels) ->
     return  unless config and config.getIn(['getters', 'items']) is 'dropboxChannels'
 
-    return popularChannels.toList()  unless query
+    allChannels = allChannels.toList()
+      .filter (channel) -> isPublicChannel channel.toJS()
+
+    return allChannels  unless query
 
     query = query.toLowerCase()
-    allChannels.toList().filter (channel) ->
-      channel = channel.toJS()
-      name    = channel.name.toLowerCase()
-      return name.indexOf(query) is 0 and isPublicChannel channel
+    allChannels.filter (channel) ->
+      name = channel.get('name').toLowerCase()
+      return name.indexOf(query) is 0
 ]
 
 
