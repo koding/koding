@@ -16,6 +16,10 @@ module.exports =
     if hostBrowser
       utils.getUser()
 
+    if utils.suiteHookHasRun 'before'
+    then return
+    else utils.registerSuiteHook 'before'
+
 
   rejectInvitation: (browser) ->
 

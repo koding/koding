@@ -370,6 +370,29 @@ module.exports =
       .waitForElementNotPresent  chatBox,20000
 
 
+  kickUser: (browser, user) ->
+
+    chatHeads     = ".chat-view .chat-heads .ParticipantHeads [href='/#{user.username}']"
+    kickSelector  = '.kdcontextmenu .kick'
+
+    browser
+      .waitForElementVisible     chatHeads, 20000
+      .moveToElement             chatHeads, 14,14
+      .waitForElementVisible     '.kdcontextmenu', 20000
+      .waitForElementVisible     kickSelector, 20000
+      .pause                     3000 # wait for participant
+      .click                     kickSelector
+      .waitForElementNotPresent  chatHeads, 20000
+
+
+  assertKicked: (browser) ->
+
+    browser
+      .waitForElementVisible  '.kicked-modal', 20000
+      .assert.containsText    '.kicked-modal .kdmodal-title', 'Your session has been closed'
+      .click                  '.kicked-modal .kdmodal-buttons .button-title'
+
+
   # This is not an helper method. It is here because of reusability in tests.
   testLeaveSessionFrom_: (browser, where) ->
 
