@@ -264,10 +264,6 @@ func readFile(path string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	if fi.Size() > 50*1024*1024 {
-		return nil, fmt.Errorf("File larger than 50MiB.")
-	}
-
 	buf := make([]byte, fi.Size())
 	if _, err := io.ReadFull(file, buf); err != nil {
 		return nil, err
