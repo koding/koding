@@ -238,7 +238,11 @@ createMessage = (channelId, body, payload) ->
   # since this action works for all types of channel, we need to specify the
   # type when we are posting.
   channel = socialapi.retrieveCachedItemById channelId
-  type = channel.typeConstant
+  type    = channel.typeConstant
+
+  # the reason we are doing this is to sync socialApiController cache data
+  # FIXME: remove this after removing socialApiController
+  channel.unreadCount = 0
 
   fetchEmbedPayload { body, payload }, (err, embedPayload) ->
     return  if err
