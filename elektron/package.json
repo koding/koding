@@ -7,11 +7,11 @@
     "prestart": "coffee --compile --output lib/ src/",
     "start": "electron ./lib/main.js",
     "preapp-mac": "coffee --compile --output lib/ src/",
-    "app-mac": "electron-packager . Koding --out ./dist  --platform=darwin --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon.icns",
+    "app-mac": "electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\"  --platform=darwin --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon.icns",
     "preapp-win": "coffee --compile --output lib/ src/",
-    "app-win": "electron-packager . Koding --out ./dist --platform=win32 --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon.ico",
+    "app-win": "electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\" --platform=win32 --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon.ico",
     "preapp-linux": "coffee --compile --output lib/ src/",
-    "app-linux": "electron-packager . Koding --out ./dist --platform=linux --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon-linux"
+    "app-linux": "electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\" --platform=linux --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon-linux"
   },
   "repository": {
     "type": "git",
