@@ -175,7 +175,7 @@ module.exports = class ComputeHelpers
 
             cc._inprogress = no
 
-            callback()
+            callback yes
 
             return  if showError err
             return  unless redirectAfterCreation

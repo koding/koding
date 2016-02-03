@@ -68,9 +68,11 @@ module.exports = class YourStacksView extends KDCustomScrollView
         for item in controller.getListItems()
           item.emit 'ManagedMachineIsNotAllowed'
 
+    computeController.on 'RenderStacks', controller.bound 'loadItems'
 
-  destroyModal: ->
 
-    return @emit 'DestroyParent'  if isKoding()
+  destroyModal: (goBack = yes) ->
+
+    return @emit 'DestroyParent', goBack  if isKoding()
 
     @getDelegate().parent?.destroy()

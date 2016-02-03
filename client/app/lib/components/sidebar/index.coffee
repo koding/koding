@@ -185,7 +185,7 @@ module.exports = class Sidebar extends React.Component
       <div className='Sidebar-logo-wrapper'>
         <object
           type='image/svg+xml'
-          data='/a/images/logos/Sidebar-footer-logo.svg'
+          data='/a/images/logos/sidebar_footer_logo.svg'
           className='Sidebar-footer-logo'>
           Koding Logo
         </object>
