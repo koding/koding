@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cihangir/nisql"
 	"github.com/koding/bongo"
 	"github.com/koding/runner"
 
@@ -276,6 +277,62 @@ func TestChannelParticipantOperations(t *testing.T) {
 					Convey("removing same user again should success", func() {
 						_, err = rest.DeleteChannelParticipant(ch.Id, ses.ClientId, participant.Id)
 						So(err, ShouldBeNil)
+					})
+				})
+				Convey("User's notification setting should be removed when user left from channel", func() {
+					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
+
+					account := models.NewAccount()
+					account.OldId = AccountOldId.Hex()
+					account, err = rest.CreateAccount(account)
+					So(err, ShouldBeNil)
+					So(account, ShouldNotBeNil)
+
+					_, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					So(err, ShouldBeNil)
+
+					ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+					So(err, ShouldBeNil)
+					So(ses, ShouldNotBeNil)
+
+					channel := models.CreateTypedGroupedChannelWithTest(
+						account.Id,
+						models.Channel_TYPE_GROUP,
+						groupName,
+					)
+					_, err = channel.AddParticipant(account.Id)
+					So(err, ShouldBeNil)
+
+					// create notification setting with fields
+					n := &models.NotificationSetting{
+						ChannelId:      channel.Id,
+						AccountId:      account.Id,
+						DesktopSetting: nisql.NullString{},
+						MobileSetting:  nisql.String(models.NotificationSetting_STATUS_PERSONAL),
+						IsMuted:        nisql.NullBool{},
+						IsSuppressed:   nisql.Bool(true),
+					}
+					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
+					So(err, ShouldBeNil)
+					So(ns.AccountId, ShouldEqual, account.Id)
+					So(*ns.IsSuppressed.Get(), ShouldEqual, true)
+					So(ns.IsMuted.Get(), ShouldEqual, nil)
+					So(ns.DesktopSetting.Get(), ShouldEqual, nil)
+
+					Convey("Notification settings should be removed after participant removed", func() {
+						// we can get notification settings before removing accoung from channel
+						ns, err := rest.GetNotificationSetting(channel.Id, ses.ClientId)
+						So(err, ShouldBeNil)
+						So(ns, ShouldNotBeNil)
+
+						err = channel.RemoveParticipant(account.Id)
+						So(err, ShouldBeNil)
+
+						// after removing account from channel, we should not be able to get notification setting
+						ns, err = rest.GetNotificationSetting(channel.Id, ses.ClientId)
+						So(err, ShouldNotBeNil)
+						So(err.Error(), ShouldContainSubstring, models.ErrAccountIsNotParticipant.Error())
+						So(ns, ShouldBeNil)
 					})
 				})
 			})

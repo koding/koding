@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cihangir/nisql"
+	"github.com/koding/bongo"
 )
 
 type NotificationSetting struct {
@@ -54,4 +55,69 @@ func NewNotificationSetting() *NotificationSetting {
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
+}
+
+func (ns *NotificationSetting) RemoveNotificationSettings(channelIds ...int64) error {
+	return ns.removeNotificationSettings(channelIds...)
+}
+
+func (ns *NotificationSetting) removeNotificationSettings(channelIds ...int64) error {
+	if ns.AccountId == 0 {
+		return ErrAccountIdIsNotSet
+	}
+
+	if len(channelIds) == 0 {
+		return nil
+	}
+
+	for _, channelId := range channelIds {
+		n := NewNotificationSetting()
+		n.AccountId = ns.AccountId
+		n.ChannelId = channelId
+
+		err := n.FetchNotificationSetting()
+		if err != nil && err != bongo.RecordNotFound {
+			return err
+		}
+
+		if err := n.Delete(); err != nil {
+			if err != bongo.RecordNotFound {
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// FetchNotificationSetting fetches the notification setting with given
+// channelId and accountId.
+func (ns *NotificationSetting) FetchNotificationSetting() error {
+	if ns.ChannelId == 0 {
+		return ErrChannelIdIsNotSet
+	}
+
+	if ns.AccountId == 0 {
+		return ErrAccountIdIsNotSet
+	}
+
+	selector := map[string]interface{}{
+		"channel_id": ns.ChannelId,
+		"account_id": ns.AccountId,
+	}
+
+	return ns.fetchNotificationSetting(selector)
+}
+
+func (ns *NotificationSetting) fetchNotificationSetting(selector map[string]interface{}) error {
+	if ns.ChannelId == 0 {
+		return ErrChannelIdIsNotSet
+	}
+
+	if ns.AccountId == 0 {
+		return ErrAccountIdIsNotSet
+	}
+
+	return ns.One(bongo.NewQS(selector))
 }
