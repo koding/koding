@@ -14,6 +14,7 @@ module.exports = ->
   mainWindow = new BrowserWindow
     width             : 1280
     height            : 800
+    title             : 'Koding for Teams'
     show              : yes
     acceptFirstMouse  : yes
     backgroundColor   : '#131313'

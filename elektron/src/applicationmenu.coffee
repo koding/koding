@@ -1,6 +1,6 @@
-electron = require 'electron'
-Menu     = require 'menu'
-app      = electron.app
+electron       = require 'electron'
+Menu           = require 'menu'
+{ app, shell } = electron
 
 module.exports = class ApplicationMenu
 
@@ -13,13 +13,49 @@ module.exports = class ApplicationMenu
   getMenu: ->
 
     applicationMenu = [
+      label: "Edit"
+      submenu: [
+        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" }
+        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" }
+        { type: "separator" }
+        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" }
+        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" }
+        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" }
+        { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+      ]
+    ,
+      label: 'View'
+      submenu: [
+        label: 'Reload'
+        accelerator: 'CmdOrCtrl+R'
+        click: (item, focusedWindow) ->
+          focusedWindow.reload()  if focusedWindow
+      ,
+        label: 'Toggle Full Screen'
+        accelerator: do ->
+          if (process.platform == 'darwin')
+            return 'Ctrl+Command+F';
+          else
+            return 'F11';
+        click: (item, focusedWindow) ->
+          focusedWindow.setFullScreen !focusedWindow.isFullScreen()  if focusedWindow
+      ,
+        label: 'Toggle Developer Tools'
+        accelerator: do ->
+          if process.platform is 'darwin'
+          then 'Alt+Command+I'
+          else 'Ctrl+Shift+I'
+        click: (item, focusedWindow) ->
+          focusedWindow.toggleDevTools()  if (focusedWindow)
+      ]
+    ,
       label: 'Help'
       submenu: [
         label: 'Koding.com'
-        click: ->
+        click: -> shell.openExternal 'https://www.koding.com'
       ,
         label: 'Documentation'
-        click: ->
+        click: -> shell.openExternal 'https://www.koding.com/Docs'
       ]
     ]
 
@@ -32,10 +68,10 @@ module.exports = class ApplicationMenu
         role: 'about'
       ,
         type: 'separator'
-      ,
-        label: 'Check for updates'
-        role: 'update'
-        submenu: []
+      # ,
+      #   label: 'Check for updates'
+      #   role: 'update'
+      #   submenu: []
       ,
         type: 'separator'
       ,
