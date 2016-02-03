@@ -43,10 +43,10 @@ module.exports = class ApplicationMenu
         role: 'about'
       ,
         type: 'separator'
-      ,
-        label: 'Check for updates'
-        role: 'update'
-        submenu: []
+      # ,
+      #   label: 'Check for updates'
+      #   role: 'update'
+      #   submenu: []
       ,
         type: 'separator'
       ,
