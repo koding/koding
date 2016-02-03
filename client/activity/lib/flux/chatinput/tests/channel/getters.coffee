@@ -4,7 +4,6 @@ React   = require 'kd-react'
 
 ActivityActionTypes    = require 'activity/flux/actions/actiontypes'
 ChannelsStore          = require 'activity/flux/stores/channelsstore'
-PopularChannelIdsStore = require 'activity/flux/stores/popularchannelidsstore'
 
 ChatInputFlux        = require 'activity/flux/chatinput'
 ChatInputActionTypes = require 'activity/flux/chatinput/actions/actiontypes'
@@ -20,7 +19,7 @@ describe 'ChatInputChannelGetters', ->
     { id : 'koding', name : 'koding', typeConstant: 'topic' }
     { id : 'whoa', name : 'whoa', typeConstant: 'privatemessage' }
   ]
-  popularChannels = [ channels[1], channels[4] ]
+  publicChannels = [ channels[1], channels[2], channels[4] ]
   stateId = '123'
   config  = {
     component       : React.Component
@@ -42,14 +41,11 @@ describe 'ChatInputChannelGetters', ->
     @reactor = new Reactor
     stores   = {}
     stores[ChannelsStore.getterPath] = ChannelsStore
-    stores[PopularChannelIdsStore.getterPath] = PopularChannelIdsStore
     stores[DropboxSettingsStore.getterPath] = DropboxSettingsStore
     @reactor.registerStores stores
 
     for channel in channels
       @reactor.dispatch ActivityActionTypes.LOAD_CHANNEL_SUCCESS, { channel }
-
-    @reactor.dispatch ActivityActionTypes.LOAD_POPULAR_CHANNELS_SUCCESS, { channels : popularChannels }
 
 
   describe '#dropboxChannels', ->
@@ -67,14 +63,14 @@ describe 'ChatInputChannelGetters', ->
       expect(items).toBeA 'undefined'
 
 
-    it 'returns popular channels if query is empty', ->
+    it 'returns all public channels if query is empty', ->
 
       { getters } = ChatInputFlux
 
       @reactor.dispatch ChatInputActionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : '', config }
       items = @reactor.evaluateToJS getters.dropboxChannels stateId
 
-      expect(items).toEqual popularChannels
+      expect(items).toEqual publicChannels
 
 
     it 'returns public channels filtered by query if query isn\'t empty', ->
@@ -175,4 +171,4 @@ describe 'ChatInputChannelGetters', ->
 
       selectedItem = @reactor.evaluateToJS getters.channelsSelectedItem stateId
 
-      expect(selectedItem).toEqual channels[4]
+      expect(selectedItem).toEqual channels[2]
