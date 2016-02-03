@@ -8,7 +8,7 @@ KeyboardKeys           = require 'app/constants/keyboardKeys'
 ActivityFlux           = require 'activity/flux'
 AutoSizeTextarea       = require 'app/components/common/autosizetextarea'
 
-module.exports = class FeedInputWidget extends React.Component
+module.exports = class FeedInputWidgetView extends React.Component
 
   @propTypes =
     value       : React.PropTypes.string
