@@ -64,6 +64,8 @@ module.exports = class ComputeProvider extends Base
           (signature Function)
         createGroupStack  :
           (signature Function)
+        updateTeamCounters:
+          (signature String, Function)
 
 
   @providers      = PROVIDERS
@@ -494,6 +496,12 @@ module.exports = class ComputeProvider extends Base
             handleResult err, 'machine'
         else
           handleResult err, 'resource'
+
+
+  @updateTeamCounters$ = permit
+    advanced : [{ permission: 'sudoer', superadmin: yes }]
+    success  : (client, team, callback) ->
+      ComputeProvider.updateTeamCounters team, callback
 
 
   @updateTeamCounters = (team, callback) ->
