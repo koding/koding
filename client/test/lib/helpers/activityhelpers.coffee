@@ -52,6 +52,19 @@ module.exports =
       assert.equal(link, href)
 
 
+  postMessageWithCombination: (browser) ->
+
+    link         = 'http://www.theverge.com/'
+    comment      = "#{link} Check out the Verge!"
+    linkSelector = "#{activitySelector} .activity-content-wrapper article a"
+
+    helpers.doPostActivity(browser, comment, yes, yes)
+
+    browser.getAttribute linkSelector, 'href', (result) ->
+      href = result.value
+      assert.equal(link, href)
+
+
   editAction: (browser, type, editWithCode = yes, editWithImage = yes, editWithLink = yes) ->
 
     if editWithCode
