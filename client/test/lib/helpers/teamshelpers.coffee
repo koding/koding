@@ -16,11 +16,6 @@ pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.p
 module.exports =
 
 
-  setCookie: (browser) ->
-
-    helpers.setCookie(browser, 'team-access', 'true')
-
-
   openTeamsPage: (browser) ->
 
     teamsSelector = '[testpath=main-header] .full-menu a.teams'
@@ -146,16 +141,16 @@ module.exports =
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
-    hasNotTeamAccessPage = '.main-wrapper .login-form .email'
+    hasNotTeamAccessPage = '.TeamsModal--select'
 
     browser.url url
     browser.maximizeWindow()
 
     browser.element 'css selector', hasNotTeamAccessPage, (result) =>
       if result.status is 0
-        @getInvitationAndCreateTeam(browser)
+        @getInvitationAndCreateTeam browser
       else
-        @loginToTeam(browser, user)
+        @loginToTeam browser, user
 
     return user
 
