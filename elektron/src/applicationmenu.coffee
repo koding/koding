@@ -24,6 +24,31 @@ module.exports = class ApplicationMenu
         { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
       ]
     ,
+      label: 'View'
+      submenu: [
+        label: 'Reload'
+        accelerator: 'CmdOrCtrl+R'
+        click: (item, focusedWindow) ->
+          focusedWindow.reload()  if focusedWindow
+      ,
+        label: 'Toggle Full Screen'
+        accelerator: do ->
+          if (process.platform == 'darwin')
+            return 'Ctrl+Command+F';
+          else
+            return 'F11';
+        click: (item, focusedWindow) ->
+          focusedWindow.setFullScreen !focusedWindow.isFullScreen()  if focusedWindow
+      ,
+        label: 'Toggle Developer Tools'
+        accelerator: do ->
+          if process.platform is 'darwin'
+          then 'Alt+Command+I'
+          else 'Ctrl+Shift+I'
+        click: (item, focusedWindow) ->
+          focusedWindow.toggleDevTools()  if (focusedWindow)
+      ]
+    ,
       label: 'Help'
       submenu: [
         label: 'Koding.com'
