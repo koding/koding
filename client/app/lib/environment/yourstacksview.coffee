@@ -71,8 +71,8 @@ module.exports = class YourStacksView extends KDCustomScrollView
     computeController.on 'RenderStacks', controller.bound 'loadItems'
 
 
-  destroyModal: ->
+  destroyModal: (goBack = yes) ->
 
-    return @emit 'DestroyParent'  if isKoding()
+    return @emit 'DestroyParent', goBack  if isKoding()
 
     @getDelegate().parent?.destroy()
