@@ -50,14 +50,14 @@ module.exports = class Tracker extends bongo.Base
     category: 'NewAccount', label: 'VerifyAccount'
   }
 
-  @identifyAndTrack = (username, event, eventProperties = {}, callback = ->) ->
+  @identifyAndTrack = (username, event, eventProperties = {}, callback = -> ) ->
     @identify username, {}, (err) =>
       return callback err  if err
 
       @track username, event, eventProperties, callback
 
 
-  @identify = (username, traits = {}, callback = ->) ->
+  @identify = (username, traits = {}, callback = -> ) ->
 
     return  unless KONFIG.sendEventsToSegment
 
@@ -93,7 +93,7 @@ module.exports = class Tracker extends bongo.Base
 
   errMQClientNotSet = new Error 'Tracker: RabbitMQ client not set'
 
-  @track = (username, event, options = {}, callback = ->) ->
+  @track = (username, event, options = {}, callback = -> ) ->
 
     return callback null  unless KONFIG.sendEventsToSegment
 
@@ -118,7 +118,7 @@ module.exports = class Tracker extends bongo.Base
           console.error err
           return callback err
 
-        exchange.publish '', event, { type: EVENT_TYPE }, (errored, err) =>
+        exchange.publish '', event, { type: EVENT_TYPE }, (errored, err) ->
           return callback err
 
     if mqClient.readyEmitted then sendMessage()
