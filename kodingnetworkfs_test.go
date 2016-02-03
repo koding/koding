@@ -151,9 +151,6 @@ func TestKodingNetworkFS(tt *testing.T) {
 			})
 		})
 
-		//Convey("LookUpInode", func() {
-		//})
-
 		Convey("OpenDir", func() {
 			Convey("It should open root directory", func() {
 				dir, err := os.Open(k.MountPath)
@@ -443,6 +440,10 @@ func TestKodingNetworkFS(tt *testing.T) {
 					So(st.Name(), ShouldEqual, "file")
 					So(st.Size(), ShouldEqual, 12)
 				})
+
+				Convey("It should save entry with handleId", func() {
+					So(len(k.liveHandles), ShouldEqual, 1)
+				})
 			})
 		})
 
@@ -617,6 +618,44 @@ func TestKodingNetworkFS(tt *testing.T) {
 			So(fs.Bfree, ShouldEqual, 9000)
 		})
 
+		Convey("ReleaseFileHandle", func() {
+			fileName := path.Join(k.MountPath, "file")
+			fi, err := os.OpenFile(fileName, os.O_RDONLY, 0400)
+			So(err, ShouldBeNil)
+
+			// find File from list of nodes, so we can compare it later
+			var file *File
+			for _, f := range k.liveNodes {
+				possibleFile, ok := f.(*File)
+				if ok && possibleFile.Name == "file" {
+					file = possibleFile
+				}
+			}
+
+			if file == nil {
+				tt.Fatalf("File instance not found in list of nodes")
+			}
+
+			file.Content = []byte("Hello World!")
+
+			// sanity check to make sure file is saved to handle list when opened
+			So(len(k.liveHandles), ShouldEqual, 1)
+
+			err = fi.Close()
+			So(err, ShouldBeNil)
+
+			Convey("It should delete file from handle list when released", func() {
+				So(len(k.liveHandles), ShouldEqual, 0)
+			})
+
+			Convey("It should set file content to nil", func() {
+				So(len(file.Content), ShouldEqual, 0)
+			})
+		})
+
+		//Convey("LookUpInode", func() {
+		//})
+
 		// Convey("SetInodeAttributes", func() {
 		// })
 
@@ -722,6 +761,70 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 		So(len(k.liveNodes), ShouldEqual, 1)
 		_, ok := k.liveNodes[i]
 		So(ok, ShouldBeFalse)
+	})
+}
+
+func TestKodingNetworkFSHandles(tt *testing.T) {
+	Convey("", tt, func() {
+		t := &fakeTransport{
+			TripResponses: map[string]interface{}{
+				"fs.readDirectory": transport.ReadDirRes{
+					Files: []*transport.GetInfoRes{},
+				},
+				"fs.getInfo":     &transport.GetInfoRes{Exists: true},
+				"fs.getDiskInfo": &transport.GetDiskInfoRes{},
+			},
+		}
+
+		k := newknfs(t)
+		d := newDir()
+		f := newFile()
+
+		Convey("It should save generate id for entry", func() {
+			handleId := k.setEntryByHandle(d)
+			So(handleId, ShouldEqual, 1)
+		})
+
+		Convey("It should save entry", func() {
+			handleId := k.setEntryByHandle(d)
+
+			node, ok := k.liveHandles[handleId]
+			So(ok, ShouldBeTrue)
+			So(node.GetID(), ShouldEqual, d.GetID())
+		})
+
+		Convey("It should get entry with handle id", func() {
+			handleId := k.setEntryByHandle(d)
+
+			node, err := k.getByHandle(handleId)
+			So(err, ShouldBeNil)
+			So(node.GetID(), ShouldEqual, d.GetID())
+		})
+
+		Convey("It should get dir with handle id", func() {
+			handleId := k.setEntryByHandle(d)
+
+			savedDir, err := k.getDirByHandle(handleId)
+			So(err, ShouldBeNil)
+			So(savedDir.GetType(), ShouldEqual, fuseutil.DT_Directory)
+		})
+
+		Convey("It should get file with handle id", func() {
+			handleId := k.setEntryByHandle(f)
+
+			savedFile, err := k.getFileByHandle(handleId)
+			So(err, ShouldBeNil)
+			So(savedFile.GetType(), ShouldEqual, fuseutil.DT_File)
+		})
+
+		Convey("It should delete file with handle id", func() {
+			handleId := k.setEntryByHandle(f)
+
+			k.deleteEntryByHandle(handleId)
+
+			_, err := k.getFileByHandle(handleId)
+			So(err, ShouldEqual, fuse.ENOENT)
+		})
 	})
 }
 
