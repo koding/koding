@@ -496,6 +496,88 @@ module.exports = class ComputeProvider extends Base
           handleResult err, 'resource'
 
 
+  @updateTeamCounters = (team, callback) ->
+
+    return callback new KodingError 'Team slug is required'  unless team
+
+    JGroup        = require '../group'
+    JCounter      = require '../counter'
+    JComputeStack = require '../stack'
+
+    COUNTER_TYPE  = @COUNTER_TYPE
+
+    async.waterfall [
+
+      (next) ->
+
+        JGroup.one { slug: team }, (err, group) ->
+          if err or not group
+            err ?= new KodingError 'Team not found'
+          next err, group
+
+      (group, next) ->
+
+        options = { namespace: group.slug, type: COUNTER_TYPE.stacks }
+        JCounter.count options, (err, count = 0) ->
+          next err, group, count
+
+      (group, stackCount, next) ->
+
+        options = { namespace: group.slug, type: COUNTER_TYPE.instances }
+        JCounter.count options, (err, count = 0) ->
+          next err, group, stackCount, count
+
+      (group, stackCount, machineCount, next) ->
+
+        changes   =
+          before  : { stacks: stackCount, instances: machineCount }
+          current : {}
+          after   : {}
+
+        JComputeStack.count {
+          'status.state' : { $ne: 'Destroying' }
+          group          : group.slug
+        }, (err, count) ->
+          changes.current.stacks = count
+          next err, group, changes
+
+      (group, changes, next) ->
+
+        JMachine.count {
+          'status.state' : { $nin       : [ 'Terminated', 'Terminating' ] }
+          groups         : { $elemMatch : { id: group.getId() } }
+        }, (err, count) ->
+          changes.current.instances = count
+          next err, group, changes
+
+      (group, changes, next) ->
+
+        options     = {
+          namespace : group.slug
+          type      : COUNTER_TYPE.stacks
+          value     : changes.current.stacks
+        }
+
+        JCounter.setCount options, (err, count) ->
+          changes.after.stacks = count
+          next err, group, changes
+
+      (group, changes, next) ->
+
+        options     = {
+          namespace : group.slug
+          type      : COUNTER_TYPE.instances
+          value     : changes.current.instances
+        }
+
+        JCounter.setCount options, (err, count) ->
+          changes.after.instances = count
+          next err, changes
+
+    ], callback
+
+
+
   @createGroupStack = (client, options, callback) ->
 
     unless callback
