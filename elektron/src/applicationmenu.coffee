@@ -1,6 +1,6 @@
-electron = require 'electron'
-Menu     = require 'menu'
-app      = electron.app
+electron       = require 'electron'
+Menu           = require 'menu'
+{ app, shell } = electron
 
 module.exports = class ApplicationMenu
 
@@ -27,10 +27,10 @@ module.exports = class ApplicationMenu
       label: 'Help'
       submenu: [
         label: 'Koding.com'
-        click: ->
+        click: -> shell.openExternal 'https://www.koding.com'
       ,
         label: 'Documentation'
-        click: ->
+        click: -> shell.openExternal 'https://www.koding.com/Docs'
       ]
     ]
 
