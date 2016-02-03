@@ -26,6 +26,7 @@ module.exports = createUser = (req, res, next) ->
 
   return sendApiError res, error  if error
 
+  user     = null
   client   = null
   apiToken = null
 
@@ -33,7 +34,7 @@ module.exports = createUser = (req, res, next) ->
 
     (next) ->
       validateData { token, username, suggestedUsername }, (err, data) ->
-        return sendApiError res, err  if err
+        return next err  if err
         { username, apiToken } = data
         next()
 
@@ -44,8 +45,7 @@ module.exports = createUser = (req, res, next) ->
         client = client_
 
         # when there is an error in the fetchClient, it returns message in it
-        if client.message
-          return sendApiError res, apiErrors.internalError
+        return next apiErrors.internalError  if client.message
 
         clientIPAddress = req.headers['x-forwarded-for'] or req.connection?.remoteAddress
         client.clientIP = (clientIPAddress.split ',')[0]  if clientIPAddress
@@ -69,20 +69,22 @@ module.exports = createUser = (req, res, next) ->
       JUser.convert client, userData, options, (err, data) ->
 
         if err?.message is 'Email is already in use!'
-          return sendApiError res, apiErrors.emailAlreadyExists
+          return next apiErrors.emailAlreadyExists
 
         if err?.message is 'Your email domain is not in allowed domains for this group'
-          return sendApiError res, apiErrors.invalidEmailDomain
+          return next apiErrors.invalidEmailDomain
 
-        return sendApiError res, apiErrors.internalError  if err
+        return next apiErrors.internalError  if err
 
         { user } = data
-        return sendApiError    res, apiErrors.failedToCreateUser   unless user
-        return sendApiResponse res, { username : user.username }
+        return next apiErrors.failedToCreateUser  unless user
+        next()
 
   ]
 
-  async.series queue
+  async.series queue, (err) ->
+    return sendApiError    res, err  if err
+    return sendApiResponse res, { username : user.username }
 
 
 validateData = (data, callback) ->
