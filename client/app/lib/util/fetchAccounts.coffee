@@ -18,7 +18,7 @@ module.exports = fetchAccounts = (origins, callback) ->
   queue = origins.map (origin) -> (fin) ->
     fetchAccount origin, (err, account) ->
       return fin err  if err
-      fin account
+      fin null, account
 
   # async aggregates account objects, returns in form of (err, [account, ...])
   async.parallel queue, callback
