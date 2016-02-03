@@ -50,12 +50,16 @@ type KodingNetworkFS struct {
 	// DiskInfo is the cached result of remote disk info.
 	DiskInfo *transport.GetDiskInfoRes
 
+	HandleIDGen *HandleIDGen
+
 	// RWMutex protects the fields below.
 	sync.RWMutex
 
 	// liveNodes is (1 indexed) collection of inodes in use by Kernel. The Node
 	// at index 1 is the root Node.
 	liveNodes map[fuseops.InodeID]Node
+
+	liveHandles map[fuseops.HandleID]Node
 }
 
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
@@ -148,6 +152,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 	// save root directory
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
+	liveHandles := map[fuseops.HandleID]Node{}
 
 	res, err := t.GetDiskInfo(rootDir.Name)
 	if err != nil {
@@ -160,7 +165,9 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		RWMutex:     sync.RWMutex{},
 		Watcher:     watcher,
 		DiskInfo:    res,
+		HandleIDGen: NewHandleIDGen(),
 		liveNodes:   liveNodes,
+		liveHandles: liveHandles,
 	}, nil
 }
 
@@ -175,9 +182,9 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
 	// watcher can be nil if Config.NoWatch was set to true
-	if k.Watcher != nil {
-		k.Watcher.Close()
-	}
+	//if k.Watcher != nil {
+	//  k.Watcher.Close()
+	//}
 
 	return Unmount(k.MountPath)
 }
@@ -370,6 +377,9 @@ func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) 
 
 	file.Open()
 
+	handleID := k.setEntryByHandle(file)
+	op.Handle = handleID
+
 	// KeepPageCache tells Kernel to cache this file contents or not. Say an user
 	// opens a file on their local and then changes that same file on the VM, by
 	// setting this to be false, the user can close and open the file to see the
@@ -559,11 +569,19 @@ func (k *KodingNetworkFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) erro
 	return nil
 }
 
-///// Watcher
+func (k *KodingNetworkFS) ReleaseFileHandle(ctx context.Context, op *fuseops.ReleaseFileHandleOp) error {
+	file, err := k.getFileByHandle(op.Handle)
+	if err != nil {
+		return err
+	}
 
-// WatchForRemoteChanges listens for changes on remote and invaliates local
-// cache.
-func (k *KodingNetworkFS) WatchForRemoteChanges() {
+	if err := file.Reset(); err != nil {
+		return err
+	}
+
+	k.deleteEntryByHandle(op.Handle)
+
+	return nil
 }
 
 ///// Helpers
@@ -630,4 +648,60 @@ func (k *KodingNetworkFS) entryChanged(e Node) {
 	if ok {
 		k.Watcher.AddTimedIgnore(file.Path, 1*time.Minute)
 	}
+}
+
+func (k *KodingNetworkFS) setEntryByHandle(entry Node) fuseops.HandleID {
+	k.Lock()
+	defer k.Unlock()
+
+	handleID := k.HandleIDGen.Next()
+	k.liveHandles[handleID] = entry
+
+	return handleID
+}
+
+func (k *KodingNetworkFS) deleteEntryByHandle(handleId fuseops.HandleID) {
+	k.Lock()
+	delete(k.liveHandles, handleId)
+	k.Unlock()
+}
+
+func (k *KodingNetworkFS) getDirByHandle(id fuseops.HandleID) (*Dir, error) {
+	node, err := k.getByHandle(id)
+	if err != nil {
+		return nil, err
+	}
+
+	dir, ok := node.(*Dir)
+	if !ok {
+		return nil, fuse.ENOENT
+	}
+
+	return dir, nil
+}
+
+func (k *KodingNetworkFS) getFileByHandle(id fuseops.HandleID) (*File, error) {
+	node, err := k.getByHandle(id)
+	if err != nil {
+		return nil, err
+	}
+
+	file, ok := node.(*File)
+	if !ok {
+		return nil, fuse.ENOENT
+	}
+
+	return file, nil
+}
+
+func (k *KodingNetworkFS) getByHandle(id fuseops.HandleID) (Node, error) {
+	k.RLock()
+	defer k.RUnlock()
+
+	entry, ok := k.liveHandles[id]
+	if !ok {
+		return nil, fuse.ENOENT
+	}
+
+	return entry, nil
 }

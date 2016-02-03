@@ -184,6 +184,30 @@ func TestFile(tt *testing.T) {
 		})
 	})
 
+	Convey("File#Expire", tt, func() {
+		Convey("It should increase inode id of itself", func() {
+			f := newFileWithTransport()
+			id := f.ID
+
+			err := f.Expire()
+			So(err, ShouldBeNil)
+
+			So(f.ID, ShouldNotEqual, id)
+		})
+	})
+
+	Convey("File#Reset", tt, func() {
+		Convey("It should set its content to nil", func() {
+			f := newFileWithTransport()
+			f.Content = []byte("Hello World!")
+
+			err := f.Reset()
+			So(err, ShouldBeNil)
+
+			So(len(f.Content), ShouldEqual, 0)
+		})
+	})
+
 	Convey("File#writeContentToRemoteIfDirty", tt, func() {
 		Convey("It should not write specified content if not dirty", func() {
 			f := newFileWithTransport()
@@ -250,7 +274,11 @@ func newFileWithTransport() *File {
 	}
 	i := &Entry{Transport: t}
 
-	return NewFile(i)
+	d := newDir()
+	f := NewFile(i)
+	f.Parent = d
+
+	return f
 }
 
 func newFile() *File {

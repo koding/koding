@@ -22,3 +22,19 @@ func TestNodeIDGen(t *testing.T) {
 		})
 	})
 }
+
+func TestHandleIDGen(t *testing.T) {
+	Convey("NewHandleIDGen", t, func() {
+		Convey("It should initialize with 0 set to LastId", func() {
+			i := NewHandleIDGen()
+			So(i.LastID, ShouldEqual, 0)
+		})
+	})
+
+	Convey("HandleIDGen#Next", t, func() {
+		Convey("It should generate new unique id", func() {
+			i := NewHandleIDGen()
+			So(i.Next(), ShouldEqual, 1)
+		})
+	})
+}

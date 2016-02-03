@@ -136,6 +136,15 @@ func (f *File) Expire() error {
 	return f.updateContentFromRemote()
 }
 
+func (f *File) Reset() error {
+	f.Lock()
+	defer f.Unlock()
+
+	f.Content = nil
+
+	return nil
+}
+
 ///// Helpers
 
 func (f *File) syncToRemote() error {
