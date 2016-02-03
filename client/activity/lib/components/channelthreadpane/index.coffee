@@ -77,7 +77,7 @@ module.exports = class ChannelThreadPane extends React.Component
 
     if isKoding()
       <section className='ThreadPane-feedWrapper'>
-        <PublicFeedPane
+        <PublicFeedPane.Container
           ref='pane'
           thread={thread}
           popularChannels={@state.popularChannels}/>
