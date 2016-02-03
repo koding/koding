@@ -162,13 +162,14 @@ postMentionedNotification = (options) ->
     fetchNotificationSettingsAndPostNotification channelId, postNotificationBySettings
 
 
-postAddedToChannelNotification = (channelName, addedBy) ->
+postAddedToChannelNotification = (channelName, addedBy, typeConstant) ->
 
   return  if kd.singletons.windowController.isFocused()
   return  if addedBy is whoami().profile.nickname
 
-  title   = "Added to ##{channelName} as participant"
-  message = _sliceLongText "#{addedBy} added you to ##{channelName} channel as a participant"
+  channelName = if typeConstant is 'privatemessage' then 'a private' else "##{channelName}"
+  title   = _sliceLongText "Added to #{channelName} channel as participant"
+  message = _sliceLongText "#{addedBy} added you to #{channelName} channel as a participant"
   route   = "/Channels/#{channelName}"
 
   kd.singletons.desktopNotifications.notify { title, message, route }
