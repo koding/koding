@@ -122,3 +122,16 @@ module.exports  = class JCounter extends Module
     @one query, (err, counter) ->
       if err then callback err
       else callback null, counter?.current ? 0
+
+
+  @setCount = (options, callback) ->
+
+    { namespace, type, value } = options
+
+    type ?= 'main'
+    query = { namespace, type }
+
+    operation = { $set: { current: value } }
+    options   = { new: yes, upsert: yes }
+
+    JCounter.findAndModify query, null, operation, options, handle callback
