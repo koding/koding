@@ -2,6 +2,7 @@ kd              = require 'kd.js'
 JView           = require './../../core/jview'
 MainHeaderView  = require './../../core/mainheaderview'
 TeamPaymentForm = require './../forms/teampaymenttabform'
+utils           = require './../../core/utils'
 
 module.exports = class TeamPaymentTab extends kd.TabPaneView
 
@@ -13,7 +14,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
 
     name = @getOption 'name'
 
-    teamData = kd.utils.getTeamData()
+    teamData = utils.getTeamData()
 
     @hasPaymentMethodView = new kd.CustomHTMLView
       cssClass: 'payment-method-entry-form has-payment-method-wrapper'
@@ -64,7 +65,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
 
           track 'payment method success'
 
-          kd.utils.storeNewTeamData name,
+          utils.storeNewTeamData name,
             token: response.id
             last4: response.card.last4
 
@@ -72,7 +73,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
           kd.singletons.router.handleRoute '/Team/Username'
 
 
-    team = kd.utils.getTeamData()
+    team = utils.getTeamData()
 
     @button = new kd.ButtonView
       title: 'NEXT'
@@ -98,7 +99,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
 
   submit: ->
 
-    if kd.utils.getTeamData().payment?.token?
+    if utils.getTeamData().payment?.token?
       kd.singletons.router.handleRoute '/Team/Username'
     else
       @form.submit()
@@ -124,7 +125,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
 
   cleanupPaymentTeamData: ->
 
-    kd.utils.storeNewTeamData 'payment', null
+    utils.storeNewTeamData 'payment', null
     @switchViews {state: 'form'}
 
 
@@ -140,7 +141,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
         wrapper = @$().find '.has-payment-method-wrapper'
         wrapper.toggleClass 'hidden', off
 
-        {payment: {last4}} = kd.utils.getTeamData()
+        {payment: {last4}} = utils.getTeamData()
         @hasPaymentLabel.updatePartial "<span>We have **** **** **** #{last4} on file.</span>"
 
 
@@ -166,7 +167,7 @@ track = (action) ->
   category = 'TeamSignup'
   label    = 'PaymentTab'
 
-  kd.utils.analytics.track action, { category, label }
+  utils.analytics.track action, { category, label }
 
 
 loadScript = (url, callback) ->
