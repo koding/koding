@@ -2,13 +2,14 @@ React                 = require 'kd-react'
 whoami                = require 'app/util/whoami'
 getParticipantOrigins = require 'activity/util/getParticipantOrigins'
 makeProfileText       = require 'activity/util/makeProfileText'
+Encoder               = require 'htmlencode'
 
 module.exports = prepareThreadTitle = (channel) ->
 
   name = channel.get 'name'
 
   if name
-    return <span className="Thread-name">{name}</span>
+    return <span className="Thread-name">{Encoder.htmlDecode name}</span>
 
   preview = channel.get 'participantsPreview'
   count   = channel.get 'participantCount'
