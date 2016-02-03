@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   request }                           = require '../../../testhelper'
 { testCsrfToken }                     = require '../../../testhelper/handler'
@@ -20,15 +20,13 @@ runTests = -> describe 'server.handlers.videosession', ->
     methods.forEach (method) ->
       videoSessionRequestParams = generateVideoSessionRequestParams { method }
 
-      queue.push ->
+      queue.push (next) ->
         request videoSessionRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 404
-          queue.next()
+          next()
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 400 if channel id is not set', (done) ->

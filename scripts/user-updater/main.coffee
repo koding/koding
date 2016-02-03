@@ -2,7 +2,6 @@
 Bongo              = require 'bongo'
 { Relationship }   = require 'jraphical'
 { join: joinPath } = require 'path'
-{ dash }           = Bongo
 
 argv      = require('minimist') process.argv
 KONFIG    = require('koding-config-manager').load("main.#{argv.c}")

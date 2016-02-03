@@ -55,9 +55,11 @@ func (g *Group) Action(args []string, k *kite.Client) error {
 }
 
 type GroupList struct {
-	group string
-	env   string
-	tags  string
+	group    string
+	env      string
+	tags     string
+	hostname string
+	entries  bool
 }
 
 func NewGroupList() *GroupList {
@@ -72,16 +74,25 @@ func (cmd *GroupList) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.group, "group", "hackathon", "Name of the instance group to list.")
 	f.StringVar(&cmd.env, "env", "dev", "Kloud environment.")
 	f.StringVar(&cmd.tags, "tags", "", "Tags to filter instances.")
+	f.StringVar(&cmd.hostname, "hostname", "", "Hostname to filter instances.")
+	f.BoolVar(&cmd.entries, "entries", false, "Whether the lookup only entries as oppose to full details.")
 }
 
 func (cmd *GroupList) Run(ctx context.Context) error {
-	instances, err := cmd.listInstances(ctx)
+	if cmd.entries {
+		return cmd.printEntries(ctx)
+	}
+	return cmd.printInstances(ctx)
+}
+
+func (cmd *GroupList) printInstances(ctx context.Context) error {
+	instances, err := cmd.listInstances(ctx, cmd.filter())
 	if err != nil {
 		return err
 	}
 	w := &tabwriter.Writer{}
 	w.Init(os.Stdout, 0, 16, 0, '\t', 0)
-	fmt.Fprintln(w, "ID\tSoftlayerIDUser\tDatacener\tTags")
+	fmt.Fprintln(w, "ID\tSoftlayerID\tUser\tDatacener\tTags")
 	for _, i := range instances {
 		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\n", i.Tags["koding-machineid"], i.ID, i.Tags["koding-user"],
 			i.Datacenter.Name, i.Tags)
@@ -90,10 +101,26 @@ func (cmd *GroupList) Run(ctx context.Context) error {
 	return nil
 }
 
-func (cmd *GroupList) listInstances(ctx context.Context) (sl.Instances, error) {
-	_, c := fromContext(ctx)
+func (cmd *GroupList) printEntries(ctx context.Context) error {
+	entries, err := cmd.listEntries(ctx, cmd.filter())
+	if err != nil {
+		return err
+	}
+	w := &tabwriter.Writer{}
+	w.Init(os.Stdout, 0, 16, 0, '\t', 0)
+	fmt.Fprintln(w, "ID\tSoftlayerID\tUser\tHostname\tTags")
+	for _, e := range entries {
+		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\n", e.Tags["koding-machineid"], e.ID, e.Tags["koding-user"],
+			e.Hostname, e.Tags)
+	}
+	w.Flush()
+	return nil
+}
+
+func (cmd *GroupList) filter() *sl.Filter {
 	f := &sl.Filter{
-		Tags: sl.Tags{},
+		Hostname: cmd.hostname,
+		Tags:     sl.Tags{},
 	}
 	if cmd.tags != "" {
 		tags := sl.NewTags(strings.Split(cmd.tags, ","))
@@ -110,11 +137,21 @@ func (cmd *GroupList) listInstances(ctx context.Context) (sl.Instances, error) {
 			return c.Find(bson.M{"slug": cmd.group}).One(&group)
 		}
 		if err := modelhelper.Mongo.Run("jGroups", query); err != nil {
-			return nil, err
+			panic(err)
 		}
 		f.Tags["koding-groupid"] = group.Id.Hex()
 	}
+	return f
+}
+
+func (cmd *GroupList) listInstances(ctx context.Context, f *sl.Filter) (sl.Instances, error) {
+	_, c := fromContext(ctx)
 	return c.InstancesByFilter(f)
+}
+
+func (cmd *GroupList) listEntries(ctx context.Context, f *sl.Filter) (sl.InstanceEntries, error) {
+	_, c := fromContext(ctx)
+	return c.InstanceEntriesByFilter(f)
 }
 
 // GroupCreate implements the "kloudctl group create" subcommand.
@@ -226,16 +263,16 @@ func (cmd *GroupDelete) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *GroupDelete) Run(ctx context.Context) error {
-	instances, err := cmd.listInstances(ctx)
+	entries, err := cmd.listEntries(ctx, cmd.filter())
 	if err != nil {
 		return err
 	}
-	items := make([]Item, len(instances))
-	for i, instance := range instances {
+	items := make([]Item, len(entries))
+	for i, entry := range entries {
 		items[i] = &Instance{
-			SoftlayerID: instance.ID,
-			Domain:      instance.Tags["koding-domain"],
-			Username:    instance.Tags["koding-user"],
+			SoftlayerID: entry.ID,
+			Domain:      entry.Tags["koding-domain"],
+			Username:    entry.Tags["koding-user"],
 		}
 	}
 	// TODO(rjeczalik): It's not possible to concurrently delete domains due to:

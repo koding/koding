@@ -3,6 +3,7 @@ async                   = require 'async'
 actions                 = require './actiontypes'
 getters                 = require './getters'
 Promise                 = require 'bluebird'
+Encoder                 = require 'htmlencode'
 Machine                 = require 'app/providers/machine'
 remote                  = require('app/remote').getInstance()
 Promise                 = require 'bluebird'
@@ -142,6 +143,8 @@ loadStacks = (force = no) ->
         reactor.dispatch actions.LOAD_USER_STACKS_FAIL, { err }
         reject err
       else
+        stacks.map (stack) ->
+          stack.title = Encoder.htmlDecode stack.title
         reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
         resolve stacks
         _bindStackEvents()

@@ -1,7 +1,7 @@
 Bongo                                   = require 'bongo'
 koding                                  = require './../bongo'
 { uniq }                                = require 'underscore'
-{ dash, daisy }                         = Bongo
+async                                   = require 'async'
 
 {
   getClientId
@@ -44,7 +44,7 @@ module.exports = (req, res, next) ->
 
   queue = [
 
-    ->
+    (next) ->
       koding.fetchClient clientId, context, (client_) ->
         client = client_
 
@@ -54,9 +54,9 @@ module.exports = (req, res, next) ->
           return res.status(500).send client.message
 
         client.clientIP = (clientIPAddress.split ',')[0]
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # checking if user exists by trying to login the user
       JUser.login client.sessionToken, body, (err, result) ->
         errorMessage          = err?.message
@@ -69,9 +69,9 @@ module.exports = (req, res, next) ->
         # setting alreadyMember to true if error is not unknownUsernameError
         # ignoring other errors here since our only concern is checking if user exists
         alreadyMember = errorMessage isnt unknownUsernameError
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # generating callback function to be used in both login and convert
       joinTeamKallback = generateJoinTeamKallback res, body
 
@@ -81,7 +81,7 @@ module.exports = (req, res, next) ->
 
   ]
 
-  daisy queue
+  async.series queue
 
 
 generateJoinTeamKallback = (res, body) ->

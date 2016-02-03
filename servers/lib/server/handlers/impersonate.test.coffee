@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   request
   generateRandomString }              = require '../../../testhelper'
@@ -23,15 +23,13 @@ runTests = -> describe 'server.handlers.impersonate', ->
       imporsonateRequestParams = generateImpersonateRequestParams
         method : method
 
-      queue.push ->
+      queue.push (next) ->
         request imporsonateRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 404
-          queue.next()
+          next()
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 400 if user is non-existent', (done) ->

@@ -1,5 +1,4 @@
-{ daisy
-  expect
+{ expect
   request
   generateUrl
   deepObjectExtend

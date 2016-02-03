@@ -586,6 +586,7 @@ computeproviders.styl
     .label-link
     .settings-link
       noTextDeco()
+      pointer()
 
     .label-link
       color                 #000 !important
@@ -772,17 +773,23 @@ computeproviders.styl
       span
         color               #e14a35
 
-      &:hover span
-        color               #FFF
+      &:hover
+        bg                  color, #e14a35 !important
+
+        span
+          color             #FFF
 
   .credential-item
     .buttons
-      top                   13px !important
+      top                   50% !important
+      vendor                transform, translateY(-50%)
+      margin                1px 0
 
       button
-        vendor              transition, opacity .5s ease
+        vendor              transition, opacity .1s ease
         min-width           80px
         margin-left         15px
+        bg                  color, #FFF
 
         &.secondary
           opacity           0
@@ -902,7 +909,7 @@ computeproviders.styl
       padding               0 !important
 
       .fields
-        vendor              transition, width .3s .3s ease
+        vendor              transition, width .01s .01s ease
         clear               left
         opacity             .6
         font-style          italic
@@ -1005,7 +1012,7 @@ computeproviders.styl
     abs                     15px, 25px
 
 
-  &.your-stacks
+  &.my-stacks
     .create-stack
       right                 35px
 

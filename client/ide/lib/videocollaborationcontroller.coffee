@@ -1,5 +1,6 @@
 kd                              = require 'kd'
 bowser                          = require 'bowser'
+isKoding                        = require 'app/util/isKoding'
 showError                       = require 'app/util/showError'
 socialHelpers                   = require './collaboration/helpers/social'
 isVideoFeatureEnabled           = require 'app/util/isVideoFeatureEnabled'
@@ -196,9 +197,19 @@ module.exports = VideoCollaborationController =
     @chat?.emit args...
 
 
-  canUserStartVideo: (callback = kd.noop, isVideoActive = no) ->
+  isVideoActive: (callback) ->
+
+    state = @videoModel.state.active
+
+    callback? state
+    return state
+
+
+  canUserStartVideo: (callback = kd.noop) ->
 
     { paymentController } = kd.singletons
+
+    return callback()  unless isKoding()
 
     @whenRealtimeReady =>
 
@@ -213,6 +224,7 @@ module.exports = VideoCollaborationController =
 
         limit             = PLAN_PARTICIPANT_LIMITS[planTitle]
         participantsCount = @participants.asArray().length
+        isVideoActive     = @videoModel.state.active
 
         if participantsCount > limit or (participantsCount is 2 and isVideoActive)
           @emit 'UserReachedVideoLimit'

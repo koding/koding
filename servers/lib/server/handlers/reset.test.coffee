@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   request
   generateRandomEmail
@@ -10,8 +10,8 @@
   generateResetRequestParams }    = require '../../../testhelper/handler/resethelper'
 { generateRegisterRequestParams } = require '../../../testhelper/handler/registerhelper'
 
-JUser                             = require '../../../models/user'
-JPasswordRecovery                 = require '../../../models/passwordrecovery'
+JUser             = require '../../../models/user'
+JPasswordRecovery = require '../../../models/passwordrecovery'
 
 
 beforeTests = before (done) ->
@@ -31,22 +31,20 @@ runTests = -> describe 'server.handlers.reset', ->
 
     resetRequestParams = generateResetRequestParams()
 
-    queue       = []
-    methods     = ['put', 'patch', 'delete']
+    queue   = []
+    methods = ['put', 'patch', 'delete']
 
-    addRequestToQueue = (queue, method) -> queue.push ->
+    addRequestToQueue = (queue, method) -> queue.push (next) ->
       resetRequestParams.method = method
       request resetRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 404
-        queue.next()
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 404
+        next()
 
     for method in methods
       addRequestToQueue queue, method
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 400 if token is not set', (done) ->
@@ -57,9 +55,9 @@ runTests = -> describe 'server.handlers.reset', ->
         recoveryToken : ''
 
     request.post resetRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal 'Invalid token!'
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
+      expect(body).to.be.equal 'Invalid token!'
       done()
 
 
@@ -71,9 +69,9 @@ runTests = -> describe 'server.handlers.reset', ->
         recoveryToken : generateRandomString()
 
     request.post resetRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal 'Invalid password!'
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
+      expect(body).to.be.equal 'Invalid password!'
       done()
 
 
@@ -85,9 +83,9 @@ runTests = -> describe 'server.handlers.reset', ->
         recoveryToken : generateRandomString()
 
     request.post resetRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal 'Invalid token.'
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
+      expect(body).to.be.equal 'Invalid token.'
       done()
 
 
@@ -107,7 +105,7 @@ runTests = -> describe 'server.handlers.reset', ->
 
     queue = [
 
-      ->
+      (next) ->
         # generating a new certificate and saving it
         certificate = new JPasswordRecovery
           email        : email
@@ -118,41 +116,39 @@ runTests = -> describe 'server.handlers.reset', ->
 
         certificate.save (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # redeeming certificate without before reset request
         certificate.redeem (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting failure because certificate status is redeemed
         request.post resetRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          expect(body)            .to.be.equal expectedBody
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 400
+          expect(body).to.be.equal expectedBody
+          next()
 
-      ->
+      (next) ->
         # expiring certificate before reset request
         certificate.expire (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting failure because certificate status is expired
         request.post resetRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          expect(body)            .to.be.equal expectedBody
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 400
+          expect(body).to.be.equal expectedBody
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 400 if token is valid but user doesnt exist', (done) ->
@@ -170,7 +166,7 @@ runTests = -> describe 'server.handlers.reset', ->
 
     queue = [
 
-      ->
+      (next) ->
         # generating a new certificate and saving it
         certificate = new JPasswordRecovery
           email        : email
@@ -181,22 +177,20 @@ runTests = -> describe 'server.handlers.reset', ->
 
         certificate.save (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting failure because user doesn't exist
         expectedBody = 'Unknown user!'
         request.post resetRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          expect(body)            .to.be.equal expectedBody
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 400
+          expect(body).to.be.equal expectedBody
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 200 and reset password when token and user are valid', (done) ->
@@ -220,7 +214,7 @@ runTests = -> describe 'server.handlers.reset', ->
 
     queue = [
 
-      ->
+      (next) ->
         # generating a new certificate and saving it
         certificate = new JPasswordRecovery
           email        : email
@@ -231,41 +225,39 @@ runTests = -> describe 'server.handlers.reset', ->
 
         certificate.save (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # registering a new user
         request.post registerRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         # keeping user's password to compare after reset request
         JUser.one { username }, (err, user) ->
           expect(err).to.not.exist
           passwordBeforeReset = user.password
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # expecting reset request to succeed
         request.post resetRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         # expecting user's password not to be changed after reset request
         JUser.one { username }, (err, user) ->
-          expect(err)           .to.not.exist
-          expect(user.password) .to.not.be.equal passwordBeforeReset
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(user.password).to.not.be.equal passwordBeforeReset
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 200 and invalidate other tokens after resetting', (done) ->
@@ -290,7 +282,7 @@ runTests = -> describe 'server.handlers.reset', ->
 
     queue = [
 
-      ->
+      (next) ->
         # generating a new certificate and saving it
         certificate1 = new JPasswordRecovery
           email        : email
@@ -301,9 +293,9 @@ runTests = -> describe 'server.handlers.reset', ->
 
         certificate1.save (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         #generating another certificate which will be checked if invalidated
         certificate2 = new JPasswordRecovery
           email        : email
@@ -314,34 +306,32 @@ runTests = -> describe 'server.handlers.reset', ->
 
         certificate2.save (err) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # registering a new user
         request.post registerRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         # expecting reset request to succeed
         request.post resetRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         # expecting other token's status be updated as 'invalidated'
         JPasswordRecovery.one { token : token2 }, (err, certificate) ->
-          expect(err)                 .to.not.exist
-          expect(certificate?.status)  .to.be.equal 'invalidated'
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(certificate?.status).to.be.equal 'invalidated'
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
 runTests()

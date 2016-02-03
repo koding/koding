@@ -1,9 +1,9 @@
-kd = require 'kd'
+kd           = require 'kd'
+async        = require 'async'
 KDController = kd.Controller
-sinkrow = require 'sinkrow'
-remote = require('./remote').getInstance()
-showError = require './util/showError'
-FSHelper = require './util/fs/fshelper'
+remote       = require('./remote').getInstance()
+showError    = require './util/showError'
+FSHelper     = require './util/fs/fshelper'
 
 
 module.exports = class LocalSyncController extends KDController
@@ -28,12 +28,11 @@ module.exports = class LocalSyncController extends KDController
       #   showError err if err
 
   syncLocalContentIfDiffExists: (callback)->
-    queue  = @filesToSave.map (key)=>
-      =>
-        fsfile = FSHelper.createFileInstance path: key
-        @patchFileIfDiffExist fsfile, @storage.getValue("OE-#{key}"), (res)->
-          queue.fin()
-    sinkrow.dash queue, callback
+    queue = @filesToSave.map (key) => (fin) =>
+      fsfile = FSHelper.createFileInstance path: key
+      @patchFileIfDiffExist fsfile, @storage.getValue("OE-#{key}"), (res)->
+        fin()
+    async.parallel queue, callback
 
   addToSaveArray: (file)->
     fileName = FSHelper.getFullPath file

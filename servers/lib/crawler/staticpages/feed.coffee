@@ -1,6 +1,6 @@
 { argv }                  = require 'optimist'
 { uri }                   = require('koding-config-manager').load("main.#{argv.c}")
-{ daisy }                 = require 'bongo'
+async                     = require 'async'
 encoder                   = require 'htmlencode'
 { createActivityContent } = require '../helpers'
 
@@ -126,26 +126,23 @@ buildContent = (models, messageList, options, callback) ->
   { client, page } = options
 
   pageContent = ''
-  queue = messageList.map (activity) -> ->
+  queue = messageList.map (activity) -> (next) ->
     queue.pageContent or= ''
 
     createActivityContent models, activity, (err, content) ->
       if err
         console.error 'activity not listed', err
-        return queue.next()
+        return next()
 
       unless content
         # TODO Activity id can be added to error message
         console.error 'content not found'
-        return queue.next()
+        return next()
 
       pageContent = pageContent + content
-      queue.next()
+      next()
 
-  queue.push ->
-    callback null, pageContent
-
-  daisy queue
+  async.series queue, -> callback null, pageContent
 
 
 getPagination = (options) ->

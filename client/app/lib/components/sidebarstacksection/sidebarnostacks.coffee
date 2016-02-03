@@ -41,7 +41,7 @@ module.exports = class SidebarNoStacks extends React.Component
     if @state.isGroupAdmin
       <div>
         <label>No stacks</label>
-        <Link href='/Admin/Stacks'>
+        <Link href='/Stacks/Group-Stack-Templates'>
           Create a stack
         </Link>
       </div>

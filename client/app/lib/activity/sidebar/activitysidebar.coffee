@@ -4,7 +4,6 @@ whoami                          = require '../../util/whoami'
 remote                          = require('../../remote').getInstance()
 globals                         = require 'globals'
 Promise                         = require 'bluebird'
-sinkrow                         = require 'sinkrow'
 Machine                         = require 'app/providers/machine'
 FSHelper                        = require '../../util/fs/fshelper'
 isKoding                        = require 'app/util/isKoding'

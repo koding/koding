@@ -1,4 +1,6 @@
 globals = require 'globals'
+isProd  = globals.config.environment is 'production'
+
 
 module.exports = globals.config.providers =
 
@@ -35,9 +37,13 @@ module.exports = globals.config.providers =
       access_key           :
         label              : "Access Key ID"
         placeholder        : "aws access key"
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
       secret_key           :
         label              : "Secret Access Key"
         placeholder        : "aws secret key"
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
       region               :
         label              : 'Region'
         type               : 'selection'
