@@ -38,10 +38,12 @@ module.exports = class ChatList extends React.Component
     selectedMessageId : null
     onGlance          : kd.noop
 
+
   componentDidMount: ->
 
     kd.singletons.windowController.addFocusListener @bound 'handleFocus'
     @scrollableParent = findScrollableParent ReactDOM.findDOMNode this
+    window.addEventListener 'resize', @bound 'updateDateMarkersPosition'
 
 
   componentDidUpdate: -> @cacheDateMarkers()
