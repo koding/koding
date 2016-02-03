@@ -30,3 +30,25 @@ func (i *IDGen) Next() fuseops.InodeID {
 	i.LastID++
 	return i.LastID
 }
+
+type HandleIDGen struct {
+	// Mutex protects the fields below.
+	sync.Mutex
+
+	// LastID is the last id that was allocated.
+	LastID fuseops.HandleID
+}
+
+// NewIDGen is the required initializer for IDGen. It sets LastID to
+// fuseops.RootInodeID, ie 1 since that's the default ID for root.
+func NewHandleIDGen() *HandleIDGen {
+	return &HandleIDGen{Mutex: sync.Mutex{}}
+}
+
+func (h *HandleIDGen) Next() fuseops.HandleID {
+	h.Lock()
+	defer h.Unlock()
+
+	h.LastID++
+	return h.LastID
+}
