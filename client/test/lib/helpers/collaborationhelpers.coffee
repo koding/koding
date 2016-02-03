@@ -416,3 +416,32 @@ module.exports =
         when 'StatusBar' then @leaveSessionFromStatusBar(browser)
 
       browser.end()
+
+
+  testKickUser_: (browser, hostCallback, participantCallback) ->
+
+    host                   = utils.getUser no, 0
+    hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant            = utils.getUser no, 1
+    secondUserName         = participant.username
+    sharedMachineSelector  = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
+    informationModal       = '.kdmodal:not(.env-modal)'
+
+    browser.pause 2500, => # wait for user.json creation
+      if hostBrowser
+        @startSessionAndInviteUser(browser, host, participant)
+        @kickUser(browser, participant)
+
+        hostCallback?()
+
+        @closeChatPage(browser)
+        @endSessionFromStatusBar(browser)
+        browser.end()
+      else
+        @joinSession(browser, host, participant)
+        @assertKicked(browser)
+
+        participantCallback?()
+
+        browser.pause 5000 # wait for host
+        browser.end()

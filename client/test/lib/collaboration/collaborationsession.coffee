@@ -1,8 +1,6 @@
 utils                = require '../utils/utils.js'
 helpers              = require '../helpers/helpers.js'
-ideHelpers           = require '../helpers/idehelpers.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
-terminalHelpers      = require '../helpers/terminalhelpers.js'
 assert               = require 'assert'
 
 

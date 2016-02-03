@@ -1,8 +1,6 @@
 utils                = require '../utils/utils.js'
 helpers              = require '../helpers/helpers.js'
-ideHelpers           = require '../helpers/idehelpers.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
-terminalHelpers      = require '../helpers/terminalhelpers.js'
 assert               = require 'assert'
 
 
@@ -24,8 +22,12 @@ module.exports =
 
   kiсkUserFromSession: (browser) ->
 
+    collaborationHelpers.testKickUser_(browser)
+
+
+  kickUserAndInviteAgain: (browser) ->
+
     host                   = utils.getUser no, 0
-    hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant            = utils.getUser no, 1
     secondUserName         = participant.username
     sharedMachineSelector  = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
@@ -43,3 +45,16 @@ module.exports =
         collaborationHelpers.assertKicked(browser)
         browser.pause 5000
         browser.end()
+
+    hostCallback = ->
+
+      username = participant.username
+
+      collaborationHelpers.inviteUser(browser, username)
+
+    participantCallback = ->
+
+      sharedMachineSelector = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
+      browser.waitForElementPresent sharedMachineSelector, 200000
+
+    collaborationHelpers.testKickUser_(browser, hostCallback, participantCallback)
