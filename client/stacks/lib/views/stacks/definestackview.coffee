@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 jspath               = require 'jspath'
+Encoder              = require 'htmlencode'
 
 KDView               = kd.View
 KDTabView            = kd.TabView
@@ -45,6 +46,9 @@ module.exports = class DefineStackView extends KDView
 
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
+    if stackTemplate?.title
+      stackTemplate.title = Encoder.htmlDecode stackTemplate.title
+
     title           = stackTemplate?.title or 'Default stack template'
     content         = stackTemplate?.template?.content
     breadcrumbTitle = if inEditMode then 'Edit Stack' else 'New Stack'
@@ -52,7 +56,7 @@ module.exports = class DefineStackView extends KDView
     @addSubView new kd.CustomHTMLView
       tagName  : 'header'
       cssClass : 'breadcrumb'
-      partial  : "<span>Stacks</span> &gt; <span class='active'>#{breadcrumbTitle}</span>"
+      partial  : "<span class='active'>#{breadcrumbTitle}</span>"
 
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes

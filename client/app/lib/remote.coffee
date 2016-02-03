@@ -1,9 +1,9 @@
 globals = require 'globals'
-kd = require 'kd'
+kd      = require 'kd'
 kookies = require 'kookies'
-Bongo = require '@koding/bongo-client'
-broker = require 'broker-client'
-sinkrow = require 'sinkrow'
+Bongo   = require '@koding/bongo-client'
+broker  = require 'broker-client'
+async   = require 'async'
 
 
 getSessionToken = -> kookies.get 'clientId'
@@ -42,7 +42,7 @@ createInstance = ->
               }]
           models = []
           err = null
-          queue = name.slugs.map (slug) => =>
+          queue = name.slugs.map (slug) => (fin) =>
             selector = {}
             selector[slug.usedAsPath] = slug.slug
             @api[slug.constructorName].one? selector, (err, model)->
@@ -53,9 +53,9 @@ createInstance = ->
                     "Unable to find model: #{nameStr} of type #{name.constructorName}"
                 else
                   models.push model
-                queue.fin()
+                fin()
 
-          sinkrow.dash queue, =>
+          async.parallel queue, =>
             @emit "modelsReady"
             cache[nameStr] = models
             callback err, models, name

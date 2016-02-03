@@ -22,7 +22,7 @@ type AwsMeta struct {
 	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key"`
 	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key"`
 
-	// Bootstrap metadata:
+	// Bootstrap metadata.
 	ACL       string `json:"acl" bson:"acl" hcl:"acl"`
 	CidrBlock string `json:"cidr_block" bson:"cidr_block" hcl:"cidr_block"`
 	IGW       string `json:"igw" bson:"igw" hcl:"igw"`
@@ -34,20 +34,35 @@ type AwsMeta struct {
 	AMI       string `json:"ami" bson:"ami" hcl:"ami"`
 }
 
-// IsBootstrapComplete says whether all bootstrap-related fields are non-zero.
-func (meta *AwsMeta) IsBootstrapComplete() bool {
-	// TODO(rjeczalik): automate, add tag option?
-	bootstrap := []string{
-		meta.ACL, meta.CidrBlock, meta.IGW, meta.KeyPair, meta.RTB,
-		meta.SG, meta.Subnet, meta.VPC, meta.AMI,
+func (meta *AwsMeta) BootstrapValid() error {
+	if meta.ACL == "" {
+		return errors.New("acl is empty or missing")
 	}
-	for _, s := range bootstrap {
-		if s == "" {
-			return false
-		}
+	if meta.CidrBlock == "" {
+		return errors.New("CIDR block is empty or missing")
 	}
-
-	return true
+	if meta.IGW == "" {
+		return errors.New("IGW is empty or missing")
+	}
+	if meta.KeyPair == "" {
+		return errors.New("key pair is empty or missing")
+	}
+	if meta.RTB == "" {
+		return errors.New("RTB is empty or missing")
+	}
+	if meta.SG == "" {
+		return errors.New("SG is empty or missing")
+	}
+	if meta.Subnet == "" {
+		return errors.New("subnet is empty or missing")
+	}
+	if meta.VPC == "" {
+		return errors.New("VPC is empty or missing")
+	}
+	if meta.AMI == "" {
+		return errors.New("AMI is empty or missing")
+	}
+	return nil
 }
 
 // Valid implements the kloud.Validator interface.

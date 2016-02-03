@@ -148,7 +148,7 @@ handleError = (err, res, content) ->
 
 module.exports =
   crawl: (bongo, { req, res, slug, isProfile }) ->
-    { Base, race, dash, daisy } = require 'bongo'
+    { Base, race } = require 'bongo'
 
     [name, section, entrySlug] = slug.split('/')
 

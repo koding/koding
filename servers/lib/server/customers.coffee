@@ -2,7 +2,7 @@
   '../../../workers/social/lib/social/models/socialapi/requests.coffee'
 )
 
-{ dash } = require 'bongo'
+async = require 'async'
 
 module.exports = (req, res) ->
   koding              = require './bongo'
@@ -40,15 +40,15 @@ module.exports = (req, res) ->
         return res.status(400).send err  if err
 
         usernames.forEach (username) ->
-          queue.push -> JMachine.fetchByUsername username, (err, machines) ->
+          queue.push (fin) -> JMachine.fetchByUsername username, (err, machines) ->
             if err
-              queue.fin()
+              fin()
             else
               slugs = []
               machines.forEach (machine) ->
                 slugs.push  machine.data.slug  if machine.data.meta.alwaysOn
 
               response.push { 'username' : username, 'vms' : slugs }
-              queue.fin()
+              fin()
 
-      dash queue, -> res.status(200).send response
+      async.parallel queue, -> res.status(200).send response

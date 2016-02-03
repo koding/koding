@@ -1,4 +1,4 @@
-{ daisy }  = require 'bongo'
+async      = require 'async'
 apiErrors  = require './errors'
 
 { setSessionCookie } = require '../../helpers'
@@ -20,7 +20,7 @@ module.exports = ssoTokenLogin = (req, res, next) ->
 
   queue = [
 
-    ->
+    (next) ->
       validateJWTToken token, (err, data) ->
         return sendApiError res, err  if err
         { username, group } = data
@@ -29,25 +29,25 @@ module.exports = ssoTokenLogin = (req, res, next) ->
         unless group in req.subdomains
           return sendApiError res, apiErrors.invalidRequestDomain
 
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # checking if user exists
       JAccount.one { 'profile.nickname' : username }, (err, account_) ->
         return sendApiError res, apiErrors.internalError    if err
         return sendApiError res, apiErrors.invalidUsername  unless account_
         account = account_
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # checking if user is a member of the group of api token
       client = { connection : { delegate : account } }
       account.checkGroupMembership client, group, (err, isMember) ->
         return sendApiError res, apiErrors.internalError   if err
         return sendApiError res, apiErrors.notGroupMember  unless isMember
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       # creating a user session for the group if everything is ok
       JSession.createNewSession { username, groupName : group }, (err, session) ->
         return sendApiError res, apiErrors.internalError           if err
@@ -58,4 +58,4 @@ module.exports = ssoTokenLogin = (req, res, next) ->
 
   ]
 
-  daisy queue
+  async.series queue

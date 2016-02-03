@@ -1,5 +1,5 @@
 fetchAccount = require './fetchAccount'
-sinkrow = require 'sinkrow'
+async        = require 'async'
 
 ###*
  * Currently there is no way to fetch accounts and then do something, this util
@@ -15,11 +15,10 @@ sinkrow = require 'sinkrow'
 ###
 module.exports = fetchAccounts = (origins, callback) ->
 
-  _accounts = []
-  queue = origins.map (origin) -> ->
+  queue = origins.map (origin) -> (fin) ->
     fetchAccount origin, (err, account) ->
-      return queue.fin err  if err
-      _accounts.push account
-      queue.fin()
+      return fin err  if err
+      fin null, account
 
-  sinkrow.dash queue, (err) -> callback err, _accounts
+  # async aggregates account objects, returns in form of (err, [account, ...])
+  async.parallel queue, callback

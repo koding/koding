@@ -30,6 +30,9 @@ type Filter struct {
 
 	// Fingerprint is a fingerprint of the resource.
 	Fingerprint string
+
+	// Hostname of the instance.
+	Hostname string
 }
 
 // op is a helper function that wraps given value with {"operation": value}.
@@ -68,6 +71,9 @@ func (f *Filter) Object() map[string]interface{} {
 	}
 	if f.Fingerprint != "" {
 		m["fingerprint"] = op(f.Fingerprint)
+	}
+	if f.Hostname != "" {
+		m["hostname"] = op(f.Hostname)
 	}
 	// TODO(rjeczalik): f.Tags - research how to support tags
 	// TODO(rjeczalik): f.User - like above

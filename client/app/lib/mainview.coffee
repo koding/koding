@@ -4,7 +4,7 @@ KDCustomScrollView      = kd.CustomScrollView
 KDScrollView            = kd.ScrollView
 KDButtonView            = kd.ButtonView
 KDView                  = kd.View
-sinkrow                 = require 'sinkrow'
+async                   = require 'async'
 globals                 = require 'globals'
 remote                  = require('./remote').getInstance()
 isLoggedIn              = require './util/isLoggedIn'
@@ -19,7 +19,7 @@ environmentDataProvider = require 'app/userenvironmentdataprovider'
 actionTypes             = require 'activity/flux/actions/actiontypes'
 isTeamReactSide         = require 'app/util/isTeamReactSide'
 isFeedEnabled           = require 'app/util/isFeedEnabled'
-
+getGroup                = require 'app/util/getGroup'
 
 module.exports = class MainView extends KDView
 
@@ -146,11 +146,17 @@ module.exports = class MainView extends KDView
     @logoWrapper = new KDCustomHTMLView
       cssClass  : unless isKoding() then 'logo-wrapper group' else 'logo-wrapper'
 
-    @logoWrapper.addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
-      partial    : '<figure></figure>'
-      click      : (event) -> kd.utils.stopDOMEvent event
+    if isKoding()
+      @logoWrapper.addSubView new KDCustomHTMLView
+        tagName    : 'a'
+        attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
+        partial    : '<figure></figure>'
+        click      : (event) -> kd.utils.stopDOMEvent event
+    else
+      @logoWrapper.addSubView new KDCustomHTMLView
+        tagName    : 'span'
+        partial    : getGroup().title
+        cssClass   : 'team-name'
 
     @logoWrapper.addSubView closeHandle = new KDCustomHTMLView
       cssClass : "sidebar-close-handle"
@@ -295,11 +301,11 @@ module.exports = class MainView extends KDView
       remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
         if err then kd.log 'current system status:',err
         else if statuses and Array.isArray statuses
-          queue   = statuses.map (status)=>=>
+          queue = statuses.map (status) => (next) =>
             @createGlobalNotification status
-            kd.utils.wait 500, -> queue.next()
+            kd.utils.wait 500, -> next()
 
-          sinkrow.daisy queue.reverse()
+          async.series queue.reverse()
 
   handleSystemMessage:(message)->
 

@@ -49,8 +49,8 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     stack = @getOption 'stack'
 
     route = if stack
-    then "/Stacks/#{stack.getId()}"
-    else "/Stacks"
+    then "/My-Machines/#{stack.getId()}"
+    else "/My-Machines"
 
     kd.singletons.router.handleRoute route
 

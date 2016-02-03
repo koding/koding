@@ -1,8 +1,7 @@
-
-Bongo = require 'bongo'
+async          = require 'async'
+Bongo          = require 'bongo'
 {Relationship} = require 'jraphical'
 
-{daisy} = Bongo
 
 { join: joinPath } = require 'path'
 
@@ -34,8 +33,9 @@ koding.once 'dbClientReady', ->
 
     account = workspace = null
 
-    daisy queue = [
-      ->
+    queue = [
+
+      (next) ->
         process.stdout.write 'Checking default workspace'
 
         query =
@@ -48,10 +48,10 @@ koding.once 'dbClientReady', ->
           process.stdout.write ': ' + (if workspace_ then 'found' else 'not found') + "\n"
 
           workspace = workspace_
-          queue.next()
+          next()
 
-      ->
-        return queue.next()  if workspace
+      (next) ->
+        return next()  if workspace
 
         username = machine.credential
 
@@ -63,11 +63,11 @@ koding.once 'dbClientReady', ->
           process.stdout.write ': ' + (if account_ then 'found' else 'not found') + "\n"
 
           account = account_
-          queue.next()
+          next()
 
-      ->
-        return queue.next()  if workspace
-        return queue.next()  unless account
+      (next) ->
+        return next()  if workspace
+        return next()  unless account
 
         client = connection: delegate: account
 
@@ -78,13 +78,11 @@ koding.once 'dbClientReady', ->
 
           process.stdout.write ": #{workspace.getId()}\n"
 
-          queue.next()
-
-      ->
-
-        callback()
+          next()
 
     ]
+
+    async.series queue, callback
 
 
   fields = _id: 1, uid: 1, credential: 1, label: 1

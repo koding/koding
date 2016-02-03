@@ -1,5 +1,5 @@
 { _
-  daisy
+  async
   expect
   request
   generateRandomString } = require '../index'
@@ -45,21 +45,19 @@ testCsrfToken = (generateHandlerRequestParams, method, options, callback) ->
 
     # if generateHandlerRequestParams fires a callback
     if options?.generateParamsAsync
-      queue.push ->
+      queue.push (next) ->
         generateHandlerRequestParams params, (requestParams) ->
           request[method] requestParams, expect403 ->
-            queue.next()
+            next()
 
     # else generate params synchronously
     else
-      queue.push ->
+      queue.push (next) ->
         requestParams = generateHandlerRequestParams params
         request[method] requestParams, expect403 ->
-          queue.next()
+          next()
 
-  queue.push -> callback()
-
-  daisy queue
+  async.series queue, callback
 
 
 module.exports = {

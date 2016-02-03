@@ -1,6 +1,5 @@
 koding                            = require './../bongo'
-
-{ daisy
+{ async
   expect
   request
   querystring
@@ -20,39 +19,37 @@ runTests = -> describe 'server.handlers.register', ->
 
   it 'should send HTTP 404 if method is not allowed', (done) ->
 
-    queue       = []
-    methods     = ['put', 'patch', 'del']
-    postParams  = generateRegisterRequestParams()
+    queue      = []
+    methods    = ['put', 'patch', 'del']
+    postParams = generateRegisterRequestParams()
 
-    addRequestToQueue = (queue, method) -> queue.push ->
+    addRequestToQueue = (queue, method) -> queue.push (next) ->
       postParams.method = method
       request.del postParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 404
-        queue.next()
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 404
+        next()
 
     for method in methods
       addRequestToQueue queue, method
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 200 if GET request sent to Register hadler url', (done) ->
 
     requestParams = generateRegisterRequestParams()
     request.get requestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 200
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 200
       done()
 
 
   it 'should send HTTP 400 if username is not specified', (done) ->
 
     postParams = generateRegisterRequestParams
-      body        :
-        username  : ''
+      body       :
+        username : ''
 
     request.post postParams, (err, res, body) ->
       expect(err)             .to.not.exist
@@ -63,12 +60,12 @@ runTests = -> describe 'server.handlers.register', ->
   it 'should send HTTP 400 if password is not specified', (done) ->
 
     postParams = generateRegisterRequestParams
-      body        :
-        password  : ''
+      body       :
+        password : ''
 
     request.post postParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
       done()
 
 
@@ -80,8 +77,8 @@ runTests = -> describe 'server.handlers.register', ->
         passwordConfirm : 'anotherPassword'
 
     request.post postParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
       done()
 
 
@@ -89,28 +86,26 @@ runTests = -> describe 'server.handlers.register', ->
 
     randomString = generateRandomString()
     postParams   = generateRegisterRequestParams
-      body        :
-        username  : randomString
+      body       :
+        username : randomString
 
     queue = [
 
-      ->
+      (next) ->
         request.post postParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         request.post postParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 400
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 400 if email is in use', (done) ->
@@ -122,23 +117,21 @@ runTests = -> describe 'server.handlers.register', ->
 
     queue = [
 
-      ->
+      (next) ->
         request.post postParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         request.post postParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 400
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 400 if dotted gmail address is in use', (done) ->
@@ -153,20 +146,20 @@ runTests = -> describe 'server.handlers.register', ->
     registerParams = generateRegisterRequestParams { body: { email } }
 
     request.post registerParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
       done()
 
 
   it 'should send HTTP 400 if agree is set as off', (done) ->
 
     postParams = generateRegisterRequestParams
-      body        :
-        agree     : 'off'
+      body    :
+        agree : 'off'
 
     request.post postParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 400
       done()
 
 
@@ -178,36 +171,34 @@ runTests = -> describe 'server.handlers.register', ->
 
     queue = [
 
-      ->
+      (next) ->
         # expecting HTTP 200 response
         request.post postParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
 
-      ->
+      (next) ->
         # expecting user to be saved on mongodb
         params = { username : username }
 
         JUser.one params, (err, { data : { email, registeredFrom } }) ->
-          expect(err)               .to.not.exist
-          expect(email)             .to.be.equal email
-          queue.next()
+          expect(err).to.not.exist
+          expect(email).to.be.equal email
+          next()
 
-      ->
+      (next) ->
         #expecting acount to be created
         params = { 'profile.nickname' : username }
 
         JAccount.one params, (err, { data : { profile } }) ->
-          expect(err)               .to.not.exist
-          expect(profile.nickname)  .to.be.equal username
-          queue.next()
-
-      -> done()
+          expect(err).to.not.exist
+          expect(profile.nickname).to.be.equal username
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 301 if request is not XHR',  (done) ->
@@ -217,8 +208,8 @@ runTests = -> describe 'server.handlers.register', ->
         'x-requested-with' : 'this is not an XHR'
 
     request.post postParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 301
+      expect(err).to.not.exist
+      expect(res.statusCode).to.be.equal 301
       done()
 
 

@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   request
   generateRandomString
@@ -72,7 +72,7 @@ runTests = -> describe 'server.handlers.confirm', ->
 
       queue = [
 
-        ->
+        (next) ->
           confirmRequestParams = generateConfirmRequestParams
             qs : { token : jwtToken }
 
@@ -80,21 +80,18 @@ runTests = -> describe 'server.handlers.confirm', ->
             expect(err).to.not.exist
             expect(res.statusCode).to.be.equal 200
             expect(body).not.to.be.empty
-            queue.next()
+            next()
 
-
-        ->
+        (next) ->
           # expecting a session to be created
           JSession.one { username, groupName }, (err, session) ->
             expect(err).to.not.exist
             expect(session).to.exist
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
 beforeTests()

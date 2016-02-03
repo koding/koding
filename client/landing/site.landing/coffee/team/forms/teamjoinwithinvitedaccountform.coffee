@@ -1,3 +1,5 @@
+kd              = require 'kd.js'
+utils           = require './../../core/utils'
 JView           = require './../../core/jview'
 LoginInputView  = require './../../login/logininputview'
 TeamJoinTabForm = require './../forms/teamjointabform'

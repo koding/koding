@@ -14,8 +14,7 @@ module.exports = class AccountCredentialListWrapper extends KDView
 
 
   DEFAULT_LIST_TEXT = """
-    List of additional credentials for your account. These are includes generic
-    data for using with 3rd party integrations on your stacks.
+    Credentials may include arbitrary data that you collect for third party integrations.
   """
 
   constructor: (options = {}, data) ->

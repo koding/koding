@@ -1,4 +1,5 @@
 Bongo                   = require 'bongo'
+async                   = require 'async'
 { join: joinPath }      = require 'path'
 { env : { MONGO_URL } } = process
 
@@ -40,7 +41,7 @@ koding.once 'dbClientReady', ->
 
     unless permissionSet?
       if argv.hard or argv.reset
-        Bongo.dash workQueue, done
+        async.parallel workQueue, done
       else
         done()
       return
@@ -48,13 +49,13 @@ koding.once 'dbClientReady', ->
     if argv.reset
 
       newSet = new JPermissionSet {}, { privacy: 'public' }
-      workQueue.push ->
+      workQueue.push (fin) ->
         permissionSet.update {
           $set:
             permissions: newSet.permissions
         }, (err) ->
           console.log 'Failed to update permissions', err  if err
-          workQueue.fin()
+          fin()
 
       return
 
@@ -112,4 +113,4 @@ koding.once 'dbClientReady', ->
     console.log "AFTER", permissionSet.permissions
 
     if argv.hard
-      workQueue.push -> permissionSet.save -> workQueue.fin()
+      workQueue.push (fin) -> permissionSet.save -> fin()

@@ -1,5 +1,5 @@
 request       = require 'request'
-{ dash }      = require 'bongo'
+async         = require 'async'
 { isAllowed } = require '../../../../deployment/grouptoenvmapping'
 
 module.exports = (req, res) ->
@@ -12,16 +12,16 @@ module.exports = (req, res) ->
 
     urls.push { name: key, url: val.versionURL }  if val?.versionURL?
 
-  urlFns = urls.map ({ name, url }) -> ->
+  urlFns = urls.map ({ name, url }) -> (fin) ->
     request url, (err, resp, body) ->
       if err?
         errs.push({ name, err })
       else if KONFIG.version isnt body
         errs.push({ name, message: 'versions are not same' })
 
-      urlFns.fin()
+      fin()
 
-  dash urlFns, ->
+  async.parallel urlFns, ->
     if Object.keys(errs).length > 0
       console.log 'VERSIONCHECK ERROR:', errs
       res.status(500).end()

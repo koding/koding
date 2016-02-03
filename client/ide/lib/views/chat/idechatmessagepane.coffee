@@ -43,9 +43,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
 
-    @autoComplete.on 'VideoStateRequested', =>
-      @autoComplete.emit 'VideoStateReceived', @videoActive
-
     ideApp = envDataProvider.getIDEFromUId @getOption 'mountedMachineUId'
     ideApp.on 'UserReachedVideoLimit', =>
       @autoComplete?.hideDropdown()

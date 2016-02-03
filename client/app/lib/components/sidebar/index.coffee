@@ -173,13 +173,23 @@ module.exports = class Sidebar extends React.Component
   render: ->
 
     <Scroller className={kd.utils.curry 'activity-sidebar', @props.className}>
-      {@renderDifferentStackResources()}
-      {@renderStacks()}
-      {@renderNoStacks()}
-      {@renderSharedMachines()}
-      {@renderChannels()}
-      {@renderMessages()}
-      {@renderInvitationWidget()}
+      <div className='Sidebar-section-wrapper'>
+        {@renderDifferentStackResources()}
+        {@renderStacks()}
+        {@renderNoStacks()}
+        {@renderSharedMachines()}
+        {@renderChannels()}
+        {@renderMessages()}
+        {@renderInvitationWidget()}
+      </div>
+      <div className='Sidebar-logo-wrapper'>
+        <object
+          type='image/svg+xml'
+          data='/a/images/logos/Sidebar-footer-logo.svg'
+          className='Sidebar-footer-logo'>
+          Koding Logo
+        </object>
+      </div>
     </Scroller>
 
 
