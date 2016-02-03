@@ -157,9 +157,8 @@ createGroupKallback = (client, req, res, body) ->
     client.sessionToken        = token
     client.connection.delegate = result.account
 
-    if validationError = validateGroupDataAndReturnError body
-      { statusCode, errorMessage } = validationError
-      return res.status(statusCode).send errorMessage
+    if validationError = validateGroupData body
+      return res.status(validationError.status).send validationError.message
 
     afterGroupCreate = afterGroupCreateKallback res, {
       body             : body
@@ -218,18 +217,18 @@ afterGroupCreateKallback = (res, params) ->
       return res.status(200).send data
 
 
-validateGroupDataAndReturnError = (body) ->
+validateGroupData = (body) ->
 
   unless body.slug
-    return { statusCode : 400, errorMessage : 'Group slug can not be empty.' }
+    return generateAPIError 400, 'Group slug can not be empty.'
 
   unless validateTeamDomain body.slug
-    return { statusCode : 400, errorMessage : 'Invalid group slug.' }
+    return generateAPIError 400, 'Invalid group slug.'
 
   else unless body.companyName
-    return { statusCode : 400, errorMessage : 'Company name can not be empty.' }
+    return generateAPIError 400, 'Company name can not be empty.'
 
-  else null
+  else return null
 
 # convertToArray converts given comma separated string value into cleaned,
 # trimmed, lowercased, unified array of string
