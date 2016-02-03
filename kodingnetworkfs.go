@@ -175,9 +175,9 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
 	// watcher can be nil if Config.NoWatch was set to true
-	if k.Watcher != nil {
-		k.Watcher.Close()
-	}
+	//if k.Watcher != nil {
+	//  k.Watcher.Close()
+	//}
 
 	return Unmount(k.MountPath)
 }
