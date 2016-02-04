@@ -87,6 +87,10 @@ module.exports = [
   ]
 
   [
+    { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
     { name: 'environments vm' }
     { name: 'teams teamspostwith' }
   ]
