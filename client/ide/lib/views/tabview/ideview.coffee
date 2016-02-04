@@ -18,6 +18,7 @@ KDCustomHTMLView      = kd.CustomHTMLView
 KDSplitViewPanel      = kd.SplitViewPanel
 ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
+IDECollaborationPane  = require '../../workspace/panes/idecollaborationpane'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
 
@@ -71,6 +72,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
     @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
+    @tabView.on 'CollaborationPaneRequested', @bound 'createCollaboration'
     # obsolete: 'preview file' feature was removed (bug #82710798)
     @tabView.on 'PreviewPaneRequested',     (url) -> global.open "http://#{url}"
     @tabView.on 'DrawingPaneRequested',     @bound 'createDrawingBoard'
@@ -410,6 +412,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @updateStatusBar 'preview', newLocation
 
     @emitChange previewPane, context: { url }
+
+
+  createCollaboration: ({channelId}) ->
+
+    collaborationPane = new IDECollaborationPane {channelId}
+    @createPane_ collaborationPane, { title : 'Chat' }
+
 
 
   showView: (view, name = 'Search Result') -> @createPane_ view, { name }

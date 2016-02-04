@@ -1096,6 +1096,9 @@ module.exports = CollaborationController =
 
     @chat.showChatPane()
     @chat.start()
+    channel = @socialChannel
+
+    @activeTabView.emit 'CollaborationPaneRequested', {channelId: channel.id}
 
 
   createChatPaneView: (channel) ->
