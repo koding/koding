@@ -12,15 +12,6 @@ module.exports = class SidebarChannelsSection extends React.Component
   @defaultProps =
     selectedId   : null
     threads      : immutable.Map()
-    previewCount : 0
-
-
-  renderMoreLink: ->
-
-    { threads, previewCount } = @props
-
-    if threads.size > previewCount
-      <Link className="SidebarList-showMore" href="/AllChannels">More ...</Link>
 
 
   render: ->
@@ -31,12 +22,10 @@ module.exports = class SidebarChannelsSection extends React.Component
       secondaryLink="/NewChannel"
       className="SidebarChannelsSection">
       <SidebarList
-        previewCount={@props.previewCount}
         itemComponent={SidebarChannelsListItem}
         componentProp='SidebarChannelsListItem'
         threads={@props.threads}
         selectedId={@props.selectedId} />
-      {@renderMoreLink()}
     </SidebarSection>
 
 
