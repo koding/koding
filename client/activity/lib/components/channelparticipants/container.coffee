@@ -10,8 +10,9 @@ KDReactorMixin = require 'app/flux/base/reactormixin'
 module.exports = class ChannelParticipantsContainer extends React.Component
 
   @propTypes =
-    channelThread : React.PropTypes.instanceOf immutable.Map
-    participants  : React.PropTypes.instanceOf immutable.Map
+    channelThread   : React.PropTypes.instanceOf immutable.Map
+    participants    : React.PropTypes.instanceOf immutable.Map
+    maxPreviewCount : React.PropTypes.number
 
 
   @defaultProps =
@@ -100,6 +101,7 @@ module.exports = class ChannelParticipantsContainer extends React.Component
       ref                               = 'view'
       query                             = { @state.query }
       isParticipant                     = { isParticipant }
+      maxPreviewCount                   = { @props.maxPreviewCount }
       participants                      = { @props.participants }
       selectedItem                      = { @state.selectedItem }
       items                             = { @state.dropdownUsers }
