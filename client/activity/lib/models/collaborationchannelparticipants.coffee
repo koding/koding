@@ -12,9 +12,9 @@ module.exports = class CollaborationChannelParticipantsModel extends ChannelPart
 
   constructor: (options = {}, data) ->
 
-    super options, data
-
     @state = _.assign {}, @defaultState, options.state
+
+    super options, data
 
 
   ###*
