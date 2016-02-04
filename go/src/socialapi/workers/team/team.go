@@ -4,6 +4,7 @@ package team
 import (
 	"socialapi/config"
 	"socialapi/models"
+	notymodels "socialapi/workers/notification/models"
 
 	"koding/db/mongodb/modelhelper"
 	"strconv"
@@ -168,6 +169,11 @@ func (c *Controller) handleParticipantRemove(cp *models.ChannelParticipant) erro
 		if err := ch.RemoveParticipant(cp.AccountId); err != nil {
 			return err
 		}
+	}
+	nt := notymodels.NewNotification()
+	err = nt.RemoveAllContentsRelatedWithNotification(cp.AccountId, channel.Id)
+	if err != nil {
+		return err
 	}
 
 	return nil
