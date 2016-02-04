@@ -379,7 +379,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel, c *models.Context) (
 	if !c.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
-	
+
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -400,7 +400,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel, c *models.Context) (
 		return response.NewBadRequest(err)
 	}
 	if !participant {
-		return response.NewBadRequest(errors.New("account is not participant of channel"))
+		return response.NewBadRequest(models.ErrAccountIsNotParticipant)
 	}
 
 	// if user is participant in the channel, then user can update only purpose of the channel

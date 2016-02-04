@@ -70,9 +70,10 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     if isKoding()
       @addVMButton = new kd.ButtonView
-        title      : 'Add a Koding VM'
-        cssClass   : 'add-vm-button solid green compact'
-        callback   : => @handleMachineRequest 'koding'
+        title     : 'Add a Koding VM'
+        loader    : diameter : 20
+        cssClass  : 'add-vm-button solid green compact'
+        callback  : => @handleMachineRequest 'koding'
 
       if checkFlag 'softlayer'
         @addSoftlayerVMButton = new kd.ButtonView
@@ -121,13 +122,13 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleMachineRequest: (provider) ->
 
-    @destroyModal()
-    ComputeHelpers.handleNewMachineRequest { provider }
+    ComputeHelpers.handleNewMachineRequest { provider }, (machineCreated) =>
+      @destroyModal not machineCreated
 
 
-  destroyModal: ->
+  destroyModal: (goBack = yes) ->
 
-    @getDelegate().emit 'ModalDestroyRequested'
+    @getDelegate().emit 'ModalDestroyRequested', goBack
 
 
   createExtraViews: ->

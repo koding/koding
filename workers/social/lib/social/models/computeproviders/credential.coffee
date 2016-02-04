@@ -291,7 +291,7 @@ module.exports = class JCredential extends jraphical.Module
   shareWith: (client, options, callback) ->
 
     { delegate } = client.connection
-    { target, user, owner } = options
+    { target, user, owner, role } = options
     user ?= yes
 
     # Owners cannot unassign them from a credential
@@ -314,7 +314,7 @@ module.exports = class JCredential extends jraphical.Module
           @setPermissionFor account, { user, owner }, callback
 
       else if target instanceof JGroup
-        @setPermissionFor target, { user, owner }, callback
+        @setPermissionFor target, { user, owner, role }, callback
 
       else
         callback new KodingError 'Target does not support credentials.'
