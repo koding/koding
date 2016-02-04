@@ -1,34 +1,7 @@
 {
 	"environment": "dev",
 	"user": {
-		"status": "confirmed",
-		"passwordStatus": "valid",
-		"registeredAt": "0001-01-01T00:00:00Z",
-		"lastLoginDate": "0001-01-01T00:00:00Z",
-		"onlineStatus": {
-			"actual": "online"
-		},
-		"sshKeys": [],
-		"username": "kloudctl",
-		"email": "rafal+kloudctl@koding.com",
-		"sanitizedEmail": "rafal+kloudctl@koding.com",
-		"salt": "",
-		"password": "",
-		"emailFrequency": {
-			"global": true,
-			"daily": false,
-			"privateMessage": true,
-			"followActions": false,
-			"comment": true,
-			"likeActivities": false,
-			"groupInvite": true,
-			"groupRequest": true,
-			"groupApproved": true,
-			"groupJoined": true,
-			"groupLeft": false,
-			"mention": true,
-			"marketing": true
-		}
+		"_id": "56acbacbb073902c25253d20"
 	},
 	"machine": {
 		"label": "kloudctl",
@@ -43,8 +16,7 @@
 		"meta": {
 			"storage_size": 25,
 			"alwaysOn": false,
-			"datacenter": "sjc01",
-			"vlanId": ""
+			"datacenter": "tok02"
 		},
 		"generatedFrom": {
 			"templateId": "",

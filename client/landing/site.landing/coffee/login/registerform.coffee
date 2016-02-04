@@ -254,6 +254,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             title       : "OK"
             callback    : -> modal.destroy()
 
+    @fetchGravatarInfo input.getValue()
 
     @once 'gravatarInfoFetched', (gravatar) =>
       # oath username has more priority over gravatar username
@@ -263,8 +264,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         familyName : lastName
 
       input.validate()
-
-    @fetchGravatarInfo input.getValue()
+      @parent.showExtraInformation @getFormData(), this
 
 
   pistachio:->

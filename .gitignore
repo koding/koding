@@ -83,3 +83,6 @@ supervisor.html
 supervisord.conf
 client/test/*.png
 client/test/users-*.json
+elektron/lib
+elektron/dist
+elektron/node_modules

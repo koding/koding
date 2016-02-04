@@ -306,6 +306,46 @@ func (c *Softlayer) XInstancesByFilter(filter *Filter) (Instances, error) {
 	return *req.Resource.(*Instances), nil
 }
 
+// InstanceEntriesByFilter fetches all instance entries and performs client-side
+// filtering using the given filter.
+//
+// If no instance entries are found that matches the filter, non-nil error
+// is returned.
+// If filter is nil, all instance entries are returned.
+func (c *Softlayer) InstanceEntriesByFilter(filter *Filter) (InstanceEntries, error) {
+	req := &ResourceRequest{
+		Name:       "Instance",
+		Path:       "SoftLayer_Account/getVirtualGuests.json",
+		Filter:     filter,
+		ObjectMask: instanceEntryMask,
+		Resource:   &InstanceEntries{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+	return *req.Resource.(*InstanceEntries), nil
+}
+
+// XInstancesByFilter queries for keys, which are filtered on the server side
+// with the given filter.
+//
+// If no instances are found that matches the filter, non-nil error is returned.
+// If filter is nil, all instances are returned.
+func (c *Softlayer) XInstanceEntriesByFilter(filter *Filter) (InstanceEntries, error) {
+	req := &ResourceRequest{
+		Name:       "Instance",
+		Path:       "SoftLayer_Account/getVirtualGuests.json",
+		Filter:     filter,
+		FilterName: "virtualGuests",
+		ObjectMask: instanceEntryMask,
+		Resource:   &InstanceEntries{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+	return *req.Resource.(*InstanceEntries), nil
+}
+
 // VlansByFilter fetches all vlans and performs client-side filtering
 // using the given filter.
 //
@@ -348,34 +388,25 @@ func (c *Softlayer) XVlansByFilter(filter *Filter) (VLANs, error) {
 // InstanceSetTags sets tags of the instance specified by the id to the provided
 // value. All old tags will get overwritten.
 func (c *Softlayer) InstanceSetTags(id int, tags Tags) error {
-	req := map[string]interface{}{
-		"parameters": []interface{}{tags.Ref()},
+	req := &TagRequest{
+		Name:    "Instance",
+		Service: "SoftLayer_Virtual_Guest",
+		ID:      id,
+		Tags:    tags,
 	}
-	p, err := json.Marshal(req)
-	if err != nil {
-		return err
-	}
+	return c.tag(req)
+}
 
-	path := fmt.Sprintf("SoftLayer_Virtual_Guest/%d/setTags.json", id)
-	p, err = c.DoRawHttpRequest(path, "POST", bytes.NewBuffer(p))
-	if err != nil {
-		return err
+// VlanSetTags sets tags of the vlan specified by the id to the provided
+// value. All old tags will get overwritten.
+func (c *Softlayer) VlanSetTags(id int, tags Tags) error {
+	req := &TagRequest{
+		Name:    "Vlan",
+		Service: "SoftLayer_Network_Vlan",
+		ID:      id,
+		Tags:    tags,
 	}
-
-	if err := checkError(p); err != nil {
-		return err
-	}
-
-	var ok bool
-	if err := json.Unmarshal(p, &ok); err != nil {
-		return err
-	}
-
-	if !ok {
-		return fmt.Errorf("failed setting tags for instance id=%d", id)
-	}
-
-	return nil
+	return c.tag(req)
 }
 
 // DeleteInstance requests a VM termination given by the id.

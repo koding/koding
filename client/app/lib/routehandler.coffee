@@ -106,7 +106,7 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       kd.singletons.mainController.doLogout()
       global.location.href = path
 
-    when 'stacks'
+     when 'my-machines'
       { stackId } = info.params
       new EnvironmentsModal selected: stackId
 

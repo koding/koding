@@ -1,6 +1,6 @@
 { argv }  = require 'optimist'
 { uri }   = require('koding-config-manager').load("main.#{argv.c}")
-{ daisy } = require('bongo')
+async     = require 'async'
 encoder   = require 'htmlencode'
 
 getProfile = (account) ->
@@ -69,22 +69,19 @@ prepareComments = (models, activity, callback) ->
   return callback null  unless replies.length
 
   queue = []
-  queue = replies.map (reply) -> ->
+  queue = replies.map (reply) -> (next) ->
     JAccount.one { _id: reply.accountOldId }, (err, account) ->
       if err
         console.error "Could not fetch replier information #{reply.accountOldId}"
-        return queue.next()
+        return next()
 
       reply.replier   = getProfile account
       { formatBody } = require './staticpages/bodyrenderer'
       reply.message.body = formatBody reply.message.body
       reply.message.createdAt = renderCreatedAt reply
-      queue.next()
+      next()
 
-  queue.push ->
-    callback null, replies
-
-  daisy queue
+  async.series queue, -> callback null, replies
 
 prepareLikes = (models, activity, callback) ->
   { JAccount } = models
@@ -94,20 +91,17 @@ prepareLikes = (models, activity, callback) ->
 
   queue = []
   actors = []
-  queue = like.actorsPreview.map (actor) -> ->
+  queue = like.actorsPreview.map (actor) -> (next) ->
     JAccount.one { _id: actor }, (err, account) ->
       if err
         console.error "Could not fetch interactor information #{actor}"
-        return queue.next()
+        return next()
 
       actors.push getProfile account
 
-      queue.next()
+      next()
 
-  queue.push ->
-    callback null, actors
-
-  daisy queue
+  async.series queue, -> callback null, actors
 
 
 prepareActivity = (models, { activity, profile }, callback) ->
@@ -128,24 +122,24 @@ prepareActivity = (models, { activity, profile }, callback) ->
     payload          : message.payload
 
   queue = [
-    ->
+
+    (next) ->
       prepareComments models, activity, (err, replies) ->
-        return callback err  if err
+        return next err  if err
         activityContent.replies = replies  if replies
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       prepareLikes models, activity, (err, likers) ->
-        return callback err  if err
+        return next err  if err
         activityContent.likers = likers  if likers
-        queue.next()
-
-    ->
-      callback null, activityContent
+        next()
 
   ]
 
-  daisy queue
+  async.series queue, (err) ->
+    return callback err  if err
+    callback null, activityContent
 
 createActivityContent = (models, activity, callback) ->
   { htmlEncode }         = require 'htmlencode'

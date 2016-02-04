@@ -1,5 +1,6 @@
 _           = require 'underscore'
 hat         = require 'hat'
+async       = require 'async'
 Bongo       = require 'bongo'
 request     = require 'request'
 querystring = require 'querystring'
@@ -7,7 +8,6 @@ querystring = require 'querystring'
 { argv }   = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 mongo       = KONFIG.mongoReplSet or "mongodb://#{ KONFIG.mongo }"
-{ daisy }   = Bongo
 { expect }  = require 'chai'
 
 
@@ -166,7 +166,7 @@ convertToArray = (commaSeparatedData = '') ->
 module.exports = {
   _
   hat
-  daisy
+  async
   expect
   request
   generateUrl

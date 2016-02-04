@@ -41,6 +41,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     @machinesList = controller.getView()
 
+    @on 'ModalDestroyRequested', @bound 'destroyModal'
+
 
   createButtons: ->
 
@@ -68,9 +70,10 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     if isKoding()
       @addVMButton = new kd.ButtonView
-        title      : 'Add a Koding VM'
-        cssClass   : 'add-vm-button solid green compact'
-        callback   : => @handleMachineRequest 'koding'
+        title     : 'Add a Koding VM'
+        loader    : diameter : 20
+        cssClass  : 'add-vm-button solid green compact'
+        callback  : => @handleMachineRequest 'koding'
 
       if checkFlag 'softlayer'
         @addSoftlayerVMButton = new kd.ButtonView
@@ -110,7 +113,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleStackDelete: ->
 
-    @getDelegate().emit 'ModalDestroyRequested'
+    @destroyModal()
 
     { computeController } = kd.singletons
     computeController.ui.askFor 'deleteStack', {}, =>
@@ -119,8 +122,13 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleMachineRequest: (provider) ->
 
-    @getDelegate().emit 'ModalDestroyRequested'
-    ComputeHelpers.handleNewMachineRequest { provider }
+    ComputeHelpers.handleNewMachineRequest { provider }, (machineCreated) =>
+      @destroyModal not machineCreated
+
+
+  destroyModal: (goBack = yes) ->
+
+    @getDelegate().emit 'ModalDestroyRequested', goBack
 
 
   createExtraViews: ->
@@ -214,7 +222,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         then computeController.stopStack  stack
         else computeController.startStack stack
 
-        @getDelegate().emit 'ModalDestroyRequested'
+        @destroyModal()
 
     if notready
       @stackStateToggle.setTooltip

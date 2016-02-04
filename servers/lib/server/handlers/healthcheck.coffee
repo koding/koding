@@ -1,5 +1,5 @@
+async         = require 'async'
 request       = require 'request'
-{ dash }      = require 'bongo'
 _             = require 'underscore'
 { isAllowed } = require '../../../../deployment/grouptoenvmapping'
 
@@ -19,12 +19,12 @@ module.exports = (req, res) ->
 
   urls.push("http://localhost:#{publicPort}/-/versionCheck")
 
-  urlFns = urls.map (url) -> ->
+  urlFns = urls.map (url) -> (fin) ->
     request url, (err, resp, body) ->
       errs.push({ url, err })  if err?
-      urlFns.fin()
+      fin()
 
-  dash urlFns, ->
+  async.parallel urlFns, ->
     if Object.keys(errs).length > 0
       console.log 'HEALTHCHECK ERROR:', errs
       res.status(500).end()

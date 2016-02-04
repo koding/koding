@@ -233,12 +233,21 @@ loadPopularChannels = (options = {}) ->
 
   dispatch LOAD_POPULAR_CHANNELS_BEGIN
 
-  kd.singletons.socialapi.channel.fetchPopularTopics options, (err, channels) ->
-    if err
-      dispatch LOAD_POPULAR_CHANNELS_FAIL, { err }
-      return
+  new Promise (resolve, reject) ->
 
-    dispatch LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
+    kd.singletons.socialapi.channel.fetchPopularTopics options, (err, channels) ->
+      if err
+        dispatch LOAD_POPULAR_CHANNELS_FAIL, { err }
+        reject { err }
+        return
+
+      promises = channels.map (channel) ->
+        loadChannel channel.id
+
+      Promise.all(promises).then (channels) ->
+        channels = channels.map (item) -> item.channel
+        dispatch LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
+        resolve { channels }
 
 
 ###*

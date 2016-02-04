@@ -16,7 +16,7 @@ module.exports = class KodingRouter extends kd.Router
 
   listen: ->
 
-    super
+    @startListening()
 
     return if @userRoute
 

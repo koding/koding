@@ -12,12 +12,6 @@ module.exports = class SidebarDifferentStackResources extends React.Component
     className   : 'SidebarStackWidgets --DifferentStackResources'
 
 
-  handleOnClick: ->
-
-    # Legacy class.
-    kd.singletons.router.handleRoute '/Stacks'
-
-
   render: ->
 
     <section className={classnames 'SidebarSection', @props.className}>
@@ -26,7 +20,7 @@ module.exports = class SidebarDifferentStackResources extends React.Component
           You have different resources in your stacks.
           Please re-initialize your stacks.
         </p>
-        <Link onClick={@bound 'handleOnClick'}>
+        <Link href='/Stacks'>
           Show Stacks
         </Link>
       </div>

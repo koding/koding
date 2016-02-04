@@ -238,12 +238,6 @@ selectedChannelThread = [
       popularMessages = popularMessages or immutable.Map()
       thread = thread.set 'messages', popularMessages
 
-    thread = thread.update 'messages', (messages) ->
-      messages.map (msg) ->
-        msg.update 'body', (body) ->
-          # don't show channel name on post body.
-          body.replace(///\##{channel.get('name')}($|\s)///, '').trim()
-
     return thread
 ]
 

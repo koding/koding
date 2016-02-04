@@ -1,34 +1,11 @@
-kd             = require 'kd'
-lazyrouter     = require 'app/lazyrouter'
-registerRoutes = require 'app/util/registerRoutes'
-
-
-handleSection = (path, callback)->
-
-  { appManager, router, groupsController } = kd.singletons
-
-  unless appManager.getFrontApp()
-    appManager.once 'AppIsBeingShown', ->
-      router.handleRoute path
-    router.handleRoute '/IDE'
-  else
-    groupsController.ready ->
-      appManager.open 'Admin', callback
-
-
-handle = (options, path) ->
-
-  { query, params } = options
-  { section, action, identifier } = params
-
-  handleSection path, (app) ->
-    app.openSection section, query, action, identifier
+routeHandler   = require 'app/util/routeHandler'
 
 
 module.exports = ->
-  lazyrouter.bind 'admin', (type, info, state, path, ctx) ->
-    switch type
-      when 'home'
-        kd.singletons.router.handleRoute '/Admin/General'
-      when 'section', 'action', 'identifier'
-        handle info, path
+
+  options =
+    name      : 'admin'
+    title     : 'Admin'
+    homeRoute : '/Admin/General'
+
+  routeHandler options

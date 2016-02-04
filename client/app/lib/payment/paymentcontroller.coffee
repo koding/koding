@@ -1,10 +1,9 @@
-sinkrow = require 'sinkrow'
-$ = require 'jquery'
-getGroup = require '../util/getGroup'
-remote = require('../remote').getInstance()
-whoami = require '../util/whoami'
+$         = require 'jquery'
+getGroup  = require '../util/getGroup'
+remote    = require('../remote').getInstance()
+whoami    = require '../util/whoami'
 showError = require '../util/showError'
-kd = require 'kd'
+kd        = require 'kd'
 
 
 module.exports = class PaymentController extends kd.Controller

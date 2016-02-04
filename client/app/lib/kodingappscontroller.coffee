@@ -5,10 +5,10 @@ KDCustomHTMLView = kd.CustomHTMLView
 
 globals          = require 'globals'
 Promise          = require 'bluebird'
+async            = require 'async'
 
 FSHelper         = require './util/fs/fshelper'
 registerAppClass = require './util/registerAppClass'
-
 
 module.exports = class KodingAppsController extends KDController
 
@@ -41,14 +41,13 @@ module.exports = class KodingAppsController extends KDController
 
 
   @loadDependencies = (dependencies, callback) ->
-    sinkrow = require 'sinkrow'
-    queue   = []
+    queue = []
 
     for dependency in dependencies
-      fn = @loadInternalApp.bind this, dependency, -> queue.fin()
-      queue.push fn
+      queue.push do (dependency) => (fin) =>
+        @loadInternalApp dependency, -> fin()
 
-    sinkrow.dash queue, callback
+    async.parallel queue, callback
 
   ## This is the most important method to put & run additional apps on Koding
   ## Please make sure about your changes on it.

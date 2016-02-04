@@ -23,12 +23,35 @@ func NewTags(kv []string) Tags {
 	t := make(Tags)
 	for _, kv := range kv {
 		if i := strings.IndexRune(kv, '='); i != -1 {
-			t[kv[:i]] = kv[i+1:]
+			t[strings.TrimSpace(kv[:i])] = strings.TrimSpace(kv[i+1:])
 		} else {
-			t[kv] = ""
+			t[strings.TrimSpace(kv)] = ""
 		}
 	}
 	return t
+}
+
+// NewTagsFromRefs creates key-value tags from Softlayer value-only tags.
+func NewTagsFromRefs(refs []TagReference) Tags {
+	tags := make(Tags, len(refs))
+	for _, ref := range refs {
+		var k, v string
+		k = ref.Tag.Name
+		if i := strings.IndexRune(k, ':'); i != -1 {
+			v = k[i+1:]
+			k = k[:i]
+		}
+		if k == "" {
+			// ignoring empty keys
+			continue
+		}
+		// no guarantee they keys are unique in Softlayer; we keep first
+		// encountered, non-empty value
+		if oldV, ok := tags[k]; !ok || oldV == "" {
+			tags[k] = v
+		}
+	}
+	return tags
 }
 
 // Matches gives true when all of the tags are present in t.

@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   request
   generateRandomEmail
@@ -173,7 +173,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
     queue  = []
 
     values.forEach (length) ->
-      queue.push ->
+      queue.push (next) ->
         options = { createGroup : yes, groupData : { isApiEnabled : yes } }
         withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
@@ -188,11 +188,9 @@ runTests = -> describe 'server.handlers.api.createuser', ->
             expect(err).to.not.exist
             expect(res.statusCode).to.be.equal 400
             expect(JSON.parse body).to.be.deep.equal { error : apiErrors.outOfRangeSuggestedUsername }
-            queue.next()
+            next()
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   it 'should send HTTP 400 when username length is not valid', (done) ->
@@ -202,7 +200,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
     queue  = []
 
     values.forEach (length) ->
-      queue.push ->
+      queue.push (next) ->
         options = { createGroup : yes, groupData : { isApiEnabled : yes } }
         withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
@@ -217,11 +215,9 @@ runTests = -> describe 'server.handlers.api.createuser', ->
             expect(err).to.not.exist
             expect(res.statusCode).to.be.equal 400
             expect(JSON.parse body).to.be.deep.equal { error : apiErrors.outOfRangeUsername }
-            queue.next()
+            next()
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   describe 'when request is valid', ->

@@ -113,27 +113,37 @@ module.exports = class SearchController extends KDObject
 
     val       = seed.replace /^@/, ''
     nickname  = nick()
-    query     =
-      'profile.nickname': val
 
     { groupsController } = kd.singletons
 
-    remote.api.JAccount.one(query).then (account) ->
+    handleResult = (group, account, nickname, resolve, reject) ->
+      # Filter accounts according to the current group.
+      # If user which is coming from the result isn't a member of the current group
+      # don't show it in auto complete
+      group.isMember account, (err, isMember) ->
+        return reject err  if err
 
-      new Promise (resolve, reject) ->
+        if isMember and account.profile.nickname isnt nickname
+          return resolve [account]
+        else
+          return resolve []
 
-        # Filter accounts according to the current group.
-        # If user which is coming from the result isn't a member of the current group
-        # don't show it in auto complete
-        if (group = groupsController.getCurrentGroup())
-          return group.isMember account, (err, isMember) ->
-            return reject err  if err
+    new Promise (resolve, reject) ->
 
-            if isMember and account.profile.nickname isnt nickname
-              resolve [account]
-            else
-              resolve []
+      unless group = groupsController.getCurrentGroup()
+        return reject 'Group is not set'
 
+      query = { 'profile.nickname': val }
+      remote.api.JAccount.one(query)
+        # first try with full value
+        .then (account) ->
+          throw new Error "No account found"  unless account
+          return handleResult group, account, nickname, resolve, reject
+        # if account was not found try with regexp
+        .catch (err) ->
+          query = { 'profile.nickname': { $regex: "^#{val}", $options: 'i' } }
+          remote.api.JAccount.one(query).then (account) ->
+            return handleResult group, account, nickname, resolve, reject
 
   searchAccounts: (seed, options = {}) ->
 

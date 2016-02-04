@@ -1,16 +1,11 @@
-_                    = require 'lodash'
-kd                   = require 'kd'
-Promise              = require 'bluebird'
-browserNotifications = require('browser-notifications')(Promise)
+_  = require 'lodash'
+kd = require 'kd'
 
 ###*
  * Makes sure browser notifications are supported.
- *
- * @param {Function} callback
- * @return {Function|undefined} callback
+ * @return {bool}
 ###
-supported = (callback) ->
-  return callback  if browserNotifications.isSupported()
+isSupported = -> !!window.Notification
 
 
 ###*
@@ -19,46 +14,46 @@ supported = (callback) ->
  * @param {Function} callback - to be called with err, and args object.
  * @return {Function}
 ###
-permitted = (callback) ->
-  return (args...) ->
-    browserNotifications
-      .requestPermissions()
-      .then (isPermitted) ->
-        return if isPermitted
-        then callback null, args...
-        else callback { message: 'Browser notifications are not permitted' }
-      .catch (err) -> callback err
+isPermitted = (callback) ->
+  if Notification.permission is 'granted'
+    callback()
+  else if Notification.permission is 'denied'
+    Notification.requestPermission (permission) ->
+      callback()  if permission is 'granted'
+
+
+defaultOptions =
+  title   : ''
+  message : ''
+  route   : '/'
+  timeout : 4000
+  iconUrl : '/a/images/logos/notify_logo.png'
 
 
 module.exports = class DesktopNotificationsController extends kd.Controller
 
   ###
-   * Makes sure browser notifications are supported and permitted by user.
-   *
-   * NOTE: it curries given options object with the result of err from
-   * `permitted` helper.
    *
    * @param {Object} options
    * @param {String} options.title
+   * @param {String} options.icon
    * @param {String} options.message
-   * @return {Promise} a promise which will resolve if user clicks to notification.
+   * @param {Function} options.onClick
   ###
-  notify: supported permitted (err, options) ->
+  notify: (options) ->
 
-    # return a promise for caller of this method, both errors and the result of
-    # `browserNotifications.send` are reachable via that promise.
-    new Promise (resolve, reject) ->
-      return reject err  if err
+    return unless  isSupported()
+    isPermitted ->
+      options      = _.assign {}, defaultOptions, options
 
-      options = _.assign {}, defaultNotificationOptions, options
+      focusToRoute = ->
+        window.focus()
+        kd.singletons.router.handleRoute options.route
 
-      return browserNotifications
-        .send options.title, options.message, options.iconUrl
-        .then resolve
-        .catch reject
+      notification = new Notification options.title, { body: options.message, icon: options.iconUrl }
 
+      notification.onclick = options.onClick || focusToRoute
+      setTimeout  ->
+        notification.close()
+      , options.timeout
 
-defaultNotificationOptions =
-  iconUrl : '/a/images/logos/share_logo.png'
-  title   : ''
-  message : ''

@@ -1,35 +1,39 @@
-{ daisy
+{ async
   expect
   request
-  generateRandomString }            = require '../../../testhelper'
+  generateRandomString
+  checkBongoConnectivity }          = require '../../../testhelper'
 { generateVerifySlugRequestParams } = require '../../../testhelper/handler/verifyslughelper'
 { generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
 reservedTeamDomains = require '../../../../workers/social/lib/social/models/user/reservedteamdomains'
 
 
+beforeTests = -> before (done) ->
+
+  checkBongoConnectivity done
+
+
 runTests = -> describe 'server.handlers.verifyslug', ->
 
   it 'should send HTTP 404 if request method is not POST', (done) ->
 
-    queue       = []
-    methods     = ['put', 'patch', 'delete']
+    queue   = []
+    methods = ['put', 'patch', 'delete']
 
     methods.forEach (method) ->
       verifySlugRequestParams = generateVerifySlugRequestParams
-        method  : method
-        body    :
-          name  : 'some-domain'
+        method : method
+        body   :
+          name : 'some-domain'
 
-      queue.push ->
+      queue.push (next) ->
         request verifySlugRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 404
-          queue.next()
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 404
+          next()
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
   describe 'when team domain is not set', ->
@@ -41,9 +45,9 @@ runTests = -> describe 'server.handlers.verifyslug', ->
           name : ''
 
       request.post  verifySlugRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 400
-        expect(body)            .to.be.equal 'No domain param is given!'
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 400
+        expect(body).to.be.equal 'No domain param is given!'
         done()
 
 
@@ -73,16 +77,14 @@ runTests = -> describe 'server.handlers.verifyslug', ->
           body   :
             name : invalidTeamDomain
 
-        queue.push ->
+        queue.push (next) ->
           request.post verifySlugRequestParams, (err, res, body) ->
-            expect(err)             .to.not.exist
-            expect(res.statusCode)  .to.be.equal 400
-            expect(body)            .to.be.equal 'Invalid domain!'
-            queue.next()
+            expect(err).to.not.exist
+            expect(res.statusCode).to.be.equal 400
+            expect(body).to.be.equal 'Invalid domain!'
+            next()
 
-      queue.push -> done()
-
-      daisy queue
+      async.series queue, done
 
   describe 'when domain is available', ->
 
@@ -105,16 +107,14 @@ runTests = -> describe 'server.handlers.verifyslug', ->
           body   :
             name : validTeamDomain
 
-        queue.push ->
+        queue.push (next) ->
           request.post verifySlugRequestParams, (err, res, body) ->
-            expect(err)             .to.not.exist
-            expect(res.statusCode)  .to.be.equal 200
-            expect(body)            .to.be.equal 'Domain is available!'
-            queue.next()
+            expect(err).to.not.exist
+            expect(res.statusCode).to.be.equal 200
+            expect(body).to.be.equal 'Domain is available!'
+            next()
 
-      queue.push -> done()
-
-      daisy queue
+      async.series queue, done
 
 
   describe 'when domain is taken', ->
@@ -129,29 +129,27 @@ runTests = -> describe 'server.handlers.verifyslug', ->
 
       queue = [
 
-        ->
+        (next) ->
           options = { body : { slug } }
           generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
             # expecting team to be created
             request.post createTeamRequestParams, (err, res, body) ->
-              expect(err)             .to.not.exist
-              expect(res.statusCode)  .to.be.equal 200
-              queue.next()
+              expect(err).to.not.exist
+              expect(res.statusCode).to.be.equal 200
+              next()
 
-        ->
+        (next) ->
           # expecting HTTP 400 when domain is taken
           request.post verifySlugRequestParams, (err, res, body) ->
-            expect(err)             .to.not.exist
-            expect(res.statusCode)  .to.be.equal 400
-            expect(body)            .to.be.equal 'Domain is taken!'
-            queue.next()
-
-        -> done()
+            expect(err).to.not.exist
+            expect(res.statusCode).to.be.equal 400
+            expect(body).to.be.equal 'Domain is taken!'
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   describe 'when domain is a reserved one', ->
@@ -166,10 +164,12 @@ runTests = -> describe 'server.handlers.verifyslug', ->
 
       # expecting HTTP 400 when domain is taken
       request.post verifySlugRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 400
-        expect(body)            .to.be.equal 'Invalid domain!'
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 400
+        expect(body).to.be.equal 'Invalid domain!'
         done()
 
+
+beforeTests()
 
 runTests()
