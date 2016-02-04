@@ -6,6 +6,7 @@ globals                  = require 'globals'
 getGroup                 = require 'app/util/getGroup'
 checkFlag                = require 'app/util/checkFlag'
 isFeedEnabled            = require 'app/util/isFeedEnabled'
+isKoding                 = require 'app/util/isKoding'
 AppStorage               = require 'app/appstorage'
 AppController            = require 'app/appcontroller'
 KodingAppsController     = require 'app/kodingappscontroller'
@@ -149,7 +150,7 @@ module.exports = class ActivityAppController extends AppController
     unless e.which is keyboardKeys.ESC
       kd.utils.stopDOMEvent e
 
-    if isFeedEnabled()
+    if isKoding()
       switch e.model.name
         when 'prevwindow' then @getView().openPrev()
         when 'nextwindow' then @getView().openNext()
