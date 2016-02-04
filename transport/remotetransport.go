@@ -184,7 +184,7 @@ func (r *RemoteTransport) relativePath(path string) string {
 func (r *RemoteTransport) trip(methodName string, req interface{}, res interface{}) error {
 	raw, err := r.Client.TellWithTimeout(methodName, r.TellTimeout, req)
 	if err != nil {
-		if isKiteTimeoutErr(err) {
+		if isKiteConnectionErr(err) {
 			return syscall.ECONNREFUSED
 		}
 		return err
@@ -200,7 +200,16 @@ func isKiteMethodNotFoundErr(err error) bool {
 	return ok && kiteErr.Type != "methodNotFound"
 }
 
-func isKiteTimeoutErr(err error) bool {
+func isKiteConnectionErr(err error) bool {
 	kiteError, ok := err.(*kite.Error)
-	return ok && kiteError.Type == "timeout"
+	switch {
+	case !ok:
+		return false
+	case kiteError.Type == "timeout":
+		return true
+	case kiteError.Type == "sendError":
+		return true
+	default:
+		return false
+	}
 }
