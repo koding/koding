@@ -84,7 +84,7 @@ func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
 			return nil, err
 		}
 
-		keyName := "koding-deployment-" + s.Req.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		keyName := "koding-deployment-" + s.Req.Username + "-" + arg.GroupName + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
 		finalBootstrap, err := s.Builder.Template.JsonOutput()
 		if err != nil {
