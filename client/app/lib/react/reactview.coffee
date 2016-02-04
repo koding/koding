@@ -13,7 +13,8 @@ module.exports = class ReactView extends kd.CustomHTMLView
 
   viewAppended: ->
 
-    ReactDOM.render(
-      @renderReact()
-      @getElement()
-    )
+    kd.utils.defer =>
+      ReactDOM.render(
+        @renderReact()
+        @getElement()
+      )
