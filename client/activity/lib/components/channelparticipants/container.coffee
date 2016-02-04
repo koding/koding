@@ -79,6 +79,12 @@ module.exports = class ChannelParticipantsContainer extends React.Component
 
   onNewParticipantButtonClick: ->
 
+    # hijack all the event handling of new participant button click to allow
+    # owners to define their own new participant button click handlers. this is
+    # useful for places like collaboration chat pane.
+    if @props.onNewParticipantButtonClick?
+      return @props.onNewParticipantButtonClick()
+
     if @state.addNewParticipantMode is yes
     then @setState { addNewParticipantMode: no }
     else
