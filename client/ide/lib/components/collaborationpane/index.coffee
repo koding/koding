@@ -10,6 +10,7 @@ AppearIn             = require 'app/components/appearin'
 HeaderView           = require './headerview'
 getGroup             = require 'app/util/getGroup'
 nick                 = require 'app/util/nick'
+classnames           = require 'classnames'
 
 
 module.exports = class CollaborationPane extends React.Component
@@ -43,6 +44,11 @@ module.exports = class CollaborationPane extends React.Component
     ActivityFlux.actions.message.createMessage @channel('id'), value
 
 
+  onNewParticipantClick: ->
+
+    @refs.pane.onInviteClick()
+
+
   renderHeader: ->
 
     return  unless thread = @state.channelThread
@@ -52,6 +58,7 @@ module.exports = class CollaborationPane extends React.Component
       thread={thread}
       participants={@state.channelParticipants}
       isVideoActive={thread.getIn ['flags', 'isVideoActive']}
+      onNewParticipantButtonClick={@bound 'onNewParticipantClick'}
       onVideoStart={@bound 'onVideoStart'}
       onVideoEnd={@bound 'onVideoEnd'} />
 
@@ -87,6 +94,11 @@ module.exports = class CollaborationPane extends React.Component
 
 
   render: ->
+
+    className = classnames
+      'Reactivity ChannelThreadPane': yes
+      'is-withVideo': @state.channelThread.getIn ['flags', 'isVideoActive']
+      'CollaborationPane is-withChat': yes
 
     <div className='Reactivity ChannelThreadPane CollaborationPane is-withChat'>
       {@renderContent()}
