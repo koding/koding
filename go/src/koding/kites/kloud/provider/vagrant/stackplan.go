@@ -1,10 +1,13 @@
 package vagrant
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	"koding/db/models"
@@ -164,6 +167,19 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		val, err := json.Marshal(&data)
 		if err != nil {
 			return "", nil, err
+		}
+
+		// Compressing the provision data isn't doing any serious optimizations,
+		// it's just here so the debug output does not take half a screen.
+		//
+		// The provisionclient handles both compressed and uncompressed JSONs.
+		var buf bytes.Buffer
+		if cw, err := gzip.NewWriterLevel(&buf, 9); err == nil {
+			if _, err = io.Copy(cw, bytes.NewReader(val)); err == nil && cw.Close() == nil {
+				s.Log.Debug("using compressed provision data: %d vs %d", len(val), len(buf.Bytes()))
+
+				val = buf.Bytes()
+			}
 		}
 
 		encoded := base64.StdEncoding.EncodeToString(val)

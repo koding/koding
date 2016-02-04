@@ -206,7 +206,7 @@ func (cmd *KontrolKey) Valid() error {
 }
 
 func (cmd *KontrolKey) RegisterFlags(f *flag.FlagSet) {
-	f.StringVar(&cmd.username, "username", defaultUsername, "Username for the key.")
+	f.StringVar(&cmd.username, "u", defaultUsername, "Username for the key.")
 	f.StringVar(&cmd.kontrolURL, "kontrol-url", fmt.Sprintf("http://koding-%s.ngrok.com/kontrol/kite", defaultUsername), "Kontrol URL for the key.")
 	f.StringVar(&cmd.output, "o", "-", "Output file to write the key to.")
 }
