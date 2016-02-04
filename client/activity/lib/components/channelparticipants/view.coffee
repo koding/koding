@@ -21,7 +21,7 @@ module.exports = class ChannelParticipantsView extends React.Component
     onNewParticipantButtonClick       : React.PropTypes.func.isRequired
     onShowMoreParticipantsButtonClick : React.PropTypes.func.isRequired
     channelId                         : React.PropTypes.string.isRequired
-    participants                     : React.PropTypes.instanceOf immutable.Map
+    participants                      : React.PropTypes.instanceOf immutable.Map
     items                             : React.PropTypes.instanceOf immutable.List
 
 
