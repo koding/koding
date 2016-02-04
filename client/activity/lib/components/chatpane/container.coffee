@@ -7,7 +7,8 @@ immutable             = require 'immutable'
 ActivityFlux          = require 'activity/flux'
 ChatPaneView          = require './view'
 scrollToElement       = require 'app/util/scrollToElement'
-getScrollablePosition = require 'app/util/getScrollablePosition'
+getScrollablePosition = require 'activity/util/getScrollablePosition'
+ScrollablePosition    = require 'activity/constants/scrollableposition'
 KDReactorMixin        = require 'app/flux/base/reactormixin'
 
 debounce = (delay, options, fn) -> _.debounce fn, delay, options
@@ -46,12 +47,6 @@ module.exports = class ChatPaneContainer extends React.Component
 
 
   channel: (key) -> @props.thread?.getIn ['channel', key]
-
-
-  getViewContent: ->
-
-    { view } = @refs
-    return view.refs.content
 
 
   componentDidMount: ->
@@ -125,9 +120,23 @@ module.exports = class ChatPaneContainer extends React.Component
       view.getScroller()._update()  if hasStoppedMessageEditing or hasRemovedMessage
 
 
+  onScroll: throttle 200, {}, ->
+
+    @updateDateMarkersPosition()
+
+    unreadCount = @channel 'unreadCount'
+    messages    = @props.thread.get('messages')
+    unreadMessagePosition = helper.getUnreadMessagePosition messages, unreadCount
+    unless unreadMessagePosition is @state.unreadMessagePosition
+      @setState { unreadMessagePosition }
+
+
   updateDateMarkersPosition: ->
 
-    @getViewContent().refs.ChatList.updateDateMarkersPosition()
+    { view }    = @refs
+    { content } = view.refs
+
+    content.refs.ChatList.updateDateMarkersPosition()
 
 
   glance: ->
@@ -140,7 +149,7 @@ module.exports = class ChatPaneContainer extends React.Component
     unreadCount = @channel 'unreadCount'
     messages    = @props.thread.get('messages')
     position    = helper.getUnreadMessagePosition messages, unreadCount
-    return  unless position is 'inside'
+    return  unless position is ScrollablePosition.INSIDE
 
     kd.utils.wait 500, @bound 'glance'
 
@@ -156,17 +165,6 @@ module.exports = class ChatPaneContainer extends React.Component
     @isThresholdReached = yes
 
     kd.utils.wait 500, => @props.onLoadMore()
-
-
-  onScroll: throttle 200, {}, ->
-
-    @updateDateMarkersPosition()
-
-    unreadCount = @channel 'unreadCount'
-    messages    = @props.thread.get('messages')
-    unreadMessagePosition = helper.getUnreadMessagePosition messages, unreadCount
-    unless unreadMessagePosition is @state.unreadMessagePosition
-      @setState { unreadMessagePosition }
 
 
   onJumpToUnreadMessages: ->

@@ -1,8 +1,9 @@
-kd           = require 'kd'
-React        = require 'kd-react'
-ReactDOM     = require 'react-dom'
-formatPlural = kd.utils.formatPlural
-classnames   = require 'classnames'
+kd                 = require 'kd'
+React              = require 'kd-react'
+ReactDOM           = require 'react-dom'
+formatPlural       = kd.utils.formatPlural
+classnames         = require 'classnames'
+ScrollablePosition = require 'activity/constants/scrollableposition'
 
 module.exports = class ChatPaneUnreadMessagesLabel extends React.Component
 
@@ -32,8 +33,8 @@ module.exports = class ChatPaneUnreadMessagesLabel extends React.Component
     element = ReactDOM.findDOMNode this
     return  unless element
 
-    isAbove = unreadMessagePosition is 'above'
-    isBelow = unreadMessagePosition is 'below'
+    isAbove = unreadMessagePosition is ScrollablePosition.ABOVE
+    isBelow = unreadMessagePosition is ScrollablePosition.BELOW
 
     return @close()  unless isAbove or isBelow
 

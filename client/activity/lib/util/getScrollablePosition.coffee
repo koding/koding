@@ -1,4 +1,5 @@
-$ = require 'jquery'
+$                    = require 'jquery'
+ScrollablePosition   = require 'activity/constants/scrollableposition'
 findScrollableParent = require 'app/util/findScrollableParent'
 
 ###*
@@ -25,10 +26,10 @@ module.exports = getScrollablePosition = (element) ->
   elementHeight      = $element.outerHeight no
 
   if elementTop - containerTop + elementHeight <= containerHeight and elementTop - containerTop >= 0
-    return 'inside'
+    return ScrollablePosition.INSIDE
 
   if elementTop - containerTop < 0
-    return 'above'
+    return ScrollablePosition.ABOVE
 
   if elementTop - containerTop + elementHeight > containerHeight
-    return 'below'
+    return ScrollablePosition.BELOW
