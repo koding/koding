@@ -314,6 +314,14 @@ func (c *Channel) removeParticipation(typeConstant string, participantIds ...int
 		if err := cp.Update(); err != nil {
 			return err
 		}
+
+		// when we remove participant from channel,
+		// then need to remove user's notification settings of that channel
+		if err := cp.RemoveNotificationSetting(); err != nil {
+			if err != bongo.RecordNotFound {
+				return err
+			}
+		}
 	}
 
 	pe.Participants = participants

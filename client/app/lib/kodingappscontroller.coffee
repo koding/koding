@@ -44,7 +44,7 @@ module.exports = class KodingAppsController extends KDController
     queue = []
 
     for dependency in dependencies
-      queue.push (fin) =>
+      queue.push do (dependency) => (fin) =>
         @loadInternalApp dependency, -> fin()
 
     async.parallel queue, callback
