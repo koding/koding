@@ -1,11 +1,12 @@
 package vagrantkite
 
 import (
+	"os"
+
 	"koding/kites/common"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-
 	"github.com/koding/logging"
 )
 
@@ -40,10 +41,11 @@ func NewClient() (*Client, error) {
 	// k.Config.Port = 9876
 	k.Config.Environment = Environment
 	k.Config.Region = Region
+	k.Config.Transport = kiteconfig.XHRPolling
 
 	return &Client{
 		Kite: k,
-		Log:  common.NewLogger(Name, false),
+		Log:  common.NewLogger(Name, os.Getenv("CONFIG_DEBUG") == "1"),
 	}, nil
 
 }

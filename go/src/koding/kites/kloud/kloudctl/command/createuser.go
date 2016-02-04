@@ -1,8 +1,9 @@
 package command
 
 import (
+	"encoding/json"
 	"errors"
-	"strconv"
+	"sort"
 	"time"
 
 	"koding/db/models"
@@ -15,15 +16,40 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type Template struct {
+	Machines struct {
+		Labels map[string]struct{} `json:"vagrantkite_build"`
+	} `json:"resource"`
+}
+
+func machineLabels(template []byte) ([]string, error) {
+	var t Template
+	if err := json.Unmarshal(template, &t); err != nil {
+		return nil, err
+	}
+	var labels []string
+	for label := range t.Machines.Labels {
+		labels = append(labels, label)
+	}
+	if len(labels) == 0 {
+		return nil, errors.New("no instance definitions found")
+	}
+	sort.Strings(labels)
+	return labels, nil
+}
+
 func CreateUser(opts *UserOptions) (*User, error) {
 	username := opts.Username
 	groupname := opts.Groupname
 	provider := opts.Provider
 	template := opts.Template
-	machineCount := opts.MachineCount
-	label := opts.Label
 
 	privateKey, publicKey, err := sshutil.TemporaryKey()
+	if err != nil {
+		return nil, err
+	}
+
+	labels, err := machineLabels([]byte(template))
 	if err != nil {
 		return nil, err
 	}
@@ -187,19 +213,13 @@ func CreateUser(opts *UserOptions) (*User, error) {
 		{Id: user.ObjectId, Sudo: true, Owner: true},
 	}
 
-	machineLabels := make([]string, machineCount)
-	machineIds := make([]bson.ObjectId, machineCount)
+	machineIds := make([]bson.ObjectId, len(labels))
 
-	for i := 0; i < machineCount; i++ {
-		machineLabel := label + strconv.Itoa(i)
-		if machineCount == 1 {
-			machineLabel = label
-		}
-
+	for i, label := range labels {
 		machineId := bson.NewObjectId()
 		machine := &models.Machine{
 			ObjectId:   machineId,
-			Label:      machineLabel,
+			Label:      label,
 			Domain:     username + ".dev.koding.io",
 			Provider:   provider,
 			CreatedAt:  time.Now().UTC(),
@@ -214,7 +234,6 @@ func CreateUser(opts *UserOptions) (*User, error) {
 		machine.Status.State = machinestate.NotInitialized.String()
 		machine.Status.ModifiedAt = time.Now().UTC()
 
-		machineLabels[i] = machine.Label
 		machineIds[i] = machine.ObjectId
 
 		if err := db.Run("jMachines", func(c *mgo.Collection) error {
@@ -239,7 +258,7 @@ func CreateUser(opts *UserOptions) (*User, error) {
 
 	return &User{
 		MachineIDs:      machineIds,
-		MachineLabels:   machineLabels,
+		MachineLabels:   labels,
 		StackID:         computeStackID.Hex(),
 		StackTemplateID: stackTemplate.Id.Hex(),
 		AccountID:       account.Id,

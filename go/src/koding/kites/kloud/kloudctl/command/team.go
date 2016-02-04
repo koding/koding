@@ -71,14 +71,12 @@ func (t *Team) Action(args []string, k *kite.Client) error {
 // TEAM DB
 
 type UserOptions struct {
-	Username     string
-	Groupname    string
-	Label        string
-	Region       string
-	Provider     string
-	Template     string
-	KlientID     string
-	MachineCount int
+	Username  string
+	Groupname string
+	Region    string
+	Provider  string
+	Template  string
+	KlientID  string
 }
 
 type User struct {
@@ -156,13 +154,11 @@ func (cmd *TeamInit) Run(ctx context.Context) error {
 	}
 
 	opts := &UserOptions{
-		Username:     cmd.Username,
-		Label:        "vm-" + utils.RandString(8),
-		Groupname:    cmd.Team,
-		Provider:     cmd.Provider,
-		Template:     cmd.StackTemplate,
-		KlientID:     cmd.KlientID,
-		MachineCount: 1, // TODO: read from template
+		Username:  cmd.Username,
+		Groupname: cmd.Team,
+		Provider:  cmd.Provider,
+		Template:  cmd.StackTemplate,
+		KlientID:  cmd.KlientID,
 	}
 
 	user, err := CreateUser(opts)
@@ -172,16 +168,21 @@ func (cmd *TeamInit) Run(ctx context.Context) error {
 
 	creds := strings.Join(user.Identifiers, ",")
 
+	var dbg string
+	if flagDebug {
+		dbg = " -debug"
+	}
+
 	resp := &struct {
 		TeamDetails *User             `json:"teamDetails,omitempty"`
 		Kloudctl    map[string]string `json:"kloudctl,omitempty"`
 	}{
 		TeamDetails: user,
 		Kloudctl: map[string]string{
-			"auth":      fmt.Sprintf("%s team auth -p %s -team %s -u %s -creds %s", os.Args[0], cmd.Provider, cmd.Team, cmd.Username, creds),
-			"bootstrap": fmt.Sprintf("%s team bootstrap -p %s -team %s -u %s -creds %s", os.Args[0], cmd.Provider, cmd.Username, cmd.Team, creds),
-			"plan":      fmt.Sprintf("%s team plan -p %s -team %s -u %s -tid %s", os.Args[0], cmd.Provider, cmd.Team, cmd.Username, user.StackTemplateID),
-			"apply":     fmt.Sprintf("%s team apply -p %s -team %s -u %s -sid %s", os.Args[0], cmd.Provider, cmd.Team, cmd.Username, user.StackID),
+			"auth":      fmt.Sprintf("%s team%s auth -p %s -team %s -u %s -creds %s", os.Args[0], dbg, cmd.Provider, cmd.Team, cmd.Username, creds),
+			"bootstrap": fmt.Sprintf("%s team%s bootstrap -p %s -team %s -u %s -creds %s", os.Args[0], dbg, cmd.Provider, cmd.Username, cmd.Team, creds),
+			"plan":      fmt.Sprintf("%s team%s plan -p %s -team %s -u %s -tid %s", os.Args[0], dbg, cmd.Provider, cmd.Team, cmd.Username, user.StackTemplateID),
+			"apply":     fmt.Sprintf("%s team%s apply -p %s -team %s -u %s -sid %s", os.Args[0], dbg, cmd.Provider, cmd.Team, cmd.Username, user.StackID),
 		},
 	}
 
@@ -333,7 +334,12 @@ func (cmd *TeamApply) Run(ctx context.Context) error {
 
 	DefaultUi.Info(fmt.Sprintf("%+v", result))
 
-	return watch(k, "build", result.EventId, defaultPollInterval)
+	evID := result.EventId
+	if i := strings.IndexRune(evID, '-'); i != -1 {
+		evID = evID[i+1:]
+	}
+
+	return watch(k, "apply", evID, defaultPollInterval)
 }
 
 /// TEAM DESCRIBE

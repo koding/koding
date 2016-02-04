@@ -95,6 +95,8 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	if args.StackID != "" {
 		evID := r.Method + "-" + args.StackID
 		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
+
+		k.Log.Debug("Eventer created %q", evID)
 	}
 
 	if args.Debug {

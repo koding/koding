@@ -202,8 +202,14 @@ func (t *TunnelClient) saveToConfig(resolvedAddr string) error {
 		return errors.New("klienttunnel: boltDB reference is nil (saveToConfig)")
 	}
 
-	return t.db.Update(func(tx *bolt.Tx) error {
+	return t.db.Update(func(tx *bolt.Tx) (err error) {
 		b := tx.Bucket([]byte(dbBucket))
+		if b == nil {
+			b, err = tx.CreateBucketIfNotExists([]byte(dbBucket))
+			if err != nil {
+				return err
+			}
+		}
 		return b.Put([]byte(dbKey), []byte(resolvedAddr))
 	})
 }

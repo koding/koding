@@ -93,11 +93,18 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			return "", nil, err
 		}
 
-		klientURL, err := sess.Userdata.Bucket.LatestDeb()
-		if err != nil {
-			return "", nil, err
+		var klientURL string
+		if kurl, ok := box["klientURL"].(string); ok {
+			// For debugging klient inside vagrant without restarting kloud.
+			klientURL = kurl
+			delete(box, "klientURL")
+		} else {
+			kurl, err := sess.Userdata.Bucket.LatestDeb()
+			if err != nil {
+				return "", nil, err
+			}
+			klientURL = sess.Userdata.Bucket.URL(kurl)
 		}
-		klientURL = sess.Userdata.Bucket.URL(klientURL)
 
 		// get the registerURL if passed via template
 		var registerURL string
@@ -106,8 +113,6 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 				registerURL = ru
 			}
 		}
-
-		// TODO Inject tunnel
 
 		// get the kontrolURL if passed via template
 		var kontrolURL string
