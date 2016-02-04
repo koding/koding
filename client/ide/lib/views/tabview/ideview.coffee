@@ -504,6 +504,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @updateStatusBar()
 
+    return yes
+
 
   openSavedFile: (file, content) ->
 
