@@ -62,7 +62,7 @@ module.exports = class ActivityAppView extends KDView
         type = 'privatemessage'  if type is 'bot'
         @tabs.setAttribute 'class', kd.utils.curry 'kdview kdtabview', type
 
-    @addSubView @reactivityContainer = new KDCustomHTMLView
+    @addSubView @reactivityContainer = new KDView
       cssClass: 'ReactivityContainer hidden'
 
 

@@ -6,6 +6,7 @@ $video-height               = 400px
 .ChannelThreadPane-body
   dFlex()
   vendor                    flex-direction, row
+  height                    100%
 
 .ChannelThreadPane-content
   dFlex()
@@ -13,6 +14,7 @@ $video-height               = 400px
   vendor                    flex, 1
   vendor                    flex-direction, column
   height                    100vh
+  height                    100%
 
 .ChannelThreadPane-header
   bg                        color, #fcfcfc
@@ -86,6 +88,11 @@ $video-height               = 400px
 .ChannelThreadPane.is-withChat
   .ThreadPane-chatWrapper
     vendor                  flex, 1
+
+.ThreadPane-chatWrapper
+  height                    100%
+  > div
+    height                  100%
 
 .ThreadPane-chatWrapper
 .ChannelThreadPane-postWrapper
