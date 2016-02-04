@@ -44,6 +44,12 @@ module.exports = ->
   mainWindow.webContents.on 'new-window', (e, url) ->
     e.preventDefault()
     shell.openExternal url
+
+  app.on 'will-quit', (e) ->
+    settings = storage.get()
+    settings['last-route'] = mainWindow.webContents.getURL()
+    storage.write settings
+
   # Emitted when the window is closed.
   mainWindow.on 'closed', ->
     # Dereference the window object, usually you would store windows
