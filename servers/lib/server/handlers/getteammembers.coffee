@@ -2,8 +2,8 @@ Bongo                  = require 'bongo'
 koding                 = require './../bongo'
 async                  = require 'async'
 
+{ isLoggedIn }         = require './../helpers'
 { generateFakeClient } = require './../client'
-{ isLoggedIn, generateAPIError } = require './../helpers'
 
 # handleTokenedRequest handles the request if it has a token as query param,
 # fetchMembers is secured by a permission, that can be turned off by default,
@@ -19,18 +19,18 @@ handleTokenedRequest = (params, callback) ->
   queue = [
 
     (next) ->
-      return next generateAPIError 403, 'not authorized'  unless token
+      return next { status: 403, message: 'not authorized' }  unless token
 
       # fetch invitation
       JInvitation.byCode token, (err, token_) ->
-        return next generateAPIError 403, 'not authorized'  if err or not token_
+        return next { status: 403, message: 'not authorized' }  if err or not token_
         next()
 
     (next) ->
       # fetch the group that we have in token
       JGroup.one { slug : name }, (err, group_) ->
-        return next generateAPIError 403, 'an error occured'  if err
-        return next generateAPIError 404, 'no group found'    unless group_
+        return next { status: 500, message: 'an error occured' }  if err
+        return next { status: 404, message: 'no group found' }    unless group_
 
         group = group_
         # override group name with the one in token
@@ -40,7 +40,7 @@ handleTokenedRequest = (params, callback) ->
     (next) ->
       # fetch members of that group
       group.fetchMembers {}, options, (err, members_) ->
-        return next generateAPIError 500, 'an error occured'  if err
+        return next { status: 500, message: 'an error occured' }  if err
         members = members_
         next()
 
@@ -68,19 +68,19 @@ module.exports = (req, res, next) ->
 
     (next) ->
       isLoggedIn req, res, (err, loggedIn, account) ->
-        return next generateAPIError 500, 'an error occured'  if err
+        return next { status: 500, message: 'an error occured' }  if err
         next()
 
     (next) ->
       JGroup.one { slug : name }, (err, group_) ->
-        return next generateAPIError 500, 'an error occured'  if err
-        return next generateAPIError 404, 'no group found'    unless group_
+        return next { status: 500, message: 'an error occured' }  if err
+        return next { status: 404, message: 'no group found' }    unless group_
         group = group_
         next()
 
     (next) ->
       generateFakeClient req, res, (err, client_) ->
-        return next generateAPIError 500, 'an error occured'  if err
+        return next { status: 500, message: 'an error occured' }  if err
         client = client_
         next()
 
@@ -98,7 +98,7 @@ module.exports = (req, res, next) ->
             members = members_
             return next()
         else if err
-          return next generateAPIError 500, 'an error occured'
+          return next { status: 500, message: 'an error occured' }
         else
           members = members_
           return next()

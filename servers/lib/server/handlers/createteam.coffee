@@ -7,8 +7,7 @@ KONFIG                                  = require('koding-config-manager').load 
 
 { uniq }                                = require 'underscore'
 { hostname, environment }               = KONFIG
-{ generateAPIError
-  getClientId, handleClientIdNotFound } = require './../helpers'
+{ getClientId, handleClientIdNotFound } = require './../helpers'
 { validateTeamDomain }                  = require '../../../../workers/social/lib/social/models/user/validators'
 
 module.exports = (req, res, next) ->
@@ -45,7 +44,7 @@ module.exports = (req, res, next) ->
       # if we dont have teamaccesscode just continue
 
       validateTeamInvitation teamAccessCode, (err) ->
-        return next generateAPIError 400, err  if err
+        return next { status: 400, message: err }  if err
         next()
 
     (next) ->
@@ -55,7 +54,7 @@ module.exports = (req, res, next) ->
         # when there is an error in the fetchClient, it returns message in it
         if client.message
           console.error JSON.stringify { req, client }
-          return next generateAPIError 500, client.message
+          return next { status: 500, message: client.message }
 
         client.clientIP = (clientIPAddress.split ',')[0]
 
@@ -69,13 +68,13 @@ module.exports = (req, res, next) ->
       # checking if group slug is same with the username
       if slug.toLowerCase?() is body.username?.toLowerCase?()
         message = 'Sorry, your group domain and your username can not be the same!'
-        return next generateAPIError 400, message
+        return next { status: 400, message: message }
 
       # checking if group slug was already used
       JGroup.one { slug }, (err, group) ->
-        return next generateAPIError 500, 'an error occured'  if err
-        return next generateAPIError 403, "Sorry,
-          Team URL '#{slug}.#{hostname}' is already in use"  if group
+        return next { status: 500, message: 'an error occured' }  if err
+        return next { status: 403, message: "Sorry,
+          Team URL '#{slug}.#{hostname}' is already in use" }  if group
         next()
 
     (next) ->
@@ -86,7 +85,7 @@ module.exports = (req, res, next) ->
 
         # send HTTP 400 if somehow alreadyMember is true but user doesnt exist
         if alreadyMember and errorMessage is unknownUsernameError
-          return next generateAPIError 400, unknownUsernameError
+          return next { status: 400, message: unknownUsernameError }
 
         # setting alreadyMember to true if error is not unknownUsernameError
         # ignoring other errors here since our only concern is checking if user exists
@@ -220,13 +219,13 @@ afterGroupCreateKallback = (res, params) ->
 validateGroupData = (body) ->
 
   unless body.slug
-    return generateAPIError 400, 'Group slug can not be empty.'
+    return { status: 400, message: 'Group slug can not be empty.' }
 
   unless validateTeamDomain body.slug
-    return generateAPIError 400, 'Invalid group slug.'
+    return { status: 400, message: 'Invalid group slug.' }
 
   else unless body.companyName
-    return generateAPIError 400, 'Company name can not be empty.'
+    return { status: 400, message: 'Company name can not be empty.' }
 
   else return null
 
