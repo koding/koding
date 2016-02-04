@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"socialapi/models"
+
 	"github.com/koding/bongo"
 )
 
@@ -124,4 +126,41 @@ func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
 	}
 
 	return nc, nil
+}
+
+// DeleteWithContentId delete the given content id from notification_activity table
+func (a *NotificationActivity) DeleteWithContentId(contentIds ...int64) error {
+
+	return a.deleteWithContentId(contentIds...)
+}
+
+func (a *NotificationActivity) deleteWithContentId(contentIds ...int64) error {
+	if len(contentIds) == 0 {
+		return models.ErrIdIsNotSet
+	}
+
+	for _, id := range contentIds {
+		na := NewNotificationActivity()
+		if err := na.fetchWithContentId(id); err != nil {
+			if err != bongo.RecordNotFound {
+				return err
+			}
+		}
+
+		if err := na.Delete(); err != nil {
+			if err != bongo.RecordNotFound {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *NotificationActivity) fetchWithContentId(contentId int64) error {
+	selector := map[string]interface{}{
+		"notification_content_id": contentId,
+	}
+
+	return a.One(bongo.NewQS(selector))
 }
