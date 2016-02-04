@@ -11,15 +11,6 @@ module.exports = class SidebarMessagesSection extends React.Component
   @defaultProps =
     selectedId   : null
     threads      : immutable.Map()
-    previewCount : 0
-
-
-  renderMoreLink: ->
-
-    { threads, previewCount } = @props
-
-    if threads.size > previewCount
-      <Link className='SidebarList-showMore' href="/AllMessages">More ...</Link>
 
 
   render: ->
@@ -30,12 +21,10 @@ module.exports = class SidebarMessagesSection extends React.Component
       secondaryLink="/NewMessage"
       className="SidebarMessagesSection">
       <SidebarList
-        previewCount={@props.previewCount}
         itemComponent={SidebarMessagesListItem}
         componentProp='SidebarMessagesListItem'
         threads={@props.threads}
         selectedId={@props.selectedId} />
-      {@renderMoreLink()}
     </SidebarSection>
 
 
