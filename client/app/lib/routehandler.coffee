@@ -143,7 +143,7 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 requestCollaboration = ({nickname, channelId})->
 
   whoami().pushNotification
-    sender: nickname
+    receiver: nickname
     channelId: channelId
     action: 'COLLABORATION_REQUEST'
   , (err) ->
