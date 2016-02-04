@@ -95,11 +95,11 @@ bindNotificationEvents = ->
 
   kd.singletons.notificationController
     .on 'MessageAddedToChannel', (payload) ->
-      { channel : { id, name }, channelMessage, unreadCount } = payload
+      { channel : { id, name, typeConstant }, channelMessage, unreadCount } = payload
       if _isChannelInitiationEvent payload.channelMessage
         { addedBy } = channelMessage.payload
 
-        desktopNotifications.postAddedToChannelNotification name, addedBy
+        desktopNotifications.postAddedToChannelNotification name, addedBy, typeConstant
 
       # TODO: FIXME
       # The reason we are doing these extra fetches is that right now backend
@@ -152,7 +152,7 @@ bindNotificationEvents = ->
 
       if _isChannelInitiationEvent message
         { addedBy } = message.payload
-        desktopNotifications.postAddedToChannelNotification channel.name, addedBy
+        desktopNotifications.postAddedToChannelNotification channel.name, addedBy, channel.typeConstant
 
     .on 'NotificationAdded', (options)->
 
