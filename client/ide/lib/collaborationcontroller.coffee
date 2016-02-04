@@ -1094,11 +1094,16 @@ module.exports = CollaborationController =
 
   showChatPane: ->
 
-    @chat.showChatPane()
-    @chat.start()
     channel = @socialChannel
 
+    # new collaboration chat
+    kd.singletons.reactor.dispatch 'LOAD_CHANNEL_SUCCESS', {channelId: channel.id, channel}
+    require('activity/flux').actions.message.loadMessages channel.id
+    require('activity/flux').actions.thread.changeSelectedThread channel.id
+    require('activity/flux').actions.channel.loadParticipants channel.id
     @activeTabView.emit 'CollaborationPaneRequested', {channelId: channel.id}
+
+    @chat.destroy()
 
 
   createChatPaneView: (channel) ->
@@ -1109,6 +1114,8 @@ module.exports = CollaborationController =
 
     chatViewOptions = { @rtm, @isInSession, @mountedMachineUId }
     @chat           = new IDEChatView chatViewOptions, channel
+
+
 
     @getView().addSubView @chat
 
