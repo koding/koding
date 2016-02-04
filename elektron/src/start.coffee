@@ -1,13 +1,16 @@
-electron        = require 'electron'
+path            = require 'path'
 shell           = require 'shell'
-BrowserWindow   = electron.BrowserWindow
+electron        = require 'electron'
 ApplicationMenu = require './applicationmenu'
 IPCReporter     = require './ipcreporter'
-path            = require 'path'
+Storage         = require './storage'
+BrowserWindow   = electron.BrowserWindow
+app             = electron.app
 
 # temp
 # get this from config or runtime options - SY
-ROOT_URL = 'https://koding.com/Teams'
+ROOT_URL         = 'https://koding.com/Teams'
+STORAGE_TEMPLATE = { 'last-route' : ROOT_URL }
 NODE_REQUIRE     = path.resolve path.join __dirname, 'noderequire.js'
 
 module.exports = ->
@@ -25,14 +28,18 @@ module.exports = ->
       preload         : NODE_REQUIRE
       nodeIntegration : no
 
-  # and load the index.html of the app.
-  mainWindow.loadURL ROOT_URL
 
   # Set application menu
   new ApplicationMenu
 
   # Start listening the web app
   new IPCReporter
+
+  # Prepare AppStorage
+  storage = new Storage template : STORAGE_TEMPLATE
+
+  # and load the index.html of the app.
+  mainWindow.loadURL storage.get()['last-route'] or ROOT_URL
 
   mainWindow.webContents.on 'new-window', (e, url) ->
     e.preventDefault()
