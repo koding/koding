@@ -9,6 +9,7 @@ PublicChatPane       = require 'activity/components/publicchatpane'
 AppearIn             = require 'app/components/appearin'
 HeaderView           = require './headerview'
 getGroup             = require 'app/util/getGroup'
+nick                 = require 'app/util/nick'
 
 
 module.exports = class CollaborationPane extends React.Component
