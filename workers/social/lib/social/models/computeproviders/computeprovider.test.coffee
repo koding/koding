@@ -31,7 +31,7 @@ beforeTests = -> before (done) ->
 # here we have actual tests
 runTests = -> describe 'workers.social.models.computeproviders.computeprovider', ->
 
-  describe '#fetchProviders()', ->
+  describe '::fetchProviders', ->
 
     it 'should fetch providers successfully', (done) ->
 
@@ -43,7 +43,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         done()
 
 
-  describe '#ping()', ->
+  describe '::ping', ->
 
     it 'should be able to ping for the given provider', (done) ->
 
@@ -60,14 +60,14 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         , done
 
 
-  describe '#ping$()', ->
+  describe '::ping$', ->
 
     it 'should not be able to ping if user doesnt have the right to ping', (done) ->
 
       expectAccessDenied ComputeProvider, 'ping$', { provider : PROVIDERS.aws }, done
 
 
-  describe '#create()', ->
+  describe '::create', ->
 
     it 'should be able to create a new compute provider', (done) ->
 
@@ -101,14 +101,14 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '#create$()', ->
+  describe '::create$', ->
 
     it 'should fail if user doesnt have permission', (done) ->
 
       expectAccessDenied ComputeProvider, 'create$', {}, done
 
 
-  describe '#fetchAvailable()', ->
+  describe '::fetchAvailable', ->
 
     it 'should be able to fetch availabe object', (done) ->
 
@@ -162,7 +162,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         , done
 
 
-  describe '#fetchUsage', ->
+  describe '::fetchUsage', ->
 
     it 'should be able to fetch the usage', (done) ->
 
@@ -174,7 +174,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '#fetchPlans', ->
+  describe '::fetchPlans', ->
 
     it 'should fail if user doesnt have permission', (done) ->
 
@@ -190,7 +190,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '#fetchTeamPlans', ->
+  describe '::fetchTeamPlans', ->
 
     it 'should fail if user doesnt have a valid session', (done) ->
 
@@ -216,7 +216,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '#updateGroupStackUsage', ->
+  describe '::updateGroupStackUsage', ->
 
     testGroup = null
 
@@ -275,7 +275,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
             done()
 
 
-  describe '#updateGroupInstanceUsage', ->
+  describe '::updateGroupInstanceUsage', ->
 
     testGroup = null
 
@@ -342,7 +342,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
             done()
 
 
-  describe '#updateGroupResourceUsage', ->
+  describe '::updateGroupResourceUsage', ->
 
     options = null
 
@@ -417,7 +417,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
             done()
 
 
-  describe '#update()', ->
+  describe '::update', ->
 
     it 'should if no machine id is given', (done) ->
 
@@ -448,7 +448,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '#remove()', ->
+  describe '::remove', ->
 
     it 'should fail if not implemented yet', (done) ->
 
@@ -485,7 +485,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
       , done
 
 
-  describe 'createGroupStack', ->
+  describe '::createGroupStack', ->
 
     it 'should be able to create group stack', (done) ->
 
