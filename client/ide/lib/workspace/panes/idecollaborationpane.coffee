@@ -1,7 +1,7 @@
-kd = require 'kd'
-IDEPane = require './idepane'
-ReactView = require 'app/react/reactview'
-React = require 'kd-react'
+kd                = require 'kd'
+IDEPane           = require './idepane'
+ReactView         = require 'app/react/reactview'
+React             = require 'kd-react'
 CollaborationPane = require 'ide/components/collaborationpane'
 
 
@@ -22,4 +22,4 @@ module.exports = class IDECollaborationPane extends IDEPane
 class CollaborationPaneReactView extends ReactView
 
   renderReact: ->
-    <CollaborationPane channelId={@options.channelId} />
+    <CollaborationPane channelId={@getOptions().channelId} />
