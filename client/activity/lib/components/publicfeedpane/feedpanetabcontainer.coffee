@@ -93,6 +93,21 @@ module.exports = class FeedPaneTabContainer extends React.Component
     return kd.singletons.router.handleRoute "/Channels/#{channelName}"
 
 
+  renderSearchInput: ->
+
+    return null if @props.thread.getIn(['channel', 'typeConstant']) isnt 'group'
+
+    <div>
+      <input
+        value={ @state.query }
+        onChange={ @bound 'onChange' }
+        onKeyDown={ @bound 'onKeyDown' }
+        className='FeedPane-searchInput'
+        placeholder='Search...'/>
+      <i className='FeedPane-searchIcon'/>
+    </div>
+
+
   render: ->
 
     return null  unless @props.thread
@@ -104,13 +119,5 @@ module.exports = class FeedPaneTabContainer extends React.Component
       <Link
         onClick={@bound 'showMostRecentMessages'}
         className={@getMostRecentTabClassNames()}>Most Recent</Link>
-      <div>
-        <input
-          value={ @state.query }
-          onChange={ @bound 'onChange' }
-          onKeyDown={ @bound 'onKeyDown' }
-          className='FeedPane-searchInput'
-          placeholder='Search...'/>
-        <i className='FeedPane-searchIcon'/>
-      </div>
+      { @renderSearchInput() }
     </div>
