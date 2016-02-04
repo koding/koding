@@ -185,6 +185,10 @@ module.exports =
         .pause                 2500
 
       @enterTeamURL(browser)
+      helpers.fillPaymentForm(browser)
+      browser
+        .waitForElementVisible  '[testpath=payment-button]', 20000
+        .click                  '[testpath=payment-button]'
       @fillUsernamePasswordForm(browser, user)
 
 
