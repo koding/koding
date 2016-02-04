@@ -180,6 +180,11 @@ func (n *Notification) RemoveAllContentsRelatedWithNotification(accountId int64,
 		if err != nil && err != bongo.RecordNotFound {
 			errs = multierror.Append(errs, err)
 		}
+		// if there is any data when we fetch content.
+		// then no need to process rest of code lines..
+		if len(contentIds) == 0 {
+			break
+		}
 
 		err = n.DeleteByIds(contentIds...)
 		if err != nil && err != bongo.RecordNotFound {
@@ -192,6 +197,8 @@ func (n *Notification) RemoveAllContentsRelatedWithNotification(accountId int64,
 			errs = multierror.Append(errs, err)
 		}
 
+		// we need to check contentId here.
+		// Otherwise its gonna return IdIsNotSet error all the time
 		ntcn := NewNotificationContent()
 		err = ntcn.DeleteByIds(contentIds...)
 		if err != nil && err != bongo.RecordNotFound {
