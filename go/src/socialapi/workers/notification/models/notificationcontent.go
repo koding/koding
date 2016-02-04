@@ -7,6 +7,7 @@ import (
 	// "fmt"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/bongo"
 )
 
@@ -166,6 +167,10 @@ func (n *NotificationContent) GetDefinition() string {
 
 // DeleteByIds deletes the given id of NotificationContent (same with content id)
 func (n *NotificationContent) DeleteByIds(ids ...int64) error {
+	// we use error struct for this function because of iterating over all elements
+	// and we'r gonna try to delete given ids at least one time..
+	var errs *multierror.Error
+
 	if len(ids) == 0 {
 		return models.ErrIdIsNotSet
 	}
@@ -177,17 +182,20 @@ func (n *NotificationContent) DeleteByIds(ids ...int64) error {
 			// so if record is not found in database
 			// we can ignore this RecordNotFound error
 			if err != bongo.RecordNotFound {
-				return err
+				// return err
+				errs = multierror.Append(errs, err)
 			}
 		}
 
 		if err := nc.Delete(); err != nil {
 			if err != bongo.RecordNotFound {
-				return err
+				// return err
+				errs = multierror.Append(errs, err)
 			}
 		}
 
 	}
 
-	return nil
+	return errs.ErrorOrNil()
+	// return nil
 }
