@@ -14,7 +14,7 @@ module.exports = class ChannelThreadHeaderView extends React.Component
     menuItems                : React.PropTypes.array
     className                : React.PropTypes.string
     editingPurpose           : React.PropTypes.bool
-    isVideoActive            : React.PropTypes.bool.isRequired
+    isVideoActive            : React.PropTypes.bool
     onKeyDown                : React.PropTypes.func.isRequired
     onVideoStart             : React.PropTypes.func.isRequired
     onVideoEnd               : React.PropTypes.func.isRequired
