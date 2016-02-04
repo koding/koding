@@ -952,13 +952,15 @@ module.exports = class JAccount extends jraphical.Module
   pushNotification: secure (client, contents, callback) ->
     sender = client?.connection?.delegate
     unless sender
-      return callback 'Not a valid session'
+      return callback new KodingError 'Not a valid session'
 
     unless contents.receiver
-      return callback 'receiver is not set'
+      return callback new KodingError 'Receiver is not set'
 
     # inject sender nick
     contents.sender = sender.profile?.nickname
+    unless contents.sender
+      return callback new KodingError 'Sender is not set'
 
     JAccount.one { 'profile.nickname': contents.receiver }, (err, receiver) ->
       return callback err  if err
