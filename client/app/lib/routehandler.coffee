@@ -146,6 +146,8 @@ requestCollaboration = ({nickname, channelId})->
     receiver: nickname
     channelId: channelId
     action: 'COLLABORATION_REQUEST'
+    senderUserId: whoami()._id
+    senderAccountId: whoami().socialApiId
   , (err) ->
     # FIXME: better error message
     return new kd.NotificationView title: 'There is an error'  if err
