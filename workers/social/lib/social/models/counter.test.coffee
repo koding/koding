@@ -269,6 +269,48 @@ runTests = ->
       daisy queue
 
 
+  describe 'workers.social.counter.setCount', ->
+
+    namespace = generateRandomString()
+    NAMESPACES.push namespace
+    options = { namespace, value: 10 }
+
+    it 'should set the provided count for given namespace and type', (done) ->
+
+      queue = [
+        ->
+          JCounter.setCount options, (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.equal 10
+            queue.next()
+        ->
+          options.type = generateRandomString()
+          JCounter.setCount options, (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.equal 10
+            queue.next()
+        ->
+          JCounter.decrement options, (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.equal 9
+            queue.next()
+        ->
+          JCounter.setCount options, (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.equal 10
+            queue.next()
+        ->
+          JCounter.count options, (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.equal 10
+            queue.next()
+      ]
+
+      queue.push -> done()
+
+      daisy queue
+
+
 afterTests = ->
 
   after (done) ->
