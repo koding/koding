@@ -102,6 +102,7 @@ class ChatPaneView extends React.Component
           <UnreadMessagesLabel
             ref='UnreadCountLabel'
             unreadCount={@channel 'unreadCount'}
+            unreadMessagePosition={@props.unreadMessagePosition}
             onJump={@props.onJumpToUnreadMessages}
             onMarkAsRead={@props.onMarkAsRead}
           />

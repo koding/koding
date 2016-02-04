@@ -11,6 +11,7 @@ getScrollablePosition = require 'app/util/getScrollablePosition'
 KDReactorMixin        = require 'app/flux/base/reactormixin'
 
 debounce = (delay, options, fn) -> _.debounce fn, delay, options
+throttle = (delay, options, fn) -> _.throttle fn, delay, options
 
 module.exports = class ChatPaneContainer extends React.Component
 
@@ -26,6 +27,12 @@ module.exports = class ChatPaneContainer extends React.Component
     onInviteClick : kd.noop
     showItemMenu  : yes
     onLoadMore    : kd.noop
+
+
+  constructor: (props) ->
+
+    super props
+    @state = { unreadMessagePosition : null }
 
 
   getDataBindings: ->
@@ -78,8 +85,7 @@ module.exports = class ChatPaneContainer extends React.Component
     return  unless prevProps.thread and @props.thread
 
     @scrollAfterUpdate prevProps, prevState
-    @updateDateMarkersPosition()
-    @updateUnreadMessagesLabel()
+    @onScroll()
 
     @isThresholdReached = no
 
@@ -127,19 +133,6 @@ module.exports = class ChatPaneContainer extends React.Component
     @getViewContent().refs.ChatList.updateDateMarkersPosition()
 
 
-  updateUnreadMessagesLabel: ->
-
-    unreadCount = @channel 'unreadCount'
-    messages = @props.thread.get('messages').toList()
-    element  = helper.getFirstUnreadMessageElement messages, unreadCount
-    return  unless element
-
-    label    = @getViewContent().refs.UnreadCountLabel
-    position = getScrollablePosition element
-
-    label.setPosition position
-
-
   glance: ->
 
     ActivityFlux.actions.channel.glance @channel 'id'
@@ -148,11 +141,8 @@ module.exports = class ChatPaneContainer extends React.Component
   onGlance: debounce 300, {}, ->
 
     unreadCount = @channel 'unreadCount'
-    messages    = @props.thread.get('messages').toList()
-    element     = helper.getFirstUnreadMessageElement messages, unreadCount
-    return  unless element
-
-    position = getScrollablePosition element
+    messages    = @props.thread.get('messages')
+    position    = helper.getUnreadMessagePosition messages, unreadCount
     return  unless position is 'inside'
 
     kd.utils.wait 500, @bound 'glance'
@@ -171,16 +161,21 @@ module.exports = class ChatPaneContainer extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
-  onScroll: ->
+  onScroll: throttle 200, {}, ->
 
     @updateDateMarkersPosition()
-    @updateUnreadMessagesLabel()
+
+    unreadCount = @channel 'unreadCount'
+    messages    = @props.thread.get('messages')
+    unreadMessagePosition = helper.getUnreadMessagePosition messages, unreadCount
+    unless unreadMessagePosition is @state.unreadMessagePosition
+      @setState { unreadMessagePosition }
 
 
   onJumpToUnreadMessages: ->
 
     unreadCount = @channel 'unreadCount'
-    messages    = @props.thread.get('messages').toList()
+    messages    = @props.thread.get('messages')
     element     = helper.getFirstUnreadMessageElement messages, unreadCount
 
     scrollToElement element, yes  if element
@@ -192,6 +187,7 @@ module.exports = class ChatPaneContainer extends React.Component
       ref                    = 'view'
       selectedMessageId      = { @state.selectedMessageId }
       isMessagesLoading      = { @isThresholdReached }
+      unreadMessagePosition  = { @state.unreadMessagePosition }
       onTopThresholdReached  = { @bound 'onTopThresholdReached' }
       onGlance               = { @bound 'onGlance' }
       onMarkAsRead           = { @bound 'glance' }
@@ -213,10 +209,17 @@ module.exports = class ChatPaneContainer extends React.Component
 
       return  unless unreadCount
 
-      message = messages.get messages.size - unreadCount
+      messages = messages.toList()
+      message  = messages.get messages.size - unreadCount
       return  unless message
 
       return helper.getMessageElement message.get 'id'
+
+
+    getUnreadMessagePosition: (messages, unreadCount) ->
+
+      element = helper.getFirstUnreadMessageElement messages, unreadCount
+      return getScrollablePosition element  if element
 
 
 ChatPaneContainer.include [KDReactorMixin]

@@ -7,22 +7,33 @@ classnames   = require 'classnames'
 module.exports = class ChatPaneUnreadMessagesLabel extends React.Component
 
   @propsTypes =
-    unreadCount  : React.PropTypes.number
-    onJump       : React.PropTypes.func
-    onMarkAsRead : React.PropTypes.func
+    unreadCount           : React.PropTypes.number
+    onJump                : React.PropTypes.func
+    onMarkAsRead          : React.PropTypes.func
+    unreadMessagePosition : React.PropTypes.string
 
   @defaultProps =
-    unreadCount  : 0
-    onJump       : kd.noop
-    onMarkAsRead : kd.noop
+    unreadCount           : 0
+    onJump                : kd.noop
+    onMarkAsRead          : kd.noop
+    unreadMessagePosition : null
 
-  setPosition: (position) ->
+
+  componentDidMount: -> @setPosition()
+
+
+  componentDidUpdate: -> @setPosition()
+
+
+  setPosition: ->
+
+    { unreadMessagePosition } = @props
 
     element = ReactDOM.findDOMNode this
     return  unless element
 
-    isAbove = position is 'above'
-    isBelow = position is 'below'
+    isAbove = unreadMessagePosition is 'above'
+    isBelow = unreadMessagePosition is 'below'
 
     return @close()  unless isAbove or isBelow
 

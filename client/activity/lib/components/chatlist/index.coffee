@@ -42,6 +42,7 @@ module.exports = class ChatList extends React.Component
   componentDidMount: ->
 
     kd.singletons.windowController.addFocusListener @bound 'handleFocus'
+    @cacheDateMarkers()
     @scrollableParent = findScrollableParent ReactDOM.findDOMNode this
     window.addEventListener 'resize', @bound 'handleResize'
 
@@ -231,3 +232,5 @@ module.exports = class ChatList extends React.Component
       {@renderChildren()}
     </div>
 
+
+ChatList.include [ ImmutableRenderMixin ]
