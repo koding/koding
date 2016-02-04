@@ -8,6 +8,7 @@ globals        = require 'globals'
 lazyrouter     = require './lazyrouter'
 registerRoutes = require './util/registerRoutes'
 isKoding       = require './util/isKoding'
+whoami         = require './util/whoami'
 
 Machine                 = require 'app/providers/machine'
 EnvironmentsModal       = require 'app/environment/environmentsmodal'
@@ -114,6 +115,10 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       { stackId } = info.params
       new EnvironmentsModal selected: stackId
 
+    when 'request-collaboration' then
+      { nickname, channelId } = info.params
+      requestCollaboration {nickname, channelId}
+
     when 'machine-settings'
       { uid, state } = info.params
       { computeController, router } = kd.singletons
@@ -133,4 +138,19 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       { opt } = info.params
       { router } = kd.singletons
       router.handleRoute "/Account/Email?unsubscribe=#{opt}"
+
+
+requestCollaboration = ({nickname, channelId})->
+
+  whoami().pushNotification
+    receiver: nickname
+    channelId: channelId
+    action: 'COLLABORATION_REQUEST'
+  , (err) ->
+    # FIXME: better error message
+    return new kd.NotificationView title: 'There is an error'  if err
+
+    new kd.NotificationView title: 'Collaboration request sent.'
+    kd.singletons.router.back()
+
 
