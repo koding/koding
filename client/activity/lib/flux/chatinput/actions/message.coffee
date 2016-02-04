@@ -25,6 +25,7 @@ setLastMessageEditMode = ->
     message.get('typeConstant') isnt 'system'
 
   return  unless lastMessage
+  return  if lastMessage.get 'isFake'
 
   MessageActions.setMessageEditMode lastMessage.get('_id'), channelId
 
