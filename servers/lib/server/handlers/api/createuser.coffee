@@ -26,6 +26,7 @@ module.exports = createUser = (req, res, next) ->
 
   return sendApiError res, error  if error
 
+  user     = null
   client   = null
   apiToken = null
 
@@ -33,7 +34,7 @@ module.exports = createUser = (req, res, next) ->
 
     (next) ->
       validateData { token, username, suggestedUsername }, (err, data) ->
-        return sendApiError res, err  if err
+        return next err  if err
         { username, apiToken } = data
         next()
 
@@ -44,8 +45,7 @@ module.exports = createUser = (req, res, next) ->
         client = client_
 
         # when there is an error in the fetchClient, it returns message in it
-        if client.message
-          return sendApiError res, apiErrors.internalError
+        return next apiErrors.internalError  if client.message
 
         clientIPAddress = req.headers['x-forwarded-for'] or req.connection?.remoteAddress
         client.clientIP = (clientIPAddress.split ',')[0]  if clientIPAddress
@@ -69,20 +69,22 @@ module.exports = createUser = (req, res, next) ->
       JUser.convert client, userData, options, (err, data) ->
 
         if err?.message is 'Email is already in use!'
-          return sendApiError res, apiErrors.emailAlreadyExists
+          return next apiErrors.emailAlreadyExists
 
         if err?.message is 'Your email domain is not in allowed domains for this group'
-          return sendApiError res, apiErrors.invalidEmailDomain
+          return next apiErrors.invalidEmailDomain
 
-        return sendApiError res, apiErrors.internalError  if err
+        return next apiErrors.internalError  if err
 
         { user } = data
-        return sendApiError    res, apiErrors.failedToCreateUser   unless user
-        return sendApiResponse res, { username : user.username }
+        return next apiErrors.failedToCreateUser  unless user
+        next()
 
   ]
 
-  async.series queue
+  async.series queue, (err) ->
+    return sendApiError    res, err  if err
+    return sendApiResponse res, { username : user.username }
 
 
 validateData = (data, callback) ->
@@ -102,34 +104,42 @@ handleUsername = (username, suggestedUsername, callback) ->
 
   queue = []
 
-  if username
-    queue.push (next) ->
-      validateUsername username, (err) ->
-        # return username if it is valid
-        return callback null, username  unless err
-        # return if there is no suggestedUsername
-        return callback err  unless suggestedUsername
-        next()
+  generateUsername = (next, results) ->
+    _username = "#{suggestedUsername}#{hat(32)}"
+    validateUsername _username, (err) ->
+      return next err  if err
+      next null, _username
 
-  if suggestedUsername
-    queue.push (next) ->
-      # if suggestedUsername length is not valid, return error without trying
-      unless isSuggestedUsernameLengthValid suggestedUsername
-        return callback apiErrors.outOfRangeSuggestedUsername
-      next()
+  queue.push (next) ->
+    # go next step and try suggestedUsername if no username is given
+    return next null, null  unless username
 
-    # try usernames with different suffixes 10 times
-    for i in [0..10]
-      queue.push (next) ->
-        _username = "#{suggestedUsername}#{hat(32)}"
-        validateUsername _username, (err) ->
-          return callback null, _username  unless err
-          next()
+    validateUsername username, (err) ->
+      if err
+        # try with suggestedUsername if one is given
+        return next null, null  if suggestedUsername
+        return next err
 
-    # if username is still invalid, let it go
-    queue.push -> callback apiErrors.usernameAlreadyExists
+      # no err, pass username to next function
+      next null, username
 
-  async.series queue
+  queue.push (username_, next) ->
+    # skip if username is returned from previous function
+    return next null, username_  if username_
+
+    # if suggestedUsername length is not valid, return error without trying
+    unless isSuggestedUsernameLengthValid suggestedUsername
+      return next apiErrors.outOfRangeSuggestedUsername
+
+    # try 10 times to generate a valid username
+    # will stop trying after first successful attempt
+    async.retry 10, generateUsername, (err, generatedUsername) ->
+      return next err  if err
+      next null, generatedUsername
+
+  async.waterfall queue, (err, username_) ->
+    return callback err  if err
+    return callback null, username_
 
 
 validateUsername = (username, callback) ->
