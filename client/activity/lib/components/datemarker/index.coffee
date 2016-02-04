@@ -5,7 +5,9 @@ moment = require 'moment'
 
 module.exports = class DateMarker extends React.Component
 
-  @defaultProps = { date: null }
+  @defaultProps =
+    date: null
+    hasSticky: yes
 
   renderDate: ->
 
@@ -24,11 +26,18 @@ module.exports = class DateMarker extends React.Component
       </div>
 
 
+  renderSticky: ->
+
+    return  unless @props.hasSticky
+
+    <div ref='DateMarker-fixed' className={kd.utils.curry "DateMarker DateMarker-fixed", @props.className}>
+      {@renderDate()}
+    </div>
+
+
   render: ->
 
     <div ref='dateMarker' className={kd.utils.curry "DateMarker", @props.className}>
       {@renderDate()}
-      <div ref='DateMarker-fixed' className={kd.utils.curry "DateMarker DateMarker-fixed", @props.className}>
-        {@renderDate()}
-      </div>
+      {@renderSticky()}
     </div>

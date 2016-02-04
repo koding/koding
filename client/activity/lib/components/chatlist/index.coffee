@@ -23,6 +23,7 @@ module.exports = class ChatList extends React.Component
     isMessagesLoading : React.PropTypes.bool
     selectedMessageId : React.PropTypes.string
     onGlance          : React.PropTypes.func
+    hasStickyDates    : React.PropTypes.bool
 
   @defaultProps =
     messages          : immutable.List()
@@ -33,6 +34,7 @@ module.exports = class ChatList extends React.Component
     isMessagesLoading : no
     selectedMessageId : null
     onGlance          : kd.noop
+    hasStickyDates    : yes
 
 
   handleResize: ->
@@ -94,6 +96,7 @@ module.exports = class ChatList extends React.Component
       when not prevMessage
         markers.push \
           <DateMarker
+            hasSticky={@props.hasStickyDates}
             key={currentMessage.get 'createdAt'}
             date={currentMessage.get 'createdAt'} />
 
@@ -102,6 +105,7 @@ module.exports = class ChatList extends React.Component
       when not currentMessageMoment.isSame prevMessageMoment, 'day'
         markers.push \
           <DateMarker
+            hasSticky={@props.hasStickyDates}
             key={currentMessage.get 'createdAt'}
             date={currentMessage.get 'createdAt'} />
 
@@ -156,11 +160,13 @@ module.exports = class ChatList extends React.Component
   updateDateMarkersPosition: ->
 
     return  unless @scrollableParent
+    return  unless @props.hasStickyDates
 
     { scrollTop, offsetHeight } = @scrollableParent
     return  unless scrollTop and offsetHeight
 
     left = @scrollableParent.getBoundingClientRect().left
+
 
     @dateMarkers.forEach (dateMarker) ->
 

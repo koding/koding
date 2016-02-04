@@ -76,6 +76,7 @@ class ChatPaneView extends React.Component
       {@renderChannelInfoContainer()}
       <ChatList
         ref='ChatList'
+        hasStickyDates={@channel('typeConstant') isnt 'collaboration'}
         isMessagesLoading={@props.isMessagesLoading}
         messages={@props.thread.get 'messages'}
         showItemMenu={@props.showItemMenu}
