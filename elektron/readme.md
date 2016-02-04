@@ -21,13 +21,13 @@ We use `electron-packager` npm module to package apps. You can build and package
 
 ```bash
 $ cd koding/elektron
-$ npm run-script app-<platform>
+$ npm run app-<platform>
 ```
 i.e.
 ```bash
-$ npm run-script app-mac
-$ npm run-script app-linux
-$ npm run-script app-win
+$ npm run app-mac
+$ npm run app-linux
+$ npm run app-win
 ```
 
 ## App icons
