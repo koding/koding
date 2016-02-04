@@ -4,6 +4,7 @@ ReactDOM            = require 'react-dom'
 expect              = require 'expect'
 TestUtils           = require 'react-addons-test-utils'
 UnreadMessagesLabel = require '../unreadmessageslabel'
+ScrollablePosition  = require 'activity/constants/scrollableposition'
 
 describe 'ChatPaneUnreadMessagesLabel', ->
 
@@ -33,37 +34,26 @@ describe 'ChatPaneUnreadMessagesLabel', ->
       counterText = TestUtils.findRenderedDOMComponentWithClass result, 'counterText'
       expect(counterText.props.children).toEqual '3 new messages'
 
-
-  describe '::setPosition', ->
-
     it 'adds a proper css class depending on position', ->
 
       result = TestUtils.renderIntoDocument(
-        <UnreadMessagesLabel unreadCount={1} />
+        <UnreadMessagesLabel unreadCount={1} unreadMessagePosition={ScrollablePosition.ABOVE} />
       )
 
-      result.setPosition 'above'
       container = TestUtils.findRenderedDOMComponentWithClass result, 'ChatPane-unreadMessages'
       expect(container.classList.contains 'fixedOnTop').toBe yes
 
-      result.setPosition 'below'
+      result = TestUtils.renderIntoDocument(
+        <UnreadMessagesLabel unreadCount={1} unreadMessagePosition={ScrollablePosition.BELOW} />
+      )
+
       container = TestUtils.findRenderedDOMComponentWithClass result, 'ChatPane-unreadMessages'
       expect(container.classList.contains 'fixedOnBottom').toBe yes
 
-      result.setPosition 'inside'
-      container = TestUtils.findRenderedDOMComponentWithClass result, 'ChatPane-unreadMessages'
-      expect(container.classList.contains 'out').toBe yes
-
-
-  describe '::close', ->
-
-    it 'hides a component', ->
-
       result = TestUtils.renderIntoDocument(
-        <UnreadMessagesLabel unreadCount={3} />
+        <UnreadMessagesLabel unreadCount={1} unreadMessagePosition={ScrollablePosition.INSIDE} />
       )
 
-      result.close()
       container = TestUtils.findRenderedDOMComponentWithClass result, 'ChatPane-unreadMessages'
       expect(container.classList.contains 'out').toBe yes
 
