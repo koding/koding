@@ -417,6 +417,84 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
             done()
 
 
+  describe '::updateTeamCounters', ->
+
+    group = null
+
+    before (done) ->
+
+      groupSlug = generateRandomString()
+      options   = { context : { group : groupSlug } }
+
+      withConvertedUserAnd ['Group', 'StackTemplate'], options, (data) ->
+        { group, client } = data
+
+        ComputeProvider.createGroupStack data.client, (err, groupStack) ->
+          expect(err?.message).to.not.exist
+          expect(groupStack).to.exist
+          expect(groupStack).to.be.an 'object'
+          expect(groupStack.originId).to.be.deep.equal client._id
+          done()
+
+
+    it 'should fail if team slug not provided', (done) ->
+      ComputeProvider.updateTeamCounters null, (err) ->
+        expect(err).to.exist
+        expect(err.message).to.be.equal 'Team slug is required'
+        done()
+
+
+    it 'should fail if a non existent team slug provided', (done) ->
+      ComputeProvider.updateTeamCounters generateRandomString(), (err) ->
+        expect(err).to.exist
+        expect(err.message).to.be.equal 'Team not found'
+        done()
+
+
+    it 'should update given teams resource count with feedback', (done) ->
+
+      options     =
+        namespace : group.slug
+        type      : ComputeProvider.COUNTER_TYPE.stacks
+
+      queue = [
+        ->
+          JCounter.count options, (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.equal 1
+            queue.next()
+        ->
+          JCounter.reset options, (err, count) ->
+            expect(err).to.not.exist
+            queue.next()
+        ->
+          JCounter.count options, (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.equal 0
+            queue.next()
+        ->
+          ComputeProvider.updateTeamCounters group.slug, (err, feedback) ->
+            expect(err).to.not.exist
+            expect(feedback).to.exist
+            expect(feedback.before).to.exist
+            expect(feedback.current).to.exist
+            expect(feedback.after).to.exist
+            expect(feedback.before.stacks).to.be.equal 0
+            expect(feedback.current.stacks).to.be.equal 1
+            expect(feedback.after.stacks).to.be.equal 1
+            queue.next()
+        ->
+          JCounter.count options, (err, count) ->
+            expect(err).to.not.exist
+            expect(count).to.equal 1
+            queue.next()
+      ]
+
+      queue.push -> done()
+
+      daisy queue
+
+
   describe '::update', ->
 
     it 'should if no machine id is given', (done) ->
