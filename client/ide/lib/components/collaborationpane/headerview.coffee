@@ -3,7 +3,7 @@ React               = require 'kd-react'
 immutable           = require 'immutable'
 StartVideoCallLink  = require 'activity/components/common/startvideocalllink'
 ChannelParticipants = require 'activity/components/channelparticipants'
-Link                = require 'app/components/common/link'
+ShareLink = require './sharelinkview'
 
 
 module.exports = class CollaborationPaneHeader extends React.Component
@@ -15,26 +15,31 @@ module.exports = class CollaborationPaneHeader extends React.Component
     onVideoStart  : React.PropTypes.func.isRequired
     thread        : React.PropTypes.instanceOf(immutable.Map).isRequired
     participants  : React.PropTypes.instanceOf(immutable.Map).isRequired
+    collaborationLink : React.PropTypes.string
 
 
   @defaultProps =
     className     : ''
     isVideoActive : no
+    collaborationLink: 'https://team.koding.com/Collaboration/umut/1234124871284'
 
 
   render: ->
 
-    <div className={kd.utils.curry 'ThreadHeader', @props.className}>
-      <ChannelParticipants.Container
-        channelThread={@props.thread}
-        participants={@props.participants} />
+    <div className={kd.utils.curry 'CollaborationPaneHeader ThreadHeader', @props.className}>
+      <div className="CollaborationPaneHeader-participants">
+        <ChannelParticipants.Container
+          maxPreviewCount={5}
+          channelThread={@props.thread}
+          onNewParticipantButtonClick={@props.onNewParticipantButtonClick}
+          participants={@props.participants} />
+      </div>
+      <ShareLink url={@props.collaborationLink} />
       <StartVideoCallLink
         isActive={@props.isVideoActive}
         onEnd={@props.onVideoEnd}
         onStart={@props.onVideoStart} />
     </div>
 
-
-ParticipantsSection = ({thread, participants}) ->
 
 
