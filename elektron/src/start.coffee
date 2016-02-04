@@ -8,6 +8,7 @@ path            = require 'path'
 # temp
 # get this from config or runtime options - SY
 ROOT_URL = 'https://koding.com/Teams'
+NODE_REQUIRE     = path.resolve path.join __dirname, 'noderequire.js'
 
 module.exports = ->
 
@@ -21,14 +22,11 @@ module.exports = ->
     backgroundColor   : '#131313'
     webPreferences    :
       partition       : 'persist:koding'
-      preload         : path.resolve path.join __dirname, 'noderequire.js'
+      preload         : NODE_REQUIRE
       nodeIntegration : no
 
   # and load the index.html of the app.
   mainWindow.loadURL ROOT_URL
-
-  # Open the DevTools.
-  # mainWindow.webContents.openDevTools()
 
   # Set application menu
   new ApplicationMenu
@@ -36,6 +34,9 @@ module.exports = ->
   # Start listening the web app
   new IPCReporter
 
+  mainWindow.webContents.on 'new-window', (e, url) ->
+    e.preventDefault()
+    shell.openExternal url
   # Emitted when the window is closed.
   mainWindow.on 'closed', ->
     # Dereference the window object, usually you would store windows
@@ -43,6 +44,3 @@ module.exports = ->
     # when you should delete the corresponding element.
     mainWindow = null
 
-  mainWindow.webContents.on 'new-window', (e, url) ->
-    e.preventDefault()
-    shell.openExternal url
