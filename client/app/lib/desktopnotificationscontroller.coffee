@@ -17,7 +17,7 @@ isSupported = -> !!window.Notification
 isPermitted = (callback) ->
   if Notification.permission is 'granted'
     callback()
-  else if Notification.permission is 'denied'
+  else if Notification.permission is 'default'
     Notification.requestPermission (permission) ->
       callback()  if permission is 'granted'
 
