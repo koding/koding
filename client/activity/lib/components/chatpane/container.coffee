@@ -58,7 +58,6 @@ module.exports = class ChatPaneContainer extends React.Component
 
     { view } = @refs
 
-    @getViewContent().show()
     scrollTop = @flag 'scrollPosition'
     if scrollTop
       view.scrollToPosition scrollTop
@@ -72,8 +71,6 @@ module.exports = class ChatPaneContainer extends React.Component
 
     { scrollTop } = view.getScrollParams()
     { channel }   = ActivityFlux.actions
-
-    @getViewContent().hide()
 
     kd.utils.defer =>
       channel.setLastSeenTime (@channel 'id'), Date.now()

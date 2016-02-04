@@ -232,6 +232,13 @@ fadeOut()
   &.out
     opacity                 0
 
+fadeIn()
+  opacity                   0
+  vendor                    transition, opacity .347s ease\, margin .347s ease
+
+  &.in
+    opacity                 1
+
 noAnim()
   vendor                    transition, none !important
 

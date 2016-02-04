@@ -39,16 +39,10 @@ class ChatPaneView extends React.Component
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
-  show: ->
+  componentDidMount: ->
 
     scroller = ReactDOM.findDOMNode @refs.scroller
-    scroller.style.opacity = 1
-
-
-  hide: ->
-
-    scroller = ReactDOM.findDOMNode @refs.scroller
-    scroller.style.opacity = 0
+    scroller.classList.add 'in'
 
 
   renderChannelInfoContainer: ->
