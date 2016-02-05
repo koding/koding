@@ -109,7 +109,6 @@ createSettings = (options) ->
 
 redirectToChannel: (channelName) ->
 
-
   route = "/Channels/#{channelName}"
 
   kd.singletons.router.handleRoute route
@@ -119,24 +118,28 @@ saveSettings = (options) ->
 
   { channelId, channelName, channelSettings, changedFields } = options
   isEqual         = yes
-  globalSettings  = getDefaultNotificationSettings()
+  defaultSettings = getDefaultNotificationSettings()
   isNewlyCreated  = channelSettings._newlyCreated
 
-  for item of globalSettings
-    if globalSettings[item] != channelSettings[item]
+  for item of defaultSettings
+    if defaultSettings[item] != channelSettings[item]
       isEqual = no
       break
 
   route = "/Channels/#{channelName}"
 
-  if isEqual and isNewlyCreated
+  # if changedFields.id is exist so user has set custom settings for channel
+  # before and default settings changed by koding. If he change settings again
+  # and new settings same with default settings, there is an id in changedFields
+  # so we can update settings instead of doing nothing.
+  if isEqual and isNewlyCreated and not changedFields.id
     return kd.singletons.router.handleRoute route
 
   if isEqual and not isNewlyCreated
     deleteSettings channelId, channelSettings.id
       .then ->
         kd.singletons.router.handleRoute route
-  else if !isNewlyCreated
+  else if not isNewlyCreated or changedFields.id
     updateSettings channelId, changedFields
       .then ->
         kd.singletons.router.handleRoute route
