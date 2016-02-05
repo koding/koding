@@ -15,8 +15,6 @@ exchangeOpts  = { autoDelete: no, durable:yes, type :'fanout', confirm: true }
 Analytics = require('analytics-node')
 analytics = new Analytics(KONFIG.segment)
 
-mqClient = null
-
 module.exports = class Tracker extends bongo.Base
 
   @share()
@@ -90,8 +88,6 @@ module.exports = class Tracker extends bongo.Base
 
     callback()
 
-  errMQClientNotSet = new Error 'Tracker: RabbitMQ client not set'
-
   @track = (username, event, options = {}, callback = -> ) ->
 
     return callback null  unless KONFIG.sendEventsToSegment
@@ -106,22 +102,8 @@ module.exports = class Tracker extends bongo.Base
     event.from       or= defaultFromMail
     event.properties   = @addDefaults { options, username }
 
-    unless mqClient
-      console.error errMQClientNotSet
-      return callback errMQClientNotSet
-
-    sendMessage = ->
-      mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) ->
-        unless exchange
-          err = new Error "Tracker: Exchange not found to queue: #{exchangeName}"
-          console.error err
-          return callback err
-
-        exchange.publish '', event, { type: EVENT_TYPE }, (errored, err) ->
-          return callback err
-
-    if mqClient.readyEmitted then sendMessage()
-    else mqClient.on 'ready', -> sendMessage()
+    require("./socialapi/requests").publishMailEvent event, (err) =>
+      callback err # do not cause trailing parameters
 
 
   @page = (userId, name, category, properties) ->
@@ -150,6 +132,3 @@ module.exports = class Tracker extends bongo.Base
     opts['env']      = KONFIG.environment
     opts['hostname'] = KONFIG.hostname
     opts
-
-
-  @setMqClient = (m) -> mqClient = m
