@@ -34,4 +34,4 @@ module.exports = class Storage
     catch e
       console.log e
 
-    return storage
+    return storage or {}
