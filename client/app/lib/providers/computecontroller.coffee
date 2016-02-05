@@ -20,6 +20,7 @@ ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
 ComputeController_UI = require './computecontroller.ui'
 ManagedKiteChecker   = require './managed/managedkitechecker'
+envDataProvider      = require 'app/userenvironmentdataprovider'
 
 require './config'
 
@@ -493,7 +494,7 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
-      @stopCollaborationSession()
+      @stopCollaborationSession machine.uid
 
       baseKite = machine.getBaseKite( createIfNotExists = no )
       if machine?.provider is 'managed' and baseKite.klientDisable?
@@ -516,7 +517,8 @@ module.exports = class ComputeController extends KDController
             console.warn "couldn't delete workspace:", err  if err
 
           @reset yes, ->
-            kd.singletons.appManager.tell 'IDE', 'quit'
+            ideApp = envDataProvider.getIDEFromUId machine.uid
+            ideApp?.quit()
 
         return
 
@@ -553,7 +555,7 @@ module.exports = class ComputeController extends KDController
 
     startReinit = =>
 
-      @stopCollaborationSession()
+      @stopCollaborationSession machine.uid
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
@@ -1103,9 +1105,10 @@ module.exports = class ComputeController extends KDController
   ###*
    * Automatically kill active collaboration sessions if any
   ###
-  stopCollaborationSession: ->
+  stopCollaborationSession: (machineUId) ->
 
-    kd.singletons.appManager.tell 'IDE', 'stopCollaborationSession'
+    ideApp = envDataProvider.getIDEFromUId machineUId
+    ideApp?.stopCollaborationSession()
 
 
   showBuildLogs: (machine) ->
