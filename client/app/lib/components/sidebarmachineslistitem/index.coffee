@@ -18,7 +18,6 @@ LeaveSharedMachineWidget       = require './leavesharedmachinewidget'
 SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
-SharingMachineInvitationWidget = require './sharingmachineinvitationwidget'
 
 
 module.exports = class SidebarMachinesListItem extends React.Component
