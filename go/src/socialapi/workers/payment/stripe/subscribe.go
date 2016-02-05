@@ -8,17 +8,21 @@ import (
 	stripeCustomer "github.com/stripe/stripe-go/customer"
 )
 
+func SubscribeForGroup(token, groupId, email, planTitle, planInterval string) error {
+	return subscribe(token, email, planTitle, planInterval, groupId, paymentmodels.GroupCustomer)
+}
+
 func Subscribe(token, accId, email, planTitle, planInterval string) error {
+	return subscribe(token, email, planTitle, planInterval, accId, paymentmodels.AccountCustomer)
+}
+
+func subscribe(token, email, planTitle, planInterval, accId string, cType string) error {
 	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
 	if err != nil {
 		return err
 	}
 
-	return subscribe(token, accId, email, plan)
-}
-
-func subscribe(token, accId, email string, plan *paymentmodels.Plan) error {
-	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
+	customer, err := paymentmodels.NewCustomer().ByOldIdAndType(accId, paymentmodels.AccountCustomer)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}
@@ -39,7 +43,7 @@ func subscribe(token, accId, email string, plan *paymentmodels.Plan) error {
 
 	switch status {
 	case paymentstatus.NewSub, paymentstatus.ExpiredSub:
-		err = handleNewSubscription(token, accId, email, plan)
+		err = handleNewSubscription(token, accId, email, cType, plan)
 	case paymentstatus.ExistingUserHasNoSub:
 		err = handleUserNoSub(customer, token, plan)
 	case paymentstatus.AlreadySubscribedToPlan:
@@ -58,13 +62,23 @@ func subscribe(token, accId, email string, plan *paymentmodels.Plan) error {
 	return err
 }
 
-func handleNewSubscription(token, accId, email string, plan *paymentmodels.Plan) error {
-	customer, err := CreateCustomer(token, accId, email)
-	if err != nil {
-		return err
+func handleNewSubscription(token, id, email, cType string, plan *paymentmodels.Plan) error {
+	var customer *paymentmodels.Customer
+
+	switch cType {
+	case paymentmodels.AccountCustomer:
+		var err error
+		if customer, err = CreateCustomer(token, id, email); err != nil {
+			return err
+		}
+	case paymentmodels.GroupCustomer:
+		var err error
+		if customer, err = CreateCustomerForGroup(token, id, email); err != nil {
+			return err
+		}
 	}
 
-	if _, err = CreateSubscription(customer, plan); err != nil {
+	if _, err := CreateSubscription(customer, plan); err != nil {
 		deleteCustomer(customer)
 		return err
 	}
