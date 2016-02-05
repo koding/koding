@@ -54,48 +54,38 @@ func CreateUser(opts *UserOptions) (*User, error) {
 		return nil, err
 	}
 
-	db := modelhelper.Mongo
 	relationExists := true
 
 	// jAccounts
-	var account models.Account
-	err = db.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": username}).One(&account)
-	})
+	account, err := modelhelper.GetAccount(username)
 	if err == mgo.ErrNotFound {
 		relationExists = false
 
-		account = models.Account{
+		account = &models.Account{
 			Id: bson.NewObjectId(),
 			Profile: models.AccountProfile{
 				Nickname: username,
 			},
 		}
 
-		err = db.Run("jAccounts", func(c *mgo.Collection) error {
-			return c.Insert(&account)
-		})
+		err = modelhelper.CreateAccount(account)
 	}
 	if err != nil {
 		return nil, errors.New("failure looking up jAccounts: " + err.Error())
 	}
 
 	// jGroups
-	var group models.Group
-	err = db.Run("jGroups", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"slug": groupname}).One(&group)
-	})
+	group, err := modelhelper.GetGroup(groupname)
 	if err == mgo.ErrNotFound {
 		relationExists = false
 
-		group = models.Group{
+		group = &models.Group{
 			Id:    bson.NewObjectId(),
 			Title: groupname,
 			Slug:  groupname,
 		}
-		err = db.Run("jGroups", func(c *mgo.Collection) error {
-			return c.Insert(&group)
-		})
+
+		err = modelhelper.CreateGroup(group)
 	}
 	if err != nil {
 		return nil, errors.New("failure looking up jGroups: " + err.Error())
@@ -112,23 +102,19 @@ func CreateUser(opts *UserOptions) (*User, error) {
 			As:         "member",
 		}
 
-		if err := db.Run("relationships", func(c *mgo.Collection) error {
-			return c.Insert(&relationship)
-		}); err != nil {
+		err := modelhelper.AddRelationship(relationship)
+		if err != nil {
 			return nil, errors.New("failure insering relationship: " + err.Error())
 		}
 	}
 
 	// jUsers
-	var user models.User
-	err = db.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"username": username}).One(&user)
-	})
+	user, err := modelhelper.GetUser(username)
 	if err == nil && len(user.SshKeys) != 0 {
 		publicKey = user.SshKeys[0].Key
 	}
 	if err == mgo.ErrNotFound {
-		user = models.User{
+		user = &models.User{
 			ObjectId:      bson.NewObjectId(),
 			Email:         username + "@" + username + ".com",
 			LastLoginDate: time.Now().UTC(),
@@ -144,9 +130,7 @@ func CreateUser(opts *UserOptions) (*User, error) {
 			},
 		}
 
-		err = db.Run("jUsers", func(c *mgo.Collection) error {
-			return c.Insert(&user)
-		})
+		err = modelhelper.CreateUser(user)
 	}
 	if err != nil {
 		return nil, errors.New("failure looking up jUsers: " + err.Error())
@@ -186,9 +170,7 @@ func CreateUser(opts *UserOptions) (*User, error) {
 		As:         "owner",
 	}
 
-	if err := db.Run("relationships", func(c *mgo.Collection) error {
-		return c.Insert(relationship)
-	}); err != nil {
+	if err := modelhelper.AddRelationship(relationship); err != nil {
 		return nil, err
 	}
 
@@ -202,9 +184,7 @@ func CreateUser(opts *UserOptions) (*User, error) {
 	}
 	stackTemplate.Template.Content = template
 
-	if err := db.Run("jStackTemplates", func(c *mgo.Collection) error {
-		return c.Insert(&stackTemplate)
-	}); err != nil {
+	if err := modelhelper.CreateStackTemplate(stackTemplate); err != nil {
 		return nil, err
 	}
 
@@ -236,9 +216,7 @@ func CreateUser(opts *UserOptions) (*User, error) {
 
 		machineIds[i] = machine.ObjectId
 
-		if err := db.Run("jMachines", func(c *mgo.Collection) error {
-			return c.Insert(&machine)
-		}); err != nil {
+		if err := modelhelper.CreateMachine(machine); err != nil {
 			return nil, err
 		}
 	}
@@ -250,9 +228,7 @@ func CreateUser(opts *UserOptions) (*User, error) {
 		Machines:    machineIds,
 	}
 
-	if err := db.Run("jComputeStacks", func(c *mgo.Collection) error {
-		return c.Insert(&computeStack)
-	}); err != nil {
+	if err := modelhelper.CreateComputeStack(computeStack); err != nil {
 		return nil, err
 	}
 
