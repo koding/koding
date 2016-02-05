@@ -41,7 +41,7 @@ module.exports = class PostingGuideLinesWidget extends React.Component
           <li>
             Take a look at&nbsp;
             <a
-              href='https://koding.com/docs/index'
+              href='https://koding.com/docs'
               target='_blank'>Koding University</a>
             &nbsp; in case your question is of the category
             “how do I…” Chances are high that have a handy guide for you.

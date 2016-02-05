@@ -126,5 +126,5 @@ module.exports = class HelpModal extends AnimatedModalView
     @addSubView new KDCustomHTMLView
       tagName  :'footer'
       partial  : """
-        <h4>Find more at <a href='https://koding.com/docs/index'>Koding University</a>, also we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
+        <h4>Find more at <a href='https://koding.com/docs'>Koding University</a>, also we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
       """

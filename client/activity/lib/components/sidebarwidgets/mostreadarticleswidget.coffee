@@ -47,7 +47,7 @@ module.exports = class MostReadArticlesWidget extends React.Component
       <br />
       <a
         target='_blank'
-        href="https://koding.com/docs/index">
+        href="https://koding.com/docs">
         More guides on Koding University...
       </a>
     </div>

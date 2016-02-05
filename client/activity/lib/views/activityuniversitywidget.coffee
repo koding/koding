@@ -24,6 +24,6 @@ module.exports = class ActivityUniversityWidget extends ActivityBaseWidget
           <li><a href='https://koding.com/docs/change-theme/' target='_blank'>Changing your IDE and Terminal themes</a></li>
         </ol>
         <br />
-        <a href="https://koding.com/docs/index" target="_blank">More guides on Koding University...</a>
+        <a href="https://koding.com/docs" target="_blank">More guides on Koding University...</a>
       </p>
     """

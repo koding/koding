@@ -21,7 +21,7 @@ module.exports = class AccountPopup extends AvatarPopup
 
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Koding University'
-      href       : 'https://koding.com/docs/index'
+      href       : 'https://koding.com/docs'
       target     : '_blank'
 
     @avatarPopupContent.addSubView new CustomLinkView

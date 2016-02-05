@@ -3,7 +3,7 @@ CustomLinkView = require './customlinkview'
 module.exports = class TopNavigation extends KDCustomHTMLView
 
   menu = [
-    { title : 'Koding University', href : 'https://koding.com/docs/index', name : 'about'}
+    { title : 'Koding University', href : 'https://koding.com/docs', name : 'about'}
     { title : 'Features',          href : '/Features',               name : 'features'}
     { title : 'SIGN IN',           href : '/Login',                  name : 'login'}
   ]

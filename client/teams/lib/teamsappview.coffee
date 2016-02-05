@@ -29,7 +29,7 @@ module.exports = class TeamsAppView extends kd.CustomHTMLView
       headerLogo : teamsLogo
       cssClass   : 'hasNotTeamAccess'
       navItems  : [
-        { title : 'Koding University', href : 'https://koding.com/docs/index',  name : 'about' }
+        { title : 'Koding University', href : 'https://koding.com/docs',  name : 'about' }
         { title : 'Features',          href : '/Features',                name : 'features' }
       ]
 

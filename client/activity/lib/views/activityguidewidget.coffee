@@ -35,7 +35,7 @@ module.exports = class ActivityGuideWidget extends ActivityBaseWidget
       <p>
         <ol>
           <li>
-            Take a look at <a href='https://koding.com/docs/index' target='_blank'>Koding University</a> in case your question is of the category
+            Take a look at <a href='https://koding.com/docs' target='_blank'>Koding University</a> in case your question is of the category
             “how do I…” Chances are high that we already have a handy guide for you.
           </li>
           <li>
