@@ -65,13 +65,7 @@ module.exports = class AccountEmailNotifications extends KDView
 
   handleGlobalState: (state) ->
 
-    @handleDependency ['daily'], state
-    @handleDailyState state and @fields.daily.switch.getValue()
-
-
-  handleDailyState: (state) ->
-
-    @handleDependency ['privateMessage', 'comment', 'likeActivities', 'mention'], state
+    @handleDependency ['daily', 'privateMessage', 'comment', 'likeActivities', 'mention', 'marketing'], state
 
 
   handlePrivateMessageState: (state) ->
@@ -81,7 +75,6 @@ module.exports = class AccountEmailNotifications extends KDView
     if state
       privateMessage.formView.setClass 'has-sub'
       privateMessage.subSettings.show()
-
     else
       privateMessage.formView.unsetClass 'has-sub'
       privateMessage.subSettings.hide()
@@ -90,22 +83,22 @@ module.exports = class AccountEmailNotifications extends KDView
   putContents: (frequency) ->
 
     @fields = fields =
-      global           :
-        title          : 'Send me email notifications'
-      daily            :
-        title          : 'Send me a daily digest of activity on my posts'
-      privateMessage   :
-        title          : 'When someone sends me a private message'
-      comment          :
-        title          : 'When my post gets a new comment'
-      likeActivities   :
-        title          : 'When someone likes my content'
-      mention          :
-        title          : 'When someone mentions me'
-      marketing        :
-        title          : 'When Koding has member updates <small>Like VM security updates, privacy updates, inactive account notices, offers and campaigns.</small>'
-      pmNotificationDelay:
-        title          : ''
+      global              :
+        title             : 'Send me email notifications'
+      daily               :
+        title             : 'Send me a daily digest of activity on my posts'
+      privateMessage      :
+        title             : 'When someone sends me a private message'
+      comment             :
+        title             : 'When my post gets a new comment'
+      likeActivities      :
+        title             : 'When someone likes my content'
+      mention             :
+        title             : 'When someone mentions me'
+      marketing           :
+        title             : 'When Koding has member updates <small>Like VM security updates, privacy updates, inactive account notices, offers and campaigns.</small>'
+      pmNotificationDelay :
+        title             : ''
 
     view = this
 
