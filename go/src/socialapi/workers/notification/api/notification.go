@@ -25,6 +25,13 @@ func List(u *url.URL, h http.Header, _ interface{}, context *apimodels.Context) 
 	q := request.GetQuery(u)
 	q.GroupName = context.GroupName
 
+	groupChannel, err := apimodels.Cache.Channel.ByGroupName(context.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	q.GroupChannelId = groupChannel.Id
+
 	// update the limit if it is needed
 	q.Limit = int(math.Min(float64(q.Limit), float64(NOTIFICATION_LIMIT)))
 
