@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"socialapi/models"
 	"socialapi/request"
 	"time"
@@ -187,8 +186,6 @@ func (n *Notification) RemoveAllContentsRelatedWithNotification(accountId int64,
 			break
 		}
 
-		fmt.Println("MainContentIds :", contentIds)
-
 		err = n.DeleteByIds(contentIds...)
 		if err != nil && err != bongo.RecordNotFound {
 			errs = multierror.Append(errs, err)
@@ -242,7 +239,6 @@ func (n *Notification) DeleteByIds(ids ...int64) error {
 			// so if record is not found in database
 			// we can ignore this RecordNotFound error
 			if err != bongo.RecordNotFound {
-				// return err
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -256,8 +252,6 @@ func (n *Notification) DeleteByIds(ids ...int64) error {
 	}
 
 	return errs.ErrorOrNil()
-
-	// return nil
 }
 
 // getDecoratedList fetches notifications of the given user and decorates it with

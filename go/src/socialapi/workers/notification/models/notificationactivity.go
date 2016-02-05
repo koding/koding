@@ -151,12 +151,7 @@ func (a *NotificationActivity) deleteWithContentId(contentIds ...int64) error {
 		if err != nil && err != bongo.RecordNotFound {
 			errs = multierror.Append(errs, err)
 		}
-		// if err := na.fetchWithContentId(id); err != nil {
-		// 	if err != bongo.RecordNotFound {
-		// 		// return err
-		// 		errs = multierror.Append(errs, err)
-		// 	}
-		// }
+
 		for _, activityId := range activityIds {
 			if err := activityId.Delete(); err != nil {
 				if err != bongo.RecordNotFound {
@@ -165,16 +160,8 @@ func (a *NotificationActivity) deleteWithContentId(contentIds ...int64) error {
 				}
 			}
 		}
-		//
-		// if err := na.Delete(); err != nil {
-		// 	if err != bongo.RecordNotFound {
-		// 		// return err
-		// 		errs = multierror.Append(errs, err)
-		// 	}
-		// }
 	}
 	return errs.ErrorOrNil()
-	// return nil
 }
 
 func (a *NotificationActivity) fetchWithContentId(contentId int64) ([]NotificationActivity, error) {
@@ -183,7 +170,6 @@ func (a *NotificationActivity) fetchWithContentId(contentId int64) ([]Notificati
 	}
 
 	var notyActivities []NotificationActivity
-	// return a.One(bongo.NewQS(selector))
 	if err := a.Some(&notyActivities, bongo.NewQS(selector)); err != nil {
 		return nil, err
 	}

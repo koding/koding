@@ -182,14 +182,12 @@ func (n *NotificationContent) DeleteByIds(ids ...int64) error {
 			// so if record is not found in database
 			// we can ignore this RecordNotFound error
 			if err != bongo.RecordNotFound {
-				// return err
 				errs = multierror.Append(errs, err)
 			}
 		}
 
 		if err := nc.Delete(); err != nil {
 			if err != bongo.RecordNotFound {
-				// return err
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -197,5 +195,4 @@ func (n *NotificationContent) DeleteByIds(ids ...int64) error {
 	}
 
 	return errs.ErrorOrNil()
-	// return nil
 }
