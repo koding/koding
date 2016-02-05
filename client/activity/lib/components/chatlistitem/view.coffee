@@ -58,6 +58,7 @@ module.exports = class ChatListItemView extends React.Component
     className         : classnames
       'ChatItem'      : yes
       'is-selected'   : isSelected
+      'is-pending'    : message.get 'isFake'
     'data-message-id' : message.get 'id'
 
 

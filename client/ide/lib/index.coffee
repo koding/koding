@@ -656,7 +656,11 @@ class IDEAppController extends AppController
       when 'Building'
         environmentDataProvider.ensureDefaultWorkspace kd.noop
       when 'Running'
-        @quit()
+        id = @mountedMachine._id
+        { computeController } = kd.singletons
+
+        computeController.once "revive-#{id}", @lazyBound 'quit'
+        computeController.triggerReviveFor id
 
 
   showStateMachineModal: (machineItem, event) ->

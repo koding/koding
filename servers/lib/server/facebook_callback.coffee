@@ -45,7 +45,12 @@ module.exports = (req, res) ->
     rawResp = ''
     userInfoResp.on 'data', (chunk) -> rawResp += chunk
     userInfoResp.on 'end', ->
-      userInfo = JSON.parse rawResp
+      try userInfo = JSON.parse rawResp
+      catch e
+        return redirectToOauth 'Failed to parse user info', req, res, { provider }
+
+      unless userInfo?.name
+        return redirectToOauth 'No user name', req, res, { provider }
 
       [firstName, restOfNames...] = userInfo.name.split ' '
       lastName = restOfNames.join ' '

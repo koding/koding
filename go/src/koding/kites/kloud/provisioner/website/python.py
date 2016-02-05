@@ -38,7 +38,7 @@ print """\
 <footer>
 	<h4>This is an example page running Python on your Koding Virtual Machine (VM).</h4>
 	<p>
-		You can create your own Python based "Hello World" program by following this <a href="http://learn.koding.com/guides/hello-world/python/" target=_blank>simple guide</a> over at Koding University.
+		You can create your own Python based "Hello World" program by following this <a href="https://koding.com/docs/hello-world/python" target=_blank>simple guide</a> over at Koding University.
 	</p>
 	<p id="social"><a id="twitter" href="https://twitter.com/koding" target=_blank>Twitter</a><a id="facebook" href="https://facebook.com/koding" target=_blank>Facebook</a></p>
 </footer>

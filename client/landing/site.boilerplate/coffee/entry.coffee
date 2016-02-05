@@ -15,6 +15,7 @@ KD.classes.KDLoaderView         = require './components/loader/loaderview.coffee
 KD.classes.KDButtonView         = require './components/buttons/buttonview.coffee'
 KD.classes.KDButtonGroupView    = require './components/buttons/buttongroupview.coffee'
 KD.classes.KDFormView           = require './components/forms/formview.coffee'
+KD.classes.KDFormViewWithFields = require './components/forms/formviewwithfields.coffee'
 KD.classes.KDInputValidator     = require './components/inputs/inputvalidator.coffee'
 KD.classes.KDInputView          = require './components/inputs/inputview.coffee'
 KD.classes.KDLabelView          = require './components/inputs/labelview.coffee'

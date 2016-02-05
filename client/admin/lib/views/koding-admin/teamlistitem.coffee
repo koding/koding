@@ -1,5 +1,6 @@
 kd                        = require 'kd'
 JView                     = require 'app/jview'
+remote                    = require('app/remote').getInstance()
 
 timeago                   = require 'timeago'
 showError                 = require 'app/util/showError'
@@ -88,6 +89,32 @@ module.exports = class TeamListItem extends kd.ListItemView
               delegate.emit 'ReloadRequested'
               modal.destroy()
         , team
+
+    @details.addSubView new kd.ButtonView
+      title    : 'Update Counters'
+      cssClass : 'solid compact'
+      loader   : yes
+      callback : ->
+        remote.api.ComputeProvider.updateTeamCounters team.slug, (err, feedback) =>
+          @hideLoader()
+          return  if showError err
+
+          details = objectToString feedback, separator: "  "
+          content = applyMarkdown "```json \n#{details}\n```"
+
+          modal = new kd.ModalView
+            title          : "Team #{team.slug} counters update result"
+            content        : content
+            overlay        : yes
+            cssClass       : 'has-markdown'
+            overlayOptions :
+              cssClass     : 'second-overlay'
+              overlayClick : yes
+            buttons        :
+              close        :
+                title      : 'Close'
+                cssClass   : 'solid medium gray'
+                callback   : -> modal.destroy()
 
 
   toggleDetails: ->
