@@ -26,6 +26,10 @@ type Customer struct {
 	//    'stripe', 'paypal'
 	Provider string `json:"provider"`
 
+	// Type of customer. Enum:
+	//		'team', 'account'
+	Type string `json:"type"`
+
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" `
