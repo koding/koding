@@ -32,9 +32,8 @@ services=(
   koding/kites/kontrol
   koding/kites/kloud
   koding/kites/kloud/kloudctl
-  koding/kites/tunnelserver
-  koding/kites/tunnelclient
   koding/kites/cmd/terraformer
+  koding/kites/cmd/tunnelserver
   koding/workers/guestcleanerworker
   koding/go-webserver
   koding/workers/cmd/tunnelproxymanager

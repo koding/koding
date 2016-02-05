@@ -9,6 +9,8 @@ import (
 	"koding/kites/kloud/stackplan"
 
 	"github.com/fatih/structs"
+	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 	"golang.org/x/net/context"
 )
 
@@ -72,8 +74,15 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		return nil, err
 	}
 
+	// BUG(rjeczalik): sockjs when tunnelled gives transport error
+	// on closed connection - that's why we use long polling here.
+	// When tunnelclient is fixed get rid of it.
+	k := kite.New("vagrantapi", "0.0.1")
+	k.Config = bs.Session.Kite.Config.Copy()
+	k.Config.Transport = config.XHRPolling
+
 	api := &vagrantapi.Klient{
-		Kite: bs.Session.Kite,
+		Kite: k,
 		Log:  bs.Log.New("vagrantapi"),
 	}
 

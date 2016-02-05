@@ -21,6 +21,9 @@ import (
 const (
 	VERSION = "0.0.1"
 	NAME    = "kloud"
+
+	// used to authenticate with Kloud directly
+	KloudSecretKey = "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
 )
 
 type Kloud struct {

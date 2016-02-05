@@ -1,6 +1,7 @@
 package vagrantapi
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -106,17 +107,17 @@ func (k *Klient) send(queryString, method string, req, resp interface{}) error {
 
 	kref, err := klient.ConnectTimeout(k.Kite, queryString, k.dialTimeout())
 	if err != nil {
-		return err
+		return errors.New("connecting to klient failed: " + err.Error())
 	}
 	defer kref.Close()
 
 	r, err := kref.Client.TellWithTimeout(method, k.timeout(), req)
 	if err != nil {
-		return err
+		return errors.New("sending request to klient failed: " + err.Error())
 	}
 
 	if err := r.Unmarshal(resp); err != nil {
-		return err
+		return errors.New("reading response from klient failed: " + err.Error())
 	}
 
 	k.Log.Debug("received %+v response from %q (%q)", resp, method, queryString)
@@ -131,7 +132,7 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 
 	kref, err := klient.ConnectTimeout(k.Kite, queryString, k.dialTimeout())
 	if err != nil {
-		return err
+		return errors.New("connecting to klient failed: " + err.Error())
 	}
 
 	done := make(chan struct{})
@@ -150,7 +151,7 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 	}
 
 	if _, err = kref.Client.TellWithTimeout(method, k.timeout(), req); err != nil {
-		return err
+		return errors.New("sending request to klient failed: " + err.Error())
 	}
 
 	select {

@@ -5,6 +5,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -14,6 +16,7 @@ import (
 	"koding/kites/kloud/scripts/provisionklient/userdata"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -67,6 +70,14 @@ func realMain() error {
 			return err
 		}
 
+		// Try to uncompress the payload. If it fails, it was not compressed.
+		if cr, err := gzip.NewReader(bytes.NewReader(data)); err == nil {
+			p, err := ioutil.ReadAll(cr)
+			if err == nil {
+				data = p
+			}
+		}
+
 		if err := json.Unmarshal(data, &val); err != nil {
 			return err
 		}
@@ -91,7 +102,7 @@ func realMain() error {
 	}
 
 	log.Println(">> Installing klient from URL: %s", val.LatestKlientURL)
-	if err := installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL); err != nil {
+	if err := installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL, val.TunnelURL); err != nil {
 		return err
 	}
 
@@ -125,7 +136,35 @@ func createUser(username string, groups []string) error {
 	return nil
 }
 
-func installKlient(username, url, registerURL, kontrolURL string) error {
+func guessTunnelServerAddr(username, registerURL, tunnelURL string) string {
+	// If tunnelURL was overwritten, we use it.
+	if u, err := url.Parse(tunnelURL); err != nil {
+		return u.Host
+	}
+
+	// If registerURL has <box>.<username>.<server-addr> format, we treat
+	// it as url for tunnel request and split <server-addr> out of it.
+	// parse the server addr out of it.
+	//
+	// We expect <server-addr> has ".koding." domain or subdomain in it.
+	u, err := url.Parse(registerURL)
+	if err != nil {
+		return ""
+	}
+
+	userPart := "." + username + "."
+
+	i := strings.Index(u.Host, userPart)
+	j := strings.Index(u.Host, ".koding.")
+
+	if i == -1 || j == -1 || i > j {
+		return ""
+	}
+
+	return u.Host[i+len(userPart):]
+}
+
+func installKlient(username, url, registerURL, kontrolURL, tunnelURL string) error {
 	var tmpFile = "/tmp/latest-klient.deb"
 	var args = []string{url, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
 
@@ -148,13 +187,17 @@ func installKlient(username, url, registerURL, kontrolURL string) error {
 		return err
 	}
 
-	initLine := fmt.Sprintf("sudo -E -u %s ./klient", username)
+	initLine := fmt.Sprintf("sudo -E -u %s KITE_HOME=/etc/kite ./klient ", username)
 	if registerURL != "" {
 		initLine += fmt.Sprintf(" -register-url '%s'", registerURL)
 	}
 
 	if kontrolURL != "" {
 		initLine += fmt.Sprintf(" -kontrol-url '%s'", kontrolURL)
+	}
+
+	if tunnelAddr := guessTunnelServerAddr(username, registerURL, tunnelURL); tunnelAddr != "" {
+		initLine += fmt.Sprintf(" -tunnel-server '%s'", tunnelAddr)
 	}
 
 	newContent := strings.Replace(string(content), "./klient", initLine, -1)
