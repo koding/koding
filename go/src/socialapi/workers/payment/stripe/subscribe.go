@@ -16,13 +16,13 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	return subscribe(token, email, planTitle, planInterval, accId, paymentmodels.AccountCustomer)
 }
 
-func subscribe(token, email, planTitle, planInterval, accId string, cType string) error {
+func subscribe(token, email, planTitle, planInterval, id string, cType string) error {
 	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
 	if err != nil {
 		return err
 	}
 
-	customer, err := paymentmodels.NewCustomer().ByOldIdAndType(accId, paymentmodels.AccountCustomer)
+	customer, err := paymentmodels.NewCustomer().ByOldIdAndType(id, cType)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}
@@ -43,7 +43,7 @@ func subscribe(token, email, planTitle, planInterval, accId string, cType string
 
 	switch status {
 	case paymentstatus.NewSub, paymentstatus.ExpiredSub:
-		err = handleNewSubscription(token, accId, email, cType, plan)
+		err = handleNewSubscription(token, email, id, cType, plan)
 	case paymentstatus.ExistingUserHasNoSub:
 		err = handleUserNoSub(customer, token, plan)
 	case paymentstatus.AlreadySubscribedToPlan:
@@ -62,7 +62,7 @@ func subscribe(token, email, planTitle, planInterval, accId string, cType string
 	return err
 }
 
-func handleNewSubscription(token, id, email, cType string, plan *paymentmodels.Plan) error {
+func handleNewSubscription(token, email, id, cType string, plan *paymentmodels.Plan) error {
 	var customer *paymentmodels.Customer
 
 	switch cType {
