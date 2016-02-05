@@ -21,7 +21,6 @@ module.exports = class CollaborationPaneHeader extends React.Component
   @defaultProps =
     className     : ''
     isVideoActive : no
-    collaborationLink: 'https://team.koding.com/Collaboration/umut/1234124871284'
 
 
   render: ->

@@ -414,11 +414,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @emitChange previewPane, context: { url }
 
 
-  createCollaboration: ({channelId}) ->
+  createCollaboration: ({channelId, host}) ->
 
-    collaborationPane = new IDECollaborationPane {channelId}
+    collaborationPane = new IDECollaborationPane {channelId, host}
     @createPane_ collaborationPane, { title : 'Chat' }
-
 
 
   showView: (view, name = 'Search Result') -> @createPane_ view, { name }

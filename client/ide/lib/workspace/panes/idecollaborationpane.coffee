@@ -3,6 +3,8 @@ IDEPane           = require './idepane'
 ReactView         = require 'app/react/reactview'
 React             = require 'kd-react'
 CollaborationPane = require 'ide/components/collaborationpane'
+nick              = require 'app/util/nick'
+groupifyLink      = require 'app/util/groupifyLink'
 
 
 module.exports = class IDECollaborationPane extends IDEPane
@@ -22,4 +24,16 @@ module.exports = class IDECollaborationPane extends IDEPane
 class CollaborationPaneReactView extends ReactView
 
   renderReact: ->
-    <CollaborationPane channelId={@getOptions().channelId} />
+    {channelId, host} = @getOptions()
+    collaborationLink = generateCollaborationLink channelId, host
+    <CollaborationPane channelId={@getOptions().channelId} collaborationLink={collaborationLink} />
+
+
+generateCollaborationLink = (channelId, host) ->
+
+  subject = if host is nick()
+  then 'my'
+  else "#{host}'s"
+
+  return "Click [here](/Collaboration/#{host}/#{channelId}) to join #{subject} collaboration session"
+

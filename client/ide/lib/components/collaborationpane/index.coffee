@@ -57,6 +57,7 @@ module.exports = class CollaborationPane extends React.Component
       className="ChannelThreadPane-header"
       thread={thread}
       participants={@state.channelParticipants}
+      collaborationLink={@props.collaborationLink}
       isVideoActive={thread.getIn ['flags', 'isVideoActive']}
       onNewParticipantButtonClick={@bound 'onNewParticipantClick'}
       onVideoStart={@bound 'onVideoStart'}

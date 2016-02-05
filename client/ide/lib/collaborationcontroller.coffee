@@ -1102,6 +1102,10 @@ module.exports = CollaborationController =
     require('activity/flux').actions.thread.changeSelectedThread channel.id
     require('activity/flux').actions.channel.loadParticipants channel.id
     @activeTabView.emit 'CollaborationPaneRequested', {channelId: channel.id}
+    @activeTabView.emit 'CollaborationPaneRequested', {
+      channelId: channel.id
+      host: @getCollaborationHost()
+    }
 
     @chat.destroy()
 
