@@ -3,6 +3,9 @@ module.exports = ChatPaneWrapperMixin =
   onResize: ->
 
     ChatPaneBody              = document.querySelector '.Pane-body'
+
+    return  unless ChatPaneBody
+
     ChatPaneFooter            = document.querySelector '.ChatPaneFooter'
     scrollContainer           = ChatPaneBody.querySelector '.Scrollable'
     footerHeight              = ChatPaneFooter.offsetHeight
