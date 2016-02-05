@@ -49,10 +49,10 @@
 - Each test must have an `afterEach` block to restore spy functions. We will talk about spies later.
   - `afterEach -> expect.restoreSpies()`
 
-- Each prototype methods should have its own `describe` and named as follows. Note the `::`.
+- Each prototype method should have its own `describe` and named as follows. Note the `::`.
   - `describe '::createTerminal', ->`
 
-- Each test should be in a method `describe` block and tests should start with `it` as required by `mocha` and test name should start with `should` for sake of readability. See the following examples.
+- Each test should be in a `describe` block and tests should start with `it` as required by `mocha` and test name should start with `should` for sake of readability. See the following examples.
   - `it 'should create a terminal pane and append it', ->`
   - `it 'should create a change object and emit it', ->`
 
