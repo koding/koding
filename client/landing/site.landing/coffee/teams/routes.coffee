@@ -17,8 +17,6 @@ do ->
       location.assign href
       return
 
-    return router.handleRoute '/'  unless token
-
     cb = (app) -> app.handleQuery query  if query
     router.openSection 'Teams', null, null, cb
 
