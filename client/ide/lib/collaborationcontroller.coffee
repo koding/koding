@@ -1098,13 +1098,25 @@ module.exports = CollaborationController =
   showChatPane: ->
 
     channel = @socialChannel
+    {actions} = require 'activity/flux'
+
+    kd.singletons.notificationController.on 'notificationFromOtherAccount', (notification) ->
+      switch notification.action
+        when 'COLLABORATION_REQUEST'
+          if notification.channelId is channel.id
+            {channelId, senderUserId, senderAccountId, sender} = notification
+            actions.channel.addParticipants(channelId, [senderAccountId], [senderUserId]).then ->
+              whoami().pushNotification
+                receiver: sender
+                channelId: channelId
+                action: 'COLLABORATION_REQUEST_ACCEPT'
+
 
     # new collaboration chat
     kd.singletons.reactor.dispatch 'LOAD_CHANNEL_SUCCESS', {channelId: channel.id, channel}
-    require('activity/flux').actions.message.loadMessages channel.id
-    require('activity/flux').actions.thread.changeSelectedThread channel.id
-    require('activity/flux').actions.channel.loadParticipants channel.id
-    @activeTabView.emit 'CollaborationPaneRequested', {channelId: channel.id}
+    actions.message.loadMessages channel.id
+    actions.thread.changeSelectedThread channel.id
+    actions.channel.loadParticipants channel.id
     @activeTabView.emit 'CollaborationPaneRequested', {
       channelId: channel.id
       host: @getCollaborationHost()
