@@ -2,6 +2,7 @@ package main
 
 import (
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
 	"strings"
@@ -333,6 +334,68 @@ func TestChannelParticipantOperations(t *testing.T) {
 						So(err, ShouldNotBeNil)
 						So(err.Error(), ShouldContainSubstring, models.ErrAccountIsNotParticipant.Error())
 						So(ns, ShouldBeNil)
+					})
+				})
+				Convey("when user left from group, user's notification should be removed ", func() {
+					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
+
+					account := models.NewAccount()
+					account.OldId = AccountOldId.Hex()
+					account, err = rest.CreateAccount(account)
+					So(err, ShouldBeNil)
+					So(account, ShouldNotBeNil)
+
+					ownerSes, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					So(ownerSes, ShouldNotBeNil)
+					So(err, ShouldBeNil)
+
+					ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+					So(err, ShouldBeNil)
+					So(ses, ShouldNotBeNil)
+
+					channel := models.CreateTypedGroupedChannelWithTest(
+						account.Id,
+						models.Channel_TYPE_GROUP,
+						groupName,
+					)
+					_, err = channel.AddParticipant(account.Id)
+					So(err, ShouldBeNil)
+
+					Convey("notification should equal zero before mentioning etc.. ", func() {
+						resp, err := rest.GetNotificationList(account.Id, ses.ClientId)
+						So(len(resp.Notifications), ShouldEqual, 0)
+						So(err, ShouldBeNil)
+					})
+
+					Convey("notification should not equal zero after interacting etc ", func() {
+						post, err := rest.CreatePost(channel.Id, ownerSes.ClientId)
+						So(err, ShouldBeNil)
+						So(post, ShouldNotBeNil)
+
+						_, err = rest.AddInteraction("like", post.Id, post.AccountId, ownerSes.ClientId)
+						So(err, ShouldBeNil)
+
+						cmc, err := rest.GetPostWithRelatedData(
+							post.Id,
+							&request.Query{
+								AccountId: post.AccountId,
+								GroupName: groupName,
+							},
+							ownerSes.ClientId,
+						)
+
+						So(err, ShouldBeNil)
+						So(cmc, ShouldNotBeNil)
+
+						// it is liked by author
+						So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
+						// actor length should be 1
+						So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
+
+						resp, err := rest.GetNotificationList(account.Id, ses.ClientId)
+						So(len(resp.Notifications), ShouldEqual, 0)
+						So(err, ShouldBeNil)
+
 					})
 				})
 			})
