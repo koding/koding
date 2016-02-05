@@ -75,6 +75,8 @@ psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/modifications/002-add-betat
 
 psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/modifications/003-drop-customer-oldid-constraint.sql
 
+psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/modifications/006-add-plan-title-enum.sql
+
 # create sequences
 psql $WERCKER_POSTGRESQL_URL < $1/integration_definition/002-schema.sql
 

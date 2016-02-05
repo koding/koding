@@ -89,6 +89,8 @@ sudo -u postgres psql social < $1/payment_definition/modifications/002-add-betat
 
 sudo -u postgres psql social < $1/payment_definition/modifications/003-drop-customer-oldid-constraint.sql
 
+sudo -u postgres psql social < $1/payment_definition/modifications/006-add-plan-title-enum.sql
+
 # create sequences
 sudo -u postgres psql social < $1/integration_definition/002-schema.sql
 
