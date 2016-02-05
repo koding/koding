@@ -402,7 +402,10 @@ module.exports = CollaborationController =
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
 
-      @setParticipantPermission nickname  if @amIHost
+      if @amIHost
+        @setParticipantPermission nickname
+
+        @setMachineUser [nickname]
 
 
   channelMessageAdded: (message) ->
