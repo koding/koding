@@ -81,7 +81,6 @@ module.exports = class AdminMembersView extends kd.View
           @listenForRoleChange item, view
 
 
-
   listenForRoleChange: (memberItemView, parentView, oldRole, newRole) ->
 
     views = [ @allView, @adminsView, @modsView ]
@@ -109,3 +108,9 @@ module.exports = class AdminMembersView extends kd.View
     if targetView
       memberItemView.data.memberRole = newRole
       targetView.listController.addItem memberItemView.data
+
+
+  refreshAllTabs: ->
+
+    for view in [ @allView, @adminsView, @modsView, @blockedView ]
+      view.refresh()
