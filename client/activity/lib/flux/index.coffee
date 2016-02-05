@@ -36,6 +36,8 @@ module.exports =
     require './stores/messageflagsstore'
     require './stores/socialsharelinksstore'
     require './stores/activesocialsharelinkidstore.coffee'
+    require './stores/channelmessagessearchquerystore'
+    require './stores/filteredchannelmessagesidsstore'
     require './stores/channelparticipants/channelparticipantssearchquerystore'
     require './stores/channelparticipants/channelparticipantsdropdownvisibilitystore'
     require './stores/channelparticipants/channelparticipantsselectedindexstore'
