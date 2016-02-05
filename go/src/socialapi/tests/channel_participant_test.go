@@ -279,6 +279,43 @@ func TestChannelParticipantOperations(t *testing.T) {
 						So(err, ShouldBeNil)
 					})
 				})
+				Convey("nonOwner should not be able to remove users from group channels", func() {
+					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
+
+					participant := models.NewAccount()
+					participant.OldId = AccountOldId.Hex()
+					participant, err = rest.CreateAccount(participant)
+					So(err, ShouldBeNil)
+					So(participant, ShouldNotBeNil)
+
+					participant2 := models.NewAccount()
+					participant2.OldId = AccountOldId.Hex()
+					participant2, err = rest.CreateAccount(participant2)
+					So(err, ShouldBeNil)
+					So(participant2, ShouldNotBeNil)
+
+					ownerSes, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					So(err, ShouldBeNil)
+
+					ses, err := models.FetchOrCreateSession(participant.Nick, groupName)
+					So(err, ShouldBeNil)
+
+					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_GROUP, ownerSes.ClientId)
+					So(err, ShouldBeNil)
+					So(ch, ShouldNotBeNil)
+
+					// ownerSes session is admin's session data
+					_, err = rest.AddChannelParticipant(ch.Id, ownerSes.ClientId, participant.Id)
+					So(err, ShouldBeNil)
+
+					_, err = rest.AddChannelParticipant(ch.Id, ownerSes.ClientId, participant2.Id)
+					So(err, ShouldBeNil)
+
+					// ses session is participant's session data
+					_, err = rest.DeleteChannelParticipant(ch.Id, ses.ClientId, participant2.Id)
+					So(err, ShouldNotBeNil)
+
+				})
 				Convey("User's notification setting should be removed when user left from channel", func() {
 					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
 
