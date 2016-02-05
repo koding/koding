@@ -14,8 +14,10 @@ import (
 )
 
 var (
-	ProviderNotFound       = errors.New("provider not found")
-	ProviderNotImplemented = errors.New("provider not implemented")
+	ErrProviderNotFound       = errors.New("provider not found")
+	ErrProviderNotImplemented = errors.New("provider not implemented")
+
+	ErrNoGroupForPaypal = errors.New("Paypal does not support group purchases currently.")
 
 	WorkerName    = "socialapi-payment"
 	WorkerVersion = "1.0.0"
@@ -30,22 +32,31 @@ var (
 //----------------------------------------------------------
 
 type SubscribeRequest struct {
-	AccountId, Token, Email           string
-	Provider, PlanTitle, PlanInterval string
+	AccountId    string
+	GroupId      string
+	Token        string
+	Email        string
+	Provider     string
+	PlanTitle    string
+	PlanInterval string
+	Type         string
 }
 
 func (s *SubscribeRequest) Do() (interface{}, error) {
 	var err error
 
+	// default to "account" type for customer for backwards compatibility
+	if s.Type == "" {
+		s.Type = paymentmodels.AccountCustomer
+	}
+
 	switch s.Provider {
 	case "stripe":
-		err = stripe.Subscribe(
-			s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval,
-		)
+		err = s.handleStripe()
 	case "paypal":
-		err = paypal.SubscribeWithPlan(s.Token, s.AccountId, s.PlanTitle, s.PlanInterval)
+		err = s.handlePaypal()
 	default:
-		err = ProviderNotFound
+		err = ErrProviderNotFound
 	}
 
 	if err != nil {
@@ -56,6 +67,26 @@ func (s *SubscribeRequest) Do() (interface{}, error) {
 	}
 
 	return nil, err
+}
+
+func (s *SubscribeRequest) handleStripe() error {
+	var err error
+
+	if s.Type == paymentmodels.GroupCustomer {
+		err = stripe.SubscribeForGroup(s.Token, s.GroupId, s.Email, s.PlanTitle, s.PlanInterval)
+	} else {
+		err = stripe.Subscribe(s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval)
+	}
+
+	return err
+}
+
+func (s *SubscribeRequest) handlePaypal() error {
+	if s.Type == paymentmodels.GroupCustomer {
+		return ErrNoGroupForPaypal
+	}
+
+	return paypal.SubscribeWithPlan(s.Token, s.AccountId, s.PlanTitle, s.PlanInterval)
 }
 
 //----------------------------------------------------------
@@ -198,9 +229,9 @@ func (u *UpdateCreditCardRequest) Do() (interface{}, error) {
 
 		return nil, err
 	case "paypal":
-		return nil, ProviderNotImplemented
+		return nil, ErrProviderNotImplemented
 	default:
-		return nil, ProviderNotFound
+		return nil, ErrProviderNotFound
 	}
 }
 
