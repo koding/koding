@@ -5,7 +5,6 @@ set -o errexit
 HOST=$(ec2metadata | grep public-ipv4 | FS=':' awk '{print $2}')
 
 export HOME=/root/
-export DISPLAY=:99
 export REPOSITORY_PATH='/opt/koding'
 
 export CI="true"
@@ -39,15 +38,23 @@ sleep 60 # let dockers boot up
 
 supervisord -c $REPOSITORY_PATH/supervisord.conf
 
-Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
-sleep 15
-
-x11vnc -passwd secret -display $DISPLAY -N -forever &
-
 export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
 
+export DISPLAY=:0
+Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
 java -jar $TEST_VENDOR/selenium-server-standalone.jar \
      -host 0.0.0.0 \
-     -port 42424 &
+     -port 42420 &
+
+export DISPLAY=:1
+Xvfb $DISPLAY -shmem -screen 1 1440x900x16 &
+java -jar $TEST_VENDOR/selenium-server-standalone.jar \
+     -host 0.0.0.0 \
+     -port 42421 &
+
+sleep 10
+
+x11vnc -passwd secret -display :0 -N -forever &
+x11vnc -passwd secret -display :1 -N -forever &
 
 exit 0
