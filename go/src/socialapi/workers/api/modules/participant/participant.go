@@ -3,6 +3,7 @@ package participant
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -140,11 +141,20 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 		return response.NewBadRequest(errors.New("can not remove participants for bot channel"))
 	}
 
+	isAdmin, err := modelhelper.IsAdmin(context.Client.Account.Nick, context.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	for i := range participants {
 		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
 		// return bad request
 		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
-			return response.NewBadRequest(fmt.Errorf("User is not allowed to kick other users"))
+
+			if !isAdmin {
+				return response.NewBadRequest(fmt.Errorf("User is not allowed to kick other users"))
+			}
+
 		}
 
 		participants[i].ChannelId = query.Id
@@ -194,11 +204,18 @@ func BlockMulti(u *url.URL, h http.Header, participants []*models.ChannelPartici
 		return response.NewBadRequest(err)
 	}
 
+	isAdmin, err := modelhelper.IsAdmin(context.Client.Account.Nick, context.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	for i := range participants {
 		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
 		// return bad request
 		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
-			return response.NewBadRequest(fmt.Errorf("User is not allowed to block other users"))
+			if !isAdmin {
+				return response.NewBadRequest(fmt.Errorf("User is not allowed to block other users"))
+			}
 		}
 
 		participants[i].ChannelId = query.Id
@@ -237,11 +254,18 @@ func UnblockMulti(u *url.URL, h http.Header, participants []*models.ChannelParti
 		return response.NewBadRequest(err)
 	}
 
+	isAdmin, err := modelhelper.IsAdmin(context.Client.Account.Nick, context.GroupName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	for i := range participants {
 		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
 		// return bad request
 		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
-			return response.NewBadRequest(fmt.Errorf("User is not allowed to unblock other users"))
+			if !isAdmin {
+				return response.NewBadRequest(fmt.Errorf("User is not allowed to unblock other users"))
+			}
 		}
 
 		participants[i].ChannelId = query.Id
