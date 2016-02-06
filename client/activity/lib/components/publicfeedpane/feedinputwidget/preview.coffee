@@ -1,18 +1,23 @@
 kd                   = require 'kd'
+Link                 = require 'app/components/common/link'
 React                = require 'kd-react'
-generateDummyMessage = require 'app/util/generateDummyMessage'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
-ProfileText          = require 'app/components/profile/profiletext'
 Avatar               = require 'app/components/profile/avatar'
 TimeAgo              = require 'app/components/common/timeago'
 toImmutable          = require 'app/util/toImmutable'
-Link                 = require 'app/components/common/link'
 MessageBody          = require 'activity/components/common/messagebody'
+ProfileText          = require 'app/components/profile/profiletext'
+generateDummyMessage = require 'app/util/generateDummyMessage'
+ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
 
 module.exports = class FeedInputWidgetPreview extends React.Component
 
-  defaultProps=
+  @propTypes =
+    value                     : React.PropTypes.string
+    previewMode               : React.PropTypes.bool
+    toggleMarkdownPreviewMode : React.PropTypes.func
+
+  @defaultProps =
     value                     : ''
     previewMode               : no
     toggleMarkdownPreviewMode : kd.noop
@@ -27,22 +32,22 @@ module.exports = class FeedInputWidgetPreview extends React.Component
 
     <div className='FeedInputWidget-previewWrapper MediaObject'>
       <Link
-        onClick={@props.toggleMarkdownPreviewMode}
-        className='FeedInputWidget-closePreview'>
+        onClick   = { @props.toggleMarkdownPreviewMode }
+        className = 'FeedInputWidget-closePreview'>
         Previewing
       </Link>
       <div className='MediaObject-media'>
-        <ProfileLinkContainer origin={message.get('account').toJS()}>
-          <Avatar width={35} height={35} />
+        <ProfileLinkContainer origin = { message.get('account').toJS() }>
+          <Avatar width = {35} height = {35} />
         </ProfileLinkContainer>
       </div>
-      <ProfileLinkContainer key={message.getIn(['account', 'id'])} origin={message.get('account').toJS()}>
+      <ProfileLinkContainer key = { message.getIn(['account', 'id']) } origin = { message.get('account').toJS() }>
         <ProfileText />
       </ProfileLinkContainer>
       <div className='FeedInputWidget-previewDate'>
-        <TimeAgo from={message.get 'createdAt'} className='FeedItem-date'/>
+        <TimeAgo from = { message.get 'createdAt' } className = 'FeedItem-date' />
       </div>
       <div className='FeedInputWidget-previewBody'>
-        <MessageBody message={message}/>
+        <MessageBody message = { message }/>
       </div>
     </div>

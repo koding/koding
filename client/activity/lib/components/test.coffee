@@ -20,5 +20,5 @@ require './chatlist/test'
 require './chatlistitem/test'
 require './sidebarwidgets/test'
 require './dropbox/test'
-
+require './publicfeedpane/feedinputwidget/test'
 
