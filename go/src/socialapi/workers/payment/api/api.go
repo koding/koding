@@ -6,6 +6,7 @@ import (
 
 	"socialapi/workers/common/response"
 	"socialapi/workers/payment"
+	"socialapi/workers/payment/paymentmodels"
 )
 
 func InitCheckers() error {
@@ -14,6 +15,11 @@ func InitCheckers() error {
 }
 
 func Subscribe(u *url.URL, h http.Header, req *payment.SubscribeRequest) (int, http.Header, interface{}, error) {
+	// default to "account" type for customer for backwards compatibility
+	if req.Type == "" {
+		req.Type = string(paymentmodels.AccountCustomer)
+	}
+
 	return response.HandleResultAndClientError(
 		req.Do(),
 	)

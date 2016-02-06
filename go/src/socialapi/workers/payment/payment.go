@@ -45,11 +45,6 @@ type SubscribeRequest struct {
 func (s *SubscribeRequest) Do() (interface{}, error) {
 	var err error
 
-	// default to "account" type for customer for backwards compatibility
-	if s.Type == "" {
-		s.Type = paymentmodels.AccountCustomer
-	}
-
 	switch s.Provider {
 	case "stripe":
 		err = s.handleStripe()
@@ -75,7 +70,7 @@ func (s *SubscribeRequest) handleStripe() error {
 	if s.Type == paymentmodels.GroupCustomer {
 		err = stripe.SubscribeForGroup(s.Token, s.GroupId, s.Email, s.PlanTitle, s.PlanInterval)
 	} else {
-		err = stripe.Subscribe(s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval)
+		err = stripe.SubscribeForAccount(s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval)
 	}
 
 	return err

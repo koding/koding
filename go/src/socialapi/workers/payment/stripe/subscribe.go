@@ -12,7 +12,7 @@ func SubscribeForGroup(token, groupId, email, planTitle, planInterval string) er
 	return subscribe(token, email, planTitle, planInterval, groupId, paymentmodels.GroupCustomer)
 }
 
-func Subscribe(token, accId, email, planTitle, planInterval string) error {
+func SubscribeForAccount(token, accId, email, planTitle, planInterval string) error {
 	return subscribe(token, email, planTitle, planInterval, accId, paymentmodels.AccountCustomer)
 }
 
