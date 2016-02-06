@@ -2,12 +2,12 @@
 
 This folder contains react components.
 
-We split a components as **container** components(smart) and **view** components(dumb/presentational).
+We split components as **container** components(smart) and **view** components(dumb/presentational).
 
 ### **Container** components
 
  - Are concerned with how things work.
- - It contains `view` component inside to presentation.
+ - It contains `view` component inside for presentation.
  - Provide the data and behavior to view or other container components.
  - Call Flux actions and provide these as callbacks to view components.
  - It may have states and change own states
@@ -22,7 +22,7 @@ We split a components as **container** components(smart) and **view** components
  - Receive data and callbacks exclusively via props.
  - Have no states
  - Have no `ComponentDidMount, ComponentDidUpdate etc..` react lifecycle event handlers. We use this handlers and other methods to call Flux actions in `Container` components
- - Have only `render` methods,
+ - Have only `render` methods.
 
 ### Benefits of this approach
 
@@ -101,7 +101,7 @@ render: ->
 
 ---
 
-`container.coffee` should call flux actions, provide data and behavior to view part. It may contain states, event handlers like `componentDidMount, componentDidUpdate etc...` and various methods to call Flux actions or doing something.
+`container.coffee` should call flux actions, provide data and behavior to view part. It may contain states, event handlers like `componentDidMount, componentDidUpdate etc...` and various methods to call Flux actions or to do arbitrary things.
 
 ```coffeescript
 
