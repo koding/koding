@@ -103,7 +103,7 @@ module.exports = class Tracker extends bongo.Base
     event.from       or= defaultFromMail
     event.properties   = @addDefaults { options, username }
 
-    require("./socialapi/requests").publishMailEvent event, (err) =>
+    require('./socialapi/requests').publishMailEvent event, (err) ->
       callback err # do not cause trailing parameters
 
 
