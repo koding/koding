@@ -234,6 +234,11 @@ func (m *Machine) Unlock() error {
 }
 
 func (m *Machine) releaseEIP() {
+	// If machine is stopped after unsuccessful start, it does not have
+	// IP updated in its meta - stop here.
+	if m.IpAddress == "" {
+		return
+	}
 	// try to release/delete a public elastic IP, if there is an error we don't
 	// care (the instance might not have an elastic IP, aka a free user.
 	addrs, err := m.Session.AWSClient.AddressesByIP(m.IpAddress)
