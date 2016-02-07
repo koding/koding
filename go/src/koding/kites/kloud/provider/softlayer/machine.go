@@ -34,6 +34,10 @@ type Machine struct {
 	Checker  plans.Checker          `bson:"-"`
 	Session  *session.Session       `bson:"-"`
 	Log      logging.Logger         `bson:"-"`
+
+	// timeouts
+	KlientTimeout time.Duration `bson:"-"`
+	StateTimeout  time.Duration `bson:"-"`
 }
 
 func (m *Machine) GetMeta() (*Meta, error) {
@@ -49,7 +53,7 @@ func (m *Machine) ProviderName() string { return m.Provider }
 
 func (m *Machine) IsKlientReady() bool {
 	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
-	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*5)
+	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, m.KlientTimeout)
 	if err != nil {
 		m.Log.Warning("Connecting to remote Klient instance err: %s", err)
 		return false

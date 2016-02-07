@@ -8,11 +8,11 @@ import (
 )
 
 var transportParams = &httputil.ClientConfig{
-	DialTimeout:           10 * time.Second,
-	RoundTripTimeout:      60 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ResponseHeaderTimeout: 60 * time.Second,
-	KeepAlive:             30 * time.Second,
+	DialTimeout:           20 * time.Second,
+	RoundTripTimeout:      120 * time.Second,
+	TLSHandshakeTimeout:   20 * time.Second,
+	ResponseHeaderTimeout: 120 * time.Second,
+	KeepAlive:             60 * time.Second,
 }
 
 // NewClient gives custom HTTP client for Softlayer API.

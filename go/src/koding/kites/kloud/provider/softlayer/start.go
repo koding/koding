@@ -30,7 +30,7 @@ func (m *Machine) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := waitState(svc, meta.Id, "RUNNING"); err != nil {
+	if err := waitState(svc, meta.Id, "RUNNING", m.StateTimeout); err != nil {
 		return err
 	}
 

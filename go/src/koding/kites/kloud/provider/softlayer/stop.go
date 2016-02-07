@@ -29,7 +29,7 @@ func (m *Machine) Stop(ctx context.Context) error {
 		return err
 	}
 
-	if err := waitState(svc, meta.Id, "HALTED"); err != nil {
+	if err := waitState(svc, meta.Id, "HALTED", m.StateTimeout); err != nil {
 		return err
 	}
 
