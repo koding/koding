@@ -27,8 +27,8 @@ import (
 )
 
 var (
-	defaultKlientTimeout = 5 * time.Minute
-	defaultStateTimeout  = 10 * time.Minute
+	defaultKlientTimeout = 10 * time.Minute
+	defaultStateTimeout  = 15 * time.Minute
 )
 
 type Provider struct {
