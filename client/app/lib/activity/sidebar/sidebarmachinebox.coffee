@@ -248,13 +248,14 @@ module.exports = class SidebarMachineBox extends KDView
 
       mainView.activitySidebar.redrawMachineList()
 
-      frontApp      = appManager.getFrontApp()
-      isIDE         = frontApp.options.name is 'IDE'
-      wsData        = frontApp.workspaceData
+      ideApp = environmentDataProvider.getIDEFromUId @machine.uid
+
+      return  unless ideApp
+
+      wsData        = ideApp.workspaceData
       isSameMachine = wsData.machineUId is @machine.uid
 
-      if isIDE and wsData and isSameMachine
-        router.handleRoute "/IDE/#{slug}/#{wsData.slug}"
+      router.handleRoute "/IDE/#{slug}/#{wsData.slug}"
 
 
   watchMachineState: ->

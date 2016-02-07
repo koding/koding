@@ -1,10 +1,11 @@
-kd = require 'kd'
-KDDialogView = kd.DialogView
-KDFormView = kd.FormView
-KDInputView = kd.InputView
-KDLabelView = kd.LabelView
-KDView = kd.View
-IDEFinderItem = require 'ide/finder/idefinderitem'
+kd              = require 'kd'
+KDView          = kd.View
+KDFormView      = kd.FormView
+KDInputView     = kd.InputView
+KDLabelView     = kd.LabelView
+KDDialogView    = kd.DialogView
+IDEFinderItem   = require 'ide/finder/idefinderitem'
+envDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = (container, callback = kd.noop, options = {}) ->
@@ -72,5 +73,6 @@ module.exports = (container, callback = kd.noop, options = {}) ->
   # for now we can live with it and assuming appManager.frontApp is IDE in
   # this case is safe because this is save/save-as modal.
   if machine = options.machine
-    { rootPath } = kd.singletons.appManager.getFrontApp().workspaceData
-    finderController.updateMachineRoot machine.uid, rootPath
+    if ideApp = envDataProvider.getIDEFromUId machine.uid
+      { rootPath } = ideApp.workspaceData
+      finderController.updateMachineRoot machine.uid, rootPath
