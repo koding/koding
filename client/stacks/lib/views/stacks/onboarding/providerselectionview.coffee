@@ -1,5 +1,6 @@
-kd    = require 'kd'
-JView = require 'app/jview'
+kd      = require 'kd'
+JView   = require 'app/jview'
+globals = require 'globals'
 
 
 module.exports = class ProviderSelectionView extends JView
@@ -15,7 +16,11 @@ module.exports = class ProviderSelectionView extends JView
 
   createProviders: ->
 
-    providers = [ 'aws', 'koding', 'azure', 'digitalocean', 'googlecloud', 'rackspace' ]
+    providers        = [
+      'aws', 'vagrant', 'azure', 'digitalocean', 'googlecloud', 'rackspace'
+    ]
+    enabledProviders = ['aws']
+    enabledProviders.push 'vagrant'  if globals.config.environment is 'dev'
 
     @providers = new kd.CustomHTMLView cssClass: 'providers box-wrapper'
 
@@ -23,7 +28,7 @@ module.exports = class ProviderSelectionView extends JView
       extraClass = 'coming-soon'
       label      = 'Coming Soon'
 
-      if provider is 'aws'
+      if provider in enabledProviders
         extraClass = ''
         label      = ''
 

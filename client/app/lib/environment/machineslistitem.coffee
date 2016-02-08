@@ -166,3 +166,5 @@ module.exports = class MachinesListItem extends kd.ListItemView
     aws             : url: 'http://aws.amazon.com'
     koding          : url: 'http://aws.amazon.com', logo: 'aws'
     softlayer       : url: 'http://softlayer.com',  logo: 'softlayer'
+    vagrantkite     : url: 'http://vagrantup.com',  logo: 'vagrant'
+    vagrant         : url: 'http://vagrantup.com',  logo: 'vagrant'

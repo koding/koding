@@ -42,9 +42,10 @@ module.exports = class CredentialStatusView extends KDView
       cssClass   : 'link'
       partial    : 'Credentials are not set'
 
+    { selectedProvider } = @getOptions()
     creds = Object.keys @credentials
 
-    if creds.length > 0 and credential = @credentials['aws']?.first
+    if creds.length > 0 and credential = @credentials[selectedProvider]?.first
       remote.api.JCredential.one credential, (err, credential) =>
         if err or not credential
         then @setNotVerified 'Credentials not valid'

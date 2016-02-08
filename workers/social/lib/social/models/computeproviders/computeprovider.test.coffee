@@ -51,12 +51,13 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         client.r  = { account }
         queue     = []
 
-        forEachProvider (providerSlug, provider) ->
+        forEachProvider (providerSlug, provider, callback) ->
           options = { provider }
 
           ComputeProvider.ping client, options, (err, data) ->
             expect(err).to.not.exist
             expect(data).to.be.a 'string'
+            callback()
         , done
 
 
@@ -113,44 +114,49 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
     it 'should be able to fetch availabe object', (done) ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
-        forEachProvider (providerSlug) ->
+        forEachProvider (providerSlug, provider, callback) ->
 
           options =
             provider   : providerSlug
             credential : credential
 
           ComputeProvider.fetchAvailable client, options, (err, data) ->
-            return expect(err.message).to.be.equal notImplementedMessage  if err
+            if err
+              expect(err.message).to.be.equal notImplementedMessage
+              return callback()
             expect(err).to.not.exist
             expect(data).to.be.an 'array'
+            callback()
         , done
 
 
     it 'should fail if no provider is given', (done) ->
 
       withDummyClient ({ client }) ->
-        forEachProvider (providerSlug) ->
+        forEachProvider (providerSlug, provider, callback) ->
           ComputeProvider.fetchAvailable client, { provider : null }, (err, data) ->
             expect(err?.message).to.be.equal 'No such provider.'
+            callback()
         , done
 
 
     it 'should fail if credential is not provided', (done) ->
 
       withDummyClient ({ client }) ->
-        forEachProvider (providerSlug) ->
+        forEachProvider (providerSlug, provider, callback) ->
           options = { provider : providerSlug }
 
           ComputeProvider.fetchAvailable client, options, (err, data) ->
             expect(err?.message).to.satisfy (msg) ->
               return msg in [notImplementedMessage, 'Credential is required.']
+            callback()
         , done
 
 
     it 'should fail if given credential is not valid', (done) ->
 
       withDummyClient ({ client }) ->
-        forEachProvider (providerSlug) ->
+        forEachProvider (providerSlug, provider, callback) ->
 
           options =
             provider   : providerSlug
@@ -159,6 +165,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           ComputeProvider.fetchAvailable client, options, (err, data) ->
             expect(err?.message).to.satisfy (msg) ->
               return msg in [notImplementedMessage, 'Credential failed.']
+            callback()
         , done
 
 
@@ -584,11 +591,11 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should fail if not implemented yet', (done) ->
 
-      forEachProvider (providerSlug) ->
+      forEachProvider (providerSlug, provider, callback) ->
 
         options = { provider : providerSlug }
-        withConvertedUserAnd ['ComputeProvider'], options, (data) ->
-          { client, machine } = data
+        withConvertedUserAnd ['ComputeProvider', 'Credential'], options, (data) ->
+          { client, machine, credential } = data
 
           queue = [
 
@@ -599,16 +606,18 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
                 queue.next()
 
             ->
-              options = { provider : providerSlug, machineId : machine._id.toString() }
+              options = { provider : providerSlug, machineId : machine._id.toString(), credential }
               ComputeProvider.remove client, options, (err) ->
                 if err
-                  return expect(err.message).to.be.equal notImplementedMessage
+                  expect(err.message).to.be.equal notImplementedMessage
+                  return callback()
                 queue.next()
 
             ->
               JMachine.one { _id : machine._id }, (err, machine) ->
                 expect(err).to.not.exist
                 expect(machine).to.not.exist
+                callback()
                 queue.next()
 
           ]
