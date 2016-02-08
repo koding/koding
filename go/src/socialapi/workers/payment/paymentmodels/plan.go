@@ -27,6 +27,10 @@ type Plan struct {
 	// Cost of plan in cents.
 	AmountInCents uint64 `json:"amountInCents"`
 
+	// Type of customer. Enum:
+	//		'group', 'account'
+	Type string `json:"type"`
+
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" `
