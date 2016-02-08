@@ -1,0 +1,5 @@
+init_config:
+
+instances:
+  - name: remote_syslog
+    search_string: ["remote_syslog"]
