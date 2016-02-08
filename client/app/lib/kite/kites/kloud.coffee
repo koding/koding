@@ -12,7 +12,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
   debugEnabled = ->
     kd.singletons.computeController._kloudDebug
 
-  getProvider = (machineId)->
+  getMachineProvider = (machineId) ->
     kd.singletons.computeController.machinesById[machineId]?.provider
 
   isManaged = (machineId)->
@@ -166,7 +166,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
     {kontrol, computeController} = kd.singletons
 
-    provider  = getProvider machineId
+    provider  = getMachineProvider machineId
     groupName = getGroupName()
 
     payload   = { machineId, provider, groupName }
@@ -227,7 +227,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
     if payload?.machineId?
 
-      provider = getProvider payload.machineId
+      provider = getMachineProvider payload.machineId
       provider = 'koding'  unless provider
 
       if provider not in SUPPORTED_PROVIDERS
