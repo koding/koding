@@ -32,8 +32,6 @@ module.exports = class Vagrant extends ProviderInterface
 
     guessNextLabel { user, group, label, provider }, (err, label) ->
 
-      console.log ">>>>>>>", err, label
-
       return callback err  if err
 
       meta = { hostQueryString, alwaysOn: yes }
