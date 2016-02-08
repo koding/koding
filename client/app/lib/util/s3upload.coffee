@@ -46,7 +46,8 @@ module.exports = (options, callback = kd.noop) ->
       crossDomain : yes
       data        : data
       timeout     : timeout
-      error       : ->
-        callback message: "Failed to upload"
+      error       : (event, status, errorThrown) ->
+        console.log event
+        callback message: errorThrown
       success     : ->
         callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"
