@@ -9,7 +9,7 @@ SearchController   = require 'app/searchcontroller'
 
 SEED         = 'tu'
 SEED_OPTIONS =
-  showCurrentUser : undefined
+  showCurrentUser : no
 
 
 describe 'kd.singletons.search', ->
