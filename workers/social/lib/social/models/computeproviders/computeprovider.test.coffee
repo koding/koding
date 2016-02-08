@@ -533,8 +533,8 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
       forEachProvider (providerSlug) ->
 
         options = { provider : providerSlug }
-        withConvertedUserAnd ['ComputeProvider'], options, (data) ->
-          { client, machine } = data
+        withConvertedUserAnd ['ComputeProvider', 'Credential'], options, (data) ->
+          { client, machine, credential } = data
 
           queue = [
 
@@ -545,7 +545,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
                 queue.next()
 
             ->
-              options = { provider : providerSlug, machineId : machine._id.toString() }
+              options = { provider : providerSlug, machineId : machine._id.toString(), credential }
               ComputeProvider.remove client, options, (err) ->
                 if err
                   return expect(err.message).to.be.equal notImplementedMessage
