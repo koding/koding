@@ -54,7 +54,6 @@ module.exports = class NotificationController extends KDObject
         # event: "ChannelUpdateHappened"
 
         # filter notifications according to group slug
-
         return  unless notification?.context is getGroup().slug
 
         @emit 'NotificationHasArrived', notification
@@ -70,6 +69,9 @@ module.exports = class NotificationController extends KDObject
         @emit event, contents  if event
 
       @notificationChannel.on 'social', (notification) =>
+        # filter notifications according to group slug
+        return  unless notification?.context is getGroup().slug
+
         { contents, context, event } = notification
 
         @emit event, contents  if event
