@@ -88,7 +88,7 @@ module.exports = class TeamUsernameTabForm extends kd.FormView
     @backLink = new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link back'
-      partial  : '<i></i> <a href="/Team/Domain">Back</a>'
+      partial  : '<i></i> <a href="/Team/Payment">Back</a>'
 
     @button = new kd.ButtonView
       title      : 'Done!'

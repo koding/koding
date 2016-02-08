@@ -15,7 +15,8 @@ var LoggedOutHome = `
     <script>
       window._runtimeOptions = {
         google    : {{.Runtime.Google}},
-        recaptcha : {{.Runtime.Recaptcha}}
+        recaptcha : {{.Runtime.Recaptcha}},
+        stripe    : {{.Runtime.Stripe}}
       };
     </script>
 

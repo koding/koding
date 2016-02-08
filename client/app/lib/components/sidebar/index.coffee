@@ -158,14 +158,12 @@ module.exports = class Sidebar extends React.Component
 
   renderChannels: ->
     <SidebarChannelsSection
-      previewCount={PREVIEW_COUNT}
       selectedId={@state.selectedThreadId}
       threads={@state.publicChannels} />
 
 
   renderMessages: ->
     <SidebarMessagesSection
-      previewCount={PREVIEW_COUNT}
       selectedId={@state.selectedThreadId}
       threads={@state.privateChannels} />
 

@@ -61,9 +61,12 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	s.Log.Debug("Parsing machines from template:")
+	s.Log.Debug("%v", s.Builder.Template)
+
 	machines, err := s.machinesFromTemplate(s.Builder.Template, hostQueryString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("failure reading machines: " + err.Error())
 	}
 
 	s.Log.Debug("Machines planned to be created: %+v", machines)

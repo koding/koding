@@ -26,3 +26,8 @@ func GetStackTemplate(id string) (*models.StackTemplate, error) {
 
 	return stackTemplate, nil
 }
+
+func CreateStackTemplate(tmpl *models.StackTemplate) error {
+	query := insertQuery(tmpl)
+	return Mongo.Run(StackTemplateColl, query)
+}

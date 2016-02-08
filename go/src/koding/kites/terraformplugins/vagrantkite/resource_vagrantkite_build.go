@@ -4,8 +4,6 @@ import (
 	"errors"
 	"koding/kites/kloud/klient"
 	"log"
-	"net"
-	"net/url"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -121,6 +119,8 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 
 	queryString := d.Get("queryString").(string)
 
+	c.Log.Debug("Connecting to %q", queryString)
+
 	klientRef, err := klient.ConnectTimeout(c.Kite, queryString, time.Second*10)
 	if err != nil {
 		if err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable {
@@ -147,7 +147,9 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		CustomScript:  d.Get("customScript").(string),
 	}
 
-	resp, err := klientRef.Client.Tell("vagrant.create", args)
+	c.Log.Debug(`Calling "vagrant.create" on %q with %+v`, queryString, args)
+
+	resp, err := klientRef.Client.TellWithTimeout("vagrant.create", 1*time.Minute, args)
 	if err != nil {
 		return err
 	}
@@ -175,7 +177,7 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		Watch:    watch,
 	}
 
-	if _, err = klientRef.Client.Tell("vagrant.up", upArgs); err != nil {
+	if _, err = klientRef.Client.TellWithTimeout("vagrant.up", 1*time.Minute, upArgs); err != nil {
 		return err
 	}
 
@@ -185,25 +187,10 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		return errors.New("Vagrant build took to much time(10 minutes). Please try again")
 	}
 
-	// Klient runs on 56789 inside the machine, but Vagrant exposes it as 56790
-	// so it doesn't collide with the Klient inside the Host machine. So change
-	// the port, but keep the Host the same.
-	u, err := url.Parse(klientRef.URL())
-	if err != nil {
-		return err
-	}
-
-	host, _, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		return err
-	}
-
-	u.Host = net.JoinHostPort(host, "56790")
-
 	d.SetId(queryString)
 	d.Set("filePath", result.FilePath)
 	d.Set("klientHostURL", klientRef.URL())
-	d.Set("klientGuestURL", u.String())
+	d.Set("klientGuestURL", d.Get("registerURL").(string))
 	d.Set("hostname", result.Hostname)
 	d.Set("box", result.Box)
 	d.Set("cpus", result.Cpus)
@@ -253,7 +240,7 @@ func resourceMachineDelete(d *schema.ResourceData, meta interface{}) error {
 		Watch:    watch,
 	}
 
-	if _, err = klientRef.Client.Tell("vagrant.destroy", destroyArgs); err != nil {
+	if _, err = klientRef.Client.TellWithTimeout("vagrant.destroy", 1*time.Minute, destroyArgs); err != nil {
 		return err
 	}
 

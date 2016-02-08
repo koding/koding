@@ -1,12 +1,17 @@
+path            = require 'path'
+shell           = require 'shell'
 electron        = require 'electron'
-BrowserWindow   = electron.BrowserWindow
 ApplicationMenu = require './applicationmenu'
 IPCReporter     = require './ipcreporter'
-path            = require 'path'
+Storage         = require './storage'
+BrowserWindow   = electron.BrowserWindow
+app             = electron.app
 
 # temp
 # get this from config or runtime options - SY
-ROOT_URL = 'https://koding.com/Teams'
+ROOT_URL         = 'https://koding.com/Teams'
+STORAGE_TEMPLATE = { 'last-route' : ROOT_URL }
+NODE_REQUIRE     = path.resolve path.join __dirname, 'noderequire.js'
 
 module.exports = ->
 
@@ -20,14 +25,9 @@ module.exports = ->
     backgroundColor   : '#131313'
     webPreferences    :
       partition       : 'persist:koding'
-      preload         : path.resolve path.join __dirname, 'noderequire.js'
+      preload         : NODE_REQUIRE
       nodeIntegration : no
 
-  # and load the index.html of the app.
-  mainWindow.loadURL ROOT_URL
-
-  # Open the DevTools.
-  # mainWindow.webContents.openDevTools()
 
   # Set application menu
   new ApplicationMenu
@@ -35,9 +35,25 @@ module.exports = ->
   # Start listening the web app
   new IPCReporter
 
+  # Prepare AppStorage
+  storage = new Storage template : STORAGE_TEMPLATE
+
+  # and load the index.html of the app.
+  mainWindow.loadURL storage.get()['last-route'] or ROOT_URL
+
+  mainWindow.webContents.on 'new-window', (e, url) ->
+    e.preventDefault()
+    shell.openExternal url
+
+  app.on 'will-quit', (e) ->
+    settings = storage.get()
+    settings['last-route'] = mainWindow.webContents.getURL()
+    storage.write settings
+
   # Emitted when the window is closed.
   mainWindow.on 'closed', ->
     # Dereference the window object, usually you would store windows
     # in an array if your app supports multi windows, this is the time
     # when you should delete the corresponding element.
     mainWindow = null
+

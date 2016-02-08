@@ -15,7 +15,7 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.LOAD_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @handleLoadFollowedChannelSuccess
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
-    @on actions.LOAD_POPULAR_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
+    @on actions.LOAD_POPULAR_CHANNELS_SUCCESS, @handleLoadPopularChannelsSuccess
 
     @on actions.FOLLOW_CHANNEL_BEGIN, @handleFollowChannelBegin
     @on actions.FOLLOW_CHANNEL_SUCCESS, @handleFollowChannelSuccess
@@ -46,10 +46,15 @@ module.exports = class ChannelsStore extends KodingFluxStore
     return channels.set channel.id, toImmutable channel
 
 
-  handleLoadChannelListSuccess: (currentChannels, { channels }) ->
+  handleLoadPopularChannelsSuccess: (currentChannels, { channels }) ->
 
+    # we don't update channel if channel has been already set. Because
+    # fetchPopularTopics action doesn't get the correct unreadCount value.
+    # When BE fix it, we are gonna change this.
     return currentChannels.withMutations (map) ->
-      map.set channel.id, toImmutable channel for channel in  channels
+      for channel in  channels
+        map.set channel.id, toImmutable channel  unless map.get channel.id
+
       return map
 
 

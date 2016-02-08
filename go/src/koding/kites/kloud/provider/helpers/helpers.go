@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloudctl/command"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -15,7 +14,7 @@ import (
 func ValidateUser(user *models.User, users []models.MachineUser, r *kite.Request) error {
 	// give access to kloudctl immediately
 	if r.Auth != nil {
-		if r.Auth.Key == command.KloudSecretKey {
+		if r.Auth.Key == kloud.KloudSecretKey {
 			return nil
 		}
 	}

@@ -7,7 +7,12 @@ import (
 	"socialapi/request"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/bongo"
+)
+
+const (
+	processLimit = 100
 )
 
 var (
@@ -138,6 +143,115 @@ func (n *Notification) FetchByContent() error {
 	q := bongo.NewQS(selector)
 
 	return n.One(q)
+}
+
+// FetchAllNotificationContentIdsInGroup fetch the content Ids of account with given channelId
+func (n *Notification) FetchAllNotificationContentIdsInGroup(accountId int64, contextChannelId int64) ([]int64, error) {
+	if accountId == 0 {
+		return nil, models.ErrAccountIdIsNotSet
+	}
+
+	var contentIds []int64
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id":         accountId,
+			"context_channel_id": contextChannelId,
+		},
+		Pluck:      "notification_content_id",
+		Pagination: *bongo.NewPagination(processLimit, 0),
+	}
+
+	err := bongo.B.Some(n, &contentIds, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return contentIds, nil
+}
+
+// RemoveAllContentsRelatedWithNotification removes all data related with notification
+// removes contents related with; notification content & notification activity & notification
+func (n *Notification) RemoveAllContentsRelatedWithNotification(accountId int64, contextChannelId int64) error {
+	var errs *multierror.Error
+
+	for {
+		contentIds, err := n.FetchAllNotificationContentIdsInGroup(accountId, contextChannelId)
+		if err != nil && err != bongo.RecordNotFound {
+			errs = multierror.Append(errs, err)
+		}
+		// if there is any data when we fetch content.
+		// then no need to process rest of code lines..
+		if len(contentIds) == 0 {
+			break
+		}
+
+		err = n.DeleteByIds(contentIds...)
+		if err != nil && err != bongo.RecordNotFound {
+			errs = multierror.Append(errs, err)
+		}
+
+		nta := NewNotificationActivity()
+		err = nta.DeleteWithContentId(contentIds...)
+		if err != nil && err != bongo.RecordNotFound {
+			errs = multierror.Append(errs, err)
+		}
+
+		// we need to check contentId here.
+		// Otherwise its gonna return IdIsNotSet error all the time
+		ntcn := NewNotificationContent()
+		err = ntcn.DeleteByIds(contentIds...)
+		if err != nil && err != bongo.RecordNotFound {
+			errs = multierror.Append(errs, err)
+		}
+
+		// if length of content Ids are less than process limit(100 in this sceneario)
+		// it means that there is not data to fetch anymore
+		// so we can break loop
+		if len(contentIds) < processLimit {
+			break
+		}
+
+		// sleep for every `processCount` operation
+		time.Sleep(time.Second * 1)
+	}
+
+	if errs.ErrorOrNil() != nil {
+		return errs
+	}
+
+	return nil
+}
+
+func (n *Notification) DeleteByIds(ids ...int64) error {
+	// we use error struct for this function because of iterating over all elements
+	// and we'r gonna try to delete given ids at least one time..
+	var errs *multierror.Error
+
+	if len(ids) == 0 {
+		return models.ErrIdIsNotSet
+	}
+
+	for _, id := range ids {
+		nt := NewNotification()
+		if err := nt.ByContentId(id); err != nil {
+			// our aim is removing data from DB
+			// so if record is not found in database
+			// we can ignore this RecordNotFound error
+			if err != bongo.RecordNotFound {
+				errs = multierror.Append(errs, err)
+			}
+		}
+
+		if err := nt.Delete(); err != nil {
+			if err != bongo.RecordNotFound {
+				errs = multierror.Append(errs, err)
+			}
+		}
+
+	}
+
+	return errs.ErrorOrNil()
 }
 
 // getDecoratedList fetches notifications of the given user and decorates it with

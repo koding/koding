@@ -103,9 +103,13 @@ func (s *Stack) Apply(ctx context.Context) (interface{}, error) {
 		s.Eventer.Push(finalEvent)
 	}()
 
-	return kloud.ControlResult{
+	res := kloud.ControlResult{
 		EventId: s.Eventer.ID(),
-	}, nil
+	}
+
+	s.Log.Debug("Eventer returned %q", res.EventId)
+
+	return res, nil
 }
 
 func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string) error {
@@ -185,6 +189,7 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 		Content:   s.Builder.Stack.Template,
 		ContentID: contentID,
 		Variables: nil,
+		TraceID:   s.TraceID,
 	}
 
 	s.Log.Debug("Calling terraform.destroy method with context:")
@@ -311,6 +316,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 		Content:   s.Builder.Stack.Template,
 		ContentID: contentID,
 		Variables: nil,
+		TraceID:   s.TraceID,
 	}
 	s.Log.Debug("Final stack template. Calling terraform.apply method:")
 	s.Log.Debug("%+v", tfReq)

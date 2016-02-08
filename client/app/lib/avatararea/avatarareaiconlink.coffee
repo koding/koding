@@ -26,39 +26,6 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
     then @$('.count').addClass "hidden"
     else @$('.count').removeClass "hidden"
 
-  click: do (skipNextClick = no, popupIsHidden = no) -> (event) ->
-
-    kd.utils.stopDOMEvent event
-
-    { mainView } = kd.singletons
-
-    if mainView.hasClass('hover') or mainView.isSidebarCollapsed
-      mainView.resetSidebar()
-
-    return skipNextClick = no  if skipNextClick
-
-    popup = @getDelegate()
-    popup.show()
-
-    popup.once 'AvatarPopupShouldBeHidden', (event) ->
-      popupIsHidden = yes
-
-    popup.once 'ReceivedClickElsewhere', (event) =>
-      skipNextClick = if popupIsHidden then no else @isInside event.target
-      popupIsHidden = no
-      popup.hide()
-
-
-
-  isInside: (target) ->
-
-    itself = @$()[0]
-    count  = @$('.count')[0]
-    cite   = @$('cite')[0]
-    icon   = @$('.icon')[0]
-
-    target in [itself, count, cite, icon]
-
 
   pistachio: ->
     """

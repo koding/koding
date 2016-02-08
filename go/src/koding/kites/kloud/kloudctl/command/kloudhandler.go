@@ -5,12 +5,11 @@ import (
 	"math/rand"
 	"time"
 
+	"koding/kites/kloud/kloud"
+
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 )
-
-// used to authenticate with Kloud directly
-const KloudSecretKey = "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -48,7 +47,6 @@ func kloudWrapper(args []string, actioner Actioner) error {
 	}
 
 	return nil
-
 }
 
 func kloudClient() (*kite.Client, error) {
@@ -70,7 +68,7 @@ func kloudClient() (*kite.Client, error) {
 	remoteKite.Reconnect = true
 	remoteKite.Auth = &kite.Auth{
 		Type: "kloudctl",
-		Key:  KloudSecretKey,
+		Key:  kloud.KloudSecretKey,
 	}
 
 	if err := remoteKite.DialTimeout(time.Second * 10); err != nil {

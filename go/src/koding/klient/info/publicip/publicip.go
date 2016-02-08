@@ -1,6 +1,7 @@
 package publicip
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -23,7 +24,7 @@ func PublicIP() (net.IP, error) {
 		return nil, err
 	}
 
-	n := net.ParseIP(string(out))
+	n := net.ParseIP(string(bytes.TrimSpace(out)))
 	if n == nil {
 		return nil, fmt.Errorf("cannot parse ip %s", string(out))
 	}

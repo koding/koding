@@ -44,7 +44,7 @@ module.exports = (req, res, next) ->
       # if we dont have teamaccesscode just continue
 
       validateTeamInvitation teamAccessCode, (err) ->
-        return res.status(400).send err  if err
+        return next { status: 400, message: err }  if err
         next()
 
     (next) ->
@@ -54,7 +54,7 @@ module.exports = (req, res, next) ->
         # when there is an error in the fetchClient, it returns message in it
         if client.message
           console.error JSON.stringify { req, client }
-          return res.status(500).send client.message
+          return next { status: 500, message: client.message }
 
         client.clientIP = (clientIPAddress.split ',')[0]
 
@@ -68,13 +68,13 @@ module.exports = (req, res, next) ->
       # checking if group slug is same with the username
       if slug.toLowerCase?() is body.username?.toLowerCase?()
         message = 'Sorry, your group domain and your username can not be the same!'
-        return  res.status(400).send message
+        return next { status: 400, message: message }
 
       # checking if group slug was already used
       JGroup.one { slug }, (err, group) ->
-        return res.status(500).send 'an error occured'  if err
-        return res.status(403).send "Sorry,
-          Team URL '#{slug}.#{hostname}' is already in use"  if group
+        return next { status: 500, message: 'an error occured' }  if err
+        return next { status: 403, message: "Sorry,
+          Team URL '#{slug}.#{hostname}' is already in use" }  if group
         next()
 
     (next) ->
@@ -85,24 +85,24 @@ module.exports = (req, res, next) ->
 
         # send HTTP 400 if somehow alreadyMember is true but user doesnt exist
         if alreadyMember and errorMessage is unknownUsernameError
-          return res.status(400).send unknownUsernameError
+          return next { status: 400, message: unknownUsernameError }
 
         # setting alreadyMember to true if error is not unknownUsernameError
         # ignoring other errors here since our only concern is checking if user exists
         alreadyMember = errorMessage isnt unknownUsernameError
         next()
 
-    (next) ->
-      # generating callback function to be used in both login and convert
-      createGroup = createGroupKallback client, req, res, body
-
-      if alreadyMember
-      then JUser.login client.sessionToken, body, createGroup
-      else JUser.convert client, body, createGroup
-
   ]
 
-  async.series queue
+  async.series queue, (err) ->
+    return res.status(err.status).send err.message  if err
+
+    # generating callback function to be used in both login and convert
+    createGroup = createGroupKallback client, req, res, body
+
+    if alreadyMember
+    then JUser.login client.sessionToken, body, createGroup
+    else JUser.convert client, body, createGroup
 
 
 validateTeamInvitation = (teamAccessCode, callback) ->
@@ -156,9 +156,8 @@ createGroupKallback = (client, req, res, body) ->
     client.sessionToken        = token
     client.connection.delegate = result.account
 
-    if validationError = validateGroupDataAndReturnError body
-      { statusCode, errorMessage } = validationError
-      return res.status(statusCode).send errorMessage
+    if validationError = validateGroupData body
+      return res.status(validationError.status).send validationError.message
 
     afterGroupCreate = afterGroupCreateKallback res, {
       body             : body
@@ -217,18 +216,18 @@ afterGroupCreateKallback = (res, params) ->
       return res.status(200).send data
 
 
-validateGroupDataAndReturnError = (body) ->
+validateGroupData = (body) ->
 
   unless body.slug
-    return { statusCode : 400, errorMessage : 'Group slug can not be empty.' }
+    return { status: 400, message: 'Group slug can not be empty.' }
 
   unless validateTeamDomain body.slug
-    return { statusCode : 400, errorMessage : 'Invalid group slug.' }
+    return { status: 400, message: 'Invalid group slug.' }
 
   else unless body.companyName
-    return { statusCode : 400, errorMessage : 'Company name can not be empty.' }
+    return { status: 400, message: 'Company name can not be empty.' }
 
-  else null
+  else return null
 
 # convertToArray converts given comma separated string value into cleaned,
 # trimmed, lowercased, unified array of string

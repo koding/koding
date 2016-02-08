@@ -13,6 +13,7 @@ module.exports = ssoTokenLogin = (req, res, next) ->
   { token } = req.query
   user      = null
   group     = null
+  session   = null
   account   = null
   username  = null
 
@@ -22,20 +23,20 @@ module.exports = ssoTokenLogin = (req, res, next) ->
 
     (next) ->
       validateJWTToken token, (err, data) ->
-        return sendApiError res, err  if err
+        return next err  if err
         { username, group } = data
 
         # making sure subdomain is same with group slug
         unless group in req.subdomains
-          return sendApiError res, apiErrors.invalidRequestDomain
+          return next apiErrors.invalidRequestDomain
 
         next()
 
     (next) ->
       # checking if user exists
       JAccount.one { 'profile.nickname' : username }, (err, account_) ->
-        return sendApiError res, apiErrors.internalError    if err
-        return sendApiError res, apiErrors.invalidUsername  unless account_
+        return next apiErrors.internalError    if err
+        return next apiErrors.invalidUsername  unless account_
         account = account_
         next()
 
@@ -43,19 +44,22 @@ module.exports = ssoTokenLogin = (req, res, next) ->
       # checking if user is a member of the group of api token
       client = { connection : { delegate : account } }
       account.checkGroupMembership client, group, (err, isMember) ->
-        return sendApiError res, apiErrors.internalError   if err
-        return sendApiError res, apiErrors.notGroupMember  unless isMember
+        return next apiErrors.internalError   if err
+        return next apiErrors.notGroupMember  unless isMember
         next()
 
     (next) ->
       # creating a user session for the group if everything is ok
-      JSession.createNewSession { username, groupName : group }, (err, session) ->
-        return sendApiError res, apiErrors.internalError           if err
-        return sendApiError res, apiErrors.failedToCreateSession   unless session
-
-        setSessionCookie res, session.clientId
-        res.redirect('/')
+      JSession.createNewSession { username, groupName : group }, (err, session_) ->
+        return next apiErrors.internalError           if err
+        return next apiErrors.failedToCreateSession   unless session_
+        session = session_
+        next()
 
   ]
 
-  async.series queue
+  async.series queue, (err) ->
+    return sendApiError res, err  if err
+
+    setSessionCookie res, session.clientId
+    res.redirect('/')

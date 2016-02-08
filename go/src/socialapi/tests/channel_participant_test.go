@@ -279,6 +279,49 @@ func TestChannelParticipantOperations(t *testing.T) {
 						So(err, ShouldBeNil)
 					})
 				})
+				Convey("while removing users from group channels", func() {
+					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
+
+					participant := models.NewAccount()
+					participant.OldId = AccountOldId.Hex()
+					participant, err = rest.CreateAccount(participant)
+					So(err, ShouldBeNil)
+					So(participant, ShouldNotBeNil)
+
+					participant2 := models.NewAccount()
+					participant2.OldId = AccountOldId.Hex()
+					participant2, err = rest.CreateAccount(participant2)
+					So(err, ShouldBeNil)
+					So(participant2, ShouldNotBeNil)
+
+					ownerSes, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					So(err, ShouldBeNil)
+
+					ses, err := models.FetchOrCreateSession(participant.Nick, groupName)
+					So(err, ShouldBeNil)
+
+					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_GROUP, ownerSes.ClientId)
+					So(err, ShouldBeNil)
+					So(ch, ShouldNotBeNil)
+
+					// ownerSes session is admin's session data
+					_, err = rest.AddChannelParticipant(ch.Id, ownerSes.ClientId, participant.Id)
+					So(err, ShouldBeNil)
+
+					_, err = rest.AddChannelParticipant(ch.Id, ownerSes.ClientId, participant2.Id)
+					So(err, ShouldBeNil)
+					Convey("owner should  be able to remove user from group channel", func() {
+						// ownerSes session is admin's session data
+						_, err = rest.DeleteChannelParticipant(ch.Id, ownerSes.ClientId, participant2.Id)
+						So(err, ShouldBeNil)
+					})
+
+					Convey("nonOwner should not be able to remove user from group channel", func() {
+						// ses session is participant's session data
+						_, err = rest.DeleteChannelParticipant(ch.Id, ses.ClientId, participant2.Id)
+						So(err, ShouldNotBeNil)
+					})
+				})
 				Convey("User's notification setting should be removed when user left from channel", func() {
 					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
 
@@ -333,6 +376,37 @@ func TestChannelParticipantOperations(t *testing.T) {
 						So(err, ShouldNotBeNil)
 						So(err.Error(), ShouldContainSubstring, models.ErrAccountIsNotParticipant.Error())
 						So(ns, ShouldBeNil)
+					})
+				})
+				Convey("when user left from group, user's notification should be removed in DB", func() {
+					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
+
+					account := models.NewAccount()
+					account.OldId = AccountOldId.Hex()
+					account, err = rest.CreateAccount(account)
+					So(err, ShouldBeNil)
+					So(account, ShouldNotBeNil)
+
+					ownerSes, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					So(ownerSes, ShouldNotBeNil)
+					So(err, ShouldBeNil)
+
+					ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+					So(err, ShouldBeNil)
+					So(ses, ShouldNotBeNil)
+
+					channel := models.CreateTypedGroupedChannelWithTest(
+						ownerAccount.Id,
+						models.Channel_TYPE_GROUP,
+						groupName,
+					)
+					_, err = channel.AddParticipant(account.Id)
+					So(err, ShouldBeNil)
+
+					Convey("notification should equal zero before mentioning etc.. ", func() {
+						resp, err := rest.GetNotificationList(account.Id, ses.ClientId)
+						So(len(resp.Notifications), ShouldEqual, 0)
+						So(err, ShouldBeNil)
 					})
 				})
 			})

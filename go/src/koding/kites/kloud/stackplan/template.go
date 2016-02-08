@@ -226,7 +226,7 @@ func (t *Template) FillVariables(prefix string) error {
 // InjectVariables
 func (t *Template) InjectVariables(prefix string, meta interface{}) error {
 	for k, v := range t.b.New(prefix).Build(meta) {
-		t.log.Debug("Injecting variable: %s=%q", k, v)
+		t.log.Debug("Injecting variable: %s=%v", k, v)
 
 		t.Variable[k] = map[string]interface{}{
 			"default": v,

@@ -46,31 +46,37 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		return nil, NewError(ErrNoArguments)
 	}
 
-	k.Log.Debug("Called %s with %q", r.Method, r.Args.Raw)
-
-	var argCommon struct {
-		Provider  string `json:"provider"`
-		StackID   string `json:"stackId,omitempty"`
-		GroupName string `json:"groupName,omitempty"`
-		Debug     bool   `json:"debug,omitempty"`
+	var args struct {
+		Provider    string `json:"provider"`
+		StackID     string `json:"stackId,omitempty"`
+		GroupName   string `json:"groupName,omitempty"`
+		Debug       bool   `json:"debug,omitempty"`
+		Impersonate string `json:"impersonate,omitempty"` // only for kloudctl
 	}
 
 	// Unamrshal common arguments.
-	if err := r.Args.One().Unmarshal(&argCommon); err != nil {
+	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
 
 	// TODO(rjeczalik): compatibility code, remove
-	if argCommon.Provider == "" {
-		argCommon.Provider = "aws"
+	if args.Provider == "" {
+		args.Provider = "aws"
 	}
 
-	groupName := argCommon.GroupName
+	if r.Auth != nil && r.Auth.Type == "kloudctl" && r.Auth.Key == KloudSecretKey {
+		// kloudctl is not authenticated with username, let it overwrite it
+		r.Username = args.Impersonate
+	}
+
+	k.Log.Debug("Called %q by %q with %q", r.Method, r.Username, r.Args.Raw)
+
+	groupName := args.GroupName
 	if groupName == "" {
 		groupName = "koding"
 	}
 
-	p, ok := k.providers[argCommon.Provider].(StackProvider)
+	p, ok := k.providers[args.Provider].(StackProvider)
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
 	}
@@ -86,12 +92,14 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		ctx = k.ContextCreator(ctx)
 	}
 
-	if argCommon.StackID != "" {
-		evID := r.Method + "-" + argCommon.StackID
+	if args.StackID != "" {
+		evID := r.Method + "-" + args.StackID
 		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
+
+		k.Log.Debug("Eventer created %q", evID)
 	}
 
-	if argCommon.Debug {
+	if args.Debug {
 		ctx = k.setTraceID(r.Username, r.Method, ctx)
 	}
 

@@ -38,3 +38,7 @@ func (a *NotificationActivity) Some(data interface{}, q *bongo.Query) error {
 func (a *NotificationActivity) ById(id int64) error {
 	return bongo.B.ById(a, id)
 }
+
+func (a *NotificationActivity) Delete() error {
+	return bongo.B.Delete(a)
+}
