@@ -46,6 +46,4 @@ module.exports = ChannelToken =
 
     if query
       ChannelActions.loadChannelsByQuery query
-    else
-      ChannelActions.loadPopularChannels()
-    
+
