@@ -30,7 +30,7 @@ shareCredentials = (options, callback) ->
 
 
 # Returns plan data
-# If plan not found it fallbacks to default
+# If plan is not found, it fallbacks to default
 # If there are plan overrides, they override plan properties
 getPlanData = (planConfig) ->
 
