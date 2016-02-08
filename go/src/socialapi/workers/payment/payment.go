@@ -31,9 +31,17 @@ var (
 // SubscribeRequest
 //----------------------------------------------------------
 
+type GroupSubscribeRequest struct {
+	GroupId string
+	SubscribeRequest
+}
+
+type AccountSubscribeRequest struct {
+	AccountId string
+	SubscribeRequest
+}
+
 type SubscribeRequest struct {
-	AccountId    string
-	GroupId      string
 	Token        string
 	Email        string
 	Provider     string
@@ -42,14 +50,14 @@ type SubscribeRequest struct {
 	Type         string
 }
 
-func (s *SubscribeRequest) Do() (interface{}, error) {
+func (a *AccountSubscribeRequest) Do() (interface{}, error) {
 	var err error
 
-	switch s.Provider {
+	switch a.Provider {
 	case "stripe":
-		err = s.handleStripe()
+		err = stripe.SubscribeForAccount(a.Token, a.AccountId, a.Email, a.PlanTitle, a.PlanInterval)
 	case "paypal":
-		err = s.handlePaypal()
+		err = paypal.SubscribeWithPlan(a.Token, a.AccountId, a.PlanTitle, a.PlanInterval)
 	default:
 		err = ErrProviderNotFound
 	}
@@ -57,31 +65,33 @@ func (s *SubscribeRequest) Do() (interface{}, error) {
 	if err != nil {
 		Log.Error(
 			"Subscribing account: %s to plan: %s failed. %s",
-			s.AccountId, s.PlanTitle, err,
+			a.AccountId, a.PlanTitle, err,
 		)
 	}
 
 	return nil, err
 }
 
-func (s *SubscribeRequest) handleStripe() error {
+func (g *GroupSubscribeRequest) Do() (interface{}, error) {
 	var err error
 
-	if s.Type == paymentmodels.GroupCustomer {
-		err = stripe.SubscribeForGroup(s.Token, s.GroupId, s.Email, s.PlanTitle, s.PlanInterval)
-	} else {
-		err = stripe.SubscribeForAccount(s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval)
+	switch g.Provider {
+	case "stripe":
+		err = stripe.SubscribeForGroup(g.Token, g.GroupId, g.Email, g.PlanTitle, g.PlanInterval)
+	case "paypal":
+		err = ErrNoGroupForPaypal
+	default:
+		err = ErrProviderNotFound
 	}
 
-	return err
-}
-
-func (s *SubscribeRequest) handlePaypal() error {
-	if s.Type == paymentmodels.GroupCustomer {
-		return ErrNoGroupForPaypal
+	if err != nil {
+		Log.Error(
+			"Subscribing group: %s to plan: %s failed. %s",
+			g.GroupId, g.PlanTitle, err,
+		)
 	}
 
-	return paypal.SubscribeWithPlan(s.Token, s.AccountId, s.PlanTitle, s.PlanInterval)
+	return nil, err
 }
 
 //----------------------------------------------------------
@@ -143,8 +153,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 	}
 
 	plan := &paymentmodels.Plan{}
-	err = plan.ById(currentSubscription.PlanId)
-	if err != nil {
+	if err := plan.ById(currentSubscription.PlanId); err != nil {
 		return defaultResp, nil
 	}
 

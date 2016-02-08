@@ -7,13 +7,13 @@ import (
 
 func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
-	// Subscriptions
+	// Subscribe
 	//----------------------------------------------------------
 
-	// this is same /subscribe/account, here for backwards compatibilty
+	// this is same /payments/account/subscribe, here for backwards compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  Subscribe,
+			Handler:  AccountSubscribe,
 			Name:     "payment-subsrcibe",
 			Type:     handler.PostRequest,
 			Endpoint: "/payments/subscribe",
@@ -22,19 +22,19 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  Subscribe,
-			Name:     "payment-subscribe-account",
+			Handler:  AccountSubscribe,
+			Name:     "payment-account-subscribe",
 			Type:     handler.PostRequest,
-			Endpoint: "/payments/subscribe/account",
+			Endpoint: "/payments/account/subscribe",
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  Subscribe,
-			Name:     "payment-subscribe-group",
+			Handler:  GroupSubscribe,
+			Name:     "payment-group-subscribe",
 			Type:     handler.PostRequest,
-			Endpoint: "/payments/subscribe/group",
+			Endpoint: "/payments/group/subscribe",
 		},
 	)
 
