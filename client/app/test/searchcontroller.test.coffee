@@ -8,7 +8,9 @@ SearchController   = require 'app/searchcontroller'
 { mainController } = kd.singletons
 
 SEED         = 'tu'
-SEED_OPTIONS = {}
+SEED_OPTIONS =
+  showCurrentUser : undefined
+
 
 describe 'kd.singletons.search', ->
 
@@ -23,7 +25,6 @@ describe 'kd.singletons.search', ->
         mockAccount  = mock.getMockAccount()
         { nickname } = mockAccount.profile
 
-        mock.remote.cacheableAsync.toReturnPassedParam mockAccount
         mock.search.getIndex.toReturnIndex()
 
         { search }   = kd.singletons
@@ -53,7 +54,6 @@ describe 'kd.singletons.search', ->
         mockAccount  = mock.getMockAccount()
         { nickname } = mockAccount.profile
 
-        mock.remote.cacheableAsync.toReturnPassedParam mockAccount
         mock.search.getIndex.toReturnIndex()
 
         { search }   = kd.singletons
@@ -76,6 +76,38 @@ describe 'kd.singletons.search', ->
             revertNick()
             done()
 
+    it 'should not filter current user if showCurrentUser is yes', (done) ->
+
+      mainController.ready ->
+
+        mockAccount  = mock.getMockAccount()
+        { nickname } = mockAccount.profile
+
+        mock.remote.cacheableAsync.toReturnPassedParam mockAccount
+        mock.search.getIndex.toReturnIndex()
+
+        { search }   = kd.singletons
+        search.ready = yes
+
+        nickSpy     = expect.createSpy().andReturn nickname
+        revertNick  = SearchController.__set__ 'nick', nickSpy
+
+        SEED_OPTIONS.showCurrentUser = yes
+
+        search
+          .searchAccounts SEED, SEED_OPTIONS
+          .then (data) ->
+
+            found = no
+
+            for acc in data when acc.profile.nickname is nickname
+              found = yes
+
+            expect(found).toBe yes
+
+            revertNick()
+            done()
+
 
     it 'should search mongo if algolia fails', (done) ->
 
@@ -91,7 +123,7 @@ describe 'kd.singletons.search', ->
         search
           .searchAccounts SEED, SEED_OPTIONS
           .catch ->
-            expect(search.searchAccountsMongo).toHaveBeenCalledWith SEED
+            expect(search.searchAccountsMongo).toHaveBeenCalledWith SEED, SEED_OPTIONS
             done()
 
 
@@ -107,8 +139,9 @@ describe 'kd.singletons.search', ->
         search
           .searchAccounts SEED, SEED_OPTIONS
           .catch ->
-            expect(search.searchAccountsMongo).toHaveBeenCalledWith SEED
+            expect(search.searchAccountsMongo).toHaveBeenCalledWith SEED, SEED_OPTIONS
             done()
+
 
 
   describe '::searchAccountsMongo', ->
@@ -140,6 +173,40 @@ describe 'kd.singletons.search', ->
             found = yes
 
           expect(found).toBe no
+
+          revertNick()
+          done()
+
+
+    it 'should not filter current user from the results if showCurrentUser is yes', (done) ->
+
+      { search } = kd.singletons
+
+      mockAccount = mock.getMockAccount()
+      mockGroup   = mock.getMockGroup()
+      nickname    = mockAccount.profile.nickname
+
+      mock.remote.api.JAccount.one.toReturnAccount()
+      mock.groups.getCurrentGroup.toReturnGroup()
+
+      expect.spyOn(mockGroup, 'isMember').andCall (account, callback) ->
+        callback null, yes
+
+      nickSpy     = expect.createSpy().andReturn nickname
+      revertNick  = SearchController.__set__ 'nick', nickSpy
+
+      SEED_OPTIONS.showCurrentUser = yes
+
+      search
+        .searchAccountsMongo SEED, SEED_OPTIONS
+        .then (account) ->
+
+          found = no
+
+          for acc in account when acc.profile.nickname is nickname
+            found = yes
+
+          expect(found).toBe yes
 
           revertNick()
           done()
