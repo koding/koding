@@ -7,7 +7,7 @@ globals = require 'globals'
 
 module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
-  SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer']
+  SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer', 'vagrantkite']
 
   debugEnabled = ->
     kd.singletons.computeController._kloudDebug
@@ -35,6 +35,8 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
             message : 'Operation is not supported for this VM'
 
         payload.provider = provider
+        payload.provider = 'vagrant'  if provider is 'vagrantkite'
+
 
       payload.groupName = getGroupName()
       payload.debug = yes  if debugEnabled()
