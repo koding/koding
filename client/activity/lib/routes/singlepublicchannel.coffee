@@ -4,6 +4,7 @@ ActivityFlux                           = require 'activity/flux'
 transitionToChannel                    = require 'activity/util/transitionToChannel'
 SingleMessageRoute                     = require './singlemessage'
 ResultStates                           = require 'activity/constants/resultStates'
+SinglePublicChannelSearch              = require 'activity/routes/singlepublicchannelsearch'
 PublicChannelNotificationSettingsRoute = require 'activity/routes/publicchannelnotificationsettings'
 
 {
@@ -21,6 +22,7 @@ module.exports = class SingleChannelRoute
     @childRoutes = [
       new PublicChannelNotificationSettingsRoute
       new SingleMessageRoute
+      new SinglePublicChannelSearch
     ]
 
   getComponents: (state, callback) ->

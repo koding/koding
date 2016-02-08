@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/models"
 	"time"
 
 	"github.com/koding/bongo"
@@ -54,6 +55,22 @@ func (n *Notification) Create() error {
 	}
 
 	return nil
+}
+
+func (n *Notification) Delete() error {
+	return bongo.B.Delete(n)
+}
+
+func (n *Notification) ByContentId(contentId int64) error {
+	if contentId == 0 {
+		return models.ErrIdIsNotSet
+	}
+
+	selector := map[string]interface{}{
+		"notification_content_id": contentId,
+	}
+
+	return n.One(bongo.NewQS(selector))
 }
 
 func (n *Notification) Some(data interface{}, q *bongo.Query) error {

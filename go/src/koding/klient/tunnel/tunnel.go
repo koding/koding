@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 
-	"github.com/boltdb/bolt"
-	"github.com/koding/kite"
-	"github.com/koding/tunnel"
+	"koding/kites/tunnelproxy"
 	"koding/klient/protocol"
+
+	"github.com/boltdb/bolt"
 )
 
 const (
@@ -26,15 +27,9 @@ const (
 
 var ErrKeyNotFound = errors.New("key not found")
 
-// registerResult is a response type from the tunnel server's `register`
-// method.
-type registerResult struct {
-	VirtualHost string
-	Identifier  string
-}
-
 type TunnelClient struct {
-	db *bolt.DB
+	db     *bolt.DB
+	client *tunnelproxy.Client
 }
 
 // NewClient returns a new tunnel client instance.
@@ -46,108 +41,101 @@ func NewClient(db *bolt.DB) *TunnelClient {
 
 // Start setups the client and connects to a tunnel server based on the given
 // configuration. It's non blocking and should be called only once.
-func (t *TunnelClient) Start(k *kite.Kite, conf *tunnel.ClientConfig) error {
-	tunnelkite := kite.New("tunnelclient", "0.0.1")
-	tunnelkite.Config = k.Config.Copy()
-	if conf.Debug {
-		tunnelkite.SetLogLevel(kite.DEBUG)
+func (t *TunnelClient) Start(opts *tunnelproxy.ClientOptions, vhost string) (string, error) {
+	if err := t.updateOptions(opts); err != nil {
+		return "", err
 	}
 
+	if vh, err := url.Parse(vhost); err == nil {
+		opts.VirtualHost = vh.Host
+	}
+
+	opts.Log.Debug("Connecting to tunnel server IP: '%s'", opts.ServerAddr)
+
+	client, err := tunnelproxy.NewClient(opts)
+	if err != nil {
+		return "", err
+	}
+
+	if err := client.Start(); err != nil {
+		return "", err
+	}
+
+	t.client = client
+
+	return t.client.VirtualHost, nil
+}
+
+func (t *TunnelClient) updateOptions(opts *tunnelproxy.ClientOptions) error {
 	// our defaults
 	var tunnelServerPort = "80"
 	var tunnelHost = ""
 	switch protocol.Environment {
+	case "managed", "production":
+		tunnelHost = "tunnelproxy.koding.com"
 	case "development":
 		tunnelHost = "devtunnelproxy.koding.com"
-	case "production":
-		tunnelHost = "tunnelproxy.koding.com"
 	}
 
 	// Nothing is passed via command line flag, fallback to default values
-	if conf.ServerAddr == "" {
+	if opts.ServerAddr == "" {
 		// first try to get a resolved addr from local config storage
 		resolvedAddr, err := t.addressFromConfig()
 		if err != nil {
 			// show errors different than ErrKeyNotFound, because this will be
 			// showed %100 of the times for every user.
 			if err != ErrKeyNotFound {
-				k.Log.Warning("couldn't retrieve resolved address from config: '%s' ", err)
+				opts.Log.Warning("couldn't retrieve resolved address from config: '%s' ", err)
 			}
 
-			conf.ServerAddr = tunnelHost
+			opts.ServerAddr = tunnelHost
 		} else {
-			k.Log.Debug("Resolved address is retrieved from the config '%s'", resolvedAddr)
+			opts.Log.Debug("Resolved address is retrieved from the config '%s'", resolvedAddr)
 
-			conf.ServerAddr = resolvedAddr
+			opts.ServerAddr = resolvedAddr
 			// be sure it's alive, if not we are going to use hostname, which
 			// will resolved to a correct alive server
 			if err := isAlive(resolvedAddr); err != nil {
-				conf.ServerAddr = tunnelHost
-				k.Log.Warning("server is not healthy: %s", err)
+				opts.ServerAddr = tunnelHost
+				opts.Log.Warning("server is not healthy: %s", err)
 			}
 		}
 	} else {
 		// check if the user passed with a port and extract it
-		host, port, err := net.SplitHostPort(conf.ServerAddr)
+		host, port, err := net.SplitHostPort(opts.ServerAddr)
 		if err != nil {
 			return err // this is users fault, return an error
 		}
 
 		tunnelServerPort = port
-		conf.ServerAddr = host
+		opts.ServerAddr = host
+	}
+
+	if opts.ServerAddr == "" {
+		return errors.New("no tunnel server available for the given environment: " + protocol.Environment)
 	}
 
 	// Check if the addr is valid IP, the user might pass to us a valid IP.  If
 	// it's not valid, we're going to resolve it first.
-	if net.ParseIP(conf.ServerAddr) == nil {
-		k.Log.Debug("Resolving '%s'", conf.ServerAddr)
-		resolved, err := resolvedAddr(conf.ServerAddr)
+	if net.ParseIP(opts.ServerAddr) == nil {
+		opts.Log.Debug("Resolving '%s'", opts.ServerAddr)
+		resolved, err := resolvedAddr(opts.ServerAddr)
 		if err != nil {
 			// just log if we couldn't resolve it
-			k.Log.Warning("couldn't resolve '%s: %s", conf.ServerAddr, err)
+			opts.Log.Warning("couldn't resolve '%s: %s", opts.ServerAddr, err)
 		} else {
-			k.Log.Debug("Address resolved to '%s'", resolved)
-			conf.ServerAddr = resolved
+			opts.Log.Debug("Address resolved to '%s'", resolved)
+			opts.ServerAddr = resolved
 		}
 	}
 
-	k.Log.Debug("Saving resolved address '%s' to config", conf.ServerAddr)
-	if err := t.saveToConfig(conf.ServerAddr); err != nil {
-		k.Log.Warning("coulnd't save resolved addres to config: '%s'", err)
+	opts.Log.Debug("Saving resolved address '%s' to config", opts.ServerAddr)
+	if err := t.saveToConfig(opts.ServerAddr); err != nil {
+		opts.Log.Warning("coulnd't save resolved addres to config: '%s'", err)
 	}
 
 	// append port if absent
-	conf.ServerAddr = addPort(conf.ServerAddr, tunnelServerPort)
-
-	k.Log.Debug("Connecting to tunnel server IP: '%s'", conf.ServerAddr)
-	tunnelserver := tunnelkite.NewClient("http://" + conf.ServerAddr + "/kite")
-
-	// Enable it later if needed
-	// tunnelserver.LocalKite.Config.Transport = config.XHRPolling
-
-	connected, err := tunnelserver.DialForever()
-	if err != nil {
-		return err
-	}
-
-	<-connected
-
-	conf.FetchIdentifier = func() (string, error) {
-		result, err := callRegister(tunnelserver)
-		if err != nil {
-			return "", err
-		}
-
-		k.Log.Info("Our tunnel public host is: '%s'", result.VirtualHost)
-		return result.Identifier, nil
-	}
-
-	client, err := tunnel.NewClient(conf)
-	if err != nil {
-		return err
-	}
-
-	go client.Start()
+	opts.ServerAddr = addPort(opts.ServerAddr, tunnelServerPort)
 	return nil
 }
 
@@ -214,26 +202,16 @@ func (t *TunnelClient) saveToConfig(resolvedAddr string) error {
 		return errors.New("klienttunnel: boltDB reference is nil (saveToConfig)")
 	}
 
-	return t.db.Update(func(tx *bolt.Tx) error {
+	return t.db.Update(func(tx *bolt.Tx) (err error) {
 		b := tx.Bucket([]byte(dbBucket))
+		if b == nil {
+			b, err = tx.CreateBucketIfNotExists([]byte(dbBucket))
+			if err != nil {
+				return err
+			}
+		}
 		return b.Put([]byte(dbKey), []byte(resolvedAddr))
 	})
-}
-
-// callRegister registers the client to the given tunnel server
-func callRegister(tunnelserver *kite.Client) (*registerResult, error) {
-	response, err := tunnelserver.Tell("register", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	result := &registerResult{}
-	err = response.Unmarshal(result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
 }
 
 // resolvedAddr resolves the given host name to a IP and returns the first

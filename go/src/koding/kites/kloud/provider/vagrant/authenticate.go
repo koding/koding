@@ -39,6 +39,7 @@ func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
 		}
 
 		version, err := s.api.Version(meta.QueryString)
+		s.Log.Debug("Auth response from %q: version=%q, err=%v", meta.QueryString, version, err)
 		verified := err == nil && version != ""
 
 		if err := modelhelper.SetCredentialVerified(cred.Identifier, verified); err != nil {

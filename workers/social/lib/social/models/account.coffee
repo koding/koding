@@ -186,6 +186,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         setup2FactorAuth:
           (signature Object, Function)
+        pushNotification:
+          (signature Object, Function)
 
 
     schema                  :
@@ -946,6 +948,25 @@ module.exports = class JAccount extends jraphical.Module
       return callback null, user
 
     JUser.one { username: @profile.nickname }, callback
+
+  pushNotification: secure (client, contents, callback) ->
+    sender = client?.connection?.delegate
+    unless sender
+      return callback new KodingError 'Not a valid session'
+
+    unless contents.receiver
+      return callback new KodingError 'Receiver is not set'
+
+    # inject sender nick
+    contents.sender = sender.profile?.nickname
+    unless contents.sender
+      return callback new KodingError 'Sender is not set'
+
+    JAccount.one { 'profile.nickname': contents.receiver }, (err, receiver) ->
+      return callback err  if err
+      receiver.sendNotification 'notificationFromOtherAccount', contents
+
+      return callback null
 
 
   sendNotification: (event, contents) ->

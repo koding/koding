@@ -43,13 +43,19 @@ module.exports = class AdminInvitationsView extends KDView
       name         : PANE_NAMES_BY_ROUTE.Accepted
       route        : '/Admin/Invitations/Accepted'
 
-    pending.addSubView  pendingView  = new PendingInvitationsView  {}, data
-    accepted.addSubView acceptedView = new AcceptedInvitationsView {}, data
-    invite.addSubView   inviteView   = new InviteSomeoneView       {}, data
+    pending.addSubView  @pendingView  = new PendingInvitationsView  {}, data
+    accepted.addSubView @acceptedView = new AcceptedInvitationsView {}, data
+    invite.addSubView   inviteView    = new InviteSomeoneView       {}, data
 
     tabView.showPaneByIndex 0
 
     invite.on 'KDTabPaneActive', -> inviteView.inputViews.first?.email.setFocus()
-    inviteView.on 'NewInvitationsAdded', -> pendingView.refresh()
+    inviteView.on 'NewInvitationsAdded', => @pendingView.refresh()
 
     @on 'SubTabRequested', (action, identifier) -> tabView.showPaneByName PANE_NAMES_BY_ROUTE[action]
+
+
+  refreshAllTabs: ->
+
+    for view in [ @pendingView, @acceptedView ]
+      view.refresh()

@@ -58,3 +58,8 @@ func SetStackState(id, reason string, state stackstate.State) error {
 
 	return Mongo.Run(ComputeStackColl, query)
 }
+
+func CreateComputeStack(stack *models.ComputeStack) error {
+	query := insertQuery(stack)
+	return Mongo.Run(ComputeStackColl, query)
+}

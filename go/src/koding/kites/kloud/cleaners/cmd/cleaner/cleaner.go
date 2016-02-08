@@ -68,8 +68,27 @@ func NewCleaner(conf *Config) *Cleaner {
 		panic(err)
 	}
 	m := lookup.NewMongoDB(conf.MongoURL)
-	dns := dnsclient.NewRoute53Client(creds, conf.HostedZone)
-	dnsdev := dnsclient.NewRoute53Client(creds, "dev.koding.io")
+
+	dnsOpts := &dnsclient.Options{
+		Creds:      creds,
+		HostedZone: conf.HostedZone,
+		Log:        common.NewLogger("dns", conf.Debug),
+	}
+	dns, err := dnsclient.NewRoute53Client(dnsOpts)
+	if err != nil {
+		panic(err)
+	}
+
+	dnsdevOpts := &dnsclient.Options{
+		Creds:      creds,
+		HostedZone: "dev.koding.io",
+		Log:        common.NewLogger("dnsdev", conf.Debug),
+	}
+	dnsdev, err := dnsclient.NewRoute53Client(dnsdevOpts)
+	if err != nil {
+		panic(err)
+	}
+
 	domains := dnsstorage.NewMongodbStorage(m.DB)
 	p := lookup.NewPostgres(&lookup.PostgresConfig{
 		Host:     conf.Postgres.Host,

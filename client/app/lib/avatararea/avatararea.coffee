@@ -8,6 +8,7 @@ JView              = require '../jview'
 PopupNotifications = require '../notifications/popupnotifications'
 JCustomHTMLView    = require 'app/jcustomhtmlview'
 isKoding           = require 'app/util/isKoding'
+helpers            = require './helpers'
 
 
 module.exports = class AvatarArea extends KDCustomHTMLView
@@ -23,6 +24,33 @@ module.exports = class AvatarArea extends KDCustomHTMLView
     { mainView } = kd.singletons
     account      = @getData()
     {profile} = @getData()
+
+    @profileName = new JCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'profile'
+      attributes :
+        href     : "/#{profile.nickname}"
+        title    : 'Your profile'
+      pistachio  : '{{ #(profile.firstName) }}'
+    , account
+
+    @accountPopup = new AccountPopup
+
+    @accountIcon = new AvatarAreaIconLink
+      cssClass   : 'acc-dropdown-icon'
+      attributes :
+        title    : 'Account'
+        testpath : 'AvatarAreaIconLink'
+    helpers.makePopupButton @accountIcon, @accountPopup
+
+    @notificationsPopup = new PopupNotifications
+      cssClass : if isKoding() then 'notification-list' else 'notification-list team'
+
+    @notificationsIcon = new AvatarAreaIconLink
+      cssClass   : 'notifications acc-notification-icon'
+      attributes :
+        title    : 'Notifications'
+    helpers.makePopupButton @notificationsIcon, @notificationsPopup
 
     if isKoding()
       @avatar = new AvatarView
@@ -41,36 +69,8 @@ module.exports = class AvatarArea extends KDCustomHTMLView
         size       :
           width    : 25
           height   : 25
-        click      : =>
-          @notificationsIcon.click()
       , account
-
-    @profileName = new JCustomHTMLView
-      tagName    : 'a'
-      cssClass   : 'profile'
-      attributes :
-        href     : "/#{profile.nickname}"
-        title    : 'Your profile'
-      pistachio  : '{{ #(profile.firstName) }}'
-    , account
-
-    @accountPopup = new AccountPopup
-
-    @accountIcon = new AvatarAreaIconLink
-      cssClass   : 'acc-dropdown-icon'
-      attributes :
-        title    : 'Account'
-        testpath : 'AvatarAreaIconLink'
-      delegate   : @accountPopup
-
-    @notificationsPopup = new PopupNotifications
-      cssClass : if isKoding() then 'notification-list' else 'notification-list team'
-
-    @notificationsIcon = new AvatarAreaIconLink
-      cssClass   : 'notifications acc-notification-icon'
-      attributes :
-        title    : 'Notifications'
-      delegate   : @notificationsPopup
+      helpers.makePopupButton @avatar, @notificationsPopup
 
 
     @on 'viewAppended', ->

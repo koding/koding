@@ -8,7 +8,7 @@
 <!--[if IE]>
       	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
   	<![endif]-->
-<link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 </head>
 <body class="php">
 <div id="container">
@@ -31,7 +31,7 @@
 	<footer>
 	<h4>This is an example page running PHP on your Koding Virtual Machine (VM).</h4>
 	<p>
-		You can create your own PHP based "Hello World" program by following this <a href="http://learn.koding.com/guides/hello-world/php/" target=_blank>simple guide</a> over at Koding University.
+		You can create your own PHP based "Hello World" program by following this <a href="https://koding.com/docs/hello-world/php" target=_blank>simple guide</a> over at Koding University.
 	</p>
 	<p id="social"><a id="twitter" href="https://twitter.com/koding" target=_blank>Twitter</a><a id="facebook" href="https://facebook.com/koding" target=_blank>Facebook</a></p>
 	<!-- pre>&lt;?php echo 'Hello World from PHP'; ?&gt;</pre -->

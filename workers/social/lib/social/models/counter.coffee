@@ -37,6 +37,15 @@ module.exports  = class JCounter extends Module
   # Helpers
   # -------
 
+  handle = (callback) -> (err, counter) ->
+    if err
+      if err.code is DUPLICATE_ERR
+        callback new KodingError 'Provided limit has been reached'
+      else
+        callback err
+    else
+      callback null, counter.current
+
   update = (options, amount, callback) ->
 
     { namespace, type, max, min } = options
@@ -54,14 +63,7 @@ module.exports  = class JCounter extends Module
     operation = { $inc: { current: amount } }
     options   = { new: yes, upsert: yes }
 
-    JCounter.findAndModify query, null, operation, options, (err, counter) ->
-      if err
-        if err.code is DUPLICATE_ERR
-          callback new KodingError 'Provided limit has been reached'
-        else
-          callback err
-      else
-        callback null, counter.current
+    JCounter.findAndModify query, null, operation, options, handle callback
 
 
   parse = (options, direction) ->
@@ -120,3 +122,16 @@ module.exports  = class JCounter extends Module
     @one query, (err, counter) ->
       if err then callback err
       else callback null, counter?.current ? 0
+
+
+  @setCount = (options, callback) ->
+
+    { namespace, type, value } = options
+
+    type ?= 'main'
+    query = { namespace, type }
+
+    operation = { $set: { current: value } }
+    options   = { new: yes, upsert: yes }
+
+    JCounter.findAndModify query, null, operation, options, handle callback

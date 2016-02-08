@@ -480,10 +480,9 @@ module.exports =
 
     user         = utils.getUser()
     name         = user.username
-    paymentModal = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
+    paymentModal = 'form.payment-method-entry-form'
 
     browser
-      .waitForElementVisible   '.payment-modal', 20000
       .waitForElementVisible   paymentModal, 20000
       .waitForElementVisible   paymentModal + ' .cardnumber', 20000
       .click                   'input[name=cardNumber]'
@@ -501,6 +500,7 @@ module.exports =
       .click                   'input[name=cardName]'
       .clearValue              'input[name=cardName]'
       .setValue                'input[name=cardName]', name
+
 
   submitForm: (browser, validCardDetails = yes) ->
 

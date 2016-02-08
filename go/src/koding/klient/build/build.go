@@ -50,7 +50,7 @@ func buildKlient() error {
 		return errors.New("GOPATH is not set")
 	}
 
-	importPath := "github.com/koding/klient"
+	importPath := "koding/klient"
 	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
 
 	symbolvalue := "0.0.1"

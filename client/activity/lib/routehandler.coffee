@@ -17,7 +17,7 @@ reactivityRouteTypes = [
   'SinglePublicChannelRecentMessages'
   'SinglePublicChannelPopularMessages'
   'PublicChannelNotificationSettingsRoute'
-
+  'SinglePublicChannelSearch'
   'PrivateChannelModals'
   'PublicChannelModals'
   'NewPrivateChannel'

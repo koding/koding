@@ -240,19 +240,19 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
-		return err
+		return fmt.Errorf("fetching account %q: %s", username, err)
 	}
 
 	// fetch jGroup from group slug name
 	group, err := modelhelper.GetGroup(groupname)
 	if err != nil {
-		return err
+		return fmt.Errorf("fetching group %q: %s", groupname, err)
 	}
 
 	// fetch jUser from username
 	user, err := modelhelper.GetUser(username)
 	if err != nil {
-		return err
+		return fmt.Errorf("fetching user %q: %s", username, err)
 	}
 
 	// validate if username belongs to groupnam
@@ -272,7 +272,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	// 2- fetch credential from identifiers via args
 	credentials, err := modelhelper.GetCredentialsFromIdentifiers(identifiers...)
 	if err != nil {
-		return err
+		return fmt.Errorf("fetching credentials %v: %s", identifiers, err)
 	}
 
 	// 3- count relationship with credential id and jaccount id as user or
@@ -312,7 +312,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 	credentialData, err := modelhelper.GetCredentialDatasFromIdentifiers(validIdentifiers...)
 	if err != nil {
-		return err
+		return fmt.Errorf("error fetching credential data %v: %s", validIdentifiers, err)
 	}
 
 	// 5- return list of keys. We only support aws for now

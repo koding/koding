@@ -47,14 +47,16 @@ module.exports = class SidebarStackSection extends React.Component
 
     config = @props.stack.get 'config'
 
-    @props.stack.get('machines').map (machine) =>
-      visible = config?.getIn [ 'sidebar', machine.get('uid'), 'visibility' ]
-      <SidebarMachinesListItem
-        key={machine.get '_id'}
-        stack={@props.stack}
-        machine={machine}
-        showInSidebar={visible}
-        />
+    @props.stack.get('machines')
+      .sort (a, b) -> a.get('label').localeCompare(b.get('label')) # Sorting from a to z
+      .map (machine) =>
+        visible = config?.getIn [ 'sidebar', machine.get('uid'), 'visibility' ]
+        <SidebarMachinesListItem
+          key={machine.get '_id'}
+          stack={@props.stack}
+          machine={machine}
+          showInSidebar={visible}
+          />
 
 
   renderStackUpdatedWidget: ->
