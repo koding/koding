@@ -3,11 +3,11 @@ KDView = kd.View
 module.exports = class GuidesLinksView extends KDView
 
   Links      =
-    'Firewalls'    : 'http://learn.koding.com/guides/enable-ufw/'
-    'ssh'          : 'http://learn.koding.com/guides/ssh-into-your-vm/'
-    'kpm'          : 'http://learn.koding.com/guides/getting-started-kpm/'
-    'MySQL'        : 'http://learn.koding.com/guides/installing-mysql/'
-    'Collaboration': 'http://learn.koding.com/guides/collaboration/'
+    'Firewalls'    : 'https://koding.com/docs/enable-ufw/'
+    'ssh'          : 'https://koding.com/docs/ssh-into-your-vm/'
+    'kpm'          : 'https://koding.com/docs/getting-started-kpm/'
+    'MySQL'        : 'https://koding.com/docs/installing-mysql/'
+    'Collaboration': 'https://koding.com/docs/collaboration/'
 
   constructor: (options = {}, data) ->
 

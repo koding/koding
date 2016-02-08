@@ -61,7 +61,7 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
       {submit} = @modalTabs.forms.Main.buttons
       {subject, message} = form
 
-      # if @_logUrl? ~ We are uploading logs but not including it 
+      # if @_logUrl? ~ We are uploading logs but not including it
       #                into the support ticket ~ GG #89350576
       #   message += "\n\n --- LOGS: #{@_logUrl} --- \n"
 
@@ -108,20 +108,20 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
       <div class="container">
         <div class="topics-header">Some popular help topics</div>
 
-        <a href="http://learn.koding.com/faq/#what-is-koding" target="_blank">
+        <a href="https://koding.com/docs/what-is-koding" target="_blank">
           What is Koding?</a><br/>
 
-        <a href="http://learn.koding.com/faq/#what-is-my-sudo-password" target="_blank">
+        <a href="https://koding.com/docs/sudo-password" target="_blank">
           What is my sudo password?</a><br/>
 
-        <a href="http://learn.koding.com/guides/ssh-into-your-vm/" target="_blank">
+        <a href="https://koding.com/docs/ssh-into-your-vm/" target="_blank">
           How do I ssh into my Koding VM?</a><br/>
 
-        <a href="http://learn.koding.com/guides/change-theme/" target="_blank">
+        <a href="https://koding.com/docs/change-theme/" target="_blank">
           Changing IDE and Terminal themes</a><br/>
 
         <div class="koding-university">
-          Head over to <a href="http://learn.koding.com/faq/" target="_blank">Koding University</a> for more...
+          Head over to <a href="https://koding.com/docs/topic/faq/" target="_blank">Koding University</a> for more...
         </div>
       </div>
     """

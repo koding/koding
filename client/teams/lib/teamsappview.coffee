@@ -21,6 +21,18 @@ module.exports = class TeamsAppView extends kd.CustomHTMLView
       cssClass : 'ribbon hidden'
       partial  : '<span>Thank You!</span>'
 
+    @comingSoon = new kd.CustomHTMLView
+      cssClass : 'ribbon hidden'
+      partial  : '<span>Coming Soon!</span>'
+
+    @header = new MainHeaderView
+      headerLogo : teamsLogo
+      cssClass   : 'hasNotTeamAccess'
+      navItems  : [
+        { title : 'Koding University', href : 'https://koding.com/docs',  name : 'about' }
+        { title : 'Features',          href : '/Features',                name : 'features' }
+      ]
+
     @title = new kd.CustomHTMLView
       tagName : 'h1'
       partial : 'Announcing Koding for Teams!'
@@ -63,7 +75,7 @@ module.exports = class TeamsAppView extends kd.CustomHTMLView
         <li>Collaborate using <i>video/audio</i> without the need to install anything!</li>
         <li><i>Most cloud-providers</i> are supported so you can use your existing infrastructure.</li>
         <li>Integrate common services like <i>GitHub</i>, <i>Pivotal</i>, <i>Asana</i>, etc. into your Koding environment.</li>
-        <li style='list-style-type:none;'>Learn more on our <a href='http://blog.koding.com/teams' target='_blank'>blog</a>.</li>
+        <li style='list-style-type:none;'>Learn more on our <a href='https://koding.com/blog/teams' target='_blank'>blog</a>.</li>
         """
 
     @soon.hide()
