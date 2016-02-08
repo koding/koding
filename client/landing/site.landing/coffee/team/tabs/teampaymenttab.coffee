@@ -60,7 +60,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
         }, (status, response) =>
 
           if response.error
-            @showError response.error or 'There is something wrong, try again.'
+            @showError response.error.message or 'There is something wrong, try again.'
             return
 
           track 'payment method success'
