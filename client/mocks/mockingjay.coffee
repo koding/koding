@@ -262,7 +262,9 @@ module.exports =
 
         new Promise (resolve, reject) ->
 
-          return resolve param
+          promise = new Promise (resolve, reject) -> resolve param
+
+          expect.spyOn(remote, 'cacheableAsync').andReturn promise
 
 
     api:
