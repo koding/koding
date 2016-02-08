@@ -304,6 +304,13 @@ module.exports = class NavigationMachineItem extends JView
     super
 
 
+  destroy: ->
+
+    popup.destroy()  for key, popup of popups
+
+    super
+
+
   pistachio: ->
 
     return """
