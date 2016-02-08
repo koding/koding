@@ -126,10 +126,8 @@ koding.connect ->
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log
 
-  Tracker = require './models/tracker'
-  Tracker.setMqClient broker.connection
-
   { forcedRecipientEmail } = KONFIG.email
+  Tracker = require './models/tracker'
   Tracker.identify forcedRecipientEmail  if forcedRecipientEmail
 
 

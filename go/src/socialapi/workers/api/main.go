@@ -20,6 +20,7 @@ import (
 	"socialapi/workers/api/modules/reply"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
+	emailapi "socialapi/workers/email/api"
 	mailapi "socialapi/workers/email/mailparse/api"
 	"socialapi/workers/helper"
 	topicmoderationapi "socialapi/workers/moderation/topic/api"
@@ -80,6 +81,7 @@ func main() {
 	privatechannel.AddHandlers(m)
 	reply.AddHandlers(m)
 	notificationsetting.AddHandlers(m)
+	emailapi.AddHandlers(m)
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)

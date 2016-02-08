@@ -153,11 +153,6 @@ koding.once 'dbClientReady', ->
   nodejsProfiler = new NodejsProfiler 'nodejs.webserver'
   nodejsProfiler.startMonitoring()
 
-  # init rabbitmq client for Email to use to queue emails
-  mqClient = require './amqp'
-  Tracker    = require '../../../workers/social/lib/social/models/tracker.coffee'
-  Tracker.setMqClient mqClient
-
   # NOTE: in the event of errors, send 500 to the client rather
   #       than the stack trace.
   app.use (err, req, res, next) ->
