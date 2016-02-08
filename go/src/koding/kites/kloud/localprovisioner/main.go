@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
@@ -21,7 +20,6 @@ import (
 	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/softlayer"
-	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/userdata"
 	"koding/kites/terraformer"
 	"log"
@@ -30,11 +28,9 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
 	"golang.org/x/net/context"
@@ -43,7 +39,6 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol"
-	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 	"github.com/koding/klient/app"
@@ -597,207 +592,6 @@ func currentRepoPath() (string, error) {
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
-func createUser(opts *createUserOptions) (*singleUser, error) {
-	username := opts.Username
-	groupname := opts.Groupname
-	provider := opts.Provider
-	template := opts.Template
-	machineCount := opts.MachineCount
-	label := opts.Label
-
-	privateKey, publicKey, err := sshutil.TemporaryKey()
-	if err != nil {
-		return nil, err
-	}
-
-	db := awsProvider.DB
-
-	// cleanup old document
-	db.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Remove(bson.M{"username": username})
-	})
-
-	db.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Remove(bson.M{"profile.nickname": username})
-	})
-
-	db.Run("jGroups", func(c *mgo.Collection) error {
-		return c.Remove(bson.M{"slug": groupname})
-	})
-
-	// jAccounts
-	accountId := bson.NewObjectId()
-	account := &models.Account{
-		Id: accountId,
-		Profile: models.AccountProfile{
-			Nickname: username,
-		},
-	}
-
-	if err := db.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Insert(&account)
-	}); err != nil {
-		return nil, err
-	}
-
-	// jGroups
-	groupId := bson.NewObjectId()
-	group := &models.Group{
-		Id:    groupId,
-		Title: groupname,
-		Slug:  groupname,
-	}
-
-	if err := db.Run("jGroups", func(c *mgo.Collection) error {
-		return c.Insert(&group)
-	}); err != nil {
-		return nil, err
-	}
-
-	// add relation between use and group
-	relationship := &models.Relationship{
-		Id:         bson.NewObjectId(),
-		TargetId:   accountId,
-		TargetName: "JAccount",
-		SourceId:   groupId,
-		SourceName: "JGroup",
-		As:         "member",
-	}
-
-	if err := db.Run("relationships", func(c *mgo.Collection) error {
-		return c.Insert(&relationship)
-	}); err != nil {
-		return nil, err
-	}
-
-	// jUsers
-	userId := bson.NewObjectId()
-	user := &models.User{
-		ObjectId:      userId,
-		Email:         username + "@" + username + ".com",
-		LastLoginDate: time.Now().UTC(),
-		RegisteredAt:  time.Now().UTC(),
-		Name:          username, // bson equivelant is username
-		Password:      "somerandomnumbers",
-		Status:        "confirmed",
-		SshKeys: []struct {
-			Title string `bson:"title"`
-			Key   string `bson:"key"`
-		}{
-			{Key: publicKey},
-		},
-	}
-
-	if err := db.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Insert(&user)
-	}); err != nil {
-		return nil, err
-	}
-
-	// jComputeStack and jStackTemplates
-	stackTemplateId := bson.NewObjectId()
-	stackTemplate := &models.StackTemplate{
-		Id: stackTemplateId,
-	}
-	stackTemplate.Template.Content = template
-
-	if err := db.Run("jStackTemplates", func(c *mgo.Collection) error {
-		return c.Insert(&stackTemplate)
-	}); err != nil {
-		return nil, err
-	}
-
-	// later we can add more users with "Owner:false" to test sharing capabilities
-	users := []models.MachineUser{
-		{Id: userId, Sudo: true, Owner: true},
-	}
-
-	machineLabels := make([]string, machineCount)
-	machineIds := make([]bson.ObjectId, machineCount)
-
-	for i := 0; i < machineCount; i++ {
-		machineLabel := label + strconv.Itoa(i)
-		if machineCount == 1 {
-			machineLabel = label
-		}
-
-		machineId := bson.NewObjectId()
-		machine := &models.Machine{
-			ObjectId:   machineId,
-			Label:      machineLabel,
-			Domain:     username + ".dev.koding.io",
-			Provider:   provider,
-			CreatedAt:  time.Now().UTC(),
-			Users:      users,
-			Meta:       make(bson.M, 0),
-			Groups:     make([]models.MachineGroup, 0),
-			Credential: username,
-		}
-
-		machine.Assignee.InProgress = false
-		machine.Assignee.AssignedAt = time.Now().UTC()
-		machine.Status.State = machinestate.NotInitialized.String()
-		machine.Status.ModifiedAt = time.Now().UTC()
-
-		machineLabels[i] = machine.Label
-		machineIds[i] = machine.ObjectId
-
-		if err := db.Run("jMachines", func(c *mgo.Collection) error {
-			return c.Insert(&machine)
-		}); err != nil {
-			return nil, err
-		}
-	}
-
-	computeStackID := bson.NewObjectId()
-	computeStack := &models.ComputeStack{
-		Id:          computeStackID,
-		BaseStackId: stackTemplateId,
-		Machines:    machineIds,
-	}
-
-	if err := db.Run("jComputeStacks", func(c *mgo.Collection) error {
-		return c.Insert(&computeStack)
-	}); err != nil {
-		return nil, err
-	}
-
-	userKite := kite.New("user", "0.0.1")
-	c := conf.Copy()
-	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
-	c.Username = username
-	userKite.Config = c
-
-	kloudQuery := &protocol.KontrolQuery{
-		Username:    "testuser",
-		Environment: c.Environment,
-		Name:        "kloud",
-	}
-	kites, err := userKite.GetKites(kloudQuery)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Get the caller
-	remote := kites[0]
-	if err := remote.Dial(); err != nil {
-		log.Fatal(err)
-	}
-
-	identifiers := []string{}
-
-	return &singleUser{
-		MachineIds:      machineIds,
-		MachineLabels:   machineLabels,
-		StackID:         computeStackID.Hex(),
-		StackTemplateId: stackTemplate.Id.Hex(),
-		PrivateKey:      privateKey,
-		PublicKey:       publicKey,
-		AccountId:       accountId,
-		Identifiers:     identifiers,
-		Remote:          remote,
-	}, nil
-}
 
 // listenEvent calls the event method of kloud with the given arguments until
 // the desiredState is received. It times out if the desired state is not

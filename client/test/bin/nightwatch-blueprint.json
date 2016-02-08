@@ -9,14 +9,14 @@
     "server_path" : "../vendor/selenium-server-standalone.jar",
     "log_path" : "../logs",
     "host" : "127.0.0.1",
-    "port" : 42424,
+    "port" : 42420,
     "cli_args": {}
   },
 
   "test_settings" : {
     "default" : {
       "launch_url" : "http://localhost",
-      "selenium_port"  : 42424,
+      "selenium_port"  : 42420,
       "selenium_host"  : "localhost",
       "silent": true,
       "screenshots" : {
@@ -30,6 +30,7 @@
     },
 
     "host": {
+      "selenium_port": 42420,
       "desiredCapabilities": {
         "javascriptEnabled": true,
         "acceptSslCerts": true
@@ -37,6 +38,7 @@
     },
 
     "participant": {
+      "selenium_port": 42421,
       "desiredCapabilities": {
         "javascriptEnabled": true,
         "acceptSslCerts": true

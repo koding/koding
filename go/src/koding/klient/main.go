@@ -43,6 +43,7 @@ var (
 	// Tunnel flags
 	flagTunnelServerAddr = flag.String("tunnel-server", "", "Tunnel server address")
 	flagTunnelLocalAddr  = flag.String("tunnel-local", "", "Address of local server to be tunneled (optional)")
+	flagNoTunnel         = flag.Bool("no-tunnel", false, "Force klient to not use tunnel.")
 )
 
 func main() {
@@ -102,6 +103,7 @@ func realMain() int {
 		VagrantHome:      vagrantHome,
 		TunnelServerAddr: *flagTunnelServerAddr,
 		TunnelLocalAddr:  *flagTunnelLocalAddr,
+		NoTunnel:         *flagNoTunnel,
 	}
 
 	a := app.NewKlient(conf)

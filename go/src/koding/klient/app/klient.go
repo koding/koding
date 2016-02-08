@@ -9,9 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/boltdb/bolt"
-	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -28,6 +25,10 @@ import (
 	klienttunnel "koding/klient/tunnel"
 	"koding/klient/usage"
 	"koding/klient/vagrant"
+
+	"github.com/boltdb/bolt"
+	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 )
 
 var (
@@ -97,6 +98,7 @@ type KlientConfig struct {
 
 	TunnelServerAddr string
 	TunnelLocalAddr  string
+	NoTunnel         bool
 }
 
 // NewKlient returns a new Klient instance
@@ -349,27 +351,17 @@ func (k *Klient) Run() {
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
 	isKoding, _ := info.CheckKoding()
-	//if !isKoding {
-	//	// Open Pandora's box
-	//	if err := k.tunnelclient.Start(k.kite, &tunnel.ClientConfig{
-	//		ServerAddr: k.config.TunnelServerAddr,
-	//		LocalAddr:  k.config.TunnelLocalAddr,
-	//		Debug:      k.config.Debug,
-	//	}); err != nil {
-	//		k.log.Error("Could not start tunneling: '%s'", err)
-	//	}
-	//}
 
 	k.startUpdater()
 
-	if isKoding && protocol.Environment == "managed" {
+	if protocol.Environment == "managed" && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
-		panic(errors.New(
-			"This binary of Klient cannot run on a Koding provided VM",
-		))
+		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
 
-	if err := k.register(); err != nil {
+	// TODO(rjeczalik): check if k.kite.Config.Port is accessible from outside,
+	// don't start tunnel for managed hosts with public IP.
+	if err := k.register(!isKoding && !k.config.NoTunnel); err != nil {
 		panic(err)
 	}
 

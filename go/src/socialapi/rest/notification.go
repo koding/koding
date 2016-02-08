@@ -7,10 +7,10 @@ import (
 	notificationmodels "socialapi/workers/notification/models"
 )
 
-func GetNotificationList(accountId int64) (*notificationmodels.NotificationResponse, error) {
+func GetNotificationList(accountId int64, token string) (*notificationmodels.NotificationResponse, error) {
 	url := fmt.Sprintf("/notification/%d", accountId)
 
-	res, err := sendRequest("GET", url, nil)
+	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}

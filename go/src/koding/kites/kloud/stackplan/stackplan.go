@@ -9,9 +9,12 @@ import (
 
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/kloud"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"golang.org/x/net/context"
 )
@@ -231,7 +234,15 @@ func CheckKlients(ctx context.Context, kiteIDs KiteMap) error {
 
 	check := func(label, kiteId string) error {
 		queryString := protocol.Kite{ID: kiteId}.String()
-		klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, time.Minute*5)
+
+		sess.Log.Debug("[%s] Checking connectivity to %q", label, kiteId)
+
+		// TODO(rjeczalik): remove after TMS-2245 and use sess.Kite directly
+		k := kite.New(kloud.NAME, kloud.VERSION)
+		k.Config = sess.Kite.Config.Copy()
+		k.Config.Transport = config.XHRPolling
+
+		klientRef, err := klient.NewWithTimeout(k, queryString, time.Minute*5)
 		if err != nil {
 			return err
 		}

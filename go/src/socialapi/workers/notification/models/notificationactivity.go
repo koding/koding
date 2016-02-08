@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"socialapi/models"
+
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/bongo"
 )
 
@@ -124,4 +127,53 @@ func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
 	}
 
 	return nc, nil
+}
+
+// DeleteWithContentId delete the given content id from notification_activity table
+func (a *NotificationActivity) DeleteWithContentId(contentIds ...int64) error {
+
+	return a.deleteWithContentId(contentIds...)
+}
+
+func (a *NotificationActivity) deleteWithContentId(contentIds ...int64) error {
+	// we use error struct for this function because of iterating over all elements
+	// and we'r gonna try to delete given ids at least one time..
+	var errs *multierror.Error
+
+	if len(contentIds) == 0 {
+		return models.ErrIdIsNotSet
+	}
+
+	for _, id := range contentIds {
+		na := NewNotificationActivity()
+
+		activityIds, err := na.fetchWithContentId(id)
+		if err != nil && err != bongo.RecordNotFound {
+			errs = multierror.Append(errs, err)
+		}
+
+		for _, activityId := range activityIds {
+			if err := activityId.Delete(); err != nil {
+				if err != bongo.RecordNotFound {
+					// return err
+					errs = multierror.Append(errs, err)
+				}
+			}
+		}
+	}
+	return errs.ErrorOrNil()
+}
+
+func (a *NotificationActivity) fetchWithContentId(contentId int64) ([]NotificationActivity, error) {
+	selector := map[string]interface{}{
+		"notification_content_id": contentId,
+	}
+
+	var notyActivities []NotificationActivity
+	if err := a.Some(&notyActivities, bongo.NewQS(selector)); err != nil {
+		return nil, err
+	}
+
+	return notyActivities, nil
+
 }

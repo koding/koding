@@ -1,10 +1,13 @@
 package vagrant
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	"koding/db/models"
@@ -21,7 +24,7 @@ import (
 
 // VagrantResource
 type VagrantResource struct {
-	Build map[string]map[string]interface{} `hcl:"vagrantkite_build`
+	Build map[string]map[string]interface{} `hcl:"vagrantkite_build"`
 }
 
 func (s *Stack) updateCredential(cred *stackplan.Credential) error {
@@ -62,7 +65,11 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		return "", nil, err
 	}
 
-	if err := s.Builder.Template.InjectVariables(cred.Provider, cred.Meta); err != nil {
+	t := s.Builder.Template
+
+	s.Log.Debug("Injecting vagrant credentials: %# v", cred.Meta)
+
+	if err := t.InjectVariables(cred.Provider, cred.Meta); err != nil {
 		return "", nil, err
 	}
 
@@ -70,12 +77,12 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 	var res VagrantResource
 
-	if err := s.Builder.Template.DecodeResource(&res); err != nil {
+	if err := t.DecodeResource(&res); err != nil {
 		return "", nil, err
 	}
 
 	if len(res.Build) == 0 {
-		s.Log.Debug("No Vagrant build available")
+		s.Log.Debug("No Vagrant build available: %# v", &res)
 		return hostQueryString, nil, nil
 	}
 
@@ -89,11 +96,18 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			return "", nil, err
 		}
 
-		klientURL, err := sess.Userdata.Bucket.LatestDeb()
-		if err != nil {
-			return "", nil, err
+		var klientURL string
+		if kurl, ok := box["klientURL"].(string); ok {
+			// For debugging klient inside vagrant without restarting kloud.
+			klientURL = kurl
+			delete(box, "klientURL")
+		} else {
+			kurl, err := sess.Userdata.Bucket.LatestDeb()
+			if err != nil {
+				return "", nil, err
+			}
+			klientURL = sess.Userdata.Bucket.URL(kurl)
 		}
-		klientURL = sess.Userdata.Bucket.URL(klientURL)
 
 		// get the registerURL if passed via template
 		var registerURL string
@@ -155,15 +169,28 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			return "", nil, err
 		}
 
+		// Compressing the provision data isn't doing any serious optimizations,
+		// it's just here so the debug output does not take half a screen.
+		//
+		// The provisionclient handles both compressed and uncompressed JSONs.
+		var buf bytes.Buffer
+		if cw, err := gzip.NewWriterLevel(&buf, 9); err == nil {
+			if _, err = io.Copy(cw, bytes.NewReader(val)); err == nil && cw.Close() == nil {
+				s.Log.Debug("using compressed provision data: %d vs %d", len(val), len(buf.Bytes()))
+
+				val = buf.Bytes()
+			}
+		}
+
 		encoded := base64.StdEncoding.EncodeToString(val)
 		box["provisionData"] = encoded
 		kiteIDs[resourceName] = kiteID
 		res.Build[resourceName] = box
 	}
 
-	s.Builder.Template.Resource["vagrantkite_build"] = res.Build
+	t.Resource["vagrantkite_build"] = res.Build
 
-	if err := s.Builder.Template.Flush(); err != nil {
+	if err := t.Flush(); err != nil {
 		return "", nil, err
 	}
 
@@ -172,7 +199,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString string) (*stackplan.Machines, error) {
 	var res VagrantResource
-	if err := t.DecodeResource(&s); err != nil {
+	if err := t.DecodeResource(&res); err != nil {
 		return nil, err
 	}
 

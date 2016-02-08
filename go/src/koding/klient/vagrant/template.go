@@ -12,9 +12,14 @@ var (
 VAGRANTFILE_API_VERSION = "2"
 
 $script = <<SCRIPT
+#!/bin/bash
+
+set -euo pipefail
+
 echo I am provisioning...
 date > /etc/vagrant_provisioned_at
-wget "https://s3.amazonaws.com/kodingdev-provision/provisionklient"
+wget -q --retry-connrefused --tries 5 https://s3.amazonaws.com/kodingdev-provision/provisionklient.gz
+gzip -d -f provisionklient.gz
 chmod +x provisionklient
 ./provisionklient -data '{{ .ProvisionData }}'
 {{ .CustomScript }}

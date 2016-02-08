@@ -13,7 +13,7 @@ CREATE TABLE "notification"."notification" (
     "context_channel_id" BIGINT NOT NULL
 )
 WITH (OIDS=FALSE);
-GRANT SELECT, INSERT, UPDATE ON "notification"."notification" TO "social";
+GRANT SELECT, INSERT,DELETE, UPDATE ON "notification"."notification" TO "social";
 
 -- ----------------------------
 --  Table structure for notification_content
@@ -34,7 +34,7 @@ CREATE TABLE "notification"."notification_content" (
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-GRANT SELECT, INSERT ON "notification"."notification_content" TO "social";
+GRANT SELECT, INSERT,DELETE ON "notification"."notification_content" TO "social";
 
 -- ----------------------------
 --  Table structure for notification_activity
@@ -49,7 +49,7 @@ CREATE TABLE "notification"."notification_activity" (
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-GRANT SELECT, INSERT, UPDATE ON "notification"."notification_activity" TO "social";
+GRANT SELECT, INSERT,DELETE, UPDATE ON "notification"."notification_activity" TO "social";
 
 -- ----------------------------
 --  Table structure for notification_setting

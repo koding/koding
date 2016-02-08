@@ -3,6 +3,7 @@ package dnsclient
 // Record represents a single record for a given domain
 type Record struct {
 	Name string
+	Type string
 	IP   string
 	TTL  int
 }

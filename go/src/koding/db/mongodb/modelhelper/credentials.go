@@ -37,6 +37,18 @@ func GetCredentialDatasFromIdentifiers(identifier ...string) ([]*models.Credenti
 	return credentialData, nil
 }
 
+func InsertCredential(cred *models.Credential, data *models.CredentialData) error {
+	err := Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
+		return c.Insert(cred)
+	})
+	if err != nil {
+		return err
+	}
+	return Mongo.Run(CredentialDatasColl, func(c *mgo.Collection) error {
+		return c.Insert(data)
+	})
+}
+
 func UpdateCredentialData(identifier string, data bson.M) error {
 	return Mongo.Run(CredentialDatasColl, func(c *mgo.Collection) error {
 		return c.Update(bson.M{"identifier": identifier}, data)

@@ -28,15 +28,15 @@ module.exports = class ProfileView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.bind   = "mouseenter mouseleave"
+    options.bind = "mouseenter mouseleave"
     super options, data
 
-    @memberData        = @getData()
-    { mainController } = kd.singletons
+    @memberData = @getData()
+    { mainController, router } = kd.singletons
 
     if @memberData.isExempt
-      if not checkFlag 'super-admin'
-        return kd.getSingleton('router').handleRoute "/Activity"
+      if not checkFlag 'super-admin' or not @memberData._id is whoami()._id
+        return router.handleRoute '/Activity'
 
     @firstName      = new ProfileContentEditableView
       tagName       : "span"
