@@ -1,7 +1,8 @@
 globals = require 'globals'
 
-module.exports = (url)->
+module.exports = (url) ->
 
+  return url  if globals.config.environment is 'dev'
   return url  if /p.koding.com/.test url
 
   # let's use DOM for parsing the url
