@@ -494,8 +494,6 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
-      @stopCollaborationSession machine.uid
-
       baseKite = machine.getBaseKite( createIfNotExists = no )
       if machine?.provider is 'managed' and baseKite.klientDisable?
       then baseKite.klientDisable().finally -> baseKite.disconnect()
@@ -554,8 +552,6 @@ module.exports = class ComputeController extends KDController
     return  if methodNotSupportedBy machine, 'reinit'
 
     startReinit = =>
-
-      @stopCollaborationSession machine.uid
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
@@ -1100,15 +1096,6 @@ module.exports = class ComputeController extends KDController
     remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
       return callback err  if err
       return callback null, template
-
-
-  ###*
-   * Automatically kill active collaboration sessions if any
-  ###
-  stopCollaborationSession: (machineUId) ->
-
-    ideApp = envDataProvider.getIDEFromUId machineUId
-    ideApp?.stopCollaborationSession()
 
 
   showBuildLogs: (machine) ->
