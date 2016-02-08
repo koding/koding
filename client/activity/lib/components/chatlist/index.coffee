@@ -38,13 +38,23 @@ module.exports = class ChatList extends React.Component
     selectedMessageId : null
     onGlance          : kd.noop
 
+
+  handleResize: ->
+    @updateDateMarkersPosition()
+
+
   componentDidMount: ->
 
     kd.singletons.windowController.addFocusListener @bound 'handleFocus'
     @scrollableParent = findScrollableParent ReactDOM.findDOMNode this
+    window.addEventListener 'resize', @bound 'handleResize'
 
 
   componentDidUpdate: -> @cacheDateMarkers()
+
+
+  componentWillUnmount: ->
+    window.removeEventListener 'resize', @bound 'handleResize'
 
 
   glance: debounce 1000, {}, ->

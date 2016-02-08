@@ -274,6 +274,36 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
             expect(err?.message).to.be.equal 'Provided limit has been reached'
             done()
 
+    it 'should increase given group stack count taking in account plan overrides', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        overrides = { member: 3 }
+        testGroup.setPlan client, { plan: 'default', overrides }, (err) ->
+          expect(err).to.not.exist
+
+          async.parallel [
+
+            # keep in mind that current counter is 1 due to previous test
+
+            (fin) ->
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
+
+            (fin) ->
+              ComputeProvider.updateGroupStackUsage testGroup, 'increment', fin
+
+          ], (err) ->
+            expect(err).to.not.exist
+
+            JCounter.count
+              namespace : testGroup.slug
+              type      : ComputeProvider.COUNTER_TYPE.stacks
+            , (err, count) ->
+              expect(err).to.not.exist
+              expect(count).to.be.equal overrides.member
+
+              done()
+
 
   describe '::updateGroupInstanceUsage', ->
 
@@ -341,6 +371,30 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
             done()
 
+    it 'should increase instance count taking in account plan overrides', (done) ->
+
+      withConvertedUser { role: 'admin' }, ({ client }) ->
+
+        overrides = { maxInstance: 3 }
+        testGroup.setPlan client, { plan: 'default', overrides }, (err) ->
+          expect(err).to.not.exist
+
+          options  =
+            group  : testGroup
+            change : 'increment'
+            amount : 2
+
+          ComputeProvider.updateGroupInstanceUsage options, (err) ->
+            expect(err).to.not.exist
+
+            JCounter.count
+              namespace : testGroup.slug
+              type      : ComputeProvider.COUNTER_TYPE.instances
+            , (err, count) ->
+              expect(err).to.not.exist
+              expect(count).to.be.equal overrides.maxInstance
+
+              done()
 
   describe '::updateGroupResourceUsage', ->
 

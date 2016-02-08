@@ -2,7 +2,7 @@ KodingError = require '../../error'
 TEAMPLANS   = require './teamplans'
 
 konstraints = require 'konstraints'
-{ clone }   = require 'underscore'
+_           = require 'underscore'
 
 
 shareCredentials = (options, callback) ->
@@ -29,18 +29,25 @@ shareCredentials = (options, callback) ->
     credential.setPermissionFor group, scope, callback
 
 
-# returns plan data, if plan not found it fallbacks to default
-getPlanData = (plan) ->
+# Returns plan data
+# If plan is not found, it fallbacks to default
+# If there are plan overrides, they override plan properties
+getPlanData = (planConfig) ->
 
-  plan = 'default'  if plan not in Object.keys TEAMPLANS
-  return clone TEAMPLANS[plan]
+  { plan, overrides } = planConfig
+
+  if plan not in Object.keys TEAMPLANS
+    _.clone TEAMPLANS['default']
+  else
+    overrides ?= {}
+    _.extend {}, TEAMPLANS[plan], overrides
 
 
-# Takes plan name as reference and generates valid konstraint
+# Takes plan config as reference and generates valid konstraint
 # rules based on the TEAMPLANS data ~ GG
-generateConstraints = (plan) ->
+generateConstraints = (planConfig) ->
 
-  plan  = getPlanData plan
+  plan  = getPlanData planConfig
 
   # First rule be an object.
   rules = [ { $typeof : 'object' } ]
