@@ -114,7 +114,7 @@ func createCustomerFn(fn func(string, *paymentmodels.Customer)) func() {
 func subscribeFn(fn func(string, string, string)) func() {
 	return func() {
 		token, accId, email := generateFakeUserInfo()
-		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		err := SubscribeForAccount(token, accId, email, StartingPlan, StartingInterval)
 
 		So(err, ShouldBeNil)
 
@@ -131,7 +131,7 @@ func existingSubscribeFn(fn func(string, string, string)) func() {
 
 		token, _, _ = generateFakeUserInfo()
 
-		err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		err = SubscribeForAccount(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
 		fn(token, accId, email)
@@ -142,7 +142,7 @@ func subscribeWithReturnsFn(fn func(*paymentmodels.Customer, *paymentmodels.Subs
 	return func() {
 		token, accId, email := generateFakeUserInfo()
 
-		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		err := SubscribeForAccount(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
 		customer, err := paymentmodels.NewCustomer().ByOldId(accId)

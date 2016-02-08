@@ -50,7 +50,7 @@ func TestGetAllCustomers(t *testing.T) {
 		accId := account.Id.Hex()
 
 		token, _, email := generateFakeUserInfo()
-		err = stripe.Subscribe(
+		err = stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -82,7 +82,7 @@ func TestGetAllCustomers(t *testing.T) {
 func TestExpireSubscription(t *testing.T) {
 	Convey("Given user with active subscription", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := stripe.Subscribe(
+		err := stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -116,7 +116,7 @@ func TestSubscriptionsRequest1(t *testing.T) {
 
 	Convey("Given user subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := stripe.Subscribe(
+		err := stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -146,7 +146,7 @@ func TestSubscriptionsRequest1(t *testing.T) {
 
 	Convey("Given user subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := stripe.Subscribe(
+		err := stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -176,7 +176,7 @@ func TestSubscriptionsRequest1(t *testing.T) {
 
 	Convey("Given user subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := stripe.Subscribe(
+		err := stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -195,6 +195,25 @@ func TestSubscriptionsRequest1(t *testing.T) {
 
 			So(resp.PlanTitle, ShouldEqual, StartingPlan)
 			So(resp.PlanInterval, ShouldEqual, StartingInterval)
+		})
+	})
+}
+
+func TestSubscriptionsRequest2(t *testing.T) {
+	Convey("Given user that belongs to group with no subscription", t, func() {
+		Convey("Then it should return 'free' plan", func() {
+		})
+	})
+
+	Convey("Given user that belongs to group with subscription", t, func() {
+		Convey("When subscription is expired", func() {
+			Convey("Then it should return the expired subscription", func() {
+			})
+		})
+	})
+
+	Convey("Given user that belongs to group with subscription", t, func() {
+		Convey("Then it should return the subscription", func() {
 		})
 	})
 }
@@ -255,7 +274,7 @@ func TestExpireOutofDateSubscriptions(t *testing.T) {
 	Convey("Given subscriptions", t, func() {
 		Convey("Then it should expire out of date subscriptions", func() {
 			token, accId, email := generateFakeUserInfo()
-			err := stripe.Subscribe(
+			err := stripe.SubscribeForAccount(
 				token, accId, email, StartingPlan, StartingInterval,
 			)
 			So(err, ShouldBeNil)
@@ -279,7 +298,7 @@ func TestExpireOutofDateSubscriptions(t *testing.T) {
 
 		Convey("Then it shouldn't expire active subscriptions", func() {
 			token, accId, email := generateFakeUserInfo()
-			err := stripe.Subscribe(
+			err := stripe.SubscribeForAccount(
 				token, accId, email, StartingPlan, StartingInterval,
 			)
 			So(err, ShouldBeNil)
