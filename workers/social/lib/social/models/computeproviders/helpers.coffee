@@ -58,4 +58,12 @@ updateMachine = (options, callback) ->
       callback err
 
 
-module.exports = { updateMachine, validateResizeByMachine, validateResizeByUserPlan }
+getPlanConfig = (group) ->
+
+  return {
+    plan      : group.getAt 'config.plan'
+    overrides : group.getAt 'config.planOverrides'
+  }
+
+
+module.exports = { updateMachine, validateResizeByMachine, validateResizeByUserPlan, getPlanConfig }
