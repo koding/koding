@@ -22,8 +22,7 @@ forEachProvider = (fn, callback) ->
 
   for providerSlug, provider of PROVIDERS
     queue.push (next) ->
-      fn providerSlug, provider
-      next()
+      fn providerSlug, provider, next
 
   async.series queue, callback
 
