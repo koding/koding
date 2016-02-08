@@ -586,6 +586,32 @@ disableEditedEmbedPayload = (messageId) ->
   dispatch DISABLE_EDITED_MESSAGE_EMBED_PAYLOAD, { messageId }
 
 
+setChannelMessagesSearchQuery = (query) ->
+
+  { SET_CHANNEL_MESSAGES_SEARCH_QUERY } = actionTypes
+
+  dispatch SET_CHANNEL_MESSAGES_SEARCH_QUERY, { query }
+
+
+fetchMessagesByQuery = (channelId, query, options={}) ->
+
+  {
+    LOAD_MESSAGES_SUCCESS
+    CHANNEL_MESSAGES_SEARCH_BEGIN
+    CHANNEL_MESSAGES_SEARCH_SUCCESS } = actionTypes
+
+  dispatch CHANNEL_MESSAGES_SEARCH_BEGIN, { channelId, query }
+
+  kd.singletons.search.searchChannel query, channelId, options
+    .then (messages) ->
+      kd.singletons.reactor.batch ->
+        for message in messages
+          dispatchLoadMessageSuccess channelId, message
+
+        dispatch CHANNEL_MESSAGES_SEARCH_SUCCESS, { channelId, messages }
+        dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+
+
 module.exports = {
   loadMessage
   loadMessages
@@ -606,4 +632,6 @@ module.exports = {
   removeLoaderMarker
   editEmbedPayloadByUrl
   disableEditedEmbedPayload
+  fetchMessagesByQuery
+  setChannelMessagesSearchQuery
 }

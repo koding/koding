@@ -8,7 +8,7 @@
 <!--[if IE]>
       	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
   	<![endif]-->
-<link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 </head>
 <body class="php">
 <div id="container">
