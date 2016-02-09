@@ -190,7 +190,9 @@ module.exports = class Terminal extends KDObject
     @screenBuffer.scrollingRegion = [0, y - 1]
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
-    @server.setSize x, y  if @server
+    if @server
+      @emit 'ScreenSizeChanged', { w: x, h: y }
+      @server.setSize x, y
 
   getCharSizes: ->
     sizes =
