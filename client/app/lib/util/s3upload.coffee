@@ -48,7 +48,7 @@ module.exports = (options, callback = kd.noop) ->
       timeout     : timeout
       error       : (xhr) ->
         responseText = $.parseXML xhr.responseText
-        errorCode = responseText.getElementsByTagName("Code")[0].innerHTML
+        errorCode    = responseText.getElementsByTagName("Code")[0].innerHTML
         if errorCode is 'EntityTooLarge'
             callback message: "The file you tried to upload is too big"
         else
