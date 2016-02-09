@@ -982,7 +982,7 @@ module.exports = class JAccount extends jraphical.Module
       }
 
       require('./socialapi/requests').dispatchEvent 'dispatcher_notify_user', message, (err) ->
-        console.error err if err # do not cause trailing parameters
+        console.error "[dispatchEvent][notify_user]", err if err # do not cause trailing parameters
 
 
   cancelRequest: secure (client, slug, callback) ->

@@ -592,7 +592,7 @@ module.exports = class JGroup extends Module
     }
 
     require('../socialapi/requests').dispatchEvent 'dispatcher_notify_group', message, (err) ->
-      console.error err if err
+      console.error "[dispatchEvent][notify_group]", err if err
       # do not cause trailing parameters
       callback err
 
