@@ -5,12 +5,20 @@ Link  = require 'app/components/common/link'
 module.exports = class StartVideoCallLink extends React.Component
 
   @propTypes =
-    onStart : React.PropTypes.func.isRequired
+    isActive : React.PropTypes.bool.isRequired
+    onStart  : React.PropTypes.func.isRequired
+    onEnd    : React.PropTypes.func.isRequired
 
 
   render: ->
 
-    <Link className='StartVideoCall-link' onClick={@props.onStart}>
-      <span>Start a Video Call</span>
+    props = if @props.isActive
+    then {handler: @props.onEnd, label: 'Leave Video Call'}
+    else {handler: @props.onStart, label: 'Join Video Call'}
+
+    <Link className='StartVideoCall-link' onClick={props.handler}>
+      <span>
+        {props.label}
+      </span>
       <i className='StartVideoCall-icon'></i>
     </Link>

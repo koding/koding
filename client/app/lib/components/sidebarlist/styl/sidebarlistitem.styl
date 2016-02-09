@@ -30,6 +30,12 @@
   kalc                      width, (100% \- 25px)
   vertical-align            top
 
+.SidebarListItem.is-withVideo
+  .SidebarListItem-icon
+    &:before
+      content               '◉' !important
+      color                 red !important
+      vendor                animation, pulse-less 5s ease infinite
 
 .SidebarListItem-unreadCount
   abs                       0 2px 0 0

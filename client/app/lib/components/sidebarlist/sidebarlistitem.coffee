@@ -32,6 +32,7 @@ module.exports = class SidebarListItem extends React.Component
   getClassName: -> classnames
     SidebarListItem : yes
     active          : @props.active ? @state.clicked
+    'is-withVideo'  : @props.isVideoActive
 
 
   renderUnreadCount: ->

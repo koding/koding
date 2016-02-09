@@ -10,8 +10,11 @@ module.exports = class ChannelThreadHeaderContainer extends React.Component
 
   @propTypes =
     className                  : React.PropTypes.string
+    isVideoActive              : React.PropTypes.bool.isRequired
     onInvitePeople             : React.PropTypes.func.isRequired
     onLeaveChannel             : React.PropTypes.func.isRequired
+    onVideoStart               : React.PropTypes.func.isRequired
+    onVideoEnd                 : React.PropTypes.func.isRequired
     onShowNotificationSettings : React.PropTypes.func.isRequired
     thread                     : React.PropTypes.instanceOf immutable.Map
 
@@ -27,7 +30,6 @@ module.exports = class ChannelThreadHeaderContainer extends React.Component
 
     @state =
       editingPurpose : no
-      isModalOpen    : no
       thread         : @props.thread
 
 
@@ -95,12 +97,6 @@ module.exports = class ChannelThreadHeaderContainer extends React.Component
       kd.utils.moveCaretToEnd @refs.view.refs.purposeInput
 
 
-  onVideoStart: -> @setState { isModalOpen: yes }
-
-
-  onClose: -> @setState { isModalOpen: no }
-
-
   handlePurposeInputChange: (newValue) ->
 
     thread = @state.thread
@@ -139,10 +135,10 @@ module.exports = class ChannelThreadHeaderContainer extends React.Component
       ref            = 'view'
       thread         = { @state.thread }
       menuItems      = { @getMenuItems() }
+      isVideoActive  = { @props.isVideoActive }
       className      = { @props.className }
-      onClose        = { @bound 'onClose' }
-      isModalOpen    = { @state.isModalOpen }
       onKeyDown      = { @bound 'onKeyDown' }
-      onVideoStart   = { @bound 'onVideoStart' }
+      onVideoStart   = { @props.onVideoStart }
+      onVideoEnd     = { @props.onVideoEnd }
       editingPurpose = { @state.editingPurpose }
       onChange       = { @bound 'handlePurposeInputChange' } />
