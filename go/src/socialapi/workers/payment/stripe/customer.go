@@ -24,7 +24,7 @@ func CreateCustomerForGroup(token, groupId, email string) (*paymentmodels.Custom
 		Log.Error("Fetching group: %s failed. %s", groupId, err)
 	}
 
-	return createCustomer(token, group.Id.String(), group.Slug, email, meta, paymentmodels.AccountCustomer)
+	return createCustomer(token, groupId, group.Slug, email, meta, paymentmodels.GroupCustomer)
 }
 
 // CreateCustomer creates customer in Stripe and saves customer with

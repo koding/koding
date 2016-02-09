@@ -5,7 +5,7 @@ import (
 	"socialapi/workers/payment/paymentmodels"
 )
 
-func FindPlanFromToken(token string) (*paymentmodels.Plan, error) {
+func FindPlanFromToken(token, cType string) (*paymentmodels.Plan, error) {
 	client, err := Client()
 	if err != nil {
 		return nil, err
@@ -25,8 +25,7 @@ func FindPlanFromToken(token string) (*paymentmodels.Plan, error) {
 	planTitle, planInterval := parsePlanInfo(planInfo)
 
 	plan := paymentmodels.NewPlan()
-	err = plan.ByTitleAndInterval(planTitle, planInterval)
-	if err != nil {
+	if err = plan.ByTitleAndInterval(planTitle, planInterval, cType); err != nil {
 		return nil, err
 	}
 

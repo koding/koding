@@ -139,7 +139,7 @@ type PaypalGetTokenRequest struct {
 }
 
 func (p *PaypalGetTokenRequest) Do() (interface{}, error) {
-	return paypal.GetToken(p.PlanTitle, p.PlanInterval)
+	return paypal.GetToken(p.PlanTitle, p.PlanInterval, paymentmodels.AccountCustomer)
 }
 
 //----------------------------------------------------------

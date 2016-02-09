@@ -1,6 +1,9 @@
 package stripe
 
 import (
+	"gopkg.in/mgo.v2/bson"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -115,7 +118,7 @@ func TestSubscribe4(t *testing.T) {
 					So(len(subs), ShouldEqual, 1)
 
 					currentSub := subs[0]
-					newPlan, err := FindPlanByTitleAndInterval(HigherPlan, HigherInterval)
+					newPlan, err := FindPlanByTitleAndInterval(HigherPlan, HigherInterval, paymentmodels.AccountCustomer)
 
 					So(err, ShouldBeNil)
 					So(currentSub.PlanId, ShouldEqual, newPlan.Id)
@@ -161,7 +164,7 @@ func TestSubscribe5(t *testing.T) {
 					So(len(subs), ShouldEqual, 1)
 
 					currentSub := subs[0]
-					newPlan, err := FindPlanByTitleAndInterval(LowerPlan, LowerInterval)
+					newPlan, err := FindPlanByTitleAndInterval(LowerPlan, LowerInterval, paymentmodels.AccountCustomer)
 
 					So(err, ShouldBeNil)
 					So(currentSub.PlanId, ShouldEqual, newPlan.Id)
@@ -262,6 +265,53 @@ func TestSubscribe8(t *testing.T) {
 			Convey("Then customer should be deleted", func() {
 				_, err := paymentmodels.NewCustomer().ByOldId(accId)
 				So(err, ShouldEqual, paymenterrors.ErrCustomerNotFound)
+			})
+		})
+	})
+}
+
+func TestGroupSubscribe1(t *testing.T) {
+	Convey("Given nonexistent customer, plan", t,
+		subscribeGroupFn(func(token, groupId, email string) {
+			customer, err := paymentmodels.NewCustomer().ByOldId(groupId)
+			id := customer.ProviderCustomerId
+
+			So(err, ShouldBeNil)
+			So(customer, ShouldNotBeNil)
+
+			Convey("Then it should save customer", func() {
+				So(checkCustomerIsSaved(groupId), ShouldBeTrue)
+			})
+
+			Convey("Then it should create an customer in Stripe", func() {
+				So(checkCustomerExistsInStripe(id), ShouldBeTrue)
+			})
+
+			Convey("Then it should subscribe user to plan", func() {
+				customer, err := GetCustomer(id)
+				So(err, ShouldBeNil)
+
+				So(customer.Subs.Count, ShouldEqual, 1)
+			})
+		}),
+	)
+}
+
+func TestGroupSubscribe2(t *testing.T) {
+	Convey("Given nonexistent customer, plan", t, func() {
+		token, gId, email := generateFakeUserInfo()
+		group := &models.Group{
+			Id:   bson.ObjectIdHex(gId),
+			Slug: token[0:10],
+		}
+		err := modelhelper.CreateGroup(group)
+		So(err, ShouldBeNil)
+
+		Convey("When customer tries to buy solo plan", func() {
+			err := SubscribeForGroup(token, gId, email, StartingPlan, StartingInterval)
+
+			Convey("Then it should throw error", func() {
+				So(err, ShouldEqual, paymenterrors.ErrPlanNotFound)
 			})
 		})
 	})

@@ -14,7 +14,7 @@ import (
 // deleted, not called during app runtime.
 func CreateDefaultPlans() error {
 	for id, pl := range paymentplan.DefaultPlans {
-		plan, err := FindPlanByTitleAndInterval(pl.Title, pl.Interval.ToString())
+		plan, err := FindPlan(pl.Title, pl.Interval.ToString(), pl.Type)
 		if err != nil && err != paymenterrors.ErrPlanNotFound {
 			return err
 		}
@@ -23,7 +23,7 @@ func CreateDefaultPlans() error {
 			continue
 		}
 
-		_, err = CreatePlan(id, pl.Title, pl.NameForStripe, pl.Interval, pl.Amount)
+		_, err = CreatePlan(id, pl.Title, pl.NameForStripe, pl.Type, pl.Interval, pl.Amount)
 		if err != nil {
 			continue
 		}
@@ -45,7 +45,7 @@ func getStripePlanInterval(i paymentplan.PlanInterval) stripe.PlanInternval {
 
 // CreatePlan creates plan in Stripe and saves it locally. It deals with
 // cases where plan exists in stripe, but not locally.
-func CreatePlan(id, title, nameForStripe string, interval paymentplan.PlanInterval, amount uint64) (*paymentmodels.Plan, error) {
+func CreatePlan(id, title, nameForStripe, cType string, interval paymentplan.PlanInterval, amount uint64) (*paymentmodels.Plan, error) {
 	planParams := &stripe.PlanParams{
 		Id:       id,
 		Name:     nameForStripe,
@@ -66,6 +66,7 @@ func CreatePlan(id, title, nameForStripe string, interval paymentplan.PlanInterv
 		Provider:       ProviderName,
 		Interval:       interval.ToString(),
 		AmountInCents:  amount,
+		Type:           cType,
 	}
 
 	err := planModel.Create()
@@ -73,10 +74,9 @@ func CreatePlan(id, title, nameForStripe string, interval paymentplan.PlanInterv
 	return planModel, err
 }
 
-func FindPlanByTitleAndInterval(title, interval string) (*paymentmodels.Plan, error) {
+func FindPlan(title, interval, cType string) (*paymentmodels.Plan, error) {
 	plan := paymentmodels.NewPlan()
-
-	if err := plan.ByTitleAndInterval(title, interval); err != nil {
+	if err := plan.ByTitleAndInterval(title, interval, cType); err != nil {
 		if paymenterrors.IsPlanNotFoundErr(err) {
 			return nil, paymenterrors.ErrPlanNotFound
 		}

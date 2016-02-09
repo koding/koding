@@ -17,7 +17,7 @@ func SubscribeForAccount(token, accId, email, planTitle, planInterval string) er
 }
 
 func subscribe(token, email, planTitle, planInterval, id string, cType string) error {
-	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
+	plan, err := FindPlan(planTitle, planInterval, cType)
 	if err != nil {
 		return err
 	}

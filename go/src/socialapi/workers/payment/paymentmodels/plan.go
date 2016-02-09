@@ -45,10 +45,11 @@ func (p *Plan) ByProviderId(providerId, provider string) error {
 	return p.Find(selector)
 }
 
-func (p *Plan) ByTitleAndInterval(title, interval string) error {
+func (p *Plan) ByTitleAndInterval(title, interval, cType string) error {
 	selector := map[string]interface{}{
 		"title":    title,
 		"interval": interval,
+		"type":     cType,
 	}
 	return p.One(bongo.NewQS(selector))
 }

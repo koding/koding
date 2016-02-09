@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
@@ -46,6 +47,11 @@ var (
 	LowerInterval     = "month"
 	FreePlan          = "free"
 	FreeInterval      = "month"
+
+	GroupStartingPlan = "startup"
+	GroupHigherPlan   = "enterprise"
+	GroupLowerPlan    = "boostrap"
+	GroupInterval     = "month"
 
 	LowerPlanProviderId = "hobbyist_month"
 )
@@ -152,5 +158,24 @@ func subscribeWithReturnsFn(fn func(*paymentmodels.Customer, *paymentmodels.Subs
 		So(err, ShouldBeNil)
 
 		fn(customer, subscription)
+	}
+}
+
+///// Group
+
+func subscribeGroupFn(fn func(string, string, string)) func() {
+	return func() {
+		token, gId, email := generateFakeUserInfo()
+		group := &models.Group{
+			Id:   bson.ObjectIdHex(gId),
+			Slug: token[0:23],
+		}
+		err := modelhelper.CreateGroup(group)
+		So(err, ShouldBeNil)
+
+		err = SubscribeForGroup(token, gId, email, GroupStartingPlan, GroupInterval)
+		So(err, ShouldBeNil)
+
+		fn(token, gId, email)
 	}
 }
