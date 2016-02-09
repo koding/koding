@@ -184,19 +184,11 @@ module.exports = class AccountCredentialList extends KDListView
     credential  = item.getData()
     identifiers = [credential.identifier]
 
-    if credential.provider is 'vagrant'
-      return new Promise (resolve) ->
-        response = {}
-        response["#{credential.identifier}"] = yes
-        resolve response
-
-    console.log { identifiers }
-
     { computeController } = kd.singletons
 
     computeController.getKloud()
 
-      .checkCredential { identifiers }
+      .checkCredential { identifiers, provider: credential.provider }
 
       .then (response) ->
 

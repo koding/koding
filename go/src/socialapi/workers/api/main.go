@@ -27,6 +27,7 @@ import (
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	permissionapi "socialapi/workers/permission/api"
+	realtimeapi "socialapi/workers/realtime/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
 
@@ -80,6 +81,7 @@ func main() {
 	privatechannel.AddHandlers(m)
 	reply.AddHandlers(m)
 	notificationsetting.AddHandlers(m)
+	realtimeapi.AddHandlers(m)
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)

@@ -50,8 +50,6 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       payload.provider = provider
       payload.provider = 'vagrant'  if provider is 'vagrantkite'
 
-    console.log ">>>>> PAYLOAD", payload
-
     payload.groupName = getGroupName()
     payload.debug = yes  if debugEnabled()
 

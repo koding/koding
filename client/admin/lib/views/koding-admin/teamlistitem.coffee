@@ -141,6 +141,13 @@ module.exports = class TeamListItem extends kd.ListItemView
 
     delegate = @getDelegate()
 
+    overrides = team.config?.planOverrides
+    if overrides
+      try
+        overrides = JSON.stringify overrides
+      catch e
+        overrides = ''
+
     modal = new kd.ModalViewWithForms
       title                       : "Set team plan for #{team.slug}"
       overlay                     : yes
@@ -162,11 +169,19 @@ module.exports = class TeamListItem extends kd.ListItemView
                   color           : '#444444'
                 callback          : ->
 
-                  { setplan } = modal.modalTabs.forms
-                  button      = setplan.buttons.Save
-                  plan        = setplan.inputs.plan.getValue()
+                  { setplan }   = modal.modalTabs.forms
+                  planOverrides = setplan.inputs.planOverrides
+                  button        = setplan.buttons.Save
 
-                  team.setPlan { plan }, (err) ->
+                  planOverrides.validate()
+                  return button.hideLoader()  unless planOverrides.valid
+
+                  plan      = setplan.inputs.plan.getValue()
+
+                  overrides = planOverrides.getValue()
+                  overrides = JSON.parse overrides  if overrides
+
+                  team.setPlan { plan, overrides }, (err) ->
 
                     button.hideLoader()
 
@@ -188,7 +203,14 @@ module.exports = class TeamListItem extends kd.ListItemView
                     selectOptions : plans
                     callback      : (plan) ->
                       { setplan } = modal.modalTabs.forms
-                      setplan.inputs.planDetails.updatePartial getDetails plan
+                      { planDetails, planOverrides } = setplan.inputs
+                      planDetails.updatePartial getDetails plan
+                      if plan is 'noplan'
+                        planOverrides.setValue ''
+                        planOverrides.validate()
+                        planOverrides.makeDisabled()
+                      else
+                        planOverrides.makeEnabled()
                       modal._windowDidResize()
 
               planDetails         :
@@ -200,6 +222,23 @@ module.exports = class TeamListItem extends kd.ListItemView
                     cssClass      : 'has-markdown'
                     itemClass     : kd.View
                     partial       : getDetails team.config?.plan
+
+              planOverrides       :
+                name              : 'planoverrides'
+                label             : 'Overrides'
+                type              : 'hidden'
+                nextElement       :
+                  planOverrides   :
+                    itemClass     : kd.InputView
+                    type          : 'textarea'
+                    disabled      : not team.config?.plan
+                    defaultValue  : overrides
+                    validate      :
+                      rules       :
+                        JSON      : yes
+                      events      :
+                        JSON      : 'blur'
+
 
   pistachio: ->
 
