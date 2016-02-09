@@ -1,18 +1,20 @@
-kitejs = require 'kite.js'
-Promise = require 'bluebird'
-kd = require 'kd'
-KDObject = kd.Object
+kd         = require 'kd'
+kitejs     = require 'kite.js'
+Promise    = require 'bluebird'
 KiteLogger = require '../kitelogger'
 
-module.exports = class KodingKite extends KDObject
+
+module.exports = class KodingKite extends kd.Object
 
   @constructors = {}
 
   @Error = kitejs.Kite.Error
 
   [DISCONNECTED, CONNECTED] = [0, 1]
-  MAX_QUEUE_SIZE = 50
+
   MAX_WAITING_TIME = 60000 # 1 min.
+  MAX_QUEUE_SIZE   = 50    # Limit for the callbacks in
+                           # the connection waiting queue ~ GG
 
   init: ->
 
@@ -27,7 +29,7 @@ module.exports = class KodingKite extends KDObject
     { name } = options
 
     @on 'open', =>
-      @isDisconnected = no # This one is the manual disconnect request ~ GG
+      @isDisconnected = no # This one is for the manual disconnect request ~ GG
       @_state = CONNECTED
 
     @on 'close', (reason) =>
@@ -71,7 +73,7 @@ module.exports = class KodingKite extends KDObject
       _resolve = null
       _args    = null
 
-      promise = new Promise (resolve, reject)=>
+      promise = new Promise (resolve, reject) =>
 
         _resolve = resolve
         _args    = [rpcMethod, [params], callback]
@@ -82,21 +84,21 @@ module.exports = class KodingKite extends KDObject
 
           .timeout MAX_WAITING_TIME
 
-          .then (args)=>
+          .then (args) =>
             KiteLogger.started name, rpcMethod
             resolve (@transport?.tell args...
 
-              .then (res)->
+              .then (res) ->
 
                 KiteLogger.success name, rpcMethod
                 return res
 
-              .catch (err)=>
+              .catch (err) =>
 
                 if err.name is 'KiteError' and \
                    err.message is 'token is expired'
 
-                  return new Promise (resolve, reject)=>
+                  return new Promise (resolve, reject) =>
                     @transport?.expireToken =>
                       resolve @transport.tell args...
 
@@ -147,7 +149,7 @@ module.exports = class KodingKite extends KDObject
     else @emit 'close', reason: 'user action'
 
 
-  reconnect:  ->
+  reconnect: ->
 
     @emit 'reconnect'
 
@@ -159,7 +161,7 @@ module.exports = class KodingKite extends KDObject
       @transport?.connect?()
 
 
-  waitForConnection: (args)->
+  waitForConnection: (args) ->
 
     { name } = @getOptions()
 
