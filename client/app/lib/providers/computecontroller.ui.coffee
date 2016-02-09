@@ -52,8 +52,7 @@ module.exports = class ComputeController_UI
       credentialFields = {}
 
       for field in requiredFields
-        credentialFields[field] =
-          label : field.capitalize()
+        credentialFields[field] = createRequiredCredentialField field
 
       currentProvider  = { credentialFields }
 
@@ -145,6 +144,14 @@ module.exports = class ComputeController_UI
       form.inputs[field].setSelectOptions values
 
     return form
+
+
+  createRequiredCredentialField = (options) ->
+
+    return { label : options.capitalize() }  if typeof options is 'string'
+
+    { name, type } = options
+    return { label : name.capitalize(), type }
 
 
   @generateCreateInstanceForm: ->

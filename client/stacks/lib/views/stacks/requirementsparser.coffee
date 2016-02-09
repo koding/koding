@@ -95,4 +95,16 @@ module.exports = requirementsParser = (content) ->
     for match of requirements
       requirements[match] = Object.keys requirements[match]
 
+    requirements['userInput'] = addUserInputTypes content, requirements['userInput']
+
     return requirements
+
+
+addUserInputTypes = (content, userVars) ->
+
+  return  unless userVars
+
+  userVars.map (userVar) ->
+    regex = new RegExp "koding:$\\s+userInput:$(?:\\s+\\w+:\\s*'\\w+'$)*\\s+#{userVar}:\\s*'(\\w+)'$", 'gm'
+    match = regex.exec content
+    if match then { name: userVar, type: match[1] } else userVar
