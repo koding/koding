@@ -1,4 +1,4 @@
-package vagrantkite
+package vagrant
 
 import (
 	"errors"
@@ -29,7 +29,7 @@ type vagrantCommandReq struct {
 	Watch    dnode.Function
 }
 
-func resourceVagrantKiteBuild() *schema.Resource {
+func resourceVagrantBuild() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMachineCreate,
 		Read:   resourceMachineNoop,

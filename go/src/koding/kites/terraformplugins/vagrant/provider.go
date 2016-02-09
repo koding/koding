@@ -1,6 +1,6 @@
-// Package vagrantkite provides communication layer between terraform and remote
+// Package vagrant provides communication layer between terraform and remote
 // klient
-package vagrantkite
+package vagrant
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
@@ -19,7 +19,7 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			// vagrant_instance builds a new vagrant machine on the remote
 			// klient
-			"vagrant_instance": resourceVagrantKiteBuild(),
+			"vagrant_instance": resourceVagrantBuild(),
 		},
 	}
 }

@@ -134,7 +134,7 @@ func MachinesFromState(state *terraform.State) (*Machines, error) {
 				continue
 			}
 
-			if resourceType == "build" && provider != "vagrantkite" {
+			if resourceType == "instance" && provider != "vagrant" {
 				continue
 			}
 
@@ -191,7 +191,7 @@ func MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				continue
 			}
 
-			if resourceType == "build" && provider != "vagrantkite" {
+			if resourceType == "instance" && provider != "vagrant" {
 				continue
 			}
 

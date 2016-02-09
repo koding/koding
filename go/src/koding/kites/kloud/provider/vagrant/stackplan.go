@@ -247,8 +247,8 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
-		if tf.Provider == "vagrantkite" {
-			if err := updateVagrantKite(ctx, tf, machine.ObjectId); err != nil {
+		if tf.Provider == "vagrant" {
+			if err := updateVagrant(ctx, tf, machine.ObjectId); err != nil {
 				return err
 			}
 		}
@@ -257,7 +257,7 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 	return nil
 }
 
-func updateVagrantKite(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
+func updateVagrant(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
 	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
 		"provider":             tf.Provider,
 		"meta.hostQueryString": tf.HostQueryString,

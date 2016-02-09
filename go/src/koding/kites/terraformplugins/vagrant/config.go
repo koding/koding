@@ -1,4 +1,4 @@
-package vagrantkite
+package vagrant
 
 import (
 	"os"
@@ -12,7 +12,7 @@ import (
 
 var (
 	Version     = "0.0.1"
-	Name        = "vagrantkite"
+	Name        = "vagrant"
 	Environment = "terraform"
 	Region      = "terraform"
 )

@@ -76,7 +76,7 @@ func (s State) MachineState() machinestate.State {
 	}
 }
 
-// Klient represents a client for vagrantkite. Spelled with a K, because we
+// Klient represents a client for vagrant. Spelled with a K, because we
 // can.
 type Klient struct {
 	Kite *kite.Kite
