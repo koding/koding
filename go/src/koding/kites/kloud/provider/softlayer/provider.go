@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	defaultKlientTimeout = 10 * time.Minute
+	defaultKlientTimeout = 15 * time.Minute
 	defaultStateTimeout  = 15 * time.Minute
 )
 
