@@ -14,7 +14,7 @@ import (
 
 const (
 	testVagrantKiteBuildConfig = `
-resource "vagrantkite_build" "myfirstvm" {
+resource "vagrant_instance" "myfirstvm" {
 	filePath = ` + vagrantFilePath + `
     queryString = ` + queryString + `
     vagrantFile = ` + vagrantFile + `
@@ -48,17 +48,17 @@ func TestVagrantKiteProviderConfig(t *testing.T) {
 				Config: testVagrantKiteBuildConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"vagrantkite_build.myfirstvm",
+						"vagrant_instance.myfirstvm",
 						"filePath",
 						vagrantFilePath,
 					),
 					resource.TestCheckResourceAttr(
-						"vagrantkite_build.myfirstvm",
+						"vagrant_instance.myfirstvm",
 						"queryString",
 						queryString,
 					),
 					resource.TestCheckResourceAttr(
-						"vagrantkite_build.myfirstvm",
+						"vagrant_instance.myfirstvm",
 						"vagrantFile",
 						vagrantFile,
 					),

@@ -17,9 +17,9 @@ func Provider() terraform.ResourceProvider {
 		// ConfigureFunc: providerConfigure
 
 		ResourcesMap: map[string]*schema.Resource{
-			// vagrantkite_build builds a new vagrant machine on the remote
+			// vagrant_instance builds a new vagrant machine on the remote
 			// klient
-			"vagrantkite_build": resourceVagrantKiteBuild(),
+			"vagrant_instance": resourceVagrantKiteBuild(),
 		},
 	}
 }

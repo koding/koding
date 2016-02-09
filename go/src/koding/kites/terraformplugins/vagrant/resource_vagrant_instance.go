@@ -75,7 +75,7 @@ func resourceVagrantKiteBuild() *schema.Resource {
 				Optional:    true,
 				Description: "Number of CPU's to be used for the underlying Vagrant box. Defaults to 1",
 			},
-			"customScript": &schema.Schema{
+			"user_data": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Custom script to be executed inside the Vagrant box after the main provisioning is finished.",
@@ -144,7 +144,7 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 		Hostname:      d.Get("hostname").(string),
 		Memory:        d.Get("memory").(int),
 		Cpus:          d.Get("cpus").(int),
-		CustomScript:  d.Get("customScript").(string),
+		CustomScript:  d.Get("user_data").(string),
 	}
 
 	c.Log.Debug(`Calling "vagrant.create" on %q with %+v`, queryString, args)

@@ -24,7 +24,7 @@ import (
 
 // VagrantResource
 type VagrantResource struct {
-	Build map[string]map[string]interface{} `hcl:"vagrantkite_build"`
+	Build map[string]map[string]interface{} `hcl:"vagrant_instance"`
 }
 
 func (s *Stack) updateCredential(cred *stackplan.Credential) error {
@@ -188,7 +188,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		res.Build[resourceName] = box
 	}
 
-	t.Resource["vagrantkite_build"] = res.Build
+	t.Resource["vagrant_instance"] = res.Build
 
 	if err := t.Flush(); err != nil {
 		return "", nil, err
