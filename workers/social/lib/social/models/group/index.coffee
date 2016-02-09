@@ -108,7 +108,6 @@ module.exports = class JGroup extends Module
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
-        { name: 'messageBusEvent' }
       ]
     sharedMethods   :
       static        :
@@ -592,10 +591,10 @@ module.exports = class JGroup extends Module
         contents : contents
     }
 
-    @emit 'messageBusEvent', { type: 'dispatcher_notify_group', message }
-
-    callback null
-
+    require('../socialapi/requests').dispatchEvent 'dispatcher_notify_group', message, (err) ->
+      console.error err if err
+      # do not cause trailing parameters
+      callback err
 
   sendNotification$: permit
     advanced: [
