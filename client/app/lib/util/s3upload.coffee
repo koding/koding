@@ -32,7 +32,7 @@ module.exports = (options, callback = kd.noop) ->
     data.append 'policy', policy.policy
     data.append 'signature', policy.signature
 
-    # Update this later for feature requirements2
+    # Update this later for feature requirements
     data.append 'Content-Type', mimeType
 
     data.append 'file', content
@@ -50,7 +50,7 @@ module.exports = (options, callback = kd.noop) ->
         responseText = $.parseXML xhr.responseText
         errorCode = responseText.getElementsByTagName("Code")[0].innerHTML
         if errorCode is 'EntityTooLarge'
-            callback message: errorCode
+            callback message: "The file you tried to upload is too big"
         else
             callback message: "Failed to upload"
       success     : ->

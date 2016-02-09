@@ -180,10 +180,7 @@ module.exports = class AccountEditUsername extends JView
 
       @uploadAvatarBtn.hideLoader()
 
-      if err.message is 'EntityTooLarge'
-        return notify "The image you tried to upload is too big."
-      else
-        return notify err
+      return showError err  if err
 
       @account.modify "profile.avatar": "#{url}"
 
