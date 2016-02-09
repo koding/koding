@@ -32,7 +32,7 @@ module.exports = (options, callback = kd.noop) ->
     data.append 'policy', policy.policy
     data.append 'signature', policy.signature
 
-    # Update this later for feature requirements
+    # Update this later for feature requirements2
     data.append 'Content-Type', mimeType
 
     data.append 'file', content
@@ -46,8 +46,12 @@ module.exports = (options, callback = kd.noop) ->
       crossDomain : yes
       data        : data
       timeout     : timeout
-      error       : (event, status, errorThrown) ->
-        console.log event
-        callback message: errorThrown
+      error       : (xhr) ->
+        responseText = $.parseXML xhr.responseText
+        errorCode = responseText.getElementsByTagName("Code")[0].innerHTML
+        if errorCode is 'EntityTooLarge'
+            callback message: errorCode
+        else
+            callback message: "Failed to upload"
       success     : ->
         callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"
