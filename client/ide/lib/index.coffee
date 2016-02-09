@@ -1930,9 +1930,11 @@ class IDEAppController extends AppController
 
 
   turnOffTerminalSizeListener: ->
-    @activePaneView?.webtermView?.off? 'ScreenSizeChanged'
+    
+    @activePaneView?.webtermView?.off 'ScreenSizeChanged'
 
 
   listenForTerminalSizeChanges: ->
-    @activePaneView?.webtermView?.on? 'ScreenSizeChanged', (size) =>
+    
+    @activePaneView?.webtermView?.on 'ScreenSizeChanged', (size) =>
       @updateStatusBar null, "Screen size changed to (#{size.w}, #{size.h})"
