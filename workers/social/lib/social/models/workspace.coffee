@@ -88,7 +88,7 @@ module.exports = class JWorkspace extends Module
           groupName: slug
 
         require('./socialapi/requests').dispatchEvent 'social.workspace_created', message, (err) ->
-          console.error err if err
+          console.error "[dispatchEvent][workspace_created]", err if err
 
         uid       = machineUId
         eventName = 'NewWorkspaceCreated'
