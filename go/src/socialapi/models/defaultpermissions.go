@@ -34,3 +34,7 @@ const (
 	ModerationChannelBlacklist  = "moderation-channel-blacklist"
 	ModerationChannelGetRoot    = "moderation-channel-get-root"
 )
+
+const (
+	DispatcherEvent = "dispatcher-event"
+)
