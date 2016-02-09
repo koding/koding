@@ -19,7 +19,6 @@ KDModalView                   = kd.ModalView
 KDSplitView                   = kd.SplitView
 IDEWorkspace                  = require './workspace/ideworkspace'
 IDEStatusBar                  = require './views/statusbar/idestatusbar'
-KodingKontrol                 = require 'app/kite/kodingkontrol'
 AppController                 = require 'app/appcontroller'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
@@ -664,9 +663,6 @@ class IDEAppController extends AppController
 
 
   showStateMachineModal: (machineItem, event) ->
-
-    KodingKontrol.dcNotification?.destroy()
-    KodingKontrol.dcNotification = null
 
     machineItem.getBaseKite( no ).disconnect()
 

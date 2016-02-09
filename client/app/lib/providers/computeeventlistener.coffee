@@ -1,12 +1,9 @@
-kd            = require 'kd'
-KDObject      = kd.Object
-
-globals       = require 'globals'
-Machine       = require './machine'
-KodingKontrol = require '../kite/kodingkontrol'
+kd      = require 'kd'
+globals = require 'globals'
+Machine = require './machine'
 
 
-module.exports = class ComputeEventListener extends KDObject
+module.exports = class ComputeEventListener extends kd.Object
 
   {Stopped, Running, Terminated, Snapshotting} = Machine.State
 
