@@ -6,6 +6,7 @@ import (
 
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -101,12 +102,17 @@ func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
 	m.User = user
 	m.Log = p.Log.New(m.ObjectId.Hex())
 
+	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+		m.Log = common.NewLogger("kloud-vagrant", true).New(m.ObjectId.Hex()).New(traceID)
+	}
+
 	m.Session = &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,
+		Log:        m.Log,
 	}
 
 	m.api = &vagrantapi.Klient{
