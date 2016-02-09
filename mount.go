@@ -143,7 +143,7 @@ func MountCommand(c *cli.Context) int {
 			util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
 			// unmount using mount path
-			if err := unmount(k, "", localPath); err != nil {
+			if err := unmount(k, mountRequest.Name, localPath); err != nil {
 				log.Errorf("Error unmounting (remounting). err:%s", err)
 				fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
 				return 1
