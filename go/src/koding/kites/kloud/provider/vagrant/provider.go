@@ -3,6 +3,7 @@ package vagrant
 import (
 	"errors"
 	"fmt"
+	"net/url"
 
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
@@ -42,6 +43,7 @@ type Provider struct {
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
 	Userdata   *userdata.Userdata
+	TunnelURL  string
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
@@ -126,4 +128,11 @@ func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
 	}
 
 	return nil
+}
+
+func (p *Provider) tunnelURL() (*url.URL, error) {
+	if p.TunnelURL == "" {
+		return nil, errors.New("no tunnel URL provided")
+	}
+	return url.Parse(p.TunnelURL)
 }

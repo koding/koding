@@ -22,7 +22,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// VagrantResource
+// VagrantResource represents vagrant_instance Terraform resource.
 type VagrantResource struct {
 	Build map[string]map[string]interface{} `hcl:"vagrant_instance"`
 }
@@ -41,7 +41,9 @@ func (s *Stack) updateCredential(cred *stackplan.Credential) error {
 	})
 }
 
-// InjectVagrantData
+// InjectVagrantData sets default properties for vagrant_instance Terraform template.
+//
+// TODO(rjeczalik): move out hostQueryString outside this method.
 func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string, stackplan.KiteMap, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -73,8 +75,6 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		return "", nil, err
 	}
 
-	hostQueryString := cred.Meta.(*VagrantMeta).QueryString
-
 	var res VagrantResource
 
 	if err := t.DecodeResource(&res); err != nil {
@@ -82,8 +82,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 	}
 
 	if len(res.Build) == 0 {
-		s.Log.Debug("No Vagrant build available: %# v", &res)
-		return hostQueryString, nil, nil
+		return "", nil, errors.New("no vagrant instances specified")
 	}
 
 	kiteIDs := make(stackplan.KiteMap)
@@ -96,39 +95,25 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			return "", nil, err
 		}
 
-		var klientURL string
-		if kurl, ok := box["klientURL"].(string); ok {
-			// For debugging klient inside vagrant without restarting kloud.
-			klientURL = kurl
-			delete(box, "klientURL")
+		klientURL, err := sess.Userdata.LookupKlientURL()
+		if err != nil {
+			return "", nil, err
+		}
+
+		// set registerURL if not provided via template
+		registerURL := s.tunnelUniqueURL(username)
+		if r, ok := box["registerURL"].(string); ok {
+			registerURL = r
 		} else {
-			kurl, err := sess.Userdata.Bucket.LatestDeb()
-			if err != nil {
-				return "", nil, err
-			}
-			klientURL = sess.Userdata.Bucket.URL(kurl)
+			box["registerURL"] = registerURL
 		}
 
-		// get the registerURL if passed via template
-		var registerURL string
-		if r, ok := box["registerURL"]; ok {
-			if ru, ok := r.(string); ok {
-				registerURL = ru
-			}
-		}
-
-		// get the kontrolURL if passed via template
-		var kontrolURL string
-		if k, ok := box["kontrolURL"]; ok {
-			if ku, ok := k.(string); ok {
-				kontrolURL = ku
-			}
-		}
-
-		if s, ok := box["queryString"].(string); !ok {
-			box["queryString"] = "${var.vagrant_queryString}"
+		// set kontrolURL if not provided via template
+		kontrolURL := sess.Userdata.Keycreator.KontrolURL
+		if k, ok := box["kontrolURL"].(string); ok {
+			kontrolURL = k
 		} else {
-			hostQueryString = s
+			box["kontrolURL"] = kontrolURL
 		}
 
 		// set default filePath to relative <stackdir>/<boxname>; for
@@ -194,7 +179,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		return "", nil, err
 	}
 
-	return hostQueryString, kiteIDs, nil
+	return cred.Meta.(*VagrantMeta).QueryString, kiteIDs, nil
 }
 
 func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString string) (*stackplan.Machines, error) {
