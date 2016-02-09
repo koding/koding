@@ -11,35 +11,35 @@ module.exports = class MostReadArticlesWidget extends React.Component
         <li>
           <a
             target='_blank'
-            href='http://learn.koding.com/guides/ssh-into-your-vm/'>
+            href='https://koding.com/docs/ssh-into-your-vm/'>
             How to ssh into your VM?
           </a>
         </li>
         <li>
           <a
             target='_blank'
-            href='http://learn.koding.com/guides/getting-started-kpm/'>
+            href='https://koding.com/docs/getting-started-kpm/'>
             Using the Koding Package Manager
           </a>
         </li>
         <li>
           <a
             target='_blank'
-            href='http://learn.koding.com/faq/what-is-koding/'>
+            href='https://koding.com/docs/what-is-koding/'>
             What is Koding?
           </a>
         </li>
         <li>
           <a
             target='_blank'
-            href='http://learn.koding.com/guides/getting-started/workspaces/'>
+            href='https://koding.com/docs/getting-started/workspaces/'>
             Getting started with IDE Workspaces
           </a>
         </li>
         <li>
           <a
             target='_blank'
-            href='http://learn.koding.com/guides/change-theme/'>
+            href='https://koding.com/docs/change-theme/'>
             Changing your IDE and Terminal themes
           </a>
         </li>
@@ -47,7 +47,7 @@ module.exports = class MostReadArticlesWidget extends React.Component
       <br />
       <a
         target='_blank'
-        href="http://learn.koding.com/">
+        href="https://koding.com/docs">
         More guides on Koding University...
       </a>
     </div>

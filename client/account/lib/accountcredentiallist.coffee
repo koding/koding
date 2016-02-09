@@ -1,5 +1,6 @@
 kd                          = require 'kd'
 hljs                        = require 'highlight.js'
+Promise                     = require 'bluebird'
 
 KDListView                  = kd.ListView
 KDModalView                 = kd.ModalView
@@ -180,8 +181,14 @@ module.exports = class AccountCredentialList extends KDListView
 
   verify: (item) ->
 
-    credential = item.getData()
+    credential  = item.getData()
     identifiers = [credential.identifier]
+
+    if credential.provider is 'vagrant'
+      return new Promise (resolve) ->
+        response = {}
+        response["#{credential.identifier}"] = yes
+        resolve response
 
     console.log { identifiers }
 

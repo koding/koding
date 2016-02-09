@@ -46,7 +46,7 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     onboardingView.on 'StackOnboardingCompleted', (template) =>
       onboardingView.destroy()
-      @showEditor template, no, yes
+      @showEditor { inEditMode: no, showHelpContent: yes }, template
 
     onboardingView.on 'ScrollTo', (direction = 'top') =>
       duration = 500
@@ -91,15 +91,17 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
       remote.api.JStackTemplate.one { _id: stackTemplate }, (err, template) =>
         if not (showError err) and template
-        then @showEditor template, inEditMode = yes
+        then @showEditor { inEditMode: yes }, template
         else
           showError 'Stack Template not found!'
           @setRoute()
     else
-      @showEditor stackTemplate, inEditMode = yes
+      @showEditor { inEditMode: yes }, stackTemplate
 
 
-  showEditor: (stackTemplate, inEditMode, showHelpContent) ->
+  showEditor: (options, stackTemplate) ->
+
+    { inEditMode, showHelpContent } = options
 
     @initialView.hide()
 

@@ -35,7 +35,7 @@ module.exports = class ActivityGuideWidget extends ActivityBaseWidget
       <p>
         <ol>
           <li>
-            Take a look at <a href='http://learn.koding.com' target='_blank'>Koding University</a> in case your question is of the category
+            Take a look at <a href='https://koding.com/docs' target='_blank'>Koding University</a> in case your question is of the category
             “how do I…” Chances are high that we already have a handy guide for you.
           </li>
           <li>
@@ -59,7 +59,7 @@ module.exports = class ActivityGuideWidget extends ActivityBaseWidget
           </li>
           <li>
             Use Markdown whenever possible (posting code fragments, links, images, etc.)
-            Our handy Markdown guide can be found <a href='http://learn.koding.com/guides/markdown/' target='_blank'>here</a>. Preview your Markdown before posting using the M↓ button.
+            Our handy Markdown guide can be found <a href='https://koding.com/docs/markdown/' target='_blank'>here</a>. Preview your Markdown before posting using the M↓ button.
           </li>
           <li>
             When posting code, only post relevant portions. A good rule of thumb is

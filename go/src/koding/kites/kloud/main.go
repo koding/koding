@@ -175,6 +175,10 @@ func newKite(conf *Config) *kite.Kite {
 	k.Config = kiteconfig.MustGet()
 	k.Config.Port = conf.Port
 
+	if conf.DebugMode {
+		k.SetLogLevel(kite.DEBUG)
+	}
+
 	if conf.Region != "" {
 		k.Config.Region = conf.Region
 	}

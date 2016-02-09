@@ -96,7 +96,7 @@ func Exists(k *kite.Kite, queryString string) error {
 		return err
 	}
 
-	k.Log.Debug("Querying for Klient: %s", queryString)
+	k.Log.Debug("Checking whether %s exists in Kontrol", queryString)
 
 	// an error indicates a non existing klient or another error.
 	_, err = k.GetKites(query.Query())
@@ -123,7 +123,7 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 		return nil, err
 	}
 
-	k.Log.Debug("Querying for Klient: %s", queryString)
+	k.Log.Debug("Connecting with timeout=%s to Klient: %s", t, queryString)
 
 	kites, err := k.GetKites(query.Query())
 	if err != nil {
@@ -162,10 +162,11 @@ func (k *Klient) IpAddress() (string, error) {
 func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
 	timeout := time.After(t)
 
-	k.Log.Debug("Querying for Klient: %s", queryString)
 	for {
 		select {
 		case <-time.Tick(time.Second * 4):
+			k.Log.Debug("trying to connect to klient: %s", queryString)
+
 			if klient, err := Connect(k, queryString); err == nil {
 				return klient, nil
 			}

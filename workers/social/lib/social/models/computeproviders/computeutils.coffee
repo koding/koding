@@ -10,6 +10,7 @@ PROVIDERS      =
   azure        : require './azure'
   google       : require './google'
   managed      : require './managed'
+  vagrant      : require './vagrant'
 
 PLANS          = require './plans'
 

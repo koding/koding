@@ -64,15 +64,19 @@ module.exports = class OnboardingView extends JView
       nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
       targetPage = @pages[nextIndex]
 
-      if targetPage
+      # Temporary solution ~ GG
+      selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
+
+      if direction is 'next' and selectedProvider is 'vagrant'
+        @onboardingCompleted()
+      else if targetPage
         @currentPage.hide()
         targetPage.show()
         @setClass 'get-started'  if targetPage is @getStartedView
         @currentPage = targetPage
         @emit 'ScrollTo', 'top'
       else
-        @hide()
-        @emit 'StackOnboardingCompleted', { template: content: @stackTemplate }
+        @onboardingCompleted()
 
 
     @getStartedView.on 'NextPageRequested', =>
@@ -124,7 +128,10 @@ module.exports = class OnboardingView extends JView
       partial   : 'Skip setup guide'
       click     : =>
         @destroy()
-        @emit 'StackOnboardingCompleted'
+        selectedProvider = @providerSelectionView.selected?.getOption 'provider'
+        if selectedProvider?
+          options = { selectedProvider, template: content: @stackTemplate }
+        @emit 'StackOnboardingCompleted', options
 
 
   createStackPreview: ->
@@ -142,6 +149,12 @@ module.exports = class OnboardingView extends JView
   updateStackTemplate: ->
 
     selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
+
+    if selectedProvider is 'vagrant'
+      @createStackPreviewFromYaml @getDefaultStackTemplate selectedProvider, 'yaml'
+      @stackTemplate = @getDefaultStackTemplate selectedProvider, 'json'
+      return
+
     codeSetupPanes    = @codeSetupView.tabView.panes
     serverConfigPanes = @configurationView.tabView.panes
     selectedInstances = {}
@@ -275,6 +288,40 @@ module.exports = class OnboardingView extends JView
     el.tooltip.show()
 
     @parent.once 'scroll', -> el.tooltip?.hide()
+
+
+  getDefaultStackTemplate: (provider, format = 'json') ->
+
+    stackTemplates          =
+      vagrant               :
+        resource            :
+          vagrantkite_build :
+            localvm         :
+              registerURL   : "http://localvm.gokmen.tunnel.dev.koding.io:8081/klient/kite"
+              kontrolURL    : "http://koding-gokmen.ngrok.com/kontrol/kite"
+              klientURL     : "https://s3-eu-west-1.amazonaws.com/kodingdev-klient/klient_0.1.99_development_amd64.deb"
+              customScript: """
+                sudo apt-get install sl -y
+                touch /tmp/${var.koding_user_username}.txt
+              """
+
+    stackTemplate = stackTemplates[provider] ? error: 'Provider not supported'
+
+    if format is 'yaml'
+      { content, err } = jsonToYaml stackTemplate
+      return content
+    else
+      return JSON.stringify stackTemplate
+
+
+  onboardingCompleted: ->
+
+    @hide()
+
+    selectedProvider = @providerSelectionView.selected?.getOption 'provider'
+    @emit 'StackOnboardingCompleted', {
+      selectedProvider, template: content: @stackTemplate
+    }
 
 
   pistachio: ->

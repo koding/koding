@@ -251,12 +251,45 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   removeIntegration: ->
 
-    integrationHelpers.remove @getData().id, (err, response) =>
-      return showError err  if err
+    { name, id } = @getData()
 
-      if response.status
-        kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
-        @emit 'IntegrationUpdated'
+    modal = new kd.ModalViewWithForms
+      title                   : 'Are you sure?'
+      overlay                 : yes
+      overlayOptions          :
+        cssClass              : 'second-overlay'
+        overlayClick          : yes
+      height                  : 'auto'
+      cssClass                : 'admin-invite-confirm-modal second-overlay'
+      tabs                    :
+        forms                 :
+          confirm             :
+            buttons           :
+              "That's fine"   :
+                itemClass     : kd.ButtonView
+                cssClass      : 'confirm'
+                style         : 'solid green medium'
+                loader        : color: '#444444'
+                callback      : =>
+                  integrationHelpers.remove id, (err, response) =>
+                    return showError err  if err
+
+                    if response.status
+                      kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
+                      modal.destroy()
+                      @emit 'IntegrationUpdated'
+              Cancel          :
+                itemClass     : kd.ButtonView
+                style         : 'solid medium'
+                callback      : -> modal.destroy()
+            fields            :
+              details         :
+                type          : 'hidden'
+                nextElement   :
+                  details     :
+                    cssClass  : 'content'
+                    itemClass : kd.View
+                    partial   : "You are about to remove <strong>#{name}</strong> integration. Please note that, this action cannot be undone."
 
 
   getFormOptions: ->

@@ -7,40 +7,61 @@ globals = require 'globals'
 
 module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
-  SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer']
+  # TODO Remove vagrantkite ~ GG
+  SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer', 'vagrantkite', 'vagrant']
+  STACK_PROVIDERS     = ['aws', 'vagrantkite', 'vagrant']
 
   debugEnabled = ->
     kd.singletons.computeController._kloudDebug
 
-  getProvider = (machineId)->
+  getMachineProvider = (machineId) ->
     kd.singletons.computeController.machinesById[machineId]?.provider
 
-  isManaged = (machineId)->
-    (getProvider machineId) is 'managed'
+  getStackProvider = (stackId) ->
+    return  unless stack = kd.singletons.computeController.stacksById[stackId]
+    for provider in stack.config.requiredProviders
+      return provider  if provider in STACK_PROVIDERS
+
+  isManaged = (machineId) ->
+    (getMachineProvider machineId) is 'managed'
 
   getGroupName = ->
     group = kd.singletons.groupsController?.getCurrentGroup()
     return group?.slug ? 'koding'
 
+  injectCustomData = (payload) ->
+
+    return {}  unless payload
+
+    { machineId, stackId } = payload
+
+    if machineId
+      provider = getMachineProvider payload.machineId
+    else if stackId
+      provider = getStackProvider payload.stackId
+
+    if provider
+      if provider not in SUPPORTED_PROVIDERS
+        # machine/stack provider is not supported by kloud
+        return Promise.reject
+          name    : 'NotSupported'
+          message : 'Operation is not supported for this VM/Stack'
+
+      payload.provider = provider
+      payload.provider = 'vagrant'  if provider is 'vagrantkite'
+
+    console.log ">>>>> PAYLOAD", payload
+
+    payload.groupName = getGroupName()
+    payload.debug = yes  if debugEnabled()
+
+    return payload
+
+
   @createMethod = (ctx, { method, rpcMethod }) ->
 
     ctx[method] = (payload) ->
-
-      if payload?.machineId? and provider = getProvider payload.machineId
-
-        if provider not in SUPPORTED_PROVIDERS
-          # machine provider is not supported by kloud #{ payload.machineId }
-          return Promise.reject
-            name    : 'NotSupported'
-            message : 'Operation is not supported for this VM'
-
-        payload.provider = provider
-
-      payload.groupName = getGroupName()
-      payload.debug = yes  if debugEnabled()
-
-      @tell rpcMethod, payload
-
+      @tell rpcMethod, injectCustomData payload
 
   @createApiMapping
 
@@ -164,7 +185,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
     {kontrol, computeController} = kd.singletons
 
-    provider  = getProvider machineId
+    provider  = getMachineProvider machineId
     groupName = getGroupName()
 
     payload   = { machineId, provider, groupName }
@@ -225,7 +246,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
     if payload?.machineId?
 
-      provider = getProvider payload.machineId
+      provider = getMachineProvider payload.machineId
       provider = 'koding'  unless provider
 
       if provider not in SUPPORTED_PROVIDERS

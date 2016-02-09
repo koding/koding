@@ -517,7 +517,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         <span>
           This can happen if you have deleted all your VMs or if your
           VM was automatically deleted due to inactivity.
-          <a href='http://learn.koding.com/faq/inactive-vms' target='_blank'>
+          <a href='https://koding.com/docs/inactive-vms' target='_blank'>
           Learn more</a> about inactive VM cleanup.
         </span>
       "
@@ -532,7 +532,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         <h1><strong>Cannot connect to your machine!</strong></h1>
         <p>
           This can happen either if your machine is turned off or the
-          <a href='http://learn.koding.com/guides/connect-your-machine/' target='_blank'>
+          <a href='https://koding.com/docs/connect-your-machine/' target='_blank'>
           Koding Service Connector</a> is not running.</p>
         <p>
           If you want, you can also <a class='managed-disconnect'>
