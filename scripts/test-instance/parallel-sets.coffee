@@ -39,6 +39,7 @@ module.exports = [
   [
     { name: 'unittests' }
     { name: 'account accountpage' }
+    { name: 'environments checkvmcreation' }
   ]
 
   [

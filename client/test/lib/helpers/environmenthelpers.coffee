@@ -356,3 +356,21 @@ module.exports =
       .pause                   2500 # wait for correct pop-up to appear
       .waitForElementVisible  vmStateModal + ' .turn-on', 50000
       .assert.containsText    vmStateModal + ' .turn-on', 'TURN IT ON'
+
+
+  createNewVmForHobbyistPlan: (browser) ->
+
+    vmSelector    = '.machines-wrapper .buy-vm'
+    createVmModal = '.kdmodal-inner .kdmodal-content .message'
+    addVmSelector = '.footer .button-container .add-vm-button'
+
+    browser
+     .waitForElementVisible   '[testpath=main-sidebar]', 20000
+     .moveToElement           '.sidebar-machine-box .notinitialized', 10, 10
+     .waitForElementVisible   vmSelector, 20000
+     .click                   vmSelector
+     .waitForElementVisible   addVmSelector, 20000
+     .click                   addVmSelector
+     .waitForElementVisible   createVmModal, 20000
+     .assert.containsText     createVmModal, 'Hobbyist plan is restricted to only one VM.'
+     .assert.containsText     '.kdmodal-inner .kdmodal-content .custom-link-view span', 'Upgrade your account for more VMs RAM and Storage'
