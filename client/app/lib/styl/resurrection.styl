@@ -1711,6 +1711,9 @@ paymentGrayLighter  = #f8f8f8
 
     .input-wrapper
       height                45px
+      max-width             250px
+      dIBlock()
+      ellipsis()
 
     .edit
       font-size             12px
@@ -1726,6 +1729,8 @@ paymentGrayLighter  = #f8f8f8
       text-align            right
 
   .custom-link-view
+    overflow                hidden
+    text-overflow           ellipsis
     span.link-view
       font-size             13px
       color                 #52A840
