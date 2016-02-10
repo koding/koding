@@ -167,3 +167,14 @@ module.exports = globals.config.providers =
                             these are used in. Otherwise you may experience
                             unwanted results while building your stacks.
                             """
+    credentialFields       : {}
+  vagrant                  :
+    name                   : "Vagrant"
+    link                   : "http://www.vagrantup.com"
+    title                  : "Vagrant on Local"
+    color                  : "#B52025"
+    description            : "Local provisioning with Vagrant"
+    credentialFields       :
+      queryString          :
+        label              : "Kite Query Path"
+        placeholder        : "querystring for local machine kite"
