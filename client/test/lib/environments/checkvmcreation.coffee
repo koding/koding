@@ -20,12 +20,7 @@ module.exports =
         if result.status is -1
           helpers.selectPlan(browser, 'hobbyist')
           helpers.fillPaymentForm(browser, 'hobbyist')
-        
-          browser
-            .waitForElementVisible   submitButton, 20000
-            .click                   submitButton
-            .waitForElementVisible   '.kdmodal-content .success-msg', 20000
-            .click                   submitButton
+          helpers.submitForm(browser, yes, yes)
           environmentHelpers.createNewVmForHobbyistPlan(browser)
           browser.end()
         else
