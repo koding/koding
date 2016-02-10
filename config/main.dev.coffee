@@ -143,6 +143,11 @@ Configuration = (options={}) ->
     clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
     redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
+  slack  =
+    clientId      : "20619428033.20787518977"
+    clientSecret  : "1987edcacd657367fd1b3b0eb653f14b"
+    redirectUri   : "https://dev.koding.com:8090/api/social/slack/oauth/callback"
+
 
   # if you want to disable a feature add here with "true" value do not forget to
   # add corresponding go struct properties
@@ -183,6 +188,7 @@ Configuration = (options={}) ->
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
     github                  : github
+    slack                   : slack
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
     disabledFeatures        : disabledFeatures
@@ -257,6 +263,7 @@ Configuration = (options={}) ->
     github                         : github
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "1408510959475637"                             , clientSecret  : "bf837bc719dc63c870ac77f9c76fe26d"           , redirectUri  : "http://dev.koding.com:8090/-/oauth/facebook/callback"}
+    slack                          : slack
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "http://dev.koding.com:8090/-/oauth/google/callback" }
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "http://dev.koding.com:8090/-/oauth/twitter/callback"                  , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "http://dev.koding.com:8090/-/oauth/linkedin/callback"}
@@ -556,6 +563,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/account/channels"
             proxyPass   : "http://socialapi/account/channels$is_args$args"
+          }
+          {
+            location    : "~ /api/social/slack/(.*)"
+            proxyPass   : "http://socialapi/slack/$1$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"
