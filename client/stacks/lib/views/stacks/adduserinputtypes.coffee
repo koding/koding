@@ -3,9 +3,10 @@
 module.exports = addUserInputTypes = (template, requiredData) ->
 
   { userInput } = requiredData
-  return  unless userInput and template.koding
+  return  if not userInput or not template.koding
 
-  types = template.koding.userInput
+  types = template.koding.userInput ? {}
   requiredData.userInput = userInput.map (item) ->
-    type = types[item]
-    if type then { name: item, type } else item
+    if type = types[item]
+    then { name: item, type }
+    else item
