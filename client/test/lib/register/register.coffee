@@ -31,9 +31,6 @@ module.exports =
         else
           helpers.attemptEnterUsernameOnRegister(browser, user)
 
-          unless HUBSPOT
-            browser.waitForElementVisible '[testpath=main-header]', 50000 # Assertion
-
           browser
             .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
             .end()
