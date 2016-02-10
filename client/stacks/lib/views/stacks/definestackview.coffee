@@ -21,6 +21,7 @@ requirementsParser   = require './requirementsparser'
 updateStackTemplate  = require './updatestacktemplate'
 updateCustomVariable = require './updatecustomvariable'
 parseTerraformOutput = require './parseterraformoutput'
+addUserInputTypes    = require './adduserinputtypes'
 
 OutputView           = require './outputview'
 ProvidersView        = require './providersview'
@@ -559,6 +560,8 @@ module.exports = class DefineStackView extends KDView
 
       if convertedDoc.err
         return callback 'Failed to convert YAML to JSON, fix document and try again.'
+
+      addUserInputTypes convertedDoc.contentObject, requiredData
 
       templateContent = convertedDoc.content
 
