@@ -174,6 +174,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     @getData().modify { 'customize.logo': '' }, =>
       @showPattern()
       @removeLogoButton.hideLoader()
+      @uploadInput.setValue ''
 
 
   createDeletionForm: ->
