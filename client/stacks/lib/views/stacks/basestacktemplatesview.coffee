@@ -81,7 +81,7 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
     @initialView.on 'CreateNewStack', @lazyBound 'setRoute', '/new'
 
-    [firstPath, ..., lastPath] = router.getCurrentPath().split '/'
+    [..., lastPath] = router.getCurrentPath().split '/'
 
     if groupsController.canEditGroup() and lastPath isnt 'new'
       @initialView.on 'NoTemplatesFound', @lazyBound 'setRoute', '/welcome'
