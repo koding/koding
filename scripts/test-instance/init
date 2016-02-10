@@ -55,6 +55,6 @@ java -jar $TEST_VENDOR/selenium-server-standalone.jar \
 sleep 10
 
 x11vnc -passwd secret -display :0 -N -forever &
-x11vnc -passwd secret -display :1 -N -forever &
+# x11vnc -passwd secret -display :1 -N -forever &
 
 exit 0
