@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"time"
 
 	"koding/db/models"
@@ -259,8 +260,16 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
+		domain := machine.Domain
+		if u, err := url.Parse(tf.Attributes["klientGuestURL"]); err != nil {
+			u.Path = "" // clear "klient/kite" path
+			if s := u.String(); s != "" {
+				domain = s
+			}
+		}
+
 		if tf.Provider == "vagrant" {
-			if err := updateVagrant(ctx, tf, machine.ObjectId); err != nil {
+			if err := updateVagrant(ctx, tf, domain, machine.ObjectId); err != nil {
 				return err
 			}
 		}
@@ -269,7 +278,7 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 	return nil
 }
 
-func updateVagrant(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
+func updateVagrant(ctx context.Context, tf stackplan.Machine, domain string, machineId bson.ObjectId) error {
 	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
 		"provider":             tf.Provider,
 		"meta.hostQueryString": tf.HostQueryString,
@@ -282,6 +291,7 @@ func updateVagrant(ctx context.Context, tf stackplan.Machine, machineId bson.Obj
 		"meta.hostname":        tf.Attributes["hostname"],
 		"meta.klientHostURL":   tf.Attributes["klientHostURL"],
 		"meta.klientGuestURL":  tf.Attributes["klientGuestURL"],
+		"domain":               domain,
 		"status.state":         machinestate.Running.String(),
 		"status.modifiedAt":    time.Now().UTC(),
 		"status.reason":        "Created with kloud.apply",
