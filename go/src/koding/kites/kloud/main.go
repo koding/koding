@@ -211,6 +211,11 @@ func newKite(conf *Config) *kite.Kite {
 		softlayer.PostInstallScriptUri = conf.SLScriptURL
 	}
 
+	// overwrite TunnelURL with env var for development environment
+	if s := os.Getenv("CONFIG_TUNNELURL"); conf.Environment == "dev" && s != "" {
+		conf.TunnelURL = s
+	}
+
 	klientFolder := "development/latest"
 	checkInterval := time.Second * 5
 	if conf.ProdMode {
