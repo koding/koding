@@ -54,7 +54,6 @@ module.exports = class NotificationController extends KDObject
         # event: "ChannelUpdateHappened"
 
         # filter notifications according to group slug
-
         return  unless notification?.context is getGroup().slug
 
         @emit 'NotificationHasArrived', notification
@@ -70,6 +69,9 @@ module.exports = class NotificationController extends KDObject
         @emit event, contents  if event
 
       @notificationChannel.on 'social', (notification) =>
+        # filter notifications according to group slug
+        return  unless notification?.context is getGroup().slug
+
         { contents, context, event } = notification
 
         @emit event, contents  if event
@@ -165,7 +167,10 @@ module.exports = class NotificationController extends KDObject
       global.location.href = '/Banned'
 
 
-    @on 'MembershipRoleChanged', ({role, adminNick}) ->
+    @on 'MembershipRoleChanged', ({role, group, adminNick}) ->
+      # check if the notification is sent for current group
+      return  unless group is getGroup().slug
+
       modal = new KDModalView
         title         : "Your team role has been changed!"
         overlay       : yes

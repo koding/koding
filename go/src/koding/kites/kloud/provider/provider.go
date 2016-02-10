@@ -3,6 +3,7 @@ package provider
 import (
 	"errors"
 
+	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -40,19 +41,19 @@ func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
 		return nil, errors.New("request not available in context")
 	}
 
+	req, ok := kloud.TeamRequestFromContext(ctx)
+	if !ok {
+		return nil, errors.New("team request not available in context")
+	}
+
 	if bs.Session, ok = session.FromContext(ctx); !ok {
 		return nil, errors.New("session not available in context")
 	}
 
-	if groupName, ok := kloud.GroupFromContext(ctx); ok {
-		bs.Log = log.New(groupName)
-	} else {
-		bs.Log = log
-	}
+	bs.Log = log.New(req.GroupName)
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		bs.Log = bs.Log.New(traceID)
-		bs.Log.SetLevel(logging.DEBUG)
+		bs.Log = common.NewLogger("kloud-"+req.Provider, true).New(traceID)
 		bs.TraceID = traceID
 	}
 

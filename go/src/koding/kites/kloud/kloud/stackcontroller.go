@@ -9,19 +9,22 @@ import (
 	"golang.org/x/net/context"
 )
 
-// GroupNameKey is used to pass group name to stack handler.
-var GroupNameKey struct {
-	byte `key:"groupName"`
+type TeamRequest struct {
+	Provider    string `json:"provider"`
+	StackID     string `json:"stackId,omitempty"`
+	GroupName   string `json:"groupName,omitempty"`
+	Debug       bool   `json:"debug,omitempty"`
+	Impersonate string `json:"impersonate,omitempty"` // only for kloudctl
 }
 
-func GroupFromContext(ctx context.Context) (string, bool) {
-	groupName, ok := ctx.Value(GroupNameKey).(string)
+// TeamRequestKey is used to pass group name to stack handler.
+var TeamRequestKey struct {
+	byte `key:"teamRequest"`
+}
 
-	if !ok || groupName == "" {
-		return "", false
-	}
-
-	return groupName, true
+func TeamRequestFromContext(ctx context.Context) (*TeamRequest, bool) {
+	req, ok := ctx.Value(TeamRequestKey).(*TeamRequest)
+	return req, ok
 }
 
 // Stacker is a provider-specific handler that implements team methods.
@@ -46,13 +49,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		return nil, NewError(ErrNoArguments)
 	}
 
-	var args struct {
-		Provider    string `json:"provider"`
-		StackID     string `json:"stackId,omitempty"`
-		GroupName   string `json:"groupName,omitempty"`
-		Debug       bool   `json:"debug,omitempty"`
-		Impersonate string `json:"impersonate,omitempty"` // only for kloudctl
-	}
+	var args TeamRequest
 
 	// Unamrshal common arguments.
 	if err := r.Args.One().Unmarshal(&args); err != nil {
@@ -71,9 +68,8 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 
 	k.Log.Debug("Called %q by %q with %q", r.Method, r.Username, r.Args.Raw)
 
-	groupName := args.GroupName
-	if groupName == "" {
-		groupName = "koding"
+	if args.GroupName == "" {
+		args.GroupName = "koding"
 	}
 
 	p, ok := k.providers[args.Provider].(StackProvider)
@@ -83,7 +79,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 
 	// Build context value.
 	ctx := request.NewContext(context.Background(), r)
-	ctx = context.WithValue(ctx, GroupNameKey, groupName)
+	ctx = context.WithValue(ctx, TeamRequestKey, &args)
 	if k.PublicKeys != nil {
 		ctx = publickeys.NewContext(ctx, k.PublicKeys)
 	}

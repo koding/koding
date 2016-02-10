@@ -151,7 +151,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// wait until it's ready
 	m.Log.Debug("Waiting for the state to be RUNNING (%d)", obj.Id)
-	if err := waitState(svc, obj.Id, "RUNNING"); err != nil {
+	if err := waitState(svc, obj.Id, "RUNNING", m.StateTimeout); err != nil {
 		return err
 	}
 
@@ -277,10 +277,12 @@ func (m *Machine) findAvailableVlan(meta *Meta) int {
 	return vlans[available].ID
 }
 
-func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string) error {
-	timeout := time.After(time.Minute * 10)
+func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string, timeout time.Duration) error {
+	t := time.After(timeout)
 	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
+
+	state = strings.ToLower(strings.TrimSpace(state))
 
 	for {
 		select {
@@ -290,11 +292,10 @@ func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state strin
 				return err
 			}
 
-			if strings.ToLower(strings.TrimSpace(s.KeyName)) ==
-				strings.ToLower(strings.TrimSpace(state)) {
+			if strings.ToLower(strings.TrimSpace(s.KeyName)) == state {
 				return nil
 			}
-		case <-timeout:
+		case <-t:
 			return errors.New("timeout while waiting for state")
 		}
 	}

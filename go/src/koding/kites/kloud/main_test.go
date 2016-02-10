@@ -1365,7 +1365,17 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 	modelhelper.Initialize(mongoURL)
 	db := modelhelper.Mongo
 
-	dnsInstance := dnsclient.NewRoute53Client(c, "dev.koding.io")
+	dnsOpts := &dnsclient.Options{
+		Creds:      c,
+		HostedZone: "dev.koding.io",
+		Log:        common.NewLogger("dns", true),
+	}
+
+	dnsInstance, err := dnsclient.NewRoute53Client(dnsOpts)
+	if err != nil {
+		panic(err)
+	}
+
 	dnsStorage := dnsstorage.NewMongodbStorage(db)
 	usd := &userdata.Userdata{
 		Keycreator: &keycreator.Key{
