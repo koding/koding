@@ -8,10 +8,10 @@ import (
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/utils"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
-	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
 
@@ -101,7 +101,7 @@ func (k *Klient) timeout() time.Duration {
 }
 
 func (k *Klient) send(queryString, method string, req, resp interface{}) error {
-	queryString = protoID(queryString)
+	queryString = utils.QueryString(queryString)
 
 	k.Log.Debug("calling %q method on %q with %+v", method, queryString, req)
 
@@ -126,7 +126,7 @@ func (k *Klient) send(queryString, method string, req, resp interface{}) error {
 }
 
 func (k *Klient) cmd(queryString, method, boxPath string) error {
-	queryString = protoID(queryString)
+	queryString = utils.QueryString(queryString)
 
 	k.Log.Debug("calling %q command on %q with %q", method, queryString, boxPath)
 
@@ -160,13 +160,6 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 	case <-time.After(k.timeout()):
 		return fmt.Errorf("timed out calling %q on %q", method, queryString)
 	}
-}
-
-func protoID(queryString string) string {
-	if strings.HasPrefix(queryString, "/") {
-		return queryString
-	}
-	return protocol.Kite{ID: queryString}.String()
 }
 
 // Create calls vagrant.create method on a kite given by the queryString.

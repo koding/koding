@@ -3,8 +3,6 @@
         "vagrant_instance": {
             "example_1": {
                 "user_data": "sudo apt-get install sl -y\ntouch /tmp/${var.koding_user_username}.txt",
-
-                "klientURL": "https://s3-eu-west-1.amazonaws.com/kodingdev-klient/klient_0.1.99_development_amd64.deb"
             }
         }
     }

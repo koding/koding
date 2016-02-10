@@ -35,6 +35,7 @@ func (meta *VagrantMeta) Valid() error {
 	if meta.QueryString == "" {
 		return errors.New("vagrant meta: query string is empty")
 	}
+	meta.QueryString = utils.QueryString(meta.QueryString)
 	return nil
 }
 

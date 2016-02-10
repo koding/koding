@@ -16,6 +16,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/utils"
 
 	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
@@ -68,6 +69,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 	}
 
 	t := s.Builder.Template
+	meta := cred.Meta.(*VagrantMeta)
 
 	s.Log.Debug("Injecting vagrant credentials: %# v", cred.Meta)
 
@@ -87,6 +89,15 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 	kiteIDs := make(stackplan.KiteMap)
 
+	// queryString is taken from jCredentialData.meta.queryString,
+	// for debugging purposes it can be overwritten in the template,
+	// however if template has multiple machines, all of them
+	// are required to overwrite the queryString to the same value
+	// to match current implementation of terraformplugins/vagrant
+	// provider.
+	//
+	// Otherwise we fail early to show problem with the template.
+	var queryString string
 	for resourceName, box := range res.Build {
 		kiteID := uuid.NewV4().String()
 
@@ -114,6 +125,17 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			kontrolURL = k
 		} else {
 			box["kontrolURL"] = kontrolURL
+		}
+
+		if q, ok := box["queryString"].(string); ok {
+			q = utils.QueryString(q)
+			if queryString != "" && queryString != q {
+				return "", nil, fmt.Errorf("mismatched queryString provided for multiple instances; want %q, got %q", queryString, q)
+			}
+			queryString = q
+		} else {
+			box["queryString"] = "${var.vagrant_queryString}"
+			queryString = meta.QueryString
 		}
 
 		// set default filePath to relative <stackdir>/<boxname>; for
@@ -179,7 +201,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		return "", nil, err
 	}
 
-	return cred.Meta.(*VagrantMeta).QueryString, kiteIDs, nil
+	return queryString, kiteIDs, nil
 }
 
 func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString string) (*stackplan.Machines, error) {
