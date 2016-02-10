@@ -148,7 +148,6 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
       {{> @hasPaymentMethodView}}
       {{> @form}}
       <div class="clearfix">
-
         {{> @backLink}}
       </div>
     </div>
