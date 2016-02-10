@@ -524,7 +524,7 @@ module.exports = class DefineStackView extends KDView
     if requiredData.userInput?
       @outputView
         .add 'Following extra information will be requested from members:'
-        .add requiredData.userInput
+        .add getUserInputNames requiredData.userInput
 
     if requiredData.custom?
       @outputView
@@ -580,6 +580,9 @@ module.exports = class DefineStackView extends KDView
       callback err, stackTemplate
 
 
+  getUserInputNames = (userInput) -> userInput.map (item) -> item.name ? item
+
+
   createReportFor = (data, type) ->
 
     if (Object.keys data).length > 0
@@ -588,7 +591,7 @@ module.exports = class DefineStackView extends KDView
       issues = ''
       for issue of data
         if issue is 'userInput'
-          issues += " - These variables: `#{data[issue]}`
+          issues += " - These variables: `#{getUserInputNames data[issue]}`
                         will be requested from user.\n"
         else
           issues += " - These variables: `#{data[issue]}`
