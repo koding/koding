@@ -31,7 +31,7 @@ module.exports = class TeamView extends kd.View
 
   showTab: (step, query) ->
 
-    return kd.singletons.router.handleRoute '/'  unless TABS[step]
+    return kd.singletons.router.handleRoute '/Teams'  unless TABS[step]
 
     if tab = @tabView.getPaneByName step
     then @tabView.showPane tab
