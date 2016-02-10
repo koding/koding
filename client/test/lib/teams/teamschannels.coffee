@@ -57,6 +57,36 @@ module.exports =
       .end()
 
 
+  switchBetweenYourChannelsAndOtherChannels: (browser) ->
+ 
+    sidebarSelector          = '.SidebarChannelsSection .SidebarSection-header'
+    channelTextSelector      = '.ChannelList-Modal.PublicChannelListModal .ChannelListWrapper .ChannelList-title'
+    otherChannelsTabSelector = '.ChannelListWrapper .ChannelList-tabs .ChannelList-tab:nth-of-type(2)'
+    activeTabSelector        = '.ChannelListWrapper .ChannelList-tabs .ChannelList-tab.active-tab'
+    otherChannelsJoinButton  = '.PublicChannelLink.ChannelListItem .Button'
+    channelListSelector      = '.PublicChannelListModal .ChannelListWrapper .SidebarModalThreads'
+
+    user        = teamsHelpers.loginTeam(browser)
+    channelName = teamsHelpers.createChannel(browser, user)
+    teamsHelpers.leaveChannel(browser)
+  
+    browser
+      .waitForElementVisible  sidebarSelector, 20000
+      .click                  sidebarSelector
+      .waitForElementVisible  channelTextSelector, 20000
+      .assert.containsText    channelTextSelector, 'Channels'
+      .waitForElementVisible  otherChannelsTabSelector, 20000
+      .waitForElementVisible  '.PublicChannelListModal .ChannelListWrapper .SidebarModalThreads', 20000
+      .expect.element(channelListSelector).text.to.not.contain(channelName)
+    browser  
+      .click                  otherChannelsTabSelector
+      .waitForElementVisible  activeTabSelector, 20000
+      .waitForElementVisible  otherChannelsJoinButton, 20000
+      .assert.containsText    otherChannelsJoinButton, 'JOIN'
+      .expect.element(channelListSelector).text.to.contain(channelName)
+    browser.end()
+
+
   leaveChannel: (browser) ->
 
     user                    = teamsHelpers.loginTeam(browser)
