@@ -152,11 +152,11 @@ module.exports = class TeamPaymentTabForm extends kd.FormViewWithFields
 
     options.buttons =
       Next     :
-        title : "Next"
-        style : "TeamsModal-button TeamsModal-button--green"
+        title : 'Next'
+        style : 'TeamsModal-button TeamsModal-button--green'
         attributes: testpath: 'payment-button'
         loader: off
-        type  : "submit"
+        type  : 'submit'
 
     options.fields   = fields
     options.cssClass = kd.utils.curry 'payment-method-entry-form clearfix', options.cssClass
