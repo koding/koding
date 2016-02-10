@@ -21,6 +21,7 @@ requirementsParser   = require './requirementsparser'
 updateStackTemplate  = require './updatestacktemplate'
 updateCustomVariable = require './updatecustomvariable'
 parseTerraformOutput = require './parseterraformoutput'
+addUserInputTypes    = require './adduserinputtypes'
 
 OutputView           = require './outputview'
 ProvidersView        = require './providersview'
@@ -524,7 +525,7 @@ module.exports = class DefineStackView extends KDView
     if requiredData.userInput?
       @outputView
         .add 'Following extra information will be requested from members:'
-        .add getUserInputNames requiredData.userInput
+        .add requiredData.userInput
 
     if requiredData.custom?
       @outputView
@@ -560,6 +561,8 @@ module.exports = class DefineStackView extends KDView
       if convertedDoc.err
         return callback 'Failed to convert YAML to JSON, fix document and try again.'
 
+      addUserInputTypes convertedDoc.contentObject, requiredData
+
       templateContent = convertedDoc.content
 
     template   = templateContent
@@ -580,9 +583,6 @@ module.exports = class DefineStackView extends KDView
       callback err, stackTemplate
 
 
-  getUserInputNames = (userInput) -> userInput.map (item) -> item.name ? item
-
-
   createReportFor = (data, type) ->
 
     if (Object.keys data).length > 0
@@ -591,7 +591,7 @@ module.exports = class DefineStackView extends KDView
       issues = ''
       for issue of data
         if issue is 'userInput'
-          issues += " - These variables: `#{getUserInputNames data[issue]}`
+          issues += " - These variables: `#{data[issue]}`
                         will be requested from user.\n"
         else
           issues += " - These variables: `#{data[issue]}`
