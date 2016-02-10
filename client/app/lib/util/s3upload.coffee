@@ -50,8 +50,8 @@ module.exports = (options, callback = kd.noop) ->
         responseText = $.parseXML xhr.responseText
         errorCode    = responseText.getElementsByTagName("Code")[0].innerHTML
         if errorCode is 'EntityTooLarge'
-            callback message: "The file you tried to upload is too big"
+            callback message: 'The file you tried to upload is too big'
         else
-            callback message: "Failed to upload"
+            callback message: 'Failed to upload'
       success     : ->
         callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"
