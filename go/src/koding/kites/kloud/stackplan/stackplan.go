@@ -130,11 +130,7 @@ func MachinesFromState(state *terraform.State) (*Machines, error) {
 				return nil, err
 			}
 
-			if resourceType == "instance" && provider != "aws" {
-				continue
-			}
-
-			if resourceType == "instance" && provider != "vagrant" {
+			if resourceType == "instance" && provider != "aws" && provider != "vagrant" {
 				continue
 			}
 
@@ -187,11 +183,7 @@ func MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				return nil, err
 			}
 
-			if resourceType == "instance" && provider != "aws" {
-				continue
-			}
-
-			if resourceType == "instance" && provider != "vagrant" {
+			if resourceType == "instance" && provider != "aws" && provider != "vagrant" {
 				continue
 			}
 

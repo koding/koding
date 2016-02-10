@@ -233,6 +233,20 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 	return nil
 }
 
+// MachineLabels gives mapping from jMachine.meta.assignedLabel to jMachine.label
+// for each built machine.
+func (b *Builder) MachineLabels() map[string]string {
+	m := make(map[string]string)
+	for _, machine := range b.Machines {
+		label, ok := machine.Meta["assignedLabel"].(string)
+		if !ok {
+			continue
+		}
+		m[label] = machine.Label
+	}
+	return m
+}
+
 // BuildCredentials fetches credential details for current b.Stack from MongoDB.
 //
 // When nil error is returned, the b.Koding and  b.Credentials fields are non-nil.

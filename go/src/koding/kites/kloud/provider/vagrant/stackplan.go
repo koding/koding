@@ -89,6 +89,8 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 	kiteIDs := make(stackplan.KiteMap)
 
+	labels := s.Builder.MachineLabels()
+
 	// queryString is taken from jCredentialData.meta.queryString,
 	// for debugging purposes it can be overwritten in the template,
 	// however if template has multiple machines, all of them
@@ -141,7 +143,12 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		// set default filePath to relative <stackdir>/<boxname>; for
 		// default configured klient it resolves to ~/.vagrant.d/<stackdir>/<boxname>
 		if _, ok := box["filePath"]; !ok {
-			box["filePath"] = "${var.koding_group_slug}/" + resourceName
+			label, ok := labels[resourceName]
+			if !ok {
+				label = resourceName + "-" + utils.RandString(6)
+				s.Log.Warning("unable to found label for %q in jMachines: generated unique one: %s", resourceName, label)
+			}
+			box["filePath"] = "${var.koding_group_slug}/" + label
 		}
 
 		// set default CPU number
@@ -241,10 +248,8 @@ func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString stri
 func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine) error {
 	for _, machine := range jMachines {
 		label := machine.Label
-		if l, ok := machine.Meta["assignedLabel"]; ok {
-			if ll, ok := l.(string); ok {
-				label = ll
-			}
+		if l, ok := machine.Meta["assignedLabel"].(string); ok {
+			label = l
 		}
 
 		s.Log.Debug("Updating machine with %q label and %q provider", label, machine.Provider)
