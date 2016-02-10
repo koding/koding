@@ -63,7 +63,7 @@ module.exports = [
 
   [
     { name: 'ide terminal' }
-    { name: 'teams teamschannels' }
+    # { name: 'teams teamschannels' }
     # { name: 'pricing invalidcarddetails' }
   ]
 
