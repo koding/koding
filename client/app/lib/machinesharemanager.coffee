@@ -67,13 +67,13 @@ module.exports = class MachineShareManager extends kd.Object
     { socialapi, groupsController } = kd.singletons
 
     socialapi.channel.byId { id: channelId }, (err, channel) ->
-      return callback err   if err
+      return callback err  if err
 
       group = groupsController.getCurrentGroup()
       socialapi.registerAndOpenChannel group, channel, (err, pubnubChannel) ->
 
-        return callback err   if err
+        return callback err  if err
 
-        pubnubChannel.channel.once 'RemovedFromChannel', ->
+        pubnubChannel?.channel?.once 'RemovedFromChannel', ->
           dataProvider.fetch ->
             kd.singletons.mainView.activitySidebar.redrawMachineList()
