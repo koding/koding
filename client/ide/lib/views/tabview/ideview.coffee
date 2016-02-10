@@ -245,7 +245,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     # we use emitChange to detect this case for now
     notifyIfNoPermissions = emitChange
 
-    if file.isDummyFile() or not notifyIfNoPermissions
+    if file.isDummyFile()
       return @createEditorAfterFileCheck file, content, callback, emitChange, no
 
     file.fetchPermissions (err, result) =>
@@ -253,7 +253,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       return showErrorNotification err  if err
 
       { readable, writable } = result
-      if not readable
+      if notifyIfNoPermissions and not readable
         IDEHelpers.showFileAccessDeniedError()
         return callback()
 
@@ -290,9 +290,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       ace.editor.scrollToRow 0
       editorPane.goToLine 1
 
+      notifyIfNoPermissions = emitChange
+
       if isReadOnly
         editorPane.makeReadOnly()
-        IDEHelpers.showFileReadOnlyNotification()
+        editorPane.isFileReadonly = yes
+        IDEHelpers.showFileReadOnlyNotification()  if notifyIfNoPermissions
 
       callback editorPane
 
