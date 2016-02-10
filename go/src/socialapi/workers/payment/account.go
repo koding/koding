@@ -78,3 +78,28 @@ func (a *AccountRequest) Subscriptions() (*AccountSubscriptionResponse, error) {
 		SubscriptionResponse: resp,
 	}, nil
 }
+
+//----------------------------------------------------------
+// AccountUpdateCreditCard
+//----------------------------------------------------------
+
+type AccountUpdateCreditCardRequest struct {
+	AccountId string
+	UpdateCreditCardRequest
+}
+
+func (a *AccountUpdateCreditCardRequest) Do() (interface{}, error) {
+	switch a.Provider {
+	case "stripe":
+		err := stripe.UpdateCreditCard(a.AccountId, a.Token)
+		if err != nil {
+			Log.Error("Updating cc for account: %s failed. %s", a.AccountId, err)
+		}
+
+		return nil, err
+	case "paypal":
+		return nil, ErrProviderNotImplemented
+	default:
+		return nil, ErrProviderNotFound
+	}
+}

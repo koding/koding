@@ -97,23 +97,7 @@ func (a *AccountRequest) Expire() (interface{}, error) {
 //----------------------------------------------------------
 
 type UpdateCreditCardRequest struct {
-	AccountId, Provider, Token string
-}
-
-func (u *UpdateCreditCardRequest) Do() (interface{}, error) {
-	switch u.Provider {
-	case "stripe":
-		err := stripe.UpdateCreditCard(u.AccountId, u.Token)
-		if err != nil {
-			Log.Error("Updating cc for account: %s failed. %s", u.AccountId, err)
-		}
-
-		return nil, err
-	case "paypal":
-		return nil, ErrProviderNotImplemented
-	default:
-		return nil, ErrProviderNotFound
-	}
+	Provider, Token string
 }
 
 //----------------------------------------------------------

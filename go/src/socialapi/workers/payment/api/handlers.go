@@ -104,12 +104,32 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	// this is same /payments/account/creditcard/update, here for backwards
+	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  UpdateCreditCardRequest,
+			Handler:  AccountUpdateCreditCardRequest,
 			Name:     "payment-updatecreditcard",
 			Type:     handler.PostRequest,
 			Endpoint: "/payments/creditcard/update",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountUpdateCreditCardRequest,
+			Name:     "payment-account-updatecreditcard",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/account/creditcard/update",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupUpdateCreditCardRequest,
+			Name:     "payment-group-updatecreditcard",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/group/creditcard/update",
 		},
 	)
 

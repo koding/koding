@@ -74,3 +74,28 @@ func (g *GroupRequest) Subscriptions() (*GroupSubscriptionResponse, error) {
 		SubscriptionResponse: resp,
 	}, nil
 }
+
+//----------------------------------------------------------
+// GroupUpdateCreditCard
+//----------------------------------------------------------
+
+type GroupUpdateCreditCardRequest struct {
+	GroupId string
+	UpdateCreditCardRequest
+}
+
+func (g *GroupUpdateCreditCardRequest) Do() (interface{}, error) {
+	switch g.Provider {
+	case "stripe":
+		err := stripe.UpdateCreditCard(g.GroupId, g.Token)
+		if err != nil {
+			Log.Error("Updating cc for group: %s failed. %s", g.GroupId, err)
+		}
+
+		return nil, err
+	case "paypal":
+		return nil, ErrProviderNotImplemented
+	default:
+		return nil, ErrProviderNotFound
+	}
+}
