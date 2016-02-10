@@ -982,7 +982,7 @@ module.exports = CollaborationController =
       @setMachineSharingStatus off, (err) ->
         throwError err  if err
 
-      @clearParticipantsWorkspaces()
+      @clearParticipantsSnapshot()
 
       socialHelpers.destroyChannel @socialChannel, (err) ->
         throwError err  if err
@@ -993,7 +993,7 @@ module.exports = CollaborationController =
       callback()
 
 
-  clearParticipantsWorkspaces: ->
+  clearParticipantsSnapshot: ->
 
     { users } = @mountedMachine.data
 
