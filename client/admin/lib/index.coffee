@@ -116,6 +116,9 @@ module.exports = class AdminAppController extends AppController
   loadView: (modal) ->
 
     modal.once 'KDObjectWillBeDestroyed', =>
+
+      return  if modal.dontChangeRoute
+
       { router } = kd.singletons
       previousRoutes = router.visitedRoutes.filter (route) => not @checkRoute route
       if previousRoutes.length > 0
