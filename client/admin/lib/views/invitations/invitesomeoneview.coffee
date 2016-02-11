@@ -220,6 +220,14 @@ module.exports = class InviteSomeoneView extends KDView
 
         resolve { pendingInvitations }
 
+
+  getNewInvitations: (allInvites, pendings) ->
+
+    pendingEmails  = pendings.map (item) -> item.email
+    newInvitations = (invite for invite, i in allInvites when invite.email not in pendingEmails)
+
+    return newInvitations
+
     remote.api.JInvitation.create invitations: invites, (err) =>
       if err
         return new KDNotificationView
