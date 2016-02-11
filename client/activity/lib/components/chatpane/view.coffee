@@ -5,47 +5,44 @@ immutable           = require 'immutable'
 Scroller            = require 'app/components/scroller'
 ChatList            = require 'activity/components/chatlist'
 ChannelInfo         = require 'activity/components/channelinfo'
+UnreadMessagesLabel = require './unreadmessageslabel'
 EmojiPreloaderMixin = require 'activity/components/emojipreloadermixin'
 ScrollableContent   = require 'app/components/scroller/scrollablecontent'
 
 class ChatPaneView extends React.Component
 
   @propsTypes =
-    thread                : React.PropTypes.instanceOf immutable.Map
-    onInviteClick         : React.PropTypes.func
-    showItemMenu          : React.PropTypes.bool
-    isMessagesLoading     : React.PropTypes.bool
-    onTopThresholdReached : React.PropTypes.func
-    selectedMessageId     : React.PropTypes.string
-    onGlance              : React.PropTypes.func
-    onScroll              : React.PropTypes.func
+    thread                 : React.PropTypes.instanceOf immutable.Map
+    onInviteClick          : React.PropTypes.func
+    showItemMenu           : React.PropTypes.bool
+    isMessagesLoading      : React.PropTypes.bool
+    onTopThresholdReached  : React.PropTypes.func
+    selectedMessageId      : React.PropTypes.string
+    onGlance               : React.PropTypes.func
+    onScroll               : React.PropTypes.func
+    onJumpToUnreadMessages : React.PropTypes.func
 
 
   @defaultProps =
-    thread                : immutable.Map()
-    onInviteClick         : kd.noop
-    showItemMenu          : yes
-    isMessagesLoading     : no
-    onTopThresholdReached : kd.noop
-    selectedMessageId     : ''
-    onGlance              : kd.noop
-    onScroll              : kd.noop
+    thread                 : immutable.Map()
+    onInviteClick          : kd.noop
+    showItemMenu           : yes
+    isMessagesLoading      : no
+    onTopThresholdReached  : kd.noop
+    selectedMessageId      : ''
+    onGlance               : kd.noop
+    onScroll               : kd.noop
+    onJumpToUnreadMessages : kd.noop
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
-  show: ->
+  componentDidMount: ->
 
     scroller = ReactDOM.findDOMNode @refs.scroller
-    scroller.style.opacity = 1
-
-
-  hide: ->
-
-    scroller = ReactDOM.findDOMNode @refs.scroller
-    scroller.style.opacity = 0
+    scroller.classList.add 'in'
 
 
   renderChannelInfoContainer: ->
@@ -96,6 +93,13 @@ class ChatPaneView extends React.Component
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="Pane-contentWrapper">
         <section className="Pane-body" ref="ChatPaneBody">
+          <UnreadMessagesLabel
+            ref='UnreadCountLabel'
+            unreadCount={@channel 'unreadCount'}
+            unreadMessagePosition={@props.unreadMessagePosition}
+            onJump={@props.onJumpToUnreadMessages}
+            onMarkAsRead={@props.onMarkAsRead}
+          />
           {@renderBody()}
           {@props.children}
         </section>

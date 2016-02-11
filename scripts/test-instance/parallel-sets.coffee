@@ -43,7 +43,6 @@ module.exports = [
   [
     { name: 'activity edit' }
     { name: 'activity delete' }
-    { name: 'teams teamschannels' }
   ]
 
   [
@@ -64,6 +63,7 @@ module.exports = [
 
   [
     { name: 'ide terminal' }
+    # { name: 'teams teamschannels' }
     # { name: 'pricing invalidcarddetails' }
   ]
 

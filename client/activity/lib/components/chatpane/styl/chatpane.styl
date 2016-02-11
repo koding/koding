@@ -19,9 +19,7 @@
     dFlex()
     rel()
     > .Scrollable
-      opacity                 0
-      vendor                  transition, opacity .3s ease
-
+      fadeIn()
 .PublicChatPane-footer
 .PrivateChatPane-footer
   abs()
@@ -35,3 +33,41 @@
 .ChatList
   width                     100%
 
+.ChatPane-unreadMessages
+  abs()
+  z-index                   100
+  kalc                      width, 100% \- 20px
+  bg                        color, #43a1df
+  color                     #fff
+  padding                   0px 5px 3px 5px
+  margin                    0 10px
+  borderBox()
+  text-align                center
+  fadeOut()
+  pointer()
+  hidden()
+
+  &.fixedOnTop
+    top                     0px
+    rounded                 0 0 5px 5px
+    visible()
+
+  &.fixedOnBottom
+    bottom                  0px
+    rounded                 5px 5px 0 0
+    visible()
+
+  .jumpButton
+    fl()
+    font-size               11px
+    padding-top             1px
+    text-transform          uppercase
+
+  .counterText
+    font-size               14px
+
+  .markAsRead
+    fr()
+    font-size               11px
+    padding-top             1px
+    text-transform          uppercase

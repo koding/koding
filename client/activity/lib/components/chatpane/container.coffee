@@ -1,12 +1,18 @@
-kd                = require 'kd'
-$                 = require 'jquery'
-React             = require 'kd-react'
-ReactDOM          = require 'react-dom'
-immutable         = require 'immutable'
-ActivityFlux      = require 'activity/flux'
-ChatPaneView      = require './view'
-scrollToElement   = require 'app/util/scrollToElement'
-KDReactorMixin    = require 'app/flux/base/reactormixin'
+kd                    = require 'kd'
+_                     = require 'lodash'
+$                     = require 'jquery'
+React                 = require 'kd-react'
+ReactDOM              = require 'react-dom'
+immutable             = require 'immutable'
+ActivityFlux          = require 'activity/flux'
+ChatPaneView          = require './view'
+scrollToElement       = require 'app/util/scrollToElement'
+getScrollablePosition = require 'activity/util/getScrollablePosition'
+ScrollablePosition    = require 'activity/constants/scrollableposition'
+KDReactorMixin        = require 'app/flux/base/reactormixin'
+
+debounce = (delay, options, fn) -> _.debounce fn, delay, options
+throttle = (delay, options, fn) -> _.throttle fn, delay, options
 
 module.exports = class ChatPaneContainer extends React.Component
 
@@ -24,6 +30,12 @@ module.exports = class ChatPaneContainer extends React.Component
     onLoadMore    : kd.noop
 
 
+  constructor: (props) ->
+
+    super props
+    @state = { unreadMessagePosition : null }
+
+
   getDataBindings: ->
 
     return {
@@ -32,6 +44,8 @@ module.exports = class ChatPaneContainer extends React.Component
 
 
   flag: (key) -> @props.thread?.getIn ['flags', key]
+
+
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
@@ -39,9 +53,11 @@ module.exports = class ChatPaneContainer extends React.Component
 
     { view } = @refs
 
-    view.refs.content.show()
     scrollTop = @flag 'scrollPosition'
-    view.scrollToPosition scrollTop  if scrollTop
+    if scrollTop
+      view.scrollToPosition scrollTop
+    else
+      view.scrollToBottom()
 
 
   componentWillUnmount: ->
@@ -51,8 +67,6 @@ module.exports = class ChatPaneContainer extends React.Component
     { scrollTop } = view.getScrollParams()
     { channel }   = ActivityFlux.actions
 
-    view.refs.content.hide()
-
     kd.utils.defer =>
       channel.setLastSeenTime (@channel 'id'), Date.now()
       channel.setScrollPosition (@channel 'id'), scrollTop
@@ -60,13 +74,21 @@ module.exports = class ChatPaneContainer extends React.Component
 
   componentDidUpdate: (prevProps, prevState) ->
 
+    return  unless prevProps.thread and @props.thread
+
+    @scrollAfterUpdate prevProps, prevState
+    @onScroll()
+
+    @isThresholdReached = no
+
+
+  scrollAfterUpdate: (prevProps, prevState) ->
+
     prevSelectedMessageId = prevState.selectedMessageId
     { selectedMessageId } = @state
 
     prevThread = prevProps.thread
     { thread } = @props
-
-    return  unless prevThread and thread
 
     { view } = @refs
 
@@ -74,8 +96,8 @@ module.exports = class ChatPaneContainer extends React.Component
     hasEditingMessage = @flag 'hasEditingMessage'
 
     if selectedMessageId and selectedMessageId isnt prevSelectedMessageId
-      item = $("[data-message-id=#{selectedMessageId}]").get(0)
-      scrollToElement item, yes
+      element = helper.getMessageElement selectedMessageId
+      scrollToElement element, yes
 
     else if @flag 'hasSubmittingMessage'
       view.scrollToBottom()
@@ -86,10 +108,10 @@ module.exports = class ChatPaneContainer extends React.Component
     else if hasEditingMessage and not hadEditingMessage
       message = thread.get('messages').find (msg) -> msg.get '__isEditing'
       if message
-        item = $("[data-message-id=#{message.get 'id'}]").get(0)
+        element = helper.getMessageElement message.get 'id'
 
         # this delay is needed for chat input to resize its textarea
-        kd.utils.wait 50, -> scrollToElement item
+        kd.utils.wait 50, -> scrollToElement element
 
     else
       hasStoppedMessageEditing = not hasEditingMessage and hadEditingMessage
@@ -97,12 +119,16 @@ module.exports = class ChatPaneContainer extends React.Component
 
       view.getScroller()._update()  if hasStoppedMessageEditing or hasRemovedMessage
 
+
+  onScroll: throttle 200, {}, ->
+
     @updateDateMarkersPosition()
 
-    @isThresholdReached = no
-
-
-  onScroll: -> @updateDateMarkersPosition()
+    unreadCount = @channel 'unreadCount'
+    messages    = @props.thread.get('messages')
+    unreadMessagePosition = helper.getUnreadMessagePosition messages, unreadCount
+    unless unreadMessagePosition is @state.unreadMessagePosition
+      @setState { unreadMessagePosition }
 
 
   updateDateMarkersPosition: ->
@@ -111,6 +137,21 @@ module.exports = class ChatPaneContainer extends React.Component
     { content } = view.refs
 
     content.refs.ChatList.updateDateMarkersPosition()
+
+
+  glance: ->
+
+    ActivityFlux.actions.channel.glance @channel 'id'
+
+
+  onGlance: debounce 300, {}, ->
+
+    unreadCount = @channel 'unreadCount'
+    messages    = @props.thread.get('messages')
+    position    = helper.getUnreadMessagePosition messages, unreadCount
+    return  unless position is ScrollablePosition.INSIDE
+
+    kd.utils.wait 500, @bound 'glance'
 
 
   onTopThresholdReached: (event) ->
@@ -126,19 +167,54 @@ module.exports = class ChatPaneContainer extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
-  onGlance: -> ActivityFlux.actions.channel.glance @channel 'id'
+  onJumpToUnreadMessages: ->
+
+    unreadCount = @channel 'unreadCount'
+    messages    = @props.thread.get('messages')
+    element     = helper.getFirstUnreadMessageElement messages, unreadCount
+
+    scrollToElement element, yes  if element
 
 
   render: ->
 
     <ChatPaneView {...@props}
-      ref                   = 'view'
-      selectedMessageId     = { @state.selectedMessageId }
-      onTopThresholdReached = { @bound 'onTopThresholdReached' }
-      onGlance              = { @bound 'onGlance' }
-      onScroll              = { @bound 'onScroll' }
-      isMessagesLoading     = { @isThresholdReached }>
+      ref                    = 'view'
+      selectedMessageId      = { @state.selectedMessageId }
+      isMessagesLoading      = { @isThresholdReached }
+      unreadMessagePosition  = { @state.unreadMessagePosition }
+      onTopThresholdReached  = { @bound 'onTopThresholdReached' }
+      onGlance               = { @bound 'onGlance' }
+      onMarkAsRead           = { @bound 'glance' }
+      onScroll               = { @bound 'onScroll' }
+      onJumpToUnreadMessages = { @bound 'onJumpToUnreadMessages' }
+    >
         {@props.children}
     </ChatPaneView>
+
+
+  helper =
+
+    getMessageElement: (messageId) ->
+
+      return $("[data-message-id=#{messageId}]").get(0)
+
+
+    getFirstUnreadMessageElement: (messages, unreadCount) ->
+
+      return  unless unreadCount
+
+      messages = messages.toList()
+      message  = messages.get messages.size - unreadCount
+      return  unless message
+
+      return helper.getMessageElement message.get 'id'
+
+
+    getUnreadMessagePosition: (messages, unreadCount) ->
+
+      element = helper.getFirstUnreadMessageElement messages, unreadCount
+      return getScrollablePosition element  if element
+
 
 ChatPaneContainer.include [KDReactorMixin]

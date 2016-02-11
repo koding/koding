@@ -73,13 +73,17 @@ module.exports = class BaseStackTemplatesView extends kd.View
 
   bindInitialViewsEvents: ->
 
+    { router, groupsController } = kd.singletons
+
     @initialView.on 'EditStack', (stackTemplate) =>
       return  unless stackTemplate
       @setRoute "/edit/#{stackTemplate._id}"
 
     @initialView.on 'CreateNewStack', @lazyBound 'setRoute', '/new'
 
-    if kd.singletons.groupsController.canEditGroup()
+    [..., lastPath] = router.getCurrentPath().split '/'
+
+    if groupsController.canEditGroup() and lastPath isnt 'new'
       @initialView.on 'NoTemplatesFound', @lazyBound 'setRoute', '/welcome'
 
 

@@ -1,4 +1,4 @@
-// Copyright 2014 The oauth2 Authors. All rights reserved.
+// Copyright 2014 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -9,6 +9,14 @@ import (
 	"fmt"
 	"testing"
 )
+
+func TestRegisterBrokenAuthHeaderProvider(t *testing.T) {
+	RegisterBrokenAuthHeaderProvider("https://aaa.com/")
+	tokenURL := "https://aaa.com/token"
+	if providerAuthHeaderWorks(tokenURL) {
+		t.Errorf("URL: %s is a broken provider", tokenURL)
+	}
+}
 
 func Test_providerAuthHeaderWorks(t *testing.T) {
 	for _, p := range brokenAuthHeaderProviders {

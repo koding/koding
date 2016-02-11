@@ -161,12 +161,12 @@ module.exports = globals.config.providers =
     name                   : "User Input"
     title                  : "User Input"
     listText               : """
-                             Here you can change user input fields that you define
-                             in your stack scripts When you delete these,
-                             make sure that you update the stack scripts that
-                             these are used in. Otherwise you may experience
-                             unwanted results while building your stacks.
-                             """
+                            Here you can change user input fields that you define
+                            in your stack scripts. When you delete these,
+                            make sure that you update the stack scripts that
+                            these are used in. Otherwise you may experience
+                            unwanted results while building your stacks.
+                            """
     credentialFields       : {}
   vagrant                  :
     name                   : "Vagrant"
