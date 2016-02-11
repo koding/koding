@@ -255,3 +255,18 @@ module.exports = class InviteSomeoneView extends KDView
         <p>Invite other teammates to your team. You can change admin rights for your teammates in the Members tab once they accept your invitation.</p>
         <label>Email</label><label>First Name</label><label>Last Name<span>Admin</span></label>
         """
+
+
+prepareEmailsText = (pendingInvites) ->
+  emails = ''
+  len    = pendingInvites.length
+  [0...len].forEach (i)->
+    emails += "<strong>#{pendingInvites[i].email}</strong>"
+    if i + 2 is len
+      emails += " and "
+    else if i + 1 is len
+      emails += ""
+    else
+      emails += ", "
+
+  return emails
