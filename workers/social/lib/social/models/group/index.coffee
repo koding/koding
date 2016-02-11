@@ -1527,7 +1527,9 @@ module.exports = class JGroup extends Module
 
 
   sendNotificationToAdmins: (event, contents) ->
+
     @fetchAdmins (err, admins) =>
+
       unless err
         relationship =  {
           as         : event,
@@ -1540,13 +1542,21 @@ module.exports = class JGroup extends Module
         contents.relationship = relationship
         contents.origin       = contents.subject
         contents.origin.slug  = @slug
+        contents.group        = @slug
         contents.actorType    = event
         contents[event]       = contents.member
+
 
         next = -> queue.next()
         queue = admins.map (admin) => =>
           contents.recipient = admin
           @notify admin, event, contents, next
+
+        { notifyByUsernames } = require '../notify'
+
+        usernames = admins.map (admin) -> admin.profile.nickname
+
+        notifyByUsernames usernames, 'NewMemberJoinedToGroup', contents
 
         daisy queue
 
