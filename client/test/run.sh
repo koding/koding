@@ -40,7 +40,10 @@ function run_test_suite() {
   export TEST_SUITE_HOOK_DIR=$(mktemp -d)
   for TEST_CASE in $(list_test_cases); do
     $RUN_SCRIPT $TEST_GROUP $TEST_SUITE $TEST_CASE
+    EXIT_CODE=$?
+    [ $EXIT_CODE -ne 0 ] && exit $EXIT_CODE
   done
+  exit $EXIT_CODE
 }
 
 function run_test_suite_file() {
