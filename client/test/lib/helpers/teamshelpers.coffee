@@ -483,9 +483,13 @@ module.exports =
           .waitForElementVisible confirmButton, 20000
           .click                 confirmButton
 
+      successMessage = if addMoreUser
+      then "Invitation is sent to"
+      else "Invitation is sent to #{userEmail}"
+
       browser
         .waitForElementVisible  notificationView, 20000
-        .assert.containsText    notificationView, "Invitation is sent to #{userEmail}"
+        .assert.containsText    notificationView, successMessage
         .pause                  2000 # wait for notification
 
       if addMoreUser
