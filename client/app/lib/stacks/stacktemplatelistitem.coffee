@@ -12,13 +12,19 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     options.cssClass = kd.utils.curry "stacktemplate-item clearfix", options.cssClass
     super options, data
 
-    { isDefault, accessLevel, config } = @getData()
+    { isDefault, inUse, accessLevel, config } = @getData()
 
     @isDefaultView = new kd.CustomHTMLView
       cssClass : 'custom-tag'
       partial  : 'DEFAULT'
       tooltip  :
         title  : 'This group currently using this template'
+
+    @inUseView = new kd.CustomHTMLView
+      cssClass : 'custom-tag'
+      partial  : 'IN USE'
+      tooltip  :
+        title  : 'This template is in use'
 
     @notReadyView = new kd.CustomHTMLView
       cssClass : 'custom-tag not-ready'
@@ -39,6 +45,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
             'Only you can use this template'
 
     @isDefaultView.hide() unless isDefault
+    @inUseView.hide()  unless inUse
     @notReadyView.hide()  if config.verified
 
 
@@ -119,7 +126,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     """
     <div class='stacktemplate-info clearfix'>
-      {div.title{#(title)}} {{> @isDefaultView}} {{> @notReadyView}} {{> @accessLevelView}}
+      {div.title{#(title)}} {{> @isDefaultView}} {{> @inUseView}} {{> @notReadyView}} {{> @accessLevelView}}
       <cite>Last updated #{timeago meta.modifiedAt}</cite>
     </div>
     <div class='buttons'>{{> @settings}}</div>
