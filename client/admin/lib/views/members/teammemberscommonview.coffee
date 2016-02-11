@@ -88,7 +88,7 @@ module.exports = class TeamMembersCommonView extends KDView
         unless @isFetching
           @isFetching = yes
           @page++
-          @search()
+          @search no, yes
       else
         @fetchMembers()
 
@@ -211,9 +211,12 @@ module.exports = class TeamMembersCommonView extends KDView
         @fetchMembers yes
 
 
-  search: (useSearchMembersMethod = no) ->
+  search: (useSearchMembersMethod = no, loadWithScroll = no) ->
 
-    query = @searchInput.getValue()
+    @resetListItems()
+    @listController.lazyLoader.show()
+
+    query          = @searchInput.getValue()
     isQueryEmpty   = query is ''
     isQueryChanged = query isnt @lastQuery
 
@@ -221,10 +224,9 @@ module.exports = class TeamMembersCommonView extends KDView
       @page = 0
       @skip = 0
       @searchClear.hide()
-      @resetListItems()
       return @fetchMembers()  if isQueryEmpty
 
-    @page      = if query is @lastQuery then @page + 1 else 0
+    @page      = if loadWithScroll then @page + 1 else 0
     group      = @getData()
     options    = {
       @page,
