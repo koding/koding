@@ -206,6 +206,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 				"meta.vlanId":       meta.VlanID,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
+				"domain":            m.Domain,
 				"status.reason":     "Build finished",
 			}},
 		)
