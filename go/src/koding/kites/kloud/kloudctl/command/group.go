@@ -1,6 +1,8 @@
 package command
 
 import (
+	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -36,6 +38,7 @@ func NewGroup() cli.CommandFactory {
 				Commands: map[string]res.Command{
 					"list":   NewGroupList(),
 					"create": NewGroupCreate(),
+					"toggle": NewGroupToggle(),
 					"delete": NewGroupDelete(),
 				},
 			},
@@ -158,8 +161,11 @@ func (cmd *GroupList) listEntries(ctx context.Context, f *sl.Filter) (sl.Instanc
 type GroupCreate struct {
 	*GroupThrottler
 
+	users string
 	file  string
 	count int
+
+	usernames []string
 }
 
 func NewGroupCreate() *GroupCreate {
@@ -180,6 +186,33 @@ func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&cmd.file, "f", "", "JSON-encoded Machine specification file.")
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
+	f.StringVar(&cmd.users, "users", "", "Comma-separated list of usernames (can't be used with -n).")
+}
+
+func (cmd *GroupCreate) Valid() error {
+	cmd.usernames = strings.Split(cmd.users, ",")
+
+	// For "-users -" flag we read usernames from stdin.
+	if len(cmd.usernames) == 1 && cmd.usernames[0] == "-" {
+		cmd.usernames = cmd.usernames[:0]
+
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			s := strings.TrimSpace(scanner.Text())
+			if s != "" {
+				cmd.usernames = append(cmd.usernames, s)
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			return err
+		}
+	}
+
+	if len(cmd.usernames) != 0 && cmd.count > 1 {
+		return errors.New("the -users and -n flags can't be used together")
+	}
+
+	return nil
 }
 
 func (cmd *GroupCreate) Run(ctx context.Context) error {
@@ -187,22 +220,15 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := spec.BuildUserAndGroup(); err != nil {
+
+	var specs []*MachineSpec
+	if len(cmd.usernames) != 0 {
+		specs, err = cmd.multipleUserSpecs(spec)
+	} else {
+		specs, err = cmd.multipleMachineSpecs(spec)
+	}
+	if err != nil {
 		return err
-	}
-
-	specs := make([]*MachineSpec, cmd.count)
-	for i := range specs {
-		specs[i] = spec.Copy()
-	}
-
-	// Index the machines.
-	if len(specs) > 1 {
-		for _, spec := range specs {
-			i := shortUID()
-			spec.Machine.Slug = fmt.Sprintf("%s-%s", spec.Machine.Slug, i)
-			spec.Machine.Label = fmt.Sprintf("%s-%s", spec.Machine.Label, i)
-		}
 	}
 
 	items := make([]Item, len(specs))
@@ -213,10 +239,53 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	return cmd.RunItems(ctx, items)
 }
 
+func specSlice(spec *MachineSpec, n int) []*MachineSpec {
+	specs := make([]*MachineSpec, n)
+	for i := range specs {
+		specs[i] = spec.Copy()
+	}
+	return specs
+}
+
+func (cmd *GroupCreate) multipleUserSpecs(spec *MachineSpec) ([]*MachineSpec, error) {
+	specs := specSlice(spec, len(cmd.usernames))
+
+	for i, spec := range specs {
+		spec.User = models.User{
+			Name: cmd.usernames[i],
+		}
+
+		if err := spec.BuildMachine(false); err != nil {
+			return nil, fmt.Errorf("error building user and group for %q: %s", spec.User.Name, err)
+		}
+	}
+
+	return specs, nil
+}
+
+func (cmd *GroupCreate) multipleMachineSpecs(spec *MachineSpec) ([]*MachineSpec, error) {
+	if err := spec.BuildMachine(true); err != nil {
+		return nil, err
+	}
+
+	specs := specSlice(spec, cmd.count)
+
+	// Index the machines.
+	if len(specs) > 1 {
+		for _, spec := range specs {
+			i := shortUID()
+			spec.Machine.Slug = fmt.Sprintf("%s-%s", spec.Machine.Slug, i)
+			spec.Machine.Label = fmt.Sprintf("%s-%s", spec.Machine.Label, i)
+		}
+	}
+
+	return specs, nil
+}
+
 func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 	spec := item.(*MachineSpec)
 	k, _ := fromContext(ctx)
-	if err := spec.BuildMachine(); err != nil {
+	if err := spec.InsertMachine(); err != nil {
 		return err
 	}
 
@@ -225,6 +294,7 @@ func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 		Provider:  spec.Machine.Provider,
 		Username:  spec.Username(),
 	}
+
 	resp, err := k.Tell("build", buildReq)
 	if err != nil {
 		return err
@@ -232,6 +302,34 @@ func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 
 	var result kloud.ControlResult
 	return resp.Unmarshal(&result)
+}
+
+// GroupToggle implements the "kloudctl group toggle" subcommand.
+type GroupToggle struct {
+	users    string
+	provider string
+
+	usernames []string
+}
+
+func NewGroupToggle() *GroupToggle {
+	return &GroupToggle{}
+}
+
+func (*GroupToggle) Name() string {
+	return "toggle"
+}
+
+func (cmd *GroupToggle) RegisterFlags(f *flag.FlagSet) {
+	// TODO
+}
+
+func (cmd *GroupToggle) Valid() error {
+	return nil // TODO
+}
+
+func (cmd *GroupToggle) Run(ctx context.Context) error {
+	return nil // TODO
 }
 
 // GroupDelete implememts the "kloudctl group delete" subcommand.
