@@ -84,12 +84,30 @@ usermod -aG docker $PROVISION_USER
 
 # Install test stack essentials
 
-apt-get install -y xvfb x11vnc xfonts-75dpi xfonts-100dpi xfonts-scalable xfonts-cyrillic
+apt-get install -y xvfb xfonts-75dpi xfonts-100dpi xfonts-scalable xfonts-cyrillic
 apt-get install -y openjdk-7-jre-headless
 apt-get install -y firefox
 apt-get install -y google-chrome-stable
 
 npm install --global nightwatch
+
+## x11vnc
+
+X11VNC_VERSION="x11vnc-0.9.14"
+X11VNC_SOURCE_FILE="$X11VNC_VERSION-dev.tar.gz"
+X11VNC_SOURCE_URL="http://x11vnc.sourceforge.net/dev/$X11VNC_SOURCE_FILE"
+
+apt-get install -y libxtst-dev
+
+cd /tmp
+wget $X11VNC_SOURCE_URL
+tar --extract --gzip --file $X11VNC_SOURCE_FILE
+cd $X11VNC_VERSION
+./configure
+make
+make install
+
+x11vnc --version
 
 
 # Configure system environment
