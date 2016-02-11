@@ -146,7 +146,7 @@ Configuration = (options={}) ->
   slack  =
     clientId      : "20619428033.20787518977"
     clientSecret  : "1987edcacd657367fd1b3b0eb653f14b"
-    redirectUri   : "https://dev.koding.com:8090/api/social/slack/oauth/callback"
+    redirectUri   : "http://dev.koding.com:8090/api/social/slack/oauth/callback"
 
 
   # if you want to disable a feature add here with "true" value do not forget to
