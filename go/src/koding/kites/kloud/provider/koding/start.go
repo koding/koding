@@ -79,7 +79,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	// and revert back to t2.nano. This is lazy auto healing of instances that
 	// were created because there were no capacity for their specific instance
 	// type.
-	if typ := aws.StringValue(instance.InstanceType); typ != "" && typ != meta.InstanceType {
+	if typ := aws.StringValue(instance.InstanceType); typ != "" && meta.InstanceType != "" && typ != meta.InstanceType {
 		m.Log.Warning("instance is using %q. Changing back to %q", typ, meta.InstanceType)
 
 		params := &ec2.ModifyInstanceAttributeInput{

@@ -7,30 +7,27 @@ module.exports = class HelpModal extends AnimatedModalView
 
   links =
     noob : [
-      { title : 'What is Koding?', url : 'http://learn.koding.com/what-is-koding/' }
-      { title : 'Getting Started', url : 'http://learn.koding.com/gettingstarted/' }
-      { title : 'Development on Koding', url : 'http://learn.koding.com/development-on-koding/' }
-      { title : '<i>Tutorial:</i> EmberJS', url : 'http://learn.koding.com/emberjs-starting-kit/' }
-      { title : '<i>Tutorial:</i> Octopress', url : 'http://learn.koding.com/octopress-installation-beginners/' }
-      { title : '<i>Tutorial:</i> Ghost Blog', url : 'http://learn.koding.com/developing-ghost-blog-koding/' }
-      { title : '<i>Tutorial:</i> Bootstrap 3', url : 'http://learn.koding.com/bootstrap-3-quick-tip/' }
+      { title : 'What is Koding?', url : 'https://koding.com/docs/what-is-koding/' }
+      { title : 'Getting Started', url : 'https://koding.com/docs/getting-started/' }
+      { title : 'Development on Koding', url : 'https://koding.com/docs/ide-introduction/' }
+      { title : '<i>Tutorial:</i> EmberJS', url : 'https://koding.com/docs/emberjs-starting-kit/' }
+      { title : '<i>Tutorial:</i> Octopress', url : 'https://koding.com/docs/octopress-for-beginners/' }
+      { title : '<i>Tutorial:</i> Ghost Blog', url : 'https://koding.com/docs/ghost-installation/' }
       { title : 'Terminal', url : '/Terminal', command:'help this' }
     ]
     experienced : [
-      { title : 'Koding subdomains and Vhosts', url : 'http://learn.koding.com/koding-subdomains-and-vhosts/' }
-      { title : 'How to setup Octopress', url : 'http://learn.koding.com/63/' }
-      { title : 'Codeigniter Installation', url : 'http://learn.koding.com/codeigniter-beginners/' }
-      { title : 'Firebase setup and usage', url : 'http://learn.koding.com/getting-started-firebase/' }
-      { title : 'Getting started with Facebook Application Development', url : 'http://learn.koding.com/getting-started-with-facebook-application-development/' }
+      { title : 'Koding subdomains and Vhosts', url : 'https://koding.com/docs/vhosts-and-subdomains' }
+      { title : 'How to setup Octopress', url : 'https://koding.com/docs/octopress-for-beginners/' }
+      { title : 'Codeigniter Installation', url : 'https://koding.com/docs/codeigniter-for-beginners' }
       { title : 'sudo password', url : '/Terminal', command:'help sudo' }
     ]
     advanced : [
-      { title : 'Terminal and custom ports', url : 'http://learn.koding.com/terminal-and-custom-ports/' }
-      { title : 'Using Tmux on Koding', url : 'http://learn.koding.com/using-tmux-on-koding/' }
+      { title : 'Terminal and custom ports', url : 'https://koding.com/docs/terminal-and-custom-ports/' }
+      { title : 'Using Tmux on Koding', url : 'https://koding.com/docs/using-tmux-on-koding/' }
       { title : 'sudo password', url : '/Terminal', command:'help sudo' }
     ]
     commons : [
-      { title : 'FAQ', url : 'http://learn.koding.com/faq/' }
+      { title : 'FAQ', url : 'https://koding.com/docs/topic/faq/' }
       { title : 'FTP', url : '/Terminal', command:'help ftp' }
       { title : 'MySQL', url : '/Terminal', command:'help mysql' }
       { title : 'phpMyAdmin', url : '/Terminal', command:'help phpmyadmin' }
@@ -129,5 +126,5 @@ module.exports = class HelpModal extends AnimatedModalView
     @addSubView new KDCustomHTMLView
       tagName  :'footer'
       partial  : """
-        <h4>Find more at <a href='http://learn.koding.com'>Koding University</a>, also we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
+        <h4>Find more at <a href='https://koding.com/docs'>Koding University</a>, also we would love to hear your <a href='https://docs.google.com/forms/d/1jxdnXLm-cgHDpokzKIJSaShEirb66huoEMhPkQF5f_I/viewform'target='_blank'>feedback</a>.</h4>
       """

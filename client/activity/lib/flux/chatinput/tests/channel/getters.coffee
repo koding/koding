@@ -4,7 +4,6 @@ React   = require 'kd-react'
 
 ActivityActionTypes    = require 'activity/flux/actions/actiontypes'
 ChannelsStore          = require 'activity/flux/stores/channelsstore'
-PopularChannelIdsStore = require 'activity/flux/stores/popularchannelidsstore'
 
 ChatInputFlux        = require 'activity/flux/chatinput'
 ChatInputActionTypes = require 'activity/flux/chatinput/actions/actiontypes'
@@ -13,14 +12,13 @@ DropboxSettingsStore = require 'activity/flux/chatinput/stores/dropboxsettingsst
 describe 'ChatInputChannelGetters', ->
 
   channels = [
-    { id : 'public', name : 'public', typeConstant: 'group' }
     { id : 'qwerty', name : 'qwerty', typeConstant: 'topic' }
     { id : 'qwerty2', name : 'qwerty2', typeConstant: 'topic' }
     { id : 'qwerty3', name : 'qwerty3', typeConstant: 'privatemessage' }
     { id : 'koding', name : 'koding', typeConstant: 'topic' }
     { id : 'whoa', name : 'whoa', typeConstant: 'privatemessage' }
   ]
-  popularChannels = [ channels[1], channels[4] ]
+  publicChannels = [ channels[0], channels[1], channels[3] ]
   stateId = '123'
   config  = {
     component       : React.Component
@@ -42,14 +40,11 @@ describe 'ChatInputChannelGetters', ->
     @reactor = new Reactor
     stores   = {}
     stores[ChannelsStore.getterPath] = ChannelsStore
-    stores[PopularChannelIdsStore.getterPath] = PopularChannelIdsStore
     stores[DropboxSettingsStore.getterPath] = DropboxSettingsStore
     @reactor.registerStores stores
 
     for channel in channels
       @reactor.dispatch ActivityActionTypes.LOAD_CHANNEL_SUCCESS, { channel }
-
-    @reactor.dispatch ActivityActionTypes.LOAD_POPULAR_CHANNELS_SUCCESS, { channels : popularChannels }
 
 
   describe '#dropboxChannels', ->
@@ -67,14 +62,14 @@ describe 'ChatInputChannelGetters', ->
       expect(items).toBeA 'undefined'
 
 
-    it 'returns popular channels if query is empty', ->
+    it 'returns all public channels if query is empty', ->
 
       { getters } = ChatInputFlux
 
       @reactor.dispatch ChatInputActionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : '', config }
       items = @reactor.evaluateToJS getters.dropboxChannels stateId
 
-      expect(items).toEqual popularChannels
+      expect(items).toEqual publicChannels
 
 
     it 'returns public channels filtered by query if query isn\'t empty', ->
@@ -84,14 +79,14 @@ describe 'ChatInputChannelGetters', ->
       @reactor.dispatch ChatInputActionTypes.SET_DROPBOX_QUERY_AND_CONFIG, { stateId, query : 'qwerty', config }
       items = @reactor.evaluateToJS getters.dropboxChannels stateId
 
-      filteredItems = [ channels[1], channels[2] ]
+      filteredItems = [ channels[0], channels[1] ]
 
       expect(items).toEqual filteredItems
 
 
   describe '#channelsSelectedIndex', ->
 
-     it 'returns -1 if channels are empty', ->
+    it 'returns -1 if channels are empty', ->
 
       { getters } = ChatInputFlux
 
@@ -101,7 +96,7 @@ describe 'ChatInputChannelGetters', ->
       expect(index).toBe -1
 
 
-   it 'returns 0 by default', ->
+    it 'returns 0 by default', ->
 
       { getters } = ChatInputFlux
 
@@ -175,4 +170,4 @@ describe 'ChatInputChannelGetters', ->
 
       selectedItem = @reactor.evaluateToJS getters.channelsSelectedItem stateId
 
-      expect(selectedItem).toEqual channels[4]
+      expect(selectedItem).toEqual channels[1]

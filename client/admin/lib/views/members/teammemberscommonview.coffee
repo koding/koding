@@ -226,7 +226,11 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @page      = if query is @lastQuery then @page + 1 else 0
     group      = @getData()
-    options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
+    options    = {
+      @page,
+      restrictSearchableAttributes: [ 'nick', 'email' ],
+      showCurrentUser : yes
+    }
     @lastQuery = query
 
     @searchClear.show()

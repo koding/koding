@@ -54,7 +54,6 @@ module.exports = class JAccount extends jraphical.Module
         # when a user sends a status update, we are sending 7 events
         # when a user logs-in we are sending 10 events
         # { name: 'updateInstance' }
-        { name : 'messageBusEvent' }
         { name : 'RemovedFromCollection' }
         { name : 'NewWorkspaceCreated' }
       ]
@@ -982,7 +981,8 @@ module.exports = class JAccount extends jraphical.Module
           context  : contents?.group or 'koding'
       }
 
-      @emit 'messageBusEvent', { type: 'dispatcher_notify_user', message: message }
+      require('./socialapi/requests').dispatchEvent 'dispatcher_notify_user', message, (err) ->
+        console.error '[dispatchEvent][notify_user]', err if err # do not cause trailing parameters
 
 
   cancelRequest: secure (client, slug, callback) ->

@@ -1,8 +1,9 @@
-kd         = require 'kd'
-Encoder    = require 'htmlencode'
-FSHelper   = require 'app/util/fs/fshelper'
-showError  = require 'app/util/showError'
-IDEHelpers = require '../../idehelpers'
+kd              = require 'kd'
+Encoder         = require 'htmlencode'
+FSHelper        = require 'app/util/fs/fshelper'
+showError       = require 'app/util/showError'
+IDEHelpers      = require '../../idehelpers'
+envDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class IDEContentSearchResultView extends kd.View
@@ -75,8 +76,7 @@ module.exports = class IDEContentSearchResultView extends kd.View
     lineNumber   = target.getAttribute('data-line-number') or 0
     switchIfOpen = yes
 
-
-    file.fetchContents (err, contents) ->
+    file.fetchContents (err, contents) =>
 
       if err
         console.error err
@@ -84,5 +84,6 @@ module.exports = class IDEContentSearchResultView extends kd.View
 
       fileOptions  = { file, contents, switchIfOpen: yes }
 
-      kd.getSingleton('appManager').tell 'IDE', 'openFile', fileOptions, (editorPane) ->
+      ideApp = envDataProvider.getIDEFromUId @machine.uid
+      ideApp?.openFile fileOptions, (editorPane) ->
         editorPane?.goToLine lineNumber

@@ -1,6 +1,7 @@
 { ObjectId, signature, daisy }  = require 'bongo'
 { Module, Relationship }        = require 'jraphical'
 KodingError                     = require '../../error'
+helpers                         = require './helpers'
 
 
 module.exports = class JStackTemplate extends Module
@@ -127,11 +128,11 @@ module.exports = class JStackTemplate extends Module
 
   validateTemplate = (template, group) ->
 
-    plan = group.getAt 'config.plan'
-    return  unless plan # No plan, no pain.
+    planConfig = helpers.getPlanConfig group
+    return  unless planConfig.plan # No plan, no pain.
 
     ComputeProvider = require './computeprovider'
-    return ComputeProvider.validateTemplateContent template, plan
+    return ComputeProvider.validateTemplateContent template, planConfig
 
 
   @create = permit 'create stack template',

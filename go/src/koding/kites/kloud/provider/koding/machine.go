@@ -19,6 +19,17 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+var (
+	// DefaultKlientTimeout is the max duration of time we try to connect
+	// to a Klient to ensure it's running.
+
+	DefaultKlientTimeout = 5 * time.Minute
+
+	// T2Nano is the same as above with the only difference it applies to
+	// t2.nano instances only.
+	T2NanoKlientTimeout = 8 * time.Minute
+)
+
 type Meta struct {
 	AlwaysOn     bool   `bson:"alwaysOn"`
 	InstanceId   string `structs:"instanceId" bson:"instanceId"`
@@ -187,9 +198,21 @@ func (m *Machine) updateStorageSize(size int) error {
 	})
 }
 
+func (m *Machine) klientTimeout() time.Duration {
+	instanceType, ok := m.Meta["instance_type"].(string)
+
+	// If instance type does not exist in meta we assume
+	// it's t2.nano.
+	if !ok || instanceType == plans.T2Nano.String() {
+		return T2NanoKlientTimeout
+	}
+
+	return DefaultKlientTimeout
+}
+
 func (m *Machine) isKlientReady() bool {
 	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
-	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*5)
+	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, m.klientTimeout())
 	if err != nil {
 		m.Log.Warning("Connecting to remote Klient instance err: %s", err)
 		return false
@@ -234,6 +257,11 @@ func (m *Machine) Unlock() error {
 }
 
 func (m *Machine) releaseEIP() {
+	// If machine is stopped after unsuccessful start, it does not have
+	// IP updated in its meta - stop here.
+	if m.IpAddress == "" {
+		return
+	}
 	// try to release/delete a public elastic IP, if there is an error we don't
 	// care (the instance might not have an elastic IP, aka a free user.
 	addrs, err := m.Session.AWSClient.AddressesByIP(m.IpAddress)

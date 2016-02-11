@@ -30,7 +30,7 @@ module.exports = class LeaveGroupModal extends DeleteModalView
 
     kd.singletons.groupsController.getCurrentGroup().leave (err) =>
       if err
-        new kd.NotificationView title : 'There was a problem, please try again!'
+        new kd.NotificationView title : 'You need to transfer ownership of team before leaving team'
         return @modalTabs.forms.dangerForm.buttons.confirmButton.hideLoader()
 
       kookies.expire 'clientId'

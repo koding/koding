@@ -17,7 +17,6 @@ module.exports = class IDEFinderPane extends IDEPane
 
     appManager  = kd.getSingleton 'appManager'
     computeCtrl = kd.getSingleton 'computeController'
-    ideApp      = appManager.getFrontApp()
 
     appManager.open 'Finder', (finderApp) =>
       fc = @finderController = finderApp.create

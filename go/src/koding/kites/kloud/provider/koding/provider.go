@@ -8,6 +8,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -129,8 +130,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		machine.Log = machine.Log.New(traceID)
-		machine.Log.SetLevel(logging.DEBUG)
+		machine.Log = common.NewLogger("kloud-koding", true).New(machine.ObjectId.Hex()).New(traceID)
 	}
 
 	sess := &session.Session{

@@ -25,7 +25,7 @@ module.exports = class WelcomeAppView extends kd.View
       tagName : 'ul'
       partial : """
         <li>
-          <a href='/Admin/Stacks'>
+          <a href='/Stacks/Group-Stack-Templates'>
             <cite>1</cite>
             <div>
               <span>Configure user environment</span>

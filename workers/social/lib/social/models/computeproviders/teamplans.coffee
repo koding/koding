@@ -1,7 +1,7 @@
 { clone } = require 'underscore'
 
 BASIC_RESTRICTIONS     =
-  supports             : [ 'provider', 'resource' ]
+  supports             : [ 'provider', 'resource', 'koding' ]
   provider             : [ 'aws' ]
   resource             : [ 'aws_instance' ]
   custom               :

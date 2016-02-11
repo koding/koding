@@ -76,7 +76,7 @@ module.exports = class WebTermView extends KDCustomScrollView
       @terminal.mousedownHappened = yes
     , yes
 
-    @forwardEvent @terminal, 'command'
+    @forwardEvents @terminal, ['command', 'ScreenSizeChanged']
 
     @getDelegate().on 'KDTabPaneActive', => @terminal.updateSize yes
 

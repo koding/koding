@@ -6,6 +6,7 @@ import (
 
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -143,8 +144,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		opts.Log = opts.Log.New(traceID)
-		opts.Log.SetLevel(logging.DEBUG)
+		opts.Log = common.NewLogger("kloud-aws", true).New(machine.ObjectId.Hex()).New(traceID)
 	}
 
 	amazonClient, err := amazon.NewWithOptions(machine.Meta, opts)

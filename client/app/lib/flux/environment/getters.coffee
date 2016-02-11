@@ -106,10 +106,16 @@ stacks = [
   (stacks, machinesWorkspaces) ->
     # Sort stacks by modifiedAt and type.
     stacks
+
       # Show last updated stacks at the top of list
       .sort (a, b) -> b.getIn(['meta', 'modifiedAt']).localeCompare(a.getIn(['meta', 'modifiedAt']))
+
+      # Show kicked user's templates at the bottom of list
+      .sort (a, b) -> if a.getIn ['config', 'oldOwner'] then 1 else -1
+
       # Show group stacks at the top of list
       .sort (a, b) -> if a.getIn ['config', 'groupStack'] then -1 else 1
+
       .map (stack) ->
         stack.update 'machines', (machines) ->
           machines.map (id) ->

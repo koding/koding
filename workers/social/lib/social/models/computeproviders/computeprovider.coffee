@@ -12,6 +12,8 @@ KodingLogger = require '../kodinglogger'
 
 MAX_INT      = Math.pow(2, 32) - 1
 
+helpers      = require './helpers'
+
 
 module.exports = class ComputeProvider extends Base
 
@@ -299,11 +301,11 @@ module.exports = class ComputeProvider extends Base
       async.series queue, -> callback null, { stack, results }
 
 
-  # Just takes the plan name and the stack template content generates rules
+  # Just takes the plan config and the stack template content generates rules
   # based on th plan then verifies the content based on the rules generated
-  @validateTemplateContent = (content, plan) ->
+  @validateTemplateContent = (content, planConfig) ->
 
-    rules = teamutils.generateConstraints plan
+    rules = teamutils.generateConstraints planConfig
 
     try
       template = JSON.parse content
@@ -321,9 +323,9 @@ module.exports = class ComputeProvider extends Base
   # validate the stack template based on these informations ~ GG
   @validateTemplate = (client, stackTemplateId, group, callback) ->
 
-    plan = group.getAt 'config.plan'
+    planConfig = helpers.getPlanConfig group
 
-    return callback null  unless plan
+    return callback null  unless planConfig.plan
 
     JStackTemplate = require './stacktemplate'
     JStackTemplate.one$ client, { _id: stackTemplateId }, (err, data) =>
@@ -331,7 +333,7 @@ module.exports = class ComputeProvider extends Base
       return callback err  if err
       return callback new KodingError 'Stack template not found'  unless data
 
-      callback @validateTemplateContent data.template.content, plan
+      callback @validateTemplateContent data.template.content, planConfig
 
 
   # Takes an array of stack template ids and returns the final result ^^
@@ -405,11 +407,11 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  if group.slug is 'koding'
 
-    plan = group.getAt 'config.plan'
+    planConfig = helpers.getPlanConfig group
 
     maxAllowed   = MAX_INT
-    if plan
-      plan       = teamutils.getPlanData plan
+    if planConfig.plan
+      plan       = teamutils.getPlanData planConfig
       maxAllowed = plan.member
 
     JCounter = require '../counter'
@@ -430,12 +432,12 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  if group.slug is 'koding'
 
-    plan = group.getAt 'config.plan'
+    planConfig = helpers.getPlanConfig group
     return callback null  if amount is 0
 
     maxAllowed   = MAX_INT
-    if plan
-      plan       = teamutils.getPlanData plan
+    if planConfig.plan
+      plan       = teamutils.getPlanData planConfig
       maxAllowed = plan.maxInstance
 
     JCounter = require '../counter'

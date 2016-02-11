@@ -117,7 +117,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     @on 'TwoFactorEnabled', =>
       modal = new kd.ModalView
-        title     : 'Two-Factor Authentication <a href="http://learn.koding.com/guides/2-factor-auth/" target="_blank">What is 2FA?</a>'
+        title     : 'Two-Factor Authentication <a href="https://koding.com/docs/2-factor-auth/" target="_blank">What is 2FA?</a>'
         width     : 400
         overlay   : yes
         cssClass  : 'two-factor-code-modal'

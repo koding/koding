@@ -543,6 +543,23 @@ runTests = -> describe 'workers.social.group.index', ->
 
             done()
 
+      it 'should allow to update plan overrides if provided plan is valid', (done) ->
+
+        withConvertedUser { createGroup: 'yes' }, ({ group }) ->
+
+          testGroup = group
+
+          withConvertedUser { role: 'admin' }, (data) ->
+            _client = data.client
+
+            overrides = { member: 5, validFor: 25 }
+            group.setPlan _client, { plan: 'trial', overrides }, (err) ->
+              expect(err).to.not.exist
+              expect(group.getAt 'config.plan').to.be.equal 'trial'
+              expect(group.getAt 'config.planOverrides').to.be.equal overrides
+
+              done()
+
 
 beforeTests()
 

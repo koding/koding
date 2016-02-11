@@ -6,6 +6,7 @@ IDEPane            = require './idepane'
 AceView            = require 'ace/aceview'
 FSHelper           = require 'app/util/fs/fshelper'
 IDEHelpers         = require '../../idehelpers'
+envDataProvider    = require 'app/userenvironmentdataprovider'
 getColorFromString = require 'app/util/getColorFromString'
 
 
@@ -30,7 +31,8 @@ module.exports = class IDEEditorPane extends IDEPane
     @createEditor()
 
     file.once 'fs.delete.finished', ->
-      kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
+      ideApp = envDataProvider.getIDEFromUId file.machine.uid
+      ideApp?.handleFileDeleted file
 
     @errorOnSave = no
     file.on [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'

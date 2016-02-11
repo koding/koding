@@ -61,7 +61,7 @@ module.exports = class IDEFinderTreeController extends NFinderTreeController
 
       return  if @dontEmitChangeEvent
 
-      @emit 'FolderExpanded', nodeView.getData().path
+      @emit 'FolderExpanded', nodeView.getData().path  if nodeView
 
     super nodeView, kallback, silence
 

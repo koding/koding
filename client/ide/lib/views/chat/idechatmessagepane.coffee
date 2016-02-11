@@ -239,8 +239,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
       #   KD.utils.stopDOMEvent event
       #   @getDelegate().showSettingsPane()
 
-    appManager.tell 'IDE', 'getWorkspaceName', @title.bound 'updatePartial'
-
     header.addSubView @chevron = @createMenu()
 
     header.addSubView @link = new KDCustomHTMLView
@@ -277,7 +275,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     menu =
       'Search'     : { cssClass : 'disabled', callback: kd.noop }
       'Minimize'   : { callback : @getDelegate().bound 'end' }
-      'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration' }
+      'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'https://koding.com/docs/collaboration' }
       # 'Settings' : { callback : @getDelegate().bound 'showSettingsPane' }
 
     isHost = not @isInSession
@@ -303,8 +301,8 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @removeOnboarding()
 
-    appManager = kd.getSingleton 'appManager'
-    appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
+    ideApp = envDataProvider.getIDEFromUId @getOption 'mountedMachineUId'
+    ideApp?.setMachineUser [participant.profile.nickname]
 
 
   refresh: ->

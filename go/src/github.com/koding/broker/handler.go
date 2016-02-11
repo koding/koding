@@ -50,6 +50,8 @@ func (c *Consumer) withCounter(counterName string, fn func()) {
 func (c *Consumer) Start() func(delivery amqp.Delivery) {
 	c.Log.Info("Broker sarted to consume")
 	return func(delivery amqp.Delivery) {
+		c.Log.Debug("Handling event of %s", delivery.Type)
+
 		if _, ok := c.handlers[delivery.Type]; !ok {
 			// if no handler found, just ack message
 			c.Log.Debug("No handler for %s", delivery.Type)

@@ -464,8 +464,8 @@ func (m *Machine) convertInstanceType(data *BuildData) (string, bool) {
 	switch {
 	// Ensure instances for old free users or users that downgraded from paid
 	// plan are converted from t2.micro to t2.nano.
-	case plans.Plans[m.Payment.Plan] == plans.Free && aws.StringValue(data.EC2Data.InstanceType) != "t2.nano":
-		return "t2.nano", true
+	case plans.Plans[m.Payment.Plan] == plans.Free && aws.StringValue(data.EC2Data.InstanceType) != plans.T2Nano.String():
+		return plans.T2Nano.String(), true
 	default:
 		return "", false
 	}

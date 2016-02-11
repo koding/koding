@@ -64,3 +64,34 @@ describe 'ChatList', ->
       expect(newMessageMarker).toExist()
       waypoint = TestUtils.findRenderedComponentWithType result, Waypoint
       expect(waypoint).toExist()
+
+  describe '::resize', ->
+
+    it 'should call updateDateMarkersPosition when page is resized', ->
+
+      result = TestUtils.renderIntoDocument(
+        <ChatList />
+      )
+
+      spyResize = expect.spyOn result, 'updateDateMarkersPosition'
+
+      window.dispatchEvent new Event 'resize'
+
+      expect(spyResize).toHaveBeenCalled()
+
+
+    it 'should not have been called after component will unmount called ', ->
+
+      div = document.createElement('div');
+
+      result = React.render(<ChatList />, div)
+
+      spyResize = expect.spyOn result, 'updateDateMarkersPosition'
+
+      React.unmountComponentAtNode div
+
+      window.dispatchEvent new Event 'resize'
+
+      expect(spyResize).toNotHaveBeenCalled()
+
+

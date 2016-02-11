@@ -25,4 +25,4 @@ module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
       href         : GUIDE_URL
       target       : '_blank'
 
-  GUIDE_URL = 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
+  GUIDE_URL = 'https://koding.com/docs/collaboration/'

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -14,6 +15,7 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/userdata"
+	"time"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -25,14 +27,21 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+var (
+	defaultKlientTimeout = 15 * time.Minute
+	defaultStateTimeout  = 15 * time.Minute
+)
+
 type Provider struct {
-	DB         *mongodb.MongoDB
-	Log        logging.Logger
-	Kite       *kite.Kite
-	SLClient   *sl.Softlayer
-	DNSClient  *dnsclient.Route53
-	DNSStorage *dnsstorage.MongodbStorage
-	Userdata   *userdata.Userdata
+	DB            *mongodb.MongoDB
+	Log           logging.Logger
+	Kite          *kite.Kite
+	SLClient      *sl.Softlayer
+	DNSClient     *dnsclient.Route53
+	DNSStorage    *dnsstorage.MongodbStorage
+	Userdata      *userdata.Userdata
+	KlientTimeout time.Duration
+	StateTimeout  time.Duration
 }
 
 type slCred struct {
@@ -85,6 +94,9 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, err
 	}
 
+	machine.KlientTimeout = p.klientTimeout()
+	machine.StateTimeout = p.stateTimeout()
+
 	return machine, nil
 }
 
@@ -114,8 +126,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		machine.Log = machine.Log.New(traceID)
-		machine.Log.SetLevel(logging.DEBUG)
+		machine.Log = common.NewLogger("kloud-softlayer", true).New(machine.ObjectId.Hex()).New(traceID)
 	}
 
 	sess := &session.Session{
@@ -172,4 +183,18 @@ func (p *Provider) getUserCredential(identifier string) (*slCred, error) {
 	}
 
 	return &cred, nil
+}
+
+func (p *Provider) klientTimeout() time.Duration {
+	if p.KlientTimeout != 0 {
+		return p.KlientTimeout
+	}
+	return defaultKlientTimeout
+}
+
+func (p *Provider) stateTimeout() time.Duration {
+	if p.StateTimeout != 0 {
+		return p.StateTimeout
+	}
+	return defaultStateTimeout
 }
