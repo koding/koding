@@ -348,6 +348,32 @@ func TestKodingNetworkFS(tt *testing.T) {
 					So(string(bytes), ShouldEqual, "Hello World!")
 				})
 			})
+
+			Convey("It should rename file to existing file", func() {
+				file1 := path.Join(k.MountPath, "file1")
+				err := ioutil.WriteFile(file1, []byte("Hello"), 0700)
+				So(err, ShouldBeNil)
+
+				file2 := path.Join(k.MountPath, "file2")
+				err = ioutil.WriteFile(file2, []byte("World!"), 0700)
+				So(err, ShouldBeNil)
+
+				// rename mount/file2 to mount/file1
+				err = os.Rename(file2, file1)
+				So(err, ShouldBeNil)
+
+				// check mount/file2 doesn't exist
+				_, err = os.Stat(file2)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "no such file or directory")
+
+				// check mount/file1 exists with same permissions
+				statFileCheck(file1, 0700)
+
+				// rename calls transport to update file contents, hence it's reset
+				// to default in transport which is "Hello World!"
+				readFile(file1, "Hello World!")
+			})
 		})
 
 		Convey("RmDir", func() {
