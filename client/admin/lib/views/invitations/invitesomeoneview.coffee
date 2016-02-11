@@ -169,6 +169,13 @@ module.exports = class InviteSomeoneView extends KDView
     modal.overlay.setClass 'second-overlay'
 
 
+  handleResendInvitations: (pendingInvites, newInvitations) ->
+
+    @resendInvitations pendingInvites, newInvitations
+    @sendInvitations newInvitations, pendingInvites
+    @resendInvitationConfirmModal?.destroy()
+
+
 
     remote.api.JInvitation.create invitations: invites, (err) =>
       if err
