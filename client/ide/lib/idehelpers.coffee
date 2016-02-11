@@ -167,11 +167,10 @@ module.exports = helpers =
         mainView.activitySidebar.updateMachines()
 
 
-      updateWorkspace_ = (workspace) ->
+      for w in workspaces when w.rootPath.indexOf(searchPath) > -1
         if target
-          newPath = workspace.rootPath.replace searchPath, targetPath
-          remote.api.JWorkspace.update workspace._id, { $set : { rootPath: newPath} }, callback
+          newPath = w.rootPath.replace searchPath, targetPath
+          setData = { $set : { rootPath: newPath } }
+          remote.api.JWorkspace.update w._id, setData, callback
         else
-          remote.api.JWorkspace.deleteById workspace._id, callback
-
-      updateWorkspace_ w for w in workspaces when w.rootPath.indexOf(searchPath) > -1
+          remote.api.JWorkspace.deleteById w._id, callback
