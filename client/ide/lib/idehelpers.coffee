@@ -161,7 +161,7 @@ module.exports = helpers =
 
       callback = (err) =>
 
-        return showError err, KodingError: "Couldn't update workspace." if err
+        return kd.warn 'Failed to update workspace', err  if err
 
         { mainView } = kd.singletons
         mainView.activitySidebar.updateMachines()
