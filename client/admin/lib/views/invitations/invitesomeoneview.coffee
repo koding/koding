@@ -133,10 +133,14 @@ module.exports = class InviteSomeoneView extends KDView
   notifyPendingInvites: (pendingInvites, newInvites) ->
 
     partial = "<strong>#{pendingInvites[0].email}</strong> has already been invited. Are you sure you want to resend invitation?"
+    resendButtonText = "Resend Invitation"
+    cancelButtonText = "Cancel"
 
     if pendingInvites.length > 1
       emailsText = prepareEmailsText pendingInvites
-      partial = "#{emailsText} have already been invited. Are you sure you want to resend invitation?"
+      partial = "#{emailsText} have already been invited. Are you sure you want to resend invitations?"
+      resendButtonText = "Resend Invitations"
+      cancelButtonText = "Just send the new ones" if newInvites.length
 
     @resendInvitationConfirmModal = modal = new kd.ModalViewWithForms
       title                   : 'Resend invitation'
@@ -147,13 +151,13 @@ module.exports = class InviteSomeoneView extends KDView
         forms                 :
           confirm             :
             buttons           :
-              "Resend Invitation" :
+              "#{resendButtonText}" :
                 itemClass     : kd.ButtonView
                 cssClass      : 'confirm'
                 style         : 'solid green medium'
                 loader        : color: '#444444'
                 callback      : => @handleResendInvitations pendingInvites, newInvites
-              "Just send the new ones" :
+              "#{cancelButtonText}" :
                 itemClass     : kd.ButtonView
                 style         : 'solid medium'
                 callback      : => @sendInvitations newInvites
