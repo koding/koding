@@ -485,7 +485,7 @@ module.exports =
 
       browser
         .waitForElementVisible  notificationView, 20000
-        .assert.containsText    notificationView, 'Invitations are sent to new members.'
+        .assert.containsText    notificationView, "Invitation is sent to #{userEmail}"
         .pause                  2000 # wait for notification
 
       if addMoreUser
