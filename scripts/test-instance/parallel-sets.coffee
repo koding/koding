@@ -21,70 +21,68 @@
 
 module.exports = [
 
+  # [
+  #   { name: 'register' }
+  #   { name: 'login' }
+  #   { name: 'logout' }
+  #   { name: 'activity likeunlike' }
+  # ]
+
+  # [
+  #   { name: 'pricing payment' }
+  #   { name: 'activity post' }
+  #   { name: 'staticpages loggedout' }
+  # ]
+
+  # [
+  #   { name: 'messages privatemessage' }
+  #   { name: 'account accountsettings' }
+  #   { name: 'activity postwith' }
+  # ]
+
+  # [
+  #   { name: 'activity edit' }
+  #   { name: 'activity delete' }
+  # ]
+
+  # [
+  #   { name: 'unittests' }
+  #   { name: 'activity others' }
+  #   { name: 'account accountpage' }
+  # ]
+
+  # [
+  #   { name: 'ide file' }
+  #   { name: 'ide folder' }
+  # ]
+
+  # [
+  #   { name: 'ide search' }
+  #   { name: 'ide workspace' }
+  # ]
+
+  # [
+  #   { name: 'ide terminal' }
+  #   # { name: 'teams teamschannels' }
+  #   # { name: 'pricing invalidcarddetails' }
+  # ]
+
+  # [
+  #   { name: 'ide general' }
+  #   { name: 'ide layout' }
+  #   { name: 'teams inviteteams' }
+  # ]
+
   [
-    { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
-    { name: 'activity likeunlike' }
+     { name: 'environments paidaccount' }
   ]
 
   [
-    { name: 'pricing payment' }
-    { name: 'activity post' }
-    { name: 'staticpages loggedout' }
+     { name: 'environments paidaccount' }
   ]
 
   [
-    { name: 'messages privatemessage' }
-    { name: 'account accountsettings' }
-    { name: 'activity postwith' }
-  ]
-
-  [
-    { name: 'activity edit' }
-    { name: 'activity delete' }
-  ]
-
-  [
-    { name: 'unittests' }
-    { name: 'activity others' }
-    { name: 'account accountpage' }
-  ]
-
-  [
-    { name: 'ide file' }
-    { name: 'ide folder' }
-  ]
-
-  [
-    { name: 'ide search' }
-    { name: 'ide workspace' }
-  ]
-
-  [
-    { name: 'ide terminal' }
-    # { name: 'teams teamschannels' }
-    # { name: 'pricing invalidcarddetails' }
-  ]
-
-  [
-    { name: 'ide general' }
-    { name: 'ide layout' }
-    { name: 'teams inviteteams' }
-  ]
-
-  [
-    { name: 'collaboration collaboration' }
-    { name: 'environments snapshot' }
-  ]
-
-  [
-    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
-
-  [
-    { name: 'environments vm' }
-    { name: 'teams teamspostwith' }
+     { name: 'environments paidaccount' }
   ]
 
   [
@@ -92,9 +90,7 @@ module.exports = [
   ]
 
   [
-    { name: 'environments domain' }
-    { name: 'teams teams' }
-    { name: 'teams teamslikeunlike' }
+    { name: 'environments paidaccount' }
   ]
 
   # [
