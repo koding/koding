@@ -26,8 +26,8 @@ module.exports = [
     { name: 'login' }
     { name: 'logout' }
     { name: 'activity likeunlike' }
+    { name: 'activity createtwosessions', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
-
   [
     { name: 'pricing payment' }
     { name: 'activity post' }
