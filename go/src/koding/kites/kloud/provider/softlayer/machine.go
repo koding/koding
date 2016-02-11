@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"koding/kites/kloud/contexthelper/session"
 
 	"github.com/koding/logging"
@@ -70,6 +72,28 @@ func (m *Machine) IsKlientReady() bool {
 	}
 
 	return true
+}
+
+type transitionFunc func(context.Context) error
+
+func (m *Machine) guardTransition(start machinestate.State, reason string, ctx context.Context, fn transitionFunc) error {
+	err := modelhelper.ChangeMachineState(m.ObjectId, reason, start)
+	if err != nil {
+		return err
+	}
+
+	latest := m.State()
+	err = fn(ctx)
+	if err != nil {
+		e := modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latest.String(), latest)
+		if e != nil {
+			m.Log.Warning("failure reverting state from %q to %q: %s", start, latest, err)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // push pushes the given message to the eventer

@@ -1,7 +1,6 @@
 package softlayer
 
 import (
-	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
@@ -9,10 +8,10 @@ import (
 
 // Stop stops the given machine
 func (m *Machine) Stop(ctx context.Context) error {
-	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is stopping", machinestate.Stopping); err != nil {
-		return err
-	}
+	return m.guardTransition(machinestate.Stopping, "Machine is stopping", ctx, m.stop)
+}
 
+func (m *Machine) stop(ctx context.Context) error {
 	//Get the SoftLayer virtual guest service
 	svc, err := m.Session.SLClient.GetSoftLayer_Virtual_Guest_Service()
 	if err != nil {

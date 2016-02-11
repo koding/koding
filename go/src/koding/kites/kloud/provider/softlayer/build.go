@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
@@ -28,19 +27,11 @@ var (
 	DefaultTemplateTag = "koding-stable"
 )
 
-func (m *Machine) Build(ctx context.Context) (err error) {
-	if err := modelhelper.ChangeMachineState(m.ObjectId, "Building started", machinestate.Building); err != nil {
-		return err
-	}
+func (m *Machine) Build(ctx context.Context) error {
+	return m.guardTransition(machinestate.Building, "Building started", ctx, m.build)
+}
 
-	latestState := m.State()
-	defer func() {
-		// if there is any error mark it as NotInitialized
-		if err != nil {
-			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
-		}
-	}()
-
+func (m *Machine) build(ctx context.Context) error {
 	keys, ok := publickeys.FromContext(ctx)
 	if !ok {
 		return errors.New("public keys are not available")

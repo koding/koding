@@ -1,27 +1,16 @@
 package softlayer
 
 import (
-	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
 )
 
 func (m *Machine) Reinit(ctx context.Context) (err error) {
-	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is starting", machinestate.Starting); err != nil {
-		return err
-	}
+	return m.guardTransition(machinestate.Starting, "Machine is starting", ctx, m.reinit)
+}
 
-	// update the state to intiial state if something goes wrong, we are going
-	// to change latestate to a more safe state if we passed a certain step
-	// below
-	latestState := m.State()
-	defer func() {
-		if err != nil {
-			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
-		}
-	}()
-
+func (m *Machine) reinit(ctx context.Context) error {
 	meta, err := m.GetMeta()
 	if err != nil {
 		return err
