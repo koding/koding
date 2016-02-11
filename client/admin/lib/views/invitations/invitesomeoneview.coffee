@@ -177,7 +177,7 @@ module.exports = class InviteSomeoneView extends KDView
 
     @resendInvitations pendingInvites, newInvitations
     @sendInvitations newInvitations, pendingInvites
-    @resendInvitationConfirmModal?.destroy()
+    @closeConfirmModals()
 
 
   resendInvitations: (invites, newInvitations) ->
@@ -235,7 +235,7 @@ module.exports = class InviteSomeoneView extends KDView
 
   sendInvitations: (invites, pendingInvites) ->
 
-    return  unless invites.length
+    return @closeConfirmModals()  unless invites.length
 
     remote.api.JInvitation.create invitations: invites, (err) =>
       if err
@@ -256,10 +256,7 @@ module.exports = class InviteSomeoneView extends KDView
         title    : title
         duration : 5000
 
-      @confirmModal?.destroy()
-      @confirmModal = null
-      @resendInvitationConfirmModal?.destroy()
-      @resendInvitationConfirmModal = null
+      @closeConfirmModals()
       @emit 'NewInvitationsAdded'
 
 
@@ -282,6 +279,14 @@ module.exports = class InviteSomeoneView extends KDView
         <p>Invite other teammates to your team. You can change admin rights for your teammates in the Members tab once they accept your invitation.</p>
         <label>Email</label><label>First Name</label><label>Last Name<span>Admin</span></label>
         """
+
+
+  closeConfirmModals: ->
+
+    @confirmModal?.destroy()
+    @confirmModal = null
+    @resendInvitationConfirmModal?.destroy()
+    @resendInvitationConfirmModal = null
 
 
 prepareEmailsText = (pendingInvites) ->
