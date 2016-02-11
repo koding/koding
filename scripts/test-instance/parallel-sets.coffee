@@ -21,81 +21,74 @@
 
 module.exports = [
 
+  # [
+  #   { name: 'register' }
+  #   { name: 'login' }
+  #   { name: 'logout' }
+  #   { name: 'activity likeunlike' }
+  # ]
+
+  # [
+  #   { name: 'pricing payment' }
+  #   { name: 'activity post' }
+  #   { name: 'staticpages loggedout' }
+  # ]
+
+  # [
+  #   { name: 'messages privatemessage' }
+  #   { name: 'account accountsettings' }
+  #   { name: 'activity postwith' }
+  # ]
+
   [
-    { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
-    { name: 'activity likeunlike' }
+    { name: 'teams teamschannels' }
   ]
 
   [
-    { name: 'pricing payment' }
-    { name: 'activity post' }
-    { name: 'staticpages loggedout' }
+    { name: 'teams teamschannels' }
   ]
 
   [
-    { name: 'messages privatemessage' }
-    { name: 'account accountsettings' }
-    { name: 'activity postwith' }
+    { name: 'teams teamschannels' }
   ]
 
   [
-    { name: 'activity edit' }
-    { name: 'activity delete' }
+    { name: 'teams teamschannels' }
   ]
 
   [
-    { name: 'unittests' }
-    { name: 'activity others' }
-    { name: 'account accountpage' }
+    { name: 'teams teamschannels' }
   ]
 
-  [
-    { name: 'ide file' }
-    { name: 'ide folder' }
-  ]
+  # [
+  #   { name: 'ide general' }
+  #   { name: 'ide layout' }
+  #   { name: 'teams inviteteams' }
+  # ]
 
-  [
-    { name: 'ide search' }
-    { name: 'ide workspace' }
-  ]
+  # [
+  #   { name: 'collaboration collaboration' }
+  #   { name: 'environments snapshot' }
+  # ]
 
-  [
-    { name: 'ide terminal' }
-    # { name: 'teams teamschannels' }
-    # { name: 'pricing invalidcarddetails' }
-  ]
+  # [
+  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
-  [
-    { name: 'ide general' }
-    { name: 'ide layout' }
-    { name: 'teams inviteteams' }
-  ]
+  # [
+  #   { name: 'environments vm' }
+  #   { name: 'teams teamspostwith' }
+  # ]
 
-  [
-    { name: 'collaboration collaboration' }
-    { name: 'environments snapshot' }
-  ]
+  # [
+  #   { name: 'environments paidaccount' }
+  # ]
 
-  [
-    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
-
-  [
-    { name: 'environments vm' }
-    { name: 'teams teamspostwith' }
-  ]
-
-  [
-    { name: 'environments paidaccount' }
-  ]
-
-  [
-    { name: 'environments domain' }
-    { name: 'teams teams' }
-    { name: 'teams teamslikeunlike' }
-  ]
+  # [
+  #   { name: 'environments domain' }
+  #   { name: 'teams teams' }
+  #   { name: 'teams teamslikeunlike' }
+  # ]
 
   # [
   #   { name: 'environments vm-advanced' }
