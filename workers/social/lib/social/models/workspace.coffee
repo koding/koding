@@ -186,6 +186,7 @@ module.exports = class JWorkspace extends Module
             nickname : delegate.profile.nickname
             workspace: ws
             eventName: 'WorkspaceRemoved'
+            group    : client?.context?.group
 
           notifyUsers options, callback
 
