@@ -12,11 +12,11 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     options.cssClass = kd.utils.curry "stacktemplate-item clearfix", options.cssClass
     super options, data
 
-    { inuse, accessLevel, config } = @getData()
+    { isDefault, accessLevel, config } = @getData()
 
-    @inuseView = new kd.CustomHTMLView
+    @isDefaultView = new kd.CustomHTMLView
       cssClass : 'custom-tag'
-      partial  : 'IN USE'
+      partial  : 'DEFAULT'
       tooltip  :
         title  : 'This group currently using this template'
 
@@ -38,7 +38,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
           when 'private'
             'Only you can use this template'
 
-    @inuseView.hide()     unless inuse
+    @isDefaultView.hide() unless isDefault
     @notReadyView.hide()  if config.verified
 
 
@@ -56,10 +56,10 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     stackTemplate = @getData()
 
-    if stackTemplate.inuse
+    if stackTemplate.isDefault
 
       modal = new kd.ModalView
-        title          : 'Editing in-use stack template ?'
+        title          : 'Editing default stack template ?'
         overlay        : yes
         overlayOptions :
           cssClass     : 'second-overlay'
@@ -106,7 +106,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     listView      = @getDelegate()
     stackTemplate = @getData()
 
-    if not stackTemplate.inuse and stackTemplate.config.verified
+    if not stackTemplate.isDefault and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', ->
         listView.emit 'ItemSelectedAsDefault', stackTemplate
 
@@ -119,7 +119,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     """
     <div class='stacktemplate-info clearfix'>
-      {div.title{#(title)}} {{> @inuseView}} {{> @notReadyView}} {{> @accessLevelView}}
+      {div.title{#(title)}} {{> @isDefaultView}} {{> @notReadyView}} {{> @accessLevelView}}
       <cite>Last updated #{timeago meta.modifiedAt}</cite>
     </div>
     <div class='buttons'>{{> @settings}}</div>

@@ -41,7 +41,7 @@ module.exports = class StackTemplateListController extends AccountListViewContro
 
       stackTemplates ?= []
       stackTemplates.map (template) ->
-        template.inuse = template._id in (currentGroup.stackTemplates or [])
+        template.isDefault = template._id in (currentGroup.stackTemplates or [])
 
       if viewType is 'group'
         stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
