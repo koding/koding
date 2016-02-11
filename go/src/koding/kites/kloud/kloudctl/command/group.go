@@ -19,6 +19,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/utils/res"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 	"golang.org/x/net/context"
@@ -38,7 +39,7 @@ func NewGroup() cli.CommandFactory {
 				Commands: map[string]res.Command{
 					"list":   NewGroupList(),
 					"create": NewGroupCreate(),
-					"toggle": NewGroupToggle(),
+					"stack":  NewGroupStack(),
 					"delete": NewGroupDelete(),
 				},
 			},
@@ -157,19 +158,51 @@ func (cmd *GroupList) listEntries(ctx context.Context, f *sl.Filter) (sl.Instanc
 	return c.InstanceEntriesByFilter(f)
 }
 
-// GroupCreate implements the "kloudctl group create" subcommand.
-type GroupCreate struct {
-	*GroupThrottler
-
-	users string
-	file  string
-	count int
-
+type groupUsers struct {
+	users     string
 	usernames []string
 }
 
+func (gu *groupUsers) RegisterFlags(f *flag.FlagSet) {
+	f.StringVar(&gu.users, "users", "", "Comma-separated list of usernames (can't be used with -n).")
+}
+
+func (gu *groupUsers) Valid() error {
+	gu.usernames = strings.Split(gu.users, ",")
+
+	// For "-users -" flag we read usernames from stdin.
+	if len(gu.usernames) == 1 && gu.usernames[0] == "-" {
+		gu.usernames = gu.usernames[:0]
+
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			s := strings.TrimSpace(scanner.Text())
+			if s != "" {
+				gu.usernames = append(gu.usernames, s)
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// GroupCreate implements the "kloudctl group create" subcommand.
+type GroupCreate struct {
+	*GroupThrottler
+	*groupUsers
+
+	nostack bool
+	file    string
+	count   int
+}
+
 func NewGroupCreate() *GroupCreate {
-	cmd := &GroupCreate{}
+	cmd := &GroupCreate{
+		groupUsers: &groupUsers{},
+	}
 	cmd.GroupThrottler = &GroupThrottler{
 		Name:    "build",
 		Process: cmd.build,
@@ -183,29 +216,16 @@ func (*GroupCreate) Name() string {
 
 func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 	cmd.GroupThrottler.RegisterFlags(f)
+	cmd.groupUsers.RegisterFlags(f)
 
 	f.StringVar(&cmd.file, "f", "", "JSON-encoded Machine specification file.")
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
-	f.StringVar(&cmd.users, "users", "", "Comma-separated list of usernames (can't be used with -n).")
+	f.BoolVar(&cmd.nostack, "nostack", false, "Do not show the vm in user stack.")
 }
 
 func (cmd *GroupCreate) Valid() error {
-	cmd.usernames = strings.Split(cmd.users, ",")
-
-	// For "-users -" flag we read usernames from stdin.
-	if len(cmd.usernames) == 1 && cmd.usernames[0] == "-" {
-		cmd.usernames = cmd.usernames[:0]
-
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			s := strings.TrimSpace(scanner.Text())
-			if s != "" {
-				cmd.usernames = append(cmd.usernames, s)
-			}
-		}
-		if err := scanner.Err(); err != nil {
-			return err
-		}
+	if err := cmd.groupUsers.Valid(); err != nil {
+		return err
 	}
 
 	if len(cmd.usernames) != 0 && cmd.count > 1 {
@@ -285,7 +305,7 @@ func (cmd *GroupCreate) multipleMachineSpecs(spec *MachineSpec) ([]*MachineSpec,
 func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 	spec := item.(*MachineSpec)
 	k, _ := fromContext(ctx)
-	if err := spec.InsertMachine(); err != nil {
+	if err := spec.InsertMachine(cmd.nostack); err != nil {
 		return err
 	}
 
@@ -304,32 +324,86 @@ func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 	return resp.Unmarshal(&result)
 }
 
-// GroupToggle implements the "kloudctl group toggle" subcommand.
-type GroupToggle struct {
-	users    string
-	provider string
+// GroupStack implements the "kloudctl group toggle" subcommand.
+type GroupStack struct {
+	*groupUsers
 
-	usernames []string
+	rm          bool
+	groupSlug   string
+	machineSlug string
 }
 
-func NewGroupToggle() *GroupToggle {
-	return &GroupToggle{}
+func NewGroupStack() *GroupStack {
+	return &GroupStack{
+		groupUsers: &groupUsers{},
+	}
 }
 
-func (*GroupToggle) Name() string {
-	return "toggle"
+func (*GroupStack) Name() string {
+	return "stack"
 }
 
-func (cmd *GroupToggle) RegisterFlags(f *flag.FlagSet) {
-	// TODO
+func (cmd *GroupStack) RegisterFlags(f *flag.FlagSet) {
+	cmd.groupUsers.RegisterFlags(f)
+
+	f.StringVar(&cmd.machineSlug, "machine", "", "Machine slug.")
+	f.StringVar(&cmd.groupSlug, "group", "koding", "Group slug.")
+	f.BoolVar(&cmd.rm, "rm", false, "Remove machine from stack and template.")
 }
 
-func (cmd *GroupToggle) Valid() error {
-	return nil // TODO
+func (cmd *GroupStack) Valid() error {
+	if cmd.machineSlug == "" {
+		return errors.New("invalid empty value for -machine flag")
+	}
+	if err := cmd.groupUsers.Valid(); err != nil {
+		return err
+	}
+	if len(cmd.groupUsers.usernames) == 0 {
+		return errors.New("invalid empty value for -users flag")
+	}
+	return nil
 }
 
-func (cmd *GroupToggle) Run(ctx context.Context) error {
-	return nil // TODO
+func (cmd *GroupStack) Run(ctx context.Context) error {
+	merr := new(multierror.Error)
+
+	for _, username := range cmd.groupUsers.usernames {
+		userID, groupID, machineID, err := cmd.details(username)
+		if err != nil {
+			merr = multierror.Append(merr, err)
+			continue
+		}
+
+		if cmd.rm {
+			err = modelhelper.RemoveFromStack(userID, groupID, machineID)
+		} else {
+			err = modelhelper.AddToStack(userID, groupID, machineID)
+		}
+		if err != nil {
+			merr = multierror.Append(merr, err)
+		}
+	}
+
+	return merr.ErrorOrNil()
+}
+
+func (cmd *GroupStack) details(username string) (userID, groupID, machineID bson.ObjectId, err error) {
+	user, err := modelhelper.GetUser(username)
+	if err != nil {
+		return "", "", "", errors.New("unable to find a user: " + err.Error())
+	}
+
+	group, err := modelhelper.GetGroup(cmd.groupSlug)
+	if err != nil {
+		return "", "", "", errors.New("unable to find a group: " + err.Error())
+	}
+
+	machine, err := modelhelper.GetMachineBySlug(user.ObjectId, cmd.machineSlug)
+	if err != nil {
+		return "", "", "", errors.New("unable to find a machine: " + err.Error())
+	}
+
+	return user.ObjectId, group.Id, machine.ObjectId, nil
 }
 
 // GroupDelete implememts the "kloudctl group delete" subcommand.

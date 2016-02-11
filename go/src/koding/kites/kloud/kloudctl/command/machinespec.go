@@ -1,6 +1,7 @@
 package command
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -114,7 +115,9 @@ func ParseMachineSpec(file string) (*MachineSpec, error) {
 	}
 
 	var spec MachineSpec
-	if err := json.Unmarshal(p, &spec); err != nil {
+	dec := json.NewDecoder(bytes.NewReader(p))
+	dec.UseNumber()
+	if err := dec.Decode(&spec); err != nil {
 		return nil, err
 	}
 
@@ -182,10 +185,8 @@ func (spec *MachineSpec) BuildMachine(createUser bool) error {
 	// Ensure the user is assigned to the machine.
 	if len(spec.Machine.Users) == 0 {
 		spec.Machine.Users = []models.MachineUser{{
-			Sudo:      true,
-			Owner:     true,
-			Permanent: true,
-			Approved:  true,
+			Sudo:  true,
+			Owner: true,
 		}}
 	}
 	if spec.Machine.Users[0].Id == "" {
@@ -220,15 +221,35 @@ func (spec *MachineSpec) BuildMachine(createUser bool) error {
 }
 
 // InsertMachine inserts the machine to DB and requests kloud to build it.
-func (spec *MachineSpec) InsertMachine() error {
+func (spec *MachineSpec) InsertMachine(hidden bool) error {
+	group := spec.Machine.Groups[0]
+	user := spec.Machine.Users[0]
+
 	spec.Machine.ObjectId = bson.NewObjectId()
 	spec.Machine.CreatedAt = time.Now()
 	spec.Machine.Status.ModifiedAt = time.Now()
 	spec.Machine.Assignee.AssignedAt = time.Now()
-	spec.Machine.Credential = spec.Machine.Users[0].Username
+	spec.Machine.Credential = user.Username
 	spec.Machine.Uid = spec.finalizeUID()
 	spec.Machine.Domain = spec.Domain()
-	return modelhelper.CreateMachine(&spec.Machine)
+
+	if hidden {
+		spec.Machine.Groups = nil
+	}
+
+	err := modelhelper.CreateMachine(&spec.Machine)
+	if err != nil {
+		return err
+	}
+
+	if !hidden {
+		err := modelhelper.AddToStack(user.Id, group.Id, spec.Machine.ObjectId)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Copy gives a copy of the spec value.
