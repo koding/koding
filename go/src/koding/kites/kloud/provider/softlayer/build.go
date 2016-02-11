@@ -121,12 +121,15 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		PostInstallScriptUri: PostInstallScriptUri,
 	}
 
-	if vlanID := m.findAvailableVlan(meta); vlanID != 0 {
-		m.Log.Debug("Assigning VLAN: %d", vlanID)
+	if meta.VlanID == 0 {
+		meta.VlanID = m.findAvailableVlan(meta)
+	}
+	if meta.VlanID != 0 {
+		m.Log.Debug("Assigning VLAN: %d", meta.VlanID)
 
 		virtualGuestTemplate.PrimaryBackendNetworkComponent = &datatypes.PrimaryBackendNetworkComponent{
 			NetworkVlan: datatypes.NetworkVlan{
-				Id: vlanID,
+				Id: meta.VlanID,
 			},
 		}
 	} else {
@@ -202,6 +205,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 				"meta.id":           obj.Id,
 				"meta.datacenter":   meta.Datacenter,
 				"meta.sourceImage":  imageID,
+				"meta.vlanId":       meta.VlanID,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Build finished",

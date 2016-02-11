@@ -45,6 +45,8 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 	}
 
 	// cleanup this too so "build" can continue with a clean setup
+	// don't zero vlanID on reinit, as Softlayer won't update Vlan.GuestCount
+	// fast enough for kloud to observe the old vm was destroyed.
 	m.IpAddress = ""
 	m.QueryString = ""
 	m.Meta["id"] = 0
