@@ -153,7 +153,7 @@ module.exports = class InviteSomeoneView extends KDView
                 style         : 'solid green medium'
                 loader        : color: '#444444'
                 callback      : => @handleResendInvitations pendingInvites, newInvites
-              Cancel          :
+              "Just send the new ones" :
                 itemClass     : kd.ButtonView
                 style         : 'solid medium'
                 callback      : => @sendInvitations newInvites
@@ -243,7 +243,7 @@ module.exports = class InviteSomeoneView extends KDView
 
       @createInitialInputs()
 
-      title = "Invitation is sent to <strong>#{invites[0].email}</strong>"
+      title = "Invitation is sent to <strong>#{invites.first.email}</strong>"
 
       if invites.length > 1 or pendingInvites?.length
         title = 'All invitations are sent.'
@@ -286,7 +286,7 @@ prepareEmailsText = (pendingInvites) ->
   [0...len].forEach (i)->
     emails += "<strong>#{pendingInvites[i].email}</strong>"
     if i + 2 is len
-      emails += " and "
+      emails += ", and "
     else if i + 1 is len
       emails += ""
     else
