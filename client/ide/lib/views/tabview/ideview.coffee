@@ -90,7 +90,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       { paneType } = options
 
       switch paneType
-        when 'editor' then tabHandle.enableContextMenu()
+        when 'editor'
+          tabHandle.enableContextMenu()
+          handleCallback = @lazyBound 'handleEditorRenamingRequested', tabHandle
+          tabHandle.on 'RenamingRequested', handleCallback
+          tabHandle.makeEditable()
         when 'terminal'
           tabHandle.enableContextMenu()
 
@@ -767,6 +771,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     ###
     unless session.length is DEFAULT_SESSION_NAME_LENGTH
       terminalHandle.setTitle session
+
+
+  handleEditorRenamingRequested: (tabHandle, newTitle) ->
+    # console.log 'tabHandle ', tabHandle
+    tabHandle.setTitle newTitle
+    @emit 'NodeRenamed', tabHandle, newTitle
 
 
   handleTerminalRenamingRequested: (tabHandle, newTitle) ->
