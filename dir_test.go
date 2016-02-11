@@ -281,6 +281,57 @@ func TestDir(t *testing.T) {
 			So(err, ShouldEqual, fuse.ENOENT)
 		})
 
+		Convey("It should create temp dir and move to existing dir in same folder", func() {
+			d := newDir()
+			d.CreateEntryDir("dir1", os.FileMode(0755))
+			d.CreateEntryDir("dir2", os.FileMode(0755))
+
+			_, err := d.MoveEntry("dir2", "dir1", d)
+			So(err, ShouldBeNil)
+
+			Convey("It should remove old file", func() {
+				_, err := d.FindEntryDir("dir2")
+				So(err, ShouldEqual, fuse.ENOENT)
+			})
+
+			Convey("It should return new file", func() {
+				d, err := d.FindEntryDir("dir1")
+				So(err, ShouldBeNil)
+				So(d.Name, ShouldEqual, "dir1")
+				So(d.Path, ShouldEqual, "/local/dir1")
+			})
+		})
+
+		Convey("It should create temp file and move to existing file in same folder", func() {
+			d := newDir()
+			f1, err := d.CreateEntryFile("file1", os.FileMode(0755))
+			So(err, ShouldBeNil)
+			f1.Content = []byte("file1")
+
+			f2, err := d.CreateEntryFile("file2", os.FileMode(0755))
+			So(err, ShouldBeNil)
+			f2.Content = []byte("file2")
+
+			_, err = d.MoveEntry("file2", "file1", d)
+			So(err, ShouldBeNil)
+
+			Convey("It should remove old file", func() {
+				_, err := d.FindEntryDir("file2")
+				So(err, ShouldEqual, fuse.ENOENT)
+			})
+
+			Convey("It should return new file", func() {
+				f, err := d.FindEntryFile("file1")
+				So(err, ShouldBeNil)
+				So(f.Name, ShouldEqual, "file1")
+				So(f.Path, ShouldEqual, "/local/file1")
+
+				// rename calls transport to update file contents, hence it's reset
+				// to default in transport which is "Hello World!"
+				So(string(f.Content), ShouldEqual, "Hello World!")
+			})
+		})
+
 		Convey("It should move directory from one directory to another", func() {
 			// create to be moved directory with contents
 			c := newDir()
@@ -581,6 +632,19 @@ func TestDir(t *testing.T) {
 
 				So(len(d.Entries), ShouldEqual, 1)
 				So(d.Entries[0].Inode, ShouldEqual, child.ID)
+			})
+
+			Convey("It should return existing node if it exists", func() {
+				d := newDir()
+				e := &tempEntry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
+
+				i, err := d.initializeChild(e)
+				So(err, ShouldBeNil)
+
+				j, err := d.initializeChild(e)
+				So(err, ShouldBeNil)
+
+				So(i.GetID(), ShouldEqual, j.GetID())
 			})
 
 			Convey("It should set time to entry time", func() {

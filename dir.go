@@ -432,6 +432,11 @@ func (d *Dir) initializeAttrs(e *tempEntry) fuseops.InodeAttributes {
 }
 
 func (d *Dir) initializeChild(e *tempEntry) (Node, error) {
+	node, err := d.findEntry(e.Name)
+	if err == nil {
+		return node, nil
+	}
+
 	var t = e.Time
 	if t.IsZero() {
 		t = time.Now()
