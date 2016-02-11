@@ -1,4 +1,4 @@
-package vagrantkite
+package vagrant
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ var testVagrantProvider *schema.Provider
 func init() {
 	testVagrantProvider = Provider().(*schema.Provider)
 	testVagrantResourceProviders = map[string]terraform.ResourceProvider{
-		"vagrantkite": testVagrantProvider,
+		"vagrant": testVagrantProvider,
 	}
 }
 

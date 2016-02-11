@@ -1,4 +1,4 @@
-package vagrantkite
+package vagrant
 
 import (
 	"errors"
@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	testVagrantKiteBuildConfig = `
-resource "vagrantkite_build" "myfirstvm" {
+	testVagrantBuildConfig = `
+resource "vagrant_instance" "myfirstvm" {
 	filePath = ` + vagrantFilePath + `
     queryString = ` + queryString + `
     vagrantFile = ` + vagrantFile + `
@@ -40,25 +40,25 @@ end
 	vagrantFilePath = "/home/etc/Vagrantfile"
 )
 
-func TestVagrantKiteProviderConfig(t *testing.T) {
+func TestVagrantProviderConfig(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		Providers: testVagrantResourceProviders,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testVagrantKiteBuildConfig,
+				Config: testVagrantBuildConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"vagrantkite_build.myfirstvm",
+						"vagrant_instance.myfirstvm",
 						"filePath",
 						vagrantFilePath,
 					),
 					resource.TestCheckResourceAttr(
-						"vagrantkite_build.myfirstvm",
+						"vagrant_instance.myfirstvm",
 						"queryString",
 						queryString,
 					),
 					resource.TestCheckResourceAttr(
-						"vagrantkite_build.myfirstvm",
+						"vagrant_instance.myfirstvm",
 						"vagrantFile",
 						vagrantFile,
 					),
@@ -71,7 +71,7 @@ func TestVagrantKiteProviderConfig(t *testing.T) {
 func TestSendingCommandSuccess(t *testing.T) {
 	withClient(t, func(c *Client) error {
 
-		args := &vagrantKiteReq{
+		args := &vagrantReq{
 			VagrantFile: vagrantFile,
 			FilePath:    vagrantFilePath,
 		}
@@ -89,7 +89,7 @@ func TestSendingCommandSuccess(t *testing.T) {
 func TestSendingCommandFailure(t *testing.T) {
 	withClient(t, func(c *Client) error {
 
-		args := &vagrantKiteReq{
+		args := &vagrantReq{
 			VagrantFile: vagrantFile + "some random dude to make test fail",
 			FilePath:    vagrantFilePath,
 		}
@@ -134,7 +134,7 @@ func withClient(t *testing.T, f func(c *Client) error) {
 }
 
 var mockHandler = func(r *kite.Request) (interface{}, error) {
-	var res []vagrantKiteReq // another slice??
+	var res []vagrantReq // another slice??
 	if err := r.Args.Unmarshal(&res); err != nil {
 		return nil, fmt.Errorf("err while unmarshalling: %s", err.Error())
 	}

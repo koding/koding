@@ -2,11 +2,13 @@ package vagrant
 
 import (
 	"errors"
+	"net/url"
 
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/utils"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -33,6 +35,7 @@ func (meta *VagrantMeta) Valid() error {
 	if meta.QueryString == "" {
 		return errors.New("vagrant meta: query string is empty")
 	}
+	meta.QueryString = utils.QueryString(meta.QueryString)
 	return nil
 }
 
@@ -55,9 +58,12 @@ func (meta *VagrantMeta) SetDefaults() (updated bool) {
 	return true
 }
 
-// Stack
+// Stack provides an implementation for the kloud.Stacker interface.
 type Stack struct {
 	*provider.BaseStack
+
+	// TunnelURL for klient connection inside vagrant boxes.
+	TunnelURL *url.URL
 
 	api *vagrantapi.Klient
 }
@@ -70,6 +76,11 @@ var _ kloud.StackProvider = (*Provider)(nil)
 // Stack
 func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 	bs, err := provider.NewBaseStack(ctx, p.Log)
+	if err != nil {
+		return nil, err
+	}
+
+	tunnelURL, err := p.tunnelURL()
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +99,13 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 
 	return &Stack{
 		BaseStack: bs,
+		TunnelURL: tunnelURL,
 		api:       api,
 	}, nil
+}
+
+func (s *Stack) tunnelUniqueURL(username string) string {
+	urlCopy := *s.TunnelURL
+	urlCopy.Host = utils.RandString(12) + "." + username + "." + urlCopy.Host
+	return urlCopy.String()
 }

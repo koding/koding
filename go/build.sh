@@ -99,7 +99,7 @@ terraformservices=(
   github.com/hashicorp/terraform/builtin/bins/provider-aws
   github.com/hashicorp/terraform/builtin/bins/provider-terraform
   github.com/koding/terraform-provider-github/cmd/provider-github
-  koding/kites/cmd/provider-vagrantkite
+  koding/kites/cmd/provider-vagrant
 
   github.com/hashicorp/terraform/builtin/bins/provisioner-file
   github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec

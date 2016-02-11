@@ -295,12 +295,9 @@ module.exports = class OnboardingView extends JView
     stackTemplates          =
       vagrant               :
         resource            :
-          vagrantkite_build :
+          vagrant_instance  :
             localvm         :
-              registerURL   : "http://localvm.gokmen.tunnel.dev.koding.io:8081/klient/kite"
-              kontrolURL    : "http://koding-gokmen.ngrok.com/kontrol/kite"
-              klientURL     : "https://s3-eu-west-1.amazonaws.com/kodingdev-klient/klient_0.1.99_development_amd64.deb"
-              customScript: """
+              user_data: """
                 sudo apt-get install sl -y
                 touch /tmp/${var.koding_user_username}.txt
               """
