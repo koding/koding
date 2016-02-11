@@ -258,14 +258,16 @@ module.exports =
   startStackCreate: (browser) ->
 
     welcomePageSelector = '.content-page.welcome'
-    stackSelector       = '.SidebarStackWidgets .SidebarSection-body a[href="/Stacks/Group-Stack-Templates"]'
-    getstartedSelector  = '.AppModal--admin .stack-onboarding.get-started'
+    stackSelector       = '.activity-sidebar .SidebarStackWidgets a[href="/Stacks/Group-Stack-Templates"]'
+    overlaySelector     = '.AppModal--admin'
+    getstartedSelector  = "#{overlaySelector} .stack-onboarding.get-started"
     buttonSelector      = "#{getstartedSelector} .header button"
 
     browser
       .waitForElementVisible  welcomePageSelector, 20000
       .waitForElementVisible  stackSelector, 20000
       .click                  stackSelector
+      .waitForElementVisible  overlaySelector, 20000
       .waitForElementVisible  getstartedSelector, 20000
       .waitForElementVisible  buttonSelector, 20000
       .click                  buttonSelector
@@ -328,7 +330,7 @@ module.exports =
       browser
         .waitForElementVisible  purposeSelector, 20000
         .setValue               purposeSelector, purpose
- 
+
     browser
       .waitForElementVisible  createChannelModalButtonSelector, 20000
       .moveToElement          createChannelModalButtonSelector, 32, 12
@@ -349,7 +351,7 @@ module.exports =
         .pause                  2000 # wait for side bar channel list
         .waitForElementVisible  channelLinkOnSidebarSelector, 20000
         .assert.containsText    sidebarSectionsSelector, channelName
-        
+
     if purpose
       browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose',purpose
 
