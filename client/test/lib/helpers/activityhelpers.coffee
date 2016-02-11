@@ -167,3 +167,17 @@ module.exports =
         .getAttribute linkSelector, 'href', (result) ->
           href = result.value
           assert.equal(finalLink, href)
+
+
+  assertPostOnSecondSession: (browser, post) ->
+
+    browser
+      .waitForElementVisible    '[testpath="public-feed-link/Activity/Topic/public"]', 20000
+      .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
+      .pause                    3000 # for page load
+      .waitForElementVisible    '[testpath=ActivityInputView]', 30000
+      .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
+      .pause                    10000 # for post to appear on Most Recent Tab
+
+    browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
+    
