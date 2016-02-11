@@ -3,6 +3,7 @@ kd                    = require 'kd'
 nick                  = require 'app/util/nick'
 FSFile                = require 'app/util/fs/fsfile'
 KDView                = kd.View
+Encoder               = require 'htmlencode'
 FSHelper              = require 'app/util/fs/fshelper'
 IDEHelpers            = require '../../idehelpers'
 KDModalView           = kd.ModalView
@@ -109,7 +110,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneRemoved', ({ pane, handle }) ->
       { options : { paneType } } = pane.view
-      handle.off 'RenamingRequested'  if paneType is 'terminal'
+      handle.off 'RenamingRequested'  if paneType is 'terminal' and 'editor'
 
 
     # This is a custom event for IDEApplicationTabView
@@ -774,9 +775,21 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
 
   handleEditorRenamingRequested: (tabHandle, newTitle) ->
-    # console.log 'tabHandle ', tabHandle
-    tabHandle.setTitle newTitle
-    @emit 'NodeRenamed', tabHandle, newTitle
+
+    paneView = tabHandle.getOptions().pane
+    editorPane = paneView.view
+    nodeData = editorPane.file
+
+
+    newTitle = Encoder.XSSEncode newTitle
+    return  if newTitle is nodeData.name
+    return  unless FSHelper.isValidFileName newTitle
+
+    nodeData.rename newTitle, (err)=>
+      if err then console.log 'errr'
+
+      tabHandle.setTitle newTitle
+      @emit 'NodeRenamed', nodeData, newTitle
 
 
   handleTerminalRenamingRequested: (tabHandle, newTitle) ->

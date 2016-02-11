@@ -1097,13 +1097,12 @@ class IDEAppController extends AppController
 
 
   showStatusBarMenu: (tabHandle, button) ->
-    console.log 'showStatusBarMenu'
 
     @setActiveTabView tabHandle.getDelegate()
 
     paneView = @getActivePaneView()
     paneType = paneView?.getOptions().paneType or null
-    console.log 'paneType', paneType
+
     delegate = button
     menu     = new IDEStatusBarMenu { paneType, paneView, delegate }
 
@@ -1124,9 +1123,8 @@ class IDEAppController extends AppController
     paneView = @getActivePaneView()
     paneType = paneView?.getOptions().paneType
     tabView  = paneView?.parent
-    # console.log 'paneType ', paneType
-    # console.log 'tabView  ', tabView
-    # return  unless paneType is 'terminal'
+
+    return  unless paneType is 'terminal' and paneType is 'editor'
 
     tabView.tabHandle.setTitleEditMode yes
 
