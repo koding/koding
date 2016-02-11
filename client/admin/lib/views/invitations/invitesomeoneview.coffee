@@ -1,3 +1,4 @@
+_                   = require 'lodash'
 kd                  = require 'kd'
 remote              = require('app/remote').getInstance()
 KDView              = kd.View
@@ -7,7 +8,8 @@ KDCustomHTMLView    = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 InvitationInputView = require './invitationinputview'
 showError           = require 'app/util/showError'
-
+Promise             = require 'bluebird'
+async               = require 'async'
 
 module.exports = class InviteSomeoneView extends KDView
 
@@ -128,7 +130,45 @@ module.exports = class InviteSomeoneView extends KDView
     modal.overlay.setClass 'second-overlay'
 
 
-  handleInvitationRequest: (invites) ->
+  notifyPendingInvites: (pendingInvites, newInvites) ->
+
+    partial = "<strong>#{pendingInvites[0].email}</strong> has already been invited. Are you sure you want to resend invitation?"
+
+    if pendingInvites.length > 1
+      emailsText = prepareEmailsText pendingInvites
+      partial = "#{emailsText} have already been invited. Are you sure you want to resend invitation?"
+
+    @resendInvitationConfirmModal = modal = new kd.ModalViewWithForms
+      title                   : 'Resend invitation'
+      overlay                 : yes
+      height                  : 'auto'
+      cssClass                : 'admin-invite-confirm-modal'
+      tabs                    :
+        forms                 :
+          confirm             :
+            buttons           :
+              "Resend Invitation" :
+                itemClass     : kd.ButtonView
+                cssClass      : 'confirm'
+                style         : 'solid green medium'
+                loader        : color: '#444444'
+                callback      : => @handleResendInvitations pendingInvites, newInvites
+              Cancel          :
+                itemClass     : kd.ButtonView
+                style         : 'solid medium'
+                callback      : => @sendInvitations newInvites
+            fields            :
+              planDetails     :
+                type          : 'hidden'
+                nextElement   :
+                  planDetails :
+                    cssClass  : 'content'
+                    itemClass : kd.View
+                    partial   : partial
+
+    modal.overlay.setClass 'second-overlay'
+
+
 
     remote.api.JInvitation.create invitations: invites, (err) =>
       if err
