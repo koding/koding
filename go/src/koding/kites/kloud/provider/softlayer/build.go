@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
-	"strings"
 	"time"
 
-	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
@@ -15,7 +13,6 @@ import (
 
 	"github.com/koding/kite/protocol"
 	datatypes "github.com/maximilien/softlayer-go/data_types"
-	"github.com/maximilien/softlayer-go/softlayer"
 	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
@@ -30,19 +27,11 @@ var (
 	DefaultTemplateTag = "koding-stable"
 )
 
-func (m *Machine) Build(ctx context.Context) (err error) {
-	if err := modelhelper.ChangeMachineState(m.ObjectId, "Building started", machinestate.Building); err != nil {
-		return err
-	}
+func (m *Machine) Build(ctx context.Context) error {
+	return m.guardTransition(machinestate.Building, "Building started", ctx, m.build)
+}
 
-	latestState := m.State()
-	defer func() {
-		// if there is any error mark it as NotInitialized
-		if err != nil {
-			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
-		}
-	}()
-
+func (m *Machine) build(ctx context.Context) error {
 	keys, ok := publickeys.FromContext(ctx)
 	if !ok {
 		return errors.New("public keys are not available")
@@ -121,12 +110,15 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		PostInstallScriptUri: PostInstallScriptUri,
 	}
 
-	if vlanID := m.findAvailableVlan(meta); vlanID != 0 {
-		m.Log.Debug("Assigning VLAN: %d", vlanID)
+	if meta.VlanID == 0 {
+		meta.VlanID = m.findAvailableVlan(meta)
+	}
+	if meta.VlanID != 0 {
+		m.Log.Debug("Assigning VLAN: %d", meta.VlanID)
 
 		virtualGuestTemplate.PrimaryBackendNetworkComponent = &datatypes.PrimaryBackendNetworkComponent{
 			NetworkVlan: datatypes.NetworkVlan{
-				Id: vlanID,
+				Id: meta.VlanID,
 			},
 		}
 	} else {
@@ -151,7 +143,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// wait until it's ready
 	m.Log.Debug("Waiting for the state to be RUNNING (%d)", obj.Id)
-	if err := waitState(svc, obj.Id, "RUNNING", m.StateTimeout); err != nil {
+	if err := m.waitState(svc, obj.Id, "RUNNING", m.StateTimeout); err != nil {
 		return err
 	}
 
@@ -202,8 +194,10 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 				"meta.id":           obj.Id,
 				"meta.datacenter":   meta.Datacenter,
 				"meta.sourceImage":  imageID,
+				"meta.vlanId":       meta.VlanID,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
+				"domain":            m.Domain,
 				"status.reason":     "Build finished",
 			}},
 		)
@@ -275,29 +269,4 @@ func (m *Machine) findAvailableVlan(meta *Meta) int {
 	}
 
 	return vlans[available].ID
-}
-
-func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string, timeout time.Duration) error {
-	t := time.After(timeout)
-	ticker := time.NewTicker(time.Second * 10)
-	defer ticker.Stop()
-
-	state = strings.ToLower(strings.TrimSpace(state))
-
-	for {
-		select {
-		case <-ticker.C:
-			s, err := sl.GetPowerState(id)
-			if err != nil {
-				return err
-			}
-
-			if strings.ToLower(strings.TrimSpace(s.KeyName)) == state {
-				return nil
-			}
-		case <-t:
-			return errors.New("timeout while waiting for state")
-		}
-	}
-
 }
