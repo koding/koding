@@ -110,6 +110,7 @@ function cleanup() {
 
 if [ $(hostname) != "wercker-test-instance" ]; then
   if [ -z "$RUN_SELENIUM_SERVER_STARTED" ]; then
+    trap stop_selenium_server INT
     start_selenium_server
     export RUN_SELENIUM_SERVER_STARTED=1
   fi
