@@ -40,36 +40,38 @@ module.exports = [
   #   { name: 'activity postwith' }
   # ]
 
-  [
-    { name: 'teams teamschannels' }
-  ]
-
-  [
-    { name: 'teams teamschannels' }
-  ]
-
-  [
-    { name: 'teams teamschannels' }
-  ]
-
-  [
-    { name: 'teams teamschannels' }
-  ]
-
-  [
-    { name: 'teams teamschannels' }
-  ]
-
   # [
-  #   { name: 'ide general' }
-  #   { name: 'ide layout' }
-  #   { name: 'teams inviteteams' }
+  #   { name: 'activity edit' }
+  #   { name: 'activity delete' }
   # ]
 
   # [
-  #   { name: 'collaboration collaboration' }
-  #   { name: 'environments snapshot' }
+  #   { name: 'unittests' }
+  #   { name: 'activity others' }
+  #   { name: 'account accountpage' }
   # ]
+
+  [
+    { name: 'teams teamschannels' }
+  ]
+
+  [
+    { name: 'teams teamschannels' }
+  ]
+
+  [
+    { name: 'ide terminal' }
+    { name: 'teams teamschannels' }
+    # { name: 'pricing invalidcarddetails' }
+  ]
+
+  [
+    { name: 'teams teamschannels' }
+  ]
+
+  [
+    { name: 'teams teamschannels' }
+  ]
 
   # [
   #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
