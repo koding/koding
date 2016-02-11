@@ -167,3 +167,43 @@ module.exports =
         .getAttribute linkSelector, 'href', (result) ->
           href = result.value
           assert.equal(finalLink, href)
+
+
+  assertPostOnSecondSession: (browser, post) ->
+
+    channelSelector = '[testpath="public-feed-link/Activity/Topic/public"]'
+
+    browser
+      .waitForElementVisible    channelSelector, 20000
+      .click                    channelSelector
+      .waitForElementVisible    '[testpath=ActivityInputView]', 30000
+      .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
+      .pause                    10000 # for post to appear on Most Recent Tab
+
+      browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post
+  
+  joinChat: (browser) ->
+
+    channelSelector   = '.activity-sidebar .followed.topics .sidebar-title'
+    joinModal         = '.kdmodal-content .listview-wrapper .kdscrollview .clearfix:first-child button'
+    closeChannelModal = '.kdmodal-inner .close-icon.closeModal'
+
+    browser
+      .waitForElementVisible  channelSelector, 20000
+      .moveToElement          channelSelector, 15, 10
+      .waitForElementVisible  "#{channelSelector} .custom-link-view", 20000
+      .click                  '.activity-sidebar .followed.topics .sidebar-title .custom-link-view'
+      .pause                  5000 # topics to load
+      .waitForElementVisible  joinModal, 20000
+      .click                  joinModal
+      .pause                  5000 # for the topic to be added
+      .waitForElementVisible  closeChannelModal, 20000
+      .click                  closeChannelModal
+
+  
+  simpleMessagePost: (browser) ->
+  
+    browser
+      .setValue               '[testpath=ActivityInputView]', 'Testing 123'
+      .click                  '.widget-button-bar button'
+      .pause                  1000
