@@ -200,6 +200,26 @@ module.exports = class InviteSomeoneView extends KDView
         return new KDNotificationView { title, duration }
 
 
+  fetchPendingInvitations: (invites) ->
+
+    options = {}
+
+    new Promise (resolve, reject) ->
+
+      remote.api.JInvitation['some'] { status: 'pending' }, options, (err, pendings) =>
+        if err
+          reject err
+          return kd.warn err
+
+        pendingInvitations = []
+
+        if pendings.length
+          invites.map (inv, i) ->
+            invitations = pendings.filter (pending) -> inv.email is pending.email
+            pendingInvitations = pendingInvitations.concat invitations
+
+        resolve { pendingInvitations }
+
     remote.api.JInvitation.create invitations: invites, (err) =>
       if err
         return new KDNotificationView
