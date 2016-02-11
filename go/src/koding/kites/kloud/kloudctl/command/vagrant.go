@@ -302,10 +302,6 @@ func (cmd *VagrantList) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "vagrant list" subcommand.
 func (cmd *VagrantList) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	vapi := vapiFromContext(ctx)
 
 	list, err := vapi.List(cmd.QueryString)
@@ -348,10 +344,6 @@ func (cmd *VagrantVersion) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "vagrant version" subcommand.
 func (cmd *VagrantVersion) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	vapi := vapiFromContext(ctx)
 
 	version, err := vapi.Version(cmd.QueryString)
@@ -399,9 +391,6 @@ func (cmd *VagrantStatus) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "vagrant status" subcommand.
 func (cmd *VagrantStatus) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	vapi := vapiFromContext(ctx)
 
 	status, err := vapi.Status(cmd.QueryString, cmd.BoxPath)
@@ -453,10 +442,6 @@ func (cmd *VagrantCmd) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "vagrant up|halt|destroy" subcommand.
 func (cmd *VagrantCmd) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	vapi := vapiFromContext(ctx)
 
 	var err error

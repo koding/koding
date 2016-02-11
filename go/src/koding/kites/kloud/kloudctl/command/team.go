@@ -149,10 +149,6 @@ func (cmd *TeamInit) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *TeamInit) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	opts := &UserOptions{
 		Username:  cmd.Username,
 		Groupname: cmd.Team,
@@ -239,9 +235,6 @@ func (cmd *TeamPlan) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "team plan" subcommand.
 func (cmd *TeamPlan) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
@@ -307,9 +300,6 @@ func (cmd *TeamApply) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "team apply" command.
 func (cmd *TeamApply) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
@@ -386,9 +376,6 @@ func (cmd *TeamAuth) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "team auth" subcommand.
 func (cmd *TeamAuth) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
@@ -454,9 +441,6 @@ func (cmd *TeamBootstrap) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "team bootstrap" subcommand.
 func (cmd *TeamBootstrap) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,

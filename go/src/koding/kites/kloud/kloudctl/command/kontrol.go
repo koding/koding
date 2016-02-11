@@ -153,10 +153,6 @@ func (cmd *KontrolList) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *KontrolList) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	k := kiteFromContext(ctx)
 
 	clients, err := k.LocalKite.GetKites(cmd.req)
@@ -212,9 +208,6 @@ func (cmd *KontrolKey) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *KontrolKey) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	kiteID := uuid.NewV4().String()
 
 	keycreator := &keycreator.Key{
