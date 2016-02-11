@@ -79,7 +79,7 @@ module.exports = class Collaboration extends Base
       return callback err  if err
 
       machineUId = machine.uid
-      data =  { machineUId, workspaceId }
+      data =  { machineUId, workspaceId, group: client?.context?.group }
 
       notifyByUsernames options.target, 'CollaborationInvitation', data
 
