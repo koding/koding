@@ -176,6 +176,29 @@ module.exports = class InviteSomeoneView extends KDView
     @resendInvitationConfirmModal?.destroy()
 
 
+  resendInvitations: (invites, newInvitations) ->
+
+    title    = 'Invitation is resent.'
+    title    = 'Invitations are resent.'  if invites.length > 1
+
+    queue = invites.map (invite) => (next) =>
+
+      remote.api.JInvitation.sendInvitationByCode invite.code, (err) =>
+        if err
+        then next err
+        else next()
+
+    async.series queue, (err) =>
+
+      view.destroy()  for view in @inputViews by -1
+      @createInitialInputs()
+
+      duration = 5000
+      unless newInvitations.length
+        title  = "Invitation is resent to <strong>#{invites[0].email}</strong>"
+        title  = "All invitations are resent."  if invites.length > 1
+        return new KDNotificationView { title, duration }
+
 
     remote.api.JInvitation.create invitations: invites, (err) =>
       if err
