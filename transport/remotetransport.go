@@ -64,7 +64,7 @@ func (r *RemoteTransport) ReadDir(path string, re bool) (*ReadDirRes, error) {
 	}
 	res := &ReadDirRes{}
 	if err := r.trip("fs.readDirectory", req, &res); err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// remove remote path prefix from entries
@@ -101,7 +101,7 @@ func (r *RemoteTransport) ReadFile(path string) (*ReadFileRes, error) {
 	req := struct{ Path string }{r.fullPath(path)}
 	res := &ReadFileRes{}
 	if err := r.trip("fs.readFile", req, &res); err != nil {
-		return res, err
+		return nil, err
 	}
 
 	return res, nil
@@ -116,7 +116,6 @@ func (r *RemoteTransport) WriteFile(path string, content []byte) error {
 		Content: content,
 	}
 	var res int
-
 	return r.trip("fs.writeFile", req, &res)
 }
 
@@ -133,7 +132,6 @@ func (r *RemoteTransport) Exec(cmd string) (*ExecRes, error) {
 func (r *RemoteTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 	req := struct{ Path string }{r.fullPath(path)}
 	res := &GetDiskInfoRes{}
-
 	if err := r.trip("fs.getDiskInfo", req, &res); err != nil {
 		if kiteErr, ok := err.(*kite.Error); ok && kiteErr.Type != "methodNotFound" {
 			return nil, err
@@ -146,7 +144,6 @@ func (r *RemoteTransport) GetDiskInfo(path string) (*GetDiskInfoRes, error) {
 func (r *RemoteTransport) GetInfo(path string) (*GetInfoRes, error) {
 	req := struct{ Path string }{r.fullPath(path)}
 	res := &GetInfoRes{}
-
 	if err := r.trip("fs.getInfo", req, &res); err != nil {
 		return nil, err
 	}
