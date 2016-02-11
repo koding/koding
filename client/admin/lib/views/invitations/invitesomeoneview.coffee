@@ -228,6 +228,11 @@ module.exports = class InviteSomeoneView extends KDView
 
     return newInvitations
 
+
+  sendInvitations: (invites, pendingInvites) ->
+
+    return  unless invites.length
+
     remote.api.JInvitation.create invitations: invites, (err) =>
       if err
         return new KDNotificationView
@@ -238,12 +243,19 @@ module.exports = class InviteSomeoneView extends KDView
 
       @createInitialInputs()
 
+      title = "Invitation is sent to <strong>#{invites[0].email}</strong>"
+
+      if invites.length > 1 or pendingInvites?.length
+        title = 'All invitations are sent.'
+
       new KDNotificationView
-        title    : 'Invitations are sent to new members.'
+        title    : title
         duration : 5000
 
       @confirmModal?.destroy()
       @confirmModal = null
+      @resendInvitationConfirmModal?.destroy()
+      @resendInvitationConfirmModal = null
       @emit 'NewInvitationsAdded'
 
 
