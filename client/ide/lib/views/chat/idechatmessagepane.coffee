@@ -9,6 +9,7 @@ PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane
 isMyChannel          = require 'app/util/isMyChannel'
 isMyPost             = require 'app/util/isMyPost'
 envDataProvider      = require 'app/userenvironmentdataprovider'
+isKoding             = require 'app/util/isKoding'
 
 CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
 IDEChatParticipantHeads               = require './idechatparticipantheads'
@@ -223,6 +224,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   createHeaderViews: ->
 
+    title        = 'Session'
     channel      = @getData()
     {appManager} = kd.singletons
 
@@ -230,14 +232,14 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
       tagName  : 'header'
       cssClass : 'general-header'
 
+    { frontApp } = kd.singletons.appManager
+    title = if isKoding() then frontApp.workspaceData.name else frontApp.mountedMachine.label
+
     header.addSubView @title = new KDCustomHTMLView
       tagName    : 'a'
       cssClass   : 'workspace-name'
-      partial    : 'My Workspace'
+      partial    : title
       attributes : href : '#'
-      # click      : (event) =>
-      #   KD.utils.stopDOMEvent event
-      #   @getDelegate().showSettingsPane()
 
     header.addSubView @chevron = @createMenu()
 
