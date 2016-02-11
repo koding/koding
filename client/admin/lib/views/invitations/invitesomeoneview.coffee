@@ -247,6 +247,17 @@ module.exports = class InviteSomeoneView extends KDView
       @emit 'NewInvitationsAdded'
 
 
+  handleInvitationRequest: (invites) ->
+
+    @confirmModal?.destroy()
+    @fetchPendingInvitations(invites).then ({ pendingInvitations }) =>
+      if pendingInvitations.length
+        newInvitations = @getNewInvitations invites, pendingInvitations
+        @notifyPendingInvites pendingInvitations, newInvitations
+      else
+        @sendInvitations invites
+
+
   createInformationView: ->
 
     @scrollView.wrapper.addSubView new KDCustomHTMLView
