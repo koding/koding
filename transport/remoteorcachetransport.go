@@ -46,7 +46,7 @@ func (o *RemoteOrCacheTransport) ReadDir(path string, r bool) (*ReadDirRes, erro
 // Rename is sent to RemoteTransport, then CacheTransport.
 func (o *RemoteOrCacheTransport) Rename(oldName, newName string) error {
 	if err := o.RemoteTransport.Rename(oldName, newName); err != nil {
-		return nil
+		return err
 	}
 
 	return o.CacheTransport.Rename(oldName, newName)
@@ -55,7 +55,7 @@ func (o *RemoteOrCacheTransport) Rename(oldName, newName string) error {
 // Remove is sent to RemoteTransport, then CacheTransport.
 func (o *RemoteOrCacheTransport) Remove(path string) error {
 	if err := o.RemoteTransport.Remove(path); err != nil {
-		return nil
+		return err
 	}
 
 	return o.CacheTransport.Remove(path)
@@ -69,7 +69,7 @@ func (o *RemoteOrCacheTransport) ReadFile(path string) (*ReadFileRes, error) {
 // WriteFile is sent to RemoteTransport, then CacheTransport.
 func (o *RemoteOrCacheTransport) WriteFile(path string, data []byte) error {
 	if err := o.RemoteTransport.WriteFile(path, data); err != nil {
-		return nil
+		return err
 	}
 
 	return o.CacheTransport.WriteFile(path, data)
