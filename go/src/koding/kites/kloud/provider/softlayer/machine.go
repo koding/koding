@@ -1,17 +1,20 @@
 package softlayer
 
 import (
+	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
+	"strings"
 	"time"
 
 	"koding/kites/kloud/contexthelper/session"
 
 	"github.com/koding/logging"
+	"github.com/maximilien/softlayer-go/softlayer"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -78,6 +81,35 @@ func (m *Machine) push(msg string, percentage int, state machinestate.State) {
 			Status:     state,
 		})
 	}
+}
+
+func (m *Machine) waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string, timeout time.Duration) error {
+	t := time.After(timeout)
+	ticker := time.NewTicker(time.Second * 20)
+	defer ticker.Stop()
+
+	want := strings.ToLower(strings.TrimSpace(state))
+
+	for {
+		select {
+		case <-ticker.C:
+			s, err := sl.GetPowerState(id)
+			if err != nil {
+				return err
+			}
+
+			got := strings.ToLower(strings.TrimSpace(s.KeyName))
+
+			m.Log.Debug("[%d] got state %q, want %q", id, got, want)
+
+			if got == want {
+				return nil
+			}
+		case <-t:
+			return errors.New("timeout while waiting for state")
+		}
+	}
+
 }
 
 func (m *Machine) MarkAsStoppedWithReason(reason string) error {

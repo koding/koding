@@ -33,7 +33,7 @@ func (m *Machine) Restart(ctx context.Context) (err error) {
 		m.Log.Warning("softlayer rebooting returned false instead of true")
 	}
 
-	if err := waitState(svc, meta.Id, "RUNNING", m.StateTimeout); err != nil {
+	if err := m.waitState(svc, meta.Id, "RUNNING", m.StateTimeout); err != nil {
 		return err
 	}
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
-	"strings"
 	"time"
 
 	"koding/db/mongodb/modelhelper"
@@ -15,7 +14,6 @@ import (
 
 	"github.com/koding/kite/protocol"
 	datatypes "github.com/maximilien/softlayer-go/data_types"
-	"github.com/maximilien/softlayer-go/softlayer"
 	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
@@ -154,7 +152,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// wait until it's ready
 	m.Log.Debug("Waiting for the state to be RUNNING (%d)", obj.Id)
-	if err := waitState(svc, obj.Id, "RUNNING", m.StateTimeout); err != nil {
+	if err := m.waitState(svc, obj.Id, "RUNNING", m.StateTimeout); err != nil {
 		return err
 	}
 
@@ -279,29 +277,4 @@ func (m *Machine) findAvailableVlan(meta *Meta) int {
 	}
 
 	return vlans[available].ID
-}
-
-func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string, timeout time.Duration) error {
-	t := time.After(timeout)
-	ticker := time.NewTicker(time.Second * 10)
-	defer ticker.Stop()
-
-	state = strings.ToLower(strings.TrimSpace(state))
-
-	for {
-		select {
-		case <-ticker.C:
-			s, err := sl.GetPowerState(id)
-			if err != nil {
-				return err
-			}
-
-			if strings.ToLower(strings.TrimSpace(s.KeyName)) == state {
-				return nil
-			}
-		case <-t:
-			return errors.New("timeout while waiting for state")
-		}
-	}
-
 }
