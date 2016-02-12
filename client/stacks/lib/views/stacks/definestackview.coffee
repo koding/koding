@@ -346,16 +346,16 @@ module.exports = class DefineStackView extends KDView
         @outputView.add "Parsing failed, please check your template and try again"
         return
 
-      { stackTemplates }   = groupsController.getCurrentGroup()
-      stackTemplate.inuse ?= stackTemplate._id in (stackTemplates or [])
-      templateSetBefore    = stackTemplates?.length
+      { stackTemplates }       = groupsController.getCurrentGroup()
+      stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
+      templateSetBefore        = stackTemplates?.length
 
       # TMS-1919: This needs to be reimplemented, once we have multiple
       # stacktemplates set for a team this will be broken ~ GG
 
       if templateSetBefore
 
-        unless stackTemplate.inuse
+        unless stackTemplate.isDefault
 
           if canEditGroup
             @setAsDefaultButton.show()
@@ -720,7 +720,7 @@ module.exports = class DefineStackView extends KDView
         @setAsDefaultButton.hideLoader()
         return
 
-      stackTemplate.inuse = yes
+      stackTemplate.isDefault = yes
 
       @emit 'Reload'
       @emit 'Completed', stackTemplate  if completed

@@ -33,22 +33,31 @@ module.exports = class StackTemplateListController extends AccountListViewContro
     # TODO Add Pagination here ~ GG
     # TMS-1919: This is TODO needs to be done ~ GG
     JStackTemplate.some query, { limit: 30 }, (err, stackTemplates) =>
+      return @onItemsLoaded err  if err
+      kd.singletons.computeController.fetchStacks (err, stacks) =>
+        @onItemsLoaded err, stackTemplates, stacks
 
-      @hideLazyLoader()
 
-      return if showError err, \
-        KodingError : "Failed to fetch stackTemplates, try again later."
+  onItemsLoaded: (err, stackTemplates = [], stacks = []) ->
 
-      stackTemplates ?= []
-      stackTemplates.map (template) ->
-        template.inuse = template._id in (currentGroup.stackTemplates or [])
+    @hideLazyLoader()
 
-      if viewType is 'group'
-        stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
+    return if showError err, \
+      KodingError : "Failed to fetch stackTemplates, try again later."
 
-      @instantiateListItems stackTemplates
+    currentGroup = getGroup()
+    { viewType } = @getOptions()
 
-      @emit 'ItemsLoaded', stackTemplates
+    stackTemplates.map (template) ->
+      template.isDefault = template._id in (currentGroup.stackTemplates or [])
+      template.inUse     = Boolean stacks.find (stack) -> stack.baseStackId is template._id
+
+    if viewType is 'group'
+      stackTemplates = stackTemplates.filter (template) -> template.accessLevel is 'group'
+
+    @instantiateListItems stackTemplates
+
+    @emit 'ItemsLoaded', stackTemplates
 
 
   loadView: ->

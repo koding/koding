@@ -2,6 +2,7 @@ kd              = require 'kd'
 whoami          = require 'app/util/whoami'
 globals         = require 'globals'
 actions         = require 'app/flux/environment/actions'
+KodingKontrol   = require 'app/kite/kodingkontrol'
 isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
 
@@ -86,7 +87,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
   updateContentViews: (token) ->
 
     kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
-    then "export KONTROLURL=#{globals.config.newkontrol.url}; "
+    then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; "
     else ''
 
     cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"

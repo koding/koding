@@ -15,6 +15,8 @@ module.exports = class AdminMembersView extends kd.View
 
     @createTabView()
 
+    kd.singletons.notificationController.on 'NewMemberJoinedToGroup', @bound 'refreshAllTabs'
+
 
   createTabView: ->
 
