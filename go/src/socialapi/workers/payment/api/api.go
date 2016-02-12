@@ -91,7 +91,7 @@ func CreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Head
 	}
 
 	return response.HandleResultAndClientError(
-		req.CreditCard(),
+		req.GetCreditCard(),
 	)
 }
 
