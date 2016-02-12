@@ -1124,7 +1124,7 @@ class IDEAppController extends AppController
     paneType = paneView?.getOptions().paneType
     tabView  = paneView?.parent
 
-    return  unless paneType is 'terminal' and paneType is 'editor'
+    return  unless paneType is 'terminal' or paneType is 'editor'
 
     tabView.tabHandle.setTitleEditMode yes
 
