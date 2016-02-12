@@ -30,13 +30,20 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
       kd.log "Kontrol disconnected because ", reason
 
 
+  @getKontrolUrl = ->
+
+    if location.hostname.indexOf 'latest.koding.com' > -1
+    then 'https://latest.koding.com/kontrol/kite'
+    else globals.config.newkontrol.url
+
+
   getAuthOptions: ->
 
     @_lastUsedKey = kookies.get 'clientId'
 
     autoConnect           : no
     autoReconnect         : yes
-    url                   : globals.config.newkontrol.url
+    url                   : KodingKontrol.getKontrolUrl()
     auth                  :
       type                : 'sessionID'
       key                 : @_lastUsedKey
