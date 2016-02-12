@@ -38,7 +38,7 @@ type GroupRequest struct {
 }
 
 type GroupSubscriptionResponse struct {
-	GroupId string
+	GroupId string `json:"groupId"`
 	SubscriptionResponse
 }
 

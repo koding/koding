@@ -11,7 +11,7 @@ import (
 //----------------------------------------------------------
 
 type AccountSubscribeRequest struct {
-	AccountId string
+	AccountId string `json:"accountId"`
 	SubscribeRequest
 }
 
@@ -39,7 +39,7 @@ type AccountRequest struct {
 }
 
 type AccountSubscriptionResponse struct {
-	AccountId string
+	AccountId string `json:"accountId"`
 	SubscriptionResponse
 }
 
@@ -77,7 +77,7 @@ func (a *AccountRequest) Subscriptions() (*AccountSubscriptionResponse, error) {
 //----------------------------------------------------------
 
 type AccountUpdateCreditCardRequest struct {
-	AccountId string
+	AccountId string `json:"accountId"`
 	UpdateCreditCardRequest
 }
 
