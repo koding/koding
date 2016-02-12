@@ -36,6 +36,8 @@ module.exports = class BaseInitialView extends kd.View
 
       .on 'ItemSelectedAsDefault', @bound 'setDefaultTemplate'
 
+      .on 'StackGenerated', @bound 'reload'
+
     @stackTemplateList.listController.on 'ItemsLoaded', (stackTemplates) =>
       @emit 'NoTemplatesFound'  if stackTemplates.length is 0
       @_stackTemplatesLength = stackTemplates.length

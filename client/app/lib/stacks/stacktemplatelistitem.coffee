@@ -12,13 +12,19 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     options.cssClass = kd.utils.curry "stacktemplate-item clearfix", options.cssClass
     super options, data
 
-    { inuse, accessLevel, config } = @getData()
+    { isDefault, inUse, accessLevel, config } = @getData()
 
-    @inuseView = new kd.CustomHTMLView
+    @isDefaultView = new kd.CustomHTMLView
+      cssClass : 'custom-tag'
+      partial  : 'DEFAULT'
+      tooltip  :
+        title  : 'This group currently using this template'
+
+    @inUseView = new kd.CustomHTMLView
       cssClass : 'custom-tag'
       partial  : 'IN USE'
       tooltip  :
-        title  : 'This group currently using this template'
+        title  : 'This template is in use'
 
     @notReadyView = new kd.CustomHTMLView
       cssClass : 'custom-tag not-ready'
@@ -38,17 +44,18 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
           when 'private'
             'Only you can use this template'
 
-    @inuseView.hide()     unless inuse
+    @isDefaultView.hide() unless isDefault
+    @inUseView.hide()  unless inUse
     @notReadyView.hide()  if config.verified
 
 
   generateStackFromTemplate: ->
 
     stackTemplate = @getData()
-    stackTemplate.generateStack (err, stack) ->
+    stackTemplate.generateStack (err, stack) =>
 
       unless showError err
-        kd.singletons.computeController.reset yes
+        kd.singletons.computeController.reset yes, => @getDelegate().emit 'StackGenerated'
         new kd.NotificationView title: 'Stack generated successfully'
 
 
@@ -56,10 +63,10 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     stackTemplate = @getData()
 
-    if stackTemplate.inuse
+    if stackTemplate.isDefault
 
       modal = new kd.ModalView
-        title          : 'Editing in-use stack template ?'
+        title          : 'Editing default stack template ?'
         overlay        : yes
         overlayOptions :
           cssClass     : 'second-overlay'
@@ -106,7 +113,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     listView      = @getDelegate()
     stackTemplate = @getData()
 
-    if not stackTemplate.inuse and stackTemplate.config.verified
+    if not stackTemplate.isDefault and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', ->
         listView.emit 'ItemSelectedAsDefault', stackTemplate
 
@@ -119,7 +126,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     """
     <div class='stacktemplate-info clearfix'>
-      {div.title{#(title)}} {{> @inuseView}} {{> @notReadyView}} {{> @accessLevelView}}
+      {div.title{#(title)}} {{> @isDefaultView}} {{> @inUseView}} {{> @notReadyView}} {{> @accessLevelView}}
       <cite>Last updated #{timeago meta.modifiedAt}</cite>
     </div>
     <div class='buttons'>{{> @settings}}</div>
