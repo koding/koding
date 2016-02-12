@@ -52,6 +52,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
       error      : => @showModal_ pane, aceView, content
       notStarted : => @showModal_ pane, aceView, content
+    , no
 
 
   getMyWatchersContentForModal: (myWatchers) ->
