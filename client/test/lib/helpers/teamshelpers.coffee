@@ -141,6 +141,7 @@ module.exports =
 
     user = utils.getUser()
     url  = helpers.getUrl(yes)
+
     hasNotTeamAccessPage = '.TeamsModal--select'
 
     browser.url url
@@ -185,10 +186,6 @@ module.exports =
         .pause                 2500
 
       @enterTeamURL(browser)
-      helpers.fillPaymentForm(browser)
-      browser
-        .waitForElementVisible  '[testpath=payment-button]', 20000
-        .click                  '[testpath=payment-button]'
       @fillUsernamePasswordForm(browser, user)
 
 
@@ -258,7 +255,7 @@ module.exports =
   startStackCreate: (browser) ->
 
     welcomePageSelector = '.content-page.welcome'
-    stackSelector       = "#{welcomePageSelector} a[href='/Admin/Stacks']"
+    stackSelector       = '.activity-sidebar .SidebarStackWidgets a[href="/Stacks/Group-Stack-Templates"]'
     overlaySelector     = '.AppModal--admin'
     getstartedSelector  = "#{overlaySelector} .stack-onboarding.get-started"
     buttonSelector      = "#{getstartedSelector} .header button"
@@ -330,7 +327,7 @@ module.exports =
       browser
         .waitForElementVisible  purposeSelector, 20000
         .setValue               purposeSelector, purpose
- 
+
     browser
       .waitForElementVisible  createChannelModalButtonSelector, 20000
       .moveToElement          createChannelModalButtonSelector, 32, 12
@@ -351,7 +348,7 @@ module.exports =
         .pause                  2000 # wait for side bar channel list
         .waitForElementVisible  channelLinkOnSidebarSelector, 20000
         .assert.containsText    sidebarSectionsSelector, channelName
-        
+
     if purpose
       browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose',purpose
 

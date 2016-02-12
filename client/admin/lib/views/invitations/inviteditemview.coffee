@@ -29,6 +29,12 @@ module.exports = class InvitedItemView extends KDListItemView
     @settings.toggleClass 'hidden'
     @toggleClass 'settings-visible'
 
+    return  if @settings.hasClass 'hidden'
+
+    top        = @getElement().offsetTop + 10
+    { parent } = @getDelegate() # It references a KDCustomScrollViewWrapper instance
+    parent.scrollTo { top, duration : 250 }
+
 
   revoke: ->
 

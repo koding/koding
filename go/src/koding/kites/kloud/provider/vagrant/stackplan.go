@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"time"
 
 	"koding/db/models"
@@ -16,15 +17,16 @@ import (
 	"koding/kites/kloud/machinestate"
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/utils"
 
 	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2/bson"
 )
 
-// VagrantResource
+// VagrantResource represents vagrant_instance Terraform resource.
 type VagrantResource struct {
-	Build map[string]map[string]interface{} `hcl:"vagrantkite_build"`
+	Build map[string]map[string]interface{} `hcl:"vagrant_instance"`
 }
 
 func (s *Stack) updateCredential(cred *stackplan.Credential) error {
@@ -41,7 +43,9 @@ func (s *Stack) updateCredential(cred *stackplan.Credential) error {
 	})
 }
 
-// InjectVagrantData
+// InjectVagrantData sets default properties for vagrant_instance Terraform template.
+//
+// TODO(rjeczalik): move out hostQueryString outside this method.
 func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string, stackplan.KiteMap, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -66,14 +70,13 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 	}
 
 	t := s.Builder.Template
+	meta := cred.Meta.(*VagrantMeta)
 
 	s.Log.Debug("Injecting vagrant credentials: %# v", cred.Meta)
 
 	if err := t.InjectVariables(cred.Provider, cred.Meta); err != nil {
 		return "", nil, err
 	}
-
-	hostQueryString := cred.Meta.(*VagrantMeta).QueryString
 
 	var res VagrantResource
 
@@ -82,12 +85,22 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 	}
 
 	if len(res.Build) == 0 {
-		s.Log.Debug("No Vagrant build available: %# v", &res)
-		return hostQueryString, nil, nil
+		return "", nil, errors.New("no vagrant instances specified")
 	}
 
 	kiteIDs := make(stackplan.KiteMap)
 
+	labels := s.Builder.MachineLabels()
+
+	// queryString is taken from jCredentialData.meta.queryString,
+	// for debugging purposes it can be overwritten in the template,
+	// however if template has multiple machines, all of them
+	// are required to overwrite the queryString to the same value
+	// to match current implementation of terraformplugins/vagrant
+	// provider.
+	//
+	// Otherwise we fail early to show problem with the template.
+	var queryString string
 	for resourceName, box := range res.Build {
 		kiteID := uuid.NewV4().String()
 
@@ -96,45 +109,47 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			return "", nil, err
 		}
 
-		var klientURL string
-		if kurl, ok := box["klientURL"].(string); ok {
-			// For debugging klient inside vagrant without restarting kloud.
-			klientURL = kurl
-			delete(box, "klientURL")
+		klientURL, err := sess.Userdata.LookupKlientURL()
+		if err != nil {
+			return "", nil, err
+		}
+
+		// set registerURL if not provided via template
+		registerURL := s.tunnelUniqueURL(username)
+		if r, ok := box["registerURL"].(string); ok {
+			registerURL = r
 		} else {
-			kurl, err := sess.Userdata.Bucket.LatestDeb()
-			if err != nil {
-				return "", nil, err
-			}
-			klientURL = sess.Userdata.Bucket.URL(kurl)
+			box["registerURL"] = registerURL
 		}
 
-		// get the registerURL if passed via template
-		var registerURL string
-		if r, ok := box["registerURL"]; ok {
-			if ru, ok := r.(string); ok {
-				registerURL = ru
-			}
+		// set kontrolURL if not provided via template
+		kontrolURL := sess.Userdata.Keycreator.KontrolURL
+		if k, ok := box["kontrolURL"].(string); ok {
+			kontrolURL = k
+		} else {
+			box["kontrolURL"] = kontrolURL
 		}
 
-		// get the kontrolURL if passed via template
-		var kontrolURL string
-		if k, ok := box["kontrolURL"]; ok {
-			if ku, ok := k.(string); ok {
-				kontrolURL = ku
+		if q, ok := box["queryString"].(string); ok {
+			q = utils.QueryString(q)
+			if queryString != "" && queryString != q {
+				return "", nil, fmt.Errorf("mismatched queryString provided for multiple instances; want %q, got %q", queryString, q)
 			}
-		}
-
-		if s, ok := box["queryString"].(string); !ok {
+			queryString = q
+		} else {
 			box["queryString"] = "${var.vagrant_queryString}"
-		} else {
-			hostQueryString = s
+			queryString = meta.QueryString
 		}
 
 		// set default filePath to relative <stackdir>/<boxname>; for
 		// default configured klient it resolves to ~/.vagrant.d/<stackdir>/<boxname>
 		if _, ok := box["filePath"]; !ok {
-			box["filePath"] = "${var.koding_group_slug}/" + resourceName
+			label, ok := labels[resourceName]
+			if !ok {
+				label = resourceName + "-" + utils.RandString(6)
+				s.Log.Warning("unable to found label for %q in jMachines: generated unique one: %s", resourceName, label)
+			}
+			box["filePath"] = "${var.koding_group_slug}/" + label
 		}
 
 		// set default CPU number
@@ -188,13 +203,13 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		res.Build[resourceName] = box
 	}
 
-	t.Resource["vagrantkite_build"] = res.Build
+	t.Resource["vagrant_instance"] = res.Build
 
 	if err := t.Flush(); err != nil {
 		return "", nil, err
 	}
 
-	return hostQueryString, kiteIDs, nil
+	return queryString, kiteIDs, nil
 }
 
 func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString string) (*stackplan.Machines, error) {
@@ -234,10 +249,8 @@ func (s *Stack) machinesFromTemplate(t *stackplan.Template, hostQueryString stri
 func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jMachines []*models.Machine) error {
 	for _, machine := range jMachines {
 		label := machine.Label
-		if l, ok := machine.Meta["assignedLabel"]; ok {
-			if ll, ok := l.(string); ok {
-				label = ll
-			}
+		if l, ok := machine.Meta["assignedLabel"].(string); ok {
+			label = l
 		}
 
 		s.Log.Debug("Updating machine with %q label and %q provider", label, machine.Provider)
@@ -247,8 +260,16 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
-		if tf.Provider == "vagrantkite" {
-			if err := updateVagrantKite(ctx, tf, machine.ObjectId); err != nil {
+		domain := machine.Domain
+		if u, err := url.Parse(tf.Attributes["klientGuestURL"]); err != nil {
+			u.Path = "" // clear "klient/kite" path
+			if s := u.String(); s != "" {
+				domain = s
+			}
+		}
+
+		if tf.Provider == "vagrant" {
+			if err := updateVagrant(ctx, tf, domain, machine.ObjectId); err != nil {
 				return err
 			}
 		}
@@ -257,7 +278,7 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 	return nil
 }
 
-func updateVagrantKite(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
+func updateVagrant(ctx context.Context, tf stackplan.Machine, domain string, machineId bson.ObjectId) error {
 	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
 		"provider":             tf.Provider,
 		"meta.hostQueryString": tf.HostQueryString,
@@ -270,6 +291,7 @@ func updateVagrantKite(ctx context.Context, tf stackplan.Machine, machineId bson
 		"meta.hostname":        tf.Attributes["hostname"],
 		"meta.klientHostURL":   tf.Attributes["klientHostURL"],
 		"meta.klientGuestURL":  tf.Attributes["klientGuestURL"],
+		"domain":               domain,
 		"status.state":         machinestate.Running.String(),
 		"status.modifiedAt":    time.Now().UTC(),
 		"status.reason":        "Created with kloud.apply",

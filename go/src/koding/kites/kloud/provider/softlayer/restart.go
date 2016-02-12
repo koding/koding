@@ -8,11 +8,11 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (m *Machine) Restart(ctx context.Context) (err error) {
-	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is restarting", machinestate.Rebooting); err != nil {
-		return err
-	}
+func (m *Machine) Restart(ctx context.Context) error {
+	return m.guardTransition(machinestate.Rebooting, "Machine is restarting", ctx, m.restart)
+}
 
+func (m *Machine) restart(ctx context.Context) error {
 	//Get the SoftLayer virtual guest service
 	svc, err := m.Session.SLClient.GetSoftLayer_Virtual_Guest_Service()
 	if err != nil {
@@ -33,7 +33,7 @@ func (m *Machine) Restart(ctx context.Context) (err error) {
 		m.Log.Warning("softlayer rebooting returned false instead of true")
 	}
 
-	if err := waitState(svc, meta.Id, "RUNNING", m.StateTimeout); err != nil {
+	if err := m.waitState(svc, meta.Id, "RUNNING", m.StateTimeout); err != nil {
 		return err
 	}
 

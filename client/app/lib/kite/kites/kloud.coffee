@@ -7,9 +7,8 @@ globals = require 'globals'
 
 module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
-  # TODO Remove vagrantkite ~ GG
-  SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer', 'vagrantkite', 'vagrant']
-  STACK_PROVIDERS     = ['aws', 'vagrantkite', 'vagrant']
+  SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer', 'vagrant']
+  STACK_PROVIDERS     = ['aws', 'vagrant']
 
   debugEnabled = ->
     kd.singletons.computeController._kloudDebug
@@ -48,7 +47,6 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
           message : 'Operation is not supported for this VM/Stack'
 
       payload.provider = provider
-      payload.provider = 'vagrant'  if provider is 'vagrantkite'
 
     payload.groupName = getGroupName()
     payload.debug = yes  if debugEnabled()

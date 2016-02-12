@@ -127,9 +127,9 @@ module.exports = class ComputeController extends KDController
     if method?
       switch method
         when 'reinit'
-          return NotSupported  if provider in ['aws', 'vagrantkite']
+          return NotSupported  if provider in ['aws', 'vagrant']
         when 'createSnapshot'
-          return NotSupported  if provider in ['aws', 'softlayer', 'vagrantkite']
+          return NotSupported  if provider in ['aws', 'softlayer', 'vagrant']
 
 
 

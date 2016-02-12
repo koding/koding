@@ -1009,14 +1009,22 @@ Admin main styles
       margin-right          0
       rounded               0
       z-index               0
+
       &:first-of-type
         border-right-width  0
         rounded             3px 0 0 3px
         width               40%
+
       &:last-of-type
         border-left-width   0
         rounded             0 3px 3px 0
         padding-right       37px
+
+      &.validation-error
+        border-right-width  1px
+
+        &+.kdinput
+          border-left       1px solid transparent
 
     .user-email
       width                 240px

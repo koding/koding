@@ -221,12 +221,12 @@ module.exports = class JMachine extends Module
 
   informAccounts = (options) ->
 
-    { users, machineUId, action, permanent } = options
+    { users, machineUId, action, permanent, group } = options
 
     users.forEach (user) ->
       user.fetchOwnAccount (err, account) ->
         return  if err or not account
-        account.sendNotification 'MachineListUpdated', { machineUId, action, permanent }
+        account.sendNotification 'MachineListUpdated', { machineUId, action, permanent, group }
 
 
   validateTarget = (target, user, callback) ->
@@ -367,7 +367,7 @@ module.exports = class JMachine extends Module
 
   addUsers: (options, callback) ->
 
-    { targets, asOwner, permanent } = options
+    { targets, asOwner, permanent, group } = options
 
     users = @users.slice 0
 
@@ -383,13 +383,14 @@ module.exports = class JMachine extends Module
           users       : targets
           machineUId  : @getAt('uid')
           action      : 'added'
+          group       : group
 
         callback err
 
 
   removeUsers: (options, callback) ->
 
-    { targets, permanent, inform, force } = options
+    { targets, permanent, inform, force, group } = options
 
     users = @users.slice 0
 
@@ -402,7 +403,8 @@ module.exports = class JMachine extends Module
           users       : targets
           machineUId  : @getAt('uid')
           action      : 'removed'
-          permanent
+          permanent   : permanent
+          group       : group
         }
 
       callback err
@@ -410,7 +412,7 @@ module.exports = class JMachine extends Module
 
   shareWith: (options, callback) ->
 
-    { target, asUser, asOwner, permanent, inform } = options
+    { target, asUser, asOwner, permanent, inform, group } = options
 
     asUser  ?= yes
     asOwner ?= no
@@ -434,8 +436,8 @@ module.exports = class JMachine extends Module
       if target instanceof JUser
 
         if asUser
-        then @addUsers { targets, asOwner, permanent }, callback
-        else @removeUsers { targets, permanent, inform }, callback
+        then @addUsers { targets, asOwner, permanent, group }, callback
+        else @removeUsers { targets, permanent, inform, group }, callback
 
       else
         @removeInvalidUsers callback
@@ -654,6 +656,10 @@ module.exports = class JMachine extends Module
 
       { r: { user } } = client
 
+      # set group data for future notification operations, wont be used in
+      # machine sharing
+      options.group = client.context.group
+
       # Only an owner of this machine can modify it
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -771,7 +777,7 @@ module.exports = class JMachine extends Module
       permanent : yes
 
     @shareWith options, (err) =>
-      options               = { action: 'deny', @uid }
+      options               = { action: 'deny', @uid, group: client?.context?.group }
       [ owner ]             = @users.filter (user) -> return user.owner
       { notifyByUsernames } = require '../notify'
 

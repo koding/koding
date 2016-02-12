@@ -68,5 +68,4 @@ func NewBaseStack(ctx context.Context, log logging.Logger) (*BaseStack, error) {
 	bs.Builder = stackplan.NewBuilder(bs.Log.New("stackplan"))
 
 	return bs, nil
-
 }

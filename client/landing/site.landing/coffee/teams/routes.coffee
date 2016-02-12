@@ -6,6 +6,7 @@ do ->
   handleRoute = ({params, query}) ->
 
     { router } = kd.singletons
+    { token }  = params
     groupName  = utils.getGroupNameFromLocation()
 
     # redirect to main.domain/Teams since it doesn't make sense to
@@ -17,8 +18,7 @@ do ->
       return
 
     cb = (app) -> app.handleQuery query  if query
-
-    kd.singletons.router.openSection 'Teams', null, null, cb
+    router.openSection 'Teams', null, null, cb
 
 
   handleInvitation = (routeInfo) ->

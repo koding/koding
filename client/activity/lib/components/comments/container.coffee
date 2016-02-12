@@ -29,7 +29,8 @@ module.exports = class CommentsContainer extends React.Component
 
   componentDidMount: ->
 
-    @textInput = ReactDOM.findDOMNode @refs.view.refs.CommentInputWidget.refs.textInput
+    view       = ReactDOM.findDOMNode @refs.view
+    @textInput = view.querySelector '.CommentInputWidget-input'
 
 
   onMentionClick: (reply) ->
@@ -68,7 +69,7 @@ module.exports = class CommentsContainer extends React.Component
 
     comments = @props.message.get 'comments'
 
-    return immutable.List()  unless comments
+    return immutable.Map()  unless comments
 
     comments.sort (a, b) ->
       if a.get('createdAt') > b.get('createdAt') then 1
