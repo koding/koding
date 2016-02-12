@@ -23,16 +23,6 @@ module.exports = class WelcomeAppView extends kd.View
       cssClass : 'boxes clearfix'
       click    : @bound 'handleClicks'
 
-    whoami().fetchOtaToken (err, token) =>
-
-      return @cmd = null  if err
-
-      kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
-      then "export KONTROLURL=#{globals.config.newkontrol.url}; "
-      else ''
-
-      @cmd = "#{kontrolUrl}curl -sL https://kodi.ng/d/kd | bash -s #{token}"
-
 
   handleClicks: (event) ->
 
@@ -55,7 +45,7 @@ module.exports = class WelcomeAppView extends kd.View
         el.classList.add 'dim'
 
       when HANDLERS.messageAdmin then @messageAdmin()
-      when HANDLERS.installKd then @installKd el
+      when HANDLERS.installKd then @showKdInstallStep el
       # when HANDLERS.buildStack then @buildStack()
       else console.log "#{handler} not yet implemented"
 
@@ -72,6 +62,23 @@ module.exports = class WelcomeAppView extends kd.View
 
     ActivityFlux = require 'activity/flux'
     ActivityFlux.actions.thread.switchToDefaultChannelForStackRequest()
+
+
+  showKdInstallStep: (el) ->
+
+    return @installKd el  if @cmd
+
+    whoami().fetchOtaToken (err, token) =>
+
+      return @cmd = null  if err
+
+      kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
+      then "export KONTROLURL=#{globals.config.newkontrol.url}; "
+      else ''
+
+      @cmd = "#{kontrolUrl}curl -sL https://kodi.ng/d/kd | bash -s #{token}"
+
+      @installKd el
 
 
   installKd: (el) ->
