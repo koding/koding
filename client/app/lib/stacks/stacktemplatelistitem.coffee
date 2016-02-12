@@ -52,10 +52,10 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
   generateStackFromTemplate: ->
 
     stackTemplate = @getData()
-    stackTemplate.generateStack (err, stack) ->
+    stackTemplate.generateStack (err, stack) =>
 
       unless showError err
-        kd.singletons.computeController.reset yes
+        kd.singletons.computeController.reset yes, => @getDelegate().emit 'StackGenerated'
         new kd.NotificationView title: 'Stack generated successfully'
 
 
