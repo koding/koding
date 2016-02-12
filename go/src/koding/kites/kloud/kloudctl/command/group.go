@@ -75,7 +75,7 @@ func (*GroupList) Name() string {
 }
 
 func (cmd *GroupList) RegisterFlags(f *flag.FlagSet) {
-	f.StringVar(&cmd.group, "group", "hackathon", "Name of the instance group to list.")
+	f.StringVar(&cmd.group, "group", "koding", "Name of the instance group to list.")
 	f.StringVar(&cmd.env, "env", "dev", "Kloud environment.")
 	f.StringVar(&cmd.tags, "tags", "", "Tags to filter instances.")
 	f.StringVar(&cmd.hostname, "hostname", "", "Hostname to filter instances.")
