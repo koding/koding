@@ -51,12 +51,7 @@ func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, c *models.Con
 		return response.NewBadRequest(err)
 	}
 
-	acc, err := models.Cache.Account.ById(c.Client.Account.Id)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	user, err := modelhelper.GetUser(acc.Nick)
+	user, err := modelhelper.GetUser(c.Client.Account.Nick)
 	if err != nil && err != mgo.ErrNotFound {
 		return response.NewBadRequest(err)
 	}
