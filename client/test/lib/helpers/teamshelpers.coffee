@@ -646,3 +646,19 @@ module.exports =
       .pause                  3000 #waiting for the text to change
       .waitForElementVisible  editedTextSelector, 20000
       .assert.containsText    editedTextSelector, editedPurposeText
+
+
+  createPrivateChat: (browser) ->
+
+    emptyInviteMembersInputText = '.CreateChannel-Modal .CreateChannel-content .channelName input'
+    createChatButton            = '.CreateChannel-Modal .Modal-buttons button:first-child'
+    markedAsInvalidInputText    = '.CreateChannel-content .channelName.invalid'
+
+    @moveToSidebarHeader(browser, yes)
+
+    browser
+      .waitForElementVisible  emptyInviteMembersInputText, 20000
+      .waitForElementVisible  createChatButton, 20000
+      .click                  createChatButton
+      .waitForElementVisible  markedAsInvalidInputText, 20000
+

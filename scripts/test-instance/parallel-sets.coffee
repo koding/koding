@@ -97,8 +97,8 @@ module.exports = [
     { name: 'teams teamslikeunlike' }
   ]
 
-  # [
-  #   { name: 'environments vm-advanced' }
-  # ]
-
+  [
+    { name: 'teams teamsprivatemessage' }
+    # { name: 'environments vm-advanced' }
+  ]
 ]
