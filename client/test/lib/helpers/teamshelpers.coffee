@@ -185,10 +185,6 @@ module.exports =
         .pause                 2500
 
       @enterTeamURL(browser)
-      helpers.fillPaymentForm(browser)
-      browser
-        .waitForElementVisible  '[testpath=payment-button]', 20000
-        .click                  '[testpath=payment-button]'
       @fillUsernamePasswordForm(browser, user)
 
 
@@ -328,7 +324,7 @@ module.exports =
       browser
         .waitForElementVisible  purposeSelector, 20000
         .setValue               purposeSelector, purpose
- 
+
     browser
       .waitForElementVisible  createChannelModalButtonSelector, 20000
       .moveToElement          createChannelModalButtonSelector, 32, 12
@@ -349,7 +345,7 @@ module.exports =
         .pause                  2000 # wait for side bar channel list
         .waitForElementVisible  channelLinkOnSidebarSelector, 20000
         .assert.containsText    sidebarSectionsSelector, channelName
-        
+
     if purpose
       browser.assert.containsText '.ChannelThreadPane-purposeWrapper .ChannelThreadPane-purpose',purpose
 
