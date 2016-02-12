@@ -8,7 +8,6 @@ module.exports =
   createNewVmForHobbyistPlan: (browser) ->
 
     hobbyistPlanSelector = '.single-plan.hobbyist.current'
-    submitButton         = 'button.submit-btn'
     url                  = helpers.getUrl()
 
     helpers.beginTest(browser)
@@ -61,16 +60,15 @@ module.exports =
 
   checkMaximum3VmsForDeveloperPlan: (browser) ->
 
-    developerPlanSelector = '.single-plan.developer.current'
-    freePlan              = '.single-plan.free.current'
-    alreadyPaidAccount    = '.kddraggable .existing-cc-msg'
-    sidebarSelector       = '.kdview.sidebar-machine-box .vm'
-    alwaysOnSelector      = '.kdinput.koding-on-off.statustoggle.small'
-    vmSelector            = '.activity-sidebar .machines-wrapper .vms.my-machines .koding-vm-'
-    vmSelector1           = "#{vmSelector}1"
-    vmSelector2           = "#{vmSelector}2"
-    usageVmSelector       = '.kdview.storage-container .kdview:nth-of-type(3)'
-    url                   = helpers.getUrl()
+    developerPlanSelector   = '.single-plan.developer.current'
+    freePlan                = '.single-plan.free.current'
+    vmSelector              = '.activity-sidebar .machines-wrapper .vms.my-machines .koding-vm-'
+    vmSelector1             = "#{vmSelector}1"
+    vmSelector2             = "#{vmSelector}2"
+    usageVmSelector         = '.kdview.storage-container .kdview:nth-of-type(3)'
+    existingPaymentSelector = '.payment-modal.kddraggable .existing-cc-msg'
+    paymentButton           = '.kdview.payment-form-wrapper .submit-btn'
+    url                     = helpers.getUrl()
 
     helpers.beginTest(browser)
     browser
@@ -87,13 +85,12 @@ module.exports =
             if result.status is -1
               helpers.selectPlan(browser)
               browser
-               .waitForElementVisible  '.payment-modal.kddraggable .existing-cc-msg', 20000
-               .assert.containsText    '.payment-modal.kddraggable .existing-cc-msg', 'We will use the payment method saved on your account for this purchase.'
-               .waitForElementVisible  '.kdview.payment-form-wrapper .submit-btn', 20000
-               .click                  '.kdview.payment-form-wrapper .submit-btn'
-
+               .waitForElementVisible  existingPaymentSelector, 20000
+               .assert.containsText    existingPaymentSelector, 'We will use the payment method saved on your account for this purchase.'
+               .waitForElementVisible  paymentButton, 20000
+               .click                  paymentButton
               browser.expect.element('.kddraggable .kdmodal-inner .kdmodal-title').text.to.contain('Upgrade successful.').before(30000);
-              browser.click            '.kdview.payment-form-wrapper .submit-btn'
+              browser.click            paymentButton
 
     browser.url url
     environmentHelpers.addNewVM(browser, vmSelector1)

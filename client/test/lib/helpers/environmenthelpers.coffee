@@ -378,15 +378,19 @@ module.exports =
 
   addNewVM: (browser, vmAssert, addNewVmNotAllowed = no) ->
 
-    sidebarSelector       = '.kdview.sidebar-machine-box .vm'
+    sidebarSelector        = '.kdview.sidebar-machine-box .vm'
+    addVmSelector          = '.sidebar-title .custom-link-view.add-icon.buy-vm'
+    addVmButton            = '.button-container .add-vm-button'
+    disabledCreateVmButton = '.computeplan-modal .kdbutton.solid'
 
     browser
+      .pause                  2000 #wait for the new vm to be displayed
       .waitForElementVisible  sidebarSelector, 20000
       .moveToElement          sidebarSelector, 10, 10
-      .waitForElementVisible  '.sidebar-title .custom-link-view.add-icon.buy-vm', 20000
-      .click                  '.sidebar-title .custom-link-view.add-icon.buy-vm'
-      .waitForElementVisible  '.button-container .add-vm-button', 20000
-      .click                  '.button-container .add-vm-button'
+      .waitForElementVisible  addVmSelector, 20000
+      .click                  addVmSelector
+      .waitForElementVisible  addVmButton, 20000
+      .click                  addVmButton
 
       if addNewVmNotAllowed
         browser
@@ -395,7 +399,6 @@ module.exports =
           .assert.containsText    vmAssert, 'You will be using 18GB/25GB storage'
       else
         browser
-          .waitForElementVisible  '.computeplan-modal .kdbutton.solid', 20000
-          .click                  '.computeplan-modal .kdbutton.solid'
+          .waitForElementVisible  disabledCreateVmButton, 20000
+          .click                  disabledCreateVmButton
           .waitForElementVisible  vmAssert, 20000
-          .pause                  2000 #wait for the new vm to be displayed
