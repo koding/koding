@@ -38,3 +38,9 @@ const (
 const (
 	DispatcherEvent = "dispatcher-event"
 )
+
+const (
+	SlackListUsers    = "slack-list-users"
+	SlackListChannels = "slack-list-channels"
+	SlackPostMessage  = "slack-post-message"
+)
