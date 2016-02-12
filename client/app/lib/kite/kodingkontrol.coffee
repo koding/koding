@@ -32,7 +32,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   @getKontrolUrl = ->
 
-    if location.hostname.indexOf 'latest.koding.com' > -1
+    if location.hostname.indexOf('latest.koding.com') > -1
     then 'https://latest.koding.com/kontrol/kite'
     else globals.config.newkontrol.url
 
