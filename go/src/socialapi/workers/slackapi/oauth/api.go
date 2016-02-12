@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kr/pretty"
 	"github.com/nlopes/slack"
 
 	"golang.org/x/oauth2"
@@ -43,6 +42,7 @@ func (s *Slack) Callback(w http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Printf("TOKEN IS: %+v", token)
+}
 
 type SlackRequest struct {
 	Token string
