@@ -23,10 +23,11 @@ module.exports = class ChannelThreadHeaderView extends React.Component
 
 
   @defaultProps =
-    menuItems                : []
-    className                : ''
-    editingPurpose           : no
-    thread                   : immutable.Map()
+    menuItems      : []
+    className      : ''
+    editingPurpose : no
+    thread         : immutable.Map()
+    isVideoActive  : no
 
 
   getPurposeAreaClassNames: -> classnames
