@@ -115,7 +115,7 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       { stackId } = info.params
       new EnvironmentsModal selected: stackId
 
-    when 'request-collaboration' then
+    when 'request-collaboration'
       { nickname, channelId } = info.params
       requestCollaboration {nickname, channelId}
 
