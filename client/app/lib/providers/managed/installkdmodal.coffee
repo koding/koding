@@ -1,7 +1,7 @@
 kd            = require 'kd'
 globals       = require 'globals'
 whoami        = require 'app/util/whoami'
-
+KodingKontrol = require 'app/kite/kodingkontrol'
 
 module.exports = class InstallKdModal extends kd.ModalView
 
@@ -59,7 +59,7 @@ module.exports = class InstallKdModal extends kd.ModalView
   updateContentViews: (token) ->
 
     kontrolUrl = if globals.config.environment in ['dev', 'sandbox']
-    then "export KONTROLURL=#{globals.config.newkontrol.url}; "
+    then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; "
     else ''
 
     cmd = "#{kontrolUrl}curl -sL https://kodi.ng/d/kd | bash -s #{token}"
