@@ -1,5 +1,5 @@
 { _
-  daisy
+  async
   expect
   KONFIG
   withCreatedUser
@@ -64,7 +64,7 @@ runTests = -> describe 'workers.social.models.computeproviders.softlayer', ->
 
         queue = [
 
-          ->
+          (next) ->
             options = generateDefaultOptions()
             Softlayer.create client, options, (err, data) ->
               expect(err).to.not.exist
@@ -74,13 +74,11 @@ runTests = -> describe 'workers.social.models.computeproviders.softlayer', ->
               expect(data.meta.alwaysOn).to.be.false
               expect(data.label).to.be.a 'string'
               expect(data.credential).to.be.equal user.username
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#postCreate()', ->
@@ -94,32 +92,30 @@ runTests = -> describe 'workers.social.models.computeproviders.softlayer', ->
 
         queue = [
 
-          ->
+          (next) ->
             fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             Softlayer.postCreate client, { machine }, (err, workspace_) ->
               expect(err).to.not.exist
               expect(workspace_.isDefault).to.be.truthy
               expect(workspace_.machineUId).to.be.equal machine.uid
               expect(workspace_.originId).to.be.deep.equal account._id
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             options   = { machineId : machine._id.toString() }
             topDomain = "#{account.profile.nickname}.#{KONFIG.userSitesDomain}"
             JDomainAlias.one options, (err, domainAlias) ->
               expect(domainAlias.domain).to.be.equal topDomain
               expect(domainAlias.originId).to.be.deep.equal account._id
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
 
@@ -145,31 +141,29 @@ runTests = -> describe 'workers.social.models.computeproviders.softlayer', ->
 
         queue = [
 
-          ->
+          (next) ->
             fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             options =
               alwaysOn  : false
               machineId : machine._id.toString()
 
             Softlayer.update client, options, (err) ->
               expect(err?.message).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JMachine.one { _id : machine._id }, (err, machine_) ->
               expect(err?.message).to.not.exist
               expect(machine_.alwaysOn).to.be.falsy
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
 beforeTests()

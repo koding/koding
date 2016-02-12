@@ -1,7 +1,6 @@
-async           = require 'async'
 StackTemplate   = require './stacktemplate'
 
-{ daisy
+{ async
   expect
   withDummyClient
   withConvertedUser
@@ -120,22 +119,20 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
           queue = [
 
-            ->
+            (next) ->
               stackTemplate.delete client, (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               StackTemplate.one { _id : stackTemplate._id }, (err, stackTemplate_) ->
                 expect(err).to.not.exist
                 expect(stackTemplate_).to.not.exist
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
   describe 'setAccess()', ->
@@ -156,28 +153,26 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
           queue = [
 
-            ->
+            (next) ->
               stackTemplate.setAccess client, 'someInvalidAccessLevel', (err) ->
                 expect(err?.message).to.be.equal 'Wrong level specified!'
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               stackTemplate.setAccess client, 'group', (err) ->
                 expect(err).to.not.exist
                 expect(stackTemplate.accessLevel).to.be.equal 'group'
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               stackTemplate.setAccess client, 'public', (err) ->
                 expect(err).to.not.exist
                 expect(stackTemplate.accessLevel).to.be.equal 'public'
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
   describe 'generateStack()', ->
@@ -300,30 +295,28 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
           queue = [
 
-            ->
+            (next) ->
               params = { title : 'title should be updated' }
               stackTemplate.update$ client, params, (err) ->
                 expect(err).to.not.exist
                 expect(stackTemplate.title).to.be.equal params.title
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               params = { group : 'group should be immutable' }
               stackTemplate.update$ client, params, (err) ->
                 expect(err).to.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               params = { originId : 'originId should be immutable' }
               stackTemplate.update$ client, params, (err) ->
                 expect(err).to.exist
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
 beforeTests()

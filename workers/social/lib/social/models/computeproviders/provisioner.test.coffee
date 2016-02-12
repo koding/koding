@@ -1,6 +1,6 @@
 JProvisioner = require './provisioner'
 
-{ daisy
+{ async
   expect
   withDummyClient
   withConvertedUser
@@ -54,27 +54,25 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
 
         queue = [
 
-          ->
+          (next) ->
             provisionerData = generateProvisionerData
               type : null
 
             JProvisioner.create client, provisionerData, (err, provisioner_) ->
               expect(err?.message).to.be.equal 'Type missing.'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             provisionerData = generateProvisionerData
               type : 'someInvalidType'
 
             JProvisioner.create client, provisionerData, (err, provisioner_) ->
               expect(err?.message).to.be.equal 'Type is not supported for now.'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     it 'should fail to craete provisioner if content script is not provided', (done) ->
@@ -83,27 +81,25 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
 
         queue = [
 
-          ->
+          (next) ->
             provisionerData = generateProvisionerData
               content : null
 
             JProvisioner.create client, provisionerData, (err, provisioner_) ->
               expect(err?.message).to.be.equal 'Content missing.'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             provisionerData = generateProvisionerData
               content : { script : null }
 
             JProvisioner.create client, provisionerData, (err, provisioner_) ->
               expect(err?.message).to.be.equal 'Type shell requires a `script`'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#some$', ->
@@ -156,28 +152,26 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
 
       queue = [
 
-        ->
+        (next) ->
           JProvisioner.one { slug : provisioner.slug }, (err, provisioner) ->
             expect(err).to.not.exist
             expect(provisioner).to.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           provisioner.delete client, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           JProvisioner.one { slug : provisioner.slug }, (err, provisioner) ->
             expect(err).to.not.exist
             expect(provisioner).to.not.exist
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   describe 'setAccess()', ->
@@ -194,23 +188,21 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
 
       queue = [
 
-        ->
+        (next) ->
           provisioner.setAccess client, 'public', (err) ->
             expect(err?.message).to.not.exist
             expect(provisioner.accessLevel).to.be.equal 'public'
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           JProvisioner.one { slug : provisioner.slug }, (err, provisioner_) ->
             expect(err).to.not.exist
             expect(provisioner_.accessLevel).to.be.equal 'public'
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   describe 'update$()', ->
@@ -229,40 +221,38 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
 
       queue = [
 
-        ->
+        (next) ->
           provisioner.update$ client, {}, (err) ->
             expect(err?.message).to.be.equal 'Nothing to update'
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           provisioner.update$ client, { slug : 'someNewSlug' }, (err) ->
             expect(err).to.not.exist
             expect(provisioner.slug).to.be.equal expectedSlug
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           JProvisioner.one { slug : expectedSlug }, (err, provisioner_) ->
             expect(err).to.not.exist
             expect(provisioner_).to.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           provisioner.update$ client, { label : 'someNewLabel' }, (err) ->
             expect(err).to.not.exist
             expect(provisioner.label).to.be.equal 'someNewLabel'
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           JProvisioner.one { label : 'someNewLabel' }, (err, provisioner_) ->
             expect(err).to.not.exist
             expect(provisioner_).to.exist
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
 
