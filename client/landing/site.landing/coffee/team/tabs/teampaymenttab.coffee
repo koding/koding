@@ -75,13 +75,6 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
 
     team = utils.getTeamData()
 
-    @button = new kd.ButtonView
-      title: 'NEXT'
-      style: 'TeamsModal-button TeamsModal-button--green'
-      attributes: testpath: 'payment-button'
-      loader: off
-      callback: @bound 'submit'
-
     @backLink = new kd.CustomHTMLView
       tagName      : 'span'
       cssClass     : 'TeamsModal-button-link back'
@@ -155,7 +148,6 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
       {{> @hasPaymentMethodView}}
       {{> @form}}
       <div class="clearfix">
-        {{> @button}}
         {{> @backLink}}
       </div>
     </div>
