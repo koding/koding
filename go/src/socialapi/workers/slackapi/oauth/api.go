@@ -100,7 +100,7 @@ func (s *Slack) ListUsers(u *url.URL, h http.Header, req *SlackRequest, context 
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	token, err := getSlackToken(context.Client.Account.Id)
+	token, err := getSlackToken(context.Client.Account)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -113,7 +113,7 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, req *SlackRequest, conte
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	token, err := getSlackToken(context.Client.Account.Id)
+	token, err := getSlackToken(context.Client.Account)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -126,7 +126,7 @@ func (s *Slack) PostMessage(u *url.URL, h http.Header, req *SlackMessageRequest,
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	token, err := getSlackToken(context.Client.Account.Id)
+	token, err := getSlackToken(context.Client.Account)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -145,13 +145,8 @@ type SlackChannelsResponse struct {
 }
 
 // getSlackToken fetches the user's slack token with user's accountID
-func getSlackToken(accountId int64) (string, error) {
+func getSlackToken(acc *models.Account) (string, error) {
 	var token string
-
-	acc, err := models.Cache.Account.ById(accountId)
-	if err != nil {
-		return token, err
-	}
 
 	user, err := modelhelper.GetUser(acc.Nick)
 	if err != nil {
