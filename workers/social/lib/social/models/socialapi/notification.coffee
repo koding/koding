@@ -35,17 +35,15 @@ module.exports = class SocialNotification extends Base
 
   JAccount = require '../account'
 
-  @fetch = permit 'list notifications',
-    success: (client, options, callback) ->
-      doRequest 'listNotifications', client, options, (err, response) ->
-        return callback err if err?
-        { notificationList : notifications, unreadCount } = response
-        notifications = decorateNotifications notifications
-        callback null, { notifications, unreadCount }
+  @fetch = secure (client, options, callback) ->
+    doRequest 'listNotifications', client, options, (err, response) ->
+      return callback err if err?
+      { notificationList : notifications, unreadCount } = response
+      notifications = decorateNotifications notifications
+      callback null, { notifications, unreadCount }
 
-  @glance = permit 'list notifications',
-    success: (client, options, callback) ->
-      doRequest 'glanceNotifications', client, {}, callback
+  @glance = secure (client, options, callback) ->
+    doRequest 'glanceNotifications', client, {}, callback
 
   decorateNotifications = (notifications) ->
     notifications = [].concat(notifications)
