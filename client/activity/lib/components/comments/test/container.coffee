@@ -43,7 +43,7 @@ describe 'CommentsContainer', ->
       expect(viewProps.postComment).toBeA 'function'
       expect(viewProps.onChange).toBeA 'function'
       expect(viewProps.onMentionClick).toBeA 'function'
-      expect(viewProps.comments instanceof immutable.List).toBeTruthy()
+      expect(viewProps.comments instanceof immutable.Map).toBeTruthy()
 
 
   describe '::handleCommentInputChange', ->

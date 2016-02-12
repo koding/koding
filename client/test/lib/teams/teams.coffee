@@ -77,7 +77,7 @@ module.exports =
     browser
       .waitForElementVisible  providerSelector, 20000
       .waitForElementVisible  awsSelector, 20000
-      .waitForElementVisible  "#{machineSelector} .koding" , 20000 # Assertion
+      .waitForElementVisible  "#{machineSelector} .vagrant" , 20000 # Assertion
       .click                  awsSelector
       .waitForElementVisible  stackPreview, 20000
       .waitForElementVisible  codeSelector, 20000

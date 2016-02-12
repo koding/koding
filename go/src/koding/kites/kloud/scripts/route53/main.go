@@ -89,14 +89,7 @@ type recordsList struct {
 }
 
 func (cmd *recordsList) list() (dnsclient.Records, error) {
-	if cmd.filter.IP == "" && cmd.filter.TTL == 0 && cmd.filter.Type == "" && cmd.filter.Name != "" {
-		rec, err := client.Get(cmd.filter.Name)
-		if err != nil {
-			return nil, err
-		}
-		return dnsclient.Records{rec}, nil
-	}
-	records, err := client.GetAll("")
+	records, err := client.GetAll(cmd.filter.Name)
 	if err != nil {
 		return nil, err
 	}

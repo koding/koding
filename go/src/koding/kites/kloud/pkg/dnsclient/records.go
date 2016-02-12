@@ -15,7 +15,7 @@ func (r Records) ByName(name string) (res Records) {
 	}
 	name = strings.ToLower(name)
 	for _, record := range r {
-		if strings.Contains(strings.ToLower(record.Name), name) {
+		if strings.ToLower(record.Name) == name {
 			res = append(res, record)
 		}
 	}

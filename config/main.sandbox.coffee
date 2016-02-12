@@ -72,6 +72,7 @@ Configuration = (options={}) ->
   projectRoot    = options.projectRoot         or "/opt/koding"
   version        = options.tag
   tag            = options.tag
+  tunnelUrl      = options.tunnelUrl           or "http://devtunnelproxy.koding.com"
   publicIP       = options.publicIP            or "*"
   githubapi      =
     debug        : no
@@ -107,7 +108,7 @@ Configuration = (options={}) ->
 
 
   kloudPort           = 5500
-  kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem", userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub", privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+  kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem", userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub", privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite", tunnelUrl : "#{tunnelUrl}"}
   terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount =
@@ -368,7 +369,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey} -slusername=#{slKeys.vm_kloud.username} -slapikey=#{slKeys.vm_kloud.apiKey} -janitorsecretkey=#{socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{paymentwebhook.secretKey}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey} -slusername=#{slKeys.vm_kloud.username} -slapikey=#{slKeys.vm_kloud.apiKey} -janitorsecretkey=#{socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{paymentwebhook.secretKey} -tunnelurl=#{KONFIG.kloud.tunnelUrl}"
       nginx             :
         websocket       : yes
         locations       : [

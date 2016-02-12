@@ -15,6 +15,7 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/userdata"
+	"strings"
 	"time"
 
 	"github.com/fatih/structs"
@@ -30,6 +31,10 @@ import (
 var (
 	defaultKlientTimeout = 15 * time.Minute
 	defaultStateTimeout  = 15 * time.Minute
+
+	// We choose WASHINGTON 04 because it works
+	// http://www.softlayer.com/data-centers
+	defaultDatacenter = "wdc04"
 )
 
 type Provider struct {
@@ -77,10 +82,13 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	}
 
 	if meta.Datacenter == "" {
-		// We choose DALLAS 01 because it has the largest capacity
-		// http://www.softlayer.com/data-centers
-		machine.Meta["datacenter"] = "sjc01"
-		p.Log.Critical("[%s] datacenter is not set in. Fallback to sjc01", machine.ObjectId.Hex())
+		machine.Meta["datacenter"] = defaultDatacenter
+		p.Log.Warning("[%s] datacenter is not set; falling back to %s", machine.ObjectId.Hex(), defaultDatacenter)
+	}
+
+	// Ensure the domain is rooted at the hosted zone.
+	if !strings.HasSuffix(machine.Domain, p.DNSClient.HostedZone()) {
+		machine.Domain = machine.Uid + "." + machine.Credential + "." + p.DNSClient.HostedZone()
 	}
 
 	p.Log.Debug("Using datacenter=%q, image=%q", meta.Datacenter, meta.SourceImage)

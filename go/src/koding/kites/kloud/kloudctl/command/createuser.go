@@ -18,7 +18,7 @@ import (
 
 type Template struct {
 	Machines struct {
-		Labels map[string]struct{} `json:"vagrantkite_build"`
+		Labels map[string]struct{} `json:"vagrant_instance"`
 	} `json:"resource"`
 }
 

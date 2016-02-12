@@ -2,9 +2,11 @@ package userdata
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"strings"
 	"text/template"
 
@@ -17,6 +19,10 @@ import (
 type Userdata struct {
 	Keycreator *keycreator.Key
 	Bucket     *Bucket
+
+	// KlientURL url of klient deb. When non-empty it's used instead of
+	// looking for a latest deb with Bucket.
+	KlientURL string
 }
 
 // CloudInitConfig is used as source for the cloudInit template.
@@ -209,6 +215,23 @@ final_message: "All done!"
 `
 )
 
+func (u *Userdata) LookupKlientURL() (string, error) {
+	// Empty url is a valid url for url.Parse.
+	if u.KlientURL != "" {
+		if _, err := url.Parse(u.KlientURL); err != nil {
+			return "", errors.New("invalid KlientURL provided: " + err.Error())
+		}
+		return u.KlientURL, nil
+	}
+
+	latest, err := u.Bucket.LatestDeb()
+	if err != nil {
+		return "", errors.New("unable to lookup klient.deb: " + err.Error())
+	}
+
+	return u.Bucket.URL(latest), nil
+}
+
 func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 	var err error
 
@@ -220,12 +243,12 @@ func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 		}
 	}
 
-	latestKlientPath, err := u.Bucket.LatestDeb()
+	latestURL, err := u.LookupKlientURL()
 	if err != nil {
 		return nil, err
 	}
 
-	c.LatestKlientURL = u.Bucket.URL(latestKlientPath)
+	c.LatestKlientURL = latestURL
 
 	if c.ApachePort == 0 {
 		c.ApachePort = DefaultApachePort

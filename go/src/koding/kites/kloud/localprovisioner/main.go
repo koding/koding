@@ -148,7 +148,7 @@ func applyVagrantCommand() error {
         }
     },
     "resource": {
-        "vagrantkite_build": {
+        "vagrant_instance": {
             "%s": {
                 "filePath": "%s",
                 "queryString": "%s",
@@ -156,7 +156,7 @@ func applyVagrantCommand() error {
                 "memory": 2048,
                 "registerURL": "http://127.0.0.1:56790/kite",
                 "kontrolURL": "http://10.0.2.2:4444/kite",
-                "customScript": "sudo apt-get install sl -y\ntouch /tmp/${var.username}.txt"
+                "user_data": "sudo apt-get install sl -y\ntouch /tmp/${var.username}.txt"
             }
         }
     }

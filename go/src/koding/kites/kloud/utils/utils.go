@@ -8,6 +8,9 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"strings"
+
+	"github.com/koding/kite/protocol"
 )
 
 // templateData includes our klient converts the given raw interface to a
@@ -77,8 +80,22 @@ func ToUint(x interface{}) uint {
 	}
 }
 
+// RandString returns random string of n length.
 func RandString(n int) string {
 	p := make([]byte, n/2)
 	rand.Read(p)
 	return hex.EncodeToString(p)
+}
+
+// QueryString converts Kite ID to Kite Query Path.
+//
+// Function returns s if it's already a Kite Query Path.
+func QueryString(s string) string {
+	if s == "" {
+		return ""
+	}
+	if !strings.HasPrefix(s, "/") {
+		return protocol.Kite{ID: s}.String()
+	}
+	return s
 }

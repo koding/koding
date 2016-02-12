@@ -30,11 +30,13 @@ module.exports = class Vagrant extends ProviderInterface
 
     { guessNextLabel } = require './computeutils'
 
+    assignedLabel = "#{label}"
+
     guessNextLabel { user, group, label, provider }, (err, label) ->
 
       return callback err  if err
 
-      meta = { hostQueryString, alwaysOn: yes }
+      meta = { hostQueryString, alwaysOn: yes, assignedLabel }
       callback null, { meta, label, credential }
 
 
