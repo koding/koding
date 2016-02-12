@@ -70,7 +70,7 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 	s := &Slack{
 		OAuthConf: oauthConf,
 	}
-	// add a new messages to the channel
+
 	m.AddUnscopedHandler(
 		handler.Request{
 			Handler:  s.Send,
