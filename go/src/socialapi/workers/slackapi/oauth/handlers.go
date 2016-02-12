@@ -79,10 +79,10 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 		},
 	)
 
-	// add a new messages to the channel
-	m.AddUnscopedHandler(
+	m.AddHandler(
 		handler.Request{
 			Handler:  s.Callback,
+			Name:     "slack-callback-oauth",
 			Type:     handler.GetRequest,
 			Endpoint: "/slack/oauth/callback",
 		},

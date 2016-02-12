@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/common/response"
-	"strings"
 	"sync"
 	"time"
 
@@ -31,65 +30,50 @@ func (s *Slack) Send(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, url, http.StatusTemporaryRedirect)
 }
 
-func (s *Slack) Callback(w http.ResponseWriter, req *http.Request) {
+func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	// state := req.FormValue("state")
 	// if state != oauthStateString {
 	// 	fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, state)
 	// 	http.Redirect(w, req, "/", http.StatusTemporaryRedirect)
 	// 	return
 	// }
-	code := req.FormValue("code")
+
+	code := u.Query().Get("code")
+
+	// code := req.FormValue("code")
 	token, err := s.OAuthConf.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
-		http.Redirect(w, req, "/", http.StatusTemporaryRedirect)
-		return
+		return response.NewBadRequest(err)
 	}
 
-	userToken := s.extractRealtimeTokenFromHeader(req.Header)
-
-	acc := models.NewAccount()
-	if err := acc.ByToken(userToken); err != nil {
-		return // TODO we'r gonna return with required fields..
+	acc, err := models.Cache.Account.ById(c.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	user, err := modelhelper.GetUser(acc.Nick)
 	if err != nil && err != mgo.ErrNotFound {
-		return //TODO return err here..
+		return response.NewBadRequest(err)
 	}
 
 	if err == mgo.ErrNotFound {
-		return // TODO return err here with - Error("user %+v is not found in mongodb", acc)
+		return response.NewBadRequest(err)
 	}
 
-	if err := s.updateUserToken(user, token.AccessToken); err != nil {
-		return // TODO return err
+	if err := updateUserSlackToken(user, token.AccessToken); err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	fmt.Printf("TOKEN IS: %+v", token)
+	return response.NewOK(nil)
 }
 
-func (s *Slack) updateUserToken(user *kodingmodels.User, m string) error {
+func updateUserSlackToken(user *kodingmodels.User, m string) error {
 	selector := bson.M{"username": user.Name}
 	update := bson.M{"foreignAuth.slack.token": m}
 
 	return modelhelper.UpdateUser(selector, update)
-}
-
-func (s *Slack) extractRealtimeTokenFromHeader(header http.Header) string {
-	tk := header.Get("Cookie")
-
-	var realtimeToken string
-
-	arr := strings.Split(tk, "; ")
-	for _, r := range arr {
-		if strings.HasPrefix(r, "realtimeToken") {
-			realtimeToken = r
-		}
-	}
-	realtimeTokenValue := strings.Split(realtimeToken, "=")[1]
-
-	return realtimeTokenValue
 }
 
 type SlackRequest struct {
