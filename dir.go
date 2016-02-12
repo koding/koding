@@ -109,6 +109,8 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 		return nil, fuse.EEXIST
 	}
 
+	// write to remote before saving to local or else this'll become divergent
+	// when there's network disruptions.
 	path := filepath.Join(d.Path, name)
 	if err := d.Transport.CreateDir(path, 0755); err != nil {
 		return nil, err
@@ -160,6 +162,13 @@ func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
 		return nil, fuse.EEXIST
 	}
 
+	// write to remote before saving to local or else this'll become divergent
+	// when there's network disruptions.
+	path := filepath.Join(d.Path, name)
+	if err := d.Transport.WriteFile(path, nil); err != nil {
+		return nil, err
+	}
+
 	e := &tempEntry{
 		Name: name,
 		Type: fuseutil.DT_File,
@@ -173,10 +182,6 @@ func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
 
 	file, _ := child.(*File)
 	file.Attrs.Mode = mode
-
-	if err := file.Create(); err != nil {
-		return file, err
-	}
 
 	return file, nil
 }

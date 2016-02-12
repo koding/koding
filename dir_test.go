@@ -236,6 +236,18 @@ func TestDir(t *testing.T) {
 	})
 
 	Convey("Dir#CreateEntryFile", t, func() {
+		Convey("It should return error if unable to create Filee on remote", func() {
+			d := newDir()
+			d.Transport = newWriteErrTransport()
+
+			_, err := d.CreateEntryFile("file", os.FileMode(0700))
+			So(err, ShouldEqual, fuse.EIO)
+
+			Convey("It should not save node to entries map", func() {
+				So(len(d.Entries), ShouldEqual, 0)
+			})
+		})
+
 		Convey("It should return error if entry already exists", func() {
 			d := newDir()
 			d.EntriesList = map[string]Node{"file": NewFile(d.Entry)}
@@ -728,6 +740,21 @@ func newFakeTransport() *fakeTransport {
 			},
 		},
 	}
+}
+
+func newErrorTransport(m string, e error) *errorTransport {
+	f := newFakeTransport()
+
+	return &errorTransport{
+		fakeTransport: f,
+		ErrorResponses: map[string]error{
+			m: e,
+		},
+	}
+}
+
+func newWriteErrTransport() *errorTransport {
+	return newErrorTransport("fs.writeFile", fuse.EIO)
 }
 
 func newDir() *Dir {
