@@ -8,7 +8,7 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JMachine extends Module
 
-  { ObjectId, signature, daisy, secure } = require 'bongo'
+  { ObjectId, signature, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
 
@@ -588,19 +588,16 @@ module.exports = class JMachine extends Module
 
         return  if permanentOnly and not _user.permanent
 
-        queue.push -> JUser.one { _id: _user.id }, (err, user) ->
+        queue.push (next) -> JUser.one { _id: _user.id }, (err, user) ->
           if not err? and user
             user.fetchOwnAccount (err, account) ->
               if not err? and account?
                 accounts.push account
-              queue.next()
+              next()
           else
-            queue.next()
+            next()
 
-      queue.push ->
-        callback null, accounts
-
-      daisy queue
+      async.series queue, -> callback null, accounts
 
 
   setLabel: permit 'set label',
