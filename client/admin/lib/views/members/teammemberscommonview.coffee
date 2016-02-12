@@ -21,6 +21,7 @@ module.exports = class TeamMembersCommonView extends KDView
     options.listViewItemClass      or= MemberItemView
     options.listViewItemOptions    or= {}
     options.searchInputPlaceholder or= 'Find by name/username'
+    options.showSearchFieldAtFirst  or= no
     options.sortOptions            or= [
       { title: 'Screen name',   value: 'fullname' }
       { title: 'Nickname',      value: 'nickname' }
@@ -38,11 +39,15 @@ module.exports = class TeamMembersCommonView extends KDView
 
   createSearchView: ->
 
-    { sortOptions } = @getOptions()
+    { sortOptions, showSearchFieldAtFirst } = @getOptions()
 
-    @addSubView @searchContainer = new KDCustomHTMLView
-      cssClass : 'search hidden'
+    @searchContainer = new KDCustomHTMLView
+      cssClass : 'search'
       partial  : '<span class="label">Sort by</span>'
+
+    @searchContainer.hide()  unless showSearchFieldAtFirst
+
+    @addSubView @searchContainer
 
     @searchContainer.addSubView @sortSelectBox = new KDSelectBox
       defaultValue  : sortOptions.first.value

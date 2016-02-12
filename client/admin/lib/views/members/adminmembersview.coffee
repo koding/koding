@@ -27,10 +27,11 @@ module.exports = class AdminMembersView extends kd.View
     tabView.addPane blocked = new kd.TabPaneView name: 'Blocked'
 
     all.addSubView @allView = new TeamMembersCommonView
-      fetcherMethod     : 'fetchMembersWithEmail'
-      noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No members found!'
         cssClass        : 'no-item-view'
+      fetcherMethod          : 'fetchMembersWithEmail'
+      showSearchFieldAtFirst : yes
+      noItemFoundWidget      : new kd.CustomHTMLView
     , data
 
     admins.addSubView @adminsView = new TeamMembersCommonView
