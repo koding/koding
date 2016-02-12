@@ -2,16 +2,21 @@ package api
 
 import (
 	"fmt"
+	kodingmodels "koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/common/response"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/nlopes/slack"
 
 	"golang.org/x/oauth2"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const slackAway = "away"
@@ -21,12 +26,12 @@ type Slack struct {
 }
 
 func (s *Slack) Send(w http.ResponseWriter, req *http.Request) {
+
 	url := s.OAuthConf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	http.Redirect(w, req, url, http.StatusTemporaryRedirect)
 }
 
 func (s *Slack) Callback(w http.ResponseWriter, req *http.Request) {
-
 	// state := req.FormValue("state")
 	// if state != oauthStateString {
 	// 	fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, state)
@@ -41,7 +46,50 @@ func (s *Slack) Callback(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	userToken := s.extractRealtimeTokenFromHeader(req.Header)
+
+	acc := models.NewAccount()
+	if err := acc.ByToken(userToken); err != nil {
+		return // TODO we'r gonna return with required fields..
+	}
+
+	user, err := modelhelper.GetUser(acc.Nick)
+	if err != nil && err != mgo.ErrNotFound {
+		return //TODO return err here..
+	}
+
+	if err == mgo.ErrNotFound {
+		return // TODO return err here with - Error("user %+v is not found in mongodb", acc)
+	}
+
+	if err := s.updateUserToken(user, token.AccessToken); err != nil {
+		return // TODO return err
+	}
+
 	fmt.Printf("TOKEN IS: %+v", token)
+}
+
+func (s *Slack) updateUserToken(user *kodingmodels.User, m string) error {
+	selector := bson.M{"username": user.Name}
+	update := bson.M{"foreignAuth.slack.token": m}
+
+	return modelhelper.UpdateUser(selector, update)
+}
+
+func (s *Slack) extractRealtimeTokenFromHeader(header http.Header) string {
+	tk := header.Get("Cookie")
+
+	var realtimeToken string
+
+	arr := strings.Split(tk, "; ")
+	for _, r := range arr {
+		if strings.HasPrefix(r, "realtimeToken") {
+			realtimeToken = r
+		}
+	}
+	realtimeTokenValue := strings.Split(realtimeToken, "=")[1]
+
+	return realtimeTokenValue
 }
 
 type SlackRequest struct {
