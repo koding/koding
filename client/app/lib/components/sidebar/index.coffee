@@ -176,8 +176,6 @@ module.exports = class Sidebar extends React.Component
         {@renderStacks()}
         {@renderNoStacks()}
         {@renderSharedMachines()}
-        {@renderChannels()}
-        {@renderMessages()}
         {@renderInvitationWidget()}
       </div>
       <div className='Sidebar-logo-wrapper'>
