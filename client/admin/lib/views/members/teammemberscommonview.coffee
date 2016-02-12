@@ -21,7 +21,7 @@ module.exports = class TeamMembersCommonView extends KDView
     options.listViewItemClass      or= MemberItemView
     options.listViewItemOptions    or= {}
     options.searchInputPlaceholder or= 'Find by name/username'
-    options.showSearchFieldAtFirst  or= no
+    options.showSearchFieldAtFirst or= no
     options.sortOptions            or= [
       { title: 'Screen name',   value: 'fullname' }
       { title: 'Nickname',      value: 'nickname' }
