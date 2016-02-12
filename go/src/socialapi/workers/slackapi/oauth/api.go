@@ -40,7 +40,6 @@ func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, c *models.Con
 
 	code := u.Query().Get("code")
 
-	// code := req.FormValue("code")
 	token, err := s.OAuthConf.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
@@ -76,6 +75,28 @@ func updateUserSlackToken(user *kodingmodels.User, m string) error {
 	return modelhelper.UpdateUser(selector, update)
 }
 
+func getSlackToken(accountId int64) (string, error) {
+	var token string
+
+	acc, err := models.Cache.Account.ById(accountId)
+	if err != nil {
+		return token, err
+	}
+
+	user, err := modelhelper.GetUser(acc.Nick)
+	if err != nil {
+		return token, err
+	}
+
+	token = user.ForeignAuth.Slack.Token
+
+	if token == "" {
+		return token, models.ErrTokenIsNotFound
+	}
+
+	return token, nil
+}
+
 type SlackRequest struct {
 	Token string
 }
@@ -88,14 +109,41 @@ type SlackMessageRequest struct {
 }
 
 func (s *Slack) ListUsers(u *url.URL, h http.Header, req *SlackRequest, context *models.Context) (int, http.Header, interface{}, error) {
-	return response.HandleResultAndError(s.getUsers(req.Token))
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	token, err := getSlackToken(context.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.HandleResultAndError(s.getUsers(token))
 }
 
 func (s *Slack) ListChannels(u *url.URL, h http.Header, req *SlackRequest, context *models.Context) (int, http.Header, interface{}, error) {
-	return response.HandleResultAndError(s.getChannels(req.Token))
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	token, err := getSlackToken(context.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.HandleResultAndError(s.getChannels(token))
 }
 
 func (s *Slack) PostMessage(u *url.URL, h http.Header, req *SlackMessageRequest, context *models.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	token, err := getSlackToken(context.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+	req.Token = token
 	return response.HandleResultAndError(s.postMessage(req))
 }
 

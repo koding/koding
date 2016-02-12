@@ -54,6 +54,7 @@ var (
 	ErrParticipantNotFound     = errors.New("participant not found")
 	ErrParticipantBlocked      = errors.New("participant is blocked")
 	ErrAccountIsNotParticipant = errors.New("account is not participant of channel")
+	ErrTokenIsNotFound         = errors.New("token is not found")
 
 	// moderation
 	ErrLeafIsNotSet          = errors.New("leaf channel is not set")
