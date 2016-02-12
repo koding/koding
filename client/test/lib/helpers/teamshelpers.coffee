@@ -305,7 +305,6 @@ module.exports =
         .click                  sidebarSectionsHeaderSelector
 
 
-
   createChannel: (browser, user, channelName, isInvalid, purpose) ->
 
     channelModalSelector             = '.CreateChannel-Modal .CreateChannel-content'
@@ -362,6 +361,7 @@ module.exports =
     imageTextSelector     = '.Pane-body .ChatList .ChatItem .ChatItem-contentBody:nth-of-type(1)'
     linkTextSelector      = '.EmbedBoxLinkContent .EmbedBoxLinkContent-description'
     emojiSelector         = '.ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ChatItem-contentBody '
+    blockSelector         = '.Pane-body .ChatList .ChatItem .ChatListItem-itemBodyContainer .ChatItem-contentBody .MessageBody blockquote'
     emojiSmileySelector   = "#{emojiSelector} .emoji-smiley"
     emojiThumbsUpSelector = "#{emojiSelector} .emoji-thumbsup"
     messageWithShortCode  = "console.log('123456789')"
@@ -396,6 +396,11 @@ module.exports =
           .waitForElementVisible  emojiSmileySelector, 20000
           .pause                  2000
           .waitForElementVisible  emojiThumbsUpSelector, 20000
+      when 'messageWithBlockquote'
+        browser
+          .pause                  3000
+          .waitForElementVisible  blockSelector, 20000
+          .assert.containsText    blockSelector, 'Message with blockquote'
 
 
   createChannelsAndCheckList: (browser, user) ->
