@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jacobsa/fuse"
 	"github.com/koding/fuseklient/transport"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -41,15 +42,15 @@ func (f *fakeTransport) ReadDir(path string, r bool) (*transport.ReadDirRes, err
 }
 
 func (f *fakeTransport) Rename(oldPath, newPath string) error {
-	return nil
+	return f.Trip("fs.rename", nil, nil)
 }
 
 func (f *fakeTransport) Remove(path string) error {
-	return nil
+	return f.Trip("fs.remove", nil, nil)
 }
 
 func (f *fakeTransport) WriteFile(path string, content []byte) error {
-	return nil
+	return f.Trip("fs.writeFile", nil, nil)
 }
 
 func (f *fakeTransport) ReadFile(path string) (*transport.ReadFileRes, error) {
@@ -87,6 +88,40 @@ func TestFakeTransport(t *testing.T) {
 
 			So(ft.Trip("indiana", "", &res), ShouldBeNil)
 			So(res.Name, ShouldEqual, "jones")
+		})
+	})
+}
+
+///// errorTransport
+
+type errorTransport struct {
+	*fakeTransport
+	ErrorResponses map[string]error
+}
+
+func (e *errorTransport) Trip(methodName string, req interface{}, res interface{}) error {
+	if err, ok := e.ErrorResponses[methodName]; ok {
+		return err
+	}
+
+	return e.fakeTransport.Trip(methodName, req, res)
+}
+
+func (e *errorTransport) WriteFile(path string, content []byte) error {
+	return e.Trip("fs.writeFile", nil, nil)
+}
+
+func TestErrorTransport(t *testing.T) {
+	Convey("errorTransport", t, func() {
+		Convey("It should implement Transport interface", func() {
+			var _ transport.Transport = (*errorTransport)(nil)
+		})
+
+		Convey("It should return error if called method has error", func() {
+			e := newWriteErrTransport()
+
+			err := e.WriteFile("", nil)
+			So(err, ShouldEqual, fuse.EIO)
 		})
 	})
 }
