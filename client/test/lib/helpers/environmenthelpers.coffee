@@ -374,3 +374,28 @@ module.exports =
      .waitForElementVisible   createVmModal, 20000
      .assert.containsText     createVmModal, 'Hobbyist plan is restricted to only one VM.'
      .assert.containsText     '.kdmodal-inner .kdmodal-content .custom-link-view span', 'Upgrade your account for more VMs RAM and Storage'
+
+
+  addNewVM: (browser, vmAssert, addNewVmNotAllowed = no) ->
+
+    sidebarSelector       = '.kdview.sidebar-machine-box .vm'
+
+    browser
+      .waitForElementVisible  sidebarSelector, 20000
+      .moveToElement          sidebarSelector, 10, 10
+      .waitForElementVisible  '.sidebar-title .custom-link-view.add-icon.buy-vm', 20000
+      .click                  '.sidebar-title .custom-link-view.add-icon.buy-vm'
+      .waitForElementVisible  '.button-container .add-vm-button', 20000
+      .click                  '.button-container .add-vm-button'
+
+      if addNewVmNotAllowed
+        browser
+          .waitForElementVisible  '.computeplan-modal [disabled="disabled"]', 20000
+          .assert.containsText    '.kdmodal-content .kdview.modal-title.warn', 'Remaining VM slots: 0/3'
+          .assert.containsText    vmAssert, 'You will be using 18GB/25GB storage'
+      else
+        browser
+          .waitForElementVisible  '.computeplan-modal .kdbutton.solid', 20000
+          .click                  '.computeplan-modal .kdbutton.solid'
+          .waitForElementVisible  vmAssert, 20000
+          .pause                  2000 #wait for the new vm to be displayed

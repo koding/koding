@@ -57,3 +57,46 @@ module.exports =
       .click                  "#{alwaysOnSelector}.off"
       .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
       .end()
+
+
+  checkMaximum3VmsForDeveloperPlan: (browser) ->
+
+    developerPlanSelector = '.single-plan.developer.current'
+    freePlan              = '.single-plan.free.current'
+    alreadyPaidAccount    = '.kddraggable .existing-cc-msg'
+    sidebarSelector       = '.kdview.sidebar-machine-box .vm'
+    alwaysOnSelector      = '.kdinput.koding-on-off.statustoggle.small'
+    vmSelector            = '.activity-sidebar .machines-wrapper .vms.my-machines .koding-vm-'
+    vmSelector1           = "#{vmSelector}1"
+    vmSelector2           = "#{vmSelector}2"
+    usageVmSelector       = '.kdview.storage-container .kdview:nth-of-type(3)'
+    url                   = helpers.getUrl()
+
+    helpers.beginTest(browser)
+    browser
+      .url                     helpers.getUrl() + '/Pricing'
+      .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.current', 20000
+      .element 'css selector', freePlan, (result) ->
+        if result.status is 0
+          helpers.selectPlan(browser)
+          helpers.fillPaymentForm(browser)
+          helpers.submitForm(browser, yes, yes)
+        else
+          browser.element 'css selector', developerPlanSelector, (result) ->
+            if result.status is -1
+              helpers.selectPlan(browser)
+              browser
+               .waitForElementVisible  '.payment-modal.kddraggable .existing-cc-msg', 20000
+               .assert.containsText    '.payment-modal.kddraggable .existing-cc-msg', 'We will use the payment method saved on your account for this purchase.'
+               .waitForElementVisible  '.kdview.payment-form-wrapper .submit-btn', 20000
+               .click                  '.kdview.payment-form-wrapper .submit-btn'
+
+              browser.expect.element('.kddraggable .kdmodal-inner .kdmodal-title').text.to.contain('Upgrade successful.').before(30000);
+              browser.click            '.kdview.payment-form-wrapper .submit-btn'
+
+    browser.url url
+    environmentHelpers.addNewVM(browser, vmSelector1)
+    environmentHelpers.addNewVM(browser, vmSelector2)
+    environmentHelpers.addNewVM(browser, usageVmSelector, yes)
+    browser.end()
