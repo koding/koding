@@ -24,6 +24,11 @@ type Slack struct {
 	OAuthConf *oauth2.Config
 }
 
+//
+// Send & Callback handlers are used for slack oauth
+// If we can get the token successfully, then we store user's token in mongo in Callback handler
+//
+
 func (s *Slack) Send(w http.ResponseWriter, req *http.Request) {
 
 	url := s.OAuthConf.AuthCodeURL("state", oauth2.AccessTypeOffline)
@@ -75,28 +80,6 @@ func updateUserSlackToken(user *kodingmodels.User, m string) error {
 	return modelhelper.UpdateUser(selector, update)
 }
 
-func getSlackToken(accountId int64) (string, error) {
-	var token string
-
-	acc, err := models.Cache.Account.ById(accountId)
-	if err != nil {
-		return token, err
-	}
-
-	user, err := modelhelper.GetUser(acc.Nick)
-	if err != nil {
-		return token, err
-	}
-
-	token = user.ForeignAuth.Slack.Token
-
-	if token == "" {
-		return token, models.ErrTokenIsNotFound
-	}
-
-	return token, nil
-}
-
 type SlackRequest struct {
 	Token string
 }
@@ -107,6 +90,10 @@ type SlackMessageRequest struct {
 	Text    string
 	Params  slack.PostMessageParameters
 }
+
+//
+// ListUsers & ListChannels & PostMessage handlers are used by client of koding
+//
 
 func (s *Slack) ListUsers(u *url.URL, h http.Header, req *SlackRequest, context *models.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
@@ -157,6 +144,30 @@ type SlackChannelsResponse struct {
 	Channels []slack.Channel `json:"channels,omitempty"`
 }
 
+// getSlackToken fetches the user's slack token with user's accountID
+func getSlackToken(accountId int64) (string, error) {
+	var token string
+
+	acc, err := models.Cache.Account.ById(accountId)
+	if err != nil {
+		return token, err
+	}
+
+	user, err := modelhelper.GetUser(acc.Nick)
+	if err != nil {
+		return token, err
+	}
+
+	token = user.ForeignAuth.Slack.Token
+
+	if token == "" {
+		return token, models.ErrTokenIsNotFound
+	}
+
+	return token, nil
+}
+
+// getChannels send a request to the slack with user's token & gets the channels
 func (s *Slack) getChannels(token string) (*SlackChannelsResponse, error) {
 	api := slack.New(token)
 	var groups []slack.Group
