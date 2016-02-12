@@ -41,11 +41,11 @@ updateStacks = ({ reason, stacks, oldOwner, requesterId }) ->
         log 'Failed to delete stack:', err  if err
 
 
-setOwnerOfMachine = (machine, { account, user, oldOwner }) ->
+setOwnerOfMachine = (machine, { account, user, oldOwner, group }) ->
 
   # Update machine ownership to the admin who kicked the member
   machine.addUsers {
-    targets: [ user ], asOwner: yes, sudo: yes
+    targets: [ user ], asOwner: yes, sudo: yes, group: group.slug
   }, (err) ->
     log 'Failed to change ownership of machine:', err  if err
 
@@ -152,6 +152,7 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
         requester :
           user    : requesterJUser
           account : requester
+          group   : group
         reason
       }
       queue.next()
