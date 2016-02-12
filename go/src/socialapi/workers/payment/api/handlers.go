@@ -38,12 +38,36 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	//----------------------------------------------------------
+	// Subscriptions
+	//----------------------------------------------------------
+
+	// this is same /payments/account/subscriptions, here for backwards
+	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  SubscriptionRequest,
+			Handler:  AccountSubscriptionRequest,
 			Name:     "payment-subscriptions",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/subscriptions",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountSubscriptionRequest,
+			Name:     "payment-account-subscriptions",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/account/subscriptions",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupSubscriptionRequest,
+			Name:     "payment-group-subscriptions",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/group/subscriptions",
 		},
 	)
 
