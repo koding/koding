@@ -82,7 +82,7 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  s.Callback,
-			Name:     "slack-callback-oauth",
+			Name:     models.SlackOauthCallback,
 			Type:     handler.GetRequest,
 			Endpoint: "/slack/oauth/callback",
 		},
