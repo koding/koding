@@ -247,7 +247,7 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	} else {
 		specs, err = cmd.multipleMachineSpecs(spec)
 	}
-	if err != nil {
+	if err != nil || len(specs) == 0 {
 		return err
 	}
 
@@ -256,7 +256,7 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 		items[i] = spec
 	}
 
-	return cmd.RunItems(ctx, items)
+	return multierror.Append(err, cmd.RunItems(ctx, items)).ErrorOrNil()
 }
 
 func specSlice(spec *MachineSpec, n int) []*MachineSpec {
@@ -269,18 +269,25 @@ func specSlice(spec *MachineSpec, n int) []*MachineSpec {
 
 func (cmd *GroupCreate) multipleUserSpecs(spec *MachineSpec) ([]*MachineSpec, error) {
 	specs := specSlice(spec, len(cmd.usernames))
+	var okspecs []*MachineSpec
+
+	merr := new(multierror.Error)
 
 	for i, spec := range specs {
 		spec.User = models.User{
 			Name: cmd.usernames[i],
 		}
 
-		if err := spec.BuildMachine(false); err != nil {
-			return nil, fmt.Errorf("error building user and group for %q: %s", spec.User.Name, err)
+		err := spec.BuildMachine(false)
+		if err != nil {
+			merr = multierror.Append(merr, fmt.Errorf("error building user and group for %q: %s", spec.User.Name, err))
+			continue
 		}
+
+		okspecs = append(okspecs, spec)
 	}
 
-	return specs, nil
+	return okspecs, merr.ErrorOrNil()
 }
 
 func (cmd *GroupCreate) multipleMachineSpecs(spec *MachineSpec) ([]*MachineSpec, error) {
