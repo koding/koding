@@ -12,21 +12,9 @@ module.exports = class FeedThreadHeader extends React.Component
     className : React.PropTypes.string
     channel   : React.PropTypes.instanceOf immutable.Map
 
-
   @defaultProps =
     className : ''
     channel   : immutable.Map()
-
-
-  onClick: ->
-
-    channelId     = @props.channel.get 'id'
-    isParticipant = @props.channel.get 'isParticipant'
-
-    if isParticipant
-      ActivityFlux.actions.channel.unfollowChannel channelId
-    else
-      ActivityFlux.actions.channel.followChannel channelId
 
 
   getFollowButtonClassNames: -> classnames
@@ -42,6 +30,6 @@ module.exports = class FeedThreadHeader extends React.Component
       <ChannelLabel channel={@props.channel} />
       <Button
         className={@getFollowButtonClassNames()}}
-        onClick={@bound 'onClick'}>
+        onClick={@props.onClick}>
       </Button>
     </div>

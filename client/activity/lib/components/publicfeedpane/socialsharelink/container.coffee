@@ -1,12 +1,16 @@
-kd           = require 'kd'
-React        = require 'kd-react'
-Link         = require 'app/components/common/link'
-ActivityFlux = require 'activity/flux'
+kd              = require 'kd'
+View            = require './view'
+React           = require 'kd-react'
+ActivityFlux    = require 'activity/flux'
 
-module.exports = class SocialShareLink extends React.Component
+
+module.exports = class FeedPaneContainer extends React.Component
+
+  @propTypes =
+    messageId : React.PropTypes.string
 
   @defaultProps =
-    messageId: null
+    messageId : null
 
 
   componentDidMount: ->
@@ -25,7 +29,7 @@ module.exports = class SocialShareLink extends React.Component
 
     ActivityFlux.actions.feed.setActiveSocialShareLink @props.messageId
 
-
   render: ->
 
-    <Link onClick={@bound 'setActiveSocialShareLink'}>Share</Link>
+    <View
+      setActiveSocialShareLink = { @bound 'setActiveSocialShareLink' }/>

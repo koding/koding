@@ -1,41 +1,29 @@
 kd               = require  'kd'
 React            = require 'kd-react'
-ReactDOM         = require 'react-dom'
 whoami           = require 'app/util/whoami'
 Encoder          = require 'htmlencode'
 AutoSizeTextarea = require 'app/components/common/autosizetextarea'
 Button           = require 'app/components/common/button'
 ActivityFlux     = require 'activity/flux'
-KeyboardKeys     = require 'app/constants/keyboardKeys'
+
 
 module.exports = class FeedItemInputWidget extends React.Component
 
-  @defaultProps =
-    value : ''
+  @propTypes =
+    value         : React.PropTypes.string
+    onChange      : React.PropTypes.func
+    channelId     : React.PropTypes.string
+    onKeyDown     : React.PropTypes.func
+    cancelEdit    : React.PropTypes.func
+    updateMessage : React.PropTypes.func
 
-  constructor: (props) ->
-
-    super
-
-    @state =
-      value     : @props.value
-      channelId : null
-
-
-  componentDidMount: ->
-
-    kd.utils.moveCaretToEnd ReactDOM.findDOMNode @refs.textarea
-
-
-  onKeyDown: (event) ->
-
-    @props.cancelEdit()  if event.which is KeyboardKeys.ESC
-
-
-  onChange: (event) -> @setState value: event.target.value
-
-
-  getValue: -> return @state.value
+  @defaultTypes =
+    value         : ''
+    onChange      : kd.noop
+    channelId     : ''
+    onKeyDown     : kd.noop
+    cancelEdit    : kd.noop
+    updateMessage : kd.noop
 
 
   render: ->
@@ -47,9 +35,9 @@ module.exports = class FeedItemInputWidget extends React.Component
       <AutoSizeTextarea
         ref='textarea'
         placeholder={ placeholder }
-        value={ @state.value }
-        onKeyDown={ @bound 'onKeyDown' }
-        onChange={ @bound 'onChange' } />
+        value={ @props.value }
+        onKeyDown={ @props.onKeyDown }
+        onChange={ @props.onChange } />
       <div className='FeedInputWidget-buttonBar'>
         <Button
           tabIndex={1}
