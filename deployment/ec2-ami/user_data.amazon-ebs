@@ -1,0 +1,10 @@
+# cloud-config
+
+# These settings configure the lock-on-launch feature, which causes
+# the AMI to use a fixed, specific repository version when it
+# launches, and disables the automatic installation of security
+# updates. Both are required to use a custom AMI with Elastic
+# Beanstalk.
+
+repo_releasever: 2015.09
+repo_upgrade: none
