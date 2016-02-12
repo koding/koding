@@ -17,6 +17,10 @@ module.exports = class CollaborationPane extends React.Component
 
   {getters} = ActivityFlux
 
+  @propTypes =
+    channelId         : React.PropTypes.string.isRequired
+    collaborationLink : React.PropTypes.string.isRequired
+
 
   channel: (args...) -> @state.channelThread?.getIn ['channel', args...]
 

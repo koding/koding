@@ -4,6 +4,9 @@ View = require './view'
 
 module.exports = class AppearInContainer extends React.Component
 
+  @propTypes:
+    name: React.PropTypes.string.isRequired
+
   constructor: (props) ->
 
     super props

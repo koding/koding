@@ -9,18 +9,20 @@ ShareLink = require './sharelinkview'
 module.exports = class CollaborationPaneHeader extends React.Component
 
   @propTypes =
-    className     : React.PropTypes.string
-    isVideoActive : React.PropTypes.bool
-    onVideoEnd    : React.PropTypes.func.isRequired
-    onVideoStart  : React.PropTypes.func.isRequired
-    thread        : React.PropTypes.instanceOf(immutable.Map).isRequired
-    participants  : React.PropTypes.instanceOf(immutable.Map).isRequired
-    collaborationLink : React.PropTypes.string
+    className                   : React.PropTypes.string
+    isVideoActive               : React.PropTypes.bool
+    onVideoEnd                  : React.PropTypes.func.isRequired
+    onVideoStart                : React.PropTypes.func.isRequired
+    thread                      : React.PropTypes.instanceOf(immutable.Map).isRequired
+    participants                : React.PropTypes.instanceOf(immutable.Map).isRequired
+    collaborationLink           : React.PropTypes.string.isRequired
+    onNewParticipantButtonClick : React.PropTypes.func
 
 
   @defaultProps =
-    className     : ''
-    isVideoActive : no
+    className                   : ''
+    isVideoActive               : no
+    onNewParticipantButtonClick : null
 
 
   render: ->

@@ -3,6 +3,10 @@ kd = require 'kd'
 
 module.exports = class AppearInView extends React.Component
 
+  @propTypes =
+    name: React.PropTypes.string.isRequired
+
+
   componentDidMount: ->
 
     {appearin, name} = @props
