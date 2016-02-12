@@ -1,21 +1,20 @@
-SockJS = require 'sockjs-client'
-kitejs = require 'kite.js'
-Promise = require 'bluebird'
-kookies = require 'kookies'
-kd = require 'kd'
-KDNotificationView = kd.NotificationView
-globals = require 'globals'
-splitKiteQuery = require '../util/splitKiteQuery'
-KiteCache = require './kitecache'
-KiteLogger = require '../kitelogger'
-KodingKite = require './kodingkite'
+kd                 = require 'kd'
+
+SockJS             = require 'sockjs-client'
+globals            = require 'globals'
+Promise            = require 'bluebird'
+kookies            = require 'kookies'
+
+kitejs             = require 'kite.js'
+KiteCache          = require './kitecache'
+KiteLogger         = require '../kitelogger'
+KodingKite         = require './kodingkite'
+splitKiteQuery     = require '../util/splitKiteQuery'
 
 
 module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
-  constructor: (options = {})->
-
-    @_kontrolUrl = options.kontrolUrl  if options.kontrolUrl?
+  constructor: (options = {}) ->
 
     super @getAuthOptions()
 
@@ -24,10 +23,18 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
 
   authenticate: ->
+
     super
 
-    @kite.on 'close', (reason)->
+    @kite.on 'close', (reason) ->
       kd.log "Kontrol disconnected because ", reason
+
+
+  @getKontrolUrl = ->
+
+    if location.hostname.indexOf('latest.koding.com') > -1
+    then 'https://latest.koding.com/kontrol/kite'
+    else globals.config.newkontrol.url
 
 
   getAuthOptions: ->
@@ -36,7 +43,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
     autoConnect           : no
     autoReconnect         : yes
-    url                   : @_kontrolUrl ? globals.config.newkontrol.url
+    url                   : KodingKontrol.getKontrolUrl()
     auth                  :
       type                : 'sessionID'
       key                 : @_lastUsedKey

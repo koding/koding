@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -14,6 +15,8 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/userdata"
+	"strings"
+	"time"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -25,14 +28,25 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+var (
+	defaultKlientTimeout = 15 * time.Minute
+	defaultStateTimeout  = 15 * time.Minute
+
+	// We choose WASHINGTON 04 because it works
+	// http://www.softlayer.com/data-centers
+	defaultDatacenter = "wdc04"
+)
+
 type Provider struct {
-	DB         *mongodb.MongoDB
-	Log        logging.Logger
-	Kite       *kite.Kite
-	SLClient   *sl.Softlayer
-	DNSClient  *dnsclient.Route53
-	DNSStorage *dnsstorage.MongodbStorage
-	Userdata   *userdata.Userdata
+	DB            *mongodb.MongoDB
+	Log           logging.Logger
+	Kite          *kite.Kite
+	SLClient      *sl.Softlayer
+	DNSClient     *dnsclient.Route53
+	DNSStorage    *dnsstorage.MongodbStorage
+	Userdata      *userdata.Userdata
+	KlientTimeout time.Duration
+	StateTimeout  time.Duration
 }
 
 type slCred struct {
@@ -68,10 +82,13 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	}
 
 	if meta.Datacenter == "" {
-		// We choose DALLAS 01 because it has the largest capacity
-		// http://www.softlayer.com/data-centers
-		machine.Meta["datacenter"] = "sjc01"
-		p.Log.Critical("[%s] datacenter is not set in. Fallback to sjc01", machine.ObjectId.Hex())
+		machine.Meta["datacenter"] = defaultDatacenter
+		p.Log.Warning("[%s] datacenter is not set; falling back to %s", machine.ObjectId.Hex(), defaultDatacenter)
+	}
+
+	// Ensure the domain is rooted at the hosted zone.
+	if !strings.HasSuffix(machine.Domain, p.DNSClient.HostedZone()) {
+		machine.Domain = machine.Uid + "." + machine.Credential + "." + p.DNSClient.HostedZone()
 	}
 
 	p.Log.Debug("Using datacenter=%q, image=%q", meta.Datacenter, meta.SourceImage)
@@ -84,6 +101,9 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	if err := helpers.ValidateUser(machine.User, machine.Users, req); err != nil {
 		return nil, err
 	}
+
+	machine.KlientTimeout = p.klientTimeout()
+	machine.StateTimeout = p.stateTimeout()
 
 	return machine, nil
 }
@@ -114,8 +134,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
-		machine.Log = machine.Log.New(traceID)
-		machine.Log.SetLevel(logging.DEBUG)
+		machine.Log = common.NewLogger("kloud-softlayer", true).New(machine.ObjectId.Hex()).New(traceID)
 	}
 
 	sess := &session.Session{
@@ -172,4 +191,18 @@ func (p *Provider) getUserCredential(identifier string) (*slCred, error) {
 	}
 
 	return &cred, nil
+}
+
+func (p *Provider) klientTimeout() time.Duration {
+	if p.KlientTimeout != 0 {
+		return p.KlientTimeout
+	}
+	return defaultKlientTimeout
+}
+
+func (p *Provider) stateTimeout() time.Duration {
+	if p.StateTimeout != 0 {
+		return p.StateTimeout
+	}
+	return defaultStateTimeout
 }

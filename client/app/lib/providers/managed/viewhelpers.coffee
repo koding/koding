@@ -1,5 +1,6 @@
+kd            = require 'kd'
+KodingKontrol = require 'app/kite/kodingkontrol'
 
-kd    = require 'kd'
 
 addTo = (parent, views)->
   map = {}
@@ -15,7 +16,7 @@ addTo = (parent, views)->
 
 globals    = require 'globals'
 kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
-             then "\n$ export KONTROLURL=#{globals.config.newkontrol.url}" else ''
+             then "\n$ export KONTROLURL=#{KodingKontrol.getKontrolUrl()}" else ''
 
 contents  =
   install : """#{kontrolUrl}

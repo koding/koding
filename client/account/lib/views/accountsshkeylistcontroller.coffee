@@ -86,10 +86,10 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
       title          : 'Deleting SSH Key'
       content        : """
         <p>
-          Please note that even though the SSH key has been deleted from Account Settings, 
+          Please note that even though the SSH key has been deleted from Account Settings,
           it still exists in your <strong>/home/#{nickname}/.ssh/authorized_keys</strong> file.
-          Please ensure that you delete the key from that file too. 
-          <a href="http://learn.koding.com/guides/ssh-into-your-vm/#deleting-a-key" target="_blank" class="guide-link">This guide</a> shows how to delete a ssh key.
+          Please ensure that you delete the key from that file too.
+          <a href="https://koding.com/docs/ssh-into-your-vm/#deleting-a-key" target="_blank" class="guide-link">This guide</a> shows how to delete a ssh key.
         </p>
       """
       overlay        : yes
@@ -165,7 +165,7 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
     @sshKeyHelpLink = new KDCustomHTMLView
       cssClass : 'ssh-key-help'
       partial  : """
-        <a href="http://learn.koding.com/guides/ssh-into-your-vm/#deleting-a-key" target="_blank">How to delete ssh key from your VM</a>
+        <a href="https://koding.com/docs/ssh-into-your-vm/#deleting-a-key" target="_blank">How to delete ssh key from your VM</a>
       """
     @getListView().addSubView @sshKeyHelpLink
 

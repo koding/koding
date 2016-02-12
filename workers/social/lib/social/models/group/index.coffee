@@ -108,7 +108,6 @@ module.exports = class JGroup extends Module
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
-        { name: 'messageBusEvent' }
       ]
     sharedMethods   :
       static        :
@@ -592,10 +591,10 @@ module.exports = class JGroup extends Module
         contents : contents
     }
 
-    @emit 'messageBusEvent', { type: 'dispatcher_notify_group', message }
-
-    callback null
-
+    require('../socialapi/requests').dispatchEvent 'dispatcher_notify_group', message, (err) ->
+      console.error '[dispatchEvent][notify_group]', err if err
+      # do not cause trailing parameters
+      callback err
 
   sendNotification$: permit
     advanced: [
@@ -1528,7 +1527,9 @@ module.exports = class JGroup extends Module
 
 
   sendNotificationToAdmins: (event, contents) ->
+
     @fetchAdmins (err, admins) =>
+
       unless err
         relationship =  {
           as         : event,
@@ -1541,13 +1542,21 @@ module.exports = class JGroup extends Module
         contents.relationship = relationship
         contents.origin       = contents.subject
         contents.origin.slug  = @slug
+        contents.group        = @slug
         contents.actorType    = event
         contents[event]       = contents.member
+
 
         next = -> queue.next()
         queue = admins.map (admin) => =>
           contents.recipient = admin
           @notify admin, event, contents, next
+
+        { notifyByUsernames } = require '../notify'
+
+        usernames = admins.map (admin) -> admin.profile.nickname
+
+        notifyByUsernames usernames, 'NewMemberJoinedToGroup', contents
 
         daisy queue
 

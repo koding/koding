@@ -19,7 +19,6 @@ KDModalView                   = kd.ModalView
 KDSplitView                   = kd.SplitView
 IDEWorkspace                  = require './workspace/ideworkspace'
 IDEStatusBar                  = require './views/statusbar/idestatusbar'
-KodingKontrol                 = require 'app/kite/kodingkontrol'
 AppController                 = require 'app/appcontroller'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
@@ -257,7 +256,11 @@ class IDEAppController extends AppController
     return  unless pane = @getActivePaneView()
     return  if pane is @activePaneView and not force
 
+    @turnOffTerminalSizeListener()
+
     @activePaneView = pane
+
+    @listenForTerminalSizeChanges()
 
     kd.utils.defer -> pane.setFocus? state
 
@@ -664,9 +667,6 @@ class IDEAppController extends AppController
 
 
   showStateMachineModal: (machineItem, event) ->
-
-    KodingKontrol.dcNotification?.destroy()
-    KodingKontrol.dcNotification = null
 
     machineItem.getBaseKite( no ).disconnect()
 
@@ -1923,3 +1923,14 @@ class IDEAppController extends AppController
 
     @targetTabView = null
     @removeAllSplitRegions()
+
+
+  turnOffTerminalSizeListener: ->
+    
+    @activePaneView?.webtermView?.off 'ScreenSizeChanged'
+
+
+  listenForTerminalSizeChanges: ->
+    
+    @activePaneView?.webtermView?.on 'ScreenSizeChanged', (size) =>
+      @updateStatusBar null, "Screen size changed to (#{size.w}, #{size.h})"

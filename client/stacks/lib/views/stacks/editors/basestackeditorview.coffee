@@ -40,7 +40,6 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
       ace.setTheme 'github', no
       ace.setTabSize 2, no
       ace.setShowPrintMargin no, no
-      ace.setEnableAutocomplete no, no
       ace.setUseSoftTabs yes, no
       ace.setScrollPastEnd yes, no
 

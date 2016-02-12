@@ -44,7 +44,7 @@ type Controller struct {
 }
 
 type WorkspaceData struct {
-	AccountId int64
+	AccountId int64 `json:"accountId,string"`
 	GroupName string
 }
 

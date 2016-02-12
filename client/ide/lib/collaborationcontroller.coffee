@@ -695,7 +695,7 @@ module.exports = CollaborationController =
       notStarted : => @stateMachine.transition 'NotStarted'
 
 
-  checkSessionActivity: (callbacks) ->
+  checkSessionActivity: (callbacks, showSessionModal = yes) ->
 
     { channelId } = @workspaceData
     machine       = @mountedMachine
@@ -714,7 +714,8 @@ module.exports = CollaborationController =
           callMethod 'notStarted'
 
     if not machine.isMine() and machine.isApproved() and not machine.isPermanent()
-      @showSessionStartingModal()
+      if showSessionModal
+        @showSessionStartingModal()
 
     @fetchSocialChannel (err, channel) =>
       if err
@@ -982,7 +983,7 @@ module.exports = CollaborationController =
       @setMachineSharingStatus off, (err) ->
         throwError err  if err
 
-      @clearParticipantsWorkspaces()
+      @clearParticipantsSnapshot()
 
       socialHelpers.destroyChannel @socialChannel, (err) ->
         throwError err  if err
@@ -993,7 +994,7 @@ module.exports = CollaborationController =
       callback()
 
 
-  clearParticipantsWorkspaces: ->
+  clearParticipantsSnapshot: ->
 
     { users } = @mountedMachine.data
 

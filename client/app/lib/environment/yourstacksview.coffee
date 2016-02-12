@@ -60,7 +60,7 @@ module.exports = class YourStacksView extends KDCustomScrollView
     listView.on 'StackReinitRequested', (stack) =>
 
       computeController
-        .once 'RenderStacks', @bound 'destroyModal'
+        .once 'RenderStacks', => @destroyModal yes, yes
         .reinitStack stack
 
     whoami().isEmailVerified? (err, verified) ->
@@ -71,8 +71,10 @@ module.exports = class YourStacksView extends KDCustomScrollView
     computeController.on 'RenderStacks', controller.bound 'loadItems'
 
 
-  destroyModal: (goBack = yes) ->
+  destroyModal: (goBack = yes, dontChangeRoute = no) ->
 
     return @emit 'DestroyParent', goBack  if isKoding()
 
-    @getDelegate().parent?.destroy()
+    if modal = @getDelegate().parent
+      modal.dontChangeRoute = dontChangeRoute
+      modal.destroy()

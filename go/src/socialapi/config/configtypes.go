@@ -61,6 +61,8 @@ type (
 		Janitor Janitor
 
 		Github Github
+
+		Slack Slack
 	}
 
 	// Email holds Email Workers' config
@@ -179,5 +181,11 @@ type (
 		ClientId     string `env:"key=KONFIG_SOCIALAPI_GITHUB_CLIENTID"`
 		ClientSecret string `env:"key=KONFIG_SOCIALAPI_GITHUB_CLIENTSECRET"`
 		RedirectUri  string `env:"key=KONFIG_SOCIALAPI_GITHUB_REDIRECTURI"`
+	}
+
+	Slack struct {
+		ClientId     string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTID"`
+		ClientSecret string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTSECRET"`
+		RedirectUri  string `env:"key=KONFIG_SOCIALAPI_SLACK_REDIRECTURI"`
 	}
 )

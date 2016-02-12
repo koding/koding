@@ -421,6 +421,10 @@ expireSubscription = (accountId, callback) ->
   url = "#{socialProxyUrl}/payments/customers/#{accountId}/expire"
   post url, {}, callback
 
+dispatchEvent = (eventName, data, callback) ->
+  url = "#{socialProxyUrl}/private/dispatcher/#{eventName}"
+  post url, data, callback
+
 fetchBotChannel = (data, callback) ->
   url = "#{webhookProxyUrl}/botchannel"
   get url, data, callback
@@ -557,6 +561,7 @@ module.exports = {
   updateNotificationSetting
   deleteNotificationSetting
   expireSubscription
+  dispatchEvent
   fetchBotChannel
   post
   get

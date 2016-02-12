@@ -21,6 +21,7 @@ requirementsParser   = require './requirementsparser'
 updateStackTemplate  = require './updatestacktemplate'
 updateCustomVariable = require './updatecustomvariable'
 parseTerraformOutput = require './parseterraformoutput'
+addUserInputTypes    = require './adduserinputtypes'
 
 OutputView           = require './outputview'
 ProvidersView        = require './providersview'
@@ -38,9 +39,21 @@ module.exports = class DefineStackView extends KDView
 
     options.cssClass = kd.utils.curry 'define-stack-view', options.cssClass
 
+    { stackTemplate } = data ? {}
+
+    if stackTemplate
+      unless provider = stackTemplate.selectedProvider
+        for provider in stackTemplate.config.requiredProviders
+          break  if provider in ['aws', 'vagrant']
+      provider ?= (Object.keys stackTemplate.credentials ? { aws: yes }).first
+
+    provider ?= 'aws'
+    options.selectedProvider = provider
+
     super options, data
 
-    { stackTemplate } = @getData()
+    { stackTemplate }    = @getData()
+    { selectedProvider } = @getOptions()
 
     options.delegate = this
 
@@ -80,8 +93,11 @@ module.exports = class DefineStackView extends KDView
       view : @readmeView
 
     @providersView                     = new ProvidersView {
-      stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
+      selectedCredentials : @credentials
+      provider            : selectedProvider
+      stackTemplate
     }
+
     @tabView.addPane @providersPane    = new KDTabPaneView
       name : 'Credentials'
       view : @providersView
@@ -90,9 +106,13 @@ module.exports = class DefineStackView extends KDView
       tagName  : 'span'
       cssClass : 'warning hidden'
       tooltip  :
-        title  : 'You need to set your AWS credentials to be able build this stack.'
+        title  : "You need to set your #{selectedProvider.toUpperCase()}
+                  credentials to be able build this stack."
 
-    @credentialStatusView = new CredentialStatusView { stackTemplate }
+    @credentialStatusView = new CredentialStatusView {
+      stackTemplate, selectedProvider
+    }
+
     { @credentials } = @stackTemplateView.credentialStatus or {}
 
     @tabView.showPaneByIndex 0
@@ -167,7 +187,7 @@ module.exports = class DefineStackView extends KDView
           <span class="icon"></span>
           <div class="text">
             <p>To learn about stack files</p>
-            <a href="http://learn.koding.com/stacktemplate">Check out our docs</a>
+            <a href="https://koding.com/docs/creating-an-aws-stack">Check out our docs</a>
           </div>
         </div>
       """
@@ -326,16 +346,16 @@ module.exports = class DefineStackView extends KDView
         @outputView.add "Parsing failed, please check your template and try again"
         return
 
-      { stackTemplates }   = groupsController.getCurrentGroup()
-      stackTemplate.inuse ?= stackTemplate._id in (stackTemplates or [])
-      templateSetBefore    = stackTemplates?.length
+      { stackTemplates }       = groupsController.getCurrentGroup()
+      stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
+      templateSetBefore        = stackTemplates?.length
 
       # TMS-1919: This needs to be reimplemented, once we have multiple
       # stacktemplates set for a team this will be broken ~ GG
 
       if templateSetBefore
 
-        unless stackTemplate.inuse
+        unless stackTemplate.isDefault
 
           if canEditGroup
             @setAsDefaultButton.show()
@@ -387,7 +407,7 @@ module.exports = class DefineStackView extends KDView
       .add 'Verifying credentials...'
       .add 'Bootstrap check initiated for credentials...'
 
-    if not credential or credential.provider isnt 'aws'
+    if not credential or credential.provider not in ['aws', 'vagrant']
       @cancelButton.setTitle 'Close'
       return failed "
         Required credentials are not provided yet, we are unable to test the
@@ -437,8 +457,12 @@ module.exports = class DefineStackView extends KDView
     { stackTemplate }     = options
     { computeController } = kd.singletons
 
+    req                   = { stackTemplateId: stackTemplate._id }
+    selectedProvider      = @getOption 'selectedProvider'
+    req.provider          = selectedProvider  if selectedProvider is 'vagrant'
+
     computeController.getKloud()
-      .checkTemplate { stackTemplateId: stackTemplate._id }
+      .checkTemplate req
       .nodeify (err, response) =>
 
         console.log '[KLOUD:checkTemplate]', err, response
@@ -471,6 +495,7 @@ module.exports = class DefineStackView extends KDView
   saveTemplate: (callback) ->
 
     { stackTemplate } = @getData()
+    selectedProvider  = @getOption 'selectedProvider'
 
     { title }         = @inputTitle.getData()
     templateContent   = @stackTemplateView.editorView.getValue()
@@ -484,6 +509,9 @@ module.exports = class DefineStackView extends KDView
     @outputView.add 'Parsing template for credential requirements...'
 
     requiredProviders = providersParser templateContent
+
+    if selectedProvider is 'vagrant'
+      requiredProviders.push 'vagrant'
 
     @outputView
       .add 'Following credentials are required:'
@@ -520,8 +548,8 @@ module.exports = class DefineStackView extends KDView
     credentials = {}
 
     if credData.length > 0
-      awsIdentifier   = credData.first.identifier
-      credentials.aws = [ awsIdentifier ]
+      providerIdentifier = credData.first.identifier
+      credentials[selectedProvider] = [ providerIdentifier ]
 
     # Add Custom Variables if exists
     if variablesCredential = @variablesView._activeCredential
@@ -532,6 +560,8 @@ module.exports = class DefineStackView extends KDView
 
       if convertedDoc.err
         return callback 'Failed to convert YAML to JSON, fix document and try again.'
+
+      addUserInputTypes convertedDoc.contentObject, requiredData
 
       templateContent = convertedDoc.content
 
@@ -690,7 +720,7 @@ module.exports = class DefineStackView extends KDView
         @setAsDefaultButton.hideLoader()
         return
 
-      stackTemplate.inuse = yes
+      stackTemplate.isDefault = yes
 
       @emit 'Reload'
       @emit 'Completed', stackTemplate  if completed

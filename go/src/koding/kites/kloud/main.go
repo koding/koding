@@ -95,6 +95,13 @@ type Config struct {
 	// KontrolURL to connect and to de deployed with klient
 	KontrolURL string `required:"true"`
 
+	// KlientURL overwrites the Klient deb url returned by userdata.GetLatestDeb
+	// method.
+	KlientURL string
+
+	// TunnelURL overwrites default tunnelserver url. Used by vagrant provider.
+	TunnelURL string
+
 	// Private key to create kite.key
 	PrivateKey string `required:"true"`
 
@@ -175,6 +182,10 @@ func newKite(conf *Config) *kite.Kite {
 	k.Config = kiteconfig.MustGet()
 	k.Config.Port = conf.Port
 
+	if conf.DebugMode {
+		k.SetLogLevel(kite.DEBUG)
+	}
+
 	if conf.Region != "" {
 		k.Config.Region = conf.Region
 	}
@@ -198,6 +209,11 @@ func newKite(conf *Config) *kite.Kite {
 		k.Log.Warning("Default script URL changed from %s to %s",
 			softlayer.PostInstallScriptUri, conf.SLScriptURL)
 		softlayer.PostInstallScriptUri = conf.SLScriptURL
+	}
+
+	// overwrite TunnelURL with env var for development environment
+	if s := os.Getenv("CONFIG_TUNNELURL"); conf.Environment == "dev" && s != "" {
+		conf.TunnelURL = s
 	}
 
 	klientFolder := "development/latest"
@@ -234,7 +250,8 @@ func newKite(conf *Config) *kite.Kite {
 			KontrolPrivateKey: kontrolPrivateKey,
 			KontrolPublicKey:  kontrolPublicKey,
 		},
-		Bucket: userdata.NewBucket("koding-klient", klientFolder, c),
+		Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
+		KlientURL: conf.KlientURL,
 	}
 	opts := &amazon.ClientOptions{
 		Credentials: c,
@@ -295,6 +312,7 @@ func newKite(conf *Config) *kite.Kite {
 		DNSStorage: dnsStorage,
 		Kite:       k,
 		Userdata:   userdata,
+		TunnelURL:  conf.TunnelURL,
 	}
 
 	/// SOFTLAYER PROVIDER ///

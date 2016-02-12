@@ -109,12 +109,13 @@ module.exports = class SearchController extends KDObject
       , options
 
 
-  searchAccountsMongo: (seed) ->
+  searchAccountsMongo: (seed, options = {}) ->
 
     val       = seed.replace /^@/, ''
     nickname  = nick()
 
-    { groupsController } = kd.singletons
+    { showCurrentUser }   = options
+    { groupsController }  = kd.singletons
 
     handleResult = (group, account, nickname, resolve, reject) ->
       # Filter accounts according to the current group.
@@ -123,7 +124,7 @@ module.exports = class SearchController extends KDObject
       group.isMember account, (err, isMember) ->
         return reject err  if err
 
-        if isMember and account.profile.nickname isnt nickname
+        if isMember and (showCurrentUser or account.profile.nickname isnt nickname)
           return resolve [account]
         else
           return resolve []
@@ -145,27 +146,34 @@ module.exports = class SearchController extends KDObject
           remote.api.JAccount.one(query).then (account) ->
             return handleResult group, account, nickname, resolve, reject
 
+
   searchAccounts: (seed, options = {}) ->
 
     opts  =
       hitsPerPage                  : 10
+      showCurrentUser              : no
       restrictSearchableAttributes : [ 'nick' ]
 
     opts      = kd.utils.extend opts, options
     seed      = seed.replace /[^-\w]/g, ''
     nickname  = nick()
 
+    { showCurrentUser } = opts
+    delete opts.showCurrentUser
+
     @search 'accounts', seed, opts
       .then (data) ->
         throw new Error "No data!" if data.length is 0
         return data
-      .filter (account) -> account.nick isnt nickname
+      .filter (account) ->
+        return yes  if showCurrentUser
+        return account.nick isnt nickname
       .map ({ objectID }) -> remote.cacheableAsync 'JAccount', objectID
       .catch (err) =>
         console.warn 'algolia strategy failed; trying mongo'
         console.warn err
 
-        return @searchAccountsMongo seed
+        return @searchAccountsMongo seed, { showCurrentUser }
       .filter Boolean
 
 

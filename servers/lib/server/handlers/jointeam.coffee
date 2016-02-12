@@ -14,6 +14,7 @@ module.exports = (req, res, next) ->
   { body }                       = req
   { JUser, JGroup, JInvitation } = koding.models
   {
+    username
     # slug is team slug, unique name. Can not be changed
     slug
     # newsletter holds announcements config.
@@ -51,37 +52,35 @@ module.exports = (req, res, next) ->
         # when there is an error in the fetchClient, it returns message in it
         if client.message
           console.error JSON.stringify { req, client }
-          return res.status(500).send client.message
+          return next { status: 500, message: client.message }
 
         client.clientIP = (clientIPAddress.split ',')[0]
         next()
 
     (next) ->
-      # checking if user exists by trying to login the user
-      JUser.login client.sessionToken, body, (err, result) ->
-        errorMessage          = err?.message
-        unknownUsernameError  = 'Unknown user name'
+      # check if user exists
+      JUser.normalizeLoginId username, (err, username_) ->
+        return next { status: 500, message: getErrorMessage err }  if err
 
-        # send HTTP 400 if somehow alreadyMember is true but user doesnt exist
-        if alreadyMember and errorMessage is unknownUsernameError
-          return res.status(400).send unknownUsernameError
+        JUser.one { username: username_ }, (err, user) ->
+          if alreadyMember
+            return next { status: 500, message: getErrorMessage err }  if err
+            return next { status: 400, message: 'Unknown user name' }  unless user?
 
-        # setting alreadyMember to true if error is not unknownUsernameError
-        # ignoring other errors here since our only concern is checking if user exists
-        alreadyMember = errorMessage isnt unknownUsernameError
-        next()
-
-    (next) ->
-      # generating callback function to be used in both login and convert
-      joinTeamKallback = generateJoinTeamKallback res, body
-
-      if alreadyMember
-      then JUser.login client.sessionToken, body, joinTeamKallback
-      else JUser.convert client, body, joinTeamKallback
+          alreadyMember = true  if user
+          next()
 
   ]
 
-  async.series queue
+  async.series queue, (err) ->
+    return res.status(err.status).send getErrorMessage err  if err
+
+    # generating callback function to be used in both login and convert
+    joinTeamKallback = generateJoinTeamKallback res, body
+
+    if alreadyMember
+    then JUser.login client.sessionToken, body, joinTeamKallback
+    else JUser.convert client, body, joinTeamKallback
 
 
 generateJoinTeamKallback = (res, body) ->

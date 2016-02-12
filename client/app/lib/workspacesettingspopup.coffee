@@ -7,6 +7,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 KDModalViewWithForms = kd.ModalViewWithForms
 GuidesLinksView = require './guideslinksview'
 KodingSwitch = require './commonviews/kodingswitch'
+envDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class WorkspaceSettingsPopup extends KDModalViewWithForms
@@ -55,7 +56,8 @@ module.exports = class WorkspaceSettingsPopup extends KDModalViewWithForms
 
           if deleteRelatedFiles
             methodName = 'deleteWorkspaceRootFolder'
-            appManager.tell 'IDE', methodName, machineUId, rootPath
+            ideApp = envDataProvider.getIDEFromUId machineUId
+            ideApp?[methodName]? machineUId, rootPath
 
           @emit 'WorkspaceDeleted', wsId
 

@@ -1,7 +1,8 @@
-kd        = require 'kd'
-View      = require './view'
-React     = require 'kd-react'
-immutable = require 'immutable'
+kd                   = require 'kd'
+View                 = require './view'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 module.exports = class ChannelInfoContainer extends React.Component
 
@@ -56,3 +57,5 @@ module.exports = class ChannelInfoContainer extends React.Component
       integrationTooltipVisible={@state.integrationTooltipVisible}
       collabTooltipVisible={@state.collabTooltipVisible} />
 
+
+ChannelInfoContainer.include [ ImmutableRenderMixin ]

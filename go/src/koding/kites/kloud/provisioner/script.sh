@@ -13,7 +13,7 @@ sudo -E apt-get install -y -q ubuntu-standard ubuntu-minimal htop git net-tools 
 
 sudo -E apt-get install --only-upgrade bash
 
-wget -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo tar -C /usr/local/ --strip-components=1 -zxv
+wget -q -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo tar -C /usr/local/ --strip-components=1 -zxv
 
 # add this for backwards compability with our cloud-init script. Cloud
 # init tries to add the user to the docker group, but if it doesn't
@@ -29,7 +29,7 @@ sudo groupadd docker
 #sudo apt-get install -y lxc-docker
 
 # configure locale
-sudo locale-gen UTF-8
+sudo locale-gen "en_US.UTF-8"
 
 # remove installed packages to free up space
 sudo apt-get clean
@@ -39,7 +39,7 @@ sudo updatedb
 
 # install kpm
 cd /usr/local/bin
-sudo wget https://github.com/koding/kpm-scripts/releases/download/v0.2.2/kpm
+sudo wget -q https://github.com/koding/kpm-scripts/releases/download/v0.2.2/kpm
 sudo chmod +x /usr/local/bin/kpm
 
 # website template

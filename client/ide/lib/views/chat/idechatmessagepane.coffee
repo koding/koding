@@ -9,6 +9,7 @@ PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane
 isMyChannel          = require 'app/util/isMyChannel'
 isMyPost             = require 'app/util/isMyPost'
 envDataProvider      = require 'app/userenvironmentdataprovider'
+isKoding             = require 'app/util/isKoding'
 
 CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
 IDEChatParticipantHeads               = require './idechatparticipantheads'
@@ -223,6 +224,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   createHeaderViews: ->
 
+    title        = 'Session'
     channel      = @getData()
     {appManager} = kd.singletons
 
@@ -230,16 +232,14 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
       tagName  : 'header'
       cssClass : 'general-header'
 
+    { frontApp } = kd.singletons.appManager
+    title = if isKoding() then frontApp.workspaceData.name else frontApp.mountedMachine.label
+
     header.addSubView @title = new KDCustomHTMLView
       tagName    : 'a'
       cssClass   : 'workspace-name'
-      partial    : 'My Workspace'
+      partial    : title
       attributes : href : '#'
-      # click      : (event) =>
-      #   KD.utils.stopDOMEvent event
-      #   @getDelegate().showSettingsPane()
-
-    appManager.tell 'IDE', 'getWorkspaceName', @title.bound 'updatePartial'
 
     header.addSubView @chevron = @createMenu()
 
@@ -277,7 +277,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     menu =
       'Search'     : { cssClass : 'disabled', callback: kd.noop }
       'Minimize'   : { callback : @getDelegate().bound 'end' }
-      'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration' }
+      'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'https://koding.com/docs/collaboration' }
       # 'Settings' : { callback : @getDelegate().bound 'showSettingsPane' }
 
     isHost = not @isInSession
@@ -303,8 +303,8 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @removeOnboarding()
 
-    appManager = kd.getSingleton 'appManager'
-    appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
+    ideApp = envDataProvider.getIDEFromUId @getOption 'mountedMachineUId'
+    ideApp?.setMachineUser [participant.profile.nickname]
 
 
   refresh: ->

@@ -10,7 +10,6 @@ AdminMembersView           = require './views/members/adminmembersview'
 AdministrationView         = require './views/koding-admin/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
 TopicModerationView        = require './views/moderation/topicmoderationview'
-# GroupStackSettings         = require './views/stacks/groupstacksettings'
 OnboardingAdminView        = require './views/onboarding/onboardingadminview'
 AdminInvitationsView       = require './views/invitations/admininvitationsview'
 GroupPermissionsView       = require './views/permissions/grouppermissionsview'
@@ -117,6 +116,9 @@ module.exports = class AdminAppController extends AppController
   loadView: (modal) ->
 
     modal.once 'KDObjectWillBeDestroyed', =>
+
+      return  if modal.dontChangeRoute
+
       { router } = kd.singletons
       previousRoutes = router.visitedRoutes.filter (route) => not @checkRoute route
       if previousRoutes.length > 0

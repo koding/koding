@@ -218,14 +218,16 @@ module.exports = class NavigationMachineItem extends JView
   ###
   showSharePopup: (options = {}) ->
 
+    { machineShareManager } = kd.singletons
+
     show = (options) =>
       kd.utils.wait 733, =>
         options.position = @getPopupPosition 20
         popup = popups[@machine.uid]
         kd.utils.defer -> popup?.destroy()
         popups[@machine.uid] = new SidebarMachineSharePopup options, @machine
+        machineShareManager.registerChannelEvent options.channelId
 
-    {machineShareManager} = kd.singletons
 
     if invitation = machineShareManager.get @machine.uid
       {type} = invitation
@@ -264,9 +266,12 @@ module.exports = class NavigationMachineItem extends JView
           break
 
         return  unless options.channelId = channelId
+
         kd.singletons.socialapi.channel.byId id: channelId, (err, channel) ->
+
           return console.error err  if err
           options.isApproved = channel.isParticipant
+
           show options
 
 
@@ -300,6 +305,13 @@ module.exports = class NavigationMachineItem extends JView
     if not m.isMine() and not m.isApproved()
       kd.utils.stopDOMEvent e
       @showSharePopup()
+
+    super
+
+
+  destroy: ->
+
+    popup.destroy()  for key, popup of popups
 
     super
 

@@ -72,6 +72,7 @@ Configuration = (options={}) ->
   projectRoot    = options.projectRoot         or "/opt/koding"
   version        = options.tag
   tag            = options.tag
+  tunnelUrl      = options.tunnelUrl           or "http://devtunnelproxy.koding.com"
   publicIP       = options.publicIP            or "*"
   githubapi      =
     debug        : no
@@ -107,7 +108,7 @@ Configuration = (options={}) ->
 
 
   kloudPort           = 5500
-  kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem", userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub", privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+  kloud               = { port : kloudPort, userPrivateKeyFile: "./certs/kloud/dev/kloud_dev_rsa.pem", userPublicKeyfile: "./certs/kloud/dev/kloud_dev_rsa.pub", privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite", tunnelUrl : "#{tunnelUrl}"}
   terraformer         = { port : 2300     , bucket         : "koding-terraformer-state-#{configName}"  ,    localstorepath:  "#{projectRoot}/go/data/terraformer"  }
 
   googleapiServiceAccount =
@@ -131,6 +132,12 @@ Configuration = (options={}) ->
     clientId      : "d3b586defd01c24bb294"
     clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"
     redirectUri   : "https://sandbox.koding.com/-/oauth/github/callback"
+
+  slack  = # these are tmp and not working configs, will be replace by the working ones after the feature is completed
+    clientId      : "20619428033.20787518977"
+    clientSecret  : "1987edcacd657367fd1b3b0eb653f14b"
+    redirectUri   : "https://sandbox.koding.com/api/social/slack/oauth/callback"
+
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -165,6 +172,8 @@ Configuration = (options={}) ->
     disabledFeatures        : disabledFeatures
     janitor                 : { port: "6700", secretKey: "janitorsecretkey-sandbox" }
     github                  : github
+    slack                   : slack
+
 
   userSitesDomain     = "sandbox.koding.io"
   hubspotPageURL      = "http://www.koding.com"
@@ -237,6 +246,7 @@ Configuration = (options={}) ->
     recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : github
+    slack                          : slack
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://sandbox.koding.com/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "650676665033389"                              , clientSecret  : "6771ee1f5aa28e5cd13d3465bacffbdc"           , redirectUri  : "https://sandbox.koding.com/-/oauth/facebook/callback"}
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "https://sandbox.koding.com/-/oauth/google/callback" }
@@ -359,7 +369,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey} -slusername=#{slKeys.vm_kloud.username} -slapikey=#{slKeys.vm_kloud.apiKey} -janitorsecretkey=#{socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{paymentwebhook.secretKey}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -userprivatekey #{KONFIG.kloud.userPrivateKeyFile} -userpublickey #{KONFIG.kloud.userPublicKeyfile} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -awsaccesskeyid=#{awsKeys.vm_kloud.accessKeyId} -awssecretaccesskey=#{awsKeys.vm_kloud.secretAccessKey} -slusername=#{slKeys.vm_kloud.username} -slapikey=#{slKeys.vm_kloud.apiKey} -janitorsecretkey=#{socialapi.janitor.secretKey} -vmwatchersecretkey=#{KONFIG.vmwatcher.secretKey} -paymentwebhooksecretkey=#{paymentwebhook.secretKey} -tunnelurl=#{KONFIG.kloud.tunnelUrl}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -568,6 +578,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/account/channels"
             proxyPass   : "http://socialapi/account/channels$is_args$args"
+          }
+          {
+            location    : "~ /api/social/slack/(.*)"
+            proxyPass   : "http://socialapi/slack/$1$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"

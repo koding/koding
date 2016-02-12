@@ -286,7 +286,7 @@ module.exports = class PaymentForm extends JView
           and storage resources.
           <p>
           <b>Note:</b> You will need to resize your VM to use the additional storage. This
-          <a href='http://learn.koding.com/guides/what-happens-upon-upgrade/?utm_source=upgrade_modal&utm_medium=website&utm_campaign=upgrade'
+          <a href='https://koding.com/docs/what-happens-upon-upgrade/?utm_source=upgrade_modal&utm_medium=website&utm_campaign=upgrade'
              target='_blank'>simple guide</a> shows you how to do that.
         "
         @successMessage.show()

@@ -305,7 +305,8 @@ module.exports = class AccountEditUsername extends JView
         return callback 'Current password cannot be confirmed'  unless confirmed
 
         callback null
-    modal.once 'ModalCancelled', @bound 'hideSaveButtonLoader'
+
+    @hideSaveButtonLoader()
 
 
   viewAppended: ->

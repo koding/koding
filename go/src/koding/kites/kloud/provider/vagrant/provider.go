@@ -3,9 +3,11 @@ package vagrant
 import (
 	"errors"
 	"fmt"
+	"net/url"
 
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -41,6 +43,7 @@ type Provider struct {
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
 	Userdata   *userdata.Userdata
+	TunnelURL  string
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
@@ -101,12 +104,17 @@ func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
 	m.User = user
 	m.Log = p.Log.New(m.ObjectId.Hex())
 
+	if traceID, ok := kloud.TraceFromContext(ctx); ok {
+		m.Log = common.NewLogger("kloud-vagrant", true).New(m.ObjectId.Hex()).New(traceID)
+	}
+
 	m.Session = &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,
+		Log:        m.Log,
 	}
 
 	m.api = &vagrantapi.Klient{
@@ -120,4 +128,11 @@ func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
 	}
 
 	return nil
+}
+
+func (p *Provider) tunnelURL() (*url.URL, error) {
+	if p.TunnelURL == "" {
+		return nil, errors.New("no tunnel URL provided")
+	}
+	return url.Parse(p.TunnelURL)
 }

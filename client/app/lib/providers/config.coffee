@@ -12,7 +12,7 @@ module.exports = globals.config.providers =
     description            : """Custom credentials can include meta
                                credentials for any service"""
     listText               : """
-                              You're currently using these custom datas in your
+                              You're currently using these custom data in your
                               stack templates, you can change their contents
                               without touching stack templates.
                             """
@@ -161,7 +161,20 @@ module.exports = globals.config.providers =
     name                   : "User Input"
     title                  : "User Input"
     listText               : """
-                            These are the input data that you've provided for
-                            your Team's stack requirements. Deleting these
-                            informations can cause some issues on your stacks.
+                            Here you can change user input fields that you define
+                            in your stack scripts. When you delete these,
+                            make sure that you update the stack scripts that
+                            these are used in. Otherwise you may experience
+                            unwanted results while building your stacks.
                             """
+    credentialFields       : {}
+  vagrant                  :
+    name                   : "Vagrant"
+    link                   : "http://www.vagrantup.com"
+    title                  : "Vagrant on Local"
+    color                  : "#B52025"
+    description            : "Local provisioning with Vagrant"
+    credentialFields       :
+      queryString          :
+        label              : "Kite Query Path"
+        placeholder        : "querystring for local machine kite"

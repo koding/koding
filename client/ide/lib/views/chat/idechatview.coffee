@@ -7,6 +7,7 @@ CustomLinkView      = require 'app/customlinkview'
 IDEChatMessagePane  = require './idechatmessagepane'
 IDEChatSettingsPane = require './idechatsettingspane'
 IDEChatVideoView    = require './idechatvideoview'
+envDataProvider     = require 'app/userenvironmentdataprovider'
 
 socialHelpers = require '../../collaboration/helpers/social'
 
@@ -67,7 +68,7 @@ module.exports = class IDEChatView extends KDTabView
   handleParticipantSelected: (account) ->
 
     { nickname } = account.profile
-    kd.singletons.appManager.tell 'IDE', 'switchToUserVideo', nickname
+    @getIDEApp()?.switchToUserVideo nickname
 
 
   handleVideoActiveParticipantChanged: (nickname, account) ->
@@ -167,8 +168,7 @@ module.exports = class IDEChatView extends KDTabView
 
   handleVideoActive: ->
 
-    {appManager} = kd.singletons
-    appManager.tell 'IDE', 'fetchVideoParticipants', (participants) =>
+    @getIDEApp()?.fetchVideoParticipants (participants) =>
       @setVideoActiveState on
       @chatVideoView.show()
       @chatPane.handleVideoActive participants
@@ -225,13 +225,18 @@ module.exports = class IDEChatView extends KDTabView
 
   bindVideoCollaborationEvents: ->
 
-    {appManager} = kd.singletons
+    ideApp = @getIDEApp()
+
+    return  unless ideApp
 
     @chatPane
-      .on 'ChatVideoStartRequested' , -> appManager.tell 'IDE', 'startVideoCollaboration'
-      .on 'ChatVideoEndRequested'   , -> appManager.tell 'IDE', 'endVideoCollaboration'
-      .on 'ChatVideoJoinRequested'  , -> appManager.tell 'IDE', 'joinVideoCollaboration'
-      .on 'ChatVideoLeaveRequested' , -> appManager.tell 'IDE', 'leaveVideoCollaboration'
+      .on 'ChatVideoStartRequested' , ideApp.bound 'startVideoCollaboration'
+      .on 'ChatVideoEndRequested'   , ideApp.bound 'endVideoCollaboration'
+      .on 'ChatVideoJoinRequested'  , ideApp.bound 'joinVideoCollaboration'
+      .on 'ChatVideoLeaveRequested' , ideApp.bound 'leaveVideoCollaboration'
+
+
+  getIDEApp : -> envDataProvider.getIDEFromUId @mountedMachineUId
 
 
   showChatPane: ->

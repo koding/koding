@@ -56,7 +56,7 @@ module.exports = class PopupNotifications extends AvatarPopup
       partial  : """
         <li class='account'><a href='/Account'>Account</a></li>
         <li class='admin hidden'><a href='/Admin'>Team Settings</a></li>
-        <li class='support'><a href='http://learn.koding.com'>Support</a></li>
+        <li class='support'><a href='https://koding.com/docs'>Support</a></li>
         <li class='logout'><a href='/Logout'>Logout</a></li>
         """
 

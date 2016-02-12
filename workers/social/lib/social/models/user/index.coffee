@@ -983,7 +983,8 @@ module.exports = class JUser extends jraphical.Module
         return callback null  if not group
 
         roles = ['member']
-        roles.push invitation.role  if invitation?.role
+        if invitation?.role and slug isnt 'koding'
+          roles.push invitation.role
         roles = uniq roles
 
         group.approveMember account, roles, (err) ->

@@ -1,10 +1,16 @@
-kd       = require 'kd'
-React    = require 'kd-react'
-FeedItem = require './feeditem'
+kd        = require 'kd'
+React     = require 'kd-react'
+FeedItem  = require './feeditem'
+immutable = require 'immutable'
 
 module.exports = class FeedList extends React.Component
 
-  defaultProps =
+  @propTypes =
+    messages  : React.PropTypes.instanceOf immutable.Map
+    channelId : React.PropTypes.string
+
+  @defaultProps =
+    messages  : immutable.Map()
     channelId : null
 
 
@@ -13,10 +19,11 @@ module.exports = class FeedList extends React.Component
     { channelId } = @props
 
     @props.messages.toList().map (msg) ->
-      <FeedItem channelId={channelId} key={msg.get 'id'} message={msg} />
+      <FeedItem.Container channelId = { channelId } key = { msg.get 'id' } message = { msg } />
 
 
   render: ->
+
     <div className={kd.utils.curry 'FeedList', @props.className}>
-      {@renderChildren().toList()}
+      { @renderChildren().toList() }
     </div>

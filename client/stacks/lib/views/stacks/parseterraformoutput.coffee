@@ -19,19 +19,27 @@ module.exports = parseTerraformOutput = (response) ->
 
   out = machines: []
 
-  {machines} = response
+  { machines } = response
 
   for machine, index in machines
 
-    {label, provider, region} = machine
-    {instance_type, ami} = machine.attributes
+    { label, provider, region, hostQueryString } = machine
 
-    out.machines.push {
-      label, provider, region
-      source_ami   : ami
-      instanceType : instance_type
-      provisioners : [] # TODO what are we going to do with provisioners? ~ GG
-    }
+    if provider is 'vagrant'
+      out.machines.push {
+        label, provider
+        hostQueryString
+        provisioners : []
+      }
+    else
+      { instance_type, ami } = machine.attributes
+
+      out.machines.push {
+        label, provider, region
+        source_ami   : ami
+        instanceType : instance_type
+        provisioners : [] # TODO what are we going to do with provisioners? ~ GG
+      }
 
   console.info "[parseTerraformOutput]", out.machines
 

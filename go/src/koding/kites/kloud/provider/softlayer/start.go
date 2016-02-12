@@ -8,12 +8,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Start starts the given machine
+// Start starts the given machine.
 func (m *Machine) Start(ctx context.Context) error {
-	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is starting", machinestate.Starting); err != nil {
-		return err
-	}
+	return m.guardTransition(machinestate.Starting, "Machine is starting", ctx, m.start)
+}
 
+func (m *Machine) start(ctx context.Context) error {
 	//Get the SoftLayer virtual guest service
 	svc, err := m.Session.SLClient.GetSoftLayer_Virtual_Guest_Service()
 	if err != nil {
@@ -30,7 +30,7 @@ func (m *Machine) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := waitState(svc, meta.Id, "RUNNING"); err != nil {
+	if err := m.waitState(svc, meta.Id, "RUNNING", m.StateTimeout); err != nil {
 		return err
 	}
 

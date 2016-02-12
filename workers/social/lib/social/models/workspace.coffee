@@ -40,7 +40,6 @@ module.exports = class JWorkspace extends Module
       instance          :
         delete          : signature Function
     sharedEvents        :
-      static            : ['messageBusEvent']
       instance          : ['updateInstance']
 
 
@@ -88,7 +87,8 @@ module.exports = class JWorkspace extends Module
           name: name
           groupName: slug
 
-        @emit 'messageBusEvent', { type: 'social.workspace_created', message: message }
+        require('./socialapi/requests').dispatchEvent 'social.workspace_created', message, (err) ->
+          console.error '[dispatchEvent][workspace_created]', err if err
 
         uid       = machineUId
         eventName = 'NewWorkspaceCreated'
@@ -186,6 +186,7 @@ module.exports = class JWorkspace extends Module
             nickname : delegate.profile.nickname
             workspace: ws
             eventName: 'WorkspaceRemoved'
+            group    : client?.context?.group
 
           notifyUsers options, callback
 

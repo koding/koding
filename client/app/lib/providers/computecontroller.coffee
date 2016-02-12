@@ -20,6 +20,7 @@ ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
 ComputeController_UI = require './computecontroller.ui'
 ManagedKiteChecker   = require './managed/managedkitechecker'
+envDataProvider      = require 'app/userenvironmentdataprovider'
 
 require './config'
 
@@ -118,7 +119,7 @@ module.exports = class ComputeController extends KDController
       message : 'Operation is not supported for this VM'
     }
 
-    return unless provider = machine?.provider
+    return NotSupported  unless provider = machine?.provider
 
     if provider is 'managed'
       return NotSupported
@@ -126,9 +127,9 @@ module.exports = class ComputeController extends KDController
     if method?
       switch method
         when 'reinit'
-          return NotSupported  if provider is 'aws'
+          return NotSupported  if provider in ['aws', 'vagrant']
         when 'createSnapshot'
-          return NotSupported  if provider in ['aws', 'softlayer']
+          return NotSupported  if provider in ['aws', 'softlayer', 'vagrant']
 
 
 
@@ -493,8 +494,6 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
-      @stopCollaborationSession()
-
       baseKite = machine.getBaseKite( createIfNotExists = no )
       if machine?.provider is 'managed' and baseKite.klientDisable?
       then baseKite.klientDisable().finally -> baseKite.disconnect()
@@ -516,7 +515,8 @@ module.exports = class ComputeController extends KDController
             console.warn "couldn't delete workspace:", err  if err
 
           @reset yes, ->
-            kd.singletons.appManager.tell 'IDE', 'quit'
+            ideApp = envDataProvider.getIDEFromUId machine.uid
+            ideApp?.quit()
 
         return
 
@@ -552,8 +552,6 @@ module.exports = class ComputeController extends KDController
     return  if methodNotSupportedBy machine, 'reinit'
 
     startReinit = =>
-
-      @stopCollaborationSession()
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
@@ -1098,14 +1096,6 @@ module.exports = class ComputeController extends KDController
     remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
       return callback err  if err
       return callback null, template
-
-
-  ###*
-   * Automatically kill active collaboration sessions if any
-  ###
-  stopCollaborationSession: ->
-
-    kd.singletons.appManager.tell 'IDE', 'stopCollaborationSession'
 
 
   showBuildLogs: (machine) ->
