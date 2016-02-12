@@ -9,6 +9,8 @@ KDReactorMixin = require 'app/flux/base/reactormixin'
 
 module.exports = class ChannelParticipantsContainer extends React.Component
 
+  MAX_PREVIEW_COUNT = 19
+
   @propTypes =
     channelThread   : React.PropTypes.instanceOf immutable.Map
     participants    : React.PropTypes.instanceOf immutable.Map
@@ -16,8 +18,9 @@ module.exports = class ChannelParticipantsContainer extends React.Component
 
 
   @defaultProps =
-    channelThread : immutable.Map()
-    participants  : immutable.Map()
+    channelThread   : immutable.Map()
+    participants    : immutable.Map()
+    maxPreviewCount : MAX_PREVIEW_COUNT
 
 
   constructor: (props) ->
