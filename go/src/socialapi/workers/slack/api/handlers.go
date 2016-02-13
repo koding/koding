@@ -11,8 +11,8 @@ import (
 
 func AddHandlers(m *mux.Mux, config *config.Config) {
 
-	var (
-		oauthConf = &oauth2.Config{
+	s := &Slack{
+		OAuthConf: &oauth2.Config{
 			ClientID:     config.Slack.ClientId,
 			ClientSecret: config.Slack.ClientSecret,
 			RedirectURL:  config.Slack.RedirectUri,
@@ -64,11 +64,7 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 				// https://api.slack.com/bot-users#bot-methods
 				"bot",
 			},
-		}
-	)
-
-	s := &Slack{
-		OAuthConf: oauthConf,
+		},
 	}
 
 	m.AddUnscopedHandler(
