@@ -48,6 +48,25 @@ func GetComputeStackByGroup(slug string, accountID bson.ObjectId) (*models.Compu
 	return &stack, nil
 }
 
+func GetComputeStackByUserGroup(userID, groupID bson.ObjectId) (*models.ComputeStack, error) {
+	user, err := GetUserById(userID.Hex())
+	if err != nil {
+		return nil, err
+	}
+
+	group, err := GetGroupById(groupID.Hex())
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := GetAccount(user.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetComputeStackByGroup(group.Slug, account.Id)
+}
+
 func DeleteComputeStack(id string) error {
 	query := func(c *mgo.Collection) error {
 		return c.RemoveId(bson.ObjectIdHex(id))
@@ -83,35 +102,6 @@ func CreateComputeStack(stack *models.ComputeStack) error {
 	return Mongo.Run(ComputeStackColl, query)
 }
 
-func StackDetails(userID, groupID bson.ObjectId) (*models.ComputeStack, *models.StackTemplate, error) {
-	user, err := GetUserById(userID.Hex())
-	if err != nil {
-		return nil, nil, err
-	}
-
-	group, err := GetGroupById(groupID.Hex())
-	if err != nil {
-		return nil, nil, err
-	}
-
-	account, err := GetAccount(user.Name)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	stack, err := GetComputeStackByGroup(group.Slug, account.Id)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	template, err := GetStackTemplate(stack.BaseStackId.Hex())
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return stack, template, nil
-}
-
 func exists(selector bson.M) func(*mgo.Collection) error {
 	return func(c *mgo.Collection) error {
 		n, err := c.Find(selector).Count()
@@ -126,7 +116,7 @@ func exists(selector bson.M) func(*mgo.Collection) error {
 }
 
 func AddToStack(userID, groupID, machineID bson.ObjectId) error {
-	stack, template, err := StackDetails(userID, groupID)
+	stack, err := GetComputeStackByUserGroup(userID, groupID)
 	if err != nil {
 		return err
 	}
@@ -155,30 +145,6 @@ func AddToStack(userID, groupID, machineID bson.ObjectId) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	// Add machine to stack template.
-	f := bson.M{
-		"machines": bson.M{
-			"$elemMatch": bson.M{"label": machine.Label},
-		},
-	}
-	err = Mongo.Run(StackTemplateColl, exists(f))
-
-	if err == mgo.ErrNotFound {
-		m := machine.Meta
-		m["label"] = machine.Label
-		m["provider"] = machine.Provider
-		m["provisioners"] = []interface{}{}
-
-		update := func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": template.Id}, bson.M{"$push": bson.M{"machines": m}})
-		}
-
-		err = Mongo.Run(StackTemplateColl, update)
-	}
-	if err != nil {
-		return err
 	}
 
 	// Add machine to compute stack.
@@ -210,7 +176,7 @@ func tryPull(coll string, sel, mod bson.M) error {
 }
 
 func RemoveFromStack(userID, groupID, machineID bson.ObjectId) error {
-	stack, template, err := StackDetails(userID, groupID)
+	stack, err := GetComputeStackByUserGroup(userID, groupID)
 	if err != nil {
 		return err
 	}
@@ -222,12 +188,6 @@ func RemoveFromStack(userID, groupID, machineID bson.ObjectId) error {
 
 	// Remove group from jMachine.
 	err = tryPull(MachinesColl, bson.M{"_id": machine.ObjectId}, bson.M{"groups": bson.M{"id": groupID}})
-	if err != nil {
-		return err
-	}
-
-	// Remove machine from template.
-	err = tryPull(StackTemplateColl, bson.M{"_id": template.Id}, bson.M{"machines": bson.M{"label": machine.Label}})
 	if err != nil {
 		return err
 	}
