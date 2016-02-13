@@ -445,3 +445,38 @@ module.exports =
 
         browser.pause 5000 # wait for host
         browser.end()
+
+
+  sendMessage: (browser, hostMessage, participantMessage) ->
+
+    host        = utils.getUser no, 0
+    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant = utils.getUser no, 1
+
+    inputSelector       = '.message-pane .activity-input-widget'
+    textAreaSelector    = "#{inputSelector} [testpath=ActivityInputView]"
+    hostMessage         = 'message from host'
+    participantMessage  = 'message from participant'
+    messagePaneScroller = '.message-pane .message-pane-scroller [testpath=activity-list]'
+    sendText            = "#{messagePaneScroller} .consequent:not(.join-leave)"
+
+
+    browser
+      .waitForElementVisible   '.message-pane', 20000
+      .waitForElementVisible   inputSelector, 20000
+      .waitForElementVisible   textAreaSelector, 20000
+
+    if hostBrowser
+      browser
+        .waitForElementVisible messagePaneScroller, 20000
+        .setValue              textAreaSelector, hostMessage + '\n'
+        .pause                 5000
+        .waitForTextToContain  messagePaneScroller, hostMessage
+        .waitForTextToContain  messagePaneScroller, participantMessage
+    else
+      browser
+        .waitForElementVisible messagePaneScroller, 20000
+        .waitForTextToContain  messagePaneScroller, hostMessage
+        .setValue              textAreaSelector, participantMessage + '\n'
+        .pause                 5000
+        .waitForTextToContain  messagePaneScroller, participantMessage

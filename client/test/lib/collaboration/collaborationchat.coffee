@@ -58,3 +58,21 @@ module.exports =
       browser.waitForElementPresent sharedMachineSelector, 200000
 
     collaborationHelpers.testKickUser_(browser, hostCallback, participantCallback)
+
+
+  checkChat: (browser) ->
+
+    host        = utils.getUser no, 0
+    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant = utils.getUser no, 1
+
+    if hostBrowser
+      collaborationHelpers.startSessionAndInviteUser(browser, host, participant, yes, no)
+      collaborationHelpers.sendMessage(browser)
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
+    else
+      collaborationHelpers.joinSession(browser, host, participant)
+      collaborationHelpers.sendMessage(browser)
+      collaborationHelpers.leaveSessionFromSidebar(browser)
+      browser.end()
