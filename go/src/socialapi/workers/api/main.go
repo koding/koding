@@ -29,7 +29,7 @@ import (
 	permissionapi "socialapi/workers/permission/api"
 	realtimeapi "socialapi/workers/realtime/api"
 	sitemapapi "socialapi/workers/sitemap/api"
-	slack "socialapi/workers/slackapi/oauth"
+	slackapi "socialapi/workers/slack/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
 
 	"github.com/koding/runner"
@@ -83,7 +83,7 @@ func main() {
 	reply.AddHandlers(m)
 	notificationsetting.AddHandlers(m)
 	realtimeapi.AddHandlers(m)
-	slack.AddHandlers(m, c)
+	slackapi.AddHandlers(m, c)
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)

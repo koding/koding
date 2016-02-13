@@ -15,6 +15,11 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 		oauthConf = &oauth2.Config{
 			ClientID:     config.Slack.ClientId,
 			ClientSecret: config.Slack.ClientSecret,
+			RedirectURL:  config.Slack.RedirectUri,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://slack.com/oauth/authorize",
+				TokenURL: "https://slack.com/api/oauth.access",
+			}, // https://slack.com/oauth/authorize
 			Scopes: []string{
 				// channels.info
 				// channels.list
@@ -59,11 +64,6 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 				// https://api.slack.com/bot-users#bot-methods
 				"bot",
 			},
-			RedirectURL: config.Slack.RedirectUri,
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  "https://slack.com/oauth/authorize",
-				TokenURL: "https://slack.com/api/oauth.access",
-			}, // https://slack.com/oauth/authorize
 		}
 	)
 
@@ -92,7 +92,7 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 		handler.Request{
 			Handler:  s.ListUsers,
 			Name:     models.SlackListUsers,
-			Type:     handler.PostRequest,
+			Type:     handler.GetRequest,
 			Endpoint: "/slack/users",
 		},
 	)
@@ -101,7 +101,7 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 		handler.Request{
 			Handler:  s.ListChannels,
 			Name:     models.SlackListChannels,
-			Type:     handler.PostRequest,
+			Type:     handler.GetRequest,
 			Endpoint: "/slack/channels",
 		},
 	)
