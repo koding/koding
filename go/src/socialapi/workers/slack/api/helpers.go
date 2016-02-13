@@ -96,13 +96,9 @@ func getUsers(token string) ([]SlackUser, error) {
 			// even if we get error from slack api set it to nil
 			var lastActive *time.Time
 
+			// presence information is optional, so we can skip the errored ones
 			p, err := api.GetUserPresence(u.ID)
-			if err != nil {
-				activeUsersChan <- SlackUser{u, lastActive}
-				return
-			}
-
-			if p == nil {
+			if err != nil || p == nil {
 				activeUsersChan <- SlackUser{u, lastActive}
 				return
 			}
