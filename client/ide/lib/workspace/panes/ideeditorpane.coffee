@@ -49,6 +49,10 @@ module.exports = class IDEEditorPane extends IDEPane
     @getFileModifiedDate (date) => @lastModifiedDate = date
 
 
+  setFile: (file) ->
+    @file = file
+
+
   getFileModifiedDate: (callback = noop) ->
 
     path        = FSHelper.plainPath @file.path

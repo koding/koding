@@ -1,27 +1,27 @@
-$                     = require 'jquery'
-kd                    = require 'kd'
-nick                  = require 'app/util/nick'
-FSFile                = require 'app/util/fs/fsfile'
-KDView                = kd.View
-Encoder               = require 'htmlencode'
-FSHelper              = require 'app/util/fs/fshelper'
-IDEHelpers            = require '../../idehelpers'
-KDModalView           = kd.ModalView
-IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
-IDETailerPane         = require '../../workspace/panes/idetailerpane'
-KDContextMenu         = kd.ContextMenu
-KDTabPaneView         = kd.TabPaneView
-IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
-IDEDrawingPane        = require '../../workspace/panes/idedrawingpane'
-IDETerminalPane       = require '../../workspace/panes/ideterminalpane'
-generatePassword      = require 'app/util/generatePassword'
-KDCustomHTMLView      = kd.CustomHTMLView
-KDSplitViewPanel      = kd.SplitViewPanel
-ProximityNotifier     = require './splithandleproximitynotifier'
-IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
-IDEApplicationTabView = require './ideapplicationtabview.coffee'
-showErrorNotification = require 'app/util/showErrorNotification'
-
+$                       = require 'jquery'
+kd                      = require 'kd'
+nick                    = require 'app/util/nick'
+FSFile                  = require 'app/util/fs/fsfile'
+KDView                  = kd.View
+Encoder                 = require 'htmlencode'
+FSHelper                = require 'app/util/fs/fshelper'
+IDEHelpers              = require '../../idehelpers'
+KDModalView             = kd.ModalView
+IDEEditorPane           = require '../../workspace/panes/ideeditorpane'
+IDETailerPane           = require '../../workspace/panes/idetailerpane'
+KDContextMenu           = kd.ContextMenu
+KDTabPaneView           = kd.TabPaneView
+IDEPreviewPane          = require '../../workspace/panes/idepreviewpane'
+IDEDrawingPane          = require '../../workspace/panes/idedrawingpane'
+IDETerminalPane         = require '../../workspace/panes/ideterminalpane'
+generatePassword        = require 'app/util/generatePassword'
+KDCustomHTMLView        = kd.CustomHTMLView
+KDSplitViewPanel        = kd.SplitViewPanel
+ProximityNotifier       = require './splithandleproximitynotifier'
+IDEWorkspaceTabView     = require '../../workspace/ideworkspacetabview'
+IDEApplicationTabView   = require './ideapplicationtabview.coffee'
+showErrorNotification   = require 'app/util/showErrorNotification'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 HANDLE_PROXIMITY_DISTANCE   = 100
 DEFAULT_SESSION_NAME_LENGTH = 24
@@ -96,6 +96,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           handleCallback = @lazyBound 'handleEditorRenamingRequested', tabHandle
           tabHandle.on 'RenamingRequested', handleCallback
           tabHandle.makeEditable()
+
+          view.file.on 'FilePathChanged', =>
+            ideApp = kd.singletons.appManager.frontApp
+
+            return  unless ideApp
+
+            ideApp.writeSnapshot()
         when 'terminal'
           tabHandle.enableContextMenu()
 
@@ -778,19 +785,15 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     paneView = tabHandle.getOptions().pane
     editorPane = paneView.view
-    nodeData = editorPane.file
-
+    nodeData = editorPane.getFile()
 
     newTitle = Encoder.XSSEncode newTitle
     return  if newTitle is nodeData.name
     return  unless FSHelper.isValidFileName newTitle
 
     nodeData.rename newTitle, (err)=>
-      if err then console.log 'errr'
-
+      if err then console.log 'err', err
       tabHandle.setTitle newTitle
-      @emit 'NodeRenamed', nodeData, newTitle
-
 
   handleTerminalRenamingRequested: (tabHandle, newTitle) ->
 
