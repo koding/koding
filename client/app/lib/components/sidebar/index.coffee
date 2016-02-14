@@ -122,17 +122,15 @@ module.exports = class Sidebar extends React.Component
 
   renderStacks: ->
 
-    <SidebarStackHeaderSection>
-      {@divideStacks()}
-    </SidebarStackHeaderSection>
+    if @state.stacks.size and not @state.showNoStacksWidget
 
+      <SidebarStackHeaderSection>
+        {@divideStacks()}
+      </SidebarStackHeaderSection>
 
-  renderNoStacks: ->
+    else
 
-    return null  if @state.stacks.size
-    return null  unless @state.showNoStacksWidget
-
-    <SidebarNoStacks />
+      <SidebarNoStacks />
 
 
   renderDifferentStackResources: ->
@@ -174,7 +172,6 @@ module.exports = class Sidebar extends React.Component
       <div className='Sidebar-section-wrapper'>
         {@renderDifferentStackResources()}
         {@renderStacks()}
-        {@renderNoStacks()}
         {@renderSharedMachines()}
         {@renderInvitationWidget()}
       </div>

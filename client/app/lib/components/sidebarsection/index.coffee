@@ -45,6 +45,8 @@ module.exports = class SidebarSection extends React.Component
 
   renderHeader: ->
 
+    return null  unless @props.title
+
     unreadCount = if @props.unreadCount
     then 'unread'
     else ''
