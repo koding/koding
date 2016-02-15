@@ -1,4 +1,4 @@
-provider             = 'odesk'
+provider             = 'upwork'
 http                 = require 'https'
 koding               = require './bongo'
 { parseString }      = require 'xml2js'
@@ -49,7 +49,7 @@ module.exports = (req, res) ->
           redirectOauth err, req, res, { provider }
           return
 
-        client.get 'https://www.odesk.com/api/auth/v1/info',
+        client.get 'https://www.upwork.com/api/auth/v1/info',
           accessToken, accessTokenSecret, (err, data) ->
             try
               response = JSON.parse data
@@ -57,14 +57,14 @@ module.exports = (req, res) ->
               redirectOauth 'Error parsing user info', req, res, { provider }
               return
 
-            odesk                   = session.foreignAuth.odesk
-            odesk.token             = accessToken
-            odesk.accessTokenSecret = accessTokenSecret
-            odesk.foreignId         = response.auth_user.uid
-            odesk.profileUrl        = response.info.profile_url
-            odesk.profile           = response
+            upwork                   = session.foreignAuth.upwork
+            upwork.token             = accessToken
+            upwork.accessTokenSecret = accessTokenSecret
+            upwork.foreignId         = response.auth_user.uid
+            upwork.profileUrl        = response.info.profile_url
+            upwork.profile           = response
 
-            saveOauthToSession odesk, clientId, provider, (err) ->
+            saveOauthToSession upwork, clientId, provider, (err) ->
               if err
                 redirectOauth err, req, res, { provider }
                 return

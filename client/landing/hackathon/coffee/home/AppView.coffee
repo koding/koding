@@ -55,7 +55,7 @@ module.exports = class HomeView extends KDView
       tagName   : 'figure'
       bind      : 'mousemove mouseleave mouseenter'
       partial    : """
-        <i class="odesk"></i>
+        <i class="upwork"></i>
         <i class="kissmetrics"></i>
         <i class="accel"></i>
         <i class="udemy"></i>

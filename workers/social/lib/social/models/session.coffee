@@ -29,7 +29,7 @@ module.exports = class JSession extends Model
         get             : -> new Date
       foreignAuth       :
         github          : Object
-        odesk           : Object
+        upwork          : Object
         facebook        : Object
         linkedin        : Object
       returnUrl         : String
