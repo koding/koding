@@ -80,7 +80,7 @@ boxes =
     </ul>
     <div class="button-bar">
       <a href='#' data-handler='#{HANDLERS.skip}'>Skip this</a>
-      <a href='/Admin/Invitations' class="button">START</a>
+      <a href='/Admin/Invitations/Invite' class="button">START</a>
     </div>
     """
 
