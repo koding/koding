@@ -1153,7 +1153,7 @@ module.exports = class ComputeController extends KDController
    * If not given it tries to find default one and does the same thing, if it
    * can't find the default one, asks to user what to do next.
   ###
-  reinitStack: (stack) ->
+  reinitStack: (stack, callback = kd.noop) ->
 
     stack ?= @getGroupStack()
 
@@ -1186,7 +1186,9 @@ module.exports = class ComputeController extends KDController
 
         @destroyStack stack, (err) =>
 
-          return showError err  if err
+          if err
+            callback no
+            return showError err
 
           @reset()
 
@@ -1194,7 +1196,10 @@ module.exports = class ComputeController extends KDController
 
               new kd.NotificationView
                 title : 'Stack reinitialized'
+              callback yes
 
           if template and not groupStack
           then @createDefaultStack no, template
           else @createDefaultStack()
+    , ->
+      callback no
