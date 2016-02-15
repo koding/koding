@@ -107,7 +107,7 @@ module.exports = class KodingTray
 
 
 
-  handleMount: (machine) -> ->
+  handleMount: (machine) -> =>
 
     selectedDir  = electron.dialog.showOpenDialog
       properties : [ 'openDirectory' ]
