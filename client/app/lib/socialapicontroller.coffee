@@ -7,7 +7,7 @@ remote = require('./remote').getInstance()
 checkFlag = require './util/checkFlag'
 whoami = require './util/whoami'
 kd = require 'kd'
-isFeedEnabled = require './util/isFeedEnabled'
+isKoding = require './util/isKoding'
 KDController = kd.Controller
 MessageEventManager = require './messageeventmanager'
 
@@ -139,7 +139,7 @@ module.exports = class SocialApiController extends KDController
 
     m = new remote.api.SocialMessage plain
 
-    m.account = unless isFeedEnabled()
+    m.account = if isKoding()
       mapAccounts(accountOldId)[0]
     else
       if isIntegrationMessage m
@@ -303,7 +303,7 @@ module.exports = class SocialApiController extends KDController
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload or {}
 
-    if isFeedEnabled() and item.typeConstant in ['privatemessage', 'bot']
+    if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
       # if cache founded this is an update operation so we have to change purpose
       # with data payload description value. Otherwise this is a create private message
       # operation and we have to set item name with purpose value of data and

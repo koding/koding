@@ -7,10 +7,8 @@ ThreadSidebar        = require 'activity/components/threadsidebar'
 ChannelThreadHeader  = require 'activity/components/channelthreadheader'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
-PublicFeedPane       = require 'activity/components/publicfeedpane'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
 getGroup             = require 'app/util/getGroup'
-isKoding             = require 'app/util/isKoding'
 
 
 module.exports = class ChannelThreadPane extends React.Component
@@ -64,28 +62,19 @@ module.exports = class ChannelThreadPane extends React.Component
 
     return  unless thread = @state.channelThread
 
-    if not isKoding()
-      <ChannelThreadHeader.Container
-        className="ChannelThreadPane-header"
-        thread={thread}
-        onInvitePeople={@bound 'invitePeople'}
-        onLeaveChannel={@bound 'leaveChannel'}
-        onShowNotificationSettings={@bound 'showNotificationSettingsModal'} />
+    <ChannelThreadHeader.Container
+      className="ChannelThreadPane-header"
+      thread={thread}
+      onInvitePeople={@bound 'invitePeople'}
+      onLeaveChannel={@bound 'leaveChannel'}
+      onShowNotificationSettings={@bound 'showNotificationSettingsModal'} />
 
 
   renderPaneByTypeConstant: (thread) ->
 
-    if isKoding()
-      <section className='ThreadPane-feedWrapper'>
-        <PublicFeedPane.Container
-          ref='pane'
-          thread={thread}
-          popularChannels={@state.popularChannels}/>
-      </section>
-    else
-      <section className='ThreadPane-chatWrapper'>
-        <PublicChatPane ref='pane' thread={thread}/>
-      </section>
+    <section className='ThreadPane-chatWrapper'>
+      <PublicChatPane ref='pane' thread={thread}/>
+    </section>
 
 
   renderBody: ->
@@ -100,7 +89,6 @@ module.exports = class ChannelThreadPane extends React.Component
   renderSidebar: ->
 
     return null  unless thread = @state.channelThread
-    return null  if isKoding()
 
     <aside className='ChannelThreadPane-sidebar'>
       <ThreadSidebar
