@@ -3,6 +3,7 @@ shell           = require 'shell'
 electron        = require 'electron'
 ApplicationMenu = require './applicationmenu'
 IPCReporter     = require './ipcreporter'
+TrayIcon        = require './trayicon'
 Storage         = require './storage'
 BrowserWindow   = electron.BrowserWindow
 app             = electron.app
@@ -17,6 +18,9 @@ module.exports = ->
 
   # Set application menu
   new ApplicationMenu
+
+  # Create System Tray
+  new TrayIcon
 
   # Start listening the web app
   new IPCReporter
