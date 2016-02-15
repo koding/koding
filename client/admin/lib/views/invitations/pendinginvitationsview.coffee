@@ -18,10 +18,10 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
       partial  : 'There is no pending invitation.'
       cssClass : 'hidden no-item-view'
     options.sortOptions            or= [
-      { title: 'Send date',  value: 'createdAt' } # sort by -1
-      { title: 'Email',      value: 'email'     } # sort by  1
-      { title: 'First name', value: 'firstName' } # sort by  1
-      { title: 'Last name',  value: 'lastName'  } # sort by  1
+      { title: 'Send date',  value: 'modifiedAt' } # sort by -1
+      { title: 'Email',      value: 'email'      } # sort by  1
+      { title: 'First name', value: 'firstName'  } # sort by  1
+      { title: 'Last name',  value: 'lastName'   } # sort by  1
     ]
 
     super options, data
@@ -64,7 +64,7 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
   getSortOptions: ->
 
-    sortDirections = createdAt: -1, email: 1, firstName: 1, lastName: 1
+    sortDirections = { modifiedAt: -1, email: 1, firstName: 1, lastName: 1 }
     sortType       = @sortSelectBox.getValue()
     sort           = {}
     sort[sortType] = sortDirections[sortType]

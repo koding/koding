@@ -21,6 +21,7 @@ module.exports = class TeamMembersCommonView extends KDView
     options.listViewItemClass      or= MemberItemView
     options.listViewItemOptions    or= {}
     options.searchInputPlaceholder or= 'Find by name/username'
+    options.showSearchFieldAtFirst or= no
     options.sortOptions            or= [
       { title: 'Screen name',   value: 'fullname' }
       { title: 'Nickname',      value: 'nickname' }
@@ -38,11 +39,15 @@ module.exports = class TeamMembersCommonView extends KDView
 
   createSearchView: ->
 
-    { sortOptions } = @getOptions()
+    { sortOptions, showSearchFieldAtFirst } = @getOptions()
 
-    @addSubView @searchContainer = new KDCustomHTMLView
-      cssClass : 'search hidden'
+    @searchContainer = new KDCustomHTMLView
+      cssClass : 'search'
       partial  : '<span class="label">Sort by</span>'
+
+    @searchContainer.hide()  unless showSearchFieldAtFirst
+
+    @addSubView @searchContainer
 
     @searchContainer.addSubView @sortSelectBox = new KDSelectBox
       defaultValue  : sortOptions.first.value
@@ -88,7 +93,7 @@ module.exports = class TeamMembersCommonView extends KDView
         unless @isFetching
           @isFetching = yes
           @page++
-          @search()
+          @search no, yes
       else
         @fetchMembers()
 
@@ -211,9 +216,12 @@ module.exports = class TeamMembersCommonView extends KDView
         @fetchMembers yes
 
 
-  search: (useSearchMembersMethod = no) ->
+  search: (useSearchMembersMethod = no, loadWithScroll = no) ->
 
-    query = @searchInput.getValue()
+    @resetListItems()
+    @listController.lazyLoader.show()
+
+    query          = @searchInput.getValue()
     isQueryEmpty   = query is ''
     isQueryChanged = query isnt @lastQuery
 
@@ -221,10 +229,9 @@ module.exports = class TeamMembersCommonView extends KDView
       @page = 0
       @skip = 0
       @searchClear.hide()
-      @resetListItems()
       return @fetchMembers()  if isQueryEmpty
 
-    @page      = if query is @lastQuery then @page + 1 else 0
+    @page      = if loadWithScroll then @page + 1 else 0
     group      = @getData()
     options    = {
       @page,

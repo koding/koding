@@ -82,6 +82,10 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
     when 'home' then handleRoot()
 
+    when 'teams'
+      document.cookie = 'clientId=false'
+      location.reload()
+
     when 'name'
       open = (routeInfo, model) ->
         switch model?.bongo_?.constructorName

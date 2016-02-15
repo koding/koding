@@ -305,7 +305,6 @@ module.exports =
         .click                  sidebarSectionsHeaderSelector
 
 
-
   createChannel: (browser, user, channelName, isInvalid, purpose) ->
 
     channelModalSelector             = '.CreateChannel-Modal .CreateChannel-content'
@@ -362,6 +361,7 @@ module.exports =
     imageTextSelector     = '.Pane-body .ChatList .ChatItem .ChatItem-contentBody:nth-of-type(1)'
     linkTextSelector      = '.EmbedBoxLinkContent .EmbedBoxLinkContent-description'
     emojiSelector         = '.ChatList .ChatItem .SimpleChatListItem .ChatListItem-itemBodyContainer .ChatItem-contentBody '
+    blockSelector         = '.Pane-body .ChatList .ChatItem .ChatListItem-itemBodyContainer .ChatItem-contentBody .MessageBody blockquote'
     emojiSmileySelector   = "#{emojiSelector} .emoji-smiley"
     emojiThumbsUpSelector = "#{emojiSelector} .emoji-thumbsup"
     messageWithShortCode  = "console.log('123456789')"
@@ -396,6 +396,11 @@ module.exports =
           .waitForElementVisible  emojiSmileySelector, 20000
           .pause                  2000
           .waitForElementVisible  emojiThumbsUpSelector, 20000
+      when 'messageWithBlockquote'
+        browser
+          .pause                  3000
+          .waitForElementVisible  blockSelector, 20000
+          .assert.containsText    blockSelector, 'Message with blockquote'
 
 
   createChannelsAndCheckList: (browser, user) ->
@@ -482,9 +487,13 @@ module.exports =
           .waitForElementVisible confirmButton, 20000
           .click                 confirmButton
 
+      successMessage = if addMoreUser
+      then "Invitation is sent to"
+      else "Invitation is sent to #{userEmail}"
+
       browser
         .waitForElementVisible  notificationView, 20000
-        .assert.containsText    notificationView, 'Invitations are sent to new members.'
+        .assert.containsText    notificationView, successMessage
         .pause                  2000 # wait for notification
 
       if addMoreUser
@@ -637,3 +646,19 @@ module.exports =
       .pause                  3000 #waiting for the text to change
       .waitForElementVisible  editedTextSelector, 20000
       .assert.containsText    editedTextSelector, editedPurposeText
+
+
+  createPrivateChat: (browser) ->
+
+    emptyInviteMembersInputText = '.CreateChannel-Modal .CreateChannel-content .channelName input'
+    createChatButton            = '.CreateChannel-Modal .Modal-buttons button:first-child'
+    markedAsInvalidInputText    = '.CreateChannel-content .channelName.invalid'
+
+    @moveToSidebarHeader(browser, yes)
+
+    browser
+      .waitForElementVisible  emptyInviteMembersInputText, 20000
+      .waitForElementVisible  createChatButton, 20000
+      .click                  createChatButton
+      .waitForElementVisible  markedAsInvalidInputText, 20000
+
