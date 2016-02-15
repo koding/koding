@@ -78,6 +78,9 @@ boxes =
       <li>Get help configuring your stack</li>
       <li>Collaborate in real-time with chat, video, and more.</li>
     </ul>
+    <p class="slack">
+      You can also invite using <a href='/Admin/Invitations/Slack' class="slack-logo"></a>
+    </p>
     <div class="button-bar">
       <a href='#' data-handler='#{HANDLERS.skip}'>Skip this</a>
       <a href='/Admin/Invitations/Invite' class="button">START</a>
