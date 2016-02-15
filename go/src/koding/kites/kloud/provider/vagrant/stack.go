@@ -95,8 +95,9 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 	k.Config.Transport = config.XHRPolling
 
 	api := &vagrantapi.Klient{
-		Kite: k,
-		Log:  bs.Log.New("vagrantapi"),
+		Kite:  k,
+		Log:   bs.Log.New("vagrantapi"),
+		Debug: p.Debug || bs.TraceID != "",
 	}
 
 	return &Stack{

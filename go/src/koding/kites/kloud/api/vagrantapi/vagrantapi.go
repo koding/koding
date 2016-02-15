@@ -44,12 +44,15 @@ type Create struct {
 	Memory        int    // memory in MiB
 	Cpus          int    // number of cores
 	CustomScript  string // custom sh script, plain text
+	HostURL       string // host kite URL
 }
 
 // Command represents vagrant.{up,halt,destroy} requests.
 type Command struct {
-	FilePath string         // can be relative or absolute
-	Watch    dnode.Function // internal detail, to receive command output, ended with a magic value
+	FilePath string // can be relative or absolute
+	Success  dnode.Function
+	Failure  dnode.Function
+	Output   dnode.Function
 }
 
 // Status response values for vagrant.{list,status} requests.
@@ -80,8 +83,9 @@ func (s State) MachineState() machinestate.State {
 // Klient represents a client for vagrant. Spelled with a K, because we
 // can.
 type Klient struct {
-	Kite *kite.Kite
-	Log  logging.Logger
+	Kite  *kite.Kite
+	Log   logging.Logger
+	Debug bool
 
 	DialTimeout time.Duration // 30s by default
 	Timeout     time.Duration // 10m by default
@@ -101,29 +105,29 @@ func (k *Klient) timeout() time.Duration {
 	return defaultTimeout
 }
 
-func (k *Klient) send(queryString, method string, req, resp interface{}) error {
+func (k *Klient) send(queryString, method string, req, resp interface{}) (string, error) {
 	queryString = utils.QueryString(queryString)
 
 	k.Log.Debug("calling %q method on %q with %+v", method, queryString, req)
 
 	kref, err := klient.ConnectTimeout(k.Kite, queryString, k.dialTimeout())
 	if err != nil {
-		return errors.New("connecting to klient failed: " + err.Error())
+		return "", errors.New("connecting to klient failed: " + err.Error())
 	}
 	defer kref.Close()
 
 	r, err := kref.Client.TellWithTimeout(method, k.timeout(), req)
 	if err != nil {
-		return errors.New("sending request to klient failed: " + err.Error())
+		return "", errors.New("sending request to klient failed: " + err.Error())
 	}
 
 	if err := r.Unmarshal(resp); err != nil {
-		return errors.New("reading response from klient failed: " + err.Error())
+		return "", errors.New("reading response from klient failed: " + err.Error())
 	}
 
 	k.Log.Debug("received %+v response from %q (%q)", resp, method, queryString)
 
-	return nil
+	return kref.URL(), nil
 }
 
 func (k *Klient) cmd(queryString, method, boxPath string) error {
@@ -136,19 +140,33 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 		return errors.New("connecting to klient failed: " + err.Error())
 	}
 
-	done := make(chan struct{})
+	done := make(chan error, 1)
 
-	watch := dnode.Callback(func(r *dnode.Partial) {
-		msg := r.One().MustString()
-		k.Log.Debug("%s: %s", method, msg)
-		if msg == magicEnd {
-			close(done)
+	success := dnode.Callback(func(*dnode.Partial) {
+		done <- nil
+	})
+
+	failure := dnode.Callback(func(r *dnode.Partial) {
+		msg, err := r.String()
+		if err != nil {
+			err = errors.New("unknown failure")
+		} else {
+			err = errors.New(msg)
 		}
+		done <- err
 	})
 
 	req := &Command{
 		FilePath: boxPath,
-		Watch:    watch,
+		Success:  success,
+		Failure:  failure,
+	}
+
+	if k.Debug {
+		log := k.Log.New(method)
+		req.Output = dnode.Callback(func(r *dnode.Partial) {
+			log.Debug("%s", r.MustString())
+		})
 	}
 
 	if _, err = kref.Client.TellWithTimeout(method, k.timeout(), req); err != nil {
@@ -156,8 +174,8 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 	}
 
 	select {
-	case <-done:
-		return nil
+	case err := <-done:
+		return err
 	case <-time.After(k.timeout()):
 		return fmt.Errorf("timed out calling %q on %q", method, queryString)
 	}
@@ -167,9 +185,12 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 func (k *Klient) Create(queryString string, req *Create) (resp *Create, err error) {
 	resp = &Create{}
 
-	if err := k.send(queryString, "vagrant.create", req, resp); err != nil {
+	url, err := k.send(queryString, "vagrant.create", req, resp)
+	if err != nil {
 		return nil, err
 	}
+
+	resp.HostURL = url
 
 	return resp, nil
 }
@@ -179,7 +200,7 @@ func (k *Klient) List(queryString string) ([]*Status, error) {
 	req := struct{ FilePath string }{"."} // workaround for TMS-2106
 	resp := make([]*Status, 0)
 
-	if err := k.send(queryString, "vagrant.list", req, &resp); err != nil {
+	if _, err := k.send(queryString, "vagrant.list", req, &resp); err != nil {
 		return nil, err
 	}
 
@@ -193,7 +214,7 @@ func (k *Klient) Status(queryString, boxPath string) (*Status, error) {
 		FilePath string
 	}{boxPath}
 
-	if err := k.send(queryString, "vagrant.status", req, resp); err != nil {
+	if _, err := k.send(queryString, "vagrant.status", req, resp); err != nil {
 		return nil, err
 	}
 
@@ -222,7 +243,7 @@ func (k *Klient) Version(queryString string) (string, error) {
 	req := struct{ FilePath string }{"."} // workaround for TMS-2106
 	var resp string
 
-	if err := k.send(queryString, "vagrant.version", req, &resp); err != nil {
+	if _, err := k.send(queryString, "vagrant.version", req, &resp); err != nil {
 		return "", err
 	}
 

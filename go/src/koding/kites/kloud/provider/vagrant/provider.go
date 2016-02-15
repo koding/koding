@@ -44,6 +44,7 @@ type Provider struct {
 	DNSStorage *dnsstorage.MongodbStorage
 	Userdata   *userdata.Userdata
 	TunnelURL  string
+	Debug      bool
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
@@ -104,8 +105,10 @@ func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
 	m.User = user
 	m.Log = p.Log.New(m.ObjectId.Hex())
 
+	debug := p.Debug
 	if traceID, ok := kloud.TraceFromContext(ctx); ok {
 		m.Log = common.NewLogger("kloud-vagrant", true).New(m.ObjectId.Hex()).New(traceID)
+		debug = true
 	}
 
 	m.Session = &session.Session{
@@ -118,8 +121,9 @@ func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
 	}
 
 	m.api = &vagrantapi.Klient{
-		Kite: p.Kite,
-		Log:  m.Log.New("vagrantapi"),
+		Kite:  p.Kite,
+		Log:   m.Log.New("vagrantapi"),
+		Debug: debug,
 	}
 
 	ev, ok := eventer.FromContext(ctx)

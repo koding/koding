@@ -16,6 +16,8 @@ $script = <<SCRIPT
 
 set -euo pipefail
 
+export DEBIAN_FRONTEND=noninteractive
+
 echo I am provisioning...
 date > /etc/vagrant_provisioned_at
 wget -q --retry-connrefused --tries 5 https://s3.amazonaws.com/kodingdev-provision/provisionklient.gz

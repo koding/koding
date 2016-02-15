@@ -5,7 +5,6 @@ package vagrant
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 	"sync"
 
@@ -14,8 +13,6 @@ import (
 	"github.com/koding/kite/dnode"
 	"github.com/koding/vagrantutil"
 )
-
-const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
 
 // Options are used to alternate default behavior of Handlers.
 type Options struct {
@@ -223,7 +220,7 @@ func (h *Handlers) Provider(r *kite.Request) (interface{}, error) {
 // Destroy destroys the given Vagrant box specified in the path
 func (h *Handlers) Destroy(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return watchCommand(r, v.Destroy)
+		return h.watchCommand(r, v.Destroy)
 	}
 	return h.withPath(r, fn)
 }
@@ -231,7 +228,7 @@ func (h *Handlers) Destroy(r *kite.Request) (interface{}, error) {
 // Halt stops the given Vagrant box specified in the path
 func (h *Handlers) Halt(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return watchCommand(r, v.Halt)
+		return h.watchCommand(r, v.Halt)
 	}
 	return h.withPath(r, fn)
 }
@@ -239,7 +236,7 @@ func (h *Handlers) Halt(r *kite.Request) (interface{}, error) {
 // Up starts and creates the given Vagrant box specified in the path
 func (h *Handlers) Up(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return watchCommand(r, v.Up)
+		return h.watchCommand(r, v.Up)
 	}
 	return h.withPath(r, fn)
 }
@@ -365,9 +362,11 @@ func (h *Handlers) init() {
 // watchCommand is an helper method to send back the command outputs of
 // commands like Halt,Destroy or Up to the callback function passed in the
 // request.
-func watchCommand(r *kite.Request, fn func() (<-chan *vagrantutil.CommandOutput, error)) (interface{}, error) {
+func (h *Handlers) watchCommand(r *kite.Request, fn func() (<-chan *vagrantutil.CommandOutput, error)) (interface{}, error) {
 	var params struct {
-		Watch dnode.Function
+		Success dnode.Function
+		Failure dnode.Function
+		Output  dnode.Function
 	}
 
 	if r.Args == nil {
@@ -378,27 +377,29 @@ func watchCommand(r *kite.Request, fn func() (<-chan *vagrantutil.CommandOutput,
 		return nil, err
 	}
 
-	if !params.Watch.IsValid() {
-		return nil, errors.New("watch argument is either not passed or it's not a function")
+	if !params.Success.IsValid() {
+		return nil, errors.New("invalid request: missing success callback")
 	}
 
-	output, err := fn()
-	if err != nil {
-		return nil, err
+	if !params.Failure.IsValid() {
+		return nil, errors.New("invalid request: missing failure callback")
+	}
+
+	var w vagrantutil.Waiter
+
+	if params.Output.IsValid() {
+		w.OutputFunc = func(line string) {
+			h.log.Debug("%s: %s", r.Method, line)
+			params.Output.Call(line)
+		}
 	}
 
 	go func() {
-		for out := range output {
-			if out.Error != nil {
-				params.Watch.Call(fmt.Sprintf("%s failed: %s", r.Method, out.Error.Error()))
-				params.Watch.Call(magicEnd)
-				return
-			}
-
-			params.Watch.Call(out.Line)
+		if err := w.Wait(fn()); err != nil {
+			params.Failure.Call(err.Error())
+		} else {
+			params.Success.Call()
 		}
-
-		params.Watch.Call(magicEnd)
 	}()
 
 	return true, nil
