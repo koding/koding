@@ -1,4 +1,5 @@
-async = require 'async'
+async       = require 'async'
+KodingError = require '../../../error'
 
 log = ->
   console.log '[handlers:memberremoved]', arguments...
@@ -113,7 +114,7 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
         if err or not user
           errorMessage = 'Failed to fetch member'
           log "#{errorMessage}:", err
-          next err ? new Error errorMessage
+          next err ? new KodingError errorMessage
         else
           memberJUser = user
           next()
