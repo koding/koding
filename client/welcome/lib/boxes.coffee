@@ -31,8 +31,11 @@ boxes =
       <strong>Requirements not met.</strong>
       No VMs have been allocated. Your
       team administrator needs to create
-      a stack. You can ping him/her to
+      a stack. Please ping them to
       help get things moving.
+    </p>
+    <p>
+      Or you can <a href='/Stacks/My-Stack-Templates/new'>create your personal stack</a> to see how things work.
     </p>
     <div class="button-bar">
       <a href='#' data-handler='#{HANDLERS.skip}'>Skip this</a>
