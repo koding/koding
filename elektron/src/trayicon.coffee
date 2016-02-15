@@ -123,7 +123,7 @@ module.exports = class KodingTray
 
       if err
         @setMenu 'Mount failed', yes
-        setTimeout loadMachineMenu, 1000
+        setTimeout @loadMachineMenu, 1000
       else
         @loadMachineMenu()
         do handleOpen mountTo
@@ -139,7 +139,7 @@ module.exports = class KodingTray
 
       if err
         @setMenu 'Unmount failed', yes
-        setTimeout loadMachineMenu, 1000
+        setTimeout @loadMachineMenu, 1000
       else
         @loadMachineMenu()
 
