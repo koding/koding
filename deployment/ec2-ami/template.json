@@ -1,0 +1,48 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_KEY`}}"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "us-east-1",
+      "vpc_id": "vpc-ddf154b8",
+      "subnet_id": "subnet-b47692ed",
+      "source_ami": "ami-b30a56d9",
+      "instance_type": "c3.2xlarge",
+      "ssh_username": "ec2-user",
+      "ami_name": "koding-eb-{{timestamp}}",
+      "launch_block_device_mappings": [
+        {
+          "device_name": "/dev/sda1",
+          "volume_size": 16,
+          "delete_on_termination": true
+        }
+      ],
+      "user_data_file": "user_data.amazon-ebs"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "amazon-linux",
+      "destination": "/tmp"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "tar --create --file /tmp/amazon-linux.tar /tmp/amazon-linux/",
+        "sudo tar --verbose --extract --file /tmp/amazon-linux.tar --no-overwrite-dir --keep-old-files --strip-components=3 --directory=/etc",
+        "sudo yum --assumeyes makecache"
+      ]
+    },
+    {
+      "type": "shell",
+      "script": "provision.sh",
+      "execute_command": "{{ .Vars }} sudo -E '{{ .Path }}'"
+    }
+  ]
+}

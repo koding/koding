@@ -64,6 +64,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @isManaged   = jMachine.provider is 'managed'
     @templateId  = jMachine.generatedFrom?.templateId ? null
     @machineName = jMachine.label
+    @machineName = jMachine.label.slice(0,20)+'...'  if jMachine.label.length > 20
 
     @showBusy()
     @show()
