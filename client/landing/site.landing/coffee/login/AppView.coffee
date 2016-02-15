@@ -563,6 +563,8 @@ module.exports = class LoginView extends JView
       @loginForm.tfcode.show()
       @loginForm.tfcode.setFocus()
 
+    formData.redirectTo = utils.getLoginRedirectPath '/Login'
+
     mainController.login formData
 
 
