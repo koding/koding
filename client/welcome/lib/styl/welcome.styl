@@ -92,13 +92,26 @@ body.welcome
           pointer-events    none
         p
           margin            0 0 20px
+          a
+            text-decoration underline
           strong
             display         block
             margin-bottom   20px
+
+        p.slack
+          text-align        center
+
+        a.slack-logo
+          r-sprite          welcome slack
+          display           block
+          margin            10px auto 0
+
         ul
           li
             list-style      disc inside
 
+        ul + p
+          margin-top        20px
 
         p + p
           margin-top        20px
