@@ -62,3 +62,10 @@ module.exports = class StacksAppController extends AdminAppController
     view.unsetClass 'fullscreen'
     kd.utils.wait 733, -> view._windowDidResize()
     @isFullscreen = no
+
+
+  appendCssClassToModal: (className) ->
+
+    { view } = @getOptions()
+
+    view.setClass className
