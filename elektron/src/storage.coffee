@@ -22,9 +22,11 @@ module.exports = class Storage
     fs.stat @path, (err) => @write @template  if err
 
 
-  write: (data) ->
+  write: (data, callback) ->
 
-    fs.writeFile @path, JSON.stringify(data), => console.log "Storage file is saved at: #{@path}"
+    fs.writeFile @path, JSON.stringify(data), =>
+      console.log "Storage file is saved at: #{@path}"
+      callback()
 
 
   get: ->
