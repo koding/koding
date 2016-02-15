@@ -62,23 +62,16 @@ runTests = -> describe 'workers.social.models.computeproviders.softlayer', ->
       withCreatedUser ({ client, user, account, group }) ->
         client.r = { user, account, group }
 
-        queue = [
-
-          (next) ->
-            options = generateDefaultOptions()
-            Softlayer.create client, options, (err, data) ->
-              expect(err).to.not.exist
-              expect(data.meta).to.be.an 'object'
-              expect(data.meta.type).to.be.equal 'softlayer'
-              expect(data.meta.storage_size).to.be.equal 25
-              expect(data.meta.alwaysOn).to.be.false
-              expect(data.label).to.be.a 'string'
-              expect(data.credential).to.be.equal user.username
-              next()
-
-        ]
-
-        async.series queue, done
+        options = generateDefaultOptions()
+        Softlayer.create client, options, (err, data) ->
+          expect(err).to.not.exist
+          expect(data.meta).to.be.an 'object'
+          expect(data.meta.type).to.be.equal 'softlayer'
+          expect(data.meta.storage_size).to.be.equal 25
+          expect(data.meta.alwaysOn).to.be.false
+          expect(data.label).to.be.a 'string'
+          expect(data.credential).to.be.equal user.username
+          done()
 
 
   describe '#postCreate()', ->
