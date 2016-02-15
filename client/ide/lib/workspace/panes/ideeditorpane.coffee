@@ -87,6 +87,7 @@ module.exports = class IDEEditorPane extends IDEPane
       @bindChangeListeners()
       @bindFileSyncEvents()
       @emit 'EditorIsReady'
+      @emit 'ready'
 
     @on 'RealtimeManagerSet', =>
       myPermission = @rtm.getFromModel('permissions').get nick()
