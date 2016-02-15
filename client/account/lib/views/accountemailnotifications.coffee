@@ -20,7 +20,18 @@ module.exports = class AccountEmailNotifications extends KDView
         height   : 25
 
     whoami().fetchEmailFrequency (err, frequency) =>
+
+      path = kd.singletons.router.getCurrentPath()
+
+      if path.search("unsubscribe") > -1
+        globalFlag  = no
+        frequency.global = globalFlag
+        notify_ 'You are unsubscribed from all email notifications.'
+      else
+        globalFlag = frequency.global
+
       @putContents frequency or {}
+      @switched 'global', globalFlag
       @handleGlobalState frequency.global
       loader.destroy()
 
