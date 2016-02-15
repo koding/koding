@@ -560,9 +560,15 @@ Admin main styles
 
   .members-commonview
 
-    main.kdscrollview > .kdlistview
-      padding-right         25px
-      borderBox()
+    main.kdscrollview
+      position              initial
+
+      > .kdlistview
+        padding-right         25px
+        borderBox()
+
+    .lazy-loader
+      abs                   -98px 30px auto auto
 
   .clear-search
     font-size               13px

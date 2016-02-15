@@ -440,17 +440,18 @@ module.exports = class JMachine extends Module
         else @removeUsers { targets, permanent, inform, group }, callback
 
       else
-        @removeInvalidUsers callback
+        @removeInvalidUsers { group }, callback
 
 
   # Fetch machine's shared users and fetch those users' JUser document
   # and remove the user from machine share list if the user.status is deleted
-  removeInvalidUsers: (callback) ->
+  removeInvalidUsers: (options, callback) ->
 
     JUser = require '../user'
     queue = []
     users = @users.slice 0
     usersToBeRemoved = []
+    { group } = options
 
     users.forEach (user) ->
       return  if user.sudo and user.owner
@@ -465,7 +466,7 @@ module.exports = class JMachine extends Module
       if usersToBeRemoved.length is 0
         next new KodingError 'Target does not support machines.'
       else
-        @removeUsers { targets: usersToBeRemoved, force: yes }, (err) ->
+        @removeUsers { targets: usersToBeRemoved, force: yes, group }, (err) ->
           next err
 
     async.series queue, callback
