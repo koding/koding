@@ -34,9 +34,11 @@ module.exports = class ProfileView extends JView
     @memberData = @getData()
     { mainController, router } = kd.singletons
 
-    if @memberData.isExempt
-      if not checkFlag 'super-admin' or not @memberData._id is whoami()._id
-        return router.handleRoute '/Activity'
+    isSameUser    = @memberData._id is whoami()._id
+    isSuperAdmin  = checkFlag 'super-admin'
+
+    if @memberData.isExempt and (not isSuperAdmin and not isSameUser)
+      return router.handleRoute '/Activity'
 
     @firstName      = new ProfileContentEditableView
       tagName       : "span"
