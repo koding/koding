@@ -39,7 +39,6 @@ boxes =
     </p>
     <div class="button-bar">
       <a href='#' data-handler='#{HANDLERS.skip}'>Skip this</a>
-      <a href='#' class="button" data-handler='#{HANDLERS.messageAdmin}'>MESSAGE</a>
     </div>
     """
 
