@@ -49,6 +49,12 @@ module.exports = class IDEEditorPane extends IDEPane
     @getFileModifiedDate (date) => @lastModifiedDate = date
 
 
+  whenEditorReady: (callback = kd.noop) ->
+
+    return callback()  if @isEditorReady
+    @once 'EditorIsReady', -> callback()
+
+
   getFileModifiedDate: (callback = noop) ->
 
     path        = FSHelper.plainPath @file.path
@@ -87,6 +93,7 @@ module.exports = class IDEEditorPane extends IDEPane
       @bindChangeListeners()
       @bindFileSyncEvents()
       @emit 'EditorIsReady'
+      @isEditorReady = yes
 
     @on 'RealtimeManagerSet', =>
       myPermission = @rtm.getFromModel('permissions').get nick()

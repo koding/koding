@@ -69,6 +69,12 @@ module.exports = class IDETerminalPane extends IDEPane
       @makeReadOnly()  if myPermission is 'read'
 
 
+  whenTerminalConnected: (callback) ->
+
+    return callback()  if @remote # remote will set when WebTermConnected
+    @once 'WebtermCreated', -> callback()
+
+
   getMode: ->
 
     return  if @session? then 'shared' else 'create'
