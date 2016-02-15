@@ -42,3 +42,23 @@ module.exports = class StacksAppController extends AdminAppController
 
 
   checkRoute: (route) -> /^\/Stacks.*/.test route
+
+
+  toggleFullscreen: ->
+
+    if @isFullscreen then @exitFullscreen() else @fullscreen()
+
+
+  fullscreen: ->
+
+    @getOptions().view.setClass 'fullscreen'
+    @isFullscreen = yes
+
+
+  exitFullscreen: ->
+
+    { view } = @getOptions()
+
+    view.unsetClass 'fullscreen'
+    kd.utils.wait 733, -> view._windowDidResize()
+    @isFullscreen = no
