@@ -54,8 +54,9 @@ type Command struct {
 
 // Status response values for vagrant.{list,status} requests.
 type Status struct {
-	FilePath string
-	State    State
+	FilePath string `json:"filePath"`
+	State    State  `json:"state"`
+	Error    string `json:"error"`
 }
 
 // MachineState maps the State field to machinestate.State value.

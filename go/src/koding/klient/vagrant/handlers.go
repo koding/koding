@@ -9,12 +9,20 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/vagrantutil"
 )
 
 const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
+
+// Options are used to alternate default behavior of Handlers.
+type Options struct {
+	Home string
+	DB   *bolt.DB
+	Log  kite.Logger
+}
 
 // Handlers define a set of kite handlers which is responsible of managing
 // vagrant boxes on multiple different paths.
@@ -23,6 +31,9 @@ type Handlers struct {
 	log     kite.Logger
 	paths   map[string]*vagrantutil.Vagrant
 	pathsMu sync.Mutex // protects paths
+
+	// db stores machine status.
+	db Storage
 
 	// The following fields implement the singleflight pattern, for
 	// each concurrent request there'll be only one ongoing operation
@@ -36,10 +47,11 @@ type Handlers struct {
 }
 
 // NewHandlers returns a new instance of Handlers.
-func NewHandlers(home string, log kite.Logger) *Handlers {
+func NewHandlers(opts *Options) *Handlers {
 	return &Handlers{
-		home:     home,
-		log:      log,
+		home:     opts.Home,
+		log:      opts.Log,
+		db:       newStorage(opts),
 		paths:    make(map[string]*vagrantutil.Vagrant),
 		boxNames: make(map[string]chan<- (chan error)),
 		boxPaths: make(map[string]chan<- (chan error)),
@@ -48,8 +60,9 @@ func NewHandlers(home string, log kite.Logger) *Handlers {
 
 // Info is returned when the Status() or List() methods are called.
 type Info struct {
-	FilePath string
-	State    string
+	FilePath string `json:"filePath"`
+	State    string `json:"state"`
+	Error    string `json:"error,omitempty"`
 }
 
 type VagrantCreateOptions struct {
@@ -389,5 +402,4 @@ func watchCommand(r *kite.Request, fn func() (<-chan *vagrantutil.CommandOutput,
 	}()
 
 	return true, nil
-
 }

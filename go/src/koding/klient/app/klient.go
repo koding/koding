@@ -158,12 +158,18 @@ func NewKlient(conf *KlientConfig) *Klient {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
+	vagrantOpts := &vagrant.Options{
+		Home: conf.VagrantHome,
+		DB:   db, // nil is ok, fallbacks to in-memory storage
+		Log:  k.Log,
+	}
+
 	kl := &Klient{
 		kite:         k,
 		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
 		tunnelclient: klienttunnel.NewClient(db),
-		vagrant:      vagrant.NewHandlers(conf.VagrantHome, k.Log),
+		vagrant:      vagrant.NewHandlers(vagrantOpts),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,

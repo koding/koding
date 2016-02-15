@@ -34,7 +34,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vb.customize ["modifyvm", :id, "--memory", "{{ .Memory }}", "--cpus", "{{ .Cpus }}"]
   end
 
-  config.vm.network :forwarded_port, guest: 56789, host: 56790, auto_correct: true
   config.vm.provision "shell", inline: $script
 end
 `
