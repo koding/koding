@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   withConvertedUser
   checkBongoConnectivity } = require '../../../../testhelper'
@@ -127,43 +127,41 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
 
         queue = [
 
-          ->
+          (next) ->
             JGroup.one { slug : client.context.group }, (err, group_) ->
               expect(err).to.not.exist
               group = group_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             client.r = { account, user, group }
             options = { machineId : machine._id.toString(), alwaysOn : false }
             Aws.update client, options, (err) ->
               expect(err?.message).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JMachine.one { _id : machine._id }, (err, machine_) ->
               expect(err).to.not.exist
               expect(machine_.meta.alwaysOn).to.be.falsy
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             client.r = { account, user, group }
             options = { machineId : machine._id.toString(), alwaysOn : true }
             Aws.update client, options, (err) ->
               expect(err?.message).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JMachine.one { _id : machine._id }, (err, machine_) ->
               expect(err).to.not.exist
               expect(machine_.meta.alwaysOn).to.be.truthy
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
 beforeTests()

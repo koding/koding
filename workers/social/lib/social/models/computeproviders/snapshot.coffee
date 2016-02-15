@@ -8,7 +8,7 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JSnapshot extends Module
 
-  { ObjectId, signature, daisy, secure } = require 'bongo'
+  { ObjectId, signature, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
 
