@@ -114,8 +114,6 @@ class IDEAppController extends AppController
       # TODO: This needs to be fixed. ~Umut
       windowController.notifyWindowResizeListeners()
 
-      @resizeActiveTerminalPane()
-
       @runOnboarding()  if @isMachineRunning()
 
       unless @layoutManager.isSnapshotRestored()
@@ -135,6 +133,8 @@ class IDEAppController extends AppController
 
       if @mountedMachineUId is machineUId and slug is @workspaceData.slug
         @quit()
+
+    @layoutManager.once 'LayoutSizesApplied', @bound 'doResize'
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -1249,7 +1249,7 @@ class IDEAppController extends AppController
     @activeTabView.parent.toggleFullscreen()
 
 
-  doResize: ->
+  doResize: kd.utils.debounce 100, ->
 
     @forEachSubViewInIDEViews_ (pane) =>
       {paneType} = pane.options
@@ -1258,19 +1258,19 @@ class IDEAppController extends AppController
           { webtermView } = pane
           { terminal }    = webtermView
 
-          terminal.windowDidResize()  if terminal?
+          pane.whenTerminalConnected =>
 
-          {isActive} = @getActiveInstance()
+            terminal.updateSize yes  if terminal
 
-          if not @isInSession and isActive
-            kd.utils.wait 400, -> # defer was not enough.
-              webtermView.triggerFitToWindow()
+            if not @isInSession and @getActiveInstance().isActive
+              kd.utils.wait 400, -> # defer was not enough.
+                webtermView.triggerFitToWindow()
 
         when 'editor', 'tailer'
           height = pane.getHeight()
           {ace}  = pane.aceView
 
-          if ace?.editor?
+          pane.whenEditorReady =>
             ace.setHeight height
             ace.editor.resize()
 
@@ -1288,7 +1288,7 @@ class IDEAppController extends AppController
   resizeActiveTerminalPane: ->
 
     @forEachSubViewInIDEViews_ 'terminal', (tl) ->
-      tl.webtermView.terminal?.updateSize()
+      tl.webtermView.terminal?.updateSize yes
 
 
   removePaneFromTabView: (pane, shouldDetach = no) ->
@@ -1926,11 +1926,11 @@ class IDEAppController extends AppController
 
 
   turnOffTerminalSizeListener: ->
-    
+
     @activePaneView?.webtermView?.off 'ScreenSizeChanged'
 
 
   listenForTerminalSizeChanges: ->
-    
+
     @activePaneView?.webtermView?.on 'ScreenSizeChanged', (size) =>
       @updateStatusBar null, "Screen size changed to (#{size.w}, #{size.h})"
