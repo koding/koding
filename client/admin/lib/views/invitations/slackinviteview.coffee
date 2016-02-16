@@ -1,6 +1,9 @@
 kd    = require 'kd'
 
-module.exports = class SlackInviteView extends kd.CustomHTMLView
+module.exports = class SlackInviteView extends kd.CustomScrollView
+
+  SLACKBOT_ID = 'USLACKBOT'
+  OAUTH_URL   = "#{location.origin}/api/social/slack/oauth"
 
   constructor: (options = {}, data) ->
 
@@ -9,17 +12,17 @@ module.exports = class SlackInviteView extends kd.CustomHTMLView
     super options, data
 
     @createInformationView()
-    @createOAuthButton()
-    @createChannelSelector()
 
 
-  createInformationView : -> @setPartial "<p>Invite your teammates using your company's Slack account.</p>"
+  createInformationView : ->
 
-  createOAuthButton: ->
+    @wrapper.addSubView info = new kd.CustomHTMLView
+      tagName  : 'p'
+      cssClass : 'information'
+      partial  : 'Invite your teammates using your company\'s Slack account.'
 
-    @addSubView new kd.ButtonView
+    info.addSubView button = new kd.ButtonView
       cssClass : 'solid medium green slack-oauth'
-      title    : 'Integrate with <cite></cite>'
 
   createChannelSelector: ->
 
@@ -60,5 +63,22 @@ module.exports = class SlackInviteView extends kd.CustomHTMLView
       ]
 
     wrapper.addSubView new kd.ButtonView
+      title    : 'Import from  <cite></cite>'
+      callback : =>
+
+        cb = =>
+          kd.utils.killRepeat repeat
+          info.hide()
+          @createInviterViews()
+
+        oauth_window = window.open(
+          OAUTH_URL,
+          "slack-oauth-window",
+          "width=800,height=#{window.innerHeight},left=#{Math.floor (screen.width/2) - 400},top=#{Math.floor (screen.height/2) - (window.innerHeight/2)}"
+        )
+
+        repeat = kd.utils.repeat 500, -> cb()  if oauth_window.closed
+
+
       cssClass : 'solid medium green invite-members'
       title    : 'Invite using Slack'
