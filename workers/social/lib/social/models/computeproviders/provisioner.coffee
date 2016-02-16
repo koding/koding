@@ -10,7 +10,7 @@ module.exports = class JProvisioner extends jraphical.Module
 
   KodingError        = require '../../error'
 
-  { secure, ObjectId, signature, daisy } = require 'bongo'
+  { secure, ObjectId, signature } = require 'bongo'
   { Relationship }     = jraphical
   { permit }           = require '../group/permissionset'
   Validators           = require '../group/validators'

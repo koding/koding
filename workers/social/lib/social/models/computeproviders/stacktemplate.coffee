@@ -1,7 +1,8 @@
-{ ObjectId, signature, daisy }  = require 'bongo'
-{ Module, Relationship }        = require 'jraphical'
-KodingError                     = require '../../error'
-helpers                         = require './helpers'
+{ ObjectId, signature }  = require 'bongo'
+{ Module, Relationship } = require 'jraphical'
+KodingError              = require '../../error'
+helpers                  = require './helpers'
+async                    = require 'async'
 
 
 module.exports = class JStackTemplate extends Module
@@ -246,15 +247,13 @@ module.exports = class JStackTemplate extends Module
     JCredential = require './credential'
     queue       = []
 
-    credentials.forEach (identifier) -> queue.push ->
+    credentials.forEach (identifier) -> queue.push (next) ->
       JCredential.fetchByIdentifier client, identifier, (err, credential) ->
         if not err and credential
-        then credential.delete client, -> queue.next()
-        else queue.next()
+        then credential.delete client, -> next()
+        else next()
 
-    queue.push -> callback null
-
-    daisy queue
+    async.series queue, -> callback null
 
 
   delete: permit
@@ -388,7 +387,7 @@ module.exports = class JStackTemplate extends Module
     clonedCreds = []
     queue       = []
 
-    credentials.forEach (identifier) -> queue.push ->
+    credentials.forEach (identifier) -> queue.push (next) ->
       JCredential.fetchByIdentifier client, identifier, (err, credential) ->
         if not err and credential
           credential.clone client, (err, cloneCredential) ->
@@ -396,14 +395,11 @@ module.exports = class JStackTemplate extends Module
               console.warn 'Clone failed:', err
             else
               clonedCreds.push cloneCredential.identifier
-            queue.next()
+            next()
         else
-          queue.next()
+          next()
 
-    queue.push ->
-      callback null, clonedCreds
-
-    daisy queue
+    async.series queue, -> callback null, clonedCreds
 
 
   clone: permit

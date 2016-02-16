@@ -1,5 +1,5 @@
 { _
-  daisy
+  async
   expect
   withConvertedUser
   generateRandomString
@@ -119,14 +119,14 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
         queue = [
 
-          ->
+          (next) ->
             client.r = { account, user }
             Managed.postCreate client, options, (err, data) ->
               expect(err).to.not.exist
               workspace = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting machine to be updated
             JMachine.one { _id : machine._id }, (err, machine) ->
               expect(err).to.not.exist
@@ -134,9 +134,9 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
               expect(machine.domain).to.be.equal options.postCreateOptions.ipAddress
               expect(machine.ipAddress).to.be.equal options.postCreateOptions.ipAddress
               expect(machine.queryString).to.be.equal options.postCreateOptions.queryString
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting workspace to be crated
             JWorkspace.one { _id : workspace._id }, (err, workspace_) ->
               expect(err).to.not.exist
@@ -144,13 +144,11 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
               expect(workspace_.isDefault).to.be.truthy
               expect(workspace_.machineUId).to.be.equal machine.uid
               expect(workspace_.originId.toString()).to.be.equal account._id.toString()
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#remove()', ->
@@ -164,23 +162,21 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
         queue = [
 
-          ->
+          (next) ->
             Managed.remove client, { machineId : machine._id.toString() }, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting machine to be destroyed
             JMachine.one { _id : machine._id }, (err, machine) ->
               expect(err).to.not.exist
               expect(machine).to.not.exist
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#update()', ->
@@ -202,25 +198,23 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
         queue = [
 
-          ->
+          (next) ->
             Managed.update client, updateOptions, (err) ->
               expect(err?.message).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting machine to be updated successfully
             JMachine.one { _id : machine._id }, (err, machine_) ->
               expect(err).to.not.exist
               expect(machine_.meta?.storage).to.be.equal updateOptions.storage
               expect(machine_.ipAddress).to.be.equal updateOptions.ipAddress
               expect(machine_.queryString).to.be.equal expectedQueryString
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     it 'should fail when required options not provided', (done) ->
@@ -254,29 +248,27 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
         queue = [
 
-          ->
+          (next) ->
             options = generateDefaultOptions { storage : 'invalidStorage' }
             Managed.update client, options, (err) ->
               expect(err?.message).to.be.equal 'Provided storage is not valid'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             options = generateDefaultOptions { ipAddress : 'invalidIP' }
             Managed.update client, options, (err) ->
               expect(err?.message).to.be.equal 'Provided IP is not valid'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             options = generateDefaultOptions { queryString : '/1/2/3' }
             Managed.update client, options, (err) ->
               expect(err?.message).to.be.equal 'Provided queryString is not valid'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
 beforeTests()

@@ -11,7 +11,7 @@
     "/Logout": "logout",
     "/:slug/:name": "members",
     "/member/:username": "member",
-    "/Unsubscribe/:token/:email/:opt?": "unsubscribe",
+    "/Unsubscribe/:email/:opt?": "unsubscribe",
     "/:name": "name",
     "/Reset/:token": "reset",
     "/Machines/:uid/:state?": "machine-settings",

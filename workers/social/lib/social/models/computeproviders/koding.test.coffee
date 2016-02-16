@@ -1,5 +1,5 @@
 { _
-  daisy
+  async
   expect
   KONFIG
   withCreatedUser
@@ -65,27 +65,18 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
       withCreatedUser ({ client, user, account, group }) ->
         client.r = { user, account, group }
 
-        queue = [
-
-          ->
-            options = generateDefaultOptions()
-            Koding.create client, options, (err, data) ->
-              expect(err).to.not.exist
-              expect(data.meta).to.be.an 'object'
-              expect(data.meta.type).to.be.equal 'aws'
-              expect(data.meta.region).to.be.equal options.region
-              expect(data.meta.source_ami).to.be.empty
-              expect(data.meta.storage_size.toString()).to.be.equal options.storage
-              expect(data.meta.alwaysOn).to.be.false
-              expect(data.label).to.be.a 'string'
-              expect(data.credential).to.be.equal user.username
-              queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
+        options = generateDefaultOptions()
+        Koding.create client, options, (err, data) ->
+          expect(err).to.not.exist
+          expect(data.meta).to.be.an 'object'
+          expect(data.meta.type).to.be.equal 'aws'
+          expect(data.meta.region).to.be.equal options.region
+          expect(data.meta.source_ami).to.be.empty
+          expect(data.meta.storage_size.toString()).to.be.equal options.storage
+          expect(data.meta.alwaysOn).to.be.false
+          expect(data.label).to.be.a 'string'
+          expect(data.credential).to.be.equal user.username
+          done()
 
 
     it 'should be able to succeed when snapshotId provided', (done) ->
@@ -97,22 +88,22 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
         queue = [
 
-          ->
+          (next) ->
             createSnapshot { originId : account.getId() }, (err, snapshot_) ->
               expect(err).to.not.exist
               snapshot = snapshot_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # removing existing machine to be able to create a new Koding machine
             fetchMachinesByUsername user.username, (machines) ->
               machine = machines[0]
 
               JMachine.remove { _id : machine._id }, (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-          ->
+          (next) ->
             options = generateDefaultOptions { snapshotId : snapshot.snapshotId }
             Koding.create client, options, (err, data) ->
               expect(err).to.not.exist
@@ -125,13 +116,11 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
               expect(data.meta.snapshotId).to.be.equal options.snapshotId
               expect(data.label).to.be.a 'string'
               expect(data.credential).to.be.equal user.username
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     it 'should fail if storage is not valid', (done) ->
@@ -143,15 +132,13 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
         storageValues = ['notValidStorage', '2', '101']
 
         storageValues.forEach (storageValue) ->
-          queue.push ->
+          queue.push (next) ->
             options = generateDefaultOptions { storage : storageValue }
             Koding.create client, options, (err) ->
               expect(err?.message).to.be.equal 'Requested storage size is not valid.'
-              queue.next()
+              next()
 
-        queue.push -> done()
-
-        daisy queue
+        async.series queue, done
 
 
     it 'should fail if storage exceeds allowed size', (done) ->
@@ -163,25 +150,23 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
         queue = [
 
-          ->
+          (next) ->
             fetchUserPlan client, (err, userPlan_) ->
               expect(err).to.not.exist
               userPlan = userPlan_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             expectedError = "Total limit of #{userPlan.storage}GB storage
                               limit has been reached."
             options = generateDefaultOptions { storage : '10' }
             Koding.create client, options, (err) ->
               expect(err?.message).to.be.equal expectedError
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#postCreate()', ->
@@ -195,32 +180,30 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
         queue = [
 
-          ->
+          (next) ->
             fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             Koding.postCreate client, { machine }, (err, workspace_) ->
               expect(err).to.not.exist
               expect(workspace_.isDefault).to.be.truthy
               expect(workspace_.machineUId).to.be.equal machine.uid
               expect(workspace_.originId).to.be.deep.equal account._id
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             options   = { machineId : machine._id.toString() }
             topDomain = "#{account.profile.nickname}.#{KONFIG.userSitesDomain}"
             JDomainAlias.one options, (err, domainAlias) ->
               expect(domainAlias.domain).to.be.equal topDomain
               expect(domainAlias.originId).to.be.deep.equal account._id
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
 
@@ -246,25 +229,23 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
         queue = [
 
-          ->
+          (next) ->
             fetchUserPlan client, (err, userPlan_) ->
               expect(err).to.not.exist
               userPlan = userPlan_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             expectedError = "Requested new size exceeds
                               allowed\nlimit of #{userPlan.storage}GB."
             options = { alwaysOn : false, resize : userPlan.storage + 1 }
             Koding.update client, options, (err) ->
               expect(err?.message).to.be.equal expectedError
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     it 'should be able to succeed with valid request', (done) ->
@@ -276,31 +257,29 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
         queue = [
 
-          ->
+          (next) ->
             fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             options =
               alwaysOn  : false
               machineId : machine._id.toString()
 
             Koding.update client, options, (err) ->
               expect(err?.message).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JMachine.one { _id : machine._id }, (err, machine_) ->
               expect(err?.message).to.not.exist
               expect(machine_.alwaysOn).to.be.falsy
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#fetchAvailable()', ->

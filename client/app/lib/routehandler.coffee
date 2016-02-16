@@ -128,3 +128,9 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
         # if there is a state, it's the name of the tab of modal. Switch to that.
         modal.tabView.showPaneByName state  if state
+
+    when 'unsubscribe'
+      { opt } = info.params
+      { router } = kd.singletons
+      router.handleRoute "/Account/Email?unsubscribe=#{opt}"
+

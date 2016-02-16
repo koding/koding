@@ -223,6 +223,8 @@ module.exports = class DefineStackView extends KDView
 
   createMainButtons: ->
 
+    { appManager } = kd.singletons
+
     @inputTitle.addSubView @buttons = new kd.CustomHTMLView cssClass: 'buttons'
 
     @buttons.addSubView @reinitButton = new kd.ButtonView
@@ -235,25 +237,33 @@ module.exports = class DefineStackView extends KDView
     @buttons.addSubView @cancelButton = new kd.ButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
-      callback       : => @emit 'Cancel'
+      callback       : =>
+        appManager.tell 'Stacks', 'exitFullscreen'
+        @emit 'Cancel'
 
     @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
       title          : 'Apply to Team'
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
-      callback       : @bound 'handleSetDefaultTemplate'
+      callback       : =>
+        appManager.tell 'Stacks', 'exitFullscreen'
+        @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
       title          : 'Generate Stack'
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
-      callback       : @bound 'handleGenerateStack'
+      callback       : =>
+        appManager.tell 'Stacks', 'exitFullscreen'
+        @handleGenerateStack()
 
     @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
       loader         : yes
-      callback       : @bound 'handleSave'
+      callback       : =>
+        appManager.tell 'Stacks', 'exitFullscreen'
+        @handleSave()
 
 
   handleSave: ->
