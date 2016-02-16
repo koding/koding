@@ -17,6 +17,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 
 	"github.com/coreos/go-systemd/activation"
@@ -34,25 +35,52 @@ func fixListenPid() {
 func main() {
 	fixListenPid()
 
-	files := activation.Files(false)
+	pc, _ := activation.PacketConns(false)
 
-	if len(files) == 0 {
-		panic("No files")
+	if len(pc) == 0 {
+		panic("No packetConns")
 	}
 
 	if os.Getenv("LISTEN_PID") == "" || os.Getenv("LISTEN_FDS") == "" {
 		panic("Should not unset envs")
 	}
 
-	files = activation.Files(true)
+	pc, err := activation.PacketConns(true)
+	if err != nil {
+		panic(err)
+	}
 
 	if os.Getenv("LISTEN_PID") != "" || os.Getenv("LISTEN_FDS") != "" {
 		panic("Can not unset envs")
 	}
 
+	udp1, ok := pc[0].(*net.UDPConn)
+	if !ok {
+		panic("packetConn 1 not UDP")
+	}
+	udp2, ok := pc[1].(*net.UDPConn)
+	if !ok {
+		panic("packetConn 2 not UDP")
+	}
+
+	_, addr1, err := udp1.ReadFromUDP(nil)
+	if err != nil {
+		panic(err)
+	}
+	_, addr2, err := udp2.ReadFromUDP(nil)
+	if err != nil {
+		panic(err)
+	}
+
 	// Write out the expected strings to the two pipes
-	files[0].Write([]byte("Hello world"))
-	files[1].Write([]byte("Goodbye world"))
+	_, err = udp1.WriteToUDP([]byte("Hello world"), addr1)
+	if err != nil {
+		panic(err)
+	}
+	_, err = udp2.WriteToUDP([]byte("Goodbye world"), addr2)
+	if err != nil {
+		panic(err)
+	}
 
 	return
 }
