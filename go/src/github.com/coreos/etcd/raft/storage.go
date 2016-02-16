@@ -25,7 +25,7 @@ import (
 // index is unavailable because it predates the last snapshot.
 var ErrCompacted = errors.New("requested index is unavailable due to compaction")
 
-// ErrOutOfDataSnap is returned by Storage.CreateSnapshot when a requested
+// ErrSnapOutOfDate is returned by Storage.CreateSnapshot when a requested
 // index is older than the existing snapshot.
 var ErrSnapOutOfDate = errors.New("requested index is older than the existing snapshot")
 
@@ -57,7 +57,7 @@ type Storage interface {
 	// first log entry is not available).
 	FirstIndex() (uint64, error)
 	// Snapshot returns the most recent snapshot.
-	// If snapshot is temporarily unavailable, it should return ErrTemporarilyUnavailable,
+	// If snapshot is temporarily unavailable, it should return ErrSnapshotTemporarilyUnavailable,
 	// so raft state machine could know that Storage needs some time to prepare
 	// snapshot and call Snapshot later.
 	Snapshot() (pb.Snapshot, error)
@@ -105,7 +105,7 @@ func (ms *MemoryStorage) Entries(lo, hi, maxSize uint64) ([]pb.Entry, error) {
 		return nil, ErrCompacted
 	}
 	if hi > ms.lastIndex()+1 {
-		raftLogger.Panicf("entries's hi(%d) is out of bound lastindex(%d)", hi, ms.lastIndex())
+		raftLogger.Panicf("entries' hi(%d) is out of bound lastindex(%d)", hi, ms.lastIndex())
 	}
 	// only contains dummy entries.
 	if len(ms.ents) == 1 {
@@ -162,7 +162,7 @@ func (ms *MemoryStorage) ApplySnapshot(snap pb.Snapshot) error {
 	ms.Lock()
 	defer ms.Unlock()
 
-	// TODO: return snapOutOfDate?
+	// TODO: return ErrSnapOutOfDate?
 	ms.snapshot = snap
 	ms.ents = []pb.Entry{{Term: snap.Metadata.Term, Index: snap.Metadata.Index}}
 	return nil

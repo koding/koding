@@ -60,11 +60,24 @@ All changes to the cluster are done one at a time:
 * To decrease from 5 to 3 you will make two remove operations
 
 All of these examples will use the `etcdctl` command line tool that ships with etcd.
-If you want to use the member API directly you can find the documentation [here](other_apis.md).
+If you want to use the members API directly you can find the documentation [here](members_api.md).
 
 ### Update a Member
 
-If you would like to update a member IP address (peerURLs), first, we need to find the target member's ID. You can list all members with `etcdctl`:
+#### Update advertise client URLs
+
+If you would like to update the advertise client URLs of a member, you can simply restart
+that member with updated client urls flag (`--advertise-client-urls`) or environment variable
+(`ETCD_ADVERTISE_CLIENT_URLS`). The restarted member will self publish the updated URLs.
+A wrongly updated client URL will not affect the health of the etcd cluster.
+
+#### Update advertise peer URLs
+
+If you would like to update the advertise peer URLs of a member, you have to first update 
+it explicitly via member command and then restart the member. The additional action is required
+since updating peer URLs changes the cluster wide configuration and can affect the health of the etcd cluster. 
+
+To update the peer URLs, first, we need to find the target member's ID. You can list all members with `etcdctl`:
 
 ```sh
 $ etcdctl member list
@@ -102,7 +115,7 @@ It is safe to remove the leader, however the cluster will be inactive while a ne
 
 Adding a member is a two step process:
 
- * Add the new member to the cluster via the [members API](other_apis.md#post-v2members) or the `etcdctl member add` command.
+ * Add the new member to the cluster via the [members API](members_api.md#post-v2members) or the `etcdctl member add` command.
  * Start the new member with the new cluster configuration, including a list of the updated members (existing members + the new member).
 
 Using `etcdctl` let's add the new member to the cluster by specifying its [name](configuration.md#-name) and [advertised peer URLs](configuration.md#-initial-advertise-peer-urls):

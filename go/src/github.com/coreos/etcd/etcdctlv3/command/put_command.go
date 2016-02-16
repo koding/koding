@@ -16,38 +16,64 @@ package command
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
-	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
-	"github.com/coreos/etcd/Godeps/_workspace/src/google.golang.org/grpc"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 )
 
-// NewPutCommand returns the CLI command for "put".
-func NewPutCommand() cli.Command {
-	return cli.Command{
-		Name: "put",
-		Action: func(c *cli.Context) {
-			putCommandFunc(c)
-		},
+var (
+	leaseStr string
+)
+
+// NewPutCommand returns the cobra command for "put".
+func NewPutCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "put [options] <key> <value> (<value> can also be given from stdin)",
+		Short: "Put puts the given key into the store.",
+		Long: `
+Put puts the given key into the store.
+
+When <value> begins with '-', <value> is interpreted as a flag.
+Insert '--' for workaround:
+
+$ put <key> -- <value>
+$ put -- <key> <value>
+
+If <value> isn't given, this command tries to read the value from standard input.
+For example,
+$ cat file | put <key>
+will store the content of the file to <key>.
+`,
+		Run: putCommandFunc,
 	}
+	cmd.Flags().StringVar(&leaseStr, "lease", "0", "lease ID attached to the put key")
+	return cmd
 }
 
 // putCommandFunc executes the "put" command.
-func putCommandFunc(c *cli.Context) {
-	if len(c.Args()) != 2 {
-		panic("bad arg")
+func putCommandFunc(cmd *cobra.Command, args []string) {
+	if len(args) == 0 {
+		ExitWithError(ExitBadArgs, fmt.Errorf("put command needs 1 argument and input from stdin or 2 arguments."))
 	}
 
-	key := []byte(c.Args()[0])
-	value := []byte(c.Args()[1])
-	conn, err := grpc.Dial(c.GlobalString("endpoint"))
+	key := []byte(args[0])
+	value, err := argOrStdin(args, os.Stdin, 1)
 	if err != nil {
-		panic(err)
+		ExitWithError(ExitBadArgs, fmt.Errorf("put command needs 1 argument and input from stdin or 2 arguments."))
 	}
-	etcd := pb.NewEtcdClient(conn)
-	req := &pb.PutRequest{Key: key, Value: value}
 
-	etcd.Put(context.Background(), req)
+	id, err := strconv.ParseInt(leaseStr, 16, 64)
+	if err != nil {
+		ExitWithError(ExitBadArgs, fmt.Errorf("bad lease ID arg (%v), expecting ID in Hex", err))
+	}
+
+	req := &pb.PutRequest{Key: key, Value: value, Lease: id}
+	_, err = mustClientFromCmd(cmd).KV.Put(context.Background(), req)
+	if err != nil {
+		ExitWithError(ExitError, err)
+	}
 	fmt.Printf("%s %s\n", key, value)
 }
