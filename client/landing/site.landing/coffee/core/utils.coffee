@@ -358,6 +358,9 @@ module.exports = utils = {
   # Redirect to this url after user is logged in
   getLoginRedirectPath: (loginRoute) ->
 
+    { redirectTo } = kd.utils.parseQuery()
+    return redirectTo.substring 1  if redirectTo
+
     { pathname } = location
     if pathname and pathname.indexOf(loginRoute) is -1
       return pathname.substring 1
