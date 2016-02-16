@@ -11,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/private/signer/v4"
 )
 
-// AWS IoT is in beta and is subject to change
-//
 // AWS IoT provides secure, bi-directional communication between Internet-connected
 // things (such as sensors, actuators, embedded devices, or smart appliances)
 // and the AWS cloud. You can discover your custom IoT-Data endpoint to communicate
@@ -69,10 +67,10 @@ func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegio
 
 	// Handlers
 	svc.Handlers.Sign.PushBack(v4.Sign)
-	svc.Handlers.Build.PushBack(restjson.Build)
-	svc.Handlers.Unmarshal.PushBack(restjson.Unmarshal)
-	svc.Handlers.UnmarshalMeta.PushBack(restjson.UnmarshalMeta)
-	svc.Handlers.UnmarshalError.PushBack(restjson.UnmarshalError)
+	svc.Handlers.Build.PushBackNamed(restjson.BuildHandler)
+	svc.Handlers.Unmarshal.PushBackNamed(restjson.UnmarshalHandler)
+	svc.Handlers.UnmarshalMeta.PushBackNamed(restjson.UnmarshalMetaHandler)
+	svc.Handlers.UnmarshalError.PushBackNamed(restjson.UnmarshalErrorHandler)
 
 	// Run custom client initialization if present
 	if initClient != nil {

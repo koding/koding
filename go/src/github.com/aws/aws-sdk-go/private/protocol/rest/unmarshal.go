@@ -15,6 +15,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 )
 
+// UnmarshalHandler is a named request handler for unmarshaling rest protocol requests
+var UnmarshalHandler = request.NamedHandler{Name: "awssdk.rest.Unmarshal", Fn: Unmarshal}
+
+// UnmarshalMetaHandler is a named request handler for unmarshaling rest protocol request metadata
+var UnmarshalMetaHandler = request.NamedHandler{Name: "awssdk.rest.UnmarshalMeta", Fn: UnmarshalMeta}
+
 // Unmarshal unmarshals the REST component of a response in a REST service.
 func Unmarshal(r *request.Request) {
 	if r.DataFilled() {
@@ -26,6 +32,10 @@ func Unmarshal(r *request.Request) {
 // UnmarshalMeta unmarshals the REST metadata of a response in a REST service
 func UnmarshalMeta(r *request.Request) {
 	r.RequestID = r.HTTPResponse.Header.Get("X-Amzn-Requestid")
+	if r.RequestID == "" {
+		// Alternative version of request id in the header
+		r.RequestID = r.HTTPResponse.Header.Get("X-Amz-Request-Id")
+	}
 	if r.DataFilled() {
 		v := reflect.Indirect(reflect.ValueOf(r.Data))
 		unmarshalLocationElements(r, v)
@@ -33,7 +43,7 @@ func UnmarshalMeta(r *request.Request) {
 }
 
 func unmarshalBody(r *request.Request, v reflect.Value) {
-	if field, ok := v.Type().FieldByName("SDKShapeTraits"); ok {
+	if field, ok := v.Type().FieldByName("_"); ok {
 		if payloadName := field.Tag.Get("payload"); payloadName != "" {
 			pfield, _ := v.Type().FieldByName(payloadName)
 			if ptag := pfield.Tag.Get("type"); ptag != "" && ptag != "structure" {
