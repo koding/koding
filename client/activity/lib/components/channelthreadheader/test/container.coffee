@@ -80,29 +80,7 @@ describe 'ChannelThreadHeaderContainer', ->
       expect(container.state.editingPurpose).toBeFalsy()
 
 
-  describe '::onClose', ->
-
-    it 'should set isModalOpen state value as no', ->
-
-      container = renderIntoDocument(<Container {...@props} />)
-      container.setState { isModalOpen: yes }
-
-      container.onClose()
-
-      expect(container.state.isModalOpen).toBeFalsy()
-
-
   describe '::onVideoStart', ->
-
-    it 'should set isModalOpen state value as yes', ->
-
-      @props.thread = null
-      container = renderIntoDocument(<Container {...@props} />)
-      container.setState { isModalOpen: no }
-
-      container.onVideoStart()
-
-      expect(container.state.isModalOpen).toBeTruthy()
 
 
   describe '::onUpdatePurpose', ->
