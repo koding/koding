@@ -353,7 +353,8 @@ module.exports = utils = {
     # doesn't duplicate the word `team` if the title already has it at the end
     "#{if title.search(/^the/i) < 0 then 'the' else ''} #{title} #{if title.search(/team$/i) < 0 then 'team' else ''}"
 
-  # if current url isn't loginRoute, login is shown because no route has matched current url.
+  # If current url contains redirectTo query parameter, use it to redirect after login.
+  # If current url isn't loginRoute, login is shown because no route has matched current url.
   # It may happen when logged out user opens a page which requires user authentication.
   # Redirect to this url after user is logged in
   getLoginRedirectPath: (loginRoute) ->
