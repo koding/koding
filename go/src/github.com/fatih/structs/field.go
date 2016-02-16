@@ -14,8 +14,9 @@ var (
 // Field represents a single struct field that encapsulates high level
 // functions around the field.
 type Field struct {
-	value reflect.Value
-	field reflect.StructField
+	value      reflect.Value
+	field      reflect.StructField
+	defaultTag string
 }
 
 // Tag returns the value associated with key in the tag string. If there is no
@@ -40,7 +41,7 @@ func (f *Field) IsExported() bool {
 	return f.field.PkgPath == ""
 }
 
-// IsZero returns true if the given field is not initalized (has a zero value).
+// IsZero returns true if the given field is not initialized (has a zero value).
 // It panics if the field is not exported.
 func (f *Field) IsZero() bool {
 	zero := reflect.Zero(f.value.Type()).Interface()
@@ -59,8 +60,8 @@ func (f *Field) Kind() reflect.Kind {
 	return f.value.Kind()
 }
 
-// Set sets the field to given value v. It retuns an error if the field is not
-// settable (not addresable or not exported) or if the given value's type
+// Set sets the field to given value v. It returns an error if the field is not
+// settable (not addressable or not exported) or if the given value's type
 // doesn't match the fields type.
 func (f *Field) Set(val interface{}) error {
 	// we can't set unexported fields, so be sure this field is exported
@@ -83,6 +84,13 @@ func (f *Field) Set(val interface{}) error {
 	return nil
 }
 
+// Zero sets the field to its zero value. It returns an error if the field is not
+// settable (not addressable or not exported).
+func (f *Field) Zero() error {
+	zero := reflect.Zero(f.value.Type()).Interface()
+	return f.Set(zero)
+}
+
 // Fields returns a slice of Fields. This is particular handy to get the fields
 // of a nested struct . A struct tag with the content of "-" ignores the
 // checking of that particular field. Example:
@@ -92,7 +100,7 @@ func (f *Field) Set(val interface{}) error {
 //
 // It panics if field is not exported or if field's kind is not struct
 func (f *Field) Fields() []*Field {
-	return getFields(f.value)
+	return getFields(f.value, f.defaultTag)
 }
 
 // Field returns the field from a nested struct. It panics if the nested struct
