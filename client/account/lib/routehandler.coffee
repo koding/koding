@@ -1,9 +1,9 @@
 kd                 = require 'kd'
 lazyrouter         = require 'app/lazyrouter'
-issoloproductlite  = require 'app/util/issoloproductlite'
+isSoloProductLite  = require 'app/util/issoloproductlite'
 KDNotificationView = kd.NotificationView
 
-routeHandle = [
+hiddenSectionsForSolo = [
   'Referral'
   'Billing'
 ]
@@ -22,9 +22,9 @@ handle = (args, path) ->
 
 module.exports = -> lazyrouter.bind 'account', (type, info, state, path, ctx) ->
 
-  if info?.params?.section in routeHandle
-    if issoloproductlite()
-      kd.singletons.router.handleRoute '/Account/Profile'
+  if info?.params?.section in hiddenSectionsForSolo
+    if isSoloProductLite()
+      return kd.singletons.router.handleRoute '/Account/Profile'
 
   switch type
     when 'profile'
