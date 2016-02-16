@@ -81,13 +81,13 @@ module.exports = class InitialView extends kd.View
 
   pistachio: ->
     """
-      <div class='text header'>Compute Stack Templates</div>
+      <div class='text header'>My Stack Templates</div>
       <div class=top>
         <div class='text intro'>
-          Stack Templates are awesome because when a user
-          joins your group you can preconfigure their work
-          environment by defining stacks.
-          Learn more about stacks
+          These stack templates are only visible to you.
+          You can either use it personally, or work on a
+          template until it is ready and share it with
+          your team later.
         </div>
         {{> @createStackButton}}
       </div>
