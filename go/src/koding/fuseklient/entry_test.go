@@ -4,9 +4,10 @@ import (
 	"os"
 	"testing"
 
+	"koding/fuseklient/transport"
+
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
-	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

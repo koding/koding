@@ -21,7 +21,7 @@ func debug(t time.Time, format string, values ...interface{}) {
 	d := time.Since(t)
 
 	var m string
-	m = strings.TrimLeft(f.Name(), "github.com/koding/fuseklient/fs")
+	m = strings.TrimLeft(f.Name(), "koding/fuseklient/fs")
 
 	format = "%6v %10s " + format + "\n"
 

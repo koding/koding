@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/koding/fuseklient/transport"
+	"koding/fuseklient/transport"
 )
 
 type DirInitializer struct {

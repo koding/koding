@@ -9,10 +9,11 @@ import (
 
 	"golang.org/x/net/context"
 
+	"koding/fuseklient/transport"
+
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/transport"
 )
 
 var (

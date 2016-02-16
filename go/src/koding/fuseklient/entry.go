@@ -4,9 +4,10 @@ import (
 	"path/filepath"
 	"sync"
 
+	"koding/fuseklient/transport"
+
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
-	"github.com/koding/fuseklient/transport"
 )
 
 // Entry is the generic structure for File and Dir in KodingNetworkFS. It's

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/koding/fuseklient/transport"
+	"koding/fuseklient/transport"
 )
 
 // WatchInterval is the default interval to watch for changes on remote.
