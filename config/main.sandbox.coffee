@@ -187,8 +187,8 @@ Configuration = (options={}) ->
 
   tunnelserver =
     port            : 80
-    basevirtualhost : "koding.me"
-    hostedzone      : "koding.me"
+    basevirtualhost : "dev-t.koding.me"
+    hostedzone      : "dev-t.koding.me"
 
   KONFIG =
     configName                     : configName
@@ -756,7 +756,7 @@ Configuration = (options={}) ->
     tunnelserver        :
       group             : "proxy"
       supervisord       :
-        command         : "#{GOBIN}/tunnelserver -accesskey #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretkey #{awsKeys.worker_tunnelproxymanager.secretAccessKey} -port #{tunnelserver.port} -basevirtualhost #{tunnelserver.basevirtualhost} -hostedzone #{tunnelserver.hostedzone}"
+        command         : "#{GOBIN}/tunnelserver -region #{region} -environment #{environment} -accesskey #{awsKeys.worker_tunnelproxymanager.accessKeyId} -secretkey #{awsKeys.worker_tunnelproxymanager.secretAccessKey} -port #{tunnelserver.port} -basevirtualhost #{tunnelserver.basevirtualhost} -hostedzone #{tunnelserver.hostedzone}"
       ports             :
         incoming        : "#{tunnelserver.port}"
       healthCheckURL    : "http://tunnelserver/healthCheck"
