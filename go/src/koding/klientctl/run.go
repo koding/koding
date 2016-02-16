@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klient/remote/req"
+	"koding/klient/remote/req"
 )
 
 // ErrNotInMount happens when command is run from outside a mount.

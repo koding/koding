@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klientctl/klientctlerrors"
+	"koding/klientctl/klientctlerrors"
 )
 
 const kiteHTTPResponse = "Welcome to SockJS!\n"

@@ -5,7 +5,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
-	"github.com/koding/klient/remote/req"
+	"koding/klient/remote/req"
 )
 
 // UnmountCommand unmounts a previously mounted folder by machine name.

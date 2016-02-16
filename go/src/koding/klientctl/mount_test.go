@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/koding/klientctl/klientctlerrors"
+	"koding/klientctl/klientctlerrors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

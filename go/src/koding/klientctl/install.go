@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klientctl/logging"
+	"koding/klientctl/logging"
 	"github.com/leeola/service"
 )
 

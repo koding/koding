@@ -15,9 +15,9 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
-	"github.com/koding/klient/remote/req"
-	"github.com/koding/klientctl/klientctlerrors"
-	"github.com/koding/klientctl/util"
+	"koding/klient/remote/req"
+	"koding/klientctl/klientctlerrors"
+	"koding/klientctl/util"
 )
 
 type userGetter func() (*user.User, error)

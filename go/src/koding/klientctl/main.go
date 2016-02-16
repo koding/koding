@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klientctl/logging"
-	"github.com/koding/klientctl/util"
+	"koding/klientctl/logging"
+	"koding/klientctl/util"
 )
 
 // ExitingCommand is a function that returns an exit code

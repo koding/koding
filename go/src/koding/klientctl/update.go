@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klientctl/logging"
+	"koding/klientctl/logging"
 )
 
 // UpdateCommand updates this binary if there's an update available.
