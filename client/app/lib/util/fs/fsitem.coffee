@@ -124,12 +124,11 @@ module.exports = class FSItem extends KDObject
     @emit "fs.job.started"
 
     kite = @getKite()
-
     path = FSHelper.plainPath "#{@getPath()}.#{type}"
 
-    kite.init().then ->
+    kite.init()
 
-      kite.fsUniquePath { path }
+    .then -> kite.fsUniquePath { path }
 
     .then (actualPath) =>
 
@@ -141,7 +140,15 @@ module.exports = class FSItem extends KDObject
 
       kite.exec { command }
 
-    .then(handleStdErr())
+    .then (result) =>
+      if result.stderr?.indexOf('command not found') > -1
+        if type is 'zip'
+          command = 'sudo apt-get update -y; sudo apt-get install zip'
+          kite
+            .exec { command }
+            .then => @compress type, callback
+      else
+        handleStdErr result
 
     .nodeify(callback)
 
