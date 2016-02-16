@@ -416,8 +416,22 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   createCollaboration: ({channelId, host}) ->
 
+    {frontApp} = kd.singletons.appManager
+
+    chatTab = null
+
+    # look for a Chat tab.
+    frontApp.forEachSubViewInIDEViews_ (pane) ->
+      tabPane = pane.parent
+      if tabPane.name is 'Chat'
+        chatTab = tabPane
+
+    # if there is, switch to it.
+    return chatTab.parent.showPane chatTab  if chatTab
+
+    # else, create one.
     collaborationPane = new IDECollaborationPane {channelId, host}
-    @createPane_ collaborationPane, { title : 'Chat' }
+    @createPane_ collaborationPane, { title : 'Chat', name: 'Chat' }
 
 
   showView: (view, name = 'Search Result') -> @createPane_ view, { name }
