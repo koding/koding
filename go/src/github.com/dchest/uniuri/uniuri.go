@@ -1,3 +1,10 @@
+// Written in 2011-2014 by Dmitry Chestnykh
+//
+// The author(s) have dedicated all copyright and related and
+// neighboring rights to this software to the public domain
+// worldwide. Distributed without any warranty.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
 // Package uniuri generates random strings good for use in URIs to identify
 // unique objects.
 //
@@ -15,20 +22,17 @@
 // read from it.
 package uniuri
 
-import (
-	"crypto/rand"
-	"io"
-)
+import "crypto/rand"
 
 const (
-	// Standard length of uniuri string to achive ~95 bits of entropy.
+	// StdLen is a standard length of uniuri string to achive ~95 bits of entropy.
 	StdLen = 16
-	// Length of uniurl string to achive ~119 bits of entropy, closest
+	// UUIDLen is a length of uniuri string to achive ~119 bits of entropy, closest
 	// to what can be losslessly converted to UUIDv4 (122 bits).
 	UUIDLen = 20
 )
 
-// Standard characters allowed in uniuri string.
+// StdChars is a set of standard characters allowed in uniuri string.
 var StdChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
 
 // New returns a new random string of the standard length, consisting of
@@ -46,17 +50,24 @@ func NewLen(length int) string {
 // NewLenChars returns a new random string of the provided length, consisting
 // of the provided byte slice of allowed characters (maximum 256).
 func NewLenChars(length int, chars []byte) string {
+	if length == 0 {
+		return ""
+	}
+	clen := len(chars)
+	if clen < 2 || clen > 256 {
+		panic("uniuri: wrong charset length for NewLenChars")
+	}
+	maxrb := 255 - (256 % clen)
 	b := make([]byte, length)
 	r := make([]byte, length+(length/4)) // storage for random bytes.
-	clen := byte(len(chars))
-	maxrb := byte(256 - (256 % len(chars)))
 	i := 0
 	for {
-		if _, err := io.ReadFull(rand.Reader, r); err != nil {
-			panic("error reading from random source: " + err.Error())
+		if _, err := rand.Read(r); err != nil {
+			panic("uniuri: error reading random bytes: " + err.Error())
 		}
-		for _, c := range r {
-			if c >= maxrb {
+		for _, rb := range r {
+			c := int(rb)
+			if c > maxrb {
 				// Skip this number to avoid modulo bias.
 				continue
 			}
@@ -67,5 +78,4 @@ func NewLenChars(length int, chars []byte) string {
 			}
 		}
 	}
-	panic("unreachable")
 }
