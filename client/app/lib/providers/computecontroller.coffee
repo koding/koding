@@ -1188,6 +1188,10 @@ module.exports = class ComputeController extends KDController
         callback new Error 'Stack is not reinitialized'
         return
 
+      notification = new kd.NotificationView
+        title     : 'Reinitializing stack...'
+        duration  : 5000
+
       @fetchBaseStackTemplate stack, (err, template) =>
 
         groupStack = stack.config?.groupStack
@@ -1195,15 +1199,15 @@ module.exports = class ComputeController extends KDController
         @destroyStack stack, (err) =>
 
           if err
+            notification.destroy()
             callback err
             return showError err
 
           @reset()
 
             .once 'RenderStacks', (stacks = []) ->
-
-              new kd.NotificationView
-                title : 'Stack reinitialized'
+              notification.destroy()
+              new kd.NotificationView title : 'Stack reinitialized'
               callback()
 
           if template and not groupStack
