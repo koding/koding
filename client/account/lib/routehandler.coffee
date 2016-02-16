@@ -1,6 +1,13 @@
-kd = require 'kd'
+kd                 = require 'kd'
+isKoding           = require 'app/util/isKoding'
+lazyrouter         = require 'app/lazyrouter'
+issoloproductlite  = require 'app/util/issoloproductlite'
 KDNotificationView = kd.NotificationView
-lazyrouter = require 'app/lazyrouter'
+
+routeHandle = [
+  'Referral'
+  'Billing'
+]
 
 
 handleSection = (path, callback) ->
@@ -15,6 +22,10 @@ handle = (args, path) ->
   handleSection path, (app) -> app.openSection args.params.section, args.query
 
 module.exports = -> lazyrouter.bind 'account', (type, info, state, path, ctx) ->
+
+  if info?.params?.section in routeHandle
+    if issoloproductlite()
+      kd.singletons.router.handleRoute '/Account/Profile'
 
   switch type
     when 'profile'
