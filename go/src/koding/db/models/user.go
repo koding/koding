@@ -63,8 +63,8 @@ type UserInactive struct {
 }
 
 type ForeignAuth struct {
-	Github Github `bson:"github" json:"-"`
-	Slack  Slack  `bson:"slack" json:"-"`
+	Github Github           `bson:"github" json:"-"`
+	Slack  map[string]Slack `bson:"slack" json:"-"`
 }
 
 type Slack struct {
@@ -85,8 +85,6 @@ func (f ForeignAuth) GetAccessToken(name string) string {
 	switch name {
 	case "github":
 		return f.Github.Token
-	case "slack":
-		return f.Slack.Token
 	default:
 		return ""
 	}
