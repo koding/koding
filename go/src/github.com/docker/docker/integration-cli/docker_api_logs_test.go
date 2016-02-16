@@ -1,53 +1,92 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"net/http"
-	"os/exec"
-	"testing"
+	"strings"
+	"time"
+
+	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/go-check/check"
 )
 
-func TestLogsApiWithStdout(t *testing.T) {
-	defer deleteAllContainers()
-	name := "logs_test"
+func (s *DockerSuite) TestLogsApiWithStdout(c *check.C) {
+	testRequires(c, DaemonIsLinux)
+	out, _ := dockerCmd(c, "run", "-d", "-t", "busybox", "/bin/sh", "-c", "while true; do echo hello; sleep 1; done")
+	id := strings.TrimSpace(out)
+	c.Assert(waitRun(id), checker.IsNil)
 
-	runCmd := exec.Command(dockerBinary, "run", "-d", "-t", "--name", name, "busybox", "bin/sh", "-c", "sleep 10 && echo "+name)
-	if out, _, err := runCommandWithOutput(runCmd); err != nil {
-		t.Fatal(out, err)
+	type logOut struct {
+		out string
+		res *http.Response
+		err error
 	}
+	chLog := make(chan logOut)
 
-	statusCode, body, err := sockRequest("GET", fmt.Sprintf("/containers/%s/logs?follow=1&stdout=1&timestamps=1", name), nil)
+	go func() {
+		res, body, err := sockRequestRaw("GET", fmt.Sprintf("/containers/%s/logs?follow=1&stdout=1&timestamps=1", id), nil, "")
+		if err != nil {
+			chLog <- logOut{"", nil, err}
+			return
+		}
+		defer body.Close()
+		out, err := bufio.NewReader(body).ReadString('\n')
+		if err != nil {
+			chLog <- logOut{"", nil, err}
+			return
+		}
+		chLog <- logOut{strings.TrimSpace(out), res, err}
+	}()
 
-	if err != nil || statusCode != http.StatusOK {
-		t.Fatalf("Expected %d from logs request, got %d", http.StatusOK, statusCode)
+	select {
+	case l := <-chLog:
+		c.Assert(l.err, checker.IsNil)
+		c.Assert(l.res.StatusCode, checker.Equals, http.StatusOK)
+		if !strings.HasSuffix(l.out, "hello") {
+			c.Fatalf("expected log output to container 'hello', but it does not")
+		}
+	case <-time.After(2 * time.Second):
+		c.Fatal("timeout waiting for logs to exit")
 	}
-
-	if !bytes.Contains(body, []byte(name)) {
-		t.Fatalf("Expected %s, got %s", name, string(body[:]))
-	}
-
-	logDone("logs API - with stdout ok")
 }
 
-func TestLogsApiNoStdoutNorStderr(t *testing.T) {
-	defer deleteAllContainers()
+func (s *DockerSuite) TestLogsApiNoStdoutNorStderr(c *check.C) {
+	testRequires(c, DaemonIsLinux)
 	name := "logs_test"
-	runCmd := exec.Command(dockerBinary, "run", "-d", "-t", "--name", name, "busybox", "/bin/sh")
-	if out, _, err := runCommandWithOutput(runCmd); err != nil {
-		t.Fatal(out, err)
-	}
+	dockerCmd(c, "run", "-d", "-t", "--name", name, "busybox", "/bin/sh")
 
-	statusCode, body, err := sockRequest("GET", fmt.Sprintf("/containers/%s/logs", name), nil)
-
-	if err == nil || statusCode != http.StatusBadRequest {
-		t.Fatalf("Expected %d from logs request, got %d", http.StatusBadRequest, statusCode)
-	}
+	status, body, err := sockRequest("GET", fmt.Sprintf("/containers/%s/logs", name), nil)
+	c.Assert(status, checker.Equals, http.StatusBadRequest)
+	c.Assert(err, checker.IsNil)
 
 	expected := "Bad parameters: you must choose at least one stream"
 	if !bytes.Contains(body, []byte(expected)) {
-		t.Fatalf("Expected %s, got %s", expected, string(body[:]))
+		c.Fatalf("Expected %s, got %s", expected, string(body[:]))
 	}
+}
 
-	logDone("logs API - returns error when no stdout nor stderr specified")
+// Regression test for #12704
+func (s *DockerSuite) TestLogsApiFollowEmptyOutput(c *check.C) {
+	testRequires(c, DaemonIsLinux)
+	name := "logs_test"
+	t0 := time.Now()
+	dockerCmd(c, "run", "-d", "-t", "--name", name, "busybox", "sleep", "10")
+
+	_, body, err := sockRequestRaw("GET", fmt.Sprintf("/containers/%s/logs?follow=1&stdout=1&stderr=1&tail=all", name), bytes.NewBuffer(nil), "")
+	t1 := time.Now()
+	c.Assert(err, checker.IsNil)
+	body.Close()
+	elapsed := t1.Sub(t0).Seconds()
+	if elapsed > 5.0 {
+		c.Fatalf("HTTP response was not immediate (elapsed %.1fs)", elapsed)
+	}
+}
+
+func (s *DockerSuite) TestLogsAPIContainerNotFound(c *check.C) {
+	name := "nonExistentContainer"
+	resp, _, err := sockRequestRaw("GET", fmt.Sprintf("/containers/%s/logs?follow=1&stdout=1&stderr=1&tail=all", name), bytes.NewBuffer(nil), "")
+	c.Assert(err, checker.IsNil)
+	c.Assert(resp.StatusCode, checker.Equals, http.StatusNotFound)
 }

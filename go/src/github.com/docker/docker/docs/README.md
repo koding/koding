@@ -1,6 +1,12 @@
+<!--[metadata]>
++++
+draft = true
++++
+<![end-metadata]-->
+
 # Docker Documentation
 
-The source for Docker documentation is in this directory under `sources/`. Our
+The source for Docker documentation is in this directory. Our
 documentation uses extended Markdown, as implemented by
 [MkDocs](http://mkdocs.org).  The current release of the Docker documentation
 resides on [https://docs.docker.com](https://docs.docker.com).
@@ -12,7 +18,7 @@ Docker has two primary branches for documentation:
 | Branch   | Description                    | URL (published via commit-hook)                                              |
 |----------|--------------------------------|------------------------------------------------------------------------------|
 | `docs`   | Official release documentation | [https://docs.docker.com](https://docs.docker.com)                             |
-| `master` | Merged but unreleased development work    | [http://docs.master.dockerproject.com](http://docs.master.dockerproject.com) |
+| `master` | Merged but unreleased development work    |  |
 
 Additions and updates to upcoming releases are made in a feature branch off of
 the `master` branch. The Docker maintainers also support a `docs` branch that
@@ -20,9 +26,7 @@ contains the last release of documentation.
 
 After a release, documentation updates are continually merged into `master` as
 they occur. This work includes new documentation for forthcoming features, bug
-fixes, and other updates. Docker's CI system automatically builds and updates
-the `master` documentation after each merge and posts it to
-[http://docs.master.dockerproject.com](http://docs.master.dockerproject.com). 
+fixes, and other updates.
 
 Periodically, the Docker maintainers update `docs.docker.com` between official
 releases of Docker. They do this by cherry-picking commits from `master`,
@@ -35,7 +39,7 @@ on other branches by special arrangement with the Docker maintainers.
 
 If you are a new or beginner contributor, we encourage you to read through the
 [our detailed contributors
-guide](https://docs.docker.com/project/who-written-for/). The guide explains in
+guide](https://docs.docker.com/opensource/code/). The guide explains in
 detail, with examples, how to contribute. If you are an experienced contributor
 this quickstart should be enough to get you started.
 
@@ -52,42 +56,37 @@ own.
 
 	By basing from `master` your work is automatically included in the next
 	release. It also allows docs maintainers to easily cherry-pick your changes
-	into the `docs` release branch. 
+	into the `docs` release branch.
 
-4. Modify existing or add new `.md` files to the `docs/sources` directory.
-
-	If you add a new document (`.md`) file, you must also add it to the
-	appropriate section of the `docs/mkdocs.yml` file in this repository.
-
+4. Modify existing or add new `.md` files to the `docs` directory.
 
 5.  As you work, build the documentation site locally to see your changes.
 
 	The `docker/docker` repository contains a `Dockerfile` and a `Makefile`.
 	Together, these create a development environment in which you can build and
 	run a container running the Docker documentation website. To build the
-	documentation site, enter `make docs` at the root of your `docker/docker`
-	fork:
-	
+	documentation site, enter `make docs` in the `docs` directory of your `docker/docker` fork:
+
 		$ make docs
 		.... (lots of output) ....
 		docker run --rm -it  -e AWS_S3_BUCKET -p 8000:8000 "docker-docs:master" mkdocs serve
 		Running at: http://0.0.0.0:8000/
 		Live reload enabled.
 		Hold ctrl+c to quit.
-	
-	
+
+
 	The build creates an image containing all the required tools, adds the local
 	`docs/` directory and generates the HTML files. Then, it runs a Docker
 	container with this image.
 
 	The container exposes port 8000 on the localhost so that you can connect and
-	see your changes. If you are running Boot2Docker, use the `boot2docker ip`
-	to get the address of your server.
+	see your changes. If you use Docker Machine, the `docker-machine ip
+	<machine-name>` command gives you the address of your server.
 
 6.  Check your writing for style and mechanical errors.
 
 	Use our [documentation style
-	guide](https://docs.docker.com/project/doc-style/) to check style. There are
+	guide](https://docs.docker.com/opensource/doc-style/) to check style. There are
 	several [good grammar and spelling online
 	checkers](http://www.hemingwayapp.com/) that can check your writing
 	mechanics.
@@ -107,7 +106,7 @@ links that are referenced in the documentation&mdash;there should be none.
 ## Style guide
 
 If you have questions about how to write for Docker's documentation, please see
-the [style guide](sources/project/doc-style.md). The style guide provides
+the [style guide](https://docs.docker.com/opensource/doc-style/). The style guide provides
 guidance about grammar, syntax, formatting, styling, language, or tone. If
 something isn't clear in the guide, please submit an issue to let us know or
 submit a pull request to help us improve it.
@@ -152,18 +151,20 @@ update the root docs pages by running
 
      	$ make AWS_S3_BUCKET=dowideit-docs BUILD_ROOT=yes docs-release
 
-### Errors publishing using Boot2Docker
+### Errors publishing using a Docker Machine VM
 
-Sometimes, in a Boot2Docker environment, the publishing procedure returns this
+Sometimes, in a Windows or Mac environment, the publishing procedure returns this
 error:
 
 	Post http:///var/run/docker.sock/build?rm=1&t=docker-docs%3Apost-1.2.0-docs_update-2:
 	dial unix /var/run/docker.sock: no such file or directory.
 
-If this happens, set the Docker host. Run the following command to set the
+If this happens, set the Docker host. Run the following command to get the
 variables in your shell:
 
-		$ eval "$(boot2docker shellinit)"
+		docker-machine env <machine-name>
+
+Then, set your environment accordingly.
 
 ## Cherry-picking documentation changes to update an existing release.
 
@@ -178,13 +179,13 @@ For example, to update the current release's docs, do the following:
 1. Go to your `docker/docker` fork and get the latest from master.
 
     	$ git fetch upstream
-        
+
 2. Checkout a new branch based on `upstream/docs`.
 
 	You should give your new branch a descriptive name.
 
 		$ git checkout -b post-1.2.0-docs-update-1 upstream/docs
-	
+
 3. In a browser window, open [https://github.com/docker/docker/commits/master].
 
 4. Locate the merges you want to publish.
@@ -196,9 +197,9 @@ For example, to update the current release's docs, do the following:
 5. Copy the commit SHA from GitHub.
 
 6. Cherry-pick the commit.
-	
+
 	 	$ git cherry-pick -x fe845c4
-	
+
 7. Repeat until you have cherry-picked everything you want to merge.
 
 8. Push your changes to your fork.
@@ -220,13 +221,13 @@ For example, to update the current release's docs, do the following:
 13. Fetch your merged pull request from `docs`.
 
 		$ git fetch upstream/docs
-	
+
 14. Ensure your branch is clean and set to the latest.
 
    	 	$ git reset --hard upstream/docs
-    
+
 15. Copy the `awsconfig` file into the `docs` directory.
-    
+
 16. Make the beta documentation
 
     	$ make AWS_S3_BUCKET=beta-docs.docker.io BUILD_ROOT=yes docs-release
@@ -280,24 +281,8 @@ aws cloudfront  create-invalidation --profile docs.docker.com --distribution-id 
 aws cloudfront  create-invalidation --profile docs.docker.com --distribution-id $DISTRIBUTION_ID --invalidation-batch '{"Paths":{"Quantity":1, "Items":["/v1.1/reference/api/docker_io_oauth_api/"]},"CallerReference":"6Mar2015sventest1"}'
 ```
 
-### Generate the man pages for Mac OSX
+### Generate the man pages
 
-When using Docker on Mac OSX the man pages will be missing by default. You can manually generate them by following these steps:
-
-1. Checkout the docker source. You must clone into your `/Users` directory because Boot2Docker can only share this path
-   with the docker containers.
-
-        $ git clone https://github.com/docker/docker.git
-		
-2. Build the docker image.
-   
-        $ cd docker/docs/man
-        $ docker build -t docker/md2man .
-
-3. Build the man pages.
-
-        $ docker run -v /Users/<path-to-git-dir>/docker/docs/man:/docs:rw -w /docs -i docker/md2man /docs/md2man-all.sh
-
-4. Copy the generated man pages to `/usr/share/man`
-
-        $ cp -R man* /usr/share/man/
+For information on generating man pages (short for manual page), see the README.md
+document in [the man page directory](https://github.com/docker/docker/tree/master/docker)
+in this project.

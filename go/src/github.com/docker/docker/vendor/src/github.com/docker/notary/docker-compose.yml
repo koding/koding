@@ -1,0 +1,27 @@
+notaryserver:
+  build: .
+  dockerfile: server.Dockerfile
+  links:
+   - notarymysql
+   - notarysigner
+  ports:
+   - "8080"
+   - "4443:4443"
+  environment:
+   - SERVICE_NAME=notary
+  command: -config=fixtures/server-config.json
+notarysigner:
+  volumes:
+   - /dev/bus/usb/003/010:/dev/bus/usb/002/010
+   - /var/run/pcscd/pcscd.comm:/var/run/pcscd/pcscd.comm
+  build: .
+  dockerfile: signer.Dockerfile
+  links:
+   - notarymysql
+  command: -config=fixtures/signer-config.json
+notarymysql:
+  volumes:
+    - notarymysql:/var/lib/mysql
+  build: ./notarymysql/
+  ports:
+    - "3306:3306"

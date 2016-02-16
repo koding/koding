@@ -1,41 +1,44 @@
 package client
 
 import (
-	"net/url"
+	"errors"
 
+	Cli "github.com/docker/docker/cli"
 	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/pkg/parsers"
-	"github.com/docker/docker/registry"
+	"github.com/docker/docker/reference"
+	"github.com/docker/engine-api/types"
 )
 
 // CmdTag tags an image into a repository.
 //
 // Usage: docker tag [OPTIONS] IMAGE[:TAG] [REGISTRYHOST/][USERNAME/]NAME[:TAG]
 func (cli *DockerCli) CmdTag(args ...string) error {
-	cmd := cli.Subcmd("tag", "IMAGE[:TAG] [REGISTRYHOST/][USERNAME/]NAME[:TAG]", "Tag an image into a repository", true)
-	force := cmd.Bool([]string{"f", "#force", "-force"}, false, "Force")
+	cmd := Cli.Subcmd("tag", []string{"IMAGE[:TAG] [REGISTRYHOST/][USERNAME/]NAME[:TAG]"}, Cli.DockerCommands["tag"].Description, true)
+	force := cmd.Bool([]string{"#f", "#-force"}, false, "Force the tagging even if there's a conflict")
 	cmd.Require(flag.Exact, 2)
 
 	cmd.ParseFlags(args, true)
 
-	var (
-		repository, tag = parsers.ParseRepositoryTag(cmd.Arg(1))
-		v               = url.Values{}
-	)
-
-	//Check if the given image name can be resolved
-	if err := registry.ValidateRepositoryName(repository); err != nil {
+	ref, err := reference.ParseNamed(cmd.Arg(1))
+	if err != nil {
 		return err
 	}
-	v.Set("repo", repository)
-	v.Set("tag", tag)
 
-	if *force {
-		v.Set("force", "1")
+	if _, isCanonical := ref.(reference.Canonical); isCanonical {
+		return errors.New("refusing to create a tag with a digest reference")
 	}
 
-	if _, _, err := readBody(cli.call("POST", "/images/"+cmd.Arg(0)+"/tag?"+v.Encode(), nil, nil)); err != nil {
-		return err
+	var tag string
+	if tagged, isTagged := ref.(reference.NamedTagged); isTagged {
+		tag = tagged.Tag()
 	}
-	return nil
+
+	options := types.ImageTagOptions{
+		ImageID:        cmd.Arg(0),
+		RepositoryName: ref.Name(),
+		Tag:            tag,
+		Force:          *force,
+	}
+
+	return cli.client.ImageTag(options)
 }
