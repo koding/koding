@@ -3,7 +3,6 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -19,12 +18,6 @@ var TimeFunc = time.Now
 // but unverified Token.  This allows you to use propries in the
 // Header of the token (such as `kid`) to identify which key to use.
 type Keyfunc func(*Token) (interface{}, error)
-
-// Error constants
-var (
-	ErrInvalidKey      = errors.New("key is invalid or of invalid type.")
-	ErrHashUnavailable = errors.New("the requested hash function is unavailable")
-)
 
 // A JWT Token.  Different fields will be used depending on whether you're
 // creating or parsing/verifying a token.
@@ -91,110 +84,7 @@ func (t *Token) SigningString() (string, error) {
 // keyFunc will receive the parsed token and should return the key for validating.
 // If everything is kosher, err will be nil
 func Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
-	parts := strings.Split(tokenString, ".")
-	if len(parts) != 3 {
-		return nil, &ValidationError{err: "token contains an invalid number of segments", Errors: ValidationErrorMalformed}
-	}
-
-	var err error
-	token := &Token{Raw: tokenString}
-	// parse Header
-	var headerBytes []byte
-	if headerBytes, err = DecodeSegment(parts[0]); err != nil {
-		return token, &ValidationError{err: err.Error(), Errors: ValidationErrorMalformed}
-	}
-	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
-		return token, &ValidationError{err: err.Error(), Errors: ValidationErrorMalformed}
-	}
-
-	// parse Claims
-	var claimBytes []byte
-	if claimBytes, err = DecodeSegment(parts[1]); err != nil {
-		return token, &ValidationError{err: err.Error(), Errors: ValidationErrorMalformed}
-	}
-	if err = json.Unmarshal(claimBytes, &token.Claims); err != nil {
-		return token, &ValidationError{err: err.Error(), Errors: ValidationErrorMalformed}
-	}
-
-	// Lookup signature method
-	if method, ok := token.Header["alg"].(string); ok {
-		if token.Method = GetSigningMethod(method); token.Method == nil {
-			return token, &ValidationError{err: "signing method (alg) is unavailable.", Errors: ValidationErrorUnverifiable}
-		}
-	} else {
-		return token, &ValidationError{err: "signing method (alg) is unspecified.", Errors: ValidationErrorUnverifiable}
-	}
-
-	// Lookup key
-	var key interface{}
-	if keyFunc == nil {
-		// keyFunc was not provided.  short circuiting validation
-		return token, &ValidationError{err: "no Keyfunc was provided.", Errors: ValidationErrorUnverifiable}
-	}
-	if key, err = keyFunc(token); err != nil {
-		// keyFunc returned an error
-		return token, &ValidationError{err: err.Error(), Errors: ValidationErrorUnverifiable}
-	}
-
-	// Check expiration times
-	vErr := &ValidationError{}
-	now := TimeFunc().Unix()
-	if exp, ok := token.Claims["exp"].(float64); ok {
-		if now > int64(exp) {
-			vErr.err = "token is expired"
-			vErr.Errors |= ValidationErrorExpired
-		}
-	}
-	if nbf, ok := token.Claims["nbf"].(float64); ok {
-		if now < int64(nbf) {
-			vErr.err = "token is not valid yet"
-			vErr.Errors |= ValidationErrorNotValidYet
-		}
-	}
-
-	// Perform validation
-	if err = token.Method.Verify(strings.Join(parts[0:2], "."), parts[2], key); err != nil {
-		vErr.err = err.Error()
-		vErr.Errors |= ValidationErrorSignatureInvalid
-	}
-
-	if vErr.valid() {
-		token.Valid = true
-		return token, nil
-	}
-
-	return token, vErr
-}
-
-// The errors that might occur when parsing and validating a token
-const (
-	ValidationErrorMalformed        uint32 = 1 << iota // Token is malformed
-	ValidationErrorUnverifiable                        // Token could not be verified because of signing problems
-	ValidationErrorSignatureInvalid                    // Signature validation failed
-	ValidationErrorExpired                             // Exp validation failed
-	ValidationErrorNotValidYet                         // NBF validation failed
-)
-
-// The error from Parse if token is not valid
-type ValidationError struct {
-	err    string
-	Errors uint32 // bitfield.  see ValidationError... constants
-}
-
-// Validation error is an error type
-func (e ValidationError) Error() string {
-	if e.err == "" {
-		return "token is invalid"
-	}
-	return e.err
-}
-
-// No errors
-func (e *ValidationError) valid() bool {
-	if e.Errors > 0 {
-		return false
-	}
-	return true
+	return new(Parser).Parse(tokenString, keyFunc)
 }
 
 // Try to find the token in an http.Request.
@@ -206,7 +96,7 @@ func ParseFromRequest(req *http.Request, keyFunc Keyfunc) (token *Token, err err
 	// Look for an Authorization header
 	if ah := req.Header.Get("Authorization"); ah != "" {
 		// Should be a bearer token
-		if len(ah) > 6 && strings.ToUpper(ah[0:6]) == "BEARER" {
+		if len(ah) > 6 && strings.ToUpper(ah[0:7]) == "BEARER " {
 			return Parse(ah[7:], keyFunc)
 		}
 	}
@@ -217,7 +107,7 @@ func ParseFromRequest(req *http.Request, keyFunc Keyfunc) (token *Token, err err
 		return Parse(tokStr, keyFunc)
 	}
 
-	return nil, errors.New("no token present in request.")
+	return nil, ErrNoTokenInRequest
 
 }
 

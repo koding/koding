@@ -1,7 +1,9 @@
-package jwt
+package jwt_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -11,19 +13,20 @@ import (
 
 var (
 	jwtTestDefaultKey []byte
-	defaultKeyFunc    Keyfunc = func(t *Token) (interface{}, error) { return jwtTestDefaultKey, nil }
-	emptyKeyFunc      Keyfunc = func(t *Token) (interface{}, error) { return nil, nil }
-	errorKeyFunc      Keyfunc = func(t *Token) (interface{}, error) { return nil, fmt.Errorf("error loading key") }
-	nilKeyFunc        Keyfunc = nil
+	defaultKeyFunc    jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return jwtTestDefaultKey, nil }
+	emptyKeyFunc      jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, nil }
+	errorKeyFunc      jwt.Keyfunc = func(t *jwt.Token) (interface{}, error) { return nil, fmt.Errorf("error loading key") }
+	nilKeyFunc        jwt.Keyfunc = nil
 )
 
 var jwtTestData = []struct {
-	name            string
-	tokenString     string
-	keyfunc         Keyfunc
-	claims          map[string]interface{}
-	valid           bool
-	validationError *ValidationError
+	name        string
+	tokenString string
+	keyfunc     jwt.Keyfunc
+	claims      map[string]interface{}
+	valid       bool
+	errors      uint32
+	parser      *jwt.Parser
 }{
 	{
 		"basic",
@@ -31,6 +34,7 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		map[string]interface{}{"foo": "bar"},
 		true,
+		0,
 		nil,
 	},
 	{
@@ -39,7 +43,8 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		map[string]interface{}{"foo": "bar", "exp": float64(time.Now().Unix() - 100)},
 		false,
-		&ValidationError{Errors: ValidationErrorExpired},
+		jwt.ValidationErrorExpired,
+		nil,
 	},
 	{
 		"basic nbf",
@@ -47,7 +52,8 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		map[string]interface{}{"foo": "bar", "nbf": float64(time.Now().Unix() + 100)},
 		false,
-		&ValidationError{Errors: ValidationErrorNotValidYet},
+		jwt.ValidationErrorNotValidYet,
+		nil,
 	},
 	{
 		"expired and nbf",
@@ -55,7 +61,8 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		map[string]interface{}{"foo": "bar", "nbf": float64(time.Now().Unix() + 100), "exp": float64(time.Now().Unix() - 100)},
 		false,
-		&ValidationError{Errors: ValidationErrorNotValidYet | ValidationErrorExpired},
+		jwt.ValidationErrorNotValidYet | jwt.ValidationErrorExpired,
+		nil,
 	},
 	{
 		"basic invalid",
@@ -63,7 +70,8 @@ var jwtTestData = []struct {
 		defaultKeyFunc,
 		map[string]interface{}{"foo": "bar"},
 		false,
-		&ValidationError{Errors: ValidationErrorSignatureInvalid},
+		jwt.ValidationErrorSignatureInvalid,
+		nil,
 	},
 	{
 		"basic nokeyfunc",
@@ -71,7 +79,8 @@ var jwtTestData = []struct {
 		nilKeyFunc,
 		map[string]interface{}{"foo": "bar"},
 		false,
-		&ValidationError{Errors: ValidationErrorUnverifiable},
+		jwt.ValidationErrorUnverifiable,
+		nil,
 	},
 	{
 		"basic nokey",
@@ -79,7 +88,8 @@ var jwtTestData = []struct {
 		emptyKeyFunc,
 		map[string]interface{}{"foo": "bar"},
 		false,
-		&ValidationError{Errors: ValidationErrorSignatureInvalid},
+		jwt.ValidationErrorSignatureInvalid,
+		nil,
 	},
 	{
 		"basic errorkey",
@@ -87,7 +97,35 @@ var jwtTestData = []struct {
 		errorKeyFunc,
 		map[string]interface{}{"foo": "bar"},
 		false,
-		&ValidationError{Errors: ValidationErrorUnverifiable},
+		jwt.ValidationErrorUnverifiable,
+		nil,
+	},
+	{
+		"invalid signing method",
+		"",
+		defaultKeyFunc,
+		map[string]interface{}{"foo": "bar"},
+		false,
+		jwt.ValidationErrorSignatureInvalid,
+		&jwt.Parser{ValidMethods: []string{"HS256"}},
+	},
+	{
+		"valid signing method",
+		"",
+		defaultKeyFunc,
+		map[string]interface{}{"foo": "bar"},
+		true,
+		0,
+		&jwt.Parser{ValidMethods: []string{"RS256", "HS256"}},
+	},
+	{
+		"JSON Number",
+		"",
+		defaultKeyFunc,
+		map[string]interface{}{"foo": json.Number("123.4")},
+		true,
+		0,
+		&jwt.Parser{UseJSONNumber: true},
 	},
 }
 
@@ -104,7 +142,7 @@ func makeSample(c map[string]interface{}) string {
 		panic(e.Error())
 	}
 
-	token := New(GetSigningMethod("RS256"))
+	token := jwt.New(jwt.SigningMethodRS256)
 	token.Claims = c
 	s, e := token.SignedString(key)
 
@@ -115,12 +153,19 @@ func makeSample(c map[string]interface{}) string {
 	return s
 }
 
-func TestJWT(t *testing.T) {
+func TestParser_Parse(t *testing.T) {
 	for _, data := range jwtTestData {
 		if data.tokenString == "" {
 			data.tokenString = makeSample(data.claims)
 		}
-		token, err := Parse(data.tokenString, data.keyfunc)
+
+		var token *jwt.Token
+		var err error
+		if data.parser != nil {
+			token, err = data.parser.Parse(data.tokenString, data.keyfunc)
+		} else {
+			token, err = jwt.Parse(data.tokenString, data.keyfunc)
+		}
 
 		if !reflect.DeepEqual(data.claims, token.Claims) {
 			t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
@@ -131,17 +176,18 @@ func TestJWT(t *testing.T) {
 		if !data.valid && err == nil {
 			t.Errorf("[%v] Invalid token passed validation", data.name)
 		}
-		if data.validationError != nil {
+		if data.errors != 0 {
 			if err == nil {
 				t.Errorf("[%v] Expecting error.  Didn't get one.", data.name)
 			} else {
-				// perform deep equal without the string bit
-				err.(*ValidationError).err = ""
-				if !reflect.DeepEqual(data.validationError, err) {
-					t.Errorf("[%v] Errors don't match expectation", data.name)
+				// compare the bitfield part of the error
+				if e := err.(*jwt.ValidationError).Errors; e != data.errors {
+					t.Errorf("[%v] Errors don't match expectation.  %v != %v", data.name, e, data.errors)
 				}
-
 			}
+		}
+		if data.valid && token.Signature == "" {
+			t.Errorf("[%v] Signature is left unpopulated after parsing", data.name)
 		}
 	}
 }
@@ -149,14 +195,24 @@ func TestJWT(t *testing.T) {
 func TestParseRequest(t *testing.T) {
 	// Bearer token request
 	for _, data := range jwtTestData {
+		// FIXME: custom parsers are not supported by this helper.  skip tests that require them
+		if data.parser != nil {
+			t.Logf("Skipping [%v].  Custom parsers are not supported by ParseRequest", data.name)
+			continue
+		}
+
 		if data.tokenString == "" {
 			data.tokenString = makeSample(data.claims)
 		}
 
 		r, _ := http.NewRequest("GET", "/", nil)
 		r.Header.Set("Authorization", fmt.Sprintf("Bearer %v", data.tokenString))
-		token, err := ParseFromRequest(r, data.keyfunc)
+		token, err := jwt.ParseFromRequest(r, data.keyfunc)
 
+		if token == nil {
+			t.Errorf("[%v] Token was not found: %v", data.name, err)
+			continue
+		}
 		if !reflect.DeepEqual(data.claims, token.Claims) {
 			t.Errorf("[%v] Claims mismatch. Expecting: %v  Got: %v", data.name, data.claims, token.Claims)
 		}
@@ -167,4 +223,17 @@ func TestParseRequest(t *testing.T) {
 			t.Errorf("[%v] Invalid token passed validation", data.name)
 		}
 	}
+}
+
+// Helper method for benchmarking various methods
+func benchmarkSigning(b *testing.B, method jwt.SigningMethod, key interface{}) {
+	t := jwt.New(method)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := t.SignedString(key); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
 }
