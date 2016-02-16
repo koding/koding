@@ -47,7 +47,6 @@ module.exports = class KodingTray
 
     # Globals
     @_inProgress  = no
-    @_checker     = null
     @_isKdRunning = no
     @_contextMenu = []
 
@@ -55,10 +54,12 @@ module.exports = class KodingTray
     @tray.on 'click', => @handleClick()
 
     setTimeout  =>
-      @checkKdStatus yes
+      @checkKdStatus no
     , 100
 
-    setInterval @checkKdStatus, 1000 * CHECK_TIMER
+    setInterval =>
+      @checkKdStatus no
+    , 1000 * CHECK_TIMER
 
 
   handleClick: ->

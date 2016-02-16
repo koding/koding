@@ -16,6 +16,8 @@ module.exports = class Storage
 
     @init()
 
+    @write @template  if options.reset
+
 
   init: ->
 
@@ -26,7 +28,7 @@ module.exports = class Storage
 
     fs.writeFile @path, JSON.stringify(data), =>
       console.log "Storage file is saved at: #{@path}"
-      callback()
+      callback?()
 
 
   get: ->
