@@ -21,13 +21,12 @@ module.exports = class GroupInitialView extends BaseInitialView
     else new kd.CustomHTMLView
 
     """
-    <div class='text header'>Compute Stack Templates</div>
+    <div class='text header'>Team Stack Templates</div>
     <div class=top>
       <div class='text intro'>
-        Stack Templates are awesome because when a user
-        joins your group you can preconfigure their work
-        environment by defining stacks.
-        Learn more about stacks
+        Team Stack Templates are shared among the members.
+        Admins can edit and update, members can build them.
+        If you update them users will be notified of the changes.
       </div>
       {{> @createStackButton }}
     </div>
