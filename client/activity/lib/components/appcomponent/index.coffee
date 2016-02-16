@@ -39,7 +39,7 @@ module.exports = class ActivityAppComponent extends React.Component
 
 
   render: ->
-    <div className={@getClassName()} style={height: '100%'}>
+    <div className={@getClassName()}>
       {@state.content}
       {@state.modal}
     </div>
