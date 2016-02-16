@@ -15,10 +15,11 @@
 package redis_test
 
 import (
-	"bufio"
 	"bytes"
+	"io"
 	"math"
 	"net"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -27,55 +28,76 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+type testConn struct {
+	io.Reader
+	io.Writer
+}
+
+func (*testConn) Close() error                       { return nil }
+func (*testConn) LocalAddr() net.Addr                { return nil }
+func (*testConn) RemoteAddr() net.Addr               { return nil }
+func (*testConn) SetDeadline(t time.Time) error      { return nil }
+func (*testConn) SetReadDeadline(t time.Time) error  { return nil }
+func (*testConn) SetWriteDeadline(t time.Time) error { return nil }
+
+func dialTestConn(r io.Reader, w io.Writer) redis.DialOption {
+	return redis.DialNetDial(func(net, addr string) (net.Conn, error) {
+		return &testConn{Reader: r, Writer: w}, nil
+	})
+}
+
 var writeTests = []struct {
 	args     []interface{}
 	expected string
 }{
 	{
-		[]interface{}{"SET", "foo", "bar"},
-		"*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n",
+		[]interface{}{"SET", "key", "value"},
+		"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n",
 	},
 	{
-		[]interface{}{"SET", "foo", "bar"},
-		"*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n",
+		[]interface{}{"SET", "key", "value"},
+		"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n",
 	},
 	{
-		[]interface{}{"SET", "foo", byte(100)},
-		"*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\n100\r\n",
+		[]interface{}{"SET", "key", byte(100)},
+		"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$3\r\n100\r\n",
 	},
 	{
-		[]interface{}{"SET", "foo", 100},
-		"*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\n100\r\n",
+		[]interface{}{"SET", "key", 100},
+		"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$3\r\n100\r\n",
 	},
 	{
-		[]interface{}{"SET", "foo", int64(math.MinInt64)},
-		"*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$20\r\n-9223372036854775808\r\n",
+		[]interface{}{"SET", "key", int64(math.MinInt64)},
+		"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$20\r\n-9223372036854775808\r\n",
 	},
 	{
-		[]interface{}{"SET", "foo", float64(1349673917.939762)},
-		"*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$21\r\n1.349673917939762e+09\r\n",
+		[]interface{}{"SET", "key", float64(1349673917.939762)},
+		"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$21\r\n1.349673917939762e+09\r\n",
 	},
 	{
-		[]interface{}{"SET", "", []byte("foo")},
-		"*3\r\n$3\r\nSET\r\n$0\r\n\r\n$3\r\nfoo\r\n",
+		[]interface{}{"SET", "key", ""},
+		"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$0\r\n\r\n",
 	},
 	{
-		[]interface{}{"SET", nil, []byte("foo")},
-		"*3\r\n$3\r\nSET\r\n$0\r\n\r\n$3\r\nfoo\r\n",
+		[]interface{}{"SET", "key", nil},
+		"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$0\r\n\r\n",
+	},
+	{
+		[]interface{}{"ECHO", true, false},
+		"*3\r\n$4\r\nECHO\r\n$1\r\n1\r\n$1\r\n0\r\n",
 	},
 }
 
 func TestWrite(t *testing.T) {
 	for _, tt := range writeTests {
 		var buf bytes.Buffer
-		rw := bufio.ReadWriter{Writer: bufio.NewWriter(&buf)}
-		c := redis.NewConnBufio(rw)
+		c, _ := redis.Dial("", "", dialTestConn(nil, &buf))
 		err := c.Send(tt.args[0].(string), tt.args[1:]...)
 		if err != nil {
 			t.Errorf("Send(%v) returned error %v", tt.args, err)
 			continue
 		}
-		rw.Flush()
+		c.Flush()
 		actual := buf.String()
 		if actual != tt.expected {
 			t.Errorf("Send(%v) = %q, want %q", tt.args, actual, tt.expected)
@@ -133,15 +155,42 @@ var readTests = []struct {
 		"*3\r\n$3\r\nfoo\r\n$-1\r\n$3\r\nbar\r\n",
 		[]interface{}{[]byte("foo"), nil, []byte("bar")},
 	},
+
+	{
+		// "x" is not a valid length
+		"$x\r\nfoobar\r\n",
+		errorSentinel,
+	},
+	{
+		// -2 is not a valid length
+		"$-2\r\n",
+		errorSentinel,
+	},
+	{
+		// "x"  is not a valid integer
+		":x\r\n",
+		errorSentinel,
+	},
+	{
+		// missing \r\n following value
+		"$6\r\nfoobar",
+		errorSentinel,
+	},
+	{
+		// short value
+		"$6\r\nxx",
+		errorSentinel,
+	},
+	{
+		// long value
+		"$6\r\nfoobarx\r\n",
+		errorSentinel,
+	},
 }
 
 func TestRead(t *testing.T) {
 	for _, tt := range readTests {
-		rw := bufio.ReadWriter{
-			Reader: bufio.NewReader(strings.NewReader(tt.reply)),
-			Writer: bufio.NewWriter(nil), // writer need to support Flush
-		}
-		c := redis.NewConnBufio(rw)
+		c, _ := redis.Dial("", "", dialTestConn(strings.NewReader(tt.reply), nil))
 		actual, err := c.Receive()
 		if tt.expected == errorSentinel {
 			if err == nil {
@@ -221,7 +270,7 @@ var testCommands = []struct {
 }
 
 func TestDoCommands(t *testing.T) {
-	c, err := redis.DialTestDB()
+	c, err := redis.DialDefaultServer()
 	if err != nil {
 		t.Fatalf("error connection to database, %v", err)
 	}
@@ -240,7 +289,7 @@ func TestDoCommands(t *testing.T) {
 }
 
 func TestPipelineCommands(t *testing.T) {
-	c, err := redis.DialTestDB()
+	c, err := redis.DialDefaultServer()
 	if err != nil {
 		t.Fatalf("error connection to database, %v", err)
 	}
@@ -266,7 +315,7 @@ func TestPipelineCommands(t *testing.T) {
 }
 
 func TestBlankCommmand(t *testing.T) {
-	c, err := redis.DialTestDB()
+	c, err := redis.DialDefaultServer()
 	if err != nil {
 		t.Fatalf("error connection to database, %v", err)
 	}
@@ -292,8 +341,29 @@ func TestBlankCommmand(t *testing.T) {
 	}
 }
 
+func TestRecvBeforeSend(t *testing.T) {
+	c, err := redis.DialDefaultServer()
+	if err != nil {
+		t.Fatalf("error connection to database, %v", err)
+	}
+	defer c.Close()
+	done := make(chan struct{})
+	go func() {
+		c.Receive()
+		close(done)
+	}()
+	time.Sleep(time.Millisecond)
+	c.Send("PING")
+	c.Flush()
+	<-done
+	_, err = c.Do("")
+	if err != nil {
+		t.Fatalf("error=%v", err)
+	}
+}
+
 func TestError(t *testing.T) {
-	c, err := redis.DialTestDB()
+	c, err := redis.DialDefaultServer()
 	if err != nil {
 		t.Fatalf("error connection to database, %v", err)
 	}
@@ -313,7 +383,7 @@ func TestError(t *testing.T) {
 	}
 }
 
-func TestReadDeadline(t *testing.T) {
+func TestReadTimeout(t *testing.T) {
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("net.Listen returned %v", err)
@@ -334,7 +404,9 @@ func TestReadDeadline(t *testing.T) {
 		}
 	}()
 
-	c1, err := redis.DialTimeout(l.Addr().Network(), l.Addr().String(), 0, time.Millisecond, 0)
+	// Do
+
+	c1, err := redis.Dial(l.Addr().Network(), l.Addr().String(), redis.DialReadTimeout(time.Millisecond))
 	if err != nil {
 		t.Fatalf("redis.Dial returned %v", err)
 	}
@@ -348,7 +420,9 @@ func TestReadDeadline(t *testing.T) {
 		t.Fatalf("c1.Err() = nil, expect error")
 	}
 
-	c2, err := redis.DialTimeout(l.Addr().Network(), l.Addr().String(), 0, time.Millisecond, 0)
+	// Send/Flush/Receive
+
+	c2, err := redis.Dial(l.Addr().Network(), l.Addr().String(), redis.DialReadTimeout(time.Millisecond))
 	if err != nil {
 		t.Fatalf("redis.Dial returned %v", err)
 	}
@@ -365,6 +439,95 @@ func TestReadDeadline(t *testing.T) {
 	}
 }
 
+var dialErrors = []struct {
+	rawurl        string
+	expectedError string
+}{
+	{
+		"localhost",
+		"invalid redis URL scheme",
+	},
+	// The error message for invalid hosts is diffferent in different
+	// versions of Go, so just check that there is an error message.
+	{
+		"redis://weird url",
+		"",
+	},
+	{
+		"redis://foo:bar:baz",
+		"",
+	},
+	{
+		"http://www.google.com",
+		"invalid redis URL scheme: http",
+	},
+	{
+		"redis://localhost:6379/abc123",
+		"invalid database: abc123",
+	},
+}
+
+func TestDialURLErrors(t *testing.T) {
+	for _, d := range dialErrors {
+		_, err := redis.DialURL(d.rawurl)
+		if err == nil || !strings.Contains(err.Error(), d.expectedError) {
+			t.Errorf("DialURL did not return expected error (expected %v to contain %s)", err, d.expectedError)
+		}
+	}
+}
+
+func TestDialURLPort(t *testing.T) {
+	checkPort := func(network, address string) (net.Conn, error) {
+		if address != "localhost:6379" {
+			t.Errorf("DialURL did not set port to 6379 by default (got %v)", address)
+		}
+		return nil, nil
+	}
+	_, err := redis.DialURL("redis://localhost", redis.DialNetDial(checkPort))
+	if err != nil {
+		t.Error("dial error:", err)
+	}
+}
+
+func TestDialURLHost(t *testing.T) {
+	checkHost := func(network, address string) (net.Conn, error) {
+		if address != "localhost:6379" {
+			t.Errorf("DialURL did not set host to localhost by default (got %v)", address)
+		}
+		return nil, nil
+	}
+	_, err := redis.DialURL("redis://:6379", redis.DialNetDial(checkHost))
+	if err != nil {
+		t.Error("dial error:", err)
+	}
+}
+
+func TestDialURLPassword(t *testing.T) {
+	var buf bytes.Buffer
+	_, err := redis.DialURL("redis://x:abc123@localhost", dialTestConn(strings.NewReader("+OK\r\n"), &buf))
+	if err != nil {
+		t.Error("dial error:", err)
+	}
+	expected := "*2\r\n$4\r\nAUTH\r\n$6\r\nabc123\r\n"
+	actual := buf.String()
+	if actual != expected {
+		t.Errorf("commands = %q, want %q", actual, expected)
+	}
+}
+
+func TestDialURLDatabase(t *testing.T) {
+	var buf bytes.Buffer
+	_, err := redis.DialURL("redis://localhost/3", dialTestConn(strings.NewReader("+OK\r\n"), &buf))
+	if err != nil {
+		t.Error("dial error:", err)
+	}
+	expected := "*2\r\n$6\r\nSELECT\r\n$1\r\n3\r\n"
+	actual := buf.String()
+	if actual != expected {
+		t.Errorf("commands = %q, want %q", actual, expected)
+	}
+}
+
 // Connect to local instance of Redis running on the default port.
 func ExampleDial(x int) {
 	c, err := redis.Dial("tcp", ":6379")
@@ -374,9 +537,100 @@ func ExampleDial(x int) {
 	defer c.Close()
 }
 
+// Connect to remote instance of Redis using a URL.
+func ExampleDialURL() {
+	c, err := redis.DialURL(os.Getenv("REDIS_URL"))
+	if err != nil {
+		// handle connection error
+	}
+	defer c.Close()
+}
+
+// TextExecError tests handling of errors in a transaction. See
+// http://redis.io/topics/transactions for information on how Redis handles
+// errors in a transaction.
+func TestExecError(t *testing.T) {
+	c, err := redis.DialDefaultServer()
+	if err != nil {
+		t.Fatalf("error connection to database, %v", err)
+	}
+	defer c.Close()
+
+	// Execute commands that fail before EXEC is called.
+
+	c.Do("DEL", "k0")
+	c.Do("ZADD", "k0", 0, 0)
+	c.Send("MULTI")
+	c.Send("NOTACOMMAND", "k0", 0, 0)
+	c.Send("ZINCRBY", "k0", 0, 0)
+	v, err := c.Do("EXEC")
+	if err == nil {
+		t.Fatalf("EXEC returned values %v, expected error", v)
+	}
+
+	// Execute commands that fail after EXEC is called. The first command
+	// returns an error.
+
+	c.Do("DEL", "k1")
+	c.Do("ZADD", "k1", 0, 0)
+	c.Send("MULTI")
+	c.Send("HSET", "k1", 0, 0)
+	c.Send("ZINCRBY", "k1", 0, 0)
+	v, err = c.Do("EXEC")
+	if err != nil {
+		t.Fatalf("EXEC returned error %v", err)
+	}
+
+	vs, err := redis.Values(v, nil)
+	if err != nil {
+		t.Fatalf("Values(v) returned error %v", err)
+	}
+
+	if len(vs) != 2 {
+		t.Fatalf("len(vs) == %d, want 2", len(vs))
+	}
+
+	if _, ok := vs[0].(error); !ok {
+		t.Fatalf("first result is type %T, expected error", vs[0])
+	}
+
+	if _, ok := vs[1].([]byte); !ok {
+		t.Fatalf("second result is type %T, expected []byte", vs[1])
+	}
+
+	// Execute commands that fail after EXEC is called. The second command
+	// returns an error.
+
+	c.Do("ZADD", "k2", 0, 0)
+	c.Send("MULTI")
+	c.Send("ZINCRBY", "k2", 0, 0)
+	c.Send("HSET", "k2", 0, 0)
+	v, err = c.Do("EXEC")
+	if err != nil {
+		t.Fatalf("EXEC returned error %v", err)
+	}
+
+	vs, err = redis.Values(v, nil)
+	if err != nil {
+		t.Fatalf("Values(v) returned error %v", err)
+	}
+
+	if len(vs) != 2 {
+		t.Fatalf("len(vs) == %d, want 2", len(vs))
+	}
+
+	if _, ok := vs[0].([]byte); !ok {
+		t.Fatalf("first result is type %T, expected []byte", vs[0])
+	}
+
+	if _, ok := vs[1].(error); !ok {
+		t.Fatalf("second result is type %T, expected error", vs[2])
+	}
+}
+
 func BenchmarkDoEmpty(b *testing.B) {
 	b.StopTimer()
-	c, err := redis.DialTestDB()
+	c, err := redis.DialDefaultServer()
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -391,7 +645,7 @@ func BenchmarkDoEmpty(b *testing.B) {
 
 func BenchmarkDoPing(b *testing.B) {
 	b.StopTimer()
-	c, err := redis.DialTestDB()
+	c, err := redis.DialDefaultServer()
 	if err != nil {
 		b.Fatal(err)
 	}
