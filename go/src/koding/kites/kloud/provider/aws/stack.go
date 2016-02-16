@@ -82,6 +82,8 @@ func (meta *AwsMeta) Valid() error {
 // Stack implements the kloud.StackProvider interface.
 type Stack struct {
 	*provider.BaseStack
+
+	p *stackplan.Planner
 }
 
 // Ensure Provider implements the kloud.StackProvider interface.
@@ -98,5 +100,9 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 
 	return &Stack{
 		BaseStack: bs,
+		p: &stackplan.Planner{
+			Provider:     "aws",
+			ResourceType: "instance",
+		},
 	}, nil
 }
