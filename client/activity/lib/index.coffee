@@ -5,7 +5,6 @@ remote                   = require('app/remote').getInstance()
 globals                  = require 'globals'
 getGroup                 = require 'app/util/getGroup'
 checkFlag                = require 'app/util/checkFlag'
-isFeedEnabled            = require 'app/util/isFeedEnabled'
 isKoding                 = require 'app/util/isKoding'
 AppStorage               = require 'app/appstorage'
 AppController            = require 'app/appcontroller'
@@ -32,7 +31,7 @@ module.exports = class ActivityAppController extends AppController
 
     {appStorageController, appManager} = kd.singletons
 
-    if isFeedEnabled()
+    unless isKoding()
       appManager.on 'FrontAppIsChanged', (currentApp, oldApp) =>
         if currentApp isnt oldApp and oldApp is this
           {thread, message} = ActivityFlux.actions

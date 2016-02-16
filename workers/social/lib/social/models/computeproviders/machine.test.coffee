@@ -7,7 +7,7 @@ JMachine                      = require './machine'
 
 { withConvertedUserAndProvisioner } = require '../../../../testhelper/models/computeproviders/provisionerhelper'
 
-{ daisy
+{ async
   expect
   withDummyClient
   generateUserInfo
@@ -35,27 +35,25 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       queue = [
 
-        ->
+        (next) ->
           withDummyClient { group : 'koding' }, ({ client }) ->
 
             # generating machineParams to use on machine creation
             generateMachineParams client, (err, data) ->
               expect(err).to.not.exist
               machineParams = data
-              queue.next()
+              next()
 
-        ->
+        (next) ->
           # sending machineParams.user null and expecting error
           machineParams.user = null
           JMachine.create machineParams, (err, data) ->
             expect(err?.message).to.be.equal 'user is not set!'
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
     describe 'when machine data is valid', ->
@@ -66,16 +64,16 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             withDummyClient { group : 'koding' }, ({ client }) ->
 
               # generating machineParams to use on machine creation
               generateMachineParams client, (err, data) ->
                 expect(err).to.not.exist
                 machineParams = data
-                queue.next()
+                next()
 
-          ->
+          (next) ->
             # expecting machine to be craeted
             JMachine.create machineParams, (err, machine) ->
               expect(err).to.not.exist
@@ -87,13 +85,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               expect(machine.users[0].owner).to.be.ok
               expect(machine.domain).to.exist
               expect(machine.slug).to.exist
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
       it 'a new machine should be created for created user', (done) ->
@@ -127,32 +123,30 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
               { machine, user } = data
               userCount         = machine.users.length
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting machine to be destroyed without error
             _client = { r : { user } }
             machine.destroy _client, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # fetching machine instances again expecting machine to be destroyed
             JMachine.fetchByUsername userInfo.username, (err, machines) ->
               expect(err).to.not.exist
               expect(machines.length).to.be.equal 0
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     describe 'when user is not the owner', ->
@@ -167,31 +161,29 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
               { machine } = data
               userCount   = machine.users.length
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.createUser generateUserInfo(), (err, user_, account_) ->
               expect(err).to.not.exist
               anotherUser = user_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting destroy attempt with another user to fail
             _client = { r : { user : anotherUser } }
             machine.destroy _client, (err) ->
               expect(err?.message).to.be.equal 'Access denied'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#addUsers()', ->
@@ -207,20 +199,20 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
               { machine } = data
               userCount   = machine.users.length
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.createUser generateUserInfo(), (err, user_, account_) ->
               expect(err).to.not.exist
               anotherUser = user_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting another user to be added
             params =
               targets   : [anotherUser]
@@ -230,13 +222,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             machine.addUsers params, (err) ->
               expect(err).to.not.exist
               expect(machine.users.length).to.be.equal userCount + 1
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     describe 'when data is not valid', ->
@@ -248,17 +238,18 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         targets       = []
         machine       = {}
 
-        queue.push ->
+        queue.push (next) ->
           createUserAndMachine generateUserInfo(), (err, data) ->
+            expect(err).to.not.exist
             { machine } = data
-            queue.next()
+            next()
 
-        queue.push ->
+        queue.push (next) ->
           generateRandomUserArray limit, (userArray) ->
             targets = userArray
-            queue.next()
+            next()
 
-        queue.push ->
+        queue.push (next) ->
           params =
             targets   : targets
             asOwner   : yes
@@ -267,11 +258,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
           expectedError = "Machine sharing is limited up to #{limit} users."
           machine.addUsers params, (err) ->
             expect(err?.message).to.be.equal expectedError
-            queue.next()
+            next()
 
-        queue.push -> done()
-
-        daisy queue
+        async.series queue, done
 
 
   describe '#removeUsers()', ->
@@ -287,19 +276,20 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         addedUserCount   = 5
         removedUserCount = 2
 
-        queue.push ->
+        queue.push (next) ->
           createUserAndMachine generateUserInfo(), (err, data) ->
+            expect(err).to.not.exist
             { machine } = data
             userCount   = machine.users.length
-            queue.next()
+            next()
 
-        queue.push ->
+        queue.push (next) ->
           generateRandomUserArray addedUserCount, (userArray) ->
             targets = userArray
-            queue.next()
+            next()
 
         # first adding users
-        queue.push ->
+        queue.push (next) ->
           params =
             targets   : targets
             asOwner   : yes
@@ -308,10 +298,10 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
           machine.addUsers params, (err) ->
             expect(err).to.not.exist
             expect(machine.users.length).to.be.equal userCount + addedUserCount
-            queue.next()
+            next()
 
         # then removing some users and expecting no error
-        queue.push ->
+        queue.push (next) ->
           params =
             targets   : targets.slice 0, removedUserCount
             asOwner   : yes
@@ -321,11 +311,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
           machine.removeUsers params, (err) ->
             expect(err).to.not.exist
             expect(machine.users.length).to.be.equal expectedUserCount
-            queue.next()
+            next()
 
-        queue.push -> done()
-
-        daisy queue
+        async.series queue, done
 
 
   describe '#shareWith()', ->
@@ -339,24 +327,22 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
               { machine } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting error when target is not specified
             params = { target : null }
             machine.shareWith params, (err, machine_) ->
               expect(err?.message).to.be.equal 'Target required.'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
       it 'should fail if target is not an instance of juser', (done) ->
@@ -366,24 +352,22 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
               { machine } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting error when target is invalid
             params = { target : ['invalidTarget'] }
             machine.shareWith params, (err, machine_) ->
               expect(err?.message).to.be.equal 'Target does not support machines.'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
     describe 'when data is valid', ->
 
@@ -396,40 +380,38 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
               { machine } = data
               userCount = machine.users.length
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.createUser generateUserInfo(), (err, user_) ->
               expect(err).to.not.exist
               anotherUser = user_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting user to be added when asUser is yes
             params = { target : [anotherUser.username], asUser : yes }
             machine.shareWith params, (err) ->
               expect(err).to.not.exist
               expect(machine.users.length).to.be.equal userCount + 1
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting user to be removed when asUser is no
             params = { target : [anotherUser.username], asUser : no }
             machine.shareWith params, (err) ->
               expect(err).to.not.exist
               expect(machine.users.length).to.be.equal userCount
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#fetchOwner()', ->
@@ -442,29 +424,27 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       queue = [
 
-        ->
+        (next) ->
           createUserAndMachine userInfo, (err, data) ->
             expect(err).to.not.exist
             { machine } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # setting machine owner to false
           machine.update { $set : { 'users.0.owner' : no } }, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # expecting error when there is no owner
           machine.fetchOwner (err) ->
             expect(err?.message).to.be.equal 'Owner user not found'
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
     it 'should return the owner when data is valid', (done) ->
@@ -476,25 +456,23 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       queue = [
 
-        ->
+        (next) ->
           createUserAndMachine userInfo, (err, data) ->
             expect(err).to.not.exist
             { machine, user } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # expecting owner to be fetched
           machine.fetchOwner (err, owner) ->
             expect(err).to.not.exist
             expect(owner).to.exist
             expect(owner.profile.nickname).to.be.equal user.username
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   describe '#one$()', ->
@@ -508,12 +486,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       queue = [
 
-        ->
+        (next) ->
           withConvertedUser { userFormData }, (data) ->
             { client } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # fetching machine instance of newly registered user
           fetchMachinesByUsername userFormData.username, (machines) ->
             machine = machines[0]
@@ -523,13 +501,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               expect(err).to.not.exist
               expect(machine).to.exist
               expect(machine._id + '').to.be.equal machine_._id + ''
-              queue.next()
-
-        -> done()
+              next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   describe '#reviveUsers()', ->
@@ -545,12 +521,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             withConvertedUser { userFormData }, (data) ->
               { client } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             withConvertedUser {}, (data) ->
               { client : anotherClient } = data
 
@@ -561,13 +537,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
                 # expecting error when another user attempts to revive users
                 machine.reviveUsers anotherClient, {}, (err) ->
                   expect(err?.message).to.be.equal 'Access denied'
-                  queue.next()
-
-          -> done()
+                  next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     describe 'when data is valid', ->
@@ -580,12 +554,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             withConvertedUser { userFormData }, (data) ->
               { client } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # fetching machine of owner user
             fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
@@ -593,13 +567,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               # expecting to revive users without error
               machine.reviveUsers client, {}, (err) ->
                 expect(err?.message).to.not.exist
-                queue.next()
-
-          -> done()
+                next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#setLabel()', ->
@@ -616,40 +588,38 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             withConvertedUser { userFormData }, (data) ->
               { client } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             withConvertedUser {}, (data) ->
               { client : anotherClient } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # fetching machine of user
             JMachine.fetchByUsername userFormData.username, (err, machines) ->
               expect(err).to.not.exist
               machine = machines[0]
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting error when another user makes setLabel request
             machine.setLabel anotherClient, 'someLabel', (err) ->
               expect(err?.message).to.be.equal 'Access denied'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting error when label is empty
             machine.setLabel client, '', (err) ->
               expect(err?.message).to.be.equal 'Nickname cannot be empty'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     describe 'when data is valid', ->
@@ -662,12 +632,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             withConvertedUser { userFormData }, (data) ->
               { client } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
 
@@ -676,13 +646,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               machine.setLabel client, newLabel, (err) ->
                 expect(err).to.not.exist
                 expect(machine.label).to.be.equal newLabel
-                queue.next()
-
-          -> done()
+                next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#setProvisioner()', ->
@@ -697,19 +665,19 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             createUserAndMachine generateUserInfo(), (err, data) ->
               expect(err).to.not.exist
               { machine, user } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.createUser generateUserInfo(), (err, user_, account_) ->
               expect(err).to.not.exist
               anotherUserAccount = account_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting error when another user makes request
             _client =
               connection : { delegate : anotherUserAccount }
@@ -717,13 +685,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
             machine.setProvisioner _client, '', (err) ->
               expect(err?.message).to.be.equal 'Access denied'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     describe 'when data is valid', ->
@@ -739,12 +705,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         queue = [
 
-          ->
+          (next) ->
             withConvertedUserAndProvisioner { userFormData }, (data) ->
               { client, provisioner } = data
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
 
@@ -753,13 +719,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
                 expect(err?.message).to.not.exist
                 expect(machine.provisioners).to.exist
                 expect(machine.provisioners.length).to.be.equal provisionerCount + 1
-                queue.next()
-
-          -> done()
+                next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#share()', ->
@@ -774,17 +738,17 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       queue = [
 
-        ->
+        (next) ->
           withConvertedUser { userFormData }, (data) ->
             { client } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           withConvertedUser {}, (data) ->
             { userFormData : anotherUserFormData } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           fetchMachinesByUsername userFormData.username, (machines) ->
             machine = machines[0]
             userCount = machine.users.length
@@ -793,13 +757,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             machine.share client, [anotherUserFormData.username], (err) ->
               expect(err?.message).to.not.exist
               expect(machine.users.length).to.be.equal userCount + 1
-              queue.next()
-
-        -> done()
+              next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   describe '#approve()', ->
@@ -814,29 +776,29 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       queue = [
 
-        ->
+        (next) ->
           createUserAndMachine userInfo, (err, data) ->
             expect(err).to.not.exist
             { machine } = data
             userCount   = machine.users.length
             machineId   = machine._id
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           JUser.createUser generateUserInfo(), (err, user_, account_) ->
             expect(err).to.not.exist
             anotherUser        = user_
             anotherUserAccount = account_
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # sharing maching with another user
           params = { target : [anotherUser.username], asUser : yes }
           machine.shareWith params, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # approving share
           _client =
             connection : { delegate : anotherUserAccount }
@@ -844,20 +806,18 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
           machine.approve _client, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # expecting another user to be approved
           JMachine.one { _id : machineId }, (err, machine) ->
             expect(err?.message).to.not.exist
             expect(machine.users[1].approved).to.be.ok
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   describe '#deny()', ->
@@ -873,30 +833,30 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       queue = [
 
-        ->
+        (next) ->
           createUserAndMachine userInfo, (err, data) ->
             expect(err).to.not.exist
             { machine } = data
             userCount   = machine.users.length
             machineId   = machine._id
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           JUser.createUser generateUserInfo(), (err, user_, account_) ->
             expect(err).to.not.exist
             anotherUser        = user_
             anotherUserAccount = account_
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # sharing machine with another user
           params = { target : [anotherUser.username], asUser : yes }
           machine.shareWith params, (err) ->
             expect(err).to.not.exist
             expect(machine.users.length).to.be.equal userCount + 1
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # denying share request
           _client =
             connection : { delegate : anotherUserAccount }
@@ -904,20 +864,18 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
           machine.deny _client, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # expecting user not to be added to machine.users
           JMachine.one { _id : machineId }, (err, machine) ->
             expect(err).to.not.exist
             expect(machine.users.length).to.be.equal userCount
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
 beforeTests()

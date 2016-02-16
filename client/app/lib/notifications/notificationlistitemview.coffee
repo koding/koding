@@ -8,7 +8,6 @@ groupifyLink            = require '../util/groupifyLink'
 getFullnameFromAccount  = require '../util/getFullnameFromAccount'
 remote                  = require('../remote').getInstance()
 whoami                  = require '../util/whoami'
-isFeedEnabled           = require '../util/isFeedEnabled'
 isKoding                = require '../util/isKoding'
 isPublicChannel         = require '../util/isPublicChannel'
 AvatarView              = require '../commonviews/avatarviews/avatarview'
@@ -81,7 +80,7 @@ module.exports = class NotificationListItemView extends KDListItemView
       when 'comment', 'like', 'mention'
         socialapi.message.byId { id: @getData().targetId }, (err, post) =>
           return kd.warn err  if err
-          if not isKoding() or isFeedEnabled()
+          if not isKoding()
           then @setAttribute 'href', calculateReactivityLink post
           else @setAttribute 'href', groupifyLink "/Activity/Post/#{post.slug}"
       when 'follow'
@@ -99,7 +98,7 @@ module.exports = class NotificationListItemView extends KDListItemView
       if post
         # TODO group slug must be prepended after groups are implemented
         # groupSlug = if post.group is "koding" then "" else "/#{post.group}"
-        if not isKoding() or isFeedEnabled()
+        if not isKoding()
         then kd.singletons.router.handleRoute calculateReactivityLink post
         else kd.singletons.router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
       else
