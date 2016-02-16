@@ -1,40 +1,33 @@
-// Copyright 2015 CoreOS, Inc.
+// +build windows
+
+package log
+
+// Copyright 2013, CoreOS, Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//   http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-package main
+//
+// author: David Fisher <ddf1991@gmail.com>
+// based on previous package by: Cong Ding <dinggnu@gmail.com>
 
 import (
 	"io"
-	"net/http"
-
-	"github.com/coreos/go-systemd/activation"
 )
 
-func HelloServer(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, "hello socket activated world!\n")
-}
+func CombinedSink(writer io.Writer, format string, fields []string) Sink {
+	sinks := make([]Sink, 0)
+	sinks = append(sinks, WriterSink(writer, format, fields))
 
-func main() {
-	listeners, err := activation.Listeners(true)
-	if err != nil {
-		panic(err)
+	return &combinedSink{
+		sinks: sinks,
 	}
-
-	if len(listeners) != 1 {
-		panic("Unexpected number of socket activation fds")
-	}
-
-	http.HandleFunc("/", HelloServer)
-	http.Serve(listeners[0], nil)
 }

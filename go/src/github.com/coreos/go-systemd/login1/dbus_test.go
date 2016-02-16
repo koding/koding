@@ -12,29 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package login1
 
 import (
-	"io"
-	"net/http"
-
-	"github.com/coreos/go-systemd/activation"
+	"testing"
 )
 
-func HelloServer(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, "hello socket activated world!\n")
-}
+// TestNew ensures that New() works without errors.
+func TestNew(t *testing.T) {
+	_, err := New()
 
-func main() {
-	listeners, err := activation.Listeners(true)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
-
-	if len(listeners) != 1 {
-		panic("Unexpected number of socket activation fds")
-	}
-
-	http.HandleFunc("/", HelloServer)
-	http.Serve(listeners[0], nil)
 }
