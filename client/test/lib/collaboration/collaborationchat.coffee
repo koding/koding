@@ -76,3 +76,31 @@ module.exports =
       collaborationHelpers.sendMessage(browser)
       collaborationHelpers.leaveSessionFromSidebar(browser)
       browser.end()
+
+
+  leaveSessionInviteSameUserAgain: (browser) ->
+
+    host        = utils.getUser no, 0
+    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant = utils.getUser no, 1
+    participantAvatar = ".avatars .avatarview.online[href='/#{participant.username}']"
+
+
+    if hostBrowser
+      collaborationHelpers.startSessionAndInviteUser(browser, host, participant, yes, no)
+
+      browser.waitForElementNotPresent participantAvatar, 60000
+
+      collaborationHelpers.inviteUser(browser,participant.username)
+
+      browser.pause 3000 # wait for invitation
+
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
+    else
+      collaborationHelpers.joinSession(browser, host, participant)
+      collaborationHelpers.leaveSessionFromSidebar(browser)
+
+      browser.waitForElementVisible '.share-modal', 20000
+
+      browser.end()
