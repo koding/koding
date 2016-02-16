@@ -11,7 +11,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/koding/klient/command"
+	"koding/klient/command"
 )
 
 var diskCachePathPrefix = "fuseklient-diskcache"

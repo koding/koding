@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/kite"
 )
 
 // RemoteTransport is a Transport that uses klient on user VM to communicate.
