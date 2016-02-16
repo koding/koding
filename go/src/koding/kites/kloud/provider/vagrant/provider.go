@@ -57,7 +57,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
 	if err != nil {
-		return nil, err
+		return nil, errors.New("unable to get machine: " + err.Error())
 	}
 	m := &Machine{
 		Machine: machine,
@@ -70,7 +70,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 
 	meta, err := m.GetMeta()
 	if err != nil {
-		return nil, err
+		return nil, errors.New("unable to get meta: +" + err.Error())
 	}
 
 	m.Meta = meta

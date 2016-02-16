@@ -104,11 +104,15 @@ func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error
 		return nil, err
 	}
 
-	if err := h.boxWait(v.VagrantfilePath); err != nil {
-		return nil, err
-	}
+	h.log.Info("Calling %q on %q", r.Method, v.VagrantfilePath)
 
-	return fn(r, v)
+	h.log.Debug("vagrant: calling %q by %q with %v", r.Method, r.Username, r.Args)
+
+	resp, err := fn(r, v)
+
+	h.log.Debug("vagrant: call %q by %q result: resp=%v, err=%v", r.Method, r.Username, resp, err)
+
+	return resp, err
 }
 
 // check if it was added previously, if not create a new vagrantUtil
@@ -220,7 +224,7 @@ func (h *Handlers) Provider(r *kite.Request) (interface{}, error) {
 // Destroy destroys the given Vagrant box specified in the path
 func (h *Handlers) Destroy(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return h.watchCommand(r, v.Destroy)
+		return h.watchCommand(r, v.VagrantfilePath, v.Destroy)
 	}
 	return h.withPath(r, fn)
 }
@@ -228,7 +232,7 @@ func (h *Handlers) Destroy(r *kite.Request) (interface{}, error) {
 // Halt stops the given Vagrant box specified in the path
 func (h *Handlers) Halt(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return h.watchCommand(r, v.Halt)
+		return h.watchCommand(r, v.VagrantfilePath, v.Halt)
 	}
 	return h.withPath(r, fn)
 }
@@ -236,7 +240,11 @@ func (h *Handlers) Halt(r *kite.Request) (interface{}, error) {
 // Up starts and creates the given Vagrant box specified in the path
 func (h *Handlers) Up(r *kite.Request) (interface{}, error) {
 	fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-		return h.watchCommand(r, v.Up)
+		if err := h.boxWait(v.VagrantfilePath); err != nil {
+			return nil, err
+		}
+
+		return h.watchCommand(r, v.VagrantfilePath, v.Up)
 	}
 	return h.withPath(r, fn)
 }
@@ -273,13 +281,11 @@ func (h *Handlers) boxAdd(v *vagrantutil.Vagrant, box, filePath string) {
 	if !ok {
 		ch := make(chan chan error, 1)
 		h.boxNames[box] = ch
-		go h.download(v, box, ch)
+		go h.download(v, box, filePath, ch)
 		queue = ch
 	}
 
-	if filePath != "" {
-		h.boxPaths[filePath] = queue
-	}
+	h.boxPaths[filePath] = queue
 }
 
 func drain(queue <-chan chan error) (listeners []chan error) {
@@ -293,7 +299,7 @@ func drain(queue <-chan chan error) (listeners []chan error) {
 	}
 }
 
-func (h *Handlers) download(v *vagrantutil.Vagrant, box string, queue <-chan chan error) {
+func (h *Handlers) download(v *vagrantutil.Vagrant, box, filePath string, queue <-chan chan error) {
 	h.log.Debug("downloading %q box...", box)
 
 	var listeners []chan error
@@ -317,7 +323,7 @@ func (h *Handlers) download(v *vagrantutil.Vagrant, box string, queue <-chan cha
 			// Remove the box from in progress.
 			h.boxMu.Lock()
 			delete(h.boxNames, box)
-			delete(h.boxPaths, box)
+			delete(h.boxPaths, filePath)
 			h.boxMu.Unlock()
 
 			// Defensive channel drain: try to collect listeners
@@ -362,7 +368,7 @@ func (h *Handlers) init() {
 // watchCommand is an helper method to send back the command outputs of
 // commands like Halt,Destroy or Up to the callback function passed in the
 // request.
-func (h *Handlers) watchCommand(r *kite.Request, fn func() (<-chan *vagrantutil.CommandOutput, error)) (interface{}, error) {
+func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-chan *vagrantutil.CommandOutput, error)) (interface{}, error) {
 	var params struct {
 		Success dnode.Function
 		Failure dnode.Function
@@ -388,18 +394,32 @@ func (h *Handlers) watchCommand(r *kite.Request, fn func() (<-chan *vagrantutil.
 	var w vagrantutil.Waiter
 
 	if params.Output.IsValid() {
+		h.log.Debug("sending output to %q for %q", r.Username, r.Method)
+
 		w.OutputFunc = func(line string) {
 			h.log.Debug("%s: %s", r.Method, line)
 			params.Output.Call(line)
 		}
 	}
 
+	out, err := fn()
+	if err != nil {
+		return nil, err
+	}
+
 	go func() {
-		if err := w.Wait(fn()); err != nil {
+		h.log.Debug("vagrant: waiting for output from %q...", r.Method)
+
+		err := w.Wait(out, nil)
+
+		if err != nil {
+			h.log.Error("Klient %q error for %q: %s", r.Method, filePath, err)
 			params.Failure.Call(err.Error())
-		} else {
-			params.Success.Call()
+			return
 		}
+
+		h.log.Info("Klient %q success for %q", r.Method, filePath)
+		params.Success.Call()
 	}()
 
 	return true, nil

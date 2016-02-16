@@ -22,11 +22,9 @@ var (
 )
 
 var (
-	once       util.OnceSuccessful
-	config     *kiteconfig.Config
-	debug      = os.Getenv("CONFIG_DEBUG") == "1"
-	log        = common.NewLogger(Name, debug)
-	vagrantLog = log.New("vagrant")
+	once   util.OnceSuccessful
+	config *kiteconfig.Config
+	debug  = os.Getenv("CONFIG_DEBUG") == "1"
 )
 
 func newConfig() error {
@@ -65,15 +63,18 @@ func NewClient() (*Client, error) {
 	k := kite.New(Name, Version)
 	k.Config = config.Copy()
 
-	return &Client{
+	c := &Client{
 		Kite: k,
-		Log:  log,
-		Vagrant: &vagrantapi.Klient{
-			Kite:  k,
-			Log:   vagrantLog,
-			Debug: debug,
-		},
-	}, nil
+		Log:  common.NewLogger(Name, debug),
+	}
+
+	c.Vagrant = &vagrantapi.Klient{
+		Kite:  k,
+		Log:   c.Log.New("vagrantapi"),
+		Debug: debug,
+	}
+
+	return c, nil
 }
 
 // Close closes the underlying properties

@@ -112,9 +112,10 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 	}, nil
 }
 
-func (s *Stack) tunnelUniqueURL(username string) string {
+func (s *Stack) tunnelRegisterURL(username string) string {
 	urlCopy := *s.TunnelURL
 	urlCopy.Host = utils.RandString(12) + "." + username + "." + urlCopy.Host
+	urlCopy.Path = "/klient/kite"
 	return urlCopy.String()
 }
 

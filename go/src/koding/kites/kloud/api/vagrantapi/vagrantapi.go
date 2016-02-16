@@ -147,7 +147,7 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 	})
 
 	failure := dnode.Callback(func(r *dnode.Partial) {
-		msg, err := r.String()
+		msg, err := r.One().String()
 		if err != nil {
 			err = errors.New("unknown failure")
 		} else {
@@ -165,7 +165,7 @@ func (k *Klient) cmd(queryString, method, boxPath string) error {
 	if k.Debug {
 		log := k.Log.New(method)
 		req.Output = dnode.Callback(func(r *dnode.Partial) {
-			log.Debug("%s", r.MustString())
+			log.Debug("%s", r.One().MustString())
 		})
 	}
 

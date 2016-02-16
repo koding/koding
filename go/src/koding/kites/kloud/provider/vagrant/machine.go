@@ -54,11 +54,8 @@ type Machine struct {
 
 func (m *Machine) GetMeta() (*Meta, error) {
 	var mt Meta
-	if err := mapstructure.Decode(m.Meta, &mt); err != nil {
-		return nil, err
-	}
 
-	if err := mt.Valid(); err != nil {
+	if err := mapstructure.Decode(m.Machine.Meta, &mt); err != nil {
 		return nil, err
 	}
 
@@ -68,6 +65,11 @@ func (m *Machine) GetMeta() (*Meta, error) {
 // State returns the machinestate of the machine.
 func (m *Machine) State() machinestate.State {
 	return machinestate.States[m.Status.State]
+}
+
+// ProviderName gives the jMachine.provider field.
+func (m *Machine) ProviderName() string {
+	return m.Provider
 }
 
 // push pushes the given message to the eventer
