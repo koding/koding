@@ -215,7 +215,7 @@ module.exports = class HomeViewFull extends KDView
       tagName   : 'figure'
       bind      : 'mousemove mouseleave mouseenter'
       partial    : """
-        <i class="upwork"></i>
+        <i class="odesk"></i>
         <i class="kissmetrics"></i>
         <i class="accel"></i>
         <i class="udemy"></i>
@@ -467,8 +467,8 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
-              <img src='./a/site.hackathon/images/partners/elance-upwork.jpg' alt='Elance-upwork logo'/>
-              <figcaption>If the winning team has an <a href='http://www.upwork.com' target='_blank'>upwork.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> account, they will receive an extra <strong>$2,500</strong>. Register today if you don't have an account with them.
+              <img src='./a/site.hackathon/images/partners/elance-odesk.jpg' alt='Elance-oDesk logo'/>
+              <figcaption>If the winning team has an <a href='http://www.odesk.com' target='_blank'>oDesk.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> account, they will receive an extra <strong>$2,500</strong>. Register today if you don't have an account with them.
         </figcaption>
             </figure>
           </li>
