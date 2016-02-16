@@ -14,7 +14,7 @@ module.exports = class AccountPopup extends AvatarPopup
 
     { groupsController } = kd.singletons
 
-    unless issoloproductlite()
+    unless isSoloProductLite()
       @avatarPopupContent.addSubView @paymentActionLabel = new CustomLinkView
         title      : 'Upgrade plan'
         href       : '/Pricing'
