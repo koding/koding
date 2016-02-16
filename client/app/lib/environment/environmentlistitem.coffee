@@ -121,7 +121,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @destroyModal()
 
     { computeController } = kd.singletons
-    computeController.ui.askFor 'deleteStack', {}, =>
+    computeController.ui.askFor 'deleteStack', {}, (status) =>
+      return  unless status.confirmed
       @getDelegate().emit 'StackDeleteRequested', @getData()
 
 

@@ -543,7 +543,8 @@ module.exports = class ComputeController extends KDController
 
     return destroy machine  if force or @_force
 
-    @ui.askFor 'destroy', {machine, force}, =>
+    @ui.askFor 'destroy', {machine, force}, (status) ->
+      return  unless status.confirmed
       destroy machine
 
 
@@ -574,8 +575,9 @@ module.exports = class ComputeController extends KDController
 
     # A shorthand for ComputeController_UI Askfor
     askFor = (action, callback = kd.noop) =>
-      @ui.askFor action, {machine, force: @_force},
-        callback
+      @ui.askFor action, {machine, force: @_force}, (status) ->
+        return  unless status.confirmed
+        callback status
 
     { JSnapshot }     = remote.api
     jMachine          = machine.data
@@ -610,7 +612,9 @@ module.exports = class ComputeController extends KDController
 
     @ui.askFor 'resize', {
       machine, force: @_force, resizeTo
-    }, =>
+    }, (status) =>
+
+      return  unless status.confirmed
 
       @update machine, resize: resizeTo, (err) =>
 
@@ -1178,7 +1182,11 @@ module.exports = class ComputeController extends KDController
     # stacks. For this reason, we need to define to flow first for this and
     # change the code based on the flow requirements. ~ GG
 
-    @ui.askFor 'reinitStack', {}, =>
+    @ui.askFor 'reinitStack', {}, (status) =>
+
+      unless status.confirmed
+        callback new Error 'Stack is not reinitialized'
+        return
 
       @fetchBaseStackTemplate stack, (err, template) =>
 
@@ -1187,7 +1195,7 @@ module.exports = class ComputeController extends KDController
         @destroyStack stack, (err) =>
 
           if err
-            callback no
+            callback err
             return showError err
 
           @reset()
@@ -1196,10 +1204,10 @@ module.exports = class ComputeController extends KDController
 
               new kd.NotificationView
                 title : 'Stack reinitialized'
-              callback yes
+              callback()
 
           if template and not groupStack
           then @createDefaultStack no, template
           else @createDefaultStack()
     , ->
-      callback no
+      callback new Error 'Stack is not reinitialized'

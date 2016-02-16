@@ -185,7 +185,8 @@ module.exports = class ComputeController_UI
       callback          : (data)->
         form.emit "Submit", data
 
-  @askFor: (action, options, confirmFn, cancelFn) ->
+
+  @askFor: (action, options, callback) ->
 
     {force, machine, resizeTo} = options
     machine ?= {}
@@ -199,7 +200,7 @@ module.exports = class ComputeController_UI
                       else "from #{resizeFrom}GB to #{resizeTo}GB"
 
 
-    return confirmFn()  if force
+    return callback()  if force
 
     {provider}    = machine
 
@@ -302,17 +303,17 @@ module.exports = class ComputeController_UI
         style     : 'solid red medium'
         callback  : ->
           modal.destroy()
-          confirmFn()
+          callback { confirmed : yes }
       cancel      :
         style     : "solid light-gray medium"
         type      : "button"
         callback  : ->
           modal.destroy()
-          cancelFn()
+          callback { confirmed : no }
 
     modal.setClass 'has-markdown'
-    modal.once 'ModalCancelled', cancelFn
-    modal.overlay.on 'click', cancelFn
+    modal.once 'ModalCancelled', -> callback { confirmed : no }
+    modal.overlay.on 'click',    -> callback { confirmed : no }
 
     return modal
 
