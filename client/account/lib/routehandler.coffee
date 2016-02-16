@@ -1,5 +1,4 @@
 kd                 = require 'kd'
-isKoding           = require 'app/util/isKoding'
 lazyrouter         = require 'app/lazyrouter'
 issoloproductlite  = require 'app/util/issoloproductlite'
 KDNotificationView = kd.NotificationView
