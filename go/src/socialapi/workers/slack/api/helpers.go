@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	kodingmodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
@@ -128,27 +129,33 @@ func postMessage(req *SlackMessageRequest) (string, error) {
 	return id, err
 }
 
-func updateUserSlackToken(user *kodingmodels.User, m string) error {
+func updateUserSlackToken(user *kodingmodels.User, groupName string, m string) error {
 	selector := bson.M{"username": user.Name}
-	update := bson.M{"foreignAuth.slack.token": m}
+	key := fmt.Sprintf("foreignAuth.slack.%s.token", groupName)
+	update := bson.M{key: m}
 
 	return modelhelper.UpdateUser(selector, update)
 }
 
 // getSlackToken fetches the user's slack token with user's accountID
-func getSlackToken(acc *models.Account) (string, error) {
+func getSlackToken(context *models.Context) (string, error) {
 	var token string
 
-	user, err := modelhelper.GetUser(acc.Nick)
+	user, err := modelhelper.GetUser(context.Client.Account.Nick)
 	if err != nil {
 		return token, err
 	}
 
-	token = user.ForeignAuth.Slack.Token
+	groupName := context.GroupName
 
-	if token == "" {
-		return token, models.ErrTokenIsNotFound
+	if user.ForeignAuth.Slack != nil {
+		if gName, ok := user.ForeignAuth.Slack[groupName]; ok {
+			if gName.Token != "" {
+				return gName.Token, nil
+			}
+		}
 	}
 
-	return token, nil
+	return token, models.ErrTokenIsNotFound
+
 }
