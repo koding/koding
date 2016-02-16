@@ -33,6 +33,7 @@ func (s *S) TearDownTest(c *check.C) {
 func getTestAlarm() *cloudwatch.MetricAlarm {
 	alarm := new(cloudwatch.MetricAlarm)
 
+	alarm.AlarmDescription = "Test Description"
 	alarm.AlarmName = "TestAlarm"
 	alarm.MetricName = "TestMetric"
 	alarm.Namespace = "TestNamespace"
