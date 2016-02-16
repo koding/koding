@@ -319,7 +319,7 @@ Configuration = (options={}) ->
       google             : {nicename: 'Google'  }
       linkedin           : {nicename: 'LinkedIn'}
       twitter            : {nicename: 'Twitter' }
-      upwork             : {nicename: 'Upwork'   , urlLocation: 'info.profile_url' }
+      upwork             : {nicename: 'Upwork'  , urlLocation: 'info.profile_url' }
       facebook           : {nicename: 'Facebook', urlLocation: 'link'             }
       github             : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint           : {slug:'koding'       , type:'group'}

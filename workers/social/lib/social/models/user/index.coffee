@@ -179,7 +179,7 @@ module.exports = class JUser extends jraphical.Module
           lastName           : String
           email              : String
           scope              : String
-        upwork                :
+        upwork               :
           foreignId          : String
           token              : String
           accessTokenSecret  : String
