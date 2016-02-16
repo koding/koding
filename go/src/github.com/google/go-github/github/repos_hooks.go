@@ -29,6 +29,7 @@ type WebHookPayload struct {
 	Pusher     *User           `json:"pusher,omitempty"`
 	Ref        *string         `json:"ref,omitempty"`
 	Repo       *Repository     `json:"repository,omitempty"`
+	Sender     *User           `json:"sender,omitempty"`
 }
 
 func (w WebHookPayload) String() string {
@@ -70,6 +71,7 @@ type Hook struct {
 	CreatedAt *time.Time             `json:"created_at,omitempty"`
 	UpdatedAt *time.Time             `json:"updated_at,omitempty"`
 	Name      *string                `json:"name,omitempty"`
+	URL       *string                `json:"url,omitempty"`
 	Events    []string               `json:"events,omitempty"`
 	Active    *bool                  `json:"active,omitempty"`
 	Config    map[string]interface{} `json:"config,omitempty"`
