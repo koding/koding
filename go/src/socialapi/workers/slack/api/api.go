@@ -56,7 +56,7 @@ func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, c *models.Con
 		return response.NewBadRequest(err)
 	}
 
-	if err := updateUserSlackToken(user, token.AccessToken); err != nil {
+	if err := updateUserSlackToken(user, c.GroupName, token.AccessToken); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -73,7 +73,7 @@ func (s *Slack) ListUsers(u *url.URL, h http.Header, _ interface{}, context *mod
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	token, err := getSlackToken(context.Client.Account)
+	token, err := getSlackToken(context)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -86,7 +86,7 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	token, err := getSlackToken(context.Client.Account)
+	token, err := getSlackToken(context)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -99,7 +99,7 @@ func (s *Slack) PostMessage(u *url.URL, h http.Header, req *SlackMessageRequest,
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	token, err := getSlackToken(context.Client.Account)
+	token, err := getSlackToken(context)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
