@@ -486,7 +486,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @addMachineList()
 
     kd.singletons.mainController.ready =>
-      if isSoloProductLite()
+      if not isSoloProductLite()
         @addFollowedTopics()
         @addMessages()
 
