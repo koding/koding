@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "$(dirname "$BASH_SOURCE")/.validate"
+source "${MAKEDIR}/.validate"
 
 IFS=$'\n'
 files=( $(validate_diff --diff-filter=ACMR --name-only -- '*.go' | grep -v '^vendor/' || true) )
@@ -8,7 +8,6 @@ unset IFS
 
 errors=()
 for f in "${files[@]}"; do
-	# we use "git show" here to validate that what's committed passes go vet
 	failedVet=$(go vet "$f")
 	if [ "$failedVet" ]; then
 		errors+=( "$failedVet" )

@@ -10,19 +10,19 @@ import (
 
 type TestLoggerJSON struct {
 	*json.Encoder
+	delay time.Duration
 }
 
 func (l *TestLoggerJSON) Log(m *Message) error {
+	if l.delay > 0 {
+		time.Sleep(l.delay)
+	}
 	return l.Encode(m)
 }
 
-func (l *TestLoggerJSON) Close() error {
-	return nil
-}
+func (l *TestLoggerJSON) Close() error { return nil }
 
-func (l *TestLoggerJSON) Name() string {
-	return "json"
-}
+func (l *TestLoggerJSON) Name() string { return "json" }
 
 type TestLoggerText struct {
 	*bytes.Buffer
@@ -33,13 +33,9 @@ func (l *TestLoggerText) Log(m *Message) error {
 	return err
 }
 
-func (l *TestLoggerText) Close() error {
-	return nil
-}
+func (l *TestLoggerText) Close() error { return nil }
 
-func (l *TestLoggerText) Name() string {
-	return "text"
-}
+func (l *TestLoggerText) Name() string { return "text" }
 
 func TestCopier(t *testing.T) {
 	stdoutLine := "Line that thinks that it is log line from docker stdout"
@@ -60,15 +56,12 @@ func TestCopier(t *testing.T) {
 	jsonLog := &TestLoggerJSON{Encoder: json.NewEncoder(&jsonBuf)}
 
 	cid := "a7317399f3f857173c6179d44823594f8294678dea9999662e5c625b5a1c7657"
-	c, err := NewCopier(cid,
+	c := NewCopier(cid,
 		map[string]io.Reader{
 			"stdout": &stdout,
 			"stderr": &stderr,
 		},
 		jsonLog)
-	if err != nil {
-		t.Fatal(err)
-	}
 	c.Run()
 	wait := make(chan struct{})
 	go func() {
@@ -105,5 +98,35 @@ func TestCopier(t *testing.T) {
 				t.Fatalf("Wrong Line: %q, expected %q", msg.Line, stderrLine)
 			}
 		}
+	}
+}
+
+func TestCopierSlow(t *testing.T) {
+	stdoutLine := "Line that thinks that it is log line from docker stdout"
+	var stdout bytes.Buffer
+	for i := 0; i < 30; i++ {
+		if _, err := stdout.WriteString(stdoutLine + "\n"); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	var jsonBuf bytes.Buffer
+	//encoder := &encodeCloser{Encoder: json.NewEncoder(&jsonBuf)}
+	jsonLog := &TestLoggerJSON{Encoder: json.NewEncoder(&jsonBuf), delay: 100 * time.Millisecond}
+
+	cid := "a7317399f3f857173c6179d44823594f8294678dea9999662e5c625b5a1c7657"
+	c := NewCopier(cid, map[string]io.Reader{"stdout": &stdout}, jsonLog)
+	c.Run()
+	wait := make(chan struct{})
+	go func() {
+		c.Wait()
+		close(wait)
+	}()
+	<-time.After(150 * time.Millisecond)
+	c.Close()
+	select {
+	case <-time.After(200 * time.Millisecond):
+		t.Fatalf("failed to exit in time after the copier is closed")
+	case <-wait:
 	}
 }

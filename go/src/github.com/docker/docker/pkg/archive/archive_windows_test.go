@@ -3,9 +3,31 @@
 package archive
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 )
+
+func TestCopyFileWithInvalidDest(t *testing.T) {
+	folder, err := ioutil.TempDir("", "docker-archive-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(folder)
+	dest := "c:dest"
+	srcFolder := filepath.Join(folder, "src")
+	src := filepath.Join(folder, "src", "src")
+	err = os.MkdirAll(srcFolder, 0740)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ioutil.WriteFile(src, []byte("content"), 0777)
+	err = CopyWithTar(src, dest)
+	if err == nil {
+		t.Fatalf("archiver.CopyWithTar should throw an error on invalid dest.")
+	}
+}
 
 func TestCanonicalTarNameForPath(t *testing.T) {
 	cases := []struct {
@@ -20,7 +42,7 @@ func TestCanonicalTarNameForPath(t *testing.T) {
 		if out, err := CanonicalTarNameForPath(v.in); err != nil && !v.shouldFail {
 			t.Fatalf("cannot get canonical name for path: %s: %v", v.in, err)
 		} else if v.shouldFail && err == nil {
-			t.Fatalf("canonical path call should have pailed with error. in=%s out=%s", v.in, out)
+			t.Fatalf("canonical path call should have failed with error. in=%s out=%s", v.in, out)
 		} else if !v.shouldFail && out != v.expected {
 			t.Fatalf("wrong canonical tar name. expected:%s got:%s", v.expected, out)
 		}

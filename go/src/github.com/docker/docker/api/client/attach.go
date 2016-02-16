@@ -3,84 +3,104 @@ package client
 import (
 	"fmt"
 	"io"
-	"net/url"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/engine"
+	Cli "github.com/docker/docker/cli"
 	flag "github.com/docker/docker/pkg/mflag"
 	"github.com/docker/docker/pkg/signal"
+	"github.com/docker/engine-api/types"
 )
 
 // CmdAttach attaches to a running container.
 //
 // Usage: docker attach [OPTIONS] CONTAINER
 func (cli *DockerCli) CmdAttach(args ...string) error {
-	var (
-		cmd     = cli.Subcmd("attach", "CONTAINER", "Attach to a running container", true)
-		noStdin = cmd.Bool([]string{"#nostdin", "-no-stdin"}, false, "Do not attach STDIN")
-		proxy   = cmd.Bool([]string{"#sig-proxy", "-sig-proxy"}, true, "Proxy all received signals to the process")
-	)
+	cmd := Cli.Subcmd("attach", []string{"CONTAINER"}, Cli.DockerCommands["attach"].Description, true)
+	noStdin := cmd.Bool([]string{"-no-stdin"}, false, "Do not attach STDIN")
+	proxy := cmd.Bool([]string{"-sig-proxy"}, true, "Proxy all received signals to the process")
+	detachKeys := cmd.String([]string{"-detach-keys"}, "", "Override the key sequence for detaching a container")
+
 	cmd.Require(flag.Exact, 1)
 
 	cmd.ParseFlags(args, true)
-	name := cmd.Arg(0)
 
-	stream, _, err := cli.call("GET", "/containers/"+name+"/json", nil, nil)
+	c, err := cli.client.ContainerInspect(cmd.Arg(0))
 	if err != nil {
 		return err
 	}
 
-	env := engine.Env{}
-	if err := env.Decode(stream); err != nil {
-		return err
-	}
-
-	if !env.GetSubEnv("State").GetBool("Running") {
+	if !c.State.Running {
 		return fmt.Errorf("You cannot attach to a stopped container, start it first")
 	}
 
-	var (
-		config = env.GetSubEnv("Config")
-		tty    = config.GetBool("Tty")
-	)
+	if c.State.Paused {
+		return fmt.Errorf("You cannot attach to a paused container, unpause it first")
+	}
 
-	if err := cli.CheckTtyInput(!*noStdin, tty); err != nil {
+	if err := cli.CheckTtyInput(!*noStdin, c.Config.Tty); err != nil {
 		return err
 	}
 
-	if tty && cli.isTerminalOut {
+	if *detachKeys != "" {
+		cli.configFile.DetachKeys = *detachKeys
+	}
+
+	options := types.ContainerAttachOptions{
+		ContainerID: cmd.Arg(0),
+		Stream:      true,
+		Stdin:       !*noStdin && c.Config.OpenStdin,
+		Stdout:      true,
+		Stderr:      true,
+		DetachKeys:  cli.configFile.DetachKeys,
+	}
+
+	var in io.ReadCloser
+	if options.Stdin {
+		in = cli.in
+	}
+
+	if *proxy && !c.Config.Tty {
+		sigc := cli.forwardAllSignals(options.ContainerID)
+		defer signal.StopCatch(sigc)
+	}
+
+	resp, err := cli.client.ContainerAttach(options)
+	if err != nil {
+		return err
+	}
+	defer resp.Close()
+	if in != nil && c.Config.Tty {
+		if err := cli.setRawTerminal(); err != nil {
+			return err
+		}
+		defer cli.restoreTerminal(in)
+	}
+
+	if c.Config.Tty && cli.isTerminalOut {
+		height, width := cli.getTtySize()
+		// To handle the case where a user repeatedly attaches/detaches without resizing their
+		// terminal, the only way to get the shell prompt to display for attaches 2+ is to artificially
+		// resize it, then go back to normal. Without this, every attach after the first will
+		// require the user to manually resize or hit enter.
+		cli.resizeTtyTo(cmd.Arg(0), height+1, width+1, false)
+
+		// After the above resizing occurs, the call to monitorTtySize below will handle resetting back
+		// to the actual size.
 		if err := cli.monitorTtySize(cmd.Arg(0), false); err != nil {
 			logrus.Debugf("Error monitoring TTY size: %s", err)
 		}
 	}
 
-	var in io.ReadCloser
-
-	v := url.Values{}
-	v.Set("stream", "1")
-	if !*noStdin && config.GetBool("OpenStdin") {
-		v.Set("stdin", "1")
-		in = cli.in
-	}
-
-	v.Set("stdout", "1")
-	v.Set("stderr", "1")
-
-	if *proxy && !tty {
-		sigc := cli.forwardAllSignals(cmd.Arg(0))
-		defer signal.StopCatch(sigc)
-	}
-
-	if err := cli.hijack("POST", "/containers/"+cmd.Arg(0)+"/attach?"+v.Encode(), tty, in, cli.out, cli.err, nil, nil); err != nil {
+	if err := cli.holdHijackedConnection(c.Config.Tty, in, cli.out, cli.err, resp); err != nil {
 		return err
 	}
 
-	_, status, err := getExitCode(cli, cmd.Arg(0))
+	_, status, err := getExitCode(cli, options.ContainerID)
 	if err != nil {
 		return err
 	}
 	if status != 0 {
-		return &StatusError{StatusCode: status}
+		return Cli.StatusError{StatusCode: status}
 	}
 
 	return nil
