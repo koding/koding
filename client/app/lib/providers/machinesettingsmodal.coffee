@@ -7,6 +7,7 @@ KDTabHandleContainer = kd.TabHandleContainer
 
 Machine                      = require 'app/providers/machine'
 isKoding                     = require 'app/util/isKoding'
+isSoloProductLite            = require 'app/util/issoloproductlite'
 MachineSettingsSpecsView     = require './machinesettingsspecsview'
 MachineSettingsGuidesView    = require './machinesettingsguidesview'
 MachineSettingsGeneralView   = require './machinesettingsgeneralview'
@@ -27,6 +28,10 @@ PANE_CONFIG = [
   { title: 'Snapshots',     viewClass: MachineSettingsSnapshotsView }
   { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
   { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
+]
+
+hiddenViewForSolo = [
+  'VM Sharing'
 ]
 
 
@@ -78,6 +83,10 @@ module.exports = class MachineSettingsModal extends KDModalView
     disabledTabsForProviders    =
       managed                   : [ 'Specs', 'Domains', 'Snapshots' ]
       softlayer                 : [ 'Snapshots' ]
+
+    if isSoloProductLite()
+      for item in hiddenViewForSolo
+        PANE_CONFIG = PANE_CONFIG.filter (item) -> item.title not in hiddenViewForSolo
 
     for item in PANE_CONFIG when item.title and item.viewClass
 
