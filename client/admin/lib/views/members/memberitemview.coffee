@@ -185,7 +185,7 @@ module.exports = class MemberItemView extends kd.ListItemView
         <p class="fullname">#{fullname}</p>
         <p class="nickname">@#{nickname}</p>
       </div>
-      <p class="email">#{email}</p>
+      <p title="#{email}" class="email">#{email}</p>
       {{> @roleLabel}}
       <div class='clear'></div>
       {{> @settings}}
