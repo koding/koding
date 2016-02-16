@@ -299,10 +299,6 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 		s.opts.RegisterURL = k.RegisterURL(false)
 	}
 
-	if err := k.RegisterForever(s.opts.RegisterURL); err != nil {
-		return nil, err
-	}
-
 	return k, nil
 }
 
