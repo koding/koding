@@ -123,8 +123,8 @@ func getUsers(token string) ([]SlackUser, error) {
 	return activeUsers, nil
 }
 
-func postMessage(req *SlackMessageRequest) (string, error) {
-	api := slack.New(req.Token)
+func postMessage(token string, req *SlackMessageRequest) (string, error) {
+	api := slack.New(token)
 	_, id, err := api.PostMessage(req.Channel, req.Text, req.Params)
 	return id, err
 }
