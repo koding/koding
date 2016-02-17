@@ -27,7 +27,7 @@ module.exports = class CollaborationPaneHeader extends React.Component
 
   render: ->
 
-    <div className={kd.utils.curry 'CollaborationPaneHeader ThreadHeader', @props.className}>
+    <div className={kd.utils.curry 'CollaborationPaneHeader ThreadHeader clearfix', @props.className}>
       <div className="CollaborationPaneHeader-participants">
         <ChannelParticipants.Container
           maxPreviewCount={5}
@@ -35,12 +35,14 @@ module.exports = class CollaborationPaneHeader extends React.Component
           onNewParticipantButtonClick={@props.onNewParticipantButtonClick}
           participants={@props.participants} />
       </div>
-      <ShareLink url={@props.collaborationLink} />
-      <StartVideoCallLink
-        isActive={@props.isVideoActive}
-        onEnd={@props.onVideoEnd}
-        onStart={@props.onVideoStart} />
+      <div className="CollaborationPaneHeader-actions">
+        <ShareLink url={@props.collaborationLink} />
+        <StartVideoCallLink
+          iconOnly={yes}
+          isActive={@props.isVideoActive}
+          onEnd={@props.onVideoEnd}
+          onStart={@props.onVideoStart} />
+      </div>
     </div>
-
 
 
