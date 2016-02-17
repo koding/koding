@@ -504,7 +504,7 @@ module.exports =
 
   submitForm: (browser, validCardDetails = yes) ->
 
-    upgradePlanButton = '.kdmodal-inner .green:not(.paypal)'
+    upgradePlanButton = '.payment-modal .kdmodal-inner .kdmodal-content .payment-form-wrapper [disabled="disabled"]'
     planType          = 'developer'
 
     if validCardDetails
@@ -520,7 +520,7 @@ module.exports =
     else
       browser
         .pause  3000
-        .expect.element(upgradePlanButton).to.not.be.enabled
+        .waitForElementVisible   upgradePlanButton, 20000 
 
 
   selectPlan: (browser, planType = 'developer') ->
