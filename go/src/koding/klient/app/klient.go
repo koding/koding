@@ -359,9 +359,13 @@ func (k *Klient) Run() {
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
 
+	// TODO(rjeczalik): enable it after TMS-2203
+	// useTunnel := !isKoding && !k.config.NoTunnel
+	useTunnel := false
+
 	// TODO(rjeczalik): check if k.kite.Config.Port is accessible from outside,
 	// don't start tunnel for managed hosts with public IP.
-	if err := k.register(!isKoding && !k.config.NoTunnel); err != nil {
+	if err := k.register(useTunnel); err != nil {
 		panic(err)
 	}
 
