@@ -30,6 +30,10 @@ sudo locale-gen "en_US.UTF-8"
 # remove installed packages to free up space
 sudo apt-get clean
 
+# ensure we have the apt-get index already downloaded so sudo apt-get install
+# is going to work for the first time command on the vm
+sudo apt-get update -q
+
 # update and rebuild index for locate command
 sudo updatedb
 
