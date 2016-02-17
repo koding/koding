@@ -40,7 +40,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     schema        :
       email       :
         type      : String
-        set       : emailsanitize
+        set       : (email) -> email.trim()
       username    : String
       token       : String
       redeemedAt  : Date
@@ -97,13 +97,12 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     { email } = options
 
-    email = emailsanitize email
+    sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
-    JUser.count { email }, (err, num) =>
+    JUser.count { sanitizedEmail }, (err, num) =>
       unless num
         return callback null # pretend like everything went fine.
 
-      options.email = email
       options.resetPassword = yes
       @create options, callback
 
@@ -111,9 +110,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     token = createId()
 
-    { email, verb, expiryPeriod } = options
+    { email, sanitizedEmail } = options
+    { verb, expiryPeriod } = options
 
-    email = emailsanitize email
+    email = email.trim()
+    sanitizedEmail or= emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     options.resetPassword ?= no
 
@@ -123,7 +124,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
     { host, protocol } = require '../config.email'
 
-    JUser.one { email }, (err, user) =>
+    JUser.one { sanitizedEmail }, (err, user) =>
       if err
         callback err
       else unless user

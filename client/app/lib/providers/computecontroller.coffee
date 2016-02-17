@@ -543,7 +543,8 @@ module.exports = class ComputeController extends KDController
 
     return destroy machine  if force or @_force
 
-    @ui.askFor 'destroy', {machine, force}, =>
+    @ui.askFor 'destroy', {machine, force}, (status) ->
+      return  unless status.confirmed
       destroy machine
 
 
@@ -574,8 +575,9 @@ module.exports = class ComputeController extends KDController
 
     # A shorthand for ComputeController_UI Askfor
     askFor = (action, callback = kd.noop) =>
-      @ui.askFor action, {machine, force: @_force},
-        callback
+      @ui.askFor action, {machine, force: @_force}, (status) ->
+        return  unless status.confirmed
+        callback status
 
     { JSnapshot }     = remote.api
     jMachine          = machine.data
@@ -610,7 +612,9 @@ module.exports = class ComputeController extends KDController
 
     @ui.askFor 'resize', {
       machine, force: @_force, resizeTo
-    }, =>
+    }, (status) =>
+
+      return  unless status.confirmed
 
       @update machine, resize: resizeTo, (err) =>
 
@@ -1153,7 +1157,7 @@ module.exports = class ComputeController extends KDController
    * If not given it tries to find default one and does the same thing, if it
    * can't find the default one, asks to user what to do next.
   ###
-  reinitStack: (stack) ->
+  reinitStack: (stack, callback = kd.noop) ->
 
     stack ?= @getGroupStack()
 
@@ -1178,7 +1182,15 @@ module.exports = class ComputeController extends KDController
     # stacks. For this reason, we need to define to flow first for this and
     # change the code based on the flow requirements. ~ GG
 
-    @ui.askFor 'reinitStack', {}, =>
+    @ui.askFor 'reinitStack', {}, (status) =>
+
+      unless status.confirmed
+        callback new Error 'Stack is not reinitialized'
+        return
+
+      notification = new kd.NotificationView
+        title     : 'Reinitializing stack...'
+        duration  : 5000
 
       @fetchBaseStackTemplate stack, (err, template) =>
 
@@ -1186,15 +1198,20 @@ module.exports = class ComputeController extends KDController
 
         @destroyStack stack, (err) =>
 
-          return showError err  if err
+          if err
+            notification.destroy()
+            callback err
+            return showError err
 
           @reset()
 
             .once 'RenderStacks', (stacks = []) ->
-
-              new kd.NotificationView
-                title : 'Stack reinitialized'
+              notification.destroy()
+              new kd.NotificationView title : 'Stack reinitialized'
+              callback()
 
           if template and not groupStack
           then @createDefaultStack no, template
           else @createDefaultStack()
+    , ->
+      callback new Error 'Stack is not reinitialized'

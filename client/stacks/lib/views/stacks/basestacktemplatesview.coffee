@@ -39,6 +39,13 @@ module.exports = class BaseStackTemplatesView extends kd.View
             @setRoute()
 
 
+  viewAppended: ->
+
+    super
+
+    kd.singletons.appManager.tell 'Stacks', 'appendCssClassToModal', 'StackTemplatesView'
+
+
   createOnboardingView: (options = {}) ->
 
     @initialView.hide()
