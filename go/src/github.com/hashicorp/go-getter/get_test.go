@@ -85,6 +85,21 @@ func TestGet_fileSubdir(t *testing.T) {
 	}
 }
 
+func TestGet_archive(t *testing.T) {
+	dst := tempDir(t)
+	u := filepath.Join("./test-fixtures", "archive.tar.gz")
+	u, _ = filepath.Abs(u)
+
+	if err := Get(dst, u); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	mainPath := filepath.Join(dst, "main.tf")
+	if _, err := os.Stat(mainPath); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+}
+
 func TestGetFile(t *testing.T) {
 	dst := tempFile(t)
 	u := testModule("basic-file/foo.txt")
@@ -95,6 +110,48 @@ func TestGetFile(t *testing.T) {
 
 	// Verify the main file exists
 	assertContents(t, dst, "Hello\n")
+}
+
+func TestGetFile_archive(t *testing.T) {
+	dst := tempFile(t)
+	u := testModule("basic-file-archive/archive.tar.gz")
+
+	if err := GetFile(dst, u); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	// Verify the main file exists
+	assertContents(t, dst, "Hello\n")
+}
+
+func TestGetFile_archiveChecksum(t *testing.T) {
+	dst := tempFile(t)
+	u := testModule(
+		"basic-file-archive/archive.tar.gz?checksum=md5:fbd90037dacc4b1ab40811d610dde2f0")
+
+	if err := GetFile(dst, u); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	// Verify the main file exists
+	assertContents(t, dst, "Hello\n")
+}
+
+func TestGetFile_archiveNoUnarchive(t *testing.T) {
+	dst := tempFile(t)
+	u := testModule("basic-file-archive/archive.tar.gz")
+	u += "?archive=false"
+
+	if err := GetFile(dst, u); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	// Verify the main file exists
+	actual := testMD5(t, dst)
+	expected := "fbd90037dacc4b1ab40811d610dde2f0"
+	if actual != expected {
+		t.Fatalf("bad: %s", actual)
+	}
 }
 
 func TestGetFile_checksum(t *testing.T) {
