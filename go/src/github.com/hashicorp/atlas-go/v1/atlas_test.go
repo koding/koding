@@ -60,6 +60,7 @@ func (hs *atlasServer) setupRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/_binstore/", hs.binstoreHandler)
 
 	mux.HandleFunc("/api/v1/authenticate", hs.authenticationHandler)
+	mux.HandleFunc("/api/v1/token", hs.tokenHandler)
 
 	mux.HandleFunc("/api/v1/artifacts/hashicorp/existing", hs.vagrantArtifactExistingHandler)
 	mux.HandleFunc("/api/v1/artifacts/hashicorp/existing/amazon-ami", hs.vagrantArtifactUploadHandler)
@@ -116,6 +117,20 @@ func (hs *atlasServer) authenticationHandler(w http.ResponseWriter, r *http.Requ
         "token": "pX4AQ5vO7T-xJrxsnvlB0cfeF-tGUX-A-280LPxoryhDAbwmox7PKinMgA1F6R3BKaT"
       }
     `)
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+}
+
+func (hs *atlasServer) tokenHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	token := r.Header.Get(atlasTokenHeader)
+	if token == "a.atlasv1.b" {
+		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}

@@ -71,6 +71,9 @@ func CreateArchive(path string, opts *ArchiveOpts) (*Archive, error) {
 		}
 	}
 
+	// Windows
+	path = filepath.ToSlash(path)
+
 	// Direct file paths cannot have archive options
 	if !fi.IsDir() && opts.IsSet() {
 		return nil, fmt.Errorf(
@@ -81,11 +84,11 @@ func CreateArchive(path string, opts *ArchiveOpts) (*Archive, error) {
 	if fi.IsDir() {
 		return archiveDir(path, opts)
 	} else {
-		return archiveFile(path, opts)
+		return archiveFile(path)
 	}
 }
 
-func archiveFile(path string, opts *ArchiveOpts) (*Archive, error) {
+func archiveFile(path string) (*Archive, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -126,6 +129,7 @@ func archiveFile(path string, opts *ArchiveOpts) (*Archive, error) {
 }
 
 func archiveDir(root string, opts *ArchiveOpts) (*Archive, error) {
+
 	var vcsInclude []string
 	var metadata map[string]string
 	if opts.VCS {
@@ -229,7 +233,54 @@ func archiveDir(root string, opts *ArchiveOpts) (*Archive, error) {
 func copyDirWalkFn(
 	tarW *tar.Writer, root string, prefix string,
 	opts *ArchiveOpts, vcsInclude []string) filepath.WalkFunc {
+
+	errFunc := func(err error) filepath.WalkFunc {
+		return func(string, os.FileInfo, error) error {
+			return err
+		}
+	}
+
+	// Windows
+	root = filepath.ToSlash(root)
+
+	var includeMap map[string]struct{}
+
+	// If we have an include/exclude pattern set, then setup the lookup
+	// table to determine what we want to include.
+	if opts != nil && len(opts.Include) > 0 {
+		includeMap = make(map[string]struct{})
+		for _, pattern := range opts.Include {
+			matches, err := filepath.Glob(filepath.Join(root, pattern))
+			if err != nil {
+				return errFunc(fmt.Errorf(
+					"error checking include glob '%s': %s",
+					pattern, err))
+			}
+
+			for _, path := range matches {
+				// Windows
+				path = filepath.ToSlash(path)
+				subpath, err := filepath.Rel(root, path)
+				subpath = filepath.ToSlash(subpath)
+
+				if err != nil {
+					return errFunc(err)
+				}
+
+				for {
+					includeMap[subpath] = struct{}{}
+					subpath = filepath.Dir(subpath)
+					if subpath == "." {
+						break
+					}
+				}
+			}
+		}
+	}
+
 	return func(path string, info os.FileInfo, err error) error {
+		path = filepath.ToSlash(path)
+
 		if err != nil {
 			return err
 		}
@@ -246,6 +297,8 @@ func copyDirWalkFn(
 		if prefix != "" {
 			subpath = filepath.Join(prefix, subpath)
 		}
+		// Windows
+		subpath = filepath.ToSlash(subpath)
 
 		// If we have a list of VCS files, check that first
 		skip := false
@@ -265,17 +318,9 @@ func copyDirWalkFn(
 		}
 
 		// If include is present, we only include what is listed
-		if opts != nil && len(opts.Include) > 0 {
-			skip = true
-			for _, include := range opts.Include {
-				match, err := filepath.Match(include, subpath)
-				if err != nil {
-					return err
-				}
-				if match {
-					skip = false
-					break
-				}
+		if len(includeMap) > 0 {
+			if _, ok := includeMap[subpath]; !ok {
+				skip = true
 			}
 		}
 
@@ -330,6 +375,9 @@ func copyDirWalkFn(
 func copyConcreteEntry(
 	tarW *tar.Writer, entry string,
 	path string, info os.FileInfo) error {
+	// Windows
+	path = filepath.ToSlash(path)
+
 	// Build the file header for the tar entry
 	header, err := tar.FileInfoHeader(info, path)
 	if err != nil {
