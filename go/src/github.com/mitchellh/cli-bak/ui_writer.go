@@ -9,7 +9,7 @@ type UiWriter struct {
 
 func (w *UiWriter) Write(p []byte) (n int, err error) {
 	n = len(p)
-	if n > 0 && p[n-1] == '\n' {
+	if p[n-1] == '\n' {
 		p = p[:n-1]
 	}
 

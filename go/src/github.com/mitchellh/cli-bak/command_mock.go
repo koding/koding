@@ -28,15 +28,3 @@ func (c *MockCommand) Run(args []string) int {
 func (c *MockCommand) Synopsis() string {
 	return c.SynopsisText
 }
-
-// MockCommandHelpTemplate is an implementation of CommandHelpTemplate.
-type MockCommandHelpTemplate struct {
-	MockCommand
-
-	// Settable
-	HelpTemplateText string
-}
-
-func (c *MockCommandHelpTemplate) HelpTemplate() string {
-	return c.HelpTemplateText
-}
