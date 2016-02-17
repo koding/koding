@@ -15,7 +15,7 @@ AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
 Encoder = require 'htmlencode'
 VerifyPINModal = require 'app/commonviews/verifypinmodal'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
-sinkrow = require 'sinkrow'
+async = require 'async'
 KodingSwitch = require 'app/commonviews/kodingswitch'
 
 
@@ -189,10 +189,9 @@ module.exports = class AccountEditUsername extends JView
 
     {JUser} = remote.api
     {email, password, confirmPassword, firstName, lastName, username, shareLocation} = formData
-    profileUpdated = yes
     skipPasswordConfirmation = no
     queue = [
-      =>
+      (next) ->
         # update firstname and lastname
         me = whoami()
 
@@ -201,79 +200,67 @@ module.exports = class AccountEditUsername extends JView
           "profile.lastName" : lastName
           "shareLocation"    : formData.shareLocation
         }, (err)->
-          return notify err.message  if err
+          return next err.message  if err
           me.shareLocation = formData.shareLocation
-          queue.next()
-      =>
-        return queue.next() if email is @userInfo.email
+          next()
+
+      (next) =>
+        return next() if email is @userInfo.email
 
         options = {skipPasswordConfirmation, email}
         @confirmCurrentPassword options, (err) =>
-          if err
-            notify err
-            profileUpdated = false
-            return queue.next()
+          return next err  if err
 
           JUser.changeEmail {email}, (err, result)=>
-            if err
-              @hideSaveButtonLoader()
-              notify err.message
-              return queue.next()
+            return next err.message  if err
 
             skipPasswordConfirmation = true
             modal = new VerifyPINModal 'Update E-Mail', (pin)=>
               remote.api.JUser.changeEmail {email, pin}, (err)=>
-                if err
-                  notify err.message
-                  profileUpdated = false
-                else
-                  @userInfo.email = email
-                queue.next()
-            modal.once 'ModalCancelled', @bound 'hideSaveButtonLoader'
-      =>
+                return next err.message  if err
+                @userInfo.email = email
+                next()
+            modal.once 'ModalCancelled', -> next 'cancelled'
+
+      (next) =>
         # on third turn update password
         # check for password confirmation
         if password isnt confirmPassword
-          notify "Passwords did not match"
-          @hideSaveButtonLoader()
-          return
+          return next "Passwords did not match"
+
         #check passworg lenght
         if password isnt "" and password.length < 8
-          notify "Passwords should be at least 8 characters"
-          @hideSaveButtonLoader()
-          return
+          return next "Passwords should be at least 8 characters"
+
         # if password is empty than discard operation
         if password is ""
           {token} = kd.utils.parseQuery()
-          if token
-            profileUpdated = no
-            notify "You should set your password"
-          return queue.next()
+          return next "You should set your password"  if token
+          return next()
 
         JUser.fetchUser (err, user)=>
-          if err
-            notify "An error occurred"
-            return queue.next()
+          return next "An error occurred"  if err
 
           skipPasswordConfirmation = true  if user.passwordStatus isnt "valid"
           @confirmCurrentPassword {skipPasswordConfirmation}, (err) =>
-            if err
-              notify err
-              profileUpdated = false
-              return queue.next()
+            return next err  if err
             JUser.changePassword password, (err,docs)=>
               @userProfileForm.inputs.password.setValue ""
               @userProfileForm.inputs.confirm.setValue ""
               if err
-                return queue.next()  if err.message is "PasswordIsSame"
-                return notify err.message
-              return queue.next()
-      =>
-        # if everything is OK or didnt change, show profile updated modal
-        notify "Your account information is updated." if profileUpdated
-        @hideSaveButtonLoader()
+                return next()  if err.message is "PasswordIsSame"
+                return next err.message
+              return next()
+
+      (next) ->
+        notify "Your account information is updated."
+        next()
     ]
-    sinkrow.daisy queue
+
+    async.series queue, (err) =>
+      notify err  if err and err isnt 'cancelled'
+      @hideSaveButtonLoader()
+
 
   verifyUserEmail: ->
 
