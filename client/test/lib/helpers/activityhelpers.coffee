@@ -54,11 +54,17 @@ module.exports =
 
   postMessageWithCombination: (browser) ->
 
+    timestamp    = Date.now()
+    code         = "console.log('#{timestamp}')"
+    post         = '```' + code + '```'
     link         = 'http://www.theverge.com/'
     comment      = "#{link} Check out the Verge!"
+    finalPost    = comment + post
     linkSelector = "#{activitySelector} .activity-content-wrapper article a"
+    selector     = '[testpath=ActivityListItemView]:first-child .has-markdown code'
 
-    helpers.doPostActivity(browser, comment, yes, yes)
+    helpers.doPostActivity(browser, finalPost, no, yes)
+    browser.assert.containsText selector, code # Assertion
 
     browser.getAttribute linkSelector, 'href', (result) ->
       href = result.value
