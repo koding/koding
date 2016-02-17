@@ -3,10 +3,14 @@ package fuseklient
 import (
 	"encoding/json"
 	"fmt"
+	"net/http/httptest"
 	"os"
 	"testing"
 
 	"koding/fuseklient/transport"
+	klientfs "koding/klient/fs"
+
+	"github.com/koding/kite"
 
 	"github.com/jacobsa/fuse"
 
@@ -17,6 +21,38 @@ import (
 // and mocking responses.
 type fakeTransport struct {
 	TripResponses map[string]interface{}
+}
+
+// newKlient creates a kite, populates it with Klient methods, and returns
+// a dialed kite Client. Mocking an actively running Klient, but still using the real
+// klient methods.
+func newKlientClient() (*kite.Client, error) {
+	k := kite.New("kiteServ", "0.0.0")
+	k.Config.DisableAuthentication = true
+
+	k.HandleFunc("fs.readDirectory", klientfs.ReadDirectory)
+	k.HandleFunc("fs.glob", klientfs.Glob)
+	k.HandleFunc("fs.readFile", klientfs.ReadFile)
+	k.HandleFunc("fs.writeFile", klientfs.WriteFile)
+	k.HandleFunc("fs.uniquePath", klientfs.UniquePath)
+	k.HandleFunc("fs.getInfo", klientfs.GetInfo)
+	k.HandleFunc("fs.setPermissions", klientfs.SetPermissions)
+	k.HandleFunc("fs.remove", klientfs.Remove)
+	k.HandleFunc("fs.rename", klientfs.Rename)
+	k.HandleFunc("fs.createDirectory", klientfs.CreateDirectory)
+	k.HandleFunc("fs.move", klientfs.Move)
+	k.HandleFunc("fs.copy", klientfs.Copy)
+	k.HandleFunc("fs.getDiskInfo", klientfs.GetDiskInfo)
+
+	testServ := httptest.NewServer(k)
+	kiteClient := kite.New("testClient", "0.0.0").NewClient(fmt.Sprintf("%s/kite", testServ.URL))
+
+	err := kiteClient.Dial()
+	if err != nil {
+		return nil, err
+	}
+
+	return kiteClient, nil
 }
 
 func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}) error {
