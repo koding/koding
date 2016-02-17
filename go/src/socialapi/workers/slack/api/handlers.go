@@ -104,6 +104,15 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 
 	m.AddHandler(
 		handler.Request{
+			Handler:  s.TeamInfo,
+			Name:     models.SlackTeamInfo,
+			Type:     handler.GetRequest,
+			Endpoint: "/slack/team",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
 			Handler:  s.PostMessage,
 			Name:     models.SlackPostMessage,
 			Type:     handler.PostRequest,
