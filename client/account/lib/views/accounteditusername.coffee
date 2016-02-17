@@ -205,27 +205,29 @@ module.exports = class AccountEditUsername extends JView
           me.shareLocation = formData.shareLocation
           queue.next()
       =>
-        # secondly change user email address
-        JUser.changeEmail {email}, (err, result)=>
-          # here we are simply discarding the email is same error
-          # but do not forget to warn users about other errors
-          if err
-            return queue.next() if err.message is "EmailIsSameError"
-            @hideSaveButtonLoader()
-            return notify err.message
+        return queue.next() if email is @userInfo.email
 
-          options = {skipPasswordConfirmation, email}
-          @confirmCurrentPassword options, (err) =>
+        options = {skipPasswordConfirmation, email}
+        @confirmCurrentPassword options, (err) =>
+          if err
+            notify err
+            profileUpdated = false
+            return queue.next()
+
+          JUser.changeEmail {email}, (err, result)=>
             if err
-              notify err
-              profileUpdated = false
+              @hideSaveButtonLoader()
+              notify err.message
               return queue.next()
+
             skipPasswordConfirmation = true
-            modal = new VerifyPINModal 'Update E-Mail', (pin)->
-              remote.api.JUser.changeEmail {email, pin}, (err)->
+            modal = new VerifyPINModal 'Update E-Mail', (pin)=>
+              remote.api.JUser.changeEmail {email, pin}, (err)=>
                 if err
                   notify err.message
                   profileUpdated = false
+                else
+                  @userInfo.email = email
                 queue.next()
             modal.once 'ModalCancelled', @bound 'hideSaveButtonLoader'
       =>
