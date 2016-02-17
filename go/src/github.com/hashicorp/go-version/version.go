@@ -14,9 +14,9 @@ var versionRegexp *regexp.Regexp
 
 // The raw regular expression string used for testing the validity
 // of a version.
-const VersionRegexpRaw string = `([0-9]+(\.[0-9]+){0,2})` +
-	`(-([0-9A-Za-z]+(\.[0-9A-Za-z]+)*))?` +
-	`(\+([0-9A-Za-z]+(\.[0-9A-Za-z]+)*))?` +
+const VersionRegexpRaw string = `v?([0-9]+(\.[0-9]+){0,2})` +
+	`(-([0-9A-Za-z\-]+(\.[0-9A-Za-z\-]+)*))?` +
+	`(\+([0-9A-Za-z\-]+(\.[0-9A-Za-z\-]+)*))?` +
 	`?`
 
 // Version represents a single version.
@@ -62,6 +62,16 @@ func NewVersion(v string) (*Version, error) {
 		segments: segments,
 		si:       si,
 	}, nil
+}
+
+// Must is a helper that wraps a call to a function returning (*Version, error)
+// and panics if error is non-nil.
+func Must(v *Version, err error) *Version {
+	if err != nil {
+		panic(err)
+	}
+
+	return v
 }
 
 // Compare compares this version to another version. This
