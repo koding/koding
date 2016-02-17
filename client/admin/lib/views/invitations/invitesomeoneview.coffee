@@ -94,6 +94,13 @@ module.exports = class InviteSomeoneView extends KDView
       @notifyAdminInvites invites, admins
     else
       @handleInvitationRequest invites
+      _hsq.push [
+        'trackEvent'
+          {
+            id: '000000531883'
+            value: null
+          }
+      ]
 
 
   notifyAdminInvites: (invites, admins) ->
