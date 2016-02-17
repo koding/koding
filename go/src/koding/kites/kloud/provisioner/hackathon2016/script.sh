@@ -45,7 +45,7 @@ sudo a2enmod proxy_http
 sudo a2enmod proxy_wstunnel
 sudo a2enmod proxy_fcgi
 
-mkdir -p /tmp/userdata/{Web,bash,screen,kodingart}
+mkdir -p /tmp/userdata/{Web,bash,screen,kodingart,etc/apt}
 
 sudo mkdir -p /opt/koding/userdata/{Web,Applications,Backup,Documents} \
 	/opt/koding/etc/ \

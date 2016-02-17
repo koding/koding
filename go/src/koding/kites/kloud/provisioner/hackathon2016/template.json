@@ -8,7 +8,7 @@
 		"bash_dir": "bash/",
 		"screen_dir": "screen/",
 		"kodingart_dir": "kodingart/",
-		"etc_dir": "etc/"
+		"etc_apt_dir": "etc/apt/"
 	},
 	"builders": [
 		{
@@ -61,8 +61,8 @@
 		},
 		{
 			"type": "file",
-			"source": "{{user `etc_dir`}}",
-			"destination": "/tmp/userdata/etc"
+			"source": "{{user `etc_apt_dir`}}",
+			"destination": "/tmp/userdata/etc/apt"
 		},
 		{
 			"type": "file",
