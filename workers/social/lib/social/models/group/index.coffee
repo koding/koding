@@ -8,15 +8,15 @@ module.exports = class JGroup extends Module
 
   { Relationship } = require 'jraphical'
 
-  { Inflector, ObjectId, ObjectRef, secure, daisy, race, dash, signature } = require 'bongo'
+  { Inflector, ObjectId, ObjectRef, secure, daisy, dash, signature } = require 'bongo'
 
   JPermissionSet = require './permissionset'
   { permit }     = JPermissionSet
 
   JAccount       = require '../account'
-
   KodingError    = require '../../error'
   Validators     = require './validators'
+  async          = require 'async'
   { throttle, extend }     = require 'underscore'
 
   PERMISSION_EDIT_GROUPS = [
@@ -398,13 +398,6 @@ module.exports = class JGroup extends Module
       subPage    : require '../../render/loggedout/subpage'
 
 
-  save_ = (label, model, queue, callback) ->
-    model.save (err) ->
-      return callback err  if err
-      console.log "#{label} is saved"
-      queue.next()
-
-
   @create = (client, groupData, owner, callback) ->
 
     # bongo doesnt set array values as their defaults
@@ -420,91 +413,78 @@ module.exports = class JGroup extends Module
     defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }
     { sessionToken }      = client
 
+    save_ = (label, model, callback) ->
+      model.save (err) ->
+        return callback err  if err
+        console.log "#{label} is saved"
+        callback null
+
     queue = [
 
-      ->
+      (next) ->
         group.useSlug group.slug, (err, slug) ->
-          return callback err  if err
-          return callback new KodingError 'Couldn\'t claim the slug!'  unless slug?
+          return next err  if err
+          return next new KodingError 'Couldn\'t claim the slug!'  unless slug?
 
           console.log "created a slug #{slug.slug}"
           group.slug  = slug.slug
           group.slug_ = slug.slug
-          queue.next()
+          next()
 
-      ->
-        save_ 'group', group, queue, (err) ->
-          if err
-            JName.release group.slug, -> callback err
-          else
-            queue.next()
+      (next) ->
+        save_ 'group', group, (err) ->
+          return next()  unless err
+          JName.release group.slug, ->
+            next err
 
-      ->
+      (next) ->
         selector = { clientId : sessionToken }
         params   = { $set : { groupName : group.slug } }
 
-        JSession.update selector, params, (err) ->
-         return callback err  if err
-         queue.next()
+        JSession.update selector, params, next
 
-      ->
-        group.addMember owner, (err) ->
-          return callback err  if err
-          console.log 'member is added'
-          queue.next()
+      (next) ->
+        group.addMember owner, next
 
-      ->
-        group.addAdmin owner, (err) ->
-          return callback err  if err
-          console.log 'admin is added'
-          queue.next()
+      (next) ->
+        group.addAdmin owner, next
 
-      ->
-        group.addOwner owner, (err) ->
-          return callback err  if err
-          console.log 'owner is added'
-          queue.next()
+      (next) ->
+        group.addOwner owner, next
 
-      ->
-        save_ 'default permission set', defaultPermissionSet, queue, callback
+      (next) ->
+        save_ 'default permission set', defaultPermissionSet, next
 
-      ->
-        group.addDefaultPermissionSet defaultPermissionSet, (err) ->
-          return callback err  if err
-          console.log 'permissionSet is added'
-          queue.next()
+      (next) ->
+        group.addDefaultPermissionSet defaultPermissionSet, next
 
-      ->
-        group.addDefaultRoles (err) ->
-          return callback err  if err
-          console.log 'roles are added'
-          queue.next()
+      (next) ->
+        group.addDefaultRoles next
 
-      ->
+      (next) ->
         group.createSocialApiChannels client, (err) ->
           console.error err  if err
           console.log 'created socialApiId ids'
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         { shareCredentials } = require '../computeproviders/teamutils'
         account = client.connection.delegate
 
         shareCredentials { group, account }, (err) ->
           console.log 'shared credentials', err
-          queue.next()
+          next()
 
     ]
 
     if 'private' is group.privacy
-      queue.push ->
-        group.createMembershipPolicy groupData.requestType, -> queue.next()
+      queue.push (next) ->
+        group.createMembershipPolicy groupData.requestType, -> next()
 
-    queue.push =>
+    async.series queue, (err) =>
+      return callback err  if err
       @emit 'GroupCreated', { group, creator: owner }
       callback null, group
-
-    daisy queue
 
 
   @create$ = secure (client, formData, callback) ->
