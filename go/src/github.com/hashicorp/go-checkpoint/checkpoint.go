@@ -18,6 +18,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/go-cleanhttp"
 )
 
 var magicBytes [4]byte = [4]byte{0x35, 0x77, 0x69, 0xFB}
@@ -59,6 +61,12 @@ type CheckParams struct {
 	// permissions 0755.
 	CacheFile     string
 	CacheDuration time.Duration
+
+	// Force, if true, will force the check even if CHECKPOINT_DISABLE
+	// is set. Within HashiCorp products, this is ONLY USED when the user
+	// specifically requests it. This is never automatically done without
+	// the user's consent.
+	Force bool
 }
 
 // CheckResponse is the response for a check request.
@@ -87,7 +95,7 @@ type CheckAlert struct {
 
 // Check checks for alerts and new version information.
 func Check(p *CheckParams) (*CheckResponse, error) {
-	if disabled := os.Getenv("CHECKPOINT_DISABLE"); disabled != "" {
+	if disabled := os.Getenv("CHECKPOINT_DISABLE"); disabled != "" && !p.Force {
 		return &CheckResponse{}, nil
 	}
 
@@ -136,7 +144,8 @@ func Check(p *CheckParams) (*CheckResponse, error) {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("User-Agent", "HashiCorp/go-checkpoint")
 
-	resp, err := http.DefaultClient.Do(req)
+	client := cleanhttp.DefaultClient()
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
