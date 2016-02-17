@@ -2,7 +2,7 @@
 { getAvatarImageUrl }      = require './activity'
 { getSidebar }             = require './feed'
 
-module.exports = (account, statusUpdates, index) ->
+module.exports = (account, statusUpdates, index, currentUrl) ->
   getGraphMeta = require './graphmeta'
   analytics    = require './analytics'
 
@@ -18,7 +18,7 @@ module.exports = (account, statusUpdates, index) ->
   </head>
   <body itemscope itemtype="http://schema.org/WebPage" class="super profile">
     <div id="kdmaincontainer" class="kdview with-sidebar">
-      #{getSidebar()}
+      #{getSidebar currentUrl}
       #{putContent(account, statusUpdates)}
     </div>
     #{analytics()}

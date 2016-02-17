@@ -346,9 +346,24 @@ module.exports = utils = {
 
   removeLastUsedProvider: -> delete window.localStorage.lastUsedProvider
 
+
   createTeamTitlePhrase: (title) ->
+
     # doesn't duplicate the word `the` if the title already has it in the beginning
     # doesn't duplicate the word `team` if the title already has it at the end
     "#{if title.search(/^the/i) < 0 then 'the' else ''} #{title} #{if title.search(/team$/i) < 0 then 'team' else ''}"
+
+  # If current url contains redirectTo query parameter, use it to redirect after login.
+  # If current url isn't loginRoute, login is shown because no route has matched current url.
+  # It may happen when logged out user opens a page which requires user authentication.
+  # Redirect to this url after user is logged in
+  getLoginRedirectPath: (loginRoute) ->
+
+    { redirectTo } = kd.utils.parseQuery()
+    return redirectTo.substring 1  if redirectTo
+
+    { pathname } = location
+    if pathname and pathname.indexOf(loginRoute) is -1
+      return pathname.substring 1
 
 }
