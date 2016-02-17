@@ -88,7 +88,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       { tabHandle, view } = pane
       { options }  = view
-      { machine, paneType } = options
+      { paneType } = options
 
 
       switch paneType
@@ -106,7 +106,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
             ideApp.writeSnapshot()
 
-            @renameEditor paneView, machine, newTitle
+            @renameEditor paneView, newTitle
 
 
         when 'terminal'
@@ -836,7 +836,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       showErrorNotification err
 
 
-  renameEditor: (paneView, machine, newTitle) ->
+  renameEditor: (paneView, newTitle) ->
 
     editorHandle = @tabView.getHandleByPane paneView
 
