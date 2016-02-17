@@ -58,10 +58,7 @@ module.exports = class YourStacksView extends KDCustomScrollView
         @destroy()
 
     listView.on 'StackReinitRequested', (stack) =>
-
-      computeController
-        .once 'RenderStacks', => @destroyModal yes, yes
-        .reinitStack stack
+      computeController.once 'RenderStacks', => @destroyModal yes, yes
 
     whoami().isEmailVerified? (err, verified) ->
       if err or not verified
