@@ -614,55 +614,52 @@ module.exports = class JGroup extends Module
             revokedRoles.push rel.as
 
         queue = [
-          =>
+
+          (next) =>
             @countAdmins (err, count) ->
-              return callback err  if err
+              return next err  if err
+              return next()    if count > 1 # this means we have more than one admin account
 
-              if count > 1 # this means we have more than one admin account
-                queue.next()
-              else
-                # get the diff between revokedRoles and roles, because revoked
-                # roles should not have admin role in this case
-                diff = difference revokedRoles, roles
+              # get the diff between revokedRoles and roles, because revoked
+              # roles should not have admin role in this case
+              diff = difference revokedRoles, roles
 
-                # check if the diff has admin role
-                if diff.indexOf('admin') > -1
-                  errCode    = 'UserIsTheOnlyAdmin'
-                  errMessage = 'There should be at least one admin to make this change.'
-                  return callback new KodingError errMessage, errCode
-
-                queue.next()
+              # check if the diff has admin role
+              if diff.indexOf('admin') > -1
+                errCode    = 'UserIsTheOnlyAdmin'
+                errMessage = 'There should be at least one admin to make this change.'
+                return next new KodingError errMessage, errCode
+              next()
 
         ]
 
         # create new roles
-        queue = queue.concat roles.map (role) -> ->
+        queue = queue.concat roles.map (role) -> (next) ->
           (new Relationship
             targetName  : 'JAccount'
             targetId    : targetId
             sourceName  : 'JGroup'
             sourceId    : sourceId
             as          : role
-          ).save (err) ->
-            return callback err  if err
-            queue.next()
+          ).save next
 
         # remove existing ones
         queue = queue.concat [
-          ->
+
+          (next) ->
             if remove.length > 0
-              Relationship.remove { _id: { $in: remove } }, (err) ->
-                return callback err  if err
-                queue.next()
+              Relationship.remove { _id: { $in: remove } }, next
             else
-              queue.next()
-          ->
-            notifyAccountOnRoleChange client, targetId, roles, queue.next
-          ->
-            callback null
+              next()
+
+          (next)->
+            notifyAccountOnRoleChange client, targetId, roles, next
+
         ]
 
-        daisy queue
+        async.series queue, (err) ->
+          return callback err  if err
+          callback null
 
   notifyAccountOnRoleChange = (client, id, roles, callback) ->
     JAccount.one { _id: id }, (err, account) ->
