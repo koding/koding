@@ -94,6 +94,19 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *
 	return response.HandleResultAndError(getChannels(token))
 }
 
+func (s *Slack) TeamInfo(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	token, err := getSlackToken(context)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.HandleResultAndError(getTeamInfo(token))
+}
+
 func (s *Slack) PostMessage(u *url.URL, h http.Header, req *SlackMessageRequest, context *models.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
