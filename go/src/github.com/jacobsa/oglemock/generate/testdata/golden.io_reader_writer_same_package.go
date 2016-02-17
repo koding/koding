@@ -4,18 +4,17 @@
 //     https://github.com/jacobsa/oglemock
 //
 
-package some_pkg
+package io
 
 import (
 	fmt "fmt"
 	oglemock "github.com/jacobsa/oglemock"
-	io "io"
 	runtime "runtime"
 	unsafe "unsafe"
 )
 
 type MockReader interface {
-	io.Reader
+	Reader
 	oglemock.MockObject
 }
 
@@ -71,7 +70,7 @@ func (m *mockReader) Read(p0 []uint8) (o0 int, o1 error) {
 }
 
 type MockWriter interface {
-	io.Writer
+	Writer
 	oglemock.MockObject
 }
 

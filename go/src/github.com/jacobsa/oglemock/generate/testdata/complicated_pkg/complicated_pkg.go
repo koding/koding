@@ -18,10 +18,11 @@
 package complicated_pkg
 
 import (
-	"github.com/jacobsa/oglemock/generate/test_cases/renamed_pkg"
 	"image"
 	"io"
 	"net"
+
+	"github.com/jacobsa/oglemock/generate/testdata/renamed_pkg"
 )
 
 type Byte uint8
