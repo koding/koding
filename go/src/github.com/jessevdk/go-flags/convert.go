@@ -294,38 +294,48 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	return nil
 }
 
-func wrapText(s string, l int, prefix string) string {
-	// Basic text wrapping of s at spaces to fit in l
-	var ret string
-
-	s = strings.TrimSpace(s)
-
-	for len(s) > l {
-		// Try to split on space
-		suffix := ""
-
-		pos := strings.LastIndex(s[:l], " ")
-
-		if pos < 0 {
-			pos = l - 1
-			suffix = "-\n"
+func isPrint(s string) bool {
+	for _, c := range s {
+		if !strconv.IsPrint(c) {
+			return false
 		}
-
-		if len(ret) != 0 {
-			ret += "\n" + prefix
-		}
-
-		ret += strings.TrimSpace(s[:pos]) + suffix
-		s = strings.TrimSpace(s[pos:])
 	}
 
-	if len(s) > 0 {
-		if len(ret) != 0 {
-			ret += "\n" + prefix
-		}
+	return true
+}
 
-		return ret + s
+func quoteIfNeeded(s string) string {
+	if !isPrint(s) {
+		return strconv.Quote(s)
+	}
+
+	return s
+}
+
+func quoteIfNeededV(s []string) []string {
+	ret := make([]string, len(s))
+
+	for i, v := range s {
+		ret[i] = quoteIfNeeded(v)
 	}
 
 	return ret
+}
+
+func quoteV(s []string) []string {
+	ret := make([]string, len(s))
+
+	for i, v := range s {
+		ret[i] = strconv.Quote(v)
+	}
+
+	return ret
+}
+
+func unquoteIfPossible(s string) (string, error) {
+	if len(s) == 0 || s[0] != '"' {
+		return s, nil
+	}
+
+	return strconv.Unquote(s)
 }
