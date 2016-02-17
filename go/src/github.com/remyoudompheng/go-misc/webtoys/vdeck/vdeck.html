@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>vCard explorer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link type="text/css" rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/themes/ui-lightness/jquery-ui.css">
+    <link type="text/css" rel="stylesheet" href="/static/common.css"/>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/static/vdeck.js"></script>
+    <style type="text/css">
+    table#contacts td { padding: .25ex; }
+    td.phone          { text-align: right; }
+    </style>
+  </head>
+  <body>
+    <h1>Contacts directory</h1>
+
+    <table id="contacts" class="ui-widget ui-corner-all">
+      <thead class="ui-widget-header">
+        <tr>
+          <th>Full name</th>
+          <th>Family name</th>
+          <th>First name</th>
+          <th>Phone number</th>
+          <th>Email</th>
+          <th>Filename</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <div id="vcf-dialog" title="vCard contents">
+      <pre class="raw-vcard"></pre>
+    </div>
+
+    <div id="vcf-editor" title="Edit vCard">
+      <ul>
+        <li><a href="#vcf-ident">Identification</a></li>
+        <li><a href="#vcf-addr">Address</a></li>
+        <li><a href="#vcf-misc">Miscellaneous</a></li>
+      </ul>
+      <div id="vcf-ident" class="ui-widget-content">
+        <form>
+          <fieldset>
+            <label for="input-fullname">Full name</label>
+            <input type="text" id="input-fullname" class="text" />
+            <label for="input-familyname">Family name</label>
+            <input type="text" id="input-familyname" class="text" />
+            <label for="input-firstname">First name</label>
+            <input type="text" id="input-firstname" class="text" />
+            <label for="input-nickname">Nickname</label>
+            <input type="text" id="input-nickname" class="text" />
+            <label for="input-birthday">Birthday</label>
+            <input type="text" id="input-birthday" class="text" />
+          </fieldset>
+        </form>
+      </div>
+      <div id="vcf-addr">
+        <table id="vcf-address" class="ui-widget ui-widget-content">
+          <thead class="ui-widget-header">
+            <tr>
+              <th>POBox</th>
+              <th>Extended</th>
+              <th>Street</th>
+              <th>Locality</th>
+              <th>Region</th>
+              <th>Postal code</th>
+              <th>Country</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <table id="vcf-phone" class="ui-widget ui-widget-content">
+          <thead class="ui-widget-header">
+            <tr><th>Phone number</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <table id="vcf-email" class="ui-widget ui-widget-content">
+          <thead class="ui-widget-header">
+            <tr><th>E-mail address</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="vcf-misc" class="ui-widget-content">
+        <form>
+          <fieldset>
+            <label for="input-categories">Categories</label>
+            <input type="text" id="input-categories" class="text" />
+            <label for="input-uid">UID</label>
+            <input type="text" id="input-uid" class="text" />
+            <label for="input-url">URL</label>
+            <input type="text" id="input-url" class="text" />
+          </fieldset>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
+
