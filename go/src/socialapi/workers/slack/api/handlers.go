@@ -9,9 +9,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// AddHandlers adds handlers for slack integration
 func AddHandlers(m *mux.Mux, config *config.Config) {
-
 	s := &Slack{
+		Hostname: config.Hostname,
+		Protocol: config.Protocol,
 		OAuthConf: &oauth2.Config{
 			ClientID:     config.Slack.ClientId,
 			ClientSecret: config.Slack.ClientSecret,
@@ -67,9 +69,10 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 		},
 	}
 
-	m.AddUnscopedHandler(
+	m.AddHandler(
 		handler.Request{
 			Handler:  s.Send,
+			Name:     models.SlackOauthSend,
 			Type:     handler.GetRequest,
 			Endpoint: "/slack/oauth",
 		},
@@ -81,6 +84,15 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 			Name:     models.SlackOauthCallback,
 			Type:     handler.GetRequest,
 			Endpoint: "/slack/oauth/callback",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  s.Success,
+			Name:     models.SlackOauthSuccess,
+			Type:     handler.GetRequest,
+			Endpoint: "/slack/oauth/success",
 		},
 	)
 
