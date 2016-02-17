@@ -42,6 +42,7 @@ const (
 const (
 	SlackListUsers     = "slack-list-users"
 	SlackListChannels  = "slack-list-channels"
+	SlackTeamInfo      = "slack-team-information"
 	SlackPostMessage   = "slack-post-message"
 	SlackOauthCallback = "slack-oauth-callback"
 )
