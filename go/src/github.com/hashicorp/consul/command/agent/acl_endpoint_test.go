@@ -3,10 +3,11 @@ package agent
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/hashicorp/consul/consul/structs"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/hashicorp/consul/consul/structs"
 )
 
 func makeTestACL(t *testing.T, srv *HTTPServer) string {
@@ -62,17 +63,60 @@ func TestACLUpdate(t *testing.T) {
 	})
 }
 
+func TestACLUpdate_Upsert(t *testing.T) {
+	httpTest(t, func(srv *HTTPServer) {
+		body := bytes.NewBuffer(nil)
+		enc := json.NewEncoder(body)
+		raw := map[string]interface{}{
+			"ID":    "my-old-id",
+			"Name":  "User Token 2",
+			"Type":  "client",
+			"Rules": "",
+		}
+		enc.Encode(raw)
+
+		req, err := http.NewRequest("PUT", "/v1/acl/update?token=root", body)
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		resp := httptest.NewRecorder()
+		obj, err := srv.ACLUpdate(resp, req)
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		aclResp := obj.(aclCreateResponse)
+		if aclResp.ID != "my-old-id" {
+			t.Fatalf("bad: %v", aclResp)
+		}
+	})
+}
+
 func TestACLDestroy(t *testing.T) {
 	httpTest(t, func(srv *HTTPServer) {
 		id := makeTestACL(t, srv)
-		req, err := http.NewRequest("PUT", "/v1/session/destroy/"+id+"?token=root", nil)
+		req, err := http.NewRequest("PUT", "/v1/acl/destroy/"+id+"?token=root", nil)
 		resp := httptest.NewRecorder()
 		obj, err := srv.ACLDestroy(resp, req)
 		if err != nil {
 			t.Fatalf("err: %v", err)
 		}
-		if resp := obj.(bool); !resp {
+		if resp, ok := obj.(bool); !ok || !resp {
 			t.Fatalf("should work")
+		}
+
+		req, err = http.NewRequest("GET",
+			"/v1/acl/info/"+id, nil)
+		resp = httptest.NewRecorder()
+		obj, err = srv.ACLGet(resp, req)
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		respObj, ok := obj.(structs.ACLs)
+		if !ok {
+			t.Fatalf("should work")
+		}
+		if len(respObj) != 0 {
+			t.Fatalf("bad: %v", respObj)
 		}
 	})
 }
@@ -114,6 +158,22 @@ func TestACLClone(t *testing.T) {
 }
 
 func TestACLGet(t *testing.T) {
+	httpTest(t, func(srv *HTTPServer) {
+		req, err := http.NewRequest("GET", "/v1/acl/info/nope", nil)
+		resp := httptest.NewRecorder()
+		obj, err := srv.ACLGet(resp, req)
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		respObj, ok := obj.(structs.ACLs)
+		if !ok {
+			t.Fatalf("should work")
+		}
+		if respObj == nil || len(respObj) != 0 {
+			t.Fatalf("bad: %v", respObj)
+		}
+	})
+
 	httpTest(t, func(srv *HTTPServer) {
 		id := makeTestACL(t, srv)
 

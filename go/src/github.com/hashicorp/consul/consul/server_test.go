@@ -66,6 +66,9 @@ func testServerConfig(t *testing.T, NodeName string) (string, *Config) {
 	config.RaftConfig.ElectionTimeout = 40 * time.Millisecond
 
 	config.ReconcileInterval = 100 * time.Millisecond
+
+	config.DisableCoordinates = false
+	config.CoordinateUpdatePeriod = 100 * time.Millisecond
 	return dir, config
 }
 
@@ -120,9 +123,10 @@ func TestServer_StartStop(t *testing.T) {
 	config := DefaultConfig()
 	config.DataDir = dir
 
-	private, err := GetPrivateIP()
+	// Advertise on localhost.
+	private, _, err := net.ParseCIDR("127.0.0.1/32")
 	if err != nil {
-		t.Fatalf("err: %v", err)
+		t.Fatalf("failed to parse 127.0.0.1 cidr: %v", err)
 	}
 
 	config.RPCAdvertise = &net.TCPAddr{
@@ -216,6 +220,105 @@ func TestServer_JoinWAN(t *testing.T) {
 	})
 }
 
+func TestServer_JoinSeparateLanAndWanAddresses(t *testing.T) {
+	dir1, s1 := testServer(t)
+	defer os.RemoveAll(dir1)
+	defer s1.Shutdown()
+
+	dir2, s2 := testServerWithConfig(t, func(c *Config) {
+		c.NodeName = "s2"
+		c.Datacenter = "dc2"
+		// This wan address will be expected to be seen on s1
+		c.SerfWANConfig.MemberlistConfig.AdvertiseAddr = "127.0.0.2"
+		// This lan address will be expected to be seen on s3
+		c.SerfLANConfig.MemberlistConfig.AdvertiseAddr = "127.0.0.3"
+	})
+
+	defer os.RemoveAll(dir2)
+	defer s2.Shutdown()
+
+	dir3, s3 := testServerDC(t, "dc2")
+	defer os.RemoveAll(dir3)
+	defer s3.Shutdown()
+
+	// Join s2 to s1 on wan
+	addrs1 := fmt.Sprintf("127.0.0.1:%d",
+		s1.config.SerfWANConfig.MemberlistConfig.BindPort)
+	if _, err := s2.JoinWAN([]string{addrs1}); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	// Join s3 to s2 on lan
+	addrs2 := fmt.Sprintf("127.0.0.1:%d",
+		s2.config.SerfLANConfig.MemberlistConfig.BindPort)
+	if _, err := s3.JoinLAN([]string{addrs2}); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	// Check the WAN members on s1
+	testutil.WaitForResult(func() (bool, error) {
+		return len(s1.WANMembers()) == 2, nil
+	}, func(err error) {
+		t.Fatalf("bad len")
+	})
+
+	// Check the WAN members on s2
+	testutil.WaitForResult(func() (bool, error) {
+		return len(s2.WANMembers()) == 2, nil
+	}, func(err error) {
+		t.Fatalf("bad len")
+	})
+
+	// Check the LAN members on s2
+	testutil.WaitForResult(func() (bool, error) {
+		return len(s2.LANMembers()) == 2, nil
+	}, func(err error) {
+		t.Fatalf("bad len")
+	})
+
+	// Check the LAN members on s3
+	testutil.WaitForResult(func() (bool, error) {
+		return len(s3.LANMembers()) == 2, nil
+	}, func(err error) {
+		t.Fatalf("bad len")
+	})
+
+	// Check the remoteConsuls has both
+	if len(s1.remoteConsuls) != 2 {
+		t.Fatalf("remote consul missing")
+	}
+
+	if len(s2.remoteConsuls) != 2 {
+		t.Fatalf("remote consul missing")
+	}
+
+	if len(s2.localConsuls) != 2 {
+		t.Fatalf("local consul fellow s3 for s2 missing")
+	}
+
+	// Get and check the wan address of s2 from s1
+	var s2WanAddr string
+	for _, member := range s1.WANMembers() {
+		if member.Name == "s2.dc2" {
+			s2WanAddr = member.Addr.String()
+		}
+	}
+	if s2WanAddr != "127.0.0.2" {
+		t.Fatalf("s1 sees s2 on a wrong address: %s, expecting: %s", s2WanAddr, "127.0.0.2")
+	}
+
+	// Get and check the lan address of s2 from s3
+	var s2LanAddr string
+	for _, lanmember := range s3.LANMembers() {
+		if lanmember.Name == "s2" {
+			s2LanAddr = lanmember.Addr.String()
+		}
+	}
+	if s2LanAddr != "127.0.0.3" {
+		t.Fatalf("s3 sees s2 on a wrong address: %s, expecting: %s", s2LanAddr, "127.0.0.3")
+	}
+}
+
 func TestServer_LeaveLeader(t *testing.T) {
 	dir1, s1 := testServer(t)
 	defer os.RemoveAll(dir1)
@@ -233,8 +336,8 @@ func TestServer_LeaveLeader(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	var p1 []net.Addr
-	var p2 []net.Addr
+	var p1 []string
+	var p2 []string
 
 	testutil.WaitForResult(func() (bool, error) {
 		p1, _ = s1.raftPeers.Peers()
@@ -288,8 +391,8 @@ func TestServer_Leave(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	var p1 []net.Addr
-	var p2 []net.Addr
+	var p1 []string
+	var p2 []string
 
 	testutil.WaitForResult(func() (bool, error) {
 		p1, _ = s1.raftPeers.Peers()
@@ -416,8 +519,8 @@ func TestServer_Expect(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	var p1 []net.Addr
-	var p2 []net.Addr
+	var p1 []string
+	var p2 []string
 
 	// should have no peers yet
 	testutil.WaitForResult(func() (bool, error) {
@@ -439,7 +542,7 @@ func TestServer_Expect(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	var p3 []net.Addr
+	var p3 []string
 
 	// should now have all three peers
 	testutil.WaitForResult(func() (bool, error) {
@@ -490,8 +593,8 @@ func TestServer_BadExpect(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	var p1 []net.Addr
-	var p2 []net.Addr
+	var p1 []string
+	var p2 []string
 
 	// should have no peers yet
 	testutil.WaitForResult(func() (bool, error) {
@@ -513,7 +616,7 @@ func TestServer_BadExpect(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	var p3 []net.Addr
+	var p3 []string
 
 	// should still have no peers (because s2 is in expect=2 mode)
 	testutil.WaitForResult(func() (bool, error) {
