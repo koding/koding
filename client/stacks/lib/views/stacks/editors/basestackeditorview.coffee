@@ -58,3 +58,12 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
         @getEditorSession().setScrollTop 0
 
       @emit 'EditorReady'
+
+
+  resize: ->
+
+    height = @getHeight()
+    ace    = @getAce()
+
+    ace.setHeight height
+    ace.editor.resize()

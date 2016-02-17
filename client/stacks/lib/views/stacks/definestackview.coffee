@@ -169,6 +169,9 @@ module.exports = class DefineStackView extends KDView
       @generateStackButton.hide()
       @saveButton.show()
 
+    @tabView.on 'PaneDidShow', (pane) ->
+      pane.mainView?.editorView?.resize()
+
 
   createFooter: ->
 
