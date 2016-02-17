@@ -702,9 +702,11 @@ sidebarTextShadow()
 
   .acc-icon
     size                    50px 46px
-    abs                     -1px 0px 0 0
+    top                     -10px
+    right                   -10px
+    rel()
     borderBox()
-    dBlock()
+    fr()
 
   .acc-icon.active
     bg                      color, #1D1D1D
@@ -739,7 +741,6 @@ sidebarTextShadow()
       color           #fff
 
   .acc-dropdown-icon
-    right                   50px
     &.active
       border-right          1px solid #323232
 
@@ -774,6 +775,7 @@ sidebarTextShadow()
       overflow        hidden
       text-overflow   ellipsis
       noTextDeco()
+      fl()
 
     h3
       margin        0
