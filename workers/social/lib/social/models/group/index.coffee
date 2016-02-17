@@ -8,7 +8,7 @@ module.exports = class JGroup extends Module
 
   { Relationship } = require 'jraphical'
 
-  { Inflector, ObjectId, ObjectRef, secure, daisy, dash, signature } = require 'bongo'
+  { Inflector, ObjectId, ObjectRef, secure, dash, signature } = require 'bongo'
 
   JPermissionSet = require './permissionset'
   { permit }     = JPermissionSet
@@ -739,31 +739,39 @@ module.exports = class JGroup extends Module
         { delegate }            = client.connection
         permissionSet         = null
         defaultPermissionSet  = null
-        daisy queue = [
-          => @fetchPermissionSet (err, model) ->
-              if err then callback err
-              else
-                permissionSet = model
-                queue.next()
-          => @fetchDefaultPermissionSet (err, model) =>
-              if err then callback err
-              else if model?
+
+        queue = [
+
+          (next) =>
+            @fetchPermissionSet (err, model) ->
+              return next err  if err
+              permissionSet = model
+              next()
+
+          (next) =>
+            @fetchDefaultPermissionSet (err, model) =>
+              return next err  if err
+
+              if model?
                 console.log 'already had defaults'
                 defaultPermissionSet = model
                 permissionSet = model unless permissionSet
-                queue.next()
+                next()
               else
                 console.log 'needed defaults fixed'
                 fixDefaultPermissions_ this, permissionSet, (err, newModel) ->
                   defaultPermissionSet = newModel
-                  queue.next()
-          -> callback null, {
-              permissionsByModule
-              permissions         : permissionSet.permissions
-              defaultPermissions  : defaultPermissionSet.permissions
-            }
+                  next()
+
         ]
 
+        async.series queue, (err) ->
+          return callback err  if err
+          callback null, {
+            permissionsByModule
+            permissions         : permissionSet.permissions
+            defaultPermissions  : defaultPermissionSet.permissions
+          }
 
   fetchRolesByAccount: (account, callback) ->
 
@@ -1022,15 +1030,19 @@ module.exports = class JGroup extends Module
     membershipPolicy.approvalEnabled = no  if requestType is 'by-invite'
 
     queue.push(
-      -> membershipPolicy.save (err) ->
-        if err then callback err
-        else queue.next()
-      => @addMembershipPolicy membershipPolicy, (err) ->
-        if err then callback err
-        else queue.next()
+
+      (next) ->
+        membershipPolicy.save next
+
+      (next) =>
+        @addMembershipPolicy membershipPolicy, next
+
     )
-    queue.push callback  if callback
-    daisy queue
+
+    async.series queue, (err) ->
+      return callback err  if err
+      return callback null, membershipPolicy
+      
 
   destroyMemebershipPolicy:(callback) ->
     @fetchMembershipPolicy (err, policy) ->
@@ -1524,8 +1536,7 @@ module.exports = class JGroup extends Module
         contents[event]       = contents.member
 
 
-        next = -> queue.next()
-        queue = admins.map (admin) => =>
+        queue = admins.map (admin) => (next) =>
           contents.recipient = admin
           @notify admin, event, contents, next
 
@@ -1535,7 +1546,7 @@ module.exports = class JGroup extends Module
 
         notifyByUsernames usernames, 'NewMemberJoinedToGroup', contents
 
-        daisy queue
+        async.series queue
 
 
   @each$ = (selector, options, callback) ->
