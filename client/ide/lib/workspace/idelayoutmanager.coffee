@@ -421,6 +421,8 @@ module.exports = class IDELayoutManager extends KDObject
         view._windowDidResize()
         view.resizePanel value
 
+      @emit 'LayoutSizesApplied'
+
 
   getRatio: (a, b) ->
 

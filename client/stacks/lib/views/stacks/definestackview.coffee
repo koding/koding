@@ -203,7 +203,7 @@ module.exports = class DefineStackView extends KDView
         title                :
           cssClass           : 'template-title'
           label              : 'Stack Name'
-          defaultValue       : stackTemplate?.title or 'Default stack template'
+          defaultValue       : stackTemplate?.title or 'Default stack template' # can we auto generate cute stack names?
 
 
   createOutputView: ->
@@ -241,8 +241,10 @@ module.exports = class DefineStackView extends KDView
         appManager.tell 'Stacks', 'exitFullscreen'
         @emit 'Cancel'
 
+    # let's remove this button from here, or
+    # only display when no default-stack is in use.
     @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
-      title          : 'Apply to Team'
+      title          : 'Make Team Default'
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
       callback       : =>
@@ -250,7 +252,7 @@ module.exports = class DefineStackView extends KDView
         @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
-      title          : 'Generate Stack'
+      title          : 'Provision Stack'
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
       callback       : =>
@@ -337,9 +339,16 @@ module.exports = class DefineStackView extends KDView
       if canEditGroup
         @handleSetDefaultTemplate completed = no
 
+        # this is confusing. if there are currently 20 members using this stack
+        # their stack shouldn't be changed to this one automatically
+        # they should see a notification that says "this stack has been deleted by Gokmen"
+        # new users get the default stack should. and this button shouldn't be there each time
+        # i make a new one, it should be on the list-menu.
         @outputView[method] """
-          Your stack script has been successfully saved and all your team
-          members now will use the stack you have just saved.
+          Your stack script has been successfully saved and all your new team
+          members now will see this stack by default. Existing users
+          of the previous default-stack will be notified that default-stack has
+          changed.
 
           You can now close this window or continue working with your stack.
         """
@@ -372,8 +381,8 @@ module.exports = class DefineStackView extends KDView
             @outputView.add """
               Your stack script has been successfully saved.
 
-              If you want your team members to use this template you need to
-              apply it for your team.
+              If you want to auto-provision this template when new users join your team,
+              you need to click "Make Team Default" after you save it.
 
               You can now close the stack editor or continue editing your stack.
             """
@@ -719,7 +728,7 @@ module.exports = class DefineStackView extends KDView
     { stackTemplate }    = @getData()
     { groupsController } = kd.singletons
 
-    @outputView.add 'Setting this as default group stack template...'
+    @outputView.add 'Setting this as default team stack template...'
 
     # TMS-1919: This should only add the stacktemplate to the list of
     # available stacktemplates, we can also provide set one of the template
