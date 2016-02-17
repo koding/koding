@@ -652,7 +652,7 @@ module.exports = class JGroup extends Module
             else
               next()
 
-          (next)->
+          (next) ->
             notifyAccountOnRoleChange client, targetId, roles, next
 
         ]
