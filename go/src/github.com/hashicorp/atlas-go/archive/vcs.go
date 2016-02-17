@@ -77,25 +77,24 @@ type VCSPreflightFunc func(string) error
 
 // vcsDetect detects the VCS that is used for path.
 func vcsDetect(path string) (*VCS, error) {
-	for _, v := range VCSList {
-		dir := path
-		for {
+	dir := path
+	for {
+		for _, v := range VCSList {
 			for _, f := range v.Detect {
 				check := filepath.Join(dir, f)
 				if _, err := os.Stat(check); err == nil {
 					return v, nil
 				}
 			}
-
-			lastDir := dir
-			dir = filepath.Dir(dir)
-			if dir == lastDir {
-				break
-			}
+		}
+		lastDir := dir
+		dir = filepath.Dir(dir)
+		if dir == lastDir {
+			break
 		}
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("no VCS found for path: %s", path)
 }
 
 // vcsPreflight returns the metadata for the VCS directory path.
@@ -103,9 +102,6 @@ func vcsPreflight(path string) error {
 	vcs, err := vcsDetect(path)
 	if err != nil {
 		return fmt.Errorf("error detecting VCS: %s", err)
-	}
-	if vcs == nil {
-		return fmt.Errorf("no VCS found for path: %s", path)
 	}
 
 	if vcs.Preflight != nil {
@@ -120,9 +116,6 @@ func vcsFiles(path string) ([]string, error) {
 	vcs, err := vcsDetect(path)
 	if err != nil {
 		return nil, fmt.Errorf("error detecting VCS: %s", err)
-	}
-	if vcs == nil {
-		return nil, fmt.Errorf("no VCS found for path: %s", path)
 	}
 
 	if vcs.Files != nil {
@@ -155,6 +148,11 @@ func vcsFilesCmd(args ...string) VCSFilesFunc {
 		scanner := bufio.NewScanner(&stdout)
 		for scanner.Scan() {
 			result = append(result, scanner.Text())
+		}
+
+		// Always use *nix-style paths (for Windows)
+		for idx, value := range result {
+			result[idx] = filepath.ToSlash(value)
 		}
 
 		return result, nil
@@ -203,9 +201,6 @@ func vcsMetadata(path string) (map[string]string, error) {
 	vcs, err := vcsDetect(path)
 	if err != nil {
 		return nil, fmt.Errorf("error detecting VCS: %s", err)
-	}
-	if vcs == nil {
-		return nil, fmt.Errorf("no VCS found for path: %s", path)
 	}
 
 	if vcs.Metadata != nil {
