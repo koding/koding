@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/jacobsa/ogletest?status.svg)](https://godoc.org/github.com/jacobsa/ogletest)
+
 `ogletest` is a unit testing framework for Go with the following features:
 
  *  An extensive and extensible set of matchers for expressing expectations.
@@ -30,11 +32,11 @@ keep them up to date:
 Documentation
 -------------
 
-See [here][reference] for package documentation hosted on GoPkgDoc containing an
-exhaustive list of exported symbols. Alternatively, you can install the package
-and then use `go doc`:
+See [here][reference] for package documentation containing an exhaustive list of
+exported symbols. Alternatively, you can install the package and then use
+`godoc`:
 
-    go doc github.com/jacobsa/ogletest
+    godoc github.com/jacobsa/ogletest
 
 An important part of `ogletest` is its use of matchers provided by the
 [oglematchers][matcher-reference] package. See that package's documentation
@@ -140,8 +142,8 @@ And if the test passes:
     [----------] Finished with tests from PeopleTest
 
 
-[reference]: http://gopkgdoc.appspot.com/pkg/github.com/jacobsa/ogletest
-[matcher-reference]: http://gopkgdoc.appspot.com/pkg/github.com/jacobsa/oglematchers
+[reference]: http://godoc.org/github.com/jacobsa/ogletest
+[matcher-reference]: http://godoc.org/github.com/jacobsa/oglematchers
 [golang-install]: http://golang.org/doc/install.html
 [googletest]: http://code.google.com/p/googletest/
 [google-js-test]: http://code.google.com/p/google-js-test/

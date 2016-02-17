@@ -13,13 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ogletest
+package srcutil_test
 
 import (
 	"fmt"
-	. "github.com/jacobsa/oglematchers"
 	"reflect"
 	"testing"
+
+	. "github.com/jacobsa/oglematchers"
+	. "github.com/jacobsa/ogletest"
+	"github.com/jacobsa/ogletest/srcutil"
 )
 
 func TestRegisterMethodsTest(t *testing.T) { RunTests(t) }
@@ -75,12 +78,12 @@ func NameIs(name string) Matcher {
 func (t *MethodsTest) NoMethods() {
 	type foo int
 
-	methods := getMethodsInSourceOrder(reflect.TypeOf(foo(17)))
+	methods := srcutil.GetMethodsInSourceOrder(reflect.TypeOf(foo(17)))
 	ExpectThat(methods, ElementsAre())
 }
 
 func (t *MethodsTest) OneMethod() {
-	methods := getMethodsInSourceOrder(reflect.TypeOf(OneMethodType(17)))
+	methods := srcutil.GetMethodsInSourceOrder(reflect.TypeOf(OneMethodType(17)))
 	ExpectThat(
 		methods,
 		ElementsAre(
@@ -89,7 +92,7 @@ func (t *MethodsTest) OneMethod() {
 }
 
 func (t *MethodsTest) MultipleMethods() {
-	methods := getMethodsInSourceOrder(reflect.TypeOf(MultipleMethodsType(17)))
+	methods := srcutil.GetMethodsInSourceOrder(reflect.TypeOf(MultipleMethodsType(17)))
 	ExpectThat(
 		methods,
 		ElementsAre(

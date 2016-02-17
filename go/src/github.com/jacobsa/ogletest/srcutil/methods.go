@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ogletest
+package srcutil
 
 import (
 	"fmt"
@@ -51,7 +51,7 @@ func (s sortableMethodSet) Swap(i, j int) {
 // Given a type t, return all of the methods of t sorted such that source file
 // order is preserved. Order across files is undefined. Order within lines is
 // undefined.
-func getMethodsInSourceOrder(t reflect.Type) []reflect.Method {
+func GetMethodsInSourceOrder(t reflect.Type) []reflect.Method {
 	// Build the list of methods.
 	methods := sortableMethodSet{}
 	for i := 0; i < t.NumMethod(); i++ {
