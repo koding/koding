@@ -3,12 +3,27 @@ package amqp_test
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/streadway/amqp"
 	"io/ioutil"
 	"log"
+	"net"
 	"runtime"
 	"time"
+
+	"github.com/streadway/amqp"
 )
+
+func ExampleConfig_timeout() {
+	// Provide your own anonymous Dial function that delgates to net.DialTimout
+	// for custom timeouts
+
+	conn, err := amqp.DialConfig("amqp:///", amqp.Config{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, 2*time.Second)
+		},
+	})
+
+	log.Printf("conn: %v, err: %v", conn, err)
+}
 
 func ExampleDialTLS() {
 	// To get started with SSL/TLS follow the instructions for adding SSL/TLS
@@ -133,7 +148,7 @@ func ExampleChannel_Confirm_bridge() {
 	}
 
 	// Buffer of 1 for our single outstanding publishing
-	pubAcks, pubNacks := chd.NotifyConfirm(make(chan uint64, 1), make(chan uint64, 1))
+	confirms := chd.NotifyPublish(make(chan amqp.Confirmation, 1))
 
 	if err := chd.Confirm(false); err != nil {
 		log.Fatalf("confirm.select destination: %s", err)
@@ -175,12 +190,9 @@ func ExampleChannel_Confirm_bridge() {
 		}
 
 		// only ack the source delivery when the destination acks the publishing
-		// here you could check for delivery order by keeping a local state of
-		// expected delivery tags
-		select {
-		case <-pubAcks:
+		if confirmed := <-confirms; confirmed.Ack {
 			msg.Ack(false)
-		case <-pubNacks:
+		} else {
 			msg.Nack(false, false)
 		}
 	}
