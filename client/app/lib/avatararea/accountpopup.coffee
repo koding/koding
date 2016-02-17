@@ -8,7 +8,8 @@ module.exports = class AccountPopup extends AvatarPopup
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'account', options.cssClass
+    defaultClasses   = if isSoloProductLite() then 'account hidden-notifications' else 'account'
+    options.cssClass = kd.utils.curry defaultClasses, options.cssClass
 
     super options, data
 
