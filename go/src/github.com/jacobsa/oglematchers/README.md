@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/jacobsa/oglematchers?status.svg)](https://godoc.org/github.com/jacobsa/oglematchers)
+
 `oglematchers` is a package for the Go programming language containing a set of
 matchers, useful in a testing or mocking framework, inspired by and mostly
 compatible with [Google Test][googletest] for C++ and
@@ -42,13 +44,13 @@ Use the following command to install `oglematchers` and keep it up to date:
 Documentation
 -------------
 
-See [here][reference] for documentation hosted on GoPkgDoc. Alternatively, you
-can install the package and then use `go doc`:
+See [here][reference] for documentation. Alternatively, you can install the
+package and then use `godoc`:
 
-    go doc github.com/jacobsa/oglematchers
+    godoc github.com/jacobsa/oglematchers
 
 
-[reference]: http://gopkgdoc.appspot.com/pkg/github.com/jacobsa/oglematchers
+[reference]: http://godoc.org/github.com/jacobsa/oglematchers
 [golang-install]: http://golang.org/doc/install.html
 [googletest]: http://code.google.com/p/googletest/
 [google-js-test]: http://code.google.com/p/google-js-test/

@@ -16,9 +16,10 @@
 package oglematchers_test
 
 import (
+	"math"
+
 	. "github.com/jacobsa/oglematchers"
 	. "github.com/jacobsa/ogletest"
-	"math"
 )
 
 ////////////////////////////////////////////////////////////////////////
@@ -78,7 +79,6 @@ func (t *GreaterOrEqualTest) IntegerCandidateBadTypes() {
 
 	cases := []geTestCase{
 		geTestCase{true, false, true, "which is not comparable"},
-		geTestCase{uintptr(17), false, true, "which is not comparable"},
 		geTestCase{complex64(-151), false, true, "which is not comparable"},
 		geTestCase{complex128(-151), false, true, "which is not comparable"},
 		geTestCase{[...]int{-151}, false, true, "which is not comparable"},
@@ -99,7 +99,6 @@ func (t *GreaterOrEqualTest) FloatCandidateBadTypes() {
 
 	cases := []geTestCase{
 		geTestCase{true, false, true, "which is not comparable"},
-		geTestCase{uintptr(17), false, true, "which is not comparable"},
 		geTestCase{complex64(-151), false, true, "which is not comparable"},
 		geTestCase{complex128(-151), false, true, "which is not comparable"},
 		geTestCase{[...]int{-151}, false, true, "which is not comparable"},
@@ -130,7 +129,6 @@ func (t *GreaterOrEqualTest) StringCandidateBadTypes() {
 		geTestCase{uint16(0), false, true, "which is not comparable"},
 		geTestCase{uint32(0), false, true, "which is not comparable"},
 		geTestCase{uint64(0), false, true, "which is not comparable"},
-		geTestCase{uintptr(17), false, true, "which is not comparable"},
 		geTestCase{float32(0), false, true, "which is not comparable"},
 		geTestCase{float64(0), false, true, "which is not comparable"},
 		geTestCase{complex64(-151), false, true, "which is not comparable"},
@@ -231,6 +229,10 @@ func (t *GreaterOrEqualTest) NegativeIntegerLiteral() {
 		geTestCase{uint64(0), true, false, ""},
 		geTestCase{uint64(17), true, false, ""},
 
+		geTestCase{uintptr((1 << 64) - 151), true, false, ""},
+		geTestCase{uintptr(0), true, false, ""},
+		geTestCase{uintptr(17), true, false, ""},
+
 		// Floating point.
 		geTestCase{float32(-(1 << 30)), false, false, ""},
 		geTestCase{float32(-151), false, false, ""},
@@ -319,6 +321,10 @@ func (t *GreaterOrEqualTest) ZeroIntegerLiteral() {
 		geTestCase{uint64(0), true, false, ""},
 		geTestCase{uint64(17), true, false, ""},
 
+		geTestCase{uintptr((1 << 64) - 1), true, false, ""},
+		geTestCase{uintptr(0), true, false, ""},
+		geTestCase{uintptr(17), true, false, ""},
+
 		// Floating point.
 		geTestCase{float32(-(1 << 30)), false, false, ""},
 		geTestCase{float32(-1), false, false, ""},
@@ -403,6 +409,11 @@ func (t *GreaterOrEqualTest) PositiveIntegerLiteral() {
 		geTestCase{uint64(149), false, false, ""},
 		geTestCase{uint64(150), true, false, ""},
 		geTestCase{uint64(151), true, false, ""},
+
+		geTestCase{uintptr(0), false, false, ""},
+		geTestCase{uintptr(149), false, false, ""},
+		geTestCase{uintptr(150), true, false, ""},
+		geTestCase{uintptr(151), true, false, ""},
 
 		// Floating point.
 		geTestCase{float32(-1), false, false, ""},
@@ -491,6 +502,10 @@ func (t *GreaterOrEqualTest) NegativeFloatLiteral() {
 		geTestCase{uint64(0), true, false, ""},
 		geTestCase{uint64(17), true, false, ""},
 
+		geTestCase{uintptr((1 << 64) - 151), true, false, ""},
+		geTestCase{uintptr(0), true, false, ""},
+		geTestCase{uintptr(17), true, false, ""},
+
 		// Floating point.
 		geTestCase{float32(-(1 << 30)), false, false, ""},
 		geTestCase{float32(-151), false, false, ""},
@@ -576,6 +591,11 @@ func (t *GreaterOrEqualTest) PositiveFloatLiteral() {
 		geTestCase{uint64(149), false, false, ""},
 		geTestCase{uint64(150), true, false, ""},
 		geTestCase{uint64(151), true, false, ""},
+
+		geTestCase{uintptr(0), false, false, ""},
+		geTestCase{uintptr(149), false, false, ""},
+		geTestCase{uintptr(150), true, false, ""},
+		geTestCase{uintptr(151), true, false, ""},
 
 		// Floating point.
 		geTestCase{float32(-1), false, false, ""},
@@ -663,6 +683,11 @@ func (t *GreaterOrEqualTest) Int64NotExactlyRepresentableBySinglePrecision() {
 		geTestCase{uint64(kTwoTo25 + 1), true, false, ""},
 		geTestCase{uint64(kTwoTo25 + 2), true, false, ""},
 
+		geTestCase{uintptr(0), false, false, ""},
+		geTestCase{uintptr(kTwoTo25 + 0), false, false, ""},
+		geTestCase{uintptr(kTwoTo25 + 1), true, false, ""},
+		geTestCase{uintptr(kTwoTo25 + 2), true, false, ""},
+
 		// Floating point.
 		geTestCase{float32(-1), false, false, ""},
 		geTestCase{float32(kTwoTo25 - 2), false, false, ""},
@@ -738,6 +763,12 @@ func (t *GreaterOrEqualTest) Int64NotExactlyRepresentableByDoublePrecision() {
 		geTestCase{uint64(kTwoTo54 + 0), false, false, ""},
 		geTestCase{uint64(kTwoTo54 + 1), true, false, ""},
 		geTestCase{uint64(kTwoTo54 + 2), true, false, ""},
+
+		geTestCase{uintptr(0), false, false, ""},
+		geTestCase{uintptr(kTwoTo54 - 1), false, false, ""},
+		geTestCase{uintptr(kTwoTo54 + 0), false, false, ""},
+		geTestCase{uintptr(kTwoTo54 + 1), true, false, ""},
+		geTestCase{uintptr(kTwoTo54 + 2), true, false, ""},
 
 		// Floating point.
 		geTestCase{float64(-1), false, false, ""},
@@ -815,6 +846,11 @@ func (t *GreaterOrEqualTest) Uint64NotExactlyRepresentableBySinglePrecision() {
 		geTestCase{uint64(kTwoTo25 + 1), true, false, ""},
 		geTestCase{uint64(kTwoTo25 + 2), true, false, ""},
 
+		geTestCase{uintptr(0), false, false, ""},
+		geTestCase{uintptr(kTwoTo25 + 0), false, false, ""},
+		geTestCase{uintptr(kTwoTo25 + 1), true, false, ""},
+		geTestCase{uintptr(kTwoTo25 + 2), true, false, ""},
+
 		// Floating point.
 		geTestCase{float32(-1), false, false, ""},
 		geTestCase{float32(kTwoTo25 - 2), false, false, ""},
@@ -890,6 +926,12 @@ func (t *GreaterOrEqualTest) Uint64NotExactlyRepresentableByDoublePrecision() {
 		geTestCase{uint64(kTwoTo54 + 0), false, false, ""},
 		geTestCase{uint64(kTwoTo54 + 1), true, false, ""},
 		geTestCase{uint64(kTwoTo54 + 2), true, false, ""},
+
+		geTestCase{uintptr(0), false, false, ""},
+		geTestCase{uintptr(kTwoTo54 - 1), false, false, ""},
+		geTestCase{uintptr(kTwoTo54 + 0), false, false, ""},
+		geTestCase{uintptr(kTwoTo54 + 1), true, false, ""},
+		geTestCase{uintptr(kTwoTo54 + 2), true, false, ""},
 
 		// Floating point.
 		geTestCase{float64(-1), false, false, ""},

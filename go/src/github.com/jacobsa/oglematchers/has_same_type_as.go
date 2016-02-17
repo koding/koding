@@ -1,4 +1,4 @@
-// Copyright 2011 Aaron Jacobs. All Rights Reserved.
+// Copyright 2015 Aaron Jacobs. All Rights Reserved.
 // Author: aaronjjacobs@gmail.com (Aaron Jacobs)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,31 +16,22 @@
 package oglematchers
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 )
 
-// HasSubstr returns a matcher that matches strings containing s as a
-// substring.
-func HasSubstr(s string) Matcher {
-	return NewMatcher(
-		func(c interface{}) error { return hasSubstr(s, c) },
-		fmt.Sprintf("has substring \"%s\"", s))
-}
+// HasSameTypeAs returns a matcher that matches values with exactly the same
+// type as the supplied prototype.
+func HasSameTypeAs(p interface{}) Matcher {
+	expected := reflect.TypeOf(p)
+	pred := func(c interface{}) error {
+		actual := reflect.TypeOf(c)
+		if actual != expected {
+			return fmt.Errorf("which has type %v", actual)
+		}
 
-func hasSubstr(needle string, c interface{}) error {
-	v := reflect.ValueOf(c)
-	if v.Kind() != reflect.String {
-		return NewFatalError("which is not a string")
-	}
-
-	// Perform the substring search.
-	haystack := v.String()
-	if strings.Contains(haystack, needle) {
 		return nil
 	}
 
-	return errors.New("")
+	return NewMatcher(pred, fmt.Sprintf("has type %v", expected))
 }

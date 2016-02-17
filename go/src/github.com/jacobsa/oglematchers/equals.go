@@ -86,7 +86,7 @@ func isSignedInteger(v reflect.Value) bool {
 
 func isUnsignedInteger(v reflect.Value) bool {
 	k := v.Kind()
-	return k >= reflect.Uint && k <= reflect.Uint64
+	return k >= reflect.Uint && k <= reflect.Uintptr
 }
 
 func isInteger(v reflect.Value) bool {
@@ -313,19 +313,6 @@ func checkAgainstBool(e bool, c reflect.Value) (err error) {
 	return
 }
 
-func checkAgainstUintptr(e uintptr, c reflect.Value) (err error) {
-	if c.Kind() != reflect.Uintptr {
-		err = NewFatalError("which is not a uintptr")
-		return
-	}
-
-	err = errors.New("")
-	if uintptr(c.Uint()) == e {
-		err = nil
-	}
-	return
-}
-
 func checkAgainstChan(e reflect.Value, c reflect.Value) (err error) {
 	// Create a description of e's type, e.g. "chan int".
 	typeStr := fmt.Sprintf("%s %s", e.Type().ChanDir(), e.Type().Elem())
@@ -500,9 +487,6 @@ func (m *equalsMatcher) Matches(candidate interface{}) error {
 
 	case isUnsignedInteger(e):
 		return checkAgainstUint64(e.Uint(), c)
-
-	case ek == reflect.Uintptr:
-		return checkAgainstUintptr(uintptr(e.Uint()), c)
 
 	case ek == reflect.Float32:
 		return checkAgainstFloat32(float32(e.Float()), c)
