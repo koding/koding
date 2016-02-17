@@ -224,10 +224,12 @@ func (s *Scanner) scanComment(ch rune) {
 	// single line comments
 	if ch == '#' || (ch == '/' && s.peek() != '*') {
 		ch = s.next()
-		for ch != '\n' && ch >= 0 {
+		for ch != '\n' && ch >= 0 && ch != eof {
 			ch = s.next()
 		}
-		s.unread()
+		if ch != eof && ch >= 0 {
+			s.unread()
+		}
 		return
 	}
 
@@ -387,7 +389,7 @@ func (s *Scanner) scanHeredoc() {
 
 	// Scan the identifier
 	ch := s.next()
-	for isLetter(ch) {
+	for isLetter(ch) || isDigit(ch) {
 		ch = s.next()
 	}
 
@@ -395,6 +397,13 @@ func (s *Scanner) scanHeredoc() {
 	if ch == eof {
 		s.err("heredoc not terminated")
 		return
+	}
+
+	// Ignore the '\r' in Windows line endings
+	if ch == '\r' {
+		if s.peek() == '\n' {
+			ch = s.next()
+		}
 	}
 
 	// If we didn't reach a newline then that is also not good
@@ -569,12 +578,12 @@ func isLetter(ch rune) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch >= 0x80 && unicode.IsLetter(ch)
 }
 
-// isHexadecimal returns true if the given rune is a decimal digit
+// isDigit returns true if the given rune is a decimal digit
 func isDigit(ch rune) bool {
 	return '0' <= ch && ch <= '9' || ch >= 0x80 && unicode.IsDigit(ch)
 }
 
-// isHexadecimal returns true if the given rune is a decimal number
+// isDecimal returns true if the given rune is a decimal number
 func isDecimal(ch rune) bool {
 	return '0' <= ch && ch <= '9'
 }
