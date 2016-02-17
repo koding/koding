@@ -31,71 +31,111 @@ const (
 		"\u0300-\u036f" + // Combining diacritics
 		"\u1e00-\u1eff" // Latin Extended Additional (mostly for Vietnamese)
 
-	hashtagAlphaChars = `a-z` + latinAccentChars +
-		"\u0400-\u04ff\u0500-\u0527" + // Cyrillic
-		"\u2de0-\u2dff\ua640-\ua69f" + // Cyrillic Extended A/B
-		"\u0591-\u05bf\u05c1-\u05c2\u05c4-\u05c5\u05c7" +
-		"\u05d0-\u05ea\u05f0-\u05f4" + // Hebrew
-		"\ufb1d-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40-\ufb41" +
-		"\ufb43-\ufb44\ufb46-\ufb4f" + // Hebrew Pres. Forms
-		"\u0610-\u061a\u0620-\u065f\u066e-\u06d3\u06d5-\u06dc" +
-		"\u06de-\u06e8\u06ea-\u06ef\u06fa-\u06fc\u06ff" + // Arabic
-		"\u0750-\u077f\u08a0\u08a2-\u08ac\u08e4-\u08fe" + // Arabic Supplement and Extended A
-		"\ufb50-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb" + // Pres. Forms A
-		"\ufe70-\ufe74\ufe76-\ufefc" + // Pres. Forms B
-		"\u200c" + // Zero-Width Non-Joiner
-		"\u0e01-\u0e3a\u0e40-\u0e4e" + // Thai
-		"\u1100-\u11ff\u3130-\u3185\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF" + // Hangul (Korean)
-		`\p{Hiragana}` + // Japanese Hiragana
-		"\u30a1-\u30fa\u30fc-\u30fe" + // Katakana (full-width)
-		"\uff66-\uff9f" + // Katakana (half-width)
-		"\uff10-\uff19\uff21-\uff3a\uff41-\uff5a" + // Latin (full-width)
-		"\u3400-\u4dbf" + // Kanji (CJK Extension A)
-		"\u4E00-\u9FFF" + // Kanji (Unified)
-		"\U00020000-\U0002A6DF" + // Kanji (CJK Extension B)
-		"\U0002A700-\U0002B73F" + // Kanji (CJK Extension C)
-		"\U0002B740-\U0002B81F" + // Kanji (CJK Extension D)
-		"\U0002F800-\U0002FA1F" + // Kanji (CJK supplement)
-		"\u3003\u3005\u303b" + // Kanji/Han iteration marks
-		"\uff21-\uff3a\uff41-\uff5a" + // full width Alphabet
-		"\uff66-\uff9f" + // half width Katakana
-		"\uffa1-\uffdc" // half width Hangul (Korean)
+	//
+	// Hashtag
+	//
 
-	hashtagAlphaNumericChars = "0-9_\uff10-\uff19" + hashtagAlphaChars
+	hashtagAlphaChars   = `\p{L}\p{M}`
+	hashtagAlphaSet     = `[` + hashtagAlphaChars + `]`
+	hashtagNumericChars = `\p{Nd}`
+	hashtagSpecialChars = `_` +
+		"\u200c" + // ZERO WIDTH NON-JOINER (ZWNJ)
+		"\u200d" + // ZERO WIDTH JOINER (ZWJ)
+		"\ua67e" + // CYRILLIC KAVYKA
+		"\u05be" + // HEBREW PUNCTUATION MAQAF
+		"\u05f3" + // HEBREW PUNCTUATION GERESH
+		"\u05f4" + // HEBREW PUNCTUATION GERSHAYIM
+		"\u309b" + // KATAKANA-HIRAGANA VOICED SOUND MARK
+		"\u309c" + // KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK
+		"\u30a0" + // KATAKANA-HIRAGANA DOUBLE HYPHEN
+		"\u30fb" + // KATAKANA MIDDLE DOT
+		"\u3003" + // DITTO MARK
+		"\u0f0b" + // TIBETAN MARK INTERSYLLABIC TSHEG
+		"\u0f0c" + // TIBETAN MARK DELIMITER TSHEG BSTAR
+		"\u00b7" // MIDDLE DOT
 
-	hashtagAlphaSet        = `[` + hashtagAlphaChars + `]`
-	hashtagAlphaNumericSet = `[` + hashtagAlphaNumericChars + `]`
+	hashtagAlphaNumericSet      = `[` + hashtagAlphaChars + hashtagNumericChars + hashtagSpecialChars + `]`
+	hashtagBoundaryInvalidChars = `&` + hashtagAlphaChars + hashtagNumericChars + hashtagSpecialChars
+	hashtagBoundary             = `^|$|[^` + hashtagBoundaryInvalidChars + `]`
+
+	//
+	// URL
+	//
 
 	urlValidPrecedingChars = `(?:[^[:alnum:]@＠$#＃` + "\u202A-\u202E]|^)"
 	urlValidChars          = `[^` + punctuationChars + `[:space:][:cntrl:]` + invalidChars + unicodeSpaces + `]`
 	urlValidSubDomain      = `(?:(?:` + urlValidChars + `(?:[_-]|` + urlValidChars + `*)*)?` + urlValidChars + `\.)`
 	urlValidDomainName     = `(?:(?:` + urlValidChars + `(?:[-]|` + urlValidChars + `*)*)?` + urlValidChars + `\.)`
 
-	urlValidGTLD = `(?:academy|actor|aero|agency|arpa|asia|bar|bargains|berlin|best|bid|bike|biz|blue|boutique|build|builders|`+
-		`buzz|cab|camera|camp|cards|careers|cat|catering|center|ceo|cheap|christmas|cleaning|clothing|club|codes|` +
-		`coffee|com|community|company|computer|construction|contractors|cool|coop|cruises|dance|dating|democrat|` +
-		`diamonds|directory|domains|edu|education|email|enterprises|equipment|estate|events|expert|exposed|farm|fish|` +
-		`flights|florist|foundation|futbol|gallery|gift|glass|gov|graphics|guitars|guru|holdings|holiday|house|` +
-		`immobilien|industries|info|institute|int|international|jobs|kaufen|kim|kitchen|kiwi|koeln|kred|land|lighting|` +
-		`limo|link|luxury|management|mango|marketing|menu|mil|mobi|moda|monash|museum|nagoya|name|net|neustar|ninja|` +
-		`okinawa|onl|org|partners|parts|photo|photography|photos|pics|pink|plumbing|post|pro|productions|properties|` +
-		`pub|qpon|recipes|red|rentals|repair|report|reviews|rich|ruhr|sexy|shiksha|shoes|singles|social|solar|` +
-		`solutions|supplies|supply|support|systems|tattoo|technology|tel|tienda|tips|today|tokyo|tools|training|` +
-		`travel|uno|vacations|ventures|viajes|villas|vision|vote|voting|voto|voyage|wang|watch|wed|wien|wiki|works|` +
-		`xxx|xyz|zone|дети|онлайн|орг|сайт|بازار|شبكة|みんな|中信|中文网|公司|公益|在线|我爱你|政务|游戏|移动|网络|集团|삼성)`
+	urlValidGTLD = `(?:` +
+		`abb|abbott|abogado|academy|accenture|accountant|accountants|aco|active|actor|ads|adult|aeg|aero|afl|` +
+		`agency|aig|airforce|airtel|allfinanz|alsace|amsterdam|android|apartments|app|aquarelle|archi|army|` +
+		`arpa|asia|associates|attorney|auction|audio|auto|autos|axa|azure|band|bank|bar|barcelona|barclaycard|` +
+		`barclays|bargains|bauhaus|bayern|bbc|bbva|bcn|beer|bentley|berlin|best|bet|bharti|bible|bid|bike|` +
+		`bing|bingo|bio|biz|black|blackfriday|bloomberg|blue|bmw|bnl|bnpparibas|boats|bond|boo|boots|boutique|` +
+		`bradesco|bridgestone|broker|brother|brussels|budapest|build|builders|business|buzz|bzh|cab|cafe|cal|` +
+		`camera|camp|cancerresearch|canon|capetown|capital|caravan|cards|care|career|careers|cars|cartier|` +
+		`casa|cash|casino|cat|catering|cba|cbn|ceb|center|ceo|cern|cfa|cfd|chanel|channel|chat|cheap|chloe|` +
+		`christmas|chrome|church|cisco|citic|city|claims|cleaning|click|clinic|clothing|cloud|club|coach|` +
+		`codes|coffee|college|cologne|com|commbank|community|company|computer|condos|construction|consulting|` +
+		`contractors|cooking|cool|coop|corsica|country|coupons|courses|credit|creditcard|cricket|crown|crs|` +
+		`cruises|cuisinella|cymru|cyou|dabur|dad|dance|date|dating|datsun|day|dclk|deals|degree|delivery|` +
+		`delta|democrat|dental|dentist|desi|design|dev|diamonds|diet|digital|direct|directory|discount|dnp|` +
+		`docs|dog|doha|domains|doosan|download|drive|durban|dvag|earth|eat|edu|education|email|emerck|energy|` +
+		`engineer|engineering|enterprises|epson|equipment|erni|esq|estate|eurovision|eus|events|everbank|` +
+		`exchange|expert|exposed|express|fage|fail|faith|family|fan|fans|farm|fashion|feedback|film|finance|` +
+		`financial|firmdale|fish|fishing|fit|fitness|flights|florist|flowers|flsmidth|fly|foo|football|forex|` +
+		`forsale|forum|foundation|frl|frogans|fund|furniture|futbol|fyi|gal|gallery|game|garden|gbiz|gdn|gent|` +
+		`genting|ggee|gift|gifts|gives|giving|glass|gle|global|globo|gmail|gmo|gmx|gold|goldpoint|golf|goo|` +
+		`goog|google|gop|gov|graphics|gratis|green|gripe|group|guge|guide|guitars|guru|hamburg|hangout|haus|` +
+		`healthcare|help|here|hermes|hiphop|hitachi|hiv|hockey|holdings|holiday|homedepot|homes|honda|horse|` +
+		`host|hosting|hoteles|hotmail|house|how|hsbc|ibm|icbc|ice|icu|ifm|iinet|immo|immobilien|industries|` +
+		`infiniti|info|ing|ink|institute|insure|int|international|investments|ipiranga|irish|ist|istanbul|` +
+		`itau|iwc|java|jcb|jetzt|jewelry|jlc|jll|jobs|joburg|jprs|juegos|kaufen|kddi|kim|kitchen|kiwi|koeln|` +
+		`komatsu|krd|kred|kyoto|lacaixa|lancaster|land|lasalle|lat|latrobe|law|lawyer|lds|lease|leclerc|legal|` +
+		`lexus|lgbt|liaison|lidl|life|lighting|limited|limo|link|live|lixil|loan|loans|lol|london|lotte|lotto|` +
+		`love|ltda|lupin|luxe|luxury|madrid|maif|maison|man|management|mango|market|marketing|markets|` +
+		`marriott|mba|media|meet|melbourne|meme|memorial|men|menu|miami|microsoft|mil|mini|mma|mobi|moda|moe|` +
+		`mom|monash|money|montblanc|mormon|mortgage|moscow|motorcycles|mov|movie|movistar|mtn|mtpc|museum|` +
+		`nadex|nagoya|name|navy|nec|net|netbank|network|neustar|new|news|nexus|ngo|nhk|nico|ninja|nissan|` +
+		`nokia|nra|nrw|ntt|nyc|office|okinawa|omega|one|ong|onl|online|ooo|oracle|orange|org|organic|osaka|` +
+		`otsuka|ovh|page|panerai|paris|partners|parts|party|pet|pharmacy|philips|photo|photography|photos|` +
+		`physio|piaget|pics|pictet|pictures|pink|pizza|place|play|plumbing|plus|pohl|poker|porn|post|praxi|` +
+		`press|pro|prod|productions|prof|properties|property|pub|qpon|quebec|racing|realtor|realty|recipes|` +
+		`red|redstone|rehab|reise|reisen|reit|ren|rent|rentals|repair|report|republican|rest|restaurant|` +
+		`review|reviews|rich|ricoh|rio|rip|rocks|rodeo|rsvp|ruhr|run|ryukyu|saarland|sakura|sale|samsung|` +
+		`sandvik|sandvikcoromant|sanofi|sap|sarl|saxo|sca|scb|schmidt|scholarships|school|schule|schwarz|` +
+		`science|scor|scot|seat|seek|sener|services|sew|sex|sexy|shiksha|shoes|show|shriram|singles|site|ski|` +
+		`sky|skype|sncf|soccer|social|software|sohu|solar|solutions|sony|soy|space|spiegel|spreadbetting|srl|` +
+		`starhub|statoil|studio|study|style|sucks|supplies|supply|support|surf|surgery|suzuki|swatch|swiss|` +
+		`sydney|systems|taipei|tatamotors|tatar|tattoo|tax|taxi|team|tech|technology|tel|telefonica|temasek|` +
+		`tennis|thd|theater|tickets|tienda|tips|tires|tirol|today|tokyo|tools|top|toray|toshiba|tours|town|` +
+		`toyota|toys|trade|trading|training|travel|trust|tui|ubs|university|uno|uol|vacations|vegas|ventures|` +
+		`vermögensberater|vermögensberatung|versicherung|vet|viajes|video|villas|vin|vision|vista|vistaprint|` +
+		`vlaanderen|vodka|vote|voting|voto|voyage|wales|walter|wang|watch|webcam|website|wed|wedding|weir|` +
+		`whoswho|wien|wiki|williamhill|win|windows|wine|wme|work|works|world|wtc|wtf|xbox|xerox|xin|xperia|` +
+		`xxx|xyz|yachts|yandex|yodobashi|yoga|yokohama|youtube|zip|zone|zuerich|дети|ком|москва|онлайн|орг|` +
+		`рус|сайт|קום|بازار|شبكة|كوم|موقع|कॉम|नेट|संगठन|คอม|みんな|グーグル|コム|世界|中信|中文网|企业|佛山|信息|健康|八卦|公司|公益|商城|商店|` +
+		`商标|在线|大拿|娱乐|工行|广东|慈善|我爱你|手机|政务|政府|新闻|时尚|机构|淡马锡|游戏|点看|移动|组织机构|网址|网店|网络|谷歌|集团|飞利浦|餐厅|닷넷|닷컴|삼성|onion` +
+		`)`
 
-	urlValidCCTLD = `(?:ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|` +
-		`bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|` +
-		`er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|` +
-		`hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|` +
-		`lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|` +
-		`nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|sk|` +
-		`sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|` +
-		`uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|za|zm|zw|мон|рф|срб|укр|қаз|الاردن|الجزائر|السعودية|المغرب|امارات|` +
-		`ایران|بھارت|تونس|سودان|سورية|عمان|فلسطين|قطر|مصر|مليسيا|پاکستان|भारत|বাংলা|ভারত|ਭਾਰਤ|ભારત|இந்தியா|இலங்கை|சிங்கப்பூர்|` +
-		`భారత్|ලංකා|ไทย|გე|中国|中國|台湾|台灣|新加坡|)`
+	urlValidCCTLD = `(?:` +
+		`ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bl|bm|bn|bo|bq|br|` +
+		`bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cu|cv|cw|cx|cy|cz|de|dj|dk|dm|do|dz|ec|ee|` +
+		`eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|` +
+		`hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|` +
+		`lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mf|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|` +
+		`nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|` +
+		`sd|se|sg|sh|si|sj|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|` +
+		`tv|tw|tz|ua|ug|uk|um|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|za|zm|zw|ελ|бел|мкд|мон|рф|срб|укр|` +
+		`қаз|հայ|الاردن|الجزائر|السعودية|المغرب|امارات|ایران|بھارت|تونس|سودان|سورية|عراق|عمان|فلسطين|قطر|مصر|` +
+		`مليسيا|پاکستان|भारत|বাংলা|ভারত|ਭਾਰਤ|ભારત|இந்தியா|இலங்கை|சிங்கப்பூர்|భారత్|ලංකා|ไทย|გე|中国|中國|台湾|台灣|` +
+		`新加坡|澳門|香港|한국` +
+		`)`
 
 	urlPunyCode = `(?:xn--[0-9a-z]+)`
+
+	urlValidSpecialCCTLD = `(?:co|tv)`
 
 	urlValidDomain = `(?:` +
 		urlValidSubDomain + `*` + urlValidDomainName +
@@ -103,7 +143,7 @@ const (
 		`)`
 
 	urlValidAsciiDomain = `(?:` +
-		`(?:(?:[[:alnum:]_\-])|[` + latinAccentChars + `])+\.)+` +
+		`(?:[[:alnum:]][[:alnum:]_\-` + latinAccentChars + `]*)+\.)+` +
 		`(?:` + urlValidGTLD + `|` + urlValidCCTLD + `|` + urlPunyCode + `)`
 
 	urlValidPortNumber = `[0-9]+`
@@ -144,9 +184,8 @@ const (
 	cashTag        = `[a-z]{1,6}(?:[\._][a-z]{1,2})?`
 
 	// Capturing groups
-	validHashtagGroupBefore = 1
-	validHashtagGroupHash   = 2
-	validHashtagGroupTag    = 3
+	validHashtagGroupHash = 1
+	validHashtagGroupTag  = 2
 
 	validMentionOrListGroupBefore   = 1
 	validMentionOrListGroupAt       = 2
@@ -173,13 +212,13 @@ const (
 var (
 
 	// Hash tag
-	validHashtag           = regexp.MustCompile(`(?i)(^|[^&` + hashtagAlphaNumericChars + "])(#|\uFF03)(" + hashtagAlphaNumericSet + `*` + hashtagAlphaSet + hashtagAlphaNumericSet + `*)`)
+	validHashtag           = regexp.MustCompile(`(?i)(?:` + hashtagBoundary + `)` + `([#＃])(` + hashtagAlphaNumericSet + `*` + hashtagAlphaSet + hashtagAlphaNumericSet + `*)`)
 	invalidHashtagMatchEnd = regexp.MustCompile(`\A(?:[#＃]|://)`)
 	rtlCharacters          = regexp.MustCompile("[\u0600-\u06FF\u0750-\u077F\u0590-\u05FF\uFE70-\uFEFF]")
 
 	// Mentions
 	atSigns            = regexp.MustCompile(`[` + atSignChars + `]`)
-	validMentionOrList = regexp.MustCompile(`(?i)([^a-z0-9_!#$%&*` + atSignChars + `]|^|RT:?)([` + atSignChars + `]+)([a-z0-9_]{1,20})(/[a-z][a-z0-9_-]{0,24})?`)
+	validMentionOrList = regexp.MustCompile(`(?i)([^a-zA-Z0-9_!#$%&*` + atSignChars + `]|^|^\s*RT:?)([` + atSignChars + `]+)([a-z0-9_]{1,20})(/[a-z][a-z0-9_-]{0,24})?`)
 
 	validReply = regexp.MustCompile(`^(?:` + unicodeSpacesSet + `)*([` + atSignChars + `])([a-zA-Z0-9_]{1,20})`)
 
@@ -190,6 +229,7 @@ var (
 	validTcoUrl                         = regexp.MustCompile(`(?i)^https?://t\.co\/[a-z0-9]+`)
 	validAsciiDomain                    = regexp.MustCompile(urlValidAsciiDomain)
 	invalidShortDomain                  = regexp.MustCompile(`\A` + urlValidDomainName + urlValidCCTLD + `\z`)
+	validSpecialShortDomain             = regexp.MustCompile(`\A` + urlValidDomainName + urlValidSpecialCCTLD + `\z`)
 	invalidUrlWithoutProtocolMatchBegin = regexp.MustCompile(`[\-_\./]$`)
 
 	// CashTags
