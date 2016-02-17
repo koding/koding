@@ -466,6 +466,21 @@ class IDEAppController extends AppController
     @activeTabView.emit 'MachineWebPageRequested', machineData
 
 
+  openReadme: (machine) ->
+
+    machine or= @mountedMachine
+    owner   = machine.getOwner()
+    path    = "/home/#{owner}/README.md"
+    file    = FSHelper.createFileInstance { path, machine }
+
+    file.fetchContents (err, contents = '') =>
+      # no need to do anything if there is an error.
+      return kd.warn 'Failed to open README.md', err  if err
+
+      @setActiveTabView @ideViews.first.tabView
+      @openFile { file, contents, switchIfOpen: yes }
+
+
   mountMachine: (machineData) ->
 
     # interrupt if workspace was changed
@@ -1709,17 +1724,7 @@ class IDEAppController extends AppController
       kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
       # open README.md for the first time for newly registered users.
-      @machineStateModal.once 'IDEBecameReady', (machine) =>
-        machine or= @mountedMachine
-        owner   = machine.getOwner()
-        path    = "/home/#{owner}/README.md"
-        file    = FSHelper.createFileInstance { path, machine }
-
-        file.fetchContents (err, contents = '') =>
-          return kd.warn err  if err # no need to do anything if there is an error.
-
-          @setActiveTabView @ideViews.first.tabView
-          @openFile { file, contents }
+      @machineStateModal.once 'IDEBecameReady', @bound 'openReadme'
 
 
   fetchSnapshot: (callback, username = nick()) ->
