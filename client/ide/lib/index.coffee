@@ -466,6 +466,35 @@ class IDEAppController extends AppController
     @activeTabView.emit 'MachineWebPageRequested', machineData
 
 
+  ensureReadme: (snapshot) ->
+
+    layout     = IDELayoutManager.convertSnapshotToFlatArray snapshot
+    readmePath = "/home/#{@mountedMachine.getOwner()}/README.md"
+
+    return @openReadme()  if layout.length is 0
+
+    hasReadme  = (layout.filter ({context}) ->
+      path = context.file?.path
+      path and FSHelper.plainPath(path) is readmePath).length > 0
+
+    @openReadme()  unless hasReadme
+
+
+  openReadme: (machine) ->
+
+    machine or= @mountedMachine
+    owner   = machine.getOwner()
+    path    = "/home/#{owner}/README.md"
+    file    = FSHelper.createFileInstance { path, machine }
+
+    file.fetchContents (err, contents = '') =>
+      # no need to do anything if there is an error.
+      return kd.warn 'Failed to open README.md', err  if err
+
+      @setActiveTabView @ideViews.first.tabView
+      @openFile { file, contents, switchIfOpen: yes }
+
+
   mountMachine: (machineData) ->
 
     # interrupt if workspace was changed
@@ -529,6 +558,9 @@ class IDEAppController extends AppController
         else
 
           @fetchSnapshot (snapshot) =>
+
+            if @mountedMachine.provider is 'softlayer'
+              @ensureReadme snapshot
 
             # Just resurrect snapshot for host or without collaboration.
             # Because we need check the `@myWatchMap` and it is not possible here.
@@ -1709,17 +1741,7 @@ class IDEAppController extends AppController
       kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
       # open README.md for the first time for newly registered users.
-      @machineStateModal.once 'IDEBecameReady', (machine) =>
-        machine or= @mountedMachine
-        owner   = machine.getOwner()
-        path    = "/home/#{owner}/README.md"
-        file    = FSHelper.createFileInstance { path, machine }
-
-        file.fetchContents (err, contents = '') =>
-          return kd.warn err  if err # no need to do anything if there is an error.
-
-          @setActiveTabView @ideViews.first.tabView
-          @openFile { file, contents }
+      @machineStateModal.once 'IDEBecameReady', @bound 'openReadme'
 
 
   fetchSnapshot: (callback, username = nick()) ->
