@@ -135,16 +135,20 @@ func compareFileWithHash(f string, h string) error {
 	return nil
 }
 
-func writeFile(filename string, data []byte, doNotOverwrite, Append bool, lastHash string) (int, error) {
+// writeFile implements writing files for the fs.writeFile handler.
+func writeFile(params writeFileParams) (int, error) {
 	flags := os.O_RDWR | os.O_CREATE
-	if doNotOverwrite {
+	if params.DoNotOverwrite {
 		flags |= os.O_EXCL
 	}
 
-	if !Append {
-		flags |= os.O_TRUNC
-	} else {
-		flags |= os.O_APPEND
+	// Only add TRUNC / APPEND flags if no offset has been given.
+	if params.Offset == 0 {
+		if !params.Append {
+			flags |= os.O_TRUNC
+		} else {
+			flags |= os.O_APPEND
+		}
 	}
 
 	// if lastHash isn't empty, the caller is requesting to compare it to a hash before
@@ -152,20 +156,24 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool, lastHa
 	//
 	// Only hash the file if doNotOverwrite is false. If we're not able to overwrite
 	// it there's no point in comparing hashes since no damage can be done.
-	if lastHash != "" && !doNotOverwrite {
-		if err := compareFileWithHash(filename, lastHash); err != nil {
+	if params.LastContentHash != "" && !params.DoNotOverwrite {
+		if err := compareFileWithHash(params.Path, params.LastContentHash); err != nil {
 			return 0, err
 		}
 	}
 
-	file, err := os.OpenFile(filename, flags, 0666)
+	file, err := os.OpenFile(params.Path, flags, 0666)
 	if err != nil {
 		return 0, err
 	}
 
 	defer file.Close()
 
-	return file.Write(data)
+	if params.Offset != 0 {
+		return file.WriteAt(params.Content, params.Offset)
+	}
+
+	return file.Write(params.Content)
 }
 
 var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)

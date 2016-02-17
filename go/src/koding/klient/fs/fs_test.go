@@ -571,6 +571,42 @@ func TestWriteFile(t *testing.T) {
 			string(buf), string(expectedContents),
 		)
 	}
+
+	// Write some test data
+	err = ioutil.WriteFile(testFile.Name(), []byte("foobaz"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = remote.Tell("writeFile", struct {
+		Path    string
+		Content []byte
+		Offset  int64
+	}{
+		Path:    testFile.Name(),
+		Content: []byte("bar"),
+		Offset:  3,
+	})
+
+	if err != nil {
+		t.Errorf(
+			"writeFile returned an error with an offset. %s",
+			err.Error(),
+		)
+	}
+
+	buf, err = ioutil.ReadFile(testFile.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(buf) != "foobar" {
+		t.Errorf(
+			"writeFile was given an offset, but did not offset the data correctly. wanted:%s, got:%s",
+			"foobar",
+			string(buf),
+		)
+	}
 }
 
 func TestUniquePath(t *testing.T) {

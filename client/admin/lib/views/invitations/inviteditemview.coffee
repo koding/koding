@@ -118,7 +118,7 @@ module.exports = class InvitedItemView extends KDListItemView
   pistachio: ->
 
     { email, firstName, lastName } = @getData()
-    emailMarkup = "<span>#{email}</span>"
+    emailMarkup = "<span title='#{email}' class='email'>#{email}</span>"
 
     if firstName or lastName
       markup = "#{emailMarkup} - #{firstName or ''} #{lastName or ''}"

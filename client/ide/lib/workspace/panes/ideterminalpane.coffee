@@ -44,6 +44,7 @@ module.exports = class IDETerminalPane extends IDEPane
     @webtermView.on 'WebTermConnected', (remote) =>
       @remote = remote
       @emit 'WebtermCreated'
+      @emit 'ready'
 
       kd.utils.wait 166, =>
         {path} = @getOptions()
