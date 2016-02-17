@@ -397,13 +397,11 @@ func NewLongDirectoryClusterEntry(name string, shortName string) ([]*DirectoryCl
 		}
 
 		// Calculate the offsets of the string for this entry
-		i := (len(name) % 13) + (i * 13)
-		if i == 0 {
-			i = 13
+		j := (numLongEntries - i - 1) * 13
+		k := j + 13
+		if k > len(name) {
+			k = len(name)
 		}
-
-		j := len(name) - i
-		k := int(math.Min(float64(j+13), float64(len(name))))
 
 		entry.longChecksum = checksum
 		entry.longName = name[j:k]
