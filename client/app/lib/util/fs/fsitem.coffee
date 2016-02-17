@@ -262,7 +262,7 @@ module.exports = class FSItem extends KDObject
       @name = FSHelper.getFileNameFromPath toPath
       @options.path = toPath
       @options.name = FSHelper.getFileNameFromPath toPath
-      @emit 'FilePathChanged'
+      @emit 'FilePathChanged', FSHelper.getFileNameFromPath toPath
 
 
   rename: (newName, callback)->

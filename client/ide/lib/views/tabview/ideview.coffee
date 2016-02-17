@@ -88,21 +88,27 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       { tabHandle, view } = pane
       { options }  = view
-      { paneType } = options
+      { machine, paneType } = options
+
 
       switch paneType
         when 'editor'
           tabHandle.enableContextMenu()
+          paneView       = tabHandle.getOptions().pane
           handleCallback = @lazyBound 'handleEditorRenamingRequested', tabHandle
           tabHandle.on 'RenamingRequested', handleCallback
           tabHandle.makeEditable()
 
-          view.file.on 'FilePathChanged', =>
+          view.file.on 'FilePathChanged', (newTitle)=>
             ideApp = kd.singletons.appManager.frontApp
 
             return  unless ideApp
 
             ideApp.writeSnapshot()
+
+            @renameEditor paneView, machine, newTitle
+
+
         when 'terminal'
           tabHandle.enableContextMenu()
 
@@ -828,6 +834,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     .catch (err) ->
       showErrorNotification err
+
+
+  renameEditor: (paneView, machine, newTitle) ->
+
+    editorHandle = @tabView.getHandleByPane paneView
+
+    editorHandle.setTitle newTitle
 
 
   renameTerminal: (paneView, machine, newTitle) ->
