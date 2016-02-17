@@ -18,9 +18,10 @@ import (
 	"sync"
 )
 
-// AllPackages returns the import path of each Go package in any source
+// AllPackages returns the package path of each Go package in any source
 // directory of the specified build context (e.g. $GOROOT or an element
 // of $GOPATH).  Errors are ignored.  The results are sorted.
+// All package paths are canonical, and thus may contain "/vendor/".
 //
 // The result may include import paths for directories that contain no
 // *.go files, such as "archive" (in $GOROOT/src).
@@ -37,9 +38,10 @@ func AllPackages(ctxt *build.Context) []string {
 	return list
 }
 
-// ForEachPackage calls the found function with the import path of
+// ForEachPackage calls the found function with the package path of
 // each Go package it finds in any source directory of the specified
 // build context (e.g. $GOROOT or an element of $GOPATH).
+// All package paths are canonical, and thus may contain "/vendor/".
 //
 // If the package directory exists but could not be read, the second
 // argument to the found function provides the error.
@@ -48,10 +50,6 @@ func AllPackages(ctxt *build.Context) []string {
 // which must be concurrency-safe.
 //
 func ForEachPackage(ctxt *build.Context, found func(importPath string, err error)) {
-	// We use a counting semaphore to limit
-	// the number of parallel calls to ReadDir.
-	sema := make(chan bool, 20)
-
 	ch := make(chan item)
 
 	var wg sync.WaitGroup
@@ -59,7 +57,7 @@ func ForEachPackage(ctxt *build.Context, found func(importPath string, err error
 		root := root
 		wg.Add(1)
 		go func() {
-			allPackages(ctxt, sema, root, ch)
+			allPackages(ctxt, root, ch)
 			wg.Done()
 		}()
 	}
@@ -79,7 +77,11 @@ type item struct {
 	err        error // (optional)
 }
 
-func allPackages(ctxt *build.Context, sema chan bool, root string, ch chan<- item) {
+// We use a process-wide counting semaphore to limit
+// the number of parallel calls to ReadDir.
+var ioLimit = make(chan bool, 20)
+
+func allPackages(ctxt *build.Context, root string, ch chan<- item) {
 	root = filepath.Clean(root) + string(os.PathSeparator)
 
 	var wg sync.WaitGroup
@@ -100,9 +102,9 @@ func allPackages(ctxt *build.Context, sema chan bool, root string, ch chan<- ite
 			return
 		}
 
-		sema <- true
+		ioLimit <- true
 		files, err := ReadDir(ctxt, dir)
-		<-sema
+		<-ioLimit
 		if pkg != "" || err != nil {
 			ch <- item{pkg, err}
 		}
