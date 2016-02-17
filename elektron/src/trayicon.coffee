@@ -7,6 +7,7 @@ Menu           = electron.Menu
 { app, shell } = electron
 
 TRAY_ICON      = path.resolve path.join __dirname, '../assets/icons/kdTemplate.png'
+TRAY_ICON_REV  = path.resolve path.join __dirname, '../assets/icons/kdRev.png'
 KDCMD          = '/usr/local/bin/kd' # FIXME ~GG
 TERMINAL       = 'iTerm'             # FIXME ~GG
 CHECK_TIMER    = 120                 # every 2 min.
@@ -51,6 +52,8 @@ module.exports = class KodingTray
     @_contextMenu = []
 
     @tray = new Tray TRAY_ICON
+    # @tray.setPressedImage TRAY_ICON_REV
+
     @tray.on 'click', => @handleClick()
 
     setTimeout  =>
