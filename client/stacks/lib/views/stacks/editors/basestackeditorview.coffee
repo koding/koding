@@ -1,10 +1,10 @@
-kd                  = require 'kd'
-Encoder             = require 'htmlencode'
-curryIn             = require 'app/util/curryIn'
-FSHelper            = require 'app/util/fs/fshelper'
-{ jsonToYaml }      = require '../yamlutils'
-IDEEditorPane       = require 'ide/workspace/panes/ideeditorpane'
-KDNotificationView  = kd.NotificationView
+kd                          = require 'kd'
+Encoder                     = require 'htmlencode'
+curryIn                     = require 'app/util/curryIn'
+FSHelper                    = require 'app/util/fs/fshelper'
+{ jsonToYaml, yamlToJson }  = require '../yamlutils'
+IDEEditorPane               = require 'ide/workspace/panes/ideeditorpane'
+KDNotificationView          = kd.NotificationView
 
 
 module.exports = class BaseStackEditorView extends IDEEditorPane
@@ -15,12 +15,18 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     curryIn options, cssClass: 'editor-view'
 
-    { content, contentType } = options
-    contentType             ?= 'json'
+    { content, contentType, targetContentType } = options
 
-    if content and contentType is 'json'
-      content = Encoder.htmlDecode content or ''
-      { content, contentType, err } = jsonToYaml content
+    contentType        ?= 'json'
+    targetContentType  ?= 'yaml'
+
+    content = Encoder.htmlDecode content or ''
+
+    if content
+      if targetContentType is 'json' and contentType isnt 'json'
+        { content, contentType, err } = yamlToJson content
+      else if targetContentType is 'yaml' and contentType isnt 'yaml'
+        { content, contentType, err } = jsonToYaml content
 
     options.content     = content
     options.contentType = contentType
@@ -42,6 +48,11 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
       ace.setShowPrintMargin no, no
       ace.setUseSoftTabs yes, no
       ace.setScrollPastEnd yes, no
+
+      { content, targetContentType } = @getOptions()
+
+      if targetContentType is 'json'
+        ace.setContent JSON.stringify(JSON.parse(content), null, '\t'), no
 
       kd.utils.defer =>
         @getEditorSession().setScrollTop 0

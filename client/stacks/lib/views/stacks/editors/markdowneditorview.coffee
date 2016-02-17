@@ -8,7 +8,15 @@ applyMarkdown       = require 'app/util/applyMarkdown'
 
 module.exports = class MarkdownEditorView extends BaseStackEditorView
 
+  constructor: (options = {}, data) ->
+
+    options.targetContentType ?= 'markdown'
+
+    super options, data
+
+
   viewAppended: ->
+
     super
 
     @addSubView new KDButtonView
