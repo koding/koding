@@ -19,6 +19,7 @@ func TestType(t *testing.T) {
 	}{
 		{token.STRING, `foo = "foo"`},
 		{token.NUMBER, `foo = 123`},
+		{token.NUMBER, `foo = -29`},
 		{token.FLOAT, `foo = 123.12`},
 		{token.FLOAT, `foo = -123.12`},
 		{token.BOOL, `foo = true`},
@@ -63,6 +64,15 @@ func TestListType(t *testing.T) {
 		{
 			`foo = ["123", 123]`,
 			[]token.Type{token.STRING, token.NUMBER},
+		},
+		{
+			`foo = [1,
+"string",
+<<EOF
+heredoc contents
+EOF
+]`,
+			[]token.Type{token.NUMBER, token.STRING, token.HEREDOC},
 		},
 	}
 
@@ -146,6 +156,7 @@ func TestObjectType(t *testing.T) {
 		item, err := p.objectItem()
 		if err != nil {
 			t.Error(err)
+			continue
 		}
 
 		// we know that the ObjectKey name is foo for all cases, what matters
@@ -153,6 +164,7 @@ func TestObjectType(t *testing.T) {
 		obj, ok := item.Val.(*ast.ObjectType)
 		if !ok {
 			t.Errorf("node should be of type LiteralType, got: %T", item.Val)
+			continue
 		}
 
 		// check if the total length of items are correct
@@ -232,6 +244,10 @@ func TestParse(t *testing.T) {
 			false,
 		},
 		{
+			"comment_lastline.hcl",
+			false,
+		},
+		{
 			"comment_single.hcl",
 			false,
 		},
@@ -277,6 +293,14 @@ func TestParse(t *testing.T) {
 		},
 		{
 			"array_comment_2.hcl",
+			true,
+		},
+		{
+			"missing_braces.hcl",
+			true,
+		},
+		{
+			"unterminated_object.hcl",
 			true,
 		},
 	}
