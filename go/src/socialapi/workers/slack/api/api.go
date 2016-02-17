@@ -1,12 +1,14 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/common/response"
+	"strings"
 
 	"github.com/nlopes/slack"
 
@@ -16,38 +18,95 @@ import (
 
 const slackAway = "away"
 
+// Slack holds runtime config for slack OAuth system
 type Slack struct {
+	Hostname  string
+	Protocol  string
 	OAuthConf *oauth2.Config
 }
 
-type SlackRequest struct {
-	Token string
-}
-
+// SlackMessageRequest carries message creation request from client side
 type SlackMessageRequest struct {
-	SlackRequest
 	Channel string
 	Text    string
 	Params  slack.PostMessageParameters
 }
 
-// Send & Callback handlers are used for slack oauth
-// If we can get the token successfully, then we store user's token in mongo in Callback handler
-func (s *Slack) Send(w http.ResponseWriter, req *http.Request) {
-	url := s.OAuthConf.AuthCodeURL("state", oauth2.AccessTypeOffline)
-	http.Redirect(w, req, url, http.StatusTemporaryRedirect)
+// Send initiates Slack OAuth
+func (s *Slack) Send(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	session, err := models.Cache.Session.ById(context.Client.SessionID)
+	if err != nil {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	url := s.OAuthConf.AuthCodeURL(session.Id.Hex(), oauth2.AccessTypeOffline)
+	h.Set("Location", url)
+	return http.StatusTemporaryRedirect, h, nil, nil
+
 }
 
-func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
-	code := u.Query().Get("code")
+// Callback handler is used for handling redirection requests from Slack API
+//
+// If we can get the token successfully, then we store user's token in mongo in
+// Callback handler
+func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	state := u.Query().Get("state")
+	if state == "" {
+		return response.NewBadRequest(errors.New("state is not set"))
+	}
 
-	token, err := s.OAuthConf.Exchange(oauth2.NoContext, code)
+	session, err := modelhelper.GetSessionById(state)
 	if err != nil {
-		fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	redirectURL, err := url.Parse(s.OAuthConf.RedirectURL)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	user, err := modelhelper.GetUser(c.Client.Account.Nick)
+	// we want to redirect slacks redirection into our success handler with team
+	// name included in the redirection url, this is required because user does
+	// not need to be logged in plain koding.com doamin
+	// eg: dev.koding.com:8090/api/social/slack/oauth/callback?<query params>
+	// 			should be redirected to
+	// 		teamname.dev.koding.com:8090/api/social/slack/oauth/success?<query params>
+
+	// set incoming request's query params into redirected url
+	redirectURL.RawQuery = u.Query().Encode()
+
+	// set team's subdomain
+	redirectURL.Host = fmt.Sprintf("%s.%s", session.GroupName, redirectURL.Host)
+
+	// replace 'callback' with 'success'
+	redirectURL.Path = strings.Replace(redirectURL.Path, "callback", "success", -1)
+
+	h.Set("Location", redirectURL.String())
+	return http.StatusTemporaryRedirect, h, nil, nil
+
+}
+
+// Success handler is used for handling redirection requests from Callback handler
+//
+// We need this for handling the internal redirection of team requests
+func (s *Slack) Success(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	// get session data from state
+	state := u.Query().Get("state")
+	if state == "" {
+		return response.NewBadRequest(errors.New("state is not set"))
+	}
+
+	session, err := modelhelper.GetSessionById(state)
+	if err != nil {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	// get user info
+	user, err := modelhelper.GetUser(session.Username)
 	if err != nil && err != mgo.ErrNotFound {
 		return response.NewBadRequest(err)
 	}
@@ -56,18 +115,26 @@ func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, c *models.Con
 		return response.NewBadRequest(err)
 	}
 
-	if err := updateUserSlackToken(user, c.GroupName, token.AccessToken); err != nil {
+	// start exchanging code for a token
+	code := u.Query().Get("code")
+	if code == "" {
+		return response.NewBadRequest(errors.New("code is not set"))
+	}
+
+	token, err := s.OAuthConf.Exchange(oauth2.NoContext, code)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	fmt.Printf("TOKEN IS: %+v", token)
+	// update the slack data
+	if err := updateUserSlackToken(user, session.GroupName, token.AccessToken); err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	return response.NewOK(nil)
 }
 
-//
-// ListUsers & ListChannels & PostMessage handlers are used by client of koding
-//
-
+// ListUsers lists users of a slack team
 func (s *Slack) ListUsers(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
@@ -81,6 +148,7 @@ func (s *Slack) ListUsers(u *url.URL, h http.Header, _ interface{}, context *mod
 	return response.HandleResultAndError(getUsers(token))
 }
 
+// ListChannels lists the channels of a slack team
 func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
@@ -94,6 +162,7 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *
 	return response.HandleResultAndError(getChannels(token))
 }
 
+// TeamInfo shows basic info regarding a slack team
 func (s *Slack) TeamInfo(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
@@ -107,6 +176,7 @@ func (s *Slack) TeamInfo(u *url.URL, h http.Header, _ interface{}, context *mode
 	return response.HandleResultAndError(getTeamInfo(token))
 }
 
+// PostMessage posts a message to a slack channel/group
 func (s *Slack) PostMessage(u *url.URL, h http.Header, req *SlackMessageRequest, context *models.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
@@ -116,6 +186,5 @@ func (s *Slack) PostMessage(u *url.URL, h http.Header, req *SlackMessageRequest,
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
-	req.Token = token
-	return response.HandleResultAndError(postMessage(req))
+	return response.HandleResultAndError(postMessage(token, req))
 }
