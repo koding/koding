@@ -1,0 +1,19 @@
+deb http://mirrors.service.networklayer.com/ubuntu trusty main restricted
+deb http://mirrors.service.networklayer.com/ubuntu trusty-updates main restricted
+deb http://mirrors.service.networklayer.com/ubuntu trusty universe
+deb http://mirrors.service.networklayer.com/ubuntu trusty-updates universe
+deb http://mirrors.service.networklayer.com/ubuntu trusty multiverse
+deb http://mirrors.service.networklayer.com/ubuntu trusty-updates multiverse
+deb http://mirrors.service.networklayer.com/ubuntu trusty-security main restricted
+deb http://mirrors.service.networklayer.com/ubuntu trusty-security universe
+deb http://mirrors.service.networklayer.com/ubuntu trusty-security multiverse
+
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty main restricted
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty-updates main restricted
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty universe
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty-updates universe
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty multiverse
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty-updates multiverse
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty-security main restricted
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty-security universe
+deb-src http://mirrors.service.networklayer.com/ubuntu trusty-security multiverse

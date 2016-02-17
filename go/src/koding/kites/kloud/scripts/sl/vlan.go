@@ -124,6 +124,7 @@ type vlanInit struct {
 	id       int
 	capacity int
 	env      string
+	guard    bool
 }
 
 func (*vlanInit) Name() string {
@@ -144,6 +145,7 @@ func (cmd *vlanInit) RegisterFlags(f *flag.FlagSet) {
 	f.IntVar(&cmd.id, "id", 0, "Vlan ID to init.")
 	f.IntVar(&cmd.capacity, "cap", 0, "Vlan instance capacity.")
 	f.StringVar(&cmd.env, "env", "", "Koding environment to init the Vlan for.")
+	f.BoolVar(&cmd.guard, "guard", false, "Force creation of the vlanguard instance.")
 }
 
 func (cmd *vlanInit) Run(ctx context.Context) error {
@@ -165,8 +167,13 @@ func (cmd *vlanInit) Run(ctx context.Context) error {
 	// the VLAN is removed as well. That's why we're adding dummy instance
 	// to persist the VLAN as reference-counting is race-prone in
 	// systems with eventual consistency.
-	if vlan.InstanceCount == 0 {
+	if vlan.InstanceCount == 0 || cmd.guard {
 		// TODO(rjeczalik): add instance creation API
+
+		keys, err := client.KeysByFilter(&sl.Filter{Label: "kloud"})
+		if err != nil {
+			return err
+		}
 
 		instance := datatypes.SoftLayer_Virtual_Guest_Template{
 			Hostname:          "vlanguard",
@@ -183,6 +190,7 @@ func (cmd *vlanInit) Run(ctx context.Context) error {
 					Id: cmd.id,
 				},
 			},
+			SshKeys: []datatypes.SshKey{{Id: keys[0].ID}},
 			OperatingSystemReferenceCode: "UBUNTU_LATEST",
 		}
 
@@ -191,11 +199,14 @@ func (cmd *vlanInit) Run(ctx context.Context) error {
 			return err
 		}
 
-		fmt.Printf("Creating vlanguard instance for vlan id=%d\n", cmd.id)
+		fmt.Printf("Creating vlanguard instance for vlan id=%d... ", cmd.id)
 
-		if _, err = svc.CreateObject(instance); err != nil {
+		obj, err := svc.CreateObject(instance)
+		if err != nil {
 			return err
 		}
+
+		fmt.Printf("ok (id=%d)\n", obj.Id)
 	}
 
 	tags := vlan.Tags
