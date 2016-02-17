@@ -51,6 +51,9 @@ func (c *connection) readPump() {
 	for {
 		_, message, err := c.ws.ReadMessage()
 		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+				log.Printf("error: %v", err)
+			}
 			break
 		}
 		h.broadcast <- message
@@ -88,17 +91,11 @@ func (c *connection) writePump() {
 	}
 }
 
-// serverWs handles webocket requests from the peer.
+// serveWs handles websocket requests from the peer.
 func serveWs(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", 405)
-		return
-	}
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		if _, ok := err.(websocket.HandshakeError); !ok {
-			log.Println(err)
-		}
+		log.Println(err)
 		return
 	}
 	c := &connection{send: make(chan []byte, 256), ws: ws}
