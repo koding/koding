@@ -5,7 +5,6 @@ import (
 	kodingmodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
-	"socialapi/workers/common/sem"
 	"sync"
 	"time"
 
@@ -65,62 +64,81 @@ func getUsers(token string) ([]SlackUser, error) {
 		return nil, err
 	}
 
-	activeUsersChan := make(chan SlackUser) // idk the total valid number
+	resultChan := make(chan SlackUser)
+	workChan := make(chan slack.User)
 
-	sem := sem.New(20) // run 20 goroutines concurrently
-	var wg sync.WaitGroup
-	wg.Add(len(allusers))
-
-	var activeUsers []SlackUser
+	// produce the work
 	go func() {
-		for t := range activeUsersChan {
-			activeUsers = append(activeUsers, t)
+		for _, u := range allusers {
+			workChan <- u
 		}
+
+		close(workChan)
 	}()
 
-	for _, u := range allusers {
-		sem.Lock()
-		go func(u slack.User) {
-			defer sem.Unlock()
-			defer wg.Done()
-
-			// no need to add deleted users
-			if u.Deleted {
-				return
-			}
-
-			// filter bots
-			if u.IsBot {
-				return
-			}
-
-			// even if we get error from slack api set it to nil
-			var lastActive *time.Time
-
-			// presence information is optional, so we can skip the errored ones
-			p, err := api.GetUserPresence(u.ID)
-			if err != nil || p == nil {
-				activeUsersChan <- SlackUser{u, lastActive}
-				return
-			}
-
-			// set presence info
-			u.Presence = p.Presence
-
-			// LastActivity works inconsistently
-			// if u.Presence != slackAway {
-			//  LastActiveTime := p.LastActivity.Time()
-			//  lastActive = &LastActiveTime
-			// }
-
-			activeUsersChan <- SlackUser{u, lastActive}
-		}(u)
+	// start consuming
+	var wg sync.WaitGroup
+	const concurrency = 20
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func() {
+			processPresence(api, workChan, resultChan)
+			wg.Done()
+		}()
 	}
 
-	wg.Wait()
-	close(activeUsersChan)
+	// mark we are done
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	// collect result set
+	var activeUsers []SlackUser
+	for t := range resultChan {
+		activeUsers = append(activeUsers, t)
+	}
 
 	return activeUsers, nil
+}
+
+func processPresence(api *slack.Client, workChan chan slack.User, resultChan chan SlackUser) {
+	for u := range workChan {
+		if u.ID == "" {
+			continue
+		}
+
+		// no need to add deleted users
+		if u.Deleted {
+			continue
+		}
+
+		// filter bots
+		if u.IsBot {
+			continue
+		}
+
+		// even if we get error from slack api set it to nil
+		var lastActive *time.Time
+
+		// presence information is optional, so we can skip the errored ones
+		p, err := api.GetUserPresence(u.ID)
+		if err != nil || p == nil {
+			resultChan <- SlackUser{u, lastActive}
+			continue
+		}
+
+		// set presence info
+		u.Presence = p.Presence
+
+		// LastActivity works inconsistently, disabling it for now
+		// if u.Presence != slackAway {
+		//  LastActiveTime := p.LastActivity.Time()
+		//  lastActive = &LastActiveTime
+		// }
+
+		resultChan <- SlackUser{u, lastActive}
+	}
 }
 
 func postMessage(token string, req *SlackMessageRequest) (string, error) {
