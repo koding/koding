@@ -45,4 +45,6 @@ const (
 	SlackTeamInfo      = "slack-team-information"
 	SlackPostMessage   = "slack-post-message"
 	SlackOauthCallback = "slack-oauth-callback"
+	SlackOauthSuccess  = "slack-oauth-succeess"
+	SlackOauthSend     = "slack-oauth-send"
 )
