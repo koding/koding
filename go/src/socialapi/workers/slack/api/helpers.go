@@ -129,6 +129,16 @@ func postMessage(req *SlackMessageRequest) (string, error) {
 	return id, err
 }
 
+func getTeamInfo(token string) (*slack.TeamInfo, error) {
+	api := slack.New(token)
+	info, err := api.GetTeamInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}
+
 func updateUserSlackToken(user *kodingmodels.User, groupName string, m string) error {
 	selector := bson.M{"username": user.Name}
 	key := fmt.Sprintf("foreignAuth.slack.%s.token", groupName)
