@@ -10,8 +10,7 @@ import (
 )
 
 type decoder struct {
-	buffer      []byte
-	pointerBase uint
+	buffer []byte
 }
 
 type dataType int
@@ -400,7 +399,7 @@ func (d *decoder) decodePointer(size uint, offset uint) (uint, uint) {
 		pointerValueOffset = 0
 	}
 
-	pointer := unpacked + d.pointerBase + pointerValueOffset
+	pointer := unpacked + pointerValueOffset
 
 	return pointer, newOffset
 }
