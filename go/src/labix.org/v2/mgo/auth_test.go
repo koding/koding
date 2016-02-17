@@ -27,14 +27,16 @@
 package mgo_test
 
 import (
+	"flag"
 	"fmt"
 	"labix.org/v2/mgo"
 	. "launchpad.net/gocheck"
+	"net/url"
 	"sync"
 	"time"
 )
 
-func (s *S) TestAuthLogin(c *C) {
+func (s *S) TestAuthLoginDatabase(c *C) {
 	// Test both with a normal database and with an authenticated shard.
 	for _, addr := range []string{"localhost:40002", "localhost:40203"} {
 		session, err := mgo.Dial(addr)
@@ -48,9 +50,37 @@ func (s *S) TestAuthLogin(c *C) {
 		admindb := session.DB("admin")
 
 		err = admindb.Login("root", "wrong")
-		c.Assert(err, ErrorMatches, "auth fails")
+		c.Assert(err, ErrorMatches, "auth fail(s|ed)")
 
 		err = admindb.Login("root", "rapadura")
+		c.Assert(err, IsNil)
+
+		err = coll.Insert(M{"n": 1})
+		c.Assert(err, IsNil)
+	}
+}
+
+func (s *S) TestAuthLoginSession(c *C) {
+	// Test both with a normal database and with an authenticated shard.
+	for _, addr := range []string{"localhost:40002", "localhost:40203"} {
+		session, err := mgo.Dial(addr)
+		c.Assert(err, IsNil)
+		defer session.Close()
+
+		coll := session.DB("mydb").C("mycoll")
+		err = coll.Insert(M{"n": 1})
+		c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized .*")
+
+		cred := mgo.Credential{
+			Username: "root",
+			Password: "wrong",
+		}
+		err = session.Login(&cred)
+		c.Assert(err, ErrorMatches, "auth fail(s|ed)")
+
+		cred.Password = "rapadura"
+
+		err = session.Login(&cred)
 		c.Assert(err, IsNil)
 
 		err = coll.Insert(M{"n": 1})
@@ -195,7 +225,7 @@ func (s *S) TestAuthUpsertUser(c *C) {
 
 	// Can't login directly into the database using UserSource, though.
 	err = myotherdb.Login("myrwuser", "mypass")
-	c.Assert(err, ErrorMatches, "auth fails")
+	c.Assert(err, ErrorMatches, "auth fail(s|ed)")
 }
 
 func (s *S) TestAuthUpserUserOtherDBRoles(c *C) {
@@ -332,7 +362,7 @@ func (s *S) TestAuthAddUserReplaces(c *C) {
 	admindb.Logout()
 
 	err = mydb.Login("myuser", "myoldpass")
-	c.Assert(err, ErrorMatches, "auth fails")
+	c.Assert(err, ErrorMatches, "auth fail(s|ed)")
 	err = mydb.Login("myuser", "mynewpass")
 	c.Assert(err, IsNil)
 
@@ -357,7 +387,7 @@ func (s *S) TestAuthRemoveUser(c *C) {
 	c.Assert(err, IsNil)
 
 	err = mydb.Login("myuser", "mypass")
-	c.Assert(err, ErrorMatches, "auth fails")
+	c.Assert(err, ErrorMatches, "auth fail(s|ed)")
 }
 
 func (s *S) TestAuthLoginTwiceDoesNothing(c *C) {
@@ -675,7 +705,7 @@ func (s *S) TestAuthURLWrongCredentials(c *C) {
 	if session != nil {
 		session.Close()
 	}
-	c.Assert(err, ErrorMatches, "auth fails")
+	c.Assert(err, ErrorMatches, "auth fail(s|ed)")
 	c.Assert(session, IsNil)
 }
 
@@ -707,15 +737,24 @@ func (s *S) TestAuthURLWithDatabase(c *C) {
 	err = mydb.AddUser("myruser", "mypass", true)
 	c.Assert(err, IsNil)
 
-	usession, err := mgo.Dial("mongodb://myruser:mypass@localhost:40002/mydb")
-	c.Assert(err, IsNil)
-	defer usession.Close()
+	// Test once with database, and once with source.
+	for i := 0; i < 2; i++ {
+		var url string
+		if i == 0 {
+			url = "mongodb://myruser:mypass@localhost:40002/mydb"
+		} else {
+			url = "mongodb://myruser:mypass@localhost:40002/admin?authSource=mydb"
+		}
+		usession, err := mgo.Dial(url)
+		c.Assert(err, IsNil)
+		defer usession.Close()
 
-	ucoll := usession.DB("mydb").C("mycoll")
-	err = ucoll.FindId(0).One(nil)
-	c.Assert(err, Equals, mgo.ErrNotFound)
-	err = ucoll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
+		ucoll := usession.DB("mydb").C("mycoll")
+		err = ucoll.FindId(0).One(nil)
+		c.Assert(err, Equals, mgo.ErrNotFound)
+		err = ucoll.Insert(M{"n": 1})
+		c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
+	}
 }
 
 func (s *S) TestDefaultDatabase(c *C) {
@@ -775,4 +814,50 @@ func (s *S) TestAuthDirectWithLogin(c *C) {
 		err = session.DB("mydb").C("mycoll").Find(nil).One(&result)
 		c.Assert(err, Equals, mgo.ErrNotFound)
 	}
+}
+
+var (
+	kerberosFlag = flag.Bool("kerberos", false, "Test Kerberos authentication (depends on custom environment)")
+	kerberosHost = "mmscustmongo.10gen.me"
+	kerberosUser = "mmsagent/mmscustagent.10gen.me@10GEN.ME"
+)
+
+func (s *S) TestAuthKerberosCred(c *C) {
+	if !*kerberosFlag {
+		c.Skip("no -kerberos")
+	}
+	cred := &mgo.Credential{
+		Username:  kerberosUser,
+		Mechanism: "GSSAPI",
+	}
+	c.Logf("Connecting to %s...", kerberosHost)
+	session, err := mgo.Dial(kerberosHost)
+	defer session.Close()
+
+	c.Logf("Connected! Testing the need for authentication...")
+	c.Assert(err, IsNil)
+	names, err := session.DatabaseNames()
+	c.Assert(err, ErrorMatches, "unauthorized")
+
+	c.Logf("Authenticating...")
+	err = session.Login(cred)
+	c.Assert(err, IsNil)
+	c.Logf("Authenticated!")
+
+	names, err = session.DatabaseNames()
+	c.Assert(err, IsNil)
+	c.Assert(len(names) > 0, Equals, true)
+}
+
+func (s *S) TestAuthKerberosURL(c *C) {
+	if !*kerberosFlag {
+		c.Skip("no -kerberos")
+	}
+	c.Logf("Connecting to %s...", kerberosHost)
+	session, err := mgo.Dial(url.QueryEscape(kerberosUser) + "@" + kerberosHost + "?authMechanism=GSSAPI")
+	c.Assert(err, IsNil)
+	defer session.Close()
+	names, err := session.DatabaseNames()
+	c.Assert(err, IsNil)
+	c.Assert(len(names) > 0, Equals, true)
 }
