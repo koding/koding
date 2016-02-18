@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"koding/db/mongodb/modelhelper"
 
@@ -17,6 +18,7 @@ import (
 	"koding/db/models"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/utils/res"
 
 	"github.com/hashicorp/go-multierror"
@@ -198,10 +200,11 @@ type GroupCreate struct {
 	*GroupThrottler
 	*groupUsers
 
-	dry   bool
-	stack bool
-	file  string
-	count int
+	dry       bool
+	stack     bool
+	file      string
+	count     int
+	pullmongo time.Duration
 }
 
 func NewGroupCreate() *GroupCreate {
@@ -227,6 +230,7 @@ func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
 	f.BoolVar(&cmd.stack, "stack", false, "Add the machine to user stack.")
 	f.BoolVar(&cmd.dry, "dry", false, "Dry run, tells the status of machines for the users.")
+	f.DurationVar(&cmd.pullmongo, "pullmongo", 0, "Instead of using eventer, pull jMachine.status.state for status")
 }
 
 func (cmd *GroupCreate) Valid() error {
@@ -238,7 +242,84 @@ func (cmd *GroupCreate) Valid() error {
 		return errors.New("the -users and -n flags can't be used together")
 	}
 
+	if cmd.pullmongo != 0 {
+		cmd.GroupThrottler.Wait = cmd.waitFunc(cmd.pullmongo)
+	}
+
 	return nil
+}
+
+func queryState(id string) (machinestate.State, error) {
+	var state struct {
+		Status struct {
+			State string `bson:"state,omitempty"`
+		} `bson:"status,omitempty"`
+	}
+
+	query := func(c *mgo.Collection) error {
+		return c.FindId(bson.ObjectIdHex(id)).One(&state)
+	}
+
+	err := modelhelper.Mongo.Run(modelhelper.MachinesColl, query)
+	if err != nil {
+		return 0, err
+	}
+
+	return machinestate.States[state.Status.State], nil
+}
+
+func (cmd *GroupCreate) waitFunc(timeout time.Duration) WaitFunc {
+	const maxFailures = 5
+
+	return func(id string) error {
+		var building bool
+		initialTimeout := time.After(1 * time.Minute)
+		overallTimeout := time.After(timeout)
+
+		failureNum := 0
+		lastState := machinestate.NotInitialized
+		for {
+			select {
+			case <-initialTimeout:
+				if !building {
+					return fmt.Errorf("waiting for %q to become building has timed out, aborting")
+				}
+			case <-overallTimeout:
+				return fmt.Errorf("giving up waiting for %q to be running; last state %q", id, lastState)
+			default:
+				state, err := queryState(id)
+				if err != nil {
+					failureNum++
+					if failureNum > maxFailures {
+						return fmt.Errorf("querying for state of %q failed more than %d times"+
+							" in a row, aborting: %s", id, maxFailures, err)
+					}
+
+					time.Sleep(15 * time.Second)
+					continue
+				}
+
+				DefaultUi.Info(fmt.Sprintf("%s: status for %q: %s", time.Now(), id, state))
+
+				failureNum = 0
+				lastState = state
+
+				switch state {
+				case machinestate.NotInitialized, machinestate.Unknown, machinestate.Stopped, machinestate.Stopping,
+					machinestate.Terminating, machinestate.Terminated, machinestate.Rebooting:
+					if building {
+						return fmt.Errorf("machine %q was building, transitioned to %q, aborting", id, state)
+					}
+				case machinestate.Building, machinestate.Starting:
+					building = true
+				case machinestate.Running:
+					return nil
+				}
+
+				time.Sleep(15 * time.Second)
+			}
+		}
+	}
 }
 
 func (cmd *GroupCreate) Run(ctx context.Context) error {
