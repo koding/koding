@@ -1,4 +1,5 @@
-{ daisy } = require 'bongo'
+async       = require 'async'
+KodingError = require '../../../error'
 
 log = ->
   console.log '[handlers:memberremoved]', arguments...
@@ -108,16 +109,20 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
 
   queue = [
 
-    ->
+    (next) ->
       member.fetchUser (err, user) ->
-        return log 'Failed to fetch member:', err  if err or not user
-        memberJUser = user
-        queue.next()
+        if err or not user
+          errorMessage = 'Failed to fetch member'
+          log "#{errorMessage}:", err
+          next err ? new KodingError errorMessage
+        else
+          memberJUser = user
+          next()
 
-    ->
+    (next) ->
       if reason is 'leave'
         requesterJUser = memberJUser
-        queue.next()
+        next()
       else
         requester.fetchUser (err, user) ->
           if err or not user # even we fail to fetch JUser of admin somehow
@@ -128,9 +133,9 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
             requesterJUser = memberJUser
           else
             requesterJUser = user
-          queue.next()
+          next()
 
-    ->
+    (next) ->
       JMachine = require '../machine'
       JMachine.some
       # Not sure about this, open for debate, should we remove user from
@@ -143,9 +148,9 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
 
         log 'Failed to fetch machines:', err  if err
         memberMachines = machines
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       updateMachineUsers {
         user      : memberJUser
         machines  : memberMachines
@@ -155,9 +160,9 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
           group   : group
         reason
       }
-      queue.next()
+      next()
 
-    ->
+    (next) ->
       JComputeStack = require '../../stack'
       JComputeStack.some
         originId : member.getId()
@@ -167,16 +172,16 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
 
         log 'Failed to fetch stacks:', err  if err
         memberStacks = stacks
-        queue.next()
+        next()
 
-    ->
+    (next) ->
       updateStacks {
         stacks   : memberStacks
         oldOwner : memberJUser.getAt 'username'
         requesterId, reason
       }
-      queue.next()
+      next()
 
   ]
 
-  daisy queue
+  async.series queue

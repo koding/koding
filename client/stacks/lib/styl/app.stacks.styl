@@ -7,6 +7,40 @@ Stacks main styles
 .AppModal.AppModal--admin
 
   &.StackCatalogModal
+    &.StackTemplatesView
+      vendor                transition, all .2s ease
+      border-radius         0
+
+    .fullscreen-button
+      .button-title::before
+        content             'FULLSCREEN'
+
+    &.fullscreen
+      left                  0 !important
+      top                   0 !important
+      width                 100% !important
+      height                100% !important
+
+      .fullscreen-button
+        .button-title::before
+          content           'EXIT FULLSCREEN'
+
+      .kdmodal-content
+        margin-top          0 !important
+
+      .AppModal--admin-tabs
+        padding-left        0
+
+      .define-stack-view
+        > .kdscrollview
+          height            calc(100% \- 80px)
+
+      .kdmodal-title
+      .breadcrumb
+      .stack-editor-footer
+      .AppModal-nav
+      .close-icon
+        hidden()
 
     .kdtabpaneview
       &.my-stacks
@@ -64,7 +98,7 @@ Stacks main styles
     rounded                 3px
     background              #fff
     border                  1px solid #C9C9C9
-    padding                 8px 13px 10px
+    padding                 5px 13px
     font-size               14px
     line-height             19px
     color                   #4C4C4C
@@ -160,6 +194,8 @@ Stacks main styles
       .kdtabhandle
         max-width           250px !important
         margin-top          0
+        top                 1px
+        border              1px solid transparent
 
     .providers
       .text.header
@@ -535,6 +571,7 @@ Stacks main styles
 
     .showlogs-button
     .template-preview-button
+    .fullscreen-button
       z-index               13
       right                 0
       bottom                0
@@ -546,6 +583,9 @@ Stacks main styles
 
     .template-preview-button
       right                 78px
+
+    .fullscreen-button
+      right                 175px
 
   .kdview.credential-status
     width                   200px
@@ -1133,10 +1173,9 @@ Stacks main styles
     .kdtabhandlecontainer .kdtabhandle.active
       box-shadow            none !important
       bg                    color, #FFF !important
-      border                1px solid #E4E4E4
-      border-bottom         1px solid #FFF
-      top                   1px
-      rounded               4px 0 4px 0
+      border-color          #E4E4E4
+      border-bottom-color   #FFF
+      rounded               4px 4px 0 0
 
     .kdtabhandlecontainer
       border-bottom         1px solid #E4E4E4

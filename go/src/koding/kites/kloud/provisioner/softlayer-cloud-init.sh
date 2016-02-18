@@ -80,6 +80,21 @@ EOF
 	cloud-init init
 	cloud-init modules --mode=config
 	cloud-init modules --mode=final
+
+	# restore /etc/apt/sources.list from hackathon2016/etc/apt/sources.list
+	# the following was generated with:
+	#
+	#   cat etc/apt/sources.list | bzip -9 - | base -b 80
+	#
+	(base64 -d | bzip2 -d) > /etc/apt/sources <<EOF
+QlpoOTFBWSZTWWeE62AAALTZgAAQQAOAED5v36AwAUwANU/9VJGmajTJgmCgAADJkBSlRoNTKep+ppph
+K2VREooiJhUAANuoSBpLPSN+9mDhGLyjkjRHZHZHhHlGLqv1HJHRGseEd0YtC5rZHUtkfSNy9L/o9lvR
+vXRd0fiOCN6/V9o3Li45mYzMzcj0j7XtGq8Ixd1+I4C2R8RqjojReEbRqtFouiOKPpG5HIuCMFoq9roj
+I3rkjotl5XNHVdUfEfaNUduGZjGZmS4o2R3XNfEdl/lsjUsRzSdkfwu5IpwoSDPCdbAA
+EOF
+
+	# update the index so the user don't have to do it manually
+	apt-get update -q
 }
 
 main 2>&1 | tee -a /var/log/softlayer-cloud-init.log

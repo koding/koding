@@ -13,7 +13,7 @@ notFoundError = (name) ->
 
 
 fetchProfileContent = (models, options, callback) ->
-  { client, name } = options
+  { client, name, currentUrl } = options
   { JAccount, SocialChannel } = models
   JAccount.one { 'profile.nickname': name }, (err, account) ->
     return callback err  if err
@@ -24,12 +24,12 @@ fetchProfileContent = (models, options, callback) ->
 
       { content, index } = response
 
-      return callback null, profile account, content, index
+      return callback null, profile account, content, index, currentUrl
 
 
 fetchPostContent = (models, options, callback) ->
   { SocialMessage } = models
-  { client, entrySlug } = options
+  { client, entrySlug, currentUrl } = options
 
   options = { slug: entrySlug, replyLimit: 25 }
   SocialMessage.bySlug client, options, (err, activity) ->
@@ -46,7 +46,7 @@ fetchPostContent = (models, options, callback) ->
         body     : "#{activityContent.body}"
         shareUrl : "#{uri.address}/Activity/Post/#{activityContent.slug}"
         index    : activityContent.body.length > 500 or activity.repliesCount >= 3
-      fullPage = feed.putContentIntoFullPage content, '', graphMeta
+      fullPage = feed.putContentIntoFullPage content, '', graphMeta, currentUrl
       callback null, fullPage
 
 
@@ -163,7 +163,7 @@ module.exports =
 
       { query } = req
       page = getPage query
-      options = { section, entrySlug, client, page, isProfile, name }
+      options = { section, entrySlug, client, page, isProfile, name, currentUrl: req.originalUrl }
       fetchContent models, options, (err, content) ->
         return handleError err, res, content  if err or not content
         return res.status(200).send content

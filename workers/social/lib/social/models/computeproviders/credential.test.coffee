@@ -1,6 +1,6 @@
 JCredential      = require './credential'
 JCredentialData  = require './credentialdata'
-{ daisy
+{ async
   expect
   expectRelation
   withDummyClient
@@ -63,7 +63,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
         queue = [
 
-          ->
+          (next) ->
             # expecting credential to be created
             JCredential.create client, options, (err, credential_) ->
               expect(err).to.not.exist
@@ -72,9 +72,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               expect(credential.title).to.be.equal title
               expect(credential.identifier).to.exist
               expect(credential.originId).to.be.equal originId
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting credential data to be created as well
             JCredentialData.one { originId }, (err, credentialData_) ->
               expect(err).to.not.exist
@@ -82,9 +82,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               expect(credentialData).to.exist
               expect(credentialData.meta).to.be.an 'object'
               expect(credentialData.meta).to.be.deep.equal options.meta
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting credential and account relation to be created
             options =
               as         : 'owner'
@@ -94,9 +94,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               sourceName : 'JAccount'
 
             expectRelation.toExist options, ->
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting credential and credential data relation to be created
             options =
               as         : 'data'
@@ -106,13 +106,11 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               sourceName : 'JCredential'
 
             expectRelation.toExist options, ->
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#fetchByIdentifier()', ->
@@ -190,16 +188,16 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
         queue = [
 
-          ->
+          (next) ->
             withConvertedUser ({ userFormData, account }) ->
               otherAccount = account
               options = { target : userFormData.username, user : yes, owner : yes }
 
               credential.shareWith ownerClient, options, (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-          ->
+          (next) ->
             credential.fetchUsers ownerClient, (err, users) ->
               expect(err).to.not.exist
               expect(users).to.be.an 'array'
@@ -210,13 +208,11 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               expect(users[1]).to.be.an 'object'
               expect(users[1].constructorName).to.be.equal 'JAccount'
               expect(users[1]._id.toString()).to.be.equal otherAccount._id.toString()
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     it 'should be able to fetch users after sharing with a group', (done) ->
@@ -226,7 +222,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
         queue = [
 
-          ->
+          (next) ->
             groupSlug   = generateRandomString()
             options     = { context : { group : groupSlug } }
 
@@ -236,9 +232,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
               credential.shareWith client, options, (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-          ->
+          (next) ->
             credential.fetchUsers client, (err, users) ->
               expect(err).to.not.exist
               expect(users).to.be.an 'array'
@@ -249,13 +245,11 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               expect(users[1]).to.be.an 'object'
               expect(users[1].constructorName).to.be.equal 'JGroup'
               expect(users[1]._id.toString()).to.be.equal group._id.toString()
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe 'setPermissionFor()', ->
@@ -269,23 +263,23 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
       queue = [
 
-        ->
+        (next) ->
           withConvertedUserAndCredential (data) ->
             { client, account, credential } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           withConvertedUser (data) ->
             { account : anotherAccount } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           options = { user : true, owner : true }
           credential.setPermissionFor anotherAccount, options, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           options =
             as         : 'owner'
             targetId   : credential._id
@@ -295,13 +289,11 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
           expectRelation.toExist options, (relationship) ->
             expect(relationship.sourceId).to.be.deep.equal anotherAccount._id
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
   describe 'shareWith', ->
@@ -314,17 +306,17 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
       queue = [
 
-        ->
+        (next) ->
           withConvertedUserAndCredential (data) ->
             { client, account, credential } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           withConvertedUser (data) ->
             { account : anotherAccount } = data
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           options =
             user   : true
             owner  : true
@@ -332,9 +324,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
           credential[method] client, options, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           options =
             as         : 'owner'
             targetId   : credential._id
@@ -344,13 +336,11 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
           expectRelation.toExist options, (relationship) ->
             expect(relationship.sourceId).to.be.deep.equal anotherAccount._id
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
     describe 'shareWith()', ->
@@ -414,22 +404,20 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
         queue = [
 
-          ->
+          (next) ->
             credential[method] args..., (err, credData) ->
               credData.remove (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-          ->
+          (next) ->
             credential[method] args..., (err, data) ->
               expect(err?.message).to.be.equal 'No data found'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     testFetchDataSuccess = (method, done) ->
@@ -498,33 +486,31 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
         queue = [
 
-          ->
+          (next) ->
             options =
               title : 'newTitle'
               meta  : { data : 'newMeta' }
 
             credential.update$ client, options, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JCredential.one { _id : credential._id }, (err, credential_) ->
               expect(err).to.not.exist
               expect(credential_.title).to.be.equal 'newTitle'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             options = { identifier : credential.identifier }
             JCredentialData.one options, (err, credData) ->
               expect(err).to.not.exist
               expect(credData.meta).to.be.deep.equal { data : 'newMeta' }
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe 'isBootstrapped()', ->

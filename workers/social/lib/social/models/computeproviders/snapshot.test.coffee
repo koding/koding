@@ -1,7 +1,6 @@
 JSnapshot = require './snapshot'
 
-{ daisy
-  expect
+{ expect
   withDummyClient
   withConvertedUser
   expectAccessDenied

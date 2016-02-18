@@ -244,8 +244,16 @@ func checkScopePermissions(client *github.Client, username string) error {
 		return err
 	}
 
-	scopeArr := []string{"write:public_key", "public_repo", "user", "repo"}
-	for _, scopeElement := range scopeArr {
+	// we created 2-dimensional array for scopes.
+	scopeArray := [][]string{
+		// if user enables one of this scopes, then its OK to go..
+		{"write:public_key", "admin:public_key"},
+		{"user"},
+		{"repo", "public_repo"},
+		{"admin:org"},
+	}
+
+	for _, scopeElement := range scopeArray {
 		if !(isInArray(arr, scopeElement)) {
 			scopeErr := fmt.Errorf("Could not find required scope :", scopeElement)
 			return scopeErr
@@ -253,7 +261,6 @@ func checkScopePermissions(client *github.Client, username string) error {
 	}
 
 	return nil
-
 }
 
 func getScopes(client *github.Client, username string) ([]string, error) {
@@ -269,10 +276,12 @@ func getScopes(client *github.Client, username string) ([]string, error) {
 	return scopes, nil
 }
 
-func isInArray(arr []string, item string) bool {
+func isInArray(arr, item []string) bool {
 	for _, a := range arr {
-		if a == item {
-			return true
+		for _, i := range item {
+			if a == i {
+				return true
+			}
 		}
 	}
 	return false

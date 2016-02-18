@@ -114,8 +114,6 @@ class IDEAppController extends AppController
       # TODO: This needs to be fixed. ~Umut
       windowController.notifyWindowResizeListeners()
 
-      @resizeActiveTerminalPane()
-
       @runOnboarding()  if @isMachineRunning()
 
       unless @layoutManager.isSnapshotRestored()
@@ -135,6 +133,8 @@ class IDEAppController extends AppController
 
       if @mountedMachineUId is machineUId and slug is @workspaceData.slug
         @quit()
+
+    @layoutManager.once 'LayoutSizesApplied', @bound 'doResize'
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -466,6 +466,35 @@ class IDEAppController extends AppController
     @activeTabView.emit 'MachineWebPageRequested', machineData
 
 
+  ensureReadme: (snapshot) ->
+
+    layout     = IDELayoutManager.convertSnapshotToFlatArray snapshot
+    readmePath = "/home/#{@mountedMachine.getOwner()}/README.md"
+
+    return @openReadme()  if layout.length is 0
+
+    hasReadme  = (layout.filter ({context}) ->
+      path = context.file?.path
+      path and FSHelper.plainPath(path) is readmePath).length > 0
+
+    @openReadme()  unless hasReadme
+
+
+  openReadme: (machine) ->
+
+    machine or= @mountedMachine
+    owner   = machine.getOwner()
+    path    = "/home/#{owner}/README.md"
+    file    = FSHelper.createFileInstance { path, machine }
+
+    file.fetchContents (err, contents = '') =>
+      # no need to do anything if there is an error.
+      return kd.warn 'Failed to open README.md', err  if err
+
+      @setActiveTabView @ideViews.first.tabView
+      @openFile { file, contents, switchIfOpen: yes }
+
+
   mountMachine: (machineData) ->
 
     # interrupt if workspace was changed
@@ -529,6 +558,9 @@ class IDEAppController extends AppController
         else
 
           @fetchSnapshot (snapshot) =>
+
+            if @mountedMachine.provider is 'softlayer'
+              @ensureReadme snapshot
 
             # Just resurrect snapshot for host or without collaboration.
             # Because we need check the `@myWatchMap` and it is not possible here.
@@ -1249,7 +1281,7 @@ class IDEAppController extends AppController
     @activeTabView.parent.toggleFullscreen()
 
 
-  doResize: ->
+  doResize: kd.utils.debounce 100, ->
 
     @forEachSubViewInIDEViews_ (pane) =>
       {paneType} = pane.options
@@ -1258,19 +1290,19 @@ class IDEAppController extends AppController
           { webtermView } = pane
           { terminal }    = webtermView
 
-          terminal.windowDidResize()  if terminal?
+          pane.ready =>
 
-          {isActive} = @getActiveInstance()
+            terminal.updateSize yes  if terminal
 
-          if not @isInSession and isActive
-            kd.utils.wait 400, -> # defer was not enough.
-              webtermView.triggerFitToWindow()
+            if not @isInSession and @getActiveInstance().isActive
+              kd.utils.wait 400, -> # defer was not enough.
+                webtermView.triggerFitToWindow()
 
         when 'editor', 'tailer'
           height = pane.getHeight()
           {ace}  = pane.aceView
 
-          if ace?.editor?
+          pane.ready ->
             ace.setHeight height
             ace.editor.resize()
 
@@ -1288,7 +1320,7 @@ class IDEAppController extends AppController
   resizeActiveTerminalPane: ->
 
     @forEachSubViewInIDEViews_ 'terminal', (tl) ->
-      tl.webtermView.terminal?.updateSize()
+      tl.webtermView.terminal?.updateSize yes
 
 
   removePaneFromTabView: (pane, shouldDetach = no) ->
@@ -1709,17 +1741,7 @@ class IDEAppController extends AppController
       kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
       # open README.md for the first time for newly registered users.
-      @machineStateModal.once 'IDEBecameReady', (machine) =>
-        machine or= @mountedMachine
-        owner   = machine.getOwner()
-        path    = "/home/#{owner}/README.md"
-        file    = FSHelper.createFileInstance { path, machine }
-
-        file.fetchContents (err, contents = '') =>
-          return kd.warn err  if err # no need to do anything if there is an error.
-
-          @setActiveTabView @ideViews.first.tabView
-          @openFile { file, contents }
+      @machineStateModal.once 'IDEBecameReady', @bound 'openReadme'
 
 
   fetchSnapshot: (callback, username = nick()) ->
@@ -1926,11 +1948,11 @@ class IDEAppController extends AppController
 
 
   turnOffTerminalSizeListener: ->
-    
+
     @activePaneView?.webtermView?.off 'ScreenSizeChanged'
 
 
   listenForTerminalSizeChanges: ->
-    
+
     @activePaneView?.webtermView?.on 'ScreenSizeChanged', (size) =>
       @updateStatusBar null, "Screen size changed to (#{size.w}, #{size.h})"

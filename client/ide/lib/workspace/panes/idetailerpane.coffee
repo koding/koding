@@ -67,6 +67,7 @@ module.exports = class IDETailerPane extends IDEPane
       ace.prepend ace.descriptionView
 
       @emit 'EditorIsReady'
+      @emit 'ready'
 
       kite = @file.machine.getBaseKite()
       kite.tail
