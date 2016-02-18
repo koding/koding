@@ -87,7 +87,7 @@ func (m *Machine) guardTransition(start machinestate.State, reason string, ctx c
 	if err != nil {
 		e := modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latest.String(), latest)
 		if e != nil {
-			m.Log.Warning("failure reverting state from %q to %q: %s", start, latest, err)
+			m.Log.Warning("failure reverting state from %q to %q: %s", start, latest, e)
 		}
 
 		return err
