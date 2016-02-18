@@ -29,7 +29,11 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
 
     super options, data
 
-    @createInformationView()
+    $.ajax
+      method  : 'GET'
+      url     : CHANNELS_URL
+      success : @bound 'createInviterViews'
+      error   : @bound 'createInformationView'
 
 
   createInformationView : ->
