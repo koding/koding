@@ -6,7 +6,9 @@ CustomLinkView         = require 'app/customlinkview'
 KDCustomHTMLView       = kd.CustomHTMLView
 HelpSupportModal       = require 'app/commonviews/helpsupportmodal'
 IDEStatusBarAvatarView = require './idestatusbaravatarview'
-
+isSoloProductLite      = require 'app/util/issoloproductlite'
+isPlanFree             = require 'app/util/isPlanFree'
+isKoding               = require 'app/util/isKoding'
 
 module.exports = class IDEStatusBar extends KDView
 
@@ -57,7 +59,7 @@ module.exports = class IDEStatusBar extends KDView
         kd.utils.stopDOMEvent event
         router.handleRoute '/Account/Shortcuts'
 
-    @addSubView @share = new CustomLinkView
+    @share = new CustomLinkView
       href     : "#{kd.singletons.router.getCurrentPath()}/share"
       title    : 'Loading'
       cssClass : 'share fr hidden'
@@ -68,6 +70,20 @@ module.exports = class IDEStatusBar extends KDView
         return  unless appManager.frontApp.isMachineRunning()
 
         appManager.tell 'IDE', 'showChat'
+
+    if isKoding()
+      if isSoloProductLite()
+        isPlanFree (err, isFree) =>
+          return  if err
+          if isFree
+            @share = new KDCustomHTMLView { cssClass: 'hidden' }
+            @addSubView @share
+          else
+            @addSubView @share
+      else
+        @addSubView @share
+    else
+      @addSubView @share
 
     @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr hidden'
 

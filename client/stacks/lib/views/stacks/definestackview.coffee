@@ -634,7 +634,7 @@ module.exports = class DefineStackView extends KDView
             search   = if type is 'custom'  \
               then ///\${var.#{type}_#{field}}///g
               else ///\${var.koding_#{type}_#{field}}///g
-            template = template.replace search, content
+            template = template.replace search, content.replace /\n/g, '\\n'
           else
             errors[type] ?= []
             errors[type].push field
