@@ -92,6 +92,13 @@ func (cmd *sshkeyAdd) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.tags, "tags", "", "Tags to add for the key.")
 }
 
+func (cmd *sshkeyAdd) Valid() error {
+	if cmd.pem == "" {
+		return errors.New("invalid empty value for -pem flag")
+	}
+	return nil
+}
+
 func (cmd *sshkeyAdd) Run(context.Context) error {
 	key, err := sl.ParseKey(cmd.pem)
 	if err != nil {

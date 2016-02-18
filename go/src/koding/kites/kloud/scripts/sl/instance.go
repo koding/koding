@@ -121,6 +121,13 @@ func (cmd *instanceDelete) RegisterFlags(f *flag.FlagSet) {
 	cmd.list.entries = true
 }
 
+func (cmd *instanceDelete) Valid() error {
+	if cmd.list.id == 0 && (cmd.list.env == "" || cmd.list.env == "prod") && cmd.list.hostname == "" {
+		return errors.New("refusing to delete all instances unconditionally")
+	}
+	return nil
+}
+
 func (cmd *instanceDelete) ids() ([]int, error) {
 	if cmd.list.id != 0 {
 		return []int{cmd.list.id}, nil
