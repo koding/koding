@@ -165,7 +165,6 @@ func (gt *GroupThrottler) RunItems(ctx context.Context, items []Item) error {
 }
 
 func (gt *GroupThrottler) processAndWatch(ctx context.Context, item Item) *Status {
-	k, _ := fromContext(ctx)
 	start := time.Now()
 	var stages []Stage
 	newStatus := func(err error) *Status {
@@ -178,6 +177,11 @@ func (gt *GroupThrottler) processAndWatch(ctx context.Context, item Item) *Statu
 			Err:          err,
 		}
 	}
+	k, err := kloudClient()
+	if err != nil {
+		return newStatus(err)
+	}
+	ctx = context.WithValue(ctx, kiteKey, k)
 	if err := gt.Process(ctx, item); err != nil {
 		return newStatus(err)
 	}

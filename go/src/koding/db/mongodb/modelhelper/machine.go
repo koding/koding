@@ -58,6 +58,9 @@ func GetMachineBySlug(userID bson.ObjectId, slug string) (*models.Machine, error
 	if err != nil {
 		return nil, err
 	}
+	if len(m) == 0 {
+		return nil, mgo.ErrNotFound
+	}
 	if len(m) != 1 {
 		return nil, fmt.Errorf("GetMachinyBySlug: want 1 result, got %d", len(m))
 	}

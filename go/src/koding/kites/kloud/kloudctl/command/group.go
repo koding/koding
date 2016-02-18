@@ -198,9 +198,10 @@ type GroupCreate struct {
 	*GroupThrottler
 	*groupUsers
 
-	nostack bool
-	file    string
-	count   int
+	dry   bool
+	stack bool
+	file  string
+	count int
 }
 
 func NewGroupCreate() *GroupCreate {
@@ -224,7 +225,8 @@ func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&cmd.file, "f", "", "JSON-encoded Machine specification file.")
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
-	f.BoolVar(&cmd.nostack, "nostack", false, "Do not show the vm in user stack.")
+	f.BoolVar(&cmd.stack, "stack", false, "Add the machine to user stack.")
+	f.BoolVar(&cmd.dry, "dry", false, "Dry run, tells the status of machines for the users.")
 }
 
 func (cmd *GroupCreate) Valid() error {
@@ -251,8 +253,15 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 	} else {
 		specs, err = cmd.multipleMachineSpecs(spec)
 	}
-	if err != nil || len(specs) == 0 {
-		return err
+	if len(specs) == 0 {
+		if err != nil {
+			DefaultUi.Warn(err.Error())
+		}
+		return errors.New("nothing to build")
+	}
+
+	if err != nil {
+		DefaultUi.Warn(err.Error())
 	}
 
 	items := make([]Item, len(specs))
@@ -260,7 +269,11 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 		items[i] = spec
 	}
 
-	return multierror.Append(err, cmd.RunItems(ctx, items)).ErrorOrNil()
+	if e := cmd.RunItems(ctx, items); e != nil {
+		return multierror.Append(err, e).ErrorOrNil()
+	}
+
+	return err
 }
 
 func specSlice(spec *MachineSpec, n int) []*MachineSpec {
@@ -277,19 +290,36 @@ func (cmd *GroupCreate) multipleUserSpecs(spec *MachineSpec) ([]*MachineSpec, er
 
 	merr := new(multierror.Error)
 
+	DefaultUi.Info("Preparing jMachine documents for users...")
+
 	for i, spec := range specs {
 		spec.User = models.User{
 			Name: cmd.usernames[i],
 		}
 
 		err := spec.BuildMachine(false)
+		if err == ErrRebuild {
+			if cmd.dry {
+				merr = multierror.Append(merr, fmt.Errorf("jMachine status for %q: this is going to be rebuild without -dry", spec.Username()))
+			} else {
+				okspecs = append(okspecs, spec)
+			}
+
+			continue
+		}
+		if cmd.dry && err == nil {
+			merr = multierror.Append(merr, fmt.Errorf("jMachine status for %q: this is going to be build without -dry", spec.Username()))
+			continue
+		}
 		if err != nil {
-			merr = multierror.Append(merr, fmt.Errorf("error building user and group for %q: %s", spec.User.Name, err))
+			merr = multierror.Append(merr, fmt.Errorf("jMachine status for %q: %s", spec.Username(), err))
 			continue
 		}
 
 		okspecs = append(okspecs, spec)
 	}
+
+	DefaultUi.Info(fmt.Sprintf("%d to be machines built", len(okspecs)))
 
 	return okspecs, merr.ErrorOrNil()
 }
@@ -316,7 +346,7 @@ func (cmd *GroupCreate) multipleMachineSpecs(spec *MachineSpec) ([]*MachineSpec,
 func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 	spec := item.(*MachineSpec)
 	k, _ := fromContext(ctx)
-	if err := spec.InsertMachine(cmd.nostack); err != nil {
+	if err := spec.InsertMachine(cmd.stack); err != nil {
 		return err
 	}
 
