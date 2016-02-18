@@ -48,7 +48,11 @@ func NewGroup() cli.CommandFactory {
 	}
 }
 
-func (g *Group) Action(args []string, k *kite.Client) error {
+func (g *Group) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
 	ctx = context.WithValue(ctx, softlayerKey, newSoftlayer())

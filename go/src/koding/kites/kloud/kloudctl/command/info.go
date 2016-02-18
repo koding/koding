@@ -44,7 +44,11 @@ func (i *Info) SingleMachine(id string, k *kite.Client) (string, error) {
 	return result.State, nil
 }
 
-func (i *Info) Action(args []string, k *kite.Client) error {
+func (i *Info) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	machines := strings.Split(*i.ids, ",")
 
 	var wg sync.WaitGroup

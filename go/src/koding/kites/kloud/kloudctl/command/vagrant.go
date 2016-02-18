@@ -21,7 +21,6 @@ import (
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/utils/res"
 
-	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/mitchellh/cli"
 	"github.com/satori/go.uuid"
@@ -125,7 +124,11 @@ func NewVagrant() cli.CommandFactory {
 }
 
 // Action is an entry point for "vagrant" subcommand.
-func (v *Vagrant) Action(args []string, k *kite.Client) error {
+func (v *Vagrant) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	vapi := &vagrantapi.Klient{
 		Kite: k.LocalKite,
 		Log:  common.NewLogger("vagrant", flagDebug),

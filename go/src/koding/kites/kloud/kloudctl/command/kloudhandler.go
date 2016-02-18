@@ -24,23 +24,17 @@ type KloudArgs struct {
 }
 
 type Actioner interface {
-	Action([]string, *kite.Client) error
+	Action([]string) error
 }
 
-type ActionFunc func(args []string, k *kite.Client) error
+type ActionFunc func(args []string) error
 
-func (a ActionFunc) Action(args []string, k *kite.Client) error {
-	return a(args, k)
+func (a ActionFunc) Action(args []string) error {
+	return a(args)
 }
 
 func kloudWrapper(args []string, actioner Actioner) error {
-	k, err := kloudClient()
-	if err != nil {
-		DefaultUi.Error(err.Error())
-		return err
-	}
-
-	err = actioner.Action(args, k)
+	err := actioner.Action(args)
 	if err != nil {
 		DefaultUi.Error(err.Error())
 		return err
