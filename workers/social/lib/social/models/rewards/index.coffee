@@ -4,6 +4,7 @@ KodingError = require '../../error'
 JAccount    = require '../account'
 JUser       = require '../user'
 
+async       = require 'async'
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -11,7 +12,7 @@ module.exports = class JReward extends jraphical.Message
 
   { Relationship } = jraphical
 
-  { race, secure, daisy, dash, signature, ObjectId } = require 'bongo'
+  { secure, signature, ObjectId } = require 'bongo'
 
   @share()
 
@@ -144,7 +145,7 @@ module.exports = class JReward extends jraphical.Message
 
     queue = [
 
-      ->
+      (next) ->
 
         reward = new JReward {
           amount         : campaign.perEventAmount
@@ -153,20 +154,19 @@ module.exports = class JReward extends jraphical.Message
           originId, type, unit
         }
 
-        reward.save (err) ->
-          return callback err  if err
-          queue.next()
+        reward.save next
 
-      ->
+      (next) ->
 
         campaign.increaseGivenAmount (err) ->
           logError "Couldn't increase given amount:", err  if err?
-
-          callback null
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
+      callback null
 
 
   logError = (rest...) -> console.error '[Rewards]', rest...
@@ -313,7 +313,7 @@ module.exports = class JReward extends jraphical.Message
         rewards ?= []
 
         rewards.forEach (reward) ->
-          queue.push ->
+          queue.push (next) ->
 
             JAccount.one { _id: reward.providedBy }, (err, account) ->
               if not err and account
@@ -322,13 +322,10 @@ module.exports = class JReward extends jraphical.Message
                 reward.providedBy = null
                 reward._hasError  = new KodingError 'No user found'
 
-              queue.next()
+              next()
 
-        queue.push ->
+        async.series queue, (err) ->
           callback null, { total, rewards }
-
-        daisy queue
-
 
   # Background Processes
   # --------------------
@@ -349,39 +346,33 @@ module.exports = class JReward extends jraphical.Message
       campaign = null
 
       queue = [
-        ->
 
+        (next) ->
           # TODO Add fetcher for active campaign ~ GG
           JRewardCampaign.isValid 'register', (err, res) ->
-            return logError err  if err
+            return next err  if err
             return  unless res.isValid
 
             campaign = res.campaign
-            queue.next()
+            next()
 
-        ->
-
+        (next) ->
           fetchReferrer account, (err, _referrer) ->
-            return logError err  if err
+            return next err  if err
             return  unless _referrer
             referrer = _referrer
-            queue.next()
+            next()
 
-        ->
+        (next) ->
+          createRewards campaign, referrer, account, next
 
-          createRewards campaign, referrer, account, (err) ->
-            return logError err  if err
-            queue.next()
-
-        ->
-
-          createRewards campaign, account, referrer, (err) ->
-            return logError err  if err
-            queue.next()
+        (next) ->
+          createRewards campaign, account, referrer, next
 
       ]
 
-      daisy queue
+      async.series queue, (err) ->
+        logError err  if err
 
 
   addEmailConfimedListener = ->
@@ -400,48 +391,43 @@ module.exports = class JReward extends jraphical.Message
 
       queue = [
 
-        ->
+        (next) ->
 
           user.fetchOwnAccount (err, myAccount) ->
-            return logError err  if err
+            return next err  if err
             # if account not found then do nothing and return
-            return logError "Account couldn't found" unless myAccount
+            return next "Account couldn't found" unless myAccount
 
             me = myAccount
-            queue.next()
+            next()
 
-        ->
+        (next) ->
 
           if me.referralUsed
-            return logError 'User already get the referrer'
+            return next 'User already get the referrer'
 
           fetchReferrer me, (err, _referrer) ->
-            return logError err  if err
+            return next err  if err
             return  unless _referrer
             referrer = _referrer
-            queue.next()
+            next()
 
-        ->
+        (next) ->
 
-          me.update { $set: { 'referralUsed': yes } }, (err) ->
-            return logError err if err
-            queue.next()
+          me.update { $set: { 'referralUsed': yes } }, next
 
-        ->
+        (next) ->
 
-          confirmRewards referrer, me, (err) ->
-            return logError err if err
-            queue.next()
+          confirmRewards referrer, me, next
 
-        ->
+        (next) ->
 
-          confirmRewards me, referrer, (err) ->
-            return logError err if err
-            queue.next()
+          confirmRewards me, referrer, next
 
       ]
 
-      daisy queue
+      async.series queue, (err) ->
+        logError err  if err
 
 
   do ->
