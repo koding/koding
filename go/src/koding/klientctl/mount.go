@@ -11,13 +11,14 @@ import (
 	"strings"
 	"time"
 
+	"koding/klient/remote/req"
+	"koding/klientctl/klientctlerrors"
+	"koding/klientctl/util"
+
 	"github.com/cheggaaa/pb"
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
-	"koding/klient/remote/req"
-	"koding/klientctl/klientctlerrors"
-	"koding/klientctl/util"
 )
 
 type userGetter func() (*user.User, error)
@@ -377,7 +378,7 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 		return klientctlerrors.ErrUserCancelled
 	}
 
-	return os.Mkdir(p, 0655)
+	return os.Mkdir(p, 0755)
 }
 
 func getCachePath(name string) string {
