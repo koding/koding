@@ -13,7 +13,6 @@ KDFormViewWithFields = kd.FormViewWithFields
 
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
-applyMarkdown        = require 'app/util/applyMarkdown'
 { yamlToJson }       = require './yamlutils'
 providersParser      = require './providersparser'
 
@@ -30,7 +29,7 @@ ReadmeView           = require './readmeview'
 StackTemplateView    = require './stacktemplateview'
 CredentialStatusView = require './credentialstatusview'
 
-StackTemplateEditorView = require './editors/stacktemplateeditorview'
+StackTemplatePreviewModal = require './stacktemplatepreviewmodal'
 
 
 module.exports = class DefineStackView extends KDView
@@ -169,6 +168,9 @@ module.exports = class DefineStackView extends KDView
       @setAsDefaultButton.hide()
       @generateStackButton.hide()
       @saveButton.show()
+
+    @tabView.on 'PaneDidShow', (pane) ->
+      pane.mainView?.editorView?.resize()
 
 
   createFooter: ->
@@ -602,25 +604,6 @@ module.exports = class DefineStackView extends KDView
       callback err, stackTemplate
 
 
-  createReportFor = (data, type) ->
-
-    if (Object.keys data).length > 0
-      console.warn "#{type.capitalize()} for preview requirements: ", data
-
-      issues = ''
-      for issue of data
-        if issue is 'userInput'
-          issues += " - These variables: `#{data[issue]}`
-                        will be requested from user.\n"
-        else
-          issues += " - These variables: `#{data[issue]}`
-                        couldn't find in `#{issue}` data.\n"
-    else
-      issues = ''
-
-    return issues
-
-
   handlePreview: ->
 
     template      = @stackTemplateView.editorView.getValue()
@@ -656,7 +639,7 @@ module.exports = class DefineStackView extends KDView
             errors[type] ?= []
             errors[type].push field
 
-      @createPreviewModal { errors, warnings, template }
+      new StackTemplatePreviewModal {}, { errors, warnings, template }
 
       @previewButton.hideLoader()
 
@@ -672,32 +655,7 @@ module.exports = class DefineStackView extends KDView
 
   createPreviewModal: ({ errors, warnings, template }) ->
 
-    errors   = createReportFor errors,   'errors'
-    warnings = createReportFor warnings, 'warnings'
 
-    modal = new kd.ModalView
-      title          : 'Template Preview'
-      subtitle       : 'Generated from your account data'
-      cssClass       : 'stack-template-preview content-modal'
-      height         : 500
-      width          : 757
-      overlay        : yes
-      overlayOptions : cssClass : 'second-overlay'
-
-    descriptionView = new kd.CustomHTMLView
-      cssClass : 'has-markdown'
-      partial  : applyMarkdown """
-        #{errors}
-        #{warnings}
-        """
-
-    modal.addSubView new StackTemplateEditorView
-      delegate        : this
-      content         : template
-      contentType     : 'yaml'
-      readOnly        : yes
-      showHelpContent : no
-      descriptionView : descriptionView
 
 
   handleReinit: ->
