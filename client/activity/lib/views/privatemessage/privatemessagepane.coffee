@@ -368,6 +368,10 @@ module.exports = class PrivateMessagePane extends MessagePane
     { participantsModelClass } = @getOptions()
     @participantsModel = new participantsModelClass { channel: @getData() }
 
+    @participantsModel.once 'AccountsFetched', (accounts) =>
+      for account in accounts
+        @autoComplete.addSelectedItemData account
+        @autoComplete.selectedItemCounter++
 
 
   createParticipantHeads: ->

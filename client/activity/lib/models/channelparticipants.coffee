@@ -66,6 +66,7 @@ module.exports = class ChannelParticipantsModel extends kd.Object
       return console.log err  if err
       @setParticipant account  for account in accounts
       @emitChange()  if emitEvent
+      @emit 'AccountsFetched', accounts
 
 
   ###*
