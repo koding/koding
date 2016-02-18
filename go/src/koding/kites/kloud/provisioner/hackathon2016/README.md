@@ -5,13 +5,13 @@ Are you ready for an awesome weekend of hacking? We are super duper
 excited to share this weekend (virtually) with you as you hack on
 your amazing projects.
 
-This document will serve as your “guide” as you compete in this one 
-of a kind event. Please read it as there's a ton of great info in here.
+This document will serve as your “guide” as you compete in this event.
+Please read it as there's a ton of great info in here.
 
 Good luck!
 
 ====
-A special always-on VM has been added to your account. You are reading
+A free, always-on VM has been added to your account. You are reading
 this file on that special VM. The specs of this VM are: 
 1GB RAM, 1 Core CPU, 25GB Disk
 
@@ -40,17 +40,16 @@ vigorously.
    and NOT write actual code.)
 2. The final project MUST be hosted on the "softlayer-vm-xx" VM that we
    have added to your account... no exceptions. e.g. your project URL can
-   be http://159.8.66.189/my_start_page
+   be http://159.8.66.189/my_start_page (159.8.66.189 is an example ip address)
    You can get the IP address of your VM by using the command:
    curl ifconfig.co
-   This special VM does not use domain names, so just use the IP address
-   when you submit the project.
+   Do not use domain names, use only the IP address when you submit the project.
 3. Even if multiple team members on your team have the softlayer-vm-xx VM
    added to their account, you only need to submit your project on one 
    of these VMs.
 4. Your project must be a web app (mobile apps are not acceptable) that is
-   viewable on the softlayer-xx VM’s public web URL (IP address). Each of 
-   these special hackathon VM’s have a public IP address.
+   accessible from the url that you provide. Each of these hackathon VM’s
+   have a public IP address.
 5. You can make changes to your team members up until the time you submit 
    the final project. The final project submission form will have a place 
    for you to list all the team members.
