@@ -1,3 +1,4 @@
+async     = require 'async'
 jraphical = require 'jraphical'
 
 
@@ -5,7 +6,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
   KodingError        = require '../error'
 
-  { secure, ObjectId, signature, daisy } = require 'bongo'
+  { secure, ObjectId, signature } = require 'bongo'
   { Relationship }   = jraphical
   { uniq }           = require 'underscore'
   { permit }         = require './group/permissionset'
@@ -251,19 +252,6 @@ module.exports = class JComputeStack extends jraphical.Module
 
           callback null, _stacks
 
-          # stacks = []
-
-          # queue = _stacks.map (stack) -> ->
-          #   stack.revive (err, revivedStack)->
-          #     stacks.push revivedStack
-          #     queue.next()
-
-          # queue.push ->
-          #   callback null, stacks
-
-          # daisy queue
-
-
 
   revive: (callback) ->
 
@@ -275,23 +263,21 @@ module.exports = class JComputeStack extends jraphical.Module
     machines = []
 
     (@machines ? []).forEach (machineId) ->
-      queue.push -> JMachine.one { _id: machineId }, (err, machine) ->
+      queue.push (next) -> JMachine.one { _id: machineId }, (err, machine) ->
         if not err? and machine
           machines.push machine
-        queue.next()
+        next()
 
     (@domains ? []).forEach (domainId) ->
-      queue.push -> JProposedDomain.one { _id: domainId }, (err, domain) ->
+      queue.push (next) -> JProposedDomain.one { _id: domainId }, (err, domain) ->
         if not err? and domain
           domains.push domain
-        queue.next()
+        next()
 
-    queue.push =>
+    async.series queue, =>
       this.machines = machines
       this.domains = domains
       callback null, this
-
-    daisy queue
 
 
   unuseStackTemplate: (callback) ->
