@@ -10,6 +10,7 @@ nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
 isTeamReactSide               = require 'app/util/isTeamReactSide'
+isNewCollaborationActive      = require 'app/util/isNewCollaborationActive'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
@@ -1096,6 +1097,11 @@ module.exports = CollaborationController =
 
 
   showChatPane: ->
+
+    unless isNewCollaborationActive()
+      @chat.showChatPane()
+      @chat.start()
+      return
 
     channel = @socialChannel
     {actions} = require 'activity/flux'
