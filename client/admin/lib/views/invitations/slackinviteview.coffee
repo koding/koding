@@ -20,6 +20,8 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
 
   SLACKBOT_ID = 'USLACKBOT'
   OAUTH_URL   = "#{location.origin}/api/social/slack/oauth"
+  CHANNELS_URL  = "#{location.origin}/api/social/slack/channels"
+  MESSAGING_URL = "#{location.origin}/api/social/slack/message"
 
   constructor: (options = {}, data) ->
 
@@ -46,14 +48,14 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
   createInviterViews: ->
 
     $.ajax
-      type : 'GET'
-      url  : '/api/social/slack/channels'
+      method  : 'GET'
+      url     : CHANNELS_URL
       success : (res) =>
         @createChannelInviter res.channels.concat res.groups or []
 
     $.ajax
-      type : 'GET'
-      url  : '/api/social/slack/users'
+      method  : 'GET'
+      url     : USERS_URL
       success : (res) =>
         @createIndividualInviter res
 
