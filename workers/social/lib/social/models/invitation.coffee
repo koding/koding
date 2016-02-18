@@ -6,10 +6,9 @@ Bongo       = require 'bongo'
 Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
-async       = require 'async'
 
 { protocol, hostname } = KONFIG
-{ secure, signature }  = Bongo
+{ secure, signature, dash } = Bongo
 
 emailsanitize = require './user/emailsanitize'
 
@@ -153,43 +152,52 @@ module.exports = class JInvitation extends jraphical.Module
   # triggers sendInvitationEmail
   @create: permit 'send invitations',
     success: (client, options, callback) ->
-      JUser               = require './user'
-      JGroup              = require './group'
+      JUser        = require './user'
+      JGroup       = require './group'
 
-      { delegate }        = client.connection
-      { invitations }     = options
-      groupName           = client.context.group or 'koding'
-      name                = getName delegate
+      { delegate } = client.connection
+      groupName    = client.context.group or 'koding'
+      name         = getName delegate
+      codes        = []
+
+      { invitations, forceInvite, returnCodes, noEmail } = options
+
 
       # check for membership
       JGroup.one { slug: groupName }, (err, group) ->
         return callback new KodingError err                   if err
         return callback new KodingError 'group doesnt exist'  if not group
 
-        queue = invitations.map (invitation) -> (fin) ->
+        queue = invitations.map (invitation) -> ->
 
           { email, firstName, lastName, role } = invitation
 
           JInvitation.one { email, groupName }, (err, invitation) ->
-            return fin new KodingError err  if err
+            return callback new KodingError err  if err
 
             # do not send another invitation if the user is already invited
             # before
-            return fin()  if invitation
+
+            if invitation
+              if forceInvite
+                invitation.remove()
+              else
+                codes.push { email, code: invitation.code, alreadyInvited: yes }
+                return queue.fin()
 
             isAlreadyMember group, email, (err, isMember) ->
-              return fin new KodingError err  if err
+              return callback new KodingError err  if err
 
               # do not send another invitation if the user is already a member
               # of the group
-              return fin()  if isMember
+              return queue.fin()  if isMember
 
               hash = JUser.getHash email
 
               # eg: VJPj9gUQ
               code = shortid.generate()
 
-              data =   {
+              data = {
                 code
                 hash
                 email
@@ -198,17 +206,23 @@ module.exports = class JInvitation extends jraphical.Module
               }
               # firstName and lastName are optional
               data.firstName = firstName  if firstName
-              data.lastName  = lastName  if lastName
+              data.lastName  = lastName   if lastName
 
               invite = new JInvitation data
               invite.save (err) ->
-                return fin new KodingError err  if err
+                return callback new KodingError err  if err
+                codes.push { email, code }
 
-                JInvitation.sendInvitationEmail client, invite, -> fin()
+                return queue.fin()  if noEmail
 
-        async.parallel queue, (err) ->
-          return callback err  if err
-          callback null
+                JInvitation.sendInvitationEmail client, invite, -> queue.fin()
+
+        cb = ->
+          if returnCodes
+          then callback null, codes
+          else callback()
+
+        dash queue, cb
 
 
   # isAlreadyMember checks if the given email is already member of the given
