@@ -1,5 +1,5 @@
 Bongo       = require 'bongo'
-{ secure, daisy, dash, signature, Base } = Bongo
+{ secure, signature, Base } = Bongo
 Validators  = require '../group/validators'
 { permit }  = require '../group/permissionset'
 KodingError = require '../../error'
