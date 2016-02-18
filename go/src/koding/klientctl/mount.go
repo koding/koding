@@ -15,6 +15,8 @@ import (
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/util"
 
+	"github.com/koding/logging"
+
 	"github.com/cheggaaa/pb"
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
@@ -25,7 +27,7 @@ type userGetter func() (*user.User, error)
 
 // MountCommand mounts a folder on remote machine to local folder by machine
 // name.
-func MountCommand(c *cli.Context) int {
+func MountCommand(c *cli.Context, _ logging.Logger, _ string) int {
 	if len(c.Args()) != 2 {
 		cli.ShowCommandHelp(c, "mount")
 		return 1

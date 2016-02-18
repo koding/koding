@@ -10,9 +10,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/codegangsta/cli"
 	"koding/klient/remote/req"
 	"koding/klientctl/util"
+
+	"github.com/koding/logging"
+
+	"github.com/codegangsta/cli"
 	"github.com/koding/sshkey"
 
 	"golang.org/x/crypto/ssh"
@@ -37,7 +40,7 @@ type SSHCommand struct {
 }
 
 // SSHCommandFactory is the factory method for SSHCommand.
-func SSHCommandFactory(c *cli.Context) int {
+func SSHCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {
 	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "ssh")
 		return 1

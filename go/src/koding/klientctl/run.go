@@ -9,15 +9,18 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/codegangsta/cli"
 	"koding/klient/remote/req"
+
+	"github.com/koding/logging"
+
+	"github.com/codegangsta/cli"
 )
 
 // ErrNotInMount happens when command is run from outside a mount.
 var ErrNotInMount = errors.New("command not run on mount")
 
 // RunCommandFactory is the factory method for RunCommand.
-func RunCommandFactory(c *cli.Context) int {
+func RunCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {
 	if len(c.Args()) < 1 {
 		cli.ShowCommandHelp(c, "run")
 		return 1

@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	kodinglogging "github.com/koding/logging"
 )
 
 // RestartCommand stops and starts klient. If Klient is not running to begin
 // with, it *just* starts klient.
-func RestartCommand(c *cli.Context) int {
+func RestartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "restart")
 		return 1

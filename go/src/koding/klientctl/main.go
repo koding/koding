@@ -6,13 +6,13 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/codegangsta/cli"
 	"koding/klientctl/logging"
 	"koding/klientctl/util"
-)
 
-// ExitingCommand is a function that returns an exit code
-type ExitingCommand func(*cli.Context) int
+	kodinglogging "github.com/koding/logging"
+
+	"github.com/codegangsta/cli"
+)
 
 // ExitingWithMessageCommand is a function which prints the given message to
 // Stdout. Useful for printig a message to the user in a convenient single-use way.
@@ -60,6 +60,14 @@ func main() {
 	log.SetHandler(logging.NewWriterHandler(logWriter))
 	log.Infof("kd binary called with: %s", os.Args)
 
+	// Create our logger.
+	//
+	// TODO: Single commit temporary solution, need to remove the above logger
+	// in favor of this.
+	kodingLogger := kodinglogging.NewLogger("kd")
+	kodingLogger.SetHandler(logging.NewWriterHandler(logWriter))
+	kodingLogger.Info("kd binary called with: %s", os.Args)
+
 	// Check if the command the user is giving requires sudo.
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
 		// In the event of an error, simply print the error to the user
@@ -77,7 +85,7 @@ func main() {
 			Name:      "list",
 			ShortName: "ls",
 			Usage:     "List running machines for user.",
-			Action:    Exit(CheckUpdateFirst(ListCommand)),
+			Action:    ExitAction(CheckUpdateFirst(ListCommand, kodingLogger, "list")),
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "json",
@@ -88,7 +96,7 @@ func main() {
 				cli.Command{
 					Name:   "mounts",
 					Usage:  "List the mounted machines.",
-					Action: Exit(CheckUpdateFirst(MountsCommand)),
+					Action: ExitAction(CheckUpdateFirst(MountsCommand, kodingLogger, "mounts")),
 				},
 			},
 		},
@@ -123,21 +131,22 @@ func main() {
 					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
 				},
 			},
-			Action: Exit(CheckUpdateFirst(MountCommand)),
+			Action: ExitAction(CheckUpdateFirst(MountCommand, kodingLogger, "mount")),
 		},
 		cli.Command{
 			Name:        "unmount",
 			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["unmount"],
-			Action:      Exit(CheckUpdateFirst(UnmountCommand)),
-		},
+			Action: ExitAction(
+				CheckUpdateFirst(UnmountCommandFactory, kodingLogger, "unmount"),
+			)},
 		cli.Command{
 			Name:        "ssh",
 			ShortName:   "s",
 			Usage:       "SSH into the machine.",
 			Description: cmdDescriptions["ssh"],
-			Action:      Exit(CheckUpdateFirst(SSHCommandFactory)),
+			Action:      ExitAction(CheckUpdateFirst(SSHCommandFactory, kodingLogger, "ssh")),
 		},
 		cli.Command{
 			Name:        "install",
@@ -150,7 +159,7 @@ func main() {
 				},
 			},
 			//HideHelp: true,
-			Action: Exit(InstallCommandFactory),
+			Action: ExitAction(InstallCommandFactory, kodingLogger, "install"),
 		},
 		cli.Command{
 			Name:        "uninstall",
@@ -162,47 +171,42 @@ func main() {
 			Name:        "status",
 			Usage:       fmt.Sprintf("Check status of the %s.", KlientName),
 			Description: cmdDescriptions["status"],
-			Action:      Exit(StatusCommand),
+			Action:      ExitAction(StatusCommand, kodingLogger, "status"),
 		},
 		cli.Command{
 			Name:        "start",
 			Usage:       fmt.Sprintf("Start the %s.", KlientName),
 			Description: cmdDescriptions["start"],
-			Action:      Exit(StartCommand),
+			Action:      ExitAction(StartCommand, kodingLogger, "start"),
 		},
 		cli.Command{
 			Name:        "stop",
 			Usage:       fmt.Sprintf("Stop the %s.", KlientName),
 			Description: cmdDescriptions["stop"],
-			Action:      Exit(StopCommand),
+			Action:      ExitAction(StopCommand, kodingLogger, "stop"),
 		},
 		cli.Command{
 			Name:        "restart",
 			Usage:       fmt.Sprintf("Restart the %s.", KlientName),
 			Description: cmdDescriptions["restart"],
-			Action:      Exit(RestartCommand),
+			Action:      ExitAction(RestartCommand, kodingLogger, "restart"),
 		},
 		cli.Command{
 			Name:        "update",
 			Usage:       fmt.Sprintf("Update %s to latest version.", KlientName),
 			Description: cmdDescriptions["update"],
-			Action:      Exit(UpdateCommand),
+			Action:      ExitAction(UpdateCommand, kodingLogger, "update"),
 		},
 		cli.Command{
 			Name:            "run",
 			Usage:           "Run command on remote or local machine.",
 			Description:     cmdDescriptions["run"],
-			Action:          Exit(RunCommandFactory),
+			Action:          ExitAction(RunCommandFactory, kodingLogger, "run"),
 			SkipFlagParsing: true,
 		},
 	}
 
 	app.Run(os.Args)
-}
-
-// Exit is a wrapper around commands to return to proper error code.
-func Exit(f ExitingCommand) func(*cli.Context) {
-	return func(c *cli.Context) { os.Exit(f(c)) }
 }
 
 // ExitWithMessage takes a ExitingWithMessageCommand type and returns a

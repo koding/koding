@@ -9,6 +9,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
+	kodinglogging "github.com/koding/logging"
 )
 
 type kiteInfo struct {
@@ -30,7 +31,7 @@ type mountInfo struct {
 
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
-func ListCommand(c *cli.Context) int {
+func ListCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "list")
 		return 1

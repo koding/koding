@@ -11,6 +11,8 @@ import (
 
 	"koding/klientctl/logging"
 
+	kodinglogging "github.com/koding/logging"
+
 	"github.com/codegangsta/cli"
 	"github.com/leeola/service"
 )
@@ -46,7 +48,7 @@ func (p *serviceProgram) Stop(s service.Service) error {
 }
 
 // InstallCommandFactory is the factory method for InstallCommand.
-func InstallCommandFactory(c *cli.Context) int {
+func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "install")
 		return 1

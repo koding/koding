@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	kodinglogging "github.com/koding/logging"
 )
 
 // StartCommand starts local klient. Requires sudo.
-func StartCommand(c *cli.Context) int {
+func StartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "start")
 		return 1

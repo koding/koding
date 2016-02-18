@@ -7,12 +7,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/codegangsta/cli"
 	"koding/klientctl/logging"
+
+	"github.com/codegangsta/cli"
+	kodinglogging "github.com/koding/logging"
 )
 
 // UpdateCommand updates this binary if there's an update available.
-func UpdateCommand(c *cli.Context) int {
+func UpdateCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "update")
 		return 1

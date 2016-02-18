@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	kodinglogging "github.com/koding/logging"
 )
 
 // StopCommand stop local klient. Requires sudo.
-func StopCommand(c *cli.Context) int {
+func StopCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "stop")
 		return 1
