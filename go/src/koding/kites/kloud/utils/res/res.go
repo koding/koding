@@ -19,6 +19,12 @@ import (
 	"golang.org/x/net/context"
 )
 
+// Validator validates arguments after parsing flags and before
+// running the command.
+type Validator interface {
+	Valid() error
+}
+
 // Command represents a single action on a resource.
 type Command interface {
 	Name() string
@@ -187,6 +193,12 @@ func (res *Resource) Main(args []string) error {
 	}
 	if err != nil {
 		return err
+	}
+
+	if v, ok := command.(Validator); ok {
+		if err := v.Valid(); err != nil {
+			return err
+		}
 	}
 
 	if res.ContextFunc != nil {

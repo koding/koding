@@ -408,7 +408,7 @@ func TestAccountUpdated(t *testing.T) {
 			})
 		})
 
-		Convey("updating the account again should sucess", func() {
+		Convey("updating the account again should success", func() {
 			err := handler.AccountCreated(acc)
 			So(err, ShouldBeNil)
 			So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
@@ -431,7 +431,7 @@ func TestAccountUpdated(t *testing.T) {
 
 			So(doBasicTestForAccountDeletion(handler, acc.OldId), ShouldBeNil)
 
-			Convey("deleting the account again should sucess", func() {
+			Convey("deleting the account again should success", func() {
 				err = handler.AccountUpdated(acc)
 				So(err, ShouldBeNil)
 				So(doBasicTestForAccountDeletion(handler, acc.OldId), ShouldBeNil)

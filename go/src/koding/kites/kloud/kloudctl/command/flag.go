@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 )
 
 var (
@@ -24,15 +25,26 @@ type Flag struct {
 	totalDefaultFlag int
 }
 
+func defaultKloudAddr() string {
+	if s := os.Getenv("KLOUDCTL_KLOUD_ADDR"); s != "" {
+		return s
+	}
+	return "http://127.0.0.1:5500/kite"
+}
+
+func defaultDebug() bool {
+	return os.Getenv("KLOUDCTL_DEBUG") == "1"
+}
+
 func NewFlag(name, synopsis string) *Flag {
 	flagSet := flag.NewFlagSet(name, flag.ContinueOnError)
 	flagSet.SetOutput(ioutil.Discard)
 
 	// global subcommand flags
-	flagSet.StringVar(&flagKloudAddr, "kloud-addr", "http://127.0.0.1:5500/kite",
+	flagSet.StringVar(&flagKloudAddr, "kloud-addr", defaultKloudAddr(),
 		"Kloud addr to connect")
 	flagSet.BoolVar(&flagWatchEvents, "watch", false, "Watch the events coming by.")
-	flagSet.BoolVar(&flagDebug, "debug", false, "Turns on debug logging.")
+	flagSet.BoolVar(&flagDebug, "debug", defaultDebug(), "Turns on debug logging.")
 
 	f := &Flag{
 		name:     name,

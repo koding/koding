@@ -3,6 +3,7 @@ shell           = require 'shell'
 electron        = require 'electron'
 ApplicationMenu = require './applicationmenu'
 IPCReporter     = require './ipcreporter'
+TrayIcon        = require './trayicon'
 Storage         = require './storage'
 BrowserWindow   = electron.BrowserWindow
 app             = electron.app
@@ -14,6 +15,29 @@ STORAGE_TEMPLATE = { 'last-route' : ROOT_URL }
 NODE_REQUIRE     = path.resolve path.join __dirname, 'noderequire.js'
 
 module.exports = ->
+
+  # Set application menu
+  new ApplicationMenu
+
+  # Create System Tray
+  new TrayIcon
+
+  # Start listening the web app
+  new IPCReporter
+
+  # Prepare AppStorage
+  storage = new Storage template : STORAGE_TEMPLATE
+
+  syncStorage = (callback = (->)) ->
+
+    return  unless mainWindow
+
+    settings = storage.get()
+    settings['last-route'] = mainWindow.webContents.getURL()
+    storage.write settings, callback
+
+  # Sync storage on quit
+  app.on 'will-quit', syncStorage
 
   # Create the browser window.
   mainWindow = new BrowserWindow
@@ -28,16 +52,6 @@ module.exports = ->
       preload         : NODE_REQUIRE
       nodeIntegration : no
 
-
-  # Set application menu
-  new ApplicationMenu
-
-  # Start listening the web app
-  new IPCReporter
-
-  # Prepare AppStorage
-  storage = new Storage template : STORAGE_TEMPLATE
-
   # and load the index.html of the app.
   mainWindow.loadURL storage.get()['last-route'] or ROOT_URL
 
@@ -45,15 +59,10 @@ module.exports = ->
     e.preventDefault()
     shell.openExternal url
 
-  app.on 'will-quit', (e) ->
-    settings = storage.get()
-    settings['last-route'] = mainWindow.webContents.getURL()
-    storage.write settings
-
   # Emitted when the window is closed.
-  mainWindow.on 'closed', ->
+  mainWindow.on 'close', ->
     # Dereference the window object, usually you would store windows
     # in an array if your app supports multi windows, this is the time
     # when you should delete the corresponding element.
-    mainWindow = null
-
+    syncStorage ->
+      mainWindow = null

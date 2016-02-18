@@ -29,7 +29,7 @@ type MachineUser struct {
 type MachineAssignee struct {
 	AssignedAt      time.Time `bson:"assignedAt" json:"assignedAt"`
 	InProgress      bool      `bson:"inProgress" json:"inProgress"`
-	KlientMissingAt time.Time `bson:"klientMissingAt" json:"klientMissingAt"`
+	KlientMissingAt time.Time `bson:"klientMissingAt,omitempty" json:"klientMissingAt,omitempty"`
 }
 
 type MachineGeneratedFrom struct {

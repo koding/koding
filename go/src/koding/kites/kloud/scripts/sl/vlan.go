@@ -77,13 +77,23 @@ func (cmd *vlanList) Run(ctx context.Context) error {
 	return nil
 }
 
+func datacenter(v *sl.VLAN) string {
+	if v.Subnet.Datacenter.Name != "" {
+		return v.Subnet.Datacenter.Name
+	}
+	if len(v.Subnets) != 0 {
+		return v.Subnets[0].Datacenter.Name
+	}
+	return ""
+}
+
 func printVlans(vlans sl.VLANs) {
 	w := &tabwriter.Writer{}
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, "ID\tInternal ID\tTotal\tAvailable\tInstances\tDatacenter\tTags")
 	for _, v := range vlans {
 		fmt.Fprintf(w, "%d\t%d\t%d\t%d\t%d\t%s\t%s\n", v.ID, v.InternalID, v.Subnet.Total,
-			v.Subnet.Available, v.InstanceCount, v.Subnet.Datacenter.Name, v.Tags)
+			v.Subnet.Available, v.InstanceCount, datacenter(v), v.Tags)
 	}
 	w.Flush()
 }
