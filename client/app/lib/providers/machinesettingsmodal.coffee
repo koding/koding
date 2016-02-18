@@ -30,7 +30,7 @@ PANE_CONFIG = [
   { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
 ]
 
-hiddenViewForSolo = [
+hiddenTabsForSolo = [
   'VM Sharing'
 ]
 
