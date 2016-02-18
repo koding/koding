@@ -32,17 +32,23 @@ import (
 )
 
 const (
-	PostRequest   = "POST"
-	GetRequest    = "GET"
+	// PostRequest represents a "POST" http request
+	PostRequest = "POST"
+
+	// GetRequest represents a "GET" http request
+	GetRequest = "GET"
+
+	// DeleteRequest represents a "DELETE" http request
 	DeleteRequest = "DELETE"
 )
 
 var (
 	// TODO allowed origins must be configurable
-	cors         = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
-	genericError = errors.New("an error occurred")
+	cors       = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
+	errGeneric = errors.New("an error occurred")
 )
 
+// Request holds constructive info regarding handler creation
 type Request struct {
 	Handler        interface{}
 	Endpoint       string
@@ -66,7 +72,7 @@ type Request struct {
 var throttleErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 	runner.MustGetLogger().Error("Throttling error: %s", err)
 
-	writeJSONError(w, genericError)
+	writeJSONError(w, errGeneric)
 }
 
 var throttleDenyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -76,17 +82,14 @@ var throttleDenyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 // getAccount tries to retrieve account information from incoming request,
 // should always return a valid account, not nil
 func getAccount(r *http.Request, groupName string) *models.Account {
-	cookie, err := r.Cookie("clientId")
-	if err != nil {
-		return models.NewAccount()
-	}
+	clientID := getClientID(r)
 
 	// if cookie doenst exists return empty account
-	if cookie.Value == "" {
+	if clientID == "" {
 		return models.NewAccount()
 	}
 
-	session, err := models.Cache.Session.ById(cookie.Value)
+	session, err := models.Cache.Session.ById(clientID)
 	if err != nil {
 		return models.NewAccount()
 	}
@@ -195,20 +198,29 @@ func makeSureMembership(groupChannel *models.Channel, accountId int64) error {
 	return models.Cache.Participant.SetToCache(groupChannel.Id, accountId)
 }
 
+// getClientID gets client id from cookie, if fails, returns empty string.
+func getClientID(r *http.Request) string {
+	cookie, err := r.Cookie("clientId")
+	if err != nil {
+		return ""
+	}
+
+	return cookie.Value
+}
+
+// getGroupName tries to get the group name from JSession, if fails to do so,
+// returns koding as groupname. This function should allow failures because some of our
 func getGroupName(r *http.Request) string {
 	const groupName = "koding"
 
-	cookie, err := r.Cookie("clientId")
-	if err != nil {
+	clientID := getClientID(r)
+
+	// if cookie doenst exists return default group
+	if clientID == "" {
 		return groupName
 	}
 
-	// if cookie doenst exists return empty account
-	if cookie.Value == "" {
-		return groupName
-	}
-
-	session, err := models.Cache.Session.ById(cookie.Value)
+	session, err := models.Cache.Session.ById(clientID)
 	if err != nil {
 		return groupName
 	}
@@ -271,8 +283,9 @@ func BuildHandlerWithContext(handler http.Handler, redis *redis.RedisSession, lo
 			context := models.NewContext(redis, log)
 			context.GroupName = getGroupName(r)
 			context.Client = &models.Client{
-				Account: getAccount(r, context.GroupName),
-				IP:      net.ParseIP(utils.GetIpAddress(r)),
+				Account:   getAccount(r, context.GroupName),
+				IP:        net.ParseIP(utils.GetIpAddress(r)),
+				SessionID: getClientID(r),
 			}
 
 			*(tigertonic.Context(r).(*models.Context)) = *context

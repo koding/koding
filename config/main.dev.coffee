@@ -566,7 +566,7 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/account/channels$is_args$args"
           }
           {
-            location    : "~ /api/social/slack/(.*)"
+            location    : "~* ^/api/social/slack/(.*)"
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
           }
           {
