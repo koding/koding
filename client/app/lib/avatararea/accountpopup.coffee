@@ -1,7 +1,8 @@
-kd                        = require 'kd'
-AvatarPopup               = require './avatarpopup'
-CustomLinkView            = require '../customlinkview'
-HelpSupportModal          = require '../commonviews/helpsupportmodal'
+kd                = require 'kd'
+AvatarPopup       = require './avatarpopup'
+CustomLinkView    = require '../customlinkview'
+HelpSupportModal  = require '../commonviews/helpsupportmodal'
+isSoloProductLite = require 'app/util/issoloproductlite'
 
 module.exports = class AccountPopup extends AvatarPopup
 
@@ -13,11 +14,12 @@ module.exports = class AccountPopup extends AvatarPopup
 
     { groupsController } = kd.singletons
 
-    @avatarPopupContent.addSubView @paymentActionLabel = new CustomLinkView
-      title      : 'Upgrade plan'
-      href       : '/Pricing'
-      cssClass   : 'bottom-separator'
-      click      : @bound 'goToPricing'
+    unless isSoloProductLite()
+      @avatarPopupContent.addSubView @paymentActionLabel = new CustomLinkView
+        title      : 'Upgrade plan'
+        href       : '/Pricing'
+        cssClass   : 'bottom-separator'
+        click      : @bound 'goToPricing'
 
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Koding University'
