@@ -40,22 +40,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
     info.addSubView button = new kd.ButtonView
       cssClass : 'solid medium green slack-oauth'
       title    : 'Import from  <cite></cite>'
-      callback : =>
-
-        cb = =>
-          kd.utils.killRepeat repeat
-          info.hide()
-          @createInviterViews()
-
-        oauth_window = window.open(
-          OAUTH_URL,
-          "slack-oauth-window",
-          "width=800,height=#{window.innerHeight},left=#{Math.floor (screen.width/2) - 400},top=#{Math.floor (screen.height/2) - (window.innerHeight/2)}"
-        )
-
-        repeat = kd.utils.repeat 500, -> cb()  if oauth_window.closed
-
-
+      callback : -> location.assign OAUTH_URL
 
 
   createInviterViews: ->
