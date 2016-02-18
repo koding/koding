@@ -167,11 +167,11 @@ module.exports =
       .waitForElementVisible  chatBox, 20000 # Assertion
 
 
-  startSessionAndInviteUser: (browser, firstUser, secondUser, assertOnline = yes, readOnlySession) ->
+  startSessionAndInviteUser: (browser, firstUser, secondUser, assertOnline = yes, readOnlySession = no) ->
 
     secondUserName         = secondUser.username
     secondUserAvatar       = ".avatars .avatarview[href='/#{secondUserName}']"
-    secondUserOnlineAvatar = secondUserAvatar + '.online'
+    secondUserOnlineAvatar = "#{secondUserAvatar}.online"
     chatTextSelector       = '.status-bar a.active'
 
     helpers.beginTest browser, firstUser
@@ -202,9 +202,10 @@ module.exports =
     secondUserName   = secondUser.username
     sharedMachineBox = '[testpath=main-sidebar] .shared-machines:not(.hidden)'
     shareModal       = '.share-modal'
-    fullName         = shareModal + ' .user-details .fullname'
-    acceptButton     = shareModal + ' .kdbutton.green'
-    rejectButton     = shareModal + ' .kdbutton.red'
+
+    fullName         = "#{shareModal} .user-details .fullname"
+    acceptButton     = "#{shareModal} .kdbutton.green"
+    rejectButton     = "#{shareModal} .kdbutton.red"
     selectedMachine  = '.sidebar-machine-box.selected'
     filetree         = '.ide-files-tab'
     message          = '.kdlistitemview-activity.privatemessage'
@@ -290,8 +291,8 @@ module.exports =
     secondUserName   = participant.username
     sharedMachineBox = '[testpath=main-sidebar] .shared-machines:not(.hidden)'
     shareModal       = '.share-modal'
-    fullName         = shareModal + ' .user-details .fullname'
-    rejectButton     = shareModal + ' .kdbutton.red'
+    fullName         =  "#{shareModal} .user-details .fullname"
+    rejectButton     =  "#{shareModal} .kdbutton.red"
 
     helpers.beginTest browser, participant
 
@@ -321,6 +322,7 @@ module.exports =
     leaveSessionMenuItem = "#{contextMenu} .context-list-wrapper li.leave-session"
     kdmodal              = '.kdmodal.kddraggable'
     kdmodalYesButton     = "#{kdmodal} button.green"
+    machineSelector      = '.shared-machines'
 
     unless hostBrowser
       @openChatWindow(browser)
@@ -333,7 +335,7 @@ module.exports =
       .click                     leaveSessionMenuItem
       .waitForElementVisible     kdmodal, 20000
       .click                     kdmodalYesButton
-      .waitForElementPresent     '.shared-machines', 20000
+      .waitForElementPresent     machineSelector, 20000
       .waitForElementNotPresent  chatBox,20000
 
 
@@ -359,6 +361,7 @@ module.exports =
     shareModal         = '.share-modal'
     leaveSessionButton = "#{shareModal} .kdmodal-inner button.red"
     chatBox            = '.chat-view'
+    machineSelector    = '.shared-machines'
 
     unless hostBrowser
       @openMachineSettingsButton(browser)
@@ -366,7 +369,7 @@ module.exports =
     browser
       .waitForElementVisible     leaveSessionButton, 20000
       .click                     leaveSessionButton
-      .waitForElementPresent     '.shared-machines', 20000
+      .waitForElementPresent     machineSelector, 20000
       .waitForElementNotPresent  chatBox,20000
 
 
@@ -374,11 +377,12 @@ module.exports =
 
     chatHeads     = ".chat-view .chat-heads .ParticipantHeads [href='/#{user.username}']"
     kickSelector  = '.kdcontextmenu .kick'
+    menuSelector  = '.kdcontextmenu'
 
     browser
       .waitForElementVisible     chatHeads, 20000
       .moveToElement             chatHeads, 14,14
-      .waitForElementVisible     '.kdcontextmenu', 20000
+      .waitForElementVisible     menuSelector, 20000
       .waitForElementVisible     kickSelector, 20000
       .pause                     3000 # wait for participant
       .click                     kickSelector
@@ -453,16 +457,16 @@ module.exports =
     hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant = utils.getUser no, 1
 
-    inputSelector       = '.message-pane .activity-input-widget'
-    textAreaSelector    = "#{inputSelector} [testpath=ActivityInputView]"
-    hostMessage         = 'message from host'
-    participantMessage  = 'message from participant'
-    messagePaneScroller = '.message-pane .message-pane-scroller [testpath=activity-list]'
-    sendText            = "#{messagePaneScroller} .consequent:not(.join-leave)"
-
+    inputSelector        = '.message-pane .activity-input-widget'
+    textAreaSelector     = "#{inputSelector} [testpath=ActivityInputView]"
+    messagePaneScroller  = '.message-pane .message-pane-scroller [testpath=activity-list]'
+    sendText             = "#{messagePaneScroller} .consequent:not(.join-leave)"
+    messagePaneSelector  = '.message-pane'
+    hostMessage        or= 'message from host'
+    participantMessage or= 'message from participant'
 
     browser
-      .waitForElementVisible   '.message-pane', 20000
+      .waitForElementVisible   messagePaneSelector, 20000
       .waitForElementVisible   inputSelector, 20000
       .waitForElementVisible   textAreaSelector, 20000
 

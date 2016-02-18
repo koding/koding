@@ -95,8 +95,7 @@ module.exports =
       .click                  saveButtonSelector
       .waitForElementVisible  "#{tabHandleSelector} #{titleSelector}", 20000 # Assertion
       .waitForElementVisible  filesTabSelector, 20000
-      .pause                  3000 # wait for create file
-      .assert.containsText    filesTabSelector, newName # Assertion
+      .waitForTextToContain   filesTabSelector, newName # Assertion
 
     if text
       browser.assert.containsText panelSelector, text
@@ -149,8 +148,7 @@ module.exports =
       .waitForElementVisible  'li.open-file', 20000
       .click                  'li.open-file'
       .waitForElementVisible  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
-      .pause                  3000 # wait for text
-      .assert.containsText    activeEditorSelector, text # Assertion
+      .waitForTextToContain   activeEditorSelector, text # Assertion
 
 
   openFileFromWebFolder: (browser, user, fileName, fileContent) ->
@@ -173,8 +171,7 @@ module.exports =
       .click                   'li.open-file'
       .waitForElementVisible   ".pane-wrapper .kdsplitview-panel .#{fileNameSlug}", 20000 # Assertion
       .waitForElementVisible   tabSelector, 20000 # Assertion
-      .pause  3000
-      .assert.containsText     tabSelector, fileContent # Assertion
+      .waitForTextToContain    tabSelector, fileContent # Assertion
 
 
   openFile: (browser, user, fileName) ->

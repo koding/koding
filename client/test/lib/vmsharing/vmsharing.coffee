@@ -15,9 +15,8 @@ module.exports =
     if hostBrowser
       utils.getUser()
 
-    if utils.suiteHookHasRun 'before'
-    then return
-    else utils.registerSuiteHook 'before'
+    return if utils.suiteHookHasRun 'before'
+    utils.registerSuiteHook 'before'
 
 
   shareVM: (browser) ->
@@ -98,7 +97,6 @@ module.exports =
         browser.element 'css selector', "a[title='#{title}']", (result) ->
 
           if result.status is 0
-            console.log ',,,,,,,,,,,,,'
             browser
               .pause 7000 # wait for host to end
               .end()

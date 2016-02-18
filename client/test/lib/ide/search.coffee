@@ -140,8 +140,6 @@ module.exports =
     ideHelpers.closeFile(browser, fileName, user)
     ideHelpers.openAnExistingFile(browser, user, fileName, text)
 
-    browser
-      .pause                  2000 # wait for text
-      .assert.containsText    activeEditorSelector, text # Assertion
+    browser.waitForTextToContain activeEditorSelector, text # Assertion
 
     browser.end()
