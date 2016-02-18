@@ -84,6 +84,10 @@ func (v VLANs) ByDatacenter(datacenter string) (res VLANs) {
 	for _, vlan := range v {
 		if vlan.Subnet.Datacenter.Name == datacenter {
 			res = append(res, vlan)
+			continue
+		}
+		if len(vlan.Subnets) != 0 && vlan.Subnets[0].Datacenter.Name == datacenter {
+			res = append(res, vlan)
 		}
 	}
 	return res
