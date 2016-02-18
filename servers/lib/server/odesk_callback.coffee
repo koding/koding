@@ -49,7 +49,7 @@ module.exports = (req, res) ->
           redirectOauth err, req, res, { provider }
           return
 
-        client.get 'https://www.odesk.com/api/auth/v1/info',
+        client.get 'https://www.upwork.com/api/auth/v1/info',
           accessToken, accessTokenSecret, (err, data) ->
             try
               response = JSON.parse data

@@ -39,4 +39,46 @@ $ kontrol-instance-ids | tr '\n' ' ' | xargs aws ec2 terminate-instances --insta
 
 ### kloudctl group
 
-*TODO(rjeczalik)*
+Export MongoDB DSN, e.g.:
+
+```bash
+$ export KLOUDCTL_MONGODB_URL=127.0.0.1:27017
+```
+
+Create a softlayer machine, hiding it from the user:
+
+```bash
+$ kloudctl group create -f hackathon-sjc01 -users rafal -nostack
+```
+
+Make the machine visible:
+
+```bash
+$ kloudctl group stack -users rafal -machine softlayer-vm-0
+```
+
+Hide it again:
+
+```bash
+$ kloudctl group stack -users rafal -machine softlayer-vm-0 -rm
+```
+
+Debug kite communication / events:
+
+```bash
+$ kloudctl group -debug create -f hackathon-sjc01 -users rafal -nostack
+```
+
+Create thousands machines at once with at most 20 vm being created at a time (throttling):
+
+```bash
+$ cat >usernames.txt <<EOF
+user-1
+user-2
+...
+user-n
+EOF
+```
+```bash
+$ cat usernames.txt | kloudctl group create -f hackathon-sjc01 -users - -nostack -t 20
+```

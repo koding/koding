@@ -15,6 +15,12 @@ type ComputeStack struct {
 	// Points to a document in jStackTemplates
 	BaseStackId bson.ObjectId `bson:"baseStackId"`
 
+	// Points to a document in jAccounts
+	OriginId bson.ObjectId `bson:"originId"`
+
+	// Group slug.
+	Group string `bson:"group"`
+
 	// User injected credentials
 	Credentials map[string][]string `bson:"credentials"`
 
