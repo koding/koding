@@ -62,7 +62,6 @@ func (a *Account) ByToken(token string) error {
 		"token": token,
 	}
 
-	// return bongo.B.ById(a, token)
 	return a.One(bongo.NewQS(selector))
 }
 
