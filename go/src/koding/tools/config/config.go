@@ -259,10 +259,10 @@ type RuntimeOptions struct {
 		Twitter struct {
 			Nicename string `json:"nicename"`
 		} `json:"twitter"`
-		Odesk struct {
+		Upwork struct {
 			Nicename    string `json:"nicename"`
 			UrlLocation string `json:"urlLocation"`
-		} `json:"odesk"`
+		} `json:"upwork"`
 		Facebook struct {
 			Nicename    string `json:"nicename"`
 			UrlLocation string `json:"urlLocation"`

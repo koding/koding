@@ -115,7 +115,7 @@ app.post '/-/api/ssotoken/create'                , require './handlers/api/creat
 app.get  '/-/api/ssotoken/login'                 , require './handlers/api/ssotokenlogin'
 app.get  '/-/api/logs'                           , require './handlers/api/logs'
 app.get  '/-/image/cache'                        , require './image_cache'
-app.get  '/-/oauth/odesk/callback'               , require './odesk_callback'
+app.get  '/-/oauth/upwork/callback'              , require './upwork_callback'
 app.get  '/-/oauth/github/callback'              , require './github_callback'
 app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
 app.get  '/-/oauth/google/callback'              , require './google_callback'
