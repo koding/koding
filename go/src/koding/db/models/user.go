@@ -68,10 +68,7 @@ type ForeignAuth struct {
 }
 
 type Slack struct {
-	Token    string `bson:"token" json:"-"`
-	Email    string
-	Username string
-	Scope    string
+	Token string `bson:"token" json:"-"`
 }
 
 type Github struct {
