@@ -228,8 +228,14 @@ func (t *Template) InjectVariables(prefix string, meta interface{}) error {
 	for k, v := range t.b.New(prefix).Build(meta) {
 		t.log.Debug("Injecting variable: %s=%v", k, v)
 
-		t.Variable[k] = map[string]interface{}{
-			"default": v,
+		if str, ok := v.(string); ok {
+			t.Variable[k] = map[string]interface{}{
+				"default": strings.Replace(str, "\n", "\\n", -1),
+			}
+		} else {
+			t.Variable[k] = map[string]interface{}{
+				"default": v,
+			}
 		}
 	}
 
