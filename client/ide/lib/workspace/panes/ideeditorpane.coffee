@@ -134,6 +134,36 @@ module.exports = class IDEEditorPane extends IDEPane
         @contentChangedWarning?.destroy()
         @contentChangedWarning = null
 
+    @file.on 'FilePathChanged', (name) =>
+
+      deleteFilePath = @file.getOptions().path
+
+      [node] = @file.treeController.selectedNodes
+
+      parent            = node.getData()
+      contents          = ace.getContents()
+      oldCursorPosition = ace.editor.getCursorPosition()
+
+      @file.machine = parent.machine
+
+      parent.path = @file.getOptions().parentPath
+
+      @file.once 'fs.saveAs.finished',   ace.bound 'saveAsFinished'
+      @file.emit 'file.requests.saveAs', contents, name, parent.path
+
+      ace.emit 'AceDidSaveAs', name, parent.path # ????
+
+      @file.on 'fs.saveAs.finished', (newFile) =>
+        {tabView} = @getDelegate()
+
+        return  if tabView.willClose
+
+        @getDelegate().openSavedFile newFile, contents
+
+        @file.path = deleteFilePath
+
+        @file.remove kd.log, false
+
 
   updateContent: (content, isSaved = no) ->
 

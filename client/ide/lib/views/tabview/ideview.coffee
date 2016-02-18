@@ -94,20 +94,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       switch paneType
         when 'editor'
           tabHandle.enableContextMenu()
-          paneView       = tabHandle.getOptions().pane
-          handleCallback = @lazyBound 'handleEditorRenamingRequested', tabHandle
-          tabHandle.on 'RenamingRequested', handleCallback
+          tabHandle.on 'RenamingRequested', (newTitle) => view.file.emit 'FilePathChanged', newTitle
           tabHandle.makeEditable()
-
-          view.file.on 'FilePathChanged', (newTitle)=>
-            ideApp = kd.singletons.appManager.frontApp
-
-            return  unless ideApp
-
-            ideApp.writeSnapshot()
-
-            @renameEditor paneView, newTitle
-
 
         when 'terminal'
           tabHandle.enableContextMenu()
@@ -786,21 +774,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     unless session.length is DEFAULT_SESSION_NAME_LENGTH
       terminalHandle.setTitle session
 
-
-  handleEditorRenamingRequested: (tabHandle, newTitle) ->
-
-    paneView = tabHandle.getOptions().pane
-    editorPane = paneView.view
-    nodeData = editorPane.getFile()
-
-    newTitle = Encoder.XSSEncode newTitle
-    return  if newTitle is nodeData.name
-    return  unless FSHelper.isValidFileName newTitle
-
-    nodeData.rename newTitle, (err)=>
-      if err then console.log 'err', err
-      tabHandle.setTitle newTitle
-
   handleTerminalRenamingRequested: (tabHandle, newTitle) ->
 
     paneView     = tabHandle.getOptions().pane
@@ -834,14 +807,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     .catch (err) ->
       showErrorNotification err
-
-
-  renameEditor: (paneView, newTitle) ->
-
-    editorHandle = @tabView.getHandleByPane paneView
-
-    editorHandle.setTitle newTitle
-
 
   renameTerminal: (paneView, machine, newTitle) ->
 
