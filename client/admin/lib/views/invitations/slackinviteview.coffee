@@ -1,5 +1,6 @@
 $             = require 'jquery'
 kd            = require 'kd'
+whoami        = require 'app/util/whoami'
 SlackUserItem = require './slackuseritem'
 
 
@@ -18,10 +19,12 @@ getSelectedMembers = (listController) ->
 
 module.exports = class SlackInviteView extends kd.CustomScrollView
 
-  SLACKBOT_ID = 'USLACKBOT'
-  OAUTH_URL   = "#{location.origin}/api/social/slack/oauth"
+  SLACKBOT_ID   = 'USLACKBOT'
+  OAUTH_URL     = "#{location.origin}/api/social/slack/oauth"
+  USERS_URL     = "#{location.origin}/api/social/slack/users"
   CHANNELS_URL  = "#{location.origin}/api/social/slack/channels"
   MESSAGING_URL = "#{location.origin}/api/social/slack/message"
+  ICON_URL      = "#{location.origin}/a/images/logos/notify_logo.png"
 
   constructor: (options = {}, data) ->
 
@@ -139,6 +142,33 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
       cssClass : 'solid medium green invite-members fr'
       title    : 'Invite selected members'
       disabled : yes
-      callback : ->
-        selected = getSelectedMembers listController
-        console.log selected
+      callback : => @prepareMessages getSelectedMembers listController
+
+
+  prepareMessages: (recipients) ->
+
+
+
+    recipients.forEach (recipient) ->
+      $.ajax
+        url              : MESSAGING_URL
+        method           : 'POST'
+        headers          :
+          Accept         : 'application/json'
+          'Content-Type' : 'application/json'
+        data             : JSON.stringify
+          channel        : recipient.id
+          text           : 'Invite ulan!'
+          params         :
+            as_user      : no
+            username     : whoami().profile.firstName
+            icon_url     : ICON_URL
+            icon_emoji   : ':cihangir:'
+        success: ->
+          console.log 'success'
+        error: ->
+          console.log 'error'
+
+
+
+  sendMessage: (message) ->
