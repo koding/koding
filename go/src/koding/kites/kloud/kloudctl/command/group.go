@@ -16,11 +16,14 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"koding/db/models"
+	"koding/kites/common"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils/res"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
@@ -39,10 +42,11 @@ func NewGroup() cli.CommandFactory {
 				Name:        "group",
 				Description: "Lists/creates/deletes a group of machines",
 				Commands: map[string]res.Command{
-					"list":   NewGroupList(),
-					"create": NewGroupCreate(),
-					"stack":  NewGroupStack(),
-					"delete": NewGroupDelete(),
+					"list":      NewGroupList(),
+					"create":    NewGroupCreate(),
+					"stack":     NewGroupStack(),
+					"delete":    NewGroupDelete(),
+					"fixdomain": NewGroupFixDomain(),
 				},
 			},
 		}
@@ -62,6 +66,219 @@ func (g *Group) Action(args []string) error {
 	defer modelhelper.Close()
 	g.Resource.ContextFunc = func([]string) context.Context { return ctx }
 	return g.Resource.Main(args)
+}
+
+type GroupFixDomain struct {
+	*groupUsers
+
+	machine string
+	access  string
+	secret  string
+	env     string
+	dry     bool
+
+	dns *dnsclient.Route53
+}
+
+func NewGroupFixDomain() *GroupFixDomain {
+	return &GroupFixDomain{
+		groupUsers: &groupUsers{},
+	}
+}
+
+func (cmd *GroupFixDomain) Name() string {
+	return "fixdomain"
+}
+
+func (cmd *GroupFixDomain) Valid() error {
+	if err := cmd.groupUsers.Valid(); err != nil {
+		return err
+	}
+
+	if len(cmd.usernames) == 0 {
+		return errors.New("no usernames provided for -users flag")
+	}
+
+	if cmd.machine == "" {
+		return errors.New("no value provided for -machine flag")
+	}
+
+	if cmd.env == "" {
+		return errors.New("no value provided for -env flag")
+	}
+
+	zone := dnsZones[cmd.env]
+	if zone == "" {
+		return errors.New("invalid value provided for -env flag")
+	}
+
+	if cmd.access == "" {
+		return errors.New("no value provided for -access flag")
+	}
+
+	if cmd.secret == "" {
+		return errors.New("no value provided for -secret flag")
+	}
+
+	dnsOpts := &dnsclient.Options{
+		Creds:      credentials.NewStaticCredentials(cmd.access, cmd.secret, ""),
+		HostedZone: zone,
+		Log:        common.NewLogger("dns", flagDebug),
+	}
+
+	dns, err := dnsclient.NewRoute53Client(dnsOpts)
+	if err != nil {
+		return err
+	}
+
+	cmd.dns = dns
+
+	return nil
+}
+
+func nonempty(s ...string) string {
+	for _, s := range s {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
+}
+
+func route53defaults() (string, string) {
+	access := nonempty(os.Getenv("ROUTE53_ACCESS_KEY"), os.Getenv("AWS_ACCESS_KEY"))
+	secret := nonempty(os.Getenv("ROUTE53_SECRET_KEY"), os.Getenv("AWS_SECRET_KEY"))
+	return access, secret
+}
+
+func (cmd *GroupFixDomain) RegisterFlags(f *flag.FlagSet) {
+	cmd.groupUsers.RegisterFlags(f)
+
+	access, secret := route53defaults()
+
+	f.BoolVar(&cmd.dry, "dry", false, "Dry run.")
+	f.StringVar(&cmd.machine, "machine", "", "Machine slug/label name.")
+	f.StringVar(&cmd.env, "env", os.Getenv("KITE_ENVIRONMENT"), "Environment name.")
+	f.StringVar(&cmd.access, "access", access, "Route53 access key.")
+	f.StringVar(&cmd.secret, "secret", secret, "Route53 secret key.")
+}
+
+func min(i, j int) int {
+	if i < j {
+		return i
+	}
+	return j
+}
+
+func (cmd *GroupFixDomain) Run(ctx context.Context) error {
+	merr := new(multierror.Error)
+	users := cmd.usernames
+
+	for len(users) > 0 {
+		var batch []string
+		var records []*dnsclient.Record
+		var ids []bson.ObjectId
+		n := min(len(users), 100)
+		batch, users = users[:n], users[n:]
+
+		DefaultUi.Info(fmt.Sprintf("checking %d records...", n))
+
+		for _, user := range batch {
+			rec, id, err := cmd.fixDomain(user)
+			if err != nil {
+				merr = multierror.Append(merr, err)
+				continue
+			}
+
+			if cmd.dry {
+				if rec == nil {
+					merr = multierror.Append(merr, fmt.Errorf("domain for %q is ok", user))
+				} else {
+					merr = multierror.Append(merr, fmt.Errorf("domain for %q is going to be upserted without -dry: %q", user, rec.Name))
+				}
+
+				continue
+			}
+
+			if rec == nil {
+				continue
+			}
+
+			records = append(records, rec)
+			ids = append(ids, id)
+		}
+
+		if len(records) == 0 {
+			continue
+		}
+
+		DefaultUi.Info(fmt.Sprintf("going to upsert %d domains", len(records)))
+
+		// upsert domains
+		if err := cmd.dns.UpsertRecords(records...); err != nil {
+			merr = multierror.Append(merr, err)
+		}
+
+		// update domains
+		if err := cmd.update(records, ids); err != nil {
+			merr = multierror.Append(merr, err)
+		}
+	}
+
+	return merr.ErrorOrNil()
+}
+
+func (cmd *GroupFixDomain) fixDomain(user string) (*dnsclient.Record, bson.ObjectId, error) {
+	u, err := modelhelper.GetUser(user)
+	if err != nil {
+		return nil, "", err
+	}
+
+	m, err := modelhelper.GetMachineBySlug(u.ObjectId, cmd.machine)
+	if err != nil {
+		return nil, "", fmt.Errorf("fixing failed for %q user: %s", user, err)
+	}
+
+	if m.IpAddress == "" {
+		return nil, "", errors.New("no ip address found for: " + user)
+	}
+
+	base := dnsZones[cmd.env]
+
+	if strings.HasSuffix(m.Domain, base) {
+		return nil, "", nil
+	}
+
+	if cmd.dry && m.State() != machinestate.Running {
+		DefaultUi.Warn(fmt.Sprintf("machine %q of user %q is not running (%s)",
+			m.ObjectId.Hex(), user, m.State()))
+	}
+
+	s := m.Domain
+	if i := strings.Index(s, user); i != -1 {
+		s = s[i+len(user):] + "." + base
+	}
+
+	return &dnsclient.Record{
+		Name: s,
+		IP:   m.IpAddress,
+		Type: "A",
+		TTL:  300,
+	}, m.ObjectId, nil
+}
+
+func (cmd *GroupFixDomain) update(records []*dnsclient.Record, ids []bson.ObjectId) error {
+	merr := new(multierror.Error)
+
+	for i, rec := range records {
+		err := modelhelper.UpdateMachine(ids[i], bson.M{"domain": rec.Name})
+		if err != nil {
+			err = fmt.Errorf("failed updating %q domain to %q: %s", ids[i].Hex(), rec.Name, err)
+			merr = multierror.Append(merr, err)
+		}
+	}
+
+	return merr.ErrorOrNil()
 }
 
 type GroupList struct {
@@ -278,6 +495,9 @@ func (cmd *GroupCreate) waitFunc(timeout time.Duration) WaitFunc {
 
 		failureNum := 0
 		lastState := machinestate.NotInitialized
+
+		DefaultUi.Info(fmt.Sprintf("watching status for %q", id))
+
 		for {
 			select {
 			case <-initialTimeout:
@@ -502,7 +722,11 @@ func (cmd *GroupStack) Run(ctx context.Context) error {
 			err = modelhelper.AddToStack(userID, groupID, machineID)
 		}
 		if err != nil {
+			DefaultUi.Warn(fmt.Sprintf("processing %q user stack failed: %s", username, err))
+
 			merr = multierror.Append(merr, err)
+		} else {
+			DefaultUi.Warn(fmt.Sprintf("processed %q user stack", username))
 		}
 	}
 

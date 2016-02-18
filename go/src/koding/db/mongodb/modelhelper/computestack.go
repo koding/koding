@@ -118,12 +118,12 @@ func exists(selector bson.M) func(*mgo.Collection) error {
 func AddToStack(userID, groupID, machineID bson.ObjectId) error {
 	stack, err := GetComputeStackByUserGroup(userID, groupID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get compute stack for userID=%q and groupID=%q: %s", userID.Hex(), groupID.Hex(), err)
 	}
 
 	machine, err := GetMachine(machineID.Hex())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get machine for ID=%q: %s", machineID.Hex(), err)
 	}
 
 	var found bool
@@ -143,7 +143,7 @@ func AddToStack(userID, groupID, machineID bson.ObjectId) error {
 
 		err := Mongo.Run(MachinesColl, update)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to update group of machineID=%q: %s", machineID.Hex(), err)
 		}
 	}
 
@@ -157,6 +157,9 @@ func AddToStack(userID, groupID, machineID bson.ObjectId) error {
 		}
 
 		err = Mongo.Run(ComputeStackColl, update)
+		if err != nil {
+			return fmt.Errorf("failed to update compute stack stackID=%q with machineID=%q: %s", stack.Id.Hex(), machineID.Hex(), err)
+		}
 	}
 
 	return err
