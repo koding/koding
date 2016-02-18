@@ -115,7 +115,7 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	machines, err := stackplan.MachinesFromPlan(plan)
+	machines, err := s.p.MachinesFromPlan(plan)
 	if err != nil {
 		return nil, err
 	}

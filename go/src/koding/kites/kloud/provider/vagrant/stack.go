@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"koding/kites/kloud/api/vagrantapi"
+	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stackplan"
@@ -66,6 +67,7 @@ type Stack struct {
 	TunnelURL *url.URL
 
 	api *vagrantapi.Klient
+	p   *stackplan.Planner
 }
 
 // Ensure Provider implements the kloud.StackProvider interface.
@@ -101,6 +103,11 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		BaseStack: bs,
 		TunnelURL: tunnelURL,
 		api:       api,
+		p: &stackplan.Planner{
+			Provider:     "vagrant",
+			ResourceType: "instance",
+			SessionFunc:  sessionFromContext,
+		},
 	}, nil
 }
 
@@ -108,4 +115,19 @@ func (s *Stack) tunnelUniqueURL(username string) string {
 	urlCopy := *s.TunnelURL
 	urlCopy.Host = utils.RandString(12) + "." + username + "." + urlCopy.Host
 	return urlCopy.String()
+}
+
+func sessionFromContext(ctx context.Context) (*session.Session, error) {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	// TODO(rjeczalik): remove after TMS-2245 and use sess.Kite directly
+	cfg := sess.Kite.Config
+	cfg.Transport = config.XHRPolling
+	sess.Kite = kite.New(kloud.NAME, kloud.VERSION)
+	sess.Kite.Config = cfg
+
+	return sess, nil
 }
