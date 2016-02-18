@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 )
 
 var (
@@ -29,11 +28,7 @@ func defaultKontrolURL() string {
 	if s := os.Getenv("KITE_KONTROL_URL"); s != "" {
 		return s
 	}
-	u, err := user.Current()
-	if err != nil {
-		return ""
-	}
-	return fmt.Sprintf("http://koding-%s.ngrok.com/kontrol/kite", u.Username)
+	return "http://127.0.0.1:3000/kite"
 }
 
 func defaultDebug() bool {
