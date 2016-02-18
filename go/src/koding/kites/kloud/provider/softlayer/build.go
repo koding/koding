@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"koding/kites/kloud/api/sl"
@@ -26,6 +27,10 @@ var (
 	// Only lookup images that have this tag
 	DefaultTemplateTag = "koding-stable"
 )
+
+func IsHostnameSyntaxError(err error) bool {
+	return strings.Contains(err.Error(), "The hostname and domain must be alphanumeric strings that may be separated by periods")
+}
 
 func (m *Machine) Build(ctx context.Context) error {
 	return m.guardTransition(machinestate.Building, "Building started", ctx, m.build)
@@ -141,6 +146,10 @@ func (m *Machine) build(ctx context.Context) error {
 
 	//Create the virtual guest with the service
 	obj, err := svc.CreateObject(virtualGuestTemplate)
+	if IsHostnameSyntaxError(err) {
+		virtualGuestTemplate.Hostname = m.Uid // username can't be used as hostname, use uid instead
+		obj, err = svc.CreateObject(virtualGuestTemplate)
+	}
 	if err != nil {
 		return err
 	}
