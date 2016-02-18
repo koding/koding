@@ -19,7 +19,6 @@ module.exports = class StackTemplateListController extends AccountListViewContro
 
   loadItems: ->
 
-    @removeAllItems()
     @showLazyLoader()
 
     { JStackTemplate } = remote.api
@@ -40,6 +39,7 @@ module.exports = class StackTemplateListController extends AccountListViewContro
 
   onItemsLoaded: (err, stackTemplates = [], stacks = []) ->
 
+    @removeAllItems()
     @hideLazyLoader()
 
     return if showError err, \

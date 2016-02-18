@@ -6,6 +6,7 @@ createLocation            = require 'history/lib/createLocation'
 handlers                  = require './routehandlers'
 lazyrouter                = require 'app/lazyrouter'
 isKoding                  = require 'app/util/isKoding'
+isSoloProductLite         = require 'app/util/issoloproductlite'
 { RoutingContext, match } = require 'react-router'
 
 reactivityRouteTypes = [
@@ -38,8 +39,11 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
       then handleReactivity info, ctx
       # unless reactivity is enabled redirect reactivity routes to `Public`
       else ctx.handleRoute '/Activity/Public'
-    else handle type
-
+    else
+      if not isSoloProductLite()
+        handle type
+      else
+        return ctx.handleRoute ''
 
 ###*
  * Renders with reacth router.
