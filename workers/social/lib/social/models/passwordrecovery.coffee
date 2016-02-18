@@ -110,8 +110,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     token = createId()
 
-    { email, sanitizedEmail } = options
-    { verb, expiryPeriod } = options
+    { email, sanitizedEmail }     = options
+    { verb, expiryPeriod, group } = options
 
     email = email.trim()
     sanitizedEmail or= emailsanitize email, { excludeDots: yes, excludePlus: yes }
@@ -142,8 +142,12 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           if err
             callback err
           else
-            tokenUrl = "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
+            if group and group isnt 'koding'
+              host = "#{group}.#{host}"
+              verb = "Team/#{verb}"
+            tokenUrl    = "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
 
+            console.log "tokenUrl = #{tokenUrl}"
             messageOptions =
               url           : tokenUrl
               resetPassword : options.resetPassword
