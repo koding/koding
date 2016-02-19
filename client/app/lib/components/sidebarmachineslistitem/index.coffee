@@ -239,8 +239,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderUnreadCount: ->
 
-    return null  unless @state.collapsed
-
     <UnreadCount count={@getTotalUnreadCount()} />
 
 
