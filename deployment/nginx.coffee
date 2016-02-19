@@ -151,6 +151,9 @@ createRootLocation = (KONFIG) ->
           proxy_next_upstream   error timeout   invalid_header http_500;
           proxy_connect_timeout 30;
 
+          if ($host !~* ^(dev|sandbox|latest|www)) {
+             return 301 /;
+          }
 
           proxy_pass #{proxy};
       }
