@@ -5,7 +5,7 @@ JAccount  = require '../account'
 JSession  = require '../session'
 Speakeasy = require 'speakeasy'
 
-{ daisy
+{ async
   expect
   withDummyClient
   generateUserInfo
@@ -58,25 +58,23 @@ runTests = -> describe 'workers.social.user.index', ->
 
       queue = [
 
-        ->
+        (next) ->
           JUser.createUser userInfo, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # setting a different email, username will be duplicate
-          userInfo.email  = generateRandomEmail()
-          expectedError   = "The slug #{userInfo.username} is not available."
+          userInfo.email = generateRandomEmail()
+          expectedError  = "The slug #{userInfo.username} is not available."
 
           JUser.createUser userInfo, (err) ->
             expect(err.message).to.be.equal expectedError
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
     it 'should pass error if email is in use', (done) ->
@@ -85,25 +83,23 @@ runTests = -> describe 'workers.social.user.index', ->
 
       queue = [
 
-        ->
+        (next) ->
           JUser.createUser userInfo, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # setting a different username, email will be duplicate
           userInfo.username = generateRandomString()
           expectedError     = "Sorry, \"#{userInfo.email}\" is already in use!"
 
           JUser.createUser userInfo, (err) ->
             expect(err.message).to.be.equal expectedError
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
     describe 'when user data is valid', ->
@@ -112,44 +108,42 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             # expecting user to be created
             JUser.createUser userInfo, (err) ->
               expect(err).to.not.exist
               # after the user is created, lower casing username because
               # we expect to see the username to be lower cased in jmodel documents
               userInfo.username = userInfo.username.toLowerCase()
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting user to be saved
             params = { username : userInfo.username }
             JUser.one params, (err, user) ->
               expect(err).to.not.exist
               expect(user.username).to.be.equal userInfo.username
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting account to be created and saved
             params = { 'profile.nickname' : userInfo.username }
             JAccount.one params, (err, account) ->
               expect(err).to.not.exist
               expect(account).to.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting name to be created and saved
             params = { 'name' : userInfo.username }
             JName.one params, (err, name) ->
               expect(err).to.not.exist
               expect(name).to.exist
-              queue.next()
-
-          -> callback()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, callback
 
 
       it 'should be able to create user with lower case username', (done) ->
@@ -201,37 +195,35 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             # expecting successful login
             JUser.login null, loginCredentials, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # keeping last login date
             JUser.one { username }, (err, user) ->
               expect(err).to.not.exist
               lastLoginDate = user.lastLoginDate
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting another successful login
             JUser.login null, loginCredentials, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting last login date to be changed
             JUser.one { username }, (err, user) ->
               expect(err)           .to.not.exist
               expect(lastLoginDate) .not.to.be.equal user.lastLoginDate
-              queue.next()
-
-          -> callback()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, callback
 
 
       it 'should be able to login user with lower case username', (done) ->
@@ -267,36 +259,36 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             # setting two factor authentication on by adding twofactorkey field
             JUser.update { username }, { $set: { twofactorkey: 'somekey' } }, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # trying to login with empty tf code
             loginCredentials.tfcode = ''
             JUser.login null, loginCredentials, (err) ->
               expect(err.message).to.be.equal 'TwoFactor auth Enabled'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # trying to login with invalid tfcode
             loginCredentials.tfcode = 'invalidtfcode'
             JUser.login null, loginCredentials, (err) ->
               expect(err.message).to.be.equal 'Access denied!'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # generating a 2fa key and saving it in mongo
             { base32 : tfcode } = Speakeasy.generate_key
               length    : 20
               encoding  : 'base32'
             JUser.update { username }, { $set: { twofactorkey: tfcode } }, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # generating a verificationCode and expecting a successful login
             verificationCode = Speakeasy.totp
               key       : tfcode
@@ -304,13 +296,11 @@ runTests = -> describe 'workers.social.user.index', ->
             loginCredentials.tfcode = verificationCode
             JUser.login null, loginCredentials, (err) ->
               expect(err).to.not.exist
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     it 'should pass error if account is not found', (done) ->
@@ -320,29 +310,27 @@ runTests = -> describe 'workers.social.user.index', ->
 
       queue = [
 
-        ->
+        (next) ->
           # creating a new user with the newly generated userinfo
           JUser.createUser userInfo, (err, user) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # removing users account
           JAccount.remove { 'profile.nickname': username }, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # expecting not to able to login without an account
           JUser.login null, loginCredentials, (err) ->
             expect(err.message).to.be.equal 'No account found!'
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
     it 'should check if the user is blocked', (done) ->
@@ -354,50 +342,48 @@ runTests = -> describe 'workers.social.user.index', ->
 
       queue = [
 
-        ->
+        (next) ->
           # creating a new user with the newly generated userinfo
           JUser.createUser userInfo, (err, user_) ->
             user = user_
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # expecting successful login with the newly generated user
           JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # blocking user for 1 day
           untilDate = new Date(Date.now() + 1000 * 60 * 60 * 24)
           user.block untilDate, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # expecting login attempt to fail and return blocked message
           JUser.login null, loginCredentials, (err) ->
             toDate = user.blockedUntil.toUTCString()
             expect(err.message).to.be.equal JUser.getBlockedMessage toDate
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # unblocking user
           user.unblock (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
+        (next) ->
           # expecting user to be able to login
           JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
-            queue.next()
-
-        -> done()
+            next()
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
     it 'should pass error if user\'s password needs reset', (done) ->
@@ -406,45 +392,43 @@ runTests = -> describe 'workers.social.user.index', ->
       { username, password }    = userInfo = generateUserInfo()
       loginCredentials          = generateCredentials { username, password }
 
-      setUserPasswordStatus = (queue, username, status) ->
+      setUserPasswordStatus = (username, status, callback) ->
         JUser.update { username }, { $set: { passwordStatus: status } }, (err) ->
           expect(err).to.not.exist
-          queue.next()
+          callback()
 
       queue = [
 
-        ->
+        (next) ->
           # creating a new user with the newly generated userinfo
           JUser.createUser userInfo, (err, user) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
-          setUserPasswordStatus queue, username, 'valid'
+        (next) ->
+          setUserPasswordStatus username, 'valid', next
 
-        ->
+        (next) ->
           # expecting successful login
           JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-        ->
-          setUserPasswordStatus queue, username, 'needs reset'
+        (next) ->
+          setUserPasswordStatus username, 'needs reset', next
 
-        ->
+        (next) ->
           # expecting unsuccessful login attempt
           JUser.login null, loginCredentials, (err) ->
             expect(err).to.exist
-            queue.next()
+            next()
 
-        ->
-          setUserPasswordStatus queue, username, 'valid'
-
-        -> done()
+        (next) ->
+          setUserPasswordStatus username, 'valid', next
 
       ]
 
-      daisy queue
+      async.series queue, done
 
 
     it 'should create a new session if clientId is not specified', (done) ->
@@ -478,13 +462,13 @@ runTests = -> describe 'workers.social.user.index', ->
 
 
       addRemoveUserLogsToQueue = (queue, username) ->
-        queue.push ->
+        queue.push (next) ->
           JLog.remove { username }, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
       addLoginTrialToQueue = (queue, tryCount) ->
-        queue.push ->
+        queue.push (next) ->
           JUser.login null, loginCredentials, (err) ->
             expectedError = switch
               when tryCount < JLog.tryLimit()
@@ -494,13 +478,13 @@ runTests = -> describe 'workers.social.user.index', ->
                 #{JLog.timeLimit()} minutes."
 
             expect(err.message).to.be.equal expectedError
-            queue.next()
+            next()
 
-      queue.push ->
+      queue.push (next) ->
         # creating a new user with the newly generated userinfo
         JUser.createUser userInfo, (err, user) ->
           expect(err).to.not.exist
-          queue.next()
+          next()
 
       # removing logs for a fresh start
       addRemoveUserLogsToQueue queue, loginCredentials.username
@@ -512,9 +496,7 @@ runTests = -> describe 'workers.social.user.index', ->
       # removing logs for this username after test passes
       addRemoveUserLogsToQueue queue, loginCredentials.username
 
-      queue.push -> done()
-
-      daisy queue
+      async.series queue, done
 
 
     it 'should pass error if invitationToken is set but not valid', (done) ->
@@ -572,15 +554,12 @@ runTests = -> describe 'workers.social.user.index', ->
         for username in reservedUsernames
           userFormData.username = username
 
-          queue.push ->
+          queue.push (next) ->
             JUser.convert client, userFormData, (err) ->
               expect(err.message).to.exist
-              queue.next()
+              next()
 
-        # done callback will be called after all usernames checked
-        queue.push -> done()
-
-        daisy queue
+        async.series queue, done
 
 
     it 'should pass error if passwords do not match', (done) ->
@@ -603,24 +582,22 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             JUser.convert client, userFormData, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # sending a different email address, username will remain same(duplicate)
             userFormData.email = generateRandomEmail()
 
             JUser.convert client, userFormData, (err) ->
               expect(err.message).to.be.equal 'Errors were encountered during validation'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     it 'should pass error if email is in use', (done) ->
@@ -630,24 +607,22 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             JUser.convert client, userFormData, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # sending a different username, email address will remain same(duplicate)
             userFormData.username = generateRandomUsername()
 
             JUser.convert client, userFormData, (err) ->
               expect(err?.message).to.be.equal 'Email is already in use!'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     describe 'when user data is valid', ->
@@ -656,33 +631,31 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             JUser.convert client, userFormData, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             params = { username : userFormData.username }
 
             JUser.one params, (err, { data : { email, registeredFrom } }) ->
               expect(err).to.not.exist
               expect(email).to.be.equal userFormData.email
               expect(registeredFrom.ip).to.be.equal client.clientIP
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             params = { 'profile.nickname' : userFormData.username }
 
             JAccount.one params, (err, { data : { profile } }) ->
               expect(err).to.not.exist
               expect(profile.nickname).to.be.equal userFormData.username
-              queue.next()
-
-          -> callback()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, callback
 
 
       it 'should be able to register user with lower case username', (done) ->
@@ -711,23 +684,21 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             generateDummyClient { group : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               client = client_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # username won't matter, only client's account will be checked
             JUser.unregister client, generateRandomUsername(), (err) ->
               expect(err?.message).to.be.equal 'You are not registered!'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     describe 'when user is registered', ->
@@ -739,13 +710,13 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             generateDummyClient { group : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               client = client_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.convert client, userFormData, (err, data) ->
               expect(err).to.not.exist
 
@@ -753,19 +724,17 @@ runTests = -> describe 'workers.social.user.index', ->
               { account, newToken }      = data
               client.sessionToken        = newToken
               client.connection.delegate = account
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # username won't matter, only client's account will be checked
             JUser.unregister client, generateRandomUsername(), (err) ->
               expect(err?.message).to.be.equal 'You must confirm this action!'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
       it 'user should be updated if requester has the right to unregister', (done) ->
@@ -776,13 +745,13 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             generateDummyClient { group : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               client = client_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # registering user
             JUser.convert client, userFormData, (err, data) ->
               expect(err).to.not.exist
@@ -791,64 +760,63 @@ runTests = -> describe 'workers.social.user.index', ->
               { account, newToken }      = data
               client.sessionToken        = newToken
               client.connection.delegate = account
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting user to exist before unregister
             JUser.one { username }, (err, user) ->
               expect(err)           .to.not.exist
               expect(user)          .to.exist
               expect(user.email)    .to.be.equal email
               expect(user.username) .to.be.equal username
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting name to exist before unregister
             JName.one { name : username }, (err, name) ->
               expect(err)  .to.not.exist
               expect(name) .to.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting user account to exist before unregister
             JAccount.one { 'profile.nickname' : username }, (err, account) ->
               expect(err)                  .to.not.exist
               expect(account)              .to.exist
               expect(account.type)         .to.be.equal 'registered'
               expect(account.onlineStatus) .to.be.equal 'online'
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting successful unregister
             JUser.unregister client, username, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting user to be deleted after unregister
             JUser.one { username }, (err, user) ->
               expect(err)   .to.not.exist
               expect(user)  .to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             # expecting name to be deleted
             JName.one { name : username }, (err, name) ->
               expect(err)  .to.not.exist
               expect(name) .to.not.exist
-              queue.next()
-          ->
+              next()
+
+          (next) ->
             # expecting user account to be deleted after unregister
             JAccount.one { 'profile.nickname' : username }, (err, account) ->
               expect(err)     .to.not.exist
               expect(account) .to.not.exist
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
   describe '#verifyRecaptcha()', ->
@@ -917,29 +885,27 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             generateDummyClient { gorup : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               { sessionToken } = client_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             selector = { clientId : sessionToken }
             modifier = { $unset : { username : 1 } }
             JSession.update selector, modifier, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.authenticateClient sessionToken, (err, data) ->
               expect(err?.message).to.be.equal 'no username found'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
       it 'should be handle guest user if username starts with guest-', (done) ->
@@ -949,33 +915,31 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             generateDummyClient { group : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               { sessionToken } = client_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             selector = { clientId : sessionToken }
             modifier = { $set : { username : guestUsername } }
             JSession.update selector, modifier, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.authenticateClient sessionToken, (err, data) ->
               expect(err).to.not.exist
               expect(data.session).to.be.an 'object'
               expect(data.account).to.be.an 'object'
               expect(data.account.profile.nickname).to.be.equal guestUsername
               expect(data.account.type).to.be.equal 'unregistered'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
       it 'should return error if username doesnt match any user', (done) ->
@@ -985,30 +949,28 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             generateDummyClient { gorup : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               { sessionToken } = client_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             selector = { clientId : sessionToken }
             modifier = { $set : { username : invalidUsername } }
             JSession.update selector, modifier, (err) ->
               expect(err).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.authenticateClient sessionToken, (err, data) ->
               expect(err?.message).to.be.equal "no user found with
                                   #{invalidUsername} and sessionId"
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
       it 'should return session and account if session is valid', (done) ->
@@ -1017,13 +979,13 @@ runTests = -> describe 'workers.social.user.index', ->
 
         queue = [
 
-          ->
+          (next) ->
             generateDummyClient { gorup : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               { sessionToken } = client_
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             JUser.authenticateClient sessionToken, (err, data) ->
               expect(err).to.not.exist
               expect(data.session).to.be.an 'object'
@@ -1032,13 +994,11 @@ runTests = -> describe 'workers.social.user.index', ->
               expect(data.account).to.be.an 'object'
               expect(data.account).to.have.property 'socialApiId'
               expect(data.account).to.have.property 'profile'
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 beforeTests()
 
