@@ -27,7 +27,7 @@ type userGetter func() (*user.User, error)
 
 // MountCommand mounts a folder on remote machine to local folder by machine
 // name.
-func MountCommand(c *cli.Context, _ logging.Logger, _ string) int {
+func MountCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 2 {
 		cli.ShowCommandHelp(c, "mount")
 		return 1
@@ -46,14 +46,14 @@ func MountCommand(c *cli.Context, _ logging.Logger, _ string) int {
 
 	if prefetchInterval == 0 {
 		prefetchInterval = 10
-		log.Infof("Setting interval to default, %d", prefetchInterval)
+		log.Info("Setting interval to default, %d", prefetchInterval)
 	}
 
 	// temporarily disable watcher
 	noWatch = true
 
 	if noPrefetchMeta && prefetchAll {
-		log.Errorf("noPrefetchMeta and prefetchAll were both supplied")
+		log.Error("noPrefetchMeta and prefetchAll were both supplied")
 		fmt.Println(PrefetchAllAndMetaTogether)
 		return 1
 	}
@@ -85,27 +85,27 @@ func MountCommand(c *cli.Context, _ logging.Logger, _ string) int {
 			return 0
 		}
 
-		log.Errorf("Error creating local mount path. err:%s", err)
+		log.Error("Error creating local mount path. err:%s", err)
 		fmt.Println(FailedToCreateMountDir)
 		return 1
 	}
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		log.Errorf("Error creating klient client. err:%s", err)
+		log.Error("Error creating klient client. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		log.Errorf("Error dialing klient client. err:%s", err)
+		log.Error("Error dialing klient client. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	infos, err := getListOfMachines(k)
 	if err != nil {
-		log.Errorf("Failed to get list of machines on mount. err:%s", err)
+		log.Error("Failed to get list of machines on mount. err:%s", err)
 		// Using internal error here, because a list error would be confusing to the
 		// user.
 		fmt.Println(GenericInternalError)
@@ -146,27 +146,27 @@ func MountCommand(c *cli.Context, _ logging.Logger, _ string) int {
 			util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
 			// unmount using mount path
-			if err := unmount(k, mountRequest.Name, localPath); err != nil {
-				log.Errorf("Error unmounting (remounting). err:%s", err)
+			if err := unmount(k, mountRequest.Name, localPath, log); err != nil {
+				log.Error("Error unmounting (remounting). err:%s", err)
 				fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
 				return 1
 			}
 
 			resp, err = k.Tell("remote.mountFolder", mountRequest)
 			if err != nil {
-				log.Errorf("Error mounting (remounting). err:%s", err)
+				log.Error("Error mounting (remounting). err:%s", err)
 				fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
 				return 1
 			}
 
 		case klientctlerrors.IsDialFailedErr(err):
-			log.Errorf("Error dialing remote klient. err:%s", err)
+			log.Error("Error dialing remote klient. err:%s", err)
 			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
 			return 1
 
 		default:
 			// catch any remaining errors
-			log.Errorf("Error mounting directory. err:%s", err)
+			log.Error("Error mounting directory. err:%s", err)
 			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
 			return 1
 		}
@@ -174,7 +174,7 @@ func MountCommand(c *cli.Context, _ logging.Logger, _ string) int {
 
 	// catch errors other than klientctlerrors.IsExistingMountErr
 	if err != nil {
-		log.Errorf("Error mounting directory. err:%s", err)
+		log.Error("Error mounting directory. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
 		return 1
 	}
@@ -193,7 +193,7 @@ func MountCommand(c *cli.Context, _ logging.Logger, _ string) int {
 	}
 
 	if err := Lock(localPath, name); err != nil {
-		log.Errorf("Error locking. err:%s", err)
+		log.Error("Error locking. err:%s", err)
 		fmt.Println(FailedToLockMount)
 		return 1
 	}
@@ -209,7 +209,7 @@ func MountCommand(c *cli.Context, _ logging.Logger, _ string) int {
 func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string, interval int) int {
 	usr, err := getUser()
 	if err != nil {
-		log.Errorf("Failed to get OS User. err:%s", err)
+		log.Error("Failed to get OS User. err:%s", err)
 		// Using internal error here, because a list error would be confusing to the
 		// user.
 		fmt.Println(GenericInternalError)
@@ -228,19 +228,19 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 
 	remoteUsername, err := sshKey.GetUsername(machineName)
 	if err != nil {
-		log.Errorf("Error getting remote username. err:%s", err)
+		log.Error("Error getting remote username. err:%s", err)
 		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
 
 	if err := sshKey.PrepareForSSH(machineName); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
-			log.Errorf("Cannot ssh into managed machines. err:%s", err)
+			log.Error("Cannot ssh into managed machines. err:%s", err)
 			fmt.Println(CannotSSHManaged)
 			return 1
 		}
 
-		log.Errorf("Error getting ssh key. err:%s", err)
+		log.Error("Error getting ssh key. err:%s", err)
 		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
@@ -269,7 +269,7 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 
 		if p.Error.Message != "" {
 			doneErr <- p.Error
-			log.Errorf("remote.cacheFolder progress callback returned an error. err:%s", err)
+			log.Error("remote.cacheFolder progress callback returned an error. err:%s", err)
 			fmt.Println(
 				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
 			)
@@ -303,7 +303,7 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 	}
 
 	if _, err := k.Tell("remote.cacheFolder", cacheReq); err != nil {
-		log.Errorf("remote.cacheFolder returned an error. err:%s", err)
+		log.Error("remote.cacheFolder returned an error. err:%s", err)
 		fmt.Println(
 			defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
 		)
@@ -311,7 +311,7 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 	}
 
 	if err := <-doneErr; err != nil {
-		log.Errorf(
+		log.Error(
 			"remote.cacheFolder progress callback returned an error. err:%s", err,
 		)
 		fmt.Println(

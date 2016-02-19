@@ -128,9 +128,8 @@ func (c *UnmountCommand) Run() (int, error) {
 
 	// unmount using mount name
 	if err := c.Unmount(c.Options.MountName, ""); err != nil {
-		log.Errorf("Error unmounting. err:%s", err)
 		c.printfln(c.healthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
-		return 1, nil
+		return 1, err
 	}
 
 	// remove the mount folder.
@@ -215,7 +214,7 @@ func (c *UnmountCommand) removeMountFolder() error {
 // Unmount tells klient to unmount the given name and path.
 func (c *UnmountCommand) Unmount(name, path string) error {
 	if err := Unlock(path); err != nil {
-		log.Warningf("Failed to unlock mount. err:%s", err)
+		c.Log.Warning("Failed to unlock mount. err:%s", err)
 		fmt.Println(FailedToUnlockMount)
 	}
 
@@ -229,9 +228,9 @@ func (c *UnmountCommand) Unmount(name, path string) error {
 	return err
 }
 
-func unmount(kite *kite.Client, name, path string) error {
+func unmount(kite *kite.Client, name, path string, log logging.Logger) error {
 	if err := Unlock(path); err != nil {
-		log.Warningf("Failed to unlock mount. err:%s", err)
+		log.Warning("Failed to unlock mount. err:%s", err)
 		fmt.Println(FailedToUnlockMount)
 	}
 

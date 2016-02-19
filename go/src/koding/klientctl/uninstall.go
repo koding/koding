@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
 
 // ServiceUninstaller is used to reduce the testable size of the Service, easing
@@ -80,6 +81,9 @@ type Uninstall struct {
 	// IMPORTANT: These warnings are *user facing*, and should be populated from
 	// the errormessages.go file.
 	warnings []string
+
+	// The internal logger.
+	log logging.Logger
 }
 
 // Uninstall actually runs the uninstall process, configured by the structs fields,
@@ -90,19 +94,19 @@ type Uninstall struct {
 // bin can end up with multiple warnings, creating a bad UX.
 func (u *Uninstall) Uninstall() (string, int) {
 	if err := u.ServiceUninstaller.Uninstall(); err != nil {
-		log.Warningf("Service errored on uninstall. err:%s", err)
+		u.log.Warning("Service errored on uninstall. err:%s", err)
 		u.addWarning(FailedUninstallingKlientWarn)
 	}
 
 	// Remove the kitekey
 	if err := u.RemoveKiteKey(); err != nil {
-		log.Warningf("Failed to remove kite key. err:%s", err)
+		log.Warning("Failed to remove kite key. err:%s", err)
 		u.addWarning(FailedToRemoveAuthFileWarn)
 	}
 
 	// Remove the klient/klient.sh files
 	if err := u.RemoveKlientFiles(); err != nil {
-		log.Warningf("Failed to remove klient or klient.sh. err:%s", err)
+		log.Warning("Failed to remove klient or klient.sh. err:%s", err)
 		u.addWarning(FailedToRemoveFilesWarn)
 	}
 
@@ -111,13 +115,13 @@ func (u *Uninstall) Uninstall() (string, int) {
 	// Note that we're not printing any errors in removing the directories to avoid
 	// spamming the user with warnings.
 	if err := u.RemoveKlientDirectories(); err != nil {
-		log.Warningf("Failed to remove klient directories. err:%s", err)
+		log.Warning("Failed to remove klient directories. err:%s", err)
 	}
 
 	// Remove the klientctl binary itself.
 	// (The current binary is removing itself.. So emo...)
 	if err := u.RemoveKlientctl(); err != nil {
-		log.Warningf("Failed to remove klientctl. err:%s", err)
+		log.Warning("Failed to remove klientctl. err:%s", err)
 		u.addWarning(FailedToRemoveKlientWarn)
 	}
 
@@ -135,12 +139,12 @@ func (u *Uninstall) Uninstall() (string, int) {
 // given codegangsta/cli context.
 //
 // TODO: remove all artifacts, ie bolt db, ssh keys, kd etc.
-func UninstallCommand(c *cli.Context) (string, int) {
+func UninstallCommand(c *cli.Context, log logging.Logger, _ string) (string, int) {
 	warnings := []string{}
 
 	s, err := newService()
 	if err != nil {
-		log.Warningf("Failed creating Service for uninstall. err:%s", err)
+		log.Warning("Failed creating Service for uninstall. err:%s", err)
 		warnings = append(warnings, FailedUninstallingKlientWarn)
 	}
 
@@ -159,6 +163,7 @@ func UninstallCommand(c *cli.Context) (string, int) {
 		KlientshFilename:      "klient.sh",
 		remover:               os.Remove,
 		warnings:              warnings,
+		log:                   log,
 	}
 
 	return uninstaller.Uninstall()

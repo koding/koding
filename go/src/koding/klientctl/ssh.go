@@ -37,20 +37,21 @@ import (
 // integer to end of comment this command can be used by multiple computers.
 type SSHCommand struct {
 	*SSHKey
+	log logging.Logger
 }
 
 // SSHCommandFactory is the factory method for SSHCommand.
-func SSHCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {
+func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "ssh")
 		return 1
 	}
 
-	cmd, err := NewSSHCommand()
+	cmd, err := NewSSHCommand(log)
 	// TODO: Refactor SSHCommand instance to require no initialization,
 	// and thus avoid needing to log an error in a weird place.
 	if err != nil {
-		log.Errorf("Error initializing ssh: %s", err)
+		log.Error("Error initializing ssh: %s", err)
 		fmt.Println(GenericInternalError)
 		return 1
 	}
@@ -59,7 +60,7 @@ func SSHCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {
 }
 
 // NewSSHCommand is the required initializer for SSHCommand.
-func NewSSHCommand() (*SSHCommand, error) {
+func NewSSHCommand(log logging.Logger) (*SSHCommand, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -75,6 +76,7 @@ func NewSSHCommand() (*SSHCommand, error) {
 	}
 
 	return &SSHCommand{
+		log: log,
 		SSHKey: &SSHKey{
 			KeyPath:   path.Join(usr.HomeDir, SSHDefaultKeyDir),
 			KeyName:   SSHDefaultKeyName,
@@ -95,19 +97,19 @@ func (s *SSHCommand) run(c *cli.Context) int {
 
 	sshKey, err := s.GetSSHIp(c.Args()[0])
 	if err != nil {
-		log.Errorf("Error getting username and hostname combination. err:%s", err)
+		s.log.Error("Error getting username and hostname combination. err:%s", err)
 		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
 
 	if err := s.PrepareForSSH(c.Args()[0]); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
-			log.Errorf("Cannot ssh into managed machines. err:%s", err)
+			s.log.Error("Cannot ssh into managed machines. err:%s", err)
 			fmt.Println(CannotSSHManaged)
 			return 1
 		}
 
-		log.Errorf("Error getting ssh key. err:%s", err)
+		s.log.Error("Error getting ssh key. err:%s", err)
 		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
@@ -118,7 +120,7 @@ func (s *SSHCommand) run(c *cli.Context) int {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		log.Errorf("Running ssh command returned an error. err:%s", err)
+		s.log.Error("Running ssh command returned an error. err:%s", err)
 		return 1
 	}
 

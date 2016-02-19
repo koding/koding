@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
-	kodinglogging "github.com/koding/logging"
+	"github.com/koding/logging"
 )
 
 // RestartCommand stops and starts klient. If Klient is not running to begin
 // with, it *just* starts klient.
-func RestartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
+func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "restart")
 		return 1
@@ -18,7 +18,7 @@ func RestartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 
 	s, err := newService()
 	if err != nil {
-		log.Errorf("Error creating Service. err:%s", err)
+		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
@@ -30,7 +30,7 @@ func RestartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if klientWasRunning {
 		// If klient is running, stop it, and tell the user if we fail
 		if err := s.Stop(); err != nil {
-			log.Errorf("Error stopping Service. err:%s", err)
+			log.Error("Error stopping Service. err:%s", err)
 			fmt.Println(FailedStopKlient)
 			return 1
 		}
@@ -41,7 +41,7 @@ func RestartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	}
 
 	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
-		log.Errorf(
+		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
 		)
@@ -54,14 +54,14 @@ func RestartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	}
 
 	if err := s.Start(); err != nil {
-		log.Errorf("Error starting Service. err:%s", err)
+		log.Error("Error starting Service. err:%s", err)
 		fmt.Println(FailedStartKlient)
 		return 1
 	}
 
 	fmt.Println("Waiting until started...")
 	if err := WaitUntilStarted(KlientAddress, 5, 1*time.Second); err != nil {
-		log.Errorf(
+		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
 		)

@@ -9,9 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"koding/klientctl/logging"
-
-	kodinglogging "github.com/koding/logging"
+	"github.com/koding/logging"
 
 	"github.com/codegangsta/cli"
 	"github.com/leeola/service"
@@ -48,7 +46,7 @@ func (p *serviceProgram) Stop(s service.Service) error {
 }
 
 // InstallCommandFactory is the factory method for InstallCommand.
-func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int {
+func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "install")
 		return 1
@@ -61,7 +59,7 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 		fmt.Println(`Error: Unable to open log files.`)
 	} else {
 		log.SetHandler(logging.NewWriterHandler(f))
-		log.Infof("Installation created log file at %q", LogFilePath)
+		log.Info("Installation created log file at %q", LogFilePath)
 	}
 
 	authToken := c.Args().Get(0)
@@ -85,7 +83,7 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 	// Create the installation dir, if needed.
 	err = os.MkdirAll(KlientDirectory, 0755)
 	if err != nil {
-		log.Errorf(
+		log.Error(
 			"Error creating klient binary directory(s). path:%s, err:%s",
 			KlientDirectory, err,
 		)
@@ -105,7 +103,7 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 	}
 
 	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
-		log.Errorf("Error writing klient.sh file. err:%s", err)
+		log.Error("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
@@ -113,7 +111,7 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 	fmt.Println("Downloading...")
 
 	if err = downloadRemoteToLocal(S3KlientPath, klientBinPath); err != nil {
-		log.Errorf("Error downloading klient binary. err:%s", err)
+		log.Error("Error downloading klient binary. err:%s", err)
 		fmt.Printf(FailedDownloadingKlient)
 		return 1
 	}
@@ -137,7 +135,7 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 	cmd.Stdin = os.Stdin
 
 	if err := cmd.Run(); err != nil {
-		log.Errorf("Error registering klient. err:%s", err)
+		log.Error("Error registering klient. err:%s", err)
 		fmt.Println(FailedRegisteringKlient)
 		return 1
 	}
@@ -148,7 +146,7 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 	// so since this is just ctl problem, we'll just fix the permission
 	// here for now.
 	if err = os.Chmod(KiteHome, 0755); err != nil {
-		log.Errorf(
+		log.Error(
 			"Error chmodding KiteHome directory. dir:%s, err:%s",
 			KiteHome, err,
 		)
@@ -157,7 +155,7 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 	}
 
 	if err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644); err != nil {
-		log.Errorf(
+		log.Error(
 			"Error chmodding kite.key. path:%s, err:%s",
 			filepath.Join(KiteHome, "kite.key"), err,
 		)
@@ -168,14 +166,14 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 	// Create our interface to the OS specific service
 	s, err := newService()
 	if err != nil {
-		log.Errorf("Error creating Service. err:%s", err)
+		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
 	// Install the klient binary as a OS service
 	if err = s.Install(); err != nil {
-		log.Errorf("Error installing Service. err:%s", err)
+		log.Error("Error installing Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
@@ -195,7 +193,7 @@ func InstallCommandFactory(c *cli.Context, _ kodinglogging.Logger, _ string) int
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
 	if err != nil {
-		log.Errorf("Error verifying the installation of klient. %s", err)
+		log.Error("Error verifying the installation of klient. %s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}

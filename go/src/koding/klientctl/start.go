@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
-	kodinglogging "github.com/koding/logging"
+	"github.com/koding/logging"
 )
 
 // StartCommand starts local klient. Requires sudo.
-func StartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
+func StartCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "start")
 		return 1
@@ -17,20 +17,20 @@ func StartCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 
 	s, err := newService()
 	if err != nil {
-		log.Errorf("Error creating Service. err:%s", err)
+		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
 	if err := s.Start(); err != nil {
-		log.Errorf("Error starting Service. err:%s", err)
+		log.Error("Error starting Service. err:%s", err)
 		fmt.Println(FailedStartKlient)
 		return 1
 	}
 
 	fmt.Println("Waiting until started...")
 	if err := WaitUntilStarted(KlientAddress, 5, 1*time.Second); err != nil {
-		log.Errorf(
+		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
 		)
