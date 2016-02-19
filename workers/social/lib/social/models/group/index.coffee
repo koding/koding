@@ -657,9 +657,7 @@ module.exports = class JGroup extends Module
 
         ]
 
-        async.series queue, (err) ->
-          return callback err  if err
-          callback null
+        async.series queue, callback
 
   notifyAccountOnRoleChange = (client, id, roles, callback) ->
     JAccount.one { _id: id }, (err, account) ->
