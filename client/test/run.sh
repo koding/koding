@@ -108,12 +108,19 @@ function cleanup() {
   fi
 }
 
-if [ $(hostname) != "wercker-test-instance" ]; then
-  if [ -z "$RUN_SELENIUM_SERVER_STARTED" ]; then
-    trap stop_selenium_server INT
-    start_selenium_server
-    export RUN_SELENIUM_SERVER_STARTED=1
-  fi
+if [ "$1" == "--names" ]; then
+  export RUN_MODE_NAMES="true"
+  shift
+fi
+
+if [ -z "$RUN_MODE_NAMES" ]; then
+ if [ $(hostname) != "wercker-test-instance" ]; then
+   if [ -z "$RUN_SELENIUM_SERVER_STARTED" ]; then
+     trap stop_selenium_server INT
+     start_selenium_server
+     export RUN_SELENIUM_SERVER_STARTED=1
+   fi
+ fi
 fi
 
 RESERVED_TEST_CASE_NAMES="
@@ -125,11 +132,6 @@ beforeMethod afterMethod \
 beforeSuite afterSuite \
 beforeGroups afterGroups \
 "
-
-if [ "$1" == "--names" ]; then
-  export RUN_MODE_NAMES="true"
-  shift
-fi
 
 export TEST_GROUP=$1
 export TEST_SUITE=$2
