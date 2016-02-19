@@ -60,7 +60,6 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
         @form.button.hideLoader()
       success     : =>
         @form.reset()
-        {entryPoint} = kd.config
         new kd.NotificationView
           cssClass : 'recoverConfirmation'
           title    : 'Check your email'
