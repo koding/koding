@@ -147,6 +147,7 @@ module.exports =
       .click                  fileChevronSelector
       .waitForElementVisible  'li.open-file', 20000
       .click                  'li.open-file'
+      .pause                  3000 # wait for tabHandle
       .waitForElementVisible  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
       .waitForTextToContain   activeEditorSelector, text # Assertion
 
