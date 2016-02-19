@@ -47,12 +47,12 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
 
     track 'submitted recover form'
 
-    { email } = formData
-    group     = utils.getGroupNameFromLocation()
+    { email, mode } = formData
+    group = utils.getGroupNameFromLocation()
 
     $.ajax
       url         : '/Recover'
-      data        : { email, _csrf : Cookies.get('_csrf'), group }
+      data        : { email, _csrf : Cookies.get('_csrf'), group, mode }
       type        : 'POST'
       error       : (xhr) =>
         {responseText} = xhr

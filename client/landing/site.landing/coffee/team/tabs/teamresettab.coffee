@@ -44,7 +44,7 @@ module.exports = class TeamResetTab extends kd.TabPaneView
 
     track 'submitted reset form'
 
-    { recoveryToken, password } = formData
+    { recoveryToken, password, mode } = formData
 
     $.ajax
       url       : '/Reset'
@@ -61,7 +61,8 @@ module.exports = class TeamResetTab extends kd.TabPaneView
         new kd.NotificationView
           title: 'Password changed, you can login now'
 
-        kd.singletons.router.handleRoute '/'
+        route = if mode is 'join' then '/Join' else '/'
+        kd.singletons.router.handleRoute route
 
 
   pistachio: ->

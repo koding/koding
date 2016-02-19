@@ -184,10 +184,14 @@ team.group.creation.styl
 
   // JOIN TAB STYLE CUSTOMIZATIONS
 
-  .kdtabpaneview.join .TeamsModal
+  .kdtabpaneview.join
 
-    > h5 i
-      color                 #00B057
+    .TeamsModal
+      > h5 i
+        color               #00B057
+
+      &.alreadyMember
+        margin-bottom       0px
 
   // USERNAME TAB STYLE CUSTOMIZATIONS
 

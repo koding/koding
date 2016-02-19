@@ -95,7 +95,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @recoverPasswordByEmail = (options, callback) ->
     JUser = require './user'
-    { email } = options
+    { email, group, mode } = options
 
     sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
@@ -104,14 +104,16 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         return callback null # pretend like everything went fine.
 
       options.resetPassword = yes
+      options.verb = if group and group isnt 'koding' then 'Team/Reset' else 'Reset'
+      options.urlQuery = "?mode=#{mode}"  if mode
       @create options, callback
 
   @create = (options, callback) ->
     JUser = require './user'
     token = createId()
 
-    { email, sanitizedEmail }     = options
-    { verb, expiryPeriod, group } = options
+    { email, sanitizedEmail, verb }   = options
+    { expiryPeriod, group, urlQuery } = options
 
     email = email.trim()
     sanitizedEmail or= emailsanitize email, { excludeDots: yes, excludePlus: yes }
@@ -142,12 +144,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           if err
             callback err
           else
-            if group and group isnt 'koding'
-              host = "#{group}.#{host}"
-              verb = "Team/#{verb}"
-            tokenUrl    = "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
+            host     = "#{group}.#{host}"  if group and group isnt 'koding'
+            tokenUrl = "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}#{urlQuery ? ''}"
 
-            console.log "tokenUrl = #{tokenUrl}"
             messageOptions =
               url           : tokenUrl
               resetPassword : options.resetPassword

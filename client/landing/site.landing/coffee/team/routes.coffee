@@ -18,6 +18,8 @@ do ->
       { router } = kd.singletons
       router.openSection 'Team', null, null, (app) ->
         tab = app.jumpTo 'recover'
+        { mode } = kd.utils.parseQuery()
+        tab.form.addCustomData { mode }
         tab.setFocus()
 
     '/Team/Reset/:token' : ({ params : { token } }) ->
@@ -25,4 +27,5 @@ do ->
       { router } = kd.singletons
       router.openSection 'Team', null, null, (app) ->
         tab = app.jumpTo 'reset'
-        tab.form.addCustomData { recoveryToken : token }
+        { mode } = kd.utils.parseQuery()
+        tab.form.addCustomData { recoveryToken : token, mode }
