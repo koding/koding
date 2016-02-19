@@ -5,6 +5,8 @@ module.exports = class TeamView extends kd.View
 
   TABS =
     login           : require './tabs/teamlogintab'
+    recover         : require './tabs/teamrecovertab'
+    reset           : require './tabs/teamresettab'
     domain          : require './tabs/teamdomaintab'
     username        : require './tabs/teamusernametab'
     join            : require './tabs/teamjointab'
@@ -34,6 +36,8 @@ module.exports = class TeamView extends kd.View
 
     if tab = @tabView.getPaneByName step
     then @tabView.showPane tab
-    else @tabView.addPane new TABS[step] { query, name : step }
+    else @tabView.addPane tab = new TABS[step] { query, name : step }
 
     @tabView.getActivePane().show()  if step is 'domain'
+
+    return tab
