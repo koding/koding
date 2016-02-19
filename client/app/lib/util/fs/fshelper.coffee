@@ -99,13 +99,62 @@ module.exports = class FSHelper
 
   @getUidFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
 
-  @handleStdErr = ->
-    (result) ->
-      { stdout, stderr, exitStatus } = result
-      throw new Error "std error: #{ stderr }"  if exitStatus > 0
-      return result
+  @handleStdErr = -> (result, action, eventSource, callback) ->
+
+    { stdout, stderr, exitStatus } = result
+
+    if exitStatus > 0
+      if action and eventSource and stderr.indexOf('command not found') > -1
+        FSHelper.handleInstallRequirement action, eventSource, callback
+      else
+        throw new Error "std error: #{ stderr }"
+
+    return result
+
 
   @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{nick()}///, '~'
+
+
+  showInstallFailedModal = (packageName) ->
+
+    title   = 'Install action is required'
+    overlay = yes
+    content = """
+        <p>This action requires <strong>#{packageName or 'a'}</strong> package to be installed.
+        We tried to install it for you but it failed.
+        You may need to install it manually.</p>
+      """
+    buttons      =
+      ok         :
+        title    : 'OK'
+        cssClass : 'solid green medium'
+        callback : -> modal.destroy()
+
+
+    modal = new kd.ModalView { title, content, overlay, buttons }
+
+
+  @handleInstallRequirement = (action, eventSource, callback) ->
+
+    installers =
+      zip      : 'sudo apt-get update -y; sudo apt-get install zip'
+
+    return unless command = installers[action]
+
+    if action is 'zip'
+      fsItem = eventSource
+
+      fsItem.getKite()
+        .exec { command }
+        .then (result) =>
+          { stderr, exitStatus } = result
+          return showInstallFailedModal 'zip'  if stderr and exitStatus > 0
+
+          fsItem.compress 'zip', callback  unless fsItem.triedToInstallZip
+          fsItem.triedToInstallZip = yes
+
+        .catch -> showInstallFailedModal 'zip'
+
 
   # @exists = (path, vmName, callback=noop)->
   #   @getInfo path, vmName, (err, res)->
