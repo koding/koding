@@ -587,6 +587,17 @@ module.exports = class ComputeProvider extends Base
     ], callback
 
 
+  @fetchGroupResources = (group, options, callback) ->
+
+    { slug } = group
+    { skip } = options
+
+    queryOptions = { limit: 20 }
+    queryOptions.skip = skip  if skip
+
+    JComputeStack = require '../stack'
+    JComputeStack.some { group: slug }, queryOptions, callback
+
 
   @createGroupStack = (client, options, callback) ->
 

@@ -194,6 +194,8 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchResources:
+          (signature Object, Function)
         searchMembers: [
           (signature String, Object, Function)
         ]
@@ -970,6 +972,16 @@ module.exports = class JGroup extends Module
 
       @mergeAccountsWithEmail records, (err, accounts) ->
         return callback err, accounts
+
+
+  fetchResources$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
+    success: (client, options, callback) ->
+      ComputeProvider = require '../computeproviders/computeprovider'
+      ComputeProvider.fetchGroupResources this, options, callback
 
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.
