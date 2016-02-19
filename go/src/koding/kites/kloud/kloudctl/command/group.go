@@ -391,22 +391,34 @@ func (gu *groupUsers) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (gu *groupUsers) Valid() error {
-	gu.usernames = strings.Split(gu.users, ",")
+	uniq := make(map[string]struct{})
+
+	for _, user := range strings.Split(gu.users, ",") {
+		uniq[strings.TrimSpace(user)] = struct{}{}
+	}
 
 	// For "-users -" flag we read usernames from stdin.
-	if len(gu.usernames) == 1 && gu.usernames[0] == "-" {
-		gu.usernames = gu.usernames[:0]
-
+	if _, ok := uniq["-"]; ok {
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
-			s := strings.TrimSpace(scanner.Text())
-			if s != "" {
-				gu.usernames = append(gu.usernames, s)
-			}
+			uniq[strings.TrimSpace(scanner.Text())] = struct{}{}
 		}
 		if err := scanner.Err(); err != nil {
 			return err
 		}
+	}
+
+	delete(uniq, "")
+	delete(uniq, "-")
+
+	if len(uniq) == 0 {
+		return nil
+	}
+
+	gu.usernames = make([]string, 0, len(uniq))
+
+	for user := range uniq {
+		gu.usernames = append(gu.usernames, user)
 	}
 
 	return nil
@@ -446,7 +458,6 @@ func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&cmd.file, "f", "", "JSON-encoded Machine specification file.")
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
-	f.BoolVar(&cmd.stack, "stack", false, "Add the machine to user stack.")
 	f.BoolVar(&cmd.dry, "dry", false, "Dry run, tells the status of machines for the users.")
 	f.DurationVar(&cmd.pullmongo, "pullmongo", 20*time.Minute, "Timeout for the build, pulls jMachine.status.state for status.")
 	f.BoolVar(&cmd.eventer, "eventer", false, "Use kloud eventer instead of pulling MongoDB.")
@@ -653,7 +664,7 @@ func (cmd *GroupCreate) multipleMachineSpecs(spec *MachineSpec) ([]*MachineSpec,
 func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 	spec := item.(*MachineSpec)
 	k, _ := fromContext(ctx)
-	if err := spec.InsertMachine(cmd.stack); err != nil {
+	if err := spec.InsertMachine(); err != nil {
 		return err
 	}
 
@@ -679,6 +690,7 @@ type GroupStack struct {
 	rm          bool
 	groupSlug   string
 	machineSlug string
+	baseID      string
 }
 
 func NewGroupStack() *GroupStack {
@@ -697,6 +709,7 @@ func (cmd *GroupStack) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.machineSlug, "machine", "", "Machine slug.")
 	f.StringVar(&cmd.groupSlug, "group", "koding", "Group slug.")
 	f.BoolVar(&cmd.rm, "rm", false, "Remove machine from stack and template.")
+	f.StringVar(&cmd.baseID, "base-id", "53fe557af052f8e9435a04fa", "Base Stack ID for new jComputeStack documents.")
 }
 
 func (cmd *GroupStack) Valid() error {
@@ -715,17 +728,20 @@ func (cmd *GroupStack) Valid() error {
 func (cmd *GroupStack) Run(ctx context.Context) error {
 	merr := new(multierror.Error)
 
+	DefaultUi.Info(fmt.Sprintf("processing %d users...", len(cmd.groupUsers.usernames)))
+
 	for _, username := range cmd.groupUsers.usernames {
-		userID, groupID, machineID, err := cmd.details(username)
+
+		sd, err := cmd.details(username)
 		if err != nil {
 			merr = multierror.Append(merr, err)
 			continue
 		}
 
 		if cmd.rm {
-			err = modelhelper.RemoveFromStack(userID, groupID, machineID)
+			err = modelhelper.RemoveFromStack(sd)
 		} else {
-			err = modelhelper.AddToStack(userID, groupID, machineID)
+			err = modelhelper.AddToStack(sd)
 		}
 		if err != nil {
 			DefaultUi.Warn(fmt.Sprintf("processing %q user stack failed: %s", username, err))
@@ -739,23 +755,40 @@ func (cmd *GroupStack) Run(ctx context.Context) error {
 	return merr.ErrorOrNil()
 }
 
-func (cmd *GroupStack) details(username string) (userID, groupID, machineID bson.ObjectId, err error) {
+func (cmd *GroupStack) details(username string) (*modelhelper.StackDetails, error) {
 	user, err := modelhelper.GetUser(username)
 	if err != nil {
-		return "", "", "", errors.New("unable to find a user: " + err.Error())
+		return nil, fmt.Errorf("unable to find a user %q: %s", username, err)
 	}
 
 	group, err := modelhelper.GetGroup(cmd.groupSlug)
 	if err != nil {
-		return "", "", "", errors.New("unable to find a group: " + err.Error())
+		return nil, fmt.Errorf("unable to find a group %q: %s", cmd.groupSlug, err)
 	}
 
 	machine, err := modelhelper.GetMachineBySlug(user.ObjectId, cmd.machineSlug)
 	if err != nil {
-		return "", "", "", errors.New("unable to find a machine: " + err.Error())
+		return nil, fmt.Errorf("unable to find a machine slug=%q, userID=%q: %s", cmd.machineSlug, user.ObjectId.Hex(), err)
 	}
 
-	return user.ObjectId, group.Id, machine.ObjectId, nil
+	account, err := modelhelper.GetAccount(username)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find an account for %q: %s", username, err)
+	}
+
+	sd := &modelhelper.StackDetails{
+		UserID:    user.ObjectId,
+		AccountID: account.Id,
+		GroupID:   group.Id,
+
+		UserName:  user.Name,
+		GroupSlug: group.Slug,
+
+		MachineID: machine.ObjectId,
+		BaseID:    bson.ObjectIdHex(cmd.baseID),
+	}
+
+	return sd, nil
 }
 
 // GroupDelete implememts the "kloudctl group delete" subcommand.

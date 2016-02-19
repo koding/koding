@@ -249,13 +249,12 @@ var (
 )
 
 // InsertMachine inserts the machine to DB and requests kloud to build it.
-func (spec *MachineSpec) InsertMachine(addToStack bool) error {
+func (spec *MachineSpec) InsertMachine() error {
 	if spec.Machine.ObjectId.Valid() {
 		DefaultUi.Info(fmt.Sprintf("machine %q is going to be rebuilt", spec.Machine.ObjectId.Hex()))
 		return nil
 	}
 
-	group := spec.Machine.Groups[0]
 	user := spec.Machine.Users[0]
 
 	spec.Machine.ObjectId = bson.NewObjectId()
@@ -265,21 +264,11 @@ func (spec *MachineSpec) InsertMachine(addToStack bool) error {
 	spec.Machine.Credential = user.Username
 	spec.Machine.Uid = spec.finalizeUID()
 	spec.Machine.Domain = spec.Domain()
-
-	if !addToStack {
-		spec.Machine.Groups = nil
-	}
+	spec.Machine.Groups = nil
 
 	err := modelhelper.CreateMachine(&spec.Machine)
 	if err != nil {
 		return err
-	}
-
-	if addToStack {
-		err := modelhelper.AddToStack(user.Id, group.Id, spec.Machine.ObjectId)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
