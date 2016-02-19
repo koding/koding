@@ -1,8 +1,9 @@
-kd                 = require 'kd'
-FSFile             = require 'app/util/fs/fsfile'
-IDEPane            = require './idepane'
-AceView            = require 'ace/aceview'
-IDEAce             = require '../../views/ace/ideace'
+kd                      = require 'kd'
+FSFile                  = require 'app/util/fs/fsfile'
+IDEPane                 = require './idepane'
+AceView                 = require 'ace/aceview'
+IDEAce                  = require '../../views/ace/ideace'
+IDETailerPaneLineParser = require './idetailerpanelineparser'
 
 
 module.exports = class IDETailerPane extends IDEPane
@@ -25,6 +26,7 @@ module.exports = class IDETailerPane extends IDEPane
 
     @scrollToBottom()
     @getEditor().insert "\n#{newLine}"
+    IDETailerPaneLineParser.process newLine
 
 
   createEditor: ->
