@@ -163,7 +163,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
 		tunnelclient: klienttunnel.NewClient(db),
-		vagrant:      vagrant.NewHandlers(conf.VagrantHome),
+		vagrant:      vagrant.NewHandlers(conf.VagrantHome, k.Log),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,

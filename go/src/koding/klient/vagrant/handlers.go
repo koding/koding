@@ -20,15 +20,29 @@ const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
 // vagrant boxes on multiple different paths.
 type Handlers struct {
 	home    string
+	log     kite.Logger
 	paths   map[string]*vagrantutil.Vagrant
 	pathsMu sync.Mutex // protects paths
+
+	// The following fields implement the singleflight pattern, for
+	// each concurrent request there'll be only one ongoing operation
+	// upon which completion all the request handlers will get notified
+	// about the result.
+	boxNames map[string]chan<- (chan error) // queue of listeners mapped by a base box name
+	boxPaths map[string]chan<- (chan error) // queue of listeners mapped by a box filePath
+	boxMu    sync.Mutex                     // protects boxNames and boxPaths
+
+	once sync.Once
 }
 
 // NewHandlers returns a new instance of Handlers.
-func NewHandlers(home string) *Handlers {
+func NewHandlers(home string, log kite.Logger) *Handlers {
 	return &Handlers{
-		home:  home,
-		paths: make(map[string]*vagrantutil.Vagrant),
+		home:     home,
+		log:      log,
+		paths:    make(map[string]*vagrantutil.Vagrant),
+		boxNames: make(map[string]chan<- (chan error)),
+		boxPaths: make(map[string]chan<- (chan error)),
 	}
 }
 
@@ -53,6 +67,11 @@ type vagrantFunc func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, err
 // withPath is a helper function which check if the given vagrantFunc can be
 // executed with a valid path.
 func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error) {
+	// For the first vagrant request initialize the handler lazily and
+	// download the default base box. For another request in flight the
+	// box will already be downloaded.
+	h.once.Do(h.init)
+
 	var params struct {
 		FilePath string
 	}
@@ -72,6 +91,10 @@ func (h *Handlers) withPath(r *kite.Request, fn vagrantFunc) (interface{}, error
 
 	v, err := h.vagrantutil(params.FilePath)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := h.boxWait(v.VagrantfilePath); err != nil {
 		return nil, err
 	}
 
@@ -164,12 +187,11 @@ func (h *Handlers) Create(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		fmt.Println("----------------------------Vagrantfile")
-		fmt.Println(vagrantFile)
-
 		if err := v.Create(vagrantFile); err != nil {
 			return nil, err
 		}
+
+		h.boxAdd(v, params.Box, params.FilePath)
 
 		return params, nil
 	}
@@ -231,6 +253,100 @@ func (h *Handlers) Version(r *kite.Request) (interface{}, error) {
 		return v.Version()
 	}
 	return h.withPath(r, fn)
+}
+
+func (h *Handlers) boxAdd(v *vagrantutil.Vagrant, box, filePath string) {
+	h.boxMu.Lock()
+	defer h.boxMu.Unlock()
+
+	queue, ok := h.boxNames[box]
+	if !ok {
+		ch := make(chan chan error, 1)
+		h.boxNames[box] = ch
+		go h.download(v, box, ch)
+		queue = ch
+	}
+
+	if filePath != "" {
+		h.boxPaths[filePath] = queue
+	}
+}
+
+func drain(queue <-chan chan error) (listeners []chan error) {
+	for {
+		select {
+		case l := <-queue:
+			listeners = append(listeners, l)
+		default:
+			return listeners
+		}
+	}
+}
+
+func (h *Handlers) download(v *vagrantutil.Vagrant, box string, queue <-chan chan error) {
+	h.log.Debug("downloading %q box...", box)
+
+	var listeners []chan error
+	done := make(chan error)
+
+	go func() {
+		err := vagrantutil.Wait(v.BoxAdd(&vagrantutil.Box{Name: box}))
+		if err == vagrantutil.ErrBoxAlreadyExists {
+			// Ignore the above error.
+			err = nil
+		}
+
+		done <- err
+	}()
+
+	for {
+		select {
+		case l := <-queue:
+			listeners = append(listeners, l)
+		case err := <-done:
+			// Remove the box from in progress.
+			h.boxMu.Lock()
+			delete(h.boxNames, box)
+			delete(h.boxPaths, box)
+			h.boxMu.Unlock()
+
+			// Defensive channel drain: try to collect listeners
+			// that may have registered after receiving from done
+			// but before taking boxMu lock.
+			listeners = append(listeners, drain(queue)...)
+
+			// Notify all listeners.
+			for _, l := range listeners {
+				l <- err
+			}
+
+			h.log.Debug("downloading %q box finished: err=%v", box, err)
+
+			return
+		}
+	}
+}
+
+func (h *Handlers) boxWait(filePath string) error {
+	h.boxMu.Lock()
+	queue, ok := h.boxPaths[filePath]
+	h.boxMu.Unlock()
+	if !ok {
+		return nil
+	}
+
+	wait := make(chan error, 1)
+	queue <- wait
+	return <-wait
+}
+
+func (h *Handlers) init() {
+	v, err := vagrantutil.NewVagrant(".") // "vagrant box" commands does not require working dir
+	if err != nil {
+		h.log.Error("failed to init Vagrant handlers: %s", err)
+		return
+	}
+	h.boxAdd(v, "ubuntu/trusty64", "")
 }
 
 // watchCommand is an helper method to send back the command outputs of
