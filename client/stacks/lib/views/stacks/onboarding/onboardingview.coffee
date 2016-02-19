@@ -280,7 +280,10 @@ module.exports = class OnboardingView extends JView
 
     elements.block = elements.line
 
-    el = elements[type]?() or elements[type]
+    el = if typeof elements[type] is 'function' then elements[type]() else elements[type]
+
+    return  unless el
+
     el.setTooltip
       title    : messages[type]?() or messages[type]
       cssClass : 'stack-tooltip'
