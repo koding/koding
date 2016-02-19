@@ -780,7 +780,7 @@ computeproviders.styl
 
     span
       color                 #4a4e52
-      line-height           26px
+      line-height           24px
 
     &.red
       border-color          #e14a35
@@ -869,7 +869,7 @@ computeproviders.styl
       .custom-tag
         font-size           10px
         padding             0 4px
-        line-height         13px
+        line-height         14px
         margin-top          5px
         margin-left         5px
         background-color    #02A74D
@@ -1064,7 +1064,46 @@ computeproviders.styl
       border                none
 
 
+.AppModal.StackCatalogModal.fullscreen
+  &~.kdmodal.stack-template-preview
+    width                   90% !important
+    height                  90% !important
+    top                     50% !important
+    left                    50% !important
+    vendor                  transform, translateX(-50%) translateY(-50%)
+
 .kdmodal.stack-template-preview
 
+  .kdmodal-inner
+    height                  calc(100% \- 50px)
+
   .kdmodal-content
-    height                  380px
+    height                  calc(100% \- 60px)
+    border-bottom           1px solid #e4e4e4
+
+  .kdtabhandlecontainer
+    border-bottom           1px solid #e4e4e4
+
+  .kdtabhandle
+  .kdtabhandlecontainer
+    height                  42px !important
+    line-height             42px
+    box-shadow              none
+
+  .kdtabhandle
+    top                     1px
+    color                   #575757
+
+    &.active
+      box-shadow            none
+      bg                    color, #FFF !important
+      border                1px solid #E4E4E4
+      border-bottom         1px solid #FFF
+      rounded               4px 4px 0 0
+
+  .ace_gutter
+    bg                      color, #FFF
+    border-left             1px solid #e4e4e4
+
+  .ace_scroller
+    border-right            1px solid #e4e4e4

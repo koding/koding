@@ -213,6 +213,10 @@ type writeFileParams struct {
 	//
 	// The current hashing algorithm is md5
 	LastContentHash string
+
+	// Offset optionally writes the given data at the offset location, using
+	// file.WriteAt(data,offset) instead of file.Write(data)
+	Offset int64
 }
 
 func WriteFile(r *kite.Request) (interface{}, error) {
@@ -221,7 +225,7 @@ func WriteFile(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("{ path: [string] }")
 	}
 
-	return writeFile(params.Path, params.Content, params.DoNotOverwrite, params.Append, params.LastContentHash)
+	return writeFile(params)
 }
 
 func UniquePath(r *kite.Request) (interface{}, error) {

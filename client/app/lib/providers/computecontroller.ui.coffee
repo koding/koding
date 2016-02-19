@@ -185,6 +185,7 @@ module.exports = class ComputeController_UI
       callback          : (data)->
         form.emit "Submit", data
 
+
   @askFor: (action, options, callback) ->
 
     {force, machine, resizeTo} = options
@@ -302,14 +303,17 @@ module.exports = class ComputeController_UI
         style     : 'solid red medium'
         callback  : ->
           modal.destroy()
-          callback()
+          callback { confirmed : yes }
       cancel      :
         style     : "solid light-gray medium"
         type      : "button"
         callback  : ->
           modal.destroy()
+          callback { confirmed : no }
 
     modal.setClass 'has-markdown'
+    modal.once 'ModalCancelled', -> callback { confirmed : no }
+    modal.overlay.on 'click',    -> callback { confirmed : no }
 
     return modal
 

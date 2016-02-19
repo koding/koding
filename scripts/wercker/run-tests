@@ -164,9 +164,9 @@ iterator = (id, callback) ->
 
 parallelSets.forEach (set, index) ->
 
-  console.log "Set:#{index}", set
-
-console.log ""
+  console.log "Set:#{index}"
+  set.forEach ({name}) -> console.log name
+  console.log ""
 
 
 async.eachLimit Object.keys(parallelSets), limit, iterator, (error) ->

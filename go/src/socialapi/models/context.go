@@ -8,11 +8,19 @@ import (
 	"github.com/koding/redis"
 )
 
+// Client holds the contextual requester/client info
 type Client struct {
+	// Account holds the requester info
 	Account *Account
-	IP      net.IP
+
+	// IP is remote IP of the requester
+	IP net.IP
+
+	// SessionID is session cookie id
+	SessionID string
 }
 
+// Context holds contextual info regarding a REST query
 type Context struct {
 	GroupName string
 	Client    *Client
@@ -20,6 +28,7 @@ type Context struct {
 	log       logging.Logger
 }
 
+// NewContext creates a new context
 func NewContext(redis *redis.RedisSession, log logging.Logger) *Context {
 	return &Context{
 		redis: redis,
@@ -27,6 +36,7 @@ func NewContext(redis *redis.RedisSession, log logging.Logger) *Context {
 	}
 }
 
+// OverrideQuery overrides Query with context info
 func (c *Context) OverrideQuery(q *request.Query) *request.Query {
 	// get group name from context
 	q.GroupName = c.GroupName
@@ -39,6 +49,7 @@ func (c *Context) OverrideQuery(q *request.Query) *request.Query {
 	return q
 }
 
+// IsLoggedIn checks if the request is an authenticated one
 func (c *Context) IsLoggedIn() bool {
 	if c.Client == nil {
 		return false
@@ -66,6 +77,7 @@ func (c *Context) IsAdmin() bool {
 	return IsIn(c.Client.Account.Nick, superAdmins...)
 }
 
+// MustGetLogger gets the logger from context, otherwise panics
 func (c *Context) MustGetLogger() logging.Logger {
 	if c.log == nil {
 		panic(ErrLoggerNotExist)
@@ -74,6 +86,7 @@ func (c *Context) MustGetLogger() logging.Logger {
 	return c.log
 }
 
+// MustGetRedisConn gets the logger from context, otherwise panics
 func (c *Context) MustGetRedisConn() *redis.RedisSession {
 	if c.redis == nil {
 		panic(ErrRedisNotExist)

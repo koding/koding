@@ -20,12 +20,11 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   constructor: (options = {}, data)->
 
-    options.cssClass           = 'privatemessage'
-
-    # this is backwards compatibility related. ~Umut
-    options.type               = 'privatemessage'
-    options.channelType        = 'collaboration'
-    options.autoCompleteClass  = IDEChatParticipantSearchController
+    options.cssClass               = 'privatemessage'
+    options.type                   = 'privatemessage' # backwards compatibility ~Umut
+    options.channelType            = 'collaboration'
+    options.autoCompleteClass      = IDEChatParticipantSearchController
+    options.participantsModelClass = CollaborationChannelParticipantsModel
 
     super options, data
 
@@ -164,11 +163,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     channel      = @getData()
 
     mainView.glanceChannelWorkspace channel
-
-
-  prepareParticipantsModel: ->
-
-    @participantsModel = new CollaborationChannelParticipantsModel { channel: @getData() }
 
 
   createParticipantHeads: ->

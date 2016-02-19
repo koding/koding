@@ -9,7 +9,6 @@ FSHelper                        = require '../../util/fs/fshelper'
 isKoding                        = require 'app/util/isKoding'
 showError                       = require '../../util/showError'
 groupifyLink                    = require '../../util/groupifyLink'
-isFeedEnabled                   = require 'app/util/isFeedEnabled'
 ComputeHelpers                  = require 'app/providers/computehelpers'
 CustomLinkView                  = require '../../customlinkview'
 ChatSearchModal                 = require './chatsearchmodal'
@@ -20,6 +19,7 @@ isFeatureEnabled                = require 'app/util/isFeatureEnabled'
 fetchChatChannels               = require 'activity/util/fetchChatChannels'
 SidebarPinnedItem               = require './sidebarpinneditem'
 KDNotificationView              = kd.NotificationView
+isSoloProductLite               = require 'app/util/issoloproductlite'
 SidebarMessageItem              = require './sidebarmessageitem'
 JTreeViewController             = kd.JTreeViewController
 MoreWorkspacesModal             = require './moreworkspacesmodal'
@@ -86,7 +86,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     router
       .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
-    unless isFeedEnabled()
+    if isKoding()
       notificationController
         .on 'AddedToChannel',            @bound 'accountAddedToChannel'
         .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
@@ -486,8 +486,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @addMachineList()
 
     kd.singletons.mainController.ready =>
-      @addFollowedTopics()
-      @addMessages()
+      if not isSoloProductLite()
+        @addFollowedTopics()
+        @addMessages()
 
 
   initiateFakeCounter: ->

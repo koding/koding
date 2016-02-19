@@ -1,5 +1,4 @@
-{ daisy
-  async
+{ async
   expect
   ObjectId
   withDummyClient
@@ -519,21 +518,21 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         type      : ComputeProvider.COUNTER_TYPE.stacks
 
       queue = [
-        ->
+        (next) ->
           JCounter.count options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 1
-            queue.next()
-        ->
+            next()
+        (next) ->
           JCounter.reset options, (err, count) ->
             expect(err).to.not.exist
-            queue.next()
-        ->
+            next()
+        (next) ->
           JCounter.count options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 0
-            queue.next()
-        ->
+            next()
+        (next) ->
           ComputeProvider.updateTeamCounters group.slug, (err, feedback) ->
             expect(err).to.not.exist
             expect(feedback).to.exist
@@ -543,17 +542,15 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
             expect(feedback.before.stacks).to.be.equal 0
             expect(feedback.current.stacks).to.be.equal 1
             expect(feedback.after.stacks).to.be.equal 1
-            queue.next()
-        ->
+            next()
+        (next) ->
           JCounter.count options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 1
-            queue.next()
+            next()
       ]
 
-      queue.push -> done()
-
-      daisy queue
+      async.series queue, done
 
 
   describe '::update', ->
@@ -599,30 +596,28 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
           queue = [
 
-            ->
+            (next) ->
               JMachine.one { _id : machine._id }, (err, machine) ->
                 expect(err).to.not.exist
                 expect(machine).to.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               options = { provider : providerSlug, machineId : machine._id.toString(), credential }
               ComputeProvider.remove client, options, (err) ->
                 if err
                   expect(err.message).to.be.equal notImplementedMessage
-                  return callback()
-                queue.next()
+                next err
 
-            ->
+            (next) ->
               JMachine.one { _id : machine._id }, (err, machine) ->
                 expect(err).to.not.exist
                 expect(machine).to.not.exist
-                callback()
-                queue.next()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, (err) -> callback()
       , done
 
 

@@ -291,16 +291,12 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	}
 
 	k.HandleFunc("register", s.Register)
-	k.HandleHTTPFunc("/healthCheck", s.HealthCheck(name))
+	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 	k.HandleHTTP("/{rest:.*}", forward("/klient", s.Server))
 
 	if s.opts.RegisterURL == nil {
 		s.opts.RegisterURL = k.RegisterURL(false)
-	}
-
-	if err := k.RegisterForever(s.opts.RegisterURL); err != nil {
-		return nil, err
 	}
 
 	return k, nil

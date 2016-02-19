@@ -54,6 +54,17 @@ func (a *Account) ById(id int64) error {
 	return bongo.B.ById(a, id)
 }
 
+func (a *Account) ByToken(token string) error {
+	if token == "" {
+		return ErrIdIsNotSet
+	}
+	selector := map[string]interface{}{
+		"token": token,
+	}
+
+	return a.One(bongo.NewQS(selector))
+}
+
 func (a *Account) Update() error {
 	return bongo.B.Update(a)
 }

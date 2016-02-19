@@ -51,4 +51,11 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
       cssClass : 'solid compact light-gray showlogs-button'
       callback : => @emit 'ShowOutputView'
 
+    @editorView.addSubView new KDButtonView
+      cssClass : 'solid compact light-gray fullscreen-button'
+      title    : ''
+      callback : =>
+        kd.singletons.appManager.tell 'Stacks', 'toggleFullscreen'
+        kd.utils.wait 250, => @editorView.resize()
+
     @editorView.on 'click', => @emit 'HideOutputView'

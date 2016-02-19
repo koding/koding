@@ -58,6 +58,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       @reinitButton = new kd.ButtonView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
+        loader      : yes
         callback    : @bound 'handleStackReinit'
 
       config = stack.config ? {}
@@ -108,7 +109,11 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleStackReinit: ->
 
-    @getDelegate().emit 'StackReinitRequested', @getData()
+    stack = @getData()
+
+    @getDelegate().emit 'StackReinitRequested', stack
+
+    kd.singletons.computeController.reinitStack stack, => @reinitButton.hideLoader()
 
 
   handleStackDelete: ->
@@ -116,7 +121,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @destroyModal()
 
     { computeController } = kd.singletons
-    computeController.ui.askFor 'deleteStack', {}, =>
+    computeController.ui.askFor 'deleteStack', {}, (status) =>
+      return  unless status.confirmed
       @getDelegate().emit 'StackDeleteRequested', @getData()
 
 

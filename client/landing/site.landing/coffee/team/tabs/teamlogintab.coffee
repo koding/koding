@@ -40,12 +40,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
         track 'submitted login form'
         mainController.on 'LoginFailed', => @form.button.hideLoader()
 
-        # if current url isn't Team url, login is shown because no route has matched current url.
-        # It may happen when logged out user opens a page which requires user authentication.
-        # Let's redirect to this url after user is logged in
-        { pathname } = location
-        if pathname and pathname.indexOf('/Team') isnt 0
-          formData.redirectTo = location.pathname.substring 1
+        formData.redirectTo = utils.getLoginRedirectPath '/Team'
 
         mainController.login formData, (err) =>
           track 'failed to login'  if err

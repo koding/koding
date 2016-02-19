@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"koding/kites/kloud/api/sl"
@@ -26,6 +27,13 @@ var (
 	// Only lookup images that have this tag
 	DefaultTemplateTag = "koding-stable"
 )
+
+func IsHostnameSyntaxError(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), "The hostname and domain must be alphanumeric strings that may be separated by periods")
+}
 
 func (m *Machine) Build(ctx context.Context) error {
 	return m.guardTransition(machinestate.Building, "Building started", ctx, m.build)
@@ -94,9 +102,15 @@ func (m *Machine) build(ctx context.Context) error {
 
 	m.Meta["sourceImage"] = imageID
 
+	hostname := m.Username // using username as a hostname
+	if _, err := strconv.Atoi(hostname); err == nil {
+		// hostname cannot be a number, use m.Uid instead
+		hostname = m.Uid
+	}
+
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
-		Hostname:          m.Username,  // this is correct, we use the username as hostname
+		Hostname:          hostname,
 		Domain:            "koding.io", // this is just a placeholder
 		StartCpus:         1,
 		MaxMemory:         1024,
@@ -135,6 +149,10 @@ func (m *Machine) build(ctx context.Context) error {
 
 	//Create the virtual guest with the service
 	obj, err := svc.CreateObject(virtualGuestTemplate)
+	if IsHostnameSyntaxError(err) {
+		virtualGuestTemplate.Hostname = m.Uid // username can't be used as hostname, use uid instead
+		obj, err = svc.CreateObject(virtualGuestTemplate)
+	}
 	if err != nil {
 		return err
 	}
@@ -169,7 +187,7 @@ func (m *Machine) build(ctx context.Context) error {
 	}
 
 	if err = m.Session.SLClient.InstanceSetTags(obj.Id, sl.Tags(tags)); err != nil {
-		return err
+		m.Log.Warning("couldn't set tags during build: %s", err)
 	}
 
 	m.QueryString = protocol.Kite{ID: kiteID}.String()

@@ -64,7 +64,7 @@ handleContentKallback = (callback, params) ->
 
 createFeed = (models, options, callback) ->
   { JAccount, SocialChannel } = models
-  { page, channelId, client
+  { page, channelId, client, currentUrl
     route, contentType, channelName, sessionToken } = options
 
   return callback 'channelId not set'  unless channelId
@@ -85,14 +85,14 @@ createFeed = (models, options, callback) ->
   SocialChannel.fetchActivityCount { channelId, sessionToken }, (err, response) ->
     return callback err  if err
     itemCount = response?.totalCount
-    return callback null, getEmptyPage channelName  unless itemCount
+    return callback null, getEmptyPage channelName, currentUrl  unless itemCount
 
     options.replyLimit = 25
     SocialChannel.fetchActivities client, options, (err, result) ->
       return callback err  if err
 
       { messageList } = result
-      return callback null, getEmptyPage channelName unless messageList?.length
+      return callback null, getEmptyPage channelName, currentUrl unless messageList?.length
 
       options.page = page
       buildContent models, result.messageList, options, (err, pageContent) ->
@@ -112,7 +112,7 @@ createFeed = (models, options, callback) ->
         }
 
         pagination = getPagination paginationOptions
-        fullPage = putContentIntoFullPage content, pagination, { index: yes }
+        fullPage = putContentIntoFullPage content, pagination, { index: yes }, currentUrl
 
         callback null, fullPage
 
@@ -250,7 +250,8 @@ createTagNode = (tag) ->
   </div>
   """
 
-getSidebar = ->
+getSidebar = (currentUrl) ->
+  redirectTo = if currentUrl then "?redirectTo=#{currentUrl}" else ''
   """
   <aside id="main-sidebar" class="static">
     <div class="logo-wrapper">
@@ -273,7 +274,7 @@ getSidebar = ->
                 <span class="button-title">Sign Up</span>
               </button>
             </form>
-            <a href="/Login" class='login-link'>Login</a>
+            <a href="/Login#{redirectTo}" class='login-link'>Login</a>
           </section>
           <section class='sidebar-bottom-links'>
             <a href='http://koding.com/Features'>Features</a>
@@ -285,13 +286,13 @@ getSidebar = ->
   </aside>
   """
 
-getEmptyPage = (channelName) ->
+getEmptyPage = (channelName, currentUrl) ->
   content  = getChannelTitleContent channelName
   content += "<div class='no-item-found'>There is no activity.</div>"
 
-  putContentIntoFullPage content, ''
+  putContentIntoFullPage content, '', null, currentUrl
 
-putContentIntoFullPage = (content, pagination, graphMeta) ->
+putContentIntoFullPage = (content, pagination, graphMeta, currentUrl) ->
   getGraphMeta  = require './graphmeta'
   analytics     = require './analytics'
 
@@ -305,7 +306,7 @@ putContentIntoFullPage = (content, pagination, graphMeta) ->
   </head>
   <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
     <div id="kdmaincontainer" class="kdview with-sidebar">
-      #{getSidebar()}
+      #{getSidebar currentUrl}
       <section id="main-panel-wrapper" class="kdview">
         <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
           <div id="content-page-activity" class="kdview content-page activity activity-pane clearfix">

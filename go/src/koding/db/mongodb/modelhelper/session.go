@@ -27,6 +27,12 @@ func GetSession(clientId string) (*models.Session, error) {
 	return session, nil
 }
 
+// GetSessionById returns session by its bson id
+func GetSessionById(id string) (*models.Session, error) {
+	ses := new(models.Session)
+	return ses, Mongo.One(SessionColl, id, ses)
+}
+
 func GetSessionsByUsername(username string) ([]*models.Session, error) {
 	sessions := make([]*models.Session, 0)
 

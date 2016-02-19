@@ -13,7 +13,6 @@ KDFormViewWithFields = kd.FormViewWithFields
 
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
-applyMarkdown        = require 'app/util/applyMarkdown'
 { yamlToJson }       = require './yamlutils'
 providersParser      = require './providersparser'
 
@@ -30,7 +29,7 @@ ReadmeView           = require './readmeview'
 StackTemplateView    = require './stacktemplateview'
 CredentialStatusView = require './credentialstatusview'
 
-StackTemplateEditorView = require './editors/stacktemplateeditorview'
+StackTemplatePreviewModal = require './stacktemplatepreviewmodal'
 
 
 module.exports = class DefineStackView extends KDView
@@ -170,6 +169,9 @@ module.exports = class DefineStackView extends KDView
       @generateStackButton.hide()
       @saveButton.show()
 
+    @tabView.on 'PaneDidShow', (pane) ->
+      pane.mainView?.editorView?.resize()
+
 
   createFooter: ->
 
@@ -203,7 +205,7 @@ module.exports = class DefineStackView extends KDView
         title                :
           cssClass           : 'template-title'
           label              : 'Stack Name'
-          defaultValue       : stackTemplate?.title or 'Default stack template'
+          defaultValue       : stackTemplate?.title or 'Default stack template' # can we auto generate cute stack names?
 
 
   createOutputView: ->
@@ -223,6 +225,8 @@ module.exports = class DefineStackView extends KDView
 
   createMainButtons: ->
 
+    { appManager } = kd.singletons
+
     @inputTitle.addSubView @buttons = new kd.CustomHTMLView cssClass: 'buttons'
 
     @buttons.addSubView @reinitButton = new kd.ButtonView
@@ -235,25 +239,35 @@ module.exports = class DefineStackView extends KDView
     @buttons.addSubView @cancelButton = new kd.ButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
-      callback       : => @emit 'Cancel'
+      callback       : =>
+        appManager.tell 'Stacks', 'exitFullscreen'
+        @emit 'Cancel'
 
+    # let's remove this button from here, or
+    # only display when no default-stack is in use.
     @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
-      title          : 'Apply to Team'
+      title          : 'Make Team Default'
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
-      callback       : @bound 'handleSetDefaultTemplate'
+      callback       : =>
+        appManager.tell 'Stacks', 'exitFullscreen'
+        @handleSetDefaultTemplate()
 
     @buttons.addSubView @generateStackButton = new kd.ButtonView
-      title          : 'Generate Stack'
+      title          : 'Provision Stack'
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
-      callback       : @bound 'handleGenerateStack'
+      callback       : =>
+        appManager.tell 'Stacks', 'exitFullscreen'
+        @handleGenerateStack()
 
     @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
       loader         : yes
-      callback       : @bound 'handleSave'
+      callback       : =>
+        appManager.tell 'Stacks', 'exitFullscreen'
+        @handleSave()
 
 
   handleSave: ->
@@ -327,9 +341,16 @@ module.exports = class DefineStackView extends KDView
       if canEditGroup
         @handleSetDefaultTemplate completed = no
 
+        # this is confusing. if there are currently 20 members using this stack
+        # their stack shouldn't be changed to this one automatically
+        # they should see a notification that says "this stack has been deleted by Gokmen"
+        # new users get the default stack should. and this button shouldn't be there each time
+        # i make a new one, it should be on the list-menu.
         @outputView[method] """
-          Your stack script has been successfully saved and all your team
-          members now will use the stack you have just saved.
+          Your stack script has been successfully saved and all your new team
+          members now will see this stack by default. Existing users
+          of the previous default-stack will be notified that default-stack has
+          changed.
 
           You can now close this window or continue working with your stack.
         """
@@ -362,8 +383,8 @@ module.exports = class DefineStackView extends KDView
             @outputView.add """
               Your stack script has been successfully saved.
 
-              If you want your team members to use this template you need to
-              apply it for your team.
+              If you want to auto-provision this template when new users join your team,
+              you need to click "Make Team Default" after you save it.
 
               You can now close the stack editor or continue editing your stack.
             """
@@ -583,25 +604,6 @@ module.exports = class DefineStackView extends KDView
       callback err, stackTemplate
 
 
-  createReportFor = (data, type) ->
-
-    if (Object.keys data).length > 0
-      console.warn "#{type.capitalize()} for preview requirements: ", data
-
-      issues = ''
-      for issue of data
-        if issue is 'userInput'
-          issues += " - These variables: `#{data[issue]}`
-                        will be requested from user.\n"
-        else
-          issues += " - These variables: `#{data[issue]}`
-                        couldn't find in `#{issue}` data.\n"
-    else
-      issues = ''
-
-    return issues
-
-
   handlePreview: ->
 
     template      = @stackTemplateView.editorView.getValue()
@@ -632,12 +634,12 @@ module.exports = class DefineStackView extends KDView
             search   = if type is 'custom'  \
               then ///\${var.#{type}_#{field}}///g
               else ///\${var.koding_#{type}_#{field}}///g
-            template = template.replace search, content
+            template = template.replace search, content.replace /\n/g, '\\n'
           else
             errors[type] ?= []
             errors[type].push field
 
-      @createPreviewModal { errors, warnings, template }
+      new StackTemplatePreviewModal {}, { errors, warnings, template }
 
       @previewButton.hideLoader()
 
@@ -653,32 +655,7 @@ module.exports = class DefineStackView extends KDView
 
   createPreviewModal: ({ errors, warnings, template }) ->
 
-    errors   = createReportFor errors,   'errors'
-    warnings = createReportFor warnings, 'warnings'
 
-    modal = new kd.ModalView
-      title          : 'Template Preview'
-      subtitle       : 'Generated from your account data'
-      cssClass       : 'stack-template-preview content-modal'
-      height         : 500
-      width          : 757
-      overlay        : yes
-      overlayOptions : cssClass : 'second-overlay'
-
-    descriptionView = new kd.CustomHTMLView
-      cssClass : 'has-markdown'
-      partial  : applyMarkdown """
-        #{errors}
-        #{warnings}
-        """
-
-    modal.addSubView new StackTemplateEditorView
-      delegate        : this
-      content         : template
-      contentType     : 'yaml'
-      readOnly        : yes
-      showHelpContent : no
-      descriptionView : descriptionView
 
 
   handleReinit: ->
@@ -709,7 +686,7 @@ module.exports = class DefineStackView extends KDView
     { stackTemplate }    = @getData()
     { groupsController } = kd.singletons
 
-    @outputView.add 'Setting this as default group stack template...'
+    @outputView.add 'Setting this as default team stack template...'
 
     # TMS-1919: This should only add the stacktemplate to the list of
     # available stacktemplates, we can also provide set one of the template

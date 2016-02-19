@@ -119,10 +119,6 @@ func (cmd *recordsList) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *recordsList) Run(context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	records, err := cmd.list()
 	if err != nil {
 		return err
@@ -172,10 +168,6 @@ func (cmd *recordsAdd) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *recordsAdd) Run(context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	fmt.Println("upserting record and waiting for the operation to complete...")
 	err := client.UpsertRecord(&cmd.record)
 	if err != nil {
@@ -212,10 +204,6 @@ func (cmd *recordsRm) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *recordsRm) Run(context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	records, err := cmd.list.list()
 	if err != nil {
 		return err

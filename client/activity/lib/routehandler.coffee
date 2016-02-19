@@ -5,8 +5,8 @@ createHistory             = require 'history/lib/createHistory'
 createLocation            = require 'history/lib/createLocation'
 handlers                  = require './routehandlers'
 lazyrouter                = require 'app/lazyrouter'
-isFeedEnabled             = require 'app/util/isFeedEnabled'
 isKoding                  = require 'app/util/isKoding'
+isSoloProductLite         = require 'app/util/issoloproductlite'
 { RoutingContext, match } = require 'react-router'
 
 reactivityRouteTypes = [
@@ -30,17 +30,20 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
 
   handle = (name) -> handlers["handle#{name}"](info, ctx, path, state)
 
-  # since `isFeedEnabled` flag checks roles from config,
-  # wait for mainController to be ready to call `isFeedEnabled`
+  # since `isKoding` flag checks roles from config,
+  # wait for mainController to be ready to call `isKoding`
   # FIXME: Remove this call before public release. ~Umut
   kd.singletons.mainController.ready ->
     if type in reactivityRouteTypes
-      if not isKoding() or isFeedEnabled()
+      if not isKoding()
       then handleReactivity info, ctx
       # unless reactivity is enabled redirect reactivity routes to `Public`
       else ctx.handleRoute '/Activity/Public'
-    else handle type
-
+    else
+      if not isSoloProductLite()
+        handle type
+      else
+        return ctx.handleRoute ''
 
 ###*
  * Renders with reacth router.
