@@ -84,13 +84,18 @@ module.exports =
 
   startSessionAndInviteUser: (browser, firstUser, secondUser, assertOnline = yes, readOnlySession = no) ->
 
-    secondUserAvatar       = ".avatars .avatarview[href='/#{secondUser.username}']"
-    secondUserOnlineAvatar = "#{secondUserAvatar}.online"
-
     helpers.beginTest browser, firstUser
     helpers.waitForVMRunning browser
 
     ideHelpers.closeAllTabs(browser)
+
+    @startSessionAndInviteUser_(browser, firstUser, secondUser, assertOnline, readOnlySession)
+
+
+  startSessionAndInviteUser_: (browser, firstUser, secondUser, assertOnline, readOnlySession) ->
+
+    secondUserAvatar       = ".avatars .avatarview[href='/#{secondUser.username}']"
+    secondUserOnlineAvatar = "#{secondUserAvatar}.online"
 
     @isSessionActive browser, (isActive) =>
 

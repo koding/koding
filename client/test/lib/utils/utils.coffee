@@ -1,6 +1,8 @@
 fs        = require 'fs'
 faker     = require 'faker'
 formatter = require 'json-format'
+helpers   = require '../helpers/helpers'
+
 
 module.exports =
 
@@ -15,10 +17,11 @@ module.exports =
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
       teamSlug = name.toLowerCase().replace(/\s/g, '-').replace(/'/g, '').replace('.', '')
+      fakeText = helpers.getFakeText()
 
       email = "kodingtestuser+#{username}@koding.com"
 
-      users.push { name, email, username, password, teamSlug }
+      users.push { name, email, username, password, teamSlug, fakeText }
 
     fs.writeFileSync 'users.json', formatter users, 'utf-8'
 
