@@ -136,6 +136,18 @@ beforeGroups afterGroups \
 export TEST_GROUP=$1
 export TEST_SUITE=$2
 export TEST_CASE=$3
+export IGNORED_TEST_CASES="
+ide/search/findInFiles
+ide/search/jumpToFile
+ide/search/saveUntitledFile
+ide/search/toggleInvisibleFiles
+ide/search/openAnExistingFileAndSave
+collaboration/collaborationsession/rejectInvitation
+collaboration/collaborationsession/leaveSessionFromChat
+collaboration/collaborationsession/leaveSessionFromSidebar
+collaboration/collaborationsession/leaveSessionFromStatusBar
+collaboration/collaborationsession/startReadOnlySession
+"
 
 if [ -n "$TEST_CASE" ]; then
   for NAME in $RESERVED_TEST_CASE_NAMES; do
