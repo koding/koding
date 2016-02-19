@@ -4,7 +4,7 @@ ResourceList           = require './resourcelist'
 ResourceListController = require './resourcelistcontroller'
 
 
-module.exports = class ResourcesView extends kd.View
+module.exports = class AdminResourcesView extends kd.View
 
 
   constructor: (options = {}, data) ->
