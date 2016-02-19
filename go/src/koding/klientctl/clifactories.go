@@ -16,7 +16,7 @@ import (
 
 // MountCommandFactory creates a mount.Command instance and runs it with
 // Stdin and Out.
-func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) int {
+func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Command {
 	log = log.New(fmt.Sprintf("command:%s", cmdName))
 
 	// Full our unmount options from the CLI. Any empty options are okay, as
@@ -37,11 +37,5 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) i
 		mountFinder:   mountcli.NewMount(),
 	}
 
-	exit, err := cmd.Run()
-	if exit != 0 || err != nil {
-		// Using the command logger, since it may be using its own prefixes.
-		cmd.Log.Error("Command encountered error. exit:%d, err:%s", exit, err)
-	}
-
-	return exit
+	return cmd
 }

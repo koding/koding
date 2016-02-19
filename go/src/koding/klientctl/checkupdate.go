@@ -19,6 +19,8 @@ func init() {
 
 // CheckUpdateFirst can be prepended to any existing cli command to have it
 // check if there's an update available before running the command.
+//
+// TODO: Remove once we have fully deprecated the old ExitCommands
 func CheckUpdateFirst(f ExitingCommand, log logging.Logger, cmd string) (ExitingCommand, logging.Logger, string) {
 
 	exitCmd := func(c *cli.Context, log logging.Logger, cmd string) int {

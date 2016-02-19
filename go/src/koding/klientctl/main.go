@@ -132,9 +132,7 @@ func main() {
 			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["unmount"],
-			Action: ExitAction(
-				CheckUpdateFirst(UnmountCommandFactory, log, "unmount"),
-			)},
+			Action:      FactoryAction(UnmountCommandFactory, log, "unmount")},
 		cli.Command{
 			Name:        "ssh",
 			ShortName:   "s",

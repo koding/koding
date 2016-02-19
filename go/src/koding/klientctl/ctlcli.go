@@ -37,6 +37,9 @@ type Helper func(io.Writer)
 // ExitingCommand is a function that returns an exit code
 type ExitingCommand func(*cli.Context, logging.Logger, string) int
 
+// CommandFactory returns a struct implementing the Command interface.
+type CommandFactory func(*cli.Context, logging.Logger, string) Command
+
 // CommandHelper maps the codegansta/cli Help to our generic Helper type.
 // It does so by calling cli.ShowCommandHelper after setting the proper writer. For
 // reference, see:
@@ -55,5 +58,24 @@ func CommandHelper(ctx *cli.Context, cmd string) Helper {
 func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) func(*cli.Context) {
 	return func(c *cli.Context) {
 		os.Exit(f(c, log, cmdName))
+	}
+}
+
+// FactoryAction implements a cli.Command's Action field.
+func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) func(*cli.Context) {
+	return func(c *cli.Context) {
+		cmd := factory(c, log, cmdName)
+		exit, err := cmd.Run()
+
+		// For API reasons, we may return an error but a zero exit code. So we want
+		// to check and log both.
+		if exit != 0 || err != nil {
+			log.Error(
+				"Command encountered error. command:%s, exit:%d, err:%s",
+				cmdName, exit, err,
+			)
+		}
+
+		os.Exit(exit)
 	}
 }
