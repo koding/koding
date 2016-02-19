@@ -560,8 +560,21 @@ func (cmd *GroupCreate) waitFunc(timeout time.Duration) WaitFunc {
 	}
 }
 
-func (cmd *GroupCreate) Run(ctx context.Context) error {
-	spec, err := ParseMachineSpec(cmd.file)
+func (cmd *GroupCreate) Run(ctx context.Context) (err error) {
+	var spec *MachineSpec
+	if !cmd.dry {
+		spec, err = ParseMachineSpec(cmd.file)
+	} else {
+		spec = &MachineSpec{
+			Machine: models.Machine{
+				Provider: "softlayer",
+				Users: []models.MachineUser{{
+					Username: "softlayer",
+				}},
+				Slug: "softlayer-vm-0",
+			},
+		}
+	}
 	if err != nil {
 		return err
 	}
