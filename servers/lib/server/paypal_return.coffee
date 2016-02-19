@@ -40,7 +40,7 @@ module.exports = (req, res) ->
 
       return templateFn err, res  if err
       unless account
-        err = new Error "account not found"
+        err = new Error 'account not found'
         return templateFn err, res  unless account
 
       params = { token, accountId : account.getId() }
