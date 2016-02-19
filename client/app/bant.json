@@ -5,7 +5,7 @@
     "": "home",
     "/": "home",
     "/R/:username": "referrer",
-    "/Teams/:token": "teams",
+    "/Teams/:token?": "teams",
     "/Login": "login",
     "/Register": "register",
     "/Logout": "logout",
