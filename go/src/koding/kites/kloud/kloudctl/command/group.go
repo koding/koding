@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 
@@ -691,6 +692,7 @@ type GroupStack struct {
 	groupSlug   string
 	machineSlug string
 	baseID      string
+	jobs        int
 }
 
 func NewGroupStack() *GroupStack {
@@ -710,6 +712,7 @@ func (cmd *GroupStack) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.groupSlug, "group", "koding", "Group slug.")
 	f.BoolVar(&cmd.rm, "rm", false, "Remove machine from stack and template.")
 	f.StringVar(&cmd.baseID, "base-id", "53fe557af052f8e9435a04fa", "Base Stack ID for new jComputeStack documents.")
+	f.IntVar(&cmd.jobs, "j", 1, "Number of concurrent jobs.")
 }
 
 func (cmd *GroupStack) Valid() error {
@@ -726,31 +729,50 @@ func (cmd *GroupStack) Valid() error {
 }
 
 func (cmd *GroupStack) Run(ctx context.Context) error {
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 	merr := new(multierror.Error)
+	jobs := make(chan string)
+
+	go func() {
+		for _, username := range cmd.groupUsers.usernames {
+			jobs <- username
+		}
+		close(jobs)
+	}()
 
 	DefaultUi.Info(fmt.Sprintf("processing %d users...", len(cmd.groupUsers.usernames)))
 
-	for _, username := range cmd.groupUsers.usernames {
+	for range make([]struct{}, cmd.jobs) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for username := range jobs {
+				sd, err := cmd.details(username)
+				if err != nil {
+					merr = multierror.Append(merr, err)
+					continue
+				}
 
-		sd, err := cmd.details(username)
-		if err != nil {
-			merr = multierror.Append(merr, err)
-			continue
-		}
+				if cmd.rm {
+					err = modelhelper.RemoveFromStack(sd)
+				} else {
+					err = modelhelper.AddToStack(sd)
+				}
+				if err != nil {
+					DefaultUi.Warn(fmt.Sprintf("processing %q user stack failed: %s", username, err))
 
-		if cmd.rm {
-			err = modelhelper.RemoveFromStack(sd)
-		} else {
-			err = modelhelper.AddToStack(sd)
-		}
-		if err != nil {
-			DefaultUi.Warn(fmt.Sprintf("processing %q user stack failed: %s", username, err))
-
-			merr = multierror.Append(merr, err)
-		} else {
-			DefaultUi.Warn(fmt.Sprintf("processed %q user stack", username))
-		}
+					mu.Lock()
+					merr = multierror.Append(merr, err)
+					mu.Unlock()
+				} else {
+					DefaultUi.Warn(fmt.Sprintf("processed %q user stack", username))
+				}
+			}
+		}()
 	}
+
+	wg.Wait()
 
 	return merr.ErrorOrNil()
 }
