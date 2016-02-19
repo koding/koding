@@ -29,6 +29,9 @@ var (
 )
 
 func IsHostnameSyntaxError(err error) bool {
+	if err == nil {
+		return false
+	}
 	return strings.Contains(err.Error(), "The hostname and domain must be alphanumeric strings that may be separated by periods")
 }
 
