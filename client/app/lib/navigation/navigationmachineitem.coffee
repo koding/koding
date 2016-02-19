@@ -107,7 +107,7 @@ module.exports = class NavigationMachineItem extends JView
 
     @settingsIcon = new KDCustomHTMLView
       tagName     : 'span'
-      cssClass    : cssClass
+      cssClass    : "settings-icon #{cssClass}"
       click       : (e) =>
         kd.utils.stopDOMEvent e
 

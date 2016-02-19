@@ -27,7 +27,7 @@ module.exports =
 
     browser.pause 5000 # wait for snapshot restore
 
-    handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
+    handleSelector = '.panel-1 .pane-wrapper .kdtabhandle.kddraggable'
     modalSelector  = '.autoremovepane-confirm'
 
 
@@ -95,7 +95,7 @@ module.exports =
       .click                  saveButtonSelector
       .waitForElementVisible  "#{tabHandleSelector} #{titleSelector}", 20000 # Assertion
       .waitForElementVisible  filesTabSelector, 20000
-      .assert.containsText    filesTabSelector, newName # Assertion
+      .waitForTextToContain   filesTabSelector, newName # Assertion
 
     if text
       browser.assert.containsText panelSelector, text
@@ -148,7 +148,7 @@ module.exports =
       .waitForElementVisible  'li.open-file', 20000
       .click                  'li.open-file'
       .waitForElementVisible  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
-      .assert.containsText    activeEditorSelector, text # Assertion
+      .waitForTextToContain   activeEditorSelector, text # Assertion
 
 
   openFileFromWebFolder: (browser, user, fileName, fileContent) ->
@@ -171,7 +171,7 @@ module.exports =
       .click                   'li.open-file'
       .waitForElementVisible   ".pane-wrapper .kdsplitview-panel .#{fileNameSlug}", 20000 # Assertion
       .waitForElementVisible   tabSelector, 20000 # Assertion
-      .assert.containsText     tabSelector, fileContent # Assertion
+      .waitForTextToContain    tabSelector, fileContent # Assertion
 
 
   openFile: (browser, user, fileName) ->
