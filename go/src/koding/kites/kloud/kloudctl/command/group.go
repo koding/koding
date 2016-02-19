@@ -421,6 +421,7 @@ type GroupCreate struct {
 	stack     bool
 	file      string
 	count     int
+	eventer   bool
 	pullmongo time.Duration
 }
 
@@ -447,7 +448,8 @@ func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
 	f.BoolVar(&cmd.stack, "stack", false, "Add the machine to user stack.")
 	f.BoolVar(&cmd.dry, "dry", false, "Dry run, tells the status of machines for the users.")
-	f.DurationVar(&cmd.pullmongo, "pullmongo", 0, "Instead of using eventer, pull jMachine.status.state for status")
+	f.DurationVar(&cmd.pullmongo, "pullmongo", 20*time.Minute, "Timeout for the build, pulls jMachine.status.state for status.")
+	f.BoolVar(&cmd.eventer, "eventer", false, "Use kloud eventer instead of pulling MongoDB.")
 }
 
 func (cmd *GroupCreate) Valid() error {
@@ -459,7 +461,11 @@ func (cmd *GroupCreate) Valid() error {
 		return errors.New("the -users and -n flags can't be used together")
 	}
 
-	if cmd.pullmongo != 0 {
+	if cmd.pullmongo == 0 && !cmd.eventer {
+		return errors.New("invalid value for -pullmongo flag")
+	}
+
+	if !cmd.eventer {
 		cmd.GroupThrottler.Wait = cmd.waitFunc(cmd.pullmongo)
 	}
 
