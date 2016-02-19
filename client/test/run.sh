@@ -126,6 +126,11 @@ beforeSuite afterSuite \
 beforeGroups afterGroups \
 "
 
+if [ "$1" == "--names" ]; then
+  export RUN_MODE_NAMES="true"
+  shift
+fi
+
 export TEST_GROUP=$1
 export TEST_SUITE=$2
 export TEST_CASE=$3
@@ -134,6 +139,12 @@ if [ -n "$TEST_CASE" ]; then
   for NAME in $RESERVED_TEST_CASE_NAMES; do
     [[ "$TEST_CASE" = "$NAME" ]] && exit 0
   done
+
+  if [ -n "$RUN_MODE_NAMES" ]; then
+    echo $TEST_GROUP/$TEST_SUITE/$TEST_CASE
+    exit 0
+  fi
+
   if [ -n "$IGNORED_TEST_CASES" ]; then
     if echo -e "$IGNORED_TEST_CASES" | grep --quiet $TEST_GROUP/$TEST_SUITE/$TEST_CASE; then
       exit 0
