@@ -110,8 +110,8 @@ func (c *MountCommand) Run() (int, error) {
 	}
 
 	// create the mount dir if needed
-	if exit, err := c.createMountDir(); err != nil {
-		return exit, err
+	if err := c.createMountDir(); err != nil {
+		return 1, err
 	}
 
 	// TODO: Try out using Cache Only here, we don't need a new VM list.
@@ -214,20 +214,29 @@ func (c *MountCommand) handleOptions() (int, error) {
 }
 
 // createMountDir creates the mount directory if it doesn't already exist.
-func (c *MountCommand) createMountDir() (int, error) {
-	// Ask the user if they want the localPath created, if it does not exist.
-	if err := askToCreate(c.Options.LocalPath, c.Stdin, c.Stdout); err != nil {
-		// If the error is that the user cancelled, just return
-		if err == klientctlerrors.ErrUserCancelled {
-			c.printfln(CannotMountDirNotExist)
-			return 0, nil
-		}
+func (c *MountCommand) createMountDir() error {
+	path := c.Options.LocalPath
 
-		c.printfln(FailedToCreateMountDir)
-		return 1, fmt.Errorf("Error creating local mount path. err:%s", err)
+	_, err := os.Stat(path)
+	// To avoid having weird sounding errors, check if we are able to successfully
+	// stat that first. If we can, that means the file/dir exists.
+	if err == nil {
+		c.printfln(CannotMountPathExists)
+		return fmt.Errorf("Cannot mount, given path already exists.")
 	}
 
-	return 0, nil
+	// If we are unable to read it, but it's *not* an IsNotExist error, then
+	// we don't have permission to read that path, or something else is wrong.
+	if !os.IsNotExist(err) {
+		c.printfln(CannotMountUnableToOpenPath)
+		return fmt.Errorf("Error reading mount location. err:%s", err)
+	}
+
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return fmt.Errorf("Error creating mount dir. err:%s", err)
+	}
+
+	return nil
 }
 
 // setupKlient creates and dials our Kite interface *only* if it is nil. If it is

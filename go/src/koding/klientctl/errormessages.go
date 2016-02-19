@@ -86,6 +86,21 @@ Please wait a few minutes and try again.`,
 	// mount. Can't mount to something that doesn't exist.
 	CannotMountDirNotExist = "Error: Cannot mount a directory that does not exist, exiting..."
 
+	// CannotMountPathExists is used when the user provides a path that already
+	// exists.
+	//
+	// TODO: Write meaningful message.
+	CannotMountPathExists = "Error: A file or directory already exists at the requested path."
+
+	// CannotMountUnableToOpenPath is used when we are unable to read from the
+	// given path. A possible example might be that the user asked to mount to
+	// /root/foo and kd doesn't have permission to even look in that directory.
+	//
+	// /root/foo might not exist, but kd can't even read it.
+	//
+	// TODO: Write meaningful message.
+	CannotMountUnableToOpenPath = "Error: Unable to open the given path"
+
 	// FailedToCreateMountDir is used when the user chose to create the dir, but it
 	// failed for some reason.
 	FailedToCreateMountDir = fmt.Sprintf(

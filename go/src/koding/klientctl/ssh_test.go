@@ -19,7 +19,7 @@ func TestSSHCommand(t *testing.T) {
 				KeyPath: tempSSHDir,
 				KeyName: "key",
 				// Create a klient, with the fake transport to satisfy the Teller interface.
-				Transport: &Klient{
+				Klient: &Klient{
 					Teller: &fakeTransport{},
 				},
 			},
