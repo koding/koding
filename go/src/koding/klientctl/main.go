@@ -125,7 +125,7 @@ func main() {
 					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
 				},
 			},
-			Action: ExitAction(CheckUpdateFirst(MountCommand, log, "mount")),
+			Action: FactoryAction(MountCommandFactory, log, "mount"),
 		},
 		cli.Command{
 			Name:        "unmount",

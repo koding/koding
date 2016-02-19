@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"koding/klientctl/util"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -28,6 +29,8 @@ type mountInfo struct {
 	RemotePath string `json:"remotePath"`
 	LocalPath  string `json:"localPath"`
 }
+
+type KiteInfos []kiteInfo
 
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
@@ -115,6 +118,28 @@ func getListOfMachines(kite *kite.Client) ([]kiteInfo, error) {
 	}
 
 	return infos, nil
+}
+
+// FindFromName finds a specific KiteInfo by the name, returning true or false if
+// one was found.
+func (infos KiteInfos) FindFromName(name string) (kiteInfo, bool) {
+	infoNames := make([]string, len(infos), len(infos))
+	for _, info := range infos {
+		infoNames = append(infoNames, info.VMName)
+	}
+
+	matchedName, ok := util.MatchFullOrShortcut(infoNames, name)
+	if !ok {
+		return kiteInfo{}, false
+	}
+
+	for _, info := range infos {
+		if info.VMName == matchedName {
+			return info, true
+		}
+	}
+
+	return kiteInfo{}, false
 }
 
 // shortenPath takes a path and returnes a "Fish" like path.
