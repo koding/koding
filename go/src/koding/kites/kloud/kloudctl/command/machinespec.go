@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,7 +13,9 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/machinestate"
 
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -217,12 +220,41 @@ func (spec *MachineSpec) BuildMachine(createUser bool) error {
 		spec.Machine.Provider[0],
 	)
 
-	return nil
+	m, err := modelhelper.GetMachineBySlug(spec.Machine.Users[0].Id, spec.Machine.Slug)
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	switch m.State() {
+	case machinestate.Building, machinestate.Starting:
+		return ErrAlreadyBuilding
+	case machinestate.Running:
+		return ErrAlreadyRunning
+	case machinestate.NotInitialized:
+		spec.Machine.ObjectId = m.ObjectId
+		return ErrRebuild
+	default:
+		return fmt.Errorf("machine state is %q; needs to be deleted and build "+
+			"again (jMachine.ObjectId = %q)", m.State(), m.ObjectId.Hex())
+	}
 }
 
+var (
+	ErrAlreadyRunning  = errors.New("the machine is already running")
+	ErrAlreadyBuilding = errors.New("the machine is already running")
+	ErrRebuild         = errors.New("previous build of that machine failed, need to be rebuild")
+)
+
 // InsertMachine inserts the machine to DB and requests kloud to build it.
-func (spec *MachineSpec) InsertMachine(hidden bool) error {
-	group := spec.Machine.Groups[0]
+func (spec *MachineSpec) InsertMachine() error {
+	if spec.Machine.ObjectId.Valid() {
+		DefaultUi.Info(fmt.Sprintf("machine %q is going to be rebuilt", spec.Machine.ObjectId.Hex()))
+		return nil
+	}
+
 	user := spec.Machine.Users[0]
 
 	spec.Machine.ObjectId = bson.NewObjectId()
@@ -232,21 +264,11 @@ func (spec *MachineSpec) InsertMachine(hidden bool) error {
 	spec.Machine.Credential = user.Username
 	spec.Machine.Uid = spec.finalizeUID()
 	spec.Machine.Domain = spec.Domain()
-
-	if hidden {
-		spec.Machine.Groups = nil
-	}
+	spec.Machine.Groups = nil
 
 	err := modelhelper.CreateMachine(&spec.Machine)
 	if err != nil {
 		return err
-	}
-
-	if !hidden {
-		err := modelhelper.AddToStack(user.Id, group.Id, spec.Machine.ObjectId)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -267,9 +289,9 @@ func (spec *MachineSpec) Copy() *MachineSpec {
 }
 
 var dnsZones = map[string]string{
-	"dev":     "dev.koding.io",
-	"sandbox": "sandbox.koding.io",
-	"prod":    "koding.io",
+	"dev":        "dev.koding.io",
+	"sandbox":    "sandbox.koding.io",
+	"production": "koding.io",
 }
 
 func shortUID() string {
