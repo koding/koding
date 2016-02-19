@@ -141,7 +141,9 @@ module.exports = class FSItem extends KDObject
 
       kite.exec { command }
 
-    .then(handleStdErr())
+    .then (result) =>
+      cb = handleStdErr()
+      cb result, type
 
     .nodeify(callback)
 

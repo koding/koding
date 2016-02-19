@@ -99,13 +99,49 @@ module.exports = class FSHelper
 
   @getUidFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
 
-  @handleStdErr = ->
-    (result) ->
-      { stdout, stderr, exitStatus } = result
-      throw new Error "std error: #{ stderr }"  if exitStatus > 0
-      return result
+  @handleStdErr = -> (result, action) ->
+
+    { stdout, stderr, exitStatus } = result
+
+    if exitStatus > 0
+      if stderr.indexOf('command not found') > -1
+        FSHelper.showInstallRequiredModal action
+      else
+        throw new Error "std error: #{ stderr }"
+
+    return result
+
 
   @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{nick()}///, '~'
+
+
+  @showInstallRequiredModal: (packageName) ->
+
+    installers =
+      zip      : 'sudo apt-get update -y; sudo apt-get -y install zip'
+
+    title   = "#{packageName or 'A'} package not found."
+    command = installers[packageName]
+    overlay = yes
+    content = """
+        We can try to install it for you by running:<br /><br />
+        <pre>#{command}</pre><br />
+        or you can install it manually to your VM and try this again.
+      """
+    buttons      =
+      install    :
+        title    : 'Install Package'
+        cssClass : 'solid green medium'
+        callback : ->
+          kd.singletons.appManager.getFrontApp().emit 'InstallationRequired', command
+          modal.destroy()
+      cancel     :
+        title    : 'Cancel'
+        cssClass : 'solid medium'
+        callback : -> modal.destroy()
+
+    modal = new kd.ModalView { title, content, overlay, buttons }
+
 
   # @exists = (path, vmName, callback=noop)->
   #   @getInfo path, vmName, (err, res)->
