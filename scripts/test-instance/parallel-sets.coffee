@@ -31,7 +31,7 @@ module.exports = [
   [
     { name: 'pricing payment' }
     { name: 'activity post' }
-    { name: 'staticpages loggedout' }
+    # { name: 'staticpages loggedout' }
   ]
 
   [
@@ -78,9 +78,9 @@ module.exports = [
     { name: 'environments snapshot' }
   ]
 
-  [
-    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
+  # [
+  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
   [
     { name: 'environments vm' }
