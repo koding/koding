@@ -30,6 +30,7 @@ type Instance struct {
 	Hostname      string         `json:"hostname,omitempty"`
 	Domain        string         `json:"domain,omitempty"`
 	UUID          string         `json:"uuid,omitempty"`
+	IPAddress     string         `json:"primaryIpAddress,omitempty"`
 	CreateDate    time.Time      `json:"createDate,omitempty"`
 	Datacenter    Datacenter     `json:"datacenter,omitempty"`
 	Attributes    []Attribute    `json:"attributes,omitempty"`

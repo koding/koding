@@ -48,6 +48,7 @@ func NewGroup() cli.CommandFactory {
 					"stack":     NewGroupStack(),
 					"delete":    NewGroupDelete(),
 					"fixdomain": NewGroupFixDomain(),
+					"clean":     NewGroupClean(),
 				},
 			},
 		}
@@ -67,6 +68,233 @@ func (g *Group) Action(args []string) error {
 	defer modelhelper.Close()
 	g.Resource.ContextFunc = func([]string) context.Context { return ctx }
 	return g.Resource.Main(args)
+}
+
+type GroupClean struct {
+	vlan       int
+	datacenter string
+	env        string
+	dry        bool
+
+	uCache map[string]*models.User
+	mCache map[string][]*models.Machine
+}
+
+func NewGroupClean() *GroupClean {
+	return &GroupClean{
+		uCache: make(map[string]*models.User),
+		mCache: make(map[string][]*models.Machine),
+	}
+}
+
+func (*GroupClean) Name() string {
+	return "clean"
+}
+
+func (cmd *GroupClean) RegisterFlags(f *flag.FlagSet) {
+	f.IntVar(&cmd.vlan, "vlan", 0, "Vlan ID which to clean the vlans for.")
+	f.StringVar(&cmd.datacenter, "dc", "", "Datacenter name.")
+	f.StringVar(&cmd.env, "env", "production", "Environment name.")
+	f.BoolVar(&cmd.dry, "dry", false, "Dry run.")
+}
+
+func (cmd *GroupClean) Run(ctx context.Context) error {
+	var vlans []int
+
+	_, client := fromContext(ctx)
+
+	if cmd.vlan != 0 {
+		vlans = append(vlans, cmd.vlan)
+	}
+
+	f := &sl.Filter{
+		Datacenter: cmd.datacenter,
+		Tags: sl.Tags{
+			"koding-env": cmd.env,
+		},
+	}
+
+	v, err := client.VlansByFilter(f)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range v {
+		vlans = append(vlans, v.ID)
+	}
+
+	merr := new(multierror.Error)
+	toclean := make(map[int]*sl.Instance)
+
+	DefaultUi.Info("verifying local references...")
+
+	for _, vlan := range vlans {
+		vms, err := client.InstancesInVlan(vlan)
+		if err != nil {
+			err = fmt.Errorf("failed to get instance list for vlan=%d: %s", vlan, err)
+			merr = multierror.Append(merr, err)
+			continue
+		}
+
+		DefaultUi.Info(fmt.Sprintf("processing %d instances for vlan=%d", len(vms), vlan))
+
+		for _, vm := range vms {
+			user := vm.Tags["koding-user"]
+			if user == "" {
+				user = vm.Hostname
+			}
+
+			if user == "vlanguard" {
+				continue
+			}
+			if user == "" {
+				merr = multierror.Append(merr, fmt.Errorf("no user found for instanceID=%d", vm.ID))
+				continue
+			}
+
+			m, err := cmd.machines(user)
+			if err != nil {
+				err = fmt.Errorf("unable to get jMachines for user=%q, instanceID=%d: %s", user, vm.ID, err)
+				merr = multierror.Append(merr, err)
+				continue
+			}
+
+			// Decide if the machine needs to be cleaned.
+			//
+			// A machine needs to be cleaned if nothing from DB references it.
+			// In particular, if:
+			//
+			//   - machine's public IP matches jMachines.ipAddress, or
+			//   - machine's koding-domain tag matches jMachines.domain, or
+			//   - machine's koding-machineid tag matches jMachines.ObjectId, or
+			//   - machine's ID matches jMachines.meta.id
+			//
+			// Then we consider this machine as active, thus we do not clean it.
+			// If the machine in fact should be cleaned (false negative),
+			// then kloud just leaked this machine by not cleaning references.
+			// To inspect reasons why machines were not cleaned, use -dry flag.
+
+			clean, dryInfo := cmd.doClean(vm, m)
+			if dryInfo != nil {
+				merr = multierror.Append(merr, fmt.Errorf("not cleaning %d for user %s: %s", vm.ID, user, dryInfo))
+			}
+
+			if clean {
+				DefaultUi.Info(fmt.Sprintf("found unreferenced %d", vm.ID))
+
+				toclean[vm.ID] = vm
+			}
+		}
+	}
+
+	DefaultUi.Info("verifying global references...")
+
+	// We checked already that vm is not referenced locally (by a user owning it),
+	// ensure it's not referenced globally (by any user).
+	for id, vm := range toclean {
+		for user, m := range cmd.mCache {
+			clean, dryInfo := cmd.doClean(vm, m)
+
+			if !clean {
+				DefaultUi.Error(fmt.Sprintf("instance %d is referenced by a different user %q: %s", id, user, dryInfo))
+
+				delete(toclean, id)
+			}
+		}
+	}
+
+	if cmd.dry {
+		DefaultUi.Info(merr.Error())
+		DefaultUi.Info(fmt.Sprintf("\ngoing to clean the following machines (%d): %v", len(toclean), toclean))
+
+		return nil
+	}
+
+	for id := range toclean {
+		DefaultUi.Info(fmt.Sprintf("deleting %d", id))
+
+		err := client.DeleteInstance(id)
+		if err != nil {
+			merr = multierror.Append(merr, err)
+		}
+	}
+
+	return merr.ErrorOrNil()
+}
+
+func (cmd *GroupClean) doClean(vm *sl.Instance, machines []*models.Machine) (clean bool, dryInfo error) {
+	clean = true
+
+	for _, m := range machines {
+		if m.IpAddress != "" && m.IpAddress == vm.IPAddress {
+			if cmd.dry {
+				dryInfo = errors.New("IP address matches")
+			}
+			clean = false
+			break
+		}
+
+		if m.Domain != "" && m.Domain == vm.Tags["koding-domain"] {
+			if cmd.dry {
+				dryInfo = errors.New("domain matches")
+			}
+			clean = false
+			break
+		}
+
+		if id := m.ObjectId.Hex(); id != "" && id == vm.Tags["koding-machineid"] {
+			if cmd.dry {
+				dryInfo = errors.New("jMachines.ObjectId matches")
+			}
+			clean = false
+			break
+		}
+
+		if id, ok := m.Meta["id"].(int); ok && id != 0 && id == vm.ID {
+			if cmd.dry {
+				dryInfo = errors.New("jMachines.meta.id matches")
+			}
+			clean = false
+			break
+		}
+	}
+
+	return clean, dryInfo
+}
+
+func (cmd *GroupClean) machines(user string) ([]*models.Machine, error) {
+	m, ok := cmd.mCache[user]
+	if ok {
+		return m, nil
+	}
+
+	u, err := cmd.user(user)
+	if err != nil {
+		return nil, err
+	}
+
+	m, err = modelhelper.GetMachinesByProvider(u.ObjectId, "softlayer")
+	if err != nil {
+		return nil, err
+	}
+
+	cmd.mCache[user] = m
+	return m, nil
+}
+
+func (cmd *GroupClean) user(user string) (*models.User, error) {
+	u, ok := cmd.uCache[user]
+	if ok {
+		return u, nil
+	}
+
+	u, err := modelhelper.GetUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	cmd.uCache[user] = u
+	return u, nil
 }
 
 type GroupFixDomain struct {
