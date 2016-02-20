@@ -2,7 +2,7 @@ $             = require 'jquery'
 kd            = require 'kd'
 whoami        = require 'app/util/whoami'
 SlackUserItem = require './slackuseritem'
-
+async         = require 'async'
 
 titleDecorator = (channel) -> if channel.is_group then channel.name else "##{channel.name}"
 
@@ -24,7 +24,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
   USERS_URL     = "#{location.origin}/api/social/slack/users"
   CHANNELS_URL  = "#{location.origin}/api/social/slack/channels"
   MESSAGING_URL = "#{location.origin}/api/social/slack/message"
-  ICON_URL      = "#{location.origin}/a/images/logos/notify_logo.png"
+  ICON_URL      = "https://koding.com/a/images/logos/notify_logo.png"
 
   constructor: (options = {}, data) ->
 
@@ -98,11 +98,20 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
     wrapper.addSubView @inviteChannel = new kd.ButtonView
       cssClass : 'solid medium green invite-members'
       title    : titleHelper @counts.general, '#general'
+      callback : =>
+
+        return  unless @users
+
+        channelMemberIds = @allChannels[select.getValue()].members
+        recipients       = @users.filter (user) -> user.id in channelMemberIds
+
+        @sendMessages recipients
+
 
 
   createIndividualInviter: (users) ->
 
-    users = users.filter (user) -> user.id isnt SLACKBOT_ID
+    @users = users = users.filter (user) -> user.id isnt SLACKBOT_ID
 
     @wrapper.addSubView new kd.CustomHTMLView
       tagName : 'h3'
@@ -137,38 +146,80 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
       @inviteIndividual.enable()
       @inviteIndividual.setTitle title
 
+    @on 'InvitationsAreSent', ->
+      listController.getListItems()
+        .filter (item) -> item.checkBox.getValue()
+        .forEach (item) -> item.checkBox.setValue off
 
     list.addSubView @inviteIndividual = new kd.ButtonView
       cssClass : 'solid medium green invite-members fr'
       title    : 'Invite selected members'
       disabled : yes
-      callback : => @prepareMessages getSelectedMembers listController
+      callback : => @sendMessages getSelectedMembers listController
 
 
-  prepareMessages: (recipients) ->
+  sendMessages: (recipients) ->
+
+    invitations = recipients.map ({profile}) ->
+      email     : profile.email
+      firstName : profile.first_name
+      lastName  : profile.last_name
+
+    kd.remote.api.JInvitation.create
+      invitations : invitations
+      returnCodes : yes
+      noEmail     : yes
+    , (err, res) =>
+
+      return new kd.NotificationView title : 'Something went wrong, please try again!'  if err
+
+      invites = {}
+
+      res.forEach (invite) ->
+        invites[invite.email.toLowerCase()] =
+          code           : invite.code
+          alreadyInvited : invite.alreadyInvited
 
 
+      queue = recipients.map (recipient) -> (fin) ->
 
-    recipients.forEach (recipient) ->
-      $.ajax
-        url              : MESSAGING_URL
-        method           : 'POST'
-        headers          :
-          Accept         : 'application/json'
-          'Content-Type' : 'application/json'
-        data             : JSON.stringify
-          channel        : recipient.id
-          text           : 'Invite ulan!'
-          params         :
-            as_user      : no
-            username     : whoami().profile.firstName
-            icon_url     : ICON_URL
-            icon_emoji   : ':cihangir:'
-        success: ->
-          console.log 'success'
-        error: ->
-          console.log 'error'
+        return  unless invite = invites[recipient.profile.email.toLowerCase()]
 
+        inviter = whoami().profile.firstName
+        group   = kd.singletons.groupsController.getCurrentGroup()
+        title   = group.title or group.slug
+        link    = "#{location.origin}/Invitation/#{invite.code}"
+        msg     = "#{inviter} has invited you to #{title} team on Koding!"
 
+        $.ajax
+          url              : MESSAGING_URL
+          method           : 'POST'
+          headers          :
+            Accept         : 'application/json'
+            'Content-Type' : 'application/json'
+          data             : JSON.stringify
+            channel        : recipient.id
+            text           : ''
+            params         :
+              as_user      : no
+              username     : "#{inviter} from Koding!"
+              icon_url     : ICON_URL
+              attachments  : [{
+                color      : '#5373A1'
+                title      : msg
+                title_link : link
+                text       : "Click the link below to join #{title}. \n #{link}"
+                thumb_url  : ICON_URL
+                fallback   : "#{msg} #{link}"
+              }]
 
-  sendMessage: (message) ->
+          success: -> fin()
+          error: -> fin 'error'
+
+      async.parallel queue, (err, res) =>
+        # make this smarter
+        return new kd.NotificationView title: 'There were some errors'  if err
+
+        new kd.NotificationView title: 'All invitations are sent!'
+
+        @emit 'InvitationsAreSent'
