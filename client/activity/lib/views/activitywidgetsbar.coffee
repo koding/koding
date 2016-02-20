@@ -16,7 +16,6 @@ module.exports = class ActivityWidgetsBar extends KDCustomHTMLView
 
     super options
 
-    @addSubView new ActivityAnnouncementWidget
     @addSubView new ActivityGuideWidget
     @addSubView new ActivityTopicsWidget
     @addSubView new ActivityUniversityWidget
