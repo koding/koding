@@ -1,5 +1,5 @@
-jraphical = require 'jraphical'
-
+async         = require 'async'
+jraphical     = require 'jraphical'
 emailsanitize = require './user/emailsanitize'
 KodingError   = require '../error'
 
@@ -7,12 +7,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   # TODO - Refactor this file, now it is not only for password recovery
   # but also for email verification
   { v4 : createId }            = require 'node-uuid'
-  { daisy, secure, signature } = require 'bongo'
+  { secure, signature }        = require 'bongo'
 
   JUser                        = require './user'
   Tracker                      = require './tracker'
   dateFormat                   = require 'dateformat'
-  KodingError                  = require '../error'
 
 
   UNKNOWN_ERROR = { message: 'Error occurred. Please try again.' }
@@ -204,55 +203,52 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
     queue = [
 
-      ->
+      (next) ->
         # checking if token is valid
         JPasswordRecovery.one { token }, (err, certificate_) ->
-          return callback err  if err
-          return callback new KodingError 'Invalid token.'  unless certificate_
+          return next err  if err
+          return next new KodingError 'Invalid token.'  unless certificate_
 
           { status, expiresAt } = certificate = certificate_
 
           if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
-            return callback new KodingError '''
+            return next new KodingError '''
               This password recovery certificate cannot be redeemed.
               '''
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # checking if user exists
         { username } = certificate
 
         JUser.one { username }, (err, user_) ->
-          return callback err  if err
-          return callback new KodingError 'Unknown user!'  unless user_
+          return next err  if err
+          return next new KodingError 'Unknown user!'  unless user_
           user = user_
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # redeeming token
-        certificate.redeem (err) ->
-          return callback err  if err
-          queue.next()
+        certificate.redeem next
 
-      ->
+      (next) ->
         # changing user's password to new one
-        user.changePassword newPassword, (err) ->
-          return callback err  if err
-          queue.next()
+        user.changePassword newPassword, next
 
-      ->
+      (next) ->
         # kill user sessions
         user.killSessions {}, (err) ->
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # invalidating other active tokens
-        JPasswordRecovery.invalidate { username }, (err) ->
-          return callback err, username
+        JPasswordRecovery.invalidate { username }, next
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
+      callback null, username
 
 
   @resetPassword$ = secure (client, token, newPassword, callback) ->

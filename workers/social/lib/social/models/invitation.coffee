@@ -6,9 +6,10 @@ Bongo       = require 'bongo'
 Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
+async       = require 'async'
 
 { protocol, hostname } = KONFIG
-{ secure, signature, dash } = Bongo
+{ secure, signature }  = Bongo
 
 emailsanitize = require './user/emailsanitize'
 
@@ -165,23 +166,23 @@ module.exports = class JInvitation extends jraphical.Module
         return callback new KodingError err                   if err
         return callback new KodingError 'group doesnt exist'  if not group
 
-        queue = invitations.map (invitation) -> ->
+        queue = invitations.map (invitation) -> (fin) ->
 
           { email, firstName, lastName, role } = invitation
 
           JInvitation.one { email, groupName }, (err, invitation) ->
-            return callback new KodingError err  if err
+            return fin new KodingError err  if err
 
             # do not send another invitation if the user is already invited
             # before
-            return queue.fin()  if invitation
+            return fin()  if invitation
 
             isAlreadyMember group, email, (err, isMember) ->
-              return callback new KodingError err  if err
+              return fin new KodingError err  if err
 
               # do not send another invitation if the user is already a member
               # of the group
-              return queue.fin()  if isMember
+              return fin()  if isMember
 
               hash = JUser.getHash email
 
@@ -201,11 +202,13 @@ module.exports = class JInvitation extends jraphical.Module
 
               invite = new JInvitation data
               invite.save (err) ->
-                return callback new KodingError err  if err
+                return fin new KodingError err  if err
 
-                JInvitation.sendInvitationEmail client, invite, -> queue.fin()
+                JInvitation.sendInvitationEmail client, invite, -> fin()
 
-        dash queue, callback
+        async.parallel queue, (err) ->
+          return callback err  if err
+          callback null
 
 
   # isAlreadyMember checks if the given email is already member of the given

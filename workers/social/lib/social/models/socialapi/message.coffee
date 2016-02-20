@@ -5,7 +5,7 @@ ApiError           = require './error'
 KodingError        = require '../../error'
 fallbackToIframely = require './fallbacktoiframely'
 
-{ secure, daisy, dash, signature, Base } = Bongo
+{ secure, signature, Base } = Bongo
 { uniq, extend } = require 'underscore'
 
 
