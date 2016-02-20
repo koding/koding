@@ -326,6 +326,25 @@ func (c *Softlayer) InstanceEntriesByFilter(filter *Filter) (InstanceEntries, er
 	return *req.Resource.(*InstanceEntries), nil
 }
 
+// InstancesInVlan fetches all instances within the VLAN given by the id.
+func (c *Softlayer) InstancesInVlan(id int) (Instances, error) {
+	req := &ResourceRequest{
+		Name:       "Vlan",
+		Path:       fmt.Sprintf("SoftLayer_Network_Vlan/%d/getObject.json", id),
+		ObjectMask: vlanInstancesMask,
+		Resource:   &VLAN{},
+	}
+	if err := c.get(req); err != nil {
+		return nil, err
+	}
+
+	i := Instances(req.Resource.(*VLAN).Instances)
+	if err := i.Err(); err != nil {
+		return nil, err
+	}
+	return i, nil
+}
+
 // XInstancesByFilter queries for keys, which are filtered on the server side
 // with the given filter.
 //
