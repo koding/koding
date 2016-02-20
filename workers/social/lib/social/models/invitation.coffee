@@ -6,9 +6,10 @@ Bongo       = require 'bongo'
 Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
+async       = require 'async'
 
 { protocol, hostname } = KONFIG
-{ secure, signature, dash } = Bongo
+{ secure, signature } = Bongo
 
 emailsanitize = require './user/emailsanitize'
 
@@ -168,12 +169,13 @@ module.exports = class JInvitation extends jraphical.Module
         return callback new KodingError err                   if err
         return callback new KodingError 'group doesnt exist'  if not group
 
-        queue = invitations.map (invitation) -> ->
+
+        queue = invitations.map (invitation) -> (fin) ->
 
           { email, firstName, lastName, role } = invitation
 
           JInvitation.one { email, groupName }, (err, invitation) ->
-            return callback new KodingError err  if err
+            return fin new KodingError err  if err
 
             # do not send another invitation if the user is already invited
             # before
@@ -183,14 +185,14 @@ module.exports = class JInvitation extends jraphical.Module
                 invitation.remove()
               else
                 codes.push { email, code: invitation.code, alreadyInvited: yes }
-                return queue.fin()
+                return fin()
 
             isAlreadyMember group, email, (err, isMember) ->
-              return callback new KodingError err  if err
+              return fin new KodingError err  if err
 
               # do not send another invitation if the user is already a member
               # of the group
-              return queue.fin()  if isMember
+              return fin()  if isMember
 
               hash = JUser.getHash email
 
@@ -210,19 +212,17 @@ module.exports = class JInvitation extends jraphical.Module
 
               invite = new JInvitation data
               invite.save (err) ->
-                return callback new KodingError err  if err
+                return fin new KodingError err  if err
                 codes.push { email, code }
 
-                return queue.fin()  if noEmail
+                return fin()  if noEmail
 
-                JInvitation.sendInvitationEmail client, invite, -> queue.fin()
+                JInvitation.sendInvitationEmail client, invite, -> fin()
 
-        cb = ->
-          if returnCodes
-          then callback null, codes
-          else callback()
 
-        dash queue, cb
+        async.parallel queue, (err) ->
+          return callback err  if err
+          if returnCodes then callback err, codes else callback()
 
 
   # isAlreadyMember checks if the given email is already member of the given
