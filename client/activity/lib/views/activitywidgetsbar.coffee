@@ -4,7 +4,6 @@ ActivityGuideWidget        = require './activityguidewidget'
 ActivityTopicsWidget       = require './activitytopicswidget'
 ActivityUniversityWidget   = require './activityuniversitywidget'
 ActivitySocialMediaWidget  = require './activitysocialmediawidget'
-ActivityAnnouncementWidget = require './activityannouncementwidget'
 
 
 module.exports = class ActivityWidgetsBar extends KDCustomHTMLView
