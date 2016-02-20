@@ -313,6 +313,7 @@ func newKite(conf *Config) *kite.Kite {
 		Kite:       k,
 		Userdata:   userdata,
 		TunnelURL:  conf.TunnelURL,
+		Debug:      conf.DebugMode,
 	}
 
 	/// SOFTLAYER PROVIDER ///

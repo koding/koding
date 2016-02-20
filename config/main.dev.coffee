@@ -1539,7 +1539,11 @@ Configuration = (options={}) ->
         mongo #{mongo} --eval "db.dropDatabase()"
 
         cd #{projectRoot}/install/docker-mongo
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        if [[ -f #{projectRoot}/install/docker-mongo/custom-db-dump.tar.bz2 ]]; then
+          tar jxvf #{projectRoot}/install/docker-mongo/custom-db-dump.tar.bz2
+        else
+          tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        fi
         mongorestore -h#{boot2dockerbox} -dkoding dump/koding
         rm -rf ./dump
 

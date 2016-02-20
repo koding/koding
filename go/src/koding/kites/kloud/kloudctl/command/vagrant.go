@@ -128,8 +128,9 @@ func (v *Vagrant) Action(args []string) error {
 		return err
 	}
 	vapi := &vagrantapi.Klient{
-		Kite: k.LocalKite,
-		Log:  common.NewLogger("vagrant", flagDebug),
+		Kite:  k.LocalKite,
+		Log:   common.NewLogger("vagrant", flagDebug),
+		Debug: true,
 	}
 
 	ctx := context.Background()

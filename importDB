@@ -25,7 +25,11 @@ exec check, (err, stdout, stderr)->
 
   else
     exec """
-      tar jxvf ./install/default-db-dump.tar.bz2
+      if [[ -f ./install/custom-db-dump.tar.bz2 ]]; then
+        tar jxvf ./install/custom-db-dump.tar.bz2
+      else
+        tar jxvf ./install/default-db-dump.tar.bz2
+      fi
       mongorestore -h#{host} -dkoding dump/koding
       rm -rf ./dump
     """, (err, stdout, stderr)->
