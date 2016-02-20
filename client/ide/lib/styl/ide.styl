@@ -723,16 +723,17 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
       pointer()
       fr()
 
-      cite
-        display             block
+      &:before
+        dBlock()
+        content             ''
 
-      &.shortcuts cite
+      &.shortcuts:before
         r-sprite            'ide', 'keyboard'
 
       &.github cite
         r-sprite            'ide', 'github'
 
-      &.help cite
+      &.help:before
         margin-top          -1px
         r-sprite            'ide', 'help'
 
