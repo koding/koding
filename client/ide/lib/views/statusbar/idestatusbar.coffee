@@ -48,12 +48,12 @@ module.exports = class IDEStatusBar extends KDView
       callback : @bound 'handleSessionEnd'
 
     @addSubView new KDCustomHTMLView
-      partial  : '<cite></cite>'
+      tagName  : 'i'
       cssClass : 'icon help'
       click    : -> new HelpSupportModal
 
     @addSubView new KDCustomHTMLView
-      partial  : '<cite></cite>'
+      tagName  : 'i'
       cssClass : 'icon shortcuts'
       click    : (event) =>
         kd.utils.stopDOMEvent event
