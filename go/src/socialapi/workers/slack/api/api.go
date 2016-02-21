@@ -21,9 +21,10 @@ const slackAway = "away"
 
 // Slack holds runtime config for slack OAuth system
 type Slack struct {
-	Hostname  string
-	Protocol  string
-	OAuthConf *oauth2.Config
+	Hostname          string
+	Protocol          string
+	VerificationToken string
+	OAuthConf         *oauth2.Config
 }
 
 // SlackMessageRequest carries message creation request from client side
@@ -209,9 +210,9 @@ func (s *Slack) SlashCommand(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if command.Command == "" || command.Token == "" {
-		err := fmt.Errorf("[DEBUG] Ignoring request from unidentified source: %s - %s", command.Token, req.Host)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if command.Token != s.VerificationToken {
+		errMessage := fmt.Sprintf("request from unidentified source: %s - %s", command.Token, req.Host)
+		http.Error(w, errMessage, http.StatusBadRequest)
 		return
 	}
 
