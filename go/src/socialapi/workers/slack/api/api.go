@@ -79,15 +79,17 @@ func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, context *mode
 	// set incoming request's query params into redirected url
 	redirectURL.RawQuery = u.Query().Encode()
 
-	// set team's subdomain
-	redirectURL.Host = fmt.Sprintf("%s.%s", session.GroupName, redirectURL.Host)
+	// change subdomain if not only it is koding
+	if session.GroupName != models.Channel_KODING_NAME {
+		// set team's subdomain
+		redirectURL.Host = fmt.Sprintf("%s.%s", session.GroupName, redirectURL.Host)
+	}
 
 	// replace 'callback' with 'success'
 	redirectURL.Path = strings.Replace(redirectURL.Path, "callback", "success", -1)
 
 	h.Set("Location", redirectURL.String())
 	return http.StatusTemporaryRedirect, h, nil, nil
-
 }
 
 // Success handler is used for handling redirection requests from Callback handler
