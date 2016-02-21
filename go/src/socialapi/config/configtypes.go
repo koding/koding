@@ -184,8 +184,9 @@ type (
 	}
 
 	Slack struct {
-		ClientId     string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTID"`
-		ClientSecret string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTSECRET"`
-		RedirectUri  string `env:"key=KONFIG_SOCIALAPI_SLACK_REDIRECTURI"`
+		ClientId          string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTID"`
+		ClientSecret      string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTSECRET"`
+		RedirectUri       string `env:"key=KONFIG_SOCIALAPI_SLACK_REDIRECTURI"`
+		VerificationToken string `env:"key=KONFIG_SOCIALAPI_SLACK_VERIFICATIONTOKEN"`
 	}
 )
