@@ -11,7 +11,7 @@ git        = require 'git-rev'
 
 log "-------------------------"
 log ""
-log "# ./configure assumes development environment - comes bundled with options below."
+log "# ./configure assumes development environment -comes bundled with options below."
 log "# override them as you see fit with command line arguments like --config --branch etc."
 log ""
 
