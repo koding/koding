@@ -37,6 +37,7 @@ type Instance struct {
 	SshKeys       []Key          `json:"sshKeys,omitempty"`
 	TagReferences []TagReference `json:"tagReferences,omitempty"`
 	VLANs         []VLAN         `json:"networkVlans,omitempty"`
+	Firewall      Firewall       `json:"firewallServiceComponent,omitempty"`
 
 	Tags        Tags `json:"-"`
 	NotTaggable bool `json:"-"`
