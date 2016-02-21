@@ -102,7 +102,7 @@ func (bk *balancedKlients) init() error {
 
 	// use dev environment by default
 	if c.Environment == "" || c.Environment == "unknown" {
-		c.Environment = "dev"
+		c.Environment = "production"
 	}
 
 	query := &protocol.KontrolQuery{

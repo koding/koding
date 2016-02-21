@@ -2,10 +2,16 @@ package command
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"os/exec"
+	"os/user"
+	"path/filepath"
 	"strings"
 	"sync"
 	"text/tabwriter"
@@ -49,6 +55,7 @@ func NewGroup() cli.CommandFactory {
 					"delete":    NewGroupDelete(),
 					"fixdomain": NewGroupFixDomain(),
 					"clean":     NewGroupClean(),
+					"seal":      NewGroupSeal(),
 				},
 			},
 		}
@@ -64,10 +71,320 @@ func (g *Group) Action(args []string) error {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
 	ctx = context.WithValue(ctx, softlayerKey, newSoftlayer())
-	modelhelper.Initialize(envMongoURL())
-	defer modelhelper.Close()
 	g.Resource.ContextFunc = func([]string) context.Context { return ctx }
 	return g.Resource.Main(args)
+}
+
+type GroupSeal struct {
+	*groupVMCache
+	ips *groupValues
+
+	jobs     int
+	kloudpem string
+	script   string
+
+	scriptraw string
+}
+
+func NewGroupSeal() *GroupSeal {
+	return &GroupSeal{
+		ips:          &groupValues{flag: "ips"},
+		groupVMCache: newGroupVMCache(),
+	}
+}
+
+func (*GroupSeal) Name() string {
+	return "seal"
+}
+
+func (cmd *GroupSeal) RegisterFlags(f *flag.FlagSet) {
+	cmd.ips.RegisterFlags(f)
+	cmd.groupVMCache.RegisterFlags(f)
+
+	f.StringVar(&cmd.kloudpem, "kloud-pem", os.Getenv("KLOUD_PEM"), "Path to the kloud_rsa.pem private key.")
+	f.StringVar(&cmd.script, "script", "", "Script to execute on user vms.")
+	f.IntVar(&cmd.jobs, "j", 8, "Number of parallel job executions.")
+}
+
+func (cmd *GroupSeal) Valid() error {
+	if err := cmd.ips.Valid(); err != nil {
+		return err
+	}
+
+	// we have no ips, we need to read them from softlayer by looking up
+	// usernames
+	if len(cmd.ips.values) == 0 {
+		if err := cmd.groupVMCache.Valid(); err != nil {
+			return err
+		}
+	}
+
+	if cmd.kloudpem == "" {
+		return errors.New("invalid empty value provided for -kloud-pem flag")
+	}
+
+	if cmd.script == "" {
+		return errors.New("invalid empty value provided for -script flag")
+	}
+
+	p, err := ioutil.ReadFile(cmd.script)
+	if err != nil {
+		return err
+	}
+
+	cmd.scriptraw = string(p)
+
+	return nil
+}
+
+func (cmd *GroupSeal) Run(ctx context.Context) error {
+	ips := make(chan string)
+	var wg sync.WaitGroup
+
+	merr := new(multierror.Error)
+	var mu sync.Mutex
+
+	if len(cmd.ips.values) != 0 {
+		go func() {
+			for _, ip := range cmd.ips.values {
+				ips <- ip
+			}
+
+			close(ips)
+		}()
+	} else {
+		go func() {
+			for _, user := range cmd.groupVMCache.values {
+				ips <- cmd.vms[user].IPAddress
+			}
+
+			close(ips)
+		}()
+	}
+
+	for range make([]struct{}, cmd.jobs) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for ip := range ips {
+				args := []string{
+					"-oUserKnownHostsFile=/dev/null",
+					"-oStrictHostKeyChecking=no",
+					"-oConnectTimeout=30",
+					"-oConnectionAttempts=2",
+					"-i", cmd.kloudpem,
+					"root@" + ip,
+					"cat > script.sh && chmod +x script.sh && ./script.sh && rm -f script.sh",
+				}
+
+				var errBuf bytes.Buffer
+				var outBuf bytes.Buffer
+
+				c := exec.Command("ssh", args...)
+				c.Stdin = strings.NewReader(cmd.scriptraw)
+				c.Stderr = &errBuf
+				c.Stdout = &outBuf
+
+				errch := make(chan error, 1)
+
+				go func() {
+					errch <- c.Run()
+				}()
+
+				var err error
+
+				// when one timeout is not enough
+				select {
+				case err = <-errch:
+				case <-time.After(5 * time.Minute):
+					err = errors.New("ssh has timed out after 5m")
+				}
+
+				if err != nil {
+					err = fmt.Errorf("failed running script for ip=%q: %s (stderr=%q)", ip, err, &errBuf)
+					mu.Lock()
+					merr = multierror.Append(merr, err)
+					mu.Unlock()
+				} else {
+					DefaultUi.Info(fmt.Sprintf("success running script for ip=%q: %s", ip, &outBuf))
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	return merr.ErrorOrNil()
+}
+
+type groupVMCache struct {
+	*groupValues
+
+	vmcache string
+	env     string
+
+	vms    map[string]*sl.Instance
+	users  map[string]struct{}
+	client *sl.Softlayer
+}
+
+func newGroupVMCache() *groupVMCache {
+	return &groupVMCache{
+		groupValues: &groupValues{flag: "users"},
+		vms:         make(map[string]*sl.Instance),
+		client:      newSoftlayer(),
+	}
+}
+
+func (*groupVMCache) Name() string {
+	return "vm-cache"
+}
+
+func (cmd *groupVMCache) RegisterFlags(f *flag.FlagSet) {
+	cmd.groupValues.RegisterFlags(f)
+
+	home := "."
+	if u, err := user.Current(); err == nil {
+		home = u.HomeDir
+	}
+
+	f.StringVar(&cmd.vmcache, "vm-cache", filepath.Join(home, ".vm-cache.json"), "Cache file for fetches vms details.")
+	f.StringVar(&cmd.env, "env", "production", "VLAN environment value for koding-env tag.")
+}
+
+func (cmd *groupVMCache) Valid() error {
+	if err := cmd.groupValues.Valid(); err != nil {
+		return err
+	}
+
+	if cmd.vmcache == "" {
+		return errors.New("invalid empty value provided for vm-cache flag")
+	}
+
+	if len(cmd.values) == 0 {
+		return errors.New("invalid empty value provided for -users flag")
+	}
+
+	cmd.users = make(map[string]struct{}, len(cmd.values))
+	for _, user := range cmd.values {
+		cmd.users[strings.ToLower(user)] = struct{}{}
+	}
+
+	f, err := os.Open(cmd.vmcache)
+	if err == nil {
+		err = json.NewDecoder(f).Decode(&cmd.vms)
+
+		if err != nil {
+			DefaultUi.Error(fmt.Sprintf("unable to read %q: %s", cmd.vmcache, err))
+		}
+
+		f.Close()
+	}
+
+	err = cmd.verifyCache()
+
+	if err == nil {
+		return nil
+	}
+
+	DefaultUi.Info(fmt.Sprintf("building vm cache in %q due to: %s", cmd.vmcache, err))
+
+	vlans, err := cmd.client.VlansByFilter(cmd.filter())
+	if err != nil {
+		return err
+	}
+
+	cmd.vms = make(map[string]*sl.Instance)
+
+	DefaultUi.Info(fmt.Sprintf("processing %d vlans...", len(vlans)))
+
+	for _, vlan := range vlans {
+		vms, err := cmd.client.InstancesInVlan(vlan.ID)
+		if sl.IsNotFound(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+
+		DefaultUi.Info(fmt.Sprintf("processing %d vms...", len(vms)))
+
+		for _, vm := range vms {
+			key := strings.ToLower(vm.Hostname)
+
+			if key == "vlanguard" {
+				key = fmt.Sprintf("vlanguard-%d", vm.ID)
+				cmd.vms[key] = vm
+				continue
+			}
+
+			if _, ok := cmd.users[key]; !ok {
+				continue
+			}
+
+			if oldVM, ok := cmd.vms[key]; ok && oldVM.ID != vm.ID {
+				DefaultUi.Warn(fmt.Sprintf("multiple vms for user %q: %d, %d", key, oldVM.ID, vm.ID))
+				continue
+			}
+
+			cmd.vms[key] = vm
+		}
+	}
+
+	DefaultUi.Info(fmt.Sprintf("fetched %d vms", len(cmd.vms)))
+
+	if err := cmd.verifyCache(); err != nil {
+		return fmt.Errorf("failed to build cache: %s", err)
+	}
+
+	f, err = os.Create(cmd.vmcache)
+	if err != nil {
+		DefaultUi.Error(fmt.Sprintf("unable to dump vm cache to %q: %s", cmd.vmcache, err))
+		return nil
+	}
+
+	err = nonil(json.NewEncoder(f).Encode(cmd.vms), f.Sync(), f.Close())
+
+	if err != nil {
+		DefaultUi.Error(fmt.Sprintf("unable to dump vm cache to %q: %s", cmd.vmcache, nonil(err, os.Remove(f.Name()))))
+	} else {
+		DefaultUi.Info(fmt.Sprintf("vm-cache for %d instances dumped to %q", len(cmd.vms), cmd.vmcache))
+	}
+
+	return nil
+}
+
+func (cmd *groupVMCache) verifyCache() error {
+	for user := range cmd.users {
+		if _, ok := cmd.vms[user]; !ok {
+			return fmt.Errorf("vm for user %q not present in cache, invalidating", user)
+		}
+	}
+
+	return nil
+}
+
+func (cmd *groupVMCache) vlanguard(vm *sl.Instance) string {
+	for _, vlan := range vm.VLANs {
+		key := fmt.Sprintf("vlanguard-%d", vlan.ID)
+		if _, ok := cmd.vms[key]; ok {
+			return key
+		}
+	}
+
+	return ""
+}
+
+func (cmd *groupVMCache) filter() *sl.Filter {
+	if cmd.env == "" {
+		return nil
+	}
+	return &sl.Filter{
+		Tags: sl.Tags{
+			"koding-env": cmd.env,
+		},
+	}
 }
 
 type GroupClean struct {
@@ -99,6 +416,9 @@ func (cmd *GroupClean) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *GroupClean) Run(ctx context.Context) error {
+	modelhelper.Initialize(envMongoURL())
+	defer modelhelper.Close()
+
 	var vlans []int
 
 	_, client := fromContext(ctx)
@@ -298,7 +618,7 @@ func (cmd *GroupClean) user(user string) (*models.User, error) {
 }
 
 type GroupFixDomain struct {
-	*groupUsers
+	*groupValues
 
 	machine string
 	access  string
@@ -311,7 +631,7 @@ type GroupFixDomain struct {
 
 func NewGroupFixDomain() *GroupFixDomain {
 	return &GroupFixDomain{
-		groupUsers: &groupUsers{},
+		groupValues: &groupValues{flag: "users"},
 	}
 }
 
@@ -320,11 +640,11 @@ func (cmd *GroupFixDomain) Name() string {
 }
 
 func (cmd *GroupFixDomain) Valid() error {
-	if err := cmd.groupUsers.Valid(); err != nil {
+	if err := cmd.groupValues.Valid(); err != nil {
 		return err
 	}
 
-	if len(cmd.usernames) == 0 {
+	if len(cmd.values) == 0 {
 		return errors.New("no usernames provided for -users flag")
 	}
 
@@ -381,7 +701,7 @@ func route53defaults() (string, string) {
 }
 
 func (cmd *GroupFixDomain) RegisterFlags(f *flag.FlagSet) {
-	cmd.groupUsers.RegisterFlags(f)
+	cmd.groupValues.RegisterFlags(f)
 
 	access, secret := route53defaults()
 
@@ -400,8 +720,11 @@ func min(i, j int) int {
 }
 
 func (cmd *GroupFixDomain) Run(ctx context.Context) error {
+	modelhelper.Initialize(envMongoURL())
+	defer modelhelper.Close()
+
 	merr := new(multierror.Error)
-	users := cmd.usernames
+	users := cmd.values
 
 	for len(users) > 0 {
 		var batch []string
@@ -535,6 +858,9 @@ func (cmd *GroupList) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *GroupList) Run(ctx context.Context) error {
+	modelhelper.Initialize(envMongoURL())
+	defer modelhelper.Close()
+
 	if cmd.entries {
 		return cmd.printEntries(ctx)
 	}
@@ -610,19 +936,21 @@ func (cmd *GroupList) listEntries(ctx context.Context, f *sl.Filter) (sl.Instanc
 	return c.InstanceEntriesByFilter(f)
 }
 
-type groupUsers struct {
-	users     string
-	usernames []string
+type groupValues struct {
+	flag string
+
+	valuesraw string
+	values    []string
 }
 
-func (gu *groupUsers) RegisterFlags(f *flag.FlagSet) {
-	f.StringVar(&gu.users, "users", "", "Comma-separated list of usernames (can't be used with -n).")
+func (gu *groupValues) RegisterFlags(f *flag.FlagSet) {
+	f.StringVar(&gu.valuesraw, gu.flag, "", fmt.Sprintf("Comma-separated list of %s (can't be used with -n).", gu.flag))
 }
 
-func (gu *groupUsers) Valid() error {
+func (gu *groupValues) Valid() error {
 	uniq := make(map[string]struct{})
 
-	for _, user := range strings.Split(gu.users, ",") {
+	for _, user := range strings.Split(gu.valuesraw, ",") {
 		uniq[strings.TrimSpace(user)] = struct{}{}
 	}
 
@@ -644,10 +972,10 @@ func (gu *groupUsers) Valid() error {
 		return nil
 	}
 
-	gu.usernames = make([]string, 0, len(uniq))
+	gu.values = make([]string, 0, len(uniq))
 
 	for user := range uniq {
-		gu.usernames = append(gu.usernames, user)
+		gu.values = append(gu.values, user)
 	}
 
 	return nil
@@ -656,7 +984,7 @@ func (gu *groupUsers) Valid() error {
 // GroupCreate implements the "kloudctl group create" subcommand.
 type GroupCreate struct {
 	*GroupThrottler
-	*groupUsers
+	*groupValues
 
 	dry       bool
 	stack     bool
@@ -668,7 +996,7 @@ type GroupCreate struct {
 
 func NewGroupCreate() *GroupCreate {
 	cmd := &GroupCreate{
-		groupUsers: &groupUsers{},
+		groupValues: &groupValues{flag: "users"},
 	}
 	cmd.GroupThrottler = &GroupThrottler{
 		Name:    "build",
@@ -683,7 +1011,7 @@ func (*GroupCreate) Name() string {
 
 func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 	cmd.GroupThrottler.RegisterFlags(f)
-	cmd.groupUsers.RegisterFlags(f)
+	cmd.groupValues.RegisterFlags(f)
 
 	f.StringVar(&cmd.file, "f", "", "JSON-encoded Machine specification file.")
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
@@ -693,11 +1021,11 @@ func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *GroupCreate) Valid() error {
-	if err := cmd.groupUsers.Valid(); err != nil {
+	if err := cmd.groupValues.Valid(); err != nil {
 		return err
 	}
 
-	if len(cmd.usernames) != 0 && cmd.count > 1 {
+	if len(cmd.values) != 0 && cmd.count > 1 {
 		return errors.New("the -users and -n flags can't be used together")
 	}
 
@@ -789,6 +1117,9 @@ func (cmd *GroupCreate) waitFunc(timeout time.Duration) WaitFunc {
 }
 
 func (cmd *GroupCreate) Run(ctx context.Context) (err error) {
+	modelhelper.Initialize(envMongoURL())
+	defer modelhelper.Close()
+
 	var spec *MachineSpec
 	if !cmd.dry {
 		spec, err = ParseMachineSpec(cmd.file)
@@ -808,7 +1139,7 @@ func (cmd *GroupCreate) Run(ctx context.Context) (err error) {
 	}
 
 	var specs []*MachineSpec
-	if len(cmd.usernames) != 0 {
+	if len(cmd.values) != 0 {
 		specs, err = cmd.multipleUserSpecs(spec)
 	} else {
 		specs, err = cmd.multipleMachineSpecs(spec)
@@ -845,7 +1176,7 @@ func specSlice(spec *MachineSpec, n int) []*MachineSpec {
 }
 
 func (cmd *GroupCreate) multipleUserSpecs(spec *MachineSpec) ([]*MachineSpec, error) {
-	specs := specSlice(spec, len(cmd.usernames))
+	specs := specSlice(spec, len(cmd.values))
 	var okspecs []*MachineSpec
 
 	merr := new(multierror.Error)
@@ -854,7 +1185,7 @@ func (cmd *GroupCreate) multipleUserSpecs(spec *MachineSpec) ([]*MachineSpec, er
 
 	for i, spec := range specs {
 		spec.User = models.User{
-			Name: cmd.usernames[i],
+			Name: cmd.values[i],
 		}
 
 		err := spec.BuildMachine(false)
@@ -927,7 +1258,7 @@ func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 
 // GroupStack implements the "kloudctl group toggle" subcommand.
 type GroupStack struct {
-	*groupUsers
+	*groupValues
 
 	rm          bool
 	groupSlug   string
@@ -938,7 +1269,7 @@ type GroupStack struct {
 
 func NewGroupStack() *GroupStack {
 	return &GroupStack{
-		groupUsers: &groupUsers{},
+		groupValues: &groupValues{flag: "users"},
 	}
 }
 
@@ -947,7 +1278,7 @@ func (*GroupStack) Name() string {
 }
 
 func (cmd *GroupStack) RegisterFlags(f *flag.FlagSet) {
-	cmd.groupUsers.RegisterFlags(f)
+	cmd.groupValues.RegisterFlags(f)
 
 	f.StringVar(&cmd.machineSlug, "machine", "", "Machine slug.")
 	f.StringVar(&cmd.groupSlug, "group", "koding", "Group slug.")
@@ -960,29 +1291,32 @@ func (cmd *GroupStack) Valid() error {
 	if cmd.machineSlug == "" {
 		return errors.New("invalid empty value for -machine flag")
 	}
-	if err := cmd.groupUsers.Valid(); err != nil {
+	if err := cmd.groupValues.Valid(); err != nil {
 		return err
 	}
-	if len(cmd.groupUsers.usernames) == 0 {
+	if len(cmd.groupValues.values) == 0 {
 		return errors.New("invalid empty value for -users flag")
 	}
 	return nil
 }
 
 func (cmd *GroupStack) Run(ctx context.Context) error {
+	modelhelper.Initialize(envMongoURL())
+	defer modelhelper.Close()
+
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 	merr := new(multierror.Error)
 	jobs := make(chan string)
 
 	go func() {
-		for _, username := range cmd.groupUsers.usernames {
+		for _, username := range cmd.groupValues.values {
 			jobs <- username
 		}
 		close(jobs)
 	}()
 
-	DefaultUi.Info(fmt.Sprintf("processing %d users...", len(cmd.groupUsers.usernames)))
+	DefaultUi.Info(fmt.Sprintf("processing %d users...", len(cmd.groupValues.values)))
 
 	for range make([]struct{}, cmd.jobs) {
 		wg.Add(1)
@@ -1083,6 +1417,9 @@ func (cmd *GroupDelete) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *GroupDelete) Run(ctx context.Context) error {
+	modelhelper.Initialize(envMongoURL())
+	defer modelhelper.Close()
+
 	entries, err := cmd.listEntries(ctx, cmd.filter())
 	if err != nil {
 		return err

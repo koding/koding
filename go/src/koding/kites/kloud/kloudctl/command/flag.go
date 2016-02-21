@@ -28,7 +28,7 @@ func defaultKontrolURL() string {
 	if s := os.Getenv("KITE_KONTROL_URL"); s != "" {
 		return s
 	}
-	return "http://127.0.0.1:3000/kite"
+	return "https://koding.com/kontrol/kite"
 }
 
 func defaultDebug() bool {
