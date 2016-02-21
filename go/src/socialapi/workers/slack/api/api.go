@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
@@ -190,4 +191,39 @@ func (s *Slack) PostMessage(u *url.URL, h http.Header, req *SlackMessageRequest,
 		return response.NewBadRequest(err)
 	}
 	return response.HandleResultAndError(postMessage(token, req))
+}
+
+// SlashCommand handles slash commands coming from slack
+//
+// Note: this is experimental, on prod instances this will just say hi,
+// otherwise will output incoming request
+func (s *Slack) SlashCommand(w http.ResponseWriter, req *http.Request) {
+	if err := req.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	command, err := newSlashCommandFromURLValues(req.PostForm)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if command.Command == "" || command.Token == "" {
+		err := fmt.Errorf("[DEBUG] Ignoring request from unidentified source: %s - %s", command.Token, req.Host)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintln(w, "hi from koding bot!")
+
+	if command.Robot != "koding" {
+		fmt.Fprintln(w, "here is some debug log for non-prod requests")
+		fmt.Fprintln(w)
+
+		if err := json.NewEncoder(w).Encode(command); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
 }
