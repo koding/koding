@@ -131,4 +131,13 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 			Endpoint: "/slack/message",
 		},
 	)
+
+	m.AddUnscopedHandler(
+		handler.Request{
+			Handler:  s.SlashCommand,
+			Name:     models.SlackSlashCommand,
+			Type:     handler.PostRequest,
+			Endpoint: "/slack/slash",
+		},
+	)
 }
