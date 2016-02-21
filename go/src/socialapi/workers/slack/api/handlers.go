@@ -12,8 +12,9 @@ import (
 // AddHandlers adds handlers for slack integration
 func AddHandlers(m *mux.Mux, config *config.Config) {
 	s := &Slack{
-		Hostname: config.Hostname,
-		Protocol: config.Protocol,
+		Hostname:          config.Hostname,
+		Protocol:          config.Protocol,
+		VerificationToken: config.Slack.VerificationToken,
 		OAuthConf: &oauth2.Config{
 			ClientID:     config.Slack.ClientId,
 			ClientSecret: config.Slack.ClientSecret,
