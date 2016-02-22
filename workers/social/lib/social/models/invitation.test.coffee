@@ -47,6 +47,23 @@ runTests = ->
               # expecting invitation to exist
               params = { email, groupName: adminClient.context.group }
               JInvitation.one params, (err, invitation) ->
+    describe 'if user asks for the invite codes', ->
+
+      it 'should receive the invitate codes', (done) ->
+
+        email = generateRandomEmail()
+
+        withConvertedUser { createGroup: yes }, (data) ->
+          { client: adminClient, userFormData: adminUserFormData } = data
+
+          # creating an invitation for the unregistered user
+          invitationReq = { invitations:[ { email } ], returnCodes: yes }
+          JInvitation.create adminClient, invitationReq, (err, res) ->
+            expect(err).to.not.exist
+            expect(res[0].email is email).to.be.true
+            done()
+
+
                 expect(err).to.not.exist
                 expect(invitation).to.exist
                 next()
