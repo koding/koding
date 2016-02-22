@@ -1,0 +1,13 @@
+language: go
+go:
+- tip
+notifications:
+  hipchat:
+    rooms:
+      secure: BQ4e1gjw1iYECyuvQ6HVU6Wm3Awh8d03Gt5eXa1Eyy54XXH3yxuNdtrW1Eh7yvpux/g9PxBZBAThTC/tE0abETpKOytRp3lp9bb6lIjRB02wOJ5nUAfZpNteyRIlSsLajBpDsGmaHKpxhBjyGl17kJJ/LH4j7UVy1P872QML4LE=
+    template:
+    - '<a href="https://travis-ci.org/%{repository}/builds/%{build_id}">%{repository}
+      Build %{build_number}</a> on branch <i>%{branch}</i> by %{author}: <strong>%{message}</strong>
+      <a href="https://github.com/sendgrid/docs/commits/%{commit}">View on GitHub</a>'
+    format: html
+

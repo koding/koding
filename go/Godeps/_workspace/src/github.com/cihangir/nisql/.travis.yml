@@ -1,0 +1,19 @@
+language: go
+go:
+  - 1.2
+  - 1.3
+  - 1.4
+  - tip
+
+services:
+ - postgres
+
+before_script:
+ - psql -c "CREATE DATABASE nisqltest;" -U postgres
+ - psql -c "CREATE USER "nisqltest" WITH SUPERUSER PASSWORD 'nisqltest';" -U postgres
+ - go get github.com/lib/pq
+ - go get github.com/axw/gocov/gocov
+ - go get github.com/mattn/goveralls
+ - go get golang.org/x/tools/cmd/cover
+
+script: ./test_all.sh

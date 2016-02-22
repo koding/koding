@@ -1,0 +1,118 @@
+proxyUrl           = "http://127.0.0.1:8090/api/social"
+port               = "7000"
+
+Mongo              = "localhost:27017/koding"
+Environment        = "test"
+Region             = "test"
+Hostname           = "http://lvh.me:8090"
+protocol           = "http:"
+eventExchangeName  = "BrokerMessageBus"
+disableCaching     = false
+debug              = false
+segment            = "kb2hfdgf20"
+
+[postgres]
+Host=     "localhost"
+Port=     "5432"
+Username= "socialapp201506"
+Password= "socialapp201506"
+DBName=   "social"
+
+[mq]
+Host     = "localhost"
+Port     = 5672
+Login    = "guest"
+Password = "guest"
+Vhost    = "/"
+componentUser = "guest"
+heartbeat = 10
+
+[redis]
+URL = "localhost:6379"
+DB  = 0
+
+[email]
+Host            = "lvh.me:8090"
+Protocol        = "http:"
+DefaultFromMail = "hello@koding.com"
+DefaultFromName = "Koding"
+ForcedRecipientEmail = "kodingtestuser@koding.com"
+ForcedRecipientUsername = "kodingtestuser"
+
+[sitemap]
+RedisDB = 2
+
+[algolia]
+AppId            = "DYVV81J2S1"
+ApiSecretKey     = "682e02a34e2a65dc774f5ec355ceca33"
+IndexSuffix      = ".test"
+ApiSearchOnlyKey = "8dc0b0dc39282effe9305981d427fec7"
+
+[limits]
+MessageBodyMinLen    = 1
+PostThrottleDuration = "10s"
+PostThrottleCount    = 100
+
+[stripe]
+secretToken = "sk_test_LLE4fVGK2zY3By3gccUYCLCw"
+
+[paypal]
+Username  = "senthil+1_api1.koding.com"
+Password  = "JFH6LXW97QN588RC"
+Signature = "AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z"
+ReturnUrl = "/-/payments/paypal/return"
+CancelUrl = "/-/payments/paypal/cancel"
+
+[gatekeeper]
+host = "localhost"
+port = "7200"
+
+[gatekeeper.pubnub]
+publishkey = "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6"
+subscribekey = "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"
+secretkey = "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"
+serverAuthKey = "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"
+origin = "pubsub.pubnub.com"
+enabled = true
+
+[integration]
+host = "localhost"
+port = "7300"
+
+[webhookMiddleware]
+host = "localhost"
+port = "7350"
+
+[customDomain]
+public = "https://koding-siesta.ngrok.com"
+public_ = "koding-siesta.ngrok.com"
+local = "http://127.0.0.1:8090"
+local_ = "127.0.0.1:8090"
+host = "http://lvh.me"
+port = 8090
+
+[kloud]
+SecretKey  = "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
+Address    = "http://localhost:5500/kite"
+
+[paymentwebhook]
+port = "6600"
+
+[googleapiServiceAccount]
+clientId = "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0.apps.googleusercontent.com"
+clientSecret = "8-gOw1ckGNW2bDgdxPHGdQh7"
+serviceAccountEmail = "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0@developer.gserviceaccount.com"
+serviceAccountKeyFile = "/pipeline/build/keys/KodingCollaborationDev201506.pem"
+
+geoipdbpath = "/pipeline/build/go/data/geoipdb"
+
+[github]
+clientId = "f8e440b796d953ea01e5"
+clientSecret = "b72e2576926a5d67119d5b440107639c6499ed42"
+redirectUri = "http://dev.koding.com:8090/-/oauth/github/callback"
+
+[disabledFeatures]
+moderation = false
+teams = false
+botchannel = false
+

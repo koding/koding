@@ -1,0 +1,78 @@
+# Setup a AWS region/account to be used with Kloud
+
+Go to AWS VPC Console and do the followings:
+
+1. Go to VPC console. Create VPC's with CIDR: 10.0.0.0/16. Add for each VPC a
+new tag with Key: "Kloud" and Value: "kloud-vpc-{number}" An example set of
+VPC's:
+
+* Koding User Machines 1 vpc-23d63c46 available 10.0.0.0/16 dopt-ea120188 rtb-ba10e3df acl-515fa934 Default No
+* Koding User Machines 2 vpc-2fd63c4a available 10.0.0.0/16 dopt-ea120188 rtb-8010e3e5 acl-5c5fa939 Default No
+* Koding User Machines 3 vpc-3fd63c5a available 10.0.0.0/16 dopt-ea120188 rtb-9f10e3fa acl-2e5fa94b Default No
+
+2. Create Subnets with CIDR: 10.0.0.0/16 and different availabilty Zone for
+each one. Each subnet should use only one VPC. So according to the VPC's above
+we need to have only three subnets with the maximum possible IP counts. Enable
+Auto-Assign Public Ip for each subnet.  Add for each VPC a new tag with Key:
+"Kloud" and Value: "kloud-subnet-{number}"
+
+* Koding User Subnet 1 subnet-d38645b6 available vpc-23d63c46 (10.0.0.0/16) | Koding User Machines 1 10.0.0.0/16 65531 ap-southeast-1a rtb-ba10e3df acl-515fa934 No Yes
+* Koding User Subnet 3 subnet-bb8645de available vpc-3fd63c5a (10.0.0.0/16) | Koding User Machines 3 10.0.0.0/16 65531 ap-southeast-1a rtb-9f10e3fa acl-2e5fa94b No Yes
+* Koding User Subnet 2 subnet-8c7a9dfb available vpc-2fd63c4a (10.0.0.0/16) | Koding User Machines 2 10.0.0.0/16 65531 ap-southeast-1b rtb-8010e3e5 acl-5c5fa939 No Yes
+
+Also delete and left only on Default subnet. Tag it with the name "Default"
+
+3. Create Internet Gateways with the names "Koding User {number}" and attach
+each gateway to one VPC from the list above:
+
+* Koding User 1 igw-49fe1a2c attached vpc-23d63c46 (10.0.0.0/16) | Koding User Machines 1
+* Koding User 2 igw-48fe1a2d attached vpc-2fd63c4a (10.0.0.0/16) | Koding User Machines 2
+* Koding User 3 igw-5dfe1a38 attached vpc-3fd63c5a (10.0.0.0/16) | Koding User Machines 3
+
+4. Go to "Route Tables" to include the created Internet gateways. Click on one
+Route Table and from the "Routes" section add a new Destionation with
+"0.0.0.0/0" to Target which is the internet gateway. It will be come up
+automatically. Go again to Subnet section and check for each Subnet's
+RouteTable if it's now including the internet gateway.
+
+5. Go back to EC2 console. Create Security Group for each VPC with Name "Koding
+User {number}" and new tag with key "Kloud" with Value: "kloud-sg-1". Each
+security group should be assigned to only one VPC. Each SG should have inbound
+and outbound with 0.0.0.0/0 to all traffic:
+
+* Koding User 1 sg-75b47410 kloud-user-1 vpc-23d63c46 (10.0.0.0/16) | Koding User Machines 1 Koding User Machines 1
+* Koding User 2 sg-24b47441 kloud-user-2 vpc-2fd63c4a (10.0.0.0/16) | Koding User Machines 2 Koding User Machines 2
+* Koding User 3 sg-29b4744c kloud-user-3 vpc-3fd63c5a (10.0.0.0/16) | Koding User Machines 3 Koding User Machines 3
+ 
+Go to AWS EC2 Console and do the followings:
+
+6. Add kloud-deployment key pair. Click on "Import Key Pair" under the section
+"Key Pairs" in EC2 Console. Name it as "kloud-deployment" and following
+content:
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com
+
+The Fingerprint should be: d1:2a:50:1a:bc:29:f4:0f:df:04:70:27:3d:79:eb:66 , be sure it's the same
+
+7. Checkout if AMI is availabile in you region. If no go to "koding base"
+account and do a "Copy AMI" and copy the "Base-Koding-3gb" to the desired
+region. After copying be sure you "shared" the AMI with the `koding-vms`
+account. So you should give "permission" to the koding-vms by adding the
+koding-vms account id to the permission list of that particulat AMI. The
+current koding-vms account id is "614068383889"
+
+8. Create a new "Koding" ami from that particular new AMI in that region with
+Packer and label it as "koding-stable". For that create an additional
+`koding-{region}.json` packer file. Just copy from a pre existing file and
+modify it. Change the JSON fields "region" and "source_ami". Rest should be the
+same. Write region down as it's in the dashboard. For the "source_ami", copy
+the AMI that you shared with this region in step 7. It is different for each
+region. Copy the AMI ID that has "Base-koding-3gb" or a description saying
+"Copied from ..."
+
+Create it with the packer command:
+
+AWS_ACCESS_KEY=""  AWS_SECRET_KEY="" packer build koding-ireland.json
+
+The access and secret key should be a valid within the "koding-vms" account.
+

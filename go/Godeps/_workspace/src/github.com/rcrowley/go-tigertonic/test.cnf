@@ -1,0 +1,24 @@
+# OpenSSL configuration for generating the self-signed test.crt for testing
+# Tiger Tonic.  Here's how to use it:
+#
+#     openssl genrsa -out $@ 2048
+#     openssl req -config test.cnf -days 3650 -key $< -new -out $@ -x509
+#
+# Then you can inspect the output, if you care:
+#
+#     openssl rsa -in test.key -noout -text
+#     openssl x509 -in test.crt -noout -text
+#
+
+[req]
+default_bits = 2048
+default_md = sha1
+distinguished_name = dn
+prompt = no
+
+[dn]
+C = US
+ST = CA
+L = San Francisco
+O = Tiger Tonic
+CN = Tiger Tonic
