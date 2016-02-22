@@ -523,7 +523,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         </span>
       "
       NoTemplate     : "
-        <h1>Compute Stacks not configured yet!</h1>
+        <h1>Stacks not configured yet!</h1>
         <span>
           Your team currently is not providing any compute resources.
           Please contact with your team admins for more information.

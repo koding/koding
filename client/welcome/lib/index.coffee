@@ -20,6 +20,7 @@ module.exports = class WelcomeAppController extends KDViewController
   loadView: (appView) ->
 
     { groupsController, computeController } = kd.singletons
+    { stacks }                              = computeController
 
     groupsController.ready -> computeController.ready ->
 
@@ -28,9 +29,14 @@ module.exports = class WelcomeAppController extends KDViewController
       groupsController.getCurrentGroup().fetchMyRoles (err, roles) ->
         return  kd.warn err  if err
         isAdmin = 'admin' in (roles ? [])
-
         if isAdmin
           appView.putAdminInstructions()
+        else
+          appView.putUserInstructions()
+
+
+
+
 
         # Comment-out for now we need to plan this more ~ GG
         #

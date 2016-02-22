@@ -27,14 +27,6 @@ module.exports =
     browser.end()
 
 
-  seeTeamNameOnSideBar: (browser) ->
-
-    user = teamsHelpers.loginTeam(browser)
-
-    teamsHelpers.seeTeamNameOnsideBar(browser, user.teamSlug)
-    browser.end()
-
-
   checkTeamSettings: (browser) ->
 
     user = teamsHelpers.loginTeam(browser)

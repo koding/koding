@@ -46,7 +46,7 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
         return ctx.handleRoute ''
 
 ###*
- * Renders with reacth router.
+ * Renders with react router.
 ###
 handleReactivity = ({ query }, router) ->
 

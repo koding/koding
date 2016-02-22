@@ -1,15 +1,15 @@
 _                   = require 'lodash'
 kd                  = require 'kd'
+async               = require 'async'
+Promise             = require 'bluebird'
 remote              = require('app/remote').getInstance()
 KDView              = kd.View
 KDButtonView        = kd.ButtonView
 KDCustomScrollView  = kd.CustomScrollView
 KDCustomHTMLView    = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
-InvitationInputView = require './invitationinputview'
 showError           = require 'app/util/showError'
-Promise             = require 'bluebird'
-async               = require 'async'
+InvitationInputView = require './invitationinputview'
 
 module.exports = class InviteSomeoneView extends KDView
 
