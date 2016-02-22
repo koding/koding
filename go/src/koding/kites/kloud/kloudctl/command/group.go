@@ -1,11 +1,15 @@
 package command
 
 import (
+	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"text/tabwriter"
+	"time"
 
 	"koding/db/mongodb/modelhelper"
 
@@ -13,10 +17,15 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"koding/db/models"
+	"koding/kites/common"
 	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils/res"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 	"golang.org/x/net/context"
@@ -34,9 +43,11 @@ func NewGroup() cli.CommandFactory {
 				Name:        "group",
 				Description: "Lists/creates/deletes a group of machines",
 				Commands: map[string]res.Command{
-					"list":   NewGroupList(),
-					"create": NewGroupCreate(),
-					"delete": NewGroupDelete(),
+					"list":      NewGroupList(),
+					"create":    NewGroupCreate(),
+					"stack":     NewGroupStack(),
+					"delete":    NewGroupDelete(),
+					"fixdomain": NewGroupFixDomain(),
 				},
 			},
 		}
@@ -44,7 +55,11 @@ func NewGroup() cli.CommandFactory {
 	}
 }
 
-func (g *Group) Action(args []string, k *kite.Client) error {
+func (g *Group) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
 	ctx = context.WithValue(ctx, softlayerKey, newSoftlayer())
@@ -52,6 +67,219 @@ func (g *Group) Action(args []string, k *kite.Client) error {
 	defer modelhelper.Close()
 	g.Resource.ContextFunc = func([]string) context.Context { return ctx }
 	return g.Resource.Main(args)
+}
+
+type GroupFixDomain struct {
+	*groupUsers
+
+	machine string
+	access  string
+	secret  string
+	env     string
+	dry     bool
+
+	dns *dnsclient.Route53
+}
+
+func NewGroupFixDomain() *GroupFixDomain {
+	return &GroupFixDomain{
+		groupUsers: &groupUsers{},
+	}
+}
+
+func (cmd *GroupFixDomain) Name() string {
+	return "fixdomain"
+}
+
+func (cmd *GroupFixDomain) Valid() error {
+	if err := cmd.groupUsers.Valid(); err != nil {
+		return err
+	}
+
+	if len(cmd.usernames) == 0 {
+		return errors.New("no usernames provided for -users flag")
+	}
+
+	if cmd.machine == "" {
+		return errors.New("no value provided for -machine flag")
+	}
+
+	if cmd.env == "" {
+		return errors.New("no value provided for -env flag")
+	}
+
+	zone := dnsZones[cmd.env]
+	if zone == "" {
+		return errors.New("invalid value provided for -env flag")
+	}
+
+	if cmd.access == "" {
+		return errors.New("no value provided for -access flag")
+	}
+
+	if cmd.secret == "" {
+		return errors.New("no value provided for -secret flag")
+	}
+
+	dnsOpts := &dnsclient.Options{
+		Creds:      credentials.NewStaticCredentials(cmd.access, cmd.secret, ""),
+		HostedZone: zone,
+		Log:        common.NewLogger("dns", flagDebug),
+	}
+
+	dns, err := dnsclient.NewRoute53Client(dnsOpts)
+	if err != nil {
+		return err
+	}
+
+	cmd.dns = dns
+
+	return nil
+}
+
+func nonempty(s ...string) string {
+	for _, s := range s {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
+}
+
+func route53defaults() (string, string) {
+	access := nonempty(os.Getenv("ROUTE53_ACCESS_KEY"), os.Getenv("AWS_ACCESS_KEY"))
+	secret := nonempty(os.Getenv("ROUTE53_SECRET_KEY"), os.Getenv("AWS_SECRET_KEY"))
+	return access, secret
+}
+
+func (cmd *GroupFixDomain) RegisterFlags(f *flag.FlagSet) {
+	cmd.groupUsers.RegisterFlags(f)
+
+	access, secret := route53defaults()
+
+	f.BoolVar(&cmd.dry, "dry", false, "Dry run.")
+	f.StringVar(&cmd.machine, "machine", "", "Machine slug/label name.")
+	f.StringVar(&cmd.env, "env", os.Getenv("KITE_ENVIRONMENT"), "Environment name.")
+	f.StringVar(&cmd.access, "access", access, "Route53 access key.")
+	f.StringVar(&cmd.secret, "secret", secret, "Route53 secret key.")
+}
+
+func min(i, j int) int {
+	if i < j {
+		return i
+	}
+	return j
+}
+
+func (cmd *GroupFixDomain) Run(ctx context.Context) error {
+	merr := new(multierror.Error)
+	users := cmd.usernames
+
+	for len(users) > 0 {
+		var batch []string
+		var records []*dnsclient.Record
+		var ids []bson.ObjectId
+		n := min(len(users), 100)
+		batch, users = users[:n], users[n:]
+
+		DefaultUi.Info(fmt.Sprintf("checking %d records...", n))
+
+		for _, user := range batch {
+			rec, id, err := cmd.fixDomain(user)
+			if err != nil {
+				merr = multierror.Append(merr, err)
+				continue
+			}
+
+			if cmd.dry {
+				if rec == nil {
+					merr = multierror.Append(merr, fmt.Errorf("domain for %q is ok", user))
+				} else {
+					merr = multierror.Append(merr, fmt.Errorf("domain for %q is going to be upserted without -dry: %q", user, rec.Name))
+				}
+
+				continue
+			}
+
+			if rec == nil {
+				continue
+			}
+
+			records = append(records, rec)
+			ids = append(ids, id)
+		}
+
+		if len(records) == 0 {
+			continue
+		}
+
+		DefaultUi.Info(fmt.Sprintf("going to upsert %d domains", len(records)))
+
+		// upsert domains
+		if err := cmd.dns.UpsertRecords(records...); err != nil {
+			merr = multierror.Append(merr, err)
+		}
+
+		// update domains
+		if err := cmd.update(records, ids); err != nil {
+			merr = multierror.Append(merr, err)
+		}
+	}
+
+	return merr.ErrorOrNil()
+}
+
+func (cmd *GroupFixDomain) fixDomain(user string) (*dnsclient.Record, bson.ObjectId, error) {
+	u, err := modelhelper.GetUser(user)
+	if err != nil {
+		return nil, "", err
+	}
+
+	m, err := modelhelper.GetMachineBySlug(u.ObjectId, cmd.machine)
+	if err != nil {
+		return nil, "", fmt.Errorf("fixing failed for %q user: %s", user, err)
+	}
+
+	if m.IpAddress == "" {
+		return nil, "", errors.New("no ip address found for: " + user)
+	}
+
+	base := dnsZones[cmd.env]
+
+	if strings.HasSuffix(m.Domain, base) {
+		return nil, "", nil
+	}
+
+	if cmd.dry && m.State() != machinestate.Running {
+		DefaultUi.Warn(fmt.Sprintf("machine %q of user %q is not running (%s)",
+			m.ObjectId.Hex(), user, m.State()))
+	}
+
+	s := m.Domain
+	if i := strings.Index(s, user); i != -1 {
+		s = s[i+len(user):] + "." + base
+	}
+
+	return &dnsclient.Record{
+		Name: s,
+		IP:   m.IpAddress,
+		Type: "A",
+		TTL:  300,
+	}, m.ObjectId, nil
+}
+
+func (cmd *GroupFixDomain) update(records []*dnsclient.Record, ids []bson.ObjectId) error {
+	merr := new(multierror.Error)
+
+	for i, rec := range records {
+		err := modelhelper.UpdateMachine(ids[i], bson.M{"domain": rec.Name})
+		if err != nil {
+			err = fmt.Errorf("failed updating %q domain to %q: %s", ids[i].Hex(), rec.Name, err)
+			merr = multierror.Append(merr, err)
+		}
+	}
+
+	return merr.ErrorOrNil()
 }
 
 type GroupList struct {
@@ -71,7 +299,7 @@ func (*GroupList) Name() string {
 }
 
 func (cmd *GroupList) RegisterFlags(f *flag.FlagSet) {
-	f.StringVar(&cmd.group, "group", "hackathon", "Name of the instance group to list.")
+	f.StringVar(&cmd.group, "group", "koding", "Name of the instance group to list.")
 	f.StringVar(&cmd.env, "env", "dev", "Kloud environment.")
 	f.StringVar(&cmd.tags, "tags", "", "Tags to filter instances.")
 	f.StringVar(&cmd.hostname, "hostname", "", "Hostname to filter instances.")
@@ -154,16 +382,66 @@ func (cmd *GroupList) listEntries(ctx context.Context, f *sl.Filter) (sl.Instanc
 	return c.InstanceEntriesByFilter(f)
 }
 
+type groupUsers struct {
+	users     string
+	usernames []string
+}
+
+func (gu *groupUsers) RegisterFlags(f *flag.FlagSet) {
+	f.StringVar(&gu.users, "users", "", "Comma-separated list of usernames (can't be used with -n).")
+}
+
+func (gu *groupUsers) Valid() error {
+	uniq := make(map[string]struct{})
+
+	for _, user := range strings.Split(gu.users, ",") {
+		uniq[strings.TrimSpace(user)] = struct{}{}
+	}
+
+	// For "-users -" flag we read usernames from stdin.
+	if _, ok := uniq["-"]; ok {
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			uniq[strings.TrimSpace(scanner.Text())] = struct{}{}
+		}
+		if err := scanner.Err(); err != nil {
+			return err
+		}
+	}
+
+	delete(uniq, "")
+	delete(uniq, "-")
+
+	if len(uniq) == 0 {
+		return nil
+	}
+
+	gu.usernames = make([]string, 0, len(uniq))
+
+	for user := range uniq {
+		gu.usernames = append(gu.usernames, user)
+	}
+
+	return nil
+}
+
 // GroupCreate implements the "kloudctl group create" subcommand.
 type GroupCreate struct {
 	*GroupThrottler
+	*groupUsers
 
-	file  string
-	count int
+	dry       bool
+	stack     bool
+	file      string
+	count     int
+	eventer   bool
+	pullmongo time.Duration
 }
 
 func NewGroupCreate() *GroupCreate {
-	cmd := &GroupCreate{}
+	cmd := &GroupCreate{
+		groupUsers: &groupUsers{},
+	}
 	cmd.GroupThrottler = &GroupThrottler{
 		Name:    "build",
 		Process: cmd.build,
@@ -177,24 +455,213 @@ func (*GroupCreate) Name() string {
 
 func (cmd *GroupCreate) RegisterFlags(f *flag.FlagSet) {
 	cmd.GroupThrottler.RegisterFlags(f)
+	cmd.groupUsers.RegisterFlags(f)
 
 	f.StringVar(&cmd.file, "f", "", "JSON-encoded Machine specification file.")
 	f.IntVar(&cmd.count, "n", 1, "Number of machines to be created.")
+	f.BoolVar(&cmd.dry, "dry", false, "Dry run, tells the status of machines for the users.")
+	f.DurationVar(&cmd.pullmongo, "pullmongo", 20*time.Minute, "Timeout for the build, pulls jMachine.status.state for status.")
+	f.BoolVar(&cmd.eventer, "eventer", false, "Use kloud eventer instead of pulling MongoDB.")
 }
 
-func (cmd *GroupCreate) Run(ctx context.Context) error {
-	spec, err := ParseMachineSpec(cmd.file)
+func (cmd *GroupCreate) Valid() error {
+	if err := cmd.groupUsers.Valid(); err != nil {
+		return err
+	}
+
+	if len(cmd.usernames) != 0 && cmd.count > 1 {
+		return errors.New("the -users and -n flags can't be used together")
+	}
+
+	if cmd.pullmongo == 0 && !cmd.eventer {
+		return errors.New("invalid value for -pullmongo flag")
+	}
+
+	if !cmd.eventer {
+		cmd.GroupThrottler.Wait = cmd.waitFunc(cmd.pullmongo)
+	}
+
+	return nil
+}
+
+func queryState(id string) (machinestate.State, error) {
+	var state struct {
+		Status struct {
+			State string `bson:"state,omitempty"`
+		} `bson:"status,omitempty"`
+	}
+
+	query := func(c *mgo.Collection) error {
+		return c.FindId(bson.ObjectIdHex(id)).One(&state)
+	}
+
+	err := modelhelper.Mongo.Run(modelhelper.MachinesColl, query)
+	if err != nil {
+		return 0, err
+	}
+
+	return machinestate.States[state.Status.State], nil
+}
+
+func (cmd *GroupCreate) waitFunc(timeout time.Duration) WaitFunc {
+	const maxFailures = 5
+
+	return func(id string) error {
+		var building bool
+		initialTimeout := time.After(1 * time.Minute)
+		overallTimeout := time.After(timeout)
+
+		failureNum := 0
+		lastState := machinestate.NotInitialized
+
+		DefaultUi.Info(fmt.Sprintf("watching status for %q", id))
+
+		for {
+			select {
+			case <-initialTimeout:
+				if !building {
+					return fmt.Errorf("waiting for %q to become building has timed out, aborting")
+				}
+			case <-overallTimeout:
+				return fmt.Errorf("giving up waiting for %q to be running; last state %q", id, lastState)
+			default:
+				state, err := queryState(id)
+				if err != nil {
+					failureNum++
+					if failureNum > maxFailures {
+						return fmt.Errorf("querying for state of %q failed more than %d times"+
+							" in a row, aborting: %s", id, maxFailures, err)
+					}
+
+					time.Sleep(15 * time.Second)
+					continue
+				}
+
+				DefaultUi.Info(fmt.Sprintf("%s: status for %q: %s", time.Now(), id, state))
+
+				failureNum = 0
+				lastState = state
+
+				switch state {
+				case machinestate.NotInitialized, machinestate.Unknown, machinestate.Stopped, machinestate.Stopping,
+					machinestate.Terminating, machinestate.Terminated, machinestate.Rebooting:
+					if building {
+						return fmt.Errorf("machine %q was building, transitioned to %q, aborting", id, state)
+					}
+				case machinestate.Building, machinestate.Starting:
+					building = true
+				case machinestate.Running:
+					return nil
+				}
+
+				time.Sleep(15 * time.Second)
+			}
+		}
+	}
+}
+
+func (cmd *GroupCreate) Run(ctx context.Context) (err error) {
+	var spec *MachineSpec
+	if !cmd.dry {
+		spec, err = ParseMachineSpec(cmd.file)
+	} else {
+		spec = &MachineSpec{
+			Machine: models.Machine{
+				Provider: "softlayer",
+				Users: []models.MachineUser{{
+					Username: "softlayer",
+				}},
+				Slug: "softlayer-vm-0",
+			},
+		}
+	}
 	if err != nil {
 		return err
 	}
-	if err := spec.BuildUserAndGroup(); err != nil {
-		return err
+
+	var specs []*MachineSpec
+	if len(cmd.usernames) != 0 {
+		specs, err = cmd.multipleUserSpecs(spec)
+	} else {
+		specs, err = cmd.multipleMachineSpecs(spec)
+	}
+	if len(specs) == 0 {
+		if err != nil {
+			DefaultUi.Warn(err.Error())
+		}
+		return errors.New("nothing to build")
 	}
 
-	specs := make([]*MachineSpec, cmd.count)
+	if err != nil {
+		DefaultUi.Warn(err.Error())
+	}
+
+	items := make([]Item, len(specs))
+	for i, spec := range specs {
+		items[i] = spec
+	}
+
+	if e := cmd.RunItems(ctx, items); e != nil {
+		return multierror.Append(err, e).ErrorOrNil()
+	}
+
+	return err
+}
+
+func specSlice(spec *MachineSpec, n int) []*MachineSpec {
+	specs := make([]*MachineSpec, n)
 	for i := range specs {
 		specs[i] = spec.Copy()
 	}
+	return specs
+}
+
+func (cmd *GroupCreate) multipleUserSpecs(spec *MachineSpec) ([]*MachineSpec, error) {
+	specs := specSlice(spec, len(cmd.usernames))
+	var okspecs []*MachineSpec
+
+	merr := new(multierror.Error)
+
+	DefaultUi.Info("Preparing jMachine documents for users...")
+
+	for i, spec := range specs {
+		spec.User = models.User{
+			Name: cmd.usernames[i],
+		}
+
+		err := spec.BuildMachine(false)
+		if err == ErrRebuild {
+			if cmd.dry {
+				merr = multierror.Append(merr, fmt.Errorf("jMachine status for %q: this is going to be rebuild without -dry", spec.Username()))
+			} else {
+				okspecs = append(okspecs, spec)
+			}
+
+			continue
+		}
+		if cmd.dry && err == nil {
+			merr = multierror.Append(merr, fmt.Errorf("jMachine status for %q: this is going to be build without -dry", spec.Username()))
+			continue
+		}
+		if err != nil {
+			merr = multierror.Append(merr, fmt.Errorf("jMachine status for %q: %s", spec.Username(), err))
+			continue
+		}
+
+		okspecs = append(okspecs, spec)
+	}
+
+	DefaultUi.Info(fmt.Sprintf("%d to be machines built", len(okspecs)))
+
+	return okspecs, merr.ErrorOrNil()
+}
+
+func (cmd *GroupCreate) multipleMachineSpecs(spec *MachineSpec) ([]*MachineSpec, error) {
+	if err := spec.BuildMachine(true); err != nil {
+		return nil, err
+	}
+
+	specs := specSlice(spec, cmd.count)
 
 	// Index the machines.
 	if len(specs) > 1 {
@@ -205,18 +672,13 @@ func (cmd *GroupCreate) Run(ctx context.Context) error {
 		}
 	}
 
-	items := make([]Item, len(specs))
-	for i, spec := range specs {
-		items[i] = spec
-	}
-
-	return cmd.RunItems(ctx, items)
+	return specs, nil
 }
 
 func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 	spec := item.(*MachineSpec)
 	k, _ := fromContext(ctx)
-	if err := spec.BuildMachine(); err != nil {
+	if err := spec.InsertMachine(); err != nil {
 		return err
 	}
 
@@ -225,6 +687,7 @@ func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 		Provider:  spec.Machine.Provider,
 		Username:  spec.Username(),
 	}
+
 	resp, err := k.Tell("build", buildReq)
 	if err != nil {
 		return err
@@ -232,6 +695,135 @@ func (cmd *GroupCreate) build(ctx context.Context, item Item) error {
 
 	var result kloud.ControlResult
 	return resp.Unmarshal(&result)
+}
+
+// GroupStack implements the "kloudctl group toggle" subcommand.
+type GroupStack struct {
+	*groupUsers
+
+	rm          bool
+	groupSlug   string
+	machineSlug string
+	baseID      string
+	jobs        int
+}
+
+func NewGroupStack() *GroupStack {
+	return &GroupStack{
+		groupUsers: &groupUsers{},
+	}
+}
+
+func (*GroupStack) Name() string {
+	return "stack"
+}
+
+func (cmd *GroupStack) RegisterFlags(f *flag.FlagSet) {
+	cmd.groupUsers.RegisterFlags(f)
+
+	f.StringVar(&cmd.machineSlug, "machine", "", "Machine slug.")
+	f.StringVar(&cmd.groupSlug, "group", "koding", "Group slug.")
+	f.BoolVar(&cmd.rm, "rm", false, "Remove machine from stack and template.")
+	f.StringVar(&cmd.baseID, "base-id", "53fe557af052f8e9435a04fa", "Base Stack ID for new jComputeStack documents.")
+	f.IntVar(&cmd.jobs, "j", 1, "Number of concurrent jobs.")
+}
+
+func (cmd *GroupStack) Valid() error {
+	if cmd.machineSlug == "" {
+		return errors.New("invalid empty value for -machine flag")
+	}
+	if err := cmd.groupUsers.Valid(); err != nil {
+		return err
+	}
+	if len(cmd.groupUsers.usernames) == 0 {
+		return errors.New("invalid empty value for -users flag")
+	}
+	return nil
+}
+
+func (cmd *GroupStack) Run(ctx context.Context) error {
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	merr := new(multierror.Error)
+	jobs := make(chan string)
+
+	go func() {
+		for _, username := range cmd.groupUsers.usernames {
+			jobs <- username
+		}
+		close(jobs)
+	}()
+
+	DefaultUi.Info(fmt.Sprintf("processing %d users...", len(cmd.groupUsers.usernames)))
+
+	for range make([]struct{}, cmd.jobs) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for username := range jobs {
+				sd, err := cmd.details(username)
+				if err != nil {
+					merr = multierror.Append(merr, err)
+					continue
+				}
+
+				if cmd.rm {
+					err = modelhelper.RemoveFromStack(sd)
+				} else {
+					err = modelhelper.AddToStack(sd)
+				}
+				if err != nil {
+					DefaultUi.Warn(fmt.Sprintf("processing %q user stack failed: %s", username, err))
+
+					mu.Lock()
+					merr = multierror.Append(merr, err)
+					mu.Unlock()
+				} else {
+					DefaultUi.Warn(fmt.Sprintf("processed %q user stack", username))
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	return merr.ErrorOrNil()
+}
+
+func (cmd *GroupStack) details(username string) (*modelhelper.StackDetails, error) {
+	user, err := modelhelper.GetUser(username)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find a user %q: %s", username, err)
+	}
+
+	group, err := modelhelper.GetGroup(cmd.groupSlug)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find a group %q: %s", cmd.groupSlug, err)
+	}
+
+	machine, err := modelhelper.GetMachineBySlug(user.ObjectId, cmd.machineSlug)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find a machine slug=%q, userID=%q: %s", cmd.machineSlug, user.ObjectId.Hex(), err)
+	}
+
+	account, err := modelhelper.GetAccount(username)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find an account for %q: %s", username, err)
+	}
+
+	sd := &modelhelper.StackDetails{
+		UserID:    user.ObjectId,
+		AccountID: account.Id,
+		GroupID:   group.Id,
+
+		UserName:  user.Name,
+		GroupSlug: group.Slug,
+
+		MachineID: machine.ObjectId,
+		BaseID:    bson.ObjectIdHex(cmd.baseID),
+	}
+
+	return sd, nil
 }
 
 // GroupDelete implememts the "kloudctl group delete" subcommand.

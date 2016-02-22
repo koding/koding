@@ -229,7 +229,9 @@ module.exports = class WebTermView extends KDCustomScrollView
         machineId : @getMachine().uid
         sessionId : @getOptions().session
 
-    @terminal.server?.terminate()
+    # This "suspend" is a variable that comes from IDEAppController's suspendTerminal method.
+    # It is undefined in general.
+    @terminal.server?.terminate()  unless @suspend
 
 
   updateSettings: ->

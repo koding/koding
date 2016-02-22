@@ -74,6 +74,8 @@ module.exports = class IDETailerPane extends IDEPane
         path  : @file.getPath()
         watch : @bound 'handleFileUpdate'
 
+      ace.editor.renderer.setScrollMargin 0, 15, 0, 0
+
       @resize()
 
 
@@ -145,6 +147,7 @@ module.exports = class IDETailerPane extends IDEPane
     line    = (content.split '\n').length
 
     @setCursor row: line, column: 0
+    @getAce().editor.scrollPageDown()
 
 
   resize: ->

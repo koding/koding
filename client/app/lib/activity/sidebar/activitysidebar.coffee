@@ -19,6 +19,7 @@ isFeatureEnabled                = require 'app/util/isFeatureEnabled'
 fetchChatChannels               = require 'activity/util/fetchChatChannels'
 SidebarPinnedItem               = require './sidebarpinneditem'
 KDNotificationView              = kd.NotificationView
+isSoloProductLite               = require 'app/util/issoloproductlite'
 SidebarMessageItem              = require './sidebarmessageitem'
 JTreeViewController             = kd.JTreeViewController
 MoreWorkspacesModal             = require './moreworkspacesmodal'
@@ -485,8 +486,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @addMachineList()
 
     kd.singletons.mainController.ready =>
-      @addFollowedTopics()
-      @addMessages()
+      if not isSoloProductLite()
+        @addFollowedTopics()
+        @addMessages()
 
 
   initiateFakeCounter: ->

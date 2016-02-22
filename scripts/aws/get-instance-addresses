@@ -3,10 +3,22 @@
 argv = require('minimist')(process.argv.slice(2))
 AWS  = require 'aws-sdk'
 
-AWS.config.region = 'us-east-1'
+unless process.env.AWS_REGION
+  console.error 'error: AWS_REGION is not set'
+  process.exit 1
+
+unless process.env.AWS_ACCESS_KEY
+  console.error 'error: AWS_ACCESS_KEY is not set'
+  process.exit 1
+
+unless process.env.AWS_SECRET_KEY
+  console.error 'error: AWS_SECRET_KEY is not set'
+  process.exit 1
+
+AWS.config.region = process.env.AWS_REGION
 AWS.config.update
-  accessKeyId     : ''
-  secretAccessKey : ''
+  accessKeyId     : process.env.AWS_ACCESS_KEY
+  secretAccessKey : process.env.AWS_SECRET_KEY
 
 EC2  = new AWS.EC2()
 

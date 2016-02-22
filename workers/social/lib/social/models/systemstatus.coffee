@@ -1,4 +1,4 @@
-{ Model, Base, secure, daisy, signature } = require 'bongo'
+{ Model, Base, secure, signature } = require 'bongo'
 KodingError = require '../error'
 
 module.exports = class JSystemStatus extends Model

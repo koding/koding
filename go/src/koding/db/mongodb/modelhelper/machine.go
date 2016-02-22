@@ -43,6 +43,31 @@ func GetMachine(id string) (*models.Machine, error) {
 	return machine, nil
 }
 
+// NOTE(rjeczalik): This method is used only by kloudctl dev tool, which is run once per year and
+// when performance does not matter. If you'd want to use in production, please take care about
+// indices or improving the query.
+func GetMachineBySlug(userID bson.ObjectId, slug string) (*models.Machine, error) {
+	query := bson.M{
+		"slug": slug,
+		"users": bson.M{
+			"$elemMatch": bson.M{"id": userID, "owner": true},
+		},
+	}
+
+	m, err := findMachine(query)
+	if err != nil {
+		return nil, err
+	}
+	if len(m) == 0 {
+		return nil, mgo.ErrNotFound
+	}
+	if len(m) != 1 {
+		return nil, fmt.Errorf("GetMachinyBySlug: want 1 result, got %d", len(m))
+	}
+
+	return m[0], nil
+}
+
 func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	machines := []*models.Machine{}
 

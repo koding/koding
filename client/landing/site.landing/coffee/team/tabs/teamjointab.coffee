@@ -27,7 +27,10 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     domains        = kd.config.group.allowedDomains
 
     @addSubView new MainHeaderView { cssClass: 'team', navItems: [] }
-    @addSubView @wrapper = new kd.CustomHTMLView { cssClass: 'TeamsModal TeamsModal--groupCreation' }
+
+    wrapperCssClass = 'TeamsModal TeamsModal--groupCreation'
+    wrapperCssClass = kd.utils.curry wrapperCssClass, 'alreadyMember'  if @alreadyMember
+    @addSubView @wrapper = new kd.CustomHTMLView { cssClass: wrapperCssClass }
 
     teamTitle  = kd.config.group.title
     modalTitle = "Join #{utils.createTeamTitlePhrase teamTitle}"
@@ -38,6 +41,8 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     @wrapper.addSubView new kd.CustomHTMLView { tagName: 'h4', partial: modalTitle }
     @wrapper.addSubView new kd.CustomHTMLView { tagName: 'h5', partial: @getDescription() }
     @addForm()
+
+    @addForgotPasswordLink()
 
 
   addForm: ->
@@ -111,6 +116,19 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
       "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
     else
       "Please choose a username and password for your new Koding account."
+
+
+  addForgotPasswordLink: ->
+
+    return  unless @alreadyMember
+
+    @addSubView new kd.CustomHTMLView {
+      tagName: 'section'
+      partial: '''
+        <p>
+          Forgot your password? <a href="/Team/Recover?mode=join">Click here</a> to reset.
+        </p>'''
+    }
 
 
   joinTeam: (formData) ->

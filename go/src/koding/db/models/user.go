@@ -63,7 +63,12 @@ type UserInactive struct {
 }
 
 type ForeignAuth struct {
-	Github Github `bson:"github" json:"-"`
+	Github Github           `bson:"github" json:"-"`
+	Slack  map[string]Slack `bson:"slack" json:"-"`
+}
+
+type Slack struct {
+	Token string `bson:"token" json:"-"`
 }
 
 type Github struct {

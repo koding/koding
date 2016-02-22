@@ -337,12 +337,12 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 
 	if len(kiteIDs) != 0 {
 		s.Log.Debug("Checking total '%d' klients", len(kiteIDs))
-		if err := stackplan.CheckKlients(ctx, kiteIDs); err != nil {
+		if err := s.p.CheckKlients(ctx, kiteIDs); err != nil {
 			return err
 		}
 	}
 
-	output, err := stackplan.MachinesFromState(state)
+	output, err := s.p.MachinesFromState(state)
 	if err != nil {
 		return err
 	}

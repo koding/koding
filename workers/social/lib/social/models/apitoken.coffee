@@ -1,11 +1,11 @@
 hat           = require 'hat'
+async         = require 'async'
 JGroup        = require './group'
 JAccount      = require './account'
 jraphical     = require 'jraphical'
 KodingError   = require '../error'
 { permit }    = require './group/permissionset'
-{ daisy
-  secure
+{ secure
   ObjectId
   signature } = require 'bongo'
 
@@ -18,7 +18,6 @@ module.exports = class JApiToken extends jraphical.Module
     { permission: 'edit groups',     superadmin: yes }
     { permission: 'edit own groups', validateWith: Validators.group.admin }
   ]
-
 
   @share()
 
@@ -57,6 +56,7 @@ module.exports = class JApiToken extends jraphical.Module
 
     { account, group } = data
 
+    token    = null
     groupObj = null
 
     unless account and group
@@ -64,29 +64,29 @@ module.exports = class JApiToken extends jraphical.Module
 
     queue = [
 
-      ->
+      (next) ->
         # validating data params
         unless account instanceof JAccount
-          return callback new KodingError 'account is not an instance of Jaccount!'
+          return next new KodingError 'account is not an instance of Jaccount!'
 
         JGroup.one { slug : group }, (err, group_) ->
-          return callback err                                 if err
-          return callback new KodingError 'group not found!'  unless group_
+          return next err                                 if err
+          return next new KodingError 'group not found!'  unless group_
 
           unless !!group_.getAt 'isApiEnabled'
-            return callback new KodingError 'API usage is not enabled for this group.'
+            return next new KodingError 'API usage is not enabled for this group.'
 
           groupObj = group_
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         limitError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} api tokens"
         JApiToken.count { group : groupObj.slug }, (err, count) ->
-          return callback err                         if err
-          return callback new KodingError limitError  if count >= JGroup.API_TOKEN_LIMIT
-          queue.next()
+          return next err                         if err
+          return next new KodingError limitError  if count >= JGroup.API_TOKEN_LIMIT
+          next()
 
-      ->
+      (next) ->
         # creating token
         token = new JApiToken
           code     : hat()
@@ -94,13 +94,15 @@ module.exports = class JApiToken extends jraphical.Module
           originId : account.getId()
 
         token.save (err) ->
-          return callback err  if err
+          return next err  if err
           token.username = account.profile.nickname
-          callback null, token
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
+      callback null, token
 
 
   @create$: permit

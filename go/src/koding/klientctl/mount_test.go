@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"koding/klientctl/klientctlerrors"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -111,6 +112,10 @@ func TestAskToCreate(t *testing.T) {
 			err := askToCreate(askDir, in, &out)
 			So(err, ShouldBeNil)
 			So(exists(askDir), ShouldBeTrue)
+
+			fi, err := os.Stat(askDir)
+			So(err, ShouldBeNil)
+			So(fi.Mode(), ShouldEqual, os.FileMode(0755)|os.ModeDir)
 		})
 
 		Convey("Should not create the folder and error, if the user chooses no", func() {

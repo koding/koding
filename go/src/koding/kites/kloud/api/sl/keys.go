@@ -95,6 +95,13 @@ var keyMask = ObjectMask((*Key)(nil))
 // Keys is a helper type for a slice of keys that supports filtering.
 type Keys []*Key
 
+func (k Keys) Err() error {
+	if len(k) == 0 {
+		return errNotFound
+	}
+	return nil
+}
+
 // ByID returns a key with the given ID.
 func (k Keys) ByID(id int) Keys {
 	if id == 0 {

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
 	"time"
 
 	"koding/db/models"
@@ -90,7 +91,9 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 	kiteIDs := make(stackplan.KiteMap)
 
-	labels := s.Builder.MachineLabels()
+	uids := s.Builder.MachineUIDs()
+
+	s.Log.Debug("machine uids (%d): %v", len(uids), uids)
 
 	// queryString is taken from jCredentialData.meta.queryString,
 	// for debugging purposes it can be overwritten in the template,
@@ -115,7 +118,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		}
 
 		// set registerURL if not provided via template
-		registerURL := s.tunnelUniqueURL(username)
+		registerURL := s.tunnelRegisterURL(username)
 		if r, ok := box["registerURL"].(string); ok {
 			registerURL = r
 		} else {
@@ -144,12 +147,14 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		// set default filePath to relative <stackdir>/<boxname>; for
 		// default configured klient it resolves to ~/.vagrant.d/<stackdir>/<boxname>
 		if _, ok := box["filePath"]; !ok {
-			label, ok := labels[resourceName]
+			uid, ok := uids[resourceName]
 			if !ok {
-				label = resourceName + "-" + utils.RandString(6)
-				s.Log.Warning("unable to found label for %q in jMachines: generated unique one: %s", resourceName, label)
+				// For Plan call we return random uid as it won't be returned
+				// as a part of meta; the filePath is inserted into meta by
+				// the apply method.
+				uid = resourceName + "-" + utils.RandString(6)
 			}
-			box["filePath"] = "${var.koding_group_slug}/" + label
+			box["filePath"] = "${var.koding_group_slug}/" + uid
 		}
 
 		// set default CPU number
@@ -261,7 +266,7 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 		}
 
 		domain := machine.Domain
-		if u, err := url.Parse(tf.Attributes["klientGuestURL"]); err != nil {
+		if u, err := url.Parse(tf.Attributes["klientGuestURL"]); err == nil {
 			u.Path = "" // clear "klient/kite" path
 			if s := u.String(); s != "" {
 				domain = s
@@ -279,14 +284,12 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 }
 
 func updateVagrant(ctx context.Context, tf stackplan.Machine, domain string, machineId bson.ObjectId) error {
-	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
+	machine := bson.M{
 		"provider":             tf.Provider,
 		"meta.hostQueryString": tf.HostQueryString,
 		"queryString":          tf.QueryString,
 		"ipAddress":            tf.Attributes["ipAddress"],
 		"meta.filePath":        tf.Attributes["filePath"],
-		"meta.memory":          tf.Attributes["memory"],
-		"meta.cpus":            tf.Attributes["cpus"],
 		"meta.box":             tf.Attributes["box"],
 		"meta.hostname":        tf.Attributes["hostname"],
 		"meta.klientHostURL":   tf.Attributes["klientHostURL"],
@@ -295,5 +298,15 @@ func updateVagrant(ctx context.Context, tf stackplan.Machine, domain string, mac
 		"status.state":         machinestate.Running.String(),
 		"status.modifiedAt":    time.Now().UTC(),
 		"status.reason":        "Created with kloud.apply",
-	}})
+	}
+
+	if n, err := strconv.Atoi(tf.Attributes["memory"]); err == nil {
+		machine["meta.memory"] = n
+	}
+
+	if n, err := strconv.Atoi(tf.Attributes["cpus"]); err == nil {
+		machine["meta.cpus"] = n
+	}
+
+	return modelhelper.UpdateMachine(machineId, bson.M{"$set": machine})
 }

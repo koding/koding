@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   expectRelation
   withDummyClient
@@ -76,24 +76,22 @@ runTests = -> describe 'workers.social.user.account', ->
 
           queue = [
 
-            ->
+            (next) ->
               # setting social api id
               account.update { $set : { socialApiId : socialApiId } }, (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting createsocialApiId method to return accountId
               account.createSocialApiId (err, socialApiId_) ->
                 expect(err).to.not.exist
                 expect(socialApiId_).to.be.equal socialApiId
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
       it 'should create social api id if account\'s socialApiId is not set', (done) ->
@@ -102,15 +100,15 @@ runTests = -> describe 'workers.social.user.account', ->
 
           queue = [
 
-            ->
+            (next) ->
               # unsetting account's socialApiId
               account.socialApiId = null
               account.update { $unset : { 'socialApiId' : 1 } }, (err) ->
                 expect(err).to.not.exist
                 expect(account.getAt 'socialApiId').to.not.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # creating new social api id
               account.createSocialApiId (err, socialApiId_) ->
                 expect(err).to.not.exist
@@ -119,13 +117,11 @@ runTests = -> describe 'workers.social.user.account', ->
                 # expecting account's social api id to be set
                 expect(account.getAt 'socialApiId').to.exist
                 expect(account.socialApiId).to.exist
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
   describe '#fetchMyPermissions()', ->
@@ -211,34 +207,31 @@ runTests = -> describe 'workers.social.user.account', ->
 
           queue = [
 
-            ->
+            (next) ->
               JUser.addToGroup account, group.slug, userFormData.email, null, (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               account.fetchAllParticipatedGroups client, (err, groups) ->
                 expect(err).to.not.exist
                 expect(groups).to.have.length.above(1)
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               account.leaveFromAllGroups client, (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               account.fetchAllParticipatedGroups client, (err, groups) ->
                 expect(err).to.not.exist
                 expect(groups).to.have.length(1)
-                queue.next()
-
-            ->
-              done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
   describe 'fetchOrCreateAppStorage()', ->
@@ -276,7 +269,7 @@ runTests = -> describe 'workers.social.user.account', ->
 
           queue = [
 
-            ->
+            (next) ->
               # creating a new app storage
               account.fetchOrCreateAppStorage options, (err, storage) ->
                 expect(err).to.not.exist
@@ -287,9 +280,9 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(appStorage.bucket[appId]).to.be.an 'object'
                 expect(appStorage.bucket[appId].data).to.be.an 'object'
                 expect(appStorage.bucket[appId].data).to.be.empty
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting previously created app storage to be fetched
               account.fetchOrCreateAppStorage options, (err, storage) ->
                 expect(err).to.not.exist
@@ -297,13 +290,11 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(storage._id.toString()).to.be.equal appStorage._id.toString()
                 expect(storage.accountId).to.be.deep.equal appStorage.accountId
                 expect(storage.bucket[appId]).to.be.deep.equal appStorage.bucket[appId]
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
     describe 'when another app storage request for same account', ->
@@ -317,7 +308,7 @@ runTests = -> describe 'workers.social.user.account', ->
 
           queue = [
 
-            ->
+            (next) ->
               # creating a new app storage
               appId   = appIds[0]
               version = versions[0]
@@ -332,9 +323,9 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(appStorage.bucket[appId]).to.be.an 'object'
                 expect(appStorage.bucket[appId].data).to.be.an 'object'
                 expect(appStorage.bucket[appId].data).to.be.empty
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               appId   = appIds[1]
               version = versions[1]
               options = { appId, version }
@@ -345,13 +336,11 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(storage.bucket[appId].data).to.be.an 'object'
                 expect(storage.bucket[appIds[0]]).to.be.an 'object'
                 expect(storage.bucket[appIds[1]]).to.be.an 'object'
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
 beforeTests()
