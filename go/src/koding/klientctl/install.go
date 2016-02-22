@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"koding/klientctl/logging"
+
+	"github.com/codegangsta/cli"
 	"github.com/leeola/service"
 )
 
@@ -251,6 +252,7 @@ func (k klientSh) Format() string {
 
 	return fmt.Sprintf(
 		`#!/bin/sh
+ulimit -n 5000
 %sKITE_HOME=%s %s --kontrol-url=%s
 `,
 		sudoCmd, k.KiteHome, k.KlientBinPath, k.KontrolURL,
