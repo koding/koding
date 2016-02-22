@@ -19,6 +19,7 @@ var echoSites = []string{
 	// In the future, maybe koding.com/-/echoip first?
 	"http://echoip.com",
 	"http://api.ipify.org",
+	"ifconfig.co",
 }
 
 // PublicIP returns an IP that is supposed to be Public.

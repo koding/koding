@@ -12,10 +12,11 @@ import (
 func TestPublicIPRetry(t *testing.T) {
 	var callCount int
 	var eventualSuccessReq int
+	successIP := "0.1.2.3"
 	successTS := httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			callCount++
-			fmt.Fprint(w, "0.1.2.3")
+			fmt.Fprint(w, successIP)
 		}))
 	defer successTS.Close()
 
@@ -29,7 +30,7 @@ func TestPublicIPRetry(t *testing.T) {
 		func(w http.ResponseWriter, r *http.Request) {
 			callCount++
 			if callCount > eventualSuccessReq {
-				fmt.Fprint(w, "0.1.2.3")
+				fmt.Fprint(w, successIP)
 			}
 		}))
 	defer eventualSuccessTS.Close()
@@ -52,6 +53,14 @@ func TestPublicIPRetry(t *testing.T) {
 		})
 
 		Convey("It should only return an error after exceeding maxRetries", func() {
+			ip, err := publicIPRetry(hosts, 1, 0, nil)
+			So(err, ShouldNotBeNil)
+			So(ip, ShouldBeNil)
+			So(callCount, ShouldEqual, 1)
+		})
+
+		Convey("It should support extra a newline after the IP", func() {
+			successIP = fmt.Sprintf("%s\n", successIP)
 			ip, err := publicIPRetry(hosts, 1, 0, nil)
 			So(err, ShouldNotBeNil)
 			So(ip, ShouldBeNil)
