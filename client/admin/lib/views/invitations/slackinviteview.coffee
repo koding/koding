@@ -217,7 +217,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
 
       queue = recipients.map (recipient) -> (fin) ->
 
-        return  unless invite = invites[recipient.profile.email.toLowerCase()]
+        return fin()  unless invite = invites[recipient.profile.email.toLowerCase()]
 
         inviter = whoami().profile.firstName
         group   = kd.singletons.groupsController.getCurrentGroup()
