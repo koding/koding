@@ -63,7 +63,7 @@ module.exports = class JLocation extends Model
       countries = countryCodes.map (countryCode) => (next) =>
 
         collection.distinct 'stateCode', { countryCode }, (err, stateCodes) =>
-          return callback err  if err
+          return next err  if err
 
           states = stateCodes.filter(Boolean).map (stateCode) => (nextState) =>
 
@@ -78,7 +78,7 @@ module.exports = class JLocation extends Model
 
           async.seris states, -> next()
 
-      async.series countries, -> callback null
+      async.series countries, callback
 
   @importAll = secure (client, callback) ->
 
