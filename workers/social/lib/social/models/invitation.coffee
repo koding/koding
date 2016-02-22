@@ -174,8 +174,6 @@ module.exports = class JInvitation extends jraphical.Module
           return callback()  unless returnCodes
           return callback null, codes
 
-
-
   createSingleInvite = (client, group, invitationData, end) ->
     { email, role, forceInvite, noEmail } = invitationData
 
