@@ -445,14 +445,14 @@ class IDEAppController extends AppController
   ###
   tailFile: (options, callback = kd.noop) ->
 
-    { file, contents, targetTabView, description, emitChange } = options
+    { file, contents, targetTabView, description, emitChange, enableLineParser } = options
 
     targetTabView = @ideViews.first.tabView  unless targetTabView
 
     @setActiveTabView targetTabView
 
     @activeTabView.emit 'FileNeedsToBeTailed', {
-      file, contents, description, callback, emitChange
+      file, contents, description, callback, emitChange, enableLineParser
     }
 
 
@@ -1263,7 +1263,7 @@ class IDEAppController extends AppController
       else
         mainView.activitySidebar.selectWorkspace data
 
-      computeController.showBuildLogs machine  if initial
+      computeController.showBuildLogs machine, yes  if initial
 
       @emit 'IDEReady'
 
