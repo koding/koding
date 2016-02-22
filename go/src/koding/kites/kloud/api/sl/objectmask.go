@@ -13,6 +13,6 @@ var objectMask = &object.Builder{
 //
 // ObjectMask assumes each field we want to read from Softlayer API has
 // API name set in its json tag.
-func ObjectMask(v interface{}) []string {
-	return objectMask.Build(v).Keys()
+func ObjectMask(v interface{}, ignored ...string) []string {
+	return objectMask.Build(v, ignored...).Keys()
 }

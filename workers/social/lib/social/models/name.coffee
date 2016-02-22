@@ -1,10 +1,11 @@
+async           = require 'async'
 { Model, Base } = require 'bongo'
 
 module.exports = class JName extends Model
 
   KodingError = require '../error'
 
-  { secure, JsPath:{ getAt }, dash, signature } = require 'bongo'
+  { secure, JsPath:{ getAt }, signature } = require 'bongo'
 
   { v4: createId } = require 'node-uuid'
 
@@ -79,17 +80,17 @@ module.exports = class JName extends Model
 
     fetchByNameObject = (nameObj, callback) ->
       models = []
-      queue = nameObj.slugs.map (slug, i) -> ->
+      queue = nameObj.slugs.map (slug, i) -> (fin) ->
         konstructor = Base.constructors[slug.constructorName]
-        return queue.fin() unless konstructor
+        return fin() unless konstructor
         selector = {}
         selector[slug.usedAsPath] = slug.slug
         konstructor.one selector, (err, model) ->
-          return queue.fin() if err or not model
+          return fin() if err or not model
           models[i] = model
-          queue.fin()
+          fin()
 
-      dash queue, ->
+      async.parallel queue, ->
         # remove falsy values
         models = models.filter(Boolean)
         callback null, { models, name: nameObj }
@@ -112,11 +113,11 @@ module.exports = class JName extends Model
 
           if nameObjects?
             models = []
-            queue = nameObjects.map (nameObj, i) -> ->
+            queue = nameObjects.map (nameObj, i) -> (fin) ->
               fetchByNameObject nameObj, (err, model) ->
                 models[i] = err ? model
-                queue.fin()
-            dash queue, ->
+                fin()
+            async.parallel queue, ->
               callback null, models
           else
             callback null

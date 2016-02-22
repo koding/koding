@@ -1,20 +1,7 @@
-
-{ Model, secure, dash, daisy } = require 'bongo'
+async                    = require 'async'
+cacheManager             = require 'cache-manager'
+{ Model, secure, }       = require 'bongo'
 { Module, Relationship } = require 'jraphical'
-
-cacheManager = require 'cache-manager'
-
-# class JPermission extends Model
-#   @set
-#     indexes   :
-#       module  : 'sparse'
-#       title   : 'sparse'
-#       roles   : 'sparse'
-#     schema    :
-#       module  : String
-#       title   : String
-#       body    : String
-#       roles   : [String]
 
 module.exports = class JPermissionSet extends Module
 
@@ -129,15 +116,16 @@ module.exports = class JPermissionSet extends Module
     # permission checker helper, walks on the all required permissions
     # if one of them passes, breaks the loop and returns true
     kallback = (current, main) ->
+      hasPermission = no
 
-      queue = advanced.map ({ permission, validateWith, superadmin }) -> ->
+      queue = advanced.map ({ permission, validateWith, superadmin }) -> (fin) ->
 
         if superadmin
 
           # if permission requires superadmin and current group is not 'koding'
           # or if somehow 'koding' group (main) not exists then pass ~ GG
           if currentGroup isnt MAIN_GROUP or not main
-            return queue.next()
+            return fin()
 
           # if permission requires superadmin then do the permission check on
           # main group and permissionSet (which is 'koding' group) ~ GG
@@ -151,17 +139,13 @@ module.exports = class JPermissionSet extends Module
         validateWith ?= anyValidator
 
         validateWith.call target, client, group, permission, permissionSet, args,
-          (err, hasPermission) ->
-            if err then queue.next err
-            else if hasPermission
-              callback null, yes  # we can stop here.  One permission is enough.
-            else queue.next()
+          (err, hasPermission_) ->
+            hasPermission = yes  if hasPermission_
+            fin err
 
-      queue.push ->
-        # if we ever get this far, it means the user doesn't have permission.
-        callback null, no
-
-      daisy queue
+      async.parallel queue, (err) ->
+        return callback err  if err
+        callback null, hasPermission
 
     # set groupName from given target or client
     client.groupName = getGroupnameFrom target, client

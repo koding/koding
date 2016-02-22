@@ -46,7 +46,7 @@ func (c cleaner) clean() {
 	}
 }
 
-func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *models.ComputeStack, func()) {
+func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *models.Account, func()) {
 	var c cleaner
 
 	user := &models.User{
@@ -105,38 +105,38 @@ func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *m
 
 	c.add(machine)
 
-	stack := &models.ComputeStack{
-		Id:          bson.NewObjectId(),
-		OriginId:    account.Id,
-		BaseStackId: bson.NewObjectId(),
-		Group:       group.Slug,
-	}
-
-	if err := CreateComputeStack(stack); err != nil {
-		c.clean()
-		t.Fatalf("error creating stack: %s", err)
-	}
-
-	c.add(stack)
-
-	return user, group, machine, stack, c.clean
+	return user, group, machine, account, c.clean
 }
 
 func TestAddAndRemoveFromStack(t *testing.T) {
 	initMongoConn()
 	defer Close()
 
-	user, group, machine, stack, clean := testFixture(t)
+	user, group, machine, account, clean := testFixture(t)
 	defer clean()
 
-	err := AddToStack(user.ObjectId, group.Id, machine.ObjectId)
+	sd := &StackDetails{
+		UserID:    user.ObjectId,
+		GroupID:   group.Id,
+		MachineID: machine.ObjectId,
+
+		UserName:  user.Name,
+		GroupSlug: group.Slug,
+
+		AccountID: account.Id,
+		BaseID:    bson.ObjectIdHex("53fe557af052f8e9435a04fa"),
+	}
+
+	// Add for a first time.
+
+	err := AddToStack(sd)
 	if err != nil {
 		t.Fatalf("error adding machine %q to stack: %s", machine.ObjectId.Hex(), err)
 	}
 
-	s, err := GetComputeStack(stack.Id.Hex())
+	s, err := GetComputeStackByGroup(group.Slug, account.Id)
 	if err != nil {
-		t.Fatalf("error getting stack %q: %s", stack.Id.Hex(), err)
+		t.Fatalf("error getting stack for koding, %q: %s", account.Id.Hex(), err)
 	}
 
 	if len(s.Machines) != 1 {
@@ -160,17 +160,56 @@ func TestAddAndRemoveFromStack(t *testing.T) {
 		t.Fatalf("want group %q, got %q", group.Id.Hex(), m.Groups[0].Id.Hex())
 	}
 
-	err = RemoveFromStack(user.ObjectId, group.Id, machine.ObjectId)
+	// Adding for a second time must be idempotent.
+
+	err = AddToStack(sd)
+	if err != nil {
+		t.Fatalf("error adding machine %q to stack: %s", machine.ObjectId.Hex(), err)
+	}
+
+	s2, err := GetComputeStackByGroup(group.Slug, account.Id)
+	if err != nil {
+		t.Fatalf("error getting stack for koding, %q: %s", account.Id.Hex(), err)
+	}
+
+	if s.Id != s2.Id {
+		t.Errorf("want jComputeStack.ObjetId %q; got %q", s.Id.Hex(), s2.Id.Hex())
+	}
+
+	if len(s.Machines) != 1 {
+		t.Fatalf("want 1 machine, got %d", len(s.Machines))
+	}
+
+	if s.Machines[0] != machine.ObjectId {
+		t.Fatalf("want machine %q to be added to stack, got %q instead", machine.ObjectId.Hex(), s.Machines[0].Hex())
+	}
+
+	m, err = GetMachine(machine.ObjectId.Hex())
+	if err != nil {
+		t.Fatalf("error getting machine %q: %s", machine.ObjectId.Hex(), err)
+	}
+
+	if len(m.Groups) != 1 {
+		t.Fatalf("want 1 group, got %d", len(m.Groups))
+	}
+
+	if m.Groups[0].Id != group.Id {
+		t.Fatalf("want group %q, got %q", group.Id.Hex(), m.Groups[0].Id.Hex())
+	}
+
+	// Remove from stack.
+
+	err = RemoveFromStack(sd)
 	if err != nil {
 		t.Fatalf("error removing %q from stack: %s", machine.ObjectId.Hex(), err)
 	}
 
-	s, err = GetComputeStack(stack.Id.Hex())
+	s3, err := GetComputeStackByGroup(group.Slug, account.Id)
 	if err != nil {
-		t.Fatalf("error getting stack %q: %s", stack.Id.Hex(), err)
+		t.Fatalf("error getting stack for koding, %q: %s", account.Id.Hex(), err)
 	}
 
-	if len(s.Machines) != 0 {
+	if len(s3.Machines) != 0 {
 		t.Fatalf("want 0 machine, got %d", len(s.Machines))
 	}
 

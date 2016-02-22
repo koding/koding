@@ -1,8 +1,8 @@
+async      = require 'async'
 { Module } = require 'jraphical'
 
 module.exports = class JGroupRole extends Module
 
-  { dash }        = require 'bongo'
   KodingError   = require '../../error'
 
   @set
@@ -48,10 +48,10 @@ module.exports = class JGroupRole extends Module
   createDefaultRolesHelper = (callback) ->
 
     queue = JGroupRole.defaultRoles.map (roleData) ->
-      ->
-        JGroupRole.create roleData, queue.fin.bind queue
+      (fin) ->
+        JGroupRole.create roleData, fin
 
-    dash queue, callback
+    async.parallel queue, callback
 
   @createDefaultRoles = (callback) ->
 

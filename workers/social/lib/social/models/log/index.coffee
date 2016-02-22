@@ -2,7 +2,7 @@
 
 module.exports = class JLog extends Module
 
-  { daisy } = Bongo = require 'bongo'
+  async = require 'async'
 
   TRY_LIMIT_FOR_BLOCKING  = 5
   TIME_LIMIT_IN_MIN       = 5
@@ -87,24 +87,15 @@ module.exports = class JLog extends Module
 
     { ip, username } = data
 
-    queue = [
+    return callback true  unless username
 
-      ->
-        return queue.next() unless username
+    options =
+      limit       : TRY_LIMIT_FOR_BLOCKING
+      sort        :
+        createdAt : -1
 
-        options =
-          limit       : TRY_LIMIT_FOR_BLOCKING
-          sort        :
-            createdAt : -1
-
-        JLog.some { username }, options, (err, results) ->
-          checkRestrictions err, results, (res) ->
-            unless res then return callback res
-            queue.next()
-
-      ->
+    JLog.some { username }, options, (err, results) ->
+      checkRestrictions err, results, (res) ->
+        return callback false  unless res
         return callback true
 
-    ]
-
-    daisy queue

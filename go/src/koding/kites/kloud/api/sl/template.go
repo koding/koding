@@ -132,6 +132,13 @@ func (t *Template) decode() {
 // filtering.
 type Templates []*Template
 
+func (t Templates) Err() error {
+	if len(t) == 0 {
+		return errNotFound
+	}
+	return nil
+}
+
 // Parent returns those templates, which have ParentID equal to 0.
 func (t Templates) Parent() Templates {
 	var parents []*Template

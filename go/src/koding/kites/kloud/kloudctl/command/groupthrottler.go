@@ -42,10 +42,14 @@ var ErrSkipWatch = errors.New("skipped waiting for kloud events")
 // ProcessFunc processes a single item.
 type ProcessFunc func(context.Context, Item) error
 
+// WaitFunc is used to block until the item is processed.
+type WaitFunc func(id string) error
+
 // GroupThrottler is used for throttling group of kloud API calls.
 type GroupThrottler struct {
 	Name    string      // command name to wait on kloud progress
 	Process ProcessFunc // processes a single item
+	Wait    WaitFunc    // waits till item is processed; if nil, kloud's eventer is used
 
 	throttle int
 	output   string
@@ -165,7 +169,6 @@ func (gt *GroupThrottler) RunItems(ctx context.Context, items []Item) error {
 }
 
 func (gt *GroupThrottler) processAndWatch(ctx context.Context, item Item) *Status {
-	k, _ := fromContext(ctx)
 	start := time.Now()
 	var stages []Stage
 	newStatus := func(err error) *Status {
@@ -178,8 +181,20 @@ func (gt *GroupThrottler) processAndWatch(ctx context.Context, item Item) *Statu
 			Err:          err,
 		}
 	}
-	if err := gt.Process(ctx, item); err != nil {
+	k, err := kloudClient()
+	if err != nil {
 		return newStatus(err)
+	}
+
+	ctx = context.WithValue(ctx, kiteKey, k)
+	if err := gt.Process(ctx, item); err != nil {
+		k.Close()
+		return newStatus(err)
+	}
+	defer k.Close()
+
+	if gt.Wait != nil {
+		return newStatus(gt.Wait(item.ID()))
 	}
 
 	var last Stage

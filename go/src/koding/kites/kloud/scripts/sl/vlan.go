@@ -185,6 +185,14 @@ func (cmd *vlanInit) Run(ctx context.Context) error {
 			return err
 		}
 
+		datacenter := vlan.Subnet.Datacenter.Name
+
+		// Some vlan has no primary subnet attached, we need to get
+		// the datacenter name from first additional subnet.
+		if datacenter == "" && len(vlan.Subnets) != 0 {
+			datacenter = vlan.Subnets[0].Datacenter.Name
+		}
+
 		instance := datatypes.SoftLayer_Virtual_Guest_Template{
 			Hostname:          "vlanguard",
 			Domain:            "koding.io",
@@ -193,7 +201,7 @@ func (cmd *vlanInit) Run(ctx context.Context) error {
 			HourlyBillingFlag: true,
 			LocalDiskFlag:     true,
 			Datacenter: datatypes.Datacenter{
-				Name: vlan.Subnet.Datacenter.Name,
+				Name: datacenter,
 			},
 			PrimaryBackendNetworkComponent: &datatypes.PrimaryBackendNetworkComponent{
 				NetworkVlan: datatypes.NetworkVlan{

@@ -1,9 +1,10 @@
+async            = require 'async'
 Bongo            = require 'bongo'
 { Relationship } = require 'jraphical'
 request          = require 'request'
 KodingError      = require '../../error'
 
-{ secure, daisy, dash, signature, Base } = Bongo
+{ secure, signature, Base } = Bongo
 { throttle } = require 'underscore'
 
 module.exports = class SocialChannel extends Base

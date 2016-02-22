@@ -144,32 +144,34 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
 
     """
       <div class="settings-header">Editor Settings</div>
-      <p>Enable autosave                        {{> @useAutosave}}</p>
-      <p>Use soft tabs                          {{> @useSoftTabs}}</p>
-      <p>Line numbers                           {{> @showGutter}}</p>
-      <p>
-        <span title="Remove pane when last tab closed">
-          Remove pane when last tab closed
-        </span>
-        {{> @enableAutoRemovePane}}
-      </p>
-      <p>Use word wrapping                      {{> @useWordWrap}}</p>
-      <p>Show print margin                      {{> @showPrintMargin}}</p>
-      <p>Highlight active line                  {{> @highlightActiveLine}}</p>
-      <p>Show invisibles                        {{> @showInvisibles}}</p>
-      <p>Use scroll past end                    {{> @scrollPastEnd}}</p>
-      <p>
-        <span title="Trim trailing whitespaces on save">
-          Trim trailing whitespaces on save
-        </span>
-        {{> @trimTrailingWhitespaces}}
-      </p>
-      <p>Enable autocomplete             {{> @enableAutocomplete}}</p>
-      <p>Enable emmet                    {{> @enableEmmet}}</p>
-      <p>Enable snippets                 {{> @enableSnippets}}</p>
-      <p>Enable brace, tag completion    {{> @enableBraceCompletion}}
-      <p class="with-select">Key binding {{> @keyboardHandler}}</p>
-      <p class="with-select">Font size   {{> @fontSize}}</p>
-      <p class="with-select">Theme       {{> @theme}}</p>
-      <p class="with-select">Tab size    {{> @tabSize}}</p>
+      <ul>
+        <li>Enable autosave                        {{> @useAutosave}}</li>
+        <li>Use soft tabs                          {{> @useSoftTabs}}</li>
+        <li>Line numbers                           {{> @showGutter}}</li>
+        <li>
+          <span title="Remove pane when last tab closed">
+            Remove pane when last tab closed
+          </span>
+          {{> @enableAutoRemovePane}}
+        </li>
+        <li>Use word wrapping                      {{> @useWordWrap}}</li>
+        <li>Show print margin                      {{> @showPrintMargin}}</li>
+        <li>Highlight active line                  {{> @highlightActiveLine}}</li>
+        <li>Show invisibles                        {{> @showInvisibles}}</li>
+        <li>Use scroll past end                    {{> @scrollPastEnd}}</li>
+        <li>
+          <span title="Trim trailing whitespaces on save">
+            Trim trailing whitespaces on save
+          </span>
+          {{> @trimTrailingWhitespaces}}
+        </li>
+        <li>Enable autocomplete             {{> @enableAutocomplete}}</li>
+        <li>Enable emmet                    {{> @enableEmmet}}</li>
+        <li>Enable snippets                 {{> @enableSnippets}}</li>
+        <li>Enable brace, tag completion    {{> @enableBraceCompletion}}</li>
+        <li class="with-select">Key binding {{> @keyboardHandler}}</li>
+        <li class="with-select">Font size   {{> @fontSize}}</li>
+        <li class="with-select">Theme       {{> @theme}}</li>
+        <li class="with-select">Tab size    {{> @tabSize}}</li>
+      <ul>
     """

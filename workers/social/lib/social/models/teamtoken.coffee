@@ -9,9 +9,10 @@ Bongo       = require 'bongo'
 Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
+async       = require 'async'
 
 { protocol, hostname } = KONFIG
-{ secure, signature, dash } = Bongo
+{ secure, signature }  = Bongo
 
 emailsanitize = require './user/emailsanitize'
 
@@ -118,9 +119,9 @@ module.exports = class JTeamInvitation extends jraphical.Module
       invitations = []
 
       emails.forEach (email) =>
-        queue.push =>
+        queue.push (fin) =>
           @create { email }, (err, invitation) ->
-            return queue.fin err  if err
+            return fin err  if err
 
             properties =
               inviter  : inviter
@@ -131,7 +132,8 @@ module.exports = class JTeamInvitation extends jraphical.Module
 
             invitations.push invitation
 
-            queue.fin()
+            fin()
 
-      dash queue, ->
+      async.parallel queue, (err) ->
+        return callback err  if err
         callback null, invitations

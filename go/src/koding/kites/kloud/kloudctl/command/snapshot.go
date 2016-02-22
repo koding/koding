@@ -1,9 +1,6 @@
 package command
 
-import (
-	"github.com/koding/kite"
-	"github.com/mitchellh/cli"
-)
+import "github.com/mitchellh/cli"
 
 type Snapshot struct {
 	id         *string
@@ -21,8 +18,12 @@ func NewDeleteSnapshot() cli.CommandFactory {
 	}
 }
 
-func (s *Snapshot) Action(args []string, k *kite.Client) error {
-	_, err := k.Tell("deleteSnapshot", &KloudArgs{
+func (s *Snapshot) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
+	_, err = k.Tell("deleteSnapshot", &KloudArgs{
 		MachineId:  *s.id,
 		SnapshotId: *s.snapshotId,
 	})

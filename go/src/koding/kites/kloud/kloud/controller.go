@@ -66,6 +66,8 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, NewError(ErrNoArguments)
 	}
 
+	k.Log.Debug("solo: calling %q by %q with %q", r.Username, r.Method, r.Args.Raw)
+
 	var args struct {
 		MachineId string
 		Provider  string

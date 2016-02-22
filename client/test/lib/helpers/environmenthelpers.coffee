@@ -68,6 +68,11 @@ module.exports =
     @openVmSettingsModal browser, vmName, '.snapshots'
 
 
+  openVmSharingSettings :(browser, vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.vm-sharing'
+
+
   attemptCreateSnapshot: (browser, openSettings = yes) ->
 
     buttonSelector   = '.snapshots .add-button'

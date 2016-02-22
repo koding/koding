@@ -16,7 +16,6 @@ import (
 	"koding/kites/kloud/utils"
 	"koding/kites/kloud/utils/res"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 	"golang.org/x/net/context"
 )
@@ -60,7 +59,11 @@ func impersonate(username string, req interface{}) (v map[string]interface{}) {
 }
 
 // Action is an entry point for "team" subcommand.
-func (t *Team) Action(args []string, k *kite.Client) error {
+func (t *Team) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
 	modelhelper.Initialize(envMongoURL())

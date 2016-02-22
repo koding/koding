@@ -1,5 +1,5 @@
 {
-	"environment": "dev",
+	"environment": "production",
 	"machine": {
 		"label": "softlayer-vm-0",
 		"slug": "softlayer-vm-0",

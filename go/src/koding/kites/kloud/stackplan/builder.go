@@ -233,18 +233,19 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 	return nil
 }
 
-// MachineLabels gives mapping from jMachine.meta.assignedLabel to jMachine.label
+// MachineUIDs gives mapping from jMachine.meta.assignedLabel to jMachine.uid
 // for each built machine.
-func (b *Builder) MachineLabels() map[string]string {
-	m := make(map[string]string)
+func (b *Builder) MachineUIDs() map[string]string {
+	uids := make(map[string]string)
+
 	for _, machine := range b.Machines {
 		label, ok := machine.Meta["assignedLabel"].(string)
 		if !ok {
 			continue
 		}
-		m[label] = machine.Label
+		uids[label] = machine.Uid
 	}
-	return m
+	return uids
 }
 
 // BuildCredentials fetches credential details for current b.Stack from MongoDB.
