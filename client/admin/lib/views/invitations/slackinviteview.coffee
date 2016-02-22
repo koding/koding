@@ -44,7 +44,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
     @wrapper.addSubView info = new kd.CustomHTMLView
       tagName  : 'p'
       cssClass : 'information'
-      partial  : 'Invite your teammates using your company\'s Slack account.'
+      partial  : 'Invite your teammates using your company\'s team on Slack.'
 
     info.addSubView button = new kd.ButtonView
       cssClass : 'solid medium green slack-oauth'
@@ -61,6 +61,9 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
 
   createInviterViews: ->
 
+    @wrapper.addSubView @mainSection = new kd.CustomHTMLView
+    @createChangerView()
+
     $.ajax
       method  : 'GET'
       url     : CHANNELS_URL
@@ -72,6 +75,28 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
       url     : USERS_URL
       success : (res) => @createIndividualInviter res
       error   : @bound 'reset'
+
+
+  createChangerView: ->
+
+    @wrapper.addSubView changerView = new kd.CustomHTMLView
+      cssClass : 'hidden'
+
+    changerView.addSubView new kd.CustomHTMLView
+      tagName : 'h3'
+      partial : 'Use a different Slack team:'
+
+    changerView.addSubView info = new kd.CustomHTMLView
+      tagName  : 'p'
+      cssClass : 'information use-different-team'
+      partial  : 'You can change the Slack team you previously authorized.'
+
+    info.addSubView new kd.ButtonView
+      cssClass : 'solid medium red invite-members fr'
+      title    : 'Change team'
+      callback : -> location.assign OAUTH_URL
+
+    @on 'ListAdded', -> changerView.show()
 
 
   createChannelInviter: (channels) ->
@@ -87,11 +112,11 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
 
         return { title: titleDecorator(channel), value: channel.name }
 
-    @wrapper.addSubView new kd.CustomHTMLView
+    @mainSection.addSubView new kd.CustomHTMLView
       tagName : 'h3'
-      partial : 'You can invite all the users in a slack channel:'
+      partial : 'You can invite all the users in a Slack channel:'
 
-    @wrapper.addSubView wrapper = new kd.CustomHTMLView
+    @mainSection.addSubView wrapper = new kd.CustomHTMLView
       cssClass: 'clearfix'
 
     wrapper.addSubView select = new kd.SelectBox
@@ -115,12 +140,11 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
         @sendMessages recipients
 
 
-
   createIndividualInviter: (users) ->
 
     @users = users = users.filter (user) -> user.id isnt SLACKBOT_ID
 
-    @wrapper.addSubView new kd.CustomHTMLView
+    @mainSection.addSubView new kd.CustomHTMLView
       tagName : 'h3'
       partial : 'Or you can invite individual members:'
 
@@ -138,7 +162,13 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
     ,
       items             : users
 
-    @wrapper.addSubView list = listController.getView()
+    @mainSection.addSubView list = listController.getView()
+
+    list.addSubView @inviteIndividual = new kd.ButtonView
+      cssClass : 'solid medium green invite-members fr'
+      title    : 'Invite selected members'
+      disabled : yes
+      callback : => @sendMessages getSelectedMembers listController
 
     list.on 'ItemValueChanged', =>
       selected = getSelectedMembers listController
@@ -159,12 +189,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
         .forEach (item) -> item.checkBox.setValue off
       list.emit 'ItemValueChanged'
 
-    list.addSubView @inviteIndividual = new kd.ButtonView
-      cssClass : 'solid medium green invite-members fr'
-      title    : 'Invite selected members'
-      disabled : yes
-      callback : => @sendMessages getSelectedMembers listController
-
+    @emit 'ListAdded'
 
   sendMessages: (recipients) ->
 
