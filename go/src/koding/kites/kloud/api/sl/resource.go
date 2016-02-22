@@ -3,21 +3,35 @@ package sl
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 )
 
+var errNotFound = errors.New("not found")
+
 // Resource defines an operations that need to be supported by
 // a concrete resource type.
 type Resource interface {
-	sort.Interface
-	Filter(*Filter)
+	Err() error
 }
 
 // ResourceDecoder provides a mean to optionally perform additional decoding
-// of a resource after unmarshalling.
+// of a resource after unmarshalling and before sorting.
 type ResorceDecoder interface {
 	Decode()
+}
+
+// ResourceSorter provides common sorter interface. If a resource implements it,
+// it will be sorted before filtering.
+type ResourceSorter interface {
+	sort.Interface
+}
+
+// ResourceFilter provides common filterin interface. If a resource implements it,
+// it will be filtered before calling Err() on it.
+type ResourceFilter interface {
+	Filter(*Filter)
 }
 
 // TagRequest is a generic POST request that tags Softlayer resources.
@@ -59,7 +73,6 @@ func (c *Softlayer) tag(req *TagRequest) error {
 	}
 
 	return nil
-
 }
 
 // RequestResource is a generic GET request for Softlayer resources.
@@ -86,19 +99,32 @@ func (c *Softlayer) get(req *ResourceRequest) error {
 	if err := json.Unmarshal(p, req.Resource); err != nil {
 		return err
 	}
+
 	// Perform additional decoding of the resource, if supported.
 	if decoder, ok := req.Resource.(ResorceDecoder); ok {
 		decoder.Decode()
 	}
-	// Filter the resource.
+
+	// Perform soring if the resource supports it.
+	if sorter, ok := req.Resource.(ResourceSorter); ok {
+		sort.Sort(sorter)
+	}
+
+	// Filter the resource if it's supported
 	if req.Filter != nil {
-		req.Resource.Filter(req.Filter)
+		if filter, ok := req.Resource.(ResourceFilter); ok {
+			filter.Filter(req.Filter)
+		}
 	}
-	if req.Resource.Len() == 0 {
-		return newNotFoundError(req.Name, fmt.Errorf("filter=%v", req.Filter))
+
+	if err := req.Resource.Err(); err != nil {
+		if err == errNotFound {
+			return newNotFoundError(req.Name, fmt.Errorf("filter=%v", req.Filter))
+		}
+
+		return err
 	}
-	// Sort the resource.
-	sort.Sort(req.Resource)
+
 	return nil
 }
 
