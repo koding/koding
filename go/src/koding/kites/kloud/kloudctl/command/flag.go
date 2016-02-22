@@ -11,8 +11,7 @@ import (
 var (
 	// global flags variables
 	flagWatchEvents bool
-	flagKloudAddr   string
-	flagUsername    string
+	flagKontrolURL  string
 	flagDebug       bool
 )
 
@@ -25,11 +24,11 @@ type Flag struct {
 	totalDefaultFlag int
 }
 
-func defaultKloudAddr() string {
-	if s := os.Getenv("KLOUDCTL_KLOUD_ADDR"); s != "" {
+func defaultKontrolURL() string {
+	if s := os.Getenv("KITE_KONTROL_URL"); s != "" {
 		return s
 	}
-	return "http://127.0.0.1:5500/kite"
+	return "http://127.0.0.1:3000/kite"
 }
 
 func defaultDebug() bool {
@@ -41,8 +40,8 @@ func NewFlag(name, synopsis string) *Flag {
 	flagSet.SetOutput(ioutil.Discard)
 
 	// global subcommand flags
-	flagSet.StringVar(&flagKloudAddr, "kloud-addr", defaultKloudAddr(),
-		"Kloud addr to connect")
+	flagSet.StringVar(&flagKontrolURL, "kontrol-url", defaultKontrolURL(),
+		"Kontrol URL.")
 	flagSet.BoolVar(&flagWatchEvents, "watch", false, "Watch the events coming by.")
 	flagSet.BoolVar(&flagDebug, "debug", defaultDebug(), "Turns on debug logging.")
 

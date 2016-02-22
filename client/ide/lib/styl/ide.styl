@@ -588,7 +588,7 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     styleScrollBars         rgba(255,255,255,.25)
 
     > .kdscrollview > *
-      min-width             250px
+      min-width             248px
 
   .settings-header
     color                   text-color-green
@@ -599,7 +599,7 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     display                 block
     float                   right
 
-  p
+  li
     color                   #D4CFC9
     padding                 5px 20px
     clear                   both
@@ -723,16 +723,17 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
       pointer()
       fr()
 
-      cite
-        display             block
+      &:before
+        dBlock()
+        content             ''
 
-      &.shortcuts cite
+      &.shortcuts:before
         r-sprite            'ide', 'keyboard'
 
       &.github cite
         r-sprite            'ide', 'github'
 
-      &.help cite
+      &.help:before
         margin-top          -1px
         r-sprite            'ide', 'help'
 

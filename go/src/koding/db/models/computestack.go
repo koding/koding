@@ -24,11 +24,16 @@ type ComputeStack struct {
 	// User injected credentials
 	Credentials map[string][]string `bson:"credentials"`
 
+	// TODO(rjeczalik): turn into named struct
 	Status struct {
 		State      string    `bson:"state"`
 		Reason     string    `bson:"reason"`
 		ModifiedAt time.Time `bson:"modifiedAt"`
 	} `bson:"status"`
+
+	Config bson.M `bson:"config,omitempty"`
+	Meta   bson.M `bson:"meta,omitempty"`
+	Title  string `bson:"title,omitempty"`
 }
 
 func (c *ComputeStack) State() stackstate.State {

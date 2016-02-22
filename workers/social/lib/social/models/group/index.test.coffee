@@ -5,7 +5,6 @@ JSession                      = require '../session'
 JApiToken                     = require '../apitoken'
 JInvitation                   = require '../invitation'
 { async
-  daisy
   expect
   expectRelation
   withDummyClient
@@ -80,14 +79,14 @@ runTests = -> describe 'workers.social.group.index', ->
 
           queue = [
 
-            ->
+            (next) ->
               # making sure client is a member of the group before trying to kick
               group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
                 expect(err).to.not.exist
                 expect(members.length).to.be.equal 1
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting session to exist before kicking member
               params =
                 username  : account.profile.nickname
@@ -97,22 +96,22 @@ runTests = -> describe 'workers.social.group.index', ->
                 expect(err).to.not.exist
                 expect(data).to.exist
                 expect(data).to.be.an 'object'
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting no error from kick member request
               group.kickMember adminClient, account._id, (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # admin client search for kicked member within group member
               group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
                 expect(err).to.not.exist
                 expect(members.length).to.be.equal 0
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting session to be deleted after kicking member
               params =
                 username  : account.profile.nickname
@@ -121,33 +120,30 @@ runTests = -> describe 'workers.social.group.index', ->
               JSession.one params, (err, data) ->
                 expect(err).to.not.exist
                 expect(data).to.not.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # we cannot add blocked user to group
               group.approveMember account, (err) ->
                 expect(err).to.exist
                 expect(err.message).to.be.equal 'This account is blocked'
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # we should be able to unblock the member
               group.unblockMember adminClient, account.getId(), (err) ->
                 expect(err).to.not.exist
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # unblocked member can be added again
               group.approveMember account, (err) ->
                 expect(err).to.not.exist
-                queue.next()
-
-            ->
-              done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
   describe '#searchMembers()', ->
@@ -163,25 +159,23 @@ runTests = -> describe 'workers.social.group.index', ->
 
           queue = [
 
-            ->
+            (next) ->
               # fetching koding group
               JGroup.one { slug : 'koding' }, (err, group_) ->
                 expect(err).to.not.exist
                 group = group_
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting to not be able to fetch members data
               group.searchMembers client, username, {}, (err, members) ->
                 expect(err?.message).to.be.equal 'Access denied'
                 expect(members).to.not.exist
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
     describe 'if username is registered', ->
@@ -193,26 +187,24 @@ runTests = -> describe 'workers.social.group.index', ->
 
           queue = [
 
-            ->
+            (next) ->
               # fetching group
               JGroup.one { slug : 'koding' }, (err, group_) ->
                 expect(err).to.not.exist
                 group = group_
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting to find newly registered member
               group.searchMembers client, userFormData.username, {}, (err, members) ->
                 expect(err).to.not.exist
                 expect(members.length).to.be.equal 1
                 expect(members[0].profile.nickname).to.be.equal userFormData.username
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
       describe 'when group is not koding', (done) ->
@@ -246,25 +238,23 @@ runTests = -> describe 'workers.social.group.index', ->
 
             queue = [
 
-              ->
+              (next) ->
                 # expecting new member client to be able fetch self data
                 group.searchMembers client, userFormData.username, {}, (err, members) ->
                   expect(err).to.not.exist
                   expect(members[0].profile.nickname).to.be.equal userFormData.username
-                  queue.next()
+                  next()
 
-              ->
+              (next) ->
                 # expecting admin to be able to fetch new member's data
                 group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
                   expect(err).to.not.exist
                   expect(members[0].profile.nickname).to.be.equal userFormData.username
-                  queue.next()
-
-              -> done()
+                  next()
 
             ]
 
-            daisy queue
+            async.series queue, done
 
 
   describe '#isInAllowedDomain()', ->
@@ -332,7 +322,7 @@ runTests = -> describe 'workers.social.group.index', ->
 
           queue = [
 
-            ->
+            (next) ->
               # expecting group to be created successfully
               JGroup.create client, groupData, account, (err, group_) ->
                 expect(err)                  .to.not.exist
@@ -341,9 +331,9 @@ runTests = -> describe 'workers.social.group.index', ->
                 expect(group.title)          .to.be.equal groupTitle
                 expect(group.visibility)     .to.be.equal groupData.visibility
                 expect(group.allowedDomains) .to.include groupData.allowedDomains[0]
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting owner account and group relationship to be created
               params =
                 $and : [
@@ -354,9 +344,9 @@ runTests = -> describe 'workers.social.group.index', ->
 
               # expecting relationship to be created
               expectRelation.toExist params, ->
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting account to be saved as a member
               params =
                 $and : [
@@ -366,13 +356,11 @@ runTests = -> describe 'workers.social.group.index', ->
                 ]
 
               expectRelation.toExist params, ->
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
     describe 'when group data is not valid', ->
@@ -388,28 +376,26 @@ runTests = -> describe 'workers.social.group.index', ->
 
           queue = [
 
-            ->
+            (next) ->
               # expecting error for 'koding' slug
               groupData.slug = 'koding'
 
               expectedError = 'The slug koding is not available.'
               JGroup.create client, groupData, account, (err, data) ->
                 expect(err?.message).to.be.equal expectedError
-                queue.next()
+                next()
 
-            ->
+            (next) ->
               # expecting validaton error when slug is empty
               groupData.slug = ''
 
               JGroup.create client, groupData, account, (err, data) ->
                 expect(err).to.exist
-                queue.next()
-
-            -> done()
+                next()
 
           ]
 
-          daisy queue
+          async.series queue, done
 
 
       it 'should pass error if slug is in use', (done) ->

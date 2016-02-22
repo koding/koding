@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"koding/kites/kloud/kloud"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
@@ -26,7 +25,12 @@ func NewBuild() cli.CommandFactory {
 	}
 }
 
-func (b *Build) Action(args []string, k *kite.Client) error {
+func (b *Build) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
+
 	DefaultUi.Info(fmt.Sprintf("Build called for machine '%s'\n", *b.id))
 
 	resp, err := k.Tell("build", &KloudArgs{

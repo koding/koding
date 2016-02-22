@@ -48,7 +48,12 @@ func (c *Cmd) SingleMachine(id string, k *kite.Client) (string, error) {
 	return result.EventId, nil
 }
 
-func (c *Cmd) Action(args []string, k *kite.Client) error {
+func (c *Cmd) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
+
 	machines := strings.Split(*c.ids, ",")
 
 	if len(machines) > batchLimit {

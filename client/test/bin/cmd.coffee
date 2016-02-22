@@ -20,7 +20,7 @@ argv = require 'yargs'
 
   .describe 'start-selenium', 'if enabled starts a selenium server process'
   .boolean 'start-selenium'
-  .default 'start-selenium', true
+  .default 'start-selenium', no
 
   .argv
 

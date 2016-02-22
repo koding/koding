@@ -15,7 +15,7 @@ func main() {
 	// Load the config, reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	if !conf.Debug {
+	if !conf.TerraformDebug {
 		// hashicorp.terraform outputs many logs, discard them
 		log.SetOutput(ioutil.Discard)
 	}
