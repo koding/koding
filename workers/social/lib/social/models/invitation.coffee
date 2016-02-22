@@ -207,8 +207,17 @@ module.exports = class JInvitation extends jraphical.Module
       createInviteInstance invitationData, fin
 
     , (invite, fin) ->
-      [fin, invite] = [invite, fin]  unless fin
-      inviteInfo = { email, code: invite.code }  if invite
+      unless fin
+        [fin, invite] = [invite, fin]
+        # this is here bc of fucking cyclomatic complexity error of linter
+        # if you put one more if statement here tests will fail
+        # this technically correct but readability suffers
+        # it should be as below - SY
+        #
+        #   [fin, invite] = [invite, fin]  unless fin
+        #   inviteInfo = { email, code: invite.code }  if invite
+        #
+        inviteInfo = { email, code: invite.code }
 
       return fin()  if noEmail or not invite
       JInvitation.sendInvitationEmail client, invite, fin
