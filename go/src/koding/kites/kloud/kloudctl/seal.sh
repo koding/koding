@@ -24,3 +24,13 @@ chmod 600 /root/.ssh/authorized_keys
 # remove all other keys and restart openssh-server
 /bin/rm -rf /etc/ssh/ssh_host_*
 dpkg-reconfigure openssh-server
+
+echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+
+for i in /home/*; do
+	user=$(basename "$i")
+	echo "reseting password for user $user"
+	( echo Ao3kenoibi6U; echo Ao3kenoibi6U ) | passwd "$user"
+done
+
+restart ssh
