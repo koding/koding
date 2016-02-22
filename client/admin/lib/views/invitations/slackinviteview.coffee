@@ -150,6 +150,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
       listController.getListItems()
         .filter (item) -> item.checkBox.getValue()
         .forEach (item) -> item.checkBox.setValue off
+      list.emit 'ItemValueChanged'
 
     list.addSubView @inviteIndividual = new kd.ButtonView
       cssClass : 'solid medium green invite-members fr'
