@@ -609,12 +609,13 @@ module.exports =
       browser
         .waitForElementVisible  editButton, 20000
         .click                  editButton
-        .pause                  3000# wait for textarea
+        .pause                  3000 # wait for textarea
         .waitForElementVisible  chatInput, 20000
         .clearValue             chatInput
         .setValue               chatInput, editedmessage
         .setValue               chatInput, browser.Keys.ENTER
         .waitForElementVisible  editedText, 20000
+        .pause                  2000 # wait for new text
         .assert.containsText    editedText, editedmessage
 
     if deletePost

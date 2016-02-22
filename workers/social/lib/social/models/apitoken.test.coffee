@@ -1,4 +1,4 @@
-{ daisy
+{ async
   expect
   withConvertedUser
   expectAccessDenied
@@ -30,15 +30,13 @@ runTests = -> describe 'workers.social.apitoken', ->
       ]
 
       invalidData.forEach (data) ->
-        queue.push ->
+        queue.push (next) ->
           JApiToken.create data, (err, token) ->
             expect(err?.message).to.be.equal 'account and group slug must be set!'
             expect(token).to.not.exist
-            queue.next()
+            next()
 
-      queue.push -> done()
-
-      daisy queue
+      async.series queue, done
 
 
     it 'should fail to create api token when group or account is non-existent', (done) ->
@@ -50,25 +48,23 @@ runTests = -> describe 'workers.social.apitoken', ->
 
         queue = [
 
-          ->
+          (next) ->
             data = { group, account : {} }
             JApiToken.create data, (err, token) ->
               expect(err?.message).to.be.equal 'account is not an instance of Jaccount!'
               expect(token).to.not.exist
-              queue.next()
+              next()
 
-          ->
+          (next) ->
             data = { group : generateRandomString(), account }
             JApiToken.create data, (err, token) ->
               expect(err?.message).to.be.equal 'group not found!'
               expect(token).to.not.exist
-              queue.next()
-
-          -> done()
+              next()
 
         ]
 
-        daisy queue
+        async.series queue, done
 
 
     it 'should fail if isApiEnabled field is not true for the group', (done) ->
@@ -119,22 +115,20 @@ runTests = -> describe 'workers.social.apitoken', ->
           queue = []
 
           for i in [0...JGroup.API_TOKEN_LIMIT]
-            queue.push ->
+            queue.push (next) ->
               JApiToken.create data, (err, token) ->
                 expect(err).to.not.exist
                 expect(token).to.exist
-                queue.next()
+                next()
 
-          queue.push ->
+          queue.push (next) ->
             expectedError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} api tokens"
             JApiToken.create data, (err, token) ->
               expect(err?.message).to.be.equal expectedError
               expect(token).to.not.exist
-              queue.next()
+              next()
 
-          queue.push -> done()
-
-          daisy queue
+          async.series queue, done
 
 
   describe '#create$()', ->

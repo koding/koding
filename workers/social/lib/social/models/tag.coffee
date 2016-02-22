@@ -1,3 +1,4 @@
+async     = require 'async'
 jraphical = require 'jraphical'
 KodingError = require '../error'
 
@@ -5,7 +6,7 @@ module.exports = class JTag extends jraphical.Module
 
   { Relationship } = jraphical
 
-  { ObjectId, ObjectRef, Inflector, daisy, secure, race, signature, dash } = require 'bongo'
+  { ObjectId, ObjectRef, Inflector, secure, race, signature } = require 'bongo'
 
   Validators  = require './group/validators'
   { permit }  = require './group/permissionset'
@@ -201,9 +202,10 @@ module.exports = class JTag extends jraphical.Module
   @handleFreetags = permit 'freetag content',
     success: (client, tagRefs, callbackForEach = -> ) ->
       existingTagIds = []
-      daisy queue = [
-        ->
-          fin = (i) -> if i is tagRefs.length - 1 then queue.next()
+      async.series queue = [
+
+        (next) ->
+          fin = (i) -> if i is tagRefs.length - 1 then next()
           tagRefs.forEach (tagRef, i) ->
             if tagRef?.$suggest?
               { group } = client.context
@@ -225,12 +227,14 @@ module.exports = class JTag extends jraphical.Module
             else
               existingTagIds.push ObjectId tagRef.id
               fin i
-        ->
+
+        (next) ->
           JTag.all ({ _id: { $in: existingTagIds } }), (err, existingTags) ->
             if err
               callbackForEach err
             else
               callbackForEach null, tag for tag in existingTags
+
       ]
 
   create = (data, creator, callback) ->
@@ -354,13 +358,16 @@ module.exports = class JTag extends jraphical.Module
         unless childTopicRels?.length then @delete_ callback
         else
           queue = childTopicRels.map (childTopicRel) ->
-            -> JTag.one { '_id': childTopicRel.sourceId }, (err, childTopic) ->
-              return callback err if err
-              return callback new KodingError 'Child Topic could not be found' unless childTopic
+            (fin) -> JTag.one { '_id': childTopicRel.sourceId }, (err, childTopic) ->
+              return fin err if err
+              return fin new KodingError 'Child Topic could not be found' unless childTopic
               childTopic.delete_ (err) ->
-                return callback err if err
-                Relationship.remove { sourceId: childTopic.getId(), as: 'synonymOf' }, -> queue.fin()
-          dash queue, => @delete_ callback
+                return fin err if err
+                Relationship.remove { sourceId: childTopic.getId(), as: 'synonymOf' }, -> fin()
+
+          async.parallel queue, (err) =>
+            return callback err  if err
+            @delete_ callback
 
 
   @fetchSkillTags:(selector, options, callback) ->
@@ -428,17 +435,17 @@ module.exports = class JTag extends jraphical.Module
             when 'deleted' then deletedTags.push tag.title
             when 'synonym'
               childTag = tag
-              synonyms.push ->
+              synonyms.push (fin) ->
                 childTag.fetchSynonym (err, synonym) ->
                   if not err and synonym?
                     resultMap[synonym.getId()] ?= synonym
                     parentTag = resultMap[synonym.getId()]
                     parentTag.children ?= []
                     parentTag.children.push childTag.title
-                  synonyms.fin()
+                  fin()
             else resultMap[tag.getId()] = tag
 
-        dash synonyms, ->
+        async.parallel synonyms, ->
           result = []
           result.push val for key, val of resultMap
           callback null, { tags: result, deletedTags }
@@ -465,14 +472,14 @@ module.exports = class JTag extends jraphical.Module
       sourceId : @getId()
     }, { limit, sort: { '_id' : -1 } }, (err, rels) ->
       accounts = []
-      daisy queue = rels.map (r) ->
-        ->
+      queue = rels.map (r) ->
+        (next) ->
           JAccount = require './account'
           JAccount.one { _id: r.targetId }, (err, acc) ->
             accounts.push acc  if not err and acc
-            queue.next()
+            next()
 
-      queue.push -> callback null, accounts
+      async.series queue, -> callback null, accounts
 
   follow: secure (client, options, callback) ->
     [callback, options] = [options, callback] unless callback

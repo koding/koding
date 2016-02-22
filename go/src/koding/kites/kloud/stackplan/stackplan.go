@@ -9,6 +9,7 @@ import (
 
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/utils"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
@@ -91,7 +92,7 @@ func (m *Machines) AppendQueryString(queryStrings map[string]string) {
 
 func (m *Machines) AppendHostQueryString(s string) {
 	for i, machine := range m.Machines {
-		machine.HostQueryString = protocol.Kite{ID: s}.String()
+		machine.HostQueryString = utils.QueryString(s)
 		m.Machines[i] = machine
 	}
 }

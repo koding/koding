@@ -1215,6 +1215,7 @@ module.exports = CollaborationController =
     options        =
       title        : 'Your session has been closed'
       content      : "You have been removed from the session by @#{@collaborationHost}."
+      cssClass     : 'kicked-modal'
       blocking     : yes
       buttons      :
         ok         :

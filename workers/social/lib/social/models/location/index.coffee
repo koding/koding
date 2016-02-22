@@ -1,5 +1,6 @@
+async       = require 'async'
 KodingError = require '../../error'
-{ Model, secure, daisy, signature } = require 'bongo'
+{ Model, secure, signature } = require 'bongo'
 
 module.exports = class JLocation extends Model
 
@@ -59,12 +60,12 @@ module.exports = class JLocation extends Model
     collection.distinct 'countryCode', {}, (err, countryCodes) =>
       return callback err  if err
 
-      countries = countryCodes.map (countryCode) => =>
+      countries = countryCodes.map (countryCode) => (next) =>
 
         collection.distinct 'stateCode', { countryCode }, (err, stateCodes) =>
           return callback err  if err
 
-          states = stateCodes.filter(Boolean).map (stateCode) => =>
+          states = stateCodes.filter(Boolean).map (stateCode) => (nextState) =>
 
             @one { stateCode, countryCode }, (err, location) ->
 
@@ -73,15 +74,11 @@ module.exports = class JLocation extends Model
                 stateCode   : location.stateCode
                 state       : location.state
 
-              state.save (err) -> states.next err
+              state.save nextState
 
-          states.push -> countries.next()
+          async.seris states, -> next()
 
-          daisy states
-
-      countries.push -> callback null
-
-      daisy countries
+      async.series countries, -> callback null
 
   @importAll = secure (client, callback) ->
 

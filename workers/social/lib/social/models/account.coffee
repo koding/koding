@@ -24,12 +24,13 @@ module.exports = class JAccount extends jraphical.Module
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
 
-  { ObjectId, Register, secure, race, dash, daisy, signature } = require 'bongo'
+  { ObjectId, secure, signature } = require 'bongo'
   { Relationship } = jraphical
   { permit } = require './group/permissionset'
   Validators = require './group/validators'
-  Protected = require '../traits/protected'
+  Protected  = require '../traits/protected'
   { extend } = require 'underscore'
+  async      = require 'async'
 
   validateFullName = (value) -> not /<|>/.test value
 
@@ -321,13 +322,13 @@ module.exports = class JAccount extends jraphical.Module
       return callback err   if err
       return callback null  if not groups
 
-      queue = groups.map (group) -> ->
+      queue = groups.map (group) -> (fin) ->
         if group.slug in ['koding', 'guests'] # just skip koding & guests
-          queue.fin()
+          fin()
         else
-          group.leave client, queue.fin
+          group.leave client, fin
 
-      dash queue, callback
+      async.parallel queue, callback
 
   fetchAllParticipatedGroups: secure (client, callback) ->
 
@@ -874,9 +875,9 @@ module.exports = class JAccount extends jraphical.Module
 
   unstoreAll: (callback) ->
     @fetchStorages [], (err, storages) ->
-      daisy queue = storages.map (storage) ->
-        -> storage.remove -> queue.next()
-      queue.push -> callback null
+      queue = storages.map (storage) ->
+        (next) -> storage.remove -> next()
+      async.series queue, -> callback null
 
   _store: ({ name, content }, callback) ->
     @fetchStorage { 'data.name' : name }, (err, storage) =>

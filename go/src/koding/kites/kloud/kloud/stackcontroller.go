@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"errors"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
@@ -53,7 +54,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 
 	// Unamrshal common arguments.
 	if err := r.Args.One().Unmarshal(&args); err != nil {
-		return nil, err
+		return nil, errors.New("invalid request: " + err.Error())
 	}
 
 	// TODO(rjeczalik): compatibility code, remove
@@ -102,7 +103,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	// Create stack handler.
 	s, err := p.Stack(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("error creating stack: " + err.Error())
 	}
 
 	// Currently only apply method is asynchronous, rest

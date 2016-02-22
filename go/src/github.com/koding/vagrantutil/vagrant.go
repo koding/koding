@@ -30,7 +30,15 @@ const (
 	Saved
 	PowerOff
 	Aborted
+	Preparing
 )
+
+// Box represents a single line of `vagrant box list` output.
+type Box struct {
+	Name     string
+	Provider string
+	Version  string
+}
 
 // CommandOutput is the streaming output of a command
 type CommandOutput struct {
@@ -165,6 +173,9 @@ func (v *Vagrant) List() ([]*Vagrant, error) {
 
 		output = append(output, strings.Fields(trimmedLine))
 	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
 
 	boxes := make([]*Vagrant, len(output))
 
@@ -201,6 +212,64 @@ func (v *Vagrant) Halt() (<-chan *CommandOutput, error) {
 // returned reader.
 func (v *Vagrant) Destroy() (<-chan *CommandOutput, error) {
 	cmd := v.vagrantCommand("destroy", "--force")
+	return startCommand(cmd)
+}
+
+var stripFmt = strings.NewReplacer("(", "", ",", "", ")", "")
+
+// BoxList executes "vagrant box list", parses the output and returns all
+// available base boxes.
+func (v *Vagrant) BoxList() ([]*Box, error) {
+	out, err := v.runVagrantCommand("box", "list")
+	if err != nil {
+		return nil, err
+	}
+
+	var boxes []*Box
+	scanner := bufio.NewScanner(bytes.NewBufferString(out))
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(stripFmt.Replace(scanner.Text()))
+		if line == "" {
+			continue
+		}
+
+		var box Box
+		n, err := fmt.Sscanf(line, "%s %s %s", &box.Name, &box.Provider, &box.Version)
+		if err != nil {
+			return nil, fmt.Errorf("%s for line: %s", err, line)
+		}
+		if n != 3 {
+			return nil, errors.New("unable to parse output line: " + line)
+		}
+
+		boxes = append(boxes, &box)
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return boxes, nil
+}
+
+// BoxAdd executes "vagrant box add" for the given box. The returned channel
+// contains the output stream. At the end of the output, the error is put into
+// the Error field if there is any.
+//
+// TODO(rjeczalik): BoxAdd does not support currently adding boxes directly
+// from files.
+func (v *Vagrant) BoxAdd(box *Box) (<-chan *CommandOutput, error) {
+	args := append([]string{"box", "add"}, toArgs(box)...)
+	cmd := v.vagrantCommand(args...)
+	return startCommand(cmd)
+}
+
+// BoxRemove executes "vagrant box remove" for the given box. The returned channel
+// contains the output stream. At the end of the output, the error is put into
+// the Error field if there is any.
+func (v *Vagrant) BoxRemove(box *Box) (<-chan *CommandOutput, error) {
+	args := append([]string{"box", "remove"}, toArgs(box)...)
+	cmd := v.vagrantCommand(args...)
 	return startCommand(cmd)
 }
 
@@ -318,7 +387,19 @@ func parseRecords(out string) ([][]string, error) {
 	return c.ReadAll()
 }
 
-// toStatus convers the given state string to Status type
+// toArgs converts the given box to argument list for `vagrant box add/remove`
+// commands
+func toArgs(box *Box) (args []string) {
+	if box.Provider != "" {
+		args = append(args, "--provider", box.Provider)
+	}
+	if box.Version != "" {
+		args = append(args, "--box-version", box.Version)
+	}
+	return append(args, box.Name)
+}
+
+// toStatus converts the given state string to Status type
 func toStatus(state string) (Status, error) {
 	switch state {
 	case "running":
@@ -331,6 +412,8 @@ func toStatus(state string) (Status, error) {
 		return PowerOff, nil
 	case "aborted":
 		return Aborted, nil
+	case "preparing":
+		return Preparing, nil
 	default:
 		return Unknown, fmt.Errorf("Unknown state: %s", state)
 	}
