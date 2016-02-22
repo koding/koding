@@ -184,7 +184,7 @@ module.exports = class JInvitation extends jraphical.Module
       (fin) -> JInvitation.one { email, groupName }, fin
 
     , (invite, fin) ->
-      [fin, invite] = [invite, fin]  unless fin
+      [fin, invite] = paramSwapper invite, fin
 
       return fin null, no  unless invite
       return invite.remove fin  if forceInvite
@@ -193,29 +193,20 @@ module.exports = class JInvitation extends jraphical.Module
       return fin null, yes
 
     , (alreadyInvited, fin) ->
-      [fin, alreadyInvited] = [alreadyInvited, fin]  unless fin
+      [fin, alreadyInvited] = paramSwapper alreadyInvited, fin
 
       return fin null, yes  if alreadyInvited
       isAlreadyMember group, email, fin
 
     , (alreadyMember, fin) ->
-      [fin, alreadyMember] = [alreadyMember, fin]  unless fin
+      [fin, alreadyMember] = paramSwapper alreadyMember, fin
 
       return fin null, no  if alreadyMember
       createInviteInstance invitationData, fin
 
     , (invite, fin) ->
-      unless fin
-        [fin, invite] = [invite, fin]
-        # this is here bc of fucking cyclomatic complexity error of linter
-        # if you put one more if statement here tests will fail
-        # this technically correct but readability suffers
-        # it should be as below - SY
-        #
-        #   [fin, invite] = [invite, fin]  unless fin
-        #   inviteInfo = { email, code: invite.code }  if invite
-        #
-        inviteInfo = { email, code: invite.code }
+      [fin, invite] = paramSwapper invite, fin
+      inviteInfo = { email, code: invite.code }  if invite
 
       return fin()  if noEmail or not invite
       JInvitation.sendInvitationEmail client, invite, fin
@@ -226,6 +217,12 @@ module.exports = class JInvitation extends jraphical.Module
       return end new KodingError err  if err
       return end null, inviteInfo
 
+  paramSwapper = (param, fin) ->
+    # this is here bc of fucking cyclomatic complexity error of linter
+    # if you put a few more `if` statements above it will cry
+    # this should be better done inline - SY
+    [fin, param] = [param, fin]  unless fin
+    return [fin, param]
 
   createInviteInstance = (options, callback) ->
 
