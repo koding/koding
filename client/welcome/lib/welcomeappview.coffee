@@ -134,7 +134,6 @@ module.exports = class WelcomeAppView extends kd.View
     @instructions.updatePartial """
       #{stacksBox}
       <li class="dim">#{boxes.installKd}</li>
-      <li class="dim">#{boxes.joinChannel}</li>
       """
 
 

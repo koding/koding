@@ -87,23 +87,6 @@ boxes =
     </div>
     """
 
-  joinChannel:
-    """
-    <h3>Join a #Channel</h3>
-    <p>
-      <strong>Join the discussion.</strong>
-      Channels auto-propogate any mention,
-      from across all chat, of a #topic.
-    </p>
-    <p>
-      Our team uses <b>#frontend</b>, <b>#design</b>, and <b>#marketing</b>.
-    </p>
-    <div class="button-bar">
-      <a href='#' data-handler='#{HANDLERS.skip}'>Skip this</a>
-      <a href='/AllChannels' class="button">VIEW CHANNELS</a>
-    </div>
-    """
-
   installKd:
     """
     <h3>Install kd</h3>
