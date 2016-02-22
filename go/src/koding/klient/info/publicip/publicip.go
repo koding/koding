@@ -19,7 +19,7 @@ var echoSites = []string{
 	// In the future, maybe koding.com/-/echoip first?
 	"http://echoip.com",
 	"http://api.ipify.org",
-	"http://ifconfig.co",
+	"http://ipinfo.io/ip",
 }
 
 var defaultClient = &http.Client{
