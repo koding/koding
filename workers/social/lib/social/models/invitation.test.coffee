@@ -71,9 +71,10 @@ runTests = ->
 
           # creating an invitation for the unregistered user
           invitationReq = { invitations:[ { email } ], returnCodes: yes }
-          JInvitation.create adminClient, invitationReq, (err, res) ->
+          JInvitation.create adminClient, invitationReq, (err, [invite]) ->
             expect(err).to.not.exist
-            expect(res[0].email is email).to.be.true
+            expect(invite).to.exist
+            expect(invite.email is email).to.be.true
             done()
 
 
