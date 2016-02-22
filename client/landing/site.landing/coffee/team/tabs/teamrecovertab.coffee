@@ -59,12 +59,17 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
         new kd.NotificationView title : responseText
         @form.button.hideLoader()
       success     : =>
+        @form.button.hideLoader()
         @form.reset()
+
         new kd.NotificationView
           cssClass : 'recoverConfirmation'
           title    : 'Check your email'
           content  : 'We\'ve sent you a password recovery code.'
           duration : 4500
+
+        route = if mode is 'join' then '/Join' else '/'
+        kd.singletons.router.handleRoute route
 
 
   pistachio: ->
