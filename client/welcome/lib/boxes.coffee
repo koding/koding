@@ -20,7 +20,7 @@ boxes =
     </ul>
     <div class="button-bar">
       <a href='#' data-handler='#{HANDLERS.skip}'>Skip this</a>
-      <a href='/Stacks/Group-Stack-Templates/welcome' class="button">START</a>
+      <a href='/Stacks/Group-Stack-Templates/welcome' testpath="configure-stack-button" class="button">START</a>
     </div>
     """
 

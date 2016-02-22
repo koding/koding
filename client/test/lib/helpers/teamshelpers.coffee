@@ -244,7 +244,7 @@ module.exports =
   startStackCreate: (browser) ->
 
     welcomePageSelector = '.content-page.welcome'
-    stackSelector       = '.activity-sidebar .SidebarStackWidgets a[href="/Stacks/Group-Stack-Templates"]'
+    stackSelector       = 'ul.boxes a[testpath="configure-stack-button"]'
     overlaySelector     = '.AppModal--admin'
     getstartedSelector  = "#{overlaySelector} .stack-onboarding.get-started"
     buttonSelector      = "#{getstartedSelector} .header button"
