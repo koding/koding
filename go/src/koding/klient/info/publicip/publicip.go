@@ -19,7 +19,11 @@ var echoSites = []string{
 	// In the future, maybe koding.com/-/echoip first?
 	"http://echoip.com",
 	"http://api.ipify.org",
-	"ifconfig.co",
+	"http://ifconfig.co",
+}
+
+var defaultClient = &http.Client{
+	Timeout: 5 * time.Second,
 }
 
 // PublicIP returns an IP that is supposed to be Public.
@@ -29,7 +33,7 @@ func PublicIP() (net.IP, error) {
 
 // publicIP requests a URL and returns a netIP for the response.
 func publicIP(host string) (net.IP, error) {
-	resp, err := http.Get(host)
+	resp, err := defaultClient.Get(host)
 	if err != nil {
 		return nil, err
 	}
