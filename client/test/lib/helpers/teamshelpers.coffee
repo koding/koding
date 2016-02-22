@@ -235,17 +235,6 @@ module.exports =
       .assert.containsText    teamDashboard, 'Team Settings' # Assertion
 
 
-  seeTeamNameOnsideBar: (browser, name) ->
-
-    sidebarSelector = '.with-sidebar [testpath=main-sidebar]'
-    listSelector    = "#{sidebarSelector} .SidebarListItem"
-
-    browser
-      .waitForElementVisible  sidebarSelector, 20000
-      .waitForElementVisible  listSelector, 20000
-      .assert.containsText    sidebarSelector, name
-
-
   clickTeamSettings: (browser) ->
 
     helpers.openAvatarAreaModal(browser, yes)
