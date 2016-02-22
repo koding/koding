@@ -52,19 +52,26 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
       callback : -> location.assign OAUTH_URL
 
 
+  reset: ->
+
+    @wrapper.destroySubViews()
+    @wrapper.updatePartial ''
+    @createInformationView()
+
+
   createInviterViews: ->
 
     $.ajax
       method  : 'GET'
       url     : CHANNELS_URL
-      success : (res) =>
-        @createChannelInviter res.channels.concat res.groups or []
+      success : (res) => @createChannelInviter res.channels.concat res.groups or []
+      error   : @bound 'reset'
 
     $.ajax
       method  : 'GET'
       url     : USERS_URL
-      success : (res) =>
-        @createIndividualInviter res
+      success : (res) => @createIndividualInviter res
+      error   : @bound 'reset'
 
 
   createChannelInviter: (channels) ->
@@ -172,7 +179,8 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
       noEmail     : yes
     , (err, res) =>
 
-      return new kd.NotificationView title : 'Something went wrong, please try again!'  if err
+      if err or not res
+        return new kd.NotificationView title : 'Something went wrong, please try again!'
 
       invites = {}
 
