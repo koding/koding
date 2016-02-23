@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"koding/klientctl/klientctlerrors"
+
+	"github.com/codegangsta/cli"
+	kodinglogging "github.com/koding/logging"
 )
 
 const kiteHTTPResponse = "Welcome to SockJS!\n"
@@ -90,7 +92,7 @@ func (e ErrHealthNoKontrolHTTPResponse) Error() string { return e.Message }
 // is not an error because outgoing klient communication will still work,
 // but incoming klient functionality will obviously be limited. So by
 // checking, we can inform the user.
-func StatusCommand(c *cli.Context) int {
+func StatusCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "status")
 		return 1

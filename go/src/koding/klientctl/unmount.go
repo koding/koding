@@ -1,67 +1,236 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
 
-	"github.com/codegangsta/cli"
-	"github.com/koding/kite"
 	"koding/klient/remote/req"
+
+	"github.com/koding/kite/dnode"
+
+	"github.com/koding/logging"
+
+	"github.com/koding/kite"
 )
 
-// UnmountCommand unmounts a previously mounted folder by machine name.
-func UnmountCommand(c *cli.Context) int {
-	if len(c.Args()) != 1 {
-		cli.ShowCommandHelp(c, "unmount")
-		return 1
+type UnmountOptions struct {
+	// MountName is the identifier for the given mount.
+	MountName string
+
+	// Path is the mounted path. Attempted to be unmounted and removed if
+	Path string
+
+	// A collection of paths that we will never remove.
+	NeverRemove []string
+}
+
+type UnmountCommand struct {
+	Options UnmountOptions
+	Stdout  io.Writer
+	Stdin   io.Reader
+	Log     logging.Logger
+
+	// The klient instance this struct will use.
+	Klient interface {
+		GetClient() *kite.Client
+		Tell(string, ...interface{}) (*dnode.Partial, error)
 	}
 
-	var name = c.Args().First()
+	// The options to use if this struct needs to dial Klient.
+	//
+	// Note! These will be ignored if c.Klient is already defined before Run() is
+	// called.
+	KlientOptions KlientOptions
 
-	k, err := CreateKlientClient(NewKlientOptions())
+	// the following vars exist primarily for mocking ability, and ensuring
+	// an enclosed environment within the struct.
+
+	// The ctlcli Helper. See the type docs for a better understanding of this.
+	helper Helper
+
+	// The HealthChecker we'll use if we suspect that there may be problems.
+	healthChecker *HealthChecker
+
+	// The fileRemover removes files, typically via os.Remove()
+	fileRemover func(string) error
+
+	// mountFinder is used to find the mount path by the name.
+	mountFinder interface {
+		FindMountedPathByName(name string) (string, error)
+	}
+}
+
+// Help prints help to the caller.
+func (c *UnmountCommand) Help() {
+	if c.helper == nil {
+		// Ugh, talk about a bad UX
+		fmt.Fprintln(c.Stdout, "Error: Help was requested but mount has no helper.")
+		return
+	}
+
+	c.helper(c.Stdout)
+}
+
+// printf is a helper function for printing to the internal writer.
+func (c *UnmountCommand) printfln(f string, i ...interface{}) {
+	if c.Stdout == nil {
+		return
+	}
+
+	fmt.Fprintf(c.Stdout, f+"\n", i...)
+}
+
+// Run the Mount command
+func (c *UnmountCommand) Run() (int, error) {
+	if err := c.handleOptions(); err != nil {
+		return 1, err
+	}
+
+	if err := c.setupKlient(); err != nil {
+		c.printfln(c.healthChecker.CheckAllFailureOrMessagef(GenericInternalError))
+		return 1, err
+	}
+
+	// TODO: Fix leak, after List has been converted to this Command interface.
+	infos, err := getListOfMachines(c.Klient.GetClient())
 	if err != nil {
-		log.Errorf("Error creating klient client. err:%s", err)
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
-		return 1
-	}
-
-	if err := k.Dial(); err != nil {
-		log.Errorf("Error dialing klient client. err:%s", err)
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
-		return 1
-	}
-
-	infos, err := getListOfMachines(k)
-	if err != nil {
-		log.Errorf("Failed to get list of machines on mount. err:%s", err)
 		// Using internal error here, because a list error would be confusing to the
 		// user.
-		fmt.Println(GenericInternalError)
-		return 1
+		c.printfln(GenericInternalError)
+		return 1, fmt.Errorf("Failed to get list of machines on mount. err:%s", err)
 	}
 
-	info, ok := getMachineFromName(infos, name)
+	// TODO: Fix leak, after List has been converted to this Command interface.
+	info, ok := getMachineFromName(infos, c.Options.MountName)
 	if ok && len(info.MountedPaths) > 0 {
-		name = info.VMName
+		c.Options.MountName = info.VMName
 		if err := Unlock(info.MountedPaths[0]); err != nil {
-			fmt.Printf("Warning: unlocking failed: %s", err)
+			c.Log.Warning("Unlocking failed: %s", err)
+			c.printfln("Warning: unlocking failed: %s", err)
+		}
+	}
+
+	// If options path is empty, get the path before we unmount
+	if c.Options.Path == "" {
+		p, err := c.mountFinder.FindMountedPathByName(c.Options.MountName)
+		if err != nil {
+			// An removeMountFolder will give the user feedback if path is empty, so
+			// we'll just log an error here so we know internally what went wrong. No UX
+			// is needed here, yet. We can still unmount successfully.
+			c.Log.Error("Failed to FindMountedPath. err:%s", err)
+		} else {
+			// It's unlikely that p and an error are both returned, but just to be safe,
+			// only write a path to Path options if no error was returned.
+			c.Options.Path = p
 		}
 	}
 
 	// unmount using mount name
-	if err := unmount(k, name, ""); err != nil {
-		log.Errorf("Error unmounting. err:%s", err)
-		fmt.Print(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
-		return 1
+	if err := c.Unmount(c.Options.MountName, ""); err != nil {
+		c.printfln(c.healthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
+		return 1, err
 	}
 
-	fmt.Println("Unmount success.")
+	// remove the mount folder.
+	//
+	// Note that if there is an error, we still successfully unmounted - we just
+	// failed to remove the folder. So go ahead and print success.
+	err = c.removeMountFolder()
 
-	return 0
+	// make sure to print success *after* removeMountFolder. Even though we're
+	// ignoring removal errors, we don't want to print success and then a warning.
+	c.printfln("Unmount success.")
+
+	return 0, err
 }
 
-func unmount(kite *kite.Client, name, path string) error {
+// handleOptions deals with options, erroring if options are missing, etc.
+func (c *UnmountCommand) handleOptions() error {
+	if c.Options.MountName == "" {
+		c.printfln("MountName is a required option.")
+		c.Help()
+		return errors.New("Missing mountname option")
+	}
+
+	return nil
+}
+
+// setupKlient creates and dials our Klient interface *only* if it is nil. If it is
+// not nil, someone else gave a Klient to this Command, and it is expected to be
+// dialed and working.
+func (c *UnmountCommand) setupKlient() error {
+	// if c.klient isnt nil, don't overrite it. Another command may have provided
+	// a pre-dialed klient.
+	if c.Klient != nil {
+		return nil
+	}
+
+	k, err := NewDialedKlient(c.KlientOptions)
+	if err != nil {
+		return fmt.Errorf("Failed to get working Klient instance. err:", err)
+	}
+
+	c.Klient = k
+
+	return nil
+}
+
+// removeMountFolder removes the mount folder is empty[1], and prints a warning
+// to the user if we are unable to remove the folder.
+//
+// [1]: Due to race conditions, checking if the folder and *then* attempting to
+// remove the folder does not guarantee that the folder is actually empty.
+// Furthermore, if the folder is not empty, we are not allowed to remove the
+// directory anyway. As such, we do not explicitly check for the folder being
+// empty.
+func (c *UnmountCommand) removeMountFolder() error {
+	rmPath := c.Options.Path
+
+	if rmPath == "" {
+		c.printfln(UnmountFailedRemoveMountPath)
+		return errors.New("Unable to remove path. Path option empty and cannot find path")
+	}
+
+	for _, p := range c.Options.NeverRemove {
+		if p == rmPath {
+			c.Log.Warning("NeverRemove path %q was requested to be removed! Not removing", p)
+			c.printfln(AttemptedRemoveRestrictedPath)
+			// Print a warning, but still return an error for API usage.
+			return fmt.Errorf("Restricted path %q cannot be removed.", p)
+		}
+	}
+
+	if err := c.fileRemover(rmPath); err != nil {
+		c.Log.Warning("Unable to remove mountPath:%s, err:%s", rmPath, err)
+		c.printfln(UnmountFailedRemoveMountPath)
+		// Print a warning, but still return an error for API usage.
+		return err
+	}
+
+	return nil
+}
+
+// Unmount tells klient to unmount the given name and path.
+func (c *UnmountCommand) Unmount(name, path string) error {
 	if err := Unlock(path); err != nil {
-		log.Warningf("Failed to unlock mount. err:%s", err)
+		c.Log.Warning("Failed to unlock mount. err:%s", err)
+		fmt.Println(FailedToUnlockMount)
+	}
+
+	req := req.UnmountFolder{
+		Name:      name,
+		LocalPath: path,
+	}
+
+	// currently there's no return response to care about
+	_, err := c.Klient.Tell("remote.unmountFolder", req)
+	return err
+}
+
+func unmount(kite *kite.Client, name, path string, log logging.Logger) error {
+	if err := Unlock(path); err != nil {
+		log.Warning("Failed to unlock mount. err:%s", err)
 		fmt.Println(FailedToUnlockMount)
 	}
 
