@@ -50,7 +50,7 @@ DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
 
 
-module.exports           = class MainController extends KDController
+module.exports = class MainController extends KDController
 
   ###
 
@@ -68,7 +68,7 @@ module.exports           = class MainController extends KDController
 
   constructor:(options = {}, data)->
 
-    options.failWait  = 10000            # duration in miliseconds to show a connection failed modal
+    options.failWait = 10000            # duration in miliseconds to show a connection failed modal
 
     super options, data
 
@@ -84,9 +84,7 @@ module.exports           = class MainController extends KDController
   createSingletons:->
 
     kd.registerSingleton 'mainController',            this
-
     kd.registerSingleton 'kontrol',                   new KodingKontrol
-
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
     kd.registerSingleton 'notificationController',    new NotificationController
     kd.registerSingleton 'desktopNotifications',      new DesktopNotificationsController
@@ -204,6 +202,7 @@ module.exports           = class MainController extends KDController
       eventSuffix = if isLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
+
   doLogout: ->
 
     mainView = kd.getSingleton 'mainView'
@@ -262,6 +261,7 @@ module.exports           = class MainController extends KDController
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
     kd.utils.wait 1000, cookieChangeHandler
 
+
   swapAccount: (options, callback) ->
     return { message: 'Login failed!' } unless options
 
@@ -305,6 +305,7 @@ module.exports           = class MainController extends KDController
 
       @swapAccount result, callback
 
+
   isLoggingIn: (isLoggingIn) ->
 
     storage = new LocalStorage 'Koding'
@@ -315,6 +316,7 @@ module.exports           = class MainController extends KDController
       @_isLoggingIn = isLoggingIn
     else
       @_isLoggingIn ? no
+
 
   setFailTimer: do->
     notification = null
@@ -352,9 +354,11 @@ module.exports           = class MainController extends KDController
       kd.utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", -> notification.destroy()  if notification
 
+
   detectIdleUser: (threshold = globals.config.userIdleMs) ->
     idleDetector = new IdleUserDetector { threshold }
     @forwardEvents idleDetector, ['userIdle', 'userBack']
+
 
   prepareSupportShortcuts: ->
 
