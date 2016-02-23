@@ -61,6 +61,14 @@ module.exports =
   #   browser.end()
 
 
+  postMessageWithCombination: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.postMessageWithCombination(browser)
+    browser.end()
+
+
   postCommentWithCode: (browser) ->
 
     helpers.beginTest(browser)
@@ -159,3 +167,4 @@ module.exports =
 
   #   activityHelpers.editAction(browser, "comment", no, no, yes)
   #   browser.end()
+  
