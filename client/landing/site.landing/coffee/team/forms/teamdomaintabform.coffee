@@ -9,7 +9,7 @@ module.exports = class TeamDomainTab extends kd.FormView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = 'clearfix'
+    options.cssClass = 'clearfix login-form'
 
     super options, data
 
