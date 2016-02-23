@@ -11,8 +11,9 @@ type Config struct {
 	// Environment for terraformer kite
 	Environment string `required:"true"`
 
-	Debug bool // Enable debug mode
-	Test  bool // Enable test mode (go test)
+	Debug          bool // Enable debug mode
+	TerraformDebug bool // Enable Terrarform debug mode
+	Test           bool // Enable test mode (go test)
 
 	// AWS secret and key
 	AWS AWS

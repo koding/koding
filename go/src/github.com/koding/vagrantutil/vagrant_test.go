@@ -20,7 +20,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provider "virtualbox" do |vb|
     # Use VBoxManage to customize the VM. For example to change memory:
-    vb.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "2"]
+    vb.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "1"]
   end
 end
 `
@@ -37,7 +37,9 @@ func TestMain(m *testing.M) {
 		log.Fatalln(err)
 	}
 
-	os.Exit(m.Run())
+	ret := m.Run()
+	os.RemoveAll(vagrantName)
+	os.Exit(ret)
 }
 
 func TestVersion(t *testing.T) {
@@ -51,6 +53,48 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestBoxAddRemove(t *testing.T) {
+	box := &Box{
+		Name:    "rjeczalik/dummy",
+		Version: "1.0.0",
+	}
+	vg.BoxRemove(box) // remove if already exists
+
+	out, err := vg.BoxAdd(box)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testOutput(t, "vagrant box add", out)
+
+	if err = Wait(vg.BoxAdd(box)); err != ErrBoxAlreadyExists {
+		t.Errorf("want err=%v, got %v", ErrBoxAlreadyExists, err)
+	}
+
+	badBox := &Box{
+		Name:    "rjeczalik/dummy",
+		Version: ".abc",
+	}
+	if err = Wait(vg.BoxAdd(badBox)); err != ErrBoxInvalidVersion {
+		t.Errorf("want err=%v, git %v", ErrBoxInvalidVersion, err)
+	}
+
+	badBox = &Box{
+		Name:    "rjeczalik/nonexisting",
+		Version: "1.0.0",
+	}
+	if err = Wait(vg.BoxAdd(badBox)); err != ErrBoxNotAvailable {
+		t.Errorf("want err=%v, git %v", ErrBoxNotAvailable, err)
+	}
+
+	out, err = vg.BoxRemove(box)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testOutput(t, "vagrant box remove", out)
 }
 
 func TestCreate(t *testing.T) {
@@ -81,15 +125,7 @@ func TestUp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	log.Printf("Starting to read the stream output of 'vagrant up':\n\n")
-	for res := range out {
-		if res.Error != nil {
-			t.Error(err)
-		}
-		log.Println(res.Line)
-	}
-
-	log.Printf("\n\nStreaming is finished for 'vagrant up' command")
+	testOutput(t, "vagrant up", out)
 
 	status, err := vg.Status()
 	if err != nil {
@@ -107,15 +143,7 @@ func TestHalt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	log.Printf("Starting to read the stream output of 'vagrant halt':\n\n")
-	for res := range out {
-		if res.Error != nil {
-			t.Error(err)
-		}
-		log.Println(res.Line)
-	}
-
-	log.Printf("\n\nStreaming is finished for 'vagrant halt' command")
+	testOutput(t, "vagrant halt", out)
 
 	status, err := vg.Status()
 	if err != nil {
@@ -156,20 +184,36 @@ func TestList(t *testing.T) {
 	}
 }
 
+func TestBoxList(t *testing.T) {
+	boxes, err := vg.BoxList()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(boxes) == 0 {
+		t.Fatal("want at least one box, got none")
+	}
+
+	for i, box := range boxes {
+		if box.Name == "" {
+			t.Errorf("%d: empty box name", i)
+		}
+		if box.Provider == "" {
+			t.Errorf("%d: empty box provider", i)
+		}
+		if box.Version == "" {
+			t.Errorf("%d: empty box version", i)
+		}
+	}
+}
+
 func TestDestroy(t *testing.T) {
 	out, err := vg.Destroy()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	log.Printf("Starting to read the stream output of 'vagrant destroy':\n\n")
-	for res := range out {
-		if res.Error != nil {
-			t.Error(err)
-		}
-		log.Println(res.Line)
-	}
-	log.Printf("\n\nStreaming is finished for 'vagrant destroy' command")
+	testOutput(t, "vagrant destroy", out)
 
 	status, err := vg.Status()
 	if err != nil {
@@ -191,4 +235,16 @@ func TestStatus(t *testing.T) {
 	if vg.State != status.String() {
 		t.Errorf("Internal state should be: %s, got: %s", status, vg.State)
 	}
+}
+
+func testOutput(t *testing.T, cmd string, out <-chan *CommandOutput) {
+	log.Printf("Starting to read the stream output of %q:\n\n", cmd)
+	for res := range out {
+		if res.Error != nil {
+			t.Error(res.Error)
+		}
+		log.Println(res.Line)
+	}
+
+	log.Printf("\n\nStreaming is finished for %q command", cmd)
 }

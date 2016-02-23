@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 
 	"github.com/codegangsta/cli"
-	"koding/klientctl/logging"
+	"github.com/koding/logging"
 )
 
 // UpdateCommand updates this binary if there's an update available.
-func UpdateCommand(c *cli.Context) int {
+func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "update")
 		return 1
@@ -24,7 +24,7 @@ func UpdateCommand(c *cli.Context) int {
 		fmt.Println(`Error: Unable to open log files.`)
 	} else {
 		log.SetHandler(logging.NewWriterHandler(f))
-		log.Infof("Update created log file at %q", LogFilePath)
+		log.Info("Update created log file at %q", LogFilePath)
 	}
 
 	checkUpdate := NewCheckUpdate()
@@ -34,7 +34,7 @@ func UpdateCommand(c *cli.Context) int {
 
 	yesUpdate, err := checkUpdate.IsUpdateAvailable()
 	if err != nil {
-		log.Errorf("Error checking if update is available. err:%s", err)
+		log.Error("Error checking if update is available. err:%s", err)
 		fmt.Println(FailedCheckingUpdateAvailable)
 		return 1
 	}
@@ -46,7 +46,7 @@ func UpdateCommand(c *cli.Context) int {
 
 	s, err := newService()
 	if err != nil {
-		log.Errorf("Error creating Service. err:%s", err)
+		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalError)
 		return 1
 	}
@@ -56,7 +56,7 @@ func UpdateCommand(c *cli.Context) int {
 
 	// stop klient before we update it
 	if err := s.Stop(); err != nil {
-		log.Errorf("Error stopping Service. err:%s", err)
+		log.Error("Error stopping Service. err:%s", err)
 		fmt.Println(FailedStopKlient)
 		return 1
 	}
@@ -74,7 +74,7 @@ func UpdateCommand(c *cli.Context) int {
 
 	for localPath, remotePath := range dlPaths {
 		if err := downloadRemoteToLocal(remotePath, localPath); err != nil {
-			log.Errorf("Error updating. err:%s", err)
+			log.Error("Error updating. err:%s", err)
 			fmt.Println(FailedDownloadUpdate)
 			return 1
 		}
@@ -82,7 +82,7 @@ func UpdateCommand(c *cli.Context) int {
 
 	// start klient now that it's done updating
 	if err := s.Start(); err != nil {
-		log.Errorf("Error starting Service. err:%s", err)
+		log.Error("Error starting Service. err:%s", err)
 		fmt.Println(FailedStartKlient)
 		return 1
 	}
@@ -95,7 +95,7 @@ func UpdateCommand(c *cli.Context) int {
 	}
 
 	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
-		log.Errorf("Error writing klient.sh file. err:%s", err)
+		log.Error("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}

@@ -44,7 +44,7 @@ module.exports = class YourStacksView extends KDCustomScrollView
 
     listView.on 'ModalDestroyRequested', @bound 'destroyModal'
 
-    { computeController, appManager } = kd.singletons
+    { computeController, appManager, router } = kd.singletons
 
     listView.on 'StackDeleteRequested', (stack) =>
 
@@ -54,8 +54,9 @@ module.exports = class YourStacksView extends KDCustomScrollView
         new kd.NotificationView
           title : 'Stack deleted'
 
-        computeController.reset yes
+        computeController.reset yes, -> router.handleRoute '/IDE'
         @destroy()
+
 
     listView.on 'StackReinitRequested', (stack) =>
       computeController.once 'RenderStacks', => @destroyModal yes, yes

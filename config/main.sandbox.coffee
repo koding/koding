@@ -133,11 +133,11 @@ Configuration = (options={}) ->
     clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"
     redirectUri   : "https://sandbox.koding.com/-/oauth/github/callback"
 
-  slack  = # these are tmp and not working configs, will be replace by the working ones after the feature is completed
-    clientId      : "20619428033.20787518977"
-    clientSecret  : "1987edcacd657367fd1b3b0eb653f14b"
-    redirectUri   : "https://sandbox.koding.com/api/social/slack/oauth/callback"
-
+  slack  =
+    clientId          : "2155583316.22364273143"
+    clientSecret      : "6ee269042087643b311214d2dc3527e4"
+    redirectUri       : "https://sandbox.koding.com/api/social/slack/oauth/callback"
+    verificationToken : "AAeDdo5fWOcOTux88e939dXN"
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -247,7 +247,7 @@ Configuration = (options={}) ->
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : github
     slack                          : slack
-    odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://sandbox.koding.com/-/oauth/odesk/callback"}
+    odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.upwork.com/api/auth/v1/oauth/token/request"                 , access_url: "https://www.upwork.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.upwork.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://sandbox.koding.com/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "650676665033389"                              , clientSecret  : "6771ee1f5aa28e5cd13d3465bacffbdc"           , redirectUri  : "https://sandbox.koding.com/-/oauth/facebook/callback"}
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "https://sandbox.koding.com/-/oauth/google/callback" }
     twitter                        : {key           : "2RXF9BaTlYbDyRS3DPOrfBJzR"                    , secret        : "KrmmizYhEhu1zd1r0y6sn1XlW9mc1EGZYiqRbBMNQWC1MCarbc" , redirect_uri : "https://sandbox.koding.com/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
@@ -302,7 +302,7 @@ Configuration = (options={}) ->
       google             : {nicename: 'Google'  }
       linkedin           : {nicename: 'LinkedIn'}
       twitter            : {nicename: 'Twitter' }
-      odesk              : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
+      odesk              : {nicename: 'Upwork'  , urlLocation: 'info.profile_url' }
       facebook           : {nicename: 'Facebook', urlLocation: 'link'             }
       github             : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint           : {slug:'koding'       , type:'group'}
@@ -580,7 +580,7 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/account/channels$is_args$args"
           }
           {
-            location    : "~ /api/social/slack/(.*)"
+            location    : "~* ^/api/social/slack/(.*)"
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
           }
           {

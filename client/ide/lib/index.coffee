@@ -1133,6 +1133,18 @@ class IDEAppController extends AppController
     tabView.tabHandle.setTitleEditMode yes
 
 
+  suspendTerminal: ->
+
+    paneView = @getActivePaneView()
+
+    return  unless paneView
+
+    { parent } = paneView
+
+    paneView.webtermView.suspend = yes # Mark it as suspended mode is active
+    parent.getDelegate().handleCloseAction parent, no # Trigger close action.
+
+
   showFileFinder: ->
 
     return @fileFinder.input.setFocus()  if @fileFinder

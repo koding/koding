@@ -24,12 +24,13 @@ module.exports = class PrivateMessagePane extends MessagePane
 
   constructor: (options = {}, data) ->
 
-    options.lastToFirst         = no
-    options.scrollView          = no
-    options.noItemFoundWidget   = no
-    options.startWithLazyLoader = no
-    options.itemClass         or= PrivateMessageListItemView
-    options.channelType       or= 'privatemessage'
+    options.lastToFirst              = no
+    options.scrollView               = no
+    options.noItemFoundWidget        = no
+    options.startWithLazyLoader      = no
+    options.participantsModelClass or= ChannelParticipantsModel
+    options.itemClass              or= PrivateMessageListItemView
+    options.channelType            or= 'privatemessage'
 
     options.initialParticipantStatus  = 'active'
     options.autoCompleteClass or= ParticipantSearchController
@@ -364,7 +365,13 @@ module.exports = class PrivateMessagePane extends MessagePane
 
   prepareParticipantsModel: ->
 
-    @participantsModel = new ChannelParticipantsModel { channel: @getData() }
+    { participantsModelClass } = @getOptions()
+    @participantsModel = new participantsModelClass { channel: @getData() }
+
+    @participantsModel.once 'AccountsFetched', (accounts) =>
+      for account in accounts
+        @autoComplete.addSelectedItemData account
+        @autoComplete.selectedItemCounter++
 
 
   createParticipantHeads: ->

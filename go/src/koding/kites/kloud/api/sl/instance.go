@@ -21,7 +21,7 @@ type TagReference struct {
 }
 
 // instanceMask represents objectMask for the Instance struct.
-var instanceMask = ObjectMask((*Instance)(nil))
+var instanceMask = ObjectMask((*Instance)(nil), "networkVlans.virtualGuests")
 
 // Instance represents a Softlayer_Virtual_Guest resource.
 type Instance struct {
@@ -30,12 +30,14 @@ type Instance struct {
 	Hostname      string         `json:"hostname,omitempty"`
 	Domain        string         `json:"domain,omitempty"`
 	UUID          string         `json:"uuid,omitempty"`
+	IPAddress     string         `json:"primaryIpAddress,omitempty"`
 	CreateDate    time.Time      `json:"createDate,omitempty"`
 	Datacenter    Datacenter     `json:"datacenter,omitempty"`
 	Attributes    []Attribute    `json:"attributes,omitempty"`
 	SshKeys       []Key          `json:"sshKeys,omitempty"`
 	TagReferences []TagReference `json:"tagReferences,omitempty"`
 	VLANs         []VLAN         `json:"networkVlans,omitempty"`
+	Firewall      Firewall       `json:"firewallServiceComponent,omitempty"`
 
 	Tags        Tags `json:"-"`
 	NotTaggable bool `json:"-"`
@@ -71,6 +73,13 @@ func (e *InstanceEntry) decode() {
 // Instances is a conveniance type for a list of instances that supports
 // filtering.
 type Instances []*Instance
+
+func (i Instances) Err() error {
+	if len(i) == 0 {
+		return errNotFound
+	}
+	return nil
+}
 
 // ByID filters the instances by ID.
 func (i Instances) ByID(id int) Instances {
@@ -131,6 +140,13 @@ func (i Instances) Swap(j, k int)      { i[j], i[k] = i[k], i[j] }
 // InstanceEntries is a conveniance type for a list of instance entries
 // that support filtering.
 type InstanceEntries []*InstanceEntry
+
+func (e InstanceEntries) Err() error {
+	if len(e) == 0 {
+		return errNotFound
+	}
+	return nil
+}
 
 // ByID filters the instance entries by ID.
 func (e InstanceEntries) ByID(id int) InstanceEntries {

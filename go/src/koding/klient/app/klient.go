@@ -19,6 +19,7 @@ import (
 	"koding/klient/info"
 	"koding/klient/logfetcher"
 	"koding/klient/protocol"
+	"koding/klient/remote"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
 	"koding/klient/terminal"
@@ -73,6 +74,12 @@ type Klient struct {
 	// config stores all necessary configuration needed for Klient to work.
 	// It's supplied with the NewKlient() function.
 	config *KlientConfig
+
+	// remote handles persistence of remote related options, including
+	// mounting folders, listing remote machines that this Klient is
+	// connected to, and so on. It is typically called from a local kite,
+	// and is responsible for Klient's `remote.*` methods.
+	remote *remote.Remote
 }
 
 // KlientConfig defines a Klient's config
@@ -151,17 +158,24 @@ func NewKlient(conf *KlientConfig) *Klient {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
+	vagrantOpts := &vagrant.Options{
+		Home: conf.VagrantHome,
+		DB:   db, // nil is ok, fallbacks to in-memory storage
+		Log:  k.Log,
+	}
+
 	kl := &Klient{
 		kite:         k,
 		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
 		tunnelclient: klienttunnel.NewClient(db),
-		vagrant:      vagrant.NewHandlers(conf.VagrantHome),
+		vagrant:      vagrant.NewHandlers(vagrantOpts),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,
 		log:      k.Log,
 		config:   conf,
+		remote:   remote.NewRemote(k, k.Log, storage.New(db)),
 	}
 
 	// This is important, don't forget it
@@ -209,6 +223,15 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.share", k.collab.Share)
 	k.kite.HandleFunc("klient.unshare", k.collab.Unshare)
 	k.kite.HandleFunc("klient.shared", k.collab.Shared)
+
+	// Remote handles interaction specific to remote Klient machines.
+	k.kite.HandleFunc("remote.cacheFolder", k.remote.CacheFolderHandler)
+	k.kite.HandleFunc("remote.list", k.remote.ListHandler)
+	k.kite.HandleFunc("remote.mounts", k.remote.MountsHandler)
+	k.kite.HandleFunc("remote.mountFolder", k.remote.MountFolderHandler)
+	k.kite.HandleFunc("remote.unmountFolder", k.remote.UnmountFolderHandler)
+	k.kite.HandleFunc("remote.sshKeysAdd", k.remote.SSHKeyAddHandler)
+	k.kite.HandleFunc("remote.exec", k.remote.ExecHandler)
 
 	// SSH keys
 	k.kite.HandleFunc("sshkeys.list", sshkeys.List)
@@ -378,12 +401,23 @@ func (k *Klient) Run() {
 		}()
 	}
 
+	// Initializing the remote re-establishes any previously-running remote
+	// connections, such as mounted folders. This needs to be run *after*
+	// Klient is setup and running, to get a valid connection to Kontrol.
+	go func() {
+		err := k.remote.Initialize()
+		if err != nil {
+			k.log.Error("Failed to initialize Remote. Error: %s", err.Error())
+		}
+	}()
+
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 
 	k.kite.Run()
 }
 
 func (k *Klient) startUpdater() {
+	// TODO: Re-enable
 	if runtime.GOOS == "darwin" {
 		k.log.Warning("Updater is disabled on darwin")
 		return
@@ -422,6 +456,8 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	k.Config.Environment = kconf.Environment
 	k.Config.Region = kconf.Region
 	k.Id = conf.Id // always boot up with the same id in the kite.key
+	// Set klient to use XHR Polling, since Prod Koding only supports XHR
+	k.Config.Transport = config.XHRPolling
 	return k
 }
 

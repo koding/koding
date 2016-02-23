@@ -63,7 +63,10 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
   getItemsData: (paneType) ->
 
     if paneType is 'terminal'
-      return [ 'Rename', 'showRenameTerminalView' ]
+      return [
+        'Rename'  , 'showRenameTerminalView'
+        'Suspend' , 'suspendTerminal'
+      ]
 
     @syntaxSelector = new IDESyntaxSelectorMenuItem
     return [

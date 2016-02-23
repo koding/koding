@@ -26,6 +26,12 @@ func (err *NotFoundError) Error() string {
 
 // IsNotFound returns true if the error is *NotFoundError.
 func IsNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	if err.Error() == "not found" {
+		return true
+	}
 	_, ok := err.(*NotFoundError)
 	return ok
 }

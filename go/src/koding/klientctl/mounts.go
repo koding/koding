@@ -5,6 +5,8 @@ import (
 	"os"
 	"text/tabwriter"
 
+	kodinglogging "github.com/koding/logging"
+
 	"github.com/codegangsta/cli"
 )
 
@@ -16,7 +18,7 @@ type kiteMounts struct {
 }
 
 // MountsCommand returns list of previously mounted folders.
-func MountsCommand(c *cli.Context) int {
+func MountsCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		fmt.Printf("Error connecting to %s: '%s'\n", KlientName, err)

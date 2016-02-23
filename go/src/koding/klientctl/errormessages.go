@@ -164,4 +164,19 @@ Please try again with just the --prefetchall flag.`
 		`Error: Unable to communicate with the remote machine. Please ensure that the
 remote machine is running & accessible and try again.`,
 	)
+
+	// AttemptedRemoveRestrictedPath is when the user unmounts a path, but
+	// the path cannot be removed because it is an important path.
+	AttemptedRemoveRestrictedPath = fmt.Sprintf(
+		`Warning: Unable to remove the mounted path, due to it being a protected path.`,
+	)
+
+	// UnmountFailedRemoveMountPath is used when we _(for some unknown reason)_ are
+	// unable to remove the mount path. It could be due to permissions, the path
+	// not being empty, or other unknown reasons.
+	//
+	// TODO: What can we tell the user to do here?
+	UnmountFailedRemoveMountPath = fmt.Sprintf(
+		`Warning: The mount path was unable to be cleaned up after unmount.`,
+	)
 )

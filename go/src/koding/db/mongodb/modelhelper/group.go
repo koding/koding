@@ -77,6 +77,10 @@ func GetGroupOwner(group *models.Group) (*models.Account, error) {
 	return GetAccountById(rel.TargetId.Hex())
 }
 
+func RemoveGroup(id bson.ObjectId) error {
+	return RemoveDocument(GroupsCollectionName, id)
+}
+
 func CheckGroupExistence(groupname string) (bool, error) {
 	var count int
 	query := func(c *mgo.Collection) error {

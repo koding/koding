@@ -9,7 +9,7 @@ PopupNotifications = require '../notifications/popupnotifications'
 JCustomHTMLView    = require 'app/jcustomhtmlview'
 isKoding           = require 'app/util/isKoding'
 helpers            = require './helpers'
-
+isSoloProductLite  = require 'app/util/issoloproductlite'
 
 module.exports = class AvatarArea extends KDCustomHTMLView
 
@@ -25,16 +25,30 @@ module.exports = class AvatarArea extends KDCustomHTMLView
     account      = @getData()
     {profile} = @getData()
 
+    href = if isSoloProductLite() then '/#' else "/#{profile.nickname}"
+
     @profileName = new JCustomHTMLView
       tagName    : 'a'
       cssClass   : 'profile'
       attributes :
-        href     : "/#{profile.nickname}"
+        href     : href
         title    : 'Your profile'
       pistachio  : '{{ #(profile.firstName) }}'
     , account
 
     @accountPopup = new AccountPopup
+
+    if isSoloProductLite()
+      @notificationsIcon = new KDCustomHTMLView { cssClass: 'hidden' }
+    else
+      @notificationsPopup = new PopupNotifications
+        cssClass : if isKoding() then 'notification-list' else 'notification-list team'
+
+      @notificationsIcon = new AvatarAreaIconLink
+        cssClass   : 'notifications acc-notification-icon'
+        attributes :
+          title    : 'Notifications'
+      helpers.makePopupButton @notificationsIcon, @notificationsPopup
 
     @accountIcon = new AvatarAreaIconLink
       cssClass   : 'acc-dropdown-icon'
@@ -43,16 +57,7 @@ module.exports = class AvatarArea extends KDCustomHTMLView
         testpath : 'AvatarAreaIconLink'
     helpers.makePopupButton @accountIcon, @accountPopup
 
-    @notificationsPopup = new PopupNotifications
-      cssClass : if isKoding() then 'notification-list' else 'notification-list team'
-
-    @notificationsIcon = new AvatarAreaIconLink
-      cssClass   : 'notifications acc-notification-icon'
-      attributes :
-        title    : 'Notifications'
-    helpers.makePopupButton @notificationsIcon, @notificationsPopup
-
-    if isKoding()
+    if isKoding() and not isSoloProductLite()
       @avatar = new AvatarView
         cssClass   : 'avatar-image-wrapper'
         attributes :
@@ -76,6 +81,9 @@ module.exports = class AvatarArea extends KDCustomHTMLView
     @on 'viewAppended', ->
 
       mainView.addSubView @accountPopup
+
+      return  if isSoloProductLite()
+
       mainView.addSubView @notificationsPopup
 
       @notificationsPopup.on 'NotificationCountDidChange', (count)=>
@@ -89,8 +97,8 @@ module.exports = class AvatarArea extends KDCustomHTMLView
       """
       {{> @avatar}}
       {{> @profileName}}
-      {{> @accountIcon}}
       {{> @notificationsIcon}}
+      {{> @accountIcon}}
       """
     else
       """

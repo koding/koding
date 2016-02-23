@@ -9,6 +9,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 )
 
 type kiteInfo struct {
@@ -30,7 +31,7 @@ type mountInfo struct {
 
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
-func ListCommand(c *cli.Context) int {
+func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "list")
 		return 1
@@ -38,20 +39,20 @@ func ListCommand(c *cli.Context) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		log.Errorf("Error creating klient client. err:%s", err)
+		log.Error("Error creating klient client. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		log.Errorf("Error dialing klient client. err:%s", err)
+		log.Error("Error dialing klient client. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	infos, err := getListOfMachines(k)
 	if err != nil {
-		log.Errorf("Error listing machines. err:%s", err)
+		log.Error("Error listing machines. err:%s", err)
 		fmt.Println(getListErrRes(err, defaultHealthChecker))
 		return 1
 	}
@@ -59,7 +60,7 @@ func ListCommand(c *cli.Context) int {
 	if c.Bool("json") {
 		jsonBytes, err := json.MarshalIndent(infos, "", "  ")
 		if err != nil {
-			log.Errorf("Marshalling infos to json failed. err:%s", err)
+			log.Error("Marshalling infos to json failed. err:%s", err)
 			fmt.Println(GenericInternalError)
 			return 1
 		}

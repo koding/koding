@@ -11,9 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"koding/klient/protocol"
+
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	"koding/klient/protocol"
 )
 
 // Register registers with the username to the given kontrolURL via the users
@@ -94,7 +95,12 @@ func Register(kontrolURL, kiteHome, username, token string) error {
 		return err
 	}
 
-	fmt.Println("Registered successfully")
+	// Using authenticated here instead of registered, so it is a
+	// middleground in UX for both raw `klient -register` usage, and also
+	// `kd install` usage. `kd install` is very user facing, and
+	// registration is potentially confusing to the end user (since
+	// they are already registered to koding.com.. etc)
+	fmt.Println("Authenticated successfully")
 	return nil
 }
 

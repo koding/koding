@@ -16,7 +16,6 @@ import (
 	"koding/kites/kloud/utils"
 	"koding/kites/kloud/utils/res"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 	"golang.org/x/net/context"
 )
@@ -60,7 +59,11 @@ func impersonate(username string, req interface{}) (v map[string]interface{}) {
 }
 
 // Action is an entry point for "team" subcommand.
-func (t *Team) Action(args []string, k *kite.Client) error {
+func (t *Team) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, kiteKey, k)
 	modelhelper.Initialize(envMongoURL())
@@ -149,10 +152,6 @@ func (cmd *TeamInit) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *TeamInit) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	opts := &UserOptions{
 		Username:  cmd.Username,
 		Groupname: cmd.Team,
@@ -239,9 +238,6 @@ func (cmd *TeamPlan) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "team plan" subcommand.
 func (cmd *TeamPlan) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
@@ -307,9 +303,6 @@ func (cmd *TeamApply) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "team apply" command.
 func (cmd *TeamApply) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
@@ -386,9 +379,6 @@ func (cmd *TeamAuth) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "team auth" subcommand.
 func (cmd *TeamAuth) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,
@@ -454,9 +444,6 @@ func (cmd *TeamBootstrap) RegisterFlags(f *flag.FlagSet) {
 
 // Run executes the "team bootstrap" subcommand.
 func (cmd *TeamBootstrap) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	k := kiteFromContext(ctx)
 
 	req := impersonate(cmd.Username,

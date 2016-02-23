@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
 
 func init() {
@@ -18,15 +19,21 @@ func init() {
 
 // CheckUpdateFirst can be prepended to any existing cli command to have it
 // check if there's an update available before running the command.
-func CheckUpdateFirst(f ExitingCommand) ExitingCommand {
-	return func(c *cli.Context) int {
+func CheckUpdateFirst(f ExitingCommand, log logging.Logger, cmd string) (ExitingCommand, logging.Logger, string) {
+
+	exitCmd := func(c *cli.Context, log logging.Logger, cmd string) int {
 		u := NewCheckUpdate()
 		if y, err := u.IsUpdateAvailable(); y && err == nil {
+			// TODO: Fix the abstraction leak here.. this is wrong. This likely
+			// needs to be added as a type, and the actual commands (inside Run()) will
+			// run this check.
 			fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", Name, Name)
 		}
 
-		return f(c)
+		return f(c, log, cmd)
 	}
+
+	return exitCmd, log, cmd
 }
 
 // CheckUpdate checks if there an update available.

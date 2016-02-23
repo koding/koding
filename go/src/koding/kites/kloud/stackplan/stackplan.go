@@ -9,12 +9,10 @@ import (
 
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/utils"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"golang.org/x/net/context"
 )
@@ -94,7 +92,7 @@ func (m *Machines) AppendQueryString(queryStrings map[string]string) {
 
 func (m *Machines) AppendHostQueryString(s string) {
 	for i, machine := range m.Machines {
-		machine.HostQueryString = protocol.Kite{ID: s}.String()
+		machine.HostQueryString = utils.QueryString(s)
 		m.Machines[i] = machine
 	}
 }
@@ -110,14 +108,37 @@ func (m *Machines) WithLabel(label string) (Machine, error) {
 	return Machine{}, fmt.Errorf("couldn't find machine with label '%s", label)
 }
 
-func MachinesFromState(state *terraform.State) (*Machines, error) {
-	if state.Modules == nil {
+// DefaultKlientTimeout specifies the maximum time we're going to try to
+// connect to klient before timing out.
+var DefaultKlientTimeout = 5 * time.Minute
+
+// Planner is used to build kloud machines from Terraform resources,
+// like plan result or state file.
+//
+// It is also used for checking connectivity with klient running
+// on those machines.
+type Planner struct {
+	Provider     string // Terraform provider name
+	ResourceType string // Terraform resource type
+
+	KlientTimeout time.Duration // when zero-value, DefaultKlientTimeout is used
+
+	// SessionFunc is used to build a session value from the context.
+	//
+	// When nil, session.FromContext is used by default.
+	SessionFunc func(context.Context) (*session.Session, error)
+}
+
+// MachinesFromState builds a list of machines from Terraform state value.
+//
+// It ignores any other resources than those specified by p.ResourceType
+// and p.Provider.
+func (p *Planner) MachinesFromState(state *terraform.State) (*Machines, error) {
+	if len(state.Modules) == 0 {
 		return nil, errors.New("state modules is empty")
 	}
 
-	out := &Machines{
-		Machines: make([]Machine, 0),
-	}
+	var out Machines
 
 	for _, m := range state.Modules {
 		for resource, r := range m.Resources {
@@ -130,7 +151,7 @@ func MachinesFromState(state *terraform.State) (*Machines, error) {
 				return nil, err
 			}
 
-			if resourceType == "instance" && provider != "aws" && provider != "vagrant" {
+			if resourceType != p.ResourceType || provider != p.Provider {
 				continue
 			}
 
@@ -147,21 +168,23 @@ func MachinesFromState(state *terraform.State) (*Machines, error) {
 		}
 	}
 
-	return out, nil
+	return &out, nil
 }
 
-func MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
+// MachinesFromPlan builds a list of machines from Terraform plan result.
+//
+// It ignores any other resources than those specified by p.ResourceType
+// and p.Provider.
+func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 	if plan.Diff == nil {
 		return nil, errors.New("plan diff is empty")
 	}
 
-	if plan.Diff.Modules == nil {
+	if len(plan.Diff.Modules) == 0 {
 		return nil, errors.New("plan diff module is empty")
 	}
 
-	out := &Machines{
-		Machines: make([]Machine, 0),
-	}
+	var out Machines
 
 	for _, d := range plan.Diff.Modules {
 		if d.Resources == nil {
@@ -169,13 +192,8 @@ func MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 		}
 
 		for providerResource, r := range d.Resources {
-			if r.Attributes == nil {
+			if len(r.Attributes) == 0 {
 				continue
-			}
-
-			attrs := make(map[string]string, len(r.Attributes))
-			for name, a := range r.Attributes {
-				attrs[name] = a.New
 			}
 
 			provider, resourceType, label, err := parseResource(providerResource)
@@ -183,8 +201,13 @@ func MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				return nil, err
 			}
 
-			if resourceType == "instance" && provider != "aws" && provider != "vagrant" {
+			if resourceType != p.ResourceType || provider != p.Provider {
 				continue
+			}
+
+			attrs := make(map[string]string, len(r.Attributes))
+			for name, a := range r.Attributes {
+				attrs[name] = a.New
 			}
 
 			out.Machines = append(out.Machines, Machine{
@@ -195,29 +218,15 @@ func MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 		}
 	}
 
-	return out, nil
+	return &out, nil
 }
 
-func parseResource(resource string) (string, string, string, error) {
-	// resource is in the form of "aws_instance.foo.bar"
-	splitted := strings.SplitN(resource, "_", 2)
-	if len(splitted) < 2 {
-		return "", "", "", fmt.Errorf("provider resource is unknown: %v", splitted)
-	}
-
-	resourceSplitted := strings.SplitN(splitted[1], ".", 2)
-
-	provider := splitted[0]             // aws
-	resourceType := resourceSplitted[0] // instance
-	label := resourceSplitted[1]        // foo.bar
-
-	return provider, resourceType, label, nil
-}
-
-func CheckKlients(ctx context.Context, kiteIDs KiteMap) error {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return errors.New("session context is not passed")
+// CheckKlients checks connectivity to all klient kites given by the kiteIDs
+// parameter.
+func (p *Planner) CheckKlients(ctx context.Context, kiteIDs KiteMap) error {
+	sess, err := p.session(ctx)
+	if err != nil {
+		return err
 	}
 
 	var wg sync.WaitGroup
@@ -229,12 +238,7 @@ func CheckKlients(ctx context.Context, kiteIDs KiteMap) error {
 
 		sess.Log.Debug("[%s] Checking connectivity to %q", label, kiteId)
 
-		// TODO(rjeczalik): remove after TMS-2245 and use sess.Kite directly
-		k := kite.New(kloud.NAME, kloud.VERSION)
-		k.Config = sess.Kite.Config.Copy()
-		k.Config.Transport = config.XHRPolling
-
-		klientRef, err := klient.NewWithTimeout(k, queryString, time.Minute*5)
+		klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, p.klientTimeout())
 		if err != nil {
 			return err
 		}
@@ -259,6 +263,42 @@ func CheckKlients(ctx context.Context, kiteIDs KiteMap) error {
 	wg.Wait()
 
 	return multiErrors
+}
+
+func (p *Planner) klientTimeout() time.Duration {
+	if p.KlientTimeout != 0 {
+		return p.KlientTimeout
+	}
+	return DefaultKlientTimeout
+}
+
+func (p *Planner) session(ctx context.Context) (*session.Session, error) {
+	if p.SessionFunc != nil {
+		return p.SessionFunc(ctx)
+	}
+
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	return sess, nil
+}
+
+func parseResource(resource string) (string, string, string, error) {
+	// resource is in the form of "aws_instance.foo.bar"
+	splitted := strings.SplitN(resource, "_", 2)
+	if len(splitted) < 2 {
+		return "", "", "", fmt.Errorf("provider resource is unknown: %v", splitted)
+	}
+
+	resourceSplitted := strings.SplitN(splitted[1], ".", 2)
+
+	provider := splitted[0]             // aws
+	resourceType := resourceSplitted[0] // instance
+	label := resourceSplitted[1]        // foo.bar
+
+	return provider, resourceType, label, nil
 }
 
 // isVariable checkes whether the given string is a template variable, such as:

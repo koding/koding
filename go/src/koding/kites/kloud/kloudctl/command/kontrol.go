@@ -113,7 +113,11 @@ func NewKontrol() cli.CommandFactory {
 	}
 }
 
-func (ktrl *Kontrol) Action(args []string, k *kite.Client) error {
+func (ktrl *Kontrol) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	ctx := context.WithValue(context.Background(), kiteKey, k)
 	ktrl.Resource.ContextFunc = func([]string) context.Context { return ctx }
 	return ktrl.Resource.Main(args)
@@ -153,10 +157,6 @@ func (cmd *KontrolList) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *KontrolList) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
-
 	k := kiteFromContext(ctx)
 
 	clients, err := k.LocalKite.GetKites(cmd.req)
@@ -212,9 +212,6 @@ func (cmd *KontrolKey) RegisterFlags(f *flag.FlagSet) {
 }
 
 func (cmd *KontrolKey) Run(ctx context.Context) error {
-	if err := cmd.Valid(); err != nil {
-		return err
-	}
 	kiteID := uuid.NewV4().String()
 
 	keycreator := &keycreator.Key{

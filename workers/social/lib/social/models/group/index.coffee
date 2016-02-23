@@ -8,15 +8,15 @@ module.exports = class JGroup extends Module
 
   { Relationship } = require 'jraphical'
 
-  { Inflector, ObjectId, ObjectRef, secure, daisy, race, dash, signature } = require 'bongo'
+  { Inflector, ObjectId, ObjectRef, secure, signature } = require 'bongo'
 
   JPermissionSet = require './permissionset'
   { permit }     = JPermissionSet
 
   JAccount       = require '../account'
-
   KodingError    = require '../../error'
   Validators     = require './validators'
+  async          = require 'async'
   { throttle, extend }     = require 'underscore'
 
   PERMISSION_EDIT_GROUPS = [
@@ -398,13 +398,6 @@ module.exports = class JGroup extends Module
       subPage    : require '../../render/loggedout/subpage'
 
 
-  save_ = (label, model, queue, callback) ->
-    model.save (err) ->
-      return callback err  if err
-      console.log "#{label} is saved"
-      queue.next()
-
-
   @create = (client, groupData, owner, callback) ->
 
     # bongo doesnt set array values as their defaults
@@ -420,91 +413,78 @@ module.exports = class JGroup extends Module
     defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }
     { sessionToken }      = client
 
+    save_ = (label, model, callback) ->
+      model.save (err) ->
+        return callback err  if err
+        console.log "#{label} is saved"
+        callback null
+
     queue = [
 
-      ->
+      (next) ->
         group.useSlug group.slug, (err, slug) ->
-          return callback err  if err
-          return callback new KodingError 'Couldn\'t claim the slug!'  unless slug?
+          return next err  if err
+          return next new KodingError 'Couldn\'t claim the slug!'  unless slug?
 
           console.log "created a slug #{slug.slug}"
           group.slug  = slug.slug
           group.slug_ = slug.slug
-          queue.next()
+          next()
 
-      ->
-        save_ 'group', group, queue, (err) ->
-          if err
-            JName.release group.slug, -> callback err
-          else
-            queue.next()
+      (next) ->
+        save_ 'group', group, (err) ->
+          return next()  unless err
+          JName.release group.slug, ->
+            next err
 
-      ->
+      (next) ->
         selector = { clientId : sessionToken }
         params   = { $set : { groupName : group.slug } }
 
-        JSession.update selector, params, (err) ->
-         return callback err  if err
-         queue.next()
+        JSession.update selector, params, next
 
-      ->
-        group.addMember owner, (err) ->
-          return callback err  if err
-          console.log 'member is added'
-          queue.next()
+      (next) ->
+        group.addMember owner, next
 
-      ->
-        group.addAdmin owner, (err) ->
-          return callback err  if err
-          console.log 'admin is added'
-          queue.next()
+      (next) ->
+        group.addAdmin owner, next
 
-      ->
-        group.addOwner owner, (err) ->
-          return callback err  if err
-          console.log 'owner is added'
-          queue.next()
+      (next) ->
+        group.addOwner owner, next
 
-      ->
-        save_ 'default permission set', defaultPermissionSet, queue, callback
+      (next) ->
+        save_ 'default permission set', defaultPermissionSet, next
 
-      ->
-        group.addDefaultPermissionSet defaultPermissionSet, (err) ->
-          return callback err  if err
-          console.log 'permissionSet is added'
-          queue.next()
+      (next) ->
+        group.addDefaultPermissionSet defaultPermissionSet, next
 
-      ->
-        group.addDefaultRoles (err) ->
-          return callback err  if err
-          console.log 'roles are added'
-          queue.next()
+      (next) ->
+        group.addDefaultRoles next
 
-      ->
+      (next) ->
         group.createSocialApiChannels client, (err) ->
           console.error err  if err
           console.log 'created socialApiId ids'
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         { shareCredentials } = require '../computeproviders/teamutils'
         account = client.connection.delegate
 
         shareCredentials { group, account }, (err) ->
           console.log 'shared credentials', err
-          queue.next()
+          next()
 
     ]
 
     if 'private' is group.privacy
-      queue.push ->
-        group.createMembershipPolicy groupData.requestType, -> queue.next()
+      queue.push (next) ->
+        group.createMembershipPolicy groupData.requestType, -> next()
 
-    queue.push =>
+    async.series queue, (err) =>
+      return callback err  if err
       @emit 'GroupCreated', { group, creator: owner }
       callback null, group
-
-    daisy queue
 
 
   @create$ = secure (client, formData, callback) ->
@@ -634,55 +614,50 @@ module.exports = class JGroup extends Module
             revokedRoles.push rel.as
 
         queue = [
-          =>
+
+          (next) =>
             @countAdmins (err, count) ->
-              return callback err  if err
+              return next err  if err
+              return next()    if count > 1 # this means we have more than one admin account
 
-              if count > 1 # this means we have more than one admin account
-                queue.next()
-              else
-                # get the diff between revokedRoles and roles, because revoked
-                # roles should not have admin role in this case
-                diff = difference revokedRoles, roles
+              # get the diff between revokedRoles and roles, because revoked
+              # roles should not have admin role in this case
+              diff = difference revokedRoles, roles
 
-                # check if the diff has admin role
-                if diff.indexOf('admin') > -1
-                  errCode    = 'UserIsTheOnlyAdmin'
-                  errMessage = 'There should be at least one admin to make this change.'
-                  return callback new KodingError errMessage, errCode
-
-                queue.next()
+              # check if the diff has admin role
+              if diff.indexOf('admin') > -1
+                errCode    = 'UserIsTheOnlyAdmin'
+                errMessage = 'There should be at least one admin to make this change.'
+                return next new KodingError errMessage, errCode
+              next()
 
         ]
 
         # create new roles
-        queue = queue.concat roles.map (role) -> ->
+        queue = queue.concat roles.map (role) -> (next) ->
           (new Relationship
             targetName  : 'JAccount'
             targetId    : targetId
             sourceName  : 'JGroup'
             sourceId    : sourceId
             as          : role
-          ).save (err) ->
-            return callback err  if err
-            queue.next()
+          ).save next
 
         # remove existing ones
         queue = queue.concat [
-          ->
+
+          (next) ->
             if remove.length > 0
-              Relationship.remove { _id: { $in: remove } }, (err) ->
-                return callback err  if err
-                queue.next()
+              Relationship.remove { _id: { $in: remove } }, next
             else
-              queue.next()
-          ->
-            notifyAccountOnRoleChange client, targetId, roles, queue.next
-          ->
-            callback null
+              next()
+
+          (next) ->
+            notifyAccountOnRoleChange client, targetId, roles, next
+
         ]
 
-        daisy queue
+        async.series queue, callback
 
   notifyAccountOnRoleChange = (client, id, roles, callback) ->
     JAccount.one { _id: id }, (err, account) ->
@@ -700,9 +675,9 @@ module.exports = class JGroup extends Module
     JGroupRole.all { isDefault: yes }, (err, roles) ->
       if err then callback err
       else
-        queue = roles.map (role) -> ->
-          group.addRole role, queue.fin.bind queue
-        dash queue, callback
+        queue = roles.map (role) -> (fin) ->
+          group.addRole role, fin
+        async.parallel queue, -> callback()
 
   # isInAllowedDomain checks if given email's domain is in allowed domains
   isInAllowedDomain: (email) ->
@@ -762,31 +737,39 @@ module.exports = class JGroup extends Module
         { delegate }            = client.connection
         permissionSet         = null
         defaultPermissionSet  = null
-        daisy queue = [
-          => @fetchPermissionSet (err, model) ->
-              if err then callback err
-              else
-                permissionSet = model
-                queue.next()
-          => @fetchDefaultPermissionSet (err, model) =>
-              if err then callback err
-              else if model?
+
+        queue = [
+
+          (next) =>
+            @fetchPermissionSet (err, model) ->
+              return next err  if err
+              permissionSet = model
+              next()
+
+          (next) =>
+            @fetchDefaultPermissionSet (err, model) =>
+              return next err  if err
+
+              if model?
                 console.log 'already had defaults'
                 defaultPermissionSet = model
                 permissionSet = model unless permissionSet
-                queue.next()
+                next()
               else
                 console.log 'needed defaults fixed'
                 fixDefaultPermissions_ this, permissionSet, (err, newModel) ->
                   defaultPermissionSet = newModel
-                  queue.next()
-          -> callback null, {
-              permissionsByModule
-              permissions         : permissionSet.permissions
-              defaultPermissions  : defaultPermissionSet.permissions
-            }
+                  next()
+
         ]
 
+        async.series queue, (err) ->
+          return callback err  if err
+          callback null, {
+            permissionsByModule
+            permissions         : permissionSet.permissions
+            defaultPermissions  : defaultPermissionSet.permissions
+          }
 
   fetchRolesByAccount: (account, callback) ->
 
@@ -1045,15 +1028,19 @@ module.exports = class JGroup extends Module
     membershipPolicy.approvalEnabled = no  if requestType is 'by-invite'
 
     queue.push(
-      -> membershipPolicy.save (err) ->
-        if err then callback err
-        else queue.next()
-      => @addMembershipPolicy membershipPolicy, (err) ->
-        if err then callback err
-        else queue.next()
+
+      (next) ->
+        membershipPolicy.save next
+
+      (next) =>
+        @addMembershipPolicy membershipPolicy, next
+
     )
-    queue.push callback  if callback
-    daisy queue
+
+    async.series queue, (err) ->
+      return callback err  if err
+      return callback null, membershipPolicy
+
 
   destroyMemebershipPolicy:(callback) ->
     @fetchMembershipPolicy (err, policy) ->
@@ -1215,12 +1202,12 @@ module.exports = class JGroup extends Module
         @updateCounts()
         @emit 'MemberAdded', member  if 'member' in roles
 
-      queue = roles.map (role) => =>
-        @addMember member, role, queue.fin.bind queue
+      queue = roles.map (role) => (fin) =>
+        @addMember member, role, fin
 
       # We were creating group member VMs here before
       # I've deleted them, ask me if you need more information ~ GG
-      dash queue, -> kallback()
+      async.parallel queue, -> kallback()
 
   each:(selector, rest...) ->
     selector.visibility = 'visible'
@@ -1282,12 +1269,10 @@ module.exports = class JGroup extends Module
         JSession = require '../session'
         JSession.remove { username: nickname, groupName: @slug }, callback
 
-      queue = roles.map (role) => =>
-        Joinable::leave.call this, client, { as:role }, (err) ->
-          return kallback err if err
-          queue.fin()
+      queue = roles.map (role) => (fin) =>
+        Joinable::leave.call this, client, { as:role }, fin
 
-      dash queue, kallback
+      async.parallel queue, kallback
 
   kickMember: permit
     advanced: [
@@ -1331,22 +1316,19 @@ module.exports = class JGroup extends Module
               groupName : client.context.group
             }, (err) -> callback err
 
-          queue = roles.map (role) => =>
+          queue = roles.map (role) => (fin) =>
             @removeMember account, role, (err) =>
-              return callback err  if err
+              return fin err  if err
               @updateCounts()
               @cycleChannel()
-              queue.fin()
+              fin()
 
           # add current user into blocked accounts
-          queue.push =>
-
+          queue.push (fin) =>
             # addBlockedAccount is generated by bongo
-            @addBlockedAccount account, (err) ->
-              return callback err  if err
-              queue.fin()
+            @addBlockedAccount account, fin
 
-          dash queue, kallback
+          async.parallel queue, kallback
   ###*
    * UnblockMember removes the blockage on the member for joining to a group.
    *
@@ -1399,12 +1381,11 @@ module.exports = class JGroup extends Module
               callback err
 
             # give rights to new owner
-            queue = difference(['member', 'admin'], newOwnersRoles).map (role) => =>
-              @addMember account, role, (err) ->
-                return kallback err if err
-                queue.fin()
+            queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
+              @addMember account, role, fin
 
-            dash queue, ->
+            async.parallel queue, (err) ->
+              return kallback err  if err
               # transfer ownership
               owner.update { $set: { targetId: account.getId() } }, kallback
 
@@ -1547,8 +1528,7 @@ module.exports = class JGroup extends Module
         contents[event]       = contents.member
 
 
-        next = -> queue.next()
-        queue = admins.map (admin) => =>
+        queue = admins.map (admin) => (next) =>
           contents.recipient = admin
           @notify admin, event, contents, next
 
@@ -1558,7 +1538,7 @@ module.exports = class JGroup extends Module
 
         notifyByUsernames usernames, 'NewMemberJoinedToGroup', contents
 
-        daisy queue
+        async.series queue
 
 
   @each$ = (selector, options, callback) ->

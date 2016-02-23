@@ -1,6 +1,7 @@
 package vagrant
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -29,6 +30,7 @@ func TestMain(m *testing.M) {
 	vagrantKite = kite.New("vagrant", "0.0.1")
 	vagrantKite.Config.DisableAuthentication = true
 	vagrantKite.Config.Port = 3640
+	vagrantKite.SetLogLevel(kite.DEBUG)
 
 	var err error
 	localVagrant, err = vagrantutil.NewVagrant(vagrantName)
@@ -36,7 +38,7 @@ func TestMain(m *testing.M) {
 		log.Fatalln(err)
 	}
 
-	handlers = NewHandlers(home)
+	handlers = NewHandlers(&Options{Home: home, Log: vagrantKite.Log})
 
 	vagrantKite.HandleFunc("list", handlers.List)
 	vagrantKite.HandleFunc("create", handlers.Create)
@@ -85,6 +87,7 @@ func TestWatch(t *testing.T) {
 				Line: m,
 			}
 		}
+		close(ch)
 
 		return ch, nil
 	}
@@ -92,30 +95,52 @@ func TestWatch(t *testing.T) {
 	// add fake handler, what matters is how `watchCommand` is working.
 	vagrantKite.HandleFunc("fakeWatch", func(r *kite.Request) (interface{}, error) {
 		fn := func(r *kite.Request, v *vagrantutil.Vagrant) (interface{}, error) {
-			return watchCommand(r, fakeFunc)
+			return handlers.watchCommand(r, "", fakeFunc)
 		}
 		return handlers.withPath(r, fn)
 	})
 
-	reMsgs := []string{}
-	watch := dnode.Callback(func(r *dnode.Partial) {
+	var reMsgs []string
+
+	done := make(chan error, 1)
+
+	success := dnode.Callback(func(r *dnode.Partial) {
+		done <- nil
+	})
+
+	failure := dnode.Callback(func(r *dnode.Partial) {
+		done <- errors.New(r.One().MustString())
+	})
+
+	output := dnode.Callback(func(r *dnode.Partial) {
 		msg := r.One().MustString()
 		reMsgs = append(reMsgs, msg)
 	})
 
 	_, err := remote.Tell("fakeWatch", struct {
 		FilePath string
-		Watch    dnode.Function
+		Output   dnode.Function
+		Success  dnode.Function
+		Failure  dnode.Function
 	}{
 		FilePath: vagrantName,
-		Watch:    dnode.Function(watch),
+		Success:  dnode.Function(success),
+		Failure:  dnode.Function(failure),
+		Output:   dnode.Function(output),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// wait so  our callback can connect the messages
-	time.Sleep(time.Second * 1)
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for done")
+	}
 
 	equals(t, msg, reMsgs)
 }

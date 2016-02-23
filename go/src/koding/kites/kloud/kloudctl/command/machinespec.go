@@ -1,6 +1,7 @@
 package command
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -12,6 +13,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/machinestate"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -39,6 +41,7 @@ func (i *Instance) Label() string {
 type MachineSpec struct {
 	Environment string         `json:"environment,omitempty"`
 	User        models.User    `json:"user,omitempty"`
+	Group       models.Group   `json:"user,omitempty"`
 	Machine     models.Machine `json:"machine,omitempty"`
 }
 
@@ -57,6 +60,9 @@ func (spec *MachineSpec) HasUser() bool {
 
 // HasGroup returns true when spec describes already existing group.
 func (spec *MachineSpec) HasGroup() bool {
+	if spec.Group.Id.Valid() {
+		return true
+	}
 	return len(spec.Machine.Groups) != 0 && spec.Machine.Groups[0].Id.Valid()
 }
 
@@ -112,16 +118,18 @@ func ParseMachineSpec(file string) (*MachineSpec, error) {
 	}
 
 	var spec MachineSpec
-	if err := json.Unmarshal(p, &spec); err != nil {
+	dec := json.NewDecoder(bytes.NewReader(p))
+	dec.UseNumber()
+	if err := dec.Decode(&spec); err != nil {
 		return nil, err
 	}
 
 	return &spec, nil
 }
 
-// BuildUserAndGroup ensures the user and group of the spec are
+// BuildMachine ensures the user and group of the spec are
 // inserted into db.
-func (spec *MachineSpec) BuildUserAndGroup() error {
+func (spec *MachineSpec) BuildMachine(createUser bool) error {
 	// If MachineID is not nil, ensure it exists and reuse it if it does.
 	if spec.HasMachine() {
 		m, err := modelhelper.GetMachine(spec.Machine.ObjectId.Hex())
@@ -131,49 +139,58 @@ func (spec *MachineSpec) BuildUserAndGroup() error {
 		spec.Machine = *m
 		return nil
 	}
+
 	// If no existing group is provided, create or use 'hackathon' one,
 	// which will make VMs invisible to users until they're assigned
 	// to proper group before the hackathon.
 	if !spec.HasGroup() {
-		if spec.Environment != "dev" {
-			return errors.New("no group specified")
-		}
-		group, err := getOrCreateHackathonGroup()
+		group, err := modelhelper.GetGroup("koding")
 		if err != nil {
 			return err
 		}
-		if len(spec.Machine.Groups) == 0 {
-			spec.Machine.Groups = make([]models.MachineGroup, 1)
-		}
-		spec.Machine.Groups[0].Id = group.Id
+		spec.Machine.Groups = []models.MachineGroup{{Id: group.Id}}
 	}
+
 	// If no existing user is provided, create one.
 	if !spec.HasUser() {
 		// Try to lookup user by username first.
 		user, err := modelhelper.GetUser(spec.Username())
 		if err != nil {
+			if !createUser {
+				return fmt.Errorf("user %q does not exist", spec.Username())
+			}
+
 			spec.User.ObjectId = bson.NewObjectId()
 			if spec.User.RegisteredAt.IsZero() {
 				spec.User.RegisteredAt = time.Now()
 			}
+
 			if spec.User.LastLoginDate.IsZero() {
 				spec.User.LastLoginDate = spec.User.RegisteredAt
 			}
+
 			if err = modelhelper.CreateUser(&spec.User); err != nil {
 				return err
 			}
+
+			_, err = modelhelper.UpdateGroupAddMembers(spec.Machine.Groups[0].Id, 1)
+			if err != nil {
+				return err
+			}
+
 			user = &spec.User
 		}
+
 		spec.User.ObjectId = user.ObjectId
 		spec.User.Name = spec.Username()
-		_, err = modelhelper.UpdateGroupAddMembers(spec.Machine.Groups[0].Id, 1)
-		if err != nil {
-			return err
-		}
 	}
+
 	// Ensure the user is assigned to the machine.
 	if len(spec.Machine.Users) == 0 {
-		spec.Machine.Users = make([]models.MachineUser, 1)
+		spec.Machine.Users = []models.MachineUser{{
+			Sudo:  true,
+			Owner: true,
+		}}
 	}
 	if spec.Machine.Users[0].Id == "" {
 		spec.Machine.Users[0].Id = spec.User.ObjectId
@@ -181,6 +198,7 @@ func (spec *MachineSpec) BuildUserAndGroup() error {
 	if spec.Machine.Users[0].Username == "" {
 		spec.Machine.Users[0].Username = spec.User.Name
 	}
+
 	// Lookup username for existing user.
 	if spec.Machine.Users[0].Username == "" {
 		user, err := modelhelper.GetUserById(spec.Machine.Users[0].Id.Hex())
@@ -189,28 +207,71 @@ func (spec *MachineSpec) BuildUserAndGroup() error {
 		}
 		spec.Machine.Users[0].Username = user.Name
 	}
+
 	// Lookup group and init Uid.
 	group, err := modelhelper.GetGroupById(spec.Machine.Groups[0].Id.Hex())
 	if err != nil {
 		return err
 	}
+
 	spec.Machine.Uid = fmt.Sprintf("u%c%c%c",
 		spec.Machine.Users[0].Username[0],
 		group.Slug[0],
 		spec.Machine.Provider[0],
 	)
-	return nil
+
+	m, err := modelhelper.GetMachineBySlug(spec.Machine.Users[0].Id, spec.Machine.Slug)
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	switch m.State() {
+	case machinestate.Building, machinestate.Starting:
+		return ErrAlreadyBuilding
+	case machinestate.Running:
+		return ErrAlreadyRunning
+	case machinestate.NotInitialized:
+		spec.Machine.ObjectId = m.ObjectId
+		return ErrRebuild
+	default:
+		return fmt.Errorf("machine state is %q; needs to be deleted and build "+
+			"again (jMachine.ObjectId = %q)", m.State(), m.ObjectId.Hex())
+	}
 }
 
-// BuildMachine inserts the machine to DB and requests kloud to build it.
-func (spec *MachineSpec) BuildMachine() error {
+var (
+	ErrAlreadyRunning  = errors.New("the machine is already running")
+	ErrAlreadyBuilding = errors.New("the machine is already running")
+	ErrRebuild         = errors.New("previous build of that machine failed, need to be rebuild")
+)
+
+// InsertMachine inserts the machine to DB and requests kloud to build it.
+func (spec *MachineSpec) InsertMachine() error {
+	if spec.Machine.ObjectId.Valid() {
+		DefaultUi.Info(fmt.Sprintf("machine %q is going to be rebuilt", spec.Machine.ObjectId.Hex()))
+		return nil
+	}
+
+	user := spec.Machine.Users[0]
+
 	spec.Machine.ObjectId = bson.NewObjectId()
 	spec.Machine.CreatedAt = time.Now()
 	spec.Machine.Status.ModifiedAt = time.Now()
-	spec.Machine.Credential = spec.Machine.Users[0].Username
+	spec.Machine.Assignee.AssignedAt = time.Now()
+	spec.Machine.Credential = user.Username
 	spec.Machine.Uid = spec.finalizeUID()
 	spec.Machine.Domain = spec.Domain()
-	return modelhelper.CreateMachine(&spec.Machine)
+	spec.Machine.Groups = nil
+
+	err := modelhelper.CreateMachine(&spec.Machine)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Copy gives a copy of the spec value.
@@ -229,34 +290,8 @@ func (spec *MachineSpec) Copy() *MachineSpec {
 
 var dnsZones = map[string]string{
 	"dev":        "dev.koding.io",
-	"sandbox":    "sandbox.koding.com",
-	"production": "koding.com",
-}
-
-func getOrCreateHackathonGroup() (*models.Group, error) {
-	var group models.Group
-	query := func(c *mgo.Collection) error {
-		err := c.Find(bson.M{"slug": "hackathon"}).One(&group)
-		if err == mgo.ErrNotFound {
-			group = models.Group{
-				Id:         bson.NewObjectId(),
-				Body:       "Preallocated VM pool for Hackathon",
-				Title:      "Hackathon",
-				Slug:       "hackathon",
-				Privacy:    "private",
-				Visibility: "invisible",
-				Counts: map[string]interface{}{
-					"members": 0,
-				},
-			}
-			err = c.Insert(&group)
-		}
-		return err
-	}
-	if err := modelhelper.Mongo.Run("jGroups", query); err != nil {
-		return nil, err
-	}
-	return &group, nil
+	"sandbox":    "sandbox.koding.io",
+	"production": "koding.io",
 }
 
 func shortUID() string {

@@ -33,7 +33,11 @@ func NewEvent() cli.CommandFactory {
 	}
 }
 
-func (e *Event) Action(args []string, k *kite.Client) error {
+func (e *Event) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	// args[0] contains the build event in form of "build-123456"
 	splitted := strings.Split(*e.event, "-")
 	if len(splitted) != 2 {

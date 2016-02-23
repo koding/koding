@@ -6,9 +6,10 @@ Bongo       = require 'bongo'
 Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
+async       = require 'async'
 
 { protocol, hostname } = KONFIG
-{ secure, signature, dash } = Bongo
+{ secure, signature } = Bongo
 
 emailsanitize = require './user/emailsanitize'
 
@@ -152,64 +153,100 @@ module.exports = class JInvitation extends jraphical.Module
   # triggers sendInvitationEmail
   @create: permit 'send invitations',
     success: (client, options, callback) ->
-      JUser               = require './user'
-      JGroup              = require './group'
+      JGroup    = require './group'
+      groupName = client.context.group or 'koding'
 
-      { delegate }        = client.connection
-      { invitations }     = options
-      groupName           = client.context.group or 'koding'
-      name                = getName delegate
-
-      # check for membership
       JGroup.one { slug: groupName }, (err, group) ->
         return callback new KodingError err                   if err
         return callback new KodingError 'group doesnt exist'  if not group
 
-        queue = invitations.map (invitation) -> ->
+        { invitations, forceInvite, returnCodes, noEmail } = options
 
-          { email, firstName, lastName, role } = invitation
+        queue = invitations.map (invitationData) -> (end) ->
+          invitationData.forceInvite = forceInvite
+          invitationData.noEmail     = noEmail
+          invitationData.groupName   = groupName
 
-          JInvitation.one { email, groupName }, (err, invitation) ->
-            return callback new KodingError err  if err
+          createSingleInvite client, group, invitationData, end
 
-            # do not send another invitation if the user is already invited
-            # before
-            return queue.fin()  if invitation
+        async.parallel queue, (err, codes) ->
+          return callback err  if err
+          return callback()  unless returnCodes
+          return callback null, codes
 
-            isAlreadyMember group, email, (err, isMember) ->
-              return callback new KodingError err  if err
+  createSingleInvite = (client, group, invitationData, end) ->
+    { email, role, forceInvite, noEmail } = invitationData
 
-              # do not send another invitation if the user is already a member
-              # of the group
-              return queue.fin()  if isMember
+    groupName  = group.slug
+    inviteInfo = null
 
-              hash = JUser.getHash email
+    queue = [
+      (fin) -> JInvitation.one { email, groupName }, fin
 
-              # eg: VJPj9gUQ
-              code = shortid.generate()
+    , (invite, fin) ->
+      [fin, invite] = paramSwapper invite, fin
 
-              data =   {
-                code
-                hash
-                email
-                groupName
-                role
-              }
-              # firstName and lastName are optional
-              data.firstName = firstName  if firstName
-              data.lastName  = lastName  if lastName
+      return fin null, no  unless invite
+      return invite.remove fin  if forceInvite
 
-              invite = new JInvitation data
-              invite.save (err) ->
-                return callback new KodingError err  if err
+      inviteInfo = { email, code: invite.code, alreadyInvited: yes }
+      return fin null, yes
 
-                JInvitation.sendInvitationEmail client, invite, -> queue.fin()
+    , (alreadyInvited, fin) ->
+      [fin, alreadyInvited] = paramSwapper alreadyInvited, fin
 
-        dash queue, callback
+      return fin null, yes  if alreadyInvited
+      isAlreadyMember group, email, fin
+
+    , (alreadyMember, fin) ->
+      [fin, alreadyMember] = paramSwapper alreadyMember, fin
+
+      return fin null, no  if alreadyMember
+      createInviteInstance invitationData, fin
+
+    , (invite, fin) ->
+      [fin, invite] = paramSwapper invite, fin
+      inviteInfo = { email, code: invite.code }  if invite
+
+      return fin()  if noEmail or not invite
+      JInvitation.sendInvitationEmail client, invite, fin
+
+    ]
+
+    async.waterfall queue, (err) ->
+      return end new KodingError err  if err
+      return end null, inviteInfo
+
+  paramSwapper = (param, fin) ->
+    # this is here bc of fucking cyclomatic complexity error of linter
+    # if you put a few more `if` statements above it will cry
+    # this should be better done inline - SY
+    [fin, param] = [param, fin]  unless fin
+    return [fin, param]
+
+  createInviteInstance = (options, callback) ->
+
+    { email, groupName, role, firstName, lastName } = options
+
+    JUser = require './user'
+    hash  = JUser.getHash email
+
+    # eg: VJPj9gUQ
+    code = shortid.generate()
+    data = { code, hash, email, groupName, role }
+
+    # firstName and lastName are optional
+    data.firstName = firstName  if firstName
+    data.lastName  = lastName   if lastName
+
+    invite = new JInvitation data
+    invite.save (err) ->
+      return callback new KodingError err  if err
+      return callback null, invite
 
 
-  # isAlreadyMember checks if the given email is already member of the given
-  # group
+  # isAlreadyMember checks if the given email
+  # is already member of the given group
   isAlreadyMember = (group, email, callback) ->
     return callback new KodingError 'group is not set'  if not group
     return callback new KodingError 'email is not set'  if not email

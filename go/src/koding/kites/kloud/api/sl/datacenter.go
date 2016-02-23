@@ -60,6 +60,13 @@ type LocaleTimezone struct {
 // filtering capabilities.
 type Datacenters []*Datacenter
 
+func (d Datacenters) Err() error {
+	if len(d) == 0 {
+		return errNotFound
+	}
+	return nil
+}
+
 // ByID filters the datacenters by id.
 func (d Datacenters) ByID(id int) Datacenters {
 	if id == 0 {

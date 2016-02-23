@@ -34,21 +34,22 @@ func TestBuilder(t *testing.T) {
 	}
 
 	cases := []struct {
-		v   interface{}
-		obj object.Object
+		v       interface{}
+		ignored []string
+		obj     object.Object
 	}{{ // i=0
-		Foo{Dupa: "s"},
+		Foo{Dupa: "s"}, nil,
 		object.Object{
 			"prefix+foo": "s",
 		},
 	}, { // i=1
-		Bar{Bar: "s"},
+		Bar{Bar: "s"}, nil,
 		object.Object{
 			"prefix+foos+foo": "", // see package-level TODO in object.go
 			"prefix+barbar":   "s",
 		},
 	}, { // i=2
-		Baz{Foo: &Foo{Dupa: "s"}, Bar: Bar{Bar: "z"}, Baz: 42},
+		Baz{Foo: &Foo{Dupa: "s"}, Bar: Bar{Bar: "z"}, Baz: 42}, nil,
 		object.Object{
 			"prefix+foofoo+foo":   "s",
 			"prefix+bar+foos+foo": "",
@@ -56,37 +57,48 @@ func TestBuilder(t *testing.T) {
 			"prefix+baz":          42,
 		},
 	}, { // i=3
-		map[string]interface{}{"foo": "bar", "baz": 42},
+		map[string]interface{}{"foo": "bar", "baz": 42}, nil,
 		object.Object{
 			"prefix+foo": "bar",
 			"prefix+baz": 42,
 		},
 	}, { // i=4
-		bson.M{"foo": bson.M{"bar": "s"}, "baz": 42},
+		bson.M{"foo": bson.M{"bar": "s"}, "baz": 42}, nil,
 		object.Object{
 			"prefix+foo+bar": "s",
 			"prefix+baz":     42,
 		},
 	}, { // i=5
-		struct{ Field bson.M }{Field: bson.M{"other": Bar{Bar: "s"}}},
+		struct{ Field bson.M }{Field: bson.M{"other": Bar{Bar: "s"}}}, nil,
 		object.Object{
 			"prefix+field+other+foos+foo": "",
 			"prefix+field+other+barbar":   "s",
 		},
 	}, { // i=6
-		&map[string]*map[string]string{"foo": {"bar": "s"}},
+		&map[string]*map[string]string{"foo": {"bar": "s"}}, nil,
 		object.Object{
 			"prefix+foo+bar": "s",
 		},
 	}, { // i=7
-		struct{ Field *map[string]interface{} }{Field: &map[string]interface{}{"value": "s"}},
+		struct{ Field *map[string]interface{} }{Field: &map[string]interface{}{"value": "s"}}, nil,
 		object.Object{
 			"prefix+field+value": "s",
+		},
+	}, { // i=8
+		Baz{Foo: &Foo{Dupa: "s"}, Bar: Bar{Bar: "z"}, Baz: 42}, []string{"prefix+bar"},
+		object.Object{
+			"prefix+foofoo+foo": "s",
+			"prefix+baz":        42,
+		},
+	}, { // i=9
+		bson.M{"foo": bson.M{"bar": "s"}, "baz": 42}, []string{"prefix+baz"},
+		object.Object{
+			"prefix+foo+bar": "s",
 		},
 	}}
 
 	for i, cas := range cases {
-		obj := b.Build(cas.v)
+		obj := b.Build(cas.v, cas.ignored...)
 		if !reflect.DeepEqual(obj, cas.obj) {
 			t.Errorf("%d: want %+v to be %+v", i, obj, cas.obj)
 		}
@@ -117,7 +129,7 @@ func TestBuilderDecode(t *testing.T) {
 		AMI:       "ami-cf35f3a4",
 	}
 	b := &object.Builder{
-		Tag:       "stackplan",
+		Tag:       "hcl",
 		Sep:       "_",
 		Recursive: true,
 	}
