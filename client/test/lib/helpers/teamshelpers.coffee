@@ -163,30 +163,21 @@ module.exports =
     companyNameSelector = "#{modalSelector} input[name=companyName]"
     signUpButton        = "#{modalSelector} button[type=submit]"
     user                = utils.getUser()
-    adminUser           =
-      username          : 'devrim'
-      password          : 'devrim'
 
-    helpers.beginTest(browser, adminUser)
-    browser.pause 5000 # wait for welcome modal
+    invitationLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
-    @createInvitation browser, user, (invitationLink) =>
-      browser.click '.close-icon.closeModal'
+    browser
+      .url                   invitationLink
+      .waitForElementVisible modalSelector, 20000
+      .waitForElementVisible emailSelector, 20000
+      .waitForElementVisible companyNameSelector, 20000
+      .assert.valueContains  emailSelector, user.email
+      .setValue              companyNameSelector, user.teamSlug
+      .click                 signUpButton
+      .pause                 2500
 
-      helpers.doLogout(browser)
-
-      browser
-        .url                   invitationLink
-        .waitForElementVisible modalSelector, 20000
-        .waitForElementVisible emailSelector, 20000
-        .waitForElementVisible companyNameSelector, 20000
-        .assert.valueContains  emailSelector, user.email
-        .setValue              companyNameSelector, user.teamSlug
-        .click                 signUpButton
-        .pause                 2500
-
-      @enterTeamURL(browser)
-      @fillUsernamePasswordForm(browser, user)
+    @enterTeamURL(browser)
+    @fillUsernamePasswordForm(browser, user)
 
 
   createInvitation: (browser, user, callback) ->
