@@ -16,7 +16,6 @@ import (
 	"koding/kites/kloud/scripts/provisionklient/userdata"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -102,7 +101,7 @@ func realMain() error {
 	}
 
 	log.Println(">> Installing klient from URL: %s", val.LatestKlientURL)
-	if err := installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL, val.TunnelURL); err != nil {
+	if err := installKlient(val); err != nil {
 		return err
 	}
 
@@ -136,37 +135,11 @@ func createUser(username string, groups []string) error {
 	return nil
 }
 
-func guessTunnelServerAddr(username, registerURL, tunnelURL string) string {
-	// If tunnelURL was overwritten, we use it.
-	if u, err := url.Parse(tunnelURL); err != nil {
-		return u.Host
-	}
-
-	// If registerURL has <box>.<username>.<server-addr> format, we treat
-	// it as url for tunnel request and split <server-addr> out of it.
-	// parse the server addr out of it.
-	//
-	// We expect <server-addr> has ".koding." domain or subdomain in it.
-	u, err := url.Parse(registerURL)
-	if err != nil {
-		return ""
-	}
-
-	userPart := "." + username + "."
-
-	i := strings.Index(u.Host, userPart)
-	j := strings.Index(u.Host, ".koding.")
-
-	if i == -1 || j == -1 || i > j {
-		return ""
-	}
-
-	return u.Host[i+len(userPart):]
-}
-
-func installKlient(username, url, registerURL, kontrolURL, tunnelURL string) error {
+// installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL, val.TunnelURL)
+// func installKlient(username, url, registerURL, kontrolURL, tunnelURL string) error {
+func installKlient(val *userdata.Value) error {
 	var tmpFile = "/tmp/latest-klient.deb"
-	var args = []string{url, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
+	var args = []string{val.LatestKlientURL, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
 
 	log.Println(">> Downloading klient")
 	download := newCommand("wget", args...)
@@ -187,17 +160,21 @@ func installKlient(username, url, registerURL, kontrolURL, tunnelURL string) err
 		return err
 	}
 
-	initLine := fmt.Sprintf("sudo -E -u %s KITE_HOME=/etc/kite ./klient ", username)
-	if registerURL != "" {
-		initLine += fmt.Sprintf(" -register-url '%s'", registerURL)
+	initLine := fmt.Sprintf("sudo -E -u %s KITE_HOME=/etc/kite ./klient ", val.Username)
+	if val.TunnelName == "" && val.RegisterURL != "" {
+		initLine += fmt.Sprintf(" -register-url '%s'", val.RegisterURL)
 	}
 
-	if kontrolURL != "" {
-		initLine += fmt.Sprintf(" -kontrol-url '%s'", kontrolURL)
+	if val.KontrolURL != "" {
+		initLine += fmt.Sprintf(" -kontrol-url '%s'", val.KontrolURL)
 	}
 
-	if tunnelAddr := guessTunnelServerAddr(username, registerURL, tunnelURL); tunnelAddr != "" {
-		initLine += fmt.Sprintf(" -tunnel-server '%s'", tunnelAddr)
+	if val.TunnelName != "" {
+		initLine += fmt.Sprintf(" -tunnel-name '%s'", val.TunnelName)
+	}
+
+	if val.TunnelKiteURL != "" {
+		initLine += fmt.Sprintf(" -tunnel-kite-url '%s'", val.TunnelKiteURL)
 	}
 
 	newContent := strings.Replace(string(content), "./klient", initLine, -1)
