@@ -589,14 +589,29 @@ module.exports = class ComputeProvider extends Base
 
   @fetchGroupResources = (group, options, callback) ->
 
-    { slug } = group
-    { skip } = options
+    { skip, limit, query } = options
 
-    queryOptions = { limit: 20 }
+    query ?= {}
+    query.$and ?= []
+    query.$and.push { group: group.slug }
+
+    queryOptions = { limit: Math.min 20, limit }
     queryOptions.skip = skip  if skip
 
     JComputeStack = require '../stack'
-    JComputeStack.some { group: slug }, queryOptions, callback
+    JComputeStack.some query, queryOptions, (err, stacks) ->
+
+      return callback err  if err
+
+      if stacks?.length > 0
+        queue = []
+        stacks.forEach (stack) ->
+          queue.push (next) -> stack.revive next
+
+        async.series queue, -> callback null, stacks
+
+      else
+        callback null, []
 
 
   @createGroupStack = (client, options, callback) ->
