@@ -1,4 +1,3 @@
-kd = require 'kd'
 AppController = require 'app/appcontroller'
 ShowcaseAppView = require './appview'
 
