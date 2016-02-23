@@ -1,7 +1,5 @@
 kd                 = require 'kd'
-globals            = require 'globals'
 JView              = require 'app/jview'
-remote             = require('app/remote').getInstance()
 KDSelectBox        = kd.SelectBox
 KDButtonView       = kd.ButtonView
 integrationHelpers = require 'app/helpers/integration'

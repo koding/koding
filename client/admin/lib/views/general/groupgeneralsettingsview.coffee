@@ -1,6 +1,5 @@
 _                  = require 'lodash'
 kd                 = require 'kd'
-remote             = require('app/remote').getInstance()
 KDView             = kd.View
 KDCustomScrollView = kd.CustomScrollView
 Encoder            = require 'htmlencode'
@@ -10,11 +9,8 @@ validator          = require 'validator'
 showError          = require 'app/util/showError'
 geoPattern         = require 'geopattern'
 KDFormView         = kd.FormView
-KDModalView        = kd.ModalView
-KDSelectBox        = kd.SelectBox
 KDInputView        = kd.InputView
 KDButtonView       = kd.ButtonView
-KDToggleButton     = kd.ToggleButton
 KDCustomHTMLView   = kd.CustomHTMLView
 KDNotificationView = kd.NotificationView
 

@@ -1,5 +1,4 @@
 kd                       = require 'kd'
-remote                   = require('app/remote').getInstance()
 integrationHelpers       = require 'app/helpers/integration'
 AdminIntegrationItemView = require './adminintegrationitemview'
 

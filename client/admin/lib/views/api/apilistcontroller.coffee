@@ -1,7 +1,5 @@
 kd                   = require 'kd'
-remote               = require('app/remote').getInstance()
 getGroup             = require 'app/util/getGroup'
-showError            = require 'app/util/showError'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 

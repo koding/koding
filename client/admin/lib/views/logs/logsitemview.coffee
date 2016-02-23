@@ -1,6 +1,5 @@
 kd      = require 'kd'
 JView   = require 'app/jview'
-timeago = require 'timeago'
 
 
 module.exports = class LogsItemView extends kd.ListItemView
