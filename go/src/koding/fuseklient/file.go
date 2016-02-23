@@ -122,6 +122,10 @@ func (f *File) GetType() fuseutil.DirentType {
 	return fuseutil.DT_File
 }
 
+func (f *File) GetName() string {
+	return f.Name
+}
+
 // Expire removes the internal cache of file and fetches it from remote. It's
 // required to update from remote since Kernel caches file attrs.
 func (f *File) Expire() error {

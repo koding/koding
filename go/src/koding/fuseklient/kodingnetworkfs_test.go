@@ -1,6 +1,7 @@
 package fuseklient
 
 import (
+	"encoding/base64"
 	"io/ioutil"
 	"os"
 	"path"
