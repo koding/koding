@@ -145,10 +145,10 @@ Configuration = (options={}) ->
     redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
   slack  =
-    clientId      : "20619428033.20787518977"
-    clientSecret  : "1987edcacd657367fd1b3b0eb653f14b"
-    redirectUri   : "http://dev.koding.com:8090/api/social/slack/oauth/callback"
-
+    clientId          : "2155583316.22363498641"
+    clientSecret      : "fc61c7db5a3acd2dfbe808ba73b1002a"
+    redirectUri       : "http://dev.koding.com:8090/api/social/slack/oauth/callback"
+    verificationToken : "jldPRk6HmOL2FjeXZYwUdW6B"
 
   # if you want to disable a feature add here with "true" value do not forget to
   # add corresponding go struct properties

@@ -25,28 +25,19 @@ module.exports = [
     { name: 'register' }
     { name: 'login' }
     { name: 'logout' }
-    { name: 'activity likeunlike' }
   ]
 
   [
     { name: 'pricing payment' }
-    { name: 'activity post' }
   ]
 
   [
     { name: 'messages privatemessage' }
     { name: 'account accountsettings' }
-    { name: 'activity postwith' }
-  ]
-
-  [
-    { name: 'activity edit' }
-    { name: 'activity delete' }
   ]
 
   [
     { name: 'unittests' }
-    { name: 'activity others' }
     { name: 'account accountpage' }
   ]
 

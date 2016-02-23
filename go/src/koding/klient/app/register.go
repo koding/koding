@@ -14,7 +14,9 @@ import (
 )
 
 func (k *Klient) register(useTunnel bool) error {
-	ip, err := publicip.PublicIP()
+	// Attempt to get the IP, and retry up to 10 times with 5 second pauses between
+	// retries.
+	ip, err := publicip.PublicIPRetry(10, 5*time.Second, k.log)
 	if err != nil {
 		return err
 	}

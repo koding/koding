@@ -133,11 +133,11 @@ Configuration = (options={}) ->
     clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"
     redirectUri   : "https://sandbox.koding.com/-/oauth/github/callback"
 
-  slack  = # these are tmp and not working configs, will be replace by the working ones after the feature is completed
-    clientId      : "20619428033.20787518977"
-    clientSecret  : "1987edcacd657367fd1b3b0eb653f14b"
-    redirectUri   : "https://sandbox.koding.com/api/social/slack/oauth/callback"
-
+  slack  =
+    clientId          : "2155583316.22364273143"
+    clientSecret      : "6ee269042087643b311214d2dc3527e4"
+    redirectUri       : "https://sandbox.koding.com/api/social/slack/oauth/callback"
+    verificationToken : "AAeDdo5fWOcOTux88e939dXN"
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
