@@ -131,7 +131,8 @@ func (s *Slack) Success(u *url.URL, h http.Header, _ interface{}, context *model
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(nil)
+	h.Set("Location", "/Admin/Invitations/Slack")
+	return http.StatusTemporaryRedirect, h, nil, nil
 }
 
 // ListUsers lists users of a slack team
