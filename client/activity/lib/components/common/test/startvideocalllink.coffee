@@ -30,7 +30,7 @@ describe 'StartVideoCallLink', ->
       link = renderIntoDocument(<Link onStart={kd.noop}/>)
       node = ReactDOM.findDOMNode(link).querySelector 'span'
 
-      expect(node.textContent).toEqual 'Start a Video Call'
+      expect(node.textContent).toEqual 'Join Video Call'
 
 
   describe '::onClick', ->

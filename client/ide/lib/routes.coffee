@@ -69,6 +69,8 @@ loadIDE = (data) ->
   ideApps    = appManager.appControllers.IDE
   machineUId = machine.uid
   callback   = ->
+    if channelId
+      require('activity/flux/actions/thread').changeSelectedThread channelId
     appManager.open 'IDE', { forceNew: yes }, (app) ->
       app.mountedMachineUId   = machineUId
       app.workspaceData       = workspace
@@ -92,6 +94,8 @@ loadIDE = (data) ->
   if ideInstance
     appManager.showInstance ideInstance
     selectWorkspaceOnSidebar data # should not be required
+    if ideInstance.socialChannel
+      require('activity/flux/actions/thread').changeSelectedThread ideInstance.socialChannel.id
   else
     callback()
 

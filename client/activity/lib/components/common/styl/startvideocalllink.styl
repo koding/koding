@@ -16,4 +16,12 @@
   content                   ''
   margin-left               10px
   top                       2px
-  r-sprite                  'activity', 'video-call'
+  r-sprite                  'activity', 'video-call-start'
+
+.StartVideoCallLink.is-iconOnly
+  .StartVideoCall-icon
+    margin-left             0
+
+.StartVideoCallLink.is-videoActive
+  .StartVideoCall-icon
+    r-sprite                'activity', 'video-call-end'

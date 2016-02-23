@@ -364,6 +364,21 @@ selectedChannelParticipants = [
     participants.get selectedId
 ]
 
+channelThreadById = (channelId) -> [
+  channelThreads
+  (threads) -> threads.get channelId
+]
+
+channelById = (channelId) -> [
+  allChannels
+  (channels) -> channels.get channelId
+]
+
+channelParticipantsById = (channelId) -> [
+  channelParticipants
+  (participants) -> participants.get channelId
+]
+
 
 # Aliases for providing consistent getter names for suggestion stores
 currentSuggestionsQuery         = SuggestionsQueryStore
@@ -500,4 +515,8 @@ module.exports = {
   allFollowedChannels
   socialShareLinks
   activeSocialShareLinkId: ActiveSocialShareLinkIdStore
+
+  channelThreadById
+  channelById
+  channelParticipantsById
 }

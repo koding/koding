@@ -9,6 +9,10 @@ ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
 getGroup             = require 'app/util/getGroup'
+isKoding             = require 'app/util/isKoding'
+nick                 = require 'app/util/nick'
+AppearIn             = require 'app/components/appearin'
+classnames           = require 'classnames'
 
 
 module.exports = class ChannelThreadPane extends React.Component
@@ -45,6 +49,22 @@ module.exports = class ChannelThreadPane extends React.Component
   invitePeople: -> @refs.pane.onInviteClick()
 
 
+  onVideoStart: ->
+
+    value = "@#{nick()} just joined the video session."
+
+    ActivityFlux.actions.channel.startVideo @channel('id')
+    ActivityFlux.actions.message.createMessage @channel('id'), value
+
+
+  onVideoEnd: ->
+
+    value = "@#{nick()} just left the video session."
+
+    ActivityFlux.actions.channel.endVideo @channel('id')
+    ActivityFlux.actions.message.createMessage @channel('id'), value
+
+
   leaveChannel: ->
 
     channelId = @channel 'id'
@@ -62,11 +82,16 @@ module.exports = class ChannelThreadPane extends React.Component
 
     return  unless thread = @state.channelThread
 
+    isVideoActive = thread.getIn ['flags', 'isVideoActive']
+
     <ChannelThreadHeader.Container
       className="ChannelThreadPane-header"
       thread={thread}
+      isVideoActive={isVideoActive ? no}
       onInvitePeople={@bound 'invitePeople'}
       onLeaveChannel={@bound 'leaveChannel'}
+      onVideoStart={@bound 'onVideoStart'}
+      onVideoEnd={@bound 'onVideoEnd'}
       onShowNotificationSettings={@bound 'showNotificationSettingsModal'} />
 
 
@@ -97,13 +122,30 @@ module.exports = class ChannelThreadPane extends React.Component
     </aside>
 
 
+  renderVideo: ->
+
+    isVideoActive = @state.channelThread.getIn ['flags', 'isVideoActive']
+
+    videoName = "koding-#{getGroup().slug}-#{@channel 'id'}"
+
+    <div className="ChannelThreadPane-videoContainer">
+      {if isVideoActive then <AppearIn.Container name={videoName} />}
+    </div>
+
+
   render: ->
 
     return null  unless thread = @state.channelThread
 
-    <div className='ChannelThreadPane is-withChat'>
+    className = classnames
+      'ChannelThreadPane': yes
+      'is-withChat': yes
+      'is-withVideo': thread.getIn ['flags', 'isVideoActive']
+
+    <div className={className}>
       <ChannelDropContainer className='ChannelThreadPane-content'>
         {@renderHeader()}
+        {@renderVideo()}
         {@renderBody()}
       </ChannelDropContainer>
       {@renderSidebar()}

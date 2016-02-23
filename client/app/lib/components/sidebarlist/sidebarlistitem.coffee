@@ -9,17 +9,19 @@ module.exports = class SidebarListItem extends React.Component
   # title prop can be any type. SidebarChannelsListItem pass a string but
   # SidebarMessagesListItem can pass an object.
   @propTypes =
-    title   : React.PropTypes.any
-    href    : React.PropTypes.string
-    onClick : React.PropTypes.func
-    active  : React.PropTypes.bool
+    title         : React.PropTypes.any
+    href          : React.PropTypes.string
+    onClick       : React.PropTypes.func
+    active        : React.PropTypes.bool
+    isVideoActive : React.PropTypes.bool
 
 
   @defaultProps =
-    title   : ''
-    href    : ''
-    onClick : kd.noop
-    active  : no
+    title         : ''
+    href          : ''
+    onClick       : kd.noop
+    active        : no
+    isVideoActive : no
 
 
   constructor: (props) ->
@@ -32,6 +34,7 @@ module.exports = class SidebarListItem extends React.Component
   getClassName: -> classnames
     SidebarListItem : yes
     active          : @props.active ? @state.clicked
+    'is-withVideo'  : @props.isVideoActive
 
 
   renderUnreadCount: ->

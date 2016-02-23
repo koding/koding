@@ -1,20 +1,25 @@
-$header-height              = 52px
+$header-height              = 40px
+$video-height               = 400px
+
 
 .ChannelThreadPane
 .ChannelThreadPane-body
   dFlex()
   vendor                    flex-direction, row
+  height                    100%
 
 .ChannelThreadPane-content
   dFlex()
   rel()
   vendor                    flex, 1
   vendor                    flex-direction, column
+  height                    100vh
+  height                    100%
 
 .ChannelThreadPane-header
   bg                        color, #fcfcfc
   padding                   0 20px 0 34px
-  vendor                    flex, 0 0 40px
+  vendor                    flex, 0 0 $header-height
   vendor                    align-items, center
   dFlex()
   rel()
@@ -23,6 +28,25 @@ $header-height              = 52px
     rel()
     top                     -2px
     margin                  0 15px
+
+.ChannelThreadPane-videoContainer
+  vendor                    flex, 0.00001
+  vendor                    transition, flex .177s ease
+
+  iframe
+    size                    100% $video-height
+
+
+.ChannelThreadPane.is-withVideo
+  .ChannelThreadPane-videoContainer
+    vendor                  flex, 0 0 $video-height
+
+  .ChatPane .Pane-contentWrapper
+    kalc                    height, 100vh \- ($header-height + $video-height)
+
+  .DateMarker-fixed
+    top                     ($header-height + $video-height)
+
 
 .ChannelThreadPane-purposeWrapper
   .ChannelThreadPane-purpose
@@ -64,6 +88,11 @@ $header-height              = 52px
 .ChannelThreadPane.is-withChat
   .ThreadPane-chatWrapper
     vendor                  flex, 1
+
+.ThreadPane-chatWrapper
+  height                    100%
+  > div
+    height                  100%
 
 .ThreadPane-chatWrapper
 .ChannelThreadPane-postWrapper

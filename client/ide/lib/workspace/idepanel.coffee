@@ -6,6 +6,7 @@ IDETailerPane             = require './panes/idetailerpane'
 IDEFinderPane             = require './panes/idefinderpane'
 IDEPreviewPane            = require './panes/idepreviewpane'
 IDETerminalPane           = require './panes/ideterminalpane'
+IDECollaborationPane      = require './panes/idecollaborationpane'
 IDEWorkspaceLayoutBuilder = require './ideworkspacelayoutbuilder'
 
 
@@ -61,6 +62,7 @@ module.exports = class IDEPanel extends KDView
       finder    : IDEFinderPane
       drawing   : IDEDrawingPane
       tailer    : IDETailerPane
+      collaboration : IDECollaborationPane
 
     return paneClasses[paneType]
 

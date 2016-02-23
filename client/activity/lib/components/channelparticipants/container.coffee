@@ -9,14 +9,18 @@ KDReactorMixin = require 'app/flux/base/reactormixin'
 
 module.exports = class ChannelParticipantsContainer extends React.Component
 
+  MAX_PREVIEW_COUNT = 19
+
   @propTypes =
-    channelThread : React.PropTypes.instanceOf immutable.Map
-    participants  : React.PropTypes.instanceOf immutable.Map
+    channelThread   : React.PropTypes.instanceOf immutable.Map
+    participants    : React.PropTypes.instanceOf immutable.Map
+    maxPreviewCount : React.PropTypes.number
 
 
   @defaultProps =
-    channelThread : immutable.Map()
-    participants  : immutable.Map()
+    channelThread   : immutable.Map()
+    participants    : immutable.Map()
+    maxPreviewCount : MAX_PREVIEW_COUNT
 
 
   constructor: (props) ->
@@ -78,6 +82,12 @@ module.exports = class ChannelParticipantsContainer extends React.Component
 
   onNewParticipantButtonClick: ->
 
+    # hijack all the event handling of new participant button click to allow
+    # owners to define their own new participant button click handlers. this is
+    # useful for places like collaboration chat pane.
+    if 'function' is typeof @props.onNewParticipantButtonClick
+      return @props.onNewParticipantButtonClick()
+
     if @state.addNewParticipantMode is yes
     then @setState { addNewParticipantMode: no }
     else
@@ -100,6 +110,7 @@ module.exports = class ChannelParticipantsContainer extends React.Component
       ref                               = 'view'
       query                             = { @state.query }
       isParticipant                     = { isParticipant }
+      maxPreviewCount                   = { @props.maxPreviewCount }
       participants                      = { @props.participants }
       selectedItem                      = { @state.selectedItem }
       items                             = { @state.dropdownUsers }
