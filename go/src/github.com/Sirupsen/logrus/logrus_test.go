@@ -191,7 +191,7 @@ func TestUserSuppliedLevelFieldHasPrefix(t *testing.T) {
 		log.WithField("level", 1).Info("test")
 	}, func(fields Fields) {
 		assert.Equal(t, fields["level"], "info")
-		assert.Equal(t, fields["fields.level"], 1)
+		assert.Equal(t, fields["fields.level"], 1.0) // JSON has floats only
 	})
 }
 
@@ -296,6 +296,21 @@ func TestGetSetLevelRace(t *testing.T) {
 			}
 		}(i)
 
+	}
+	wg.Wait()
+}
+
+func TestLoggingRace(t *testing.T) {
+	logger := New()
+
+	var wg sync.WaitGroup
+	wg.Add(100)
+
+	for i := 0; i < 100; i++ {
+		go func() {
+			logger.Info("info")
+			wg.Done()
+		}()
 	}
 	wg.Wait()
 }

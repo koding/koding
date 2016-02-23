@@ -120,7 +120,7 @@ func (c *WAF) CreateRuleRequest(input *CreateRuleInput) (req *request.Request, o
 // to be allowed or blocked. For example, suppose you add the following to a
 // Rule:
 //
-//  An IPSet that matches the IP address 192.0.2.44/32  A ByteMatchSet that
+//  An IPSet that matches the IP address 192.0.2.44/32 A ByteMatchSet that
 // matches BadBot in the User-Agent header  You then add the Rule to a WebACL
 // and specify that you want to blocks requests that satisfy the Rule. For a
 // request to be blocked, it must come from the IP address 192.0.2.44 and the
@@ -140,6 +140,49 @@ func (c *WAF) CreateRuleRequest(input *CreateRuleInput) (req *request.Request, o
 // Developer Guide (http://docs.aws.amazon.com/waf/latest/developerguide/).
 func (c *WAF) CreateRule(input *CreateRuleInput) (*CreateRuleOutput, error) {
 	req, out := c.CreateRuleRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opCreateSizeConstraintSet = "CreateSizeConstraintSet"
+
+// CreateSizeConstraintSetRequest generates a request for the CreateSizeConstraintSet operation.
+func (c *WAF) CreateSizeConstraintSetRequest(input *CreateSizeConstraintSetInput) (req *request.Request, output *CreateSizeConstraintSetOutput) {
+	op := &request.Operation{
+		Name:       opCreateSizeConstraintSet,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateSizeConstraintSetInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &CreateSizeConstraintSetOutput{}
+	req.Data = output
+	return
+}
+
+// Creates a SizeConstraintSet. You then use UpdateSizeConstraintSet to identify
+// the part of a web request that you want AWS WAF to check for length, such
+// as the length of the User-Agent header or the length of the query string.
+// For example, you can create a SizeConstraintSet that matches any requests
+// that have a query string that is longer than 100 bytes. You can then configure
+// AWS WAF to reject those requests.
+//
+// To create and configure a SizeConstraintSet, perform the following steps:
+//
+//  Use GetChangeToken to get the change token that you provide in the ChangeToken
+// parameter of a CreateSizeConstraintSet request. Submit a CreateSizeConstraintSet
+// request. Use GetChangeToken to get the change token that you provide in the
+// ChangeToken parameter of an UpdateSizeConstraintSet request. Submit an UpdateSizeConstraintSet
+// request to specify the part of the request that you want AWS WAF to inspect
+// (for example, the header or the URI) and the value that you want AWS WAF
+// to watch for.  For more information about how to use the AWS WAF API to allow
+// or block HTTP requests, see the AWS WAF Developer Guide (http://docs.aws.amazon.com/waf/latest/developerguide/).
+func (c *WAF) CreateSizeConstraintSet(input *CreateSizeConstraintSetInput) (*CreateSizeConstraintSetOutput, error) {
+	req, out := c.CreateSizeConstraintSetRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -344,6 +387,44 @@ func (c *WAF) DeleteRule(input *DeleteRuleInput) (*DeleteRuleOutput, error) {
 	return out, err
 }
 
+const opDeleteSizeConstraintSet = "DeleteSizeConstraintSet"
+
+// DeleteSizeConstraintSetRequest generates a request for the DeleteSizeConstraintSet operation.
+func (c *WAF) DeleteSizeConstraintSetRequest(input *DeleteSizeConstraintSetInput) (req *request.Request, output *DeleteSizeConstraintSetOutput) {
+	op := &request.Operation{
+		Name:       opDeleteSizeConstraintSet,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteSizeConstraintSetInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DeleteSizeConstraintSetOutput{}
+	req.Data = output
+	return
+}
+
+// Permanently deletes a SizeConstraintSet. You can't delete a SizeConstraintSet
+// if it's still used in any Rules or if it still includes any SizeConstraint
+// objects (any filters).
+//
+// If you just want to remove a SizeConstraintSet from a Rule, use UpdateRule.
+//
+// To permanently delete a SizeConstraintSet, perform the following steps:
+//
+//  Update the SizeConstraintSet to remove filters, if any. For more information,
+// see UpdateSizeConstraintSet. Use GetChangeToken to get the change token that
+// you provide in the ChangeToken parameter of a DeleteSizeConstraintSet request.
+// Submit a DeleteSizeConstraintSet request.
+func (c *WAF) DeleteSizeConstraintSet(input *DeleteSizeConstraintSetInput) (*DeleteSizeConstraintSetOutput, error) {
+	req, out := c.DeleteSizeConstraintSetRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opDeleteSqlInjectionMatchSet = "DeleteSqlInjectionMatchSet"
 
 // DeleteSqlInjectionMatchSetRequest generates a request for the DeleteSqlInjectionMatchSet operation.
@@ -508,10 +589,10 @@ func (c *WAF) GetChangeTokenStatusRequest(input *GetChangeTokenStatusInput) (req
 // Returns the status of a ChangeToken that you got by calling GetChangeToken.
 // ChangeTokenStatus is one of the following values:
 //
-//   PROVISIONED: You requested the change token by calling GetChangeToken,
+//  PROVISIONED: You requested the change token by calling GetChangeToken,
 // but you haven't used it yet in a call to create, update, or delete an AWS
-// WAF object.  PENDING: AWS WAF is propagating the create, update, or delete
-// request to all AWS WAF servers.  IN_SYNC: Propagation is complete.
+// WAF object. PENDING: AWS WAF is propagating the create, update, or delete
+// request to all AWS WAF servers. IN_SYNC: Propagation is complete.
 func (c *WAF) GetChangeTokenStatus(input *GetChangeTokenStatusInput) (*GetChangeTokenStatusOutput, error) {
 	req, out := c.GetChangeTokenStatusRequest(input)
 	err := req.Send()
@@ -606,6 +687,33 @@ func (c *WAF) GetSampledRequestsRequest(input *GetSampledRequestsInput) (req *re
 // during which AWS WAF selected the requests in the sample.
 func (c *WAF) GetSampledRequests(input *GetSampledRequestsInput) (*GetSampledRequestsOutput, error) {
 	req, out := c.GetSampledRequestsRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opGetSizeConstraintSet = "GetSizeConstraintSet"
+
+// GetSizeConstraintSetRequest generates a request for the GetSizeConstraintSet operation.
+func (c *WAF) GetSizeConstraintSetRequest(input *GetSizeConstraintSetInput) (req *request.Request, output *GetSizeConstraintSetOutput) {
+	op := &request.Operation{
+		Name:       opGetSizeConstraintSet,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetSizeConstraintSetInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &GetSizeConstraintSetOutput{}
+	req.Data = output
+	return
+}
+
+// Returns the SizeConstraintSet specified by SizeConstraintSetId.
+func (c *WAF) GetSizeConstraintSet(input *GetSizeConstraintSetInput) (*GetSizeConstraintSetOutput, error) {
+	req, out := c.GetSizeConstraintSetRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -741,6 +849,33 @@ func (c *WAF) ListRulesRequest(input *ListRulesInput) (req *request.Request, out
 // Returns an array of RuleSummary objects.
 func (c *WAF) ListRules(input *ListRulesInput) (*ListRulesOutput, error) {
 	req, out := c.ListRulesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opListSizeConstraintSets = "ListSizeConstraintSets"
+
+// ListSizeConstraintSetsRequest generates a request for the ListSizeConstraintSets operation.
+func (c *WAF) ListSizeConstraintSetsRequest(input *ListSizeConstraintSetsInput) (req *request.Request, output *ListSizeConstraintSetsOutput) {
+	op := &request.Operation{
+		Name:       opListSizeConstraintSets,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListSizeConstraintSetsInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ListSizeConstraintSetsOutput{}
+	req.Data = output
+	return
+}
+
+// Returns an array of SizeConstraintSetSummary objects.
+func (c *WAF) ListSizeConstraintSets(input *ListSizeConstraintSetsInput) (*ListSizeConstraintSetsOutput, error) {
+	req, out := c.ListSizeConstraintSetsRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -933,7 +1068,7 @@ func (c *WAF) UpdateRuleRequest(input *UpdateRuleInput) (req *request.Request, o
 // blocked, or counted. For example, suppose you add the following to a Rule:
 //
 //  A ByteMatchSet that matches the value BadBot in the User-Agent header An
-// IPSet that matches the IP address 192.0.2.44   You then add the Rule to a
+// IPSet that matches the IP address 192.0.2.44  You then add the Rule to a
 // WebACL and specify that you want to block requests that satisfy the Rule.
 // For a request to be blocked, the User-Agent header in the request must contain
 // the value BadBot and the request must originate from the IP address 192.0.2.44.
@@ -952,6 +1087,60 @@ func (c *WAF) UpdateRuleRequest(input *UpdateRuleInput) (req *request.Request, o
 // HTTP requests, see the AWS WAF Developer Guide (http://docs.aws.amazon.com/waf/latest/developerguide/).
 func (c *WAF) UpdateRule(input *UpdateRuleInput) (*UpdateRuleOutput, error) {
 	req, out := c.UpdateRuleRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opUpdateSizeConstraintSet = "UpdateSizeConstraintSet"
+
+// UpdateSizeConstraintSetRequest generates a request for the UpdateSizeConstraintSet operation.
+func (c *WAF) UpdateSizeConstraintSetRequest(input *UpdateSizeConstraintSetInput) (req *request.Request, output *UpdateSizeConstraintSetOutput) {
+	op := &request.Operation{
+		Name:       opUpdateSizeConstraintSet,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateSizeConstraintSetInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &UpdateSizeConstraintSetOutput{}
+	req.Data = output
+	return
+}
+
+// Inserts or deletes SizeConstraint objects (filters) in a SizeConstraintSet.
+// For each SizeConstraint object, you specify the following values:
+//
+//  Whether to insert or delete the object from the array. If you want to change
+// a SizeConstraintSetUpdate object, you delete the existing object and add
+// a new one. The part of a web request that you want AWS WAF to evaluate, such
+// as the length of a query string or the length of the User-Agent header. Whether
+// to perform any transformations on the request, such as converting it to lowercase,
+// before checking its length. Note that transformations of the request body
+// are not supported because the AWS resource forwards only the first 8192 bytes
+// of your request to AWS WAF. A ComparisonOperator used for evaluating the
+// selected part of the request against the specified Size, such as equals,
+// greater than, less than, and so on. The length, in bytes, that you want AWS
+// WAF to watch for in selected part of the request. The length is computed
+// after applying the transformation.  For example, you can add a SizeConstraintSetUpdate
+// object that matches web requests in which the length of the User-Agent header
+// is greater than 100 bytes. You can then configure AWS WAF to block those
+// requests.
+//
+// To create and configure a SizeConstraintSet, perform the following steps:
+//
+//  Create a SizeConstraintSet. For more information, see CreateSizeConstraintSet.
+// Use GetChangeToken to get the change token that you provide in the ChangeToken
+// parameter of an UpdateSizeConstraintSet request. Submit an UpdateSizeConstraintSet
+// request to specify the part of the request that you want AWS WAF to inspect
+// (for example, the header or the URI) and the value that you want AWS WAF
+// to watch for.  For more information about how to use the AWS WAF API to allow
+// or block HTTP requests, see the AWS WAF Developer Guide (http://docs.aws.amazon.com/waf/latest/developerguide/).
+func (c *WAF) UpdateSizeConstraintSet(input *UpdateSizeConstraintSetInput) (*UpdateSizeConstraintSetOutput, error) {
+	req, out := c.UpdateSizeConstraintSetRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -979,17 +1168,17 @@ func (c *WAF) UpdateSqlInjectionMatchSetRequest(input *UpdateSqlInjectionMatchSe
 // Inserts or deletes SqlInjectionMatchTuple objects (filters) in a SqlInjectionMatchSet.
 // For each SqlInjectionMatchTuple object, you specify the following values:
 //
-//   Action: Whether to insert the object into or delete the object from the
+//  Action: Whether to insert the object into or delete the object from the
 // array. To change a SqlInjectionMatchTuple, you delete the existing object
-// and add a new one.  FieldToMatch: The part of web requests that you want
-// AWS WAF to inspect and, if you want AWS WAF to inspect a header, the name
-// of the header.  TextTransformation: Which text transformation, if any, to
-// perform on the web request before inspecting the request for snippets of
-// malicious SQL code.  You use SqlInjectionMatchSet objects to specify which
-// CloudFront requests you want to allow, block, or count. For example, if you're
-// receiving requests that contain snippets of SQL code in the query string
-// and you want to block the requests, you can create a SqlInjectionMatchSet
-// with the applicable settings, and then configure AWS WAF to block the requests.
+// and add a new one. FieldToMatch: The part of web requests that you want AWS
+// WAF to inspect and, if you want AWS WAF to inspect a header, the name of
+// the header. TextTransformation: Which text transformation, if any, to perform
+// on the web request before inspecting the request for snippets of malicious
+// SQL code.  You use SqlInjectionMatchSet objects to specify which CloudFront
+// requests you want to allow, block, or count. For example, if you're receiving
+// requests that contain snippets of SQL code in the query string and you want
+// to block the requests, you can create a SqlInjectionMatchSet with the applicable
+// settings, and then configure AWS WAF to block the requests.
 //
 // To create and configure a SqlInjectionMatchSet, perform the following steps:
 //
@@ -1070,11 +1259,13 @@ func (c *WAF) UpdateWebACL(input *UpdateWebACLInput) (*UpdateWebACLOutput, error
 // To specify whether to insert or delete a Rule, use the Action parameter
 // in the WebACLUpdate data type.
 type ActivatedRule struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the action that CloudFront or AWS WAF takes when a web request
 	// matches the conditions in the Rule. Valid values for Action include the following:
 	//
-	//   ALLOW: CloudFront responds with the requested object.  BLOCK: CloudFront
-	// responds with an HTTP 403 (Forbidden) status code.  COUNT: AWS WAF increments
+	//  ALLOW: CloudFront responds with the requested object. BLOCK: CloudFront
+	// responds with an HTTP 403 (Forbidden) status code. COUNT: AWS WAF increments
 	// a counter of requests that match the conditions in the rule and then continues
 	// to inspect the web request based on the remaining rules in the web ACL.
 	Action *WafAction `type:"structure" required:"true"`
@@ -1092,12 +1283,6 @@ type ActivatedRule struct {
 	//
 	// RuleId is returned by CreateRule and by ListRules.
 	RuleId *string `min:"1" type:"string" required:"true"`
-
-	metadataActivatedRule `json:"-" xml:"-"`
-}
-
-type metadataActivatedRule struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1120,6 +1305,8 @@ func (s ActivatedRule) GoString() string {
 // object, a request needs to match the settings in only one ByteMatchTuple
 // to be considered a match.
 type ByteMatchSet struct {
+	_ struct{} `type:"structure"`
+
 	// The ByteMatchSetId for a ByteMatchSet. You use ByteMatchSetId to get information
 	// about a ByteMatchSet (see GetByteMatchSet), update a ByteMatchSet (see UpdateByteMatchSet,
 	// insert a ByteMatchSet into a Rule or delete one from a Rule (see UpdateRule),
@@ -1136,12 +1323,6 @@ type ByteMatchSet struct {
 	// A friendly name or description of the ByteMatchSet. You can't change Name
 	// after you create a ByteMatchSet.
 	Name *string `min:"1" type:"string"`
-
-	metadataByteMatchSet `json:"-" xml:"-"`
-}
-
-type metadataByteMatchSet struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1157,6 +1338,8 @@ func (s ByteMatchSet) GoString() string {
 // Returned by ListByteMatchSets. Each ByteMatchSetSummary object includes the
 // Name and ByteMatchSetId for one ByteMatchSet.
 type ByteMatchSetSummary struct {
+	_ struct{} `type:"structure"`
+
 	// The ByteMatchSetId for a ByteMatchSet. You use ByteMatchSetId to get information
 	// about a ByteMatchSet, update a ByteMatchSet, remove a ByteMatchSet from a
 	// Rule, and delete a ByteMatchSet from AWS WAF.
@@ -1167,12 +1350,6 @@ type ByteMatchSetSummary struct {
 	// A friendly name or description of the ByteMatchSet. You can't change Name
 	// after you create a ByteMatchSet.
 	Name *string `min:"1" type:"string" required:"true"`
-
-	metadataByteMatchSetSummary `json:"-" xml:"-"`
-}
-
-type metadataByteMatchSetSummary struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1188,6 +1365,8 @@ func (s ByteMatchSetSummary) GoString() string {
 // In an UpdateByteMatchSet request, ByteMatchSetUpdate specifies whether to
 // insert or delete a ByteMatchTuple and includes the settings for the ByteMatchTuple.
 type ByteMatchSetUpdate struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether to insert or delete a ByteMatchTuple.
 	Action *string `type:"string" required:"true" enum:"ChangeAction"`
 
@@ -1196,12 +1375,6 @@ type ByteMatchSetUpdate struct {
 	// for the value of Action, the ByteMatchTuple values must exactly match the
 	// values in the ByteMatchTuple that you want to delete from the ByteMatchSet.
 	ByteMatchTuple *ByteMatchTuple `type:"structure" required:"true"`
-
-	metadataByteMatchSetUpdate `json:"-" xml:"-"`
-}
-
-type metadataByteMatchSetUpdate struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1218,6 +1391,8 @@ func (s ByteMatchSetUpdate) GoString() string {
 // you want AWS WAF to search for in web requests, the location in requests
 // that you want AWS WAF to search, and other settings.
 type ByteMatchTuple struct {
+	_ struct{} `type:"structure"`
+
 	// The part of a web request that you want AWS WAF to search, such as a specified
 	// header or a query string. For more information, see FieldToMatch.
 	FieldToMatch *FieldToMatch `type:"structure" required:"true"`
@@ -1238,15 +1413,15 @@ type ByteMatchTuple struct {
 	// (A-Z, a-z, 0-9, or _). In addition, TargetString must be a word, which means
 	// one of the following:
 	//
-	//   TargetString exactly matches the value of the specified part of the web
-	// request, such as the value of a header.  TargetString is at the beginning
+	//  TargetString exactly matches the value of the specified part of the web
+	// request, such as the value of a header. TargetString is at the beginning
 	// of the specified part of the web request and is followed by a character other
-	// than an alphanumeric character or underscore (_), for example, BadBot;.
-	// TargetString is at the end of the specified part of the web request and is
-	// preceded by a character other than an alphanumeric character or underscore
-	// (_), for example, ;BadBot.  TargetString is in the middle of the specified
-	// part of the web request and is preceded and followed by characters other
-	// than alphanumeric characters or underscore (_), for example, -BadBot;.  EXACTLY
+	// than an alphanumeric character or underscore (_), for example, BadBot;. TargetString
+	// is at the end of the specified part of the web request and is preceded by
+	// a character other than an alphanumeric character or underscore (_), for example,
+	// ;BadBot. TargetString is in the middle of the specified part of the web request
+	// and is preceded and followed by characters other than alphanumeric characters
+	// or underscore (_), for example, -BadBot;.  EXACTLY
 	//
 	// The value of the specified part of the web request must exactly match the
 	// value of TargetString.
@@ -1268,15 +1443,21 @@ type ByteMatchTuple struct {
 	//
 	// Valid values depend on the values that you specified for FieldToMatch:
 	//
-	//   HEADER: The value that you want AWS WAF to search for in the request header
+	//  HEADER: The value that you want AWS WAF to search for in the request header
 	// that you specified in FieldToMatch, for example, the value of the User-Agent
-	// or Referer header.  METHOD: The HTTP method, which indicates the type of
-	// operation specified in the request. CloudFront supports the following methods:
-	// DELETE, GET, HEAD, OPTIONS, PATCH, POST, and PUT.  QUERY_STRING: The value
-	// that you want AWS WAF to search for in the query string, which is the part
-	// of a URL that appears after a ? character.  URI: The value that you want
-	// AWS WAF to search for in the part of a URL that identifies a resource, for
-	// example, /images/daily-ad.jpg.  If TargetString includes alphabetic characters
+	// or Referer header. METHOD: The HTTP method, which indicates the type of operation
+	// specified in the request. CloudFront supports the following methods: DELETE,
+	// GET, HEAD, OPTIONS, PATCH, POST, and PUT. QUERY_STRING: The value that you
+	// want AWS WAF to search for in the query string, which is the part of a URL
+	// that appears after a ? character. URI: The value that you want AWS WAF to
+	// search for in the part of a URL that identifies a resource, for example,
+	// /images/daily-ad.jpg. BODY: The part of a request that contains any additional
+	// data that you want to send to your web server as the HTTP request body, such
+	// as data from a form. The request body immediately follows the request headers.
+	// Note that only the first 8192 bytes of the request body are forwarded to
+	// AWS WAF for inspection. To allow or block requests based on the length of
+	// the body, you can create a size constraint set. For more information, see
+	// CreateSizeConstraintSet.   If TargetString includes alphabetic characters
 	// A-Z and a-z, note that the value is case sensitive.
 	//
 	// If you're using the AWS WAF API
@@ -1324,9 +1505,9 @@ type ByteMatchTuple struct {
 	// Use this option to replace HTML-encoded characters with unencoded characters.
 	// HTML_ENTITY_DECODE performs the following operations:
 	//
-	//  Replaces (ampersand)quot; with "  Replaces (ampersand)nbsp; with a non-breaking
+	//  Replaces (ampersand)quot; with " Replaces (ampersand)nbsp; with a non-breaking
 	// space, decimal 160 Replaces (ampersand)lt; with a "less than" symbol Replaces
-	// (ampersand)gt; with >  Replaces characters that are represented in hexadecimal
+	// (ampersand)gt; with > Replaces characters that are represented in hexadecimal
 	// format, (ampersand)#xhhhh;, with the corresponding characters Replaces characters
 	// that are represented in decimal format, (ampersand)#nnnn;, with the corresponding
 	// characters  LOWERCASE
@@ -1341,12 +1522,6 @@ type ByteMatchTuple struct {
 	//
 	// Specify NONE if you don't want to perform any text transformations.
 	TextTransformation *string `type:"string" required:"true" enum:"TextTransformation"`
-
-	metadataByteMatchTuple `json:"-" xml:"-"`
-}
-
-type metadataByteMatchTuple struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1360,18 +1535,14 @@ func (s ByteMatchTuple) GoString() string {
 }
 
 type CreateByteMatchSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
 	// A friendly name or description of the ByteMatchSet. You can't change Name
 	// after you create a ByteMatchSet.
 	Name *string `min:"1" type:"string" required:"true"`
-
-	metadataCreateByteMatchSetInput `json:"-" xml:"-"`
-}
-
-type metadataCreateByteMatchSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1385,6 +1556,8 @@ func (s CreateByteMatchSetInput) GoString() string {
 }
 
 type CreateByteMatchSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A ByteMatchSet that contains no ByteMatchTuple objects.
 	ByteMatchSet *ByteMatchSet `type:"structure"`
 
@@ -1392,12 +1565,6 @@ type CreateByteMatchSetOutput struct {
 	// can also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataCreateByteMatchSetOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateByteMatchSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1411,18 +1578,14 @@ func (s CreateByteMatchSetOutput) GoString() string {
 }
 
 type CreateIPSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
 	// A friendly name or description of the IPSet. You can't change Name after
 	// you create the IPSet.
 	Name *string `min:"1" type:"string" required:"true"`
-
-	metadataCreateIPSetInput `json:"-" xml:"-"`
-}
-
-type metadataCreateIPSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1436,6 +1599,8 @@ func (s CreateIPSetInput) GoString() string {
 }
 
 type CreateIPSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the CreateIPSet request. You can
 	// also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
@@ -1443,12 +1608,6 @@ type CreateIPSetOutput struct {
 
 	// The IPSet returned in the CreateIPSet response.
 	IPSet *IPSet `type:"structure"`
-
-	metadataCreateIPSetOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateIPSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1462,6 +1621,8 @@ func (s CreateIPSetOutput) GoString() string {
 }
 
 type CreateRuleInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
@@ -1474,12 +1635,6 @@ type CreateRuleInput struct {
 	// A friendly name or description of the Rule. You can't change the name of
 	// a Rule after you create it.
 	Name *string `min:"1" type:"string" required:"true"`
-
-	metadataCreateRuleInput `json:"-" xml:"-"`
-}
-
-type metadataCreateRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1493,6 +1648,8 @@ func (s CreateRuleInput) GoString() string {
 }
 
 type CreateRuleOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the CreateRule request. You can also
 	// use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
@@ -1500,12 +1657,6 @@ type CreateRuleOutput struct {
 
 	// The Rule returned in the CreateRule response.
 	Rule *Rule `type:"structure"`
-
-	metadataCreateRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1518,20 +1669,59 @@ func (s CreateRuleOutput) GoString() string {
 	return s.String()
 }
 
+type CreateSizeConstraintSetInput struct {
+	_ struct{} `type:"structure"`
+
+	// The value returned by the most recent call to GetChangeToken.
+	ChangeToken *string `type:"string" required:"true"`
+
+	// A friendly name or description of the SizeConstraintSet. You can't change
+	// Name after you create a SizeConstraintSet.
+	Name *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateSizeConstraintSetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateSizeConstraintSetInput) GoString() string {
+	return s.String()
+}
+
+type CreateSizeConstraintSetOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ChangeToken that you used to submit the CreateSizeConstraintSet request.
+	// You can also use this value to query the status of the request. For more
+	// information, see GetChangeTokenStatus.
+	ChangeToken *string `type:"string"`
+
+	// A SizeConstraintSet that contains no SizeConstraint objects.
+	SizeConstraintSet *SizeConstraintSet `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateSizeConstraintSetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateSizeConstraintSetOutput) GoString() string {
+	return s.String()
+}
+
 // A request to create a SqlInjectionMatchSet.
 type CreateSqlInjectionMatchSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
 	// A friendly name or description for the SqlInjectionMatchSet that you're creating.
 	// You can't change Name after you create the SqlInjectionMatchSet.
 	Name *string `min:"1" type:"string" required:"true"`
-
-	metadataCreateSqlInjectionMatchSetInput `json:"-" xml:"-"`
-}
-
-type metadataCreateSqlInjectionMatchSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1546,6 +1736,8 @@ func (s CreateSqlInjectionMatchSetInput) GoString() string {
 
 // The response to a CreateSqlInjectionMatchSet request.
 type CreateSqlInjectionMatchSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the CreateSqlInjectionMatchSet request.
 	// You can also use this value to query the status of the request. For more
 	// information, see GetChangeTokenStatus.
@@ -1553,12 +1745,6 @@ type CreateSqlInjectionMatchSetOutput struct {
 
 	// A SqlInjectionMatchSet.
 	SqlInjectionMatchSet *SqlInjectionMatchSet `type:"structure"`
-
-	metadataCreateSqlInjectionMatchSetOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateSqlInjectionMatchSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1572,6 +1758,8 @@ func (s CreateSqlInjectionMatchSetOutput) GoString() string {
 }
 
 type CreateWebACLInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
@@ -1588,12 +1776,6 @@ type CreateWebACLInput struct {
 	// A friendly name or description of the WebACL. You can't change Name after
 	// you create the WebACL.
 	Name *string `min:"1" type:"string" required:"true"`
-
-	metadataCreateWebACLInput `json:"-" xml:"-"`
-}
-
-type metadataCreateWebACLInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1607,6 +1789,8 @@ func (s CreateWebACLInput) GoString() string {
 }
 
 type CreateWebACLOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the CreateWebACL request. You can
 	// also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
@@ -1614,12 +1798,6 @@ type CreateWebACLOutput struct {
 
 	// The WebACL returned in the CreateWebACL response.
 	WebACL *WebACL `type:"structure"`
-
-	metadataCreateWebACLOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateWebACLOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1633,18 +1811,14 @@ func (s CreateWebACLOutput) GoString() string {
 }
 
 type DeleteByteMatchSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ByteMatchSetId of the ByteMatchSet that you want to delete. ByteMatchSetId
 	// is returned by CreateByteMatchSet and by ListByteMatchSets.
 	ByteMatchSetId *string `min:"1" type:"string" required:"true"`
 
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
-
-	metadataDeleteByteMatchSetInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteByteMatchSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1658,16 +1832,12 @@ func (s DeleteByteMatchSetInput) GoString() string {
 }
 
 type DeleteByteMatchSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the DeleteByteMatchSet request. You
 	// can also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataDeleteByteMatchSetOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteByteMatchSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1681,18 +1851,14 @@ func (s DeleteByteMatchSetOutput) GoString() string {
 }
 
 type DeleteIPSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
 	// The IPSetId of the IPSet that you want to delete. IPSetId is returned by
 	// CreateIPSet and by ListIPSets.
 	IPSetId *string `min:"1" type:"string" required:"true"`
-
-	metadataDeleteIPSetInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteIPSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1706,16 +1872,12 @@ func (s DeleteIPSetInput) GoString() string {
 }
 
 type DeleteIPSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the DeleteIPSet request. You can
 	// also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataDeleteIPSetOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteIPSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1729,18 +1891,14 @@ func (s DeleteIPSetOutput) GoString() string {
 }
 
 type DeleteRuleInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
 	// The RuleId of the Rule that you want to delete. RuleId is returned by CreateRule
 	// and by ListRules.
 	RuleId *string `min:"1" type:"string" required:"true"`
-
-	metadataDeleteRuleInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1754,16 +1912,12 @@ func (s DeleteRuleInput) GoString() string {
 }
 
 type DeleteRuleOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the DeleteRule request. You can also
 	// use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataDeleteRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1776,20 +1930,56 @@ func (s DeleteRuleOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteSizeConstraintSetInput struct {
+	_ struct{} `type:"structure"`
+
+	// The value returned by the most recent call to GetChangeToken.
+	ChangeToken *string `type:"string" required:"true"`
+
+	// The SizeConstraintSetId of the SizeConstraintSet that you want to delete.
+	// SizeConstraintSetId is returned by CreateSizeConstraintSet and by ListSizeConstraintSets.
+	SizeConstraintSetId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteSizeConstraintSetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteSizeConstraintSetInput) GoString() string {
+	return s.String()
+}
+
+type DeleteSizeConstraintSetOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ChangeToken that you used to submit the DeleteSizeConstraintSet request.
+	// You can also use this value to query the status of the request. For more
+	// information, see GetChangeTokenStatus.
+	ChangeToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DeleteSizeConstraintSetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteSizeConstraintSetOutput) GoString() string {
+	return s.String()
+}
+
 // A request to delete a SqlInjectionMatchSet from AWS WAF.
 type DeleteSqlInjectionMatchSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
 	// The SqlInjectionMatchSetId of the SqlInjectionMatchSet that you want to delete.
 	// SqlInjectionMatchSetId is returned by CreateSqlInjectionMatchSet and by ListSqlInjectionMatchSets.
 	SqlInjectionMatchSetId *string `min:"1" type:"string" required:"true"`
-
-	metadataDeleteSqlInjectionMatchSetInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSqlInjectionMatchSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1804,16 +1994,12 @@ func (s DeleteSqlInjectionMatchSetInput) GoString() string {
 
 // The response to a request to delete a SqlInjectionMatchSet from AWS WAF.
 type DeleteSqlInjectionMatchSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the DeleteSqlInjectionMatchSet request.
 	// You can also use this value to query the status of the request. For more
 	// information, see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataDeleteSqlInjectionMatchSetOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSqlInjectionMatchSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1827,18 +2013,14 @@ func (s DeleteSqlInjectionMatchSetOutput) GoString() string {
 }
 
 type DeleteWebACLInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
 	// The WebACLId of the WebACL that you want to delete. WebACLId is returned
 	// by CreateWebACL and by ListWebACLs.
 	WebACLId *string `min:"1" type:"string" required:"true"`
-
-	metadataDeleteWebACLInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteWebACLInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1852,16 +2034,12 @@ func (s DeleteWebACLInput) GoString() string {
 }
 
 type DeleteWebACLOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the DeleteWebACL request. You can
 	// also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataDeleteWebACLOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteWebACLOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1876,6 +2054,8 @@ func (s DeleteWebACLOutput) GoString() string {
 
 // Specifies where in a web request to look for TargetString.
 type FieldToMatch struct {
+	_ struct{} `type:"structure"`
+
 	// When the value of Type is HEADER, enter the name of the header that you want
 	// AWS WAF to search, for example, User-Agent or Referer. If the value of Type
 	// is any other value, omit Data.
@@ -1886,21 +2066,21 @@ type FieldToMatch struct {
 	// The part of the web request that you want AWS WAF to search for a specified
 	// string. Parts of a request that you can search include the following:
 	//
-	//   HEADER: A specified request header, for example, the value of the User-Agent
+	//  HEADER: A specified request header, for example, the value of the User-Agent
 	// or Referer header. If you choose HEADER for the type, specify the name of
-	// the header in Data.  METHOD: The HTTP method, which indicated the type of
+	// the header in Data. METHOD: The HTTP method, which indicated the type of
 	// operation that the request is asking the origin to perform. Amazon CloudFront
 	// supports the following methods: DELETE, GET, HEAD, OPTIONS, PATCH, POST,
-	// and PUT.  QUERY_STRING: A query string, which is the part of a URL that appears
-	// after a ? character, if any.  URI: The part of a web request that identifies
-	// a resource, for example, /images/daily-ad.jpg.
+	// and PUT. QUERY_STRING: A query string, which is the part of a URL that appears
+	// after a ? character, if any. URI: The part of a web request that identifies
+	// a resource, for example, /images/daily-ad.jpg. BODY: The part of a request
+	// that contains any additional data that you want to send to your web server
+	// as the HTTP request body, such as data from a form. The request body immediately
+	// follows the request headers. Note that only the first 8192 bytes of the request
+	// body are forwarded to AWS WAF for inspection. To allow or block requests
+	// based on the length of the body, you can create a size constraint set. For
+	// more information, see CreateSizeConstraintSet.
 	Type *string `type:"string" required:"true" enum:"MatchFieldType"`
-
-	metadataFieldToMatch `json:"-" xml:"-"`
-}
-
-type metadataFieldToMatch struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1914,15 +2094,11 @@ func (s FieldToMatch) GoString() string {
 }
 
 type GetByteMatchSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ByteMatchSetId of the ByteMatchSet that you want to get. ByteMatchSetId
 	// is returned by CreateByteMatchSet and by ListByteMatchSets.
 	ByteMatchSetId *string `min:"1" type:"string" required:"true"`
-
-	metadataGetByteMatchSetInput `json:"-" xml:"-"`
-}
-
-type metadataGetByteMatchSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1936,20 +2112,16 @@ func (s GetByteMatchSetInput) GoString() string {
 }
 
 type GetByteMatchSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the ByteMatchSet that you specified in the GetByteMatchSet
 	// request. For more information, see the following topics:
 	//
-	//   ByteMatchSet: Contains ByteMatchSetId, ByteMatchTuples, and Name   ByteMatchTuples:
+	//  ByteMatchSet: Contains ByteMatchSetId, ByteMatchTuples, and Name ByteMatchTuples:
 	// Contains an array of ByteMatchTuple objects. Each ByteMatchTuple object contains
 	// FieldToMatch, PositionalConstraint, TargetString, and TextTransformation
-	//   FieldToMatch: Contains Data and Type
+	// FieldToMatch: Contains Data and Type
 	ByteMatchSet *ByteMatchSet `type:"structure"`
-
-	metadataGetByteMatchSetOutput `json:"-" xml:"-"`
-}
-
-type metadataGetByteMatchSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1963,11 +2135,7 @@ func (s GetByteMatchSetOutput) GoString() string {
 }
 
 type GetChangeTokenInput struct {
-	metadataGetChangeTokenInput `json:"-" xml:"-"`
-}
-
-type metadataGetChangeTokenInput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1981,15 +2149,11 @@ func (s GetChangeTokenInput) GoString() string {
 }
 
 type GetChangeTokenOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used in the request. Use this value in a GetChangeTokenStatus
 	// request to get the current status of the request.
 	ChangeToken *string `type:"string"`
-
-	metadataGetChangeTokenOutput `json:"-" xml:"-"`
-}
-
-type metadataGetChangeTokenOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2003,15 +2167,11 @@ func (s GetChangeTokenOutput) GoString() string {
 }
 
 type GetChangeTokenStatusInput struct {
+	_ struct{} `type:"structure"`
+
 	// The change token for which you want to get the status. This change token
 	// was previously returned in the GetChangeToken response.
 	ChangeToken *string `type:"string" required:"true"`
-
-	metadataGetChangeTokenStatusInput `json:"-" xml:"-"`
-}
-
-type metadataGetChangeTokenStatusInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2025,14 +2185,10 @@ func (s GetChangeTokenStatusInput) GoString() string {
 }
 
 type GetChangeTokenStatusOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The status of the change token.
 	ChangeTokenStatus *string `type:"string" enum:"ChangeTokenStatus"`
-
-	metadataGetChangeTokenStatusOutput `json:"-" xml:"-"`
-}
-
-type metadataGetChangeTokenStatusOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2046,15 +2202,11 @@ func (s GetChangeTokenStatusOutput) GoString() string {
 }
 
 type GetIPSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The IPSetId of the IPSet that you want to get. IPSetId is returned by CreateIPSet
 	// and by ListIPSets.
 	IPSetId *string `min:"1" type:"string" required:"true"`
-
-	metadataGetIPSetInput `json:"-" xml:"-"`
-}
-
-type metadataGetIPSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2068,19 +2220,15 @@ func (s GetIPSetInput) GoString() string {
 }
 
 type GetIPSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the IPSet that you specified in the GetIPSet request. For
 	// more information, see the following topics:
 	//
-	//   IPSet: Contains IPSetDescriptors, IPSetId, and Name   IPSetDescriptors:
-	// Contains an array of IPSetDescriptor objects. Each IPSetDescriptor object
-	// contains Type and Value
+	//  IPSet: Contains IPSetDescriptors, IPSetId, and Name IPSetDescriptors: Contains
+	// an array of IPSetDescriptor objects. Each IPSetDescriptor object contains
+	// Type and Value
 	IPSet *IPSet `type:"structure"`
-
-	metadataGetIPSetOutput `json:"-" xml:"-"`
-}
-
-type metadataGetIPSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2094,15 +2242,11 @@ func (s GetIPSetOutput) GoString() string {
 }
 
 type GetRuleInput struct {
+	_ struct{} `type:"structure"`
+
 	// The RuleId of the Rule that you want to get. RuleId is returned by CreateRule
 	// and by ListRules.
 	RuleId *string `min:"1" type:"string" required:"true"`
-
-	metadataGetRuleInput `json:"-" xml:"-"`
-}
-
-type metadataGetRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2116,18 +2260,14 @@ func (s GetRuleInput) GoString() string {
 }
 
 type GetRuleOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the Rule that you specified in the GetRule request. For
 	// more information, see the following topics:
 	//
-	//   Rule: Contains MetricName, Name, an array of Predicate objects, and RuleId
-	//   Predicate: Each Predicate object contains DataId, Negated, and Type
+	//  Rule: Contains MetricName, Name, an array of Predicate objects, and RuleId
+	// Predicate: Each Predicate object contains DataId, Negated, and Type
 	Rule *Rule `type:"structure"`
-
-	metadataGetRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataGetRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2141,6 +2281,8 @@ func (s GetRuleOutput) GoString() string {
 }
 
 type GetSampledRequestsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The number of requests that you want AWS WAF to return from among the first
 	// 5,000 requests that your AWS resource received during the time range. If
 	// your resource received fewer requests than the value of MaxItems, GetSampledRequests
@@ -2150,7 +2292,7 @@ type GetSampledRequestsInput struct {
 	// RuleId is one of two values:
 	//
 	//  The RuleId of the Rule for which you want GetSampledRequests to return
-	// a sample of requests.  Default_Action, which causes GetSampledRequests to
+	// a sample of requests. Default_Action, which causes GetSampledRequests to
 	// return a sample of the requests that didn't match any of the rules in the
 	// specified WebACL.
 	RuleId *string `min:"1" type:"string" required:"true"`
@@ -2164,12 +2306,6 @@ type GetSampledRequestsInput struct {
 	// The WebACLId of the WebACL for which you want GetSampledRequests to return
 	// a sample of requests.
 	WebAclId *string `min:"1" type:"string" required:"true"`
-
-	metadataGetSampledRequestsInput `json:"-" xml:"-"`
-}
-
-type metadataGetSampledRequestsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2183,6 +2319,8 @@ func (s GetSampledRequestsInput) GoString() string {
 }
 
 type GetSampledRequestsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The total number of requests from which GetSampledRequests got a sample of
 	// MaxItems requests. If PopulationSize is less than MaxItems, the sample includes
 	// every request that your AWS resource received during the specified time range.
@@ -2197,12 +2335,6 @@ type GetSampledRequestsOutput struct {
 	// during the time range that you specified in the request, GetSampledRequests
 	// returns the time range for the first 5,000 requests.
 	TimeWindow *TimeWindow `type:"structure"`
-
-	metadataGetSampledRequestsOutput `json:"-" xml:"-"`
-}
-
-type metadataGetSampledRequestsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2215,17 +2347,54 @@ func (s GetSampledRequestsOutput) GoString() string {
 	return s.String()
 }
 
+type GetSizeConstraintSetInput struct {
+	_ struct{} `type:"structure"`
+
+	// The SizeConstraintSetId of the SizeConstraintSet that you want to get. SizeConstraintSetId
+	// is returned by CreateSizeConstraintSet and by ListSizeConstraintSets.
+	SizeConstraintSetId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetSizeConstraintSetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetSizeConstraintSetInput) GoString() string {
+	return s.String()
+}
+
+type GetSizeConstraintSetOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the SizeConstraintSet that you specified in the GetSizeConstraintSet
+	// request. For more information, see the following topics:
+	//
+	//  SizeConstraintSet: Contains SizeConstraintSetId, SizeConstraints, and Name
+	// SizeConstraints: Contains an array of SizeConstraint objects. Each SizeConstraint
+	// object contains FieldToMatch, TextTransformation, ComparisonOperator, and
+	// Size FieldToMatch: Contains Data and Type
+	SizeConstraintSet *SizeConstraintSet `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetSizeConstraintSetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetSizeConstraintSetOutput) GoString() string {
+	return s.String()
+}
+
 // A request to get a SqlInjectionMatchSet.
 type GetSqlInjectionMatchSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The SqlInjectionMatchSetId of the SqlInjectionMatchSet that you want to get.
 	// SqlInjectionMatchSetId is returned by CreateSqlInjectionMatchSet and by ListSqlInjectionMatchSets.
 	SqlInjectionMatchSetId *string `min:"1" type:"string" required:"true"`
-
-	metadataGetSqlInjectionMatchSetInput `json:"-" xml:"-"`
-}
-
-type metadataGetSqlInjectionMatchSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2240,20 +2409,16 @@ func (s GetSqlInjectionMatchSetInput) GoString() string {
 
 // The response to a GetSqlInjectionMatchSet request.
 type GetSqlInjectionMatchSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the SqlInjectionMatchSet that you specified in the GetSqlInjectionMatchSet
 	// request. For more information, see the following topics:
 	//
-	//   SqlInjectionMatchSet: Contains Name, SqlInjectionMatchSetId, and an array
-	// of SqlInjectionMatchTuple objects  SqlInjectionMatchTuple: Each SqlInjectionMatchTuple
-	// object contains FieldToMatch and TextTransformation   FieldToMatch: Contains
+	//  SqlInjectionMatchSet: Contains Name, SqlInjectionMatchSetId, and an array
+	// of SqlInjectionMatchTuple objects SqlInjectionMatchTuple: Each SqlInjectionMatchTuple
+	// object contains FieldToMatch and TextTransformation FieldToMatch: Contains
 	// Data and Type
 	SqlInjectionMatchSet *SqlInjectionMatchSet `type:"structure"`
-
-	metadataGetSqlInjectionMatchSetOutput `json:"-" xml:"-"`
-}
-
-type metadataGetSqlInjectionMatchSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2267,15 +2432,11 @@ func (s GetSqlInjectionMatchSetOutput) GoString() string {
 }
 
 type GetWebACLInput struct {
+	_ struct{} `type:"structure"`
+
 	// The WebACLId of the WebACL that you want to get. WebACLId is returned by
 	// CreateWebACL and by ListWebACLs.
 	WebACLId *string `min:"1" type:"string" required:"true"`
-
-	metadataGetWebACLInput `json:"-" xml:"-"`
-}
-
-type metadataGetWebACLInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2289,20 +2450,16 @@ func (s GetWebACLInput) GoString() string {
 }
 
 type GetWebACLOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the WebACL that you specified in the GetWebACL request.
 	// For more information, see the following topics:
 	//
-	//   WebACL: Contains DefaultAction, MetricName, Name, an array of Rule objects,
-	// and WebACLId   DefaultAction (Data type is WafAction): Contains Type   Rules:
+	//  WebACL: Contains DefaultAction, MetricName, Name, an array of Rule objects,
+	// and WebACLId DefaultAction (Data type is WafAction): Contains Type Rules:
 	// Contains an array of ActivatedRule objects, which contain Action, Priority,
-	// and RuleId   Action: Contains Type
+	// and RuleId Action: Contains Type
 	WebACL *WebACL `type:"structure"`
-
-	metadataGetWebACLOutput `json:"-" xml:"-"`
-}
-
-type metadataGetWebACLOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2320,17 +2477,13 @@ func (s GetWebACLOutput) GoString() string {
 // the names and values of all of the headers that appear in one of the web
 // requests that were returned by GetSampledRequests.
 type HTTPHeader struct {
+	_ struct{} `type:"structure"`
+
 	// The name of one of the headers in the sampled web request.
 	Name *string `type:"string"`
 
 	// The value of one of the headers in the sampled web request.
 	Value *string `type:"string"`
-
-	metadataHTTPHeader `json:"-" xml:"-"`
-}
-
-type metadataHTTPHeader struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2347,12 +2500,14 @@ func (s HTTPHeader) GoString() string {
 // type that appears as Request in the response syntax. HTTPRequest contains
 // information about one of the web requests that were returned by GetSampledRequests.
 type HTTPRequest struct {
+	_ struct{} `type:"structure"`
+
 	// The IP address that the request originated from. If the WebACL is associated
 	// with a CloudFront distribution, this is the value of one of the following
 	// fields in CloudFront access logs:
 	//
-	//   c-ip, if the viewer did not use an HTTP proxy or a load balancer to send
-	// the request  x-forwarded-for, if the viewer did use an HTTP proxy or a load
+	//  c-ip, if the viewer did not use an HTTP proxy or a load balancer to send
+	// the request x-forwarded-for, if the viewer did use an HTTP proxy or a load
 	// balancer to send the request
 	ClientIP *string `type:"string"`
 
@@ -2374,12 +2529,6 @@ type HTTPRequest struct {
 
 	// The part of a web request that identifies the resource, for example, /images/daily-ad.jpg.
 	URI *string `type:"string"`
-
-	metadataHTTPRequest `json:"-" xml:"-"`
-}
-
-type metadataHTTPRequest struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2399,13 +2548,15 @@ func (s HTTPRequest) GoString() string {
 // /16, or a /8 CIDR. For more information about CIDR notation, perform an Internet
 // search on cidr notation.
 type IPSet struct {
+	_ struct{} `type:"structure"`
+
 	// The IP address type (IPV4) and the IP address range (in CIDR notation) that
 	// web requests originate from. If the WebACL is associated with a CloudFront
 	// distribution, this is the value of one of the following fields in CloudFront
 	// access logs:
 	//
-	//   c-ip, if the viewer did not use an HTTP proxy or a load balancer to send
-	// the request  x-forwarded-for, if the viewer did use an HTTP proxy or a load
+	//  c-ip, if the viewer did not use an HTTP proxy or a load balancer to send
+	// the request x-forwarded-for, if the viewer did use an HTTP proxy or a load
 	// balancer to send the request
 	IPSetDescriptors []*IPSetDescriptor `type:"list" required:"true"`
 
@@ -2420,12 +2571,6 @@ type IPSet struct {
 	// A friendly name or description of the IPSet. You can't change the name of
 	// an IPSet after you create it.
 	Name *string `min:"1" type:"string"`
-
-	metadataIPSet `json:"-" xml:"-"`
-}
-
-type metadataIPSet struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2441,6 +2586,8 @@ func (s IPSet) GoString() string {
 // Specifies the IP address type (IPV4) and the IP address range (in CIDR format)
 // that web requests originate from.
 type IPSetDescriptor struct {
+	_ struct{} `type:"structure"`
+
 	// Specify IPV4.
 	Type *string `type:"string" required:"true" enum:"IPSetDescriptorType"`
 
@@ -2455,12 +2602,6 @@ type IPSetDescriptor struct {
 	// For more information about CIDR notation, see the Wikipedia entry Classless
 	// Inter-Domain Routing (https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing).
 	Value *string `type:"string" required:"true"`
-
-	metadataIPSetDescriptor `json:"-" xml:"-"`
-}
-
-type metadataIPSetDescriptor struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2475,6 +2616,8 @@ func (s IPSetDescriptor) GoString() string {
 
 // Contains the identifier and the name of the IPSet.
 type IPSetSummary struct {
+	_ struct{} `type:"structure"`
+
 	// The IPSetId for an IPSet. You can use IPSetId in a GetIPSet request to get
 	// detailed information about an IPSet.
 	IPSetId *string `min:"1" type:"string" required:"true"`
@@ -2482,12 +2625,6 @@ type IPSetSummary struct {
 	// A friendly name or description of the IPSet. You can't change the name of
 	// an IPSet after you create it.
 	Name *string `min:"1" type:"string" required:"true"`
-
-	metadataIPSetSummary `json:"-" xml:"-"`
-}
-
-type metadataIPSetSummary struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2502,18 +2639,14 @@ func (s IPSetSummary) GoString() string {
 
 // Specifies the type of update to perform to an IPSet with UpdateIPSet.
 type IPSetUpdate struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether to insert or delete an IP address with UpdateIPSet.
 	Action *string `type:"string" required:"true" enum:"ChangeAction"`
 
 	// The IP address type (IPV4) and the IP address range (in CIDR notation) that
 	// web requests originate from.
 	IPSetDescriptor *IPSetDescriptor `type:"structure" required:"true"`
-
-	metadataIPSetUpdate `json:"-" xml:"-"`
-}
-
-type metadataIPSetUpdate struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2527,6 +2660,8 @@ func (s IPSetUpdate) GoString() string {
 }
 
 type ListByteMatchSetsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the number of ByteMatchSet objects that you want AWS WAF to return
 	// for this request. If you have more ByteMatchSets objects than the number
 	// you specify for Limit, the response includes a NextMarker value that you
@@ -2539,12 +2674,6 @@ type ListByteMatchSetsInput struct {
 	// ListByteMatchSets requests, specify the value of NextMarker from the previous
 	// response to get information about another batch of ByteMatchSets.
 	NextMarker *string `min:"1" type:"string"`
-
-	metadataListByteMatchSetsInput `json:"-" xml:"-"`
-}
-
-type metadataListByteMatchSetsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2558,6 +2687,8 @@ func (s ListByteMatchSetsInput) GoString() string {
 }
 
 type ListByteMatchSetsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An array of ByteMatchSetSummary objects.
 	ByteMatchSets []*ByteMatchSetSummary `type:"list"`
 
@@ -2567,12 +2698,6 @@ type ListByteMatchSetsOutput struct {
 	// specify the NextMarker value from the response in the NextMarker value in
 	// the next request.
 	NextMarker *string `min:"1" type:"string"`
-
-	metadataListByteMatchSetsOutput `json:"-" xml:"-"`
-}
-
-type metadataListByteMatchSetsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2586,6 +2711,8 @@ func (s ListByteMatchSetsOutput) GoString() string {
 }
 
 type ListIPSetsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the number of IPSet objects that you want AWS WAF to return for
 	// this request. If you have more IPSet objects than the number you specify
 	// for Limit, the response includes a NextMarker value that you can use to get
@@ -2598,12 +2725,6 @@ type ListIPSetsInput struct {
 	// requests, specify the value of NextMarker from the previous response to get
 	// information about another batch of ByteMatchSets.
 	NextMarker *string `min:"1" type:"string"`
-
-	metadataListIPSetsInput `json:"-" xml:"-"`
-}
-
-type metadataListIPSetsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2617,6 +2738,8 @@ func (s ListIPSetsInput) GoString() string {
 }
 
 type ListIPSetsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An array of IPSetSummary objects.
 	IPSets []*IPSetSummary `type:"list"`
 
@@ -2625,12 +2748,6 @@ type ListIPSetsOutput struct {
 	// objects, submit another ListIPSets request, and specify the NextMarker value
 	// from the response in the NextMarker value in the next request.
 	NextMarker *string `min:"1" type:"string"`
-
-	metadataListIPSetsOutput `json:"-" xml:"-"`
-}
-
-type metadataListIPSetsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2644,6 +2761,8 @@ func (s ListIPSetsOutput) GoString() string {
 }
 
 type ListRulesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the number of Rules that you want AWS WAF to return for this request.
 	// If you have more Rules than the number that you specify for Limit, the response
 	// includes a NextMarker value that you can use to get another batch of Rules.
@@ -2655,12 +2774,6 @@ type ListRulesInput struct {
 	// specify the value of NextMarker from the previous response to get information
 	// about another batch of Rules.
 	NextMarker *string `min:"1" type:"string"`
-
-	metadataListRulesInput `json:"-" xml:"-"`
-}
-
-type metadataListRulesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2674,6 +2787,8 @@ func (s ListRulesInput) GoString() string {
 }
 
 type ListRulesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// If you have more Rules than the number that you specified for Limit in the
 	// request, the response includes a NextMarker value. To list more Rules, submit
 	// another ListRules request, and specify the NextMarker value from the response
@@ -2682,12 +2797,6 @@ type ListRulesOutput struct {
 
 	// An array of RuleSummary objects.
 	Rules []*RuleSummary `type:"list"`
-
-	metadataListRulesOutput `json:"-" xml:"-"`
-}
-
-type metadataListRulesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2700,9 +2809,62 @@ func (s ListRulesOutput) GoString() string {
 	return s.String()
 }
 
+type ListSizeConstraintSetsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the number of SizeConstraintSet objects that you want AWS WAF to
+	// return for this request. If you have more SizeConstraintSets objects than
+	// the number you specify for Limit, the response includes a NextMarker value
+	// that you can use to get another batch of SizeConstraintSet objects.
+	Limit *int64 `min:"1" type:"integer" required:"true"`
+
+	// If you specify a value for Limit and you have more SizeConstraintSets than
+	// the value of Limit, AWS WAF returns a NextMarker value in the response that
+	// allows you to list another group of SizeConstraintSets. For the second and
+	// subsequent ListSizeConstraintSets requests, specify the value of NextMarker
+	// from the previous response to get information about another batch of SizeConstraintSets.
+	NextMarker *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListSizeConstraintSetsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListSizeConstraintSetsInput) GoString() string {
+	return s.String()
+}
+
+type ListSizeConstraintSetsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// If you have more SizeConstraintSet objects than the number that you specified
+	// for Limit in the request, the response includes a NextMarker value. To list
+	// more SizeConstraintSet objects, submit another ListSizeConstraintSets request,
+	// and specify the NextMarker value from the response in the NextMarker value
+	// in the next request.
+	NextMarker *string `min:"1" type:"string"`
+
+	// An array of SizeConstraintSetSummary objects.
+	SizeConstraintSets []*SizeConstraintSetSummary `type:"list"`
+}
+
+// String returns the string representation
+func (s ListSizeConstraintSetsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListSizeConstraintSetsOutput) GoString() string {
+	return s.String()
+}
+
 // A request to list the SqlInjectionMatchSet objects created by the current
 // AWS account.
 type ListSqlInjectionMatchSetsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the number of SqlInjectionMatchSet objects that you want AWS WAF
 	// to return for this request. If you have more SqlInjectionMatchSet objects
 	// than the number you specify for Limit, the response includes a NextMarker
@@ -2715,12 +2877,6 @@ type ListSqlInjectionMatchSetsInput struct {
 	// and subsequent ListSqlInjectionMatchSets requests, specify the value of NextMarker
 	// from the previous response to get information about another batch of SqlInjectionMatchSets.
 	NextMarker *string `min:"1" type:"string"`
-
-	metadataListSqlInjectionMatchSetsInput `json:"-" xml:"-"`
-}
-
-type metadataListSqlInjectionMatchSetsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2735,6 +2891,8 @@ func (s ListSqlInjectionMatchSetsInput) GoString() string {
 
 // The response to a ListSqlInjectionMatchSets request.
 type ListSqlInjectionMatchSetsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// If you have more SqlInjectionMatchSet objects than the number that you specified
 	// for Limit in the request, the response includes a NextMarker value. To list
 	// more SqlInjectionMatchSet objects, submit another ListSqlInjectionMatchSets
@@ -2744,12 +2902,6 @@ type ListSqlInjectionMatchSetsOutput struct {
 
 	// An array of SqlInjectionMatchSetSummary objects.
 	SqlInjectionMatchSets []*SqlInjectionMatchSetSummary `type:"list"`
-
-	metadataListSqlInjectionMatchSetsOutput `json:"-" xml:"-"`
-}
-
-type metadataListSqlInjectionMatchSetsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2763,6 +2915,8 @@ func (s ListSqlInjectionMatchSetsOutput) GoString() string {
 }
 
 type ListWebACLsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the number of WebACL objects that you want AWS WAF to return for
 	// this request. If you have more WebACL objects than the number that you specify
 	// for Limit, the response includes a NextMarker value that you can use to get
@@ -2776,12 +2930,6 @@ type ListWebACLsInput struct {
 	// from the previous response to get information about another batch of WebACL
 	// objects.
 	NextMarker *string `min:"1" type:"string"`
-
-	metadataListWebACLsInput `json:"-" xml:"-"`
-}
-
-type metadataListWebACLsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2795,6 +2943,8 @@ func (s ListWebACLsInput) GoString() string {
 }
 
 type ListWebACLsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// If you have more WebACL objects than the number that you specified for Limit
 	// in the request, the response includes a NextMarker value. To list more WebACL
 	// objects, submit another ListWebACLs request, and specify the NextMarker value
@@ -2803,12 +2953,6 @@ type ListWebACLsOutput struct {
 
 	// An array of WebACLSummary objects.
 	WebACLs []*WebACLSummary `type:"list"`
-
-	metadataListWebACLsOutput `json:"-" xml:"-"`
-}
-
-type metadataListWebACLsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2826,9 +2970,11 @@ func (s ListWebACLsOutput) GoString() string {
 // to negate the settings, for example, requests that do NOT originate from
 // the IP address 192.0.2.44.
 type Predicate struct {
+	_ struct{} `type:"structure"`
+
 	// A unique identifier for a predicate in a Rule, such as ByteMatchSetId or
 	// IPSetId. The ID is returned by the corresponding Create or List command.
-	DataId *string `type:"string" required:"true"`
+	DataId *string `min:"1" type:"string" required:"true"`
 
 	// Set Negated to False if you want AWS WAF to allow, block, or count requests
 	// based on the settings in the specified ByteMatchSet, IPSet, or SqlInjectionMatchSet.
@@ -2843,12 +2989,6 @@ type Predicate struct {
 
 	// The type of predicate in a Rule, such as ByteMatchSet or IPSet.
 	Type *string `type:"string" required:"true" enum:"PredicateType"`
-
-	metadataPredicate `json:"-" xml:"-"`
-}
-
-type metadataPredicate struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2866,11 +3006,13 @@ func (s Predicate) GoString() string {
 // example, you might create a Rule that includes the following predicates:
 //
 //  An IPSet that causes AWS WAF to search for web requests that originate
-// from the IP address 192.0.2.44  A ByteMatchSet that causes AWS WAF to search
+// from the IP address 192.0.2.44 A ByteMatchSet that causes AWS WAF to search
 // for web requests for which the value of the User-Agent header is BadBot.
 //  To match the settings in this Rule, a request must originate from 192.0.2.44
 // AND include a User-Agent header for which the value is BadBot.
 type Rule struct {
+	_ struct{} `type:"structure"`
+
 	MetricName *string `type:"string"`
 
 	// The friendly name or description for the Rule. You can't change the name
@@ -2888,12 +3030,6 @@ type Rule struct {
 	//
 	// RuleId is returned by CreateRule and by ListRules.
 	RuleId *string `min:"1" type:"string" required:"true"`
-
-	metadataRule `json:"-" xml:"-"`
-}
-
-type metadataRule struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2908,6 +3044,8 @@ func (s Rule) GoString() string {
 
 // Contains the identifier and the friendly name or description of the Rule.
 type RuleSummary struct {
+	_ struct{} `type:"structure"`
+
 	// A friendly name or description of the Rule. You can't change the name of
 	// a Rule after you create it.
 	Name *string `min:"1" type:"string" required:"true"`
@@ -2919,12 +3057,6 @@ type RuleSummary struct {
 	//
 	// RuleId is returned by CreateRule and by ListRules.
 	RuleId *string `min:"1" type:"string" required:"true"`
-
-	metadataRuleSummary `json:"-" xml:"-"`
-}
-
-type metadataRuleSummary struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2940,18 +3072,14 @@ func (s RuleSummary) GoString() string {
 // Specifies a Predicate (such as an IPSet) and indicates whether you want to
 // add it to a Rule or delete it from a Rule.
 type RuleUpdate struct {
+	_ struct{} `type:"structure"`
+
 	// Specify INSERT to add a Predicate to a Rule. Use DELETE to remove a Predicate
 	// from a Rule.
 	Action *string `type:"string" required:"true" enum:"ChangeAction"`
 
 	// The ID of the Predicate (such as an IPSet) that you want to add to a Rule.
 	Predicate *Predicate `type:"structure" required:"true"`
-
-	metadataRuleUpdate `json:"-" xml:"-"`
-}
-
-type metadataRuleUpdate struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2969,6 +3097,8 @@ func (s RuleUpdate) GoString() string {
 // contains one SampledHTTPRequest object for each web request that is returned
 // by GetSampledRequests.
 type SampledHTTPRequest struct {
+	_ struct{} `type:"structure"`
+
 	// The action for the Rule that the request matched: ALLOW, BLOCK, or COUNT.
 	Action *string `type:"string"`
 
@@ -2984,12 +3114,6 @@ type SampledHTTPRequest struct {
 	// roughly twice as many CloudFront web requests as a result that has a weight
 	// of 1.
 	Weight *int64 `type:"long" required:"true"`
-
-	metadataSampledHTTPRequest `json:"-" xml:"-"`
-}
-
-type metadataSampledHTTPRequest struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3002,6 +3126,196 @@ func (s SampledHTTPRequest) GoString() string {
 	return s.String()
 }
 
+// Specifies a constraint on the size of a part of the web request. AWS WAF
+// uses the Size, ComparisonOperator, and FieldToMatch to build an expression
+// in the form of "Size ComparisonOperator size in bytes of FieldToMatch". If
+// that expression is true, the SizeConstraint is considered to match.
+type SizeConstraint struct {
+	_ struct{} `type:"structure"`
+
+	// The type of comparison you want AWS WAF to perform. AWS WAF uses this in
+	// combination with the provided Size and FieldToMatch to build an expression
+	// in the form of "Size ComparisonOperator size in bytes of FieldToMatch". If
+	// that expression is true, the SizeConstraint is considered to match.
+	//
+	// EQ: Used to test if the Size is equal to the size of the FieldToMatch
+	//
+	// NE: Used to test if the Size is not equal to the size of the FieldToMatch
+	//
+	// LE: Used to test if the Size is less than or equal to the size of the FieldToMatch
+	//
+	// LT: Used to test if the Size is strictly less than the size of the FieldToMatch
+	//
+	// GE: Used to test if the Size is greater than or equal to the size of the
+	// FieldToMatch
+	//
+	// GT: Used to test if the Size is strictly greater than the size of the FieldToMatch
+	ComparisonOperator *string `type:"string" required:"true" enum:"ComparisonOperator"`
+
+	// Specifies where in a web request to look for TargetString.
+	FieldToMatch *FieldToMatch `type:"structure" required:"true"`
+
+	// The size in bytes that you want AWS WAF to compare against the size of the
+	// specified FieldToMatch. AWS WAF uses this in combination with ComparisonOperator
+	// and FieldToMatch to build an expression in the form of "Size ComparisonOperator
+	// size in bytes of FieldToMatch". If that expression is true, the SizeConstraint
+	// is considered to match.
+	//
+	// Valid values for size are 0 - 21474836480 bytes (0 - 20 GB).
+	//
+	// If you specify URI for the value of Type, the / in the URI counts as one
+	// character. For example, the URI /logo.jpg is nine characters long.
+	Size *int64 `type:"long" required:"true"`
+
+	// Text transformations eliminate some of the unusual formatting that attackers
+	// use in web requests in an effort to bypass AWS WAF. If you specify a transformation,
+	// AWS WAF performs the transformation on FieldToMatch before inspecting a request
+	// for a match.
+	//
+	// Note that if you choose BODY for the value of Type, you must choose NONE
+	// for TextTransformation because CloudFront forwards only the first 8192 bytes
+	// for inspection.
+	//
+	// NONE
+	//
+	// Specify NONE if you don't want to perform any text transformations.
+	//
+	// CMD_LINE
+	//
+	// When you're concerned that attackers are injecting an operating system command
+	// line command and using unusual formatting to disguise some or all of the
+	// command, use this option to perform the following transformations:
+	//
+	//  Delete the following characters: \ " ' ^ Delete spaces before the following
+	// characters: / ( Replace the following characters with a space: , ; Replace
+	// multiple spaces with one space Convert uppercase letters (A-Z) to lowercase
+	// (a-z)  COMPRESS_WHITE_SPACE
+	//
+	// Use this option to replace the following characters with a space character
+	// (decimal 32):
+	//
+	//  \f, formfeed, decimal 12 \t, tab, decimal 9 \n, newline, decimal 10 \r,
+	// carriage return, decimal 13 \v, vertical tab, decimal 11 non-breaking space,
+	// decimal 160  COMPRESS_WHITE_SPACE also replaces multiple spaces with one
+	// space.
+	//
+	// HTML_ENTITY_DECODE
+	//
+	// Use this option to replace HTML-encoded characters with unencoded characters.
+	// HTML_ENTITY_DECODE performs the following operations:
+	//
+	//  Replaces (ampersand)quot; with " Replaces (ampersand)nbsp; with a non-breaking
+	// space, decimal 160 Replaces (ampersand)lt; with a "less than" symbol Replaces
+	// (ampersand)gt; with > Replaces characters that are represented in hexadecimal
+	// format, (ampersand)#xhhhh;, with the corresponding characters Replaces characters
+	// that are represented in decimal format, (ampersand)#nnnn;, with the corresponding
+	// characters  LOWERCASE
+	//
+	// Use this option to convert uppercase letters (A-Z) to lowercase (a-z).
+	//
+	// URL_DECODE
+	//
+	// Use this option to decode a URL-encoded value.
+	TextTransformation *string `type:"string" required:"true" enum:"TextTransformation"`
+}
+
+// String returns the string representation
+func (s SizeConstraint) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SizeConstraint) GoString() string {
+	return s.String()
+}
+
+// A complex type that contains SizeConstraint objects, which specify the parts
+// of web requests that you want AWS WAF to inspect the size of. If a SizeConstraintSet
+// contains more than one SizeConstraint object, a request only needs to match
+// one constraint to be considered a match.
+type SizeConstraintSet struct {
+	_ struct{} `type:"structure"`
+
+	// The name, if any, of the SizeConstraintSet.
+	Name *string `min:"1" type:"string"`
+
+	// A unique identifier for a SizeConstraintSet. You use SizeConstraintSetId
+	// to get information about a SizeConstraintSet (see GetSizeConstraintSet),
+	// update a SizeConstraintSet (see UpdateSizeConstraintSet, insert a SizeConstraintSet
+	// into a Rule or delete one from a Rule (see UpdateRule), and delete a SizeConstraintSet
+	// from AWS WAF (see DeleteSizeConstraintSet).
+	//
+	// SizeConstraintSetId is returned by CreateSizeConstraintSet and by ListSizeConstraintSets.
+	SizeConstraintSetId *string `min:"1" type:"string" required:"true"`
+
+	// Specifies the parts of web requests that you want to inspect the size of.
+	SizeConstraints []*SizeConstraint `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s SizeConstraintSet) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SizeConstraintSet) GoString() string {
+	return s.String()
+}
+
+// The Id and Name of a SizeConstraintSet.
+type SizeConstraintSetSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the SizeConstraintSet, if any.
+	Name *string `min:"1" type:"string" required:"true"`
+
+	// A unique identifier for a SizeConstraintSet. You use SizeConstraintSetId
+	// to get information about a SizeConstraintSet (see GetSizeConstraintSet),
+	// update a SizeConstraintSet (see UpdateSizeConstraintSet, insert a SizeConstraintSet
+	// into a Rule or delete one from a Rule (see UpdateRule), and delete a SizeConstraintSet
+	// from AWS WAF (see DeleteSizeConstraintSet).
+	//
+	// SizeConstraintSetId is returned by CreateSizeConstraintSet and by ListSizeConstraintSets.
+	SizeConstraintSetId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s SizeConstraintSetSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SizeConstraintSetSummary) GoString() string {
+	return s.String()
+}
+
+// Specifies the part of a web request that you want to inspect the size of
+// and indicates whether you want to add the specification to a SizeConstraintSet
+// or delete it from a SizeConstraintSet.
+type SizeConstraintSetUpdate struct {
+	_ struct{} `type:"structure"`
+
+	// Specify INSERT to add a SizeConstraintSetUpdate to a SizeConstraintSet. Use
+	// DELETE to remove a SizeConstraintSetUpdate from a SizeConstraintSet.
+	Action *string `type:"string" required:"true" enum:"ChangeAction"`
+
+	// Specifies a constraint on the size of a part of the web request. AWS WAF
+	// uses the Size, ComparisonOperator, and FieldToMatch to build an expression
+	// in the form of "Size ComparisonOperator size in bytes of FieldToMatch". If
+	// that expression is true, the SizeConstraint is considered to match.
+	SizeConstraint *SizeConstraint `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s SizeConstraintSetUpdate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SizeConstraintSetUpdate) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains SqlInjectionMatchTuple objects, which specify
 // the parts of web requests that you want AWS WAF to inspect for snippets of
 // malicious SQL code and, if you want AWS WAF to inspect a header, the name
@@ -3009,6 +3323,8 @@ func (s SampledHTTPRequest) GoString() string {
 // object, a request needs to include snippets of SQL code in only one of the
 // specified parts of the request to be considered a match.
 type SqlInjectionMatchSet struct {
+	_ struct{} `type:"structure"`
+
 	// The name, if any, of the SqlInjectionMatchSet.
 	Name *string `min:"1" type:"string"`
 
@@ -3016,7 +3332,7 @@ type SqlInjectionMatchSet struct {
 	// to get information about a SqlInjectionMatchSet (see GetSqlInjectionMatchSet),
 	// update a SqlInjectionMatchSet (see UpdateSqlInjectionMatchSet, insert a SqlInjectionMatchSet
 	// into a Rule or delete one from a Rule (see UpdateRule), and delete a SqlInjectionMatchSet
-	// from AWS WAF (see DeleteByteMatchSet).
+	// from AWS WAF (see DeleteSqlInjectionMatchSet).
 	//
 	// SqlInjectionMatchSetId is returned by CreateSqlInjectionMatchSet and by
 	// ListSqlInjectionMatchSets.
@@ -3025,12 +3341,6 @@ type SqlInjectionMatchSet struct {
 	// Specifies the parts of web requests that you want to inspect for snippets
 	// of malicious SQL code.
 	SqlInjectionMatchTuples []*SqlInjectionMatchTuple `type:"list" required:"true"`
-
-	metadataSqlInjectionMatchSet `json:"-" xml:"-"`
-}
-
-type metadataSqlInjectionMatchSet struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3045,6 +3355,8 @@ func (s SqlInjectionMatchSet) GoString() string {
 
 // The Id and Name of a SqlInjectionMatchSet.
 type SqlInjectionMatchSetSummary struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the SqlInjectionMatchSet, if any, specified by Id.
 	Name *string `min:"1" type:"string" required:"true"`
 
@@ -3052,17 +3364,11 @@ type SqlInjectionMatchSetSummary struct {
 	// to get information about a SqlInjectionMatchSet (see GetSqlInjectionMatchSet),
 	// update a SqlInjectionMatchSet (see UpdateSqlInjectionMatchSet, insert a SqlInjectionMatchSet
 	// into a Rule or delete one from a Rule (see UpdateRule), and delete a SqlInjectionMatchSet
-	// from AWS WAF (see DeleteByteMatchSet).
+	// from AWS WAF (see DeleteSqlInjectionMatchSet).
 	//
 	// SqlInjectionMatchSetId is returned by CreateSqlInjectionMatchSet and by
 	// ListSqlInjectionMatchSets.
 	SqlInjectionMatchSetId *string `min:"1" type:"string" required:"true"`
-
-	metadataSqlInjectionMatchSetSummary `json:"-" xml:"-"`
-}
-
-type metadataSqlInjectionMatchSetSummary struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3079,6 +3385,8 @@ func (s SqlInjectionMatchSetSummary) GoString() string {
 // of malicious SQL code and indicates whether you want to add the specification
 // to a SqlInjectionMatchSet or delete it from a SqlInjectionMatchSet.
 type SqlInjectionMatchSetUpdate struct {
+	_ struct{} `type:"structure"`
+
 	// Specify INSERT to add a SqlInjectionMatchSetUpdate to a SqlInjectionMatchSet.
 	// Use DELETE to remove a SqlInjectionMatchSetUpdate from a SqlInjectionMatchSet.
 	Action *string `type:"string" required:"true" enum:"ChangeAction"`
@@ -3087,12 +3395,6 @@ type SqlInjectionMatchSetUpdate struct {
 	// snippets of malicious SQL code and, if you want AWS WAF to inspect a header,
 	// the name of the header.
 	SqlInjectionMatchTuple *SqlInjectionMatchTuple `type:"structure" required:"true"`
-
-	metadataSqlInjectionMatchSetUpdate `json:"-" xml:"-"`
-}
-
-type metadataSqlInjectionMatchSetUpdate struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3109,12 +3411,14 @@ func (s SqlInjectionMatchSetUpdate) GoString() string {
 // snippets of malicious SQL code and, if you want AWS WAF to inspect a header,
 // the name of the header.
 type SqlInjectionMatchTuple struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies where in a web request to look for TargetString.
 	FieldToMatch *FieldToMatch `type:"structure" required:"true"`
 
 	// Text transformations eliminate some of the unusual formatting that attackers
 	// use in web requests in an effort to bypass AWS WAF. If you specify a transformation,
-	// AWS WAF performs the transformation on TargetString before inspecting a request
+	// AWS WAF performs the transformation on FieldToMatch before inspecting a request
 	// for a match.
 	//
 	// CMD_LINE
@@ -3141,9 +3445,9 @@ type SqlInjectionMatchTuple struct {
 	// Use this option to replace HTML-encoded characters with unencoded characters.
 	// HTML_ENTITY_DECODE performs the following operations:
 	//
-	//  Replaces (ampersand)quot; with "  Replaces (ampersand)nbsp; with a non-breaking
+	//  Replaces (ampersand)quot; with " Replaces (ampersand)nbsp; with a non-breaking
 	// space, decimal 160 Replaces (ampersand)lt; with a "less than" symbol Replaces
-	// (ampersand)gt; with >  Replaces characters that are represented in hexadecimal
+	// (ampersand)gt; with > Replaces characters that are represented in hexadecimal
 	// format, (ampersand)#xhhhh;, with the corresponding characters Replaces characters
 	// that are represented in decimal format, (ampersand)#nnnn;, with the corresponding
 	// characters  LOWERCASE
@@ -3158,12 +3462,6 @@ type SqlInjectionMatchTuple struct {
 	//
 	// Specify NONE if you don't want to perform any text transformations.
 	TextTransformation *string `type:"string" required:"true" enum:"TextTransformation"`
-
-	metadataSqlInjectionMatchTuple `json:"-" xml:"-"`
-}
-
-type metadataSqlInjectionMatchTuple struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3187,6 +3485,8 @@ func (s SqlInjectionMatchTuple) GoString() string {
 // WAF stops sampling after the 5,000th request. In that case, EndTime is the
 // time that AWS WAF received the 5,000th request.
 type TimeWindow struct {
+	_ struct{} `type:"structure"`
+
 	// The end of the time range from which you want GetSampledRequests to return
 	// a sample of the requests that your AWS resource received. You can specify
 	// any time range in the previous three hours.
@@ -3196,12 +3496,6 @@ type TimeWindow struct {
 	// return a sample of the requests that your AWS resource received. You can
 	// specify any time range in the previous three hours.
 	StartTime *time.Time `type:"timestamp" timestampFormat:"unix" required:"true"`
-
-	metadataTimeWindow `json:"-" xml:"-"`
-}
-
-type metadataTimeWindow struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3215,6 +3509,8 @@ func (s TimeWindow) GoString() string {
 }
 
 type UpdateByteMatchSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ByteMatchSetId of the ByteMatchSet that you want to update. ByteMatchSetId
 	// is returned by CreateByteMatchSet and by ListByteMatchSets.
 	ByteMatchSetId *string `min:"1" type:"string" required:"true"`
@@ -3225,16 +3521,10 @@ type UpdateByteMatchSetInput struct {
 	// An array of ByteMatchSetUpdate objects that you want to insert into or delete
 	// from a ByteMatchSet. For more information, see the applicable data types:
 	//
-	//   ByteMatchSetUpdate: Contains Action and ByteMatchTuple   ByteMatchTuple:
+	//  ByteMatchSetUpdate: Contains Action and ByteMatchTuple ByteMatchTuple:
 	// Contains FieldToMatch, PositionalConstraint, TargetString, and TextTransformation
-	//   FieldToMatch: Contains Data and Type
+	// FieldToMatch: Contains Data and Type
 	Updates []*ByteMatchSetUpdate `type:"list" required:"true"`
-
-	metadataUpdateByteMatchSetInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateByteMatchSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3248,16 +3538,12 @@ func (s UpdateByteMatchSetInput) GoString() string {
 }
 
 type UpdateByteMatchSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the UpdateByteMatchSet request. You
 	// can also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataUpdateByteMatchSetOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateByteMatchSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3271,6 +3557,8 @@ func (s UpdateByteMatchSetOutput) GoString() string {
 }
 
 type UpdateIPSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
@@ -3281,15 +3569,9 @@ type UpdateIPSetInput struct {
 	// An array of IPSetUpdate objects that you want to insert into or delete from
 	// an IPSet. For more information, see the applicable data types:
 	//
-	//   IPSetUpdate: Contains Action and IPSetDescriptor   IPSetDescriptor: Contains
+	//  IPSetUpdate: Contains Action and IPSetDescriptor IPSetDescriptor: Contains
 	// Type and Value
 	Updates []*IPSetUpdate `type:"list" required:"true"`
-
-	metadataUpdateIPSetInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateIPSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3303,16 +3585,12 @@ func (s UpdateIPSetInput) GoString() string {
 }
 
 type UpdateIPSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the UpdateIPSet request. You can
 	// also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataUpdateIPSetOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateIPSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3326,6 +3604,8 @@ func (s UpdateIPSetOutput) GoString() string {
 }
 
 type UpdateRuleInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
@@ -3336,15 +3616,9 @@ type UpdateRuleInput struct {
 	// An array of RuleUpdate objects that you want to insert into or delete from
 	// a Rule. For more information, see the applicable data types:
 	//
-	//   RuleUpdate: Contains Action and Predicate   Predicate: Contains DataId,
-	// Negated, and Type   FieldToMatch: Contains Data and Type
+	//  RuleUpdate: Contains Action and Predicate Predicate: Contains DataId, Negated,
+	// and Type FieldToMatch: Contains Data and Type
 	Updates []*RuleUpdate `type:"list" required:"true"`
-
-	metadataUpdateRuleInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3358,16 +3632,12 @@ func (s UpdateRuleInput) GoString() string {
 }
 
 type UpdateRuleOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the UpdateRule request. You can also
 	// use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataUpdateRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3380,8 +3650,59 @@ func (s UpdateRuleOutput) GoString() string {
 	return s.String()
 }
 
+type UpdateSizeConstraintSetInput struct {
+	_ struct{} `type:"structure"`
+
+	// The value returned by the most recent call to GetChangeToken.
+	ChangeToken *string `type:"string" required:"true"`
+
+	// The SizeConstraintSetId of the SizeConstraintSet that you want to update.
+	// SizeConstraintSetId is returned by CreateSizeConstraintSet and by ListSizeConstraintSets.
+	SizeConstraintSetId *string `min:"1" type:"string" required:"true"`
+
+	// An array of SizeConstraintSetUpdate objects that you want to insert into
+	// or delete from a SizeConstraintSet. For more information, see the applicable
+	// data types:
+	//
+	//  SizeConstraintSetUpdate: Contains Action and SizeConstraint SizeConstraint:
+	// Contains FieldToMatch, TextTransformation, ComparisonOperator, and Size FieldToMatch:
+	// Contains Data and Type
+	Updates []*SizeConstraintSetUpdate `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateSizeConstraintSetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateSizeConstraintSetInput) GoString() string {
+	return s.String()
+}
+
+type UpdateSizeConstraintSetOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ChangeToken that you used to submit the UpdateSizeConstraintSet request.
+	// You can also use this value to query the status of the request. For more
+	// information, see GetChangeTokenStatus.
+	ChangeToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s UpdateSizeConstraintSetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateSizeConstraintSetOutput) GoString() string {
+	return s.String()
+}
+
 // A request to update a SqlInjectionMatchSet.
 type UpdateSqlInjectionMatchSetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
@@ -3393,16 +3714,10 @@ type UpdateSqlInjectionMatchSetInput struct {
 	// or delete from a SqlInjectionMatchSet. For more information, see the applicable
 	// data types:
 	//
-	//   SqlInjectionMatchSetUpdate: Contains Action and SqlInjectionMatchTuple
-	//   SqlInjectionMatchTuple: Contains FieldToMatch and TextTransformation
-	// FieldToMatch: Contains Data and Type
+	//  SqlInjectionMatchSetUpdate: Contains Action and SqlInjectionMatchTuple
+	// SqlInjectionMatchTuple: Contains FieldToMatch and TextTransformation FieldToMatch:
+	// Contains Data and Type
 	Updates []*SqlInjectionMatchSetUpdate `type:"list" required:"true"`
-
-	metadataUpdateSqlInjectionMatchSetInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateSqlInjectionMatchSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3417,16 +3732,12 @@ func (s UpdateSqlInjectionMatchSetInput) GoString() string {
 
 // The response to an UpdateSqlInjectionMatchSets request.
 type UpdateSqlInjectionMatchSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the UpdateSqlInjectionMatchSet request.
 	// You can also use this value to query the status of the request. For more
 	// information, see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataUpdateSqlInjectionMatchSetOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateSqlInjectionMatchSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3440,6 +3751,8 @@ func (s UpdateSqlInjectionMatchSetOutput) GoString() string {
 }
 
 type UpdateWebACLInput struct {
+	_ struct{} `type:"structure"`
+
 	// The value returned by the most recent call to GetChangeToken.
 	ChangeToken *string `type:"string" required:"true"`
 
@@ -3455,19 +3768,13 @@ type UpdateWebACLInput struct {
 	// An array of WebACLUpdate objects that you want to insert into or delete
 	// from a WebACL. For more information, see the applicable data types:
 	//
-	//   WebACLUpdate: Contains Action and ActivatedRule   ActivatedRule: Contains
-	// Action, Priority, and RuleId   WafAction: Contains Type
+	//  WebACLUpdate: Contains Action and ActivatedRule ActivatedRule: Contains
+	// Action, Priority, and RuleId WafAction: Contains Type
 	Updates []*WebACLUpdate `type:"list"`
 
 	// The WebACLId of the WebACL that you want to update. WebACLId is returned
 	// by CreateWebACL and by ListWebACLs.
 	WebACLId *string `min:"1" type:"string" required:"true"`
-
-	metadataUpdateWebACLInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateWebACLInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3481,16 +3788,12 @@ func (s UpdateWebACLInput) GoString() string {
 }
 
 type UpdateWebACLOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ChangeToken that you used to submit the UpdateWebACL request. You can
 	// also use this value to query the status of the request. For more information,
 	// see GetChangeTokenStatus.
 	ChangeToken *string `type:"string"`
-
-	metadataUpdateWebACLOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateWebACLOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3509,21 +3812,17 @@ func (s UpdateWebACLOutput) GoString() string {
 // action that you want AWS WAF to take when a web request doesn't match all
 // of the conditions in any of the rules in a WebACL.
 type WafAction struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies how you want AWS WAF to respond to requests that match the settings
 	// in a Rule. Valid settings include the following:
 	//
-	//   ALLOW: AWS WAF allows requests  BLOCK: AWS WAF blocks requests  COUNT:
-	// AWS WAF increments a counter of the requests that match all of the conditions
+	//  ALLOW: AWS WAF allows requests BLOCK: AWS WAF blocks requests COUNT: AWS
+	// WAF increments a counter of the requests that match all of the conditions
 	// in the rule. AWS WAF then continues to inspect the web request based on the
 	// remaining rules in the web ACL. You can't specify COUNT for the default action
 	// for a WebACL.
 	Type *string `type:"string" required:"true" enum:"WafActionType"`
-
-	metadataWafAction `json:"-" xml:"-"`
-}
-
-type metadataWafAction struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3545,6 +3844,8 @@ func (s WafAction) GoString() string {
 // to a WebACL, a request needs to match only one of the specifications to be
 // allowed, blocked, or counted. For more information, see UpdateWebACL.
 type WebACL struct {
+	_ struct{} `type:"structure"`
+
 	// The action to perform if none of the Rules contained in the WebACL match.
 	// The action is specified by the WafAction object.
 	DefaultAction *WafAction `type:"structure" required:"true"`
@@ -3565,12 +3866,6 @@ type WebACL struct {
 	//
 	// WebACLId is returned by CreateWebACL and by ListWebACLs.
 	WebACLId *string `min:"1" type:"string" required:"true"`
-
-	metadataWebACL `json:"-" xml:"-"`
-}
-
-type metadataWebACL struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3585,6 +3880,8 @@ func (s WebACL) GoString() string {
 
 // Contains the identifier and the name or description of the WebACL.
 type WebACLSummary struct {
+	_ struct{} `type:"structure"`
+
 	// A friendly name or description of the WebACL. You can't change the name of
 	// a WebACL after you create it.
 	Name *string `min:"1" type:"string" required:"true"`
@@ -3595,12 +3892,6 @@ type WebACLSummary struct {
 	//
 	// WebACLId is returned by CreateWebACL and by ListWebACLs.
 	WebACLId *string `min:"1" type:"string" required:"true"`
-
-	metadataWebACLSummary `json:"-" xml:"-"`
-}
-
-type metadataWebACLSummary struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3615,6 +3906,8 @@ func (s WebACLSummary) GoString() string {
 
 // Specifies whether to insert a Rule into or delete a Rule from a WebACL.
 type WebACLUpdate struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether to insert a Rule into or delete a Rule from a WebACL.
 	Action *string `type:"string" required:"true" enum:"ChangeAction"`
 
@@ -3626,12 +3919,6 @@ type WebACLUpdate struct {
 	// To specify whether to insert or delete a Rule, use the Action parameter
 	// in the WebACLUpdate data type.
 	ActivatedRule *ActivatedRule `type:"structure" required:"true"`
-
-	metadataWebACLUpdate `json:"-" xml:"-"`
-}
-
-type metadataWebACLUpdate struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3661,6 +3948,21 @@ const (
 )
 
 const (
+	// @enum ComparisonOperator
+	ComparisonOperatorEq = "EQ"
+	// @enum ComparisonOperator
+	ComparisonOperatorNe = "NE"
+	// @enum ComparisonOperator
+	ComparisonOperatorLe = "LE"
+	// @enum ComparisonOperator
+	ComparisonOperatorLt = "LT"
+	// @enum ComparisonOperator
+	ComparisonOperatorGe = "GE"
+	// @enum ComparisonOperator
+	ComparisonOperatorGt = "GT"
+)
+
+const (
 	// @enum IPSetDescriptorType
 	IPSetDescriptorTypeIpv4 = "IPV4"
 )
@@ -3674,6 +3976,8 @@ const (
 	MatchFieldTypeHeader = "HEADER"
 	// @enum MatchFieldType
 	MatchFieldTypeMethod = "METHOD"
+	// @enum MatchFieldType
+	MatchFieldTypeBody = "BODY"
 )
 
 const (
@@ -3693,6 +3997,15 @@ const (
 	ParameterExceptionFieldByteMatchTextTransformation = "BYTE_MATCH_TEXT_TRANSFORMATION"
 	// @enum ParameterExceptionField
 	ParameterExceptionFieldByteMatchPositionalConstraint = "BYTE_MATCH_POSITIONAL_CONSTRAINT"
+	// @enum ParameterExceptionField
+	ParameterExceptionFieldSizeConstraintComparisonOperator = "SIZE_CONSTRAINT_COMPARISON_OPERATOR"
+)
+
+const (
+	// @enum ParameterExceptionReason
+	ParameterExceptionReasonInvalidOption = "INVALID_OPTION"
+	// @enum ParameterExceptionReason
+	ParameterExceptionReasonIllegalCombination = "ILLEGAL_COMBINATION"
 )
 
 const (
@@ -3715,6 +4028,8 @@ const (
 	PredicateTypeByteMatch = "ByteMatch"
 	// @enum PredicateType
 	PredicateTypeSqlInjectionMatch = "SqlInjectionMatch"
+	// @enum PredicateType
+	PredicateTypeSizeConstraint = "SizeConstraint"
 )
 
 const (

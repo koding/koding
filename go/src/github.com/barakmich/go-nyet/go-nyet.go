@@ -1,21 +1,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/build"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
-	_ "path"
+	"os"
 	"path/filepath"
 	"strings"
 
-	"flag"
-
-	_ "golang.org/x/tools/go/gcimporter"
 	"golang.org/x/tools/go/types"
-	"os"
 )
 
 var debug = flag.Bool("debug", false, "Enable debug printing.")
@@ -23,162 +20,153 @@ var exitWith = flag.Int("exitWith", 1, "Error code to exit with, if there are er
 var hasErrors = false
 
 type fileMetadata struct {
-	info *types.Info
-	name string
-	fset *token.FileSet
-	file *ast.File
+	pkg      *pkg
+	f        *ast.File
+	fset     *token.FileSet
+	src      []byte
+	filename string
 }
 
-func recMain(s string) {
-	dir := strings.TrimSuffix(s, "...")
-	st, err := os.Stat(dir)
-	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(*exitWith)
-	}
-	if !st.IsDir() {
-		fmt.Println("Non-directory ending in ...")
-		os.Exit(*exitWith)
-	}
-	dirRec(dir)
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "\tgo-nyet [flags] # runs on package in current directory\n")
+	fmt.Fprintf(os.Stderr, "\tgo-nyet [flags] package\n")
+	fmt.Fprintf(os.Stderr, "\tgo-nyet [flags] directory\n")
+	fmt.Fprintf(os.Stderr, "\tgo-nyet [flags] files... # must be a single package\n")
+	fmt.Fprintf(os.Stderr, "Flags:\n")
+	flag.PrintDefaults()
 }
 
 func main() {
+	flag.Usage = usage
 	flag.Parse()
-	if len(flag.Args()) < 1 {
-		fmt.Println("No path given")
-		os.Exit(*exitWith)
+
+	switch flag.NArg() {
+	case 0:
+		doDir(".")
+	case 1:
+		arg := flag.Arg(0)
+		if strings.HasSuffix(arg, "/...") && isDir(arg[:len(arg)-4]) {
+			for _, dirname := range allPackagesInFS(arg) {
+				doDir(dirname)
+			}
+		} else if isDir(arg) {
+			doDir(arg)
+		} else if exists(arg) {
+			doFiles(arg)
+		} else {
+			for _, pkgname := range importPaths([]string{arg}) {
+				doPackage(pkgname)
+			}
+		}
+	default:
+		doFiles(flag.Args()...)
 	}
-	for _, arg := range flag.Args() {
-		if strings.HasSuffix(arg, "...") {
-			recMain(arg)
+}
+
+func isDir(filename string) bool {
+	fi, err := os.Stat(filename)
+	return err == nil && fi.IsDir()
+}
+
+func exists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
+
+// pkg represents a package being checked.
+type pkg struct {
+	fset  *token.FileSet
+	files map[string]*fileMetadata
+
+	typesPkg  *types.Package
+	typesInfo *types.Info
+}
+
+func doFiles(filenames ...string) {
+	files := make(map[string][]byte)
+	for _, filename := range filenames {
+		src, err := ioutil.ReadFile(filename)
+		if err != nil {
+			if *debug {
+				fmt.Fprintln(os.Stderr, err)
+			}
 			continue
 		}
-		st, err := os.Stat(arg)
-		if err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(*exitWith)
-		}
-		if st.IsDir() {
-			doPackageDir(arg, "")
-		} else {
-			abs, _ := filepath.Abs(arg)
-			doPackageDir(filepath.Dir(arg), abs)
-		}
+		files[filename] = src
 	}
-	if hasErrors {
-		os.Exit(*exitWith)
-	}
-}
 
-// prefixDirectory places the directory name on the beginning of each name in the list.
-func prefixDirectory(directory string, names []string) {
-	if directory != "." {
-		for i, name := range names {
-			names[i] = filepath.Join(directory, name)
-		}
+	pkg := &pkg{
+		fset:  token.NewFileSet(),
+		files: make(map[string]*fileMetadata),
+		typesInfo: &types.Info{
+			Types: make(map[ast.Expr]types.TypeAndValue),
+		},
 	}
-}
-
-func doPackageDir(directory string, file string) {
-	pkg, err := build.Default.ImportDir(directory, 0)
-	if err != nil {
-		// If it's just that there are no go source files, that's fine.
-		if _, nogo := err.(*build.NoGoError); nogo {
-			return
-		}
-		// Non-fatal: we are doing a recursive walk and there may be other directories.
-		fmt.Printf("cannot process directory %s: %s\n", directory, err)
-		return
-	}
-	var names []string
-	names = append(names, pkg.GoFiles...)
-	names = append(names, pkg.CgoFiles...)
-	names = append(names, pkg.TestGoFiles...) // These are also in the "foo" package.
-	names = append(names, pkg.SFiles...)
-	prefixDirectory(directory, names)
-	doPackage(directory, names, file)
-	// Is there also a "foo_test" package? If so, do that one as well.
-	if len(pkg.XTestGoFiles) > 0 {
-		names = pkg.XTestGoFiles
-		prefixDirectory(directory, names)
-		doPackage(directory, names, file)
-	}
-}
-
-type packageMetadata struct {
-	path     string
-	files    []*fileMetadata
-	typesPkg *types.Package
-}
-
-func doPackage(directory string, names []string, singlefile string) {
-	var files []*fileMetadata
-	var astFiles []*ast.File
-	if *debug {
-		fmt.Println("Checking directory", directory, "...")
-	}
-	fs := token.NewFileSet()
-	for _, name := range names {
-		data, err := ioutil.ReadFile(name)
-		if err != nil {
-			// Warn but continue to next package.
-			fmt.Printf("%s: %s\n", name, err)
-			return
-		}
-		var parsedFile *ast.File
-		if strings.HasSuffix(name, ".go") {
-			parsedFile, err = parser.ParseFile(fs, name, data, 0)
-			if err != nil {
-				fmt.Printf("%s: %s\n", name, err)
-				return
-			}
-			astFiles = append(astFiles, parsedFile)
-		}
-		files = append(files, &fileMetadata{fset: fs, name: name, file: parsedFile})
-	}
-	if len(astFiles) == 0 {
-		return
-	}
-	pkg := new(packageMetadata)
-	pkg.path = astFiles[0].Name.Name
-	pkg.files = files
-	info := types.Info{
-		Types: make(map[ast.Expr]types.TypeAndValue),
-	}
-	config := new(types.Config)
-	_, err := config.Check(pkg.path, fs, astFiles, &info)
-	if err != nil {
+	var pkgName string
+	for filename, src := range files {
 		if *debug {
-			fmt.Println("Error package checker:", err)
+			fmt.Println("Checking file", filename, "...")
 		}
-
-	}
-	for _, file := range pkg.files {
-		if singlefile != "" {
-			abs, _ := filepath.Abs(file.name)
-			if abs != singlefile {
-				continue
-			}
+		f, err := parser.ParseFile(pkg.fset, filename, src, parser.ParseComments)
+		if err != nil {
+			fmt.Printf("%s: %s\n", filename, err)
+			return
 		}
-		file.info = &info
-		CheckNoShadow(*file, file.file)
-		CheckNoAssignUnused(*file, file.file)
+		if pkgName == "" {
+			pkgName = f.Name.Name
+		} else if f.Name.Name != pkgName {
+			fmt.Printf("%s is in package %s, not %s", filename, f.Name.Name, pkgName)
+			return
+		}
+		file := fileMetadata{
+			pkg:      pkg,
+			f:        f,
+			fset:     pkg.fset,
+			src:      src,
+			filename: filename,
+		}
+		CheckNoShadow(file)
+		CheckNoAssignUnused(file)
 	}
 }
 
-func visit(path string, f os.FileInfo, err error) error {
+func doDir(dirname string) {
+	pkg, err := build.ImportDir(dirname, 0)
+	doImportedPackage(pkg, err)
+}
+
+func doPackage(pkgname string) {
+	pkg, err := build.Import(pkgname, ".", 0)
+	doImportedPackage(pkg, err)
+}
+
+func doImportedPackage(pkg *build.Package, err error) {
 	if err != nil {
-		fmt.Println("Walk error:", err)
-		return err
+		if _, nogo := err.(*build.NoGoError); nogo {
+			// Don't complain if the failure is due to no Go source files.
+			return
+		}
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
-	if !f.IsDir() {
-		return nil
-	}
-	doPackageDir(path, "")
-	return nil
+
+	var files []string
+	files = append(files, pkg.GoFiles...)
+	files = append(files, pkg.CgoFiles...)
+	files = append(files, pkg.TestGoFiles...)
+	files = append(files, pkg.SFiles...)
+
+	doLocalFiles(pkg, files...)
+	doLocalFiles(pkg, pkg.XTestGoFiles...)
 }
 
-func dirRec(path string) {
-	filepath.Walk(path, visit)
+func doLocalFiles(pkg *build.Package, files ...string) {
+	if pkg.Dir != "." {
+		for i, f := range files {
+			files[i] = filepath.Join(pkg.Dir, f)
+		}
+	}
+
+	doFiles(files...)
 }

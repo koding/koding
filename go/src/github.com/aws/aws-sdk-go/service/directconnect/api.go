@@ -610,6 +610,8 @@ func (c *DirectConnect) DescribeVirtualInterfaces(input *DescribeVirtualInterfac
 
 // Container for the parameters to the AllocateConnectionOnInterconnect operation.
 type AllocateConnectionOnInterconnectInput struct {
+	_ struct{} `type:"structure"`
+
 	// Bandwidth of the connection.
 	//
 	// Example: "500Mbps"
@@ -644,12 +646,6 @@ type AllocateConnectionOnInterconnectInput struct {
 	//
 	// Default: None
 	Vlan *int64 `locationName:"vlan" type:"integer" required:"true"`
-
-	metadataAllocateConnectionOnInterconnectInput `json:"-" xml:"-"`
-}
-
-type metadataAllocateConnectionOnInterconnectInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -664,6 +660,8 @@ func (s AllocateConnectionOnInterconnectInput) GoString() string {
 
 // Container for the parameters to the AllocatePrivateVirtualInterface operation.
 type AllocatePrivateVirtualInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The connection ID on which the private virtual interface is provisioned.
 	//
 	// Default: None
@@ -678,12 +676,6 @@ type AllocatePrivateVirtualInterfaceInput struct {
 	//
 	// Default: None
 	OwnerAccount *string `locationName:"ownerAccount" type:"string" required:"true"`
-
-	metadataAllocatePrivateVirtualInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataAllocatePrivateVirtualInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -698,6 +690,8 @@ func (s AllocatePrivateVirtualInterfaceInput) GoString() string {
 
 // Container for the parameters to the AllocatePublicVirtualInterface operation.
 type AllocatePublicVirtualInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The connection ID on which the public virtual interface is provisioned.
 	//
 	// Default: None
@@ -712,12 +706,6 @@ type AllocatePublicVirtualInterfaceInput struct {
 	//
 	// Default: None
 	OwnerAccount *string `locationName:"ownerAccount" type:"string" required:"true"`
-
-	metadataAllocatePublicVirtualInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataAllocatePublicVirtualInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -732,18 +720,14 @@ func (s AllocatePublicVirtualInterfaceInput) GoString() string {
 
 // Container for the parameters to the ConfirmConnection operation.
 type ConfirmConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the connection.
 	//
 	// Example: dxcon-fg5678gh
 	//
 	// Default: None
 	ConnectionId *string `locationName:"connectionId" type:"string" required:"true"`
-
-	metadataConfirmConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataConfirmConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -758,23 +742,20 @@ func (s ConfirmConnectionInput) GoString() string {
 
 // The response received when ConfirmConnection is called.
 type ConfirmConnectionOutput struct {
-	// State of the connection.   Ordering: The initial state of a hosted connection
+	_ struct{} `type:"structure"`
+
+	// State of the connection.  Ordering: The initial state of a hosted connection
 	// provisioned on an interconnect. The connection stays in the ordering state
 	// until the owner of the hosted connection confirms or declines the connection
-	// order.  Requested: The initial state of a standard connection. The connection
+	// order. Requested: The initial state of a standard connection. The connection
 	// stays in the requested state until the Letter of Authorization (LOA) is sent
-	// to the customer.  Pending: The connection has been approved, and is being
-	// initialized.  Available: The network link is up, and the connection is ready
-	// for use.  Down: The network link is down.  Deleted: The connection has been
-	// deleted.  Rejected: A hosted connection in the 'Ordering' state will enter
-	// the 'Rejected' state if it is deleted by the end customer.
+	// to the customer. Pending: The connection has been approved, and is being
+	// initialized. Available: The network link is up, and the connection is ready
+	// for use. Down: The network link is down. Deleting: The connection is in the
+	// process of being deleted. Deleted: The connection has been deleted. Rejected:
+	// A hosted connection in the 'Ordering' state will enter the 'Rejected' state
+	// if it is deleted by the end customer.
 	ConnectionState *string `locationName:"connectionState" type:"string" enum:"ConnectionState"`
-
-	metadataConfirmConnectionOutput `json:"-" xml:"-"`
-}
-
-type metadataConfirmConnectionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -789,6 +770,8 @@ func (s ConfirmConnectionOutput) GoString() string {
 
 // Container for the parameters to the ConfirmPrivateVirtualInterface operation.
 type ConfirmPrivateVirtualInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the virtual private gateway that will be attached to the virtual interface.
 	//
 	//  A virtual private gateway can be managed via the Amazon Virtual Private
@@ -804,12 +787,6 @@ type ConfirmPrivateVirtualInterfaceInput struct {
 	//
 	// Default: None
 	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string" required:"true"`
-
-	metadataConfirmPrivateVirtualInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataConfirmPrivateVirtualInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -824,29 +801,25 @@ func (s ConfirmPrivateVirtualInterfaceInput) GoString() string {
 
 // The response received when ConfirmPrivateVirtualInterface is called.
 type ConfirmPrivateVirtualInterfaceOutput struct {
-	// State of the virtual interface.   Confirming: The creation of the virtual
+	_ struct{} `type:"structure"`
+
+	// State of the virtual interface.  Confirming: The creation of the virtual
 	// interface is pending confirmation from the virtual interface owner. If the
 	// owner of the virtual interface is different from the owner of the connection
 	// on which it is provisioned, then the virtual interface will remain in this
-	// state until it is confirmed by the virtual interface owner.  Verifying: This
+	// state until it is confirmed by the virtual interface owner. Verifying: This
 	// state only applies to public virtual interfaces. Each public virtual interface
-	// needs validation before the virtual interface can be created.  Pending: A
+	// needs validation before the virtual interface can be created. Pending: A
 	// virtual interface is in this state from the time that it is created until
-	// the virtual interface is ready to forward traffic.  Available: A virtual
-	// interface that is able to forward traffic.  Deleting: A virtual interface
-	// is in this state immediately after calling DeleteVirtualInterface until it
-	// can no longer forward traffic.  Deleted: A virtual interface that cannot
-	// forward traffic.  Rejected: The virtual interface owner has declined creation
-	// of the virtual interface. If a virtual interface in the 'Confirming' state
-	// is deleted by the virtual interface owner, the virtual interface will enter
-	// the 'Rejected' state.
+	// the virtual interface is ready to forward traffic. Available: A virtual interface
+	// that is able to forward traffic. Down: A virtual interface that is BGP down.
+	// Deleting: A virtual interface is in this state immediately after calling
+	// DeleteVirtualInterface until it can no longer forward traffic. Deleted: A
+	// virtual interface that cannot forward traffic. Rejected: The virtual interface
+	// owner has declined creation of the virtual interface. If a virtual interface
+	// in the 'Confirming' state is deleted by the virtual interface owner, the
+	// virtual interface will enter the 'Rejected' state.
 	VirtualInterfaceState *string `locationName:"virtualInterfaceState" type:"string" enum:"VirtualInterfaceState"`
-
-	metadataConfirmPrivateVirtualInterfaceOutput `json:"-" xml:"-"`
-}
-
-type metadataConfirmPrivateVirtualInterfaceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -861,18 +834,14 @@ func (s ConfirmPrivateVirtualInterfaceOutput) GoString() string {
 
 // Container for the parameters to the ConfirmPublicVirtualInterface operation.
 type ConfirmPublicVirtualInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the virtual interface.
 	//
 	// Example: dxvif-123dfg56
 	//
 	// Default: None
 	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string" required:"true"`
-
-	metadataConfirmPublicVirtualInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataConfirmPublicVirtualInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -887,29 +856,25 @@ func (s ConfirmPublicVirtualInterfaceInput) GoString() string {
 
 // The response received when ConfirmPublicVirtualInterface is called.
 type ConfirmPublicVirtualInterfaceOutput struct {
-	// State of the virtual interface.   Confirming: The creation of the virtual
+	_ struct{} `type:"structure"`
+
+	// State of the virtual interface.  Confirming: The creation of the virtual
 	// interface is pending confirmation from the virtual interface owner. If the
 	// owner of the virtual interface is different from the owner of the connection
 	// on which it is provisioned, then the virtual interface will remain in this
-	// state until it is confirmed by the virtual interface owner.  Verifying: This
+	// state until it is confirmed by the virtual interface owner. Verifying: This
 	// state only applies to public virtual interfaces. Each public virtual interface
-	// needs validation before the virtual interface can be created.  Pending: A
+	// needs validation before the virtual interface can be created. Pending: A
 	// virtual interface is in this state from the time that it is created until
-	// the virtual interface is ready to forward traffic.  Available: A virtual
-	// interface that is able to forward traffic.  Deleting: A virtual interface
-	// is in this state immediately after calling DeleteVirtualInterface until it
-	// can no longer forward traffic.  Deleted: A virtual interface that cannot
-	// forward traffic.  Rejected: The virtual interface owner has declined creation
-	// of the virtual interface. If a virtual interface in the 'Confirming' state
-	// is deleted by the virtual interface owner, the virtual interface will enter
-	// the 'Rejected' state.
+	// the virtual interface is ready to forward traffic. Available: A virtual interface
+	// that is able to forward traffic. Down: A virtual interface that is BGP down.
+	// Deleting: A virtual interface is in this state immediately after calling
+	// DeleteVirtualInterface until it can no longer forward traffic. Deleted: A
+	// virtual interface that cannot forward traffic. Rejected: The virtual interface
+	// owner has declined creation of the virtual interface. If a virtual interface
+	// in the 'Confirming' state is deleted by the virtual interface owner, the
+	// virtual interface will enter the 'Rejected' state.
 	VirtualInterfaceState *string `locationName:"virtualInterfaceState" type:"string" enum:"VirtualInterfaceState"`
-
-	metadataConfirmPublicVirtualInterfaceOutput `json:"-" xml:"-"`
-}
-
-type metadataConfirmPublicVirtualInterfaceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -925,6 +890,8 @@ func (s ConfirmPublicVirtualInterfaceOutput) GoString() string {
 // A connection represents the physical network connection between the AWS Direct
 // Connect location and the customer.
 type Connection struct {
+	_ struct{} `type:"structure"`
+
 	// Bandwidth of the connection.
 	//
 	// Example: 1Gbps (for regular connections), or 500Mbps (for hosted connections)
@@ -946,16 +913,17 @@ type Connection struct {
 	// Default: None
 	ConnectionName *string `locationName:"connectionName" type:"string"`
 
-	// State of the connection.   Ordering: The initial state of a hosted connection
+	// State of the connection.  Ordering: The initial state of a hosted connection
 	// provisioned on an interconnect. The connection stays in the ordering state
 	// until the owner of the hosted connection confirms or declines the connection
-	// order.  Requested: The initial state of a standard connection. The connection
+	// order. Requested: The initial state of a standard connection. The connection
 	// stays in the requested state until the Letter of Authorization (LOA) is sent
-	// to the customer.  Pending: The connection has been approved, and is being
-	// initialized.  Available: The network link is up, and the connection is ready
-	// for use.  Down: The network link is down.  Deleted: The connection has been
-	// deleted.  Rejected: A hosted connection in the 'Ordering' state will enter
-	// the 'Rejected' state if it is deleted by the end customer.
+	// to the customer. Pending: The connection has been approved, and is being
+	// initialized. Available: The network link is up, and the connection is ready
+	// for use. Down: The network link is down. Deleting: The connection is in the
+	// process of being deleted. Deleted: The connection has been deleted. Rejected:
+	// A hosted connection in the 'Ordering' state will enter the 'Rejected' state
+	// if it is deleted by the end customer.
 	ConnectionState *string `locationName:"connectionState" type:"string" enum:"ConnectionState"`
 
 	// Where the connection is located.
@@ -980,12 +948,6 @@ type Connection struct {
 	//
 	// Example: 101
 	Vlan *int64 `locationName:"vlan" type:"integer"`
-
-	metadataConnection `json:"-" xml:"-"`
-}
-
-type metadataConnection struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1000,14 +962,10 @@ func (s Connection) GoString() string {
 
 // A structure containing a list of connections.
 type Connections struct {
+	_ struct{} `type:"structure"`
+
 	// A list of connections.
 	Connections []*Connection `locationName:"connections" type:"list"`
-
-	metadataConnections `json:"-" xml:"-"`
-}
-
-type metadataConnections struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1022,6 +980,8 @@ func (s Connections) GoString() string {
 
 // Container for the parameters to the CreateConnection operation.
 type CreateConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// Bandwidth of the connection.
 	//
 	// Example: 1Gbps
@@ -1042,12 +1002,6 @@ type CreateConnectionInput struct {
 	//
 	// Default: None
 	Location *string `locationName:"location" type:"string" required:"true"`
-
-	metadataCreateConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataCreateConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1062,6 +1016,8 @@ func (s CreateConnectionInput) GoString() string {
 
 // Container for the parameters to the CreateInterconnect operation.
 type CreateInterconnectInput struct {
+	_ struct{} `type:"structure"`
+
 	// The port bandwidth
 	//
 	// Example: 1Gbps
@@ -1084,12 +1040,6 @@ type CreateInterconnectInput struct {
 	//
 	// Default: None
 	Location *string `locationName:"location" type:"string" required:"true"`
-
-	metadataCreateInterconnectInput `json:"-" xml:"-"`
-}
-
-type metadataCreateInterconnectInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1104,6 +1054,8 @@ func (s CreateInterconnectInput) GoString() string {
 
 // Container for the parameters to the CreatePrivateVirtualInterface operation.
 type CreatePrivateVirtualInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the connection.
 	//
 	// Example: dxcon-fg5678gh
@@ -1115,12 +1067,6 @@ type CreatePrivateVirtualInterfaceInput struct {
 	//
 	// Default: None
 	NewPrivateVirtualInterface *NewPrivateVirtualInterface `locationName:"newPrivateVirtualInterface" type:"structure" required:"true"`
-
-	metadataCreatePrivateVirtualInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataCreatePrivateVirtualInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1135,6 +1081,8 @@ func (s CreatePrivateVirtualInterfaceInput) GoString() string {
 
 // Container for the parameters to the CreatePublicVirtualInterface operation.
 type CreatePublicVirtualInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the connection.
 	//
 	// Example: dxcon-fg5678gh
@@ -1146,12 +1094,6 @@ type CreatePublicVirtualInterfaceInput struct {
 	//
 	// Default: None
 	NewPublicVirtualInterface *NewPublicVirtualInterface `locationName:"newPublicVirtualInterface" type:"structure" required:"true"`
-
-	metadataCreatePublicVirtualInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataCreatePublicVirtualInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1166,18 +1108,14 @@ func (s CreatePublicVirtualInterfaceInput) GoString() string {
 
 // Container for the parameters to the DeleteConnection operation.
 type DeleteConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the connection.
 	//
 	// Example: dxcon-fg5678gh
 	//
 	// Default: None
 	ConnectionId *string `locationName:"connectionId" type:"string" required:"true"`
-
-	metadataDeleteConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1192,16 +1130,12 @@ func (s DeleteConnectionInput) GoString() string {
 
 // Container for the parameters to the DeleteInterconnect operation.
 type DeleteInterconnectInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the interconnect.
 	//
 	// Example: dxcon-abc123
 	InterconnectId *string `locationName:"interconnectId" type:"string" required:"true"`
-
-	metadataDeleteInterconnectInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteInterconnectInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1216,19 +1150,15 @@ func (s DeleteInterconnectInput) GoString() string {
 
 // The response received when DeleteInterconnect is called.
 type DeleteInterconnectOutput struct {
-	// State of the interconnect.   Requested: The initial state of an interconnect.
+	_ struct{} `type:"structure"`
+
+	// State of the interconnect.  Requested: The initial state of an interconnect.
 	// The interconnect stays in the requested state until the Letter of Authorization
-	// (LOA) is sent to the customer.  Pending: The interconnect has been approved,
-	// and is being initialized.  Available: The network link is up, and the interconnect
-	// is ready for use.  Down: The network link is down.  Deleted: The interconnect
-	// has been deleted.
+	// (LOA) is sent to the customer. Pending: The interconnect has been approved,
+	// and is being initialized. Available: The network link is up, and the interconnect
+	// is ready for use. Down: The network link is down. Deleting: The interconnect
+	// is in the process of being deleted. Deleted: The interconnect has been deleted.
 	InterconnectState *string `locationName:"interconnectState" type:"string" enum:"InterconnectState"`
-
-	metadataDeleteInterconnectOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteInterconnectOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1243,18 +1173,14 @@ func (s DeleteInterconnectOutput) GoString() string {
 
 // Container for the parameters to the DeleteVirtualInterface operation.
 type DeleteVirtualInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the virtual interface.
 	//
 	// Example: dxvif-123dfg56
 	//
 	// Default: None
 	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string" required:"true"`
-
-	metadataDeleteVirtualInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVirtualInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1269,29 +1195,25 @@ func (s DeleteVirtualInterfaceInput) GoString() string {
 
 // The response received when DeleteVirtualInterface is called.
 type DeleteVirtualInterfaceOutput struct {
-	// State of the virtual interface.   Confirming: The creation of the virtual
+	_ struct{} `type:"structure"`
+
+	// State of the virtual interface.  Confirming: The creation of the virtual
 	// interface is pending confirmation from the virtual interface owner. If the
 	// owner of the virtual interface is different from the owner of the connection
 	// on which it is provisioned, then the virtual interface will remain in this
-	// state until it is confirmed by the virtual interface owner.  Verifying: This
+	// state until it is confirmed by the virtual interface owner. Verifying: This
 	// state only applies to public virtual interfaces. Each public virtual interface
-	// needs validation before the virtual interface can be created.  Pending: A
+	// needs validation before the virtual interface can be created. Pending: A
 	// virtual interface is in this state from the time that it is created until
-	// the virtual interface is ready to forward traffic.  Available: A virtual
-	// interface that is able to forward traffic.  Deleting: A virtual interface
-	// is in this state immediately after calling DeleteVirtualInterface until it
-	// can no longer forward traffic.  Deleted: A virtual interface that cannot
-	// forward traffic.  Rejected: The virtual interface owner has declined creation
-	// of the virtual interface. If a virtual interface in the 'Confirming' state
-	// is deleted by the virtual interface owner, the virtual interface will enter
-	// the 'Rejected' state.
+	// the virtual interface is ready to forward traffic. Available: A virtual interface
+	// that is able to forward traffic. Down: A virtual interface that is BGP down.
+	// Deleting: A virtual interface is in this state immediately after calling
+	// DeleteVirtualInterface until it can no longer forward traffic. Deleted: A
+	// virtual interface that cannot forward traffic. Rejected: The virtual interface
+	// owner has declined creation of the virtual interface. If a virtual interface
+	// in the 'Confirming' state is deleted by the virtual interface owner, the
+	// virtual interface will enter the 'Rejected' state.
 	VirtualInterfaceState *string `locationName:"virtualInterfaceState" type:"string" enum:"VirtualInterfaceState"`
-
-	metadataDeleteVirtualInterfaceOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVirtualInterfaceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1306,18 +1228,14 @@ func (s DeleteVirtualInterfaceOutput) GoString() string {
 
 // Container for the parameters to the DescribeConnections operation.
 type DescribeConnectionsInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the connection.
 	//
 	// Example: dxcon-fg5678gh
 	//
 	// Default: None
 	ConnectionId *string `locationName:"connectionId" type:"string"`
-
-	metadataDescribeConnectionsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConnectionsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1332,18 +1250,14 @@ func (s DescribeConnectionsInput) GoString() string {
 
 // Container for the parameters to the DescribeConnectionsOnInterconnect operation.
 type DescribeConnectionsOnInterconnectInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the interconnect on which a list of connection is provisioned.
 	//
 	// Example: dxcon-abc123
 	//
 	// Default: None
 	InterconnectId *string `locationName:"interconnectId" type:"string" required:"true"`
-
-	metadataDescribeConnectionsOnInterconnectInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConnectionsOnInterconnectInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1358,16 +1272,12 @@ func (s DescribeConnectionsOnInterconnectInput) GoString() string {
 
 // Container for the parameters to the DescribeInterconnects operation.
 type DescribeInterconnectsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the interconnect.
 	//
 	// Example: dxcon-abc123
 	InterconnectId *string `locationName:"interconnectId" type:"string"`
-
-	metadataDescribeInterconnectsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInterconnectsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1382,14 +1292,10 @@ func (s DescribeInterconnectsInput) GoString() string {
 
 // A structure containing a list of interconnects.
 type DescribeInterconnectsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of interconnects.
 	Interconnects []*Interconnect `locationName:"interconnects" type:"list"`
-
-	metadataDescribeInterconnectsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInterconnectsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1403,11 +1309,7 @@ func (s DescribeInterconnectsOutput) GoString() string {
 }
 
 type DescribeLocationsInput struct {
-	metadataDescribeLocationsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeLocationsInput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1420,14 +1322,16 @@ func (s DescribeLocationsInput) GoString() string {
 	return s.String()
 }
 
+// A location is a network facility where AWS Direct Connect routers are available
+// to be connected. Generally, these are colocation hubs where many network
+// providers have equipment, and where cross connects can be delivered. Locations
+// include a name and facility code, and must be provided when creating a connection.
 type DescribeLocationsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of colocation hubs where network providers have equipment. Most regions
+	// have multiple locations available.
 	Locations []*Location `locationName:"locations" type:"list"`
-
-	metadataDescribeLocationsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeLocationsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1441,11 +1345,7 @@ func (s DescribeLocationsOutput) GoString() string {
 }
 
 type DescribeVirtualGatewaysInput struct {
-	metadataDescribeVirtualGatewaysInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVirtualGatewaysInput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1460,14 +1360,10 @@ func (s DescribeVirtualGatewaysInput) GoString() string {
 
 // A structure containing a list of virtual private gateways.
 type DescribeVirtualGatewaysOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of virtual private gateways.
 	VirtualGateways []*VirtualGateway `locationName:"virtualGateways" type:"list"`
-
-	metadataDescribeVirtualGatewaysOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVirtualGatewaysOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1482,6 +1378,8 @@ func (s DescribeVirtualGatewaysOutput) GoString() string {
 
 // Container for the parameters to the DescribeVirtualInterfaces operation.
 type DescribeVirtualInterfacesInput struct {
+	_ struct{} `type:"structure"`
+
 	// ID of the connection.
 	//
 	// Example: dxcon-fg5678gh
@@ -1495,12 +1393,6 @@ type DescribeVirtualInterfacesInput struct {
 	//
 	// Default: None
 	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string"`
-
-	metadataDescribeVirtualInterfacesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVirtualInterfacesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1515,14 +1407,10 @@ func (s DescribeVirtualInterfacesInput) GoString() string {
 
 // A structure containing a list of virtual interfaces.
 type DescribeVirtualInterfacesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of virtual interfaces.
 	VirtualInterfaces []*VirtualInterface `locationName:"virtualInterfaces" type:"list"`
-
-	metadataDescribeVirtualInterfacesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVirtualInterfacesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1548,6 +1436,8 @@ func (s DescribeVirtualInterfacesOutput) GoString() string {
 // are shared by all of the hosted connections on the interconnect, and the
 // owner of the interconnect determines how these resources are assigned.
 type Interconnect struct {
+	_ struct{} `type:"structure"`
+
 	// Bandwidth of the connection.
 	//
 	// Example: 1Gbps
@@ -1565,12 +1455,12 @@ type Interconnect struct {
 	// Example: "1G Interconnect to AWS"
 	InterconnectName *string `locationName:"interconnectName" type:"string"`
 
-	// State of the interconnect.   Requested: The initial state of an interconnect.
+	// State of the interconnect.  Requested: The initial state of an interconnect.
 	// The interconnect stays in the requested state until the Letter of Authorization
-	// (LOA) is sent to the customer.  Pending: The interconnect has been approved,
-	// and is being initialized.  Available: The network link is up, and the interconnect
-	// is ready for use.  Down: The network link is down.  Deleted: The interconnect
-	// has been deleted.
+	// (LOA) is sent to the customer. Pending: The interconnect has been approved,
+	// and is being initialized. Available: The network link is up, and the interconnect
+	// is ready for use. Down: The network link is down. Deleting: The interconnect
+	// is in the process of being deleted. Deleted: The interconnect has been deleted.
 	InterconnectState *string `locationName:"interconnectState" type:"string" enum:"InterconnectState"`
 
 	// Where the connection is located.
@@ -1586,12 +1476,6 @@ type Interconnect struct {
 	//
 	// Default: None
 	Region *string `locationName:"region" type:"string"`
-
-	metadataInterconnect `json:"-" xml:"-"`
-}
-
-type metadataInterconnect struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1607,18 +1491,14 @@ func (s Interconnect) GoString() string {
 // An AWS Direct Connect location where connections and interconnects can be
 // requested.
 type Location struct {
+	_ struct{} `type:"structure"`
+
 	// The code used to indicate the AWS Direct Connect location.
 	LocationCode *string `locationName:"locationCode" type:"string"`
 
 	// The name of the AWS Direct Connect location. The name includes the colocation
 	// partner name and the physical site of the lit building.
 	LocationName *string `locationName:"locationName" type:"string"`
-
-	metadataLocation `json:"-" xml:"-"`
-}
-
-type metadataLocation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1633,6 +1513,8 @@ func (s Location) GoString() string {
 
 // A structure containing information about a new private virtual interface.
 type NewPrivateVirtualInterface struct {
+	_ struct{} `type:"structure"`
+
 	// IP address assigned to the Amazon interface.
 	//
 	// Example: 192.168.1.1/30
@@ -1668,12 +1550,6 @@ type NewPrivateVirtualInterface struct {
 	//
 	// Example: 101
 	Vlan *int64 `locationName:"vlan" type:"integer" required:"true"`
-
-	metadataNewPrivateVirtualInterface `json:"-" xml:"-"`
-}
-
-type metadataNewPrivateVirtualInterface struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1689,6 +1565,8 @@ func (s NewPrivateVirtualInterface) GoString() string {
 // A structure containing information about a private virtual interface that
 // will be provisioned on a connection.
 type NewPrivateVirtualInterfaceAllocation struct {
+	_ struct{} `type:"structure"`
+
 	// IP address assigned to the Amazon interface.
 	//
 	// Example: 192.168.1.1/30
@@ -1718,12 +1596,6 @@ type NewPrivateVirtualInterfaceAllocation struct {
 	//
 	// Example: 101
 	Vlan *int64 `locationName:"vlan" type:"integer" required:"true"`
-
-	metadataNewPrivateVirtualInterfaceAllocation `json:"-" xml:"-"`
-}
-
-type metadataNewPrivateVirtualInterfaceAllocation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1738,6 +1610,8 @@ func (s NewPrivateVirtualInterfaceAllocation) GoString() string {
 
 // A structure containing information about a new public virtual interface.
 type NewPublicVirtualInterface struct {
+	_ struct{} `type:"structure"`
+
 	// IP address assigned to the Amazon interface.
 	//
 	// Example: 192.168.1.1/30
@@ -1759,7 +1633,7 @@ type NewPublicVirtualInterface struct {
 	CustomerAddress *string `locationName:"customerAddress" type:"string" required:"true"`
 
 	// A list of routes to be advertised to the AWS network in this region (public
-	// virtual interface) or your VPC (private virtual interface).
+	// virtual interface).
 	RouteFilterPrefixes []*RouteFilterPrefix `locationName:"routeFilterPrefixes" type:"list" required:"true"`
 
 	// The name of the virtual interface assigned by the customer.
@@ -1771,12 +1645,6 @@ type NewPublicVirtualInterface struct {
 	//
 	// Example: 101
 	Vlan *int64 `locationName:"vlan" type:"integer" required:"true"`
-
-	metadataNewPublicVirtualInterface `json:"-" xml:"-"`
-}
-
-type metadataNewPublicVirtualInterface struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1792,6 +1660,8 @@ func (s NewPublicVirtualInterface) GoString() string {
 // A structure containing information about a public virtual interface that
 // will be provisioned on a connection.
 type NewPublicVirtualInterfaceAllocation struct {
+	_ struct{} `type:"structure"`
+
 	// IP address assigned to the Amazon interface.
 	//
 	// Example: 192.168.1.1/30
@@ -1813,7 +1683,7 @@ type NewPublicVirtualInterfaceAllocation struct {
 	CustomerAddress *string `locationName:"customerAddress" type:"string" required:"true"`
 
 	// A list of routes to be advertised to the AWS network in this region (public
-	// virtual interface) or your VPC (private virtual interface).
+	// virtual interface).
 	RouteFilterPrefixes []*RouteFilterPrefix `locationName:"routeFilterPrefixes" type:"list" required:"true"`
 
 	// The name of the virtual interface assigned by the customer.
@@ -1825,12 +1695,6 @@ type NewPublicVirtualInterfaceAllocation struct {
 	//
 	// Example: 101
 	Vlan *int64 `locationName:"vlan" type:"integer" required:"true"`
-
-	metadataNewPublicVirtualInterfaceAllocation `json:"-" xml:"-"`
-}
-
-type metadataNewPublicVirtualInterfaceAllocation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1846,17 +1710,13 @@ func (s NewPublicVirtualInterfaceAllocation) GoString() string {
 // A route filter prefix that the customer can advertise through Border Gateway
 // Protocol (BGP) over a public virtual interface.
 type RouteFilterPrefix struct {
+	_ struct{} `type:"structure"`
+
 	// CIDR notation for the advertised route. Multiple routes are separated by
 	// commas.
 	//
 	// Example: 10.10.10.0/24,10.10.11.0/24
 	Cidr *string `locationName:"cidr" type:"string"`
-
-	metadataRouteFilterPrefix `json:"-" xml:"-"`
-}
-
-type metadataRouteFilterPrefix struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1875,24 +1735,20 @@ func (s RouteFilterPrefix) GoString() string {
 // Virtual private gateways can be managed using the Amazon Virtual Private
 // Cloud (Amazon VPC) console or the Amazon EC2 CreateVpnGateway action (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpnGateway.html).
 type VirtualGateway struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the virtual private gateway to a VPC. This only applies to private
 	// virtual interfaces.
 	//
 	// Example: vgw-123er56
 	VirtualGatewayId *string `locationName:"virtualGatewayId" type:"string"`
 
-	// State of the virtual private gateway.   Pending: This is the initial state
-	// after calling CreateVpnGateway.  Available: Ready for use by a private virtual
-	// interface.  Deleting: This is the initial state after calling DeleteVpnGateway.
-	//  Deleted: In this state, a private virtual interface is unable to send traffic
+	// State of the virtual private gateway.  Pending: This is the initial state
+	// after calling CreateVpnGateway. Available: Ready for use by a private virtual
+	// interface. Deleting: This is the initial state after calling DeleteVpnGateway.
+	// Deleted: In this state, a private virtual interface is unable to send traffic
 	// over this gateway.
 	VirtualGatewayState *string `locationName:"virtualGatewayState" type:"string"`
-
-	metadataVirtualGateway `json:"-" xml:"-"`
-}
-
-type metadataVirtualGateway struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1908,6 +1764,8 @@ func (s VirtualGateway) GoString() string {
 // A virtual interface (VLAN) transmits the traffic between the AWS Direct Connect
 // location and the customer.
 type VirtualInterface struct {
+	_ struct{} `type:"structure"`
+
 	// IP address assigned to the Amazon interface.
 	//
 	// Example: 192.168.1.1/30
@@ -1948,7 +1806,7 @@ type VirtualInterface struct {
 	OwnerAccount *string `locationName:"ownerAccount" type:"string"`
 
 	// A list of routes to be advertised to the AWS network in this region (public
-	// virtual interface) or your VPC (private virtual interface).
+	// virtual interface).
 	RouteFilterPrefixes []*RouteFilterPrefix `locationName:"routeFilterPrefixes" type:"list"`
 
 	// The ID of the virtual private gateway to a VPC. This only applies to private
@@ -1969,22 +1827,22 @@ type VirtualInterface struct {
 	// Example: "My VPC"
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string"`
 
-	// State of the virtual interface.   Confirming: The creation of the virtual
+	// State of the virtual interface.  Confirming: The creation of the virtual
 	// interface is pending confirmation from the virtual interface owner. If the
 	// owner of the virtual interface is different from the owner of the connection
 	// on which it is provisioned, then the virtual interface will remain in this
-	// state until it is confirmed by the virtual interface owner.  Verifying: This
+	// state until it is confirmed by the virtual interface owner. Verifying: This
 	// state only applies to public virtual interfaces. Each public virtual interface
-	// needs validation before the virtual interface can be created.  Pending: A
+	// needs validation before the virtual interface can be created. Pending: A
 	// virtual interface is in this state from the time that it is created until
-	// the virtual interface is ready to forward traffic.  Available: A virtual
-	// interface that is able to forward traffic.  Deleting: A virtual interface
-	// is in this state immediately after calling DeleteVirtualInterface until it
-	// can no longer forward traffic.  Deleted: A virtual interface that cannot
-	// forward traffic.  Rejected: The virtual interface owner has declined creation
-	// of the virtual interface. If a virtual interface in the 'Confirming' state
-	// is deleted by the virtual interface owner, the virtual interface will enter
-	// the 'Rejected' state.
+	// the virtual interface is ready to forward traffic. Available: A virtual interface
+	// that is able to forward traffic. Down: A virtual interface that is BGP down.
+	// Deleting: A virtual interface is in this state immediately after calling
+	// DeleteVirtualInterface until it can no longer forward traffic. Deleted: A
+	// virtual interface that cannot forward traffic. Rejected: The virtual interface
+	// owner has declined creation of the virtual interface. If a virtual interface
+	// in the 'Confirming' state is deleted by the virtual interface owner, the
+	// virtual interface will enter the 'Rejected' state.
 	VirtualInterfaceState *string `locationName:"virtualInterfaceState" type:"string" enum:"VirtualInterfaceState"`
 
 	// The type of virtual interface.
@@ -1997,12 +1855,6 @@ type VirtualInterface struct {
 	//
 	// Example: 101
 	Vlan *int64 `locationName:"vlan" type:"integer"`
-
-	metadataVirtualInterface `json:"-" xml:"-"`
-}
-
-type metadataVirtualInterface struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2015,16 +1867,17 @@ func (s VirtualInterface) GoString() string {
 	return s.String()
 }
 
-// State of the connection.   Ordering: The initial state of a hosted connection
+// State of the connection.  Ordering: The initial state of a hosted connection
 // provisioned on an interconnect. The connection stays in the ordering state
 // until the owner of the hosted connection confirms or declines the connection
-// order.  Requested: The initial state of a standard connection. The connection
+// order. Requested: The initial state of a standard connection. The connection
 // stays in the requested state until the Letter of Authorization (LOA) is sent
-// to the customer.  Pending: The connection has been approved, and is being
-// initialized.  Available: The network link is up, and the connection is ready
-// for use.  Down: The network link is down.  Deleted: The connection has been
-// deleted.  Rejected: A hosted connection in the 'Ordering' state will enter
-// the 'Rejected' state if it is deleted by the end customer.
+// to the customer. Pending: The connection has been approved, and is being
+// initialized. Available: The network link is up, and the connection is ready
+// for use. Down: The network link is down. Deleting: The connection is in the
+// process of being deleted. Deleted: The connection has been deleted. Rejected:
+// A hosted connection in the 'Ordering' state will enter the 'Rejected' state
+// if it is deleted by the end customer.
 const (
 	// @enum ConnectionState
 	ConnectionStateOrdering = "ordering"
@@ -2044,12 +1897,12 @@ const (
 	ConnectionStateRejected = "rejected"
 )
 
-// State of the interconnect.   Requested: The initial state of an interconnect.
+// State of the interconnect.  Requested: The initial state of an interconnect.
 // The interconnect stays in the requested state until the Letter of Authorization
-// (LOA) is sent to the customer.  Pending: The interconnect has been approved,
-// and is being initialized.  Available: The network link is up, and the interconnect
-// is ready for use.  Down: The network link is down.  Deleted: The interconnect
-// has been deleted.
+// (LOA) is sent to the customer. Pending: The interconnect has been approved,
+// and is being initialized. Available: The network link is up, and the interconnect
+// is ready for use. Down: The network link is down. Deleting: The interconnect
+// is in the process of being deleted. Deleted: The interconnect has been deleted.
 const (
 	// @enum InterconnectState
 	InterconnectStateRequested = "requested"
@@ -2065,22 +1918,22 @@ const (
 	InterconnectStateDeleted = "deleted"
 )
 
-// State of the virtual interface.   Confirming: The creation of the virtual
+// State of the virtual interface.  Confirming: The creation of the virtual
 // interface is pending confirmation from the virtual interface owner. If the
 // owner of the virtual interface is different from the owner of the connection
 // on which it is provisioned, then the virtual interface will remain in this
-// state until it is confirmed by the virtual interface owner.  Verifying: This
+// state until it is confirmed by the virtual interface owner. Verifying: This
 // state only applies to public virtual interfaces. Each public virtual interface
-// needs validation before the virtual interface can be created.  Pending: A
+// needs validation before the virtual interface can be created. Pending: A
 // virtual interface is in this state from the time that it is created until
-// the virtual interface is ready to forward traffic.  Available: A virtual
-// interface that is able to forward traffic.  Deleting: A virtual interface
-// is in this state immediately after calling DeleteVirtualInterface until it
-// can no longer forward traffic.  Deleted: A virtual interface that cannot
-// forward traffic.  Rejected: The virtual interface owner has declined creation
-// of the virtual interface. If a virtual interface in the 'Confirming' state
-// is deleted by the virtual interface owner, the virtual interface will enter
-// the 'Rejected' state.
+// the virtual interface is ready to forward traffic. Available: A virtual interface
+// that is able to forward traffic. Down: A virtual interface that is BGP down.
+// Deleting: A virtual interface is in this state immediately after calling
+// DeleteVirtualInterface until it can no longer forward traffic. Deleted: A
+// virtual interface that cannot forward traffic. Rejected: The virtual interface
+// owner has declined creation of the virtual interface. If a virtual interface
+// in the 'Confirming' state is deleted by the virtual interface owner, the
+// virtual interface will enter the 'Rejected' state.
 const (
 	// @enum VirtualInterfaceState
 	VirtualInterfaceStateConfirming = "confirming"

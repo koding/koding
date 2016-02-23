@@ -706,6 +706,11 @@
           "shape":"UnauthorizedException",
           "error":{"httpStatusCode":401},
           "exception":true
+        },
+        {
+          "shape":"ThrottlingException",
+          "error":{"httpStatusCode":429},
+          "exception":true
         }
       ]
     },
@@ -834,6 +839,70 @@
           "error":{"httpStatusCode":500},
           "exception":true,
           "fault":true
+        }
+      ]
+    },
+    "DisableTopicRule":{
+      "name":"DisableTopicRule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/rules/{ruleName}/disable"
+      },
+      "input":{"shape":"DisableTopicRuleRequest"},
+      "errors":[
+        {
+          "shape":"InternalException",
+          "error":{"httpStatusCode":500},
+          "exception":true,
+          "fault":true
+        },
+        {
+          "shape":"InvalidRequestException",
+          "error":{"httpStatusCode":400},
+          "exception":true
+        },
+        {
+          "shape":"ServiceUnavailableException",
+          "error":{"httpStatusCode":503},
+          "exception":true,
+          "fault":true
+        },
+        {
+          "shape":"UnauthorizedException",
+          "error":{"httpStatusCode":401},
+          "exception":true
+        }
+      ]
+    },
+    "EnableTopicRule":{
+      "name":"EnableTopicRule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/rules/{ruleName}/enable"
+      },
+      "input":{"shape":"EnableTopicRuleRequest"},
+      "errors":[
+        {
+          "shape":"InternalException",
+          "error":{"httpStatusCode":500},
+          "exception":true,
+          "fault":true
+        },
+        {
+          "shape":"InvalidRequestException",
+          "error":{"httpStatusCode":400},
+          "exception":true
+        },
+        {
+          "shape":"ServiceUnavailableException",
+          "error":{"httpStatusCode":503},
+          "exception":true,
+          "fault":true
+        },
+        {
+          "shape":"UnauthorizedException",
+          "error":{"httpStatusCode":401},
+          "exception":true
         }
       ]
     },
@@ -1731,7 +1800,10 @@
       "max":64,
       "pattern":"(0x)?[a-fA-F0-9]+"
     },
-    "CertificatePem":{"type":"string"},
+    "CertificatePem":{
+      "type":"string",
+      "min":1
+    },
     "CertificateSigningRequest":{
       "type":"string",
       "min":1
@@ -2055,6 +2127,17 @@
       "members":{
       }
     },
+    "DisableTopicRuleRequest":{
+      "type":"structure",
+      "required":["ruleName"],
+      "members":{
+        "ruleName":{
+          "shape":"RuleName",
+          "location":"uri",
+          "locationName":"ruleName"
+        }
+      }
+    },
     "DynamoDBAction":{
       "type":"structure",
       "required":[
@@ -2073,6 +2156,17 @@
         "rangeKeyField":{"shape":"RangeKeyField"},
         "rangeKeyValue":{"shape":"RangeKeyValue"},
         "payloadField":{"shape":"PayloadField"}
+      }
+    },
+    "EnableTopicRuleRequest":{
+      "type":"structure",
+      "required":["ruleName"],
+      "members":{
+        "ruleName":{
+          "shape":"RuleName",
+          "location":"uri",
+          "locationName":"ruleName"
+        }
       }
     },
     "EndpointAddress":{"type":"string"},
@@ -2163,6 +2257,7 @@
     "GetTopicRuleResponse":{
       "type":"structure",
       "members":{
+        "ruleArn":{"shape":"RuleArn"},
         "rule":{"shape":"TopicRule"}
       }
     },
@@ -2527,7 +2622,8 @@
     },
     "PrivateKey":{
       "type":"string",
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "PublicKey":{
       "type":"string",
@@ -2590,6 +2686,7 @@
       "error":{"httpStatusCode":404},
       "exception":true
     },
+    "RuleArn":{"type":"string"},
     "RuleName":{
       "type":"string",
       "min":1,
@@ -2642,6 +2739,7 @@
     },
     "SetLoggingOptionsRequest":{
       "type":"structure",
+      "required":["loggingOptionsPayload"],
       "members":{
         "loggingOptionsPayload":{"shape":"LoggingOptionsPayload"}
       },
@@ -2730,6 +2828,7 @@
     "TopicRuleListItem":{
       "type":"structure",
       "members":{
+        "ruleArn":{"shape":"RuleArn"},
         "ruleName":{"shape":"RuleName"},
         "topicPattern":{"shape":"TopicPattern"},
         "createdAt":{"shape":"CreatedAtDate"},

@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
 const opAcknowledgeJob = "AcknowledgeJob"
@@ -136,6 +138,8 @@ func (c *CodePipeline) DeleteCustomActionTypeRequest(input *DeleteCustomActionTy
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteCustomActionTypeOutput{}
 	req.Data = output
 	return
@@ -167,6 +171,8 @@ func (c *CodePipeline) DeletePipelineRequest(input *DeletePipelineInput) (req *r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeletePipelineOutput{}
 	req.Data = output
 	return
@@ -194,6 +200,8 @@ func (c *CodePipeline) DisableStageTransitionRequest(input *DisableStageTransiti
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DisableStageTransitionOutput{}
 	req.Data = output
 	return
@@ -222,6 +230,8 @@ func (c *CodePipeline) EnableStageTransitionRequest(input *EnableStageTransition
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &EnableStageTransitionOutput{}
 	req.Data = output
 	return
@@ -517,6 +527,8 @@ func (c *CodePipeline) PutJobFailureResultRequest(input *PutJobFailureResultInpu
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &PutJobFailureResultOutput{}
 	req.Data = output
 	return
@@ -545,6 +557,8 @@ func (c *CodePipeline) PutJobSuccessResultRequest(input *PutJobSuccessResultInpu
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &PutJobSuccessResultOutput{}
 	req.Data = output
 	return
@@ -573,6 +587,8 @@ func (c *CodePipeline) PutThirdPartyJobFailureResultRequest(input *PutThirdParty
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &PutThirdPartyJobFailureResultOutput{}
 	req.Data = output
 	return
@@ -601,6 +617,8 @@ func (c *CodePipeline) PutThirdPartyJobSuccessResultRequest(input *PutThirdParty
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &PutThirdPartyJobSuccessResultOutput{}
 	req.Data = output
 	return
@@ -677,6 +695,8 @@ func (c *CodePipeline) UpdatePipeline(input *UpdatePipelineInput) (*UpdatePipeli
 // used to access input and output artifacts in the Amazon S3 bucket used to
 // store artifact for the pipeline in AWS CodePipeline.
 type AWSSessionCredentials struct {
+	_ struct{} `type:"structure"`
+
 	// The access key for the session.
 	AccessKeyId *string `locationName:"accessKeyId" type:"string" required:"true"`
 
@@ -685,12 +705,6 @@ type AWSSessionCredentials struct {
 
 	// The token for the session.
 	SessionToken *string `locationName:"sessionToken" type:"string" required:"true"`
-
-	metadataAWSSessionCredentials `json:"-" xml:"-"`
-}
-
-type metadataAWSSessionCredentials struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -705,6 +719,8 @@ func (s AWSSessionCredentials) GoString() string {
 
 // Represents the input of an acknowledge job action.
 type AcknowledgeJobInput struct {
+	_ struct{} `type:"structure"`
+
 	// The unique system-generated ID of the job for which you want to confirm receipt.
 	JobId *string `locationName:"jobId" type:"string" required:"true"`
 
@@ -712,12 +728,6 @@ type AcknowledgeJobInput struct {
 	// the job is being worked on by only one job worker. This number must be returned
 	// in the response.
 	Nonce *string `locationName:"nonce" type:"string" required:"true"`
-
-	metadataAcknowledgeJobInput `json:"-" xml:"-"`
-}
-
-type metadataAcknowledgeJobInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -732,14 +742,10 @@ func (s AcknowledgeJobInput) GoString() string {
 
 // Represents the output of an acknowledge job action.
 type AcknowledgeJobOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Whether the job worker has received the specified job.
 	Status *string `locationName:"status" type:"string" enum:"JobStatus"`
-
-	metadataAcknowledgeJobOutput `json:"-" xml:"-"`
-}
-
-type metadataAcknowledgeJobOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -754,6 +760,8 @@ func (s AcknowledgeJobOutput) GoString() string {
 
 // Represents the input of an acknowledge third party job action.
 type AcknowledgeThirdPartyJobInput struct {
+	_ struct{} `type:"structure"`
+
 	// The clientToken portion of the clientId and clientToken pair used to verify
 	// that the calling entity is allowed access to the job and its details.
 	ClientToken *string `locationName:"clientToken" type:"string" required:"true"`
@@ -765,12 +773,6 @@ type AcknowledgeThirdPartyJobInput struct {
 	// the job is being worked on by only one job worker. This number must be returned
 	// in the response.
 	Nonce *string `locationName:"nonce" type:"string" required:"true"`
-
-	metadataAcknowledgeThirdPartyJobInput `json:"-" xml:"-"`
-}
-
-type metadataAcknowledgeThirdPartyJobInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -785,14 +787,10 @@ func (s AcknowledgeThirdPartyJobInput) GoString() string {
 
 // Represents the output of an acknowledge third party job action.
 type AcknowledgeThirdPartyJobOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The status information for the third party job, if any.
 	Status *string `locationName:"status" type:"string" enum:"JobStatus"`
-
-	metadataAcknowledgeThirdPartyJobOutput `json:"-" xml:"-"`
-}
-
-type metadataAcknowledgeThirdPartyJobOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -807,14 +805,10 @@ func (s AcknowledgeThirdPartyJobOutput) GoString() string {
 
 // Represents information about an action configuration.
 type ActionConfiguration struct {
+	_ struct{} `type:"structure"`
+
 	// The configuration data for the action.
 	Configuration map[string]*string `locationName:"configuration" type:"map"`
-
-	metadataActionConfiguration `json:"-" xml:"-"`
-}
-
-type metadataActionConfiguration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -829,6 +823,8 @@ func (s ActionConfiguration) GoString() string {
 
 // Represents information about an action configuration property.
 type ActionConfigurationProperty struct {
+	_ struct{} `type:"structure"`
+
 	// The description of the action configuration property that will be displayed
 	// to users.
 	Description *string `locationName:"description" min:"1" type:"string"`
@@ -863,12 +859,6 @@ type ActionConfigurationProperty struct {
 
 	// The type of the configuration property.
 	Type *string `locationName:"type" type:"string" enum:"ActionConfigurationPropertyType"`
-
-	metadataActionConfigurationProperty `json:"-" xml:"-"`
-}
-
-type metadataActionConfigurationProperty struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -884,14 +874,10 @@ func (s ActionConfigurationProperty) GoString() string {
 // Represents the context of an action within the stage of a pipeline to a job
 // worker.
 type ActionContext struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the action within the context of a job.
 	Name *string `locationName:"name" min:"1" type:"string"`
-
-	metadataActionContext `json:"-" xml:"-"`
-}
-
-type metadataActionContext struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -906,6 +892,8 @@ func (s ActionContext) GoString() string {
 
 // Represents information about an action declaration.
 type ActionDeclaration struct {
+	_ struct{} `type:"structure"`
+
 	// The configuration information for the action type.
 	ActionTypeId *ActionTypeId `locationName:"actionTypeId" type:"structure" required:"true"`
 
@@ -929,12 +917,6 @@ type ActionDeclaration struct {
 
 	// The order in which actions are run.
 	RunOrder *int64 `locationName:"runOrder" min:"1" type:"integer"`
-
-	metadataActionDeclaration `json:"-" xml:"-"`
-}
-
-type metadataActionDeclaration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -949,6 +931,8 @@ func (s ActionDeclaration) GoString() string {
 
 // Represents information about how an action runs.
 type ActionExecution struct {
+	_ struct{} `type:"structure"`
+
 	// The details of an error returned by a URL external to AWS.
 	ErrorDetails *ErrorDetails `locationName:"errorDetails" type:"structure"`
 
@@ -971,12 +955,6 @@ type ActionExecution struct {
 
 	// A summary of the run of the action.
 	Summary *string `locationName:"summary" type:"string"`
-
-	metadataActionExecution `json:"-" xml:"-"`
-}
-
-type metadataActionExecution struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -991,6 +969,8 @@ func (s ActionExecution) GoString() string {
 
 // Represents information about the version (or revision) of an action.
 type ActionRevision struct {
+	_ struct{} `type:"structure"`
+
 	// The date and time when the most recent version of the action was created,
 	// in timestamp format.
 	Created *time.Time `locationName:"created" type:"timestamp" timestampFormat:"unix" required:"true"`
@@ -1002,12 +982,6 @@ type ActionRevision struct {
 	// The system-generated unique ID that identifies the revision number of the
 	// action.
 	RevisionId *string `locationName:"revisionId" type:"string" required:"true"`
-
-	metadataActionRevision `json:"-" xml:"-"`
-}
-
-type metadataActionRevision struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1022,6 +996,8 @@ func (s ActionRevision) GoString() string {
 
 // Represents information about the state of an action.
 type ActionState struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the action.
 	ActionName *string `locationName:"actionName" min:"1" type:"string"`
 
@@ -1038,12 +1014,6 @@ type ActionState struct {
 	// A URL link for more information about the revision, such as a commit details
 	// page.
 	RevisionUrl *string `locationName:"revisionUrl" min:"1" type:"string"`
-
-	metadataActionState `json:"-" xml:"-"`
-}
-
-type metadataActionState struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1058,6 +1028,8 @@ func (s ActionState) GoString() string {
 
 // Returns information about the details of an action type.
 type ActionType struct {
+	_ struct{} `type:"structure"`
+
 	// The configuration properties for the action type.
 	ActionConfigurationProperties []*ActionConfigurationProperty `locationName:"actionConfigurationProperties" type:"list"`
 
@@ -1072,12 +1044,6 @@ type ActionType struct {
 
 	// The settings for the action type.
 	Settings *ActionTypeSettings `locationName:"settings" type:"structure"`
-
-	metadataActionType `json:"-" xml:"-"`
-}
-
-type metadataActionType struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1092,6 +1058,8 @@ func (s ActionType) GoString() string {
 
 // Represents information about an action type.
 type ActionTypeId struct {
+	_ struct{} `type:"structure"`
+
 	// A category defines what kind of action can be taken in the stage, and constrains
 	// the provider type for the action. Valid categories are limited to one of
 	// the values below.
@@ -1108,12 +1076,6 @@ type ActionTypeId struct {
 
 	// A string that identifies the action type.
 	Version *string `locationName:"version" min:"1" type:"string" required:"true"`
-
-	metadataActionTypeId `json:"-" xml:"-"`
-}
-
-type metadataActionTypeId struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1128,6 +1090,8 @@ func (s ActionTypeId) GoString() string {
 
 // Returns information about the settings for an action type.
 type ActionTypeSettings struct {
+	_ struct{} `type:"structure"`
+
 	// The URL returned to the AWS CodePipeline console that provides a deep link
 	// to the resources of the external system, such as the configuration page for
 	// an AWS CodeDeploy deployment group. This link is provided as part of the
@@ -1149,12 +1113,6 @@ type ActionTypeSettings struct {
 	// The URL of a sign-up page where users can sign up for an external service
 	// and perform initial configuration of the action provided by that service.
 	ThirdPartyConfigurationUrl *string `locationName:"thirdPartyConfigurationUrl" min:"1" type:"string"`
-
-	metadataActionTypeSettings `json:"-" xml:"-"`
-}
-
-type metadataActionTypeSettings struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1170,6 +1128,8 @@ func (s ActionTypeSettings) GoString() string {
 // Represents information about an artifact that will be worked upon by actions
 // in the pipeline.
 type Artifact struct {
+	_ struct{} `type:"structure"`
+
 	// The location of an artifact.
 	Location *ArtifactLocation `locationName:"location" type:"structure"`
 
@@ -1179,12 +1139,6 @@ type Artifact struct {
 	// The artifact's revision ID. Depending on the type of object, this could be
 	// a commit ID (GitHub) or a revision ID (Amazon S3).
 	Revision *string `locationName:"revision" type:"string"`
-
-	metadataArtifact `json:"-" xml:"-"`
-}
-
-type metadataArtifact struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1199,17 +1153,13 @@ func (s Artifact) GoString() string {
 
 // Returns information about the details of an artifact.
 type ArtifactDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The maximum number of artifacts allowed for the action type.
 	MaximumCount *int64 `locationName:"maximumCount" type:"integer" required:"true"`
 
 	// The minimum number of artifacts allowed for the action type.
 	MinimumCount *int64 `locationName:"minimumCount" type:"integer" required:"true"`
-
-	metadataArtifactDetails `json:"-" xml:"-"`
-}
-
-type metadataArtifactDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1224,17 +1174,13 @@ func (s ArtifactDetails) GoString() string {
 
 // Represents information about the location of an artifact.
 type ArtifactLocation struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon S3 bucket that contains the artifact.
 	S3Location *S3ArtifactLocation `locationName:"s3Location" type:"structure"`
 
 	// The type of artifact in the location.
 	Type *string `locationName:"type" type:"string" enum:"ArtifactLocationType"`
-
-	metadataArtifactLocation `json:"-" xml:"-"`
-}
-
-type metadataArtifactLocation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1251,6 +1197,8 @@ func (s ArtifactLocation) GoString() string {
 // Amazon S3 bucket is created manually, it must meet the requirements for AWS
 // CodePipeline. For more information, see the Concepts.
 type ArtifactStore struct {
+	_ struct{} `type:"structure"`
+
 	// The AWS Key Management Service (AWS KMS) key used to encrypt the data in
 	// the artifact store. If this is undefined, the default key for Amazon S3 is
 	// used.
@@ -1262,12 +1210,6 @@ type ArtifactStore struct {
 
 	// The type of the artifact store, such as S3.
 	Type *string `locationName:"type" type:"string" required:"true" enum:"ArtifactStoreType"`
-
-	metadataArtifactStore `json:"-" xml:"-"`
-}
-
-type metadataArtifactStore struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1282,17 +1224,13 @@ func (s ArtifactStore) GoString() string {
 
 // Represents information about a gate declaration.
 type BlockerDeclaration struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the gate declaration.
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
 
 	// The type of the gate declaration.
 	Type *string `locationName:"type" type:"string" required:"true" enum:"BlockerType"`
-
-	metadataBlockerDeclaration `json:"-" xml:"-"`
-}
-
-type metadataBlockerDeclaration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1307,6 +1245,8 @@ func (s BlockerDeclaration) GoString() string {
 
 // Represents the input of a create custom action operation.
 type CreateCustomActionTypeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The category of the custom action, such as a source action or a build action.
 	Category *string `locationName:"category" type:"string" required:"true" enum:"ActionCategory"`
 
@@ -1330,12 +1270,6 @@ type CreateCustomActionTypeInput struct {
 	// A newly-created custom action is always assigned a version number of 1.
 	// This is required.
 	Version *string `locationName:"version" min:"1" type:"string" required:"true"`
-
-	metadataCreateCustomActionTypeInput `json:"-" xml:"-"`
-}
-
-type metadataCreateCustomActionTypeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1350,14 +1284,10 @@ func (s CreateCustomActionTypeInput) GoString() string {
 
 // Represents the output of a create custom action operation.
 type CreateCustomActionTypeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns information about the details of an action type.
 	ActionType *ActionType `locationName:"actionType" type:"structure" required:"true"`
-
-	metadataCreateCustomActionTypeOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateCustomActionTypeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1372,14 +1302,10 @@ func (s CreateCustomActionTypeOutput) GoString() string {
 
 // Represents the input of a create pipeline action.
 type CreatePipelineInput struct {
+	_ struct{} `type:"structure"`
+
 	// Represents the structure of actions and stages to be performed in the pipeline.
 	Pipeline *PipelineDeclaration `locationName:"pipeline" type:"structure" required:"true"`
-
-	metadataCreatePipelineInput `json:"-" xml:"-"`
-}
-
-type metadataCreatePipelineInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1394,14 +1320,10 @@ func (s CreatePipelineInput) GoString() string {
 
 // Represents the output of a create pipeline action.
 type CreatePipelineOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Represents the structure of actions and stages to be performed in the pipeline.
 	Pipeline *PipelineDeclaration `locationName:"pipeline" type:"structure"`
-
-	metadataCreatePipelineOutput `json:"-" xml:"-"`
-}
-
-type metadataCreatePipelineOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1416,17 +1338,13 @@ func (s CreatePipelineOutput) GoString() string {
 
 // Represents information about a current revision.
 type CurrentRevision struct {
+	_ struct{} `type:"structure"`
+
 	// The change identifier for the current revision.
 	ChangeIdentifier *string `locationName:"changeIdentifier" type:"string" required:"true"`
 
 	// The revision ID of the current version of an artifact.
 	Revision *string `locationName:"revision" type:"string" required:"true"`
-
-	metadataCurrentRevision `json:"-" xml:"-"`
-}
-
-type metadataCurrentRevision struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1442,6 +1360,8 @@ func (s CurrentRevision) GoString() string {
 // Represents the input of a delete custom action operation. The custom action
 // will be marked as deleted.
 type DeleteCustomActionTypeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The category of the custom action that you want to delete, such as source
 	// or deploy.
 	Category *string `locationName:"category" type:"string" required:"true" enum:"ActionCategory"`
@@ -1451,12 +1371,6 @@ type DeleteCustomActionTypeInput struct {
 
 	// The version of the custom action to delete.
 	Version *string `locationName:"version" min:"1" type:"string" required:"true"`
-
-	metadataDeleteCustomActionTypeInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteCustomActionTypeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1470,11 +1384,7 @@ func (s DeleteCustomActionTypeInput) GoString() string {
 }
 
 type DeleteCustomActionTypeOutput struct {
-	metadataDeleteCustomActionTypeOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteCustomActionTypeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1489,14 +1399,10 @@ func (s DeleteCustomActionTypeOutput) GoString() string {
 
 // Represents the input of a delete pipeline action.
 type DeletePipelineInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the pipeline to be deleted.
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
-
-	metadataDeletePipelineInput `json:"-" xml:"-"`
-}
-
-type metadataDeletePipelineInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1510,11 +1416,7 @@ func (s DeletePipelineInput) GoString() string {
 }
 
 type DeletePipelineOutput struct {
-	metadataDeletePipelineOutput `json:"-" xml:"-"`
-}
-
-type metadataDeletePipelineOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1529,6 +1431,8 @@ func (s DeletePipelineOutput) GoString() string {
 
 // Represents the input of a disable stage transition input action.
 type DisableStageTransitionInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the pipeline in which you want to disable the flow of artifacts
 	// from one stage to another.
 	PipelineName *string `locationName:"pipelineName" min:"1" type:"string" required:"true"`
@@ -1547,12 +1451,6 @@ type DisableStageTransitionInput struct {
 	// from transitioning from the stage after they have been processed by the actions
 	// in that stage (outbound).
 	TransitionType *string `locationName:"transitionType" type:"string" required:"true" enum:"StageTransitionType"`
-
-	metadataDisableStageTransitionInput `json:"-" xml:"-"`
-}
-
-type metadataDisableStageTransitionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1566,11 +1464,7 @@ func (s DisableStageTransitionInput) GoString() string {
 }
 
 type DisableStageTransitionOutput struct {
-	metadataDisableStageTransitionOutput `json:"-" xml:"-"`
-}
-
-type metadataDisableStageTransitionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1585,6 +1479,8 @@ func (s DisableStageTransitionOutput) GoString() string {
 
 // Represents the input of an enable stage transition action.
 type EnableStageTransitionInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the pipeline in which you want to enable the flow of artifacts
 	// from one stage to another.
 	PipelineName *string `locationName:"pipelineName" min:"1" type:"string" required:"true"`
@@ -1597,12 +1493,6 @@ type EnableStageTransitionInput struct {
 	// by the actions in that stage (inbound) or whether already-processed artifacts
 	// will be allowed to transition to the next stage (outbound).
 	TransitionType *string `locationName:"transitionType" type:"string" required:"true" enum:"StageTransitionType"`
-
-	metadataEnableStageTransitionInput `json:"-" xml:"-"`
-}
-
-type metadataEnableStageTransitionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1616,11 +1506,7 @@ func (s EnableStageTransitionInput) GoString() string {
 }
 
 type EnableStageTransitionOutput struct {
-	metadataEnableStageTransitionOutput `json:"-" xml:"-"`
-}
-
-type metadataEnableStageTransitionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1636,17 +1522,13 @@ func (s EnableStageTransitionOutput) GoString() string {
 // Represents information about the AWS Key Management Service (AWS KMS) key
 // used to encrypt data in the artifact store.
 type EncryptionKey struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the AWS KMS key.
 	Id *string `locationName:"id" min:"1" type:"string" required:"true"`
 
 	// The type of AWS KMS key, such as a customer master key.
 	Type *string `locationName:"type" type:"string" required:"true" enum:"EncryptionKeyType"`
-
-	metadataEncryptionKey `json:"-" xml:"-"`
-}
-
-type metadataEncryptionKey struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1661,17 +1543,13 @@ func (s EncryptionKey) GoString() string {
 
 // Represents information about an error in AWS CodePipeline.
 type ErrorDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The system ID or error number code of the error.
 	Code *string `locationName:"code" type:"string"`
 
 	// The text of the error message.
 	Message *string `locationName:"message" type:"string"`
-
-	metadataErrorDetails `json:"-" xml:"-"`
-}
-
-type metadataErrorDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1687,6 +1565,8 @@ func (s ErrorDetails) GoString() string {
 // The details of the actions taken and results produced on an artifact as it
 // passes through stages in the pipeline.
 type ExecutionDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The system-generated unique ID of this action used to identify this job worker
 	// in any external systems, such as AWS CodeDeploy.
 	ExternalExecutionId *string `locationName:"externalExecutionId" type:"string"`
@@ -1697,12 +1577,6 @@ type ExecutionDetails struct {
 
 	// The summary of the current status of the actions.
 	Summary *string `locationName:"summary" type:"string"`
-
-	metadataExecutionDetails `json:"-" xml:"-"`
-}
-
-type metadataExecutionDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1717,6 +1591,8 @@ func (s ExecutionDetails) GoString() string {
 
 // Represents information about failure details.
 type FailureDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The external ID of the run of the action that failed.
 	ExternalExecutionId *string `locationName:"externalExecutionId" type:"string"`
 
@@ -1725,12 +1601,6 @@ type FailureDetails struct {
 
 	// The type of the failure.
 	Type *string `locationName:"type" type:"string" required:"true" enum:"FailureType"`
-
-	metadataFailureDetails `json:"-" xml:"-"`
-}
-
-type metadataFailureDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1745,14 +1615,10 @@ func (s FailureDetails) GoString() string {
 
 // Represents the input of a get job details action.
 type GetJobDetailsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The unique system-generated ID for the job.
 	JobId *string `locationName:"jobId" type:"string" required:"true"`
-
-	metadataGetJobDetailsInput `json:"-" xml:"-"`
-}
-
-type metadataGetJobDetailsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1767,17 +1633,13 @@ func (s GetJobDetailsInput) GoString() string {
 
 // Represents the output of a get job details action.
 type GetJobDetailsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The details of the job.
 	//
 	//  If AWSSessionCredentials is used, a long-running job can call GetJobDetails
 	// again to obtain new credentials.
 	JobDetails *JobDetails `locationName:"jobDetails" type:"structure"`
-
-	metadataGetJobDetailsOutput `json:"-" xml:"-"`
-}
-
-type metadataGetJobDetailsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1792,6 +1654,8 @@ func (s GetJobDetailsOutput) GoString() string {
 
 // Represents the input of a get pipeline action.
 type GetPipelineInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the pipeline for which you want to get information. Pipeline
 	// names must be unique under an Amazon Web Services (AWS) user account.
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
@@ -1799,12 +1663,6 @@ type GetPipelineInput struct {
 	// The version number of the pipeline. If you do not specify a version, defaults
 	// to the most current version.
 	Version *int64 `locationName:"version" min:"1" type:"integer"`
-
-	metadataGetPipelineInput `json:"-" xml:"-"`
-}
-
-type metadataGetPipelineInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1819,14 +1677,10 @@ func (s GetPipelineInput) GoString() string {
 
 // Represents the output of a get pipeline action.
 type GetPipelineOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Represents the structure of actions and stages to be performed in the pipeline.
 	Pipeline *PipelineDeclaration `locationName:"pipeline" type:"structure"`
-
-	metadataGetPipelineOutput `json:"-" xml:"-"`
-}
-
-type metadataGetPipelineOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1841,14 +1695,10 @@ func (s GetPipelineOutput) GoString() string {
 
 // Represents the input of a get pipeline state action.
 type GetPipelineStateInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the pipeline about which you want to get information.
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
-
-	metadataGetPipelineStateInput `json:"-" xml:"-"`
-}
-
-type metadataGetPipelineStateInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1863,6 +1713,8 @@ func (s GetPipelineStateInput) GoString() string {
 
 // Represents the output of a get pipeline state action.
 type GetPipelineStateOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The date and time the pipeline was created, in timestamp format.
 	Created *time.Time `locationName:"created" type:"timestamp" timestampFormat:"unix"`
 
@@ -1880,12 +1732,6 @@ type GetPipelineStateOutput struct {
 
 	// The date and time the pipeline was last updated, in timestamp format.
 	Updated *time.Time `locationName:"updated" type:"timestamp" timestampFormat:"unix"`
-
-	metadataGetPipelineStateOutput `json:"-" xml:"-"`
-}
-
-type metadataGetPipelineStateOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1900,18 +1746,14 @@ func (s GetPipelineStateOutput) GoString() string {
 
 // Represents the input of a get third party job details action.
 type GetThirdPartyJobDetailsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The clientToken portion of the clientId and clientToken pair used to verify
 	// that the calling entity is allowed access to the job and its details.
 	ClientToken *string `locationName:"clientToken" type:"string" required:"true"`
 
 	// The unique system-generated ID used for identifying the job.
 	JobId *string `locationName:"jobId" min:"1" type:"string" required:"true"`
-
-	metadataGetThirdPartyJobDetailsInput `json:"-" xml:"-"`
-}
-
-type metadataGetThirdPartyJobDetailsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1926,14 +1768,10 @@ func (s GetThirdPartyJobDetailsInput) GoString() string {
 
 // Represents the output of a get third party job details action.
 type GetThirdPartyJobDetailsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The details of the job, including any protected values defined for the job.
 	JobDetails *ThirdPartyJobDetails `locationName:"jobDetails" type:"structure"`
-
-	metadataGetThirdPartyJobDetailsOutput `json:"-" xml:"-"`
-}
-
-type metadataGetThirdPartyJobDetailsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1949,6 +1787,8 @@ func (s GetThirdPartyJobDetailsOutput) GoString() string {
 // Represents information about an artifact to be worked on, such as a test
 // or build artifact.
 type InputArtifact struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the artifact to be worked on, for example, "My App".
 	//
 	// The input artifact of an action must exactly match the output artifact declared
@@ -1957,12 +1797,6 @@ type InputArtifact struct {
 	// Actions in parallel can declare different output artifacts, which are in
 	// turn consumed by different following actions.
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
-
-	metadataInputArtifact `json:"-" xml:"-"`
-}
-
-type metadataInputArtifact struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1977,6 +1811,8 @@ func (s InputArtifact) GoString() string {
 
 // Represents information about a job.
 type Job struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the AWS account to use when performing the job.
 	AccountId *string `locationName:"accountId" type:"string"`
 
@@ -1990,12 +1826,6 @@ type Job struct {
 	// the job is being worked on by only one job worker. This number must be returned
 	// in the response.
 	Nonce *string `locationName:"nonce" type:"string"`
-
-	metadataJob `json:"-" xml:"-"`
-}
-
-type metadataJob struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2011,6 +1841,8 @@ func (s Job) GoString() string {
 // Represents additional information about a job required for a job worker to
 // complete the job.
 type JobData struct {
+	_ struct{} `type:"structure"`
+
 	// Represents information about an action configuration.
 	ActionConfiguration *ActionConfiguration `locationName:"actionConfiguration" type:"structure"`
 
@@ -2039,12 +1871,6 @@ type JobData struct {
 
 	// Represents information about a pipeline to a job worker.
 	PipelineContext *PipelineContext `locationName:"pipelineContext" type:"structure"`
-
-	metadataJobData `json:"-" xml:"-"`
-}
-
-type metadataJobData struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2059,6 +1885,8 @@ func (s JobData) GoString() string {
 
 // Represents information about the details of a job.
 type JobDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The AWS account ID associated with the job.
 	AccountId *string `locationName:"accountId" type:"string"`
 
@@ -2068,12 +1896,6 @@ type JobDetails struct {
 
 	// The unique system-generated ID of the job.
 	Id *string `locationName:"id" type:"string"`
-
-	metadataJobDetails `json:"-" xml:"-"`
-}
-
-type metadataJobDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2088,18 +1910,14 @@ func (s JobDetails) GoString() string {
 
 // Represents the input of a list action types action.
 type ListActionTypesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Filters the list of action types to those created by a specified entity.
 	ActionOwnerFilter *string `locationName:"actionOwnerFilter" type:"string" enum:"ActionOwner"`
 
 	// An identifier that was returned from the previous list action types call,
 	// which can be used to return the next set of action types in the list.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataListActionTypesInput `json:"-" xml:"-"`
-}
-
-type metadataListActionTypesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2114,6 +1932,8 @@ func (s ListActionTypesInput) GoString() string {
 
 // Represents the output of a list action types action.
 type ListActionTypesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Provides details of the action types.
 	ActionTypes []*ActionType `locationName:"actionTypes" type:"list" required:"true"`
 
@@ -2121,12 +1941,6 @@ type ListActionTypesOutput struct {
 	// is also returned which can be used in a subsequent list action types call
 	// to return the next set of action types in the list.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataListActionTypesOutput `json:"-" xml:"-"`
-}
-
-type metadataListActionTypesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2141,15 +1955,11 @@ func (s ListActionTypesOutput) GoString() string {
 
 // Represents the input of a list pipelines action.
 type ListPipelinesInput struct {
+	_ struct{} `type:"structure"`
+
 	// An identifier that was returned from the previous list pipelines call, which
 	// can be used to return the next set of pipelines in the list.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataListPipelinesInput `json:"-" xml:"-"`
-}
-
-type metadataListPipelinesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2164,6 +1974,8 @@ func (s ListPipelinesInput) GoString() string {
 
 // Represents the output of a list pipelines action.
 type ListPipelinesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// If the amount of returned information is significantly large, an identifier
 	// is also returned which can be used in a subsequent list pipelines call to
 	// return the next set of pipelines in the list.
@@ -2171,12 +1983,6 @@ type ListPipelinesOutput struct {
 
 	// The list of pipelines.
 	Pipelines []*PipelineSummary `locationName:"pipelines" type:"list"`
-
-	metadataListPipelinesOutput `json:"-" xml:"-"`
-}
-
-type metadataListPipelinesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2191,6 +1997,8 @@ func (s ListPipelinesOutput) GoString() string {
 
 // Represents information about the output of an action.
 type OutputArtifact struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the output of an artifact, such as "My App".
 	//
 	// The input artifact of an action must exactly match the output artifact declared
@@ -2201,12 +2009,6 @@ type OutputArtifact struct {
 	//
 	// Output artifact names must be unique within a pipeline.
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
-
-	metadataOutputArtifact `json:"-" xml:"-"`
-}
-
-type metadataOutputArtifact struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2221,6 +2023,8 @@ func (s OutputArtifact) GoString() string {
 
 // Represents information about a pipeline to a job worker.
 type PipelineContext struct {
+	_ struct{} `type:"structure"`
+
 	// Represents the context of an action within the stage of a pipeline to a job
 	// worker.
 	Action *ActionContext `locationName:"action" type:"structure"`
@@ -2231,12 +2035,6 @@ type PipelineContext struct {
 
 	// The stage of the pipeline.
 	Stage *StageContext `locationName:"stage" type:"structure"`
-
-	metadataPipelineContext `json:"-" xml:"-"`
-}
-
-type metadataPipelineContext struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2251,6 +2049,8 @@ func (s PipelineContext) GoString() string {
 
 // Represents the structure of actions and stages to be performed in the pipeline.
 type PipelineDeclaration struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon S3 location where artifacts are stored for the pipeline. If this
 	// Amazon S3 bucket is created manually, it must meet the requirements for AWS
 	// CodePipeline. For more information, see the Concepts.
@@ -2270,12 +2070,6 @@ type PipelineDeclaration struct {
 	// The version number of the pipeline. A new pipeline always has a version number
 	// of 1. This number is automatically incremented when a pipeline is updated.
 	Version *int64 `locationName:"version" min:"1" type:"integer"`
-
-	metadataPipelineDeclaration `json:"-" xml:"-"`
-}
-
-type metadataPipelineDeclaration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2290,6 +2084,8 @@ func (s PipelineDeclaration) GoString() string {
 
 // Returns a summary of a pipeline.
 type PipelineSummary struct {
+	_ struct{} `type:"structure"`
+
 	// The date and time the pipeline was created, in timestamp format.
 	Created *time.Time `locationName:"created" type:"timestamp" timestampFormat:"unix"`
 
@@ -2301,12 +2097,6 @@ type PipelineSummary struct {
 
 	// The version number of the pipeline.
 	Version *int64 `locationName:"version" min:"1" type:"integer"`
-
-	metadataPipelineSummary `json:"-" xml:"-"`
-}
-
-type metadataPipelineSummary struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2321,6 +2111,8 @@ func (s PipelineSummary) GoString() string {
 
 // Represents the input of a poll for jobs action.
 type PollForJobsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Represents information about an action type.
 	ActionTypeId *ActionTypeId `locationName:"actionTypeId" type:"structure" required:"true"`
 
@@ -2332,12 +2124,6 @@ type PollForJobsInput struct {
 	// a queryable property, you must supply that property as a key in the map.
 	// Only jobs whose action configuration matches the mapped value will be returned.
 	QueryParam map[string]*string `locationName:"queryParam" type:"map"`
-
-	metadataPollForJobsInput `json:"-" xml:"-"`
-}
-
-type metadataPollForJobsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2352,14 +2138,10 @@ func (s PollForJobsInput) GoString() string {
 
 // Represents the output of a poll for jobs action.
 type PollForJobsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the jobs to take action on.
 	Jobs []*Job `locationName:"jobs" type:"list"`
-
-	metadataPollForJobsOutput `json:"-" xml:"-"`
-}
-
-type metadataPollForJobsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2374,17 +2156,13 @@ func (s PollForJobsOutput) GoString() string {
 
 // Represents the input of a poll for third party jobs action.
 type PollForThirdPartyJobsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Represents information about an action type.
 	ActionTypeId *ActionTypeId `locationName:"actionTypeId" type:"structure" required:"true"`
 
 	// The maximum number of jobs to return in a poll for jobs call.
 	MaxBatchSize *int64 `locationName:"maxBatchSize" min:"1" type:"integer"`
-
-	metadataPollForThirdPartyJobsInput `json:"-" xml:"-"`
-}
-
-type metadataPollForThirdPartyJobsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2399,14 +2177,10 @@ func (s PollForThirdPartyJobsInput) GoString() string {
 
 // Represents the output of a poll for third party jobs action.
 type PollForThirdPartyJobsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the jobs to take action on.
 	Jobs []*ThirdPartyJob `locationName:"jobs" type:"list"`
-
-	metadataPollForThirdPartyJobsOutput `json:"-" xml:"-"`
-}
-
-type metadataPollForThirdPartyJobsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2421,6 +2195,8 @@ func (s PollForThirdPartyJobsOutput) GoString() string {
 
 // Represents the input of a put action revision action.
 type PutActionRevisionInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the action that will process the revision.
 	ActionName *string `locationName:"actionName" min:"1" type:"string" required:"true"`
 
@@ -2432,12 +2208,6 @@ type PutActionRevisionInput struct {
 
 	// The name of the stage that contains the action that will act upon the revision.
 	StageName *string `locationName:"stageName" min:"1" type:"string" required:"true"`
-
-	metadataPutActionRevisionInput `json:"-" xml:"-"`
-}
-
-type metadataPutActionRevisionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2452,17 +2222,13 @@ func (s PutActionRevisionInput) GoString() string {
 
 // Represents the output of a put action revision action.
 type PutActionRevisionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The new revision number or ID for the revision after the action completes.
 	NewRevision *bool `locationName:"newRevision" type:"boolean"`
 
 	// The ID of the current workflow state of the pipeline.
 	PipelineExecutionId *string `locationName:"pipelineExecutionId" type:"string"`
-
-	metadataPutActionRevisionOutput `json:"-" xml:"-"`
-}
-
-type metadataPutActionRevisionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2477,18 +2243,14 @@ func (s PutActionRevisionOutput) GoString() string {
 
 // Represents the input of a put job failure result action.
 type PutJobFailureResultInput struct {
+	_ struct{} `type:"structure"`
+
 	// The details about the failure of a job.
 	FailureDetails *FailureDetails `locationName:"failureDetails" type:"structure" required:"true"`
 
 	// The unique system-generated ID of the job that failed. This is the same ID
 	// returned from PollForJobs.
 	JobId *string `locationName:"jobId" type:"string" required:"true"`
-
-	metadataPutJobFailureResultInput `json:"-" xml:"-"`
-}
-
-type metadataPutJobFailureResultInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2502,11 +2264,7 @@ func (s PutJobFailureResultInput) GoString() string {
 }
 
 type PutJobFailureResultOutput struct {
-	metadataPutJobFailureResultOutput `json:"-" xml:"-"`
-}
-
-type metadataPutJobFailureResultOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2521,6 +2279,8 @@ func (s PutJobFailureResultOutput) GoString() string {
 
 // Represents the input of a put job success result action.
 type PutJobSuccessResultInput struct {
+	_ struct{} `type:"structure"`
+
 	// A system-generated token, such as a AWS CodeDeploy deployment ID, that the
 	// successful job used to complete a job asynchronously.
 	ContinuationToken *string `locationName:"continuationToken" type:"string"`
@@ -2536,12 +2296,6 @@ type PutJobSuccessResultInput struct {
 	// The unique system-generated ID of the job that succeeded. This is the same
 	// ID returned from PollForJobs.
 	JobId *string `locationName:"jobId" type:"string" required:"true"`
-
-	metadataPutJobSuccessResultInput `json:"-" xml:"-"`
-}
-
-type metadataPutJobSuccessResultInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2555,11 +2309,7 @@ func (s PutJobSuccessResultInput) GoString() string {
 }
 
 type PutJobSuccessResultOutput struct {
-	metadataPutJobSuccessResultOutput `json:"-" xml:"-"`
-}
-
-type metadataPutJobSuccessResultOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2574,6 +2324,8 @@ func (s PutJobSuccessResultOutput) GoString() string {
 
 // Represents the input of a third party job failure result action.
 type PutThirdPartyJobFailureResultInput struct {
+	_ struct{} `type:"structure"`
+
 	// The clientToken portion of the clientId and clientToken pair used to verify
 	// that the calling entity is allowed access to the job and its details.
 	ClientToken *string `locationName:"clientToken" type:"string" required:"true"`
@@ -2583,12 +2335,6 @@ type PutThirdPartyJobFailureResultInput struct {
 
 	// The ID of the job that failed. This is the same ID returned from PollForThirdPartyJobs.
 	JobId *string `locationName:"jobId" min:"1" type:"string" required:"true"`
-
-	metadataPutThirdPartyJobFailureResultInput `json:"-" xml:"-"`
-}
-
-type metadataPutThirdPartyJobFailureResultInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2602,11 +2348,7 @@ func (s PutThirdPartyJobFailureResultInput) GoString() string {
 }
 
 type PutThirdPartyJobFailureResultOutput struct {
-	metadataPutThirdPartyJobFailureResultOutput `json:"-" xml:"-"`
-}
-
-type metadataPutThirdPartyJobFailureResultOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2621,6 +2363,8 @@ func (s PutThirdPartyJobFailureResultOutput) GoString() string {
 
 // Represents the input of a put third party job success result action.
 type PutThirdPartyJobSuccessResultInput struct {
+	_ struct{} `type:"structure"`
+
 	// The clientToken portion of the clientId and clientToken pair used to verify
 	// that the calling entity is allowed access to the job and its details.
 	ClientToken *string `locationName:"clientToken" type:"string" required:"true"`
@@ -2639,12 +2383,6 @@ type PutThirdPartyJobSuccessResultInput struct {
 	// The ID of the job that successfully completed. This is the same ID returned
 	// from PollForThirdPartyJobs.
 	JobId *string `locationName:"jobId" min:"1" type:"string" required:"true"`
-
-	metadataPutThirdPartyJobSuccessResultInput `json:"-" xml:"-"`
-}
-
-type metadataPutThirdPartyJobSuccessResultInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2658,11 +2396,7 @@ func (s PutThirdPartyJobSuccessResultInput) GoString() string {
 }
 
 type PutThirdPartyJobSuccessResultOutput struct {
-	metadataPutThirdPartyJobSuccessResultOutput `json:"-" xml:"-"`
-}
-
-type metadataPutThirdPartyJobSuccessResultOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2677,18 +2411,14 @@ func (s PutThirdPartyJobSuccessResultOutput) GoString() string {
 
 // The location of the Amazon S3 bucket that contains a revision.
 type S3ArtifactLocation struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the Amazon S3 bucket.
 	BucketName *string `locationName:"bucketName" type:"string" required:"true"`
 
 	// The key of the object in the Amazon S3 bucket, which uniquely identifies
 	// the object in the bucket.
 	ObjectKey *string `locationName:"objectKey" type:"string" required:"true"`
-
-	metadataS3ArtifactLocation `json:"-" xml:"-"`
-}
-
-type metadataS3ArtifactLocation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2703,14 +2433,10 @@ func (s S3ArtifactLocation) GoString() string {
 
 // Represents information about a stage to a job worker.
 type StageContext struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the stage.
 	Name *string `locationName:"name" min:"1" type:"string"`
-
-	metadataStageContext `json:"-" xml:"-"`
-}
-
-type metadataStageContext struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2725,6 +2451,8 @@ func (s StageContext) GoString() string {
 
 // Represents information about a stage and its definition.
 type StageDeclaration struct {
+	_ struct{} `type:"structure"`
+
 	// The actions included in a stage.
 	Actions []*ActionDeclaration `locationName:"actions" type:"list" required:"true"`
 
@@ -2733,12 +2461,6 @@ type StageDeclaration struct {
 
 	// The name of the stage.
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
-
-	metadataStageDeclaration `json:"-" xml:"-"`
-}
-
-type metadataStageDeclaration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2753,6 +2475,8 @@ func (s StageDeclaration) GoString() string {
 
 // Represents information about the state of the stage.
 type StageState struct {
+	_ struct{} `type:"structure"`
+
 	// The state of the stage.
 	ActionStates []*ActionState `locationName:"actionStates" type:"list"`
 
@@ -2761,12 +2485,6 @@ type StageState struct {
 
 	// The name of the stage.
 	StageName *string `locationName:"stageName" min:"1" type:"string"`
-
-	metadataStageState `json:"-" xml:"-"`
-}
-
-type metadataStageState struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2781,14 +2499,10 @@ func (s StageState) GoString() string {
 
 // Represents the input of a start pipeline execution action.
 type StartPipelineExecutionInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the pipeline to start.
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
-
-	metadataStartPipelineExecutionInput `json:"-" xml:"-"`
-}
-
-type metadataStartPipelineExecutionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2803,14 +2517,10 @@ func (s StartPipelineExecutionInput) GoString() string {
 
 // Represents the output of a start pipeline execution action.
 type StartPipelineExecutionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The unique system-generated ID of the pipeline that was started.
 	PipelineExecutionId *string `locationName:"pipelineExecutionId" type:"string"`
-
-	metadataStartPipelineExecutionOutput `json:"-" xml:"-"`
-}
-
-type metadataStartPipelineExecutionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2826,18 +2536,14 @@ func (s StartPipelineExecutionOutput) GoString() string {
 // A response to a PollForThirdPartyJobs request returned by AWS CodePipeline
 // when there is a job to be worked upon by a partner action.
 type ThirdPartyJob struct {
+	_ struct{} `type:"structure"`
+
 	// The clientToken portion of the clientId and clientToken pair used to verify
 	// that the calling entity is allowed access to the job and its details.
 	ClientId *string `locationName:"clientId" type:"string"`
 
 	// The identifier used to identify the job in AWS CodePipeline.
 	JobId *string `locationName:"jobId" type:"string"`
-
-	metadataThirdPartyJob `json:"-" xml:"-"`
-}
-
-type metadataThirdPartyJob struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2852,6 +2558,8 @@ func (s ThirdPartyJob) GoString() string {
 
 // Represents information about the job data for a partner action.
 type ThirdPartyJobData struct {
+	_ struct{} `type:"structure"`
+
 	// Represents information about an action configuration.
 	ActionConfiguration *ActionConfiguration `locationName:"actionConfiguration" type:"structure"`
 
@@ -2886,12 +2594,6 @@ type ThirdPartyJobData struct {
 
 	// Represents information about a pipeline to a job worker.
 	PipelineContext *PipelineContext `locationName:"pipelineContext" type:"structure"`
-
-	metadataThirdPartyJobData `json:"-" xml:"-"`
-}
-
-type metadataThirdPartyJobData struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2906,6 +2608,8 @@ func (s ThirdPartyJobData) GoString() string {
 
 // The details of a job sent in response to a GetThirdPartyJobDetails request.
 type ThirdPartyJobDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The data to be returned by the third party job worker.
 	Data *ThirdPartyJobData `locationName:"data" type:"structure"`
 
@@ -2916,12 +2620,6 @@ type ThirdPartyJobDetails struct {
 	// the job is being worked on by only one job worker. This number must be returned
 	// in the response.
 	Nonce *string `locationName:"nonce" type:"string"`
-
-	metadataThirdPartyJobDetails `json:"-" xml:"-"`
-}
-
-type metadataThirdPartyJobDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2937,6 +2635,8 @@ func (s ThirdPartyJobDetails) GoString() string {
 // Represents information about the state of transitions between one stage and
 // another stage.
 type TransitionState struct {
+	_ struct{} `type:"structure"`
+
 	// The user-specified reason why the transition between two stages of a pipeline
 	// was disabled.
 	DisabledReason *string `locationName:"disabledReason" min:"1" type:"string"`
@@ -2949,12 +2649,6 @@ type TransitionState struct {
 
 	// The ID of the user who last changed the transition state.
 	LastChangedBy *string `locationName:"lastChangedBy" type:"string"`
-
-	metadataTransitionState `json:"-" xml:"-"`
-}
-
-type metadataTransitionState struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2969,14 +2663,10 @@ func (s TransitionState) GoString() string {
 
 // Represents the input of an update pipeline action.
 type UpdatePipelineInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the pipeline to be updated.
 	Pipeline *PipelineDeclaration `locationName:"pipeline" type:"structure" required:"true"`
-
-	metadataUpdatePipelineInput `json:"-" xml:"-"`
-}
-
-type metadataUpdatePipelineInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2991,14 +2681,10 @@ func (s UpdatePipelineInput) GoString() string {
 
 // Represents the output of an update pipeline action.
 type UpdatePipelineOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The structure of the updated pipeline.
 	Pipeline *PipelineDeclaration `locationName:"pipeline" type:"structure"`
-
-	metadataUpdatePipelineOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdatePipelineOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation

@@ -2,11 +2,14 @@ package gou
 
 import (
 	"bytes"
+	"encoding/gob"
 	"encoding/json"
-	"log"
-	"os"
+	"math"
 	"strings"
 	"testing"
+
+	. "github.com/araddon/gou/goutest"
+	"github.com/bmizerany/assert"
 )
 
 //  go test -bench=".*"
@@ -17,7 +20,9 @@ var (
 )
 
 func init() {
-	SetLogger(log.New(os.Stderr, "", log.Ltime|log.Lshortfile), "debug")
+	SetupLogging("debug")
+	SetColorOutput()
+	//SetLogger(log.New(os.Stderr, "", log.Ltime|log.Lshortfile), "debug")
 	// create test data
 	json.Unmarshal([]byte(`{
 		"name":"aaron",
@@ -26,6 +31,9 @@ func init() {
 		"int":1,
 		"intstr":"1",
 		"int64":1234567890,
+		"float64":123.456,
+		"float64str":"123.456",
+		"float64null": null,
 		"MaxSize" : 1048576,
 		"strings":["string1"],
 		"stringscsv":"string1,string2",
@@ -93,6 +101,14 @@ func TestJsonHelper(t *testing.T) {
 	Assert(ok, t, "int64safe ok")
 	Assert(i64 == 1234567890, t, "int64safe value")
 
+	u64, ok := jh.Uint64Safe("int64")
+	Assert(ok, t, "uint64safe ok")
+	Assert(u64 == 1234567890, t, "int64safe value")
+	_, ok = jh.Uint64Safe("notexistent")
+	assert.Tf(t, !ok, "should not be ok")
+	_, ok = jh.Uint64Safe("name")
+	assert.Tf(t, !ok, "should not be ok")
+
 	i, ok := jh.IntSafe("int")
 	Assert(ok, t, "intsafe ok")
 	Assert(i == 1, t, "intsafe value")
@@ -100,10 +116,27 @@ func TestJsonHelper(t *testing.T) {
 	l := jh.List("nested2")
 	Assert(len(l) == 1, t, "get list")
 
+	fv, ok := jh.Float64Safe("name")
+	assert.Tf(t, !ok, "floatsafe not ok")
+	fv, ok = jh.Float64Safe("float64")
+	assert.Tf(t, ok, "floatsafe ok")
+	assert.Tf(t, CloseEnuf(fv, 123.456), "floatsafe value %v", fv)
+	fv = jh.Float64("float64")
+	assert.Tf(t, CloseEnuf(fv, 123.456), "floatsafe value %v", fv)
+	fv, ok = jh.Float64Safe("float64str")
+	assert.Tf(t, ok, "floatsafe ok")
+	assert.Tf(t, CloseEnuf(fv, 123.456), "floatsafe value %v", fv)
+	fv = jh.Float64("float64str")
+	assert.Tf(t, CloseEnuf(fv, 123.456), "floatsafe value %v", fv)
+	fv, ok = jh.Float64Safe("float64null")
+	assert.Tf(t, ok, "float64null ok")
+	assert.Tf(t, math.IsNaN(fv), "float64null expected Nan but got %v", fv)
+	fv = jh.Float64("float64null")
+	assert.Tf(t, math.IsNaN(fv), "float64null expected Nan but got %v", fv)
+
 	jhm := jh.Helpers("nested2")
 	Assert(len(jhm) == 1, t, "get list of helpers")
 	Assert(jhm[0].Int("sub") == 2, t, "Should get list of helpers")
-
 }
 
 func TestJsonInterface(t *testing.T) {
@@ -131,28 +164,58 @@ func TestJsonInterface(t *testing.T) {
 }
 
 func TestJsonCoercion(t *testing.T) {
-
-	Assert(jh.Int("intstr") == 1, t, "get string as int %s", jh.String("intstr"))
-	Assert(jh.String("int") == "1", t, "get int as string %s", jh.String("int"))
-	Assert(jh.Int("notint") == -1, t, "get non existent int = 0??? ")
-
+	assert.Tf(t, jh.Int("intstr") == 1, "get string as int %s", jh.String("intstr"))
+	assert.Tf(t, jh.String("int") == "1", "get int as string %s", jh.String("int"))
+	assert.Tf(t, jh.Int("notint") == -1, "get non existent int = 0??? ")
 }
 
 func TestJsonPathNotation(t *testing.T) {
-
 	// Now lets test xpath type syntax
-	Assert(jh.Int("/MaxSize") == 1048576, t, "get int, test capitalization? ")
-	Assert(jh.String("/nested/nest") == "string2", t, "should get string %s", jh.String("/nested/nest"))
-	Assert(jh.String("/nested/list[0]") == "value", t, "get string from array")
+	assert.Tf(t, jh.Int("/MaxSize") == 1048576, "get int, test capitalization? ")
+	assert.Tf(t, jh.String("/nested/nest") == "string2", "should get string %s", jh.String("/nested/nest"))
+	assert.Tf(t, jh.String("/nested/list[0]") == "value", "get string from array")
 	// note this one has period in name
-	Assert(jh.String("/period.name") == "value", t, "test period in name ")
-
+	assert.Tf(t, jh.String("/period.name") == "value", "test period in name ")
 }
 
 func TestFromReader(t *testing.T) {
 	raw := `{"testing": 123}`
 	reader := strings.NewReader(raw)
 	jh, err := NewJsonHelperReader(reader)
-	Assert(err == nil, t, "Unexpected error decoding json: %s", err)
-	Assert(jh.Int("testing") == 123, t, "Unexpected value in json: %d", jh.Int("testing"))
+	assert.Tf(t, err == nil, "Unexpected error decoding json: %s", err)
+	assert.Tf(t, jh.Int("testing") == 123, "Unexpected value in json: %d", jh.Int("testing"))
+}
+
+func TestJsonHelperGobEncoding(t *testing.T) {
+	raw := `{"testing": 123,"name":"bob & more"}`
+	reader := strings.NewReader(raw)
+	jh, err := NewJsonHelperReader(reader)
+	assert.Tf(t, err == nil, "Unexpected error decoding gob: %s", err)
+	assert.Tf(t, jh.Int("testing") == 123, "Unexpected value in gob: %d", jh.Int("testing"))
+	var buf bytes.Buffer
+	err = gob.NewEncoder(&buf).Encode(&jh)
+	assert.T(t, err == nil, err)
+
+	var jhNew JsonHelper
+	err = gob.NewDecoder(&buf).Decode(&jhNew)
+	assert.T(t, err == nil, err)
+	assert.Tf(t, jhNew.Int("testing") == 123, "Unexpected value in gob: %d", jhNew.Int("testing"))
+	assert.Tf(t, jhNew.String("name") == "bob & more", "Unexpected value in gob: %d", jhNew.String("name"))
+
+	buf2 := bytes.Buffer{}
+	gt := GobTest{"Hello", jh}
+	err = gob.NewEncoder(&buf2).Encode(&gt)
+	assert.T(t, err == nil, err)
+
+	var gt2 GobTest
+	err = gob.NewDecoder(&buf2).Decode(&gt2)
+	assert.T(t, err == nil, err)
+	assert.Tf(t, gt2.Name == "Hello", "Unexpected value in gob: %d", gt2.Name)
+	assert.Tf(t, gt2.Data.Int("testing") == 123, "Unexpected value in gob: %d", gt2.Data.Int("testing"))
+	assert.Tf(t, gt2.Data.String("name") == "bob & more", "Unexpected value in gob: %d", gt2.Data.String("name"))
+}
+
+type GobTest struct {
+	Name string
+	Data JsonHelper
 }

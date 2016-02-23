@@ -5,3 +5,5 @@ This is a simple library for reading and writing [ar](http://en.wikipedia.org/wi
 ## Author
 
 Written by Blake Smith <blakesmith0@gmail.com>
+
+Licensed under the MIT license.

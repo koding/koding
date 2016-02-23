@@ -33,7 +33,9 @@ func (c *CloudTrail) AddTagsRequest(input *AddTagsInput) (req *request.Request, 
 // Adds one or more tags to a trail, up to a limit of 10. Tags must be unique
 // per trail. Overwrites an existing tag's value when a new value is specified
 // for an existing tag key. If you specify a key without a value, the tag will
-// be created with the specified key and a value of null.
+// be created with the specified key and a value of null. You can tag a trail
+// that applies to all regions only from the region in which the trail was created
+// (that is, from its home region).
 func (c *CloudTrail) AddTags(input *AddTagsInput) (*AddTagsOutput, error) {
 	req, out := c.AddTagsRequest(input)
 	err := req.Send()
@@ -61,7 +63,8 @@ func (c *CloudTrail) CreateTrailRequest(input *CreateTrailInput) (req *request.R
 }
 
 // Creates a trail that specifies the settings for delivery of log data to an
-// Amazon S3 bucket.
+// Amazon S3 bucket. A maximum of five trails can exist in a region, irrespective
+// of the region in which they were created.
 func (c *CloudTrail) CreateTrail(input *CreateTrailInput) (*CreateTrailOutput, error) {
 	req, out := c.CreateTrailRequest(input)
 	err := req.Send()
@@ -89,7 +92,8 @@ func (c *CloudTrail) DeleteTrailRequest(input *DeleteTrailInput) (req *request.R
 }
 
 // Deletes a trail. This operation must be called from the region in which the
-// trail was created.
+// trail was created. DeleteTrail cannot be called on the shadow trails (replicated
+// trails in other regions) of a trail that is enabled in all regions.
 func (c *CloudTrail) DeleteTrail(input *DeleteTrailInput) (*DeleteTrailOutput, error) {
 	req, out := c.DeleteTrailRequest(input)
 	err := req.Send()
@@ -209,6 +213,8 @@ func (c *CloudTrail) ListTagsRequest(input *ListTagsInput) (req *request.Request
 	return
 }
 
+// Lists the tags for the specified trail or trails in the current region.
+//
 // Lists the tags for the trail in the current region.
 func (c *CloudTrail) ListTags(input *ListTagsInput) (*ListTagsOutput, error) {
 	req, out := c.ListTagsRequest(input)
@@ -305,6 +311,10 @@ func (c *CloudTrail) StartLoggingRequest(input *StartLoggingInput) (req *request
 }
 
 // Starts the recording of AWS API calls and log file delivery for a trail.
+// For a trail that is enabled in all regions, this operation must be called
+// from the region in which the trail was created. This operation cannot be
+// called on the shadow trails (replicated trails in other regions) of a trail
+// that is enabled in all regions.
 func (c *CloudTrail) StartLogging(input *StartLoggingInput) (*StartLoggingOutput, error) {
 	req, out := c.StartLoggingRequest(input)
 	err := req.Send()
@@ -334,7 +344,10 @@ func (c *CloudTrail) StopLoggingRequest(input *StopLoggingInput) (req *request.R
 // Suspends the recording of AWS API calls and log file delivery for the specified
 // trail. Under most circumstances, there is no need to use this action. You
 // can update a trail without stopping it first. This action is the only way
-// to stop recording.
+// to stop recording. For a trail enabled in all regions, this operation must
+// be called from the region in which the trail was created, or an InvalidHomeRegionException
+// will occur. This operation cannot be called on the shadow trails (replicated
+// trails in other regions) of a trail enabled in all regions.
 func (c *CloudTrail) StopLogging(input *StopLoggingInput) (*StopLoggingOutput, error) {
 	req, out := c.StopLoggingRequest(input)
 	err := req.Send()
@@ -365,6 +378,8 @@ func (c *CloudTrail) UpdateTrailRequest(input *UpdateTrailInput) (req *request.R
 // do not require stopping the CloudTrail service. Use this action to designate
 // an existing bucket for log delivery. If the existing bucket has previously
 // been a target for CloudTrail log files, an IAM policy exists for the bucket.
+// UpdateTrail must be called from the region in which the trail was created;
+// otherwise, an InvalidHomeRegionException is thrown.
 func (c *CloudTrail) UpdateTrail(input *UpdateTrailInput) (*UpdateTrailOutput, error) {
 	req, out := c.UpdateTrailRequest(input)
 	err := req.Send()
@@ -373,18 +388,14 @@ func (c *CloudTrail) UpdateTrail(input *UpdateTrailInput) (*UpdateTrailOutput, e
 
 // Specifies the tags to add to a trail.
 type AddTagsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the ARN of the trail to which one or more tags will be added. The
 	// format of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	ResourceId *string `type:"string" required:"true"`
 
 	// Contains a list of CloudTrail tags, up to a limit of 10.
 	TagsList []*Tag `type:"list"`
-
-	metadataAddTagsInput `json:"-" xml:"-"`
-}
-
-type metadataAddTagsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -400,11 +411,7 @@ func (s AddTagsInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type AddTagsOutput struct {
-	metadataAddTagsOutput `json:"-" xml:"-"`
-}
-
-type metadataAddTagsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -419,6 +426,8 @@ func (s AddTagsOutput) GoString() string {
 
 // Specifies the settings for each trail.
 type CreateTrailInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies a log group name using an Amazon Resource Name (ARN), a unique
 	// identifier that represents the log group to which CloudTrail logs will be
 	// delivered. Not required unless you specify CloudWatchLogsRoleArn.
@@ -444,6 +453,10 @@ type CreateTrailInput struct {
 	// Specifies whether the trail is publishing events from global services such
 	// as IAM to the log files.
 	IncludeGlobalServiceEvents *bool `type:"boolean"`
+
+	// Specifies whether the trail is created in the current region or in all regions.
+	// The default is false.
+	IsMultiRegionTrail *bool `type:"boolean"`
 
 	// Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail.
 	// The value can be a an alias name prefixed by "alias/", a fully specified
@@ -478,12 +491,6 @@ type CreateTrailInput struct {
 	// Specifies the name of the Amazon SNS topic defined for notification of log
 	// file delivery. The maximum length is 256 characters.
 	SnsTopicName *string `type:"string"`
-
-	metadataCreateTrailInput `json:"-" xml:"-"`
-}
-
-type metadataCreateTrailInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -499,6 +506,8 @@ func (s CreateTrailInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type CreateTrailOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the Amazon Resource Name (ARN) of the log group to which CloudTrail
 	// logs will be delivered.
 	CloudWatchLogsLogGroupArn *string `type:"string"`
@@ -510,6 +519,9 @@ type CreateTrailOutput struct {
 	// Specifies whether the trail is publishing events from global services such
 	// as IAM to the log files.
 	IncludeGlobalServiceEvents *bool `type:"boolean"`
+
+	// Specifies whether the trail exists in one region or in all regions.
+	IsMultiRegionTrail *bool `type:"boolean"`
 
 	// Specifies the KMS key ID that encrypts the logs delivered by CloudTrail.
 	// The value is a fully specified ARN to a KMS key in the format:
@@ -538,12 +550,6 @@ type CreateTrailOutput struct {
 
 	// Specifies the ARN of the trail that was created.
 	TrailARN *string `type:"string"`
-
-	metadataCreateTrailOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateTrailOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -558,15 +564,11 @@ func (s CreateTrailOutput) GoString() string {
 
 // The request that specifies the name of a trail to delete.
 type DeleteTrailInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the name or the CloudTrail ARN of the trail to be deleted. The
 	// format of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	Name *string `type:"string" required:"true"`
-
-	metadataDeleteTrailInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteTrailInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -582,11 +584,7 @@ func (s DeleteTrailInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type DeleteTrailOutput struct {
-	metadataDeleteTrailOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteTrailOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -601,17 +599,27 @@ func (s DeleteTrailOutput) GoString() string {
 
 // Returns information about the trail.
 type DescribeTrailsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether to include shadow trails in the response. A shadow trail
+	// is the replication in a region of a trail that was created in a different
+	// region. The default is true.
+	IncludeShadowTrails *bool `locationName:"includeShadowTrails" type:"boolean"`
+
 	// Specifies a list of trail names, trail ARNs, or both, of the trails to describe.
 	// The format of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	// If an empty list is specified, information for the trail in the current region
 	// is returned.
+	//
+	//  If an empty list is specified and IncludeShadowTrails is false, then information
+	// for all trails in the current region is returned.  If an empty list is specified
+	// and IncludeShadowTrails is null or true, then information for all trails
+	// in the current region and any associated shadow trails in other regions is
+	// returned.   If one or more trail names are specified, information is returned
+	// only if the names match the names of trails belonging only to the current
+	// region. To return information about a trail in another region, you must specify
+	// its trail ARN.
 	TrailNameList []*string `locationName:"trailNameList" type:"list"`
-
-	metadataDescribeTrailsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTrailsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -627,14 +635,10 @@ func (s DescribeTrailsInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type DescribeTrailsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The list of trail objects.
 	TrailList []*Trail `locationName:"trailList" type:"list"`
-
-	metadataDescribeTrailsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTrailsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -650,6 +654,8 @@ func (s DescribeTrailsOutput) GoString() string {
 // Contains information about an event that was returned by a lookup request.
 // The result includes a representation of a CloudTrail event.
 type Event struct {
+	_ struct{} `type:"structure"`
+
 	// A JSON string that contains a representation of the event returned.
 	CloudTrailEvent *string `type:"string"`
 
@@ -668,12 +674,6 @@ type Event struct {
 	// A user name or role name of the requester that called the API in the event
 	// returned.
 	Username *string `type:"string"`
-
-	metadataEvent `json:"-" xml:"-"`
-}
-
-type metadataEvent struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -688,15 +688,12 @@ func (s Event) GoString() string {
 
 // The name of a trail about which you want the current status.
 type GetTrailStatusInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the name or the CloudTrail ARN of the trail for which you are requesting
-	// status. The format of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
+	// status. To get the status of a shadow trail (a replication of the trail in
+	// another region), you must specify its ARN. The format of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	Name *string `type:"string" required:"true"`
-
-	metadataGetTrailStatusInput `json:"-" xml:"-"`
-}
-
-type metadataGetTrailStatusInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -712,6 +709,8 @@ func (s GetTrailStatusInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type GetTrailStatusOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Whether the CloudTrail is currently logging AWS API calls.
 	IsLogging *bool `type:"boolean"`
 
@@ -787,12 +786,6 @@ type GetTrailStatusOutput struct {
 
 	// This field is deprecated.
 	TimeLoggingStopped *string `type:"string"`
-
-	metadataGetTrailStatusOutput `json:"-" xml:"-"`
-}
-
-type metadataGetTrailStatusOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -807,6 +800,8 @@ func (s GetTrailStatusOutput) GoString() string {
 
 // Requests the public keys for a specified time range.
 type ListPublicKeysInput struct {
+	_ struct{} `type:"structure"`
+
 	// Optionally specifies, in UTC, the end of the time range to look up public
 	// keys for CloudTrail digest files. If not specified, the current time is used.
 	EndTime *time.Time `type:"timestamp" timestampFormat:"unix"`
@@ -818,12 +813,6 @@ type ListPublicKeysInput struct {
 	// keys for CloudTrail digest files. If not specified, the current time is used,
 	// and the current public key is returned.
 	StartTime *time.Time `type:"timestamp" timestampFormat:"unix"`
-
-	metadataListPublicKeysInput `json:"-" xml:"-"`
-}
-
-type metadataListPublicKeysInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -839,6 +828,8 @@ func (s ListPublicKeysInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type ListPublicKeysOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Reserved for future use.
 	NextToken *string `type:"string"`
 
@@ -846,12 +837,6 @@ type ListPublicKeysOutput struct {
 	//
 	// The returned public keys may have validity time ranges that overlap.
 	PublicKeyList []*PublicKey `type:"list"`
-
-	metadataListPublicKeysOutput `json:"-" xml:"-"`
-}
-
-type metadataListPublicKeysOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -866,18 +851,14 @@ func (s ListPublicKeysOutput) GoString() string {
 
 // Specifies a list of trail tags to return.
 type ListTagsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Reserved for future use.
 	NextToken *string `type:"string"`
 
 	// Specifies a list of trail ARNs whose tags will be listed. The list has a
 	// limit of 20 ARNs. The format of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	ResourceIdList []*string `type:"list" required:"true"`
-
-	metadataListTagsInput `json:"-" xml:"-"`
-}
-
-type metadataListTagsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -893,17 +874,13 @@ func (s ListTagsInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type ListTagsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Reserved for future use.
 	NextToken *string `type:"string"`
 
 	// A list of resource tags.
 	ResourceTagList []*ResourceTag `type:"list"`
-
-	metadataListTagsOutput `json:"-" xml:"-"`
-}
-
-type metadataListTagsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -918,17 +895,13 @@ func (s ListTagsOutput) GoString() string {
 
 // Specifies an attribute and value that filter the events returned.
 type LookupAttribute struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies an attribute on which to filter the events returned.
 	AttributeKey *string `type:"string" required:"true" enum:"LookupAttributeKey"`
 
 	// Specifies a value for the specified AttributeKey.
 	AttributeValue *string `type:"string" required:"true"`
-
-	metadataLookupAttribute `json:"-" xml:"-"`
-}
-
-type metadataLookupAttribute struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -943,6 +916,8 @@ func (s LookupAttribute) GoString() string {
 
 // Contains a request for LookupEvents.
 type LookupEventsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies that only events that occur before or at the specified time are
 	// returned. If the specified end time is before the specified start time, an
 	// error is returned.
@@ -967,12 +942,6 @@ type LookupEventsInput struct {
 	// returned. If the specified start time is after the specified end time, an
 	// error is returned.
 	StartTime *time.Time `type:"timestamp" timestampFormat:"unix"`
-
-	metadataLookupEventsInput `json:"-" xml:"-"`
-}
-
-type metadataLookupEventsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -987,6 +956,8 @@ func (s LookupEventsInput) GoString() string {
 
 // Contains a response to a LookupEvents action.
 type LookupEventsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of events returned based on the lookup attributes specified and the
 	// CloudTrail event. The events list is sorted by time. The most recent event
 	// is listed first.
@@ -998,12 +969,6 @@ type LookupEventsOutput struct {
 	// if the original call specified an AttributeKey of 'Username' with a value
 	// of 'root', the call with NextToken should include those same parameters.
 	NextToken *string `type:"string"`
-
-	metadataLookupEventsOutput `json:"-" xml:"-"`
-}
-
-type metadataLookupEventsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1018,6 +983,8 @@ func (s LookupEventsOutput) GoString() string {
 
 // Contains information about a returned public key.
 type PublicKey struct {
+	_ struct{} `type:"structure"`
+
 	// The fingerprint of the public key.
 	Fingerprint *string `type:"string"`
 
@@ -1029,12 +996,6 @@ type PublicKey struct {
 
 	// The DER encoded public key value in PKCS#1 format.
 	Value []byte `type:"blob"`
-
-	metadataPublicKey `json:"-" xml:"-"`
-}
-
-type metadataPublicKey struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1049,18 +1010,14 @@ func (s PublicKey) GoString() string {
 
 // Specifies the tags to remove from a trail.
 type RemoveTagsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the ARN of the trail from which tags should be removed. The format
 	// of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	ResourceId *string `type:"string" required:"true"`
 
 	// Specifies a list of tags to be removed.
 	TagsList []*Tag `type:"list"`
-
-	metadataRemoveTagsInput `json:"-" xml:"-"`
-}
-
-type metadataRemoveTagsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1076,11 +1033,7 @@ func (s RemoveTagsInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type RemoveTagsOutput struct {
-	metadataRemoveTagsOutput `json:"-" xml:"-"`
-}
-
-type metadataRemoveTagsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1095,6 +1048,8 @@ func (s RemoveTagsOutput) GoString() string {
 
 // Specifies the type and name of a resource referenced by an event.
 type Resource struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the resource referenced by the event returned. These are user-created
 	// names whose values will depend on the environment. For example, the resource
 	// name might be "auto-scaling-test-group" for an Auto Scaling Group or "i-1234567"
@@ -1107,12 +1062,6 @@ type Resource struct {
 	// for IAM. For a list of resource types supported for event lookup, see Resource
 	// Types Supported for Event Lookup (http://docs.aws.amazon.com/awscloudtrail/latest/userguide/lookup_supported_resourcetypes.html).
 	ResourceType *string `type:"string"`
-
-	metadataResource `json:"-" xml:"-"`
-}
-
-type metadataResource struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1127,17 +1076,13 @@ func (s Resource) GoString() string {
 
 // A resource tag.
 type ResourceTag struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the ARN of the resource.
 	ResourceId *string `type:"string"`
 
 	// A list of tags.
 	TagsList []*Tag `type:"list"`
-
-	metadataResourceTag `json:"-" xml:"-"`
-}
-
-type metadataResourceTag struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1152,15 +1097,11 @@ func (s ResourceTag) GoString() string {
 
 // The request to CloudTrail to start logging AWS API calls for an account.
 type StartLoggingInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the name or the CloudTrail ARN of the trail for which CloudTrail
 	// logs AWS API calls. The format of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	Name *string `type:"string" required:"true"`
-
-	metadataStartLoggingInput `json:"-" xml:"-"`
-}
-
-type metadataStartLoggingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1176,11 +1117,7 @@ func (s StartLoggingInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type StartLoggingOutput struct {
-	metadataStartLoggingOutput `json:"-" xml:"-"`
-}
-
-type metadataStartLoggingOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1196,15 +1133,11 @@ func (s StartLoggingOutput) GoString() string {
 // Passes the request to CloudTrail to stop logging AWS API calls for the specified
 // account.
 type StopLoggingInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the name or the CloudTrail ARN of the trail for which CloudTrail
 	// will stop logging AWS API calls. The format of a trail ARN is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	Name *string `type:"string" required:"true"`
-
-	metadataStopLoggingInput `json:"-" xml:"-"`
-}
-
-type metadataStopLoggingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1220,11 +1153,7 @@ func (s StopLoggingInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type StopLoggingOutput struct {
-	metadataStopLoggingOutput `json:"-" xml:"-"`
-}
-
-type metadataStopLoggingOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1239,6 +1168,8 @@ func (s StopLoggingOutput) GoString() string {
 
 // A custom key-value pair associated with a resource such as a CloudTrail trail.
 type Tag struct {
+	_ struct{} `type:"structure"`
+
 	// The key in a key-value pair. The key must be must be no longer than 128 Unicode
 	// characters. The key must be unique for the resource to which it applies.
 	Key *string `type:"string" required:"true"`
@@ -1246,12 +1177,6 @@ type Tag struct {
 	// The value in a key-value pair of a tag. The value must be no longer than
 	// 256 Unicode characters.
 	Value *string `type:"string"`
-
-	metadataTag `json:"-" xml:"-"`
-}
-
-type metadataTag struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1266,6 +1191,8 @@ func (s Tag) GoString() string {
 
 // The settings for a trail.
 type Trail struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies an Amazon Resource Name (ARN), a unique identifier that represents
 	// the log group to which CloudTrail logs will be delivered.
 	CloudWatchLogsLogGroupArn *string `type:"string"`
@@ -1274,9 +1201,15 @@ type Trail struct {
 	// a user's log group.
 	CloudWatchLogsRoleArn *string `type:"string"`
 
+	// The region in which the trail was created.
+	HomeRegion *string `type:"string"`
+
 	// Set to True to include AWS API calls from AWS global services such as IAM.
 	// Otherwise, False.
 	IncludeGlobalServiceEvents *bool `type:"boolean"`
+
+	// Specifies whether the trail belongs only to one region or exists in all regions.
+	IsMultiRegionTrail *bool `type:"boolean"`
 
 	// Specifies the KMS key ID that encrypts the logs delivered by CloudTrail.
 	// The value is a fully specified ARN to a KMS key in the format:
@@ -1307,12 +1240,6 @@ type Trail struct {
 
 	// The Amazon Resource Name of the trail. The TrailARN format is arn:aws:cloudtrail:us-east-1:123456789012:trail/MyTrail.
 	TrailARN *string `type:"string"`
-
-	metadataTrail `json:"-" xml:"-"`
-}
-
-type metadataTrail struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1327,6 +1254,8 @@ func (s Trail) GoString() string {
 
 // Specifies settings to update for the trail.
 type UpdateTrailInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies a log group name using an Amazon Resource Name (ARN), a unique
 	// identifier that represents the log group to which CloudTrail logs will be
 	// delivered. Not required unless you specify CloudWatchLogsRoleArn.
@@ -1351,6 +1280,14 @@ type UpdateTrailInput struct {
 	// Specifies whether the trail is publishing events from global services such
 	// as IAM to the log files.
 	IncludeGlobalServiceEvents *bool `type:"boolean"`
+
+	// Specifies whether the trail applies only to the current region or to all
+	// regions. The default is false. If the trail exists only in the current region
+	// and this value is set to true, shadow trails (replications of the trail)
+	// will be created in the other regions. If the trail exists in all regions
+	// and this value is set to false, the trail will remain in the region where
+	// it was created, and its shadow trails in other regions will be deleted.
+	IsMultiRegionTrail *bool `type:"boolean"`
 
 	// Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail.
 	// The value can be a an alias name prefixed by "alias/", a fully specified
@@ -1387,12 +1324,6 @@ type UpdateTrailInput struct {
 	// Specifies the name of the Amazon SNS topic defined for notification of log
 	// file delivery. The maximum length is 256 characters.
 	SnsTopicName *string `type:"string"`
-
-	metadataUpdateTrailInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateTrailInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1408,6 +1339,8 @@ func (s UpdateTrailInput) GoString() string {
 // Returns the objects or data listed below if successful. Otherwise, returns
 // an error.
 type UpdateTrailOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the Amazon Resource Name (ARN) of the log group to which CloudTrail
 	// logs will be delivered.
 	CloudWatchLogsLogGroupArn *string `type:"string"`
@@ -1419,6 +1352,9 @@ type UpdateTrailOutput struct {
 	// Specifies whether the trail is publishing events from global services such
 	// as IAM to the log files.
 	IncludeGlobalServiceEvents *bool `type:"boolean"`
+
+	// Specifies whether the trail exists in one region or in all regions.
+	IsMultiRegionTrail *bool `type:"boolean"`
 
 	// Specifies the KMS key ID that encrypts the logs delivered by CloudTrail.
 	// The value is a fully specified ARN to a KMS key in the format:
@@ -1447,12 +1383,6 @@ type UpdateTrailOutput struct {
 
 	// Specifies the ARN of the trail that was updated.
 	TrailARN *string `type:"string"`
-
-	metadataUpdateTrailOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateTrailOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
