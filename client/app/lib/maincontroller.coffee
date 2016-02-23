@@ -1,7 +1,6 @@
 kd                             = require 'kd'
 KDController                   = kd.Controller
 KDNotificationView             = kd.NotificationView
-emojify                        = require 'emojify.js'
 Promise                        = require 'bluebird'
 kookies                        = require 'kookies'
 globals                        = require 'globals'
@@ -80,15 +79,6 @@ module.exports           = class MainController extends KDController
     @attachListeners()
 
     @detectIdleUser()
-    @startCachingAssets()  unless globals.isLoggedInOnLoad
-
-    emojify?.setConfig
-      img_dir      : 'https://s3.amazonaws.com/koding-cdn/emojis'
-      ignored_tags :
-        'TEXTAREA' : 1,
-        'A'        : 1,
-        'PRE'      : 1,
-        'CODE'     : 1
 
 
   createSingletons:->
