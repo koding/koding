@@ -24,29 +24,20 @@ do ->
   handleInvitation = (routeInfo) ->
 
     { params, query } = routeInfo
-    { token }         = params
+    { email } = query
 
-    return kd.singletons.router.handleRoute '/'  unless token
+    # Remember already typed companyName when user is seeing "Create a team"
+    # page with refresh twice or more
+    if teamData = utils.getTeamData()
+      if teamData.signup
+        utils.storeNewTeamData 'signup', teamData.signup
 
-    utils.routeIfInvitationTokenIsValid token,
-      success   : ({email}) ->
+    utils.storeNewTeamData 'invitation', { email }
 
-        # Remember already typed companyName when user is seeing "Create a team" page with refresh twice or more
-        if teamData = utils.getTeamData()
-
-          # Make sure about invitation is same.
-          if token is teamData.invitation?.teamAccessCode and teamData.signup
-            utils.storeNewTeamData 'signup', teamData.signup
-
-        utils.storeNewTeamData 'invitation', { teamAccessCode: token, email }
-
-        handleRoute { params, query }
-      error     : ({responseText}) ->
-        new kd.NotificationView title : responseText
-        kd.singletons.router.handleRoute '/'
+    handleRoute { params, query }
 
 
   kd.registerRoutes 'Teams',
 
     '/Teams'       : handleRoute
-    '/Teams/:token': handleInvitation
+    '/Teams/Create': handleInvitation
