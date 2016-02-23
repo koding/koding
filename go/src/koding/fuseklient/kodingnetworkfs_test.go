@@ -1,7 +1,6 @@
 package fuseklient
 
 import (
-	"encoding/base64"
 	"io/ioutil"
 	"os"
 	"path"
@@ -24,17 +23,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 		})
 
 		Convey("It should mount and unmount a directory", func() {
-			t := &fakeTransport{
-				TripResponses: map[string]interface{}{
-					"fs.readDirectory": transport.ReadDirRes{
-						Files: []*transport.GetInfoRes{},
-					},
-					"fs.getInfo":                &transport.GetInfoRes{Exists: true},
-					"fs.readRecursiveDirectory": &transport.ReadDirRes{},
-					"fs.getDiskInfo":            &transport.GetDiskInfoRes{},
-				},
-			}
-			k := newknfs(t)
+			k := newknfs(nil)
 
 			_, err := k.Mount()
 			So(err, ShouldBeNil)
@@ -43,50 +32,8 @@ func TestKodingNetworkFS(tt *testing.T) {
 		})
 	})
 
-	var millenium = time.Date(2000, time.January, 01, 00, 0, 0, 0, time.UTC)
-
 	Convey("Given mounted directory", tt, func() {
-		s := []byte("Hello World!")
-		c := base64.StdEncoding.EncodeToString(s)
-		t := &fakeTransport{
-			TripResponses: map[string]interface{}{
-				"fs.writeFile":       1,
-				"fs.createDirectory": true,
-				"fs.rename":          true,
-				"fs.remove":          true,
-				"fs.readFile":        map[string]interface{}{"content": c},
-				"fs.getInfo": transport.GetInfoRes{
-					Exists:   true,
-					IsDir:    true,
-					FullPath: "/remote",
-					Name:     "remote",
-					Mode:     0700 | os.ModeDir,
-					Time:     millenium,
-				},
-				"fs.readRecursiveDirectory": transport.ReadDirRes{},
-				"fs.readDirectory": transport.ReadDirRes{
-					Files: []*transport.GetInfoRes{
-						&transport.GetInfoRes{
-							Exists:   true,
-							IsDir:    false,
-							FullPath: "/remote/file",
-							Name:     "file",
-							Mode:     os.FileMode(0700),
-							Time:     millenium,
-							Size:     uint64(len(s)),
-						},
-					},
-				},
-				"fs.getDiskInfo": &transport.GetDiskInfoRes{
-					BlockSize:   8192,
-					BlocksTotal: 10000,
-					BlocksFree:  9000,
-					BlocksUsed:  1000,
-				},
-			},
-		}
-
-		k := newknfs(t)
+		k := newknfs(nil)
 
 		_, err := k.Mount()
 		So(err, ShouldBeNil)
@@ -121,6 +68,10 @@ func TestKodingNetworkFS(tt *testing.T) {
 			So(string(dst), ShouldEqual, str)
 			So(n, ShouldEqual, len(str))
 		}
+
+		filePath := path.Join(k.MountPath, "file")
+		err = ioutil.WriteFile(filePath, []byte("Hello World!"), 0700)
+		So(err, ShouldBeNil)
 
 		Convey("GetInodeAttributes", func() {
 			Convey("It should return root directory attributes", func() {
@@ -371,9 +322,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 				// check mount/file1 exists with same permissions
 				statFileCheck(file1, 0700)
 
-				// rename calls transport to update file contents, hence it's reset
-				// to default in transport which is "Hello World!"
-				readFile(file1, "Hello World!")
+				readFile(file1, "World!")
 			})
 		})
 
@@ -462,10 +411,16 @@ func TestKodingNetworkFS(tt *testing.T) {
 					st, err := fi.Stat()
 					So(err, ShouldBeNil)
 
+					// Get the time difference between when the file was created, and
+					// when this specific test was run.
+					fileCreatedAgo := time.Now().UTC().Sub(st.ModTime().UTC())
+
 					So(st.IsDir(), ShouldEqual, false)
-					So(st.ModTime().UTC().String(), ShouldEqual, millenium.String())
 					So(st.Name(), ShouldEqual, "file")
 					So(st.Size(), ShouldEqual, 12)
+					// Check if the diff was small. Within 5 seconds, to account for
+					// any laggy/blocking tests..
+					So(fileCreatedAgo, ShouldAlmostEqual, 0, 5*time.Second)
 				})
 
 				Convey("It should save entry with handleId", func() {
@@ -636,13 +591,23 @@ func TestKodingNetworkFS(tt *testing.T) {
 		})
 
 		Convey("StatFS", func() {
-			fs := syscall.Statfs_t{}
-			err := syscall.Statfs(k.MountPath, &fs)
+			localFs := syscall.Statfs_t{}
+			err := syscall.Statfs("/", &localFs)
 			So(err, ShouldBeNil)
 
-			So(fs.Bsize, ShouldEqual, 8192)
-			So(fs.Blocks, ShouldEqual, 10000)
-			So(fs.Bfree, ShouldEqual, 9000)
+			mountFs := syscall.Statfs_t{}
+			err = syscall.Statfs(k.MountPath, &mountFs)
+			So(err, ShouldBeNil)
+
+			// Because blocks free can differ, due to creating files/etc,
+			// we check for the blocks free differing by up to 1%. This may
+			// need to be larger if Wercker/etc are installing libraries while
+			// these tests are running.. but normal conditions should be fine.
+			allowedBfreeDiff := float64(localFs.Bfree) * 0.01
+
+			So(mountFs.Bsize, ShouldEqual, localFs.Bsize)
+			So(mountFs.Blocks, ShouldAlmostEqual, localFs.Blocks)
+			So(mountFs.Bfree, ShouldAlmostEqual, localFs.Bfree, allowedBfreeDiff)
 		})
 
 		Convey("ReleaseFileHandle", func() {
@@ -701,14 +666,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 
 func TestKodingNetworkFSUnit(tt *testing.T) {
 	i := fuseops.InodeID(fuseops.RootInodeID + 1)
-	t := &fakeTransport{
-		TripResponses: map[string]interface{}{
-			"fs.readDirectory":          &transport.ReadDirRes{},
-			"fs.getInfo":                &transport.GetInfoRes{Exists: true},
-			"fs.readRecursiveDirectory": &transport.ReadDirRes{},
-			"fs.getDiskInfo":            &transport.GetDiskInfoRes{},
-		},
-	}
+	var t transport.Transport
 
 	// Convey("NewKodingNetworkFS", t, func() {
 	// })
@@ -793,17 +751,7 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 
 func TestKodingNetworkFSHandles(tt *testing.T) {
 	Convey("", tt, func() {
-		t := &fakeTransport{
-			TripResponses: map[string]interface{}{
-				"fs.readDirectory": transport.ReadDirRes{
-					Files: []*transport.GetInfoRes{},
-				},
-				"fs.getInfo":     &transport.GetInfoRes{Exists: true},
-				"fs.getDiskInfo": &transport.GetDiskInfoRes{},
-			},
-		}
-
-		k := newknfs(t)
+		k := newknfs(nil)
 		d := newDir()
 		f := newFile()
 
@@ -863,10 +811,30 @@ func _unmount(k *KodingNetworkFS) error {
 	return os.RemoveAll(k.MountPath)
 }
 
+// newknfs creates a new KodingNetworkFS setup for testing. If the transport
+// argument is nil, a remote transport is automatically setup.
 func newknfs(t transport.Transport) *KodingNetworkFS {
 	mountDir, err := ioutil.TempDir("", "mounttest")
 	if err != nil {
 		panic(err)
+	}
+
+	if t == nil {
+		remoteDir, err := ioutil.TempDir("", "mounttest_remote")
+		if err != nil {
+			panic(err)
+		}
+
+		client, err := newKlientClient()
+		if err != nil {
+			panic(err)
+		}
+
+		t = &transport.RemoteTransport{
+			Client:      client,
+			RemotePath:  remoteDir,
+			TellTimeout: 4 * time.Second,
+		}
 	}
 
 	c := &Config{
