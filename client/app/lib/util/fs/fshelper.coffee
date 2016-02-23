@@ -117,28 +117,47 @@ module.exports = class FSHelper
 
   @showInstallRequiredModal: (packageName) ->
 
-    installers =
-      zip      : 'sudo apt-get update -y; sudo apt-get -y install zip'
+    packageName = 'tar'  if packageName is 'tar.gz'
+    prefix      = 'sudo apt-get update -y; sudo apt-get -y install'
+    installers  = # we need an OS detection feature here in the future. #6820
+      cp        : "#{prefix} coreutils"
+      zip       : "#{prefix} zip"
+      tar       : "#{prefix} tar"
+      unzip     : "#{prefix} unzip"
 
-    title   = "#{packageName or 'A'} package not found."
-    command = installers[packageName]
-    overlay = yes
-    content = """
-        We can try to install it for you by running:<br /><br />
-        <pre>#{command}</pre><br />
-        or you can install it manually to your VM and try this again.
+    title       = "#{packageName or 'A'} command not found."
+    command     = installers[packageName]
+    overlay     = yes
+    buttons     = {}
+    cancelBtn   =
+      title     : 'Cancel'
+      cssClass  : 'solid medium'
+      callback  : -> modal.destroy()
+    installBtn  =
+      title     : 'Install Package'
+      cssClass  : 'solid green medium'
+      callback  : ->
+        kd.singletons.appManager.getFrontApp().emit 'InstallationRequired', command
+        modal.destroy()
+
+    if command
+      content = """
+          We can try to install it for you by running:<br /><br />
+          <pre>#{command}</pre><br />
+          or you can install it manually to your VM and try this again.
+        """
+      buttons   =
+        install : installBtn
+        cancel  : cancelBtn
+    else
+      content = """
+        We need #{packageName} to be installed but currently we don't know how to
+        install it to your machine. You need to install it manually.
       """
-    buttons      =
-      install    :
-        title    : 'Install Package'
-        cssClass : 'solid green medium'
-        callback : ->
-          kd.singletons.appManager.getFrontApp().emit 'InstallationRequired', command
-          modal.destroy()
-      cancel     :
-        title    : 'Cancel'
-        cssClass : 'solid medium'
-        callback : -> modal.destroy()
+
+      buttons = { cancel : cancelBtn }
+      buttons.cancel.title = 'Close'
+
 
     modal = new kd.ModalView { title, content, overlay, buttons }
 
