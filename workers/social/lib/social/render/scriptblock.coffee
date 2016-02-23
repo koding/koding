@@ -95,7 +95,6 @@ module.exports = (options = {}, callback) ->
       })(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
     <script type="text/javascript">
-      var _hsq = window._hsq = window._hsq || [];
       _hsq.push(["identify", {
         email: #{userEmail}
       }]);
