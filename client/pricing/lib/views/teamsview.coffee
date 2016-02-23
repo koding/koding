@@ -1,7 +1,6 @@
 kd                    = require 'kd'
 JView                 = require 'app/jview'
 KDView                = kd.View
-KDButtonView          = kd.ButtonView
 KDCustomHTMLView      = kd.CustomHTMLView
 KDNotificationView    = kd.NotificationView
 TeamsEarlyAccessForm  = require './teamsearlyaccessform'
