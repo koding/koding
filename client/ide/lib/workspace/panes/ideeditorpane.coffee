@@ -138,7 +138,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
       deleteFilePath = @file.getOptions().path
 
-      [node] = @file.treeController.selectedNodes
+      [ node ] = @file.treeController.selectedNodes
 
       parent            = node.getData()
       contents          = ace.getContents()
@@ -151,10 +151,10 @@ module.exports = class IDEEditorPane extends IDEPane
       @file.once 'fs.saveAs.finished',   ace.bound 'saveAsFinished'
       @file.emit 'file.requests.saveAs', contents, name, parent.path
 
-      ace.emit 'AceDidSaveAs', name, parent.path # ????
+      ace.emit 'AceDidSaveAs', name, parent.path
 
       @file.on 'fs.saveAs.finished', (newFile) =>
-        {tabView} = @getDelegate()
+        { tabView } = @getDelegate()
 
         return  if tabView.willClose
 
@@ -162,7 +162,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
         @file.path = deleteFilePath
 
-        @file.remove kd.log, false
+        @file.remove kd.noop
 
 
   updateContent: (content, isSaved = no) ->
