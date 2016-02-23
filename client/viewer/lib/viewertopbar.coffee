@@ -1,7 +1,9 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
+kd                  = require 'kd'
+KDCustomHTMLView    = kd.CustomHTMLView
 KDHitEnterInputView = kd.HitEnterInputView
-JView = require 'app/jview'
+JView               = require 'app/jview'
+
+
 module.exports = class ViewerTopBar extends JView
 
   constructor:(options,data)->
