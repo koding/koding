@@ -356,27 +356,6 @@ module.exports = class MainController extends KDController
     kd.remote      = remote
     kd.whoami      = whoami
 
-  startCachingAssets:->
-
-    kd.singletons.appManager.require 'Login', ->
-
-      images = [
-        '/a/images/city.jpg'
-        '/a/images/home-pat.png'
-        '/a/images/edu-pat.png'
-        '/a/images/biz-pat.png'
-        '/a/images/pricing-pat.png'
-        '/a/images/ss-activity.jpg'
-        '/a/images/ss-terminal.jpg'
-        '/a/images/ss-teamwork.jpg'
-        '/a/images/ss-environments.jpg'
-        "/a/images/unsplash/#{LoginView.backgroundImageNr}.jpg"
-      ]
-
-      for src in images
-        image     = new Image
-        image.src = src
-
 
   registerFluxModules: ->
 
