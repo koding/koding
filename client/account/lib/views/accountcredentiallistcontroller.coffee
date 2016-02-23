@@ -211,6 +211,18 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       view.form.destroy()
       @addItem credential
 
+      if provider is 'aws'
+        console.log "Added AWS key"
+        _hsq.push (t) ->
+          t.identify
+            email: 'team@koding.com'
+        _hsq.push (t) ->
+          if t.urlMatches('http://jake.dev.koding.com:8090/Stacks/Group-Stack-Templates/welcome')
+            t.trackEvent
+              id: '000000536814'
+              value: null
+          return
+
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.
     view.on 'NotifyResizeListeners', -> kd.singletons.windowController.notifyWindowResizeListeners()
