@@ -1,6 +1,7 @@
 package githubprovider
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -117,10 +118,18 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
+	if len(teamNames) == 0 {
+		return errors.New("team name is not defined")
+	}
+
 	teamIDs, err := GetTeamIDs(clientOrg, org, teamNames)
 
 	optAddOrgMembership := &github.OrganizationAddTeamMembershipOptions{
 		Role: role,
+	}
+
+	if len(teamNames) != len(teamIDs) {
+		return errors.New("team name is not found")
 	}
 
 	for _, teamID := range teamIDs {

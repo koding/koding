@@ -30,12 +30,14 @@ type Instance struct {
 	Hostname      string         `json:"hostname,omitempty"`
 	Domain        string         `json:"domain,omitempty"`
 	UUID          string         `json:"uuid,omitempty"`
+	IPAddress     string         `json:"primaryIpAddress,omitempty"`
 	CreateDate    time.Time      `json:"createDate,omitempty"`
 	Datacenter    Datacenter     `json:"datacenter,omitempty"`
 	Attributes    []Attribute    `json:"attributes,omitempty"`
 	SshKeys       []Key          `json:"sshKeys,omitempty"`
 	TagReferences []TagReference `json:"tagReferences,omitempty"`
 	VLANs         []VLAN         `json:"networkVlans,omitempty"`
+	Firewall      Firewall       `json:"firewallServiceComponent,omitempty"`
 
 	Tags        Tags `json:"-"`
 	NotTaggable bool `json:"-"`

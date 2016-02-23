@@ -235,17 +235,6 @@ module.exports =
       .assert.containsText    teamDashboard, 'Team Settings' # Assertion
 
 
-  seeTeamNameOnsideBar: (browser, name) ->
-
-    sidebarSelector = '.with-sidebar [testpath=main-sidebar]'
-    listSelector    = "#{sidebarSelector} .SidebarListItem"
-
-    browser
-      .waitForElementVisible  sidebarSelector, 20000
-      .waitForElementVisible  listSelector, 20000
-      .assert.containsText    sidebarSelector, name
-
-
   clickTeamSettings: (browser) ->
 
     helpers.openAvatarAreaModal(browser, yes)
@@ -255,7 +244,7 @@ module.exports =
   startStackCreate: (browser) ->
 
     welcomePageSelector = '.content-page.welcome'
-    stackSelector       = '.activity-sidebar .SidebarStackWidgets a[href="/Stacks/Group-Stack-Templates"]'
+    stackSelector       = 'ul.boxes a[testpath="configure-stack-button"]'
     overlaySelector     = '.AppModal--admin'
     getstartedSelector  = "#{overlaySelector} .stack-onboarding.get-started"
     buttonSelector      = "#{getstartedSelector} .header button"

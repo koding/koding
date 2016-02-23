@@ -97,7 +97,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       JStackTemplate     : 'Stack Templates'
       JCredential        : 'Credentials'
       ComputeProvider    : 'Compute Providers'
-      JComputeStack      : 'Compute Stacks'
+      JComputeStack      : 'Stacks'
       JDomainAlias       : 'Domain Aliases'
       JKite              : 'Kites'
       JMachine           : 'Machines'
