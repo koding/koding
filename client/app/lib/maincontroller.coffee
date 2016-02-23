@@ -278,18 +278,6 @@ module.exports = class MainController extends KDController
       if callback
         @once 'AccountChanged', (account) -> callback null, options
 
-  handleLogin: (credentials, callback) ->
-    { JUser } = remote.api
-
-    @isLoggingIn on
-
-    credentials.username = credentials.username.toLowerCase().trim()
-
-    JUser.login credentials, (err, result) =>
-      return callback err  if err
-      setVersionCookie result.account
-      @swapAccount result, callback
-
 
   handleOauthAuth : (formData, callback)->
     { JUser } = remote.api
