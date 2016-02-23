@@ -100,9 +100,9 @@ func (bk *balancedKlients) init() error {
 		k.SetLogLevel(kite.WARNING)
 	}
 
-	// use dev environment by default
+	// use production environment by default
 	if c.Environment == "" || c.Environment == "unknown" {
-		c.Environment = "dev"
+		c.Environment = "production"
 	}
 
 	query := &protocol.KontrolQuery{

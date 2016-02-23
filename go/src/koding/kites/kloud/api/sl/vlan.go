@@ -33,16 +33,20 @@ var vlanInstancesMask = ObjectMask((*VLAN)(nil), "virtualGuests.networkVlans")
 
 // VLAN represents a single Softlayer VLAN
 type VLAN struct {
-	ID            int            `json:"id,omitempty"`
-	InternalID    int            `json:"vlanNumber,omitempty"`
-	Name          string         `json:"name,omitempty"`
-	ModifyDate    time.Time      `json:"modifyDate,omitempty"`
-	RoutingID     int            `json:"networkVrfId,omitempty"`
-	Subnet        Subnet         `json:"primarySubnet,omitempty"`
-	InstanceCount int            `json:"virtualGuestCount,omitempty"`
-	Instances     []*Instance    `json:"virtualGuests,omitempty"`
-	Subnets       []Subnet       `json:"subnets,omitempty"`
-	TagReferences []TagReference `json:"tagReferences,omitempty"`
+	ID            int             `json:"id,omitempty"`
+	InternalID    int             `json:"vlanNumber,omitempty"`
+	Name          string          `json:"name,omitempty"`
+	ModifyDate    time.Time       `json:"modifyDate,omitempty"`
+	RoutingID     int             `json:"networkVrfId,omitempty"`
+	Subnet        Subnet          `json:"primarySubnet,omitempty"`
+	InstanceCount int             `json:"virtualGuestCount,omitempty"`
+	Instances     []*Instance     `json:"virtualGuests,omitempty"`
+	Subnets       []Subnet        `json:"subnets,omitempty"`
+	TagReferences []TagReference  `json:"tagReferences,omitempty"`
+	Firewall      Firewall        `json:"networkVlanFirewall,omitempty"`
+	MCI           []*MCI          `json:"firewallInterfaces,omitempty"`
+	Firewalls     []*Firewall     `json:"firewallGuestNetworkComponents,omitempty"`
+	FirewallRules []*FirewallRule `json:"firewallRules,omitempty"`
 
 	Tags Tags `json:"-"`
 }
