@@ -151,7 +151,7 @@ module.exports = class Sidebar extends bongo.Base
             filterCollaborationWorkspace options
         ]
 
-        async.parallel filterQueue, -> workspaceQueueFin()
+        async.parallel filterQueue, workspaceQueueFin
 
     async.parallel workspaceQueue, callback
 
