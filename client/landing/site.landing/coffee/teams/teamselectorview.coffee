@@ -37,7 +37,7 @@ module.exports = class TeamSelectorView extends JView
     @form = new TeamsSelectorForm
       callback : @bound 'goToTeam'
 
-    @previousTeams = new kd.CustomHTMLView
+    @previousTeams = new kd.CustomHTMLView { tagName: 'p' }
 
     teams = utils.getPreviousTeams()
 
@@ -47,16 +47,17 @@ module.exports = class TeamSelectorView extends JView
     suffix = if Object.keys(teams).length > 2 then 'these teams' else 'this team'
 
     @previousTeams.addSubView new kd.CustomHTMLView
-      tagName : 'p'
-      partial : "You previously visited #{suffix}:<br/>"
+      tagName : 'span'
+      partial : "You previously visited #{suffix}:"
+
+    @previousTeams.addSubView ul = new kd.CustomHTMLView
+      tagName : 'ul'
 
     for slug, title of teams when slug isnt 'latest'
-      @previousTeams.addSubView new kd.CustomHTMLView
-        tagName    : 'a'
-        cssClass   : 'previous-team'
-        partial    : title
-        attributes :
-          href     : "#{location.protocol}//#{slug}.#{location.host}"
+      href = "#{location.protocol}//#{slug}.#{location.host}"
+      ul.addSubView new kd.CustomHTMLView
+        tagName    : 'li'
+        partial    : "<a href=\"#{href}\" class=\"previous-team\">#{title}</a>"
 
 
   goToTeam: (formData) ->
