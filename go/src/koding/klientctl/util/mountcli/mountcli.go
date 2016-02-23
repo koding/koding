@@ -1,3 +1,4 @@
+// +build darwin
 // mountcli is a little package for interacting with the local "mount" command
 package mountcli
 
