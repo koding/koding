@@ -149,14 +149,14 @@ module.exports =
 
     browser.element 'css selector', hasNotTeamAccessPage, (result) =>
       if result.status is 0
-        @getInvitationAndCreateTeam browser
+        @createTeam browser
       else
         @loginToTeam browser, user
 
     return user
 
 
-  getInvitationAndCreateTeam: (browser, user, callback) ->
+  createTeam: (browser, user, callback) ->
 
     modalSelector       = '.TeamsModal.TeamsModal--create'
     emailSelector       = "#{modalSelector} input[name=email]"
