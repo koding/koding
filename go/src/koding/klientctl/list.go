@@ -3,7 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"koding/klientctl/util"
+	"koding/klientctl/klient"
+	"koding/klientctl/list"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -13,25 +14,6 @@ import (
 	"github.com/koding/logging"
 )
 
-type kiteInfo struct {
-	IP           string      `json:"ip"`
-	VMName       string      `json:"vmName"`
-	Hostname     string      `json:"hostname"`
-	MachineLabel string      `json:"machineLabel"`
-	Mounts       []mountInfo `json:"mounts"`
-	Teams        []string    `json:"teams"`
-
-	// TODO: DEPRECATE
-	MountedPaths []string `json:"mountedPaths"`
-}
-
-type mountInfo struct {
-	RemotePath string `json:"remotePath"`
-	LocalPath  string `json:"localPath"`
-}
-
-type KiteInfos []kiteInfo
-
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
 func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
@@ -40,7 +22,7 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	k, err := CreateKlientClient(NewKlientOptions())
+	k, err := klient.CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		log.Error("Error creating klient client. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
@@ -106,40 +88,18 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	return 0
 }
 
-func getListOfMachines(kite *kite.Client) ([]kiteInfo, error) {
+func getListOfMachines(kite *kite.Client) ([]list.KiteInfo, error) {
 	res, err := kite.Tell("remote.list")
 	if err != nil {
 		return nil, err
 	}
 
-	var infos []kiteInfo
+	var infos []list.KiteInfo
 	if err := res.Unmarshal(&infos); err != nil {
 		return nil, err
 	}
 
 	return infos, nil
-}
-
-// FindFromName finds a specific KiteInfo by the name, returning true or false if
-// one was found.
-func (infos KiteInfos) FindFromName(name string) (kiteInfo, bool) {
-	infoNames := make([]string, len(infos), len(infos))
-	for _, info := range infos {
-		infoNames = append(infoNames, info.VMName)
-	}
-
-	matchedName, ok := util.MatchFullOrShortcut(infoNames, name)
-	if !ok {
-		return kiteInfo{}, false
-	}
-
-	for _, info := range infos {
-		if info.VMName == matchedName {
-			return info, true
-		}
-	}
-
-	return kiteInfo{}, false
 }
 
 // shortenPath takes a path and returnes a "Fish" like path.

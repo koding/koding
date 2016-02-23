@@ -6,6 +6,8 @@ import (
 	"io"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/klient"
+	"koding/klientctl/list"
 
 	"github.com/koding/kite/dnode"
 
@@ -33,7 +35,7 @@ type UnmountCommand struct {
 
 	// The klient instance this struct will use.
 	Klient interface {
-		RemoteList() (KiteInfos, error)
+		RemoteList() (list.KiteInfos, error)
 		GetClient() *kite.Client
 		Tell(string, ...interface{}) (*dnode.Partial, error)
 	}
@@ -42,7 +44,7 @@ type UnmountCommand struct {
 	//
 	// Note! These will be ignored if c.Klient is already defined before Run() is
 	// called.
-	KlientOptions KlientOptions
+	KlientOptions klient.KlientOptions
 
 	// the following vars exist primarily for mocking ability, and ensuring
 	// an enclosed environment within the struct.
@@ -165,7 +167,7 @@ func (c *UnmountCommand) setupKlient() error {
 		return nil
 	}
 
-	k, err := NewDialedKlient(c.KlientOptions)
+	k, err := klient.NewDialedKlient(c.KlientOptions)
 	if err != nil {
 		return fmt.Errorf("Failed to get working Klient instance. err:", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"koding/klientctl/klient"
 )
 
 func TestSSHCommand(t *testing.T) {
@@ -19,7 +20,7 @@ func TestSSHCommand(t *testing.T) {
 				KeyPath: tempSSHDir,
 				KeyName: "key",
 				// Create a klient, with the fake transport to satisfy the Teller interface.
-				Klient: &Klient{
+				Klient: &klient.Klient{
 					Teller: &fakeTransport{},
 				},
 			},

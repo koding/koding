@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/klient"
+	"koding/klientctl/list"
 	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
@@ -68,7 +70,7 @@ func NewSSHCommand(log logging.Logger) (*SSHCommand, error) {
 		return nil, err
 	}
 
-	klientKite, err := CreateKlientClient(NewKlientOptions())
+	klientKite, err := klient.CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +84,7 @@ func NewSSHCommand(log logging.Logger) (*SSHCommand, error) {
 		SSHKey: &SSHKey{
 			KeyPath: path.Join(usr.HomeDir, SSHDefaultKeyDir),
 			KeyName: SSHDefaultKeyName,
-			Klient:  NewKlient(klientKite),
+			Klient:  klient.NewKlient(klientKite),
 		},
 	}, nil
 }
@@ -155,7 +157,7 @@ type SSHKey struct {
 	// used to add SSH public key to `~/.ssh/authorized_keys` on the remote
 	// machine.
 	Klient interface {
-		RemoteList() (KiteInfos, error)
+		RemoteList() (list.KiteInfos, error)
 		Tell(string, ...interface{}) (*dnode.Partial, error)
 	}
 }
