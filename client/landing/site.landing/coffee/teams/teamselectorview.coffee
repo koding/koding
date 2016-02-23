@@ -41,6 +41,24 @@ module.exports = class TeamSelectorView extends JView
 
     teams = utils.getPreviousTeams()
 
+    return  unless teams
+
+
+    suffix = if Object.keys(teams).length > 2 then 'these teams' else 'this team'
+
+    @previousTeams.addSubView new kd.CustomHTMLView
+      tagName : 'p'
+      partial : "You previously visited #{suffix}:<br/>"
+
+    for slug, title of teams when slug isnt 'latest'
+      @previousTeams.addSubView new kd.CustomHTMLView
+        tagName    : 'a'
+        cssClass   : 'previous-team'
+        partial    : title
+        attributes :
+          href     : "#{location.protocol}//#{slug}.#{location.host}"
+
+
   goToTeam: (formData) ->
 
     { slug } = formData
@@ -67,6 +85,10 @@ module.exports = class TeamSelectorView extends JView
       <h5>Enter your team's <b>Koding</b> domain.</h5>
       {{> @form}}
     </div>
+    <section class="previous-teams">
+      <p>Trying to create a team? <a href="//#{utils.getMainDomain()}/Create" target="_self">Click here</a> to get started.</p>
+      {{> @previousTeams}}
+    </section>
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
