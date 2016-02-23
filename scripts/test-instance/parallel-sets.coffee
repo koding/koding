@@ -31,7 +31,6 @@ module.exports = [
   [
     { name: 'pricing payment' }
     { name: 'activity post' }
-    # { name: 'staticpages loggedout' }
   ]
 
   [
@@ -62,7 +61,6 @@ module.exports = [
   ]
 
   [
-    # { name: 'teams teamschannels' }
     { name: 'ide terminal' }
     # { name: 'pricing invalidcarddetails' }
   ]
@@ -92,7 +90,6 @@ module.exports = [
 
   [
     { name: 'environments vm' }
-    { name: 'teams teamspostwith' }
   ]
 
   [
@@ -102,7 +99,6 @@ module.exports = [
   [
     { name: 'environments domain' }
     { name: 'teams teams' }
-    { name: 'teams teamslikeunlike' }
   ]
 
   [
