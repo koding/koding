@@ -11,23 +11,9 @@ do ->
     return if location.hash.length
 
     { router } = kd.singletons
-    { groupName, group, environment } = kd.config
 
-    # root is home if group is koding
-    if groupName is 'koding'
-      return router.openSection 'Login', null, null, (app)->
-        app.getView().animateToForm 'login'
-        app.handleQuery options
+    return router.handleRoute '/Teams'
 
-
-    # if there is no such group take user to group creation with given group info
-    if not group
-      newUrl = "http://#{location.host.replace(groupName + '.', '')}/Teams?group=#{groupName}"
-      return location.replace newUrl
-
-    # if there is a group then take user to group login page
-    else
-      return router.openSection 'Team', null, null, (app) -> app.jumpTo 'login'
 
   handleInvitation = ({params : {token}, query}) ->
 
