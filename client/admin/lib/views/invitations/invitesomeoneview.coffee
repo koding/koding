@@ -90,17 +90,15 @@ module.exports = class InviteSomeoneView extends KDView
       invites.push invite = view.serialize()
       admins.push invite.email  if invite.role is 'admin'
 
+    _hsq.push (t) ->
+      t.trackEvent
+        id: '000000537085'
+        value: null
+
     if admins.length
       @notifyAdminInvites invites, admins
     else
       @handleInvitationRequest invites
-      _hsq.push [
-        'trackEvent'
-          {
-            id: '000000531883'
-            value: null
-          }
-      ]
 
 
   notifyAdminInvites: (invites, admins) ->

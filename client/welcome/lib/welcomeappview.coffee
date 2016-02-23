@@ -101,6 +101,11 @@ module.exports = class WelcomeAppView extends kd.View
 
       hintEl.innerHTML = "Hit #{key} to copy!"
 
+    _hsq.push (t) ->
+      t.trackEvent
+        id: '000000537087'
+        value: null
+
     kd.singletons.mainView.mainTabView.scrollToBottom 200
 
 
