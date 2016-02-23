@@ -125,16 +125,14 @@ func main() {
 					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
 				},
 			},
-			Action: ExitAction(CheckUpdateFirst(MountCommand, log, "mount")),
+			Action: FactoryAction(MountCommandFactory, log, "mount"),
 		},
 		cli.Command{
 			Name:        "unmount",
 			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["unmount"],
-			Action: ExitAction(
-				CheckUpdateFirst(UnmountCommandFactory, log, "unmount"),
-			)},
+			Action:      FactoryAction(UnmountCommandFactory, log, "unmount")},
 		cli.Command{
 			Name:        "ssh",
 			ShortName:   "s",

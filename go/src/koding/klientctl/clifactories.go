@@ -16,7 +16,38 @@ import (
 
 // MountCommandFactory creates a mount.Command instance and runs it with
 // Stdin and Out.
-func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) int {
+func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Command {
+	log = log.New(fmt.Sprintf("command:%s", cmdName))
+
+	opts := MountOptions{
+		Name:             c.Args().Get(0),
+		LocalPath:        c.Args().Get(1),
+		RemotePath:       c.String("remotepath"),     // note the lowercase of all chars
+		NoIgnore:         c.Bool("noignore"),         // note the lowercase of all chars
+		NoPrefetchMeta:   c.Bool("noprefetch-meta"),  // note the lowercase of all chars
+		NoWatch:          c.Bool("nowatch"),          // note the lowercase of all chars
+		PrefetchAll:      c.Bool("prefetch-all"),     // note the lowercase of all chars
+		PrefetchInterval: c.Int("prefetch-interval"), // note the lowercase of all chars
+		// Used for prefetch
+		SSHDefaultKeyDir:  SSHDefaultKeyDir,
+		SSHDefaultKeyName: SSHDefaultKeyName,
+	}
+
+	return &MountCommand{
+		Options:       opts,
+		Stdout:        os.Stdout,
+		Stdin:         os.Stdin,
+		Log:           log,
+		KlientOptions: NewKlientOptions(),
+		helper:        CommandHelper(c, "mount"),
+		mountLocker:   Lock,
+		homeDirGetter: homeDirGetter,
+	}
+}
+
+// MountCommandFactory creates a mount.Command instance and runs it with
+// Stdin and Out.
+func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Command {
 	log = log.New(fmt.Sprintf("command:%s", cmdName))
 
 	// Full our unmount options from the CLI. Any empty options are okay, as
@@ -25,7 +56,7 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) i
 		MountName: c.Args().First(),
 	}
 
-	cmd := &UnmountCommand{
+	return &UnmountCommand{
 		Options:       opts,
 		Stdout:        os.Stdout,
 		Stdin:         os.Stdin,
@@ -36,12 +67,4 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) i
 		fileRemover:   os.Remove,
 		mountFinder:   mountcli.NewMount(),
 	}
-
-	exit, err := cmd.Run()
-	if exit != 0 || err != nil {
-		// Using the command logger, since it may be using its own prefixes.
-		cmd.Log.Error("Command encountered error. exit:%d, err:%s", exit, err)
-	}
-
-	return exit
 }

@@ -16,9 +16,12 @@ func TestSSHCommand(t *testing.T) {
 
 		s := SSHCommand{
 			SSHKey: &SSHKey{
-				KeyPath:   tempSSHDir,
-				KeyName:   "key",
-				Transport: &fakeTransport{},
+				KeyPath: tempSSHDir,
+				KeyName: "key",
+				// Create a klient, with the fake transport to satisfy the Teller interface.
+				Klient: &Klient{
+					Teller: &fakeTransport{},
+				},
 			},
 		}
 

@@ -13,6 +13,8 @@ import (
 	"koding/klient/remote/req"
 	"koding/klientctl/util"
 
+	"github.com/koding/kite/dnode"
+
 	"github.com/koding/logging"
 
 	"github.com/codegangsta/cli"
@@ -78,9 +80,9 @@ func NewSSHCommand(log logging.Logger) (*SSHCommand, error) {
 	return &SSHCommand{
 		log: log,
 		SSHKey: &SSHKey{
-			KeyPath:   path.Join(usr.HomeDir, SSHDefaultKeyDir),
-			KeyName:   SSHDefaultKeyName,
-			Transport: klientKite,
+			KeyPath: path.Join(usr.HomeDir, SSHDefaultKeyDir),
+			KeyName: SSHDefaultKeyName,
+			Klient:  NewKlient(klientKite),
 		},
 	}, nil
 }
@@ -149,26 +151,24 @@ type SSHKey struct {
 	// KeyName is the file name of the SSH key pair. It defaults to `kd-ssh-key`.
 	KeyName string
 
-	// Transport is communication layer between this and local klient. This is
+	// Klient is communication layer between this and local klient. This is
 	// used to add SSH public key to `~/.ssh/authorized_keys` on the remote
 	// machine.
-	Transport
+	Klient interface {
+		RemoteList() (KiteInfos, error)
+		Tell(string, ...interface{}) (*dnode.Partial, error)
+	}
 }
 
 // GetSSHIp returns the username and the hostname of the remove machine to ssh.
 // It assume user exists on the remove machine with the same Koding username.
 func (s *SSHKey) GetSSHIp(name string) (string, error) {
-	res, err := s.Tell("remote.list")
+	infos, err := s.Klient.RemoteList()
 	if err != nil {
 		return "", err
 	}
 
-	var infos []kiteInfo
-	if err := res.Unmarshal(&infos); err != nil {
-		return "", err
-	}
-
-	if info, ok := getMachineFromName(infos, name); ok {
+	if info, ok := infos.FindFromName(name); ok {
 		return fmt.Sprintf("%s@%s", info.Hostname, info.IP), nil
 	}
 
@@ -178,17 +178,12 @@ func (s *SSHKey) GetSSHIp(name string) (string, error) {
 // GetUsername returns the username of the remote machine.
 // It assume user exists on the remote machine with the same Koding username.
 func (s *SSHKey) GetUsername(name string) (string, error) {
-	res, err := s.Tell("remote.list")
+	infos, err := s.Klient.RemoteList()
 	if err != nil {
 		return "", err
 	}
 
-	var infos []kiteInfo
-	if err := res.Unmarshal(&infos); err != nil {
-		return "", err
-	}
-
-	if info, ok := getMachineFromName(infos, name); ok {
+	if info, ok := infos.FindFromName(name); ok {
 		return info.Hostname, nil
 	}
 
@@ -283,7 +278,7 @@ func (s *SSHKey) PrepareForSSH(name string) error {
 		Key:  contents,
 	}
 
-	if _, err = s.Tell("remote.sshKeysAdd", req); err != nil {
+	if _, err = s.Klient.Tell("remote.sshKeysAdd", req); err != nil {
 		// ignore errors about duplicate keys since we're adding on each run
 		if strings.Contains(err.Error(), "cannot add duplicate ssh key") {
 			return nil

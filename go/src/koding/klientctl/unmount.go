@@ -33,6 +33,7 @@ type UnmountCommand struct {
 
 	// The klient instance this struct will use.
 	Klient interface {
+		RemoteList() (KiteInfos, error)
 		GetClient() *kite.Client
 		Tell(string, ...interface{}) (*dnode.Partial, error)
 	}
@@ -92,8 +93,7 @@ func (c *UnmountCommand) Run() (int, error) {
 		return 1, err
 	}
 
-	// TODO: Fix leak, after List has been converted to this Command interface.
-	infos, err := getListOfMachines(c.Klient.GetClient())
+	infos, err := c.Klient.RemoteList()
 	if err != nil {
 		// Using internal error here, because a list error would be confusing to the
 		// user.
@@ -101,8 +101,7 @@ func (c *UnmountCommand) Run() (int, error) {
 		return 1, fmt.Errorf("Failed to get list of machines on mount. err:%s", err)
 	}
 
-	// TODO: Fix leak, after List has been converted to this Command interface.
-	info, ok := getMachineFromName(infos, c.Options.MountName)
+	info, ok := infos.FindFromName(c.Options.MountName)
 	if ok && len(info.MountedPaths) > 0 {
 		c.Options.MountName = info.VMName
 		if err := Unlock(info.MountedPaths[0]); err != nil {
