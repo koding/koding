@@ -121,11 +121,6 @@ module.exports =
 
   loginToTeam: (browser, user) ->
 
-    if HUBSPOT
-      browser
-        .waitForElementVisible  '.hero.block .container', 50000
-        .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
-
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
@@ -142,16 +137,17 @@ module.exports =
     user = utils.getUser()
     url  = helpers.getUrl(yes)
 
-    hasNotTeamAccessPage = '.TeamsModal--select'
+    teamsLogin = '.TeamsModal--login'
 
     browser.url url
     browser.maximizeWindow()
 
-    browser.element 'css selector', hasNotTeamAccessPage, (result) =>
+    browser.pause  3000
+    browser.element 'css selector', teamsLogin, (result) =>
       if result.status is 0
-        @createTeam browser
-      else
         @loginToTeam browser, user
+      else
+        @createTeam browser
 
     return user
 
