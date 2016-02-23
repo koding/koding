@@ -2,8 +2,6 @@
 
 module.exports = class JLog extends Module
 
-  async = require 'async'
-
   TRY_LIMIT_FOR_BLOCKING  = 5
   TIME_LIMIT_IN_MIN       = 5
 
