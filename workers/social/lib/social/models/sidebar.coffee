@@ -103,7 +103,9 @@ module.exports = class Sidebar extends bongo.Base
 
       return (workspaceQueueFin) ->
 
-        failureFn = (callback) -> callback()
+        makeFailureFn = (callback) ->
+
+          return callback
 
         makeSuccessFn = (fn, callback) ->
 
@@ -117,18 +119,20 @@ module.exports = class Sidebar extends bongo.Base
           (fin) ->
 
             successFn = makeSuccessFn addOwnFn, fin
+            failureFn = makeFailureFn fin
 
             if isMachineOwner user, machine
             then successFn()
-            else fin()
+            else failureFn()
 
           (fin) ->
 
             successFn = makeSuccessFn addSharedFn, fin
+            failureFn = makeFailureFn fin
 
             if isMachineShared user, machine
             then successFn()
-            else fin()
+            else failureFn()
 
           (fin) ->
 
@@ -141,8 +145,9 @@ module.exports = class Sidebar extends bongo.Base
             return fin()  if skip
 
             successFn = makeSuccessFn addCollaborationFn, fin
+            failureFn = makeFailureFn fin
 
-            options = { client, user, workspace, successFn, fin }
+            options = { client, user, workspace, successFn, failureFn }
             filterCollaborationWorkspace options
         ]
 
