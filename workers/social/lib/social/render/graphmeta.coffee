@@ -64,4 +64,5 @@ module.exports = (options = {}) ->
       s.parentNode.insertBefore(p, s);
   })();
   </script>
+
   """
