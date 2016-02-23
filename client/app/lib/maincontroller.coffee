@@ -79,6 +79,7 @@ module.exports = class MainController extends KDController
     @attachListeners()
 
     @detectIdleUser()
+    @setTeamCookie()
 
 
   createSingletons:->
@@ -367,6 +368,32 @@ module.exports = class MainController extends KDController
 
     fluxModules.forEach (fluxModule) ->
       fluxModule.register kd.singletons.reactor
+
+
+  # this cookie is set when someone logs into a team
+  # then on /Teams at team selector page
+  # we check the cookies and show shortcuts to
+  # users' teams when they want to login to their teams
+  setTeamCookie: ->
+
+    { groupsController } = kd.singletons
+    groupsController.ready ->
+      group = groupsController.getCurrentGroup()
+
+      try
+        teams = JSON.parse kookies.get 'koding-teams'
+
+      teams ?= {}
+
+      domain = location.hostname.replace ///#{group.slug}\.///, ''
+      path   = '/'
+      # domain         = ".#{parentHostname}"
+      { maxAge }     = globals.config.sessionCookie
+
+      teams[group.slug] = group.title
+      teams.latest      = group.slug
+
+      kookies.set 'koding-teams', JSON.stringify(teams), { domain, maxAge, path }
 
 
 # This function compares type of given account with global user
