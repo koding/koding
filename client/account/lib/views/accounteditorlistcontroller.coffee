@@ -1,5 +1,5 @@
-$ = require 'jquery'
-kd = require 'kd'
+$                    = require 'jquery'
+kd                   = require 'kd'
 KDListViewController = kd.ListViewController
 
 

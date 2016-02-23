@@ -1,5 +1,5 @@
-kd = require 'kd'
-KDListView = kd.ListView
+kd                            = require 'kd'
+KDListView                    = kd.ListView
 AccountLinkedAccountsListItem = require './accountlinkedaccountslistitem'
 
 

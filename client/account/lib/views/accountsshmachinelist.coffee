@@ -1,7 +1,8 @@
-kd = require 'kd'
-KDListView = kd.ListView
-KDCustomHTMLView = kd.CustomHTMLView
+kd                        = require 'kd'
+KDListView                = kd.ListView
+KDCustomHTMLView          = kd.CustomHTMLView
 AccountSshMachineListItem = require './accountsshmachinelistitem'
+
 
 module.exports = class AccountSshMachineList extends KDListView
 

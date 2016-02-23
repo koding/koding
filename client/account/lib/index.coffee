@@ -15,7 +15,6 @@ ReferrerModal         = require './views/referrermodal'
 KDCustomHTMLView      = kd.CustomHTMLView
 AccountListWrapper    = require './accountlistwrapper'
 KDNotificationView    = kd.NotificationView
-KDBlockingModalView   = kd.BlockingModalView
 KDListViewController  = kd.ListViewController
 AccountNavigationItem = require './accountnavigationitem'
 require('./routehandler')()

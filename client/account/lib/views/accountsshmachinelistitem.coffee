@@ -1,10 +1,10 @@
-kd = require 'kd'
-JView = require 'app/jview'
-KDCustomHTMLView = kd.CustomHTMLView
+kd             = require 'kd'
+JView          = require 'app/jview'
 KDListItemView = kd.ListItemView
-Machine = require 'app/providers/machine'
-KDCheckBox = kd.CheckBox
-KDLabelView = kd.LabelView
+Machine        = require 'app/providers/machine'
+KDCheckBox     = kd.CheckBox
+KDLabelView    = kd.LabelView
+
 
 module.exports = class AccountSshMachineListItem extends KDListItemView
 

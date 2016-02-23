@@ -5,7 +5,6 @@ KDContextMenu               = kd.ContextMenu
 KDCustomScrollView          = kd.CustomScrollView
 KDNotificationView          = kd.NotificationView
 KDFormViewWithFields        = kd.FormViewWithFields
-KDAutoCompleteController    = kd.AutoCompleteController
 
 KodingSwitch                = require 'app/commonviews/kodingswitch'
 AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
