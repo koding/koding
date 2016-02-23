@@ -255,8 +255,9 @@ module.exports = class JComputeStack extends jraphical.Module
 
   revive: (callback) ->
 
+    JMachine        = require './computeproviders/machine'
+    JAccount        = require './account'
     JProposedDomain = require './domain'
-    JMachine = require './computeproviders/machine'
 
     queue    = []
     domains  = []
@@ -275,9 +276,16 @@ module.exports = class JComputeStack extends jraphical.Module
         next()
 
     async.series queue, =>
-      this.machines = machines
-      this.domains = domains
-      callback null, this
+
+      JAccount.one { _id: @getAt 'originId' }, (err, owner) =>
+
+        return callback err  if err
+
+        this.owner    = owner ? { error: 'Owner not exists' }
+        this.machines = machines
+        this.domains  = domains
+
+        callback null, this
 
 
   unuseStackTemplate: (callback) ->
