@@ -1,5 +1,4 @@
 kd = require 'kd'
-registerRoutes = require 'app/util/registerRoutes'
 lazyrouter = require 'app/lazyrouter'
 
 handleSection = (callback)->

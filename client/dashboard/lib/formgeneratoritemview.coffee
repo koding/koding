@@ -1,10 +1,10 @@
-kd = require 'kd'
+kd                = require 'kd'
 KDInputRadioGroup = kd.InputRadioGroup
-KDListItemView = kd.ListItemView
-KDOnOffSwitch = kd.OnOffSwitch
-KDSelectBox = kd.SelectBox
-KDView = kd.View
-CustomLinkView = require 'app/customlinkview'
+KDListItemView    = kd.ListItemView
+KDOnOffSwitch     = kd.OnOffSwitch
+KDSelectBox       = kd.SelectBox
+KDView            = kd.View
+CustomLinkView    = require 'app/customlinkview'
 
 
 module.exports = class FormGeneratorItemView extends KDListItemView
