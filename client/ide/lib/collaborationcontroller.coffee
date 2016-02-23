@@ -193,6 +193,11 @@ module.exports = CollaborationController =
     @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
 
+    _hsq.push (t) ->
+      t.trackEvent
+        id: '000000537115'
+        value: null
+
     if @amIHost and targetUser isnt nick()
       @ensureMachineShare [targetUser], (err) =>
         return throwError err  if err
