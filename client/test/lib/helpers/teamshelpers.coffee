@@ -171,7 +171,7 @@ module.exports =
       .waitForElementVisible modalSelector, 20000
       .waitForElementVisible emailSelector, 20000
       .waitForElementVisible companyNameSelector, 20000
-      .assert.valueContains  emailSelector, user.email
+      .setValue              emailSelector, user.email
       .setValue              companyNameSelector, user.teamSlug
       .click                 signUpButton
       .pause                 2500
