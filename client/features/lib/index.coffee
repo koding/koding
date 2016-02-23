@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDViewController = kd.ViewController
-FeaturesView = require './featuresview'
+FeaturesView     = require './featuresview'
 
 
 module.exports = class FeaturesAppController extends KDViewController
