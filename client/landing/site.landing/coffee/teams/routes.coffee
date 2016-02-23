@@ -26,6 +26,8 @@ do ->
     { params, query } = routeInfo
     { email } = query
 
+    email = email.replace /\s/g, '+'
+
     # Remember already typed companyName when user is seeing "Create a team"
     # page with refresh twice or more
     if teamData = utils.getTeamData()
