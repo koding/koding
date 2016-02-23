@@ -46,7 +46,7 @@ module.exports =
 
     browser
       .waitForElementVisible  '[testpath=main-header]', 20000
-      .waitForElementVisible  teamsModalSelector, 20000
+      .waitForElementVisible  '.TeamsModal--domain', 20000
       .waitForElementVisible  'input[name=slug]', 20000
       .click                  'button[testpath=domain-button]'
       .pause                  2000 # wait for modal change
