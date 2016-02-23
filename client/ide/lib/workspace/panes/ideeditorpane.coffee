@@ -134,7 +134,7 @@ module.exports = class IDEEditorPane extends IDEPane
         @contentChangedWarning?.destroy()
         @contentChangedWarning = null
 
-    @file.on 'FilePathChanged', (name) =>
+    @file.once 'FilePathChanged', (name) =>
 
       deleteFilePath = @file.getOptions().path
 
@@ -143,17 +143,14 @@ module.exports = class IDEEditorPane extends IDEPane
       parent            = node.getData()
       contents          = ace.getContents()
       oldCursorPosition = ace.editor.getCursorPosition()
+      @file.machine     = parent.machine
+      parent.path       = @file.getOptions().parentPath
 
-      @file.machine = parent.machine
-
-      parent.path = @file.getOptions().parentPath
-
-      @file.once 'fs.saveAs.finished',   ace.bound 'saveAsFinished'
       @file.emit 'file.requests.saveAs', contents, name, parent.path
-
+      @file.once 'fs.saveAs.finished',   ace.bound 'saveAsFinished'
       ace.emit 'AceDidSaveAs', name, parent.path
 
-      @file.on 'fs.saveAs.finished', (newFile) =>
+      @file.once 'fs.saveAs.finished', (newFile) =>
         { tabView } = @getDelegate()
 
         return  if tabView.willClose
