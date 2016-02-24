@@ -482,9 +482,6 @@ module.exports = class LoginView extends JView
 
   doRegister: (formData, form) ->
 
-    # we don't allow solo registrations anymore - SY
-    return new kd.NotificationView { title: 'Registeration to solo product is not allowed!' }
-
     formData.agree = 'on'
     formData._csrf = Cookies.get '_csrf'
 

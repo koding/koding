@@ -39,6 +39,10 @@ do ->
       # we don't allow solo registrations anymore - SY
       kd.singletons.router.handleRoute '/Teams'
 
+    '/RegisterForTests' : handler (app, options)->
+      app.getView().animateToForm 'register'
+      app.handleQuery options
+
     '/Redeem'       : handler (app)-> app.getView().animateToForm 'redeem'
     '/Reset/:token' : handleResetRoute
     '/ResendToken'  : handler (app)-> app.getView().animateToForm 'resendEmail'
