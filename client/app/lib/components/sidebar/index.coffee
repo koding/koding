@@ -122,14 +122,11 @@ module.exports = class Sidebar extends React.Component
 
   renderStacks: ->
 
-    if @state.stacks.size and not @state.showNoStacksWidget
-
+    if @state.stacks.size
       <SidebarStackHeaderSection>
         {@divideStacks()}
       </SidebarStackHeaderSection>
-
-    else
-
+    else if @state.showNoStacksWidget
       <SidebarNoStacks />
 
 
