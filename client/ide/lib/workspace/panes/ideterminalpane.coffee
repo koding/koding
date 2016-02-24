@@ -47,9 +47,9 @@ module.exports = class IDETerminalPane extends IDEPane
       @emit 'ready'
 
       kd.utils.wait 166, =>
-        {path} = @getOptions()
-        return  unless path
-        @runCommand "cd #{FSHelper.escapeFilePath path}"
+        { path, command } = @getOptions()
+        return @runCommand "cd #{FSHelper.escapeFilePath path}"  if path
+        return @runCommand command  if command
 
     @webtermView.connectToTerminal()
 

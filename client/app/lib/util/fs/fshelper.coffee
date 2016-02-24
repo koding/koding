@@ -99,13 +99,68 @@ module.exports = class FSHelper
 
   @getUidFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
 
-  @handleStdErr = ->
-    (result) ->
-      { stdout, stderr, exitStatus } = result
-      throw new Error "std error: #{ stderr }"  if exitStatus > 0
-      return result
+  @handleStdErr = -> (result, action) ->
+
+    { stdout, stderr, exitStatus } = result
+
+    if exitStatus > 0
+      if stderr.indexOf('command not found') > -1
+        FSHelper.showInstallRequiredModal action
+      else
+        throw new Error "std error: #{ stderr }"
+
+    return result
+
 
   @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{nick()}///, '~'
+
+
+  @showInstallRequiredModal: (packageName) ->
+
+    packageName = 'tar'  if packageName is 'tar.gz'
+    prefix      = 'sudo apt-get update -y; sudo apt-get -y install'
+    installers  = # we need an OS detection feature here in the future. #6820
+      cp        : "#{prefix} coreutils"
+      zip       : "#{prefix} zip"
+      tar       : "#{prefix} tar"
+      unzip     : "#{prefix} unzip"
+
+    title       = "#{packageName or 'A'} command not found."
+    command     = installers[packageName]
+    overlay     = yes
+    buttons     = {}
+    cancelBtn   =
+      title     : 'Cancel'
+      cssClass  : 'solid medium'
+      callback  : -> modal.destroy()
+    installBtn  =
+      title     : 'Install Package'
+      cssClass  : 'solid green medium'
+      callback  : ->
+        kd.singletons.appManager.getFrontApp().emit 'InstallationRequired', command
+        modal.destroy()
+
+    if command
+      content = """
+          We can try to install it for you by running:<br /><br />
+          <pre>#{command}</pre><br />
+          or you can install it manually to your VM and try this again.
+        """
+      buttons   =
+        install : installBtn
+        cancel  : cancelBtn
+    else
+      content = """
+        We need #{packageName} to be installed but currently we don't know how to
+        install it to your machine. You need to install it manually.
+      """
+
+      buttons = { cancel : cancelBtn }
+      buttons.cancel.title = 'Close'
+
+
+    modal = new kd.ModalView { title, content, overlay, buttons }
+
 
   # @exists = (path, vmName, callback=noop)->
   #   @getInfo path, vmName, (err, res)->
