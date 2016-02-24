@@ -1,5 +1,6 @@
-kd     = require 'kd'
-JView  = require 'app/jview'
+kd                     = require 'kd'
+JView                  = require 'app/jview'
+AvatarView             = require 'app/commonviews/avatarviews/avatarview'
 
 
 module.exports = class ResourceListItem extends kd.ListItemView
@@ -25,18 +26,23 @@ module.exports = class ResourceListItem extends kd.ListItemView
       cssClass : 'hidden'
 
     @details.addSubView new kd.View partial: 'RESOURCE_WIP'
+    @ownerView = new AvatarView {
+      size: { width: 25, height: 25 }
+    }, resource.owner
 
 
   toggleDetails: ->
 
     @details.toggleClass  'hidden'
     @detailsToggle.toggleClass 'active'
+    @toggleClass 'in-detail'
 
 
   pistachio: ->
 
     """
       {{> @detailsToggle}}
+      {{> @ownerView}}
       {div.details{#(title)}}
       <div class='clear'></div>
       {{> @details}}
