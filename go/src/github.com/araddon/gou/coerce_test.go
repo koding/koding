@@ -1,6 +1,7 @@
 package gou
 
 import (
+	. "github.com/araddon/gou/goutest"
 	"testing"
 )
 

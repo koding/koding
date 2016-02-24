@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,234 +17,292 @@ import (
 	"koding/klientctl/util"
 
 	"github.com/cheggaaa/pb"
-	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"github.com/koding/logging"
 )
 
-type userGetter func() (*user.User, error)
+type MountOptions struct {
+	Name             string
+	LocalPath        string
+	RemotePath       string
+	NoIgnore         bool
+	NoPrefetchMeta   bool
+	NoWatch          bool
+	PrefetchAll      bool
+	PrefetchInterval int
 
-// MountCommand mounts a folder on remote machine to local folder by machine
-// name.
-func MountCommand(c *cli.Context) int {
-	if len(c.Args()) != 2 {
-		cli.ShowCommandHelp(c, "mount")
-		return 1
+	// Used for Prefetching via RSync (SSH)
+	SSHDefaultKeyDir  string
+	SSHDefaultKeyName string
+}
+
+// Command implements a Command for `kd mount`.
+type MountCommand struct {
+	Options MountOptions
+	Stdout  io.Writer
+	Stdin   io.Reader
+	Log     logging.Logger
+
+	// The klient instance this struct will use.
+	Klient interface {
+		RemoteList() (KiteInfos, error)
+		RemoteCache(req.Cache, func(par *dnode.Partial)) error
+		RemoteMountFolder(req.MountFolder) (string, error)
+
+		// For backwards compatibility with some helper funcs not yet embedded.
+		GetClient() *kite.Client
+
+		// Tell is here solely for the SSH struct. Need to make that struct use
+		// a fully abstracted, Klient interface.
+		Tell(string, ...interface{}) (*dnode.Partial, error)
 	}
 
-	var (
-		name             = c.Args()[0]
-		localPath        = c.Args()[1]
-		remotePath       = c.String("remotepath")     // note the lowercase of all chars
-		noIgnore         = c.Bool("noignore")         // note the lowercase of all chars
-		noPrefetchMeta   = c.Bool("noprefetch-meta")  // note the lowercase of all chars
-		noWatch          = c.Bool("nowatch")          // note the lowercase of all chars
-		prefetchAll      = c.Bool("prefetch-all")     // note the lowercase of all chars
-		prefetchInterval = c.Int("prefetch-interval") // note the lowercase of all chars
-	)
+	// The options to use if this struct needs to dial Klient.
+	//
+	// Note! These will be ignored if c.Klient is already defined before Run() is
+	// called.
+	KlientOptions KlientOptions
 
-	if prefetchInterval == 0 {
-		prefetchInterval = 10
-		log.Infof("Setting interval to default, %d", prefetchInterval)
+	// the following vars exist primarily for mocking ability, and ensuring
+	// an enclosed environment within the struct.
+
+	// The Helper. See it's docs for a better understanding of this.
+	helper Helper
+
+	// homeDirGetter gets the users home directory.
+	homeDirGetter func() (string, error)
+
+	// mount Lock func. Ie, it creates the lock files we currently use to
+	// say what is a mount.
+	mountLocker func(string, string) error
+}
+
+// Help prints help to the caller.
+func (c *MountCommand) Help() {
+	if c.helper == nil {
+		// Ugh, talk about a bad UX
+		fmt.Fprintln(c.Stdout, "Error: Help was requested but mount has no helper.")
+		return
+	}
+
+	c.helper(c.Stdout)
+}
+
+// printf is a helper function for printing to the internal writer.
+func (c *MountCommand) printfln(f string, i ...interface{}) {
+	if c.Stdout == nil {
+		return
+	}
+
+	fmt.Fprintf(c.Stdout, f+"\n", i...)
+}
+
+// Run the Mount command
+func (c *MountCommand) Run() (int, error) {
+	if exit, err := c.handleOptions(); err != nil {
+		return exit, err
+	}
+
+	// setup our klient, if needed
+	if exit, err := c.setupKlient(); err != nil {
+		return exit, err
+	}
+
+	// create the mount dir if needed
+	if err := c.createMountDir(); err != nil {
+		return 1, err
+	}
+
+	// TODO: Try out using Cache Only here, we don't need a new VM list.
+	infos, err := c.Klient.RemoteList()
+	if err != nil {
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		//
+		// TODO: Healthcheck here!
+		c.printfln(GenericInternalError)
+		return 1, fmt.Errorf("Failed to get list of machines on mount. err:%s", err)
+	}
+
+	// Find the machine by a name, even if partial.
+	if info, ok := infos.FindFromName(c.Options.Name); ok {
+		c.Options.Name = info.VMName
+	}
+
+	if c.Options.PrefetchAll {
+		if err := c.prefetchAll(); err != nil {
+			return 1, fmt.Errorf("Failed to prefetch. err:%s", err)
+		}
+	}
+
+	mountRequest := req.MountFolder{
+		Name:           c.Options.Name,
+		LocalPath:      c.Options.LocalPath,
+		RemotePath:     c.Options.RemotePath,
+		NoIgnore:       c.Options.NoIgnore,
+		NoPrefetchMeta: c.Options.NoPrefetchMeta,
+		PrefetchAll:    c.Options.PrefetchAll,
+		NoWatch:        c.Options.NoWatch,
+		CachePath:      getCachePath(c.Options.Name),
+	}
+
+	// Actually mount the folder. Errors are printed by the mountFolder func to the user.
+	if err := c.mountFolder(mountRequest); err != nil {
+		return 1, err
+	}
+
+	// Lock the mount, so that run/etc knows it's a mount folder.
+	if err := c.mountLocker(c.Options.LocalPath, c.Options.Name); err != nil {
+		c.printfln(FailedToLockMount)
+		return 1, fmt.Errorf("Error locking. err:%s", err)
+	}
+
+	c.printfln("Mount success.")
+
+	return 0, nil
+}
+
+// handleOptions deals with options, erroring if options are missing, etc.
+func (c *MountCommand) handleOptions() (int, error) {
+	if c.Options.Name == "" || c.Options.LocalPath == "" {
+		c.printfln("Mount Name and LocalPath are required options.")
+		c.Help()
+		return 1, errors.New("Not enough arguments")
+	}
+
+	if c.Options.PrefetchInterval == 0 {
+		c.Options.PrefetchInterval = 10
+		c.Log.Info("Setting interval to default, %d", c.Options.PrefetchInterval)
 	}
 
 	// temporarily disable watcher
-	noWatch = true
+	// TODO: Re-enable
+	c.Options.NoWatch = true
+	c.Log.Warning("Manually disabling Watcher")
 
-	if noPrefetchMeta && prefetchAll {
-		log.Errorf("noPrefetchMeta and prefetchAll were both supplied")
-		fmt.Println(PrefetchAllAndMetaTogether)
-		return 1
+	if c.Options.NoPrefetchMeta && c.Options.PrefetchAll {
+		c.printfln(PrefetchAllAndMetaTogether)
+		return 1, fmt.Errorf("noPrefetchMeta and prefetchAll were both supplied")
 	}
 
 	// allow scp like declaration, ie `<machine name>:/path/to/remote`
-	if strings.Contains(name, ":") {
-		names := strings.Split(name, ":")
-		name, remotePath = names[0], names[1]
+	if strings.Contains(c.Options.Name, ":") {
+		names := strings.Split(c.Options.Name, ":")
+		c.Options.Name, c.Options.RemotePath = names[0], names[1]
 	}
 
 	// send absolute local path to klient unless local path is empty
-	if strings.TrimSpace(localPath) != "" {
-		absoluteLocalPath, err := filepath.Abs(localPath)
-		if err == nil {
-			localPath = absoluteLocalPath
+	if strings.TrimSpace(c.Options.LocalPath) != "" {
+		absoluteLocalPath, err := filepath.Abs(c.Options.LocalPath)
+		if err != nil {
+			c.Log.Warning(
+				"Error encountered while getting absolute path for localPath. err:%s",
+				err,
+			)
+		} else {
+			c.Options.LocalPath = absoluteLocalPath
 		}
 	}
 
 	// remove trailing slashes in remote argument
-	if remotePath != "" {
-		remotePath = path.Clean(remotePath)
+	if c.Options.RemotePath != "" {
+		c.Options.RemotePath = path.Clean(c.Options.RemotePath)
 	}
 
-	// Ask the user if they want the localPath created, if it does not exist.
-	if err := askToCreate(localPath, os.Stdin, os.Stdout); err != nil {
-		// If the error is that the user cancelled, just return
-		if err == klientctlerrors.ErrUserCancelled {
-			fmt.Println(CannotMountDirNotExist)
-			return 0
-		}
-
-		log.Errorf("Error creating local mount path. err:%s", err)
-		fmt.Println(FailedToCreateMountDir)
-		return 1
-	}
-
-	k, err := CreateKlientClient(NewKlientOptions())
-	if err != nil {
-		log.Errorf("Error creating klient client. err:%s", err)
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
-		return 1
-	}
-
-	if err := k.Dial(); err != nil {
-		log.Errorf("Error dialing klient client. err:%s", err)
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
-		return 1
-	}
-
-	infos, err := getListOfMachines(k)
-	if err != nil {
-		log.Errorf("Failed to get list of machines on mount. err:%s", err)
-		// Using internal error here, because a list error would be confusing to the
-		// user.
-		fmt.Println(GenericInternalError)
-		return 1
-	}
-
-	if info, ok := getMachineFromName(infos, name); ok {
-		name = info.VMName
-	}
-
-	mountRequest := req.MountFolder{
-		Name:           name,
-		LocalPath:      localPath,
-		NoIgnore:       noIgnore,
-		NoPrefetchMeta: noPrefetchMeta,
-		PrefetchAll:    prefetchAll,
-		NoWatch:        noWatch,
-		CachePath:      getCachePath(name),
-	}
-
-	// RemotePath is optional
-	if remotePath != "" {
-		mountRequest.RemotePath = remotePath
-	}
-
-	if prefetchAll {
-		fmt.Println("Prefetch all feature is currently in beta.")
-
-		if exit := mountCommandPrefetchAll(os.Stdout, k, user.Current, name, localPath, remotePath, prefetchInterval); exit != 0 {
-			return exit
-		}
-	}
-
-	resp, err := k.Tell("remote.mountFolder", mountRequest)
-	if err != nil {
-		switch {
-		case klientctlerrors.IsExistingMountErr(err):
-			util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
-
-			// unmount using mount path
-			if err := unmount(k, mountRequest.Name, localPath); err != nil {
-				log.Errorf("Error unmounting (remounting). err:%s", err)
-				fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
-				return 1
-			}
-
-			resp, err = k.Tell("remote.mountFolder", mountRequest)
-			if err != nil {
-				log.Errorf("Error mounting (remounting). err:%s", err)
-				fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
-				return 1
-			}
-
-		case klientctlerrors.IsDialFailedErr(err):
-			log.Errorf("Error dialing remote klient. err:%s", err)
-			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
-			return 1
-
-		default:
-			// catch any remaining errors
-			log.Errorf("Error mounting directory. err:%s", err)
-			fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
-			return 1
-		}
-	}
-
-	// catch errors other than klientctlerrors.IsExistingMountErr
-	if err != nil {
-		log.Errorf("Error mounting directory. err:%s", err)
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
-		return 1
-	}
-
-	// response can be nil even when there's no err
-	if resp != nil {
-		var warning string
-		// TODO: Ignore the nil unmarshal error, but log others.
-		if err := resp.Unmarshal(&warning); err != nil {
-			return 0
-		}
-
-		if len(warning) > 0 {
-			fmt.Printf("Warning: %s\n", warning)
-		}
-	}
-
-	if err := Lock(localPath, name); err != nil {
-		log.Errorf("Error locking. err:%s", err)
-		fmt.Println(FailedToLockMount)
-		return 1
-	}
-
-	fmt.Println("Mount success.")
-
-	return 0
+	return 0, nil
 }
 
-// TODO: A temporary function which will be converted to a private method once
-// MountCommand is converted to a struct based CLI Interface. Once it's a private
-// method, we won't have to pass in so much via args.
-func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string, interval int) int {
-	usr, err := getUser()
-	if err != nil {
-		log.Errorf("Failed to get OS User. err:%s", err)
-		// Using internal error here, because a list error would be confusing to the
-		// user.
-		fmt.Println(GenericInternalError)
-		return 1
+// createMountDir creates the mount directory if it doesn't already exist.
+func (c *MountCommand) createMountDir() error {
+	path := c.Options.LocalPath
+
+	_, err := os.Stat(path)
+	// To avoid having weird sounding errors, check if we are able to successfully
+	// stat that first. If we can, that means the file/dir exists.
+	if err == nil {
+		c.printfln(CannotMountPathExists)
+		return fmt.Errorf("Cannot mount, given path already exists.")
 	}
 
+	// If we are unable to read it, but it's *not* an IsNotExist error, then
+	// we don't have permission to read that path, or something else is wrong.
+	if !os.IsNotExist(err) {
+		c.printfln(CannotMountUnableToOpenPath)
+		return fmt.Errorf("Error reading mount location. err:%s", err)
+	}
+
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return fmt.Errorf("Error creating mount dir. err:%s", err)
+	}
+
+	return nil
+}
+
+// setupKlient creates and dials our Kite interface *only* if it is nil. If it is
+// not nil, someone else gave a kite to this Command, and it is expected to be
+// dialed and working.
+func (c *MountCommand) setupKlient() (int, error) {
+	// if c.klient isnt nil, don't overrite it. Another command may have provided
+	// a pre-dialed klient.
+	if c.Klient != nil {
+		return 0, nil
+	}
+
+	k, err := NewDialedKlient(c.KlientOptions)
+	if err != nil {
+		return 1, fmt.Errorf("Failed to get working Klient instance")
+	}
+
+	c.Klient = k
+
+	return 0, nil
+}
+
+// prefetchAll
+func (c *MountCommand) prefetchAll() error {
+	c.Log.Info("Executing prefetch...")
+	c.printfln("Prefetch All feature is currently in beta.")
+
+	//func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, machineName, localPath, remotePath string, interval int) int {
+	homeDir, err := c.homeDirGetter()
+	if err != nil {
+		// Using internal error here, because a list error would be confusing to the
+		// user.
+		c.printfln(GenericInternalError)
+		return fmt.Errorf("Failed to get OS User. err:%s", err)
+	}
+
+	// TODO: Use the ssh.Command's implementation of this logic, once ssh.Command is
+	// moved to this new struct setup.
 	sshKey := &SSHKey{
-		KeyPath:   path.Join(usr.HomeDir, SSHDefaultKeyDir),
-		KeyName:   SSHDefaultKeyName,
-		Transport: k,
+		KeyPath: path.Join(homeDir, c.Options.SSHDefaultKeyDir),
+		KeyName: c.Options.SSHDefaultKeyName,
+		Klient:  c.Klient,
 	}
 
 	if !sshKey.KeysExist() {
+		// TODO: Fix this environment leak.
 		util.MustConfirm("The 'prefetchAll' flag needs to create public/private rsa key pair. Continue? [Y|n]")
 	}
 
-	remoteUsername, err := sshKey.GetUsername(machineName)
+	remoteUsername, err := sshKey.GetUsername(c.Options.Name)
 	if err != nil {
-		log.Errorf("Error getting remote username. err:%s", err)
-		fmt.Println(FailedGetSSHKey)
-		return 1
+		c.printfln(FailedGetSSHKey)
+		return fmt.Errorf("Error getting remote username. err:%s", err)
 	}
 
-	if err := sshKey.PrepareForSSH(machineName); err != nil {
+	if err := sshKey.PrepareForSSH(c.Options.Name); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
-			log.Errorf("Cannot ssh into managed machines. err:%s", err)
-			fmt.Println(CannotSSHManaged)
-			return 1
+			c.printfln(CannotSSHManaged)
+			return fmt.Errorf("Cannot ssh into managed machines. err:%s", err)
 		}
 
-		log.Errorf("Error getting ssh key. err:%s", err)
-		fmt.Println(FailedGetSSHKey)
-		return 1
+		c.printfln(FailedGetSSHKey)
+		return fmt.Errorf("Error getting ssh key. err:%s", err)
 	}
 
-	fmt.Println("Prefetching remote path...")
+	c.printfln("Prefetching remote path...")
 
 	// doneErr is used to wait until the cache progress is done, and also send
 	// any error encountered. We simply send nil if there is no error.
@@ -267,10 +326,10 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 
 		if p.Error.Message != "" {
 			doneErr <- p.Error
-			log.Errorf("remote.cacheFolder progress callback returned an error. err:%s", err)
-			fmt.Println(
-				defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
-			)
+			c.Log.Error("remote.cacheFolder progress callback returned an error. err:%s", err)
+			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(
+				FailedPrefetchFolder,
+			))
 		}
 
 		bar.Set(p.Progress)
@@ -282,44 +341,80 @@ func mountCommandPrefetchAll(stdout io.Writer, k Transport, getUser userGetter, 
 		}
 	}
 
-	rReq := req.Cache{
-		Name:              machineName,
-		LocalPath:         getCachePath(machineName),
-		RemotePath:        remotePath,
-		Interval:          time.Duration(interval) * time.Second,
+	cacheReq := req.Cache{
+		Name:              c.Options.Name,
+		LocalPath:         getCachePath(c.Options.Name),
+		RemotePath:        c.Options.RemotePath,
+		Interval:          time.Duration(c.Options.PrefetchInterval) * time.Second,
 		Username:          remoteUsername,
 		SSHAuthSock:       util.GetEnvByKey(os.Environ(), "SSH_AUTH_SOCK"),
 		SSHPrivateKeyPath: sshKey.PrivateKeyPath(),
 	}
 
-	cacheReq := struct {
-		req.Cache
-		Progress dnode.Function `json:"progress"`
-	}{
-		Cache:    rReq,
-		Progress: dnode.Callback(cacheProgressCallback),
-	}
-
-	if _, err := k.Tell("remote.cacheFolder", cacheReq); err != nil {
-		log.Errorf("remote.cacheFolder returned an error. err:%s", err)
-		fmt.Println(
+	if err := c.Klient.RemoteCache(cacheReq, cacheProgressCallback); err != nil {
+		c.printfln(
 			defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
 		)
-		return 1
+		return fmt.Errorf("remote.cacheFolder returned an error. err:%s", err)
 	}
 
 	if err := <-doneErr; err != nil {
-		log.Errorf(
-			"remote.cacheFolder progress callback returned an error. err:%s", err,
-		)
-		fmt.Println(
+		c.printfln(
 			defaultHealthChecker.CheckAllFailureOrMessagef(FailedPrefetchFolder),
+		)
+		return fmt.Errorf(
+			"remote.cacheFolder progress callback returned an error. err:%s", err,
 		)
 	}
 
 	bar.FinishPrint("Prefetching complete.")
 
-	return 0
+	return nil
+}
+
+func (c *MountCommand) mountFolder(r req.MountFolder) error {
+	warning, err := c.Klient.RemoteMountFolder(r)
+	if err != nil {
+		switch {
+		case klientctlerrors.IsExistingMountErr(err):
+			util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
+
+			// unmount using mount path
+			//
+			// TODO: Fix abstraction leak.
+			if err := unmount(c.Klient.GetClient(), r.Name, r.LocalPath, c.Log); err != nil {
+				c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToUnmount))
+				return fmt.Errorf("Error unmounting (remounting). err:%s", err)
+			}
+
+			warning, err = c.Klient.RemoteMountFolder(r)
+			if err != nil {
+				c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
+				return fmt.Errorf("Error mounting (remounting). err:%s", err)
+			}
+
+		case klientctlerrors.IsDialFailedErr(err):
+			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
+			return fmt.Errorf("Error dialing remote klient. err:%s", err)
+
+		default:
+			// catch any remaining errors
+			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
+			return fmt.Errorf("Error mounting directory. err:%s", err)
+		}
+	}
+
+	// catch errors other than klientctlerrors.IsExistingMountErr
+	if err != nil {
+		c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
+		return fmt.Errorf("Error mounting directory. err:%s", err)
+	}
+
+	if warning != "" {
+		c.printfln("Warning: %s\n", warning)
+	}
+
+	return nil
 }
 
 // askToCreate checks if the folder does not exist, and creates it
@@ -386,22 +481,12 @@ func getCachePath(name string) string {
 	return filepath.Join(ConfigFolder, cacheName)
 }
 
-func getMachineFromName(infos []kiteInfo, name string) (kiteInfo, bool) {
-	infoNames := make([]string, len(infos), len(infos))
-	for _, info := range infos {
-		infoNames = append(infoNames, info.VMName)
+// homeDirGetter gets the users home directory based on Golang's os/user package.
+func homeDirGetter() (string, error) {
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
 	}
 
-	matchedName, ok := util.MatchFullOrShortcut(infoNames, name)
-	if !ok {
-		return kiteInfo{}, false
-	}
-
-	for _, info := range infos {
-		if info.VMName == matchedName {
-			return info, true
-		}
-	}
-
-	return kiteInfo{}, false
+	return usr.HomeDir, nil
 }

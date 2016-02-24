@@ -57,7 +57,7 @@ func updateOrFailFromStatement(info fileMetadata, st ast.Stmt, localScope map[st
 			var typelist []string
 			for _, rhs := range v.Rhs {
 				pos := info.fset.Position(rhs.Pos())
-				t := info.info.TypeOf(rhs)
+				t := info.pkg.typesInfo.TypeOf(rhs)
 				if t == nil {
 					typelist = append(typelist, "meta.(type)")
 					continue
@@ -214,7 +214,7 @@ func checkNoShadowHelper(info fileMetadata, scope *ast.Scope, declared map[strin
 	}
 }
 
-func CheckNoShadow(info fileMetadata, file *ast.File) {
+func CheckNoShadow(info fileMetadata) {
 	declared := make(map[string]bool)
-	checkNoShadowHelper(info, file.Scope, declared)
+	checkNoShadowHelper(info, info.f.Scope, declared)
 }

@@ -227,6 +227,9 @@ func noAssignStatement(info fileMetadata, st ast.Stmt, localScope map[string]var
 		checkNoAssignUnusedBody(info, v.Body.List, localScope)
 	case *ast.CaseClause:
 		newScope := make(map[string]varUsage)
+		for _, expr := range v.List {
+			assignUsedForExpr(info, expr, localScope)
+		}
 		checkNoAssignUnusedBody(info, v.Body, newScope)
 		for k, varinfo := range newScope {
 			if varinfo.state == Used {
@@ -234,7 +237,14 @@ func noAssignStatement(info fileMetadata, st ast.Stmt, localScope map[string]var
 			}
 		}
 	case *ast.CommClause:
-		checkNoAssignUnusedBody(info, v.Body, localScope)
+		newScope := make(map[string]varUsage)
+		noAssignStatement(info, v.Comm, localScope)
+		checkNoAssignUnusedBody(info, v.Body, newScope)
+		for k, varinfo := range newScope {
+			if varinfo.state == Used {
+				localScope[k] = varinfo
+			}
+		}
 		// Things which are easy
 	case *ast.IncDecStmt:
 		// IncDec shouldn't count as usage...
@@ -264,8 +274,8 @@ func noAssignStatement(info fileMetadata, st ast.Stmt, localScope map[string]var
 	}
 }
 
-func CheckNoAssignUnused(info fileMetadata, file *ast.File) {
-	for _, obj := range file.Scope.Objects {
+func CheckNoAssignUnused(info fileMetadata) {
+	for _, obj := range info.f.Scope.Objects {
 		funcScope := make(map[string]varUsage)
 		if obj.Kind == ast.Fun {
 			decl := obj.Decl.(*ast.FuncDecl)

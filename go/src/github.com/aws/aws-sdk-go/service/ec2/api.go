@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/ec2query"
 )
 
 const opAcceptVpcPeeringConnection = "AcceptVpcPeeringConnection"
@@ -71,6 +73,35 @@ func (c *EC2) AllocateAddress(input *AllocateAddressInput) (*AllocateAddressOutp
 	return out, err
 }
 
+const opAllocateHosts = "AllocateHosts"
+
+// AllocateHostsRequest generates a request for the AllocateHosts operation.
+func (c *EC2) AllocateHostsRequest(input *AllocateHostsInput) (req *request.Request, output *AllocateHostsOutput) {
+	op := &request.Operation{
+		Name:       opAllocateHosts,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AllocateHostsInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &AllocateHostsOutput{}
+	req.Data = output
+	return
+}
+
+// Allocates a Dedicated host to your account. At minimum you need to specify
+// the instance size type, Availability Zone, and quantity of hosts you want
+// to allocate.
+func (c *EC2) AllocateHosts(input *AllocateHostsInput) (*AllocateHostsOutput, error) {
+	req, out := c.AllocateHostsRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opAssignPrivateIpAddresses = "AssignPrivateIpAddresses"
 
 // AssignPrivateIpAddressesRequest generates a request for the AssignPrivateIpAddresses operation.
@@ -86,6 +117,8 @@ func (c *EC2) AssignPrivateIpAddressesRequest(input *AssignPrivateIpAddressesInp
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &AssignPrivateIpAddressesOutput{}
 	req.Data = output
 	return
@@ -166,6 +199,8 @@ func (c *EC2) AssociateDhcpOptionsRequest(input *AssociateDhcpOptionsInput) (req
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &AssociateDhcpOptionsOutput{}
 	req.Data = output
 	return
@@ -276,6 +311,8 @@ func (c *EC2) AttachInternetGatewayRequest(input *AttachInternetGatewayInput) (r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &AttachInternetGatewayOutput{}
 	req.Data = output
 	return
@@ -412,25 +449,25 @@ func (c *EC2) AuthorizeSecurityGroupEgressRequest(input *AuthorizeSecurityGroupE
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &AuthorizeSecurityGroupEgressOutput{}
 	req.Data = output
 	return
 }
 
-// Adds one or more egress rules to a security group for use with a VPC. Specifically,
-// this action permits instances to send traffic to one or more destination
-// CIDR IP address ranges, or to one or more destination security groups for
-// the same VPC.
+// [EC2-VPC only] Adds one or more egress rules to a security group for use
+// with a VPC. Specifically, this action permits instances to send traffic to
+// one or more destination CIDR IP address ranges, or to one or more destination
+// security groups for the same VPC. This action doesn't apply to security groups
+// for use in EC2-Classic. For more information, see Security Groups for Your
+// VPC (http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)
+// in the Amazon Virtual Private Cloud User Guide.
 //
 //  You can have up to 50 rules per security group (covering both ingress and
 // egress rules).
 //
-//  A security group is for use with instances either in the EC2-Classic platform
-// or in a specific VPC. This action doesn't apply to security groups for use
-// in EC2-Classic. For more information, see Security Groups for Your VPC (http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)
-// in the Amazon Virtual Private Cloud User Guide.
-//
-// Each rule consists of the protocol (for example, TCP), plus either a CIDR
+//  Each rule consists of the protocol (for example, TCP), plus either a CIDR
 // range or a source group. For the TCP and UDP protocols, you must also specify
 // the destination port or port range. For the ICMP protocol, you must also
 // specify the ICMP type and code. You can use -1 for the type or code to mean
@@ -459,6 +496,8 @@ func (c *EC2) AuthorizeSecurityGroupIngressRequest(input *AuthorizeSecurityGroup
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &AuthorizeSecurityGroupIngressOutput{}
 	req.Data = output
 	return
@@ -567,6 +606,8 @@ func (c *EC2) CancelConversionTaskRequest(input *CancelConversionTaskInput) (req
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &CancelConversionTaskOutput{}
 	req.Data = output
 	return
@@ -602,6 +643,8 @@ func (c *EC2) CancelExportTaskRequest(input *CancelExportTaskInput) (req *reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &CancelExportTaskOutput{}
 	req.Data = output
 	return
@@ -796,8 +839,7 @@ func (c *EC2) CopyImageRequest(input *CopyImageInput) (req *request.Request, out
 
 // Initiates the copy of an AMI from the specified source region to the current
 // region. You specify the destination region by using its endpoint when making
-// the request. AMIs that use encrypted EBS snapshots cannot be copied with
-// this method.
+// the request.
 //
 // For more information, see Copying AMIs (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html)
 // in the Amazon Elastic Compute Cloud User Guide.
@@ -924,10 +966,10 @@ func (c *EC2) CreateDhcpOptionsRequest(input *CreateDhcpOptionsInput) (req *requ
 // individual DHCP options you can specify. For more information about the options,
 // see RFC 2132 (http://www.ietf.org/rfc/rfc2132.txt).
 //
-//   domain-name-servers - The IP addresses of up to four domain name servers,
+//  domain-name-servers - The IP addresses of up to four domain name servers,
 // or AmazonProvidedDNS. The default DHCP option set specifies AmazonProvidedDNS.
 // If specifying more than one domain name server, specify the IP addresses
-// in a single parameter, separated by commas.  domain-name - If you're using
+// in a single parameter, separated by commas. domain-name - If you're using
 // AmazonProvidedDNS in us-east-1, specify ec2.internal. If you're using AmazonProvidedDNS
 // in another region, specify region.compute.internal (for example, ap-northeast-1.compute.internal).
 // Otherwise, specify a domain name (for example, MyCompany.com). Important:
@@ -935,9 +977,9 @@ func (c *EC2) CreateDhcpOptionsRequest(input *CreateDhcpOptionsInput) (req *requ
 // However, Windows and other Linux operating systems treat the value as a single
 // domain, which results in unexpected behavior. If your DHCP options set is
 // associated with a VPC that has instances with multiple operating systems,
-// specify only one domain name.  ntp-servers - The IP addresses of up to four
-// Network Time Protocol (NTP) servers.  netbios-name-servers - The IP addresses
-// of up to four NetBIOS name servers.  netbios-node-type - The NetBIOS node
+// specify only one domain name. ntp-servers - The IP addresses of up to four
+// Network Time Protocol (NTP) servers. netbios-name-servers - The IP addresses
+// of up to four NetBIOS name servers. netbios-node-type - The NetBIOS node
 // type (1, 2, 4, or 8). We recommend that you specify 2 (broadcast and multicast
 // are not currently supported). For more information about these node types,
 // see RFC 2132 (http://www.ietf.org/rfc/rfc2132.txt).   Your VPC automatically
@@ -1126,6 +1168,38 @@ func (c *EC2) CreateKeyPair(input *CreateKeyPairInput) (*CreateKeyPairOutput, er
 	return out, err
 }
 
+const opCreateNatGateway = "CreateNatGateway"
+
+// CreateNatGatewayRequest generates a request for the CreateNatGateway operation.
+func (c *EC2) CreateNatGatewayRequest(input *CreateNatGatewayInput) (req *request.Request, output *CreateNatGatewayOutput) {
+	op := &request.Operation{
+		Name:       opCreateNatGateway,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateNatGatewayInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &CreateNatGatewayOutput{}
+	req.Data = output
+	return
+}
+
+// Creates a NAT gateway in the specified subnet. A NAT gateway can be used
+// to enable instances in a private subnet to connect to the Internet. This
+// action creates a network interface in the specified subnet with a private
+// IP address from the IP address range of the subnet. For more information,
+// see NAT Gateways (http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html)
+// in the Amazon Virtual Private Cloud User Guide.
+func (c *EC2) CreateNatGateway(input *CreateNatGatewayInput) (*CreateNatGatewayOutput, error) {
+	req, out := c.CreateNatGatewayRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opCreateNetworkAcl = "CreateNetworkAcl"
 
 // CreateNetworkAclRequest generates a request for the CreateNetworkAcl operation.
@@ -1172,6 +1246,8 @@ func (c *EC2) CreateNetworkAclEntryRequest(input *CreateNetworkAclEntryInput) (r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &CreateNetworkAclEntryOutput{}
 	req.Data = output
 	return
@@ -1246,6 +1322,8 @@ func (c *EC2) CreatePlacementGroupRequest(input *CreatePlacementGroupInput) (req
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &CreatePlacementGroupOutput{}
 	req.Data = output
 	return
@@ -1332,7 +1410,8 @@ func (c *EC2) CreateRouteRequest(input *CreateRouteInput) (req *request.Request,
 // Creates a route in a route table within a VPC.
 //
 // You must specify one of the following targets: Internet gateway or virtual
-// private gateway, NAT instance, VPC peering connection, or network interface.
+// private gateway, NAT instance, NAT gateway, VPC peering connection, or network
+// interface.
 //
 // When determining how to route traffic, we use the route with the most specific
 // match. For example, let's say the traffic is destined for 192.0.2.3, and
@@ -1416,7 +1495,7 @@ func (c *EC2) CreateSecurityGroupRequest(input *CreateSecurityGroupInput) (req *
 //
 //  EC2-Classic: You can have up to 500 security groups.
 //
-// EC2-VPC: You can create up to 100 security groups per VPC.
+// EC2-VPC: You can create up to 500 security groups per VPC.
 //
 //  When you create a security group, you specify a friendly name of your choice.
 // You can have a security group for use in EC2-Classic with the same name as
@@ -1588,6 +1667,8 @@ func (c *EC2) CreateTagsRequest(input *CreateTagsInput) (req *request.Request, o
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &CreateTagsOutput{}
 	req.Data = output
 	return
@@ -1815,6 +1896,8 @@ func (c *EC2) CreateVpnConnectionRouteRequest(input *CreateVpnConnectionRouteInp
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &CreateVpnConnectionRouteOutput{}
 	req.Data = output
 	return
@@ -1882,6 +1965,8 @@ func (c *EC2) DeleteCustomerGatewayRequest(input *DeleteCustomerGatewayInput) (r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteCustomerGatewayOutput{}
 	req.Data = output
 	return
@@ -1910,6 +1995,8 @@ func (c *EC2) DeleteDhcpOptionsRequest(input *DeleteDhcpOptionsInput) (req *requ
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteDhcpOptionsOutput{}
 	req.Data = output
 	return
@@ -1967,6 +2054,8 @@ func (c *EC2) DeleteInternetGatewayRequest(input *DeleteInternetGatewayInput) (r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteInternetGatewayOutput{}
 	req.Data = output
 	return
@@ -1995,6 +2084,8 @@ func (c *EC2) DeleteKeyPairRequest(input *DeleteKeyPairInput) (req *request.Requ
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteKeyPairOutput{}
 	req.Data = output
 	return
@@ -2003,6 +2094,35 @@ func (c *EC2) DeleteKeyPairRequest(input *DeleteKeyPairInput) (req *request.Requ
 // Deletes the specified key pair, by removing the public key from Amazon EC2.
 func (c *EC2) DeleteKeyPair(input *DeleteKeyPairInput) (*DeleteKeyPairOutput, error) {
 	req, out := c.DeleteKeyPairRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDeleteNatGateway = "DeleteNatGateway"
+
+// DeleteNatGatewayRequest generates a request for the DeleteNatGateway operation.
+func (c *EC2) DeleteNatGatewayRequest(input *DeleteNatGatewayInput) (req *request.Request, output *DeleteNatGatewayOutput) {
+	op := &request.Operation{
+		Name:       opDeleteNatGateway,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteNatGatewayInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DeleteNatGatewayOutput{}
+	req.Data = output
+	return
+}
+
+// Deletes the specified NAT gateway. Deleting a NAT gateway disassociates its
+// Elastic IP address, but does not release the address from your account. Deleting
+// a NAT gateway does not delete any NAT gateway routes in your route tables.
+func (c *EC2) DeleteNatGateway(input *DeleteNatGatewayInput) (*DeleteNatGatewayOutput, error) {
+	req, out := c.DeleteNatGatewayRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -2022,6 +2142,8 @@ func (c *EC2) DeleteNetworkAclRequest(input *DeleteNetworkAclInput) (req *reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteNetworkAclOutput{}
 	req.Data = output
 	return
@@ -2050,6 +2172,8 @@ func (c *EC2) DeleteNetworkAclEntryRequest(input *DeleteNetworkAclEntryInput) (r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteNetworkAclEntryOutput{}
 	req.Data = output
 	return
@@ -2078,6 +2202,8 @@ func (c *EC2) DeleteNetworkInterfaceRequest(input *DeleteNetworkInterfaceInput) 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteNetworkInterfaceOutput{}
 	req.Data = output
 	return
@@ -2106,6 +2232,8 @@ func (c *EC2) DeletePlacementGroupRequest(input *DeletePlacementGroupInput) (req
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeletePlacementGroupOutput{}
 	req.Data = output
 	return
@@ -2136,6 +2264,8 @@ func (c *EC2) DeleteRouteRequest(input *DeleteRouteInput) (req *request.Request,
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteRouteOutput{}
 	req.Data = output
 	return
@@ -2163,6 +2293,8 @@ func (c *EC2) DeleteRouteTableRequest(input *DeleteRouteTableInput) (req *reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteRouteTableOutput{}
 	req.Data = output
 	return
@@ -2192,6 +2324,8 @@ func (c *EC2) DeleteSecurityGroupRequest(input *DeleteSecurityGroupInput) (req *
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteSecurityGroupOutput{}
 	req.Data = output
 	return
@@ -2223,6 +2357,8 @@ func (c *EC2) DeleteSnapshotRequest(input *DeleteSnapshotInput) (req *request.Re
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteSnapshotOutput{}
 	req.Data = output
 	return
@@ -2264,6 +2400,8 @@ func (c *EC2) DeleteSpotDatafeedSubscriptionRequest(input *DeleteSpotDatafeedSub
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteSpotDatafeedSubscriptionOutput{}
 	req.Data = output
 	return
@@ -2291,6 +2429,8 @@ func (c *EC2) DeleteSubnetRequest(input *DeleteSubnetInput) (req *request.Reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteSubnetOutput{}
 	req.Data = output
 	return
@@ -2319,6 +2459,8 @@ func (c *EC2) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Request, o
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteTagsOutput{}
 	req.Data = output
 	return
@@ -2350,6 +2492,8 @@ func (c *EC2) DeleteVolumeRequest(input *DeleteVolumeInput) (req *request.Reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteVolumeOutput{}
 	req.Data = output
 	return
@@ -2383,6 +2527,8 @@ func (c *EC2) DeleteVpcRequest(input *DeleteVpcInput) (req *request.Request, out
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteVpcOutput{}
 	req.Data = output
 	return
@@ -2472,6 +2618,8 @@ func (c *EC2) DeleteVpnConnectionRequest(input *DeleteVpnConnectionInput) (req *
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteVpnConnectionOutput{}
 	req.Data = output
 	return
@@ -2508,6 +2656,8 @@ func (c *EC2) DeleteVpnConnectionRouteRequest(input *DeleteVpnConnectionRouteInp
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteVpnConnectionRouteOutput{}
 	req.Data = output
 	return
@@ -2538,6 +2688,8 @@ func (c *EC2) DeleteVpnGatewayRequest(input *DeleteVpnGatewayInput) (req *reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteVpnGatewayOutput{}
 	req.Data = output
 	return
@@ -2569,6 +2721,8 @@ func (c *EC2) DeregisterImageRequest(input *DeregisterImageInput) (req *request.
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeregisterImageOutput{}
 	req.Data = output
 	return
@@ -2902,6 +3056,77 @@ func (c *EC2) DescribeFlowLogs(input *DescribeFlowLogsInput) (*DescribeFlowLogsO
 	return out, err
 }
 
+const opDescribeHosts = "DescribeHosts"
+
+// DescribeHostsRequest generates a request for the DescribeHosts operation.
+func (c *EC2) DescribeHostsRequest(input *DescribeHostsInput) (req *request.Request, output *DescribeHostsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeHosts,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeHostsInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeHostsOutput{}
+	req.Data = output
+	return
+}
+
+// Describes one or more of your Dedicated hosts.
+//
+// The results describe only the Dedicated hosts in the region you're currently
+// using. All listed instances consume capacity on your Dedicated host. Dedicated
+// hosts that have recently been released will be listed with the state released.
+func (c *EC2) DescribeHosts(input *DescribeHostsInput) (*DescribeHostsOutput, error) {
+	req, out := c.DescribeHostsRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDescribeIdFormat = "DescribeIdFormat"
+
+// DescribeIdFormatRequest generates a request for the DescribeIdFormat operation.
+func (c *EC2) DescribeIdFormatRequest(input *DescribeIdFormatInput) (req *request.Request, output *DescribeIdFormatOutput) {
+	op := &request.Operation{
+		Name:       opDescribeIdFormat,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeIdFormatInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeIdFormatOutput{}
+	req.Data = output
+	return
+}
+
+// Describes the ID format settings for your resources on a per-region basis,
+// for example, to view which resource types are enabled for longer IDs. This
+// request only returns information about resource types whose ID formats can
+// be modified; it does not return information about other resource types.
+//
+// The following resource types support longer IDs: instance | reservation.
+//
+// These settings apply to the IAM user who makes the request; they do not
+// apply to the entire AWS account. By default, an IAM user defaults to the
+// same settings as the root user, unless they explicitly override the settings
+// by running the ModifyIdFormat command. Resources created with longer IDs
+// are visible to all IAM users, regardless of these settings and provided that
+// they have permission to use the relevant Describe command for the resource
+// type.
+func (c *EC2) DescribeIdFormat(input *DescribeIdFormatInput) (*DescribeIdFormatOutput, error) {
+	req, out := c.DescribeIdFormatRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opDescribeImageAttribute = "DescribeImageAttribute"
 
 // DescribeImageAttributeRequest generates a request for the DescribeImageAttribute operation.
@@ -3085,7 +3310,7 @@ func (c *EC2) DescribeInstanceStatusRequest(input *DescribeInstanceStatusInput) 
 // and Troubleshooting Instances with Failed Status Checks (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstances.html)
 // in the Amazon Elastic Compute Cloud User Guide.
 //
-//   Scheduled events - Amazon EC2 can schedule events (such as reboot, stop,
+//  Scheduled events - Amazon EC2 can schedule events (such as reboot, stop,
 // or terminate) for your instances related to hardware issues, software updates,
 // or system maintenance. For more information, see Scheduled Events for Your
 // Instances (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-instances-status-check_sched.html)
@@ -3241,6 +3466,33 @@ func (c *EC2) DescribeMovingAddressesRequest(input *DescribeMovingAddressesInput
 // not return information about any other Elastic IP addresses in your account.
 func (c *EC2) DescribeMovingAddresses(input *DescribeMovingAddressesInput) (*DescribeMovingAddressesOutput, error) {
 	req, out := c.DescribeMovingAddressesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDescribeNatGateways = "DescribeNatGateways"
+
+// DescribeNatGatewaysRequest generates a request for the DescribeNatGateways operation.
+func (c *EC2) DescribeNatGatewaysRequest(input *DescribeNatGatewaysInput) (req *request.Request, output *DescribeNatGatewaysOutput) {
+	op := &request.Operation{
+		Name:       opDescribeNatGateways,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeNatGatewaysInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeNatGatewaysOutput{}
+	req.Data = output
+	return
+}
+
+// Describes one or more of the your NAT gateways.
+func (c *EC2) DescribeNatGateways(input *DescribeNatGatewaysInput) (*DescribeNatGatewaysOutput, error) {
+	req, out := c.DescribeNatGatewaysRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -3577,6 +3829,10 @@ func (c *EC2) DescribeReservedInstancesOfferingsRequest(input *DescribeReservedI
 // errors, and you pay a lower usage rate than the rate charged for On-Demand
 // instances for the actual time used.
 //
+// If you have listed your own Reserved Instances for sale in the Reserved
+// Instance Marketplace, they will be excluded from these results. This is to
+// ensure that you do not purchase your own Reserved Instances.
+//
 // For more information, see Reserved Instance Marketplace (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html)
 // in the Amazon Elastic Compute Cloud User Guide.
 func (c *EC2) DescribeReservedInstancesOfferings(input *DescribeReservedInstancesOfferingsInput) (*DescribeReservedInstancesOfferingsOutput, error) {
@@ -3624,6 +3880,68 @@ func (c *EC2) DescribeRouteTablesRequest(input *DescribeRouteTablesInput) (req *
 // in the Amazon Virtual Private Cloud User Guide.
 func (c *EC2) DescribeRouteTables(input *DescribeRouteTablesInput) (*DescribeRouteTablesOutput, error) {
 	req, out := c.DescribeRouteTablesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDescribeScheduledInstanceAvailability = "DescribeScheduledInstanceAvailability"
+
+// DescribeScheduledInstanceAvailabilityRequest generates a request for the DescribeScheduledInstanceAvailability operation.
+func (c *EC2) DescribeScheduledInstanceAvailabilityRequest(input *DescribeScheduledInstanceAvailabilityInput) (req *request.Request, output *DescribeScheduledInstanceAvailabilityOutput) {
+	op := &request.Operation{
+		Name:       opDescribeScheduledInstanceAvailability,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeScheduledInstanceAvailabilityInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeScheduledInstanceAvailabilityOutput{}
+	req.Data = output
+	return
+}
+
+// Finds available schedules that meet the specified criteria.
+//
+// You can search for an available schedule no more than 3 months in advance.
+// You must meet the minimum required duration of 1,200 hours per year. For
+// example, the minimum daily schedule is 4 hours, the minimum weekly schedule
+// is 24 hours, and the minimum monthly schedule is 100 hours.
+//
+// After you find a schedule that meets your needs, call PurchaseScheduledInstances
+// to purchase Scheduled Instances with that schedule.
+func (c *EC2) DescribeScheduledInstanceAvailability(input *DescribeScheduledInstanceAvailabilityInput) (*DescribeScheduledInstanceAvailabilityOutput, error) {
+	req, out := c.DescribeScheduledInstanceAvailabilityRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDescribeScheduledInstances = "DescribeScheduledInstances"
+
+// DescribeScheduledInstancesRequest generates a request for the DescribeScheduledInstances operation.
+func (c *EC2) DescribeScheduledInstancesRequest(input *DescribeScheduledInstancesInput) (req *request.Request, output *DescribeScheduledInstancesOutput) {
+	op := &request.Operation{
+		Name:       opDescribeScheduledInstances,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeScheduledInstancesInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeScheduledInstancesOutput{}
+	req.Data = output
+	return
+}
+
+// Describes one or more of your Scheduled Instances.
+func (c *EC2) DescribeScheduledInstances(input *DescribeScheduledInstancesInput) (*DescribeScheduledInstancesOutput, error) {
+	req, out := c.DescribeScheduledInstancesRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -3726,13 +4044,13 @@ func (c *EC2) DescribeSnapshotsRequest(input *DescribeSnapshotsInput) (req *requ
 //
 // The create volume permissions fall into the following categories:
 //
-//   public: The owner of the snapshot granted create volume permissions for
+//  public: The owner of the snapshot granted create volume permissions for
 // the snapshot to the all group. All AWS accounts have create volume permissions
-// for these snapshots.  explicit: The owner of the snapshot granted create
-// volume permissions to a specific AWS account.  implicit: An AWS account has
-// implicit create volume permissions for all snapshots it owns.  The list of
-// snapshots returned can be modified by specifying snapshot IDs, snapshot owners,
-// or AWS accounts with create volume permissions. If no options are specified,
+// for these snapshots. explicit: The owner of the snapshot granted create volume
+// permissions to a specific AWS account. implicit: An AWS account has implicit
+// create volume permissions for all snapshots it owns.  The list of snapshots
+// returned can be modified by specifying snapshot IDs, snapshot owners, or
+// AWS accounts with create volume permissions. If no options are specified,
 // Amazon EC2 returns all snapshots for which you have create volume permissions.
 //
 // If you specify one or more snapshot IDs, only snapshots that have the specified
@@ -4261,6 +4579,39 @@ func (c *EC2) DescribeVpcClassicLink(input *DescribeVpcClassicLinkInput) (*Descr
 	return out, err
 }
 
+const opDescribeVpcClassicLinkDnsSupport = "DescribeVpcClassicLinkDnsSupport"
+
+// DescribeVpcClassicLinkDnsSupportRequest generates a request for the DescribeVpcClassicLinkDnsSupport operation.
+func (c *EC2) DescribeVpcClassicLinkDnsSupportRequest(input *DescribeVpcClassicLinkDnsSupportInput) (req *request.Request, output *DescribeVpcClassicLinkDnsSupportOutput) {
+	op := &request.Operation{
+		Name:       opDescribeVpcClassicLinkDnsSupport,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeVpcClassicLinkDnsSupportInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeVpcClassicLinkDnsSupportOutput{}
+	req.Data = output
+	return
+}
+
+// Describes the ClassicLink DNS support status of one or more VPCs. If enabled,
+// the DNS hostname of a linked EC2-Classic instance resolves to its private
+// IP address when addressed from an instance in the VPC to which it's linked.
+// Similarly, the DNS hostname of an instance in a VPC resolves to its private
+// IP address when addressed from a linked EC2-Classic instance. For more information
+// about ClassicLink, see ClassicLink (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html)
+// in the Amazon Elastic Compute Cloud User Guide.
+func (c *EC2) DescribeVpcClassicLinkDnsSupport(input *DescribeVpcClassicLinkDnsSupportInput) (*DescribeVpcClassicLinkDnsSupportOutput, error) {
+	req, out := c.DescribeVpcClassicLinkDnsSupportRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opDescribeVpcEndpointServices = "DescribeVpcEndpointServices"
 
 // DescribeVpcEndpointServicesRequest generates a request for the DescribeVpcEndpointServices operation.
@@ -4476,6 +4827,8 @@ func (c *EC2) DetachInternetGatewayRequest(input *DetachInternetGatewayInput) (r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DetachInternetGatewayOutput{}
 	req.Data = output
 	return
@@ -4505,6 +4858,8 @@ func (c *EC2) DetachNetworkInterfaceRequest(input *DetachNetworkInterfaceInput) 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DetachNetworkInterfaceOutput{}
 	req.Data = output
 	return
@@ -4571,6 +4926,8 @@ func (c *EC2) DetachVpnGatewayRequest(input *DetachVpnGatewayInput) (req *reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DetachVpnGatewayOutput{}
 	req.Data = output
 	return
@@ -4605,6 +4962,8 @@ func (c *EC2) DisableVgwRoutePropagationRequest(input *DisableVgwRoutePropagatio
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DisableVgwRoutePropagationOutput{}
 	req.Data = output
 	return
@@ -4646,6 +5005,37 @@ func (c *EC2) DisableVpcClassicLink(input *DisableVpcClassicLinkInput) (*Disable
 	return out, err
 }
 
+const opDisableVpcClassicLinkDnsSupport = "DisableVpcClassicLinkDnsSupport"
+
+// DisableVpcClassicLinkDnsSupportRequest generates a request for the DisableVpcClassicLinkDnsSupport operation.
+func (c *EC2) DisableVpcClassicLinkDnsSupportRequest(input *DisableVpcClassicLinkDnsSupportInput) (req *request.Request, output *DisableVpcClassicLinkDnsSupportOutput) {
+	op := &request.Operation{
+		Name:       opDisableVpcClassicLinkDnsSupport,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DisableVpcClassicLinkDnsSupportInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DisableVpcClassicLinkDnsSupportOutput{}
+	req.Data = output
+	return
+}
+
+// Disables ClassicLink DNS support for a VPC. If disabled, DNS hostnames resolve
+// to public IP addresses when addressed between a linked EC2-Classic instance
+// and instances in the VPC to which it's linked. For more information about
+// ClassicLink, see ClassicLink (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html)
+// in the Amazon Elastic Compute Cloud User Guide.
+func (c *EC2) DisableVpcClassicLinkDnsSupport(input *DisableVpcClassicLinkDnsSupportInput) (*DisableVpcClassicLinkDnsSupportOutput, error) {
+	req, out := c.DisableVpcClassicLinkDnsSupportRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opDisassociateAddress = "DisassociateAddress"
 
 // DisassociateAddressRequest generates a request for the DisassociateAddress operation.
@@ -4661,6 +5051,8 @@ func (c *EC2) DisassociateAddressRequest(input *DisassociateAddressInput) (req *
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DisassociateAddressOutput{}
 	req.Data = output
 	return
@@ -4696,6 +5088,8 @@ func (c *EC2) DisassociateRouteTableRequest(input *DisassociateRouteTableInput) 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DisassociateRouteTableOutput{}
 	req.Data = output
 	return
@@ -4728,6 +5122,8 @@ func (c *EC2) EnableVgwRoutePropagationRequest(input *EnableVgwRoutePropagationI
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &EnableVgwRoutePropagationOutput{}
 	req.Data = output
 	return
@@ -4756,6 +5152,8 @@ func (c *EC2) EnableVolumeIORequest(input *EnableVolumeIOInput) (req *request.Re
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &EnableVolumeIOOutput{}
 	req.Data = output
 	return
@@ -4798,6 +5196,39 @@ func (c *EC2) EnableVpcClassicLinkRequest(input *EnableVpcClassicLinkInput) (req
 // in the Amazon Elastic Compute Cloud User Guide.
 func (c *EC2) EnableVpcClassicLink(input *EnableVpcClassicLinkInput) (*EnableVpcClassicLinkOutput, error) {
 	req, out := c.EnableVpcClassicLinkRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opEnableVpcClassicLinkDnsSupport = "EnableVpcClassicLinkDnsSupport"
+
+// EnableVpcClassicLinkDnsSupportRequest generates a request for the EnableVpcClassicLinkDnsSupport operation.
+func (c *EC2) EnableVpcClassicLinkDnsSupportRequest(input *EnableVpcClassicLinkDnsSupportInput) (req *request.Request, output *EnableVpcClassicLinkDnsSupportOutput) {
+	op := &request.Operation{
+		Name:       opEnableVpcClassicLinkDnsSupport,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &EnableVpcClassicLinkDnsSupportInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &EnableVpcClassicLinkDnsSupportOutput{}
+	req.Data = output
+	return
+}
+
+// Enables a VPC to support DNS hostname resolution for ClassicLink. If enabled,
+// the DNS hostname of a linked EC2-Classic instance resolves to its private
+// IP address when addressed from an instance in the VPC to which it's linked.
+// Similarly, the DNS hostname of an instance in a VPC resolves to its private
+// IP address when addressed from a linked EC2-Classic instance. For more information
+// about ClassicLink, see ClassicLink (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html)
+// in the Amazon Elastic Compute Cloud User Guide.
+func (c *EC2) EnableVpcClassicLinkDnsSupport(input *EnableVpcClassicLinkDnsSupportInput) (*EnableVpcClassicLinkDnsSupportOutput, error) {
+	req, out := c.EnableVpcClassicLinkDnsSupportRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -5040,6 +5471,78 @@ func (c *EC2) ImportVolume(input *ImportVolumeInput) (*ImportVolumeOutput, error
 	return out, err
 }
 
+const opModifyHosts = "ModifyHosts"
+
+// ModifyHostsRequest generates a request for the ModifyHosts operation.
+func (c *EC2) ModifyHostsRequest(input *ModifyHostsInput) (req *request.Request, output *ModifyHostsOutput) {
+	op := &request.Operation{
+		Name:       opModifyHosts,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifyHostsInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ModifyHostsOutput{}
+	req.Data = output
+	return
+}
+
+// Modify the auto-placement setting of a Dedicated host. When auto-placement
+// is enabled, AWS will place instances that you launch with a tenancy of host,
+// but without targeting a specific host ID, onto any available Dedicated host
+// in your account which has auto-placement enabled. When auto-placement is
+// disabled, you need to provide a host ID if you want the instance to launch
+// onto a specific host. If no host ID is provided, the instance will be launched
+// onto a suitable host which has auto-placement enabled.
+func (c *EC2) ModifyHosts(input *ModifyHostsInput) (*ModifyHostsOutput, error) {
+	req, out := c.ModifyHostsRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opModifyIdFormat = "ModifyIdFormat"
+
+// ModifyIdFormatRequest generates a request for the ModifyIdFormat operation.
+func (c *EC2) ModifyIdFormatRequest(input *ModifyIdFormatInput) (req *request.Request, output *ModifyIdFormatOutput) {
+	op := &request.Operation{
+		Name:       opModifyIdFormat,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifyIdFormatInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	output = &ModifyIdFormatOutput{}
+	req.Data = output
+	return
+}
+
+// Modifies the ID format for the specified resource on a per-region basis.
+// You can specify that resources should receive longer IDs (17-character IDs)
+// when they are created. The following resource types support longer IDs: instance
+// | reservation.
+//
+// This setting applies to the IAM user who makes the request; it does not
+// apply to the entire AWS account. By default, an IAM user defaults to the
+// same settings as the root user, unless they explicitly override the settings
+// by running this request. Resources created with longer IDs are visible to
+// all IAM users, regardless of these settings and provided that they have permission
+// to use the relevant Describe command for the resource type.
+func (c *EC2) ModifyIdFormat(input *ModifyIdFormatInput) (*ModifyIdFormatOutput, error) {
+	req, out := c.ModifyIdFormatRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opModifyImageAttribute = "ModifyImageAttribute"
 
 // ModifyImageAttributeRequest generates a request for the ModifyImageAttribute operation.
@@ -5055,6 +5558,8 @@ func (c *EC2) ModifyImageAttributeRequest(input *ModifyImageAttributeInput) (req
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ModifyImageAttributeOutput{}
 	req.Data = output
 	return
@@ -5086,6 +5591,8 @@ func (c *EC2) ModifyInstanceAttributeRequest(input *ModifyInstanceAttributeInput
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ModifyInstanceAttributeOutput{}
 	req.Data = output
 	return
@@ -5099,6 +5606,51 @@ func (c *EC2) ModifyInstanceAttributeRequest(input *ModifyInstanceAttributeInput
 // in the Amazon Elastic Compute Cloud User Guide.
 func (c *EC2) ModifyInstanceAttribute(input *ModifyInstanceAttributeInput) (*ModifyInstanceAttributeOutput, error) {
 	req, out := c.ModifyInstanceAttributeRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opModifyInstancePlacement = "ModifyInstancePlacement"
+
+// ModifyInstancePlacementRequest generates a request for the ModifyInstancePlacement operation.
+func (c *EC2) ModifyInstancePlacementRequest(input *ModifyInstancePlacementInput) (req *request.Request, output *ModifyInstancePlacementOutput) {
+	op := &request.Operation{
+		Name:       opModifyInstancePlacement,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifyInstancePlacementInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ModifyInstancePlacementOutput{}
+	req.Data = output
+	return
+}
+
+// Set the instance affinity value for a specific stopped instance and modify
+// the instance tenancy setting.
+//
+// Instance affinity is disabled by default. When instance affinity is host
+// and it is not associated with a specific Dedicated host, the next time it
+// is launched it will automatically be associated with the host it lands on.
+// This relationship will persist if the instance is stopped/started, or rebooted.
+//
+// You can modify the host ID associated with a stopped instance. If a stopped
+// instance has a new host ID association, the instance will target that host
+// when restarted.
+//
+// You can modify the tenancy of a stopped instance with a tenancy of host
+// or dedicated.
+//
+// Affinity, hostID, and tenancy are not required parameters, but at least
+// one of them must be specified in the request. Affinity and tenancy can be
+// modified in the same request, but tenancy can only be modified on instances
+// that are stopped.
+func (c *EC2) ModifyInstancePlacement(input *ModifyInstancePlacementInput) (*ModifyInstancePlacementOutput, error) {
+	req, out := c.ModifyInstancePlacementRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -5118,6 +5670,8 @@ func (c *EC2) ModifyNetworkInterfaceAttributeRequest(input *ModifyNetworkInterfa
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ModifyNetworkInterfaceAttributeOutput{}
 	req.Data = output
 	return
@@ -5179,6 +5733,8 @@ func (c *EC2) ModifySnapshotAttributeRequest(input *ModifySnapshotAttributeInput
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ModifySnapshotAttributeOutput{}
 	req.Data = output
 	return
@@ -5262,6 +5818,8 @@ func (c *EC2) ModifySubnetAttributeRequest(input *ModifySubnetAttributeInput) (r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ModifySubnetAttributeOutput{}
 	req.Data = output
 	return
@@ -5289,6 +5847,8 @@ func (c *EC2) ModifyVolumeAttributeRequest(input *ModifyVolumeAttributeInput) (r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ModifyVolumeAttributeOutput{}
 	req.Data = output
 	return
@@ -5325,6 +5885,8 @@ func (c *EC2) ModifyVpcAttributeRequest(input *ModifyVpcAttributeInput) (req *re
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ModifyVpcAttributeOutput{}
 	req.Data = output
 	return
@@ -5416,12 +5978,14 @@ func (c *EC2) MoveAddressToVpcRequest(input *MoveAddressToVpcInput) (req *reques
 }
 
 // Moves an Elastic IP address from the EC2-Classic platform to the EC2-VPC
-// platform. The Elastic IP address must be allocated to your account, and it
-// must not be associated with an instance. After the Elastic IP address is
-// moved, it is no longer available for use in the EC2-Classic platform, unless
-// you move it back using the RestoreAddressToClassic request. You cannot move
-// an Elastic IP address that's allocated for use in the EC2-VPC platform to
-// the EC2-Classic platform.
+// platform. The Elastic IP address must be allocated to your account for more
+// than 24 hours, and it must not be associated with an instance. After the
+// Elastic IP address is moved, it is no longer available for use in the EC2-Classic
+// platform, unless you move it back using the RestoreAddressToClassic request.
+// You cannot move an Elastic IP address that's allocated for use in the EC2-VPC
+// platform to the EC2-Classic platform. You cannot migrate an Elastic IP address
+// that's associated with a reverse DNS record. Contact AWS account and billing
+// support to remove the reverse DNS record.
 func (c *EC2) MoveAddressToVpc(input *MoveAddressToVpcInput) (*MoveAddressToVpcOutput, error) {
 	req, out := c.MoveAddressToVpcRequest(input)
 	err := req.Send()
@@ -5448,10 +6012,10 @@ func (c *EC2) PurchaseReservedInstancesOfferingRequest(input *PurchaseReservedIn
 	return
 }
 
-// Purchases a Reserved Instance for use with your account. With Amazon EC2
-// Reserved Instances, you obtain a capacity reservation for a certain instance
-// configuration over a specified period of time and pay a lower hourly rate
-// compared to on-Demand Instance pricing.
+// Purchases a Reserved Instance for use with your account. With Reserved Instances,
+// you obtain a capacity reservation for a certain instance configuration over
+// a specified period of time and pay a lower hourly rate compared to On-Demand
+// instance pricing.
 //
 // Use DescribeReservedInstancesOfferings to get a list of Reserved Instance
 // offerings that match your specifications. After you've purchased a Reserved
@@ -5462,6 +6026,38 @@ func (c *EC2) PurchaseReservedInstancesOfferingRequest(input *PurchaseReservedIn
 // in the Amazon Elastic Compute Cloud User Guide.
 func (c *EC2) PurchaseReservedInstancesOffering(input *PurchaseReservedInstancesOfferingInput) (*PurchaseReservedInstancesOfferingOutput, error) {
 	req, out := c.PurchaseReservedInstancesOfferingRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opPurchaseScheduledInstances = "PurchaseScheduledInstances"
+
+// PurchaseScheduledInstancesRequest generates a request for the PurchaseScheduledInstances operation.
+func (c *EC2) PurchaseScheduledInstancesRequest(input *PurchaseScheduledInstancesInput) (req *request.Request, output *PurchaseScheduledInstancesOutput) {
+	op := &request.Operation{
+		Name:       opPurchaseScheduledInstances,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &PurchaseScheduledInstancesInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &PurchaseScheduledInstancesOutput{}
+	req.Data = output
+	return
+}
+
+// Purchases one or more Scheduled Instances with the specified schedule.
+//
+// Scheduled Instances enable you to purchase Amazon EC2 compute capacity by
+// the hour for a one-year term. Before you can purchase a Scheduled Instance,
+// you must call DescribeScheduledInstanceAvailability to check for available
+// schedules and obtain a purchase token.
+func (c *EC2) PurchaseScheduledInstances(input *PurchaseScheduledInstancesInput) (*PurchaseScheduledInstancesOutput, error) {
+	req, out := c.PurchaseScheduledInstancesRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -5481,6 +6077,8 @@ func (c *EC2) RebootInstancesRequest(input *RebootInstancesInput) (req *request.
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &RebootInstancesOutput{}
 	req.Data = output
 	return
@@ -5608,6 +6206,8 @@ func (c *EC2) ReleaseAddressRequest(input *ReleaseAddressInput) (req *request.Re
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ReleaseAddressOutput{}
 	req.Data = output
 	return
@@ -5630,6 +6230,44 @@ func (c *EC2) ReleaseAddressRequest(input *ReleaseAddressInput) (req *request.Re
 // error (InvalidIPAddress.InUse).
 func (c *EC2) ReleaseAddress(input *ReleaseAddressInput) (*ReleaseAddressOutput, error) {
 	req, out := c.ReleaseAddressRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opReleaseHosts = "ReleaseHosts"
+
+// ReleaseHostsRequest generates a request for the ReleaseHosts operation.
+func (c *EC2) ReleaseHostsRequest(input *ReleaseHostsInput) (req *request.Request, output *ReleaseHostsOutput) {
+	op := &request.Operation{
+		Name:       opReleaseHosts,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ReleaseHostsInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ReleaseHostsOutput{}
+	req.Data = output
+	return
+}
+
+// When you no longer want to use a Dedicated host it can be released. On-Demand
+// billing is stopped and the host goes into released state. The host ID of
+// Dedicated hosts that have been released can no longer be specified in another
+// request, e.g., ModifyHosts. You must stop or terminate all instances on a
+// host before it can be released.
+//
+// When Dedicated hosts are released, it make take some time for them to stop
+// counting toward your limit and you may receive capacity errors when trying
+// to allocate new Dedicated hosts. Try waiting a few minutes, and then try
+// again.
+//
+// Released hosts will still appear in a DescribeHosts response.
+func (c *EC2) ReleaseHosts(input *ReleaseHostsInput) (*ReleaseHostsOutput, error) {
+	req, out := c.ReleaseHostsRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -5679,6 +6317,8 @@ func (c *EC2) ReplaceNetworkAclEntryRequest(input *ReplaceNetworkAclEntryInput) 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ReplaceNetworkAclEntryOutput{}
 	req.Data = output
 	return
@@ -5708,6 +6348,8 @@ func (c *EC2) ReplaceRouteRequest(input *ReplaceRouteInput) (req *request.Reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ReplaceRouteOutput{}
 	req.Data = output
 	return
@@ -5715,7 +6357,7 @@ func (c *EC2) ReplaceRouteRequest(input *ReplaceRouteInput) (req *request.Reques
 
 // Replaces an existing route within a route table in a VPC. You must provide
 // only one of the following: Internet gateway or virtual private gateway, NAT
-// instance, VPC peering connection, or network interface.
+// instance, NAT gateway, VPC peering connection, or network interface.
 //
 // For more information about route tables, see Route Tables (http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html)
 // in the Amazon Virtual Private Cloud User Guide.
@@ -5775,6 +6417,8 @@ func (c *EC2) ReportInstanceStatusRequest(input *ReportInstanceStatusInput) (req
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ReportInstanceStatusOutput{}
 	req.Data = output
 	return
@@ -5883,6 +6527,8 @@ func (c *EC2) ResetImageAttributeRequest(input *ResetImageAttributeInput) (req *
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ResetImageAttributeOutput{}
 	req.Data = output
 	return
@@ -5912,6 +6558,8 @@ func (c *EC2) ResetInstanceAttributeRequest(input *ResetInstanceAttributeInput) 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ResetInstanceAttributeOutput{}
 	req.Data = output
 	return
@@ -5947,6 +6595,8 @@ func (c *EC2) ResetNetworkInterfaceAttributeRequest(input *ResetNetworkInterface
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ResetNetworkInterfaceAttributeOutput{}
 	req.Data = output
 	return
@@ -5975,6 +6625,8 @@ func (c *EC2) ResetSnapshotAttributeRequest(input *ResetSnapshotAttributeInput) 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &ResetSnapshotAttributeOutput{}
 	req.Data = output
 	return
@@ -6014,7 +6666,9 @@ func (c *EC2) RestoreAddressToClassicRequest(input *RestoreAddressToClassicInput
 // Restores an Elastic IP address that was previously moved to the EC2-VPC platform
 // back to the EC2-Classic platform. You cannot move an Elastic IP address that
 // was originally allocated for use in EC2-VPC. The Elastic IP address must
-// not be associated with an instance or network interface.
+// not be associated with an instance or network interface. You cannot restore
+// an Elastic IP address that's associated with a reverse DNS record. Contact
+// AWS account and billing support to remove the reverse DNS record.
 func (c *EC2) RestoreAddressToClassic(input *RestoreAddressToClassicInput) (*RestoreAddressToClassicOutput, error) {
 	req, out := c.RestoreAddressToClassicRequest(input)
 	err := req.Send()
@@ -6036,14 +6690,17 @@ func (c *EC2) RevokeSecurityGroupEgressRequest(input *RevokeSecurityGroupEgressI
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &RevokeSecurityGroupEgressOutput{}
 	req.Data = output
 	return
 }
 
-// Removes one or more egress rules from a security group for EC2-VPC. The values
-// that you specify in the revoke request (for example, ports) must match the
-// existing rule's values for the rule to be revoked.
+// [EC2-VPC only] Removes one or more egress rules from a security group for
+// EC2-VPC. This action doesn't apply to security groups for use in EC2-Classic.
+// The values that you specify in the revoke request (for example, ports) must
+// match the existing rule's values for the rule to be revoked.
 //
 // Each rule consists of the protocol and the CIDR range or source security
 // group. For the TCP and UDP protocols, you must also specify the destination
@@ -6073,6 +6730,8 @@ func (c *EC2) RevokeSecurityGroupIngressRequest(input *RevokeSecurityGroupIngres
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &RevokeSecurityGroupIngressOutput{}
 	req.Data = output
 	return
@@ -6160,6 +6819,41 @@ func (c *EC2) RunInstances(input *RunInstancesInput) (*Reservation, error) {
 	return out, err
 }
 
+const opRunScheduledInstances = "RunScheduledInstances"
+
+// RunScheduledInstancesRequest generates a request for the RunScheduledInstances operation.
+func (c *EC2) RunScheduledInstancesRequest(input *RunScheduledInstancesInput) (req *request.Request, output *RunScheduledInstancesOutput) {
+	op := &request.Operation{
+		Name:       opRunScheduledInstances,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RunScheduledInstancesInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &RunScheduledInstancesOutput{}
+	req.Data = output
+	return
+}
+
+// Launches the specified Scheduled Instances.
+//
+// Before you can launch a Scheduled Instance, you must purchase it and obtain
+// an identifier using PurchaseScheduledInstances.
+//
+// You must launch a Scheduled Instance during its scheduled time period. You
+// can't stop or reboot a Scheduled Instance, but you can terminate it as needed.
+// If you terminate a Scheduled Instance before the current scheduled time period
+// ends, you can launch it again after a few minutes.
+func (c *EC2) RunScheduledInstances(input *RunScheduledInstancesInput) (*RunScheduledInstancesOutput, error) {
+	req, out := c.RunScheduledInstancesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opStartInstances = "StartInstances"
 
 // StartInstancesRequest generates a request for the StartInstances operation.
@@ -6229,7 +6923,7 @@ func (c *EC2) StopInstancesRequest(input *StopInstancesInput) (req *request.Requ
 // from stopped to started, Amazon EC2 charges a full instance hour, even if
 // transitions happen multiple times within a single hour.
 //
-// You can't start or stop Spot Instances.
+// You can't start or stop Spot instances.
 //
 // Instances that use Amazon EBS volumes as their root devices can be quickly
 // stopped and started. When an instance is stopped, the compute resources are
@@ -6325,6 +7019,8 @@ func (c *EC2) UnassignPrivateIpAddressesRequest(input *UnassignPrivateIpAddresse
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(ec2query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &UnassignPrivateIpAddressesOutput{}
 	req.Data = output
 	return
@@ -6367,6 +7063,8 @@ func (c *EC2) UnmonitorInstances(input *UnmonitorInstancesInput) (*UnmonitorInst
 }
 
 type AcceptVpcPeeringConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -6375,12 +7073,6 @@ type AcceptVpcPeeringConnectionInput struct {
 
 	// The ID of the VPC peering connection.
 	VpcPeeringConnectionId *string `locationName:"vpcPeeringConnectionId" type:"string"`
-
-	metadataAcceptVpcPeeringConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataAcceptVpcPeeringConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6394,14 +7086,10 @@ func (s AcceptVpcPeeringConnectionInput) GoString() string {
 }
 
 type AcceptVpcPeeringConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the VPC peering connection.
 	VpcPeeringConnection *VpcPeeringConnection `locationName:"vpcPeeringConnection" type:"structure"`
-
-	metadataAcceptVpcPeeringConnectionOutput `json:"-" xml:"-"`
-}
-
-type metadataAcceptVpcPeeringConnectionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6416,17 +7104,13 @@ func (s AcceptVpcPeeringConnectionOutput) GoString() string {
 
 // Describes an account attribute.
 type AccountAttribute struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the account attribute.
 	AttributeName *string `locationName:"attributeName" type:"string"`
 
 	// One or more values for the account attribute.
 	AttributeValues []*AccountAttributeValue `locationName:"attributeValueSet" locationNameList:"item" type:"list"`
-
-	metadataAccountAttribute `json:"-" xml:"-"`
-}
-
-type metadataAccountAttribute struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6441,14 +7125,10 @@ func (s AccountAttribute) GoString() string {
 
 // Describes a value of an account attribute.
 type AccountAttributeValue struct {
+	_ struct{} `type:"structure"`
+
 	// The value of the attribute.
 	AttributeValue *string `locationName:"attributeValue" type:"string"`
-
-	metadataAccountAttributeValue `json:"-" xml:"-"`
-}
-
-type metadataAccountAttributeValue struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6463,6 +7143,8 @@ func (s AccountAttributeValue) GoString() string {
 
 // Describes a running instance in a Spot fleet.
 type ActiveInstance struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the instance.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
@@ -6471,12 +7153,6 @@ type ActiveInstance struct {
 
 	// The ID of the Spot instance request.
 	SpotInstanceRequestId *string `locationName:"spotInstanceRequestId" type:"string"`
-
-	metadataActiveInstance `json:"-" xml:"-"`
-}
-
-type metadataActiveInstance struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6491,6 +7167,8 @@ func (s ActiveInstance) GoString() string {
 
 // Describes an Elastic IP address.
 type Address struct {
+	_ struct{} `type:"structure"`
+
 	// The ID representing the allocation of the address for use with EC2-VPC.
 	AllocationId *string `locationName:"allocationId" type:"string"`
 
@@ -6516,12 +7194,6 @@ type Address struct {
 
 	// The Elastic IP address.
 	PublicIp *string `locationName:"publicIp" type:"string"`
-
-	metadataAddress `json:"-" xml:"-"`
-}
-
-type metadataAddress struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6535,6 +7207,8 @@ func (s Address) GoString() string {
 }
 
 type AllocateAddressInput struct {
+	_ struct{} `type:"structure"`
+
 	// Set to vpc to allocate the address for use with instances in a VPC.
 	//
 	// Default: The address is for use with instances in EC2-Classic.
@@ -6545,12 +7219,6 @@ type AllocateAddressInput struct {
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataAllocateAddressInput `json:"-" xml:"-"`
-}
-
-type metadataAllocateAddressInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6564,6 +7232,8 @@ func (s AllocateAddressInput) GoString() string {
 }
 
 type AllocateAddressOutput struct {
+	_ struct{} `type:"structure"`
+
 	// [EC2-VPC] The ID that AWS assigns to represent the allocation of the Elastic
 	// IP address for use with instances in a VPC.
 	AllocationId *string `locationName:"allocationId" type:"string"`
@@ -6574,12 +7244,6 @@ type AllocateAddressOutput struct {
 
 	// The Elastic IP address.
 	PublicIp *string `locationName:"publicIp" type:"string"`
-
-	metadataAllocateAddressOutput `json:"-" xml:"-"`
-}
-
-type metadataAllocateAddressOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6592,7 +7256,65 @@ func (s AllocateAddressOutput) GoString() string {
 	return s.String()
 }
 
+type AllocateHostsInput struct {
+	_ struct{} `type:"structure"`
+
+	// This is enabled by default. This property allows instances to be automatically
+	// placed onto available Dedicated hosts, when you are launching instances without
+	// specifying a host ID.
+	//
+	// Default: Enabled
+	AutoPlacement *string `locationName:"autoPlacement" type:"string" enum:"AutoPlacement"`
+
+	// The Availability Zone for the Dedicated hosts.
+	AvailabilityZone *string `locationName:"availabilityZone" type:"string" required:"true"`
+
+	// Unique, case-sensitive identifier you provide to ensure idempotency of the
+	// request. For more information, see How to Ensure Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html)
+	// in the Amazon Elastic Compute Cloud User Guide.
+	ClientToken *string `locationName:"clientToken" type:"string"`
+
+	// Specify the instance type that you want your Dedicated hosts to be configured
+	// for. When you specify the instance type, that is the only instance type that
+	// you can launch onto that host.
+	InstanceType *string `locationName:"instanceType" type:"string" required:"true"`
+
+	// The number of Dedicated hosts you want to allocate to your account with these
+	// parameters.
+	Quantity *int64 `locationName:"quantity" type:"integer" required:"true"`
+}
+
+// String returns the string representation
+func (s AllocateHostsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AllocateHostsInput) GoString() string {
+	return s.String()
+}
+
+type AllocateHostsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the allocated Dedicated host. This is used when you want to launch
+	// an instance onto a specific host.
+	HostIds []*string `locationName:"hostIdSet" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s AllocateHostsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AllocateHostsOutput) GoString() string {
+	return s.String()
+}
+
 type AssignPrivateIpAddressesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether to allow an IP address that is already assigned to another
 	// network interface or instance to be reassigned to the specified network interface.
 	AllowReassignment *bool `locationName:"allowReassignment" type:"boolean"`
@@ -6611,12 +7333,6 @@ type AssignPrivateIpAddressesInput struct {
 	// The number of secondary IP addresses to assign to the network interface.
 	// You can't specify this parameter when also specifying private IP addresses.
 	SecondaryPrivateIpAddressCount *int64 `locationName:"secondaryPrivateIpAddressCount" type:"integer"`
-
-	metadataAssignPrivateIpAddressesInput `json:"-" xml:"-"`
-}
-
-type metadataAssignPrivateIpAddressesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6630,11 +7346,7 @@ func (s AssignPrivateIpAddressesInput) GoString() string {
 }
 
 type AssignPrivateIpAddressesOutput struct {
-	metadataAssignPrivateIpAddressesOutput `json:"-" xml:"-"`
-}
-
-type metadataAssignPrivateIpAddressesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -6648,14 +7360,17 @@ func (s AssignPrivateIpAddressesOutput) GoString() string {
 }
 
 type AssociateAddressInput struct {
+	_ struct{} `type:"structure"`
+
 	// [EC2-VPC] The allocation ID. This is required for EC2-VPC.
 	AllocationId *string `type:"string"`
 
-	// [EC2-VPC] Allows an Elastic IP address that is already associated with an
-	// instance or network interface to be re-associated with the specified instance
-	// or network interface. Otherwise, the operation fails.
-	//
-	// Default: false
+	// [EC2-VPC] For a VPC in an EC2-Classic account, specify true to allow an Elastic
+	// IP address that is already associated with an instance or network interface
+	// to be reassociated with the specified instance or network interface. Otherwise,
+	// the operation fails. In a VPC in an EC2-VPC-only account, reassociation is
+	// automatic, therefore you can specify false to ensure the operation fails
+	// if the Elastic IP address is already associated with another resource.
 	AllowReassociation *bool `locationName:"allowReassociation" type:"boolean"`
 
 	// Checks whether you have the required permissions for the action, without
@@ -6681,12 +7396,6 @@ type AssociateAddressInput struct {
 
 	// The Elastic IP address. This is required for EC2-Classic.
 	PublicIp *string `type:"string"`
-
-	metadataAssociateAddressInput `json:"-" xml:"-"`
-}
-
-type metadataAssociateAddressInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6700,15 +7409,11 @@ func (s AssociateAddressInput) GoString() string {
 }
 
 type AssociateAddressOutput struct {
+	_ struct{} `type:"structure"`
+
 	// [EC2-VPC] The ID that represents the association of the Elastic IP address
 	// with an instance.
 	AssociationId *string `locationName:"associationId" type:"string"`
-
-	metadataAssociateAddressOutput `json:"-" xml:"-"`
-}
-
-type metadataAssociateAddressOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6722,6 +7427,8 @@ func (s AssociateAddressOutput) GoString() string {
 }
 
 type AssociateDhcpOptionsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the DHCP options set, or default to associate no DHCP options with
 	// the VPC.
 	DhcpOptionsId *string `type:"string" required:"true"`
@@ -6734,12 +7441,6 @@ type AssociateDhcpOptionsInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `type:"string" required:"true"`
-
-	metadataAssociateDhcpOptionsInput `json:"-" xml:"-"`
-}
-
-type metadataAssociateDhcpOptionsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6753,11 +7454,7 @@ func (s AssociateDhcpOptionsInput) GoString() string {
 }
 
 type AssociateDhcpOptionsOutput struct {
-	metadataAssociateDhcpOptionsOutput `json:"-" xml:"-"`
-}
-
-type metadataAssociateDhcpOptionsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -6771,6 +7468,8 @@ func (s AssociateDhcpOptionsOutput) GoString() string {
 }
 
 type AssociateRouteTableInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -6782,12 +7481,6 @@ type AssociateRouteTableInput struct {
 
 	// The ID of the subnet.
 	SubnetId *string `locationName:"subnetId" type:"string" required:"true"`
-
-	metadataAssociateRouteTableInput `json:"-" xml:"-"`
-}
-
-type metadataAssociateRouteTableInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6801,14 +7494,10 @@ func (s AssociateRouteTableInput) GoString() string {
 }
 
 type AssociateRouteTableOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The route table association ID (needed to disassociate the route table).
 	AssociationId *string `locationName:"associationId" type:"string"`
-
-	metadataAssociateRouteTableOutput `json:"-" xml:"-"`
-}
-
-type metadataAssociateRouteTableOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6822,6 +7511,8 @@ func (s AssociateRouteTableOutput) GoString() string {
 }
 
 type AttachClassicLinkVpcInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -6837,12 +7528,6 @@ type AttachClassicLinkVpcInput struct {
 
 	// The ID of a ClassicLink-enabled VPC.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataAttachClassicLinkVpcInput `json:"-" xml:"-"`
-}
-
-type metadataAttachClassicLinkVpcInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6856,14 +7541,10 @@ func (s AttachClassicLinkVpcInput) GoString() string {
 }
 
 type AttachClassicLinkVpcOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns true if the request succeeds; otherwise, it returns an error.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataAttachClassicLinkVpcOutput `json:"-" xml:"-"`
-}
-
-type metadataAttachClassicLinkVpcOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6877,6 +7558,8 @@ func (s AttachClassicLinkVpcOutput) GoString() string {
 }
 
 type AttachInternetGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -6888,12 +7571,6 @@ type AttachInternetGatewayInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataAttachInternetGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataAttachInternetGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6907,11 +7584,7 @@ func (s AttachInternetGatewayInput) GoString() string {
 }
 
 type AttachInternetGatewayOutput struct {
-	metadataAttachInternetGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataAttachInternetGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -6925,6 +7598,8 @@ func (s AttachInternetGatewayOutput) GoString() string {
 }
 
 type AttachNetworkInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The index of the device for the network interface attachment.
 	DeviceIndex *int64 `locationName:"deviceIndex" type:"integer" required:"true"`
 
@@ -6939,12 +7614,6 @@ type AttachNetworkInterfaceInput struct {
 
 	// The ID of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string" required:"true"`
-
-	metadataAttachNetworkInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataAttachNetworkInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6958,14 +7627,10 @@ func (s AttachNetworkInterfaceInput) GoString() string {
 }
 
 type AttachNetworkInterfaceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the network interface attachment.
 	AttachmentId *string `locationName:"attachmentId" type:"string"`
-
-	metadataAttachNetworkInterfaceOutput `json:"-" xml:"-"`
-}
-
-type metadataAttachNetworkInterfaceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -6979,6 +7644,8 @@ func (s AttachNetworkInterfaceOutput) GoString() string {
 }
 
 type AttachVolumeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The device name to expose to the instance (for example, /dev/sdh or xvdh).
 	Device *string `type:"string" required:"true"`
 
@@ -6994,12 +7661,6 @@ type AttachVolumeInput struct {
 	// The ID of the EBS volume. The volume and instance must be within the same
 	// Availability Zone.
 	VolumeId *string `type:"string" required:"true"`
-
-	metadataAttachVolumeInput `json:"-" xml:"-"`
-}
-
-type metadataAttachVolumeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7013,6 +7674,8 @@ func (s AttachVolumeInput) GoString() string {
 }
 
 type AttachVpnGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -7024,12 +7687,6 @@ type AttachVpnGatewayInput struct {
 
 	// The ID of the virtual private gateway.
 	VpnGatewayId *string `type:"string" required:"true"`
-
-	metadataAttachVpnGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataAttachVpnGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7043,14 +7700,10 @@ func (s AttachVpnGatewayInput) GoString() string {
 }
 
 type AttachVpnGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the attachment.
 	VpcAttachment *VpcAttachment `locationName:"attachment" type:"structure"`
-
-	metadataAttachVpnGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataAttachVpnGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7065,14 +7718,10 @@ func (s AttachVpnGatewayOutput) GoString() string {
 
 // The value to use when a resource attribute accepts a Boolean value.
 type AttributeBooleanValue struct {
+	_ struct{} `type:"structure"`
+
 	// Valid values are true or false.
 	Value *bool `locationName:"value" type:"boolean"`
-
-	metadataAttributeBooleanValue `json:"-" xml:"-"`
-}
-
-type metadataAttributeBooleanValue struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7087,14 +7736,10 @@ func (s AttributeBooleanValue) GoString() string {
 
 // The value to use for a resource attribute.
 type AttributeValue struct {
+	_ struct{} `type:"structure"`
+
 	// Valid values are case-sensitive and vary by action.
 	Value *string `locationName:"value" type:"string"`
-
-	metadataAttributeValue `json:"-" xml:"-"`
-}
-
-type metadataAttributeValue struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7108,8 +7753,10 @@ func (s AttributeValue) GoString() string {
 }
 
 type AuthorizeSecurityGroupEgressInput struct {
-	// The CIDR IP address range. You can't specify this parameter when specifying
-	// a source security group.
+	_ struct{} `type:"structure"`
+
+	// The CIDR IP address range. We recommend that you specify the CIDR range in
+	// a set of IP permissions instead.
 	CidrIp *string `locationName:"cidrIp" type:"string"`
 
 	// Checks whether you have the required permissions for the action, without
@@ -7119,7 +7766,7 @@ type AuthorizeSecurityGroupEgressInput struct {
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
 	// The start of port range for the TCP and UDP protocols, or an ICMP type number.
-	// For the ICMP type number, use -1 to specify all ICMP types.
+	// We recommend that you specify the port range in a set of IP permissions instead.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
 	// The ID of the security group.
@@ -7129,8 +7776,8 @@ type AuthorizeSecurityGroupEgressInput struct {
 	// a CIDR IP address range.
 	IpPermissions []*IpPermission `locationName:"ipPermissions" locationNameList:"item" type:"list"`
 
-	// The IP protocol name (tcp, udp, icmp) or number (see Protocol Numbers (http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)).
-	// Use -1 to specify all.
+	// The IP protocol name or number. We recommend that you specify the protocol
+	// in a set of IP permissions instead.
 	IpProtocol *string `locationName:"ipProtocol" type:"string"`
 
 	// The name of a destination security group. To authorize outbound access to
@@ -7143,15 +7790,9 @@ type AuthorizeSecurityGroupEgressInput struct {
 	// IP permissions instead.
 	SourceSecurityGroupOwnerId *string `locationName:"sourceSecurityGroupOwnerId" type:"string"`
 
-	// The end of port range for the TCP and UDP protocols, or an ICMP code number.
-	// For the ICMP code number, use -1 to specify all ICMP codes for the ICMP type.
+	// The end of port range for the TCP and UDP protocols, or an ICMP type number.
+	// We recommend that you specify the port range in a set of IP permissions instead.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
-
-	metadataAuthorizeSecurityGroupEgressInput `json:"-" xml:"-"`
-}
-
-type metadataAuthorizeSecurityGroupEgressInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7165,11 +7806,7 @@ func (s AuthorizeSecurityGroupEgressInput) GoString() string {
 }
 
 type AuthorizeSecurityGroupEgressOutput struct {
-	metadataAuthorizeSecurityGroupEgressOutput `json:"-" xml:"-"`
-}
-
-type metadataAuthorizeSecurityGroupEgressOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -7183,6 +7820,8 @@ func (s AuthorizeSecurityGroupEgressOutput) GoString() string {
 }
 
 type AuthorizeSecurityGroupIngressInput struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR IP address range. You can't specify this parameter when specifying
 	// a source security group.
 	CidrIp *string `type:"string"`
@@ -7230,12 +7869,6 @@ type AuthorizeSecurityGroupIngressInput struct {
 	// The end of port range for the TCP and UDP protocols, or an ICMP code number.
 	// For the ICMP code number, use -1 to specify all ICMP codes for the ICMP type.
 	ToPort *int64 `type:"integer"`
-
-	metadataAuthorizeSecurityGroupIngressInput `json:"-" xml:"-"`
-}
-
-type metadataAuthorizeSecurityGroupIngressInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7249,11 +7882,7 @@ func (s AuthorizeSecurityGroupIngressInput) GoString() string {
 }
 
 type AuthorizeSecurityGroupIngressOutput struct {
-	metadataAuthorizeSecurityGroupIngressOutput `json:"-" xml:"-"`
-}
-
-type metadataAuthorizeSecurityGroupIngressOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -7268,6 +7897,8 @@ func (s AuthorizeSecurityGroupIngressOutput) GoString() string {
 
 // Describes an Availability Zone.
 type AvailabilityZone struct {
+	_ struct{} `type:"structure"`
+
 	// Any messages about the Availability Zone.
 	Messages []*AvailabilityZoneMessage `locationName:"messageSet" locationNameList:"item" type:"list"`
 
@@ -7279,12 +7910,6 @@ type AvailabilityZone struct {
 
 	// The name of the Availability Zone.
 	ZoneName *string `locationName:"zoneName" type:"string"`
-
-	metadataAvailabilityZone `json:"-" xml:"-"`
-}
-
-type metadataAvailabilityZone struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7299,14 +7924,10 @@ func (s AvailabilityZone) GoString() string {
 
 // Describes a message about an Availability Zone.
 type AvailabilityZoneMessage struct {
+	_ struct{} `type:"structure"`
+
 	// The message about the Availability Zone.
 	Message *string `locationName:"message" type:"string"`
-
-	metadataAvailabilityZoneMessage `json:"-" xml:"-"`
-}
-
-type metadataAvailabilityZoneMessage struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7319,14 +7940,31 @@ func (s AvailabilityZoneMessage) GoString() string {
 	return s.String()
 }
 
-type BlobAttributeValue struct {
-	Value []byte `locationName:"value" type:"blob"`
+// The capacity information for instances launched onto the Dedicated host.
+type AvailableCapacity struct {
+	_ struct{} `type:"structure"`
 
-	metadataBlobAttributeValue `json:"-" xml:"-"`
+	// The total number of instances that the Dedicated host supports.
+	AvailableInstanceCapacity []*InstanceCapacity `locationName:"availableInstanceCapacity" locationNameList:"item" type:"list"`
+
+	// The number of vCPUs available on the Dedicated host.
+	AvailableVCpus *int64 `locationName:"availableVCpus" type:"integer"`
 }
 
-type metadataBlobAttributeValue struct {
-	SDKShapeTraits bool `type:"structure"`
+// String returns the string representation
+func (s AvailableCapacity) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AvailableCapacity) GoString() string {
+	return s.String()
+}
+
+type BlobAttributeValue struct {
+	_ struct{} `type:"structure"`
+
+	Value []byte `locationName:"value" type:"blob"`
 }
 
 // String returns the string representation
@@ -7341,6 +7979,8 @@ func (s BlobAttributeValue) GoString() string {
 
 // Describes a block device mapping.
 type BlockDeviceMapping struct {
+	_ struct{} `type:"structure"`
+
 	// The device name exposed to the instance (for example, /dev/sdh or xvdh).
 	DeviceName *string `locationName:"deviceName" type:"string"`
 
@@ -7363,12 +8003,6 @@ type BlockDeviceMapping struct {
 	// we ignore any instance store volumes specified in the block device mapping
 	// for the AMI.
 	VirtualName *string `locationName:"virtualName" type:"string"`
-
-	metadataBlockDeviceMapping `json:"-" xml:"-"`
-}
-
-type metadataBlockDeviceMapping struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7382,6 +8016,8 @@ func (s BlockDeviceMapping) GoString() string {
 }
 
 type BundleInstanceInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -7401,12 +8037,6 @@ type BundleInstanceInput struct {
 	// own or a new bucket that Amazon EC2 creates on your behalf. If you specify
 	// a bucket that belongs to someone else, Amazon EC2 returns an error.
 	Storage *Storage `type:"structure" required:"true"`
-
-	metadataBundleInstanceInput `json:"-" xml:"-"`
-}
-
-type metadataBundleInstanceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7420,14 +8050,10 @@ func (s BundleInstanceInput) GoString() string {
 }
 
 type BundleInstanceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the bundle task.
 	BundleTask *BundleTask `locationName:"bundleInstanceTask" type:"structure"`
-
-	metadataBundleInstanceOutput `json:"-" xml:"-"`
-}
-
-type metadataBundleInstanceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7442,6 +8068,8 @@ func (s BundleInstanceOutput) GoString() string {
 
 // Describes a bundle task.
 type BundleTask struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the bundle task.
 	BundleId *string `locationName:"bundleId" type:"string"`
 
@@ -7465,12 +8093,6 @@ type BundleTask struct {
 
 	// The time of the most recent update for the task.
 	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataBundleTask `json:"-" xml:"-"`
-}
-
-type metadataBundleTask struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7485,17 +8107,13 @@ func (s BundleTask) GoString() string {
 
 // Describes an error for BundleInstance.
 type BundleTaskError struct {
+	_ struct{} `type:"structure"`
+
 	// The error code.
 	Code *string `locationName:"code" type:"string"`
 
 	// The error message.
 	Message *string `locationName:"message" type:"string"`
-
-	metadataBundleTaskError `json:"-" xml:"-"`
-}
-
-type metadataBundleTaskError struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7509,6 +8127,8 @@ func (s BundleTaskError) GoString() string {
 }
 
 type CancelBundleTaskInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the bundle task.
 	BundleId *string `type:"string" required:"true"`
 
@@ -7517,12 +8137,6 @@ type CancelBundleTaskInput struct {
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataCancelBundleTaskInput `json:"-" xml:"-"`
-}
-
-type metadataCancelBundleTaskInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7536,14 +8150,10 @@ func (s CancelBundleTaskInput) GoString() string {
 }
 
 type CancelBundleTaskOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the bundle task.
 	BundleTask *BundleTask `locationName:"bundleInstanceTask" type:"structure"`
-
-	metadataCancelBundleTaskOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelBundleTaskOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7557,6 +8167,8 @@ func (s CancelBundleTaskOutput) GoString() string {
 }
 
 type CancelConversionTaskInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the conversion task.
 	ConversionTaskId *string `locationName:"conversionTaskId" type:"string" required:"true"`
 
@@ -7568,12 +8180,6 @@ type CancelConversionTaskInput struct {
 
 	// The reason for canceling the conversion task.
 	ReasonMessage *string `locationName:"reasonMessage" type:"string"`
-
-	metadataCancelConversionTaskInput `json:"-" xml:"-"`
-}
-
-type metadataCancelConversionTaskInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7587,11 +8193,7 @@ func (s CancelConversionTaskInput) GoString() string {
 }
 
 type CancelConversionTaskOutput struct {
-	metadataCancelConversionTaskOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelConversionTaskOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -7605,14 +8207,10 @@ func (s CancelConversionTaskOutput) GoString() string {
 }
 
 type CancelExportTaskInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the export task. This is the ID returned by CreateInstanceExportTask.
 	ExportTaskId *string `locationName:"exportTaskId" type:"string" required:"true"`
-
-	metadataCancelExportTaskInput `json:"-" xml:"-"`
-}
-
-type metadataCancelExportTaskInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7626,11 +8224,7 @@ func (s CancelExportTaskInput) GoString() string {
 }
 
 type CancelExportTaskOutput struct {
-	metadataCancelExportTaskOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelExportTaskOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -7644,6 +8238,8 @@ func (s CancelExportTaskOutput) GoString() string {
 }
 
 type CancelImportTaskInput struct {
+	_ struct{} `type:"structure"`
+
 	// The reason for canceling the task.
 	CancelReason *string `type:"string"`
 
@@ -7655,12 +8251,6 @@ type CancelImportTaskInput struct {
 
 	// The ID of the import image or import snapshot task to be canceled.
 	ImportTaskId *string `type:"string"`
-
-	metadataCancelImportTaskInput `json:"-" xml:"-"`
-}
-
-type metadataCancelImportTaskInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7674,6 +8264,8 @@ func (s CancelImportTaskInput) GoString() string {
 }
 
 type CancelImportTaskOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the task being canceled.
 	ImportTaskId *string `locationName:"importTaskId" type:"string"`
 
@@ -7682,12 +8274,6 @@ type CancelImportTaskOutput struct {
 
 	// The current state of the task being canceled.
 	State *string `locationName:"state" type:"string"`
-
-	metadataCancelImportTaskOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelImportTaskOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7701,14 +8287,10 @@ func (s CancelImportTaskOutput) GoString() string {
 }
 
 type CancelReservedInstancesListingInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the Reserved Instance listing.
 	ReservedInstancesListingId *string `locationName:"reservedInstancesListingId" type:"string" required:"true"`
-
-	metadataCancelReservedInstancesListingInput `json:"-" xml:"-"`
-}
-
-type metadataCancelReservedInstancesListingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7722,14 +8304,10 @@ func (s CancelReservedInstancesListingInput) GoString() string {
 }
 
 type CancelReservedInstancesListingOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Reserved Instance listing.
 	ReservedInstancesListings []*ReservedInstancesListing `locationName:"reservedInstancesListingsSet" locationNameList:"item" type:"list"`
-
-	metadataCancelReservedInstancesListingOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelReservedInstancesListingOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7744,17 +8322,13 @@ func (s CancelReservedInstancesListingOutput) GoString() string {
 
 // Describes a Spot fleet error.
 type CancelSpotFleetRequestsError struct {
+	_ struct{} `type:"structure"`
+
 	// The error code.
 	Code *string `locationName:"code" type:"string" required:"true" enum:"CancelBatchErrorCode"`
 
 	// The description for the error code.
 	Message *string `locationName:"message" type:"string" required:"true"`
-
-	metadataCancelSpotFleetRequestsError `json:"-" xml:"-"`
-}
-
-type metadataCancelSpotFleetRequestsError struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7769,17 +8343,13 @@ func (s CancelSpotFleetRequestsError) GoString() string {
 
 // Describes a Spot fleet request that was not successfully canceled.
 type CancelSpotFleetRequestsErrorItem struct {
+	_ struct{} `type:"structure"`
+
 	// The error.
 	Error *CancelSpotFleetRequestsError `locationName:"error" type:"structure" required:"true"`
 
 	// The ID of the Spot fleet request.
 	SpotFleetRequestId *string `locationName:"spotFleetRequestId" type:"string" required:"true"`
-
-	metadataCancelSpotFleetRequestsErrorItem `json:"-" xml:"-"`
-}
-
-type metadataCancelSpotFleetRequestsErrorItem struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7794,6 +8364,8 @@ func (s CancelSpotFleetRequestsErrorItem) GoString() string {
 
 // Contains the parameters for CancelSpotFleetRequests.
 type CancelSpotFleetRequestsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -7806,12 +8378,6 @@ type CancelSpotFleetRequestsInput struct {
 	// Indicates whether to terminate instances for a Spot fleet request if it is
 	// canceled successfully.
 	TerminateInstances *bool `locationName:"terminateInstances" type:"boolean" required:"true"`
-
-	metadataCancelSpotFleetRequestsInput `json:"-" xml:"-"`
-}
-
-type metadataCancelSpotFleetRequestsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7826,17 +8392,13 @@ func (s CancelSpotFleetRequestsInput) GoString() string {
 
 // Contains the output of CancelSpotFleetRequests.
 type CancelSpotFleetRequestsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the Spot fleet requests that are successfully canceled.
 	SuccessfulFleetRequests []*CancelSpotFleetRequestsSuccessItem `locationName:"successfulFleetRequestSet" locationNameList:"item" type:"list"`
 
 	// Information about the Spot fleet requests that are not successfully canceled.
 	UnsuccessfulFleetRequests []*CancelSpotFleetRequestsErrorItem `locationName:"unsuccessfulFleetRequestSet" locationNameList:"item" type:"list"`
-
-	metadataCancelSpotFleetRequestsOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelSpotFleetRequestsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7851,6 +8413,8 @@ func (s CancelSpotFleetRequestsOutput) GoString() string {
 
 // Describes a Spot fleet request that was successfully canceled.
 type CancelSpotFleetRequestsSuccessItem struct {
+	_ struct{} `type:"structure"`
+
 	// The current state of the Spot fleet request.
 	CurrentSpotFleetRequestState *string `locationName:"currentSpotFleetRequestState" type:"string" required:"true" enum:"BatchState"`
 
@@ -7859,12 +8423,6 @@ type CancelSpotFleetRequestsSuccessItem struct {
 
 	// The ID of the Spot fleet request.
 	SpotFleetRequestId *string `locationName:"spotFleetRequestId" type:"string" required:"true"`
-
-	metadataCancelSpotFleetRequestsSuccessItem `json:"-" xml:"-"`
-}
-
-type metadataCancelSpotFleetRequestsSuccessItem struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7879,6 +8437,8 @@ func (s CancelSpotFleetRequestsSuccessItem) GoString() string {
 
 // Contains the parameters for CancelSpotInstanceRequests.
 type CancelSpotInstanceRequestsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -7887,12 +8447,6 @@ type CancelSpotInstanceRequestsInput struct {
 
 	// One or more Spot instance request IDs.
 	SpotInstanceRequestIds []*string `locationName:"SpotInstanceRequestId" locationNameList:"SpotInstanceRequestId" type:"list" required:"true"`
-
-	metadataCancelSpotInstanceRequestsInput `json:"-" xml:"-"`
-}
-
-type metadataCancelSpotInstanceRequestsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7907,14 +8461,10 @@ func (s CancelSpotInstanceRequestsInput) GoString() string {
 
 // Contains the output of CancelSpotInstanceRequests.
 type CancelSpotInstanceRequestsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more Spot instance requests.
 	CancelledSpotInstanceRequests []*CancelledSpotInstanceRequest `locationName:"spotInstanceRequestSet" locationNameList:"item" type:"list"`
-
-	metadataCancelSpotInstanceRequestsOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelSpotInstanceRequestsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7929,17 +8479,13 @@ func (s CancelSpotInstanceRequestsOutput) GoString() string {
 
 // Describes a request to cancel a Spot instance.
 type CancelledSpotInstanceRequest struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the Spot instance request.
 	SpotInstanceRequestId *string `locationName:"spotInstanceRequestId" type:"string"`
 
 	// The state of the Spot instance request.
 	State *string `locationName:"state" type:"string" enum:"CancelSpotInstanceRequestState"`
-
-	metadataCancelledSpotInstanceRequest `json:"-" xml:"-"`
-}
-
-type metadataCancelledSpotInstanceRequest struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7952,8 +8498,31 @@ func (s CancelledSpotInstanceRequest) GoString() string {
 	return s.String()
 }
 
+// Describes the ClassicLink DNS support status of a VPC.
+type ClassicLinkDnsSupport struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether ClassicLink DNS support is enabled for the VPC.
+	ClassicLinkDnsSupported *bool `locationName:"classicLinkDnsSupported" type:"boolean"`
+
+	// The ID of the VPC.
+	VpcId *string `locationName:"vpcId" type:"string"`
+}
+
+// String returns the string representation
+func (s ClassicLinkDnsSupport) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ClassicLinkDnsSupport) GoString() string {
+	return s.String()
+}
+
 // Describes a linked EC2-Classic instance.
 type ClassicLinkInstance struct {
+	_ struct{} `type:"structure"`
+
 	// A list of security groups.
 	Groups []*GroupIdentifier `locationName:"groupSet" locationNameList:"item" type:"list"`
 
@@ -7965,12 +8534,6 @@ type ClassicLinkInstance struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataClassicLinkInstance `json:"-" xml:"-"`
-}
-
-type metadataClassicLinkInstance struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -7985,6 +8548,8 @@ func (s ClassicLinkInstance) GoString() string {
 
 // Describes the client-specific data.
 type ClientData struct {
+	_ struct{} `type:"structure"`
+
 	// A user-defined comment about the disk upload.
 	Comment *string `type:"string"`
 
@@ -7996,12 +8561,6 @@ type ClientData struct {
 
 	// The time that the disk upload starts.
 	UploadStart *time.Time `type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataClientData `json:"-" xml:"-"`
-}
-
-type metadataClientData struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8015,6 +8574,8 @@ func (s ClientData) GoString() string {
 }
 
 type ConfirmProductInstanceInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -8026,12 +8587,6 @@ type ConfirmProductInstanceInput struct {
 
 	// The product code. This must be a product code that you own.
 	ProductCode *string `type:"string" required:"true"`
-
-	metadataConfirmProductInstanceInput `json:"-" xml:"-"`
-}
-
-type metadataConfirmProductInstanceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8045,6 +8600,8 @@ func (s ConfirmProductInstanceInput) GoString() string {
 }
 
 type ConfirmProductInstanceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The AWS account ID of the instance owner. This is only present if the product
 	// code is attached to the instance.
 	OwnerId *string `locationName:"ownerId" type:"string"`
@@ -8052,12 +8609,6 @@ type ConfirmProductInstanceOutput struct {
 	// The return value of the request. Returns true if the specified product code
 	// is owned by the requester and associated with the specified instance.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataConfirmProductInstanceOutput `json:"-" xml:"-"`
-}
-
-type metadataConfirmProductInstanceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8072,6 +8623,8 @@ func (s ConfirmProductInstanceOutput) GoString() string {
 
 // Describes a conversion task.
 type ConversionTask struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the conversion task.
 	ConversionTaskId *string `locationName:"conversionTaskId" type:"string" required:"true"`
 
@@ -8095,12 +8648,6 @@ type ConversionTask struct {
 
 	// Any tags assigned to the task.
 	Tags []*Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	metadataConversionTask `json:"-" xml:"-"`
-}
-
-type metadataConversionTask struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8114,6 +8661,8 @@ func (s ConversionTask) GoString() string {
 }
 
 type CopyImageInput struct {
+	_ struct{} `type:"structure"`
+
 	// Unique, case-sensitive identifier you provide to ensure idempotency of the
 	// request. For more information, see How to Ensure Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html)
 	// in the Amazon Elastic Compute Cloud User Guide.
@@ -8128,6 +8677,23 @@ type CopyImageInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
+	// Specifies whether the destination snapshots of the copied image should be
+	// encrypted. The default CMK for EBS is used unless a non-default AWS Key Management
+	// Service (AWS KMS) CMK is specified with KmsKeyId. For more information, see
+	// Amazon EBS Encryption (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
+	// in the Amazon Elastic Compute Cloud User Guide.
+	Encrypted *bool `locationName:"encrypted" type:"boolean"`
+
+	// The full ARN of the AWS Key Management Service (AWS KMS) CMK to use when
+	// encrypting the snapshots of an image during a copy operation. This parameter
+	// is only required if you want to use a non-default CMK; if this parameter
+	// is not specified, the default CMK for EBS is used. The ARN contains the arn:aws:kms
+	// namespace, followed by the region of the CMK, the AWS account ID of the CMK
+	// owner, the key namespace, and then the CMK ID. For example, arn:aws:kms:us-east-1:012345678910:key/abcd1234-a123-456a-a12b-a123b4cd56ef.
+	// The specified CMK must exist in the region that the snapshot is being copied
+	// to. If a KmsKeyId is specified, the Encrypted flag must also be set.
+	KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
+
 	// The name of the new AMI in the destination region.
 	Name *string `type:"string" required:"true"`
 
@@ -8136,12 +8702,6 @@ type CopyImageInput struct {
 
 	// The name of the region that contains the AMI to copy.
 	SourceRegion *string `type:"string" required:"true"`
-
-	metadataCopyImageInput `json:"-" xml:"-"`
-}
-
-type metadataCopyImageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8155,14 +8715,10 @@ func (s CopyImageInput) GoString() string {
 }
 
 type CopyImageOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the new AMI.
 	ImageId *string `locationName:"imageId" type:"string"`
-
-	metadataCopyImageOutput `json:"-" xml:"-"`
-}
-
-type metadataCopyImageOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8176,6 +8732,8 @@ func (s CopyImageOutput) GoString() string {
 }
 
 type CopySnapshotInput struct {
+	_ struct{} `type:"structure"`
+
 	// A description for the EBS snapshot.
 	Description *string `type:"string"`
 
@@ -8233,12 +8791,6 @@ type CopySnapshotInput struct {
 
 	// The ID of the EBS snapshot to copy.
 	SourceSnapshotId *string `type:"string" required:"true"`
-
-	metadataCopySnapshotInput `json:"-" xml:"-"`
-}
-
-type metadataCopySnapshotInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8252,14 +8804,10 @@ func (s CopySnapshotInput) GoString() string {
 }
 
 type CopySnapshotOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the new snapshot.
 	SnapshotId *string `locationName:"snapshotId" type:"string"`
-
-	metadataCopySnapshotOutput `json:"-" xml:"-"`
-}
-
-type metadataCopySnapshotOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8273,6 +8821,8 @@ func (s CopySnapshotOutput) GoString() string {
 }
 
 type CreateCustomerGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// For devices that support BGP, the customer gateway's BGP ASN.
 	//
 	// Default: 65000
@@ -8290,12 +8840,6 @@ type CreateCustomerGatewayInput struct {
 
 	// The type of VPN connection that this customer gateway supports (ipsec.1).
 	Type *string `type:"string" required:"true" enum:"GatewayType"`
-
-	metadataCreateCustomerGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataCreateCustomerGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8309,14 +8853,10 @@ func (s CreateCustomerGatewayInput) GoString() string {
 }
 
 type CreateCustomerGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the customer gateway.
 	CustomerGateway *CustomerGateway `locationName:"customerGateway" type:"structure"`
-
-	metadataCreateCustomerGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateCustomerGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8330,6 +8870,8 @@ func (s CreateCustomerGatewayOutput) GoString() string {
 }
 
 type CreateDhcpOptionsInput struct {
+	_ struct{} `type:"structure"`
+
 	// A DHCP configuration option.
 	DhcpConfigurations []*NewDhcpConfiguration `locationName:"dhcpConfiguration" locationNameList:"item" type:"list" required:"true"`
 
@@ -8338,12 +8880,6 @@ type CreateDhcpOptionsInput struct {
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataCreateDhcpOptionsInput `json:"-" xml:"-"`
-}
-
-type metadataCreateDhcpOptionsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8357,14 +8893,10 @@ func (s CreateDhcpOptionsInput) GoString() string {
 }
 
 type CreateDhcpOptionsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A set of DHCP options.
 	DhcpOptions *DhcpOptions `locationName:"dhcpOptions" type:"structure"`
-
-	metadataCreateDhcpOptionsOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateDhcpOptionsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8378,6 +8910,8 @@ func (s CreateDhcpOptionsOutput) GoString() string {
 }
 
 type CreateFlowLogsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Unique, case-sensitive identifier you provide to ensure the idempotency of
 	// the request. For more information, see How to Ensure Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html).
 	ClientToken *string `type:"string"`
@@ -8397,12 +8931,6 @@ type CreateFlowLogsInput struct {
 
 	// The type of traffic to log.
 	TrafficType *string `type:"string" required:"true" enum:"TrafficType"`
-
-	metadataCreateFlowLogsInput `json:"-" xml:"-"`
-}
-
-type metadataCreateFlowLogsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8416,6 +8944,8 @@ func (s CreateFlowLogsInput) GoString() string {
 }
 
 type CreateFlowLogsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Unique, case-sensitive identifier you provide to ensure the idempotency of
 	// the request.
 	ClientToken *string `locationName:"clientToken" type:"string"`
@@ -8425,12 +8955,6 @@ type CreateFlowLogsOutput struct {
 
 	// Information about the flow logs that could not be created successfully.
 	Unsuccessful []*UnsuccessfulItem `locationName:"unsuccessful" locationNameList:"item" type:"list"`
-
-	metadataCreateFlowLogsOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateFlowLogsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8444,6 +8968,8 @@ func (s CreateFlowLogsOutput) GoString() string {
 }
 
 type CreateImageInput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more block device mappings.
 	BlockDeviceMappings []*BlockDeviceMapping `locationName:"blockDeviceMapping" locationNameList:"BlockDeviceMapping" type:"list"`
 
@@ -8472,12 +8998,6 @@ type CreateImageInput struct {
 	// down the instance before creating the image. When this option is used, file
 	// system integrity on the created image can't be guaranteed.
 	NoReboot *bool `locationName:"noReboot" type:"boolean"`
-
-	metadataCreateImageInput `json:"-" xml:"-"`
-}
-
-type metadataCreateImageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8491,14 +9011,10 @@ func (s CreateImageInput) GoString() string {
 }
 
 type CreateImageOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the new AMI.
 	ImageId *string `locationName:"imageId" type:"string"`
-
-	metadataCreateImageOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateImageOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8512,6 +9028,8 @@ func (s CreateImageOutput) GoString() string {
 }
 
 type CreateInstanceExportTaskInput struct {
+	_ struct{} `type:"structure"`
+
 	// A description for the conversion task or the resource being exported. The
 	// maximum length is 255 bytes.
 	Description *string `locationName:"description" type:"string"`
@@ -8524,12 +9042,6 @@ type CreateInstanceExportTaskInput struct {
 
 	// The target virtualization environment.
 	TargetEnvironment *string `locationName:"targetEnvironment" type:"string" enum:"ExportEnvironment"`
-
-	metadataCreateInstanceExportTaskInput `json:"-" xml:"-"`
-}
-
-type metadataCreateInstanceExportTaskInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8543,14 +9055,10 @@ func (s CreateInstanceExportTaskInput) GoString() string {
 }
 
 type CreateInstanceExportTaskOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the instance export task.
 	ExportTask *ExportTask `locationName:"exportTask" type:"structure"`
-
-	metadataCreateInstanceExportTaskOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateInstanceExportTaskOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8564,17 +9072,13 @@ func (s CreateInstanceExportTaskOutput) GoString() string {
 }
 
 type CreateInternetGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataCreateInternetGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataCreateInternetGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8588,14 +9092,10 @@ func (s CreateInternetGatewayInput) GoString() string {
 }
 
 type CreateInternetGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the Internet gateway.
 	InternetGateway *InternetGateway `locationName:"internetGateway" type:"structure"`
-
-	metadataCreateInternetGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateInternetGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8609,6 +9109,8 @@ func (s CreateInternetGatewayOutput) GoString() string {
 }
 
 type CreateKeyPairInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -8619,12 +9121,6 @@ type CreateKeyPairInput struct {
 	//
 	// Constraints: Up to 255 ASCII characters
 	KeyName *string `type:"string" required:"true"`
-
-	metadataCreateKeyPairInput `json:"-" xml:"-"`
-}
-
-type metadataCreateKeyPairInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8639,6 +9135,8 @@ func (s CreateKeyPairInput) GoString() string {
 
 // Describes a key pair.
 type CreateKeyPairOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The SHA-1 digest of the DER encoded private key.
 	KeyFingerprint *string `locationName:"keyFingerprint" type:"string"`
 
@@ -8647,12 +9145,6 @@ type CreateKeyPairOutput struct {
 
 	// The name of the key pair.
 	KeyName *string `locationName:"keyName" type:"string"`
-
-	metadataCreateKeyPairOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateKeyPairOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8665,7 +9157,58 @@ func (s CreateKeyPairOutput) GoString() string {
 	return s.String()
 }
 
+type CreateNatGatewayInput struct {
+	_ struct{} `type:"structure"`
+
+	// The allocation ID of an Elastic IP address to associate with the NAT gateway.
+	// If the Elastic IP address is associated with another resource, you must first
+	// disassociate it.
+	AllocationId *string `type:"string" required:"true"`
+
+	// Unique, case-sensitive identifier you provide to ensure the idempotency of
+	// the request. For more information, see How to Ensure Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	//
+	// Constraint: Maximum 64 ASCII characters.
+	ClientToken *string `type:"string"`
+
+	// The subnet in which to create the NAT gateway.
+	SubnetId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateNatGatewayInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateNatGatewayInput) GoString() string {
+	return s.String()
+}
+
+type CreateNatGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Unique, case-sensitive identifier to ensure the idempotency of the request.
+	// Only returned if a client token was provided in the request.
+	ClientToken *string `locationName:"clientToken" type:"string"`
+
+	// Information about the NAT gateway.
+	NatGateway *NatGateway `locationName:"natGateway" type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateNatGatewayOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateNatGatewayOutput) GoString() string {
+	return s.String()
+}
+
 type CreateNetworkAclEntryInput struct {
+	_ struct{} `type:"structure"`
+
 	// The network range to allow or deny, in CIDR notation (for example 172.16.0.0/24).
 	CidrBlock *string `locationName:"cidrBlock" type:"string" required:"true"`
 
@@ -8700,12 +9243,6 @@ type CreateNetworkAclEntryInput struct {
 	//
 	// Constraints: Positive integer from 1 to 32766
 	RuleNumber *int64 `locationName:"ruleNumber" type:"integer" required:"true"`
-
-	metadataCreateNetworkAclEntryInput `json:"-" xml:"-"`
-}
-
-type metadataCreateNetworkAclEntryInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8719,11 +9256,7 @@ func (s CreateNetworkAclEntryInput) GoString() string {
 }
 
 type CreateNetworkAclEntryOutput struct {
-	metadataCreateNetworkAclEntryOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateNetworkAclEntryOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -8737,6 +9270,8 @@ func (s CreateNetworkAclEntryOutput) GoString() string {
 }
 
 type CreateNetworkAclInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -8745,12 +9280,6 @@ type CreateNetworkAclInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataCreateNetworkAclInput `json:"-" xml:"-"`
-}
-
-type metadataCreateNetworkAclInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8764,14 +9293,10 @@ func (s CreateNetworkAclInput) GoString() string {
 }
 
 type CreateNetworkAclOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the network ACL.
 	NetworkAcl *NetworkAcl `locationName:"networkAcl" type:"structure"`
-
-	metadataCreateNetworkAclOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateNetworkAclOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8785,6 +9310,8 @@ func (s CreateNetworkAclOutput) GoString() string {
 }
 
 type CreateNetworkInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// A description for the network interface.
 	Description *string `locationName:"description" type:"string"`
 
@@ -8819,12 +9346,6 @@ type CreateNetworkInterfaceInput struct {
 
 	// The ID of the subnet to associate with the network interface.
 	SubnetId *string `locationName:"subnetId" type:"string" required:"true"`
-
-	metadataCreateNetworkInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataCreateNetworkInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8838,14 +9359,10 @@ func (s CreateNetworkInterfaceInput) GoString() string {
 }
 
 type CreateNetworkInterfaceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the network interface.
 	NetworkInterface *NetworkInterface `locationName:"networkInterface" type:"structure"`
-
-	metadataCreateNetworkInterfaceOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateNetworkInterfaceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8859,6 +9376,8 @@ func (s CreateNetworkInterfaceOutput) GoString() string {
 }
 
 type CreatePlacementGroupInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -8872,12 +9391,6 @@ type CreatePlacementGroupInput struct {
 
 	// The placement strategy.
 	Strategy *string `locationName:"strategy" type:"string" required:"true" enum:"PlacementStrategy"`
-
-	metadataCreatePlacementGroupInput `json:"-" xml:"-"`
-}
-
-type metadataCreatePlacementGroupInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8891,11 +9404,7 @@ func (s CreatePlacementGroupInput) GoString() string {
 }
 
 type CreatePlacementGroupOutput struct {
-	metadataCreatePlacementGroupOutput `json:"-" xml:"-"`
-}
-
-type metadataCreatePlacementGroupOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -8909,6 +9418,8 @@ func (s CreatePlacementGroupOutput) GoString() string {
 }
 
 type CreateReservedInstancesListingInput struct {
+	_ struct{} `type:"structure"`
+
 	// Unique, case-sensitive identifier you provide to ensure idempotency of your
 	// listings. This helps avoid duplicate listings. For more information, see
 	// Ensuring Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
@@ -8926,12 +9437,6 @@ type CreateReservedInstancesListingInput struct {
 
 	// The ID of the active Reserved Instance.
 	ReservedInstancesId *string `locationName:"reservedInstancesId" type:"string" required:"true"`
-
-	metadataCreateReservedInstancesListingInput `json:"-" xml:"-"`
-}
-
-type metadataCreateReservedInstancesListingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8945,14 +9450,10 @@ func (s CreateReservedInstancesListingInput) GoString() string {
 }
 
 type CreateReservedInstancesListingOutput struct {
-	// Information about the Reserved Instances listing.
+	_ struct{} `type:"structure"`
+
+	// Information about the Reserved Instance listing.
 	ReservedInstancesListings []*ReservedInstancesListing `locationName:"reservedInstancesListingsSet" locationNameList:"item" type:"list"`
-
-	metadataCreateReservedInstancesListingOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateReservedInstancesListingOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -8966,6 +9467,8 @@ func (s CreateReservedInstancesListingOutput) GoString() string {
 }
 
 type CreateRouteInput struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR address block used for the destination match. Routing decisions
 	// are based on the most specific match.
 	DestinationCidrBlock *string `locationName:"destinationCidrBlock" type:"string" required:"true"`
@@ -8984,6 +9487,9 @@ type CreateRouteInput struct {
 	// an instance ID unless exactly one network interface is attached.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
+	// The ID of a NAT gateway.
+	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
+
 	// The ID of a network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
 
@@ -8992,12 +9498,6 @@ type CreateRouteInput struct {
 
 	// The ID of a VPC peering connection.
 	VpcPeeringConnectionId *string `locationName:"vpcPeeringConnectionId" type:"string"`
-
-	metadataCreateRouteInput `json:"-" xml:"-"`
-}
-
-type metadataCreateRouteInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9011,14 +9511,10 @@ func (s CreateRouteInput) GoString() string {
 }
 
 type CreateRouteOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns true if the request succeeds; otherwise, it returns an error.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataCreateRouteOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateRouteOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9032,6 +9528,8 @@ func (s CreateRouteOutput) GoString() string {
 }
 
 type CreateRouteTableInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -9040,12 +9538,6 @@ type CreateRouteTableInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataCreateRouteTableInput `json:"-" xml:"-"`
-}
-
-type metadataCreateRouteTableInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9059,14 +9551,10 @@ func (s CreateRouteTableInput) GoString() string {
 }
 
 type CreateRouteTableOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the route table.
 	RouteTable *RouteTable `locationName:"routeTable" type:"structure"`
-
-	metadataCreateRouteTableOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateRouteTableOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9080,13 +9568,15 @@ func (s CreateRouteTableOutput) GoString() string {
 }
 
 type CreateSecurityGroupInput struct {
+	_ struct{} `type:"structure"`
+
 	// A description for the security group. This is informational only.
 	//
 	// Constraints: Up to 255 characters in length
 	//
 	// Constraints for EC2-Classic: ASCII characters
 	//
-	// Constraints for EC2-VPC: a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=&;{}!$*
+	// Constraints for EC2-VPC: a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=;{}!$*
 	Description *string `locationName:"GroupDescription" type:"string" required:"true"`
 
 	// Checks whether you have the required permissions for the action, without
@@ -9101,17 +9591,11 @@ type CreateSecurityGroupInput struct {
 	//
 	// Constraints for EC2-Classic: ASCII characters
 	//
-	// Constraints for EC2-VPC: a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=&;{}!$*
+	// Constraints for EC2-VPC: a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=;{}!$*
 	GroupName *string `type:"string" required:"true"`
 
 	// [EC2-VPC] The ID of the VPC. Required for EC2-VPC.
 	VpcId *string `type:"string"`
-
-	metadataCreateSecurityGroupInput `json:"-" xml:"-"`
-}
-
-type metadataCreateSecurityGroupInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9125,14 +9609,10 @@ func (s CreateSecurityGroupInput) GoString() string {
 }
 
 type CreateSecurityGroupOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the security group.
 	GroupId *string `locationName:"groupId" type:"string"`
-
-	metadataCreateSecurityGroupOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateSecurityGroupOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9146,6 +9626,8 @@ func (s CreateSecurityGroupOutput) GoString() string {
 }
 
 type CreateSnapshotInput struct {
+	_ struct{} `type:"structure"`
+
 	// A description for the snapshot.
 	Description *string `type:"string"`
 
@@ -9157,12 +9639,6 @@ type CreateSnapshotInput struct {
 
 	// The ID of the EBS volume.
 	VolumeId *string `type:"string" required:"true"`
-
-	metadataCreateSnapshotInput `json:"-" xml:"-"`
-}
-
-type metadataCreateSnapshotInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9177,6 +9653,8 @@ func (s CreateSnapshotInput) GoString() string {
 
 // Contains the parameters for CreateSpotDatafeedSubscription.
 type CreateSpotDatafeedSubscriptionInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon S3 bucket in which to store the Spot instance data feed.
 	Bucket *string `locationName:"bucket" type:"string" required:"true"`
 
@@ -9188,12 +9666,6 @@ type CreateSpotDatafeedSubscriptionInput struct {
 
 	// A prefix for the data feed file names.
 	Prefix *string `locationName:"prefix" type:"string"`
-
-	metadataCreateSpotDatafeedSubscriptionInput `json:"-" xml:"-"`
-}
-
-type metadataCreateSpotDatafeedSubscriptionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9208,14 +9680,10 @@ func (s CreateSpotDatafeedSubscriptionInput) GoString() string {
 
 // Contains the output of CreateSpotDatafeedSubscription.
 type CreateSpotDatafeedSubscriptionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Spot instance data feed subscription.
 	SpotDatafeedSubscription *SpotDatafeedSubscription `locationName:"spotDatafeedSubscription" type:"structure"`
-
-	metadataCreateSpotDatafeedSubscriptionOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateSpotDatafeedSubscriptionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9229,6 +9697,8 @@ func (s CreateSpotDatafeedSubscriptionOutput) GoString() string {
 }
 
 type CreateSubnetInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone for the subnet.
 	//
 	// Default: AWS selects one for you. If you create more than one subnet in
@@ -9246,12 +9716,6 @@ type CreateSubnetInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `type:"string" required:"true"`
-
-	metadataCreateSubnetInput `json:"-" xml:"-"`
-}
-
-type metadataCreateSubnetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9265,14 +9729,10 @@ func (s CreateSubnetInput) GoString() string {
 }
 
 type CreateSubnetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the subnet.
 	Subnet *Subnet `locationName:"subnet" type:"structure"`
-
-	metadataCreateSubnetOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateSubnetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9286,6 +9746,8 @@ func (s CreateSubnetOutput) GoString() string {
 }
 
 type CreateTagsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -9299,12 +9761,6 @@ type CreateTagsInput struct {
 	// the tag to have a value, specify the parameter with no value, and we set
 	// the value to an empty string.
 	Tags []*Tag `locationName:"Tag" locationNameList:"item" type:"list" required:"true"`
-
-	metadataCreateTagsInput `json:"-" xml:"-"`
-}
-
-type metadataCreateTagsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9318,11 +9774,7 @@ func (s CreateTagsInput) GoString() string {
 }
 
 type CreateTagsOutput struct {
-	metadataCreateTagsOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateTagsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -9336,6 +9788,8 @@ func (s CreateTagsOutput) GoString() string {
 }
 
 type CreateVolumeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone in which to create the volume. Use DescribeAvailabilityZones
 	// to list the Availability Zones that are currently available to you.
 	AvailabilityZone *string `type:"string" required:"true"`
@@ -9389,12 +9843,6 @@ type CreateVolumeInput struct {
 	//
 	// Default: standard
 	VolumeType *string `type:"string" enum:"VolumeType"`
-
-	metadataCreateVolumeInput `json:"-" xml:"-"`
-}
-
-type metadataCreateVolumeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9410,6 +9858,8 @@ func (s CreateVolumeInput) GoString() string {
 // Describes the user or group to be added or removed from the permissions for
 // a volume.
 type CreateVolumePermission struct {
+	_ struct{} `type:"structure"`
+
 	// The specific group that is to be added or removed from a volume's list of
 	// create volume permissions.
 	Group *string `locationName:"group" type:"string" enum:"PermissionGroup"`
@@ -9417,12 +9867,6 @@ type CreateVolumePermission struct {
 	// The specific AWS account ID that is to be added or removed from a volume's
 	// list of create volume permissions.
 	UserId *string `locationName:"userId" type:"string"`
-
-	metadataCreateVolumePermission `json:"-" xml:"-"`
-}
-
-type metadataCreateVolumePermission struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9437,6 +9881,8 @@ func (s CreateVolumePermission) GoString() string {
 
 // Describes modifications to the permissions for a volume.
 type CreateVolumePermissionModifications struct {
+	_ struct{} `type:"structure"`
+
 	// Adds a specific AWS account ID or group to a volume's list of create volume
 	// permissions.
 	Add []*CreateVolumePermission `locationNameList:"item" type:"list"`
@@ -9444,12 +9890,6 @@ type CreateVolumePermissionModifications struct {
 	// Removes a specific AWS account ID or group from a volume's list of create
 	// volume permissions.
 	Remove []*CreateVolumePermission `locationNameList:"item" type:"list"`
-
-	metadataCreateVolumePermissionModifications `json:"-" xml:"-"`
-}
-
-type metadataCreateVolumePermissionModifications struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9463,6 +9903,8 @@ func (s CreateVolumePermissionModifications) GoString() string {
 }
 
 type CreateVpcEndpointInput struct {
+	_ struct{} `type:"structure"`
+
 	// Unique, case-sensitive identifier you provide to ensure the idempotency of
 	// the request. For more information, see How to Ensure Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
 	ClientToken *string `type:"string"`
@@ -9487,12 +9929,6 @@ type CreateVpcEndpointInput struct {
 
 	// The ID of the VPC in which the endpoint will be used.
 	VpcId *string `type:"string" required:"true"`
-
-	metadataCreateVpcEndpointInput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpcEndpointInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9506,18 +9942,14 @@ func (s CreateVpcEndpointInput) GoString() string {
 }
 
 type CreateVpcEndpointOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Unique, case-sensitive identifier you provide to ensure the idempotency of
 	// the request.
 	ClientToken *string `locationName:"clientToken" type:"string"`
 
 	// Information about the endpoint.
 	VpcEndpoint *VpcEndpoint `locationName:"vpcEndpoint" type:"structure"`
-
-	metadataCreateVpcEndpointOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpcEndpointOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9531,6 +9963,8 @@ func (s CreateVpcEndpointOutput) GoString() string {
 }
 
 type CreateVpcInput struct {
+	_ struct{} `type:"structure"`
+
 	// The network range for the VPC, in CIDR notation. For example, 10.0.0.0/16.
 	CidrBlock *string `type:"string" required:"true"`
 
@@ -9546,14 +9980,11 @@ type CreateVpcInput struct {
 	// tenancy instances regardless of the tenancy assigned to the instance at launch.
 	// Dedicated tenancy instances run on single-tenant hardware.
 	//
+	// Important: The host value cannot be used with this parameter. Use the default
+	// or dedicated values only.
+	//
 	// Default: default
 	InstanceTenancy *string `locationName:"instanceTenancy" type:"string" enum:"Tenancy"`
-
-	metadataCreateVpcInput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpcInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9567,14 +9998,10 @@ func (s CreateVpcInput) GoString() string {
 }
 
 type CreateVpcOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the VPC.
 	Vpc *Vpc `locationName:"vpc" type:"structure"`
-
-	metadataCreateVpcOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpcOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9588,6 +10015,8 @@ func (s CreateVpcOutput) GoString() string {
 }
 
 type CreateVpcPeeringConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -9604,12 +10033,6 @@ type CreateVpcPeeringConnectionInput struct {
 
 	// The ID of the requester VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataCreateVpcPeeringConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpcPeeringConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9623,14 +10046,10 @@ func (s CreateVpcPeeringConnectionInput) GoString() string {
 }
 
 type CreateVpcPeeringConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the VPC peering connection.
 	VpcPeeringConnection *VpcPeeringConnection `locationName:"vpcPeeringConnection" type:"structure"`
-
-	metadataCreateVpcPeeringConnectionOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpcPeeringConnectionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9644,6 +10063,8 @@ func (s CreateVpcPeeringConnectionOutput) GoString() string {
 }
 
 type CreateVpnConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the customer gateway.
 	CustomerGatewayId *string `type:"string" required:"true"`
 
@@ -9665,12 +10086,6 @@ type CreateVpnConnectionInput struct {
 
 	// The ID of the virtual private gateway.
 	VpnGatewayId *string `type:"string" required:"true"`
-
-	metadataCreateVpnConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpnConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9684,14 +10099,10 @@ func (s CreateVpnConnectionInput) GoString() string {
 }
 
 type CreateVpnConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the VPN connection.
 	VpnConnection *VpnConnection `locationName:"vpnConnection" type:"structure"`
-
-	metadataCreateVpnConnectionOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpnConnectionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9705,17 +10116,13 @@ func (s CreateVpnConnectionOutput) GoString() string {
 }
 
 type CreateVpnConnectionRouteInput struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR block associated with the local subnet of the customer network.
 	DestinationCidrBlock *string `type:"string" required:"true"`
 
 	// The ID of the VPN connection.
 	VpnConnectionId *string `type:"string" required:"true"`
-
-	metadataCreateVpnConnectionRouteInput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpnConnectionRouteInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9729,11 +10136,7 @@ func (s CreateVpnConnectionRouteInput) GoString() string {
 }
 
 type CreateVpnConnectionRouteOutput struct {
-	metadataCreateVpnConnectionRouteOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpnConnectionRouteOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -9747,6 +10150,8 @@ func (s CreateVpnConnectionRouteOutput) GoString() string {
 }
 
 type CreateVpnGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone for the virtual private gateway.
 	AvailabilityZone *string `type:"string"`
 
@@ -9758,12 +10163,6 @@ type CreateVpnGatewayInput struct {
 
 	// The type of VPN connection this virtual private gateway supports.
 	Type *string `type:"string" required:"true" enum:"GatewayType"`
-
-	metadataCreateVpnGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpnGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9777,14 +10176,10 @@ func (s CreateVpnGatewayInput) GoString() string {
 }
 
 type CreateVpnGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the virtual private gateway.
 	VpnGateway *VpnGateway `locationName:"vpnGateway" type:"structure"`
-
-	metadataCreateVpnGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateVpnGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9799,6 +10194,8 @@ func (s CreateVpnGatewayOutput) GoString() string {
 
 // Describes a customer gateway.
 type CustomerGateway struct {
+	_ struct{} `type:"structure"`
+
 	// The customer gateway's Border Gateway Protocol (BGP) Autonomous System Number
 	// (ASN).
 	BgpAsn *string `locationName:"bgpAsn" type:"string"`
@@ -9818,12 +10215,6 @@ type CustomerGateway struct {
 
 	// The type of VPN connection the customer gateway supports (ipsec.1).
 	Type *string `locationName:"type" type:"string"`
-
-	metadataCustomerGateway `json:"-" xml:"-"`
-}
-
-type metadataCustomerGateway struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9837,6 +10228,8 @@ func (s CustomerGateway) GoString() string {
 }
 
 type DeleteCustomerGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the customer gateway.
 	CustomerGatewayId *string `type:"string" required:"true"`
 
@@ -9845,12 +10238,6 @@ type DeleteCustomerGatewayInput struct {
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataDeleteCustomerGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteCustomerGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9864,11 +10251,7 @@ func (s DeleteCustomerGatewayInput) GoString() string {
 }
 
 type DeleteCustomerGatewayOutput struct {
-	metadataDeleteCustomerGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteCustomerGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -9882,6 +10265,8 @@ func (s DeleteCustomerGatewayOutput) GoString() string {
 }
 
 type DeleteDhcpOptionsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the DHCP options set.
 	DhcpOptionsId *string `type:"string" required:"true"`
 
@@ -9890,12 +10275,6 @@ type DeleteDhcpOptionsInput struct {
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataDeleteDhcpOptionsInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteDhcpOptionsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9909,11 +10288,7 @@ func (s DeleteDhcpOptionsInput) GoString() string {
 }
 
 type DeleteDhcpOptionsOutput struct {
-	metadataDeleteDhcpOptionsOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteDhcpOptionsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -9927,14 +10302,10 @@ func (s DeleteDhcpOptionsOutput) GoString() string {
 }
 
 type DeleteFlowLogsInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more flow log IDs.
 	FlowLogIds []*string `locationName:"FlowLogId" locationNameList:"item" type:"list" required:"true"`
-
-	metadataDeleteFlowLogsInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteFlowLogsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9948,14 +10319,10 @@ func (s DeleteFlowLogsInput) GoString() string {
 }
 
 type DeleteFlowLogsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the flow logs that could not be deleted successfully.
 	Unsuccessful []*UnsuccessfulItem `locationName:"unsuccessful" locationNameList:"item" type:"list"`
-
-	metadataDeleteFlowLogsOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteFlowLogsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9969,6 +10336,8 @@ func (s DeleteFlowLogsOutput) GoString() string {
 }
 
 type DeleteInternetGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -9977,12 +10346,6 @@ type DeleteInternetGatewayInput struct {
 
 	// The ID of the Internet gateway.
 	InternetGatewayId *string `locationName:"internetGatewayId" type:"string" required:"true"`
-
-	metadataDeleteInternetGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteInternetGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -9996,11 +10359,7 @@ func (s DeleteInternetGatewayInput) GoString() string {
 }
 
 type DeleteInternetGatewayOutput struct {
-	metadataDeleteInternetGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteInternetGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10014,6 +10373,8 @@ func (s DeleteInternetGatewayOutput) GoString() string {
 }
 
 type DeleteKeyPairInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10022,12 +10383,6 @@ type DeleteKeyPairInput struct {
 
 	// The name of the key pair.
 	KeyName *string `type:"string" required:"true"`
-
-	metadataDeleteKeyPairInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteKeyPairInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10041,11 +10396,7 @@ func (s DeleteKeyPairInput) GoString() string {
 }
 
 type DeleteKeyPairOutput struct {
-	metadataDeleteKeyPairOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteKeyPairOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10058,7 +10409,43 @@ func (s DeleteKeyPairOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteNatGatewayInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the NAT gateway.
+	NatGatewayId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteNatGatewayInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteNatGatewayInput) GoString() string {
+	return s.String()
+}
+
+type DeleteNatGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the NAT gateway.
+	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
+}
+
+// String returns the string representation
+func (s DeleteNatGatewayOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteNatGatewayOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteNetworkAclEntryInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10073,12 +10460,6 @@ type DeleteNetworkAclEntryInput struct {
 
 	// The rule number of the entry to delete.
 	RuleNumber *int64 `locationName:"ruleNumber" type:"integer" required:"true"`
-
-	metadataDeleteNetworkAclEntryInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteNetworkAclEntryInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10092,11 +10473,7 @@ func (s DeleteNetworkAclEntryInput) GoString() string {
 }
 
 type DeleteNetworkAclEntryOutput struct {
-	metadataDeleteNetworkAclEntryOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteNetworkAclEntryOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10110,6 +10487,8 @@ func (s DeleteNetworkAclEntryOutput) GoString() string {
 }
 
 type DeleteNetworkAclInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10118,12 +10497,6 @@ type DeleteNetworkAclInput struct {
 
 	// The ID of the network ACL.
 	NetworkAclId *string `locationName:"networkAclId" type:"string" required:"true"`
-
-	metadataDeleteNetworkAclInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteNetworkAclInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10137,11 +10510,7 @@ func (s DeleteNetworkAclInput) GoString() string {
 }
 
 type DeleteNetworkAclOutput struct {
-	metadataDeleteNetworkAclOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteNetworkAclOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10155,6 +10524,8 @@ func (s DeleteNetworkAclOutput) GoString() string {
 }
 
 type DeleteNetworkInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10163,12 +10534,6 @@ type DeleteNetworkInterfaceInput struct {
 
 	// The ID of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string" required:"true"`
-
-	metadataDeleteNetworkInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteNetworkInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10182,11 +10547,7 @@ func (s DeleteNetworkInterfaceInput) GoString() string {
 }
 
 type DeleteNetworkInterfaceOutput struct {
-	metadataDeleteNetworkInterfaceOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteNetworkInterfaceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10200,6 +10561,8 @@ func (s DeleteNetworkInterfaceOutput) GoString() string {
 }
 
 type DeletePlacementGroupInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10208,12 +10571,6 @@ type DeletePlacementGroupInput struct {
 
 	// The name of the placement group.
 	GroupName *string `locationName:"groupName" type:"string" required:"true"`
-
-	metadataDeletePlacementGroupInput `json:"-" xml:"-"`
-}
-
-type metadataDeletePlacementGroupInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10227,11 +10584,7 @@ func (s DeletePlacementGroupInput) GoString() string {
 }
 
 type DeletePlacementGroupOutput struct {
-	metadataDeletePlacementGroupOutput `json:"-" xml:"-"`
-}
-
-type metadataDeletePlacementGroupOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10245,6 +10598,8 @@ func (s DeletePlacementGroupOutput) GoString() string {
 }
 
 type DeleteRouteInput struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR range for the route. The value you specify must match the CIDR for
 	// the route exactly.
 	DestinationCidrBlock *string `locationName:"destinationCidrBlock" type:"string" required:"true"`
@@ -10257,12 +10612,6 @@ type DeleteRouteInput struct {
 
 	// The ID of the route table.
 	RouteTableId *string `locationName:"routeTableId" type:"string" required:"true"`
-
-	metadataDeleteRouteInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteRouteInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10276,11 +10625,7 @@ func (s DeleteRouteInput) GoString() string {
 }
 
 type DeleteRouteOutput struct {
-	metadataDeleteRouteOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteRouteOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10294,6 +10639,8 @@ func (s DeleteRouteOutput) GoString() string {
 }
 
 type DeleteRouteTableInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10302,12 +10649,6 @@ type DeleteRouteTableInput struct {
 
 	// The ID of the route table.
 	RouteTableId *string `locationName:"routeTableId" type:"string" required:"true"`
-
-	metadataDeleteRouteTableInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteRouteTableInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10321,11 +10662,7 @@ func (s DeleteRouteTableInput) GoString() string {
 }
 
 type DeleteRouteTableOutput struct {
-	metadataDeleteRouteTableOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteRouteTableOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10339,6 +10676,8 @@ func (s DeleteRouteTableOutput) GoString() string {
 }
 
 type DeleteSecurityGroupInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10351,12 +10690,6 @@ type DeleteSecurityGroupInput struct {
 	// [EC2-Classic, default VPC] The name of the security group. You can specify
 	// either the security group name or the security group ID.
 	GroupName *string `type:"string"`
-
-	metadataDeleteSecurityGroupInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSecurityGroupInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10370,11 +10703,7 @@ func (s DeleteSecurityGroupInput) GoString() string {
 }
 
 type DeleteSecurityGroupOutput struct {
-	metadataDeleteSecurityGroupOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSecurityGroupOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10388,6 +10717,8 @@ func (s DeleteSecurityGroupOutput) GoString() string {
 }
 
 type DeleteSnapshotInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10396,12 +10727,6 @@ type DeleteSnapshotInput struct {
 
 	// The ID of the EBS snapshot.
 	SnapshotId *string `type:"string" required:"true"`
-
-	metadataDeleteSnapshotInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSnapshotInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10415,11 +10740,7 @@ func (s DeleteSnapshotInput) GoString() string {
 }
 
 type DeleteSnapshotOutput struct {
-	metadataDeleteSnapshotOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSnapshotOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10434,17 +10755,13 @@ func (s DeleteSnapshotOutput) GoString() string {
 
 // Contains the parameters for DeleteSpotDatafeedSubscription.
 type DeleteSpotDatafeedSubscriptionInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataDeleteSpotDatafeedSubscriptionInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSpotDatafeedSubscriptionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10458,11 +10775,7 @@ func (s DeleteSpotDatafeedSubscriptionInput) GoString() string {
 }
 
 type DeleteSpotDatafeedSubscriptionOutput struct {
-	metadataDeleteSpotDatafeedSubscriptionOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSpotDatafeedSubscriptionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10476,6 +10789,8 @@ func (s DeleteSpotDatafeedSubscriptionOutput) GoString() string {
 }
 
 type DeleteSubnetInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10484,12 +10799,6 @@ type DeleteSubnetInput struct {
 
 	// The ID of the subnet.
 	SubnetId *string `type:"string" required:"true"`
-
-	metadataDeleteSubnetInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSubnetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10503,11 +10812,7 @@ func (s DeleteSubnetInput) GoString() string {
 }
 
 type DeleteSubnetOutput struct {
-	metadataDeleteSubnetOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSubnetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10521,6 +10826,8 @@ func (s DeleteSubnetOutput) GoString() string {
 }
 
 type DeleteTagsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10535,12 +10842,6 @@ type DeleteTagsInput struct {
 	// tag regardless of its value. If you specify this parameter with an empty
 	// string as the value, we delete the key only if its value is an empty string.
 	Tags []*Tag `locationName:"tag" locationNameList:"item" type:"list"`
-
-	metadataDeleteTagsInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteTagsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10554,11 +10855,7 @@ func (s DeleteTagsInput) GoString() string {
 }
 
 type DeleteTagsOutput struct {
-	metadataDeleteTagsOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteTagsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10572,6 +10869,8 @@ func (s DeleteTagsOutput) GoString() string {
 }
 
 type DeleteVolumeInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10580,12 +10879,6 @@ type DeleteVolumeInput struct {
 
 	// The ID of the volume.
 	VolumeId *string `type:"string" required:"true"`
-
-	metadataDeleteVolumeInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVolumeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10599,11 +10892,7 @@ func (s DeleteVolumeInput) GoString() string {
 }
 
 type DeleteVolumeOutput struct {
-	metadataDeleteVolumeOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVolumeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10617,6 +10906,8 @@ func (s DeleteVolumeOutput) GoString() string {
 }
 
 type DeleteVpcEndpointsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10625,12 +10916,6 @@ type DeleteVpcEndpointsInput struct {
 
 	// One or more endpoint IDs.
 	VpcEndpointIds []*string `locationName:"VpcEndpointId" locationNameList:"item" type:"list" required:"true"`
-
-	metadataDeleteVpcEndpointsInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpcEndpointsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10644,14 +10929,10 @@ func (s DeleteVpcEndpointsInput) GoString() string {
 }
 
 type DeleteVpcEndpointsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the endpoints that were not successfully deleted.
 	Unsuccessful []*UnsuccessfulItem `locationName:"unsuccessful" locationNameList:"item" type:"list"`
-
-	metadataDeleteVpcEndpointsOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpcEndpointsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10665,6 +10946,8 @@ func (s DeleteVpcEndpointsOutput) GoString() string {
 }
 
 type DeleteVpcInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10673,12 +10956,6 @@ type DeleteVpcInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `type:"string" required:"true"`
-
-	metadataDeleteVpcInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpcInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10692,11 +10969,7 @@ func (s DeleteVpcInput) GoString() string {
 }
 
 type DeleteVpcOutput struct {
-	metadataDeleteVpcOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpcOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10710,6 +10983,8 @@ func (s DeleteVpcOutput) GoString() string {
 }
 
 type DeleteVpcPeeringConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10718,12 +10993,6 @@ type DeleteVpcPeeringConnectionInput struct {
 
 	// The ID of the VPC peering connection.
 	VpcPeeringConnectionId *string `locationName:"vpcPeeringConnectionId" type:"string" required:"true"`
-
-	metadataDeleteVpcPeeringConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpcPeeringConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10737,14 +11006,10 @@ func (s DeleteVpcPeeringConnectionInput) GoString() string {
 }
 
 type DeleteVpcPeeringConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns true if the request succeeds; otherwise, it returns an error.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataDeleteVpcPeeringConnectionOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpcPeeringConnectionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10758,6 +11023,8 @@ func (s DeleteVpcPeeringConnectionOutput) GoString() string {
 }
 
 type DeleteVpnConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10766,12 +11033,6 @@ type DeleteVpnConnectionInput struct {
 
 	// The ID of the VPN connection.
 	VpnConnectionId *string `type:"string" required:"true"`
-
-	metadataDeleteVpnConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpnConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10785,11 +11046,7 @@ func (s DeleteVpnConnectionInput) GoString() string {
 }
 
 type DeleteVpnConnectionOutput struct {
-	metadataDeleteVpnConnectionOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpnConnectionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10803,17 +11060,13 @@ func (s DeleteVpnConnectionOutput) GoString() string {
 }
 
 type DeleteVpnConnectionRouteInput struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR block associated with the local subnet of the customer network.
 	DestinationCidrBlock *string `type:"string" required:"true"`
 
 	// The ID of the VPN connection.
 	VpnConnectionId *string `type:"string" required:"true"`
-
-	metadataDeleteVpnConnectionRouteInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpnConnectionRouteInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10827,11 +11080,7 @@ func (s DeleteVpnConnectionRouteInput) GoString() string {
 }
 
 type DeleteVpnConnectionRouteOutput struct {
-	metadataDeleteVpnConnectionRouteOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpnConnectionRouteOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10845,6 +11094,8 @@ func (s DeleteVpnConnectionRouteOutput) GoString() string {
 }
 
 type DeleteVpnGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10853,12 +11104,6 @@ type DeleteVpnGatewayInput struct {
 
 	// The ID of the virtual private gateway.
 	VpnGatewayId *string `type:"string" required:"true"`
-
-	metadataDeleteVpnGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpnGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10872,11 +11117,7 @@ func (s DeleteVpnGatewayInput) GoString() string {
 }
 
 type DeleteVpnGatewayOutput struct {
-	metadataDeleteVpnGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVpnGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10890,6 +11131,8 @@ func (s DeleteVpnGatewayOutput) GoString() string {
 }
 
 type DeregisterImageInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -10898,12 +11141,6 @@ type DeregisterImageInput struct {
 
 	// The ID of the AMI.
 	ImageId *string `type:"string" required:"true"`
-
-	metadataDeregisterImageInput `json:"-" xml:"-"`
-}
-
-type metadataDeregisterImageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10917,11 +11154,7 @@ func (s DeregisterImageInput) GoString() string {
 }
 
 type DeregisterImageOutput struct {
-	metadataDeregisterImageOutput `json:"-" xml:"-"`
-}
-
-type metadataDeregisterImageOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -10935,6 +11168,8 @@ func (s DeregisterImageOutput) GoString() string {
 }
 
 type DescribeAccountAttributesInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more account attribute names.
 	AttributeNames []*string `locationName:"attributeName" locationNameList:"attributeName" type:"list"`
 
@@ -10943,12 +11178,6 @@ type DescribeAccountAttributesInput struct {
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataDescribeAccountAttributesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeAccountAttributesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10962,14 +11191,10 @@ func (s DescribeAccountAttributesInput) GoString() string {
 }
 
 type DescribeAccountAttributesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more account attributes.
 	AccountAttributes []*AccountAttribute `locationName:"accountAttributeSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeAccountAttributesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeAccountAttributesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -10983,6 +11208,8 @@ func (s DescribeAccountAttributesOutput) GoString() string {
 }
 
 type DescribeAddressesInput struct {
+	_ struct{} `type:"structure"`
+
 	// [EC2-VPC] One or more allocation IDs.
 	//
 	// Default: Describes all your Elastic IP addresses.
@@ -11021,12 +11248,6 @@ type DescribeAddressesInput struct {
 	//
 	// Default: Describes all your Elastic IP addresses.
 	PublicIps []*string `locationName:"PublicIp" locationNameList:"PublicIp" type:"list"`
-
-	metadataDescribeAddressesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeAddressesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11040,14 +11261,10 @@ func (s DescribeAddressesInput) GoString() string {
 }
 
 type DescribeAddressesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more Elastic IP addresses.
 	Addresses []*Address `locationName:"addressesSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeAddressesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeAddressesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11061,6 +11278,8 @@ func (s DescribeAddressesOutput) GoString() string {
 }
 
 type DescribeAvailabilityZonesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -11082,12 +11301,6 @@ type DescribeAvailabilityZonesInput struct {
 
 	// The names of one or more Availability Zones.
 	ZoneNames []*string `locationName:"ZoneName" locationNameList:"ZoneName" type:"list"`
-
-	metadataDescribeAvailabilityZonesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeAvailabilityZonesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11101,14 +11314,10 @@ func (s DescribeAvailabilityZonesInput) GoString() string {
 }
 
 type DescribeAvailabilityZonesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more Availability Zones.
 	AvailabilityZones []*AvailabilityZone `locationName:"availabilityZoneInfo" locationNameList:"item" type:"list"`
-
-	metadataDescribeAvailabilityZonesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeAvailabilityZonesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11122,6 +11331,8 @@ func (s DescribeAvailabilityZonesOutput) GoString() string {
 }
 
 type DescribeBundleTasksInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more bundle task IDs.
 	//
 	// Default: Describes all your bundle tasks.
@@ -11157,12 +11368,6 @@ type DescribeBundleTasksInput struct {
 	//
 	//   update-time - The time of the most recent update for the task.
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
-
-	metadataDescribeBundleTasksInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeBundleTasksInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11176,14 +11381,10 @@ func (s DescribeBundleTasksInput) GoString() string {
 }
 
 type DescribeBundleTasksOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more bundle tasks.
 	BundleTasks []*BundleTask `locationName:"bundleInstanceTasksSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeBundleTasksOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeBundleTasksOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11197,6 +11398,8 @@ func (s DescribeBundleTasksOutput) GoString() string {
 }
 
 type DescribeClassicLinkInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -11239,12 +11442,6 @@ type DescribeClassicLinkInstancesInput struct {
 
 	// The token to retrieve the next page of results.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeClassicLinkInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeClassicLinkInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11258,18 +11455,14 @@ func (s DescribeClassicLinkInstancesInput) GoString() string {
 }
 
 type DescribeClassicLinkInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more linked EC2-Classic instances.
 	Instances []*ClassicLinkInstance `locationName:"instancesSet" locationNameList:"item" type:"list"`
 
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeClassicLinkInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeClassicLinkInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11283,6 +11476,8 @@ func (s DescribeClassicLinkInstancesOutput) GoString() string {
 }
 
 type DescribeConversionTasksInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more conversion task IDs.
 	ConversionTaskIds []*string `locationName:"conversionTaskId" locationNameList:"item" type:"list"`
 
@@ -11294,12 +11489,6 @@ type DescribeConversionTasksInput struct {
 
 	// One or more filters.
 	Filters []*Filter `locationName:"filter" locationNameList:"Filter" type:"list"`
-
-	metadataDescribeConversionTasksInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConversionTasksInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11313,14 +11502,10 @@ func (s DescribeConversionTasksInput) GoString() string {
 }
 
 type DescribeConversionTasksOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the conversion tasks.
 	ConversionTasks []*ConversionTask `locationName:"conversionTasks" locationNameList:"item" type:"list"`
-
-	metadataDescribeConversionTasksOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConversionTasksOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11334,6 +11519,8 @@ func (s DescribeConversionTasksOutput) GoString() string {
 }
 
 type DescribeCustomerGatewaysInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more customer gateway IDs.
 	//
 	// Default: Describes all your customer gateways.
@@ -11373,12 +11560,6 @@ type DescribeCustomerGatewaysInput struct {
 	//   tag-value - The value of a tag assigned to the resource. This filter is
 	// independent of the tag-key filter.
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
-
-	metadataDescribeCustomerGatewaysInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeCustomerGatewaysInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11392,14 +11573,10 @@ func (s DescribeCustomerGatewaysInput) GoString() string {
 }
 
 type DescribeCustomerGatewaysOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more customer gateways.
 	CustomerGateways []*CustomerGateway `locationName:"customerGatewaySet" locationNameList:"item" type:"list"`
-
-	metadataDescribeCustomerGatewaysOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeCustomerGatewaysOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11413,6 +11590,8 @@ func (s DescribeCustomerGatewaysOutput) GoString() string {
 }
 
 type DescribeDhcpOptionsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The IDs of one or more DHCP options sets.
 	//
 	// Default: Describes all your DHCP options sets.
@@ -11444,12 +11623,6 @@ type DescribeDhcpOptionsInput struct {
 	//   tag-value - The value of a tag assigned to the resource. This filter is
 	// independent of the tag-key filter.
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
-
-	metadataDescribeDhcpOptionsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeDhcpOptionsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11463,14 +11636,10 @@ func (s DescribeDhcpOptionsInput) GoString() string {
 }
 
 type DescribeDhcpOptionsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more DHCP options sets.
 	DhcpOptions []*DhcpOptions `locationName:"dhcpOptionsSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeDhcpOptionsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeDhcpOptionsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11484,14 +11653,10 @@ func (s DescribeDhcpOptionsOutput) GoString() string {
 }
 
 type DescribeExportTasksInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more export task IDs.
 	ExportTaskIds []*string `locationName:"exportTaskId" locationNameList:"ExportTaskId" type:"list"`
-
-	metadataDescribeExportTasksInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeExportTasksInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11505,14 +11670,10 @@ func (s DescribeExportTasksInput) GoString() string {
 }
 
 type DescribeExportTasksOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the export tasks.
 	ExportTasks []*ExportTask `locationName:"exportTaskSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeExportTasksOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeExportTasksOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11526,6 +11687,8 @@ func (s DescribeExportTasksOutput) GoString() string {
 }
 
 type DescribeFlowLogsInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more filters.
 	//
 	//  deliver-log-status - The status of the logs delivery (SUCCESS | FAILED).
@@ -11551,12 +11714,6 @@ type DescribeFlowLogsInput struct {
 
 	// The token to retrieve the next page of results.
 	NextToken *string `type:"string"`
-
-	metadataDescribeFlowLogsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeFlowLogsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11570,18 +11727,14 @@ func (s DescribeFlowLogsInput) GoString() string {
 }
 
 type DescribeFlowLogsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the flow logs.
 	FlowLogs []*FlowLog `locationName:"flowLogSet" locationNameList:"item" type:"list"`
 
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeFlowLogsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeFlowLogsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11594,7 +11747,109 @@ func (s DescribeFlowLogsOutput) GoString() string {
 	return s.String()
 }
 
+type DescribeHostsInput struct {
+	_ struct{} `type:"structure"`
+
+	// One or more filters.
+	//
+	//  instance-type - The instance type size that the Dedicated host is configured
+	// to support.
+	//
+	// auto-placement - Whether auto-placement is enabled or disabled (on | off).
+	//
+	// host-reservation-id - The ID of the reservation associated with this host.
+	//
+	// client-token - The idempotency token you provided when you launched the
+	// instance
+	//
+	// state- The allocation state of the Dedicated host (available | under-assessment
+	// | permanent-failure | released | released-permanent-failure).
+	//
+	// availability-zone - The Availability Zone of the host.
+	Filter []*Filter `locationName:"filter" locationNameList:"Filter" type:"list"`
+
+	// The IDs of the Dedicated hosts. The IDs are used for targeted instance launches.
+	HostIds []*string `locationName:"hostId" locationNameList:"item" type:"list"`
+
+	// The maximum number of results to return for the request in a single page.
+	// The remaining results can be seen by sending another request with the returned
+	// nextToken value. This value can be between 5 and 500; if maxResults is given
+	// a larger value than 500, you will receive an error. You cannot specify this
+	// parameter and the host IDs parameter in the same request.
+	MaxResults *int64 `locationName:"maxResults" type:"integer"`
+
+	// The token to retrieve the next page of results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeHostsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeHostsInput) GoString() string {
+	return s.String()
+}
+
+type DescribeHostsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the Dedicated hosts.
+	Hosts []*Host `locationName:"hostSet" locationNameList:"item" type:"list"`
+
+	// The token to use to retrieve the next page of results. This value is null
+	// when there are no more results to return.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeHostsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeHostsOutput) GoString() string {
+	return s.String()
+}
+
+type DescribeIdFormatInput struct {
+	_ struct{} `type:"structure"`
+
+	// The type of resource.
+	Resource *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeIdFormatInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeIdFormatInput) GoString() string {
+	return s.String()
+}
+
+type DescribeIdFormatOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the ID format for the resource.
+	Statuses []*IdFormat `locationName:"statusSet" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeIdFormatOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeIdFormatOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeImageAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The AMI attribute.
 	//
 	// Note: Depending on your account privileges, the blockDeviceMapping attribute
@@ -11610,12 +11865,6 @@ type DescribeImageAttributeInput struct {
 
 	// The ID of the AMI.
 	ImageId *string `type:"string" required:"true"`
-
-	metadataDescribeImageAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeImageAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11630,6 +11879,8 @@ func (s DescribeImageAttributeInput) GoString() string {
 
 // Describes an image attribute.
 type DescribeImageAttributeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more block device mapping entries.
 	BlockDeviceMappings []*BlockDeviceMapping `locationName:"blockDeviceMapping" locationNameList:"item" type:"list"`
 
@@ -11653,12 +11904,6 @@ type DescribeImageAttributeOutput struct {
 
 	// The value to use for a resource attribute.
 	SriovNetSupport *AttributeValue `locationName:"sriovNetSupport" type:"structure"`
-
-	metadataDescribeImageAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeImageAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11672,6 +11917,8 @@ func (s DescribeImageAttributeOutput) GoString() string {
 }
 
 type DescribeImagesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -11764,12 +12011,6 @@ type DescribeImagesInput struct {
 	// sender of the request). Omitting this option returns all images for which
 	// you have launch permissions, regardless of ownership.
 	Owners []*string `locationName:"Owner" locationNameList:"Owner" type:"list"`
-
-	metadataDescribeImagesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeImagesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11783,14 +12024,10 @@ func (s DescribeImagesInput) GoString() string {
 }
 
 type DescribeImagesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more images.
 	Images []*Image `locationName:"imagesSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeImagesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeImagesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11804,6 +12041,8 @@ func (s DescribeImagesOutput) GoString() string {
 }
 
 type DescribeImportImageTasksInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -11821,12 +12060,6 @@ type DescribeImportImageTasksInput struct {
 
 	// A token that indicates the next page of results.
 	NextToken *string `type:"string"`
-
-	metadataDescribeImportImageTasksInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeImportImageTasksInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11840,6 +12073,8 @@ func (s DescribeImportImageTasksInput) GoString() string {
 }
 
 type DescribeImportImageTasksOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of zero or more import image tasks that are currently active or were
 	// completed or canceled in the previous 7 days.
 	ImportImageTasks []*ImportImageTask `locationName:"importImageTaskSet" locationNameList:"item" type:"list"`
@@ -11847,12 +12082,6 @@ type DescribeImportImageTasksOutput struct {
 	// The token to use to get the next page of results. This value is null when
 	// there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeImportImageTasksOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeImportImageTasksOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11866,6 +12095,8 @@ func (s DescribeImportImageTasksOutput) GoString() string {
 }
 
 type DescribeImportSnapshotTasksInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -11883,12 +12114,6 @@ type DescribeImportSnapshotTasksInput struct {
 
 	// A token that indicates the next page of results.
 	NextToken *string `type:"string"`
-
-	metadataDescribeImportSnapshotTasksInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeImportSnapshotTasksInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11902,6 +12127,8 @@ func (s DescribeImportSnapshotTasksInput) GoString() string {
 }
 
 type DescribeImportSnapshotTasksOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of zero or more import snapshot tasks that are currently active or
 	// were completed or canceled in the previous 7 days.
 	ImportSnapshotTasks []*ImportSnapshotTask `locationName:"importSnapshotTaskSet" locationNameList:"item" type:"list"`
@@ -11909,12 +12136,6 @@ type DescribeImportSnapshotTasksOutput struct {
 	// The token to use to get the next page of results. This value is null when
 	// there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeImportSnapshotTasksOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeImportSnapshotTasksOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11928,6 +12149,8 @@ func (s DescribeImportSnapshotTasksOutput) GoString() string {
 }
 
 type DescribeInstanceAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The instance attribute.
 	Attribute *string `locationName:"attribute" type:"string" required:"true" enum:"InstanceAttributeName"`
 
@@ -11939,12 +12162,6 @@ type DescribeInstanceAttributeInput struct {
 
 	// The ID of the instance.
 	InstanceId *string `locationName:"instanceId" type:"string" required:"true"`
-
-	metadataDescribeInstanceAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInstanceAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -11959,6 +12176,8 @@ func (s DescribeInstanceAttributeInput) GoString() string {
 
 // Describes an instance attribute.
 type DescribeInstanceAttributeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The block device mapping of the instance.
 	BlockDeviceMappings []*InstanceBlockDeviceMapping `locationName:"blockDeviceMapping" locationNameList:"item" type:"list"`
 
@@ -12004,12 +12223,6 @@ type DescribeInstanceAttributeOutput struct {
 
 	// The Base64-encoded MIME user data.
 	UserData *AttributeValue `locationName:"userData" type:"structure"`
-
-	metadataDescribeInstanceAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInstanceAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12023,6 +12236,8 @@ func (s DescribeInstanceAttributeOutput) GoString() string {
 }
 
 type DescribeInstanceStatusInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -12089,12 +12304,6 @@ type DescribeInstanceStatusInput struct {
 
 	// The token to retrieve the next page of results.
 	NextToken *string `type:"string"`
-
-	metadataDescribeInstanceStatusInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInstanceStatusInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12108,18 +12317,14 @@ func (s DescribeInstanceStatusInput) GoString() string {
 }
 
 type DescribeInstanceStatusOutput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more instance status descriptions.
 	InstanceStatuses []*InstanceStatus `locationName:"instanceStatusSet" locationNameList:"item" type:"list"`
 
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeInstanceStatusOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInstanceStatusOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12133,6 +12338,8 @@ func (s DescribeInstanceStatusOutput) GoString() string {
 }
 
 type DescribeInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -12140,6 +12347,9 @@ type DescribeInstancesInput struct {
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
 	// One or more filters.
+	//
+	//   affinity - The affinity setting for an instance running on a Dedicated
+	// host (default | host).
 	//
 	//   architecture - The instance architecture (i386 | x86_64).
 	//
@@ -12169,6 +12379,9 @@ type DescribeInstancesInput struct {
 	//
 	//   group-name - The name of the security group for the instance. EC2-Classic
 	// only.
+	//
+	//   host-Id - The ID of the Dedicated host on which the instance is running,
+	// if applicable.
 	//
 	//   hypervisor - The hypervisor type of the instance (ovm | xen).
 	//
@@ -12254,7 +12467,7 @@ type DescribeInstancesInput struct {
 	// checking is disabled. The value must be false for the instance to perform
 	// network address translation (NAT) in your VPC.
 	//
-	//   spot-instance-request-id - The ID of the Spot Instance request.
+	//   spot-instance-request-id - The ID of the Spot instance request.
 	//
 	//   state-reason-code - The reason code for the state change.
 	//
@@ -12275,7 +12488,7 @@ type DescribeInstancesInput struct {
 	//   tag-value - The value of a tag assigned to the resource. This filter is
 	// independent of the tag-key filter.
 	//
-	//   tenancy - The tenancy of an instance (dedicated | default).
+	//   tenancy - The tenancy of an instance (dedicated | default | host).
 	//
 	//   virtualization-type - The virtualization type of the instance (paravirtual
 	// | hvm).
@@ -12305,7 +12518,7 @@ type DescribeInstancesInput struct {
 	//
 	//   network-interface.mac-address - The MAC address of the network interface.
 	//
-	//   network-interface-private-dns-name - The private DNS name of the network
+	//   network-interface.private-dns-name - The private DNS name of the network
 	// interface.
 	//
 	//   network-interface.source-dest-check - Whether the network interface performs
@@ -12379,12 +12592,6 @@ type DescribeInstancesInput struct {
 
 	// The token to request the next page of results.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12398,18 +12605,14 @@ func (s DescribeInstancesInput) GoString() string {
 }
 
 type DescribeInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
-	// One or more reservations.
+	// Zero or more reservations.
 	Reservations []*Reservation `locationName:"reservationSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12423,6 +12626,8 @@ func (s DescribeInstancesOutput) GoString() string {
 }
 
 type DescribeInternetGatewaysInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -12455,12 +12660,6 @@ type DescribeInternetGatewaysInput struct {
 	//
 	// Default: Describes all your Internet gateways.
 	InternetGatewayIds []*string `locationName:"internetGatewayId" locationNameList:"item" type:"list"`
-
-	metadataDescribeInternetGatewaysInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInternetGatewaysInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12474,14 +12673,10 @@ func (s DescribeInternetGatewaysInput) GoString() string {
 }
 
 type DescribeInternetGatewaysOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more Internet gateways.
 	InternetGateways []*InternetGateway `locationName:"internetGatewaySet" locationNameList:"item" type:"list"`
-
-	metadataDescribeInternetGatewaysOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeInternetGatewaysOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12495,6 +12690,8 @@ func (s DescribeInternetGatewaysOutput) GoString() string {
 }
 
 type DescribeKeyPairsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -12512,12 +12709,6 @@ type DescribeKeyPairsInput struct {
 	//
 	// Default: Describes all your key pairs.
 	KeyNames []*string `locationName:"KeyName" locationNameList:"KeyName" type:"list"`
-
-	metadataDescribeKeyPairsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeKeyPairsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12531,14 +12722,10 @@ func (s DescribeKeyPairsInput) GoString() string {
 }
 
 type DescribeKeyPairsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more key pairs.
 	KeyPairs []*KeyPairInfo `locationName:"keySet" locationNameList:"item" type:"list"`
-
-	metadataDescribeKeyPairsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeKeyPairsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12552,6 +12739,8 @@ func (s DescribeKeyPairsOutput) GoString() string {
 }
 
 type DescribeMovingAddressesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -12576,12 +12765,6 @@ type DescribeMovingAddressesInput struct {
 
 	// One or more Elastic IP addresses.
 	PublicIps []*string `locationName:"publicIp" locationNameList:"item" type:"list"`
-
-	metadataDescribeMovingAddressesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeMovingAddressesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12595,18 +12778,14 @@ func (s DescribeMovingAddressesInput) GoString() string {
 }
 
 type DescribeMovingAddressesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The status for each Elastic IP address.
 	MovingAddressStatuses []*MovingAddressStatus `locationName:"movingAddressStatusSet" locationNameList:"item" type:"list"`
 
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeMovingAddressesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeMovingAddressesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12619,7 +12798,70 @@ func (s DescribeMovingAddressesOutput) GoString() string {
 	return s.String()
 }
 
+type DescribeNatGatewaysInput struct {
+	_ struct{} `type:"structure"`
+
+	// One or more filters.
+	//
+	//   nat-gateway-id - The ID of the NAT gateway.
+	//
+	//   state - The state of the NAT gateway (pending | failed | available | deleting
+	// | deleted).
+	//
+	//   subnet-id - The ID of the subnet in which the NAT gateway resides.
+	//
+	//   vpc-id - The ID of the VPC in which the NAT gateway resides.
+	Filter []*Filter `locationNameList:"Filter" type:"list"`
+
+	// The maximum number of items to return for this request. The request returns
+	// a token that you can specify in a subsequent call to get the next set of
+	// results.
+	//
+	// Constraint: If the value specified is greater than 1000, we return only
+	// 1000 items.
+	MaxResults *int64 `type:"integer"`
+
+	// One or more NAT gateway IDs.
+	NatGatewayIds []*string `locationName:"NatGatewayId" locationNameList:"item" type:"list"`
+
+	// The token to retrieve the next page of results.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeNatGatewaysInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeNatGatewaysInput) GoString() string {
+	return s.String()
+}
+
+type DescribeNatGatewaysOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the NAT gateways.
+	NatGateways []*NatGateway `locationName:"natGatewaySet" locationNameList:"item" type:"list"`
+
+	// The token to use to retrieve the next page of results. This value is null
+	// when there are no more results to return.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeNatGatewaysOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeNatGatewaysOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeNetworkAclsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -12679,12 +12921,6 @@ type DescribeNetworkAclsInput struct {
 	//
 	// Default: Describes all your network ACLs.
 	NetworkAclIds []*string `locationName:"NetworkAclId" locationNameList:"item" type:"list"`
-
-	metadataDescribeNetworkAclsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeNetworkAclsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12698,14 +12934,10 @@ func (s DescribeNetworkAclsInput) GoString() string {
 }
 
 type DescribeNetworkAclsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more network ACLs.
 	NetworkAcls []*NetworkAcl `locationName:"networkAclSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeNetworkAclsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeNetworkAclsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12719,6 +12951,8 @@ func (s DescribeNetworkAclsOutput) GoString() string {
 }
 
 type DescribeNetworkInterfaceAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The attribute of the network interface.
 	Attribute *string `locationName:"attribute" type:"string" enum:"NetworkInterfaceAttribute"`
 
@@ -12730,12 +12964,6 @@ type DescribeNetworkInterfaceAttributeInput struct {
 
 	// The ID of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string" required:"true"`
-
-	metadataDescribeNetworkInterfaceAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeNetworkInterfaceAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12749,6 +12977,8 @@ func (s DescribeNetworkInterfaceAttributeInput) GoString() string {
 }
 
 type DescribeNetworkInterfaceAttributeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The attachment (if any) of the network interface.
 	Attachment *NetworkInterfaceAttachment `locationName:"attachment" type:"structure"`
 
@@ -12763,12 +12993,6 @@ type DescribeNetworkInterfaceAttributeOutput struct {
 
 	// Indicates whether source/destination checking is enabled.
 	SourceDestCheck *AttributeBooleanValue `locationName:"sourceDestCheck" type:"structure"`
-
-	metadataDescribeNetworkInterfaceAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeNetworkInterfaceAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12782,6 +13006,8 @@ func (s DescribeNetworkInterfaceAttributeOutput) GoString() string {
 }
 
 type DescribeNetworkInterfacesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -12818,23 +13044,26 @@ type DescribeNetworkInterfacesInput struct {
 	//
 	//   attachment.attachment-id - The ID of the interface attachment.
 	//
+	//   attachment.attach.time - The time that the network interface was attached
+	// to an instance.
+	//
+	//   attachment.delete-on-termination - Indicates whether the attachment is
+	// deleted when an instance is terminated.
+	//
+	//   attachment.device-index - The device index to which the network interface
+	// is attached.
+	//
 	//   attachment.instance-id - The ID of the instance to which the network interface
 	// is attached.
 	//
 	//   attachment.instance-owner-id - The owner ID of the instance to which the
 	// network interface is attached.
 	//
-	//   attachment.device-index - The device index to which the network interface
-	// is attached.
+	//   attachment.nat-gateway-id - The ID of the NAT gateway to which the network
+	// interface is attached.
 	//
 	//   attachment.status - The status of the attachment (attaching | attached
 	// | detaching | detached).
-	//
-	//   attachment.attach.time - The time that the network interface was attached
-	// to an instance.
-	//
-	//   attachment.delete-on-termination - Indicates whether the attachment is
-	// deleted when an instance is terminated.
 	//
 	//   availability-zone - The Availability Zone of the network interface.
 	//
@@ -12866,7 +13095,7 @@ type DescribeNetworkInterfacesInput struct {
 	//   source-desk-check - Indicates whether the network interface performs source/destination
 	// checking. A value of true means checking is enabled, and false means checking
 	// is disabled. The value must be false for the network interface to perform
-	// Network Address Translation (NAT) in your VPC.
+	// network address translation (NAT) in your VPC.
 	//
 	//   status - The status of the network interface. If the network interface
 	// is not attached to an instance, the status is available; if a network interface
@@ -12893,12 +13122,6 @@ type DescribeNetworkInterfacesInput struct {
 	//
 	// Default: Describes all your network interfaces.
 	NetworkInterfaceIds []*string `locationName:"NetworkInterfaceId" locationNameList:"item" type:"list"`
-
-	metadataDescribeNetworkInterfacesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeNetworkInterfacesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12912,14 +13135,10 @@ func (s DescribeNetworkInterfacesInput) GoString() string {
 }
 
 type DescribeNetworkInterfacesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more network interfaces.
 	NetworkInterfaces []*NetworkInterface `locationName:"networkInterfaceSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeNetworkInterfacesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeNetworkInterfacesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12933,6 +13152,8 @@ func (s DescribeNetworkInterfacesOutput) GoString() string {
 }
 
 type DescribePlacementGroupsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -12953,12 +13174,6 @@ type DescribePlacementGroupsInput struct {
 	//
 	// Default: Describes all your placement groups, or only those otherwise specified.
 	GroupNames []*string `locationName:"groupName" type:"list"`
-
-	metadataDescribePlacementGroupsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribePlacementGroupsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12972,14 +13187,10 @@ func (s DescribePlacementGroupsInput) GoString() string {
 }
 
 type DescribePlacementGroupsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more placement groups.
 	PlacementGroups []*PlacementGroup `locationName:"placementGroupSet" locationNameList:"item" type:"list"`
-
-	metadataDescribePlacementGroupsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribePlacementGroupsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -12993,6 +13204,8 @@ func (s DescribePlacementGroupsOutput) GoString() string {
 }
 
 type DescribePrefixListsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -13020,12 +13233,6 @@ type DescribePrefixListsInput struct {
 
 	// One or more prefix list IDs.
 	PrefixListIds []*string `locationName:"PrefixListId" locationNameList:"item" type:"list"`
-
-	metadataDescribePrefixListsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribePrefixListsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13039,18 +13246,14 @@ func (s DescribePrefixListsInput) GoString() string {
 }
 
 type DescribePrefixListsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token to use when requesting the next set of items. If there are no additional
 	// items to return, the string is empty.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// All available prefix lists.
 	PrefixLists []*PrefixList `locationName:"prefixListSet" locationNameList:"item" type:"list"`
-
-	metadataDescribePrefixListsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribePrefixListsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13064,6 +13267,8 @@ func (s DescribePrefixListsOutput) GoString() string {
 }
 
 type DescribeRegionsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -13079,12 +13284,6 @@ type DescribeRegionsInput struct {
 
 	// The names of one or more regions.
 	RegionNames []*string `locationName:"RegionName" locationNameList:"RegionName" type:"list"`
-
-	metadataDescribeRegionsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeRegionsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13098,14 +13297,10 @@ func (s DescribeRegionsInput) GoString() string {
 }
 
 type DescribeRegionsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more regions.
 	Regions []*Region `locationName:"regionInfo" locationNameList:"item" type:"list"`
-
-	metadataDescribeRegionsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeRegionsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13119,6 +13314,8 @@ func (s DescribeRegionsOutput) GoString() string {
 }
 
 type DescribeReservedInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -13138,13 +13335,12 @@ type DescribeReservedInstancesInput struct {
 	//   fixed-price - The purchase price of the Reserved Instance (for example,
 	// 9800.0).
 	//
-	//   instance-type - The instance type on which the Reserved Instance can be
-	// used.
+	//   instance-type - The instance type that is covered by the reservation.
 	//
 	//   product-description - The Reserved Instance product platform description.
 	// Instances that include (Amazon VPC) in the product platform description will
 	// only be displayed to EC2-Classic account holders and are for use with Amazon
-	// VPC. (Linux/UNIX | Linux/UNIX (Amazon VPC) | SUSE Linux | SUSE Linux (Amazon
+	// VPC (Linux/UNIX | Linux/UNIX (Amazon VPC) | SUSE Linux | SUSE Linux (Amazon
 	// VPC) | Red Hat Enterprise Linux | Red Hat Enterprise Linux (Amazon VPC) |
 	// Windows | Windows (Amazon VPC) | Windows with SQL Server Standard | Windows
 	// with SQL Server Standard (Amazon VPC) | Windows with SQL Server Web | Windows
@@ -13185,12 +13381,6 @@ type DescribeReservedInstancesInput struct {
 	// Default: Describes all your Reserved Instances, or only those otherwise
 	// specified.
 	ReservedInstancesIds []*string `locationName:"ReservedInstancesId" locationNameList:"ReservedInstancesId" type:"list"`
-
-	metadataDescribeReservedInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeReservedInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13204,6 +13394,8 @@ func (s DescribeReservedInstancesInput) GoString() string {
 }
 
 type DescribeReservedInstancesListingsInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more filters.
 	//
 	//   reserved-instances-id - The ID of the Reserved Instances.
@@ -13219,14 +13411,8 @@ type DescribeReservedInstancesListingsInput struct {
 	// One or more Reserved Instance IDs.
 	ReservedInstancesId *string `locationName:"reservedInstancesId" type:"string"`
 
-	// One or more Reserved Instance Listing IDs.
+	// One or more Reserved Instance listing IDs.
 	ReservedInstancesListingId *string `locationName:"reservedInstancesListingId" type:"string"`
-
-	metadataDescribeReservedInstancesListingsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeReservedInstancesListingsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13240,14 +13426,10 @@ func (s DescribeReservedInstancesListingsInput) GoString() string {
 }
 
 type DescribeReservedInstancesListingsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the Reserved Instance listing.
 	ReservedInstancesListings []*ReservedInstancesListing `locationName:"reservedInstancesListingsSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeReservedInstancesListingsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeReservedInstancesListingsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13261,6 +13443,8 @@ func (s DescribeReservedInstancesListingsOutput) GoString() string {
 }
 
 type DescribeReservedInstancesModificationsInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more filters.
 	//
 	//   client-token - The idempotency token for the modification request.
@@ -13302,12 +13486,6 @@ type DescribeReservedInstancesModificationsInput struct {
 
 	// IDs for the submitted modification request.
 	ReservedInstancesModificationIds []*string `locationName:"ReservedInstancesModificationId" locationNameList:"ReservedInstancesModificationId" type:"list"`
-
-	metadataDescribeReservedInstancesModificationsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeReservedInstancesModificationsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13321,18 +13499,14 @@ func (s DescribeReservedInstancesModificationsInput) GoString() string {
 }
 
 type DescribeReservedInstancesModificationsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The Reserved Instance modification information.
 	ReservedInstancesModifications []*ReservedInstancesModification `locationName:"reservedInstancesModificationsSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeReservedInstancesModificationsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeReservedInstancesModificationsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13346,6 +13520,8 @@ func (s DescribeReservedInstancesModificationsOutput) GoString() string {
 }
 
 type DescribeReservedInstancesOfferingsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone in which the Reserved Instance can be used.
 	AvailabilityZone *string `type:"string"`
 
@@ -13366,12 +13542,11 @@ type DescribeReservedInstancesOfferingsInput struct {
 	//   fixed-price - The purchase price of the Reserved Instance (for example,
 	// 9800.0).
 	//
-	//   instance-type - The instance type on which the Reserved Instance can be
-	// used.
+	//   instance-type - The instance type that is covered by the reservation.
 	//
 	//   marketplace - Set to true to show only Reserved Instance Marketplace offerings.
 	// When this filter is not used, which is the default behavior, all offerings
-	// from AWS and Reserved Instance Marketplace are listed.
+	// from both AWS and the Reserved Instance Marketplace are listed.
 	//
 	//   product-description - The Reserved Instance product platform description.
 	// Instances that include (Amazon VPC) in the product platform description will
@@ -13389,18 +13564,18 @@ type DescribeReservedInstancesOfferingsInput struct {
 	// example, 0.84).
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
-	// Include Marketplace offerings in the response.
+	// Include Reserved Instance Marketplace offerings in the response.
 	IncludeMarketplace *bool `type:"boolean"`
 
-	// The tenancy of the Reserved Instance offering. A Reserved Instance with dedicated
-	// tenancy runs on single-tenant hardware and can only be launched within a
-	// VPC.
+	// The tenancy of the instances covered by the reservation. A Reserved Instance
+	// with a tenancy of dedicated is applied to instances that run in a VPC on
+	// single-tenant hardware (i.e., Dedicated Instances).
 	//
 	// Default: default
 	InstanceTenancy *string `locationName:"instanceTenancy" type:"string" enum:"Tenancy"`
 
-	// The instance type on which the Reserved Instance can be used. For more information,
-	// see Instance Types (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html)
+	// The instance type that the reservation will cover (for example, m1.small).
+	// For more information, see Instance Types (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html)
 	// in the Amazon Elastic Compute Cloud User Guide.
 	InstanceType *string `type:"string" enum:"InstanceType"`
 
@@ -13440,12 +13615,6 @@ type DescribeReservedInstancesOfferingsInput struct {
 
 	// One or more Reserved Instances offering IDs.
 	ReservedInstancesOfferingIds []*string `locationName:"ReservedInstancesOfferingId" type:"list"`
-
-	metadataDescribeReservedInstancesOfferingsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeReservedInstancesOfferingsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13459,18 +13628,14 @@ func (s DescribeReservedInstancesOfferingsInput) GoString() string {
 }
 
 type DescribeReservedInstancesOfferingsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// A list of Reserved Instances offerings.
 	ReservedInstancesOfferings []*ReservedInstancesOffering `locationName:"reservedInstancesOfferingsSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeReservedInstancesOfferingsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeReservedInstancesOfferingsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13484,14 +13649,10 @@ func (s DescribeReservedInstancesOfferingsOutput) GoString() string {
 }
 
 type DescribeReservedInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of Reserved Instances.
 	ReservedInstances []*ReservedInstances `locationName:"reservedInstancesSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeReservedInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeReservedInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13505,6 +13666,8 @@ func (s DescribeReservedInstancesOutput) GoString() string {
 }
 
 type DescribeRouteTablesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -13522,7 +13685,7 @@ type DescribeRouteTablesInput struct {
 	//   association.subnet-id - The ID of the subnet involved in the association.
 	//
 	//   association.main - Indicates whether the route table is the main route
-	// table for the VPC.
+	// table for the VPC (true | false).
 	//
 	//   route-table-id - The ID of the route table.
 	//
@@ -13536,6 +13699,8 @@ type DescribeRouteTablesInput struct {
 	//
 	//   route.instance-id - The ID of an instance specified in a route in the
 	// table.
+	//
+	//   route.nat-gateway-id - The ID of a NAT gateway.
 	//
 	//   route.origin - Describes how the route was created. CreateRouteTable indicates
 	// that the route was automatically created when the route table was created;
@@ -13570,12 +13735,6 @@ type DescribeRouteTablesInput struct {
 	//
 	// Default: Describes all your route tables.
 	RouteTableIds []*string `locationName:"RouteTableId" locationNameList:"item" type:"list"`
-
-	metadataDescribeRouteTablesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeRouteTablesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13589,14 +13748,10 @@ func (s DescribeRouteTablesInput) GoString() string {
 }
 
 type DescribeRouteTablesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more route tables.
 	RouteTables []*RouteTable `locationName:"routeTableSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeRouteTablesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeRouteTablesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13609,7 +13764,153 @@ func (s DescribeRouteTablesOutput) GoString() string {
 	return s.String()
 }
 
+// Contains the parameters for DescribeScheduledInstanceAvailability.
+type DescribeScheduledInstanceAvailabilityInput struct {
+	_ struct{} `type:"structure"`
+
+	// Checks whether you have the required permissions for the action, without
+	// actually making the request, and provides an error response. If you have
+	// the required permissions, the error response is DryRunOperation. Otherwise,
+	// it is UnauthorizedOperation.
+	DryRun *bool `type:"boolean"`
+
+	// One or more filters.
+	//
+	//   availability-zone - The Availability Zone (for example, us-west-2a).
+	//
+	//   instance-type - The instance type (for example, c4.large).
+	//
+	//   network-platform - The network platform (EC2-Classic or EC2-VPC).
+	//
+	//   platform - The platform (Linux/UNIX or Windows).
+	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
+
+	// The time period for the first schedule to start.
+	FirstSlotStartTimeRange *SlotDateTimeRangeRequest `type:"structure" required:"true"`
+
+	// The maximum number of results to return in a single call. To retrieve the
+	// remaining results, make another call with the returned NextToken value.
+	MaxResults *int64 `type:"integer"`
+
+	// The maximum available duration, in hours. This value must be greater than
+	// MinSlotDurationInHours and less than 1,720.
+	MaxSlotDurationInHours *int64 `type:"integer"`
+
+	// The minimum available duration, in hours. The minimum required duration is
+	// 1,200 hours per year. For example, the minimum daily schedule is 4 hours,
+	// the minimum weekly schedule is 24 hours, and the minimum monthly schedule
+	// is 100 hours.
+	MinSlotDurationInHours *int64 `type:"integer"`
+
+	// The token for the next set of results.
+	NextToken *string `type:"string"`
+
+	// The schedule recurrence.
+	Recurrence *ScheduledInstanceRecurrenceRequest `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeScheduledInstanceAvailabilityInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeScheduledInstanceAvailabilityInput) GoString() string {
+	return s.String()
+}
+
+// Contains the output of DescribeScheduledInstanceAvailability.
+type DescribeScheduledInstanceAvailabilityOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The token required to retrieve the next set of results. This value is null
+	// when there are no more results to return.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// Information about the available Scheduled Instances.
+	ScheduledInstanceAvailabilitySet []*ScheduledInstanceAvailability `locationName:"scheduledInstanceAvailabilitySet" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeScheduledInstanceAvailabilityOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeScheduledInstanceAvailabilityOutput) GoString() string {
+	return s.String()
+}
+
+// Contains the parameters for DescribeScheduledInstances.
+type DescribeScheduledInstancesInput struct {
+	_ struct{} `type:"structure"`
+
+	// Checks whether you have the required permissions for the action, without
+	// actually making the request, and provides an error response. If you have
+	// the required permissions, the error response is DryRunOperation. Otherwise,
+	// it is UnauthorizedOperation.
+	DryRun *bool `type:"boolean"`
+
+	// One or more filters.
+	//
+	//   availability-zone - The Availability Zone (for example, us-west-2a).
+	//
+	//   instance-type - The instance type (for example, c4.large).
+	//
+	//   network-platform - The network platform (EC2-Classic or EC2-VPC).
+	//
+	//   platform - The platform (Linux/UNIX or Windows).
+	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
+
+	// The maximum number of results to return in a single call. To retrieve the
+	// remaining results, make another call with the returned NextToken value.
+	MaxResults *int64 `type:"integer"`
+
+	// The token for the next set of results.
+	NextToken *string `type:"string"`
+
+	// One or more Scheduled Instance IDs.
+	ScheduledInstanceIds []*string `locationName:"ScheduledInstanceId" locationNameList:"ScheduledInstanceId" type:"list"`
+
+	// The time period for the first schedule to start.
+	SlotStartTimeRange *SlotStartTimeRangeRequest `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeScheduledInstancesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeScheduledInstancesInput) GoString() string {
+	return s.String()
+}
+
+// Contains the output of DescribeScheduledInstances.
+type DescribeScheduledInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The token required to retrieve the next set of results. This value is null
+	// when there are no more results to return.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// Information about the Scheduled Instances.
+	ScheduledInstanceSet []*ScheduledInstance `locationName:"scheduledInstanceSet" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeScheduledInstancesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeScheduledInstancesOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeSecurityGroupsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -13671,12 +13972,6 @@ type DescribeSecurityGroupsInput struct {
 	//
 	// Default: Describes all your security groups.
 	GroupNames []*string `locationName:"GroupName" locationNameList:"GroupName" type:"list"`
-
-	metadataDescribeSecurityGroupsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSecurityGroupsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13690,14 +13985,10 @@ func (s DescribeSecurityGroupsInput) GoString() string {
 }
 
 type DescribeSecurityGroupsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more security groups.
 	SecurityGroups []*SecurityGroup `locationName:"securityGroupInfo" locationNameList:"item" type:"list"`
-
-	metadataDescribeSecurityGroupsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSecurityGroupsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13711,6 +14002,8 @@ func (s DescribeSecurityGroupsOutput) GoString() string {
 }
 
 type DescribeSnapshotAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The snapshot attribute you would like to view.
 	Attribute *string `type:"string" required:"true" enum:"SnapshotAttributeName"`
 
@@ -13722,12 +14015,6 @@ type DescribeSnapshotAttributeInput struct {
 
 	// The ID of the EBS snapshot.
 	SnapshotId *string `type:"string" required:"true"`
-
-	metadataDescribeSnapshotAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSnapshotAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13741,6 +14028,8 @@ func (s DescribeSnapshotAttributeInput) GoString() string {
 }
 
 type DescribeSnapshotAttributeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of permissions for creating volumes from the snapshot.
 	CreateVolumePermissions []*CreateVolumePermission `locationName:"createVolumePermission" locationNameList:"item" type:"list"`
 
@@ -13749,12 +14038,6 @@ type DescribeSnapshotAttributeOutput struct {
 
 	// The ID of the EBS snapshot.
 	SnapshotId *string `locationName:"snapshotId" type:"string"`
-
-	metadataDescribeSnapshotAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSnapshotAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13768,6 +14051,8 @@ func (s DescribeSnapshotAttributeOutput) GoString() string {
 }
 
 type DescribeSnapshotsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -13838,12 +14123,6 @@ type DescribeSnapshotsInput struct {
 	//
 	// Default: Describes snapshots for which you have launch permissions.
 	SnapshotIds []*string `locationName:"SnapshotId" locationNameList:"SnapshotId" type:"list"`
-
-	metadataDescribeSnapshotsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSnapshotsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13857,6 +14136,8 @@ func (s DescribeSnapshotsInput) GoString() string {
 }
 
 type DescribeSnapshotsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The NextToken value to include in a future DescribeSnapshots request. When
 	// the results of a DescribeSnapshots request exceed MaxResults, this value
 	// can be used to retrieve the next page of results. This value is null when
@@ -13865,12 +14146,6 @@ type DescribeSnapshotsOutput struct {
 
 	// Information about the snapshots.
 	Snapshots []*Snapshot `locationName:"snapshotSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeSnapshotsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSnapshotsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13885,17 +14160,13 @@ func (s DescribeSnapshotsOutput) GoString() string {
 
 // Contains the parameters for DescribeSpotDatafeedSubscription.
 type DescribeSpotDatafeedSubscriptionInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataDescribeSpotDatafeedSubscriptionInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotDatafeedSubscriptionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13910,14 +14181,10 @@ func (s DescribeSpotDatafeedSubscriptionInput) GoString() string {
 
 // Contains the output of DescribeSpotDatafeedSubscription.
 type DescribeSpotDatafeedSubscriptionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Spot instance data feed subscription.
 	SpotDatafeedSubscription *SpotDatafeedSubscription `locationName:"spotDatafeedSubscription" type:"structure"`
-
-	metadataDescribeSpotDatafeedSubscriptionOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotDatafeedSubscriptionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13932,6 +14199,8 @@ func (s DescribeSpotDatafeedSubscriptionOutput) GoString() string {
 
 // Contains the parameters for DescribeSpotFleetInstances.
 type DescribeSpotFleetInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -13948,12 +14217,6 @@ type DescribeSpotFleetInstancesInput struct {
 
 	// The ID of the Spot fleet request.
 	SpotFleetRequestId *string `locationName:"spotFleetRequestId" type:"string" required:"true"`
-
-	metadataDescribeSpotFleetInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotFleetInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13968,6 +14231,8 @@ func (s DescribeSpotFleetInstancesInput) GoString() string {
 
 // Contains the output of DescribeSpotFleetInstances.
 type DescribeSpotFleetInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The running instances. Note that this list is refreshed periodically and
 	// might be out of date.
 	ActiveInstances []*ActiveInstance `locationName:"activeInstanceSet" locationNameList:"item" type:"list" required:"true"`
@@ -13978,12 +14243,6 @@ type DescribeSpotFleetInstancesOutput struct {
 
 	// The ID of the Spot fleet request.
 	SpotFleetRequestId *string `locationName:"spotFleetRequestId" type:"string" required:"true"`
-
-	metadataDescribeSpotFleetInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotFleetInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -13998,6 +14257,8 @@ func (s DescribeSpotFleetInstancesOutput) GoString() string {
 
 // Contains the parameters for DescribeSpotFleetRequestHistory.
 type DescribeSpotFleetRequestHistoryInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14020,12 +14281,6 @@ type DescribeSpotFleetRequestHistoryInput struct {
 
 	// The starting date and time for the events, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601" required:"true"`
-
-	metadataDescribeSpotFleetRequestHistoryInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotFleetRequestHistoryInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14040,6 +14295,8 @@ func (s DescribeSpotFleetRequestHistoryInput) GoString() string {
 
 // Contains the output of DescribeSpotFleetRequestHistory.
 type DescribeSpotFleetRequestHistoryOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the events in the history of the Spot fleet request.
 	HistoryRecords []*HistoryRecord `locationName:"historyRecordSet" locationNameList:"item" type:"list" required:"true"`
 
@@ -14058,12 +14315,6 @@ type DescribeSpotFleetRequestHistoryOutput struct {
 
 	// The starting date and time for the events, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601" required:"true"`
-
-	metadataDescribeSpotFleetRequestHistoryOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotFleetRequestHistoryOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14078,6 +14329,8 @@ func (s DescribeSpotFleetRequestHistoryOutput) GoString() string {
 
 // Contains the parameters for DescribeSpotFleetRequests.
 type DescribeSpotFleetRequestsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14094,12 +14347,6 @@ type DescribeSpotFleetRequestsInput struct {
 
 	// The IDs of the Spot fleet requests.
 	SpotFleetRequestIds []*string `locationName:"spotFleetRequestId" locationNameList:"item" type:"list"`
-
-	metadataDescribeSpotFleetRequestsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotFleetRequestsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14114,18 +14361,14 @@ func (s DescribeSpotFleetRequestsInput) GoString() string {
 
 // Contains the output of DescribeSpotFleetRequests.
 type DescribeSpotFleetRequestsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token required to retrieve the next set of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// Information about the configuration of your Spot fleet.
 	SpotFleetRequestConfigs []*SpotFleetRequestConfig `locationName:"spotFleetRequestConfigSet" locationNameList:"item" type:"list" required:"true"`
-
-	metadataDescribeSpotFleetRequestsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotFleetRequestsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14140,6 +14383,8 @@ func (s DescribeSpotFleetRequestsOutput) GoString() string {
 
 // Contains the parameters for DescribeSpotInstanceRequests.
 type DescribeSpotInstanceRequestsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14258,12 +14503,6 @@ type DescribeSpotInstanceRequestsInput struct {
 
 	// One or more Spot instance request IDs.
 	SpotInstanceRequestIds []*string `locationName:"SpotInstanceRequestId" locationNameList:"SpotInstanceRequestId" type:"list"`
-
-	metadataDescribeSpotInstanceRequestsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotInstanceRequestsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14278,14 +14517,10 @@ func (s DescribeSpotInstanceRequestsInput) GoString() string {
 
 // Contains the output of DescribeSpotInstanceRequests.
 type DescribeSpotInstanceRequestsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more Spot instance requests.
 	SpotInstanceRequests []*SpotInstanceRequest `locationName:"spotInstanceRequestSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeSpotInstanceRequestsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotInstanceRequestsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14300,6 +14535,8 @@ func (s DescribeSpotInstanceRequestsOutput) GoString() string {
 
 // Contains the parameters for DescribeSpotPriceHistory.
 type DescribeSpotPriceHistoryInput struct {
+	_ struct{} `type:"structure"`
+
 	// Filters the results by the specified Availability Zone.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
@@ -14348,12 +14585,6 @@ type DescribeSpotPriceHistoryInput struct {
 	// The date and time, up to the past 90 days, from which to start retrieving
 	// the price history data, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	StartTime *time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataDescribeSpotPriceHistoryInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotPriceHistoryInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14368,18 +14599,14 @@ func (s DescribeSpotPriceHistoryInput) GoString() string {
 
 // Contains the output of DescribeSpotPriceHistory.
 type DescribeSpotPriceHistoryOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token required to retrieve the next set of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The historical Spot prices.
 	SpotPriceHistory []*SpotPrice `locationName:"spotPriceHistorySet" locationNameList:"item" type:"list"`
-
-	metadataDescribeSpotPriceHistoryOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSpotPriceHistoryOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14393,6 +14620,8 @@ func (s DescribeSpotPriceHistoryOutput) GoString() string {
 }
 
 type DescribeSubnetsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14437,12 +14666,6 @@ type DescribeSubnetsInput struct {
 	//
 	// Default: Describes all your subnets.
 	SubnetIds []*string `locationName:"SubnetId" locationNameList:"SubnetId" type:"list"`
-
-	metadataDescribeSubnetsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSubnetsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14456,14 +14679,10 @@ func (s DescribeSubnetsInput) GoString() string {
 }
 
 type DescribeSubnetsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more subnets.
 	Subnets []*Subnet `locationName:"subnetSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeSubnetsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSubnetsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14477,6 +14696,8 @@ func (s DescribeSubnetsOutput) GoString() string {
 }
 
 type DescribeTagsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14506,12 +14727,6 @@ type DescribeTagsInput struct {
 
 	// The token to retrieve the next page of results.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataDescribeTagsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTagsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14525,18 +14740,14 @@ func (s DescribeTagsInput) GoString() string {
 }
 
 type DescribeTagsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return..
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// A list of tags.
 	Tags []*TagDescription `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeTagsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTagsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14550,6 +14761,8 @@ func (s DescribeTagsOutput) GoString() string {
 }
 
 type DescribeVolumeAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The instance attribute.
 	Attribute *string `type:"string" enum:"VolumeAttributeName"`
 
@@ -14561,12 +14774,6 @@ type DescribeVolumeAttributeInput struct {
 
 	// The ID of the volume.
 	VolumeId *string `type:"string" required:"true"`
-
-	metadataDescribeVolumeAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVolumeAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14580,6 +14787,8 @@ func (s DescribeVolumeAttributeInput) GoString() string {
 }
 
 type DescribeVolumeAttributeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The state of autoEnableIO attribute.
 	AutoEnableIO *AttributeBooleanValue `locationName:"autoEnableIO" type:"structure"`
 
@@ -14588,12 +14797,6 @@ type DescribeVolumeAttributeOutput struct {
 
 	// The ID of the volume.
 	VolumeId *string `locationName:"volumeId" type:"string"`
-
-	metadataDescribeVolumeAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVolumeAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14607,6 +14810,8 @@ func (s DescribeVolumeAttributeOutput) GoString() string {
 }
 
 type DescribeVolumeStatusInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14666,12 +14871,6 @@ type DescribeVolumeStatusInput struct {
 	//
 	// Default: Describes all your volumes.
 	VolumeIds []*string `locationName:"VolumeId" locationNameList:"VolumeId" type:"list"`
-
-	metadataDescribeVolumeStatusInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVolumeStatusInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14685,18 +14884,14 @@ func (s DescribeVolumeStatusInput) GoString() string {
 }
 
 type DescribeVolumeStatusOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token to use to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// A list of volumes.
 	VolumeStatuses []*VolumeStatusItem `locationName:"volumeStatusSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVolumeStatusOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVolumeStatusOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14710,6 +14905,8 @@ func (s DescribeVolumeStatusOutput) GoString() string {
 }
 
 type DescribeVolumesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14783,12 +14980,6 @@ type DescribeVolumesInput struct {
 
 	// One or more volume IDs.
 	VolumeIds []*string `locationName:"VolumeId" locationNameList:"VolumeId" type:"list"`
-
-	metadataDescribeVolumesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVolumesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14802,6 +14993,8 @@ func (s DescribeVolumesInput) GoString() string {
 }
 
 type DescribeVolumesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The NextToken value to include in a future DescribeVolumes request. When
 	// the results of a DescribeVolumes request exceed MaxResults, this value can
 	// be used to retrieve the next page of results. This value is null when there
@@ -14810,12 +15003,6 @@ type DescribeVolumesOutput struct {
 
 	// Information about the volumes.
 	Volumes []*Volume `locationName:"volumeSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVolumesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVolumesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14829,8 +15016,10 @@ func (s DescribeVolumesOutput) GoString() string {
 }
 
 type DescribeVpcAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The VPC attribute.
-	Attribute *string `type:"string" enum:"VpcAttributeName"`
+	Attribute *string `type:"string" required:"true" enum:"VpcAttributeName"`
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
@@ -14840,12 +15029,6 @@ type DescribeVpcAttributeInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `type:"string" required:"true"`
-
-	metadataDescribeVpcAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14859,6 +15042,8 @@ func (s DescribeVpcAttributeInput) GoString() string {
 }
 
 type DescribeVpcAttributeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the instances launched in the VPC get DNS hostnames. If
 	// this attribute is true, instances in the VPC get DNS hostnames; otherwise,
 	// they do not.
@@ -14871,12 +15056,6 @@ type DescribeVpcAttributeOutput struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataDescribeVpcAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14889,7 +15068,55 @@ func (s DescribeVpcAttributeOutput) GoString() string {
 	return s.String()
 }
 
+type DescribeVpcClassicLinkDnsSupportInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of items to return for this request. The request returns
+	// a token that you can specify in a subsequent call to get the next set of
+	// results.
+	MaxResults *int64 `locationName:"maxResults" min:"5" type:"integer"`
+
+	// The token for the next set of items to return. (You received this token from
+	// a prior call.)
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
+
+	// One or more VPC IDs.
+	VpcIds []*string `locationNameList:"VpcId" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeVpcClassicLinkDnsSupportInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeVpcClassicLinkDnsSupportInput) GoString() string {
+	return s.String()
+}
+
+type DescribeVpcClassicLinkDnsSupportOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The token to use when requesting the next set of items.
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
+
+	// Information about the ClassicLink DNS support status of the VPCs.
+	Vpcs []*ClassicLinkDnsSupport `locationName:"vpcs" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeVpcClassicLinkDnsSupportOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeVpcClassicLinkDnsSupportOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeVpcClassicLinkInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14916,12 +15143,6 @@ type DescribeVpcClassicLinkInput struct {
 
 	// One or more VPCs for which you want to describe the ClassicLink status.
 	VpcIds []*string `locationName:"VpcId" locationNameList:"VpcId" type:"list"`
-
-	metadataDescribeVpcClassicLinkInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcClassicLinkInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14935,14 +15156,10 @@ func (s DescribeVpcClassicLinkInput) GoString() string {
 }
 
 type DescribeVpcClassicLinkOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ClassicLink status of one or more VPCs.
 	Vpcs []*VpcClassicLink `locationName:"vpcSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpcClassicLinkOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcClassicLinkOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14956,6 +15173,8 @@ func (s DescribeVpcClassicLinkOutput) GoString() string {
 }
 
 type DescribeVpcEndpointServicesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -14972,12 +15191,6 @@ type DescribeVpcEndpointServicesInput struct {
 	// The token for the next set of items to return. (You received this token from
 	// a prior call.)
 	NextToken *string `type:"string"`
-
-	metadataDescribeVpcEndpointServicesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcEndpointServicesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -14991,18 +15204,14 @@ func (s DescribeVpcEndpointServicesInput) GoString() string {
 }
 
 type DescribeVpcEndpointServicesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token to use when requesting the next set of items. If there are no additional
 	// items to return, the string is empty.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// A list of supported AWS services.
 	ServiceNames []*string `locationName:"serviceNameSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpcEndpointServicesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcEndpointServicesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15016,6 +15225,8 @@ func (s DescribeVpcEndpointServicesOutput) GoString() string {
 }
 
 type DescribeVpcEndpointsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15047,12 +15258,6 @@ type DescribeVpcEndpointsInput struct {
 
 	// One or more endpoint IDs.
 	VpcEndpointIds []*string `locationName:"VpcEndpointId" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpcEndpointsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcEndpointsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15066,18 +15271,14 @@ func (s DescribeVpcEndpointsInput) GoString() string {
 }
 
 type DescribeVpcEndpointsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The token to use when requesting the next set of items. If there are no additional
 	// items to return, the string is empty.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// Information about the endpoints.
 	VpcEndpoints []*VpcEndpoint `locationName:"vpcEndpointSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpcEndpointsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcEndpointsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15091,6 +15292,8 @@ func (s DescribeVpcEndpointsOutput) GoString() string {
 }
 
 type DescribeVpcPeeringConnectionsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15140,12 +15343,6 @@ type DescribeVpcPeeringConnectionsInput struct {
 	//
 	// Default: Describes all your VPC peering connections.
 	VpcPeeringConnectionIds []*string `locationName:"VpcPeeringConnectionId" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpcPeeringConnectionsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcPeeringConnectionsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15159,14 +15356,10 @@ func (s DescribeVpcPeeringConnectionsInput) GoString() string {
 }
 
 type DescribeVpcPeeringConnectionsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the VPC peering connections.
 	VpcPeeringConnections []*VpcPeeringConnection `locationName:"vpcPeeringConnectionSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpcPeeringConnectionsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcPeeringConnectionsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15180,6 +15373,8 @@ func (s DescribeVpcPeeringConnectionsOutput) GoString() string {
 }
 
 type DescribeVpcsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15217,12 +15412,6 @@ type DescribeVpcsInput struct {
 	//
 	// Default: Describes all your VPCs.
 	VpcIds []*string `locationName:"VpcId" locationNameList:"VpcId" type:"list"`
-
-	metadataDescribeVpcsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15236,14 +15425,10 @@ func (s DescribeVpcsInput) GoString() string {
 }
 
 type DescribeVpcsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more VPCs.
 	Vpcs []*Vpc `locationName:"vpcSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpcsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpcsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15257,6 +15442,8 @@ func (s DescribeVpcsOutput) GoString() string {
 }
 
 type DescribeVpnConnectionsInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15309,12 +15496,6 @@ type DescribeVpnConnectionsInput struct {
 	//
 	// Default: Describes your VPN connections.
 	VpnConnectionIds []*string `locationName:"VpnConnectionId" locationNameList:"VpnConnectionId" type:"list"`
-
-	metadataDescribeVpnConnectionsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpnConnectionsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15328,14 +15509,10 @@ func (s DescribeVpnConnectionsInput) GoString() string {
 }
 
 type DescribeVpnConnectionsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more VPN connections.
 	VpnConnections []*VpnConnection `locationName:"vpnConnectionSet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpnConnectionsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpnConnectionsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15349,6 +15526,8 @@ func (s DescribeVpnConnectionsOutput) GoString() string {
 }
 
 type DescribeVpnGatewaysInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15362,7 +15541,8 @@ type DescribeVpnGatewaysInput struct {
 	//
 	//   attachment.vpc-id - The ID of an attached VPC.
 	//
-	//   availability-zone - The Availability Zone for the virtual private gateway.
+	//   availability-zone - The Availability Zone for the virtual private gateway
+	// (if applicable).
 	//
 	//   state - The state of the virtual private gateway (pending | available
 	// | deleting | deleted).
@@ -15389,12 +15569,6 @@ type DescribeVpnGatewaysInput struct {
 	//
 	// Default: Describes all your virtual private gateways.
 	VpnGatewayIds []*string `locationName:"VpnGatewayId" locationNameList:"VpnGatewayId" type:"list"`
-
-	metadataDescribeVpnGatewaysInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpnGatewaysInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15408,14 +15582,10 @@ func (s DescribeVpnGatewaysInput) GoString() string {
 }
 
 type DescribeVpnGatewaysOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more virtual private gateways.
 	VpnGateways []*VpnGateway `locationName:"vpnGatewaySet" locationNameList:"item" type:"list"`
-
-	metadataDescribeVpnGatewaysOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVpnGatewaysOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15429,6 +15599,8 @@ func (s DescribeVpnGatewaysOutput) GoString() string {
 }
 
 type DetachClassicLinkVpcInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15440,12 +15612,6 @@ type DetachClassicLinkVpcInput struct {
 
 	// The ID of the VPC to which the instance is linked.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataDetachClassicLinkVpcInput `json:"-" xml:"-"`
-}
-
-type metadataDetachClassicLinkVpcInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15459,14 +15625,10 @@ func (s DetachClassicLinkVpcInput) GoString() string {
 }
 
 type DetachClassicLinkVpcOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns true if the request succeeds; otherwise, it returns an error.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataDetachClassicLinkVpcOutput `json:"-" xml:"-"`
-}
-
-type metadataDetachClassicLinkVpcOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15480,6 +15642,8 @@ func (s DetachClassicLinkVpcOutput) GoString() string {
 }
 
 type DetachInternetGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15491,12 +15655,6 @@ type DetachInternetGatewayInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataDetachInternetGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataDetachInternetGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15510,11 +15668,7 @@ func (s DetachInternetGatewayInput) GoString() string {
 }
 
 type DetachInternetGatewayOutput struct {
-	metadataDetachInternetGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataDetachInternetGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -15528,6 +15682,8 @@ func (s DetachInternetGatewayOutput) GoString() string {
 }
 
 type DetachNetworkInterfaceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the attachment.
 	AttachmentId *string `locationName:"attachmentId" type:"string" required:"true"`
 
@@ -15539,12 +15695,6 @@ type DetachNetworkInterfaceInput struct {
 
 	// Specifies whether to force a detachment.
 	Force *bool `locationName:"force" type:"boolean"`
-
-	metadataDetachNetworkInterfaceInput `json:"-" xml:"-"`
-}
-
-type metadataDetachNetworkInterfaceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15558,11 +15708,7 @@ func (s DetachNetworkInterfaceInput) GoString() string {
 }
 
 type DetachNetworkInterfaceOutput struct {
-	metadataDetachNetworkInterfaceOutput `json:"-" xml:"-"`
-}
-
-type metadataDetachNetworkInterfaceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -15576,6 +15722,8 @@ func (s DetachNetworkInterfaceOutput) GoString() string {
 }
 
 type DetachVolumeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The device name.
 	Device *string `type:"string"`
 
@@ -15599,12 +15747,6 @@ type DetachVolumeInput struct {
 
 	// The ID of the volume.
 	VolumeId *string `type:"string" required:"true"`
-
-	metadataDetachVolumeInput `json:"-" xml:"-"`
-}
-
-type metadataDetachVolumeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15618,6 +15760,8 @@ func (s DetachVolumeInput) GoString() string {
 }
 
 type DetachVpnGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15629,12 +15773,6 @@ type DetachVpnGatewayInput struct {
 
 	// The ID of the virtual private gateway.
 	VpnGatewayId *string `type:"string" required:"true"`
-
-	metadataDetachVpnGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataDetachVpnGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15648,11 +15786,7 @@ func (s DetachVpnGatewayInput) GoString() string {
 }
 
 type DetachVpnGatewayOutput struct {
-	metadataDetachVpnGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataDetachVpnGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -15667,17 +15801,13 @@ func (s DetachVpnGatewayOutput) GoString() string {
 
 // Describes a DHCP configuration option.
 type DhcpConfiguration struct {
+	_ struct{} `type:"structure"`
+
 	// The name of a DHCP option.
 	Key *string `locationName:"key" type:"string"`
 
 	// One or more values for the DHCP option.
 	Values []*AttributeValue `locationName:"valueSet" locationNameList:"item" type:"list"`
-
-	metadataDhcpConfiguration `json:"-" xml:"-"`
-}
-
-type metadataDhcpConfiguration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15692,6 +15822,8 @@ func (s DhcpConfiguration) GoString() string {
 
 // Describes a set of DHCP options.
 type DhcpOptions struct {
+	_ struct{} `type:"structure"`
+
 	// One or more DHCP options in the set.
 	DhcpConfigurations []*DhcpConfiguration `locationName:"dhcpConfigurationSet" locationNameList:"item" type:"list"`
 
@@ -15700,12 +15832,6 @@ type DhcpOptions struct {
 
 	// Any tags assigned to the DHCP options set.
 	Tags []*Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	metadataDhcpOptions `json:"-" xml:"-"`
-}
-
-type metadataDhcpOptions struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15719,17 +15845,13 @@ func (s DhcpOptions) GoString() string {
 }
 
 type DisableVgwRoutePropagationInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the virtual private gateway.
 	GatewayId *string `type:"string" required:"true"`
 
 	// The ID of the route table.
 	RouteTableId *string `type:"string" required:"true"`
-
-	metadataDisableVgwRoutePropagationInput `json:"-" xml:"-"`
-}
-
-type metadataDisableVgwRoutePropagationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15743,11 +15865,7 @@ func (s DisableVgwRoutePropagationInput) GoString() string {
 }
 
 type DisableVgwRoutePropagationOutput struct {
-	metadataDisableVgwRoutePropagationOutput `json:"-" xml:"-"`
-}
-
-type metadataDisableVgwRoutePropagationOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -15760,7 +15878,43 @@ func (s DisableVgwRoutePropagationOutput) GoString() string {
 	return s.String()
 }
 
+type DisableVpcClassicLinkDnsSupportInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the VPC.
+	VpcId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DisableVpcClassicLinkDnsSupportInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableVpcClassicLinkDnsSupportInput) GoString() string {
+	return s.String()
+}
+
+type DisableVpcClassicLinkDnsSupportOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Returns true if the request succeeds; otherwise, it returns an error.
+	Return *bool `locationName:"return" type:"boolean"`
+}
+
+// String returns the string representation
+func (s DisableVpcClassicLinkDnsSupportOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableVpcClassicLinkDnsSupportOutput) GoString() string {
+	return s.String()
+}
+
 type DisableVpcClassicLinkInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -15769,12 +15923,6 @@ type DisableVpcClassicLinkInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataDisableVpcClassicLinkInput `json:"-" xml:"-"`
-}
-
-type metadataDisableVpcClassicLinkInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15788,14 +15936,10 @@ func (s DisableVpcClassicLinkInput) GoString() string {
 }
 
 type DisableVpcClassicLinkOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns true if the request succeeds; otherwise, it returns an error.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataDisableVpcClassicLinkOutput `json:"-" xml:"-"`
-}
-
-type metadataDisableVpcClassicLinkOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15809,6 +15953,8 @@ func (s DisableVpcClassicLinkOutput) GoString() string {
 }
 
 type DisassociateAddressInput struct {
+	_ struct{} `type:"structure"`
+
 	// [EC2-VPC] The association ID. Required for EC2-VPC.
 	AssociationId *string `type:"string"`
 
@@ -15820,12 +15966,6 @@ type DisassociateAddressInput struct {
 
 	// [EC2-Classic] The Elastic IP address. Required for EC2-Classic.
 	PublicIp *string `type:"string"`
-
-	metadataDisassociateAddressInput `json:"-" xml:"-"`
-}
-
-type metadataDisassociateAddressInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15839,11 +15979,7 @@ func (s DisassociateAddressInput) GoString() string {
 }
 
 type DisassociateAddressOutput struct {
-	metadataDisassociateAddressOutput `json:"-" xml:"-"`
-}
-
-type metadataDisassociateAddressOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -15857,6 +15993,8 @@ func (s DisassociateAddressOutput) GoString() string {
 }
 
 type DisassociateRouteTableInput struct {
+	_ struct{} `type:"structure"`
+
 	// The association ID representing the current association between the route
 	// table and subnet.
 	AssociationId *string `locationName:"associationId" type:"string" required:"true"`
@@ -15866,12 +16004,6 @@ type DisassociateRouteTableInput struct {
 	// the required permissions, the error response is DryRunOperation. Otherwise,
 	// it is UnauthorizedOperation.
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
-
-	metadataDisassociateRouteTableInput `json:"-" xml:"-"`
-}
-
-type metadataDisassociateRouteTableInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15885,11 +16017,7 @@ func (s DisassociateRouteTableInput) GoString() string {
 }
 
 type DisassociateRouteTableOutput struct {
-	metadataDisassociateRouteTableOutput `json:"-" xml:"-"`
-}
-
-type metadataDisassociateRouteTableOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -15904,6 +16032,8 @@ func (s DisassociateRouteTableOutput) GoString() string {
 
 // Describes a disk image.
 type DiskImage struct {
+	_ struct{} `type:"structure"`
+
 	// A description of the disk image.
 	Description *string `type:"string"`
 
@@ -15912,12 +16042,6 @@ type DiskImage struct {
 
 	// Information about the volume.
 	Volume *VolumeDetail `type:"structure"`
-
-	metadataDiskImage `json:"-" xml:"-"`
-}
-
-type metadataDiskImage struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15932,6 +16056,8 @@ func (s DiskImage) GoString() string {
 
 // Describes a disk image.
 type DiskImageDescription struct {
+	_ struct{} `type:"structure"`
+
 	// The checksum computed for the disk image.
 	Checksum *string `locationName:"checksum" type:"string"`
 
@@ -15947,12 +16073,6 @@ type DiskImageDescription struct {
 
 	// The size of the disk image, in GiB.
 	Size *int64 `locationName:"size" type:"long" required:"true"`
-
-	metadataDiskImageDescription `json:"-" xml:"-"`
-}
-
-type metadataDiskImageDescription struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15967,6 +16087,8 @@ func (s DiskImageDescription) GoString() string {
 
 // Describes a disk image.
 type DiskImageDetail struct {
+	_ struct{} `type:"structure"`
+
 	// The size of the disk image, in GiB.
 	Bytes *int64 `locationName:"bytes" type:"long" required:"true"`
 
@@ -15979,12 +16101,6 @@ type DiskImageDetail struct {
 	// Alternative" section of the Authenticating REST Requests (http://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html)
 	// topic in the Amazon Simple Storage Service Developer Guide.
 	ImportManifestUrl *string `locationName:"importManifestUrl" type:"string" required:"true"`
-
-	metadataDiskImageDetail `json:"-" xml:"-"`
-}
-
-type metadataDiskImageDetail struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -15999,17 +16115,13 @@ func (s DiskImageDetail) GoString() string {
 
 // Describes a disk image volume.
 type DiskImageVolumeDescription struct {
+	_ struct{} `type:"structure"`
+
 	// The volume identifier.
 	Id *string `locationName:"id" type:"string" required:"true"`
 
 	// The size of the volume, in GiB.
 	Size *int64 `locationName:"size" type:"long"`
-
-	metadataDiskImageVolumeDescription `json:"-" xml:"-"`
-}
-
-type metadataDiskImageVolumeDescription struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16024,6 +16136,8 @@ func (s DiskImageVolumeDescription) GoString() string {
 
 // Describes a block device for an EBS volume.
 type EbsBlockDevice struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the EBS volume is deleted on instance termination.
 	DeleteOnTermination *bool `locationName:"deleteOnTermination" type:"boolean"`
 
@@ -16064,12 +16178,6 @@ type EbsBlockDevice struct {
 	//
 	// Default: standard
 	VolumeType *string `locationName:"volumeType" type:"string" enum:"VolumeType"`
-
-	metadataEbsBlockDevice `json:"-" xml:"-"`
-}
-
-type metadataEbsBlockDevice struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16084,6 +16192,8 @@ func (s EbsBlockDevice) GoString() string {
 
 // Describes a parameter used to set up an EBS volume in a block device mapping.
 type EbsInstanceBlockDevice struct {
+	_ struct{} `type:"structure"`
+
 	// The time stamp when the attachment initiated.
 	AttachTime *time.Time `locationName:"attachTime" type:"timestamp" timestampFormat:"iso8601"`
 
@@ -16095,12 +16205,6 @@ type EbsInstanceBlockDevice struct {
 
 	// The ID of the EBS volume.
 	VolumeId *string `locationName:"volumeId" type:"string"`
-
-	metadataEbsInstanceBlockDevice `json:"-" xml:"-"`
-}
-
-type metadataEbsInstanceBlockDevice struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16114,17 +16218,13 @@ func (s EbsInstanceBlockDevice) GoString() string {
 }
 
 type EbsInstanceBlockDeviceSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the volume is deleted on instance termination.
 	DeleteOnTermination *bool `locationName:"deleteOnTermination" type:"boolean"`
 
 	// The ID of the EBS volume.
 	VolumeId *string `locationName:"volumeId" type:"string"`
-
-	metadataEbsInstanceBlockDeviceSpecification `json:"-" xml:"-"`
-}
-
-type metadataEbsInstanceBlockDeviceSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16138,17 +16238,13 @@ func (s EbsInstanceBlockDeviceSpecification) GoString() string {
 }
 
 type EnableVgwRoutePropagationInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the virtual private gateway.
 	GatewayId *string `type:"string" required:"true"`
 
 	// The ID of the route table.
 	RouteTableId *string `type:"string" required:"true"`
-
-	metadataEnableVgwRoutePropagationInput `json:"-" xml:"-"`
-}
-
-type metadataEnableVgwRoutePropagationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16162,11 +16258,7 @@ func (s EnableVgwRoutePropagationInput) GoString() string {
 }
 
 type EnableVgwRoutePropagationOutput struct {
-	metadataEnableVgwRoutePropagationOutput `json:"-" xml:"-"`
-}
-
-type metadataEnableVgwRoutePropagationOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -16180,6 +16272,8 @@ func (s EnableVgwRoutePropagationOutput) GoString() string {
 }
 
 type EnableVolumeIOInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -16188,12 +16282,6 @@ type EnableVolumeIOInput struct {
 
 	// The ID of the volume.
 	VolumeId *string `locationName:"volumeId" type:"string" required:"true"`
-
-	metadataEnableVolumeIOInput `json:"-" xml:"-"`
-}
-
-type metadataEnableVolumeIOInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16207,11 +16295,7 @@ func (s EnableVolumeIOInput) GoString() string {
 }
 
 type EnableVolumeIOOutput struct {
-	metadataEnableVolumeIOOutput `json:"-" xml:"-"`
-}
-
-type metadataEnableVolumeIOOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -16224,7 +16308,43 @@ func (s EnableVolumeIOOutput) GoString() string {
 	return s.String()
 }
 
+type EnableVpcClassicLinkDnsSupportInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the VPC.
+	VpcId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s EnableVpcClassicLinkDnsSupportInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableVpcClassicLinkDnsSupportInput) GoString() string {
+	return s.String()
+}
+
+type EnableVpcClassicLinkDnsSupportOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Returns true if the request succeeds; otherwise, it returns an error.
+	Return *bool `locationName:"return" type:"boolean"`
+}
+
+// String returns the string representation
+func (s EnableVpcClassicLinkDnsSupportOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableVpcClassicLinkDnsSupportOutput) GoString() string {
+	return s.String()
+}
+
 type EnableVpcClassicLinkInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -16233,12 +16353,6 @@ type EnableVpcClassicLinkInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataEnableVpcClassicLinkInput `json:"-" xml:"-"`
-}
-
-type metadataEnableVpcClassicLinkInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16252,14 +16366,10 @@ func (s EnableVpcClassicLinkInput) GoString() string {
 }
 
 type EnableVpcClassicLinkOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns true if the request succeeds; otherwise, it returns an error.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataEnableVpcClassicLinkOutput `json:"-" xml:"-"`
-}
-
-type metadataEnableVpcClassicLinkOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16274,6 +16384,8 @@ func (s EnableVpcClassicLinkOutput) GoString() string {
 
 // Describes a Spot fleet event.
 type EventInformation struct {
+	_ struct{} `type:"structure"`
+
 	// The description of the event.
 	EventDescription *string `locationName:"eventDescription" type:"string"`
 
@@ -16334,12 +16446,6 @@ type EventInformation struct {
 	// The ID of the instance. This information is available only for instanceChange
 	// events.
 	InstanceId *string `locationName:"instanceId" type:"string"`
-
-	metadataEventInformation `json:"-" xml:"-"`
-}
-
-type metadataEventInformation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16354,6 +16460,8 @@ func (s EventInformation) GoString() string {
 
 // Describes an instance export task.
 type ExportTask struct {
+	_ struct{} `type:"structure"`
+
 	// A description of the resource being exported.
 	Description *string `locationName:"description" type:"string"`
 
@@ -16371,12 +16479,6 @@ type ExportTask struct {
 
 	// The status message related to the export task.
 	StatusMessage *string `locationName:"statusMessage" type:"string"`
-
-	metadataExportTask `json:"-" xml:"-"`
-}
-
-type metadataExportTask struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16391,6 +16493,8 @@ func (s ExportTask) GoString() string {
 
 // Describes the format and location for an instance export task.
 type ExportToS3Task struct {
+	_ struct{} `type:"structure"`
+
 	// The container format used to combine disk images with metadata (such as OVF).
 	// If absent, only the disk image is exported.
 	ContainerFormat *string `locationName:"containerFormat" type:"string" enum:"ContainerFormat"`
@@ -16404,12 +16508,6 @@ type ExportToS3Task struct {
 
 	// The encryption key for your S3 bucket.
 	S3Key *string `locationName:"s3Key" type:"string"`
-
-	metadataExportToS3Task `json:"-" xml:"-"`
-}
-
-type metadataExportToS3Task struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16424,6 +16522,8 @@ func (s ExportToS3Task) GoString() string {
 
 // Describes an instance export task.
 type ExportToS3TaskSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// The container format used to combine disk images with metadata (such as OVF).
 	// If absent, only the disk image is exported.
 	ContainerFormat *string `locationName:"containerFormat" type:"string" enum:"ContainerFormat"`
@@ -16438,12 +16538,6 @@ type ExportToS3TaskSpecification struct {
 	// The image is written to a single object in the S3 bucket at the S3 key s3prefix
 	// + exportTaskId + '.' + diskImageFormat.
 	S3Prefix *string `locationName:"s3Prefix" type:"string"`
-
-	metadataExportToS3TaskSpecification `json:"-" xml:"-"`
-}
-
-type metadataExportToS3TaskSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16460,17 +16554,13 @@ func (s ExportToS3TaskSpecification) GoString() string {
 // of results. Filters can be used to match a set of resources by various criteria,
 // such as tags, attributes, or IDs.
 type Filter struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the filter. Filter names are case-sensitive.
 	Name *string `type:"string"`
 
 	// One or more filter values. Filter values are case-sensitive.
 	Values []*string `locationName:"Value" locationNameList:"item" type:"list"`
-
-	metadataFilter `json:"-" xml:"-"`
-}
-
-type metadataFilter struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16485,14 +16575,17 @@ func (s Filter) GoString() string {
 
 // Describes a flow log.
 type FlowLog struct {
+	_ struct{} `type:"structure"`
+
 	// The date and time the flow log was created.
 	CreationTime *time.Time `locationName:"creationTime" type:"timestamp" timestampFormat:"iso8601"`
 
 	// Information about the error that occurred. Rate limited indicates that CloudWatch
-	// logs throttling has been applied for one or more network interfaces. Access
-	// error indicates that the IAM role associated with the flow log does not have
-	// sufficient permissions to publish to CloudWatch Logs. Unknown error indicates
-	// an internal error.
+	// logs throttling has been applied for one or more network interfaces, or that
+	// you've reached the limit on the number of CloudWatch Logs log groups that
+	// you can create. Access error indicates that the IAM role associated with
+	// the flow log does not have sufficient permissions to publish to CloudWatch
+	// Logs. Unknown error indicates an internal error.
 	DeliverLogsErrorMessage *string `locationName:"deliverLogsErrorMessage" type:"string"`
 
 	// The ARN of the IAM role that posts logs to CloudWatch Logs.
@@ -16515,12 +16608,6 @@ type FlowLog struct {
 
 	// The type of traffic captured for the flow log.
 	TrafficType *string `locationName:"trafficType" type:"string" enum:"TrafficType"`
-
-	metadataFlowLog `json:"-" xml:"-"`
-}
-
-type metadataFlowLog struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16534,6 +16621,8 @@ func (s FlowLog) GoString() string {
 }
 
 type GetConsoleOutputInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -16542,12 +16631,6 @@ type GetConsoleOutputInput struct {
 
 	// The ID of the instance.
 	InstanceId *string `type:"string" required:"true"`
-
-	metadataGetConsoleOutputInput `json:"-" xml:"-"`
-}
-
-type metadataGetConsoleOutputInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16561,20 +16644,17 @@ func (s GetConsoleOutputInput) GoString() string {
 }
 
 type GetConsoleOutputOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the instance.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
-	// The console output, Base64 encoded.
+	// The console output, Base64 encoded. If using a command line tool, the tools
+	// decode the output for you.
 	Output *string `locationName:"output" type:"string"`
 
 	// The time the output was last updated.
 	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataGetConsoleOutputOutput `json:"-" xml:"-"`
-}
-
-type metadataGetConsoleOutputOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16588,6 +16668,8 @@ func (s GetConsoleOutputOutput) GoString() string {
 }
 
 type GetPasswordDataInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -16596,12 +16678,6 @@ type GetPasswordDataInput struct {
 
 	// The ID of the Windows instance.
 	InstanceId *string `type:"string" required:"true"`
-
-	metadataGetPasswordDataInput `json:"-" xml:"-"`
-}
-
-type metadataGetPasswordDataInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16615,6 +16691,8 @@ func (s GetPasswordDataInput) GoString() string {
 }
 
 type GetPasswordDataOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the Windows instance.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
@@ -16623,12 +16701,6 @@ type GetPasswordDataOutput struct {
 
 	// The time the data was last updated.
 	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataGetPasswordDataOutput `json:"-" xml:"-"`
-}
-
-type metadataGetPasswordDataOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16643,17 +16715,13 @@ func (s GetPasswordDataOutput) GoString() string {
 
 // Describes a security group.
 type GroupIdentifier struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the security group.
 	GroupId *string `locationName:"groupId" type:"string"`
 
 	// The name of the security group.
 	GroupName *string `locationName:"groupName" type:"string"`
-
-	metadataGroupIdentifier `json:"-" xml:"-"`
-}
-
-type metadataGroupIdentifier struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16668,6 +16736,8 @@ func (s GroupIdentifier) GoString() string {
 
 // Describes an event in the history of the Spot fleet request.
 type HistoryRecord struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the event.
 	EventInformation *EventInformation `locationName:"eventInformation" type:"structure" required:"true"`
 
@@ -16683,12 +16753,6 @@ type HistoryRecord struct {
 
 	// The date and time of the event, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601" required:"true"`
-
-	metadataHistoryRecord `json:"-" xml:"-"`
-}
-
-type metadataHistoryRecord struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16701,19 +16765,106 @@ func (s HistoryRecord) GoString() string {
 	return s.String()
 }
 
+// Describes the properties of the Dedicated host.
+type Host struct {
+	_ struct{} `type:"structure"`
+
+	// Whether auto-placement is on or off.
+	AutoPlacement *string `locationName:"autoPlacement" type:"string" enum:"AutoPlacement"`
+
+	// The Availability Zone of the Dedicated host.
+	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
+
+	// The number of new instances that can be launched onto the Dedicated host.
+	AvailableCapacity *AvailableCapacity `locationName:"availableCapacity" type:"structure"`
+
+	// Unique, case-sensitive identifier you provide to ensure idempotency of the
+	// request. For more information, see How to Ensure Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Run_Instance_Idempotency.html)
+	// in the Amazon Elastic Compute Cloud User Guide.
+	ClientToken *string `locationName:"clientToken" type:"string"`
+
+	// The ID of the Dedicated host.
+	HostId *string `locationName:"hostId" type:"string"`
+
+	// The hardware specifications of the Dedicated host.
+	HostProperties *HostProperties `locationName:"hostProperties" type:"structure"`
+
+	// The reservation ID of the Dedicated host. This returns a null response if
+	// the Dedicated host doesn't have an associated reservation.
+	HostReservationId *string `locationName:"hostReservationId" type:"string"`
+
+	// The IDs and instance type that are currently running on the Dedicated host.
+	Instances []*HostInstance `locationName:"instances" locationNameList:"item" type:"list"`
+
+	// The Dedicated host's state.
+	State *string `locationName:"state" type:"string" enum:"AllocationState"`
+}
+
+// String returns the string representation
+func (s Host) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Host) GoString() string {
+	return s.String()
+}
+
+type HostInstance struct {
+	_ struct{} `type:"structure"`
+
+	// the IDs of instances that are running on the Dedicated host.
+	InstanceId *string `locationName:"instanceId" type:"string"`
+
+	// The instance type size (e.g., m3.medium) of the running instance.
+	InstanceType *string `locationName:"instanceType" type:"string"`
+}
+
+// String returns the string representation
+func (s HostInstance) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HostInstance) GoString() string {
+	return s.String()
+}
+
+type HostProperties struct {
+	_ struct{} `type:"structure"`
+
+	// The number of cores on the Dedicated host.
+	Cores *int64 `locationName:"cores" type:"integer"`
+
+	// The instance type size that the Dedicated host supports (e.g., m3.medium).
+	InstanceType *string `locationName:"instanceType" type:"string"`
+
+	// The number of sockets on the Dedicated host.
+	Sockets *int64 `locationName:"sockets" type:"integer"`
+
+	// The number of vCPUs on the Dedicated host.
+	TotalVCpus *int64 `locationName:"totalVCpus" type:"integer"`
+}
+
+// String returns the string representation
+func (s HostProperties) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HostProperties) GoString() string {
+	return s.String()
+}
+
 // Describes an IAM instance profile.
 type IamInstanceProfile struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the instance profile.
 	Arn *string `locationName:"arn" type:"string"`
 
 	// The ID of the instance profile.
 	Id *string `locationName:"id" type:"string"`
-
-	metadataIamInstanceProfile `json:"-" xml:"-"`
-}
-
-type metadataIamInstanceProfile struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16728,17 +16879,13 @@ func (s IamInstanceProfile) GoString() string {
 
 // Describes an IAM instance profile.
 type IamInstanceProfileSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the instance profile.
 	Arn *string `locationName:"arn" type:"string"`
 
 	// The name of the instance profile.
 	Name *string `locationName:"name" type:"string"`
-
-	metadataIamInstanceProfileSpecification `json:"-" xml:"-"`
-}
-
-type metadataIamInstanceProfileSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16753,17 +16900,13 @@ func (s IamInstanceProfileSpecification) GoString() string {
 
 // Describes the ICMP type and code.
 type IcmpTypeCode struct {
+	_ struct{} `type:"structure"`
+
 	// The ICMP type. A value of -1 means all types.
 	Code *int64 `locationName:"code" type:"integer"`
 
 	// The ICMP code. A value of -1 means all codes for the specified ICMP type.
 	Type *int64 `locationName:"type" type:"integer"`
-
-	metadataIcmpTypeCode `json:"-" xml:"-"`
-}
-
-type metadataIcmpTypeCode struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16776,8 +16919,35 @@ func (s IcmpTypeCode) GoString() string {
 	return s.String()
 }
 
+// Describes the ID format for a resource.
+type IdFormat struct {
+	_ struct{} `type:"structure"`
+
+	// The date in UTC at which you are permanently switched over to using longer
+	// IDs.
+	Deadline *time.Time `locationName:"deadline" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The type of resource.
+	Resource *string `locationName:"resource" type:"string"`
+
+	// Indicates whether longer IDs (17-character IDs) are enabled for the resource.
+	UseLongIds *bool `locationName:"useLongIds" type:"boolean"`
+}
+
+// String returns the string representation
+func (s IdFormat) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IdFormat) GoString() string {
+	return s.String()
+}
+
 // Describes an image.
 type Image struct {
+	_ struct{} `type:"structure"`
+
 	// The architecture of the image.
 	Architecture *string `locationName:"architecture" type:"string" enum:"ArchitectureValues"`
 
@@ -16853,12 +17023,6 @@ type Image struct {
 
 	// The type of virtualization of the AMI.
 	VirtualizationType *string `locationName:"virtualizationType" type:"string" enum:"VirtualizationType"`
-
-	metadataImage `json:"-" xml:"-"`
-}
-
-type metadataImage struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16873,6 +17037,8 @@ func (s Image) GoString() string {
 
 // Describes the disk container object for an import image task.
 type ImageDiskContainer struct {
+	_ struct{} `type:"structure"`
+
 	// The description of the disk image.
 	Description *string `type:"string"`
 
@@ -16893,12 +17059,6 @@ type ImageDiskContainer struct {
 
 	// The S3 bucket for the disk image.
 	UserBucket *UserBucket `type:"structure"`
-
-	metadataImageDiskContainer `json:"-" xml:"-"`
-}
-
-type metadataImageDiskContainer struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16912,6 +17072,8 @@ func (s ImageDiskContainer) GoString() string {
 }
 
 type ImportImageInput struct {
+	_ struct{} `type:"structure"`
+
 	// The architecture of the virtual machine.
 	//
 	// Valid values: i386 | x86_64
@@ -16957,12 +17119,6 @@ type ImportImageInput struct {
 
 	// The name of the role to use when not using the default role, 'vmimport'.
 	RoleName *string `type:"string"`
-
-	metadataImportImageInput `json:"-" xml:"-"`
-}
-
-type metadataImportImageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -16976,6 +17132,8 @@ func (s ImportImageInput) GoString() string {
 }
 
 type ImportImageOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The architecture of the virtual machine.
 	Architecture *string `locationName:"architecture" type:"string"`
 
@@ -17008,12 +17166,6 @@ type ImportImageOutput struct {
 
 	// A detailed status message of the import task.
 	StatusMessage *string `locationName:"statusMessage" type:"string"`
-
-	metadataImportImageOutput `json:"-" xml:"-"`
-}
-
-type metadataImportImageOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17028,6 +17180,8 @@ func (s ImportImageOutput) GoString() string {
 
 // Describes an import image task.
 type ImportImageTask struct {
+	_ struct{} `type:"structure"`
+
 	// The architecture of the virtual machine.
 	//
 	// Valid values: i386 | x86_64
@@ -17064,12 +17218,6 @@ type ImportImageTask struct {
 
 	// A descriptive status message for the import image task.
 	StatusMessage *string `locationName:"statusMessage" type:"string"`
-
-	metadataImportImageTask `json:"-" xml:"-"`
-}
-
-type metadataImportImageTask struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17083,6 +17231,8 @@ func (s ImportImageTask) GoString() string {
 }
 
 type ImportInstanceInput struct {
+	_ struct{} `type:"structure"`
+
 	// A description for the instance being imported.
 	Description *string `locationName:"description" type:"string"`
 
@@ -17100,12 +17250,6 @@ type ImportInstanceInput struct {
 
 	// The instance operating system.
 	Platform *string `locationName:"platform" type:"string" required:"true" enum:"PlatformValues"`
-
-	metadataImportInstanceInput `json:"-" xml:"-"`
-}
-
-type metadataImportInstanceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17120,6 +17264,8 @@ func (s ImportInstanceInput) GoString() string {
 
 // Describes the launch specification for VM import.
 type ImportInstanceLaunchSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// Reserved.
 	AdditionalInfo *string `locationName:"additionalInfo" type:"string"`
 
@@ -17155,12 +17301,6 @@ type ImportInstanceLaunchSpecification struct {
 
 	// The Base64-encoded MIME user data to be made available to the instance.
 	UserData *UserData `locationName:"userData" type:"structure"`
-
-	metadataImportInstanceLaunchSpecification `json:"-" xml:"-"`
-}
-
-type metadataImportInstanceLaunchSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17174,14 +17314,10 @@ func (s ImportInstanceLaunchSpecification) GoString() string {
 }
 
 type ImportInstanceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the conversion task.
 	ConversionTask *ConversionTask `locationName:"conversionTask" type:"structure"`
-
-	metadataImportInstanceOutput `json:"-" xml:"-"`
-}
-
-type metadataImportInstanceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17196,6 +17332,8 @@ func (s ImportInstanceOutput) GoString() string {
 
 // Describes an import instance task.
 type ImportInstanceTaskDetails struct {
+	_ struct{} `type:"structure"`
+
 	// A description of the task.
 	Description *string `locationName:"description" type:"string"`
 
@@ -17207,12 +17345,6 @@ type ImportInstanceTaskDetails struct {
 
 	// One or more volumes.
 	Volumes []*ImportInstanceVolumeDetailItem `locationName:"volumes" locationNameList:"item" type:"list" required:"true"`
-
-	metadataImportInstanceTaskDetails `json:"-" xml:"-"`
-}
-
-type metadataImportInstanceTaskDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17227,6 +17359,8 @@ func (s ImportInstanceTaskDetails) GoString() string {
 
 // Describes an import volume task.
 type ImportInstanceVolumeDetailItem struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone where the resulting instance will reside.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string" required:"true"`
 
@@ -17247,12 +17381,6 @@ type ImportInstanceVolumeDetailItem struct {
 
 	// The volume.
 	Volume *DiskImageVolumeDescription `locationName:"volume" type:"structure" required:"true"`
-
-	metadataImportInstanceVolumeDetailItem `json:"-" xml:"-"`
-}
-
-type metadataImportInstanceVolumeDetailItem struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17266,6 +17394,8 @@ func (s ImportInstanceVolumeDetailItem) GoString() string {
 }
 
 type ImportKeyPairInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -17278,12 +17408,6 @@ type ImportKeyPairInput struct {
 	// The public key. You must base64 encode the public key material before sending
 	// it to AWS.
 	PublicKeyMaterial []byte `locationName:"publicKeyMaterial" type:"blob" required:"true"`
-
-	metadataImportKeyPairInput `json:"-" xml:"-"`
-}
-
-type metadataImportKeyPairInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17297,17 +17421,13 @@ func (s ImportKeyPairInput) GoString() string {
 }
 
 type ImportKeyPairOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The MD5 public key fingerprint as specified in section 4 of RFC 4716.
 	KeyFingerprint *string `locationName:"keyFingerprint" type:"string"`
 
 	// The key pair name you provided.
 	KeyName *string `locationName:"keyName" type:"string"`
-
-	metadataImportKeyPairOutput `json:"-" xml:"-"`
-}
-
-type metadataImportKeyPairOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17321,6 +17441,8 @@ func (s ImportKeyPairOutput) GoString() string {
 }
 
 type ImportSnapshotInput struct {
+	_ struct{} `type:"structure"`
+
 	// The client-specific data.
 	ClientData *ClientData `type:"structure"`
 
@@ -17341,12 +17463,6 @@ type ImportSnapshotInput struct {
 
 	// The name of the role to use when not using the default role, 'vmimport'.
 	RoleName *string `type:"string"`
-
-	metadataImportSnapshotInput `json:"-" xml:"-"`
-}
-
-type metadataImportSnapshotInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17360,6 +17476,8 @@ func (s ImportSnapshotInput) GoString() string {
 }
 
 type ImportSnapshotOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A description of the import snapshot task.
 	Description *string `locationName:"description" type:"string"`
 
@@ -17368,12 +17486,6 @@ type ImportSnapshotOutput struct {
 
 	// Information about the import snapshot task.
 	SnapshotTaskDetail *SnapshotTaskDetail `locationName:"snapshotTaskDetail" type:"structure"`
-
-	metadataImportSnapshotOutput `json:"-" xml:"-"`
-}
-
-type metadataImportSnapshotOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17388,6 +17500,8 @@ func (s ImportSnapshotOutput) GoString() string {
 
 // Describes an import snapshot task.
 type ImportSnapshotTask struct {
+	_ struct{} `type:"structure"`
+
 	// A description of the import snapshot task.
 	Description *string `locationName:"description" type:"string"`
 
@@ -17396,12 +17510,6 @@ type ImportSnapshotTask struct {
 
 	// Describes an import snapshot task.
 	SnapshotTaskDetail *SnapshotTaskDetail `locationName:"snapshotTaskDetail" type:"structure"`
-
-	metadataImportSnapshotTask `json:"-" xml:"-"`
-}
-
-type metadataImportSnapshotTask struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17415,6 +17523,8 @@ func (s ImportSnapshotTask) GoString() string {
 }
 
 type ImportVolumeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone for the resulting EBS volume.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string" required:"true"`
 
@@ -17432,12 +17542,6 @@ type ImportVolumeInput struct {
 
 	// The volume size.
 	Volume *VolumeDetail `locationName:"volume" type:"structure" required:"true"`
-
-	metadataImportVolumeInput `json:"-" xml:"-"`
-}
-
-type metadataImportVolumeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17451,14 +17555,10 @@ func (s ImportVolumeInput) GoString() string {
 }
 
 type ImportVolumeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the conversion task.
 	ConversionTask *ConversionTask `locationName:"conversionTask" type:"structure"`
-
-	metadataImportVolumeOutput `json:"-" xml:"-"`
-}
-
-type metadataImportVolumeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17473,6 +17573,8 @@ func (s ImportVolumeOutput) GoString() string {
 
 // Describes an import volume task.
 type ImportVolumeTaskDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone where the resulting volume will reside.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string" required:"true"`
 
@@ -17487,12 +17589,6 @@ type ImportVolumeTaskDetails struct {
 
 	// The volume.
 	Volume *DiskImageVolumeDescription `locationName:"volume" type:"structure" required:"true"`
-
-	metadataImportVolumeTaskDetails `json:"-" xml:"-"`
-}
-
-type metadataImportVolumeTaskDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17507,6 +17603,8 @@ func (s ImportVolumeTaskDetails) GoString() string {
 
 // Describes an instance.
 type Instance struct {
+	_ struct{} `type:"structure"`
+
 	// The AMI launch index, which can be used to find this instance in the launch
 	// group.
 	AmiLaunchIndex *int64 `locationName:"amiLaunchIndex" type:"integer"`
@@ -17539,7 +17637,7 @@ type Instance struct {
 	// The ID of the instance.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
-	// Indicates whether this is a Spot Instance.
+	// Indicates whether this is a Spot instance.
 	InstanceLifecycle *string `locationName:"instanceLifecycle" type:"string" enum:"InstanceLifecycleType"`
 
 	// The instance type.
@@ -17634,12 +17732,6 @@ type Instance struct {
 
 	// [EC2-VPC] The ID of the VPC in which the instance is running.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataInstance `json:"-" xml:"-"`
-}
-
-type metadataInstance struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17654,18 +17746,14 @@ func (s Instance) GoString() string {
 
 // Describes a block device mapping.
 type InstanceBlockDeviceMapping struct {
+	_ struct{} `type:"structure"`
+
 	// The device name exposed to the instance (for example, /dev/sdh or xvdh).
 	DeviceName *string `locationName:"deviceName" type:"string"`
 
 	// Parameters used to automatically set up EBS volumes when the instance is
 	// launched.
 	Ebs *EbsInstanceBlockDevice `locationName:"ebs" type:"structure"`
-
-	metadataInstanceBlockDeviceMapping `json:"-" xml:"-"`
-}
-
-type metadataInstanceBlockDeviceMapping struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17680,6 +17768,8 @@ func (s InstanceBlockDeviceMapping) GoString() string {
 
 // Describes a block device mapping entry.
 type InstanceBlockDeviceMappingSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// The device name exposed to the instance (for example, /dev/sdh or xvdh).
 	DeviceName *string `locationName:"deviceName" type:"string"`
 
@@ -17692,12 +17782,6 @@ type InstanceBlockDeviceMappingSpecification struct {
 
 	// The virtual device name.
 	VirtualName *string `locationName:"virtualName" type:"string"`
-
-	metadataInstanceBlockDeviceMappingSpecification `json:"-" xml:"-"`
-}
-
-type metadataInstanceBlockDeviceMappingSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17710,19 +17794,39 @@ func (s InstanceBlockDeviceMappingSpecification) GoString() string {
 	return s.String()
 }
 
+// Information about the instance type that the Dedicated host supports.
+type InstanceCapacity struct {
+	_ struct{} `type:"structure"`
+
+	// The number of instances that can still be launched onto the Dedicated host.
+	AvailableCapacity *int64 `locationName:"availableCapacity" type:"integer"`
+
+	// The instance type size supported by the Dedicated host.
+	InstanceType *string `locationName:"instanceType" type:"string"`
+
+	// The total number of instances that can be launched onto the Dedicated host.
+	TotalCapacity *int64 `locationName:"totalCapacity" type:"integer"`
+}
+
+// String returns the string representation
+func (s InstanceCapacity) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InstanceCapacity) GoString() string {
+	return s.String()
+}
+
 // Describes a Reserved Instance listing state.
 type InstanceCount struct {
+	_ struct{} `type:"structure"`
+
 	// The number of listed Reserved Instances in the state specified by the state.
 	InstanceCount *int64 `locationName:"instanceCount" type:"integer"`
 
 	// The states of the listed Reserved Instances.
 	State *string `locationName:"state" type:"string" enum:"ListingState"`
-
-	metadataInstanceCount `json:"-" xml:"-"`
-}
-
-type metadataInstanceCount struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17737,17 +17841,13 @@ func (s InstanceCount) GoString() string {
 
 // Describes an instance to export.
 type InstanceExportDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the resource being exported.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
 	// The target virtualization environment.
 	TargetEnvironment *string `locationName:"targetEnvironment" type:"string" enum:"ExportEnvironment"`
-
-	metadataInstanceExportDetails `json:"-" xml:"-"`
-}
-
-type metadataInstanceExportDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17762,17 +17862,13 @@ func (s InstanceExportDetails) GoString() string {
 
 // Describes the monitoring information of the instance.
 type InstanceMonitoring struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the instance.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
 	// The monitoring information.
 	Monitoring *Monitoring `locationName:"monitoring" type:"structure"`
-
-	metadataInstanceMonitoring `json:"-" xml:"-"`
-}
-
-type metadataInstanceMonitoring struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17787,6 +17883,8 @@ func (s InstanceMonitoring) GoString() string {
 
 // Describes a network interface.
 type InstanceNetworkInterface struct {
+	_ struct{} `type:"structure"`
+
 	// The association information for an Elastic IP associated with the network
 	// interface.
 	Association *InstanceNetworkInterfaceAssociation `locationName:"association" type:"structure"`
@@ -17829,12 +17927,6 @@ type InstanceNetworkInterface struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataInstanceNetworkInterface `json:"-" xml:"-"`
-}
-
-type metadataInstanceNetworkInterface struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17849,6 +17941,8 @@ func (s InstanceNetworkInterface) GoString() string {
 
 // Describes association information for an Elastic IP address.
 type InstanceNetworkInterfaceAssociation struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the owner of the Elastic IP address.
 	IpOwnerId *string `locationName:"ipOwnerId" type:"string"`
 
@@ -17857,12 +17951,6 @@ type InstanceNetworkInterfaceAssociation struct {
 
 	// The public IP address or Elastic IP address bound to the network interface.
 	PublicIp *string `locationName:"publicIp" type:"string"`
-
-	metadataInstanceNetworkInterfaceAssociation `json:"-" xml:"-"`
-}
-
-type metadataInstanceNetworkInterfaceAssociation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17877,6 +17965,8 @@ func (s InstanceNetworkInterfaceAssociation) GoString() string {
 
 // Describes a network interface attachment.
 type InstanceNetworkInterfaceAttachment struct {
+	_ struct{} `type:"structure"`
+
 	// The time stamp when the attachment initiated.
 	AttachTime *time.Time `locationName:"attachTime" type:"timestamp" timestampFormat:"iso8601"`
 
@@ -17891,12 +17981,6 @@ type InstanceNetworkInterfaceAttachment struct {
 
 	// The attachment state.
 	Status *string `locationName:"status" type:"string" enum:"AttachmentStatus"`
-
-	metadataInstanceNetworkInterfaceAttachment `json:"-" xml:"-"`
-}
-
-type metadataInstanceNetworkInterfaceAttachment struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17911,6 +17995,8 @@ func (s InstanceNetworkInterfaceAttachment) GoString() string {
 
 // Describes a network interface.
 type InstanceNetworkInterfaceSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether to assign a public IP address to an instance you launch
 	// in a VPC. The public IP address can only be assigned to a network interface
 	// for eth0, and can only be assigned to a new network interface, not an existing
@@ -17955,12 +18041,6 @@ type InstanceNetworkInterfaceSpecification struct {
 	// The ID of the subnet associated with the network string. Applies only if
 	// creating a network interface when launching an instance.
 	SubnetId *string `locationName:"subnetId" type:"string"`
-
-	metadataInstanceNetworkInterfaceSpecification `json:"-" xml:"-"`
-}
-
-type metadataInstanceNetworkInterfaceSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -17975,6 +18055,8 @@ func (s InstanceNetworkInterfaceSpecification) GoString() string {
 
 // Describes a private IP address.
 type InstancePrivateIpAddress struct {
+	_ struct{} `type:"structure"`
+
 	// The association information for an Elastic IP address for the network interface.
 	Association *InstanceNetworkInterfaceAssociation `locationName:"association" type:"structure"`
 
@@ -17987,12 +18069,6 @@ type InstancePrivateIpAddress struct {
 
 	// The private IP address of the network interface.
 	PrivateIpAddress *string `locationName:"privateIpAddress" type:"string"`
-
-	metadataInstancePrivateIpAddress `json:"-" xml:"-"`
-}
-
-type metadataInstancePrivateIpAddress struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18007,6 +18083,8 @@ func (s InstancePrivateIpAddress) GoString() string {
 
 // Describes the current state of the instance.
 type InstanceState struct {
+	_ struct{} `type:"structure"`
+
 	// The low byte represents the state. The high byte is an opaque internal value
 	// and should be ignored.
 	//
@@ -18025,12 +18103,6 @@ type InstanceState struct {
 
 	// The current state of the instance.
 	Name *string `locationName:"name" type:"string" enum:"InstanceStateName"`
-
-	metadataInstanceState `json:"-" xml:"-"`
-}
-
-type metadataInstanceState struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18045,6 +18117,8 @@ func (s InstanceState) GoString() string {
 
 // Describes an instance state change.
 type InstanceStateChange struct {
+	_ struct{} `type:"structure"`
+
 	// The current state of the instance.
 	CurrentState *InstanceState `locationName:"currentState" type:"structure"`
 
@@ -18053,12 +18127,6 @@ type InstanceStateChange struct {
 
 	// The previous state of the instance.
 	PreviousState *InstanceState `locationName:"previousState" type:"structure"`
-
-	metadataInstanceStateChange `json:"-" xml:"-"`
-}
-
-type metadataInstanceStateChange struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18073,6 +18141,8 @@ func (s InstanceStateChange) GoString() string {
 
 // Describes the status of an instance.
 type InstanceStatus struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone of the instance.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
@@ -18094,12 +18164,6 @@ type InstanceStatus struct {
 	// that support an instance, such as hardware failures and network connectivity
 	// problems.
 	SystemStatus *InstanceStatusSummary `locationName:"systemStatus" type:"structure"`
-
-	metadataInstanceStatus `json:"-" xml:"-"`
-}
-
-type metadataInstanceStatus struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18114,6 +18178,8 @@ func (s InstanceStatus) GoString() string {
 
 // Describes the instance status.
 type InstanceStatusDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The time when a status check failed. For an instance that was launched and
 	// impaired, this is the time when the instance was launched.
 	ImpairedSince *time.Time `locationName:"impairedSince" type:"timestamp" timestampFormat:"iso8601"`
@@ -18123,12 +18189,6 @@ type InstanceStatusDetails struct {
 
 	// The status.
 	Status *string `locationName:"status" type:"string" enum:"StatusType"`
-
-	metadataInstanceStatusDetails `json:"-" xml:"-"`
-}
-
-type metadataInstanceStatusDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18143,6 +18203,8 @@ func (s InstanceStatusDetails) GoString() string {
 
 // Describes a scheduled event for an instance.
 type InstanceStatusEvent struct {
+	_ struct{} `type:"structure"`
+
 	// The event code.
 	Code *string `locationName:"code" type:"string" enum:"EventCode"`
 
@@ -18158,12 +18220,6 @@ type InstanceStatusEvent struct {
 
 	// The earliest scheduled start time for the event.
 	NotBefore *time.Time `locationName:"notBefore" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataInstanceStatusEvent `json:"-" xml:"-"`
-}
-
-type metadataInstanceStatusEvent struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18178,17 +18234,13 @@ func (s InstanceStatusEvent) GoString() string {
 
 // Describes the status of an instance.
 type InstanceStatusSummary struct {
+	_ struct{} `type:"structure"`
+
 	// The system instance health or application instance health.
 	Details []*InstanceStatusDetails `locationName:"details" locationNameList:"item" type:"list"`
 
 	// The status.
 	Status *string `locationName:"status" type:"string" enum:"SummaryStatus"`
-
-	metadataInstanceStatusSummary `json:"-" xml:"-"`
-}
-
-type metadataInstanceStatusSummary struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18203,6 +18255,8 @@ func (s InstanceStatusSummary) GoString() string {
 
 // Describes an Internet gateway.
 type InternetGateway struct {
+	_ struct{} `type:"structure"`
+
 	// Any VPCs attached to the Internet gateway.
 	Attachments []*InternetGatewayAttachment `locationName:"attachmentSet" locationNameList:"item" type:"list"`
 
@@ -18211,12 +18265,6 @@ type InternetGateway struct {
 
 	// Any tags assigned to the Internet gateway.
 	Tags []*Tag `locationName:"tagSet" locationNameList:"item" type:"list"`
-
-	metadataInternetGateway `json:"-" xml:"-"`
-}
-
-type metadataInternetGateway struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18231,17 +18279,13 @@ func (s InternetGateway) GoString() string {
 
 // Describes the attachment of a VPC to an Internet gateway.
 type InternetGatewayAttachment struct {
+	_ struct{} `type:"structure"`
+
 	// The current state of the attachment.
 	State *string `locationName:"state" type:"string" enum:"AttachmentStatus"`
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataInternetGatewayAttachment `json:"-" xml:"-"`
-}
-
-type metadataInternetGatewayAttachment struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18256,18 +18300,17 @@ func (s InternetGatewayAttachment) GoString() string {
 
 // Describes a security group rule.
 type IpPermission struct {
+	_ struct{} `type:"structure"`
+
 	// The start of port range for the TCP and UDP protocols, or an ICMP type number.
 	// A value of -1 indicates all ICMP types.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
-	// The protocol.
+	// The IP protocol name (for tcp, udp, and icmp) or number (see Protocol Numbers
+	// (http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)).
 	//
-	// When you call DescribeSecurityGroups, the protocol value returned is the
-	// number. Exception: For TCP, UDP, and ICMP, the value returned is the name
-	// (for example, tcp, udp, or icmp). For a list of protocol numbers, see Protocol
-	// Numbers (http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml).
-	// (VPC only) When you call AuthorizeSecurityGroupIngress, you can use -1 to
-	// specify all.
+	// [EC2-VPC only] When you authorize or revoke security group rules, you can
+	// use -1 to specify all.
 	IpProtocol *string `locationName:"ipProtocol" type:"string"`
 
 	// One or more IP ranges.
@@ -18285,12 +18328,6 @@ type IpPermission struct {
 
 	// One or more security group and AWS account ID pairs.
 	UserIdGroupPairs []*UserIdGroupPair `locationName:"groups" locationNameList:"item" type:"list"`
-
-	metadataIpPermission `json:"-" xml:"-"`
-}
-
-type metadataIpPermission struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18305,15 +18342,11 @@ func (s IpPermission) GoString() string {
 
 // Describes an IP range.
 type IpRange struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR range. You can either specify a CIDR range or a source security
 	// group, not both.
 	CidrIp *string `locationName:"cidrIp" type:"string"`
-
-	metadataIpRange `json:"-" xml:"-"`
-}
-
-type metadataIpRange struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18328,6 +18361,8 @@ func (s IpRange) GoString() string {
 
 // Describes a key pair.
 type KeyPairInfo struct {
+	_ struct{} `type:"structure"`
+
 	// If you used CreateKeyPair to create the key pair, this is the SHA-1 digest
 	// of the DER encoded private key. If you used ImportKeyPair to provide AWS
 	// the public key, this is the MD5 public key fingerprint as specified in section
@@ -18336,12 +18371,6 @@ type KeyPairInfo struct {
 
 	// The name of the key pair.
 	KeyName *string `locationName:"keyName" type:"string"`
-
-	metadataKeyPairInfo `json:"-" xml:"-"`
-}
-
-type metadataKeyPairInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18356,17 +18385,13 @@ func (s KeyPairInfo) GoString() string {
 
 // Describes a launch permission.
 type LaunchPermission struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the group.
 	Group *string `locationName:"group" type:"string" enum:"PermissionGroup"`
 
 	// The AWS account ID.
 	UserId *string `locationName:"userId" type:"string"`
-
-	metadataLaunchPermission `json:"-" xml:"-"`
-}
-
-type metadataLaunchPermission struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18381,18 +18406,14 @@ func (s LaunchPermission) GoString() string {
 
 // Describes a launch permission modification.
 type LaunchPermissionModifications struct {
+	_ struct{} `type:"structure"`
+
 	// The AWS account ID to add to the list of launch permissions for the AMI.
 	Add []*LaunchPermission `locationNameList:"item" type:"list"`
 
 	// The AWS account ID to remove from the list of launch permissions for the
 	// AMI.
 	Remove []*LaunchPermission `locationNameList:"item" type:"list"`
-
-	metadataLaunchPermissionModifications `json:"-" xml:"-"`
-}
-
-type metadataLaunchPermissionModifications struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18407,6 +18428,8 @@ func (s LaunchPermissionModifications) GoString() string {
 
 // Describes the launch specification for an instance.
 type LaunchSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// Deprecated.
 	AddressingType *string `locationName:"addressingType" type:"string"`
 
@@ -18459,12 +18482,6 @@ type LaunchSpecification struct {
 
 	// The Base64-encoded MIME user data to make available to the instances.
 	UserData *string `locationName:"userData" type:"string"`
-
-	metadataLaunchSpecification `json:"-" xml:"-"`
-}
-
-type metadataLaunchSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18477,7 +18494,84 @@ func (s LaunchSpecification) GoString() string {
 	return s.String()
 }
 
+type ModifyHostsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specify whether to enable or disable auto-placement.
+	AutoPlacement *string `locationName:"autoPlacement" type:"string" required:"true" enum:"AutoPlacement"`
+
+	// The host IDs of the Dedicated hosts you want to modify.
+	HostIds []*string `locationName:"hostId" locationNameList:"item" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s ModifyHostsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyHostsInput) GoString() string {
+	return s.String()
+}
+
+type ModifyHostsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The IDs of the Dedicated hosts that were successfully modified.
+	Successful []*string `locationName:"successful" locationNameList:"item" type:"list"`
+
+	// The IDs of the Dedicated hosts that could not be modified. Check whether
+	// the setting you requested can be used.
+	Unsuccessful []*UnsuccessfulItem `locationName:"unsuccessful" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s ModifyHostsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyHostsOutput) GoString() string {
+	return s.String()
+}
+
+type ModifyIdFormatInput struct {
+	_ struct{} `type:"structure"`
+
+	// The type of resource.
+	Resource *string `type:"string" required:"true"`
+
+	// Indicate whether the resource should use longer IDs (17-character IDs).
+	UseLongIds *bool `type:"boolean" required:"true"`
+}
+
+// String returns the string representation
+func (s ModifyIdFormatInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyIdFormatInput) GoString() string {
+	return s.String()
+}
+
+type ModifyIdFormatOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s ModifyIdFormatOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyIdFormatOutput) GoString() string {
+	return s.String()
+}
+
 type ModifyImageAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the attribute to modify.
 	Attribute *string `type:"string"`
 
@@ -18514,12 +18608,6 @@ type ModifyImageAttributeInput struct {
 	// The value of the attribute being modified. This is only valid when modifying
 	// the description attribute.
 	Value *string `type:"string"`
-
-	metadataModifyImageAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataModifyImageAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18533,11 +18621,7 @@ func (s ModifyImageAttributeInput) GoString() string {
 }
 
 type ModifyImageAttributeOutput struct {
-	metadataModifyImageAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataModifyImageAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -18551,6 +18635,8 @@ func (s ModifyImageAttributeOutput) GoString() string {
 }
 
 type ModifyInstanceAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the attribute.
 	Attribute *string `locationName:"attribute" type:"string" enum:"InstanceAttributeName"`
 
@@ -18629,12 +18715,6 @@ type ModifyInstanceAttributeInput struct {
 	// A new value for the attribute. Use only with the kernel, ramdisk, userData,
 	// disableApiTermination, or instanceInitiatedShutdownBehavior attribute.
 	Value *string `locationName:"value" type:"string"`
-
-	metadataModifyInstanceAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataModifyInstanceAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18648,11 +18728,7 @@ func (s ModifyInstanceAttributeInput) GoString() string {
 }
 
 type ModifyInstanceAttributeOutput struct {
-	metadataModifyInstanceAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataModifyInstanceAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -18665,7 +18741,52 @@ func (s ModifyInstanceAttributeOutput) GoString() string {
 	return s.String()
 }
 
+type ModifyInstancePlacementInput struct {
+	_ struct{} `type:"structure"`
+
+	// The new affinity setting for the instance.
+	Affinity *string `locationName:"affinity" type:"string" enum:"Affinity"`
+
+	// The ID of the Dedicated host that the instance will have affinity with.
+	HostId *string `locationName:"hostId" type:"string"`
+
+	// The ID of the instance that you are modifying.
+	InstanceId *string `locationName:"instanceId" type:"string" required:"true"`
+
+	// The tenancy of the instance that you are modifying.
+	Tenancy *string `locationName:"tenancy" type:"string" enum:"HostTenancy"`
+}
+
+// String returns the string representation
+func (s ModifyInstancePlacementInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyInstancePlacementInput) GoString() string {
+	return s.String()
+}
+
+type ModifyInstancePlacementOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Is true if the request succeeds, and an error otherwise.
+	Return *bool `locationName:"return" type:"boolean"`
+}
+
+// String returns the string representation
+func (s ModifyInstancePlacementOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyInstancePlacementOutput) GoString() string {
+	return s.String()
+}
+
 type ModifyNetworkInterfaceAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the interface attachment. If modifying the 'delete on termination'
 	// attribute, you must specify the ID of the interface attachment.
 	Attachment *NetworkInterfaceAttachmentChanges `locationName:"attachment" type:"structure"`
@@ -18694,12 +18815,6 @@ type ModifyNetworkInterfaceAttributeInput struct {
 	// NAT Instances (http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_NAT_Instance.html)
 	// in the Amazon Virtual Private Cloud User Guide.
 	SourceDestCheck *AttributeBooleanValue `locationName:"sourceDestCheck" type:"structure"`
-
-	metadataModifyNetworkInterfaceAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataModifyNetworkInterfaceAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18713,11 +18828,7 @@ func (s ModifyNetworkInterfaceAttributeInput) GoString() string {
 }
 
 type ModifyNetworkInterfaceAttributeOutput struct {
-	metadataModifyNetworkInterfaceAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataModifyNetworkInterfaceAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -18731,6 +18842,8 @@ func (s ModifyNetworkInterfaceAttributeOutput) GoString() string {
 }
 
 type ModifyReservedInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// A unique, case-sensitive token you provide to ensure idempotency of your
 	// modification request. For more information, see Ensuring Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
 	ClientToken *string `locationName:"clientToken" type:"string"`
@@ -18740,12 +18853,6 @@ type ModifyReservedInstancesInput struct {
 
 	// The configuration settings for the Reserved Instances to modify.
 	TargetConfigurations []*ReservedInstancesConfiguration `locationName:"ReservedInstancesConfigurationSetItemType" locationNameList:"item" type:"list" required:"true"`
-
-	metadataModifyReservedInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataModifyReservedInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18759,14 +18866,10 @@ func (s ModifyReservedInstancesInput) GoString() string {
 }
 
 type ModifyReservedInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID for the modification.
 	ReservedInstancesModificationId *string `locationName:"reservedInstancesModificationId" type:"string"`
-
-	metadataModifyReservedInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataModifyReservedInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18780,6 +18883,8 @@ func (s ModifyReservedInstancesOutput) GoString() string {
 }
 
 type ModifySnapshotAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The snapshot attribute to modify.
 	//
 	//  Only volume creation permissions may be modified at the customer level.
@@ -18805,12 +18910,6 @@ type ModifySnapshotAttributeInput struct {
 
 	// The account ID to modify for the snapshot.
 	UserIds []*string `locationName:"UserId" locationNameList:"UserId" type:"list"`
-
-	metadataModifySnapshotAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataModifySnapshotAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18824,11 +18923,7 @@ func (s ModifySnapshotAttributeInput) GoString() string {
 }
 
 type ModifySnapshotAttributeOutput struct {
-	metadataModifySnapshotAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataModifySnapshotAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -18843,6 +18938,8 @@ func (s ModifySnapshotAttributeOutput) GoString() string {
 
 // Contains the parameters for ModifySpotFleetRequest.
 type ModifySpotFleetRequestInput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether running Spot instances should be terminated if the target
 	// capacity of the Spot fleet request is decreased below the current size of
 	// the Spot fleet.
@@ -18853,12 +18950,6 @@ type ModifySpotFleetRequestInput struct {
 
 	// The size of the fleet.
 	TargetCapacity *int64 `locationName:"targetCapacity" type:"integer"`
-
-	metadataModifySpotFleetRequestInput `json:"-" xml:"-"`
-}
-
-type metadataModifySpotFleetRequestInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18873,14 +18964,10 @@ func (s ModifySpotFleetRequestInput) GoString() string {
 
 // Contains the output of ModifySpotFleetRequest.
 type ModifySpotFleetRequestOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Is true if the request succeeds, and an error otherwise.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataModifySpotFleetRequestOutput `json:"-" xml:"-"`
-}
-
-type metadataModifySpotFleetRequestOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18894,18 +18981,14 @@ func (s ModifySpotFleetRequestOutput) GoString() string {
 }
 
 type ModifySubnetAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specify true to indicate that instances launched into the specified subnet
 	// should be assigned public IP address.
 	MapPublicIpOnLaunch *AttributeBooleanValue `type:"structure"`
 
 	// The ID of the subnet.
 	SubnetId *string `locationName:"subnetId" type:"string" required:"true"`
-
-	metadataModifySubnetAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataModifySubnetAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18919,11 +19002,7 @@ func (s ModifySubnetAttributeInput) GoString() string {
 }
 
 type ModifySubnetAttributeOutput struct {
-	metadataModifySubnetAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataModifySubnetAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -18937,6 +19016,8 @@ func (s ModifySubnetAttributeOutput) GoString() string {
 }
 
 type ModifyVolumeAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the volume should be auto-enabled for I/O operations.
 	AutoEnableIO *AttributeBooleanValue `type:"structure"`
 
@@ -18948,12 +19029,6 @@ type ModifyVolumeAttributeInput struct {
 
 	// The ID of the volume.
 	VolumeId *string `type:"string" required:"true"`
-
-	metadataModifyVolumeAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataModifyVolumeAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -18967,11 +19042,7 @@ func (s ModifyVolumeAttributeInput) GoString() string {
 }
 
 type ModifyVolumeAttributeOutput struct {
-	metadataModifyVolumeAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataModifyVolumeAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -18985,6 +19056,8 @@ func (s ModifyVolumeAttributeOutput) GoString() string {
 }
 
 type ModifyVpcAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the instances launched in the VPC get DNS hostnames. If
 	// enabled, instances in the VPC get DNS hostnames; otherwise, they do not.
 	//
@@ -19005,12 +19078,6 @@ type ModifyVpcAttributeInput struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string" required:"true"`
-
-	metadataModifyVpcAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataModifyVpcAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19024,11 +19091,7 @@ func (s ModifyVpcAttributeInput) GoString() string {
 }
 
 type ModifyVpcAttributeOutput struct {
-	metadataModifyVpcAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataModifyVpcAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -19042,6 +19105,8 @@ func (s ModifyVpcAttributeOutput) GoString() string {
 }
 
 type ModifyVpcEndpointInput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more route tables IDs to associate with the endpoint.
 	AddRouteTableIds []*string `locationName:"AddRouteTableId" locationNameList:"item" type:"list"`
 
@@ -19064,12 +19129,6 @@ type ModifyVpcEndpointInput struct {
 
 	// The ID of the endpoint.
 	VpcEndpointId *string `type:"string" required:"true"`
-
-	metadataModifyVpcEndpointInput `json:"-" xml:"-"`
-}
-
-type metadataModifyVpcEndpointInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19083,14 +19142,10 @@ func (s ModifyVpcEndpointInput) GoString() string {
 }
 
 type ModifyVpcEndpointOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns true if the request succeeds; otherwise, it returns an error.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataModifyVpcEndpointOutput `json:"-" xml:"-"`
-}
-
-type metadataModifyVpcEndpointOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19104,6 +19159,8 @@ func (s ModifyVpcEndpointOutput) GoString() string {
 }
 
 type MonitorInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -19112,12 +19169,6 @@ type MonitorInstancesInput struct {
 
 	// One or more instance IDs.
 	InstanceIds []*string `locationName:"InstanceId" locationNameList:"InstanceId" type:"list" required:"true"`
-
-	metadataMonitorInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataMonitorInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19131,14 +19182,10 @@ func (s MonitorInstancesInput) GoString() string {
 }
 
 type MonitorInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Monitoring information for one or more instances.
 	InstanceMonitorings []*InstanceMonitoring `locationName:"instancesSet" locationNameList:"item" type:"list"`
-
-	metadataMonitorInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataMonitorInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19153,14 +19200,10 @@ func (s MonitorInstancesOutput) GoString() string {
 
 // Describes the monitoring for the instance.
 type Monitoring struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether monitoring is enabled for the instance.
 	State *string `locationName:"state" type:"string" enum:"MonitoringState"`
-
-	metadataMonitoring `json:"-" xml:"-"`
-}
-
-type metadataMonitoring struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19174,6 +19217,8 @@ func (s Monitoring) GoString() string {
 }
 
 type MoveAddressToVpcInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -19182,12 +19227,6 @@ type MoveAddressToVpcInput struct {
 
 	// The Elastic IP address.
 	PublicIp *string `locationName:"publicIp" type:"string" required:"true"`
-
-	metadataMoveAddressToVpcInput `json:"-" xml:"-"`
-}
-
-type metadataMoveAddressToVpcInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19201,17 +19240,13 @@ func (s MoveAddressToVpcInput) GoString() string {
 }
 
 type MoveAddressToVpcOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The allocation ID for the Elastic IP address.
 	AllocationId *string `locationName:"allocationId" type:"string"`
 
 	// The status of the move of the IP address.
 	Status *string `locationName:"status" type:"string" enum:"Status"`
-
-	metadataMoveAddressToVpcOutput `json:"-" xml:"-"`
-}
-
-type metadataMoveAddressToVpcOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19226,18 +19261,14 @@ func (s MoveAddressToVpcOutput) GoString() string {
 
 // Describes the status of a moving Elastic IP address.
 type MovingAddressStatus struct {
+	_ struct{} `type:"structure"`
+
 	// The status of the Elastic IP address that's being moved to the EC2-VPC platform,
 	// or restored to the EC2-Classic platform.
 	MoveStatus *string `locationName:"moveStatus" type:"string" enum:"MoveStatus"`
 
 	// The Elastic IP address.
 	PublicIp *string `locationName:"publicIp" type:"string"`
-
-	metadataMovingAddressStatus `json:"-" xml:"-"`
-}
-
-type metadataMovingAddressStatus struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19250,8 +19281,92 @@ func (s MovingAddressStatus) GoString() string {
 	return s.String()
 }
 
+// Describes a NAT gateway.
+type NatGateway struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time the NAT gateway was created.
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The date and time the NAT gateway was deleted, if applicable.
+	DeleteTime *time.Time `locationName:"deleteTime" type:"timestamp" timestampFormat:"iso8601"`
+
+	// If the NAT gateway could not be created, specifies the error code for the
+	// failure. (InsufficientFreeAddressesInSubnet | Gateway.NotAttached | InvalidAllocationID.NotFound
+	// | Resource.AlreadyAssociated | InternalError)
+	FailureCode *string `locationName:"failureCode" type:"string"`
+
+	// If the NAT gateway could not be created, specifies the error message for
+	// the failure, that corresponds to the error code.
+	//
+	//  For InsufficientFreeAddressesInSubnet: Subnet has insufficient free addresses
+	// to create this NAT gateway For Gateway.NotAttached: Network vpc-xxxxxxxx
+	// has no Internet gateway attached For InvalidAllocationID.NotFound: Elastic
+	// IP address eipalloc-xxxxxxxx could not be associated with this NAT gateway
+	// For Resource.AlreadyAssociated: Elastic IP address eipalloc-xxxxxxxx is already
+	// associated For InternalError: Network interface eni-xxxxxxxx, created and
+	// used internally by this NAT gateway is in an invalid state. Please try again.
+	FailureMessage *string `locationName:"failureMessage" type:"string"`
+
+	// Information about the IP addresses and network interface associated with
+	// the NAT gateway.
+	NatGatewayAddresses []*NatGatewayAddress `locationName:"natGatewayAddressSet" locationNameList:"item" type:"list"`
+
+	// The ID of the NAT gateway.
+	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
+
+	// The state of the NAT gateway.
+	State *string `locationName:"state" type:"string" enum:"NatGatewayState"`
+
+	// The ID of the subnet in which the NAT gateway is located.
+	SubnetId *string `locationName:"subnetId" type:"string"`
+
+	// The ID of the VPC in which the NAT gateway is located.
+	VpcId *string `locationName:"vpcId" type:"string"`
+}
+
+// String returns the string representation
+func (s NatGateway) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NatGateway) GoString() string {
+	return s.String()
+}
+
+// Describes the IP addresses and network interface associated with a NAT gateway.
+type NatGatewayAddress struct {
+	_ struct{} `type:"structure"`
+
+	// The allocation ID of the Elastic IP address that's associated with the NAT
+	// gateway.
+	AllocationId *string `locationName:"allocationId" type:"string"`
+
+	// The ID of the network interface associated with the NAT gateway.
+	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
+
+	// The private IP address associated with the Elastic IP address.
+	PrivateIp *string `locationName:"privateIp" type:"string"`
+
+	// The Elastic IP address associated with the NAT gateway.
+	PublicIp *string `locationName:"publicIp" type:"string"`
+}
+
+// String returns the string representation
+func (s NatGatewayAddress) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NatGatewayAddress) GoString() string {
+	return s.String()
+}
+
 // Describes a network ACL.
 type NetworkAcl struct {
+	_ struct{} `type:"structure"`
+
 	// Any associations between the network ACL and one or more subnets
 	Associations []*NetworkAclAssociation `locationName:"associationSet" locationNameList:"item" type:"list"`
 
@@ -19269,12 +19384,6 @@ type NetworkAcl struct {
 
 	// The ID of the VPC for the network ACL.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataNetworkAcl `json:"-" xml:"-"`
-}
-
-type metadataNetworkAcl struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19289,6 +19398,8 @@ func (s NetworkAcl) GoString() string {
 
 // Describes an association between a network ACL and a subnet.
 type NetworkAclAssociation struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the association between a network ACL and a subnet.
 	NetworkAclAssociationId *string `locationName:"networkAclAssociationId" type:"string"`
 
@@ -19297,12 +19408,6 @@ type NetworkAclAssociation struct {
 
 	// The ID of the subnet.
 	SubnetId *string `locationName:"subnetId" type:"string"`
-
-	metadataNetworkAclAssociation `json:"-" xml:"-"`
-}
-
-type metadataNetworkAclAssociation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19317,6 +19422,8 @@ func (s NetworkAclAssociation) GoString() string {
 
 // Describes an entry in a network ACL.
 type NetworkAclEntry struct {
+	_ struct{} `type:"structure"`
+
 	// The network range to allow or deny, in CIDR notation.
 	CidrBlock *string `locationName:"cidrBlock" type:"string"`
 
@@ -19339,12 +19446,6 @@ type NetworkAclEntry struct {
 	// The rule number for the entry. ACL entries are processed in ascending order
 	// by rule number.
 	RuleNumber *int64 `locationName:"ruleNumber" type:"integer"`
-
-	metadataNetworkAclEntry `json:"-" xml:"-"`
-}
-
-type metadataNetworkAclEntry struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19359,6 +19460,8 @@ func (s NetworkAclEntry) GoString() string {
 
 // Describes a network interface.
 type NetworkInterface struct {
+	_ struct{} `type:"structure"`
+
 	// The association information for an Elastic IP associated with the network
 	// interface.
 	Association *NetworkInterfaceAssociation `locationName:"association" type:"structure"`
@@ -19374,6 +19477,9 @@ type NetworkInterface struct {
 
 	// Any security groups for the network interface.
 	Groups []*GroupIdentifier `locationName:"groupSet" locationNameList:"item" type:"list"`
+
+	// The type of interface.
+	InterfaceType *string `locationName:"interfaceType" type:"string" enum:"NetworkInterfaceType"`
 
 	// The MAC address.
 	MacAddress *string `locationName:"macAddress" type:"string"`
@@ -19414,12 +19520,6 @@ type NetworkInterface struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataNetworkInterface `json:"-" xml:"-"`
-}
-
-type metadataNetworkInterface struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19434,6 +19534,8 @@ func (s NetworkInterface) GoString() string {
 
 // Describes association information for an Elastic IP address.
 type NetworkInterfaceAssociation struct {
+	_ struct{} `type:"structure"`
+
 	// The allocation ID.
 	AllocationId *string `locationName:"allocationId" type:"string"`
 
@@ -19448,12 +19550,6 @@ type NetworkInterfaceAssociation struct {
 
 	// The address of the Elastic IP address bound to the network interface.
 	PublicIp *string `locationName:"publicIp" type:"string"`
-
-	metadataNetworkInterfaceAssociation `json:"-" xml:"-"`
-}
-
-type metadataNetworkInterfaceAssociation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19468,6 +19564,8 @@ func (s NetworkInterfaceAssociation) GoString() string {
 
 // Describes a network interface attachment.
 type NetworkInterfaceAttachment struct {
+	_ struct{} `type:"structure"`
+
 	// The timestamp indicating when the attachment initiated.
 	AttachTime *time.Time `locationName:"attachTime" type:"timestamp" timestampFormat:"iso8601"`
 
@@ -19488,12 +19586,6 @@ type NetworkInterfaceAttachment struct {
 
 	// The attachment state.
 	Status *string `locationName:"status" type:"string" enum:"AttachmentStatus"`
-
-	metadataNetworkInterfaceAttachment `json:"-" xml:"-"`
-}
-
-type metadataNetworkInterfaceAttachment struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19508,17 +19600,13 @@ func (s NetworkInterfaceAttachment) GoString() string {
 
 // Describes an attachment change.
 type NetworkInterfaceAttachmentChanges struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the network interface attachment.
 	AttachmentId *string `locationName:"attachmentId" type:"string"`
 
 	// Indicates whether the network interface is deleted when the instance is terminated.
 	DeleteOnTermination *bool `locationName:"deleteOnTermination" type:"boolean"`
-
-	metadataNetworkInterfaceAttachmentChanges `json:"-" xml:"-"`
-}
-
-type metadataNetworkInterfaceAttachmentChanges struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19533,6 +19621,8 @@ func (s NetworkInterfaceAttachmentChanges) GoString() string {
 
 // Describes the private IP address of a network interface.
 type NetworkInterfacePrivateIpAddress struct {
+	_ struct{} `type:"structure"`
+
 	// The association information for an Elastic IP address associated with the
 	// network interface.
 	Association *NetworkInterfaceAssociation `locationName:"association" type:"structure"`
@@ -19546,12 +19636,6 @@ type NetworkInterfacePrivateIpAddress struct {
 
 	// The private IP address.
 	PrivateIpAddress *string `locationName:"privateIpAddress" type:"string"`
-
-	metadataNetworkInterfacePrivateIpAddress `json:"-" xml:"-"`
-}
-
-type metadataNetworkInterfacePrivateIpAddress struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19565,15 +19649,11 @@ func (s NetworkInterfacePrivateIpAddress) GoString() string {
 }
 
 type NewDhcpConfiguration struct {
+	_ struct{} `type:"structure"`
+
 	Key *string `locationName:"key" type:"string"`
 
 	Values []*string `locationName:"Value" locationNameList:"item" type:"list"`
-
-	metadataNewDhcpConfiguration `json:"-" xml:"-"`
-}
-
-type metadataNewDhcpConfiguration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19588,21 +19668,26 @@ func (s NewDhcpConfiguration) GoString() string {
 
 // Describes the placement for the instance.
 type Placement struct {
+	_ struct{} `type:"structure"`
+
+	// The affinity setting for the instance on the Dedicated host. This parameter
+	// is not supported for the ImportInstance command.
+	Affinity *string `locationName:"affinity" type:"string"`
+
 	// The Availability Zone of the instance.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
 	// The name of the placement group the instance is in (for cluster compute instances).
 	GroupName *string `locationName:"groupName" type:"string"`
 
+	// The ID of the Dedicted host on which the instance resides. This parameter
+	// is not support for the ImportInstance command.
+	HostId *string `locationName:"hostId" type:"string"`
+
 	// The tenancy of the instance (if the instance is running in a VPC). An instance
-	// with a tenancy of dedicated runs on single-tenant hardware.
+	// with a tenancy of dedicated runs on single-tenant hardware. The host tenancy
+	// is not supported for the ImportInstance command.
 	Tenancy *string `locationName:"tenancy" type:"string" enum:"Tenancy"`
-
-	metadataPlacement `json:"-" xml:"-"`
-}
-
-type metadataPlacement struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19617,6 +19702,8 @@ func (s Placement) GoString() string {
 
 // Describes a placement group.
 type PlacementGroup struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the placement group.
 	GroupName *string `locationName:"groupName" type:"string"`
 
@@ -19625,12 +19712,6 @@ type PlacementGroup struct {
 
 	// The placement strategy.
 	Strategy *string `locationName:"strategy" type:"string" enum:"PlacementStrategy"`
-
-	metadataPlacementGroup `json:"-" xml:"-"`
-}
-
-type metadataPlacementGroup struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19645,17 +19726,13 @@ func (s PlacementGroup) GoString() string {
 
 // Describes a range of ports.
 type PortRange struct {
+	_ struct{} `type:"structure"`
+
 	// The first port in the range.
 	From *int64 `locationName:"from" type:"integer"`
 
 	// The last port in the range.
 	To *int64 `locationName:"to" type:"integer"`
-
-	metadataPortRange `json:"-" xml:"-"`
-}
-
-type metadataPortRange struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19670,6 +19747,8 @@ func (s PortRange) GoString() string {
 
 // Describes prefixes for AWS services.
 type PrefixList struct {
+	_ struct{} `type:"structure"`
+
 	// The IP address range of the AWS service.
 	Cidrs []*string `locationName:"cidrSet" locationNameList:"item" type:"list"`
 
@@ -19678,12 +19757,6 @@ type PrefixList struct {
 
 	// The name of the prefix.
 	PrefixListName *string `locationName:"prefixListName" type:"string"`
-
-	metadataPrefixList `json:"-" xml:"-"`
-}
-
-type metadataPrefixList struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19698,14 +19771,10 @@ func (s PrefixList) GoString() string {
 
 // The ID of the prefix.
 type PrefixListId struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the prefix.
 	PrefixListId *string `locationName:"prefixListId" type:"string"`
-
-	metadataPrefixListId `json:"-" xml:"-"`
-}
-
-type metadataPrefixListId struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19720,6 +19789,8 @@ func (s PrefixListId) GoString() string {
 
 // Describes the price for a Reserved Instance.
 type PriceSchedule struct {
+	_ struct{} `type:"structure"`
+
 	// The current price schedule, as determined by the term remaining for the Reserved
 	// Instance in the listing.
 	//
@@ -19742,12 +19813,6 @@ type PriceSchedule struct {
 	// The number of months remaining in the reservation. For example, 2 is the
 	// second to the last month before the capacity reservation expires.
 	Term *int64 `locationName:"term" type:"long"`
-
-	metadataPriceSchedule `json:"-" xml:"-"`
-}
-
-type metadataPriceSchedule struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19762,6 +19827,8 @@ func (s PriceSchedule) GoString() string {
 
 // Describes the price for a Reserved Instance.
 type PriceScheduleSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// The currency for transacting the Reserved Instance resale. At this time,
 	// the only supported currency is USD.
 	CurrencyCode *string `locationName:"currencyCode" type:"string" enum:"CurrencyCodeValues"`
@@ -19772,12 +19839,6 @@ type PriceScheduleSpecification struct {
 	// The number of months remaining in the reservation. For example, 2 is the
 	// second to the last month before the capacity reservation expires.
 	Term *int64 `locationName:"term" type:"long"`
-
-	metadataPriceScheduleSpecification `json:"-" xml:"-"`
-}
-
-type metadataPriceScheduleSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19792,17 +19853,13 @@ func (s PriceScheduleSpecification) GoString() string {
 
 // Describes a Reserved Instance offering.
 type PricingDetail struct {
-	// The number of instances available for the price.
+	_ struct{} `type:"structure"`
+
+	// The number of reservations available for the price.
 	Count *int64 `locationName:"count" type:"integer"`
 
 	// The price per instance.
 	Price *float64 `locationName:"price" type:"double"`
-
-	metadataPricingDetail `json:"-" xml:"-"`
-}
-
-type metadataPricingDetail struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19817,18 +19874,14 @@ func (s PricingDetail) GoString() string {
 
 // Describes a secondary private IP address for a network interface.
 type PrivateIpAddressSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the private IP address is the primary private IP address.
 	// Only one IP address can be designated as primary.
 	Primary *bool `locationName:"primary" type:"boolean"`
 
 	// The private IP addresses.
 	PrivateIpAddress *string `locationName:"privateIpAddress" type:"string" required:"true"`
-
-	metadataPrivateIpAddressSpecification `json:"-" xml:"-"`
-}
-
-type metadataPrivateIpAddressSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19843,17 +19896,13 @@ func (s PrivateIpAddressSpecification) GoString() string {
 
 // Describes a product code.
 type ProductCode struct {
+	_ struct{} `type:"structure"`
+
 	// The product code.
 	ProductCodeId *string `locationName:"productCode" type:"string"`
 
 	// The type of product code.
 	ProductCodeType *string `locationName:"type" type:"string" enum:"ProductCodeValues"`
-
-	metadataProductCode `json:"-" xml:"-"`
-}
-
-type metadataProductCode struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19868,14 +19917,10 @@ func (s ProductCode) GoString() string {
 
 // Describes a virtual private gateway propagating route.
 type PropagatingVgw struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the virtual private gateway (VGW).
 	GatewayId *string `locationName:"gatewayId" type:"string"`
-
-	metadataPropagatingVgw `json:"-" xml:"-"`
-}
-
-type metadataPropagatingVgw struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19888,7 +19933,30 @@ func (s PropagatingVgw) GoString() string {
 	return s.String()
 }
 
+// Describes a request to purchase Scheduled Instances.
+type PurchaseRequest struct {
+	_ struct{} `type:"structure"`
+
+	// The number of instances.
+	InstanceCount *int64 `type:"integer"`
+
+	// The purchase token.
+	PurchaseToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s PurchaseRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PurchaseRequest) GoString() string {
+	return s.String()
+}
+
 type PurchaseReservedInstancesOfferingInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -19905,12 +19973,6 @@ type PurchaseReservedInstancesOfferingInput struct {
 
 	// The ID of the Reserved Instance offering to purchase.
 	ReservedInstancesOfferingId *string `type:"string" required:"true"`
-
-	metadataPurchaseReservedInstancesOfferingInput `json:"-" xml:"-"`
-}
-
-type metadataPurchaseReservedInstancesOfferingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19924,14 +19986,10 @@ func (s PurchaseReservedInstancesOfferingInput) GoString() string {
 }
 
 type PurchaseReservedInstancesOfferingOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The IDs of the purchased Reserved Instances.
 	ReservedInstancesId *string `locationName:"reservedInstancesId" type:"string"`
-
-	metadataPurchaseReservedInstancesOfferingOutput `json:"-" xml:"-"`
-}
-
-type metadataPurchaseReservedInstancesOfferingOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19944,7 +20002,55 @@ func (s PurchaseReservedInstancesOfferingOutput) GoString() string {
 	return s.String()
 }
 
+// Contains the parameters for PurchaseScheduledInstances.
+type PurchaseScheduledInstancesInput struct {
+	_ struct{} `type:"structure"`
+
+	// Unique, case-sensitive identifier that ensures the idempotency of the request.
+	// For more information, see Ensuring Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	ClientToken *string `type:"string"`
+
+	// Checks whether you have the required permissions for the action, without
+	// actually making the request, and provides an error response. If you have
+	// the required permissions, the error response is DryRunOperation. Otherwise,
+	// it is UnauthorizedOperation.
+	DryRun *bool `type:"boolean"`
+
+	// One or more purchase requests.
+	PurchaseRequests []*PurchaseRequest `locationName:"PurchaseRequest" locationNameList:"PurchaseRequest" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s PurchaseScheduledInstancesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PurchaseScheduledInstancesInput) GoString() string {
+	return s.String()
+}
+
+// Contains the output of PurchaseScheduledInstances.
+type PurchaseScheduledInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the Scheduled Instances.
+	ScheduledInstanceSet []*ScheduledInstance `locationName:"scheduledInstanceSet" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s PurchaseScheduledInstancesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PurchaseScheduledInstancesOutput) GoString() string {
+	return s.String()
+}
+
 type RebootInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -19953,12 +20059,6 @@ type RebootInstancesInput struct {
 
 	// One or more instance IDs.
 	InstanceIds []*string `locationName:"InstanceId" locationNameList:"InstanceId" type:"list" required:"true"`
-
-	metadataRebootInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataRebootInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -19972,11 +20072,7 @@ func (s RebootInstancesInput) GoString() string {
 }
 
 type RebootInstancesOutput struct {
-	metadataRebootInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataRebootInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -19991,17 +20087,13 @@ func (s RebootInstancesOutput) GoString() string {
 
 // Describes a recurring charge.
 type RecurringCharge struct {
+	_ struct{} `type:"structure"`
+
 	// The amount of the recurring charge.
 	Amount *float64 `locationName:"amount" type:"double"`
 
 	// The frequency of the recurring charge.
 	Frequency *string `locationName:"frequency" type:"string" enum:"RecurringChargeFrequency"`
-
-	metadataRecurringCharge `json:"-" xml:"-"`
-}
-
-type metadataRecurringCharge struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20016,17 +20108,13 @@ func (s RecurringCharge) GoString() string {
 
 // Describes a region.
 type Region struct {
+	_ struct{} `type:"structure"`
+
 	// The region service endpoint.
 	Endpoint *string `locationName:"regionEndpoint" type:"string"`
 
 	// The name of the region.
 	RegionName *string `locationName:"regionName" type:"string"`
-
-	metadataRegion `json:"-" xml:"-"`
-}
-
-type metadataRegion struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20040,6 +20128,8 @@ func (s Region) GoString() string {
 }
 
 type RegisterImageInput struct {
+	_ struct{} `type:"structure"`
+
 	// The architecture of the AMI.
 	//
 	// Default: For Amazon EBS-backed AMIs, i386. For instance store-backed AMIs,
@@ -20090,12 +20180,6 @@ type RegisterImageInput struct {
 	//
 	// Default: paravirtual
 	VirtualizationType *string `locationName:"virtualizationType" type:"string"`
-
-	metadataRegisterImageInput `json:"-" xml:"-"`
-}
-
-type metadataRegisterImageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20109,14 +20193,10 @@ func (s RegisterImageInput) GoString() string {
 }
 
 type RegisterImageOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the newly registered AMI.
 	ImageId *string `locationName:"imageId" type:"string"`
-
-	metadataRegisterImageOutput `json:"-" xml:"-"`
-}
-
-type metadataRegisterImageOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20130,6 +20210,8 @@ func (s RegisterImageOutput) GoString() string {
 }
 
 type RejectVpcPeeringConnectionInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -20138,12 +20220,6 @@ type RejectVpcPeeringConnectionInput struct {
 
 	// The ID of the VPC peering connection.
 	VpcPeeringConnectionId *string `locationName:"vpcPeeringConnectionId" type:"string" required:"true"`
-
-	metadataRejectVpcPeeringConnectionInput `json:"-" xml:"-"`
-}
-
-type metadataRejectVpcPeeringConnectionInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20157,14 +20233,10 @@ func (s RejectVpcPeeringConnectionInput) GoString() string {
 }
 
 type RejectVpcPeeringConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Returns true if the request succeeds; otherwise, it returns an error.
 	Return *bool `locationName:"return" type:"boolean"`
-
-	metadataRejectVpcPeeringConnectionOutput `json:"-" xml:"-"`
-}
-
-type metadataRejectVpcPeeringConnectionOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20178,6 +20250,8 @@ func (s RejectVpcPeeringConnectionOutput) GoString() string {
 }
 
 type ReleaseAddressInput struct {
+	_ struct{} `type:"structure"`
+
 	// [EC2-VPC] The allocation ID. Required for EC2-VPC.
 	AllocationId *string `type:"string"`
 
@@ -20189,12 +20263,6 @@ type ReleaseAddressInput struct {
 
 	// [EC2-Classic] The Elastic IP address. Required for EC2-Classic.
 	PublicIp *string `type:"string"`
-
-	metadataReleaseAddressInput `json:"-" xml:"-"`
-}
-
-type metadataReleaseAddressInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20208,11 +20276,7 @@ func (s ReleaseAddressInput) GoString() string {
 }
 
 type ReleaseAddressOutput struct {
-	metadataReleaseAddressOutput `json:"-" xml:"-"`
-}
-
-type metadataReleaseAddressOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -20225,7 +20289,47 @@ func (s ReleaseAddressOutput) GoString() string {
 	return s.String()
 }
 
+type ReleaseHostsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The IDs of the Dedicated hosts you want to release.
+	HostIds []*string `locationName:"hostId" locationNameList:"item" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s ReleaseHostsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReleaseHostsInput) GoString() string {
+	return s.String()
+}
+
+type ReleaseHostsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The IDs of the Dedicated hosts that were successfully released.
+	Successful []*string `locationName:"successful" locationNameList:"item" type:"list"`
+
+	// The IDs of the Dedicated hosts that could not be released, including an error
+	// message.
+	Unsuccessful []*UnsuccessfulItem `locationName:"unsuccessful" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s ReleaseHostsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReleaseHostsOutput) GoString() string {
+	return s.String()
+}
+
 type ReplaceNetworkAclAssociationInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the current association between the original network ACL and the
 	// subnet.
 	AssociationId *string `locationName:"associationId" type:"string" required:"true"`
@@ -20238,12 +20342,6 @@ type ReplaceNetworkAclAssociationInput struct {
 
 	// The ID of the new network ACL to associate with the subnet.
 	NetworkAclId *string `locationName:"networkAclId" type:"string" required:"true"`
-
-	metadataReplaceNetworkAclAssociationInput `json:"-" xml:"-"`
-}
-
-type metadataReplaceNetworkAclAssociationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20257,14 +20355,10 @@ func (s ReplaceNetworkAclAssociationInput) GoString() string {
 }
 
 type ReplaceNetworkAclAssociationOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the new association.
 	NewAssociationId *string `locationName:"newAssociationId" type:"string"`
-
-	metadataReplaceNetworkAclAssociationOutput `json:"-" xml:"-"`
-}
-
-type metadataReplaceNetworkAclAssociationOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20278,6 +20372,8 @@ func (s ReplaceNetworkAclAssociationOutput) GoString() string {
 }
 
 type ReplaceNetworkAclEntryInput struct {
+	_ struct{} `type:"structure"`
+
 	// The network range to allow or deny, in CIDR notation.
 	CidrBlock *string `locationName:"cidrBlock" type:"string" required:"true"`
 
@@ -20311,12 +20407,6 @@ type ReplaceNetworkAclEntryInput struct {
 
 	// The rule number of the entry to replace.
 	RuleNumber *int64 `locationName:"ruleNumber" type:"integer" required:"true"`
-
-	metadataReplaceNetworkAclEntryInput `json:"-" xml:"-"`
-}
-
-type metadataReplaceNetworkAclEntryInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20330,11 +20420,7 @@ func (s ReplaceNetworkAclEntryInput) GoString() string {
 }
 
 type ReplaceNetworkAclEntryOutput struct {
-	metadataReplaceNetworkAclEntryOutput `json:"-" xml:"-"`
-}
-
-type metadataReplaceNetworkAclEntryOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -20348,6 +20434,8 @@ func (s ReplaceNetworkAclEntryOutput) GoString() string {
 }
 
 type ReplaceRouteInput struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR address block used for the destination match. The value you provide
 	// must match the CIDR of an existing route in the table.
 	DestinationCidrBlock *string `locationName:"destinationCidrBlock" type:"string" required:"true"`
@@ -20364,6 +20452,9 @@ type ReplaceRouteInput struct {
 	// The ID of a NAT instance in your VPC.
 	InstanceId *string `locationName:"instanceId" type:"string"`
 
+	// The ID of a NAT gateway.
+	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
+
 	// The ID of a network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
 
@@ -20372,12 +20463,6 @@ type ReplaceRouteInput struct {
 
 	// The ID of a VPC peering connection.
 	VpcPeeringConnectionId *string `locationName:"vpcPeeringConnectionId" type:"string"`
-
-	metadataReplaceRouteInput `json:"-" xml:"-"`
-}
-
-type metadataReplaceRouteInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20391,11 +20476,7 @@ func (s ReplaceRouteInput) GoString() string {
 }
 
 type ReplaceRouteOutput struct {
-	metadataReplaceRouteOutput `json:"-" xml:"-"`
-}
-
-type metadataReplaceRouteOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -20409,6 +20490,8 @@ func (s ReplaceRouteOutput) GoString() string {
 }
 
 type ReplaceRouteTableAssociationInput struct {
+	_ struct{} `type:"structure"`
+
 	// The association ID.
 	AssociationId *string `locationName:"associationId" type:"string" required:"true"`
 
@@ -20420,12 +20503,6 @@ type ReplaceRouteTableAssociationInput struct {
 
 	// The ID of the new route table to associate with the subnet.
 	RouteTableId *string `locationName:"routeTableId" type:"string" required:"true"`
-
-	metadataReplaceRouteTableAssociationInput `json:"-" xml:"-"`
-}
-
-type metadataReplaceRouteTableAssociationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20439,14 +20516,10 @@ func (s ReplaceRouteTableAssociationInput) GoString() string {
 }
 
 type ReplaceRouteTableAssociationOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the new association.
 	NewAssociationId *string `locationName:"newAssociationId" type:"string"`
-
-	metadataReplaceRouteTableAssociationOutput `json:"-" xml:"-"`
-}
-
-type metadataReplaceRouteTableAssociationOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20460,6 +20533,8 @@ func (s ReplaceRouteTableAssociationOutput) GoString() string {
 }
 
 type ReportInstanceStatusInput struct {
+	_ struct{} `type:"structure"`
+
 	// Descriptive text about the health state of your instance.
 	Description *string `locationName:"description" type:"string"`
 
@@ -20504,12 +20579,6 @@ type ReportInstanceStatusInput struct {
 
 	// The status of all instances listed.
 	Status *string `locationName:"status" type:"string" required:"true" enum:"ReportStatusType"`
-
-	metadataReportInstanceStatusInput `json:"-" xml:"-"`
-}
-
-type metadataReportInstanceStatusInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20523,11 +20592,7 @@ func (s ReportInstanceStatusInput) GoString() string {
 }
 
 type ReportInstanceStatusOutput struct {
-	metadataReportInstanceStatusOutput `json:"-" xml:"-"`
-}
-
-type metadataReportInstanceStatusOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -20542,6 +20607,8 @@ func (s ReportInstanceStatusOutput) GoString() string {
 
 // Contains the parameters for RequestSpotFleet.
 type RequestSpotFleetInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -20550,12 +20617,6 @@ type RequestSpotFleetInput struct {
 
 	// The configuration for the Spot fleet request.
 	SpotFleetRequestConfig *SpotFleetRequestConfigData `locationName:"spotFleetRequestConfig" type:"structure" required:"true"`
-
-	metadataRequestSpotFleetInput `json:"-" xml:"-"`
-}
-
-type metadataRequestSpotFleetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20570,14 +20631,10 @@ func (s RequestSpotFleetInput) GoString() string {
 
 // Contains the output of RequestSpotFleet.
 type RequestSpotFleetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the Spot fleet request.
 	SpotFleetRequestId *string `locationName:"spotFleetRequestId" type:"string" required:"true"`
-
-	metadataRequestSpotFleetOutput `json:"-" xml:"-"`
-}
-
-type metadataRequestSpotFleetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20592,6 +20649,8 @@ func (s RequestSpotFleetOutput) GoString() string {
 
 // Contains the parameters for RequestSpotInstances.
 type RequestSpotInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The user-specified name for a logical grouping of bids.
 	//
 	// When you specify an Availability Zone group in a Spot Instance request,
@@ -20675,12 +20734,6 @@ type RequestSpotInstancesInput struct {
 	//
 	// Default: The request is effective indefinitely.
 	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataRequestSpotInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataRequestSpotInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20695,14 +20748,10 @@ func (s RequestSpotInstancesInput) GoString() string {
 
 // Contains the output of RequestSpotInstances.
 type RequestSpotInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// One or more Spot instance requests.
 	SpotInstanceRequests []*SpotInstanceRequest `locationName:"spotInstanceRequestSet" locationNameList:"item" type:"list"`
-
-	metadataRequestSpotInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataRequestSpotInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20717,6 +20766,8 @@ func (s RequestSpotInstancesOutput) GoString() string {
 
 // Describes the launch specification for an instance.
 type RequestSpotLaunchSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// Deprecated.
 	AddressingType *string `locationName:"addressingType" type:"string"`
 
@@ -20768,12 +20819,6 @@ type RequestSpotLaunchSpecification struct {
 
 	// The Base64-encoded MIME user data to make available to the instances.
 	UserData *string `locationName:"userData" type:"string"`
-
-	metadataRequestSpotLaunchSpecification `json:"-" xml:"-"`
-}
-
-type metadataRequestSpotLaunchSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20788,6 +20833,8 @@ func (s RequestSpotLaunchSpecification) GoString() string {
 
 // Describes a reservation.
 type Reservation struct {
+	_ struct{} `type:"structure"`
+
 	// One or more security groups.
 	Groups []*GroupIdentifier `locationName:"groupSet" locationNameList:"item" type:"list"`
 
@@ -20803,12 +20850,6 @@ type Reservation struct {
 
 	// The ID of the reservation.
 	ReservationId *string `locationName:"reservationId" type:"string"`
-
-	metadataReservation `json:"-" xml:"-"`
-}
-
-type metadataReservation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20823,6 +20864,8 @@ func (s Reservation) GoString() string {
 
 // Describes the limit price of a Reserved Instance offering.
 type ReservedInstanceLimitPrice struct {
+	_ struct{} `type:"structure"`
+
 	// Used for Reserved Instance Marketplace offerings. Specifies the limit price
 	// on the total order (instanceCount * price).
 	Amount *float64 `locationName:"amount" type:"double"`
@@ -20830,12 +20873,6 @@ type ReservedInstanceLimitPrice struct {
 	// The currency in which the limitPrice amount is specified. At this time, the
 	// only supported currency is USD.
 	CurrencyCode *string `locationName:"currencyCode" type:"string" enum:"CurrencyCodeValues"`
-
-	metadataReservedInstanceLimitPrice `json:"-" xml:"-"`
-}
-
-type metadataReservedInstanceLimitPrice struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20850,6 +20887,8 @@ func (s ReservedInstanceLimitPrice) GoString() string {
 
 // Describes a Reserved Instance.
 type ReservedInstances struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone in which the Reserved Instance can be used.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
@@ -20866,10 +20905,10 @@ type ReservedInstances struct {
 	// The purchase price of the Reserved Instance.
 	FixedPrice *float64 `locationName:"fixedPrice" type:"float"`
 
-	// The number of Reserved Instances purchased.
+	// The number of reservations purchased.
 	InstanceCount *int64 `locationName:"instanceCount" type:"integer"`
 
-	// The tenancy of the reserved instance.
+	// The tenancy of the instance.
 	InstanceTenancy *string `locationName:"instanceTenancy" type:"string" enum:"Tenancy"`
 
 	// The instance type on which the Reserved Instance can be used.
@@ -20898,12 +20937,6 @@ type ReservedInstances struct {
 
 	// The usage price of the Reserved Instance, per hour.
 	UsagePrice *float64 `locationName:"usagePrice" type:"float"`
-
-	metadataReservedInstances `json:"-" xml:"-"`
-}
-
-type metadataReservedInstances struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20918,6 +20951,8 @@ func (s ReservedInstances) GoString() string {
 
 // Describes the configuration settings for the modified Reserved Instances.
 type ReservedInstancesConfiguration struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone for the modified Reserved Instances.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
@@ -20930,12 +20965,6 @@ type ReservedInstancesConfiguration struct {
 	// The network platform of the modified Reserved Instances, which is either
 	// EC2-Classic or EC2-VPC.
 	Platform *string `locationName:"platform" type:"string"`
-
-	metadataReservedInstancesConfiguration `json:"-" xml:"-"`
-}
-
-type metadataReservedInstancesConfiguration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20950,14 +20979,10 @@ func (s ReservedInstancesConfiguration) GoString() string {
 
 // Describes the ID of a Reserved Instance.
 type ReservedInstancesId struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the Reserved Instance.
 	ReservedInstancesId *string `locationName:"reservedInstancesId" type:"string"`
-
-	metadataReservedInstancesId `json:"-" xml:"-"`
-}
-
-type metadataReservedInstancesId struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -20972,6 +20997,8 @@ func (s ReservedInstancesId) GoString() string {
 
 // Describes a Reserved Instance listing.
 type ReservedInstancesListing struct {
+	_ struct{} `type:"structure"`
+
 	// A unique, case-sensitive key supplied by the client to ensure that the request
 	// is idempotent. For more information, see Ensuring Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
 	ClientToken *string `locationName:"clientToken" type:"string"`
@@ -21003,12 +21030,6 @@ type ReservedInstancesListing struct {
 
 	// The last modified timestamp of the listing.
 	UpdateDate *time.Time `locationName:"updateDate" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataReservedInstancesListing `json:"-" xml:"-"`
-}
-
-type metadataReservedInstancesListing struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21023,6 +21044,8 @@ func (s ReservedInstancesListing) GoString() string {
 
 // Describes a Reserved Instance modification.
 type ReservedInstancesModification struct {
+	_ struct{} `type:"structure"`
+
 	// A unique, case-sensitive key supplied by the client to ensure that the request
 	// is idempotent. For more information, see Ensuring Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
 	ClientToken *string `locationName:"clientToken" type:"string"`
@@ -21051,12 +21074,6 @@ type ReservedInstancesModification struct {
 
 	// The time when the modification request was last updated.
 	UpdateDate *time.Time `locationName:"updateDate" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataReservedInstancesModification `json:"-" xml:"-"`
-}
-
-type metadataReservedInstancesModification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21070,6 +21087,8 @@ func (s ReservedInstancesModification) GoString() string {
 }
 
 type ReservedInstancesModificationResult struct {
+	_ struct{} `type:"structure"`
+
 	// The ID for the Reserved Instances that were created as part of the modification
 	// request. This field is only available when the modification is fulfilled.
 	ReservedInstancesId *string `locationName:"reservedInstancesId" type:"string"`
@@ -21077,12 +21096,6 @@ type ReservedInstancesModificationResult struct {
 	// The target Reserved Instances configurations supplied as part of the modification
 	// request.
 	TargetConfiguration *ReservedInstancesConfiguration `locationName:"targetConfiguration" type:"structure"`
-
-	metadataReservedInstancesModificationResult `json:"-" xml:"-"`
-}
-
-type metadataReservedInstancesModificationResult struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21097,6 +21110,8 @@ func (s ReservedInstancesModificationResult) GoString() string {
 
 // Describes a Reserved Instance offering.
 type ReservedInstancesOffering struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone in which the Reserved Instance can be used.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
@@ -21111,7 +21126,7 @@ type ReservedInstancesOffering struct {
 	// The purchase price of the Reserved Instance.
 	FixedPrice *float64 `locationName:"fixedPrice" type:"float"`
 
-	// The tenancy of the reserved instance.
+	// The tenancy of the instance.
 	InstanceTenancy *string `locationName:"instanceTenancy" type:"string" enum:"Tenancy"`
 
 	// The instance type on which the Reserved Instance can be used.
@@ -21139,12 +21154,6 @@ type ReservedInstancesOffering struct {
 
 	// The usage price of the Reserved Instance, per hour.
 	UsagePrice *float64 `locationName:"usagePrice" type:"float"`
-
-	metadataReservedInstancesOffering `json:"-" xml:"-"`
-}
-
-type metadataReservedInstancesOffering struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21158,6 +21167,8 @@ func (s ReservedInstancesOffering) GoString() string {
 }
 
 type ResetImageAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The attribute to reset (currently you can only reset the launch permission
 	// attribute).
 	Attribute *string `type:"string" required:"true" enum:"ResetImageAttributeName"`
@@ -21170,12 +21181,6 @@ type ResetImageAttributeInput struct {
 
 	// The ID of the AMI.
 	ImageId *string `type:"string" required:"true"`
-
-	metadataResetImageAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataResetImageAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21189,11 +21194,7 @@ func (s ResetImageAttributeInput) GoString() string {
 }
 
 type ResetImageAttributeOutput struct {
-	metadataResetImageAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataResetImageAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -21207,6 +21208,8 @@ func (s ResetImageAttributeOutput) GoString() string {
 }
 
 type ResetInstanceAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The attribute to reset.
 	Attribute *string `locationName:"attribute" type:"string" required:"true" enum:"InstanceAttributeName"`
 
@@ -21218,12 +21221,6 @@ type ResetInstanceAttributeInput struct {
 
 	// The ID of the instance.
 	InstanceId *string `locationName:"instanceId" type:"string" required:"true"`
-
-	metadataResetInstanceAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataResetInstanceAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21237,11 +21234,7 @@ func (s ResetInstanceAttributeInput) GoString() string {
 }
 
 type ResetInstanceAttributeOutput struct {
-	metadataResetInstanceAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataResetInstanceAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -21255,6 +21248,8 @@ func (s ResetInstanceAttributeOutput) GoString() string {
 }
 
 type ResetNetworkInterfaceAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -21266,12 +21261,6 @@ type ResetNetworkInterfaceAttributeInput struct {
 
 	// The source/destination checking attribute. Resets the value to true.
 	SourceDestCheck *string `locationName:"sourceDestCheck" type:"string"`
-
-	metadataResetNetworkInterfaceAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataResetNetworkInterfaceAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21285,11 +21274,7 @@ func (s ResetNetworkInterfaceAttributeInput) GoString() string {
 }
 
 type ResetNetworkInterfaceAttributeOutput struct {
-	metadataResetNetworkInterfaceAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataResetNetworkInterfaceAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -21303,6 +21288,8 @@ func (s ResetNetworkInterfaceAttributeOutput) GoString() string {
 }
 
 type ResetSnapshotAttributeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The attribute to reset. Currently, only the attribute for permission to create
 	// volumes can be reset.
 	Attribute *string `type:"string" required:"true" enum:"SnapshotAttributeName"`
@@ -21315,12 +21302,6 @@ type ResetSnapshotAttributeInput struct {
 
 	// The ID of the snapshot.
 	SnapshotId *string `type:"string" required:"true"`
-
-	metadataResetSnapshotAttributeInput `json:"-" xml:"-"`
-}
-
-type metadataResetSnapshotAttributeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21334,11 +21315,7 @@ func (s ResetSnapshotAttributeInput) GoString() string {
 }
 
 type ResetSnapshotAttributeOutput struct {
-	metadataResetSnapshotAttributeOutput `json:"-" xml:"-"`
-}
-
-type metadataResetSnapshotAttributeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -21352,6 +21329,8 @@ func (s ResetSnapshotAttributeOutput) GoString() string {
 }
 
 type RestoreAddressToClassicInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -21360,12 +21339,6 @@ type RestoreAddressToClassicInput struct {
 
 	// The Elastic IP address.
 	PublicIp *string `locationName:"publicIp" type:"string" required:"true"`
-
-	metadataRestoreAddressToClassicInput `json:"-" xml:"-"`
-}
-
-type metadataRestoreAddressToClassicInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21379,17 +21352,13 @@ func (s RestoreAddressToClassicInput) GoString() string {
 }
 
 type RestoreAddressToClassicOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Elastic IP address.
 	PublicIp *string `locationName:"publicIp" type:"string"`
 
 	// The move status for the IP address.
 	Status *string `locationName:"status" type:"string" enum:"Status"`
-
-	metadataRestoreAddressToClassicOutput `json:"-" xml:"-"`
-}
-
-type metadataRestoreAddressToClassicOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21403,8 +21372,10 @@ func (s RestoreAddressToClassicOutput) GoString() string {
 }
 
 type RevokeSecurityGroupEgressInput struct {
-	// The CIDR IP address range. You can't specify this parameter when specifying
-	// a source security group.
+	_ struct{} `type:"structure"`
+
+	// The CIDR IP address range. We recommend that you specify the CIDR range in
+	// a set of IP permissions instead.
 	CidrIp *string `locationName:"cidrIp" type:"string"`
 
 	// Checks whether you have the required permissions for the action, without
@@ -21414,7 +21385,7 @@ type RevokeSecurityGroupEgressInput struct {
 	DryRun *bool `locationName:"dryRun" type:"boolean"`
 
 	// The start of port range for the TCP and UDP protocols, or an ICMP type number.
-	// For the ICMP type number, use -1 to specify all ICMP types.
+	// We recommend that you specify the port range in a set of IP permissions instead.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
 	// The ID of the security group.
@@ -21424,8 +21395,8 @@ type RevokeSecurityGroupEgressInput struct {
 	// a CIDR IP address range.
 	IpPermissions []*IpPermission `locationName:"ipPermissions" locationNameList:"item" type:"list"`
 
-	// The IP protocol name (tcp, udp, icmp) or number (see Protocol Numbers (http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)).
-	// Use -1 to specify all.
+	// The IP protocol name or number. We recommend that you specify the protocol
+	// in a set of IP permissions instead.
 	IpProtocol *string `locationName:"ipProtocol" type:"string"`
 
 	// The name of a destination security group. To revoke outbound access to a
@@ -21438,15 +21409,9 @@ type RevokeSecurityGroupEgressInput struct {
 	// IP permissions instead.
 	SourceSecurityGroupOwnerId *string `locationName:"sourceSecurityGroupOwnerId" type:"string"`
 
-	// The end of port range for the TCP and UDP protocols, or an ICMP code number.
-	// For the ICMP code number, use -1 to specify all ICMP codes for the ICMP type.
+	// The end of port range for the TCP and UDP protocols, or an ICMP type number.
+	// We recommend that you specify the port range in a set of IP permissions instead.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
-
-	metadataRevokeSecurityGroupEgressInput `json:"-" xml:"-"`
-}
-
-type metadataRevokeSecurityGroupEgressInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21460,11 +21425,7 @@ func (s RevokeSecurityGroupEgressInput) GoString() string {
 }
 
 type RevokeSecurityGroupEgressOutput struct {
-	metadataRevokeSecurityGroupEgressOutput `json:"-" xml:"-"`
-}
-
-type metadataRevokeSecurityGroupEgressOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -21478,6 +21439,8 @@ func (s RevokeSecurityGroupEgressOutput) GoString() string {
 }
 
 type RevokeSecurityGroupIngressInput struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR IP address range. You can't specify this parameter when specifying
 	// a source security group.
 	CidrIp *string `type:"string"`
@@ -21525,12 +21488,6 @@ type RevokeSecurityGroupIngressInput struct {
 	// The end of port range for the TCP and UDP protocols, or an ICMP code number.
 	// For the ICMP code number, use -1 to specify all ICMP codes for the ICMP type.
 	ToPort *int64 `type:"integer"`
-
-	metadataRevokeSecurityGroupIngressInput `json:"-" xml:"-"`
-}
-
-type metadataRevokeSecurityGroupIngressInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21544,11 +21501,7 @@ func (s RevokeSecurityGroupIngressInput) GoString() string {
 }
 
 type RevokeSecurityGroupIngressOutput struct {
-	metadataRevokeSecurityGroupIngressOutput `json:"-" xml:"-"`
-}
-
-type metadataRevokeSecurityGroupIngressOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -21563,6 +21516,8 @@ func (s RevokeSecurityGroupIngressOutput) GoString() string {
 
 // Describes a route in a route table.
 type Route struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR block used for the destination match.
 	DestinationCidrBlock *string `locationName:"destinationCidrBlock" type:"string"`
 
@@ -21578,14 +21533,17 @@ type Route struct {
 	// The AWS account ID of the owner of the instance.
 	InstanceOwnerId *string `locationName:"instanceOwnerId" type:"string"`
 
+	// The ID of a NAT gateway.
+	NatGatewayId *string `locationName:"natGatewayId" type:"string"`
+
 	// The ID of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
 
 	// Describes how the route was created.
 	//
-	//   CreateRouteTable indicates that route was automatically created when the
-	// route table was created.  CreateRoute indicates that the route was manually
-	// added to the route table.  EnableVgwRoutePropagation indicates that the route
+	//  CreateRouteTable indicates that route was automatically created when the
+	// route table was created. CreateRoute indicates that the route was manually
+	// added to the route table. EnableVgwRoutePropagation indicates that the route
 	// was propagated by route propagation.
 	Origin *string `locationName:"origin" type:"string" enum:"RouteOrigin"`
 
@@ -21596,12 +21554,6 @@ type Route struct {
 
 	// The ID of the VPC peering connection.
 	VpcPeeringConnectionId *string `locationName:"vpcPeeringConnectionId" type:"string"`
-
-	metadataRoute `json:"-" xml:"-"`
-}
-
-type metadataRoute struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21616,6 +21568,8 @@ func (s Route) GoString() string {
 
 // Describes a route table.
 type RouteTable struct {
+	_ struct{} `type:"structure"`
+
 	// The associations between the route table and one or more subnets.
 	Associations []*RouteTableAssociation `locationName:"associationSet" locationNameList:"item" type:"list"`
 
@@ -21633,12 +21587,6 @@ type RouteTable struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataRouteTable `json:"-" xml:"-"`
-}
-
-type metadataRouteTable struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21653,6 +21601,8 @@ func (s RouteTable) GoString() string {
 
 // Describes an association between a route table and a subnet.
 type RouteTableAssociation struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether this is the main route table.
 	Main *bool `locationName:"main" type:"boolean"`
 
@@ -21664,12 +21614,6 @@ type RouteTableAssociation struct {
 
 	// The ID of the subnet. A subnet ID is not returned for an implicit association.
 	SubnetId *string `locationName:"subnetId" type:"string"`
-
-	metadataRouteTableAssociation `json:"-" xml:"-"`
-}
-
-type metadataRouteTableAssociation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21683,6 +21627,8 @@ func (s RouteTableAssociation) GoString() string {
 }
 
 type RunInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Reserved.
 	AdditionalInfo *string `locationName:"additionalInfo" type:"string"`
 
@@ -21813,14 +21759,13 @@ type RunInstancesInput struct {
 	// [EC2-VPC] The ID of the subnet to launch the instance into.
 	SubnetId *string `type:"string"`
 
-	// The Base64-encoded MIME user data for the instances.
+	// Data to configure the instance, or a script to run during instance launch.
+	// For more information, see Running Commands on Your Linux Instance at Launch
+	// (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) (Linux)
+	// and Adding User Data (http://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ec2-instance-metadata.html#instancedata-add-user-data)
+	// (Windows). For API calls, the text must be base64-encoded. Command line tools
+	// perform encoding for you.
 	UserData *string `type:"string"`
-
-	metadataRunInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataRunInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21835,14 +21780,10 @@ func (s RunInstancesInput) GoString() string {
 
 // Describes the monitoring for the instance.
 type RunInstancesMonitoringEnabled struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether monitoring is enabled for the instance.
 	Enabled *bool `locationName:"enabled" type:"boolean" required:"true"`
-
-	metadataRunInstancesMonitoringEnabled `json:"-" xml:"-"`
-}
-
-type metadataRunInstancesMonitoringEnabled struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21855,9 +21796,65 @@ func (s RunInstancesMonitoringEnabled) GoString() string {
 	return s.String()
 }
 
+// Contains the parameters for RunScheduledInstances.
+type RunScheduledInstancesInput struct {
+	_ struct{} `type:"structure"`
+
+	// Unique, case-sensitive identifier that ensures the idempotency of the request.
+	// For more information, see Ensuring Idempotency (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	ClientToken *string `type:"string"`
+
+	// Checks whether you have the required permissions for the action, without
+	// actually making the request, and provides an error response. If you have
+	// the required permissions, the error response is DryRunOperation. Otherwise,
+	// it is UnauthorizedOperation.
+	DryRun *bool `type:"boolean"`
+
+	// The number of instances.
+	//
+	// Default: 1
+	InstanceCount *int64 `type:"integer"`
+
+	// The launch specification.
+	LaunchSpecification *ScheduledInstancesLaunchSpecification `type:"structure" required:"true"`
+
+	// The Scheduled Instance ID.
+	ScheduledInstanceId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s RunScheduledInstancesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RunScheduledInstancesInput) GoString() string {
+	return s.String()
+}
+
+// Contains the output of RunScheduledInstances.
+type RunScheduledInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The IDs of the newly launched instances.
+	InstanceIdSet []*string `locationName:"instanceIdSet" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s RunScheduledInstancesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RunScheduledInstancesOutput) GoString() string {
+	return s.String()
+}
+
 // Describes the storage parameters for S3 and S3 buckets for an instance store-backed
 // AMI.
 type S3Storage struct {
+	_ struct{} `type:"structure"`
+
 	// The access key ID of the owner of the bucket. Before you specify a value
 	// for your access key ID, review and follow the guidance in Best Practices
 	// for Managing AWS Access Keys (http://docs.aws.amazon.com/general/latest/gr/aws-access-keys-best-practices.html).
@@ -21877,12 +21874,6 @@ type S3Storage struct {
 
 	// The signature of the Base64 encoded JSON document.
 	UploadPolicySignature *string `locationName:"uploadPolicySignature" type:"string"`
-
-	metadataS3Storage `json:"-" xml:"-"`
-}
-
-type metadataS3Storage struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21895,8 +21886,481 @@ func (s S3Storage) GoString() string {
 	return s.String()
 }
 
+// Describes a Scheduled Instance.
+type ScheduledInstance struct {
+	_ struct{} `type:"structure"`
+
+	// The Availability Zone.
+	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
+
+	// The date when the Scheduled Instance was purchased.
+	CreateDate *time.Time `locationName:"createDate" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The hourly price for a single instance.
+	HourlyPrice *string `locationName:"hourlyPrice" type:"string"`
+
+	// The number of instances.
+	InstanceCount *int64 `locationName:"instanceCount" type:"integer"`
+
+	// The instance type.
+	InstanceType *string `locationName:"instanceType" type:"string"`
+
+	// The network platform (EC2-Classic or EC2-VPC).
+	NetworkPlatform *string `locationName:"networkPlatform" type:"string"`
+
+	// The time for the next schedule to start.
+	NextSlotStartTime *time.Time `locationName:"nextSlotStartTime" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The platform (Linux/UNIX or Windows).
+	Platform *string `locationName:"platform" type:"string"`
+
+	// The time that the previous schedule ended or will end.
+	PreviousSlotEndTime *time.Time `locationName:"previousSlotEndTime" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The schedule recurrence.
+	Recurrence *ScheduledInstanceRecurrence `locationName:"recurrence" type:"structure"`
+
+	// The Scheduled Instance ID.
+	ScheduledInstanceId *string `locationName:"scheduledInstanceId" type:"string"`
+
+	// The number of hours in the schedule.
+	SlotDurationInHours *int64 `locationName:"slotDurationInHours" type:"integer"`
+
+	// The end date for the Scheduled Instance.
+	TermEndDate *time.Time `locationName:"termEndDate" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The start date for the Scheduled Instance.
+	TermStartDate *time.Time `locationName:"termStartDate" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The total number of hours for a single instance for the entire term.
+	TotalScheduledInstanceHours *int64 `locationName:"totalScheduledInstanceHours" type:"integer"`
+}
+
+// String returns the string representation
+func (s ScheduledInstance) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstance) GoString() string {
+	return s.String()
+}
+
+// Describes a schedule that is available for your Scheduled Instances.
+type ScheduledInstanceAvailability struct {
+	_ struct{} `type:"structure"`
+
+	// The Availability Zone.
+	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
+
+	// The number of available instances.
+	AvailableInstanceCount *int64 `locationName:"availableInstanceCount" type:"integer"`
+
+	// The time period for the first schedule to start.
+	FirstSlotStartTime *time.Time `locationName:"firstSlotStartTime" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The hourly price for a single instance.
+	HourlyPrice *string `locationName:"hourlyPrice" type:"string"`
+
+	// The instance type. You can specify one of the C3, C4, M4, or R3 instance
+	// types.
+	InstanceType *string `locationName:"instanceType" type:"string"`
+
+	// The maximum term. The only possible value is 365 days.
+	MaxTermDurationInDays *int64 `locationName:"maxTermDurationInDays" type:"integer"`
+
+	// The minimum term. The only possible value is 365 days.
+	MinTermDurationInDays *int64 `locationName:"minTermDurationInDays" type:"integer"`
+
+	// The network platform (EC2-Classic or EC2-VPC).
+	NetworkPlatform *string `locationName:"networkPlatform" type:"string"`
+
+	// The platform (Linux/UNIX or Windows).
+	Platform *string `locationName:"platform" type:"string"`
+
+	// The purchase token. This token expires in two hours.
+	PurchaseToken *string `locationName:"purchaseToken" type:"string"`
+
+	// The schedule recurrence.
+	Recurrence *ScheduledInstanceRecurrence `locationName:"recurrence" type:"structure"`
+
+	// The number of hours in the schedule.
+	SlotDurationInHours *int64 `locationName:"slotDurationInHours" type:"integer"`
+
+	// The total number of hours for a single instance for the entire term.
+	TotalScheduledInstanceHours *int64 `locationName:"totalScheduledInstanceHours" type:"integer"`
+}
+
+// String returns the string representation
+func (s ScheduledInstanceAvailability) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstanceAvailability) GoString() string {
+	return s.String()
+}
+
+// Describes the recurring schedule for a Scheduled Instance.
+type ScheduledInstanceRecurrence struct {
+	_ struct{} `type:"structure"`
+
+	// The frequency (Daily, Weekly, or Monthly).
+	Frequency *string `locationName:"frequency" type:"string"`
+
+	// The interval quantity. The interval unit depends on the value of frequency.
+	// For example, every 2 weeks or every 2 months.
+	Interval *int64 `locationName:"interval" type:"integer"`
+
+	// The days. For a monthly schedule, this is one or more days of the month (1-31).
+	// For a weekly schedule, this is one or more days of the week (1-7, where 1
+	// is Sunday).
+	OccurrenceDaySet []*int64 `locationName:"occurrenceDaySet" locationNameList:"item" type:"list"`
+
+	// Indicates whether the occurrence is relative to the end of the specified
+	// week or month.
+	OccurrenceRelativeToEnd *bool `locationName:"occurrenceRelativeToEnd" type:"boolean"`
+
+	// The unit for occurrenceDaySet (DayOfWeek or DayOfMonth).
+	OccurrenceUnit *string `locationName:"occurrenceUnit" type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstanceRecurrence) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstanceRecurrence) GoString() string {
+	return s.String()
+}
+
+// Describes the recurring schedule for a Scheduled Instance.
+type ScheduledInstanceRecurrenceRequest struct {
+	_ struct{} `type:"structure"`
+
+	// The frequency (Daily, Weekly, or Monthly).
+	Frequency *string `type:"string"`
+
+	// The interval quantity. The interval unit depends on the value of Frequency.
+	// For example, every 2 weeks or every 2 months.
+	Interval *int64 `type:"integer"`
+
+	// The days. For a monthly schedule, this is one or more days of the month (1-31).
+	// For a weekly schedule, this is one or more days of the week (1-7, where 1
+	// is Sunday). You can't specify this value with a daily schedule. If the occurrence
+	// is relative to the end of the month, you can specify only a single day.
+	OccurrenceDays []*int64 `locationName:"OccurrenceDay" locationNameList:"OccurenceDay" type:"list"`
+
+	// Indicates whether the occurrence is relative to the end of the specified
+	// week or month. You can't specify this value with a daily schedule.
+	OccurrenceRelativeToEnd *bool `type:"boolean"`
+
+	// The unit for OccurrenceDays (DayOfWeek or DayOfMonth). This value is required
+	// for a monthly schedule. You can't specify DayOfWeek with a weekly schedule.
+	// You can't specify this value with a daily schedule.
+	OccurrenceUnit *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstanceRecurrenceRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstanceRecurrenceRequest) GoString() string {
+	return s.String()
+}
+
+// Describes a block device mapping for a Scheduled Instance.
+type ScheduledInstancesBlockDeviceMapping struct {
+	_ struct{} `type:"structure"`
+
+	// The device name exposed to the instance (for example, /dev/sdh or xvdh).
+	DeviceName *string `type:"string"`
+
+	// Parameters used to set up EBS volumes automatically when the instance is
+	// launched.
+	Ebs *ScheduledInstancesEbs `type:"structure"`
+
+	// Suppresses the specified device included in the block device mapping of the
+	// AMI.
+	NoDevice *string `type:"string"`
+
+	// The virtual device name (ephemeralN). Instance store volumes are numbered
+	// starting from 0. An instance type with two available instance store volumes
+	// can specify mappings for ephemeral0 and ephemeral1.The number of available
+	// instance store volumes depends on the instance type. After you connect to
+	// the instance, you must mount the volume.
+	//
+	// Constraints: For M3 instances, you must specify instance store volumes in
+	// the block device mapping for the instance. When you launch an M3 instance,
+	// we ignore any instance store volumes specified in the block device mapping
+	// for the AMI.
+	VirtualName *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstancesBlockDeviceMapping) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstancesBlockDeviceMapping) GoString() string {
+	return s.String()
+}
+
+// Describes an EBS volume for a Scheduled Instance.
+type ScheduledInstancesEbs struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether the volume is deleted on instance termination.
+	DeleteOnTermination *bool `type:"boolean"`
+
+	// Indicates whether the volume is encrypted. You can attached encrypted volumes
+	// only to instances that support them.
+	Encrypted *bool `type:"boolean"`
+
+	// The number of I/O operations per second (IOPS) that the volume supports.
+	// For Provisioned IOPS (SSD) volumes, this represents the number of IOPS that
+	// are provisioned for the volume. For General Purpose (SSD) volumes, this represents
+	// the baseline performance of the volume and the rate at which the volume accumulates
+	// I/O credits for bursting. For more information about General Purpose (SSD)
+	// baseline performance, I/O credits, and bursting, see Amazon EBS Volume Types
+	// (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumeTypes.html)
+	// in the Amazon Elastic Compute Cloud User Guide.
+	//
+	// Constraint: Range is 100 to 20000 for Provisioned IOPS (SSD) volumes and
+	// 3 to 10000 for General Purpose (SSD) volumes.
+	//
+	// Condition: This parameter is required for requests to create io1 volumes;
+	// it is not used in requests to create standard or gp2 volumes.
+	Iops *int64 `type:"integer"`
+
+	// The ID of the snapshot.
+	SnapshotId *string `type:"string"`
+
+	// The size of the volume, in GiB.
+	//
+	// Default: If you're creating the volume from a snapshot and don't specify
+	// a volume size, the default is the snapshot size.
+	VolumeSize *int64 `type:"integer"`
+
+	// The volume type. gp2 for General Purpose (SSD) volumes, io1 for Provisioned
+	// IOPS (SSD) volumes, and standard for Magnetic volumes.
+	//
+	// Default: standard
+	VolumeType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstancesEbs) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstancesEbs) GoString() string {
+	return s.String()
+}
+
+// Describes an IAM instance profile for a Scheduled Instance.
+type ScheduledInstancesIamInstanceProfile struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN).
+	Arn *string `type:"string"`
+
+	// The name.
+	Name *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstancesIamInstanceProfile) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstancesIamInstanceProfile) GoString() string {
+	return s.String()
+}
+
+// Describes the launch specification for a Scheduled Instance.
+type ScheduledInstancesLaunchSpecification struct {
+	_ struct{} `type:"structure"`
+
+	// One or more block device mapping entries.
+	BlockDeviceMappings []*ScheduledInstancesBlockDeviceMapping `locationName:"BlockDeviceMapping" locationNameList:"BlockDeviceMapping" type:"list"`
+
+	// Indicates whether the instances are optimized for EBS I/O. This optimization
+	// provides dedicated throughput to Amazon EBS and an optimized configuration
+	// stack to provide optimal EBS I/O performance. This optimization isn't available
+	// with all instance types. Additional usage charges apply when using an EBS-optimized
+	// instance.
+	//
+	// Default: false
+	EbsOptimized *bool `type:"boolean"`
+
+	// The IAM instance profile.
+	IamInstanceProfile *ScheduledInstancesIamInstanceProfile `type:"structure"`
+
+	// The ID of the Amazon Machine Image (AMI).
+	ImageId *string `type:"string" required:"true"`
+
+	// The instance type.
+	InstanceType *string `type:"string"`
+
+	// The ID of the kernel.
+	KernelId *string `type:"string"`
+
+	// The name of the key pair.
+	KeyName *string `type:"string"`
+
+	// Enable or disable monitoring for the instances.
+	Monitoring *ScheduledInstancesMonitoring `type:"structure"`
+
+	// One or more network interfaces.
+	NetworkInterfaces []*ScheduledInstancesNetworkInterface `locationName:"NetworkInterface" locationNameList:"NetworkInterface" type:"list"`
+
+	// The placement information.
+	Placement *ScheduledInstancesPlacement `type:"structure"`
+
+	// The ID of the RAM disk.
+	RamdiskId *string `type:"string"`
+
+	// The IDs of one or more security groups.
+	SecurityGroupIds []*string `locationName:"SecurityGroupId" locationNameList:"SecurityGroupId" type:"list"`
+
+	// The ID of the subnet in which to launch the instances.
+	SubnetId *string `type:"string"`
+
+	// The base64-encoded MIME user data.
+	UserData *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstancesLaunchSpecification) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstancesLaunchSpecification) GoString() string {
+	return s.String()
+}
+
+// Describes whether monitoring is enabled for a Scheduled Instance.
+type ScheduledInstancesMonitoring struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether monitoring is enabled.
+	Enabled *bool `type:"boolean"`
+}
+
+// String returns the string representation
+func (s ScheduledInstancesMonitoring) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstancesMonitoring) GoString() string {
+	return s.String()
+}
+
+// Describes a network interface for a Scheduled Instance.
+type ScheduledInstancesNetworkInterface struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether to assign a public IP address to instances launched in
+	// a VPC. The public IP address can only be assigned to a network interface
+	// for eth0, and can only be assigned to a new network interface, not an existing
+	// one. You cannot specify more than one network interface in the request. If
+	// launching into a default subnet, the default value is true.
+	AssociatePublicIpAddress *bool `type:"boolean"`
+
+	// Indicates whether to delete the interface when the instance is terminated.
+	DeleteOnTermination *bool `type:"boolean"`
+
+	// The description.
+	Description *string `type:"string"`
+
+	// The index of the device for the network interface attachment.
+	DeviceIndex *int64 `type:"integer"`
+
+	// The IDs of one or more security groups.
+	Groups []*string `locationName:"Group" locationNameList:"SecurityGroupId" type:"list"`
+
+	// The ID of the network interface.
+	NetworkInterfaceId *string `type:"string"`
+
+	// The IP address of the network interface within the subnet.
+	PrivateIpAddress *string `type:"string"`
+
+	// The private IP addresses.
+	PrivateIpAddressConfigs []*ScheduledInstancesPrivateIpAddressConfig `locationName:"PrivateIpAddressConfig" locationNameList:"PrivateIpAddressConfigSet" type:"list"`
+
+	// The number of secondary private IP addresses.
+	SecondaryPrivateIpAddressCount *int64 `type:"integer"`
+
+	// The ID of the subnet.
+	SubnetId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstancesNetworkInterface) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstancesNetworkInterface) GoString() string {
+	return s.String()
+}
+
+// Describes the placement for a Scheduled Instance.
+type ScheduledInstancesPlacement struct {
+	_ struct{} `type:"structure"`
+
+	// The Availability Zone.
+	AvailabilityZone *string `type:"string"`
+
+	// The name of the placement group.
+	GroupName *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstancesPlacement) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstancesPlacement) GoString() string {
+	return s.String()
+}
+
+// Describes a private IP address for a Scheduled Instance.
+type ScheduledInstancesPrivateIpAddressConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether this is a primary IP address. Otherwise, this is a secondary
+	// IP address.
+	Primary *bool `type:"boolean"`
+
+	// The IP address.
+	PrivateIpAddress *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ScheduledInstancesPrivateIpAddressConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScheduledInstancesPrivateIpAddressConfig) GoString() string {
+	return s.String()
+}
+
 // Describes a security group
 type SecurityGroup struct {
+	_ struct{} `type:"structure"`
+
 	// A description of the security group.
 	Description *string `locationName:"groupDescription" type:"string"`
 
@@ -21920,12 +22384,6 @@ type SecurityGroup struct {
 
 	// [EC2-VPC] The ID of the VPC for the security group.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataSecurityGroup `json:"-" xml:"-"`
-}
-
-type metadataSecurityGroup struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -21938,8 +22396,55 @@ func (s SecurityGroup) GoString() string {
 	return s.String()
 }
 
+// Describes the time period for a Scheduled Instance to start its first schedule.
+// The time period must span less than one day.
+type SlotDateTimeRangeRequest struct {
+	_ struct{} `type:"structure"`
+
+	// The earliest date and time, in UTC, for the Scheduled Instance to start.
+	EarliestTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
+
+	// The latest date and time, in UTC, for the Scheduled Instance to start. This
+	// value must be later than or equal to the earliest date and at most three
+	// months in the future.
+	LatestTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
+}
+
+// String returns the string representation
+func (s SlotDateTimeRangeRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SlotDateTimeRangeRequest) GoString() string {
+	return s.String()
+}
+
+// Describes the time period for a Scheduled Instance to start its first schedule.
+type SlotStartTimeRangeRequest struct {
+	_ struct{} `type:"structure"`
+
+	// The earliest date and time, in UTC, for the Scheduled Instance to start.
+	EarliestTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+
+	// The latest date and time, in UTC, for the Scheduled Instance to start.
+	LatestTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+}
+
+// String returns the string representation
+func (s SlotStartTimeRangeRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SlotStartTimeRangeRequest) GoString() string {
+	return s.String()
+}
+
 // Describes a snapshot.
 type Snapshot struct {
+	_ struct{} `type:"structure"`
+
 	// The data encryption key identifier for the snapshot. This value is a unique
 	// identifier that corresponds to the data encryption key that was used to encrypt
 	// the original volume or snapshot copy. Because data encryption keys are inherited
@@ -21994,12 +22499,6 @@ type Snapshot struct {
 
 	// The size of the volume, in GiB.
 	VolumeSize *int64 `locationName:"volumeSize" type:"integer"`
-
-	metadataSnapshot `json:"-" xml:"-"`
-}
-
-type metadataSnapshot struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22014,6 +22513,8 @@ func (s Snapshot) GoString() string {
 
 // Describes the snapshot created from the imported disk.
 type SnapshotDetail struct {
+	_ struct{} `type:"structure"`
+
 	// A description for the snapshot.
 	Description *string `locationName:"description" type:"string"`
 
@@ -22043,12 +22544,6 @@ type SnapshotDetail struct {
 
 	// Describes the S3 bucket for the disk image.
 	UserBucket *UserBucketDetails `locationName:"userBucket" type:"structure"`
-
-	metadataSnapshotDetail `json:"-" xml:"-"`
-}
-
-type metadataSnapshotDetail struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22063,6 +22558,8 @@ func (s SnapshotDetail) GoString() string {
 
 // The disk container object for the import snapshot request.
 type SnapshotDiskContainer struct {
+	_ struct{} `type:"structure"`
+
 	// The description of the disk image being imported.
 	Description *string `type:"string"`
 
@@ -22077,12 +22574,6 @@ type SnapshotDiskContainer struct {
 
 	// Describes the S3 bucket for the disk image.
 	UserBucket *UserBucket `type:"structure"`
-
-	metadataSnapshotDiskContainer `json:"-" xml:"-"`
-}
-
-type metadataSnapshotDiskContainer struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22097,6 +22588,8 @@ func (s SnapshotDiskContainer) GoString() string {
 
 // Details about the import snapshot task.
 type SnapshotTaskDetail struct {
+	_ struct{} `type:"structure"`
+
 	// The description of the snapshot.
 	Description *string `locationName:"description" type:"string"`
 
@@ -22123,12 +22616,6 @@ type SnapshotTaskDetail struct {
 
 	// The S3 bucket for the disk image.
 	UserBucket *UserBucketDetails `locationName:"userBucket" type:"structure"`
-
-	metadataSnapshotTaskDetail `json:"-" xml:"-"`
-}
-
-type metadataSnapshotTaskDetail struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22143,6 +22630,8 @@ func (s SnapshotTaskDetail) GoString() string {
 
 // Describes the data feed for a Spot instance.
 type SpotDatafeedSubscription struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon S3 bucket where the Spot instance data feed is located.
 	Bucket *string `locationName:"bucket" type:"string"`
 
@@ -22157,12 +22646,6 @@ type SpotDatafeedSubscription struct {
 
 	// The state of the Spot instance data feed subscription.
 	State *string `locationName:"state" type:"string" enum:"DatafeedSubscriptionState"`
-
-	metadataSpotDatafeedSubscription `json:"-" xml:"-"`
-}
-
-type metadataSpotDatafeedSubscription struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22177,6 +22660,8 @@ func (s SpotDatafeedSubscription) GoString() string {
 
 // Describes the launch specification for one or more Spot instances.
 type SpotFleetLaunchSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// Deprecated.
 	AddressingType *string `locationName:"addressingType" type:"string"`
 
@@ -22230,7 +22715,8 @@ type SpotFleetLaunchSpecification struct {
 	// value of WeightedCapacity.
 	SpotPrice *string `locationName:"spotPrice" type:"string"`
 
-	// The ID of the subnet in which to launch the instances.
+	// The ID of the subnet in which to launch the instances. To specify multiple
+	// subnets, separate them using commas; for example, "subnet-a61dafcf, subnet-65ea5f08".
 	SubnetId *string `locationName:"subnetId" type:"string"`
 
 	// The Base64-encoded MIME user data to make available to the instances.
@@ -22244,12 +22730,6 @@ type SpotFleetLaunchSpecification struct {
 	// the number of instances to the next whole number. If this value is not specified,
 	// the default is 1.
 	WeightedCapacity *float64 `locationName:"weightedCapacity" type:"double"`
-
-	metadataSpotFleetLaunchSpecification `json:"-" xml:"-"`
-}
-
-type metadataSpotFleetLaunchSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22264,16 +22744,12 @@ func (s SpotFleetLaunchSpecification) GoString() string {
 
 // Describes whether monitoring is enabled.
 type SpotFleetMonitoring struct {
+	_ struct{} `type:"structure"`
+
 	// Enables monitoring for the instance.
 	//
 	// Default: false
 	Enabled *bool `locationName:"enabled" type:"boolean"`
-
-	metadataSpotFleetMonitoring `json:"-" xml:"-"`
-}
-
-type metadataSpotFleetMonitoring struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22288,6 +22764,8 @@ func (s SpotFleetMonitoring) GoString() string {
 
 // Describes a Spot fleet request.
 type SpotFleetRequestConfig struct {
+	_ struct{} `type:"structure"`
+
 	// The creation date and time of the request.
 	CreateTime *time.Time `locationName:"createTime" type:"timestamp" timestampFormat:"iso8601" required:"true"`
 
@@ -22299,12 +22777,6 @@ type SpotFleetRequestConfig struct {
 
 	// The state of the Spot fleet request.
 	SpotFleetRequestState *string `locationName:"spotFleetRequestState" type:"string" required:"true" enum:"BatchState"`
-
-	metadataSpotFleetRequestConfig `json:"-" xml:"-"`
-}
-
-type metadataSpotFleetRequestConfig struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22319,6 +22791,8 @@ func (s SpotFleetRequestConfig) GoString() string {
 
 // Describes the configuration of a Spot fleet request.
 type SpotFleetRequestConfigData struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates how to allocate the target capacity across the Spot pools specified
 	// by the Spot fleet request. The default is lowestPrice.
 	AllocationStrategy *string `locationName:"allocationStrategy" type:"string" enum:"AllocationStrategy"`
@@ -22361,12 +22835,6 @@ type SpotFleetRequestConfigData struct {
 	// At this point, no new Spot instance requests are placed or enabled to fulfill
 	// the request.
 	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataSpotFleetRequestConfigData `json:"-" xml:"-"`
-}
-
-type metadataSpotFleetRequestConfigData struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22381,6 +22849,8 @@ func (s SpotFleetRequestConfigData) GoString() string {
 
 // Describes a Spot instance request.
 type SpotInstanceRequest struct {
+	_ struct{} `type:"structure"`
+
 	// If you specified a duration and your Spot instance request was fulfilled,
 	// this is the fixed hourly price in effect for the Spot instance while it runs.
 	ActualBlockHourlyPrice *string `locationName:"actualBlockHourlyPrice" type:"string"`
@@ -22448,12 +22918,6 @@ type SpotInstanceRequest struct {
 	// the request is canceled, or this date is reached. If the request is persistent,
 	// it remains active until it is canceled or this date is reached.
 	ValidUntil *time.Time `locationName:"validUntil" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataSpotInstanceRequest `json:"-" xml:"-"`
-}
-
-type metadataSpotInstanceRequest struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22468,17 +22932,13 @@ func (s SpotInstanceRequest) GoString() string {
 
 // Describes a Spot instance state change.
 type SpotInstanceStateFault struct {
+	_ struct{} `type:"structure"`
+
 	// The reason code for the Spot instance state change.
 	Code *string `locationName:"code" type:"string"`
 
 	// The message for the Spot instance state change.
 	Message *string `locationName:"message" type:"string"`
-
-	metadataSpotInstanceStateFault `json:"-" xml:"-"`
-}
-
-type metadataSpotInstanceStateFault struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22493,6 +22953,8 @@ func (s SpotInstanceStateFault) GoString() string {
 
 // Describes the status of a Spot instance request.
 type SpotInstanceStatus struct {
+	_ struct{} `type:"structure"`
+
 	// The status code. For a list of status codes, see Spot Bid Status Codes (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-bid-status.html#spot-instance-bid-status-understand)
 	// in the Amazon Elastic Compute Cloud User Guide.
 	Code *string `locationName:"code" type:"string"`
@@ -22503,12 +22965,6 @@ type SpotInstanceStatus struct {
 	// The date and time of the most recent status update, in UTC format (for example,
 	// YYYY-MM-DDTHH:MM:SSZ).
 	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataSpotInstanceStatus `json:"-" xml:"-"`
-}
-
-type metadataSpotInstanceStatus struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22523,17 +22979,14 @@ func (s SpotInstanceStatus) GoString() string {
 
 // Describes Spot instance placement.
 type SpotPlacement struct {
-	// The Availability Zone.
+	_ struct{} `type:"structure"`
+
+	// The Availability Zones. To specify multiple Availability Zones, separate
+	// them using commas; for example, "us-west-2a, us-west-2b".
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
 	// The name of the placement group (for cluster instances).
 	GroupName *string `locationName:"groupName" type:"string"`
-
-	metadataSpotPlacement `json:"-" xml:"-"`
-}
-
-type metadataSpotPlacement struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22549,6 +23002,8 @@ func (s SpotPlacement) GoString() string {
 // Describes the maximum hourly price (bid) for any Spot instance launched to
 // fulfill the request.
 type SpotPrice struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
@@ -22563,12 +23018,6 @@ type SpotPrice struct {
 
 	// The date and time the request was created, in UTC format (for example, YYYY-MM-DDTHH:MM:SSZ).
 	Timestamp *time.Time `locationName:"timestamp" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataSpotPrice `json:"-" xml:"-"`
-}
-
-type metadataSpotPrice struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22582,6 +23031,8 @@ func (s SpotPrice) GoString() string {
 }
 
 type StartInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Reserved.
 	AdditionalInfo *string `locationName:"additionalInfo" type:"string"`
 
@@ -22593,12 +23044,6 @@ type StartInstancesInput struct {
 
 	// One or more instance IDs.
 	InstanceIds []*string `locationName:"InstanceId" locationNameList:"InstanceId" type:"list" required:"true"`
-
-	metadataStartInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataStartInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22612,14 +23057,10 @@ func (s StartInstancesInput) GoString() string {
 }
 
 type StartInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more started instances.
 	StartingInstances []*InstanceStateChange `locationName:"instancesSet" locationNameList:"item" type:"list"`
-
-	metadataStartInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataStartInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22634,12 +23075,14 @@ func (s StartInstancesOutput) GoString() string {
 
 // Describes a state change.
 type StateReason struct {
+	_ struct{} `type:"structure"`
+
 	// The reason code for the state change.
 	Code *string `locationName:"code" type:"string"`
 
 	// The message for the state change.
 	//
-	//  Server.SpotInstanceTermination: A Spot Instance was terminated due to an
+	//  Server.SpotInstanceTermination: A Spot instance was terminated due to an
 	// increase in the market price.
 	//
 	// Server.InternalError: An internal error occurred during instance launch,
@@ -22657,16 +23100,11 @@ type StateReason struct {
 	// Client.UserInitiatedShutdown: The instance was shut down using the Amazon
 	// EC2 API.
 	//
-	// Client.VolumeLimitExceeded: The volume limit was exceeded.
+	// Client.VolumeLimitExceeded: The limit on the number of EBS volumes or total
+	// storage was exceeded. Decrease usage or request an increase in your limits.
 	//
 	// Client.InvalidSnapshot.NotFound: The specified snapshot was not found.
 	Message *string `locationName:"message" type:"string"`
-
-	metadataStateReason `json:"-" xml:"-"`
-}
-
-type metadataStateReason struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22680,6 +23118,8 @@ func (s StateReason) GoString() string {
 }
 
 type StopInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -22696,12 +23136,6 @@ type StopInstancesInput struct {
 
 	// One or more instance IDs.
 	InstanceIds []*string `locationName:"InstanceId" locationNameList:"InstanceId" type:"list" required:"true"`
-
-	metadataStopInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataStopInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22715,14 +23149,10 @@ func (s StopInstancesInput) GoString() string {
 }
 
 type StopInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more stopped instances.
 	StoppingInstances []*InstanceStateChange `locationName:"instancesSet" locationNameList:"item" type:"list"`
-
-	metadataStopInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataStopInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22737,14 +23167,10 @@ func (s StopInstancesOutput) GoString() string {
 
 // Describes the storage location for an instance store-backed AMI.
 type Storage struct {
+	_ struct{} `type:"structure"`
+
 	// An Amazon S3 storage location.
 	S3 *S3Storage `type:"structure"`
-
-	metadataStorage `json:"-" xml:"-"`
-}
-
-type metadataStorage struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22759,6 +23185,8 @@ func (s Storage) GoString() string {
 
 // Describes a subnet.
 type Subnet struct {
+	_ struct{} `type:"structure"`
+
 	// The Availability Zone of the subnet.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
@@ -22786,12 +23214,6 @@ type Subnet struct {
 
 	// The ID of the VPC the subnet is in.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataSubnet `json:"-" xml:"-"`
-}
-
-type metadataSubnet struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22806,6 +23228,8 @@ func (s Subnet) GoString() string {
 
 // Describes a tag.
 type Tag struct {
+	_ struct{} `type:"structure"`
+
 	// The key of the tag.
 	//
 	// Constraints: Tag keys are case-sensitive and accept a maximum of 127 Unicode
@@ -22817,12 +23241,6 @@ type Tag struct {
 	// Constraints: Tag values are case-sensitive and accept a maximum of 255 Unicode
 	// characters.
 	Value *string `locationName:"value" type:"string"`
-
-	metadataTag `json:"-" xml:"-"`
-}
-
-type metadataTag struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22837,6 +23255,8 @@ func (s Tag) GoString() string {
 
 // Describes a tag.
 type TagDescription struct {
+	_ struct{} `type:"structure"`
+
 	// The tag key.
 	Key *string `locationName:"key" type:"string"`
 
@@ -22848,12 +23268,6 @@ type TagDescription struct {
 
 	// The tag value.
 	Value *string `locationName:"value" type:"string"`
-
-	metadataTagDescription `json:"-" xml:"-"`
-}
-
-type metadataTagDescription struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22867,6 +23281,8 @@ func (s TagDescription) GoString() string {
 }
 
 type TerminateInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -22875,12 +23291,6 @@ type TerminateInstancesInput struct {
 
 	// One or more instance IDs.
 	InstanceIds []*string `locationName:"InstanceId" locationNameList:"InstanceId" type:"list" required:"true"`
-
-	metadataTerminateInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataTerminateInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22894,14 +23304,10 @@ func (s TerminateInstancesInput) GoString() string {
 }
 
 type TerminateInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Information about one or more terminated instances.
 	TerminatingInstances []*InstanceStateChange `locationName:"instancesSet" locationNameList:"item" type:"list"`
-
-	metadataTerminateInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataTerminateInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22915,18 +23321,14 @@ func (s TerminateInstancesOutput) GoString() string {
 }
 
 type UnassignPrivateIpAddressesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string" required:"true"`
 
 	// The secondary private IP addresses to unassign from the network interface.
 	// You can specify this option multiple times to unassign more than one IP address.
 	PrivateIpAddresses []*string `locationName:"privateIpAddress" locationNameList:"PrivateIpAddress" type:"list" required:"true"`
-
-	metadataUnassignPrivateIpAddressesInput `json:"-" xml:"-"`
-}
-
-type metadataUnassignPrivateIpAddressesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22940,11 +23342,7 @@ func (s UnassignPrivateIpAddressesInput) GoString() string {
 }
 
 type UnassignPrivateIpAddressesOutput struct {
-	metadataUnassignPrivateIpAddressesOutput `json:"-" xml:"-"`
-}
-
-type metadataUnassignPrivateIpAddressesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -22958,6 +23356,8 @@ func (s UnassignPrivateIpAddressesOutput) GoString() string {
 }
 
 type UnmonitorInstancesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have
 	// the required permissions, the error response is DryRunOperation. Otherwise,
@@ -22966,12 +23366,6 @@ type UnmonitorInstancesInput struct {
 
 	// One or more instance IDs.
 	InstanceIds []*string `locationName:"InstanceId" locationNameList:"InstanceId" type:"list" required:"true"`
-
-	metadataUnmonitorInstancesInput `json:"-" xml:"-"`
-}
-
-type metadataUnmonitorInstancesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -22985,14 +23379,10 @@ func (s UnmonitorInstancesInput) GoString() string {
 }
 
 type UnmonitorInstancesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Monitoring information for one or more instances.
 	InstanceMonitorings []*InstanceMonitoring `locationName:"instancesSet" locationNameList:"item" type:"list"`
-
-	metadataUnmonitorInstancesOutput `json:"-" xml:"-"`
-}
-
-type metadataUnmonitorInstancesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23007,17 +23397,13 @@ func (s UnmonitorInstancesOutput) GoString() string {
 
 // Information about items that were not successfully processed in a batch call.
 type UnsuccessfulItem struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the error.
 	Error *UnsuccessfulItemError `locationName:"error" type:"structure" required:"true"`
 
 	// The ID of the resource.
 	ResourceId *string `locationName:"resourceId" type:"string"`
-
-	metadataUnsuccessfulItem `json:"-" xml:"-"`
-}
-
-type metadataUnsuccessfulItem struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23033,17 +23419,13 @@ func (s UnsuccessfulItem) GoString() string {
 // Information about the error that occurred. For more information about errors,
 // see Error Codes (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html).
 type UnsuccessfulItemError struct {
+	_ struct{} `type:"structure"`
+
 	// The error code.
 	Code *string `locationName:"code" type:"string" required:"true"`
 
 	// The error message accompanying the error code.
 	Message *string `locationName:"message" type:"string" required:"true"`
-
-	metadataUnsuccessfulItemError `json:"-" xml:"-"`
-}
-
-type metadataUnsuccessfulItemError struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23058,17 +23440,13 @@ func (s UnsuccessfulItemError) GoString() string {
 
 // Describes the S3 bucket for the disk image.
 type UserBucket struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the S3 bucket where the disk image is located.
 	S3Bucket *string `type:"string"`
 
 	// The key for the disk image.
 	S3Key *string `type:"string"`
-
-	metadataUserBucket `json:"-" xml:"-"`
-}
-
-type metadataUserBucket struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23083,17 +23461,13 @@ func (s UserBucket) GoString() string {
 
 // Describes the S3 bucket for the disk image.
 type UserBucketDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The S3 bucket from which the disk image was created.
 	S3Bucket *string `locationName:"s3Bucket" type:"string"`
 
 	// The key from which the disk image was created.
 	S3Key *string `locationName:"s3Key" type:"string"`
-
-	metadataUserBucketDetails `json:"-" xml:"-"`
-}
-
-type metadataUserBucketDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23108,14 +23482,10 @@ func (s UserBucketDetails) GoString() string {
 
 // Describes the user data to be made available to an instance.
 type UserData struct {
+	_ struct{} `type:"structure"`
+
 	// The Base64-encoded MIME user data for the instance.
 	Data *string `locationName:"data" type:"string"`
-
-	metadataUserData `json:"-" xml:"-"`
-}
-
-type metadataUserData struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23130,6 +23500,8 @@ func (s UserData) GoString() string {
 
 // Describes a security group and AWS account ID pair.
 type UserIdGroupPair struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the security group.
 	GroupId *string `locationName:"groupId" type:"string"`
 
@@ -23140,12 +23512,6 @@ type UserIdGroupPair struct {
 
 	// The ID of an AWS account. EC2-Classic only.
 	UserId *string `locationName:"userId" type:"string"`
-
-	metadataUserIdGroupPair `json:"-" xml:"-"`
-}
-
-type metadataUserIdGroupPair struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23160,6 +23526,8 @@ func (s UserIdGroupPair) GoString() string {
 
 // Describes telemetry for a VPN tunnel.
 type VgwTelemetry struct {
+	_ struct{} `type:"structure"`
+
 	// The number of accepted routes.
 	AcceptedRouteCount *int64 `locationName:"acceptedRouteCount" type:"integer"`
 
@@ -23175,12 +23543,6 @@ type VgwTelemetry struct {
 
 	// If an error occurs, a description of the error.
 	StatusMessage *string `locationName:"statusMessage" type:"string"`
-
-	metadataVgwTelemetry `json:"-" xml:"-"`
-}
-
-type metadataVgwTelemetry struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23195,6 +23557,8 @@ func (s VgwTelemetry) GoString() string {
 
 // Describes a volume.
 type Volume struct {
+	_ struct{} `type:"structure"`
+
 	// Information about the volume attachments.
 	Attachments []*VolumeAttachment `locationName:"attachmentSet" locationNameList:"item" type:"list"`
 
@@ -23244,12 +23608,6 @@ type Volume struct {
 	// The volume type. This can be gp2 for General Purpose (SSD) volumes, io1 for
 	// Provisioned IOPS (SSD) volumes, or standard for Magnetic volumes.
 	VolumeType *string `locationName:"volumeType" type:"string" enum:"VolumeType"`
-
-	metadataVolume `json:"-" xml:"-"`
-}
-
-type metadataVolume struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23264,6 +23622,8 @@ func (s Volume) GoString() string {
 
 // Describes volume attachment details.
 type VolumeAttachment struct {
+	_ struct{} `type:"structure"`
+
 	// The time stamp when the attachment initiated.
 	AttachTime *time.Time `locationName:"attachTime" type:"timestamp" timestampFormat:"iso8601"`
 
@@ -23281,12 +23641,6 @@ type VolumeAttachment struct {
 
 	// The ID of the volume.
 	VolumeId *string `locationName:"volumeId" type:"string"`
-
-	metadataVolumeAttachment `json:"-" xml:"-"`
-}
-
-type metadataVolumeAttachment struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23301,14 +23655,10 @@ func (s VolumeAttachment) GoString() string {
 
 // Describes an EBS volume.
 type VolumeDetail struct {
+	_ struct{} `type:"structure"`
+
 	// The size of the volume, in GiB.
 	Size *int64 `locationName:"size" type:"long" required:"true"`
-
-	metadataVolumeDetail `json:"-" xml:"-"`
-}
-
-type metadataVolumeDetail struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23323,6 +23673,8 @@ func (s VolumeDetail) GoString() string {
 
 // Describes a volume status operation code.
 type VolumeStatusAction struct {
+	_ struct{} `type:"structure"`
+
 	// The code identifying the operation, for example, enable-volume-io.
 	Code *string `locationName:"code" type:"string"`
 
@@ -23334,12 +23686,6 @@ type VolumeStatusAction struct {
 
 	// The event type associated with this operation.
 	EventType *string `locationName:"eventType" type:"string"`
-
-	metadataVolumeStatusAction `json:"-" xml:"-"`
-}
-
-type metadataVolumeStatusAction struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23354,17 +23700,13 @@ func (s VolumeStatusAction) GoString() string {
 
 // Describes a volume status.
 type VolumeStatusDetails struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the volume status.
 	Name *string `locationName:"name" type:"string" enum:"VolumeStatusName"`
 
 	// The intended status of the volume status.
 	Status *string `locationName:"status" type:"string"`
-
-	metadataVolumeStatusDetails `json:"-" xml:"-"`
-}
-
-type metadataVolumeStatusDetails struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23379,6 +23721,8 @@ func (s VolumeStatusDetails) GoString() string {
 
 // Describes a volume status event.
 type VolumeStatusEvent struct {
+	_ struct{} `type:"structure"`
+
 	// A description of the event.
 	Description *string `locationName:"description" type:"string"`
 
@@ -23393,12 +23737,6 @@ type VolumeStatusEvent struct {
 
 	// The earliest start time of the event.
 	NotBefore *time.Time `locationName:"notBefore" type:"timestamp" timestampFormat:"iso8601"`
-
-	metadataVolumeStatusEvent `json:"-" xml:"-"`
-}
-
-type metadataVolumeStatusEvent struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23413,17 +23751,13 @@ func (s VolumeStatusEvent) GoString() string {
 
 // Describes the status of a volume.
 type VolumeStatusInfo struct {
+	_ struct{} `type:"structure"`
+
 	// The details of the volume status.
 	Details []*VolumeStatusDetails `locationName:"details" locationNameList:"item" type:"list"`
 
 	// The status of the volume.
 	Status *string `locationName:"status" type:"string" enum:"VolumeStatusInfoStatus"`
-
-	metadataVolumeStatusInfo `json:"-" xml:"-"`
-}
-
-type metadataVolumeStatusInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23438,6 +23772,8 @@ func (s VolumeStatusInfo) GoString() string {
 
 // Describes the volume status.
 type VolumeStatusItem struct {
+	_ struct{} `type:"structure"`
+
 	// The details of the operation.
 	Actions []*VolumeStatusAction `locationName:"actionsSet" locationNameList:"item" type:"list"`
 
@@ -23452,12 +23788,6 @@ type VolumeStatusItem struct {
 
 	// The volume status.
 	VolumeStatus *VolumeStatusInfo `locationName:"volumeStatus" type:"structure"`
-
-	metadataVolumeStatusItem `json:"-" xml:"-"`
-}
-
-type metadataVolumeStatusItem struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23472,6 +23802,8 @@ func (s VolumeStatusItem) GoString() string {
 
 // Describes a VPC.
 type Vpc struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR block for the VPC.
 	CidrBlock *string `locationName:"cidrBlock" type:"string"`
 
@@ -23493,12 +23825,6 @@ type Vpc struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataVpc `json:"-" xml:"-"`
-}
-
-type metadataVpc struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23513,17 +23839,13 @@ func (s Vpc) GoString() string {
 
 // Describes an attachment between a virtual private gateway and a VPC.
 type VpcAttachment struct {
+	_ struct{} `type:"structure"`
+
 	// The current state of the attachment.
 	State *string `locationName:"state" type:"string" enum:"AttachmentStatus"`
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataVpcAttachment `json:"-" xml:"-"`
-}
-
-type metadataVpcAttachment struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23538,6 +23860,8 @@ func (s VpcAttachment) GoString() string {
 
 // Describes whether a VPC is enabled for ClassicLink.
 type VpcClassicLink struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the VPC is enabled for ClassicLink.
 	ClassicLinkEnabled *bool `locationName:"classicLinkEnabled" type:"boolean"`
 
@@ -23546,12 +23870,6 @@ type VpcClassicLink struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataVpcClassicLink `json:"-" xml:"-"`
-}
-
-type metadataVpcClassicLink struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23566,6 +23884,8 @@ func (s VpcClassicLink) GoString() string {
 
 // Describes a VPC endpoint.
 type VpcEndpoint struct {
+	_ struct{} `type:"structure"`
+
 	// The date and time the VPC endpoint was created.
 	CreationTimestamp *time.Time `locationName:"creationTimestamp" type:"timestamp" timestampFormat:"iso8601"`
 
@@ -23586,12 +23906,6 @@ type VpcEndpoint struct {
 
 	// The ID of the VPC to which the endpoint is associated.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataVpcEndpoint `json:"-" xml:"-"`
-}
-
-type metadataVpcEndpoint struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23606,6 +23920,8 @@ func (s VpcEndpoint) GoString() string {
 
 // Describes a VPC peering connection.
 type VpcPeeringConnection struct {
+	_ struct{} `type:"structure"`
+
 	// The information of the peer VPC.
 	AccepterVpcInfo *VpcPeeringConnectionVpcInfo `locationName:"accepterVpcInfo" type:"structure"`
 
@@ -23623,12 +23939,6 @@ type VpcPeeringConnection struct {
 
 	// The ID of the VPC peering connection.
 	VpcPeeringConnectionId *string `locationName:"vpcPeeringConnectionId" type:"string"`
-
-	metadataVpcPeeringConnection `json:"-" xml:"-"`
-}
-
-type metadataVpcPeeringConnection struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23643,17 +23953,13 @@ func (s VpcPeeringConnection) GoString() string {
 
 // Describes the status of a VPC peering connection.
 type VpcPeeringConnectionStateReason struct {
+	_ struct{} `type:"structure"`
+
 	// The status of the VPC peering connection.
 	Code *string `locationName:"code" type:"string" enum:"VpcPeeringConnectionStateReasonCode"`
 
 	// A message that provides more information about the status, if applicable.
 	Message *string `locationName:"message" type:"string"`
-
-	metadataVpcPeeringConnectionStateReason `json:"-" xml:"-"`
-}
-
-type metadataVpcPeeringConnectionStateReason struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23668,6 +23974,8 @@ func (s VpcPeeringConnectionStateReason) GoString() string {
 
 // Describes a VPC in a VPC peering connection.
 type VpcPeeringConnectionVpcInfo struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR block for the VPC.
 	CidrBlock *string `locationName:"cidrBlock" type:"string"`
 
@@ -23676,12 +23984,6 @@ type VpcPeeringConnectionVpcInfo struct {
 
 	// The ID of the VPC.
 	VpcId *string `locationName:"vpcId" type:"string"`
-
-	metadataVpcPeeringConnectionVpcInfo `json:"-" xml:"-"`
-}
-
-type metadataVpcPeeringConnectionVpcInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23696,6 +23998,8 @@ func (s VpcPeeringConnectionVpcInfo) GoString() string {
 
 // Describes a VPN connection.
 type VpnConnection struct {
+	_ struct{} `type:"structure"`
+
 	// The configuration information for the VPN connection's customer gateway (in
 	// the native XML format). This element is always present in the CreateVpnConnection
 	// response; however, it's present in the DescribeVpnConnections response only
@@ -23728,12 +24032,6 @@ type VpnConnection struct {
 
 	// The ID of the virtual private gateway at the AWS side of the VPN connection.
 	VpnGatewayId *string `locationName:"vpnGatewayId" type:"string"`
-
-	metadataVpnConnection `json:"-" xml:"-"`
-}
-
-type metadataVpnConnection struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23748,15 +24046,11 @@ func (s VpnConnection) GoString() string {
 
 // Describes VPN connection options.
 type VpnConnectionOptions struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the VPN connection uses static routes only. Static routes
 	// must be used for devices that don't support BGP.
 	StaticRoutesOnly *bool `locationName:"staticRoutesOnly" type:"boolean"`
-
-	metadataVpnConnectionOptions `json:"-" xml:"-"`
-}
-
-type metadataVpnConnectionOptions struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23771,15 +24065,11 @@ func (s VpnConnectionOptions) GoString() string {
 
 // Describes VPN connection options.
 type VpnConnectionOptionsSpecification struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the VPN connection uses static routes only. Static routes
 	// must be used for devices that don't support BGP.
 	StaticRoutesOnly *bool `locationName:"staticRoutesOnly" type:"boolean"`
-
-	metadataVpnConnectionOptionsSpecification `json:"-" xml:"-"`
-}
-
-type metadataVpnConnectionOptionsSpecification struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23794,7 +24084,10 @@ func (s VpnConnectionOptionsSpecification) GoString() string {
 
 // Describes a virtual private gateway.
 type VpnGateway struct {
-	// The Availability Zone where the virtual private gateway was created.
+	_ struct{} `type:"structure"`
+
+	// The Availability Zone where the virtual private gateway was created, if applicable.
+	// This field may be empty or not returned.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
 	// The current state of the virtual private gateway.
@@ -23811,12 +24104,6 @@ type VpnGateway struct {
 
 	// The ID of the virtual private gateway.
 	VpnGatewayId *string `locationName:"vpnGatewayId" type:"string"`
-
-	metadataVpnGateway `json:"-" xml:"-"`
-}
-
-type metadataVpnGateway struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23831,6 +24118,8 @@ func (s VpnGateway) GoString() string {
 
 // Describes a static route for a VPN connection.
 type VpnStaticRoute struct {
+	_ struct{} `type:"structure"`
+
 	// The CIDR block associated with the local subnet of the customer data center.
 	DestinationCidrBlock *string `locationName:"destinationCidrBlock" type:"string"`
 
@@ -23839,12 +24128,6 @@ type VpnStaticRoute struct {
 
 	// The current state of the static route.
 	State *string `locationName:"state" type:"string" enum:"VpnState"`
-
-	metadataVpnStaticRoute `json:"-" xml:"-"`
-}
-
-type metadataVpnStaticRoute struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -23862,6 +24145,26 @@ const (
 	AccountAttributeNameSupportedPlatforms = "supported-platforms"
 	// @enum AccountAttributeName
 	AccountAttributeNameDefaultVpc = "default-vpc"
+)
+
+const (
+	// @enum Affinity
+	AffinityDefault = "default"
+	// @enum Affinity
+	AffinityHost = "host"
+)
+
+const (
+	// @enum AllocationState
+	AllocationStateAvailable = "available"
+	// @enum AllocationState
+	AllocationStateUnderAssessment = "under-assessment"
+	// @enum AllocationState
+	AllocationStatePermanentFailure = "permanent-failure"
+	// @enum AllocationState
+	AllocationStateReleased = "released"
+	// @enum AllocationState
+	AllocationStateReleasedPermanentFailure = "released-permanent-failure"
 )
 
 const (
@@ -23887,6 +24190,13 @@ const (
 	AttachmentStatusDetaching = "detaching"
 	// @enum AttachmentStatus
 	AttachmentStatusDetached = "detached"
+)
+
+const (
+	// @enum AutoPlacement
+	AutoPlacementOn = "on"
+	// @enum AutoPlacement
+	AutoPlacementOff = "off"
 )
 
 const (
@@ -24073,6 +24383,13 @@ const (
 )
 
 const (
+	// @enum HostTenancy
+	HostTenancyDedicated = "dedicated"
+	// @enum HostTenancy
+	HostTenancyHost = "host"
+)
+
+const (
 	// @enum HypervisorType
 	HypervisorTypeOvm = "ovm"
 	// @enum HypervisorType
@@ -24201,6 +24518,8 @@ const (
 	// @enum InstanceType
 	InstanceTypeM410xlarge = "m4.10xlarge"
 	// @enum InstanceType
+	InstanceTypeT2Nano = "t2.nano"
+	// @enum InstanceType
 	InstanceTypeT2Micro = "t2.micro"
 	// @enum InstanceType
 	InstanceTypeT2Small = "t2.small"
@@ -24321,6 +24640,19 @@ const (
 )
 
 const (
+	// @enum NatGatewayState
+	NatGatewayStatePending = "pending"
+	// @enum NatGatewayState
+	NatGatewayStateFailed = "failed"
+	// @enum NatGatewayState
+	NatGatewayStateAvailable = "available"
+	// @enum NatGatewayState
+	NatGatewayStateDeleting = "deleting"
+	// @enum NatGatewayState
+	NatGatewayStateDeleted = "deleted"
+)
+
+const (
 	// @enum NetworkInterfaceAttribute
 	NetworkInterfaceAttributeDescription = "description"
 	// @enum NetworkInterfaceAttribute
@@ -24340,6 +24672,13 @@ const (
 	NetworkInterfaceStatusInUse = "in-use"
 	// @enum NetworkInterfaceStatus
 	NetworkInterfaceStatusDetaching = "detaching"
+)
+
+const (
+	// @enum NetworkInterfaceType
+	NetworkInterfaceTypeInterface = "interface"
+	// @enum NetworkInterfaceType
+	NetworkInterfaceTypeNatGateway = "natGateway"
 )
 
 const (
@@ -24628,6 +24967,8 @@ const (
 	TenancyDefault = "default"
 	// @enum Tenancy
 	TenancyDedicated = "dedicated"
+	// @enum Tenancy
+	TenancyHost = "host"
 )
 
 const (
