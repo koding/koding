@@ -12,7 +12,9 @@ module.exports = class TeamsAppController extends kd.ViewController
 
   constructor: (options = {}, data) ->
 
-    if utils.getTeamData().invitation?.teamAccessCode
+    { currentPath } = kd.singletons.router
+
+    if currentPath.indexOf('/Teams/Create') > -1
     then options.view = new TeamsView { cssClass: 'content-page' }
     else options.view = new TeamSelectorView { cssClass: 'content-page' }
 

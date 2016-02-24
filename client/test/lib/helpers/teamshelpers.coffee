@@ -121,11 +121,6 @@ module.exports =
 
   loginToTeam: (browser, user) ->
 
-    if HUBSPOT
-      browser
-        .waitForElementVisible  '.hero.block .container', 50000
-        .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
-
     browser
       .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
@@ -142,51 +137,45 @@ module.exports =
     user = utils.getUser()
     url  = helpers.getUrl(yes)
 
-    hasNotTeamAccessPage = '.TeamsModal--select'
+    teamsLogin = '.TeamsModal--login'
 
     browser.url url
     browser.maximizeWindow()
 
-    browser.element 'css selector', hasNotTeamAccessPage, (result) =>
+    browser.pause  3000
+    browser.element 'css selector', teamsLogin, (result) =>
       if result.status is 0
-        @getInvitationAndCreateTeam browser
-      else
         @loginToTeam browser, user
+      else
+        @createTeam browser
 
     return user
 
 
-  getInvitationAndCreateTeam: (browser, user, callback) ->
+  createTeam: (browser, user, callback) ->
 
     modalSelector       = '.TeamsModal.TeamsModal--create'
     emailSelector       = "#{modalSelector} input[name=email]"
     companyNameSelector = "#{modalSelector} input[name=companyName]"
     signUpButton        = "#{modalSelector} button[type=submit]"
     user                = utils.getUser()
-    adminUser           =
-      username          : 'devrim'
-      password          : 'devrim'
 
-    helpers.beginTest(browser, adminUser)
-    browser.pause 5000 # wait for welcome modal
+    invitationLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
-    @createInvitation browser, user, (invitationLink) =>
-      browser.click '.close-icon.closeModal'
+    browser
+      .url                   invitationLink
+      .waitForElementVisible modalSelector, 20000
+      .waitForElementVisible emailSelector, 20000
+      .waitForElementVisible companyNameSelector, 20000
+      .clearValue            emailSelector
+      .setValue              emailSelector, user.email
+      .pause                 2000
+      .setValue              companyNameSelector, user.teamSlug
+      .click                 signUpButton
+      .pause                 2500
 
-      helpers.doLogout(browser)
-
-      browser
-        .url                   invitationLink
-        .waitForElementVisible modalSelector, 20000
-        .waitForElementVisible emailSelector, 20000
-        .waitForElementVisible companyNameSelector, 20000
-        .assert.valueContains  emailSelector, user.email
-        .setValue              companyNameSelector, user.teamSlug
-        .click                 signUpButton
-        .pause                 2500
-
-      @enterTeamURL(browser)
-      @fillUsernamePasswordForm(browser, user)
+    @enterTeamURL(browser)
+    @fillUsernamePasswordForm(browser, user)
 
 
   createInvitation: (browser, user, callback) ->
