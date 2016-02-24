@@ -26,6 +26,7 @@ BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
 generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 isKoding                      = require 'app/util/isKoding'
+hubspotTracker                = require 'app/util/hubspotTracker'
 
 {warn} = kd
 
@@ -193,10 +194,7 @@ module.exports = CollaborationController =
     @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
 
-    _hsq.push (t) ->
-      t.trackEvent
-        id: '000000537115'
-        value: null
+    hubspotTracker '000000537115', null
 
     if @amIHost and targetUser isnt nick()
       @ensureMachineShare [targetUser], (err) =>
