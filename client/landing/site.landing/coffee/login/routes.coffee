@@ -35,10 +35,6 @@ do ->
       app.getView().animateToForm 'login'
       app.handleQuery options
 
-    '/Register' : handler (app, options)->
-      app.getView().animateToForm 'register'
-      app.handleQuery options
-
     '/Redeem'       : handler (app)-> app.getView().animateToForm 'redeem'
     '/Reset/:token' : handleResetRoute
     '/ResendToken'  : handler (app)-> app.getView().animateToForm 'resendEmail'

@@ -675,7 +675,7 @@ module.exports = class LoginView extends JView
 
 
   generateFormHeaderPartial: (data = {}) ->
-    "Don't have an account yet? <a class='register' href='#{@getRegisterLink data}'>Sign up</a>"
+    "Don't have an account yet? <a class='register' href='//#{utils.getMainDomain()}/Teams/Create' target='_self'>Sign up</a>"
 
 
   setFormHeaderPartial: (data) ->
