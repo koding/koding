@@ -68,6 +68,9 @@ module.exports = class TeamsView extends JView
       <h4>Create a team</h4>
       {{> @form}}
     </div>
+    <section class="previous-teams">
+      <p>Are you an old solo koding user? <a href="//#{utils.getMainDomain()}/Login" target="_self">Click here</a> to login.</p>
+    </section>
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
