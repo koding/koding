@@ -1,6 +1,11 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
+Machine                = require 'app/providers/machine'
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
+MachinesList           = require 'app/environment/machineslist'
+ResourceMachineItem    = require './resourcemachineitem'
+ResourceMachineHeader  = require './resourcemachineheader'
+MachinesListController = require 'app/environment/machineslistcontroller'
 
 
 module.exports = class ResourceListItem extends kd.ListItemView
@@ -25,7 +30,18 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @details = new kd.CustomHTMLView
       cssClass : 'hidden'
 
-    @details.addSubView new kd.View partial: 'RESOURCE_WIP'
+    listView          = new MachinesList
+      itemClass       : ResourceMachineItem
+    controller        = new MachinesListController
+      view            : listView
+      wrapper         : no
+      scrollView      : no
+      headerItemClass : ResourceMachineHeader
+    ,
+      items : (new Machine { machine } for machine in @getData().machines)
+
+    @details.addSubView controller.getView()
+
     @ownerView = new AvatarView {
       size: { width: 25, height: 25 }
     }, resource.owner
@@ -44,6 +60,7 @@ module.exports = class ResourceListItem extends kd.ListItemView
       {{> @detailsToggle}}
       {{> @ownerView}}
       {div.details{#(title)}}
+      {div.status{#(status.state)}}
       <div class='clear'></div>
       {{> @details}}
     """

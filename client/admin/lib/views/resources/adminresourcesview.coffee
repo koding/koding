@@ -9,7 +9,7 @@ module.exports = class AdminResourcesView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'member-related resource-management'
+    options.cssClass = 'member-related resource-management environments-modal'
 
     super options, data
 
