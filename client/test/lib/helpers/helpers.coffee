@@ -82,7 +82,7 @@ module.exports =
       if HUBSPOT
         browser.waitForElementVisible  '.hero.block .container', 20000
       else
-        browser.waitForElementVisible  '.login-screen', 30000 # Assertion
+        browser.waitForElementVisible  '.TeamsModal--select', 30000 # Assertion
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
