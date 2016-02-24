@@ -87,28 +87,12 @@ module.exports =
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
 
-    url = @getUrl()
-    browser.url url
-
-    homePageSelector = '.hero.block .container'
-
-    if HUBSPOT
-      browser
-        .waitForElementVisible  homePageSelector, 20000
-        .waitForElementVisible  "#{homePageSelector} a[href='/Register']", 20000
-        .click                  "#{homePageSelector} a[href='/Register']"
-        .pause                  3000
-        .waitForElementVisible  '.form-area .main-part', 20000
-        .setValue               '.login-form .email input[name=email]', user.email
-        .setValue               '.login-form .password input[name=password]', user.password
-    else
-      browser
-        .url                    "#{url}/Register"
-        .pause                  3000
-        .setValue               'input[testpath=register-form-email]', user.email
-        .setValue               'input[testpath=register-password]', user.password
-
-    browser.click       '[testpath=signup-button]'
+    browser
+      .url                    "#{@getUrl()}/RegisterForTests"
+      .waitForElementVisible  '.login-screen.register', 30000 # Assertion
+      .setValue               'input[testpath=register-form-email]', user.email
+      .setValue               'input[testpath=register-password]', user.password
+      .click                  '[testpath=signup-button]'
 
 
   attemptEnterUsernameOnRegister: (browser, user) ->
