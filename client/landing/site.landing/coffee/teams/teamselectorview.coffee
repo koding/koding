@@ -89,7 +89,7 @@ module.exports = class TeamSelectorView extends JView
     <section class="previous-teams">
       <p>Trying to create a team? <a href="//#{utils.getMainDomain()}/Teams/Create" target="_self">Click here</a> to get started.</p>
       {{> @previousTeams}}
-      <p>Looking for <a href="/Login" target="_self">Koding Solo</a>?</p>
+      <p>Looking for <a href="/Login" target="_self" testpath="koding-solo-login">Koding Solo</a>?</p>
     </section>
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>

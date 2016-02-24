@@ -51,6 +51,8 @@ module.exports =
         .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
 
     browser
+      .waitForElementVisible  '[testpath=koding-solo-login]', 50000
+      .click                  '[testpath=koding-solo-login]'
       .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
