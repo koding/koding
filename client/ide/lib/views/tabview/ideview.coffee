@@ -94,7 +94,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       switch paneType
         when 'editor'
           tabHandle.enableContextMenu()
-          tabHandle.on 'RenamingRequested', (newTitle) => view.file.emit 'FilePathChanged', newTitle
+          tabHandle.on 'RenamingRequested', (newTitle) => pane.view.file.emit 'FilePathChanged', newTitle
           tabHandle.makeEditable()
 
         when 'terminal'

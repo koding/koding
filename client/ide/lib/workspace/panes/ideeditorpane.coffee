@@ -95,6 +95,32 @@ module.exports = class IDEEditorPane extends IDEPane
       ace.ready @bound 'makeReadOnly'
 
 
+  updateFilePath: (name)->
+    ace = @getAce()
+    deleteFilePath = @file.getOptions().path
+
+    [ node ] = @file.treeController.selectedNodes
+
+    parent            = node.getData()
+    contents          = ace.getContents()
+    oldCursorPosition = ace.editor.getCursorPosition()
+    @file.machine     = parent.machine
+    parent.path       = @file.getOptions().parentPath
+
+    @file.emit 'file.requests.saveAs', contents, name, parent.path
+
+    @file.path = deleteFilePath
+    @file.remove kd.noop
+
+    @file.once 'fs.saveAs.finished', (newFile) =>
+
+      { tabView } = @getDelegate()
+
+      return  if tabView.willClose
+
+      @getDelegate().openSavedFile newFile, contents
+
+
   bindFileSyncEvents: ->
 
     ace = @getAce()
@@ -134,33 +160,7 @@ module.exports = class IDEEditorPane extends IDEPane
         @contentChangedWarning?.destroy()
         @contentChangedWarning = null
 
-    @file.once 'FilePathChanged', (name) =>
-
-      deleteFilePath = @file.getOptions().path
-
-      [ node ] = @file.treeController.selectedNodes
-
-      parent            = node.getData()
-      contents          = ace.getContents()
-      oldCursorPosition = ace.editor.getCursorPosition()
-      @file.machine     = parent.machine
-      parent.path       = @file.getOptions().parentPath
-
-      @file.emit 'file.requests.saveAs', contents, name, parent.path
-      @file.once 'fs.saveAs.finished',   ace.bound 'saveAsFinished'
-      ace.emit 'AceDidSaveAs', name, parent.path
-
-      @file.once 'fs.saveAs.finished', (newFile) =>
-        { tabView } = @getDelegate()
-
-        return  if tabView.willClose
-
-        @getDelegate().openSavedFile newFile, contents
-
-        @file.path = deleteFilePath
-
-        @file.remove kd.noop
-
+    @file.on 'FilePathChanged', @bound 'updateFilePath'
 
   updateContent: (content, isSaved = no) ->
 
@@ -550,6 +550,7 @@ module.exports = class IDEEditorPane extends IDEPane
   destroy: ->
 
     @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
+    @file.off 'FilePathChanged', @bound 'updateFilePath'
 
     super
 
