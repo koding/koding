@@ -15,6 +15,7 @@ MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemvi
 remote                      = require('app/remote').getInstance()
 globals                     = require 'globals'
 showError                   = require 'app/util/showError'
+hubspotTracker              = require 'app/util/hubspotTracker'
 
 
 module.exports = class AccountCredentialListController extends AccountListViewController
@@ -213,10 +214,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       @addItem credential
 
       if provider is 'aws'
-        _hsq.push (t) ->
-          t.trackEvent
-            id: '000000537081'
-            value: null
+        hubspotTracker '000000537081', null
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.

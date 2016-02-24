@@ -85,6 +85,7 @@ module.exports = (options = {}, callback) ->
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
 
     <script type="text/javascript">
+      var _hsq = window._hsq = window._hsq || [];
       _hsq.push(["identify", {
         email: #{userEmail}
       }]);

@@ -3,6 +3,7 @@ kd                  = require 'kd'
 globals             = require 'globals'
 whoami              = require 'app/util/whoami'
 { boxes, HANDLERS } = require './boxes'
+hubspotTracker      = require 'app/util/hubspotTracker'
 
 module.exports = class WelcomeAppView extends kd.View
 
@@ -101,10 +102,7 @@ module.exports = class WelcomeAppView extends kd.View
 
       hintEl.innerHTML = "Hit #{key} to copy!"
 
-    _hsq.push (t) ->
-      t.trackEvent
-        id: '000000537087'
-        value: null
+    hubspotTracker '000000537087', null
 
     kd.singletons.mainView.mainTabView.scrollToBottom 200
 
