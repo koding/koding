@@ -10,18 +10,14 @@ import (
 )
 
 func CreateCustomerForGroup(token, groupId, email string) (*paymentmodels.Customer, error) {
-	var meta map[string]string
-
 	group, err := modelhelper.GetGroupById(groupId)
-	if err == nil {
-		meta = map[string]string{
-			"type":       paymentmodels.GroupCustomer,
-			"groupTitle": group.Title,
-		}
+	if err != nil {
+		return nil, err
 	}
 
-	if err != nil {
-		Log.Error("Fetching group: %s failed. %s", groupId, err)
+	meta := map[string]string{
+		"type":       paymentmodels.GroupCustomer,
+		"groupTitle": group.Title,
 	}
 
 	return createCustomer(token, groupId, group.Slug, email, meta, paymentmodels.GroupCustomer)

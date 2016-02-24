@@ -26,13 +26,6 @@ func (g *GroupSubscribeRequest) Do() (interface{}, error) {
 		err = ErrProviderNotFound
 	}
 
-	if err != nil {
-		Log.Error(
-			"Subscribing group: %s to plan: %s failed. %s",
-			g.GroupId, g.PlanTitle, err,
-		)
-	}
-
 	return nil, err
 }
 

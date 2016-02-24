@@ -27,13 +27,6 @@ func (a *AccountSubscribeRequest) Do() (interface{}, error) {
 		err = ErrProviderNotFound
 	}
 
-	if err != nil {
-		Log.Error(
-			"Subscribing account: %s to plan: %s failed. %s",
-			a.AccountId, a.PlanTitle, err,
-		)
-	}
-
 	return nil, err
 }
 
