@@ -57,6 +57,15 @@ var LoggedInHome = `
         a.appendChild(r);
       })(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
+    <script type="text/javascript">
+      var _hsq = window._hsq = window._hsq || [];
+      (function(d,s,i,r) {
+        if (d.getElementById(i)){return;}
+          var n=d.createElement(s),e=d.getElementsByTagName(s)[0];
+          n.id=i;n.src='//js.hs-analytics.net/analytics/'+(Math.ceil(new Date()/r)*r)+'/1593820.js';
+          e.parentNode.insertBefore(n, e);
+      })(document,"script","hs-analytics",300000);
+    </script>
 </body>
 </html>
 `
