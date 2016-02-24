@@ -189,10 +189,6 @@ func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
 
 ///// Entry operations
 
-func (d *Dir) GetName() string {
-	return d.Name
-}
-
 // FindEntry finds an entry with specified name.
 func (d *Dir) FindEntry(name string) (Node, error) {
 	d.RLock()
@@ -279,6 +275,10 @@ func (d *Dir) Expire() error {
 	defer d.Unlock()
 
 	return d.updateEntriesFromRemote()
+}
+
+func (d *Dir) ToString() string {
+	return d.Name
 }
 
 ///// Helpers

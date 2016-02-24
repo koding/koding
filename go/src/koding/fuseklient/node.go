@@ -10,9 +10,9 @@ type Node interface {
 	GetID() fuseops.InodeID
 	GetType() fuseutil.DirentType
 	GetAttrs() fuseops.InodeAttributes
-	GetName() string
 	SetAttrs(fuseops.InodeAttributes)
 	Forget()
 	IsForgotten() bool
 	Expire() error
+	ToString() string
 }

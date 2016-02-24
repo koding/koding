@@ -213,13 +213,9 @@ func (k *KodingNetworkFS) Unmount() error {
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
-	entry, err := k.getEntry(op.Inode)
+	entry, err := k.getEntry(ctx, op.Inode)
 	if err != nil {
 		return err
-	}
-
-	if r, ok := trace.FromContext(ctx); ok {
-		r.LazyPrintf("Name:%s", entry.GetName())
 	}
 
 	op.Attributes = entry.GetAttrs()
@@ -232,7 +228,7 @@ func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.Ge
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
-	dir, err := k.getDir(op.Parent)
+	dir, err := k.getDir(ctx, op.Parent)
 	if err != nil {
 		return err
 	}
@@ -240,10 +236,6 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 	entry, err := dir.FindEntry(op.Name)
 	if err != nil {
 		return err
-	}
-
-	if r, ok := trace.FromContext(ctx); ok {
-		r.LazyPrintf("Parent:%s Entry:%s", dir.GetName(), entry.GetName())
 	}
 
 	k.setEntry(entry.GetID(), entry)
@@ -261,7 +253,7 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
-	_, err := k.getDir(op.Inode)
+	_, err := k.getDir(ctx, op.Inode)
 	return err
 }
 
@@ -269,7 +261,7 @@ func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) er
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
-	dir, err := k.getDir(op.Inode)
+	dir, err := k.getDir(ctx, op.Inode)
 	if err != nil {
 		return err
 	}
@@ -299,7 +291,7 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
-	dir, err := k.getDir(op.Parent)
+	dir, err := k.getDir(ctx, op.Parent)
 	if err != nil {
 		return err
 	}
@@ -330,7 +322,7 @@ func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error 
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) error {
-	dir, err := k.getDir(op.OldParent)
+	dir, err := k.getDir(ctx, op.OldParent)
 	if err != nil {
 		return err
 	}
@@ -340,7 +332,7 @@ func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) erro
 		return err
 	}
 
-	newDir, err := k.getDir(op.NewParent)
+	newDir, err := k.getDir(ctx, op.NewParent)
 	if err != nil {
 		return err
 	}
@@ -363,7 +355,7 @@ func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) erro
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
-	dir, err := k.getDir(op.Parent)
+	dir, err := k.getDir(ctx, op.Parent)
 	if err != nil {
 		return err
 	}
@@ -384,7 +376,7 @@ func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error 
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) error {
-	file, err := k.getFile(op.Inode)
+	file, err := k.getFile(ctx, op.Inode)
 	if err != nil {
 		return err
 	}
@@ -409,7 +401,7 @@ func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) 
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
-	file, err := k.getFile(op.Inode)
+	file, err := k.getFile(ctx, op.Inode)
 	if err != nil {
 		return err
 	}
@@ -428,7 +420,7 @@ func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) 
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
-	file, err := k.getFile(op.Inode)
+	file, err := k.getFile(ctx, op.Inode)
 	if err != nil {
 		return err
 	}
@@ -446,7 +438,7 @@ func (k *KodingNetworkFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) error {
-	dir, err := k.getDir(op.Parent)
+	dir, err := k.getDir(ctx, op.Parent)
 	if err != nil {
 		return err
 	}
@@ -470,7 +462,7 @@ func (k *KodingNetworkFS) CreateFile(ctx context.Context, op *fuseops.CreateFile
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) error {
-	entry, err := k.getEntry(op.Inode)
+	entry, err := k.getEntry(ctx, op.Inode)
 	if err != nil {
 		return err
 	}
@@ -516,7 +508,7 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) error {
-	file, err := k.getFile(op.Inode)
+	file, err := k.getFile(ctx, op.Inode)
 	if err != nil {
 		return err
 	}
@@ -532,7 +524,7 @@ func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
-	file, err := k.getFile(op.Inode)
+	file, err := k.getFile(ctx, op.Inode)
 	if err != nil {
 		return err
 	}
@@ -544,7 +536,7 @@ func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) 
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
-	dir, err := k.getDir(op.Parent)
+	dir, err := k.getDir(ctx, op.Parent)
 	if err != nil {
 		return err
 	}
@@ -574,7 +566,7 @@ func (k *KodingNetworkFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) erro
 }
 
 func (k *KodingNetworkFS) ReleaseFileHandle(ctx context.Context, op *fuseops.ReleaseFileHandleOp) error {
-	file, err := k.getFileByHandle(op.Handle)
+	file, err := k.getFileByHandle(ctx, op.Handle)
 	if err != nil {
 		return err
 	}
@@ -592,8 +584,8 @@ func (k *KodingNetworkFS) ReleaseFileHandle(ctx context.Context, op *fuseops.Rel
 
 // getDir gets directory entry with specified id from list of live nodes. It
 // returns `fuse.EIO` if the entry is not a directory.
-func (k *KodingNetworkFS) getDir(id fuseops.InodeID) (*Dir, error) {
-	entry, err := k.getEntry(id)
+func (k *KodingNetworkFS) getDir(ctx context.Context, id fuseops.InodeID) (*Dir, error) {
+	entry, err := k.getEntry(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -607,8 +599,8 @@ func (k *KodingNetworkFS) getDir(id fuseops.InodeID) (*Dir, error) {
 
 // getDir gets file entry with specified id from list of live nodes. It returns
 // `fuse.EIO` if the entry is not a file.
-func (k *KodingNetworkFS) getFile(id fuseops.InodeID) (*File, error) {
-	entry, err := k.getEntry(id)
+func (k *KodingNetworkFS) getFile(ctx context.Context, id fuseops.InodeID) (*File, error) {
+	entry, err := k.getEntry(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -621,13 +613,17 @@ func (k *KodingNetworkFS) getFile(id fuseops.InodeID) (*File, error) {
 }
 
 // getEntry gets an entry with specified id from list of live nodes.
-func (k *KodingNetworkFS) getEntry(id fuseops.InodeID) (Node, error) {
+func (k *KodingNetworkFS) getEntry(ctx context.Context, id fuseops.InodeID) (Node, error) {
 	k.RLock()
 	defer k.RUnlock()
 
 	entry, ok := k.liveNodes[id]
 	if !ok {
 		return nil, fuse.ENOENT
+	}
+
+	if r, ok := trace.FromContext(ctx); ok {
+		r.LazyPrintf("entry: %s", entry.ToString())
 	}
 
 	return entry, nil
@@ -670,8 +666,8 @@ func (k *KodingNetworkFS) deleteEntryByHandle(handleId fuseops.HandleID) {
 	k.Unlock()
 }
 
-func (k *KodingNetworkFS) getDirByHandle(id fuseops.HandleID) (*Dir, error) {
-	node, err := k.getByHandle(id)
+func (k *KodingNetworkFS) getDirByHandle(ctx context.Context, id fuseops.HandleID) (*Dir, error) {
+	node, err := k.getByHandle(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -684,8 +680,8 @@ func (k *KodingNetworkFS) getDirByHandle(id fuseops.HandleID) (*Dir, error) {
 	return dir, nil
 }
 
-func (k *KodingNetworkFS) getFileByHandle(id fuseops.HandleID) (*File, error) {
-	node, err := k.getByHandle(id)
+func (k *KodingNetworkFS) getFileByHandle(ctx context.Context, id fuseops.HandleID) (*File, error) {
+	node, err := k.getByHandle(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -698,7 +694,7 @@ func (k *KodingNetworkFS) getFileByHandle(id fuseops.HandleID) (*File, error) {
 	return file, nil
 }
 
-func (k *KodingNetworkFS) getByHandle(id fuseops.HandleID) (Node, error) {
+func (k *KodingNetworkFS) getByHandle(ctx context.Context, id fuseops.HandleID) (Node, error) {
 	k.RLock()
 	defer k.RUnlock()
 
