@@ -54,9 +54,11 @@ module.exports = class ComputeController_UI
       for field in requiredFields
         name = field.name ? field
         type = field.type ? 'text'
+        { values } = field
         credentialFields[name] = {
           label: name.capitalize()
           type
+          values
         }
 
       currentProvider  = { credentialFields }
