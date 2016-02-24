@@ -11,6 +11,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	"koding/klientctl/ctlcli"
 )
 
 func init() {
@@ -21,7 +22,7 @@ func init() {
 // check if there's an update available before running the command.
 //
 // TODO: Remove once we have fully deprecated the old ExitCommands
-func CheckUpdateFirst(f ExitingCommand, log logging.Logger, cmd string) (ExitingCommand, logging.Logger, string) {
+func CheckUpdateFirst(f ctlcli.ExitingCommand, log logging.Logger, cmd string) (ctlcli.ExitingCommand, logging.Logger, string) {
 
 	exitCmd := func(c *cli.Context, log logging.Logger, cmd string) int {
 		u := NewCheckUpdate()

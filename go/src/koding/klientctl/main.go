@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"
@@ -79,7 +80,7 @@ func main() {
 			Name:      "list",
 			ShortName: "ls",
 			Usage:     "List running machines for user.",
-			Action:    ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
+			Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "json",
@@ -90,7 +91,7 @@ func main() {
 				cli.Command{
 					Name:   "mounts",
 					Usage:  "List the mounted machines.",
-					Action: ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
+					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
 				},
 			},
 		},
@@ -125,20 +126,20 @@ func main() {
 					Usage: "Sets how frequently folder will sync with remote, in seconds. Zero disables syncing.",
 				},
 			},
-			Action: FactoryAction(MountCommandFactory, log, "mount"),
+			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
 		},
 		cli.Command{
 			Name:        "unmount",
 			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["unmount"],
-			Action:      FactoryAction(UnmountCommandFactory, log, "unmount")},
+			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount")},
 		cli.Command{
 			Name:        "ssh",
 			ShortName:   "s",
 			Usage:       "SSH into the machine.",
 			Description: cmdDescriptions["ssh"],
-			Action:      ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
+			Action:      ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
 		},
 		cli.Command{
 			Name:        "install",
@@ -151,7 +152,7 @@ func main() {
 				},
 			},
 			//HideHelp: true,
-			Action: ExitAction(InstallCommandFactory, log, "install"),
+			Action: ctlcli.ExitAction(InstallCommandFactory, log, "install"),
 		},
 		cli.Command{
 			Name:        "uninstall",
@@ -163,37 +164,37 @@ func main() {
 			Name:        "status",
 			Usage:       fmt.Sprintf("Check status of the %s.", KlientName),
 			Description: cmdDescriptions["status"],
-			Action:      ExitAction(StatusCommand, log, "status"),
+			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
 		},
 		cli.Command{
 			Name:        "start",
 			Usage:       fmt.Sprintf("Start the %s.", KlientName),
 			Description: cmdDescriptions["start"],
-			Action:      ExitAction(StartCommand, log, "start"),
+			Action:      ctlcli.ExitAction(StartCommand, log, "start"),
 		},
 		cli.Command{
 			Name:        "stop",
 			Usage:       fmt.Sprintf("Stop the %s.", KlientName),
 			Description: cmdDescriptions["stop"],
-			Action:      ExitAction(StopCommand, log, "stop"),
+			Action:      ctlcli.ExitAction(StopCommand, log, "stop"),
 		},
 		cli.Command{
 			Name:        "restart",
 			Usage:       fmt.Sprintf("Restart the %s.", KlientName),
 			Description: cmdDescriptions["restart"],
-			Action:      ExitAction(RestartCommand, log, "restart"),
+			Action:      ctlcli.ExitAction(RestartCommand, log, "restart"),
 		},
 		cli.Command{
 			Name:        "update",
 			Usage:       fmt.Sprintf("Update %s to latest version.", KlientName),
 			Description: cmdDescriptions["update"],
-			Action:      ExitAction(UpdateCommand, log, "update"),
+			Action:      ctlcli.ExitAction(UpdateCommand, log, "update"),
 		},
 		cli.Command{
 			Name:            "run",
 			Usage:           "Run command on remote or local machine.",
 			Description:     cmdDescriptions["run"],
-			Action:          ExitAction(RunCommandFactory, log, "run"),
+			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
 			SkipFlagParsing: true,
 		},
 	}

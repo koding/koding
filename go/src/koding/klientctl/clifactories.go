@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/util/mountcli"
 	"os"
 
@@ -16,7 +17,7 @@ import (
 
 // MountCommandFactory creates a mount.Command instance and runs it with
 // Stdin and Out.
-func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Command {
+func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
 	log = log.New(fmt.Sprintf("command:%s", cmdName))
 
 	opts := MountOptions{
@@ -39,7 +40,7 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Com
 		Stdin:         os.Stdin,
 		Log:           log,
 		KlientOptions: NewKlientOptions(),
-		helper:        CommandHelper(c, "mount"),
+		helper:        ctlcli.CommandHelper(c, "mount"),
 		mountLocker:   Lock,
 		homeDirGetter: homeDirGetter,
 	}
@@ -47,7 +48,7 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Com
 
 // MountCommandFactory creates a mount.Command instance and runs it with
 // Stdin and Out.
-func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Command {
+func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
 	log = log.New(fmt.Sprintf("command:%s", cmdName))
 
 	// Full our unmount options from the CLI. Any empty options are okay, as
@@ -62,7 +63,7 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) C
 		Stdin:         os.Stdin,
 		Log:           log,
 		KlientOptions: NewKlientOptions(),
-		helper:        CommandHelper(c, cmdName),
+		helper:        ctlcli.CommandHelper(c, cmdName),
 		healthChecker: defaultHealthChecker,
 		fileRemover:   os.Remove,
 		mountFinder:   mountcli.NewMount(),

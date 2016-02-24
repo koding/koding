@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
@@ -70,7 +71,7 @@ type MountCommand struct {
 	// an enclosed environment within the struct.
 
 	// The Helper. See it's docs for a better understanding of this.
-	helper Helper
+	helper ctlcli.Helper
 
 	// homeDirGetter gets the users home directory.
 	homeDirGetter func() (string, error)

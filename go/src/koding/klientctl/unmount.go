@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
 
@@ -50,7 +51,7 @@ type UnmountCommand struct {
 	// an enclosed environment within the struct.
 
 	// The ctlcli Helper. See the type docs for a better understanding of this.
-	helper Helper
+	helper ctlcli.Helper
 
 	// The HealthChecker we'll use if we suspect that there may be problems.
 	healthChecker *HealthChecker
