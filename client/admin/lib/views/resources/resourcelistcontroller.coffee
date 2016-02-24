@@ -11,7 +11,7 @@ module.exports = class ResourceListController extends AccountListViewController
   constructor: (options = {}, data) ->
 
     options = kd.utils.extend {}, options,
-      limit               : 30
+      limit               : 10
       noItemFoundText     : 'No resource found!'
       useCustomScrollView : yes
       startWithLazyLoader : yes
@@ -52,9 +52,21 @@ module.exports = class ResourceListController extends AccountListViewController
 
   fetch: (query, callback, options = {}) ->
 
-    callback null, [
-      {title: 'WIP Resource'}
-    ]
+    { groupsController } = kd.singletons
+
+    options.limit ?= @getOption 'limit'
+    options.sort   = '_id' : -1
+
+    group = groupsController.getCurrentGroup()
+    group.fetchResources query, options, (err, resources) =>
+
+      if err
+        @hideLazyLoader()
+        showError err, \
+          KodingError : "Failed to fetch data, try again later."
+        return
+
+      callback err, resources
 
 
   loadItems: (query) ->
