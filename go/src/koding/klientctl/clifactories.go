@@ -8,6 +8,7 @@ package main
 import (
 	"fmt"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/repair"
 	"koding/klientctl/util/mountcli"
 	"os"
 
@@ -46,7 +47,7 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 	}
 }
 
-// MountCommandFactory creates a mount.Command instance and runs it with
+// UnmountCommandFactory creates a UnmountCommand instance and runs it with
 // Stdin and Out.
 func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
 	log = log.New(fmt.Sprintf("command:%s", cmdName))
@@ -67,5 +68,26 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) c
 		healthChecker: defaultHealthChecker,
 		fileRemover:   os.Remove,
 		mountFinder:   mountcli.NewMount(),
+	}
+}
+
+// RepairCommandFactory creates a repair.Command instance and runs it with
+// Stdin and Out.
+func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
+	log = log.New(fmt.Sprintf("command:%s", cmdName))
+
+	// Full our unmount options from the CLI. Any empty options are okay, as
+	// the command struct is responsible for verifying valid opts.
+	opts := repair.Options{
+		MountName: c.Args().First(),
+	}
+
+	return &repair.Command{
+		Options:       opts,
+		Stdout:        os.Stdout,
+		Stdin:         os.Stdin,
+		Log:           log,
+		KlientOptions: NewKlientOptions(),
+		Helper:        ctlcli.CommandHelper(c, cmdName),
 	}
 }

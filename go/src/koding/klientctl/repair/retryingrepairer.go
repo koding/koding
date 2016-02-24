@@ -1,6 +1,9 @@
 package repair
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // RetryRepair wraps a normal Repairer with retry logic, allowing normal
 // repairers to simply fail as needed and not implement retry logic. The number
@@ -38,6 +41,17 @@ func NewRetryRepair(r Repairer, opts RetryOptions) *RetryRepair {
 		Repairer: r,
 		Options:  opts,
 	}
+}
+
+// Name returns the RetryRepair's name, along with the underlying repairer.
+func (r *RetryRepair) Name() string {
+	return fmt.Sprintf("retryrepair:%s", r.Repairer.Name())
+}
+
+// Description returns the underlying repairers description, since the RetryRepair
+// has no user facing functionality.
+func (r *RetryRepair) Description() string {
+	return r.Repairer.Description()
 }
 
 // Status returns the eventual (after any given retries needed) status of the

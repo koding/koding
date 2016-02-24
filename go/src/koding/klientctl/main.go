@@ -133,7 +133,8 @@ func main() {
 			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["unmount"],
-			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount")},
+			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
+		},
 		cli.Command{
 			Name:        "ssh",
 			ShortName:   "s",
@@ -196,6 +197,11 @@ func main() {
 			Description:     cmdDescriptions["run"],
 			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
 			SkipFlagParsing: true,
+		},
+		cli.Command{
+			Name:   "repair",
+			Usage:  "Repair the given mount",
+			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
 		},
 	}
 
