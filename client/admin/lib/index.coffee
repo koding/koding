@@ -48,7 +48,7 @@ module.exports = class AdminAppController extends AppController
         }
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
         { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 }
-        { slug : 'Plan-Billing',   title : 'Plan & Billing',    viewClass : GroupPlanBillingView     }
+        # { slug : 'Plan-Billing',   title : 'Plan & Billing',    viewClass : GroupPlanBillingView     }
       ]
     koding     :
       title    : 'Koding Administration'
