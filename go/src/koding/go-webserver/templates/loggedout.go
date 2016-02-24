@@ -46,8 +46,6 @@ var LoggedOutHome = `
       })(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
 
-    <a href='/Activity/Public' class="invisible" target='_self'>ACTIVITY</a>
-
     <script type="text/javascript">
       var _hsq = window._hsq = window._hsq || [];
       (function(d,s,i,r) {
@@ -57,6 +55,8 @@ var LoggedOutHome = `
           e.parentNode.insertBefore(n, e);
       })(document,"script","hs-analytics",300000);
     </script>
+
+    <a href='/Activity/Public' class="invisible" target='_self'>ACTIVITY</a>
   </body>
 </html>
 `
