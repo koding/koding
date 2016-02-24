@@ -176,9 +176,10 @@ func fuseMountFolder(m *Mount, c *kite.Client) error {
 		NoIgnore:       m.NoIgnore,
 		NoPrefetchMeta: m.NoPrefetchMeta,
 		NoWatch:        m.NoWatch,
+		Debug:          true,
 	}
 
-	f, err := fuseklient.NewKodingNetworkFS(t, cf)
+	f, err := fuseklient.New(t, cf)
 	if err != nil {
 		return err
 	}
