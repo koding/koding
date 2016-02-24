@@ -9,7 +9,7 @@ module.exports =
   createTeam: (browser) ->
 
     user = utils.getUser(yes)
-    teamsHelpers.getInvitationAndCreateTeam(browser)
+    teamsHelpers.createTeam(browser)
     browser.end()
 
 

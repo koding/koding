@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -168,5 +169,96 @@ func TestCachePath(t *testing.T) {
 
 		path := getCachePath("t")
 		So(path, ShouldEqual, expectedPath)
+	})
+}
+
+func TestMountCreateMountDir(t *testing.T) {
+	Convey("Given a nested path that does not exist", t, func() {
+		tmpDir, err := ioutil.TempDir("", "non-empty-folder")
+		So(err, ShouldBeNil)
+		defer os.RemoveAll(tmpDir)
+		mountDir := filepath.Join(tmpDir, "foo", "bar", "mountDir")
+
+		var stdout bytes.Buffer
+		c := &MountCommand{
+			Options: MountOptions{
+				LocalPath: mountDir,
+			},
+			Log:    discardLogger,
+			Stdout: &stdout,
+		}
+
+		Convey("It should create the path", func() {
+			err := c.createMountDir()
+			So(err, ShouldBeNil)
+
+			fi, err := os.Stat(mountDir)
+			So(err, ShouldBeNil)
+			So(fi.Mode(), ShouldEqual, os.FileMode(0755)|os.ModeDir)
+		})
+	})
+
+	Convey("Given a dir that exists", t, func() {
+		tmpDir, err := ioutil.TempDir("", "non-empty-folder")
+		So(err, ShouldBeNil)
+		defer os.RemoveAll(tmpDir)
+
+		// Ensure that it does exist
+		_, err = os.Stat(tmpDir)
+		So(err, ShouldBeNil)
+
+		var stdout bytes.Buffer
+		c := &MountCommand{
+			Options: MountOptions{
+				LocalPath: tmpDir,
+			},
+			Log:    discardLogger,
+			Stdout: &stdout,
+		}
+
+		Convey("It should return an error", func() {
+			err := c.createMountDir()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "already exists")
+		})
+
+		Convey("It should inform the user", func() {
+			c.createMountDir()
+			So(stdout.String(), ShouldContainSubstring, CannotMountPathExists)
+		})
+	})
+
+	Convey("Given a file that exists", t, func() {
+		tmpDir, err := ioutil.TempDir("", "non-empty-folder")
+		So(err, ShouldBeNil)
+		defer os.RemoveAll(tmpDir)
+		tmpFile := filepath.Join(tmpDir, "file")
+
+		err = ioutil.WriteFile(tmpFile, []byte("foo"), 0755)
+		So(err, ShouldBeNil)
+
+		// Ensure that it does exist
+		_, err = os.Stat(tmpFile)
+		So(err, ShouldBeNil)
+
+		var stdout bytes.Buffer
+		c := &MountCommand{
+			Options: MountOptions{
+				LocalPath: tmpFile,
+			},
+			Log:    discardLogger,
+			Stdout: &stdout,
+		}
+
+		Convey("It should return an error", func() {
+			err := c.createMountDir()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "already exists")
+		})
+
+		Convey("It should inform the user", func() {
+			c.createMountDir()
+			So(stdout.String(), ShouldContainSubstring, CannotMountPathExists)
+		})
 	})
 }

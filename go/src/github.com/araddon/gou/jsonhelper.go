@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 // Convert a slice of bytes into an array by ensuring it is wrapped
@@ -24,8 +25,66 @@ func MakeJsonList(b []byte) []byte {
 }
 
 func JsonString(v interface{}) string {
-	b, _ := json.Marshal(v)
+	b, err := json.Marshal(v)
+	if err != nil {
+		return `""`
+	}
 	return string(b)
+}
+
+func firstNonWsRune(by []byte) (r rune, ok bool) {
+	for {
+		if len(by) == 0 {
+			return 0, false
+		}
+		r, numBytes := utf8.DecodeRune(by)
+		switch r {
+		case '\t', '\n', '\r', ' ':
+			by = by[numBytes:] // advance past the current whitespace rune and continue
+			continue
+		case utf8.RuneError: // This is returned when invalid UTF8 is found
+			return 0, false
+		}
+		return r, true
+	}
+	return 0, false
+}
+
+// Determines if the bytes is a json array, only looks at prefix
+//  not parsing the entire thing
+func IsJson(by []byte) bool {
+	firstRune, ok := firstNonWsRune(by)
+	if !ok {
+		return false
+	}
+	if firstRune == '[' || firstRune == '{' {
+		return true
+	}
+	return false
+}
+
+// Determines if the bytes is a json array, only looks at prefix
+//  not parsing the entire thing
+func IsJsonArray(by []byte) bool {
+	firstRune, ok := firstNonWsRune(by)
+	if !ok {
+		return false
+	}
+	if firstRune == '[' {
+		return true
+	}
+	return false
+}
+
+func IsJsonObject(by []byte) bool {
+	firstRune, ok := firstNonWsRune(by)
+	if !ok {
+		return false
+	}
+	if firstRune == '{' {
+		return true
+	}
+	return false
 }
 
 type JsonRawWriter struct {
@@ -183,14 +242,13 @@ func jsonEntry(name string, v interface{}) (interface{}, bool) {
 			return nil, false
 		}
 	case JsonHelper:
-		return v.(JsonHelper).Get(name), true
+		return val.Get(name), true
 	case []interface{}:
 		return v, true
 	default:
 		Debug("no type? ", name, " ", v)
 		return nil, false
 	}
-	return nil, false
 }
 
 // Get the key (or keypath) value as interface, mostly used
@@ -230,7 +288,19 @@ func (j JsonHelper) Get(n string) interface{} {
 		}
 		//Debug(isList, listEntry, " ", name, " ", root, " ", ok, err)
 		if !ok {
-			return nil
+			if len(parts) > 0 {
+				// lets ensure the actual json-value doesn't have period in key
+				root, ok = j[n]
+				if !ok {
+					return nil
+				} else {
+					//Warnf("returning root %T %#v", root, root)
+					return root
+				}
+			} else {
+				return nil
+			}
+
 		}
 		if isList {
 			return jsonList(root)
@@ -248,26 +318,27 @@ func (j JsonHelper) Get(n string) interface{} {
 
 // Get a Helper from a string path
 func (j JsonHelper) Helper(n string) JsonHelper {
-	if v, ok := j[n]; ok {
-		switch v.(type) {
-		case map[string]interface{}:
-			cn := JsonHelper{}
-			for n, val := range v.(map[string]interface{}) {
-				cn[n] = val
-			}
-			return cn
-		case map[string]string:
-			cn := JsonHelper{}
-			for n, val := range v.(map[string]string) {
-				cn[n] = val
-			}
-			return cn
-		case JsonHelper:
-			return v.(JsonHelper)
-		default:
-			rv := reflect.ValueOf(v)
-			Debug("no map? ", v, rv.String(), rv.Type())
+	v := j.Get(n)
+	if v == nil {
+		return nil
+	}
+	switch vt := v.(type) {
+	case map[string]interface{}:
+		cn := JsonHelper{}
+		for n, val := range vt {
+			cn[n] = val
 		}
+		return cn
+	case map[string]string:
+		cn := JsonHelper{}
+		for n, val := range vt {
+			cn[n] = val
+		}
+		return cn
+	case JsonHelper:
+		return vt
+	default:
+		//Infof("wrong type: %T", v)
 	}
 	return nil
 }
@@ -302,20 +373,19 @@ func (j JsonHelper) Helpers(n string) []JsonHelper {
 // Gets slice of interface{}
 func (j JsonHelper) List(n string) []interface{} {
 	v := j.Get(n)
-	if l, ok := v.([]interface{}); ok {
-		return l
+	switch val := v.(type) {
+	case []string:
+		il := make([]interface{}, len(val))
+		for i, val := range val {
+			il[i] = val
+		}
+		return il
+	case []interface{}:
+		return val
 	}
 	return nil
 }
 
-// Get Int64
-func (j JsonHelper) Int64(n string) int64 {
-	i64, ok := j.Int64Safe(n)
-	if !ok {
-		return -1
-	}
-	return i64
-}
 func (j JsonHelper) String(n string) string {
 	if v := j.Get(n); v != nil {
 		val, _ := CoerceString(v)
@@ -325,22 +395,22 @@ func (j JsonHelper) String(n string) string {
 }
 func (j JsonHelper) Strings(n string) []string {
 	if v := j.Get(n); v != nil {
-		//Debug(n, " ", v)
-		switch v.(type) {
+		//Debugf("Strings(%s) =>  %T %#v", n, v, v)
+		switch val := v.(type) {
 		case string:
-			return strings.Split(v.(string), ",")
+			return strings.Split(val, ",")
 		case []string:
 			//Debug("type []string")
-			return v.([]string)
+			return val
 		case []interface{}:
 			//Debug("Kind = []interface{} n=", n, "  v=", v)
 			sva := make([]string, 0)
-			for _, av := range v.([]interface{}) {
-				switch av.(type) {
+			for _, av := range val {
+				switch aval := av.(type) {
 				case string:
-					sva = append(sva, av.(string))
+					sva = append(sva, aval)
 				default:
-					//Debug("Kind ? ", av)
+					//Warnf("Kind ? %T v=%v", aval, aval)
 				}
 			}
 			return sva
@@ -376,6 +446,7 @@ func (j JsonHelper) StringSafe(n string) (string, bool) {
 	}
 	return "", false
 }
+
 func (j JsonHelper) Int(n string) int {
 	i, ok := j.IntSafe(n)
 	if !ok {
@@ -383,14 +454,44 @@ func (j JsonHelper) Int(n string) int {
 	}
 	return i
 }
-func (j JsonHelper) Int64Safe(n string) (int64, bool) {
-	v := j.Get(n)
-	return valToInt64(v)
 
-}
 func (j JsonHelper) IntSafe(n string) (int, bool) {
 	v := j.Get(n)
 	return valToInt(v)
+}
+
+func (j JsonHelper) Int64(n string) int64 {
+	i64, ok := j.Int64Safe(n)
+	if !ok {
+		return -1
+	}
+	return i64
+}
+
+func (j JsonHelper) Int64Safe(n string) (int64, bool) {
+	v := j.Get(n)
+	return valToInt64(v)
+}
+
+func (j JsonHelper) Float64(n string) float64 {
+	v := j.Get(n)
+	f64, err := CoerceFloat(v)
+	if err != nil {
+		return math.NaN()
+	}
+	return f64
+}
+
+func (j JsonHelper) Float64Safe(n string) (float64, bool) {
+	v := j.Get(n)
+	if v == nil {
+		return math.NaN(), true
+	}
+	fv, err := CoerceFloat(v)
+	if err != nil {
+		return math.NaN(), false
+	}
+	return fv, true
 }
 
 func (j JsonHelper) Uint64(n string) uint64 {
@@ -399,6 +500,16 @@ func (j JsonHelper) Uint64(n string) uint64 {
 		return CoerceUintShort(v)
 	}
 	return 0
+}
+
+func (j JsonHelper) Uint64Safe(n string) (uint64, bool) {
+	v := j.Get(n)
+	if v != nil {
+		if uv, err := CoerceUint(v); err == nil {
+			return uv, true
+		}
+	}
+	return 0, false
 }
 
 func (j JsonHelper) BoolSafe(n string) (val bool, ok bool) {
@@ -425,7 +536,6 @@ func (j JsonHelper) Bool(n string) bool {
 	}
 
 	return val
-
 }
 
 func (j JsonHelper) Map(n string) map[string]interface{} {
@@ -455,6 +565,36 @@ func (j JsonHelper) MapSafe(n string) (map[string]interface{}, bool) {
 func (j JsonHelper) PrettyJson() []byte {
 	jsonPretty, _ := json.MarshalIndent(j, "  ", "  ")
 	return jsonPretty
+}
+func (j JsonHelper) Keys() []string {
+	keys := make([]string, 0)
+	for key := range j {
+		keys = append(keys, key)
+	}
+	return keys
+}
+func (j JsonHelper) HasKey(name string) bool {
+	if val := j.Get(name); val != nil {
+		return true
+	}
+	return false
+}
+
+// GobDecode overwrites the receiver, which must be a pointer,
+// with the value represented by the byte slice, which was written
+// by GobEncode, usually for the same concrete type.
+// GobDecode([]byte) error
+func (j *JsonHelper) GobDecode(data []byte) error {
+	var mv map[string]interface{}
+	if err := json.Unmarshal(data, &mv); err != nil {
+		return err
+	}
+	*j = JsonHelper(mv)
+	return nil
+}
+func (j *JsonHelper) GobEncode() ([]byte, error) {
+	by, err := json.Marshal(j)
+	return by, err
 }
 
 // The following consts are from http://code.google.com/p/go-bit/ (Apache licensed). It

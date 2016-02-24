@@ -51,6 +51,23 @@ team.styl
     text-align              center
     borderBox()
 
+    &.previous-teams
+      li
+        display             inline-block
+        padding             5px
+        height              31px
+
+    a.previous-team
+      padding               5px 15px
+      bg                    color transparent
+      color                 #fafafa
+      rounded               3px
+      border                1px solid #e8e2de
+      display               block
+      &:hover
+        color               #27ae60
+        bg                  color white
+
     p
       margin-bottom         10px
 
@@ -165,6 +182,9 @@ team.styl
     color                   #909090
     &.full
       width                 100%
+    b
+      color                 #3e4f55
+      font-weight           600
 
   p
     width                   361px
@@ -185,7 +205,6 @@ team.styl
 
   &.TeamsModal--login
   &.TeamsModal--create
-  &.TeamsModal--select
   &.TeamsModal--groupCreation
     width                   425px
 
@@ -225,6 +244,14 @@ team.styl
     > p
       color                 dimmedGray
       font-style            italic
+
+  &.TeamsModal--select
+
+    .submit
+      text-align            center
+    .TeamsModal-button
+      display               inline-block !important
+      float                 none !important
 
 .TeamsModal-button
   border                    none

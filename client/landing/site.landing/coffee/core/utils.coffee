@@ -1,6 +1,6 @@
-$ = require 'jquery'
-kd = require 'kd.js'
-
+$       = require 'jquery'
+kd      = require 'kd.js'
+kookies = require 'kookies'
 
 createFormData = (teamData) ->
 
@@ -165,6 +165,15 @@ module.exports = utils = {
 
     return team  if team
     return {}
+
+
+  getPreviousTeams: ->
+
+    try
+      teams = JSON.parse kookies.get 'koding-teams'
+
+    return teams  if teams and Object.keys(teams).length
+    return null
 
 
   slugifyCompanyName: (team) ->

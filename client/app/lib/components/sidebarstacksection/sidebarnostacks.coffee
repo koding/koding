@@ -1,11 +1,6 @@
-kd                      = require 'kd'
-React                   = require 'kd-react'
-Link                    = require 'app/components/common/link'
-ReactDOM                = require 'react-dom'
-ActivityFlux            = require 'activity/flux'
-SidebarSection          = require 'app/components/sidebarsection'
-isUserGroupAdmin        = require 'app/util/isusergroupadmin'
-showErrorNotification   = require 'app/util/showErrorNotification'
+kd    = require 'kd'
+React = require 'kd-react'
+Link  = require 'app/components/common/link'
 
 
 module.exports = class SidebarNoStacks extends React.Component
