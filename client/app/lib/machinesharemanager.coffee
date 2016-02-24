@@ -62,7 +62,7 @@ module.exports = class MachineShareManager extends kd.Object
     @set machineUId, {type, workspaceId}
 
 
-  registerChannelEvent: (channelId) ->
+  registerChannelEvent: (channelId, callback = kd.noop) ->
 
     { socialapi, groupsController } = kd.singletons
 
