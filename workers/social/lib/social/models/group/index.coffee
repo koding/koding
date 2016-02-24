@@ -194,8 +194,11 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
-        fetchResources:
+        fetchResources: [
+          (signature Function)
           (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         searchMembers: [
           (signature String, Object, Function)
         ]
@@ -962,9 +965,12 @@ module.exports = class JGroup extends Module
       { permission: 'grant permissions' }
       { permission: 'grant permissions', superadmin: yes }
     ]
-    success: (client, options, callback) ->
+    success: (client, rest...) ->
+
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
+
       ComputeProvider = require '../computeproviders/computeprovider'
-      ComputeProvider.fetchGroupResources this, options, callback
+      ComputeProvider.fetchGroupResources this, selector, options, callback
 
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.
