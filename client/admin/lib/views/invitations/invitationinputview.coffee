@@ -2,7 +2,6 @@ kd               = require 'kd'
 KDView           = kd.View
 KDInputView      = kd.In
 KDCustomCheckBox = kd.CustomCheckBox
-KDCustomHTMLView = kd.CustomHTMLView
 
 
 module.exports = class InvitationInputView extends KDView
