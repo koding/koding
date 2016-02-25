@@ -54,11 +54,12 @@ type CloudInitConfig struct {
 	// can't be accessed from the instance
 	DisableEC2MetaData bool
 
-	// CustomCMD is appended to the user_data if given to be executed. It
-	// will be passed as a plain string to the `runcmd` directive, so what this
-	// means it the whole content wil be saves to a file by cloud-init and then
-	// executed with `sh`
-	CustomCMD string
+	// UserData is written to /root/user-data.sh file and executed
+	// by the `runcmd` durective.
+	//
+	// The value of UserData is expected to be base64-encoded. If UserData
+	// is empty, the execution is going to be a nop.
+	UserData string
 
 	// KodingSetup setups koding specific changes, such as Apache config,
 	// custom bashrc, custom directories... These files are only available in
@@ -84,24 +85,6 @@ var (
 			return c
 		},
 		"join": strings.Join,
-		"custom_cmd": func(cmd string) string {
-			var buf bytes.Buffer
-
-			// If there's no shebang assume the script is /bin/bash one.
-			if !strings.HasPrefix(cmd, "#!") {
-				fmt.Fprintln(&buf, `      #!/bin/bash`)
-			}
-
-			fmt.Fprintln(&buf, `      echo "==== SCRIPT_STARTED ===="`)
-
-			for _, line := range strings.Split(cmd, "\n") {
-				fmt.Fprintf(&buf, "      %s\n", line)
-			}
-
-			fmt.Fprintln(&buf, `      echo "==== SCRIPT_FINISHED ====="`)
-
-			return buf.String()
-		},
 	}
 
 	cloudInitTemplate = template.Must(template.New("cloudinit").Funcs(funcMap).Parse(cloudInit))
@@ -133,11 +116,11 @@ write_files:
     content: |
       {{.KiteKey}}
 
-{{if .CustomCMD}}
+  # Create user script.
   - path: /root/user-data.sh
+    encoding: b64
     content: |
-{{custom_cmd .CustomCMD}}
-{{end}}
+      {{.UserData}}
 
 {{if .KodingSetup}}
   # Apache configuration (/etc/apache2/sites-available/000-default.conf)
@@ -217,9 +200,7 @@ runcmd:
   - [ln, -s, /home/{{.Username}}/Web, /var/www]
   - [a2enmod, cgi]
   - [service, apache2, restart]
-{{end}}
 
-{{if .CustomCMD}}
   # Run user data script.
   - [chmod, +x, /root/user-data.sh]
   - [/root/user-data.sh]

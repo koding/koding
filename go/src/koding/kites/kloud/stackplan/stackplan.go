@@ -1,6 +1,7 @@
 package stackplan
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strings"
@@ -123,6 +124,23 @@ func (m *Machines) WithLabel(label string) (Machine, error) {
 	}
 
 	return Machine{}, fmt.Errorf("couldn't find machine with label '%s", label)
+}
+
+// UserData injects header/footer into custom script and ensures it has
+// a shebang line.
+func UserData(content string) string {
+	var buf bytes.Buffer
+
+	// If there's no shebang, execute the script with bash.
+	if !strings.HasPrefix(content, "#!") {
+		fmt.Fprintln(&buf, "#!/bin/bash")
+	}
+
+	fmt.Fprintln(&buf, `echo "==== SCRIPT_STARTED ===="`)
+	fmt.Fprintln(&buf, content)
+	fmt.Fprintln(&buf, `echo "==== SCRIPT_FINISHED ====="`)
+
+	return buf.String()
 }
 
 // DefaultKlientTimeout specifies the maximum time we're going to try to

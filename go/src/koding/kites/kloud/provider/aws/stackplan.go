@@ -123,10 +123,19 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string) (stackplan.K
 			Hostname: username, // no typo here. hostname = username
 		}
 
-		// prepend custom script if available
-		if c, ok := instance["user_data"]; ok {
-			if customCMD, ok := c.(string); ok {
-				userCfg.CustomCMD = customCMD
+		// prepend custom script if available - the script needs to be
+		// base64-encoded to ensure the eventual formatting and terraform
+		// interpolation won't break YAML encoding of the cloud-init
+		// script; since most likely the user_data requires terraform
+		// interpolation, let it be interpolated as variable, and base64-encode
+		// it during the interpolation.
+		if cmd, ok := instance["user_data"].(string); ok {
+			userDataKeyName := fmt.Sprintf("userdata_%s", resourceName)
+
+			userCfg.UserData = fmt.Sprintf("${base64encode(var.%s)}", userDataKeyName)
+
+			t.Variable[userDataKeyName] = map[string]interface{}{
+				"default": stackplan.UserData(cmd),
 			}
 		}
 
