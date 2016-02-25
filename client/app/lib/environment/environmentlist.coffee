@@ -1,6 +1,4 @@
 kd                  = require 'kd'
-
-showError           = require 'app/util/showError'
 EnvironmentListItem = require './environmentlistitem'
 
 

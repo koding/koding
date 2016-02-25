@@ -19,7 +19,6 @@ module.exports = class GroupsController extends kd.Controller
     @isReady = no
 
     mainController    = kd.getSingleton 'mainController'
-    router            = kd.getSingleton 'router'
     {entryPoint}      = globals.config
     @groups           = {}
     @currentGroupData = new GroupData
