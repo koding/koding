@@ -25,7 +25,10 @@ module.exports = class ResourceListController extends AccountListViewController
     @states =
       skip  : 0
       busy  : no
-      query : {}
+      query : null
+
+    listView = @getListView()
+    listView.on 'ReloadItems', @bound 'loadItems'
 
 
   followLazyLoad: ->

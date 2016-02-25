@@ -42,8 +42,6 @@ module.exports = class AdminResourcesView extends kd.View
 
     @addSubView @controller.getView()
 
-    @listView.on 'ReloadRequested', @bound 'clearSearch'
-
 
   clearSearch: ->
     @lastQuery = null
