@@ -60,8 +60,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     { query, provider, requiredFields } = @getOptions()
 
-    @filterStates.query.provider ?= provider        if provider
-    @filterStates.query.fields   ?= requiredFields  if requiredFields
+    @filterStates.query.provider ?= provider  if provider
+    if requiredFields
+      @filterStates.query.fields ?= requiredFields.map (field) -> field.name ? field
 
     @fetch @filterStates.query, (err, credentials) =>
 

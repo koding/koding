@@ -51,18 +51,22 @@ team.styl
     text-align              center
     borderBox()
 
+    &.previous-teams
+      li
+        display             inline-block
+        padding             5px
+        height              31px
+
     a.previous-team
-      display               inline-block
-      margin                5px
       padding               5px 15px
       bg                    color transparent
       color                 #fafafa
       rounded               3px
       border                1px solid #e8e2de
+      display               block
       &:hover
         color               #27ae60
         bg                  color white
-
 
     p
       margin-bottom         10px

@@ -42,8 +42,8 @@ module.exports =
     teamsHelpers.clickTeamSettings(browser)
     teamsHelpers.openInvitationsTab(browser)
     email1 = teamsHelpers.inviteUser(browser, yes)
+    browser.pause 5000 # Wait for notification
     email2 = teamsHelpers.inviteUser(browser, yes)
-    email3 = teamsHelpers.inviteUser(browser, yes)
     teamsHelpers.clickPendingInvitations(browser, no)
     browser.pause 5000 # Wait for notification remove
     teamsHelpers.searchPendingInvitation(browser, email2)

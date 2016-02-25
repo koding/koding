@@ -37,7 +37,7 @@ module.exports = class TeamSelectorView extends JView
     @form = new TeamsSelectorForm
       callback : @bound 'goToTeam'
 
-    @previousTeams = new kd.CustomHTMLView
+    @previousTeams = new kd.CustomHTMLView { tagName: 'p' }
 
     teams = utils.getPreviousTeams()
 
@@ -47,16 +47,17 @@ module.exports = class TeamSelectorView extends JView
     suffix = if Object.keys(teams).length > 2 then 'these teams' else 'this team'
 
     @previousTeams.addSubView new kd.CustomHTMLView
-      tagName : 'p'
-      partial : "You previously visited #{suffix}:<br/>"
+      tagName : 'span'
+      partial : "You previously visited #{suffix}:"
+
+    @previousTeams.addSubView ul = new kd.CustomHTMLView
+      tagName : 'ul'
 
     for slug, title of teams when slug isnt 'latest'
-      @previousTeams.addSubView new kd.CustomHTMLView
-        tagName    : 'a'
-        cssClass   : 'previous-team'
-        partial    : title
-        attributes :
-          href     : "#{location.protocol}//#{slug}.#{location.host}"
+      href = "#{location.protocol}//#{slug}.#{location.host}"
+      ul.addSubView new kd.CustomHTMLView
+        tagName    : 'li'
+        partial    : "<a href=\"#{href}\" class=\"previous-team\">#{title}</a>"
 
 
   goToTeam: (formData) ->
@@ -86,8 +87,9 @@ module.exports = class TeamSelectorView extends JView
       {{> @form}}
     </div>
     <section class="previous-teams">
-      <p>Trying to create a team? <a href="//#{utils.getMainDomain()}/Create" target="_self">Click here</a> to get started.</p>
+      <p>Trying to create a team? <a href="//#{utils.getMainDomain()}/Teams/Create" target="_self">Click here</a> to get started.</p>
       {{> @previousTeams}}
+      <p>Looking for <a href="/Login" target="_self" testpath="koding-solo-login">Koding Solo</a>?</p>
     </section>
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
