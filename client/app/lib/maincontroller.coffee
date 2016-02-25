@@ -79,6 +79,7 @@ module.exports = class MainController extends KDController
     @detectIdleUser()
     @setTeamCookie()
 
+    kookies.set 'isSoloProduct', yes  if not kookies.get 'isSoloProduct'
 
   createSingletons:->
 

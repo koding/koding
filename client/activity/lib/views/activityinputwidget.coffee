@@ -13,6 +13,7 @@ generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
 isLoggedIn              = require 'app/util/isLoggedIn'
 SuggestionMenuView      = require 'activity/components/suggestionmenu/view'
 ActivityFlux            = require 'activity/flux'
+isSoloProductLite       = require 'app/util/issoloproductlite'
 
 module.exports = class ActivityInputWidget extends KDView
 
@@ -35,7 +36,10 @@ module.exports = class ActivityInputWidget extends KDView
     {defaultValue, placeholder, inputViewClass, isSuggestionEnabled} = @getOptions()
     data = @getData()
 
-    @input        = new inputViewClass {defaultValue, placeholder}
+    if isSoloProductLite()
+      @input      = new inputViewClass {defaultValue, placeholder}
+    else
+      @input      = new KDCustomHTMLView {cssClass:'input-view-disabled'}
     @suggestions  = new SuggestionMenuView()  if isSuggestionEnabled
     @helperView   = new ActivityInputHelperView
     @embedBox     = new EmbedBoxWidget delegate: @input, data

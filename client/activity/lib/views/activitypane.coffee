@@ -12,7 +12,7 @@ SearchInputView             = require './searchinputview'
 showError                   = require 'app/util/showError'
 getMessageOwner             = require 'app/util/getMessageOwner'
 filterTrollActivity         = require 'app/util/filterTrollActivity'
-
+isSoloProductLite           = require 'app/util/issoloproductlite'
 
 module.exports = class ActivityPane extends MessagePane
 
@@ -291,18 +291,19 @@ module.exports = class ActivityPane extends MessagePane
 
   createSearchInput: ->
 
-    {router} = kd.singletons
+    if isSoloProductLite()
+      {router} = kd.singletons
 
-    @searchInput = new SearchInputView
-      placeholder : 'Search...'
+      @searchInput = new SearchInputView
+        placeholder : 'Search...'
 
-    @tabView.tabHandleContainer.addSubView @searchInput
+      @tabView.tabHandleContainer.addSubView @searchInput
 
-    searchIcon = new KDCustomHTMLView
-      tagName  : 'cite'
-      cssClass : 'search-icon'
-      click    : =>
-        return  unless @isSearched
-        router.handleRoute '/Activity/Public/Recent'
+      searchIcon = new KDCustomHTMLView
+        tagName  : 'cite'
+        cssClass : 'search-icon'
+        click    : =>
+          return  unless @isSearched
+          router.handleRoute '/Activity/Public/Recent'
 
-    @tabView.tabHandleContainer.addSubView searchIcon
+      @tabView.tabHandleContainer.addSubView searchIcon

@@ -18,7 +18,7 @@ isMyPost                         = require 'app/util/isMyPost'
 fetchAccount                     = require 'app/util/fetchAccount'
 ParticipantHeads                 = require './participantheads'
 ChannelParticipantsModel         = require 'activity/models/channelparticipants'
-
+isSoloProduct                    = require 'app/util/issoloproductlite'
 
 module.exports = class PrivateMessagePane extends MessagePane
 
@@ -333,9 +333,13 @@ module.exports = class PrivateMessagePane extends MessagePane
   createInputWidget: ->
 
     channel = @getData()
-    @input  = new ReplyInputWidget {channel, cssClass : 'private'}
+    if isSoloProduct()
+      @input  = new ReplyInputWidget {channel, cssClass : 'private'}
+      @input.on 'EditModeRequested', @bound 'editLastMessage'
+    else
+      @input = new ReplyInputWidget { cssClass : 'hidden' }
 
-    @input.on 'EditModeRequested', @bound 'editLastMessage'
+
 
 
   removeParticipant: (participant) ->

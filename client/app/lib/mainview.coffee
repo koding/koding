@@ -2,6 +2,7 @@ kd                      = require 'kd'
 KDCustomHTMLView        = kd.CustomHTMLView
 KDCustomScrollView      = kd.CustomScrollView
 KDButtonView            = kd.ButtonView
+KDModalView             = kd.ModalView
 KDView                  = kd.View
 async                   = require 'async'
 globals                 = require 'globals'
@@ -18,6 +19,8 @@ environmentDataProvider = require 'app/userenvironmentdataprovider'
 actionTypes             = require 'activity/flux/actions/actiontypes'
 isTeamReactSide         = require 'app/util/isTeamReactSide'
 getGroup                = require 'app/util/getGroup'
+isSoloProductLite       = require 'app/util/issoloproductlite'
+kookies                 = require 'kookies'
 
 module.exports = class MainView extends KDView
 
@@ -265,6 +268,22 @@ module.exports = class MainView extends KDView
 
 
   createMainTabView:->
+    if isSoloProductLite()
+      modal = new KDModalView
+        title : 'Where are my chats'
+        buttons :
+          'Take me back' :
+            style : 'solid red medium'
+            callback : (event) ->
+              window.isSoloProduct = no
+              kookies.set 'isSoloProduct', no
+              window.location.reload()
+              modal.destroy()
+          'Continue with new version':
+            style : 'solid green medium'
+            callback : (event) ->
+              modal.destroy()
+              console.log 'CLose'
 
     @mainTabView = new MainTabView
       domId               : 'main-tab-view'
@@ -279,6 +298,8 @@ module.exports = class MainView extends KDView
 
     @mainTabView.on "AllPanesClosed", ->
       kd.getSingleton('router').handleRoute "/Activity"
+
+
 
     @panelWrapper.addSubView @mainTabView
 
