@@ -2,8 +2,6 @@ package userdata
 
 import (
 	"bytes"
-	"compress/gzip"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -86,25 +84,23 @@ var (
 			return c
 		},
 		"join": strings.Join,
-		"custom_cmd": func(cmd string) (string, error) {
+		"custom_cmd": func(cmd string) string {
 			var buf bytes.Buffer
-
-			cw := gzip.NewWriter(&buf)
 
 			// If there's no shebang assume the script is /bin/bash one.
 			if !strings.HasPrefix(cmd, "#!") {
-				fmt.Fprintln(cw, `#!/bin/bash`)
+				fmt.Fprintln(&buf, `      #!/bin/bash`)
 			}
 
-			fmt.Fprintln(cw, `echo "==== SCRIPT_STARTED ===="`)
-			fmt.Fprintln(cw, cmd)
-			fmt.Fprintln(cw, `echo "==== SCRIPT_FINISHED ====="`)
+			fmt.Fprintln(&buf, `      echo "==== SCRIPT_STARTED ===="`)
 
-			if err := cw.Close(); err != nil {
-				return "", err
+			for _, line := range strings.Split(cmd, "\n") {
+				fmt.Fprintf(&buf, "      %s\n", line)
 			}
 
-			return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
+			fmt.Fprintln(&buf, `      echo "==== SCRIPT_FINISHED ====="`)
+
+			return buf.String()
 		},
 	}
 
@@ -139,9 +135,8 @@ write_files:
 
 {{if .CustomCMD}}
   - path: /root/user-data.sh
-    encoding: gz+b64
     content: |
-      {{custom_cmd .CustomCMD}}
+{{custom_cmd .CustomCMD}}
 {{end}}
 
 {{if .KodingSetup}}
