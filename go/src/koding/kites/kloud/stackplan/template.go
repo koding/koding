@@ -123,15 +123,21 @@ var unescapeJSON = strings.NewReplacer(
 
 // JsonOutput returns a JSON formatted output of the template
 func (t *Template) JsonOutput() (string, error) {
-	out, err := json.MarshalIndent(&t, "", "  ")
+	out, err := json.Marshal(t)
 	if err != nil {
 		return "", err
 	}
 
+	fmt.Printf("\nbefore escaping:\n\n%s\n\n", string(out))
+
 	// replace escaped brackets and ampersand. the marshal package is encoding
 	// them automtically so it can be safely processed inside HTML scripts, but
 	// we don't need it.
-	return unescapeJSON.Replace(string(out)), nil
+	s := unescapeJSON.Replace(string(out))
+
+	fmt.Printf("\nafter escaping:\n\n%s\n\n", string(s))
+
+	return s, nil
 }
 
 // DetectUserVariables parses the template for any ${var.foo}, ${var.bar},

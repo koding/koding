@@ -2,6 +2,8 @@ package userdata
 
 import (
 	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -84,19 +86,25 @@ var (
 			return c
 		},
 		"join": strings.Join,
-		"custom_cmd": func(cmd string) string {
-			if cmd == "" {
-				return ""
+		"custom_cmd": func(cmd string) (string, error) {
+			var buf bytes.Buffer
+
+			cw := gzip.NewWriter(&buf)
+
+			// If there's no shebang assume the script is /bin/bash one.
+			if !strings.HasPrefix(cmd, "#!") {
+				fmt.Fprintln(cw, `#!/bin/bash`)
 			}
 
-			lines := strings.Split(cmd, "\n")
-			c := "  - |\n"
-			c += fmt.Sprintf("    %s\n", `echo "==== SCRIPT_STARTED ===="`)
-			for _, line := range lines {
-				c += fmt.Sprintf("    %s\n", line)
+			fmt.Fprintln(cw, `echo "==== SCRIPT_STARTED ===="`)
+			fmt.Fprintln(cw, cmd)
+			fmt.Fprintln(cw, `echo "==== SCRIPT_FINISHED ====="`)
+
+			if err := cw.Close(); err != nil {
+				return "", err
 			}
-			c += fmt.Sprintf("    %s\n", `echo "==== SCRIPT_FINISHED ====="`)
-			return c
+
+			return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 		},
 	}
 
@@ -117,7 +125,7 @@ users:
   - name: '{{.Username}}'
     lock_passwd: True
     gecos: Koding
-    groups: {{join .Groups ","}} 
+    groups: {{join .Groups ","}}
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     shell: /bin/bash
 
@@ -125,9 +133,16 @@ users:
 
 write_files:
   # Create kite.key
-  - content: |
+  - path: /etc/kite/kite.key
+    content: |
       {{.KiteKey}}
-    path: /etc/kite/kite.key
+
+{{if .CustomCMD}}
+  - path: /root/user-data.sh
+    encoding: gz+b64
+    content: |
+      {{custom_cmd .CustomCMD}}
+{{end}}
 
 {{if .KodingSetup}}
   # Apache configuration (/etc/apache2/sites-available/000-default.conf)
@@ -205,11 +220,15 @@ runcmd:
   # Configure Apache to serve user's web content
   - [rm, -rf, /var/www]
   - [ln, -s, /home/{{.Username}}/Web, /var/www]
-  - a2enmod cgi
-  - service apache2 restart
+  - [a2enmod, cgi]
+  - [service, apache2, restart]
 {{end}}
 
-{{ custom_cmd .CustomCMD }}
+{{if .CustomCMD}}
+  # Run user data script.
+  - [chmod, +x, /root/user-data.sh]
+  - [/root/user-data.sh]
+{{end}}
 
 final_message: "All done!"
 `
