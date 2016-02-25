@@ -969,6 +969,10 @@ module.exports = class JGroup extends Module
 
       [selector, options, callback] = Module.limitEdges 10, 19, rest
 
+      if selector.searchFor?
+        selector.title = ///#{selector.searchFor}///
+        delete selector.searchFor
+
       ComputeProvider = require '../computeproviders/computeprovider'
       ComputeProvider.fetchGroupResources this, selector, options, callback
 
