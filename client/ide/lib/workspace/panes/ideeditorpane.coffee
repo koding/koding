@@ -96,6 +96,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
 
   updateFilePath: (name)->
+
     ace = @getAce()
     deleteFilePath = @file.getOptions().path
 
