@@ -24,6 +24,7 @@ IDELayoutManager              = require './workspace/idelayoutmanager'
 IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
+generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 
 {warn} = kd
 
@@ -965,7 +966,8 @@ module.exports = CollaborationController =
     settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
 
     @chat.emit 'CollaborationStarted'
-    @statusBar.emit 'CollaborationStarted'
+    @statusBar.emit 'CollaborationStarted',
+      collaborationLink: generateCollaborationLink nick(), @socialChannel.id
 
     { onboarding } = kd.singletons
     onboarding.run 'CollaborationStarted'
