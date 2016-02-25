@@ -1,7 +1,7 @@
 package fuseklient
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -79,8 +79,9 @@ func New(t transport.Transport, c *Config) (FS, error) {
 	var fs FS = ks
 
 	if c.Debug {
+		// TODO: move this to klient; this tries to start http server for each mount
 		go func() {
-			log.Fatal(http.ListenAndServe(":8888", nil))
+			fmt.Println("Starting http server for tracing ", http.ListenAndServe(":8888", nil))
 		}()
 
 		fs = NewTraceFS(ks)
