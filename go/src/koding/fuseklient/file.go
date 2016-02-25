@@ -160,8 +160,7 @@ func (f *File) Reset() error {
 ///// Helpers
 
 func (f *File) syncToRemote() error {
-	var isDirty = f.IsDirty
-	if !isDirty {
+	if !f.IsDirty {
 		return nil
 	}
 
@@ -179,7 +178,10 @@ func (f *File) updateContentFromRemote() error {
 		return err
 	}
 
-	f.Content = res.Content
+	n := make([]byte, len(res.Content))
+	copy(n, res.Content)
+
+	f.Content = n
 	f.Attrs.Size = uint64(len(f.Content))
 
 	return nil
