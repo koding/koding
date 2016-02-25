@@ -278,7 +278,11 @@ func (d *Dir) Expire() error {
 }
 
 func (d *Dir) ToString() string {
-	return d.Name
+	d.RLock()
+	defer d.RUnlock()
+
+	eToS := d.Entry.ToString()
+	return fmt.Sprintf("%s\ndir: entriesCount=%d", eToS, len(d.EntriesList))
 }
 
 ///// Helpers

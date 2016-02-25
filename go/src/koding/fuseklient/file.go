@@ -1,6 +1,7 @@
 package fuseklient
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/jacobsa/fuse/fuseutil"
@@ -137,7 +138,14 @@ func (f *File) Expire() error {
 }
 
 func (f *File) ToString() string {
-	return f.Name
+	f.RLock()
+	defer f.RUnlock()
+
+	eToS := f.Entry.ToString()
+	return fmt.Sprintf(
+		"%s\nfile: size=%d memSize=%d isDirty=%v",
+		eToS, f.Attrs.Size, len(f.Content), f.IsDirty,
+	)
 }
 
 func (f *File) Reset() error {
