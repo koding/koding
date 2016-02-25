@@ -18,6 +18,7 @@ module.exports = (options = {}, callback) ->
   userWorkspaces      = null
   userEnvironmentData = null
   userId              = null
+  userEmail           = null
 
   { bongoModels, client, session } = options
 
@@ -37,6 +38,7 @@ module.exports = (options = {}, callback) ->
     userWorkspaces       = JSON.stringify userWorkspaces
     userEnvironmentData  = JSON.stringify userEnvironmentData
     userId               = JSON.stringify userId
+    userEmail            = JSON.stringify userEmail
 
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes
@@ -84,6 +86,9 @@ module.exports = (options = {}, callback) ->
 
     <script type="text/javascript">
       var _hsq = window._hsq = window._hsq || [];
+      _hsq.push(["identify",{
+        email: #{userEmail}
+      }]);
       (function(d,s,i,r) {
         if (d.getElementById(i)){return;}
           var n=d.createElement(s),e=d.getElementsByTagName(s)[0];
@@ -141,7 +146,9 @@ module.exports = (options = {}, callback) ->
           console.error '[scriptblock] user not found', err
           return fin()
 
-        if user then userId = user.getId()
+        if user
+          userId = user.getId()
+          userEmail = user.email
         else console.error '[scriptblock] user not found', err
         fin()
   ]
