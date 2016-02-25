@@ -128,16 +128,10 @@ func (t *Template) JsonOutput() (string, error) {
 		return "", err
 	}
 
-	fmt.Printf("\nbefore escaping:\n\n%s\n\n", string(out))
-
 	// replace escaped brackets and ampersand. the marshal package is encoding
 	// them automtically so it can be safely processed inside HTML scripts, but
 	// we don't need it.
-	s := unescapeJSON.Replace(string(out))
-
-	fmt.Printf("\nafter escaping:\n\n%s\n\n", string(s))
-
-	return s, nil
+	return unescapeJSON.Replace(string(out)), nil
 }
 
 // DetectUserVariables parses the template for any ${var.foo}, ${var.bar},

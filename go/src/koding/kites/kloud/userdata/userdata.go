@@ -200,11 +200,11 @@ runcmd:
   - [ln, -s, /home/{{.Username}}/Web, /var/www]
   - [a2enmod, cgi]
   - [service, apache2, restart]
+{{end}}
 
   # Run user data script.
   - [chmod, +x, /root/user-data.sh]
   - [/root/user-data.sh]
-{{end}}
 
 final_message: "All done!"
 `
