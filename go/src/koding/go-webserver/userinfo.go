@@ -41,6 +41,9 @@ type UserInfo struct {
 
 	// User's cookie
 	Cookies []*http.Cookie
+
+	// User's email
+	UserEmail string
 }
 
 func getGroup(groupName string) (*models.Group, error) {
@@ -104,6 +107,7 @@ func prepareUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) 
 		Impersonating: session.Impersonating,
 		Group:         group,
 		Cookies:       r.Cookies(),
+		UserEmail:     user.email,
 	}
 
 	return userInfo, nil
