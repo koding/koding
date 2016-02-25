@@ -107,7 +107,7 @@ func prepareUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) 
 		Impersonating: session.Impersonating,
 		Group:         group,
 		Cookies:       r.Cookies(),
-		UserEmail:     user.email,
+		UserEmail:     user.Email,
 	}
 
 	return userInfo, nil
