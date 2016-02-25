@@ -235,12 +235,13 @@ module.exports = class ComputeController_UI
           "
           button  : "Proceed"
         deleteStack :
-          title   : "Delete Stack?"
+          title   : "Destroy Stack?"
           message : "
-            If you choose to proceed, this stack and all the VMs will be
-            deleted, and you won't be able to revert this.
-            You will lose all of your existing files, workspaces, VMs and all
-            of your data.
+            <p>If you choose to proceed, this stack and all the VMs will be
+            destroyed, and you won't be able to revert this.</p>
+
+            <p>Any existing data will be lost including existing files,
+            workspaces, VMs and anything provided by this stack.</p>
           "
           button  : "Proceed"
         reinitNoSnapshot :
