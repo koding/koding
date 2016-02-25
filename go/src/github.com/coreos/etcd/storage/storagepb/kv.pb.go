@@ -14,15 +14,20 @@
 */
 package storagepb
 
-import proto "github.com/coreos/etcd/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+import (
+	"fmt"
 
-// discarding unused import gogoproto "github.com/coreos/etcd/Godeps/_workspace/src/gogoproto"
+	proto "github.com/coreos/etcd/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+)
+
+import math "math"
 
 import io "io"
-import fmt "fmt"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
+var _ = fmt.Errorf
+var _ = math.Inf
 
 type Event_EventType int32
 
@@ -48,15 +53,19 @@ func (x Event_EventType) String() string {
 }
 
 type KeyValue struct {
-	Key            []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	CreateRevision int64  `protobuf:"varint,2,opt,name=create_revision,proto3" json:"create_revision,omitempty"`
-	// mod_revision is the last modified revision of the key.
+	Key []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// create_revision is the revision of last creation on this key.
+	CreateRevision int64 `protobuf:"varint,2,opt,name=create_revision,proto3" json:"create_revision,omitempty"`
+	// mod_revision is the revision of last modification on this key.
 	ModRevision int64 `protobuf:"varint,3,opt,name=mod_revision,proto3" json:"mod_revision,omitempty"`
 	// version is the version of the key. A deletion resets
 	// the version to zero and any modification of the key
 	// increases its version.
 	Version int64  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
 	Value   []byte `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
+	// lease is the ID of the lease that attached to key.
+	// When the attached lease expires, the key will be deleted.
+	Lease int64 `protobuf:"varint,6,opt,name=lease,proto3" json:"lease,omitempty"`
 }
 
 func (m *KeyValue) Reset()         { *m = KeyValue{} }
@@ -76,6 +85,8 @@ func (m *Event) String() string { return proto.CompactTextString(m) }
 func (*Event) ProtoMessage()    {}
 
 func init() {
+	proto.RegisterType((*KeyValue)(nil), "storagepb.KeyValue")
+	proto.RegisterType((*Event)(nil), "storagepb.Event")
 	proto.RegisterEnum("storagepb.Event_EventType", Event_EventType_name, Event_EventType_value)
 }
 func (m *KeyValue) Marshal() (data []byte, err error) {
@@ -123,6 +134,11 @@ func (m *KeyValue) MarshalTo(data []byte) (int, error) {
 			i = encodeVarintKv(data, i, uint64(len(m.Value)))
 			i += copy(data[i:], m.Value)
 		}
+	}
+	if m.Lease != 0 {
+		data[i] = 0x30
+		i++
+		i = encodeVarintKv(data, i, uint64(m.Lease))
 	}
 	return i, nil
 }
@@ -211,6 +227,9 @@ func (m *KeyValue) Size() (n int) {
 			n += 1 + l + sovKv(uint64(l))
 		}
 	}
+	if m.Lease != 0 {
+		n += 1 + sovKv(uint64(m.Lease))
+	}
 	return n
 }
 
@@ -244,8 +263,12 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKv
+			}
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -258,6 +281,12 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: KeyValue: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: KeyValue: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
@@ -265,6 +294,9 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -282,7 +314,10 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Key = append([]byte{}, data[iNdEx:postIndex]...)
+			m.Key = append(m.Key[:0], data[iNdEx:postIndex]...)
+			if m.Key == nil {
+				m.Key = []byte{}
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
@@ -290,6 +325,9 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 			}
 			m.CreateRevision = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -306,6 +344,9 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 			}
 			m.ModRevision = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -322,6 +363,9 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 			}
 			m.Version = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -338,6 +382,9 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -355,18 +402,32 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Value = append([]byte{}, data[iNdEx:postIndex]...)
+			m.Value = append(m.Value[:0], data[iNdEx:postIndex]...)
+			if m.Value == nil {
+				m.Value = []byte{}
+			}
 			iNdEx = postIndex
-		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lease", wireType)
+			}
+			m.Lease = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKv
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Lease |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
 					break
 				}
 			}
-			iNdEx -= sizeOfWire
+		default:
+			iNdEx = preIndex
 			skippy, err := skipKv(data[iNdEx:])
 			if err != nil {
 				return err
@@ -381,14 +442,21 @@ func (m *KeyValue) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func (m *Event) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKv
+			}
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -401,6 +469,12 @@ func (m *Event) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Event: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Event: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
@@ -408,6 +482,9 @@ func (m *Event) Unmarshal(data []byte) error {
 			}
 			m.Type = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -424,6 +501,9 @@ func (m *Event) Unmarshal(data []byte) error {
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -449,15 +529,7 @@ func (m *Event) Unmarshal(data []byte) error {
 			}
 			iNdEx = postIndex
 		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
+			iNdEx = preIndex
 			skippy, err := skipKv(data[iNdEx:])
 			if err != nil {
 				return err
@@ -472,6 +544,9 @@ func (m *Event) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func skipKv(data []byte) (n int, err error) {
@@ -480,6 +555,9 @@ func skipKv(data []byte) (n int, err error) {
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return 0, ErrIntOverflowKv
+			}
 			if iNdEx >= l {
 				return 0, io.ErrUnexpectedEOF
 			}
@@ -493,7 +571,10 @@ func skipKv(data []byte) (n int, err error) {
 		wireType := int(wire & 0x7)
 		switch wireType {
 		case 0:
-			for {
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return 0, io.ErrUnexpectedEOF
 				}
@@ -509,6 +590,9 @@ func skipKv(data []byte) (n int, err error) {
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowKv
+				}
 				if iNdEx >= l {
 					return 0, io.ErrUnexpectedEOF
 				}
@@ -529,6 +613,9 @@ func skipKv(data []byte) (n int, err error) {
 				var innerWire uint64
 				var start int = iNdEx
 				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return 0, ErrIntOverflowKv
+					}
 					if iNdEx >= l {
 						return 0, io.ErrUnexpectedEOF
 					}
@@ -564,4 +651,5 @@ func skipKv(data []byte) (n int, err error) {
 
 var (
 	ErrInvalidLengthKv = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowKv   = fmt.Errorf("proto: integer overflow")
 )

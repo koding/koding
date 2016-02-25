@@ -29,7 +29,7 @@ func main() {
 
 ## Support
 
-* Pluralization and singularization of most english words
+* Pluralization and singularization of words with proper language rules.
 * Case transformation from and to upper camel casing, lower camel casing, underscoring, hyphenating, and constantization.
 
 ## Documentation

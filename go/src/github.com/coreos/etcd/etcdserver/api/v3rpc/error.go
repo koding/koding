@@ -21,7 +21,19 @@ import (
 )
 
 var (
-	ErrEmptyKey  = grpc.Errorf(codes.InvalidArgument, "key is not provided")
-	ErrCompacted = grpc.Errorf(codes.OutOfRange, storage.ErrCompacted.Error())
-	ErrFutureRev = grpc.Errorf(codes.OutOfRange, storage.ErrFutureRev.Error())
+	ErrEmptyKey     = grpc.Errorf(codes.InvalidArgument, "etcdserver: key is not provided")
+	ErrTooManyOps   = grpc.Errorf(codes.InvalidArgument, "etcdserver: too many operations in txn request")
+	ErrDuplicateKey = grpc.Errorf(codes.InvalidArgument, "etcdserver: duplicate key given in txn request")
+	ErrCompacted    = grpc.Errorf(codes.OutOfRange, "etcdserver: "+storage.ErrCompacted.Error())
+	ErrFutureRev    = grpc.Errorf(codes.OutOfRange, "etcdserver: "+storage.ErrFutureRev.Error())
+
+	ErrLeaseNotFound = grpc.Errorf(codes.NotFound, "etcdserver: requested lease not found")
+	ErrLeaseExist    = grpc.Errorf(codes.FailedPrecondition, "etcdserver: lease already exists")
+
+	ErrMemberExist    = grpc.Errorf(codes.FailedPrecondition, "etcdserver: member ID already exist")
+	ErrPeerURLExist   = grpc.Errorf(codes.FailedPrecondition, "etcdserver: Peer URLs already exists")
+	ErrMemberBadURLs  = grpc.Errorf(codes.InvalidArgument, "etcdserver: given member URLs are invalid")
+	ErrMemberNotFound = grpc.Errorf(codes.NotFound, "etcdserver: member not found")
+
+	ErrRequestTooLarge = grpc.Errorf(codes.InvalidArgument, "etcdserver: request is too large")
 )

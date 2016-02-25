@@ -1,0 +1,242 @@
+<!--
+
+lxc: linux Container library
+
+(C) Copyright Canonical Ltd. 2014
+
+Authors:
+Stéphane Graber <stgraber@ubuntu.com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+Translated into Japanese
+by KATOH Yasufumi <karma at jazz.email.ne.jp>
+
+-->
+
+<!DOCTYPE refentry PUBLIC @docdtd@ [
+
+<!ENTITY seealso SYSTEM "@builddir@/see_also.sgml">
+]>
+
+<refentry>
+
+  <docinfo><date>@LXC_GENERATE_DATE@</date></docinfo>
+
+  <refmeta>
+    <refentrytitle>lxc.system.conf</refentrytitle>
+    <manvolnum>5</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lxc.system.conf</refname>
+
+    <refpurpose>
+      <!--
+      LXC system configuration file
+      -->
+      LXC のシステム設定ファイル
+    </refpurpose>
+  </refnamediv>
+
+  <refsect1>
+    <title><!-- Description -->説明</title>
+
+    <para>
+      <!--
+      The system configuration is located at
+      <filename>@LXC_GLOBAL_CONF@</filename> or
+      <filename>~/.config/lxc/lxc.conf</filename> for unprivileged
+      containers.
+      -->
+      システム設定ファイルは <filename>@LXC_GLOBAL_CONF@</filename> を使用します。
+      非特権コンテナの場合には <filename>~/.config/lxc/lxc.conf</filename> を使用します。
+    </para>
+
+    <para>
+      <!--
+      This configuration file is used to set values such as default
+      lookup paths and storage backend settings for LXC.
+      -->
+      この設定ファイルは LXC のデフォルトパスやストレージバックエンドの設定のような値を設定する時に使用します。
+    </para>
+
+    <refsect2>
+      <title><!-- Configuration paths -->パスの設定</title>
+
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>lxc.lxcpath</option>
+          </term>
+          <listitem>
+            <para>
+              <!--
+              The location in which all containers are stored.
+              -->
+              全てのコンテナが保存される場所。
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>
+            <option>lxc.default_config</option>
+          </term>
+          <listitem>
+            <para>
+              <!--
+              The path to the default container configuration.
+              -->
+              コンテナのデフォルト設定ファイルのパス。
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
+    <refsect2>
+      <title>Control Groups</title>
+
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>lxc.cgroup.use</option>
+          </term>
+          <listitem>
+            <para>
+              <!--
+              Comma separated list of cgroup controllers to setup.
+              If none is specified, all available controllers will be used.
+              -->
+              使用する cgroup コントローラのコンマ区切りのリスト。
+              何も指定されていない場合、全ての利用可能なコントローラが使われます。
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>
+            <option>lxc.cgroup.pattern</option>
+          </term>
+          <listitem>
+            <para>
+              <!--
+              Format string used to generate the cgroup path (e.g. lxc/%n).
+              -->
+              コンテナ用の cgroup を生成する際に使うフォーマット文字列 (例. lxc/%n)。
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
+    <refsect2>
+      <title>LVM</title>
+
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>lxc.bdev.lvm.vg</option>
+          </term>
+          <listitem>
+            <para>
+              <!--
+              Default LVM volume group name.
+              -->
+              デフォルトの LVM の volume group 名。
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>
+            <option>lxc.bdev.lvm.thin_pool</option>
+          </term>
+          <listitem>
+            <para>
+              <!--
+              Default LVM thin pool name.
+              -->
+              デフォルトの LVM の thin pool 名。
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
+    <refsect2>
+      <title>ZFS</title>
+
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>lxc.bdev.zfs.root</option>
+          </term>
+          <listitem>
+            <para>
+              <!--
+              Default ZFS root name.
+              -->
+              デフォルトの ZFS root 名。
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <simpara>
+      <citerefentry>
+        <refentrytitle><command>lxc</command></refentrytitle>
+        <manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle><command>lxc.container.conf</command></refentrytitle>
+        <manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle><command>lxc.system.conf</command></refentrytitle>
+        <manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle><command>lxc-usernet</command></refentrytitle>
+        <manvolnum>5</manvolnum>
+      </citerefentry>
+    </simpara>
+  </refsect1>
+
+  &seealso;
+
+  <refsect1>
+    <title><!-- Author -->作者</title>
+    <para>Stéphane Graber <email>stgraber@ubuntu.com</email></para>
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

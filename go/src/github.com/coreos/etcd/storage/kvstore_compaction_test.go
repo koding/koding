@@ -17,6 +17,9 @@ package storage
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/etcd/lease"
+	"github.com/coreos/etcd/storage/backend"
 )
 
 func TestScheduleCompaction(t *testing.T) {
@@ -58,7 +61,8 @@ func TestScheduleCompaction(t *testing.T) {
 		},
 	}
 	for i, tt := range tests {
-		s := newStore(tmpPath)
+		b, tmpPath := backend.NewDefaultTmpBackend()
+		s := NewStore(b, &lease.FakeLessor{})
 		tx := s.b.BatchTx()
 
 		tx.Lock()
@@ -68,9 +72,7 @@ func TestScheduleCompaction(t *testing.T) {
 			tx.UnsafePut(keyBucketName, ibytes, []byte("bar"))
 		}
 		tx.Unlock()
-		// call `s.wg.Add(1)` to match the `s.wg.Done()` call in scheduleCompaction
-		// to avoid panic from wait group
-		s.wg.Add(1)
+
 		s.scheduleCompaction(tt.rev, tt.keep)
 
 		tx.Lock()
@@ -88,6 +90,6 @@ func TestScheduleCompaction(t *testing.T) {
 		}
 		tx.Unlock()
 
-		cleanup(s, tmpPath)
+		cleanup(s, b, tmpPath)
 	}
 }

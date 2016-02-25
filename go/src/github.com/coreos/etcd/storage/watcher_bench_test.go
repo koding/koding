@@ -17,15 +17,22 @@ package storage
 import (
 	"fmt"
 	"testing"
+
+	"github.com/coreos/etcd/lease"
+	"github.com/coreos/etcd/storage/backend"
 )
 
 func BenchmarkKVWatcherMemoryUsage(b *testing.B) {
-	s := newWatchableStore(tmpPath)
-	defer cleanup(s, tmpPath)
+	be, tmpPath := backend.NewDefaultTmpBackend()
+	watchable := newWatchableStore(be, &lease.FakeLessor{})
+
+	defer cleanup(watchable, be, tmpPath)
+
+	w := watchable.NewWatchStream()
 
 	b.ReportAllocs()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		s.Watcher([]byte(fmt.Sprint("foo", i)), false, 0)
+		w.Watch([]byte(fmt.Sprint("foo", i)), false, 0)
 	}
 }

@@ -2,11 +2,12 @@ package bolt
 
 import (
 	"fmt"
-	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/sys/unix"
 	"os"
 	"syscall"
 	"time"
 	"unsafe"
+
+	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/sys/unix"
 )
 
 // flock acquires an advisory lock on a file descriptor.
@@ -55,19 +56,8 @@ func funlock(f *os.File) error {
 
 // mmap memory maps a DB's data file.
 func mmap(db *DB, sz int) error {
-	// Truncate and fsync to ensure file size metadata is flushed.
-	// https://github.com/boltdb/bolt/issues/284
-	if !db.NoGrowSync && !db.readOnly {
-		if err := db.file.Truncate(int64(sz)); err != nil {
-			return fmt.Errorf("file resize error: %s", err)
-		}
-		if err := db.file.Sync(); err != nil {
-			return fmt.Errorf("file sync error: %s", err)
-		}
-	}
-
 	// Map the data file to memory.
-	b, err := unix.Mmap(int(db.file.Fd()), 0, sz, syscall.PROT_READ, syscall.MAP_SHARED)
+	b, err := unix.Mmap(int(db.file.Fd()), 0, sz, syscall.PROT_READ, syscall.MAP_SHARED|db.MmapFlags)
 	if err != nil {
 		return err
 	}
