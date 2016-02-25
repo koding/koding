@@ -9,7 +9,7 @@ module.exports = class TeamDomainTab extends kd.FormView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = 'clearfix'
+    options.cssClass = 'clearfix login-form'
 
     super options, data
 
@@ -47,7 +47,7 @@ module.exports = class TeamDomainTab extends kd.FormView
     @backLink = new kd.CustomHTMLView
       tagName      : 'span'
       cssClass     : 'TeamsModal-button-link back'
-      partial      : "<i></i> <a href=\"/Teams/#{team.invitation.teamAccessCode}\">Back</a>"
+      partial      : "<i></i> <a href=\"/Teams/Create\">Back</a>"
 
     @button = new kd.ButtonView
       title        : 'NEXT'

@@ -1,7 +1,7 @@
 package goquery
 
 import (
-	"code.google.com/p/go.net/html"
+	"golang.org/x/net/html"
 )
 
 // First reduces the set of matched elements to the first in the set.
@@ -36,7 +36,7 @@ func (s *Selection) Eq(index int) *Selection {
 
 // Slice reduces the set of matched elements to a subset specified by a range
 // of indices.
-func (s *Selection) Slice(start int, end int) *Selection {
+func (s *Selection) Slice(start, end int) *Selection {
 	if start < 0 {
 		start += len(s.Nodes)
 	}
@@ -71,6 +71,17 @@ func (s *Selection) Index() int {
 func (s *Selection) IndexSelector(selector string) int {
 	if len(s.Nodes) > 0 {
 		sel := s.document.Find(selector)
+		return indexInSlice(sel.Nodes, s.Nodes[0])
+	}
+	return -1
+}
+
+// IndexMatcher returns the position of the first element within the
+// Selection object relative to the elements matched by the matcher, or -1 if
+// not found.
+func (s *Selection) IndexMatcher(m Matcher) int {
+	if len(s.Nodes) > 0 {
+		sel := s.document.FindMatcher(m)
 		return indexInSlice(sel.Nodes, s.Nodes[0])
 	}
 	return -1

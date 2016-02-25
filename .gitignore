@@ -58,6 +58,7 @@ logs/*.log
 /embedly_cache
 /run
 docs/koding-dep.graph
+docs/todo.txt
 deployment/generated_files
 
 website/default.html

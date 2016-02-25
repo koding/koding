@@ -25,29 +25,19 @@ module.exports = [
     { name: 'register' }
     { name: 'login' }
     { name: 'logout' }
-    { name: 'activity likeunlike' }
   ]
 
   [
     { name: 'pricing payment' }
-    { name: 'activity post' }
-    # { name: 'staticpages loggedout' }
   ]
 
   [
     { name: 'messages privatemessage' }
     { name: 'account accountsettings' }
-    { name: 'activity postwith' }
-  ]
-
-  [
-    { name: 'activity edit' }
-    { name: 'activity delete' }
   ]
 
   [
     { name: 'unittests' }
-    { name: 'activity others' }
     { name: 'account accountpage' }
   ]
 
@@ -62,7 +52,6 @@ module.exports = [
   ]
 
   [
-    # { name: 'teams teamschannels' }
     { name: 'ide terminal' }
     # { name: 'pricing invalidcarddetails' }
   ]
@@ -92,7 +81,6 @@ module.exports = [
 
   [
     { name: 'environments vm' }
-    { name: 'teams teamspostwith' }
   ]
 
   [
@@ -102,11 +90,9 @@ module.exports = [
   [
     { name: 'environments domain' }
     { name: 'teams teams' }
-    { name: 'teams teamslikeunlike' }
   ]
 
-  [
-    { name: 'teams teamsprivatemessage' }
+  # [
     # { name: 'environments vm-advanced' }
-  ]
+  # ]
 ]

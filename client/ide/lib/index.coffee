@@ -135,6 +135,7 @@ class IDEAppController extends AppController
         @quit()
 
     @layoutManager.once 'LayoutSizesApplied', @bound 'doResize'
+    @on 'InstallationRequired', (command) => @createNewTerminal { command }
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -804,9 +805,9 @@ class IDEAppController extends AppController
       @openFile { file, contents }
 
 
-  createNewTerminal: (options={}) ->
+  createNewTerminal: (options = {}) ->
 
-    { machine, path, resurrectSessions } = options
+    { machine, path, resurrectSessions, command } = options
 
     machine = @mountedMachine  unless machine instanceof Machine
 

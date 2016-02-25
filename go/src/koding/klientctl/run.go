@@ -9,15 +9,18 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/codegangsta/cli"
 	"koding/klient/remote/req"
+
+	"github.com/koding/logging"
+
+	"github.com/codegangsta/cli"
 )
 
 // ErrNotInMount happens when command is run from outside a mount.
 var ErrNotInMount = errors.New("command not run on mount")
 
 // RunCommandFactory is the factory method for RunCommand.
-func RunCommandFactory(c *cli.Context) int {
+func RunCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) < 1 {
 		cli.ShowCommandHelp(c, "run")
 		return 1
@@ -26,14 +29,14 @@ func RunCommandFactory(c *cli.Context) int {
 	// get the path where the command was run
 	localPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		log.Errorf("Failed to create absolute directory. err:%s", err)
+		log.Error("Failed to create absolute directory. err:%s", err)
 		fmt.Println(GenericInternalError)
 		return 1
 	}
 
 	r, err := NewRunCommand()
 	if err != nil {
-		log.Errorf("Failed to initialize command. err:%s", err)
+		log.Error("Failed to initialize command. err:%s", err)
 		fmt.Println(GenericInternalError)
 		return 1
 	}
@@ -45,7 +48,7 @@ func RunCommandFactory(c *cli.Context) int {
 
 	res, err := r.runOnRemote(localPath, cmdWithArgsStr)
 	if err != nil && err != ErrNotInMount {
-		log.Errorf("Error running command. err:%s", err)
+		log.Error("Error running command. err:%s", err)
 		// Note that we're printing the error here to the user. This seems reasonable
 		// since their own command may have failed, and that information is meaningful
 		// to them.
@@ -186,7 +189,7 @@ func (r *RunCommand) runOnLocal(cmdWithArgs []string) int {
 	if err := cmd.Run(); err != nil {
 		exitErr, ok := err.(*exec.ExitError)
 		if !ok {
-			log.Errorf("Error running command: %s", err)
+			log.Error("Error running command: %s", err)
 			// Note that we're printing the error here to the user. This seems reasonable
 			// since their own command may have failed, and that information is meaningful
 			// to them.

@@ -86,6 +86,21 @@ Please wait a few minutes and try again.`,
 	// mount. Can't mount to something that doesn't exist.
 	CannotMountDirNotExist = "Error: Cannot mount a directory that does not exist, exiting..."
 
+	// CannotMountPathExists is used when the user provides a path that already
+	// exists.
+	//
+	// TODO: Write meaningful message.
+	CannotMountPathExists = "Error: A file or directory already exists at the requested path."
+
+	// CannotMountUnableToOpenPath is used when we are unable to read from the
+	// given path. A possible example might be that the user asked to mount to
+	// /root/foo and kd doesn't have permission to even look in that directory.
+	//
+	// /root/foo might not exist, but kd can't even read it.
+	//
+	// TODO: Write meaningful message.
+	CannotMountUnableToOpenPath = "Error: Unable to open the given path"
+
 	// FailedToCreateMountDir is used when the user chose to create the dir, but it
 	// failed for some reason.
 	FailedToCreateMountDir = fmt.Sprintf(
@@ -163,5 +178,20 @@ Please try again with just the --prefetchall flag.`
 	FailedDialingRemote = fmt.Sprintf(
 		`Error: Unable to communicate with the remote machine. Please ensure that the
 remote machine is running & accessible and try again.`,
+	)
+
+	// AttemptedRemoveRestrictedPath is when the user unmounts a path, but
+	// the path cannot be removed because it is an important path.
+	AttemptedRemoveRestrictedPath = fmt.Sprintf(
+		`Warning: Unable to remove the mounted path, due to it being a protected path.`,
+	)
+
+	// UnmountFailedRemoveMountPath is used when we _(for some unknown reason)_ are
+	// unable to remove the mount path. It could be due to permissions, the path
+	// not being empty, or other unknown reasons.
+	//
+	// TODO: What can we tell the user to do here?
+	UnmountFailedRemoveMountPath = fmt.Sprintf(
+		`Warning: The mount path was unable to be cleaned up after unmount.`,
 	)
 )

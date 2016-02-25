@@ -75,8 +75,8 @@ module.exports =
     saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
     newName             = helpers.getFakeText().split(' ')[0] + '.txt'
     titleSelector       = "div[title='/home/#{user.username}/#{newName}']"
+    saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons .green span.button-title"
 
-    saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons span.button-title"
 
     @openNewFile(browser)
 

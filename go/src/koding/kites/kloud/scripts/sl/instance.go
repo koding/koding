@@ -34,6 +34,7 @@ type instanceList struct {
 	hostname string
 	env      string
 	id       int
+	vlan     int
 	entries  bool
 }
 
@@ -47,6 +48,7 @@ func (cmd *instanceList) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.env, "env", "", "Filters instances by environment.")
 	f.IntVar(&cmd.id, "id", 0, "Filters instances by id.")
 	f.BoolVar(&cmd.entries, "entries", false, "Lists entries only.")
+	f.IntVar(&cmd.vlan, "vlan", 0, "List instances for the given vlan.")
 }
 
 func (cmd *instanceList) Run(ctx context.Context) error {
@@ -77,6 +79,18 @@ func (cmd *instanceList) list() (interface{}, error) {
 			"koding-env": cmd.env,
 		}
 	}
+	if cmd.vlan != 0 {
+		i, err := client.InstancesInVlan(cmd.vlan)
+		if err != nil {
+			return nil, err
+		}
+
+		i.Filter(f)
+		if err := i.Err(); err != nil {
+			return nil, err
+		}
+		return i, nil
+	}
 	if cmd.entries {
 		return client.InstanceEntriesByFilter(f)
 	}
@@ -85,13 +99,12 @@ func (cmd *instanceList) list() (interface{}, error) {
 
 func printInstances(v interface{}) error {
 	w := &tabwriter.Writer{}
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
 	switch instances := v.(type) {
 	case sl.Instances:
-		fmt.Fprintln(w, "ID\tGlobalID\tDomain\tCreate date\tDatacenter")
+		fmt.Fprintln(w, "ID\tDatacenter\tHostname\tTags")
 		for _, i := range instances {
-			fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i.ID, i.GlobalID, i.Domain,
-				i.CreateDate, i.Datacenter.Name)
+			fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", i.ID, i.Datacenter.Name, i.Hostname, i.Tags)
 		}
 	case sl.InstanceEntries:
 		fmt.Fprintln(w, "ID\tHostname\tTags")

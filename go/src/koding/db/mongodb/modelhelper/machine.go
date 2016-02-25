@@ -68,6 +68,26 @@ func GetMachineBySlug(userID bson.ObjectId, slug string) (*models.Machine, error
 	return m[0], nil
 }
 
+// NOTE(rjeczalik): see comment for GetMachineBySlug
+func GetMachinesByProvider(userID bson.ObjectId, provider string) ([]*models.Machine, error) {
+	query := bson.M{
+		"provider": provider,
+		"users": bson.M{
+			"$elemMatch": bson.M{"id": userID, "owner": true},
+		},
+	}
+
+	m, err := findMachine(query)
+	if err != nil {
+		return nil, err
+	}
+	if len(m) == 0 {
+		return nil, mgo.ErrNotFound
+	}
+
+	return m, nil
+}
+
 func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	machines := []*models.Machine{}
 

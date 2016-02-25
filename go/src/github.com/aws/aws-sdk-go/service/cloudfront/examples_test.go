@@ -90,6 +90,7 @@ func ExampleCloudFront_CreateDistribution() {
 						Quantity: aws.Int64(1), // Required
 					},
 				},
+				Compress:        aws.Bool(true),
 				DefaultTTL:      aws.Int64(1),
 				MaxTTL:          aws.Int64(1),
 				SmoothStreaming: aws.Bool(true),
@@ -101,10 +102,27 @@ func ExampleCloudFront_CreateDistribution() {
 					{ // Required
 						DomainName: aws.String("string"), // Required
 						Id:         aws.String("string"), // Required
+						CustomHeaders: &cloudfront.CustomHeaders{
+							Quantity: aws.Int64(1), // Required
+							Items: []*cloudfront.OriginCustomHeader{
+								{ // Required
+									HeaderName:  aws.String("string"), // Required
+									HeaderValue: aws.String("string"), // Required
+								},
+								// More values...
+							},
+						},
 						CustomOriginConfig: &cloudfront.CustomOriginConfig{
 							HTTPPort:             aws.Int64(1),                       // Required
 							HTTPSPort:            aws.Int64(1),                       // Required
 							OriginProtocolPolicy: aws.String("OriginProtocolPolicy"), // Required
+							OriginSslProtocols: &cloudfront.OriginSslProtocols{
+								Items: []*string{ // Required
+									aws.String("SslProtocol"), // Required
+									// More values...
+								},
+								Quantity: aws.Int64(1), // Required
+							},
 						},
 						OriginPath: aws.String("string"),
 						S3OriginConfig: &cloudfront.S3OriginConfig{
@@ -171,6 +189,7 @@ func ExampleCloudFront_CreateDistribution() {
 								Quantity: aws.Int64(1), // Required
 							},
 						},
+						Compress:        aws.Bool(true),
 						DefaultTTL:      aws.Int64(1),
 						MaxTTL:          aws.Int64(1),
 						SmoothStreaming: aws.Bool(true),
@@ -209,6 +228,9 @@ func ExampleCloudFront_CreateDistribution() {
 				},
 			},
 			ViewerCertificate: &cloudfront.ViewerCertificate{
+				ACMCertificateArn:            aws.String("string"),
+				Certificate:                  aws.String("string"),
+				CertificateSource:            aws.String("CertificateSource"),
 				CloudFrontDefaultCertificate: aws.Bool(true),
 				IAMCertificateId:             aws.String("string"),
 				MinimumProtocolVersion:       aws.String("MinimumProtocolVersion"),
@@ -680,6 +702,7 @@ func ExampleCloudFront_UpdateDistribution() {
 						Quantity: aws.Int64(1), // Required
 					},
 				},
+				Compress:        aws.Bool(true),
 				DefaultTTL:      aws.Int64(1),
 				MaxTTL:          aws.Int64(1),
 				SmoothStreaming: aws.Bool(true),
@@ -691,10 +714,27 @@ func ExampleCloudFront_UpdateDistribution() {
 					{ // Required
 						DomainName: aws.String("string"), // Required
 						Id:         aws.String("string"), // Required
+						CustomHeaders: &cloudfront.CustomHeaders{
+							Quantity: aws.Int64(1), // Required
+							Items: []*cloudfront.OriginCustomHeader{
+								{ // Required
+									HeaderName:  aws.String("string"), // Required
+									HeaderValue: aws.String("string"), // Required
+								},
+								// More values...
+							},
+						},
 						CustomOriginConfig: &cloudfront.CustomOriginConfig{
 							HTTPPort:             aws.Int64(1),                       // Required
 							HTTPSPort:            aws.Int64(1),                       // Required
 							OriginProtocolPolicy: aws.String("OriginProtocolPolicy"), // Required
+							OriginSslProtocols: &cloudfront.OriginSslProtocols{
+								Items: []*string{ // Required
+									aws.String("SslProtocol"), // Required
+									// More values...
+								},
+								Quantity: aws.Int64(1), // Required
+							},
 						},
 						OriginPath: aws.String("string"),
 						S3OriginConfig: &cloudfront.S3OriginConfig{
@@ -761,6 +801,7 @@ func ExampleCloudFront_UpdateDistribution() {
 								Quantity: aws.Int64(1), // Required
 							},
 						},
+						Compress:        aws.Bool(true),
 						DefaultTTL:      aws.Int64(1),
 						MaxTTL:          aws.Int64(1),
 						SmoothStreaming: aws.Bool(true),
@@ -799,6 +840,9 @@ func ExampleCloudFront_UpdateDistribution() {
 				},
 			},
 			ViewerCertificate: &cloudfront.ViewerCertificate{
+				ACMCertificateArn:            aws.String("string"),
+				Certificate:                  aws.String("string"),
+				CertificateSource:            aws.String("CertificateSource"),
 				CloudFrontDefaultCertificate: aws.Bool(true),
 				IAMCertificateId:             aws.String("string"),
 				MinimumProtocolVersion:       aws.String("MinimumProtocolVersion"),

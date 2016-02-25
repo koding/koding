@@ -9,7 +9,7 @@ module.exports =
   createTeam: (browser) ->
 
     user = utils.getUser(yes)
-    teamsHelpers.getInvitationAndCreateTeam(browser)
+    teamsHelpers.createTeam(browser)
     browser.end()
 
 
@@ -24,14 +24,6 @@ module.exports =
     teamsHelpers.loginTeam(browser)
     teamsHelpers.clickTeamSettings(browser)
 
-    browser.end()
-
-
-  seeTeamNameOnSideBar: (browser) ->
-
-    user = teamsHelpers.loginTeam(browser)
-
-    teamsHelpers.seeTeamNameOnsideBar(browser, user.teamSlug)
     browser.end()
 
 

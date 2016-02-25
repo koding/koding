@@ -68,7 +68,7 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
 
     """
     {{> @header }}
-    <div class="TeamsModal TeamsModal--groupCreation">
+    <div class="TeamsModal TeamsModal--domain">
       <h4>Your team URL</h4>
       <h5>Your team will use this to access your Koding Teams account.</h5>
       {{> @form}}

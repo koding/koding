@@ -4,22 +4,62 @@ import (
 	"fmt"
 	kodingmodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"net/url"
 	"socialapi/models"
 	"sync"
 	"time"
 
+	"github.com/gorilla/schema"
 	"github.com/nlopes/slack"
 	"gopkg.in/mgo.v2/bson"
 )
 
+// SlackUser holds custom properties apart from slack' api response
 type SlackUser struct {
 	slack.User
 	LastActivity *time.Time `json:"lastActivity,omitempty"`
 }
 
+// SlackChannelsResponse holds data type to return as a channels request
 type SlackChannelsResponse struct {
 	Groups   []slack.Group   `json:"groups,omitempty"`
 	Channels []slack.Channel `json:"channels,omitempty"`
+}
+
+// SlashCommand stores incoming slash command requests
+type SlashCommand struct {
+	Command     string         `schema:"command"`
+	Token       string         `schema:"token"`
+	TeamID      string         `schema:"team_id"`
+	TeamDomain  string         `schema:"team_domain,omitempty"`
+	ChannelID   string         `schema:"channel_id"`
+	ChannelName string         `schema:"channel_name"`
+	Timestamp   slack.JSONTime `schema:"timestamp,omitempty"`
+	UserID      string         `schema:"user_id"`
+	UserName    string         `schema:"user_name"`
+	Text        string         `schema:"text,omitempty"`
+	TriggerWord string         `schema:"trigger_word,omitempty"`
+	ServiceID   string         `schema:"service_id,omitempty"`
+	ResponseURL string         `schema:"response_url,omitempty"`
+	BotID       string         `schema:"bot_id,omitempty"`
+	BotName     string         `schema:"bot_name,omitempty"`
+	Robot       string
+}
+
+func newSlashCommandFromURLValues(postForm url.Values) (*SlashCommand, error) {
+	d := schema.NewDecoder()
+	d.IgnoreUnknownKeys(true)
+
+	c := &SlashCommand{}
+	if err := d.Decode(c, postForm); err != nil {
+		return nil, err
+	}
+
+	if len(c.Command) > 0 {
+		c.Robot = c.Command[1:]
+	}
+
+	return c, nil
 }
 
 // getChannels send a request to the slack with user's token & gets the channels

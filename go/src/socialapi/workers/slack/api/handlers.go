@@ -12,8 +12,9 @@ import (
 // AddHandlers adds handlers for slack integration
 func AddHandlers(m *mux.Mux, config *config.Config) {
 	s := &Slack{
-		Hostname: config.Hostname,
-		Protocol: config.Protocol,
+		Hostname:          config.Hostname,
+		Protocol:          config.Protocol,
+		VerificationToken: config.Slack.VerificationToken,
 		OAuthConf: &oauth2.Config{
 			ClientID:     config.Slack.ClientId,
 			ClientSecret: config.Slack.ClientSecret,
@@ -129,6 +130,15 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 			Name:     models.SlackPostMessage,
 			Type:     handler.PostRequest,
 			Endpoint: "/slack/message",
+		},
+	)
+
+	m.AddUnscopedHandler(
+		handler.Request{
+			Handler:  s.SlashCommand,
+			Name:     models.SlackSlashCommand,
+			Type:     handler.PostRequest,
+			Endpoint: "/slack/slash",
 		},
 	)
 }

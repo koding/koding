@@ -556,7 +556,7 @@ Admin main styles
     kalc                    height, (100% \- 62px)
 
   .listview-wrapper
-    kalc                    height, (100% \- 151px)
+    kalc                    height, (100% \- 90px)
 
   .members-commonview
 
@@ -668,7 +668,7 @@ Admin main styles
 
   .invite-view
     .kdcustomscrollview
-      kalc                  height, (100% \- 70px)
+      kalc                  height, (100% \- 20px)
       margin-bottom         20px
 
 .AppModal--admin .team-management
@@ -678,6 +678,7 @@ Admin main styles
 
   .team-item
     overflow                hidden
+    kalc                    width, (100% \- 20px)
 
 
 .AppModal--admin .general-settings-view
@@ -949,7 +950,53 @@ Admin main styles
     .kdloader canvas
       margin-top            5px
 
+.AppModal--admin-tabs
+.AppModal--admin-tabs .kdtabpaneview
+  borderBox()
+
 .AppModal--admin .invitations
+
+  .listview-wrapper
+    kalc                    height, (100% \- 51px)
+
+  .kdtabhandle
+    cite.slack
+      r-sprite              welcome slack-small
+      display               inline-block
+      vertical-align        text-bottom
+
+  .kdbutton.slack-oauth
+    .button-title
+      cite
+        r-sprite            admin slack_monochrome_white
+        display             inline-block
+        vertical-align      sub
+
+  .slack-user-list
+    .kdbutton.invite-members
+      abs                   0px 0px 0 0
+
+  .slack-user-item
+    line-height             40px
+    height                  40px
+
+    .kdcustomcheckbox
+      display               inline-block
+      height                20px
+      margin-right          10px
+      margin-top            6px
+
+    .name
+      display               inline-block
+      vertical-align        top
+      img
+        vertical-align      middle
+        size                24px 24px
+        rounded             2px
+
+      cite
+        font-style          italic
+        color               #7B7B7B
 
   .invite-view
   .members-commonview
@@ -970,6 +1017,33 @@ Admin main styles
     &.invite-members
       margin-right          25px
       fr()
+      &[disabled=disabled]
+        bg                  color #7B7B7B
+
+  .kdcustomscrollview.slack-invite-view
+    font-size               14px
+    color                   #3E3E3E
+
+    h3
+      color                 #7B7B7B
+      font-size             15px
+      line-height           3em
+      margin                0 0 25px
+      text-rendering        geometricPrecision
+      shadow                inset 0 -3px 0 #f2f2f2
+      margin-top            15px
+      rel()
+      &:not(:first-of-type)
+        margin-top          25px
+
+    .information
+      color                 #7b7b7b
+      .kdbutton.slack-oauth
+        margin              25px 0
+        display             block
+
+    .use-different-team
+      padding-bottom        50px
 
   .information
     font-size               14px
@@ -984,7 +1058,7 @@ Admin main styles
       max-width             550px
       text-rendering        geometricPrecision
 
-    label
+    > label
       color                 #929292
       display               inline-block
       font-size             11px

@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
 const opAddTagsToStream = "AddTagsToStream"
@@ -25,6 +27,8 @@ func (c *Kinesis) AddTagsToStreamRequest(input *AddTagsToStreamInput) (req *requ
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &AddTagsToStreamOutput{}
 	req.Data = output
 	return
@@ -56,6 +60,8 @@ func (c *Kinesis) CreateStreamRequest(input *CreateStreamInput) (req *request.Re
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &CreateStreamOutput{}
 	req.Data = output
 	return
@@ -118,6 +124,8 @@ func (c *Kinesis) DecreaseStreamRetentionPeriodRequest(input *DecreaseStreamRete
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DecreaseStreamRetentionPeriodOutput{}
 	req.Data = output
 	return
@@ -151,6 +159,8 @@ func (c *Kinesis) DeleteStreamRequest(input *DeleteStreamInput) (req *request.Re
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteStreamOutput{}
 	req.Data = output
 	return
@@ -397,6 +407,8 @@ func (c *Kinesis) IncreaseStreamRetentionPeriodRequest(input *IncreaseStreamRete
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &IncreaseStreamRetentionPeriodOutput{}
 	req.Data = output
 	return
@@ -517,6 +529,8 @@ func (c *Kinesis) MergeShardsRequest(input *MergeShardsInput) (req *request.Requ
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &MergeShardsOutput{}
 	req.Data = output
 	return
@@ -731,6 +745,8 @@ func (c *Kinesis) RemoveTagsFromStreamRequest(input *RemoveTagsFromStreamInput) 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &RemoveTagsFromStreamOutput{}
 	req.Data = output
 	return
@@ -760,6 +776,8 @@ func (c *Kinesis) SplitShardRequest(input *SplitShardInput) (req *request.Reques
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &SplitShardOutput{}
 	req.Data = output
 	return
@@ -819,17 +837,13 @@ func (c *Kinesis) SplitShard(input *SplitShardInput) (*SplitShardOutput, error) 
 
 // Represents the input for AddTagsToStream.
 type AddTagsToStreamInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the stream.
 	StreamName *string `min:"1" type:"string" required:"true"`
 
 	// The set of key-value pairs to use to create the tags.
 	Tags map[string]*string `min:"1" type:"map" required:"true"`
-
-	metadataAddTagsToStreamInput `json:"-" xml:"-"`
-}
-
-type metadataAddTagsToStreamInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -843,11 +857,7 @@ func (s AddTagsToStreamInput) GoString() string {
 }
 
 type AddTagsToStreamOutput struct {
-	metadataAddTagsToStreamOutput `json:"-" xml:"-"`
-}
-
-type metadataAddTagsToStreamOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -862,6 +872,8 @@ func (s AddTagsToStreamOutput) GoString() string {
 
 // Represents the input for CreateStream.
 type CreateStreamInput struct {
+	_ struct{} `type:"structure"`
+
 	// The number of shards that the stream will use. The throughput of the stream
 	// is a function of the number of shards; more shards are required for greater
 	// provisioned throughput.
@@ -875,12 +887,6 @@ type CreateStreamInput struct {
 	// and two streams in the same AWS account, but in two different regions, can
 	// have the same name.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataCreateStreamInput `json:"-" xml:"-"`
-}
-
-type metadataCreateStreamInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -894,11 +900,7 @@ func (s CreateStreamInput) GoString() string {
 }
 
 type CreateStreamOutput struct {
-	metadataCreateStreamOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateStreamOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -913,18 +915,14 @@ func (s CreateStreamOutput) GoString() string {
 
 // Represents the input for DecreaseStreamRetentionPeriod.
 type DecreaseStreamRetentionPeriodInput struct {
+	_ struct{} `type:"structure"`
+
 	// The new retention period of the stream, in hours. Must be less than the current
 	// retention period.
 	RetentionPeriodHours *int64 `min:"24" type:"integer" required:"true"`
 
 	// The name of the stream to modify.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataDecreaseStreamRetentionPeriodInput `json:"-" xml:"-"`
-}
-
-type metadataDecreaseStreamRetentionPeriodInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -938,11 +936,7 @@ func (s DecreaseStreamRetentionPeriodInput) GoString() string {
 }
 
 type DecreaseStreamRetentionPeriodOutput struct {
-	metadataDecreaseStreamRetentionPeriodOutput `json:"-" xml:"-"`
-}
-
-type metadataDecreaseStreamRetentionPeriodOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -957,14 +951,10 @@ func (s DecreaseStreamRetentionPeriodOutput) GoString() string {
 
 // Represents the input for DeleteStream.
 type DeleteStreamInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the stream to delete.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataDeleteStreamInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteStreamInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -978,11 +968,7 @@ func (s DeleteStreamInput) GoString() string {
 }
 
 type DeleteStreamOutput struct {
-	metadataDeleteStreamOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteStreamOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -997,6 +983,8 @@ func (s DeleteStreamOutput) GoString() string {
 
 // Represents the input for DescribeStream.
 type DescribeStreamInput struct {
+	_ struct{} `type:"structure"`
+
 	// The shard ID of the shard to start with.
 	ExclusiveStartShardId *string `min:"1" type:"string"`
 
@@ -1005,12 +993,6 @@ type DescribeStreamInput struct {
 
 	// The name of the stream to describe.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataDescribeStreamInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeStreamInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1025,15 +1007,11 @@ func (s DescribeStreamInput) GoString() string {
 
 // Represents the output for DescribeStream.
 type DescribeStreamOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The current status of the stream, the stream ARN, an array of shard objects
 	// that comprise the stream, and states whether there are more shards available.
 	StreamDescription *StreamDescription `type:"structure" required:"true"`
-
-	metadataDescribeStreamOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeStreamOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1048,6 +1026,8 @@ func (s DescribeStreamOutput) GoString() string {
 
 // Represents the input for GetRecords.
 type GetRecordsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The maximum number of records to return. Specify a value of up to 10,000.
 	// If you specify a value that is greater than 10,000, GetRecords throws InvalidArgumentException.
 	Limit *int64 `min:"1" type:"integer"`
@@ -1056,12 +1036,6 @@ type GetRecordsInput struct {
 	// data records. A shard iterator specifies this position using the sequence
 	// number of a data record in the shard.
 	ShardIterator *string `min:"1" type:"string" required:"true"`
-
-	metadataGetRecordsInput `json:"-" xml:"-"`
-}
-
-type metadataGetRecordsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1076,6 +1050,8 @@ func (s GetRecordsInput) GoString() string {
 
 // Represents the output for GetRecords.
 type GetRecordsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The number of milliseconds the GetRecords response is from the tip of the
 	// stream, indicating how far behind current time the consumer is. A value of
 	// zero indicates record processing is caught up, and there are no new records
@@ -1089,12 +1065,6 @@ type GetRecordsOutput struct {
 
 	// The data records retrieved from the shard.
 	Records []*Record `type:"list" required:"true"`
-
-	metadataGetRecordsOutput `json:"-" xml:"-"`
-}
-
-type metadataGetRecordsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1109,6 +1079,8 @@ func (s GetRecordsOutput) GoString() string {
 
 // Represents the input for GetShardIterator.
 type GetShardIteratorInput struct {
+	_ struct{} `type:"structure"`
+
 	// The shard ID of the shard to get the iterator for.
 	ShardId *string `min:"1" type:"string" required:"true"`
 
@@ -1132,12 +1104,6 @@ type GetShardIteratorInput struct {
 
 	// The name of the stream.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataGetShardIteratorInput `json:"-" xml:"-"`
-}
-
-type metadataGetShardIteratorInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1152,16 +1118,12 @@ func (s GetShardIteratorInput) GoString() string {
 
 // Represents the output for GetShardIterator.
 type GetShardIteratorOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The position in the shard from which to start reading data records sequentially.
 	// A shard iterator specifies this position using the sequence number of a data
 	// record in a shard.
 	ShardIterator *string `min:"1" type:"string"`
-
-	metadataGetShardIteratorOutput `json:"-" xml:"-"`
-}
-
-type metadataGetShardIteratorOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1177,17 +1139,13 @@ func (s GetShardIteratorOutput) GoString() string {
 // The range of possible hash key values for the shard, which is a set of ordered
 // contiguous positive integers.
 type HashKeyRange struct {
+	_ struct{} `type:"structure"`
+
 	// The ending hash key of the hash key range.
 	EndingHashKey *string `type:"string" required:"true"`
 
 	// The starting hash key of the hash key range.
 	StartingHashKey *string `type:"string" required:"true"`
-
-	metadataHashKeyRange `json:"-" xml:"-"`
-}
-
-type metadataHashKeyRange struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1202,18 +1160,14 @@ func (s HashKeyRange) GoString() string {
 
 // Represents the input for IncreaseStreamRetentionPeriod.
 type IncreaseStreamRetentionPeriodInput struct {
+	_ struct{} `type:"structure"`
+
 	// The new retention period of the stream, in hours. Must be more than the current
 	// retention period.
 	RetentionPeriodHours *int64 `min:"24" type:"integer" required:"true"`
 
 	// The name of the stream to modify.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataIncreaseStreamRetentionPeriodInput `json:"-" xml:"-"`
-}
-
-type metadataIncreaseStreamRetentionPeriodInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1227,11 +1181,7 @@ func (s IncreaseStreamRetentionPeriodInput) GoString() string {
 }
 
 type IncreaseStreamRetentionPeriodOutput struct {
-	metadataIncreaseStreamRetentionPeriodOutput `json:"-" xml:"-"`
-}
-
-type metadataIncreaseStreamRetentionPeriodOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1246,17 +1196,13 @@ func (s IncreaseStreamRetentionPeriodOutput) GoString() string {
 
 // Represents the input for ListStreams.
 type ListStreamsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the stream to start the list with.
 	ExclusiveStartStreamName *string `min:"1" type:"string"`
 
 	// The maximum number of streams to list.
 	Limit *int64 `min:"1" type:"integer"`
-
-	metadataListStreamsInput `json:"-" xml:"-"`
-}
-
-type metadataListStreamsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1271,18 +1217,14 @@ func (s ListStreamsInput) GoString() string {
 
 // Represents the output for ListStreams.
 type ListStreamsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// If set to true, there are more streams available to list.
 	HasMoreStreams *bool `type:"boolean" required:"true"`
 
 	// The names of the streams that are associated with the AWS account making
 	// the ListStreams request.
 	StreamNames []*string `type:"list" required:"true"`
-
-	metadataListStreamsOutput `json:"-" xml:"-"`
-}
-
-type metadataListStreamsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1297,6 +1239,8 @@ func (s ListStreamsOutput) GoString() string {
 
 // Represents the input for ListTagsForStream.
 type ListTagsForStreamInput struct {
+	_ struct{} `type:"structure"`
+
 	// The key to use as the starting point for the list of tags. If this parameter
 	// is set, ListTagsForStream gets all tags that occur after ExclusiveStartTagKey.
 	ExclusiveStartTagKey *string `min:"1" type:"string"`
@@ -1308,12 +1252,6 @@ type ListTagsForStreamInput struct {
 
 	// The name of the stream.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataListTagsForStreamInput `json:"-" xml:"-"`
-}
-
-type metadataListTagsForStreamInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1328,6 +1266,8 @@ func (s ListTagsForStreamInput) GoString() string {
 
 // Represents the output for ListTagsForStream.
 type ListTagsForStreamOutput struct {
+	_ struct{} `type:"structure"`
+
 	// If set to true, more tags are available. To request additional tags, set
 	// ExclusiveStartTagKey to the key of the last tag returned.
 	HasMoreTags *bool `type:"boolean" required:"true"`
@@ -1335,12 +1275,6 @@ type ListTagsForStreamOutput struct {
 	// A list of tags associated with StreamName, starting with the first tag after
 	// ExclusiveStartTagKey and up to the specified Limit.
 	Tags []*Tag `type:"list" required:"true"`
-
-	metadataListTagsForStreamOutput `json:"-" xml:"-"`
-}
-
-type metadataListTagsForStreamOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1355,6 +1289,8 @@ func (s ListTagsForStreamOutput) GoString() string {
 
 // Represents the input for MergeShards.
 type MergeShardsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The shard ID of the adjacent shard for the merge.
 	AdjacentShardToMerge *string `min:"1" type:"string" required:"true"`
 
@@ -1363,12 +1299,6 @@ type MergeShardsInput struct {
 
 	// The name of the stream for the merge.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataMergeShardsInput `json:"-" xml:"-"`
-}
-
-type metadataMergeShardsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1382,11 +1312,7 @@ func (s MergeShardsInput) GoString() string {
 }
 
 type MergeShardsOutput struct {
-	metadataMergeShardsOutput `json:"-" xml:"-"`
-}
-
-type metadataMergeShardsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1401,6 +1327,8 @@ func (s MergeShardsOutput) GoString() string {
 
 // Represents the input for PutRecord.
 type PutRecordInput struct {
+	_ struct{} `type:"structure"`
+
 	// The data blob to put into the record, which is base64-encoded when the blob
 	// is serialized. When the data blob (the payload before base64-encoding) is
 	// added to the partition key size, the total size must not exceed the maximum
@@ -1430,12 +1358,6 @@ type PutRecordInput struct {
 
 	// The name of the stream to put the data record into.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataPutRecordInput `json:"-" xml:"-"`
-}
-
-type metadataPutRecordInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1450,6 +1372,8 @@ func (s PutRecordInput) GoString() string {
 
 // Represents the output for PutRecord.
 type PutRecordOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The sequence number identifier that was assigned to the put data record.
 	// The sequence number for the record is unique across all records in the stream.
 	// A sequence number is the identifier associated with every record put into
@@ -1458,12 +1382,6 @@ type PutRecordOutput struct {
 
 	// The shard ID of the shard where the data record was placed.
 	ShardId *string `min:"1" type:"string" required:"true"`
-
-	metadataPutRecordOutput `json:"-" xml:"-"`
-}
-
-type metadataPutRecordOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1478,17 +1396,13 @@ func (s PutRecordOutput) GoString() string {
 
 // A PutRecords request.
 type PutRecordsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The records associated with the request.
 	Records []*PutRecordsRequestEntry `min:"1" type:"list" required:"true"`
 
 	// The stream name associated with the request.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataPutRecordsInput `json:"-" xml:"-"`
-}
-
-type metadataPutRecordsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1503,6 +1417,8 @@ func (s PutRecordsInput) GoString() string {
 
 // PutRecords results.
 type PutRecordsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The number of unsuccessfully processed records in a PutRecords request.
 	FailedRecordCount *int64 `min:"1" type:"integer"`
 
@@ -1512,12 +1428,6 @@ type PutRecordsOutput struct {
 	// result. A record that fails to be added to your Amazon Kinesis stream includes
 	// ErrorCode and ErrorMessage in the result.
 	Records []*PutRecordsResultEntry `min:"1" type:"list" required:"true"`
-
-	metadataPutRecordsOutput `json:"-" xml:"-"`
-}
-
-type metadataPutRecordsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1532,6 +1442,8 @@ func (s PutRecordsOutput) GoString() string {
 
 // Represents the output for PutRecords.
 type PutRecordsRequestEntry struct {
+	_ struct{} `type:"structure"`
+
 	// The data blob to put into the record, which is base64-encoded when the blob
 	// is serialized. When the data blob (the payload before base64-encoding) is
 	// added to the partition key size, the total size must not exceed the maximum
@@ -1551,12 +1463,6 @@ type PutRecordsRequestEntry struct {
 	// mechanism, all data records with the same partition key map to the same shard
 	// within the stream.
 	PartitionKey *string `min:"1" type:"string" required:"true"`
-
-	metadataPutRecordsRequestEntry `json:"-" xml:"-"`
-}
-
-type metadataPutRecordsRequestEntry struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1575,6 +1481,8 @@ func (s PutRecordsRequestEntry) GoString() string {
 // to your Amazon Kinesis stream includes ErrorCode and ErrorMessage in the
 // result.
 type PutRecordsResultEntry struct {
+	_ struct{} `type:"structure"`
+
 	// The error code for an individual record result. ErrorCodes can be either
 	// ProvisionedThroughputExceededException or InternalFailure.
 	ErrorCode *string `type:"string"`
@@ -1590,12 +1498,6 @@ type PutRecordsResultEntry struct {
 
 	// The shard ID for an individual record result.
 	ShardId *string `min:"1" type:"string"`
-
-	metadataPutRecordsResultEntry `json:"-" xml:"-"`
-}
-
-type metadataPutRecordsResultEntry struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1611,6 +1513,8 @@ func (s PutRecordsResultEntry) GoString() string {
 // The unit of data of the Amazon Kinesis stream, which is composed of a sequence
 // number, a partition key, and a data blob.
 type Record struct {
+	_ struct{} `type:"structure"`
+
 	// The approximate time that the record was inserted into the stream.
 	ApproximateArrivalTimestamp *time.Time `type:"timestamp" timestampFormat:"unix"`
 
@@ -1626,12 +1530,6 @@ type Record struct {
 
 	// The unique identifier of the record in the stream.
 	SequenceNumber *string `type:"string" required:"true"`
-
-	metadataRecord `json:"-" xml:"-"`
-}
-
-type metadataRecord struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1646,17 +1544,13 @@ func (s Record) GoString() string {
 
 // Represents the input for RemoveTagsFromStream.
 type RemoveTagsFromStreamInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the stream.
 	StreamName *string `min:"1" type:"string" required:"true"`
 
 	// A list of tag keys. Each corresponding tag is removed from the stream.
 	TagKeys []*string `min:"1" type:"list" required:"true"`
-
-	metadataRemoveTagsFromStreamInput `json:"-" xml:"-"`
-}
-
-type metadataRemoveTagsFromStreamInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1670,11 +1564,7 @@ func (s RemoveTagsFromStreamInput) GoString() string {
 }
 
 type RemoveTagsFromStreamOutput struct {
-	metadataRemoveTagsFromStreamOutput `json:"-" xml:"-"`
-}
-
-type metadataRemoveTagsFromStreamOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1689,18 +1579,14 @@ func (s RemoveTagsFromStreamOutput) GoString() string {
 
 // The range of possible sequence numbers for the shard.
 type SequenceNumberRange struct {
+	_ struct{} `type:"structure"`
+
 	// The ending sequence number for the range. Shards that are in the OPEN state
 	// have an ending sequence number of null.
 	EndingSequenceNumber *string `type:"string"`
 
 	// The starting sequence number for the range.
 	StartingSequenceNumber *string `type:"string" required:"true"`
-
-	metadataSequenceNumberRange `json:"-" xml:"-"`
-}
-
-type metadataSequenceNumberRange struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1715,6 +1601,8 @@ func (s SequenceNumberRange) GoString() string {
 
 // A uniquely identified group of data records in an Amazon Kinesis stream.
 type Shard struct {
+	_ struct{} `type:"structure"`
+
 	// The shard Id of the shard adjacent to the shard's parent.
 	AdjacentParentShardId *string `min:"1" type:"string"`
 
@@ -1730,12 +1618,6 @@ type Shard struct {
 
 	// The unique identifier of the shard within the Amazon Kinesis stream.
 	ShardId *string `min:"1" type:"string" required:"true"`
-
-	metadataShard `json:"-" xml:"-"`
-}
-
-type metadataShard struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1750,6 +1632,8 @@ func (s Shard) GoString() string {
 
 // Represents the input for SplitShard.
 type SplitShardInput struct {
+	_ struct{} `type:"structure"`
+
 	// A hash key value for the starting hash key of one of the child shards created
 	// by the split. The hash key range for a given shard constitutes a set of ordered
 	// contiguous positive integers. The value for NewStartingHashKey must be in
@@ -1764,12 +1648,6 @@ type SplitShardInput struct {
 
 	// The name of the stream for the shard split.
 	StreamName *string `min:"1" type:"string" required:"true"`
-
-	metadataSplitShardInput `json:"-" xml:"-"`
-}
-
-type metadataSplitShardInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1783,11 +1661,7 @@ func (s SplitShardInput) GoString() string {
 }
 
 type SplitShardOutput struct {
-	metadataSplitShardOutput `json:"-" xml:"-"`
-}
-
-type metadataSplitShardOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1802,6 +1676,8 @@ func (s SplitShardOutput) GoString() string {
 
 // Represents the output for DescribeStream.
 type StreamDescription struct {
+	_ struct{} `type:"structure"`
+
 	// If set to true, more shards in the stream are available to describe.
 	HasMoreShards *bool `type:"boolean" required:"true"`
 
@@ -1830,12 +1706,6 @@ type StreamDescription struct {
 	// split. Read and write operations continue to work while the stream is in
 	// the UPDATING state.
 	StreamStatus *string `type:"string" required:"true" enum:"StreamStatus"`
-
-	metadataStreamDescription `json:"-" xml:"-"`
-}
-
-type metadataStreamDescription struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1850,6 +1720,8 @@ func (s StreamDescription) GoString() string {
 
 // Metadata assigned to the stream, consisting of a key-value pair.
 type Tag struct {
+	_ struct{} `type:"structure"`
+
 	// A unique identifier for the tag. Maximum length: 128 characters. Valid characters:
 	// Unicode letters, digits, white space, _ . / = + - % @
 	Key *string `min:"1" type:"string" required:"true"`
@@ -1858,12 +1730,6 @@ type Tag struct {
 	// length: 256 characters. Valid characters: Unicode letters, digits, white
 	// space, _ . / = + - % @
 	Value *string `type:"string"`
-
-	metadataTag `json:"-" xml:"-"`
-}
-
-type metadataTag struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation

@@ -26,29 +26,52 @@ type Subnet struct {
 }
 
 // vlanMask represents objectMask for the VLAN struct.
-var vlanMask = ObjectMask((*VLAN)(nil))
+var vlanMask = ObjectMask((*VLAN)(nil), "virtualGuests")
+
+// vlanInstancesMask represents objectMask for Instance
+var vlanInstancesMask = ObjectMask((*VLAN)(nil), "virtualGuests.networkVlans")
 
 // VLAN represents a single Softlayer VLAN
 type VLAN struct {
-	ID            int            `json:"id,omitempty"`
-	InternalID    int            `json:"vlanNumber,omitempty"`
-	Name          string         `json:"name,omitempty"`
-	ModifyDate    time.Time      `json:"modifyDate,omitempty"`
-	RoutingID     int            `json:"networkVrfId,omitempty"`
-	InstanceCount int            `json:"virtualGuestCount,omitempty"`
-	Subnet        Subnet         `json:"primarySubnet,omitempty"`
-	Subnets       []Subnet       `json:"subnets,omitempty"`
-	TagReferences []TagReference `json:"tagReferences,omitempty"`
+	ID            int             `json:"id,omitempty"`
+	InternalID    int             `json:"vlanNumber,omitempty"`
+	Name          string          `json:"name,omitempty"`
+	ModifyDate    time.Time       `json:"modifyDate,omitempty"`
+	RoutingID     int             `json:"networkVrfId,omitempty"`
+	Subnet        Subnet          `json:"primarySubnet,omitempty"`
+	InstanceCount int             `json:"virtualGuestCount,omitempty"`
+	Instances     []*Instance     `json:"virtualGuests,omitempty"`
+	Subnets       []Subnet        `json:"subnets,omitempty"`
+	TagReferences []TagReference  `json:"tagReferences,omitempty"`
+	Firewall      Firewall        `json:"networkVlanFirewall,omitempty"`
+	MCI           []*MCI          `json:"firewallInterfaces,omitempty"`
+	Firewalls     []*Firewall     `json:"firewallGuestNetworkComponents,omitempty"`
+	FirewallRules []*FirewallRule `json:"firewallRules,omitempty"`
 
 	Tags Tags `json:"-"`
 }
 
-func (v *VLAN) decode() {
+func (v *VLAN) Err() error {
+	if v == nil {
+		return errNotFound
+	}
+	return nil
+}
+
+func (v *VLAN) Decode() {
 	v.Tags = NewTagsFromRefs(v.TagReferences)
+	Instances(v.Instances).Decode()
 }
 
 // VLANs is a conveniance type for a list of VLANs that supports filtering.
 type VLANs []*VLAN
+
+func (v VLANs) Err() error {
+	if len(v) == 0 {
+		return errNotFound
+	}
+	return nil
+}
 
 // ByID filters the VLANs by ID.
 func (v VLANs) ByID(id int) VLANs {
@@ -101,7 +124,7 @@ func (v *VLANs) Filter(f *Filter) {
 // Decode implements the ResourceDecoder interface.
 func (v VLANs) Decode() {
 	for _, vlan := range v {
-		vlan.decode()
+		vlan.Decode()
 	}
 }
 

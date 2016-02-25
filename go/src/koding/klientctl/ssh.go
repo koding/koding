@@ -10,9 +10,14 @@ import (
 	"path"
 	"strings"
 
-	"github.com/codegangsta/cli"
 	"koding/klient/remote/req"
 	"koding/klientctl/util"
+
+	"github.com/koding/kite/dnode"
+
+	"github.com/koding/logging"
+
+	"github.com/codegangsta/cli"
 	"github.com/koding/sshkey"
 
 	"golang.org/x/crypto/ssh"
@@ -34,20 +39,21 @@ import (
 // integer to end of comment this command can be used by multiple computers.
 type SSHCommand struct {
 	*SSHKey
+	log logging.Logger
 }
 
 // SSHCommandFactory is the factory method for SSHCommand.
-func SSHCommandFactory(c *cli.Context) int {
+func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "ssh")
 		return 1
 	}
 
-	cmd, err := NewSSHCommand()
+	cmd, err := NewSSHCommand(log)
 	// TODO: Refactor SSHCommand instance to require no initialization,
 	// and thus avoid needing to log an error in a weird place.
 	if err != nil {
-		log.Errorf("Error initializing ssh: %s", err)
+		log.Error("Error initializing ssh: %s", err)
 		fmt.Println(GenericInternalError)
 		return 1
 	}
@@ -56,7 +62,7 @@ func SSHCommandFactory(c *cli.Context) int {
 }
 
 // NewSSHCommand is the required initializer for SSHCommand.
-func NewSSHCommand() (*SSHCommand, error) {
+func NewSSHCommand(log logging.Logger) (*SSHCommand, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -72,10 +78,11 @@ func NewSSHCommand() (*SSHCommand, error) {
 	}
 
 	return &SSHCommand{
+		log: log,
 		SSHKey: &SSHKey{
-			KeyPath:   path.Join(usr.HomeDir, SSHDefaultKeyDir),
-			KeyName:   SSHDefaultKeyName,
-			Transport: klientKite,
+			KeyPath: path.Join(usr.HomeDir, SSHDefaultKeyDir),
+			KeyName: SSHDefaultKeyName,
+			Klient:  NewKlient(klientKite),
 		},
 	}, nil
 }
@@ -92,19 +99,19 @@ func (s *SSHCommand) run(c *cli.Context) int {
 
 	sshKey, err := s.GetSSHIp(c.Args()[0])
 	if err != nil {
-		log.Errorf("Error getting username and hostname combination. err:%s", err)
+		s.log.Error("Error getting username and hostname combination. err:%s", err)
 		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
 
 	if err := s.PrepareForSSH(c.Args()[0]); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
-			log.Errorf("Cannot ssh into managed machines. err:%s", err)
+			s.log.Error("Cannot ssh into managed machines. err:%s", err)
 			fmt.Println(CannotSSHManaged)
 			return 1
 		}
 
-		log.Errorf("Error getting ssh key. err:%s", err)
+		s.log.Error("Error getting ssh key. err:%s", err)
 		fmt.Println(FailedGetSSHKey)
 		return 1
 	}
@@ -115,7 +122,7 @@ func (s *SSHCommand) run(c *cli.Context) int {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		log.Errorf("Running ssh command returned an error. err:%s", err)
+		s.log.Error("Running ssh command returned an error. err:%s", err)
 		return 1
 	}
 
@@ -144,26 +151,24 @@ type SSHKey struct {
 	// KeyName is the file name of the SSH key pair. It defaults to `kd-ssh-key`.
 	KeyName string
 
-	// Transport is communication layer between this and local klient. This is
+	// Klient is communication layer between this and local klient. This is
 	// used to add SSH public key to `~/.ssh/authorized_keys` on the remote
 	// machine.
-	Transport
+	Klient interface {
+		RemoteList() (KiteInfos, error)
+		Tell(string, ...interface{}) (*dnode.Partial, error)
+	}
 }
 
 // GetSSHIp returns the username and the hostname of the remove machine to ssh.
 // It assume user exists on the remove machine with the same Koding username.
 func (s *SSHKey) GetSSHIp(name string) (string, error) {
-	res, err := s.Tell("remote.list")
+	infos, err := s.Klient.RemoteList()
 	if err != nil {
 		return "", err
 	}
 
-	var infos []kiteInfo
-	if err := res.Unmarshal(&infos); err != nil {
-		return "", err
-	}
-
-	if info, ok := getMachineFromName(infos, name); ok {
+	if info, ok := infos.FindFromName(name); ok {
 		return fmt.Sprintf("%s@%s", info.Hostname, info.IP), nil
 	}
 
@@ -173,17 +178,12 @@ func (s *SSHKey) GetSSHIp(name string) (string, error) {
 // GetUsername returns the username of the remote machine.
 // It assume user exists on the remote machine with the same Koding username.
 func (s *SSHKey) GetUsername(name string) (string, error) {
-	res, err := s.Tell("remote.list")
+	infos, err := s.Klient.RemoteList()
 	if err != nil {
 		return "", err
 	}
 
-	var infos []kiteInfo
-	if err := res.Unmarshal(&infos); err != nil {
-		return "", err
-	}
-
-	if info, ok := getMachineFromName(infos, name); ok {
+	if info, ok := infos.FindFromName(name); ok {
 		return info.Hostname, nil
 	}
 
@@ -278,7 +278,7 @@ func (s *SSHKey) PrepareForSSH(name string) error {
 		Key:  contents,
 	}
 
-	if _, err = s.Tell("remote.sshKeysAdd", req); err != nil {
+	if _, err = s.Klient.Tell("remote.sshKeysAdd", req); err != nil {
 		// ignore errors about duplicate keys since we're adding on each run
 		if strings.Contains(err.Error(), "cannot add duplicate ssh key") {
 			return nil

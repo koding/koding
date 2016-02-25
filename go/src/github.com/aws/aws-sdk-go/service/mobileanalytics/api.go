@@ -6,6 +6,8 @@ package mobileanalytics
 import (
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
 const opPutEvents = "PutEvents"
@@ -23,6 +25,8 @@ func (c *MobileAnalytics) PutEventsRequest(input *PutEventsInput) (req *request.
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &PutEventsOutput{}
 	req.Data = output
 	return
@@ -39,6 +43,8 @@ func (c *MobileAnalytics) PutEvents(input *PutEventsInput) (*PutEventsOutput, er
 
 // A JSON object representing a batch of unique event occurrences in your app.
 type Event struct {
+	_ struct{} `type:"structure"`
+
 	// A collection of key-value pairs that give additional context to the event.
 	// The key-value pairs are specified by the developer.
 	//
@@ -64,12 +70,6 @@ type Event struct {
 
 	// The version of the event.
 	Version *string `locationName:"version" min:"1" type:"string"`
-
-	metadataEvent `json:"-" xml:"-"`
-}
-
-type metadataEvent struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -84,6 +84,8 @@ func (s Event) GoString() string {
 
 // A container for the data needed for a PutEvent operation
 type PutEventsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The client context including the client ID, app title, app version and package
 	// name.
 	ClientContext *string `location:"header" locationName:"x-amz-Client-Context" type:"string" required:"true"`
@@ -93,12 +95,6 @@ type PutEventsInput struct {
 
 	// An array of Event JSON objects
 	Events []*Event `locationName:"events" type:"list" required:"true"`
-
-	metadataPutEventsInput `json:"-" xml:"-"`
-}
-
-type metadataPutEventsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -112,11 +108,7 @@ func (s PutEventsInput) GoString() string {
 }
 
 type PutEventsOutput struct {
-	metadataPutEventsOutput `json:"-" xml:"-"`
-}
-
-type metadataPutEventsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -131,6 +123,8 @@ func (s PutEventsOutput) GoString() string {
 
 // Describes the session. Session information is required on ALL events.
 type Session struct {
+	_ struct{} `type:"structure"`
+
 	// The duration of the session.
 	Duration *int64 `locationName:"duration" type:"long"`
 
@@ -144,12 +138,6 @@ type Session struct {
 	// The time the event terminated in ISO 8601 standard date time format. For
 	// example, 2014-06-30T19:07:47.885Z
 	StopTimestamp *string `locationName:"stopTimestamp" type:"string"`
-
-	metadataSession `json:"-" xml:"-"`
-}
-
-type metadataSession struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation

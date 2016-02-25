@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
@@ -20,9 +21,10 @@ const slackAway = "away"
 
 // Slack holds runtime config for slack OAuth system
 type Slack struct {
-	Hostname  string
-	Protocol  string
-	OAuthConf *oauth2.Config
+	Hostname          string
+	Protocol          string
+	VerificationToken string
+	OAuthConf         *oauth2.Config
 }
 
 // SlackMessageRequest carries message creation request from client side
@@ -79,15 +81,17 @@ func (s *Slack) Callback(u *url.URL, h http.Header, _ interface{}, context *mode
 	// set incoming request's query params into redirected url
 	redirectURL.RawQuery = u.Query().Encode()
 
-	// set team's subdomain
-	redirectURL.Host = fmt.Sprintf("%s.%s", session.GroupName, redirectURL.Host)
+	// change subdomain if not only it is koding
+	if session.GroupName != models.Channel_KODING_NAME {
+		// set team's subdomain
+		redirectURL.Host = fmt.Sprintf("%s.%s", session.GroupName, redirectURL.Host)
+	}
 
 	// replace 'callback' with 'success'
 	redirectURL.Path = strings.Replace(redirectURL.Path, "callback", "success", -1)
 
 	h.Set("Location", redirectURL.String())
 	return http.StatusTemporaryRedirect, h, nil, nil
-
 }
 
 // Success handler is used for handling redirection requests from Callback handler
@@ -131,7 +135,8 @@ func (s *Slack) Success(u *url.URL, h http.Header, _ interface{}, context *model
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(nil)
+	h.Set("Location", "/Admin/Invitations/Slack")
+	return http.StatusTemporaryRedirect, h, nil, nil
 }
 
 // ListUsers lists users of a slack team
@@ -187,4 +192,39 @@ func (s *Slack) PostMessage(u *url.URL, h http.Header, req *SlackMessageRequest,
 		return response.NewBadRequest(err)
 	}
 	return response.HandleResultAndError(postMessage(token, req))
+}
+
+// SlashCommand handles slash commands coming from slack
+//
+// Note: this is experimental, on prod instances this will just say hi,
+// otherwise will output incoming request
+func (s *Slack) SlashCommand(w http.ResponseWriter, req *http.Request) {
+	if err := req.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	command, err := newSlashCommandFromURLValues(req.PostForm)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if command.Token != s.VerificationToken {
+		errMessage := fmt.Sprintf("request from unidentified source: %s - %s", command.Token, req.Host)
+		http.Error(w, errMessage, http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintln(w, "hi from koding bot!")
+
+	if command.Robot != "koding" {
+		fmt.Fprintln(w, "here is some debug log for non-prod requests")
+		fmt.Fprintln(w)
+
+		if err := json.NewEncoder(w).Encode(command); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
 }

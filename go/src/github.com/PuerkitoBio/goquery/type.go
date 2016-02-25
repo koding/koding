@@ -1,11 +1,12 @@
 package goquery
 
 import (
-	"code.google.com/p/go.net/html"
 	"errors"
 	"io"
 	"net/http"
 	"net/url"
+
+	"golang.org/x/net/html"
 )
 
 // Document represents an HTML document to be manipulated. Unlike jQuery, which
@@ -50,15 +51,17 @@ func NewDocumentFromReader(r io.Reader) (*Document, error) {
 	return newDocument(root, nil), nil
 }
 
-// NewDocumentFromResponse is another Document constructor that takes an http resonse as argument.
+// NewDocumentFromResponse is another Document constructor that takes an http response as argument.
 // It loads the specified response's document, parses it, and stores the root Document
 // node, ready to be manipulated. The response's body is closed on return.
 func NewDocumentFromResponse(res *http.Response) (*Document, error) {
 	if res == nil {
-		return nil, errors.New("Response is nil pointer")
+		return nil, errors.New("Response is nil")
 	}
-
 	defer res.Body.Close()
+	if res.Request == nil {
+		return nil, errors.New("Response.Request is nil")
+	}
 
 	// Parse the HTML into nodes
 	root, e := html.Parse(res.Body)
@@ -68,6 +71,11 @@ func NewDocumentFromResponse(res *http.Response) (*Document, error) {
 
 	// Create and fill the document
 	return newDocument(root, res.Request.URL), nil
+}
+
+// CloneDocument creates a deep-clone of a document.
+func CloneDocument(doc *Document) *Document {
+	return newDocument(cloneNode(doc.rootNode), doc.Url)
 }
 
 // Private constructor, make sure all fields are correctly filled.
@@ -95,4 +103,13 @@ func newEmptySelection(doc *Document) *Selection {
 // Helper constructor to create a selection of only one node
 func newSingleSelection(node *html.Node, doc *Document) *Selection {
 	return &Selection{[]*html.Node{node}, doc, nil}
+}
+
+// Matcher is an interface that defines the methods to match
+// HTML nodes against a compiled selector string. Cascadia's
+// Selector implements this interface.
+type Matcher interface {
+	Match(*html.Node) bool
+	MatchAll(*html.Node) []*html.Node
+	Filter([]*html.Node) []*html.Node
 }

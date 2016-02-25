@@ -80,6 +80,12 @@ func (b *Buffer) Bytes() []byte {
 	}
 }
 
+// Reset resets the buffer so it has no content.
+func (b *Buffer) Reset() {
+	b.writeCursor = 0
+	b.written = 0
+}
+
 // String returns the contents of the buffer as a string
 func (b *Buffer) String() string {
 	return string(b.Bytes())

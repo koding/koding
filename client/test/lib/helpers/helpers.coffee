@@ -51,6 +51,8 @@ module.exports =
         .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
 
     browser
+      .waitForElementVisible  '[testpath=koding-solo-login]', 50000
+      .click                  '[testpath=koding-solo-login]'
       .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
@@ -80,33 +82,17 @@ module.exports =
       if HUBSPOT
         browser.waitForElementVisible  '.hero.block .container', 20000
       else
-        browser.waitForElementVisible  '.login-screen', 30000 # Assertion
+        browser.waitForElementVisible  '.TeamsModal--select', 30000 # Assertion
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
 
-    url = @getUrl()
-    browser.url url
-
-    homePageSelector = '.hero.block .container'
-
-    if HUBSPOT
-      browser
-        .waitForElementVisible  homePageSelector, 20000
-        .waitForElementVisible  "#{homePageSelector} a[href='/Register']", 20000
-        .click                  "#{homePageSelector} a[href='/Register']"
-        .pause                  3000
-        .waitForElementVisible  '.form-area .main-part', 20000
-        .setValue               '.login-form .email input[name=email]', user.email
-        .setValue               '.login-form .password input[name=password]', user.password
-    else
-      browser
-        .url                    "#{url}/Register"
-        .pause                  3000
-        .setValue               'input[testpath=register-form-email]', user.email
-        .setValue               'input[testpath=register-password]', user.password
-
-    browser.click       '[testpath=signup-button]'
+    browser
+      .url                    "#{@getUrl()}/RegisterForTests"
+      .waitForElementVisible  '.login-screen.register', 30000 # Assertion
+      .setValue               'input[testpath=register-form-email]', user.email
+      .setValue               'input[testpath=register-password]', user.password
+      .click                  '[testpath=signup-button]'
 
 
   attemptEnterUsernameOnRegister: (browser, user) ->
