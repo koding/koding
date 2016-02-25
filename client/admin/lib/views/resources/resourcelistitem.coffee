@@ -1,6 +1,7 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 Machine                = require 'app/providers/machine'
+showError              = require 'app/util/showError'
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
 MachinesList           = require 'app/environment/machineslist'
 ResourceMachineItem    = require './resourcemachineitem'
@@ -27,6 +28,8 @@ module.exports = class ResourceListItem extends kd.ListItemView
     resource = @getData()
     delegate = @getDelegate()
 
+    { computeController } = kd.singletons
+
     @details = new kd.CustomHTMLView
       cssClass : 'hidden'
 
@@ -41,6 +44,15 @@ module.exports = class ResourceListItem extends kd.ListItemView
       items : (new Machine { machine } for machine in @getData().machines)
 
     @details.addSubView controller.getView()
+
+    @details.addSubView new kd.ButtonView
+      title    : 'Delete'
+      cssClass : 'solid small red fr'
+      callback : ->
+        computeController.ui.askFor 'forceDeleteStack', {}, (status) ->
+          return  unless status.confirmed
+          resource.forceDelete (err) ->
+            delegate.emit 'ReloadItems'  unless showError err
 
     @ownerView = new AvatarView {
       size: { width: 25, height: 25 }
