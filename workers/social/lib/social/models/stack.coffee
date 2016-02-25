@@ -45,6 +45,8 @@ module.exports = class JComputeStack extends jraphical.Module
       instance           :
         delete           :
           (signature Function)
+        forceDelete      :
+          (signature Function)
         destroy          :
           (signature Function)
         modify           :
@@ -346,9 +348,9 @@ module.exports = class JComputeStack extends jraphical.Module
             @unuseStackTemplate callback
 
 
-  delete: (callback) ->
+  delete: (callback, force = no) ->
 
-    if @baseStackId
+    if @baseStackId and not force
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
@@ -378,6 +380,20 @@ module.exports = class JComputeStack extends jraphical.Module
       @destroy => @remove callback
 
 
+  forceDelete: permit
+
+    advanced: [
+      { permission: 'delete stack' }
+      { permission: 'delete stack', superadmin: yes }
+    ]
+
+    success: (client, callback) ->
+
+      @unuseStackTemplate (err) =>
+        return callback err  if err
+        @delete callback, force = yes
+
+
   delete$: permit
 
     # TODO Add password check for stack delete
@@ -395,6 +411,7 @@ module.exports = class JComputeStack extends jraphical.Module
   destroy$: permit
 
     advanced: [
+      { permission: 'delete stack' }
       { permission: 'delete own stack', validateWith: Validators.own }
     ]
 
