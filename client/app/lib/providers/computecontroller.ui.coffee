@@ -244,6 +244,24 @@ module.exports = class ComputeController_UI
             workspaces, VMs and anything provided by this stack.</p>
           "
           button  : "Proceed"
+        forceDeleteStack :
+          title   : "Delete Stack data?"
+          message : "
+            <p>If you choose to proceed, all the meta data and related
+            informations for this stack will be removed from Koding.</p>
+
+            <p><strong>
+              WARNING! This action won't destroy created resources in your
+              stack provider, you need to cleanup those resources
+              (such as VMs, domains, security groups etc.) manually.
+            </strong></p>
+
+            <p>With this action you'll remove all the connection between
+            this stack on Koding and related resources on stack provider.</p>
+
+            <p>Do you want to continue?</p>
+          "
+          button  : "Proceed"
         reinitNoSnapshot :
           title   : "Cannot proceed with reinitialization!"
           message : "
