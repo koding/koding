@@ -290,6 +290,9 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 // MkDir creates new directory inside specified parent directory. It returns
 // `fuse.EEXIST` if a file or directory already exists with specified name.
 //
+// Note: `mkdir` command checks if directory exists before calling this method,
+// so you won't see the error from here if you're using `mkdir`.
+//
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 	dir, err := k.getDir(ctx, op.Parent)
@@ -349,10 +352,17 @@ func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) erro
 	// save new entry to live nodes
 	k.setEntry(newEntry.GetID(), newEntry)
 
+	if r, ok := trace.FromContext(ctx); ok {
+		r.LazyPrintf("moved from %s", oldEntry.ToString())
+		r.LazyPrintf("moved to %s", newEntry.ToString())
+	}
+
 	return nil
 }
 
 // RmDir deletes a directory from remote and list of live nodes.
+//
+// Note: `rm -r` calls Unlink method on each directory entry.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
@@ -515,7 +525,7 @@ func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp
 	}
 
 	if r, ok := trace.FromContext(ctx); ok {
-		r.LazyPrintf("Flushing file:%s sized:%d", file.Name, len(file.Content))
+		r.LazyPrintf("flushing file=%s sized=%d", file.Name, len(file.Content))
 	}
 
 	return file.Flush()
@@ -547,12 +557,16 @@ func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) erro
 		return err
 	}
 
+	if r, ok := trace.FromContext(ctx); ok {
+		r.LazyPrintf("removed %s", entry.ToString())
+	}
+
 	k.deleteEntry(entry.GetID())
 
 	return nil
 }
 
-// StatFS is currently not implemented.
+// StatFS sets filesystem metadata.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
@@ -566,14 +580,18 @@ func (k *KodingNetworkFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) erro
 	return nil
 }
 
+// ReleaseFileHandle releases file handle. It does not return errors even if it
+// fails since this op doesn't affect anything.
+//
+// Required for fuse.FileSystem.
 func (k *KodingNetworkFS) ReleaseFileHandle(ctx context.Context, op *fuseops.ReleaseFileHandleOp) error {
 	file, err := k.getFileByHandle(ctx, op.Handle)
 	if err != nil {
-		return err
+		return nil
 	}
 
 	if err := file.Reset(); err != nil {
-		return err
+		return nil
 	}
 
 	k.deleteEntryByHandle(op.Handle)
@@ -624,7 +642,7 @@ func (k *KodingNetworkFS) getEntry(ctx context.Context, id fuseops.InodeID) (Nod
 	}
 
 	if r, ok := trace.FromContext(ctx); ok {
-		r.LazyPrintf("entry: %s", entry.ToString())
+		r.LazyPrintf(entry.ToString())
 	}
 
 	return entry, nil
