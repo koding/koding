@@ -176,7 +176,7 @@ func fuseMountFolder(m *Mount, c *kite.Client) error {
 		NoIgnore:       m.NoIgnore,
 		NoPrefetchMeta: m.NoPrefetchMeta,
 		NoWatch:        m.NoWatch,
-		Debug:          true,
+		Debug:          true, // turn on debug permanently till v1
 	}
 
 	f, err := fuseklient.New(t, cf)
