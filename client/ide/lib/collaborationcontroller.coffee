@@ -156,7 +156,8 @@ module.exports = CollaborationController =
     }
 
     # Check collaboration sessions of participant.
-    # If participant has 2 or more active collaboration sessions,  don't remove access from machine
+    # If participant has 2 or more active collaboration sessions, don't remove
+    # access from machine
     envHelpers.isUserStillParticipantOnMachine options, (status) =>
       @removeParticipantFromMachine username  unless status
 
@@ -402,7 +403,9 @@ module.exports = CollaborationController =
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
 
-      @setParticipantPermission nickname  if @amIHost
+      if @amIHost
+        @setParticipantPermission nickname
+        @setMachineUser [nickname]
 
 
   channelMessageAdded: (message) ->
