@@ -45,8 +45,8 @@ module.exports = class JComputeStack extends jraphical.Module
       instance           :
         delete           :
           (signature Function)
-        forceDelete      :
-          (signature Function)
+        maintenance      :
+          (signature Object, Function)
         destroy          :
           (signature Function)
         modify           :
@@ -354,8 +354,6 @@ module.exports = class JComputeStack extends jraphical.Module
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
-    return callback err  if err
-
     @update { $set: { status: { state: 'Destroying' } } }
 
     JProposedDomain  = require './domain'
@@ -378,18 +376,24 @@ module.exports = class JComputeStack extends jraphical.Module
     @destroy => @remove callback
 
 
-  forceDelete: permit
+  maintenance: permit
 
     advanced: [
       { permission: 'delete stack' }
       { permission: 'delete stack', superadmin: yes }
     ]
 
-    success: (client, callback) ->
+    success: (client, options, callback) ->
 
-      @unuseStackTemplate (err) =>
-        return callback err  if err
-        @delete callback, force = yes
+      if options.destroyStack
+
+        @unuseStackTemplate (err) =>
+          return callback err  if err
+          @delete callback, force = yes
+
+      else
+
+        callback new KodingError 'Please provide a vaild maintenance mode'
 
 
   delete$: permit
