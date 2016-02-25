@@ -1,4 +1,5 @@
 kd                     = require 'kd'
+globals                = require 'globals'
 nick                   = require 'app/util/nick'
 CustomLinkView         = require 'app/customlinkview'
 HelpSupportModal       = require 'app/commonviews/helpsupportmodal'
@@ -43,6 +44,33 @@ module.exports = class IDEStatusBar extends kd.View
       title    : 'END SESSION'
       cssClass : 'compact solid red end-session'
       callback : @bound 'handleSessionEnd'
+
+    @addSubView @collaborationLinkContainer = new kd.CustomHTMLView
+      cssClass: 'collaboration-link-container'
+
+    superKey = if globals.os is 'mac' then '⌘' else 'CTRL'
+
+    @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
+      cssClass : 'collaboration-link'
+      partial  : ''
+      click    : ->
+        link = @getElement()
+        @utils.selectText link
+
+        try
+          copied = document.execCommand 'copy'
+          throw "couldn't copy"  unless copied
+          tooltipPartial = 'Copied to clipboard!'
+        catch
+          tooltipPartial = "Hit #{superKey} + C to copy!"
+
+        @setTooltip
+          title     : tooltipPartial
+          placement : 'above'
+          sticky    : yes
+        @tooltip.show()
+        @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'destroy'
+
 
     @addSubView new kd.CustomHTMLView
       tagName  : 'i'
@@ -193,6 +221,8 @@ module.exports = class IDEStatusBar extends kd.View
     @share.updatePartial 'Share'
     @avatars.destroySubViews()
 
+    @updateCollaborationLink ''
+
     @status.show()
     @collaborationStatus.hide()
     @collaborationEndButtonContainer.setClass 'hidden'
@@ -200,7 +230,7 @@ module.exports = class IDEStatusBar extends kd.View
     @participantAvatars = {}
 
 
-  handleCollaborationStarted: ->
+  handleCollaborationStarted: (options) ->
 
     @share.setClass      'active'
     @share.unsetClass    'loading'
@@ -210,9 +240,16 @@ module.exports = class IDEStatusBar extends kd.View
     @status.hide()
     @collaborationStatus.show()
 
+    @updateCollaborationLink options.collaborationLink
+
     unless @amIHost_()
       @collaborationEndButton.setTitle 'LEAVE SESSION'
       @collaborationStatus.setClass 'participant'
+
+
+  updateCollaborationLink: (collaborationLink) ->
+
+    @collaborationLink.updatePartial collaborationLink
 
 
   showSessionEndButton: ->
