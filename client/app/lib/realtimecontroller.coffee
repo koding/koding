@@ -347,13 +347,6 @@ module.exports = class RealtimeController extends KDController
 
       @eventCache[eventId] = yes
 
-
-    # when a user is connected in two browsers, and leaves a channel, in second one
-    # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
-    # user from all connected devices.
-    if eventName is 'RemovedFromChannel' and body.accountId is whoami().socialApiId
-      return @unsubscribeChannel message.channel
-
     # no need to emit any events when not subscribed
     return  unless @channels[channel]
 
@@ -375,6 +368,12 @@ module.exports = class RealtimeController extends KDController
     return  unless @channels[instanceChannel]
 
     @channels[instanceChannel].emit eventName, body
+
+    # when a user is connected in two browsers, and leaves a channel, in second one
+    # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
+    # user from all connected devices.
+    if eventName is 'RemovedFromChannel' and body.accountId is whoami().socialApiId
+      return @unsubscribeChannel message.channel
 
 
   handleError: (err) ->
