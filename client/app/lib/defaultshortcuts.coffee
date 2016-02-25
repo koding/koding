@@ -7,10 +7,6 @@ workspace = workspace.map (obj) ->
   obj.options = global: true
   return obj
 
-activity = activity.map (obj) ->
-  obj.options = global: true
-  return obj
-
 editor = editor.map (obj) ->
   obj.options = custom: true
   return obj
@@ -23,5 +19,4 @@ editorHidden = editorHidden.map (obj) ->
 editor = editor.concat editorHidden
 
 exports.workspace = title: 'Workspace', data: workspace
-exports.activity  = title: 'Activity Feed', data: activity
 exports.editor    = title: 'Editor', data: editor
