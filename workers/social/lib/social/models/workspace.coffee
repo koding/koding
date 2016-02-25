@@ -177,19 +177,18 @@ module.exports = class JWorkspace extends Module
 
     JWorkspace.one selector, (err, ws) ->
       return callback err  if err?
-      unless ws
-        callback new KodingError 'Workspace not found.'
-      else
-        ws.remove (err) ->
-          return callback err  if err
-          options =
-            uid      : ws.machineUId
-            nickname : delegate.profile.nickname
-            workspace: ws
-            eventName: 'WorkspaceRemoved'
-            group    : client?.context?.group
+      return callback new KodingError 'Workspace not found.'  unless ws
 
-          notifyUsers options, callback
+      ws.remove (err) ->
+        return callback err  if err
+        options =
+          uid      : ws.machineUId
+          nickname : delegate.profile.nickname
+          workspace: ws
+          eventName: 'WorkspaceRemoved'
+          group    : client?.context?.group
+
+        notifyUsers options, callback
 
 
   @deleteByUid = secure (client, uid, callback) ->
