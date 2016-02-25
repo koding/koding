@@ -43,6 +43,11 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @details.addSubView controller.getView()
 
     @details.addSubView new kd.ButtonView
+      title    : 'Request Destroy'
+      cssClass : 'solid small red fr'
+      callback : @bound 'handleDestroy'
+
+    @details.addSubView new kd.ButtonView
       title    : 'Delete'
       cssClass : 'solid small red fr'
       callback : @bound 'handleDelete'
@@ -50,6 +55,28 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @ownerView = new AvatarView {
       size: { width: 25, height: 25 }
     }, resource.owner
+
+
+  handleDestroy: ->
+
+    resource              = @getData()
+    delegate              = @getDelegate()
+    { computeController } = kd.singletons
+
+    computeController.ui.askFor 'deleteStack', {}, (status) ->
+      return  unless status.confirmed
+
+      resource.maintenance prepareForDestroy: yes, (err) ->
+        return  if showError err
+
+        computeController.destroyStack resource, (err) ->
+          return  if showError err
+
+          # FIXME ~GG this reload mechanism needs to be
+          #           replaced with auto instance update instead
+          delegate.emit 'ReloadItems'
+          computeController.once "stateChanged-#{resource._id}", ->
+            delegate.emit 'ReloadItems'
 
 
   handleDelete: ->
