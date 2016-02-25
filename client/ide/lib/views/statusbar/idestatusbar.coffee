@@ -1,16 +1,13 @@
 kd                     = require 'kd'
 nick                   = require 'app/util/nick'
-KDView                 = kd.View
-KDButtonView           = kd.ButtonView
 CustomLinkView         = require 'app/customlinkview'
-KDCustomHTMLView       = kd.CustomHTMLView
 HelpSupportModal       = require 'app/commonviews/helpsupportmodal'
 IDEStatusBarAvatarView = require './idestatusbaravatarview'
 isSoloProductLite      = require 'app/util/issoloproductlite'
 isPlanFree             = require 'app/util/isPlanFree'
 isKoding               = require 'app/util/isKoding'
 
-module.exports = class IDEStatusBar extends KDView
+module.exports = class IDEStatusBar extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -32,27 +29,27 @@ module.exports = class IDEStatusBar extends KDView
 
     { mainController, router, appManager } = kd.singletons
 
-    @addSubView @status = new KDCustomHTMLView cssClass : 'status'
+    @addSubView @status = new kd.CustomHTMLView cssClass : 'status'
 
-    @addSubView @collaborationStatus = new KDCustomHTMLView
+    @addSubView @collaborationStatus = new kd.CustomHTMLView
       cssClass: 'hidden collab-status'
       partial : 'Collaboration session is <span>active</span><i></i>'
       click   : (e) => @toggleSessionEndButton()  if e.target.tagName is 'SPAN'
 
-    @collaborationStatus.addSubView @collaborationEndButtonContainer = new KDCustomHTMLView
+    @collaborationStatus.addSubView @collaborationEndButtonContainer = new kd.CustomHTMLView
       cssClass : 'button-container hidden'
 
-    @collaborationEndButtonContainer.addSubView @collaborationEndButton = new KDButtonView
+    @collaborationEndButtonContainer.addSubView @collaborationEndButton = new kd.ButtonView
       title    : 'END SESSION'
       cssClass : 'compact solid red end-session'
       callback : @bound 'handleSessionEnd'
 
-    @addSubView new KDCustomHTMLView
+    @addSubView new kd.CustomHTMLView
       tagName  : 'i'
       cssClass : 'icon help'
       click    : -> new HelpSupportModal
 
-    @addSubView new KDCustomHTMLView
+    @addSubView new kd.CustomHTMLView
       tagName  : 'i'
       cssClass : 'icon shortcuts'
       click    : (event) =>
@@ -76,7 +73,7 @@ module.exports = class IDEStatusBar extends KDView
         isPlanFree (err, isFree) =>
           return  if err
           if isFree
-            @share = new KDCustomHTMLView { cssClass: 'hidden' }
+            @share = new kd.CustomHTMLView { cssClass: 'hidden' }
             @addSubView @share
           else
             @addSubView @share
@@ -85,7 +82,7 @@ module.exports = class IDEStatusBar extends KDView
     else
       @addSubView @share
 
-    @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr hidden'
+    @addSubView @avatars = new kd.CustomHTMLView cssClass : 'avatars fr hidden'
 
     mainController.isFeatureDisabled 'collaboration', (collabDisabled) =>
       @_collabDisable = collabDisabled
