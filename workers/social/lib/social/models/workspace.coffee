@@ -116,6 +116,7 @@ module.exports = class JWorkspace extends Module
     JMachine.one { uid }, (err, machine) ->
 
       return callback err  if err
+      return callback new KodingError 'Machine not found.'  unless machine
 
       users = machine.users.filter (user) -> user.username isnt nickname
       users = users.map (user) -> user.username
