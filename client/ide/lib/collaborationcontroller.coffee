@@ -905,6 +905,8 @@ module.exports = CollaborationController =
 
     @showChatPane()
 
+    @bindAutoInviteHandlers()
+
     @transitionViewsToActive()
     @collectButtonShownMetric()
     @bindRealtimeEvents()
@@ -928,6 +930,25 @@ module.exports = CollaborationController =
     if openFolders and not @amIHost
       for path in openFolders
         @finderPane.finderController.expandFolder path
+
+
+  bindAutoInviteHandlers: ->
+
+    {actions} = require 'activity/flux'
+
+    kd.singletons.notificationController.on 'notificationFromOtherAccount', (notification) ->
+      switch notification.action
+        when 'COLLABORATION_REQUEST'
+
+          return if notification.id isnt channel.id
+
+          {channelId, senderUserId, senderAccountId, sender} = notification
+
+          actions.channel.addParticipants(channelId, [senderAccountId], [senderUserId]).then ->
+            whoami().pushNotification
+              receiver  : sender
+              channelId : channelId
+              action    : 'COLLABORATION_REQUEST_ACCEPT'
 
 
   transitionViewsToActive: ->
