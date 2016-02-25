@@ -3,6 +3,7 @@ remote    = require('app/remote').getInstance()
 showError = require 'app/util/showError'
 
 AccountListViewController = require 'account/controllers/accountlistviewcontroller'
+{ yamlToJson }            = require 'stacks/views/stacks/yamlutils'
 
 
 module.exports = class ResourceListController extends AccountListViewController
@@ -60,16 +61,20 @@ module.exports = class ResourceListController extends AccountListViewController
     options.limit ?= @getOption 'limit'
     options.sort   = '_id' : -1
 
+    if query
+      inJson = yamlToJson query
+      query  = inJson.contentObject  unless inJson.err
+
+    query = { searchFor: query }  if typeof query is 'string'
+
     group = groupsController.getCurrentGroup()
-    group.fetchResources query, options, (err, resources) =>
+    group.fetchResources query ? {}, options, (err, resources) =>
 
       if err
         @hideLazyLoader()
-        showError err, \
-          KodingError : "Failed to fetch data, try again later."
-        return
-
-      callback err, resources
+        showError err, KodingError: "Failed to fetch data, try again later."
+      else
+        callback err, resources
 
 
   loadItems: (query) ->
