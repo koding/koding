@@ -142,17 +142,19 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
 requestCollaboration = ({nickname, channelId})->
 
-  whoami().pushNotification
-    receiver: nickname
-    channelId: channelId
-    action: 'COLLABORATION_REQUEST'
-    senderUserId: whoami()._id
-    senderAccountId: whoami().socialApiId
-  , (err) ->
-    # FIXME: better error message
-    return new kd.NotificationView title: 'There is an error'  if err
+  kd.singletons.mainController.ready ->
 
-    new kd.NotificationView title: 'Collaboration request sent.'
-    kd.singletons.router.back()
+    whoami().pushNotification
+      receiver: nickname
+      channelId: channelId
+      action: 'COLLABORATION_REQUEST'
+      senderUserId: whoami()._id
+      senderAccountId: whoami().socialApiId
+    , (err) ->
+      # FIXME: better error message
+      return new kd.NotificationView title: 'There is an error'  if err
+
+      new kd.NotificationView title: 'Collaboration request sent.'
+      kd.singletons.router.back()
 
 
