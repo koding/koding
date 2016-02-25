@@ -26,9 +26,6 @@ module.exports = class ResourceListItem extends kd.ListItemView
       click    : @getDelegate().lazyBound 'toggleDetails', this
 
     resource = @getData()
-    delegate = @getDelegate()
-
-    { computeController } = kd.singletons
 
     @details = new kd.CustomHTMLView
       cssClass : 'hidden'
@@ -48,15 +45,23 @@ module.exports = class ResourceListItem extends kd.ListItemView
     @details.addSubView new kd.ButtonView
       title    : 'Delete'
       cssClass : 'solid small red fr'
-      callback : ->
-        computeController.ui.askFor 'forceDeleteStack', {}, (status) ->
-          return  unless status.confirmed
-          resource.forceDelete (err) ->
-            delegate.emit 'ReloadItems'  unless showError err
+      callback : @bound 'handleDelete'
 
     @ownerView = new AvatarView {
       size: { width: 25, height: 25 }
     }, resource.owner
+
+
+  handleDelete: ->
+
+    resource              = @getData()
+    delegate              = @getDelegate()
+    { computeController } = kd.singletons
+
+    computeController.ui.askFor 'forceDeleteStack', {}, (status) ->
+      return  unless status.confirmed
+      resource.maintenance destroyStack: yes,  (err) ->
+        delegate.emit 'ReloadItems'  unless showError err
 
 
   toggleDetails: ->
