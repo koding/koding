@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 
 	"github.com/koding/logging"
+	"github.com/leeola/service"
 )
 
 type Options struct {
@@ -35,11 +37,23 @@ type Command struct {
 	// called.
 	KlientOptions klient.KlientOptions
 
+	// A struct that provides functionality for starting and stopping klient
+	KlientService interface {
+		Start() error
+		Stop() error
+		IsKlientRunning() bool
+	}
+
 	// the following vars exist primarily for mocking ability, and ensuring
 	// an enclosed environment within the struct.
 
 	// The ctlcli Helper. See the type docs for a better understanding of this.
 	Helper ctlcli.Helper
+
+	// Due to the service not being packaged currently, we have to be provided with
+	// a constructor function to create a preconfigured service. We'll use that,
+	// to create our proper KlientService.
+	ServiceConstructor func() (service.Service, error)
 }
 
 // Help prints help to the caller.
@@ -68,13 +82,19 @@ func (c *Command) Run() (int, error) {
 		return 1, err
 	}
 
-	if err := c.initDefaultRepairers(); err != nil {
+	if err := c.initService(); err != nil {
 		return 2, err
 	}
 
-	if err := c.runRepairers(); err != nil {
+	if err := c.initDefaultRepairers(); err != nil {
 		return 3, err
 	}
+
+	if err := c.runRepairers(); err != nil {
+		return 4, err
+	}
+
+	c.printfln("Everything looks healthy")
 
 	return 0, nil
 }
@@ -89,6 +109,35 @@ func (c *Command) handleOptions() error {
 	return nil
 }
 
+// initService creates our KlientService if it is nil.
+//
+// TODO: The creation of KlientService can be cleaned up a lot once the klientctl
+// config is properly packaged. When that happens we can access whatever config
+// variables we need, and won't need the service constructor.
+func (c *Command) initService() error {
+	if c.KlientService != nil {
+		return nil
+	}
+
+	if c.ServiceConstructor == nil {
+		return errors.New("Unable to create KlientService. Both KlientService and ServiceConstructor are nil.")
+	}
+
+	service, err := c.ServiceConstructor()
+	if err != nil {
+		return fmt.Errorf("Unable to create Service instance. err:%s", err)
+	}
+
+	c.KlientService = &klient.KlientService{
+		Service:       service,
+		KlientAddress: c.KlientOptions.Address,
+		PauseInterval: time.Second,
+		MaxAttempts:   10,
+	}
+
+	return nil
+}
+
 // initDefaultRepairers creates the repairers for this Command if the
 // Command.Repairers field is *nil*. This allows a caller can specify their own
 // repairers if desired.
@@ -97,7 +146,14 @@ func (c *Command) initDefaultRepairers() error {
 		return nil
 	}
 
-	return errors.New("Not implemented")
+	c.Repairers = []Repairer{
+		&KlientRunningRepair{
+			KlientOptions: c.KlientOptions,
+			KlientService: c.KlientService,
+		},
+	}
+
+	return nil
 }
 
 // runRepairers executes the given repairers. First running Statuses, and then

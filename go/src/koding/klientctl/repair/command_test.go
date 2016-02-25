@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/klientctl/util/testutil"
 	"testing"
 
 	"github.com/koding/logging"
@@ -47,10 +48,11 @@ func TestRepairCommandRun(t *testing.T) {
 			Options: Options{
 				MountName: "foo",
 			},
-			Log:       discardLogger,
-			Stdout:    &stdout,
-			Helper:    func(w io.Writer) { fmt.Fprintln(w, "help called") },
-			Repairers: []Repairer{repairerA, repairerB},
+			Log:           discardLogger,
+			Stdout:        &stdout,
+			Helper:        func(w io.Writer) { fmt.Fprintln(w, "help called") },
+			Repairers:     []Repairer{repairerA, repairerB},
+			KlientService: &testutil.FakeService{},
 		}
 
 		Convey("It should call all of the repairers status, but not Repair", func() {
@@ -74,10 +76,11 @@ func TestRepairCommandRun(t *testing.T) {
 			Options: Options{
 				MountName: "foo",
 			},
-			Log:       discardLogger,
-			Stdout:    &stdout,
-			Helper:    func(w io.Writer) { fmt.Fprintln(w, "help called") },
-			Repairers: []Repairer{repairerA, repairerB, repairerC},
+			Log:           discardLogger,
+			Stdout:        &stdout,
+			Helper:        func(w io.Writer) { fmt.Fprintln(w, "help called") },
+			Repairers:     []Repairer{repairerA, repairerB, repairerC},
+			KlientService: &testutil.FakeService{},
 		}
 
 		Convey("It should call all of the repairers status, and repair the status that fails", func() {

@@ -89,5 +89,8 @@ func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ct
 		Log:           log,
 		KlientOptions: NewKlientOptions(),
 		Helper:        ctlcli.CommandHelper(c, cmdName),
+		// Used to create our KlientService instance. Really needs to be improved in
+		// the future, once it has proper access to a config package
+		ServiceConstructor: newService,
 	}
 }
