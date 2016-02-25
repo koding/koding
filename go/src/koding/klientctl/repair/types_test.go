@@ -12,12 +12,8 @@ type fakeRepairer struct {
 	RepairFailUntil int
 }
 
-func (r *fakeRepairer) Name() string {
+func (r *fakeRepairer) String() string {
 	return "fakerepairer"
-}
-
-func (r *fakeRepairer) Description() string {
-	return "Fake Repairer"
 }
 
 func (r *fakeRepairer) Status() (bool, error) {

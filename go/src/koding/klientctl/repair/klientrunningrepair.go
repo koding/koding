@@ -22,14 +22,8 @@ type KlientRunningRepair struct {
 	}
 }
 
-func (r *KlientRunningRepair) Name() string {
+func (r *KlientRunningRepair) String() string {
 	return "klientrunningrepair"
-}
-
-func (r *KlientRunningRepair) Description() string {
-	// TODO: Use the config values, once they are packaged properly. We currently
-	// don't have access to them, due to them being in main pkg.
-	return "KD Service"
 }
 
 // Status checks if the klient is running via the Klient Service, as well as

@@ -147,15 +147,31 @@ func (c *Command) initDefaultRepairers() error {
 		return nil
 	}
 
-	c.Repairers = []Repairer{
-		&KlientRunningRepair{
-			KlientOptions: c.KlientOptions,
-			KlientService: c.KlientService,
-			Exec: &exec.CommandRun{
-				Stdin:  c.Stdin,
-				Stdout: c.Stdout,
-			},
+	// Our internet repairer retries status many times, until it finally gives up.
+	internetRepair := &InternetRepair{
+		Stdout:               c.Stdout,
+		InternetConfirmAddrs: DefaultInternetConfirmAddrs,
+		HTTPTimeout:          time.Second,
+		RetryOpts: RetryOptions{
+			StatusRetries: 10,
+			StatusDelay:   1 * time.Second,
 		},
+	}
+
+	// The klient running repairer, will check if klient is running and connectable,
+	// and restart it if not.
+	klientRunningRepair := &KlientRunningRepair{
+		KlientOptions: c.KlientOptions,
+		KlientService: c.KlientService,
+		Exec: &exec.CommandRun{
+			Stdin:  c.Stdin,
+			Stdout: c.Stdout,
+		},
+	}
+
+	c.Repairers = []Repairer{
+		internetRepair,
+		klientRunningRepair,
 	}
 
 	return nil
@@ -180,19 +196,14 @@ func (c *Command) runRepairers() error {
 			continue
 		}
 
-		// TODO: Improve this message, and move it to a package.
-		c.printfln("Identified problem with the %s", r.Description())
-
 		c.Log.Warning(
 			"Repairer returned a non-ok status. Running its repair. repairer:%s, err:%s",
-			r.Name(), err,
+			r, err,
 		)
 
 		err = r.Repair()
 		if err != nil {
-			c.Log.Error("Repairer failed to repair. repairer:%s, err:%s", r.Name(), err)
-			// TODO: Improve this message, and move it to a package.
-			c.printfln("Unable to repair the %s", r.Description())
+			c.Log.Error("Repairer failed to repair. repairer:%s, err:%s", r, err)
 			return err
 		}
 	}
