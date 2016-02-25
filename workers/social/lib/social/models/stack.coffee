@@ -354,30 +354,28 @@ module.exports = class JComputeStack extends jraphical.Module
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
-    @fetchGroup (err, group) =>
+    return callback err  if err
 
-      return callback err  if err
+    @update { $set: { status: { state: 'Destroying' } } }
 
-      @update { $set: { status: { state: 'Destroying' } } }
+    JProposedDomain  = require './domain'
+    JMachine = require './computeproviders/machine'
 
-      JProposedDomain  = require './domain'
-      JMachine = require './computeproviders/machine'
+    @domains?.forEach (_id) ->
+      JProposedDomain.one { _id }, (err, domain) ->
+        if not err? and domain?
+          domain.remove (err) ->
+            if err then console.error \
+              "Failed to remove domain: #{domain.domain}", err
 
-      @domains?.forEach (_id) ->
-        JProposedDomain.one { _id }, (err, domain) ->
-          if not err? and domain?
-            domain.remove (err) ->
-              if err then console.error \
-                "Failed to remove domain: #{domain.domain}", err
+    @machines?.forEach (_id) ->
+      JMachine.one { _id }, (err, machine) ->
+        if not err? and machine?
+          machine.remove (err) ->
+            if err then console.error \
+              "Failed to remove machine: #{machine.title}", err
 
-      @machines?.forEach (_id) ->
-        JMachine.one { _id }, (err, machine) ->
-          if not err? and machine?
-            machine.remove (err) ->
-              if err then console.error \
-                "Failed to remove machine: #{machine.title}", err
-
-      @destroy => @remove callback
+    @destroy => @remove callback
 
 
   forceDelete: permit
