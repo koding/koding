@@ -8,6 +8,7 @@ import (
 
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
+	"koding/klientctl/util/exec"
 
 	"github.com/koding/logging"
 	"github.com/leeola/service"
@@ -150,6 +151,10 @@ func (c *Command) initDefaultRepairers() error {
 		&KlientRunningRepair{
 			KlientOptions: c.KlientOptions,
 			KlientService: c.KlientService,
+			Exec: &exec.CommandRun{
+				Stdin:  c.Stdin,
+				Stdout: c.Stdout,
+			},
 		},
 	}
 
