@@ -935,20 +935,26 @@ module.exports = CollaborationController =
   bindAutoInviteHandlers: ->
 
     {actions} = require 'activity/flux'
+    {notificationController, mainController} = kd.singletons
 
-    kd.singletons.notificationController.on 'notificationFromOtherAccount', (notification) ->
-      switch notification.action
-        when 'COLLABORATION_REQUEST'
+    channel = @socialChannel
 
-          return if notification.id isnt channel.id
+    mainController.ready ->
+      notificationController.on 'notificationFromOtherAccount', (notification) ->
+        switch notification.action
+          when 'COLLABORATION_REQUEST'
 
-          {channelId, senderUserId, senderAccountId, sender} = notification
+            return if notification.channelId isnt channel.id
 
-          actions.channel.addParticipants(channelId, [senderAccountId], [senderUserId]).then ->
-            whoami().pushNotification
-              receiver  : sender
-              channelId : channelId
-              action    : 'COLLABORATION_REQUEST_ACCEPT'
+            {channelId, senderUserId, senderAccountId, sender} = notification
+            accountIds = [senderAccountId]
+
+            kd.singletons.socialapi.channel.addParticipants { channelId, accountIds }, (err) ->
+              return throwError err  if err
+              whoami().pushNotification
+                receiver  : sender
+                channelId : channelId
+                action    : 'COLLABORATION_REQUEST_ACCEPT'
 
 
   transitionViewsToActive: ->
