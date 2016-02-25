@@ -24,7 +24,7 @@ func NewTraceFS(k *KodingNetworkFS) *TraceFS {
 }
 
 func (t *TraceFS) Mount() (*fuse.MountedFileSystem, error) {
-	r := t.newTrace("Mount", "Path=%s", t.MountPath)
+	r, _ := t.newTrace(nil, "Mount", "Path=%s", t.MountPath)
 	defer r.Finish()
 
 	server := fuseutil.NewFileSystemServer(t)
@@ -40,7 +40,7 @@ func (t *TraceFS) Mount() (*fuse.MountedFileSystem, error) {
 }
 
 func (t *TraceFS) Unmount() error {
-	r := t.newTrace("Unmount", "Path=%s", t.MountPath)
+	r, _ := t.newTrace(nil, "Unmount", "Path=%s", t.MountPath)
 	defer r.Finish()
 
 	if err := t.KodingNetworkFS.Unmount(); err != nil {
@@ -54,10 +54,9 @@ func (t *TraceFS) Unmount() error {
 }
 
 func (t *TraceFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
-	r := t.newTrace("GetInodeAttributes", "ID=%d", op.Inode)
+	r, ctx := t.newTrace(ctx, "GetInodeAttributes", "ID=%d", op.Inode)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.GetInodeAttributes(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#GetInodeAttributes err:%s", err)
 		r.SetError()
@@ -65,19 +64,15 @@ func (t *TraceFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAt
 		return err
 	}
 
-	a := op.Attributes
-	r.LazyPrintf(
-		"res: size=%d, mode=%s atime=%s mtime=%s", a.Size, a.Mode, a.Atime, a.Mtime,
-	)
+	logAttrs(r, op.Attributes)
 
 	return nil
 }
 
 func (t *TraceFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
-	r := t.newTrace("LookUpInode", "ParentID=%d Name=%s", op.Parent, op.Name)
+	r, ctx := t.newTrace(ctx, "LookUpInode", "ParentID=%d Name=%s", op.Parent, op.Name)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.LookUpInode(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#LookUpInode err:%s", err)
 		r.SetError()
@@ -85,20 +80,15 @@ func (t *TraceFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) er
 		return err
 	}
 
-	e := op.Entry
-	a := e.Attributes
-	r.LazyPrintf(
-		"res: size=%d, mode=%s atime=%s mtime=%s", a.Size, a.Mode, a.Atime, a.Mtime,
-	)
+	logAttrs(r, op.Entry.Attributes)
 
 	return nil
 }
 
 func (t *TraceFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
-	r := t.newTrace("OpenDir", "ID=%d, HandleID=%d", op.Inode, op.Handle)
+	r, ctx := t.newTrace(ctx, "OpenDir", "ID=%d, HandleID=%d", op.Inode, op.Handle)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.OpenDir(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#OpenDir err:%s", err)
 		r.SetError()
@@ -110,10 +100,9 @@ func (t *TraceFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
 }
 
 func (t *TraceFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
-	r := t.newTrace("ReadDir", "ID=%d Offset=%d", op.Inode, op.Offset)
+	r, ctx := t.newTrace(ctx, "ReadDir", "ID=%d Offset=%d", op.Inode, op.Offset)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.ReadDir(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#ReadDir err:%s", err)
 		r.SetError()
@@ -127,10 +116,9 @@ func (t *TraceFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
 }
 
 func (t *TraceFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
-	r := t.newTrace("MkDir", "ParentID=%d Name=%s", op.Parent, op.Name)
+	r, ctx := t.newTrace(ctx, "MkDir", "ParentID=%d Name=%s", op.Parent, op.Name)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.MkDir(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#MkDir err:%s", err)
 		r.SetError()
@@ -138,20 +126,15 @@ func (t *TraceFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 		return err
 	}
 
-	e := op.Entry
-	a := e.Attributes
-	r.LazyPrintf(
-		"res: size=%d, mode=%s atime=%s mtime=%s", a.Size, a.Mode, a.Atime, a.Mtime,
-	)
+	logAttrs(r, op.Entry.Attributes)
 
 	return nil
 }
 
 func (t *TraceFS) Rename(ctx context.Context, op *fuseops.RenameOp) error {
-	r := t.newTrace("Rename", "Old=%v,%s New=%v,%s", op.OldParent, op.OldName, op.NewParent, op.NewName)
+	r, ctx := t.newTrace(ctx, "Rename", "Old=%v,%s New=%v,%s", op.OldParent, op.OldName, op.NewParent, op.NewName)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.Rename(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#Rename err:%s", err)
 		r.SetError()
@@ -163,10 +146,9 @@ func (t *TraceFS) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 }
 
 func (t *TraceFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
-	r := t.newTrace("RmDir", "Parent=%d Name=%s", op.Parent, op.Name)
+	r, ctx := t.newTrace(ctx, "RmDir", "Parent=%d Name=%s", op.Parent, op.Name)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.RmDir(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#RmDir err:%s", err)
 		r.SetError()
@@ -178,10 +160,9 @@ func (t *TraceFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
 }
 
 func (t *TraceFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) error {
-	r := t.newTrace("OpenFile", "ID=%v", op.Inode)
+	r, ctx := t.newTrace(ctx, "OpenFile", "ID=%v", op.Inode)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.OpenFile(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#OpenFile err:%s", err)
 		r.SetError()
@@ -195,10 +176,9 @@ func (t *TraceFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) error {
 }
 
 func (t *TraceFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
-	r := t.newTrace("ReadFile", "ID=%v Offset=%v", op.Inode, op.Offset)
+	r, ctx := t.newTrace(ctx, "ReadFile", "ID=%v Offset=%v", op.Inode, op.Offset)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.ReadFile(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#ReadFile err:%s", err)
 		r.SetError()
@@ -212,10 +192,9 @@ func (t *TraceFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
 }
 
 func (t *TraceFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
-	r := t.newTrace("WriteFile", "ID=%v DataLen=%v Offset=%v", op.Inode, len(op.Data), op.Offset)
+	r, ctx := t.newTrace(ctx, "WriteFile", "ID=%v DataLen=%v Offset=%v", op.Inode, len(op.Data), op.Offset)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.WriteFile(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#WriteFile err:%s", err)
 		r.SetError()
@@ -229,10 +208,9 @@ func (t *TraceFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error 
 }
 
 func (t *TraceFS) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) error {
-	r := t.newTrace("CreateFile", "Parent=%v Name=%s Mode=%s", op.Parent, op.Name, op.Mode)
+	r, ctx := t.newTrace(ctx, "CreateFile", "Parent=%v Name=%s Mode=%s", op.Parent, op.Name, op.Mode)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.CreateFile(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#CreateFile err:%s", err)
 		r.SetError()
@@ -240,20 +218,15 @@ func (t *TraceFS) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) erro
 		return err
 	}
 
-	e := op.Entry
-	a := e.Attributes
-	r.LazyPrintf(
-		"res: size=%d, mode=%s atime=%s mtime=%s", a.Size, a.Mode, a.Atime, a.Mtime,
-	)
+	logAttrs(r, op.Entry.Attributes)
 
 	return nil
 }
 
 func (t *TraceFS) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) error {
-	r := t.newTrace("SetInodeAttributes", "ID=%v Size=%d Mode=%s", op.Inode, op.Size, op.Mode)
+	r, ctx := t.newTrace(ctx, "SetInodeAttributes", "ID=%v Size=%d Mode=%s", op.Inode, op.Size, op.Mode)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.SetInodeAttributes(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#SetInodeAttributes err:%s", err)
 		r.SetError()
@@ -269,10 +242,9 @@ func (t *TraceFS) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAt
 }
 
 func (t *TraceFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) error {
-	r := t.newTrace("FlushFile", "ID=%d Handle=%d", op.Inode, op.Handle)
+	r, ctx := t.newTrace(ctx, "FlushFile", "ID=%d Handle=%d", op.Inode, op.Handle)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.FlushFile(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#FlushFile err:%s", err)
 		r.SetError()
@@ -284,10 +256,9 @@ func (t *TraceFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) error 
 }
 
 func (t *TraceFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
-	r := t.newTrace("SyncFile", "ID=%v Handle=%v", op.Inode, op.Handle)
+	r, ctx := t.newTrace(ctx, "SyncFile", "ID=%v Handle=%v", op.Inode, op.Handle)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.SyncFile(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#SyncFile err:%s", err)
 		r.SetError()
@@ -299,10 +270,9 @@ func (t *TraceFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
 }
 
 func (t *TraceFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
-	r := t.newTrace("Unlink", "Parent=%v Name=%s", op.Parent, op.Name)
+	r, ctx := t.newTrace(ctx, "Unlink", "Parent=%v Name=%s", op.Parent, op.Name)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.Unlink(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#Unlink err:%s", err)
 		r.SetError()
@@ -314,10 +284,9 @@ func (t *TraceFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 }
 
 func (t *TraceFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
-	r := t.newTrace("StatFS", "")
+	r, ctx := t.newTrace(ctx, "StatFS", "")
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.StatFS(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#StatFS err:%s", err)
 		r.SetError()
@@ -334,10 +303,9 @@ func (t *TraceFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 }
 
 func (t *TraceFS) ReleaseFileHandle(ctx context.Context, op *fuseops.ReleaseFileHandleOp) error {
-	r := t.newTrace("ReleaseFileHandle", "Handle=%v", op.Handle)
+	r, ctx := t.newTrace(ctx, "ReleaseFileHandle", "Handle=%v", op.Handle)
 	defer r.Finish()
 
-	ctx = trace.NewContext(ctx, r)
 	if err := t.KodingNetworkFS.ReleaseFileHandle(ctx, op); err != nil {
 		r.LazyPrintf("KodingNetworkFS#ReleaseFileHandle err:%s", err)
 		r.SetError()
@@ -348,15 +316,31 @@ func (t *TraceFS) ReleaseFileHandle(ctx context.Context, op *fuseops.ReleaseFile
 	return nil
 }
 
-func (t *TraceFS) newTrace(name, ft string, args ...interface{}) trace.Trace {
-	argsFmt := fmt.Sprintf(ft, args...)
+///// Helpers
 
+///// trace helpers
+
+func (t *TraceFS) newTrace(ctx context.Context, name, ft string, args ...interface{}) (trace.Trace, context.Context) {
+	argsFmt := fmt.Sprintf(ft, args...)
 	v := fmt.Sprintf("%s-%s %s", t.Id, t.MountConfig.FSName, argsFmt)
 
-	return trace.New(name, v)
+	if ctx == nil {
+		ctx = context.TODO()
+	}
+
+	r := trace.New(name, v)
+	ctx = trace.NewContext(ctx, r)
+
+	return r, ctx
 }
 
-///// Helpers
+func logAttrs(r trace.Trace, a fuseops.InodeAttributes) {
+	r.LazyPrintf(
+		"res: size=%d, mode=%s atime=%s mtime=%s", a.Size, a.Mode, a.Atime, a.Mtime,
+	)
+}
+
+// random string generator
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
