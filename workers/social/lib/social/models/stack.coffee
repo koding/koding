@@ -391,6 +391,16 @@ module.exports = class JComputeStack extends jraphical.Module
           return callback err  if err
           @delete callback, force = yes
 
+      else if options.prepareForDestroy
+
+        JMachine = require './computeproviders/machine'
+
+        queue = []
+        @machines?.forEach (_id) -> queue.push (next) ->
+          JMachine.update { _id }, { $set: { users: [] } }, next
+
+        async.series queue, callback
+
       else
 
         callback new KodingError 'Please provide a vaild maintenance mode'
