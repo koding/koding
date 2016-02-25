@@ -57,9 +57,11 @@ module.exports = class CredentialListItem extends kd.ListItemView
   setVerified: (state, reason) ->
 
     if state
+      @unsetClass 'failed'
       @warningView.hide()
       @getDelegate().emit 'ItemSelected', this
     else
+      @setClass 'failed'
       @warningView.updatePartial if reason
         "Failed to verify: #{reason}"
       else

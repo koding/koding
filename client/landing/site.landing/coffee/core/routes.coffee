@@ -13,17 +13,21 @@ do ->
     { router } = kd.singletons
     { groupName, group, environment } = kd.config
 
-    # root is home if group is koding
+    # root is team selector if group is koding
+    # meaning we're in the parent domain
+    # this works for http://koding.com
     if groupName is 'koding'
       return router.handleRoute '/Teams'
 
+    # this works for invalid teams like http://<non-existing-team>.koding.com
     # if there is no such group take user to group creation with given group info
     if not group
-      newUrl = "http://#{location.host.replace(groupName + '.', '')}/Teams?group=#{groupName}"
+      newUrl = "http://#{location.host.replace(groupName + '.', '')}/Teams/Create?group=#{groupName}"
       return location.replace newUrl
 
-    # if there is a group then take user to group login page
     else
+    # this works for valid teams like http://<existing-team>.koding.com
+    # if there is a group then take user to group login page
       return router.openSection 'Team', null, null, (app) -> app.jumpTo 'login'
 
 
