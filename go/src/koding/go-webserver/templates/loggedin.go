@@ -59,6 +59,9 @@ var LoggedInHome = `
     </script>
     <script type="text/javascript">
       var _hsq = window._hsq = window._hsq || [];
+      _hsq.push(["identify",{
+        email: '{{.User.GetWithDefaultStr "UserEmail" }}'
+      }]);
       (function(d,s,i,r) {
         if (d.getElementById(i)){return;}
           var n=d.createElement(s),e=d.getElementsByTagName(s)[0];
