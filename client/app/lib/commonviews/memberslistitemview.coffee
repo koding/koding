@@ -1,8 +1,6 @@
-whoami = require '../util/whoami'
 kd = require 'kd'
 KDListItemView = kd.ListItemView
 AvatarView = require './avatarviews/avatarview'
-JCustomHTMLView = require '../jcustomhtmlview'
 ProfileLinkView = require './linkviews/profilelinkview'
 
 

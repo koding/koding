@@ -1,5 +1,4 @@
-kd                    = require 'kd'
-SidebarMoreLink       = require './sidebarmorelink'
+SidebarMoreLink = require './sidebarmorelink'
 
 
 module.exports = class ChannelSidebarMoreLink extends SidebarMoreLink
