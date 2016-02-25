@@ -1,8 +1,9 @@
 kd                  = require 'kd'
-KDCustomHTMLView    = kd.CustomHTMLView
-KDLoaderView        = kd.LoaderView
-KDTabView           = kd.TabView
 KDView              = kd.View
+KDTabView           = kd.TabView
+KDLoaderView        = kd.LoaderView
+KDCustomHTMLView    = kd.CustomHTMLView
+
 CustomLinkView      = require 'app/customlinkview'
 IDEChatMessagePane  = require './idechatmessagepane'
 IDEChatSettingsPane = require './idechatsettingspane'
