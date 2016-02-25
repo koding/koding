@@ -275,15 +275,14 @@ module.exports = class MainView extends KDView
           'Take me back' :
             style : 'solid red medium'
             callback : (event) ->
-              window.isSoloProduct = no
-              kookies.set 'isSoloProduct', no
+              kookies.set 'isRegistrationClosed', no
               window.location.reload()
               modal.destroy()
           'Continue with new version':
             style : 'solid green medium'
             callback : (event) ->
               modal.destroy()
-              console.log 'CLose'
+              console.log 'Close'
 
     @mainTabView = new MainTabView
       domId               : 'main-tab-view'
