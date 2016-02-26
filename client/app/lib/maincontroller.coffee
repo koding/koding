@@ -46,6 +46,7 @@ MachineShareManager            = require './machinesharemanager'
 KodingFluxReactor              = require './flux/base/reactor'
 DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
+setRegistrationCookie          = require 'app/util/setregistrationcookie'
 
 
 module.exports = class MainController extends KDController
@@ -79,7 +80,8 @@ module.exports = class MainController extends KDController
     @detectIdleUser()
     @setTeamCookie()
 
-    kookies.set 'isRegistrationClosed', yes  if not kookies.get 'isRegistrationClosed'
+    @setRegistrationClosed()
+
 
   createSingletons:->
 
@@ -153,6 +155,10 @@ module.exports = class MainController extends KDController
 
     return no
 
+
+  setRegistrationClosed: ->
+
+    setRegistrationCookie no  unless kookies.get 'isRegistrationClosed'
 
 
   accountChanged: (account, firstLoad = no)->

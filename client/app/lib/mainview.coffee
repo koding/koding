@@ -275,7 +275,7 @@ module.exports = class MainView extends KDView
           'Take me back' :
             style : 'solid red medium'
             callback : (event) ->
-              kookies.set 'isRegistrationClosed', no
+              setRegistrationCookie no
               window.location.reload()
               modal.destroy()
           'Continue with new version':
