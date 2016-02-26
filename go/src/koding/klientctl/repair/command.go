@@ -210,10 +210,23 @@ func (c *Command) initDefaultRepairers() error {
 		},
 	}
 
+	// Development In progress
+	//// The remote machine repairer will check if we're connected to the remote kite,
+	//// and attempt to wait for it. Eventually remounting if needed.
+	//remoteMachineRepair := &RemoteMachineRepair{
+	//	Stdout: c.Stdout,
+	//	Klient: c.Klient,
+	//	RetryOptions: RetryOptions{
+	//		StatusRetries: 5,
+	//		StatusDelay:   3 * time.Second,
+	//	},
+	//}
+
 	c.Repairers = []Repairer{
 		internetRepair,
 		klientRunningRepair,
 		kontrolRepair,
+		//remoteMachineRepair,
 	}
 
 	return nil

@@ -1,6 +1,17 @@
 package req
 
-import "time"
+import (
+	"koding/klient/remote/rsync"
+	"time"
+)
+
+type StatusItem int
+
+const (
+	EveryStatus StatusItem = iota
+	KontrolStatus
+	MachineStatus
+)
 
 // MountFolder is the request struct for remote.mountFolder method.
 type MountFolder struct {
@@ -58,19 +69,16 @@ type Cache struct {
 
 type Status struct {
 	// Item is the name of the thing you want
-	Item StatusItem
+	Item StatusItem `json:"item"`
 
-	// MountName is the mount name to query. This is only used if Section is
-	// "mount", or if Section is left empty (to run all status).
-	MountName string
+	// MachineName is the machine name to query the status of.
+	MachineName string `json:"machineName"`
 }
 
-type StatusItem int
-
-const (
-	EveryStatus StatusItem = iota
-	KontrolStatus
-)
+type MountInfo struct {
+	// MountName is the mount name to get info on.
+	MountName string `json:"mountName"`
+}
 
 func (i StatusItem) String() string {
 	switch i {
@@ -78,7 +86,17 @@ func (i StatusItem) String() string {
 		return "EveryStatus"
 	case KontrolStatus:
 		return "KontrolStatus"
+	case MachineStatus:
+		return "MachineStatus"
 	default:
 		return "UnknownStatus"
 	}
+}
+
+type MountInfoResponse struct {
+	// Embedded mountfolder fields
+	MountFolder
+
+	// Used for prefetch / cache.
+	SyncIntervalOpts rsync.SyncIntervalOpts
 }
