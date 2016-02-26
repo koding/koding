@@ -32,6 +32,8 @@ module.exports = class ResourceListItem extends kd.ListItemView
 
     listView          = new MachinesList
       itemClass       : ResourceMachineItem
+      itemOptions     : { stack: resource }
+
     controller        = new MachinesListController
       view            : listView
       wrapper         : no
