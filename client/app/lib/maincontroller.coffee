@@ -80,7 +80,8 @@ module.exports = class MainController extends KDController
     @detectIdleUser()
     @setTeamCookie()
 
-    @setRegistrationClosed()
+    # this call should be activated when we decide to switch solo product-hakan
+    # @setRegistrationClosed()
 
 
   createSingletons:->
@@ -158,7 +159,7 @@ module.exports = class MainController extends KDController
 
   setRegistrationClosed: ->
 
-    setRegistrationCookie no  unless kookies.get 'isRegistrationClosed'
+    setRegistrationCookie yes  unless kookies.get 'isRegistrationClosed'
 
 
   accountChanged: (account, firstLoad = no)->

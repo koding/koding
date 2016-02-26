@@ -1,3 +1,5 @@
 kookies = require 'kookies'
 
-module.exports = -> yes if kookies.get('isRegistrationClosed') is 'true'
+module.exports = isSoloProductLite =  ->
+
+  return if kookies.get('isRegistrationClosed') is 'true'
