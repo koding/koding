@@ -96,7 +96,10 @@ pre
           margin            4px 0 0 2px
           font-size         13px
           text-transform    capitalize
+          width             100%
+          ellipsis()
           dIBlock()
+
         a
           vendor            transition, width .3s ease
 
@@ -151,6 +154,9 @@ pre
 
     &.collapsed
       #main-sidebar
+        .Sidebar-logo-wrapper
+          hidden()
+
         &.team
           .logo-wrapper.group
             > a
