@@ -385,6 +385,9 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, options, callback) ->
 
+      if client.context.group isnt @getAt 'group'
+        return callback new KodingError 'Access denied'
+
       if options.destroyStack
 
         @unuseStackTemplate (err) =>

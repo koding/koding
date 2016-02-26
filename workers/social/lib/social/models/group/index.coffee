@@ -969,6 +969,9 @@ module.exports = class JGroup extends Module
 
       [selector, options, callback] = Module.limitEdges 10, 19, rest
 
+      if client.context.group isnt @getAt 'slug'
+        return callback new KodingError 'Access denied'
+
       if selector.searchFor?
         selector.title = ///#{selector.searchFor}///
         delete selector.searchFor
