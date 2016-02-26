@@ -19,7 +19,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestKodingNetworkFS1(t *testing.T) {
+func TestKodingNetworkFS(t *testing.T) {
 	k := newknfs(nil)
 	if _, err := k.Mount(); err != nil {
 		t.Fatal(err)
@@ -30,7 +30,23 @@ func TestKodingNetworkFS1(t *testing.T) {
 	fusetest.RunAllTests(t, k.MountPath)
 }
 
-func TestKodingNetworkFS(tt *testing.T) {
+func TestKodingNetworkFSPrefetch(t *testing.T) {
+	tt, err := newCachedTransport()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	k := newknfs(tt)
+	if _, err := k.Mount(); err != nil {
+		t.Fatal(err)
+	}
+
+	defer _unmount(k)
+
+	fusetest.RunAllTests(t, k.MountPath)
+}
+
+func TestKodingNetworkFSAdditional(tt *testing.T) {
 	Convey("fuse.FileSystem", tt, func() {
 		Convey("It should implement all interface methods", func() {
 			var _ fuseutil.FileSystem = (*KodingNetworkFS)(nil)
@@ -336,20 +352,8 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	}
 
 	if t == nil {
-		remoteDir, err := ioutil.TempDir("", "mounttest_remote")
-		if err != nil {
+		if t, err = newRemoteTransport(); err != nil {
 			panic(err)
-		}
-
-		client, err := newKlientClient()
-		if err != nil {
-			panic(err)
-		}
-
-		t = &transport.RemoteTransport{
-			Client:      client,
-			RemotePath:  remoteDir,
-			TellTimeout: 4 * time.Second,
 		}
 	}
 
@@ -364,4 +368,45 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	}
 
 	return k
+}
+
+func newCachedTransport() (*transport.RemoteOrCacheTransport, error) {
+	rt, err := newRemoteTransport()
+	if err != nil {
+		return nil, err
+	}
+
+	dt, err := newDiskTransport()
+	if err != nil {
+		return nil, err
+	}
+
+	return transport.NewRemoteOrCacheTransport(rt, dt), nil
+}
+
+func newRemoteTransport() (*transport.RemoteTransport, error) {
+	remoteDir, err := ioutil.TempDir("", "mounttest_remote")
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := newKlientClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return &transport.RemoteTransport{
+		Client:      client,
+		RemotePath:  remoteDir,
+		TellTimeout: 4 * time.Second,
+	}, nil
+}
+
+func newDiskTransport() (*transport.DiskTransport, error) {
+	cacheDir, err := ioutil.TempDir("", "mounttest_cache")
+	if err != nil {
+		return nil, err
+	}
+
+	return transport.NewDiskTransport(cacheDir)
 }
