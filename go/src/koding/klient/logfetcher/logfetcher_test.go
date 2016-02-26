@@ -2,9 +2,12 @@ package logfetcher
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -59,6 +62,22 @@ func createTestFiles() error {
 	return nil
 }
 
+func makeTempAndCopy(copyFrom string) (dir, path string, err error) {
+	tmpDir, err := ioutil.TempDir("", "logfetcher")
+	if err != nil {
+		return "", "", err
+	}
+
+	tmpFile := filepath.Join(tmpDir, "file")
+
+	// Create a new file for testing, so we can test offsetting and watching.
+	if err := testutil.FileCopy(copyFrom, tmpFile); err != nil {
+		return "", "", err
+	}
+
+	return tmpDir, tmpFile, nil
+}
+
 func TestTail(t *testing.T) {
 	if err := createTestFiles(); err != nil {
 		t.Fatal(err)
@@ -67,7 +86,6 @@ func TestTail(t *testing.T) {
 	defer os.Remove(testfile2)
 
 	var watchCount int
-
 	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
 		watchCount++
@@ -209,5 +227,142 @@ func TestMultipleTail(t *testing.T) {
 
 	if currentWatchLen+2 != len(watchResult) {
 		t.Errorf("WatchFunc2 is not triggered, got %d should have %d", len(watchResult), currentWatchLen+2)
+	}
+}
+
+func TestTailOffset(t *testing.T) {
+	tmpDir, tmpFile, err := makeTempAndCopy("testdata/testfile1.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Read the last 3 lines of the file.
+	offset := 3
+
+	var watchCount int
+	watchResult := []string{}
+	watchFunc := dnode.Callback(func(r *dnode.Partial) {
+		watchCount++
+		line := r.One().MustString()
+		watchResult = append(watchResult, line)
+	})
+
+	_, err = remote.Tell("tail", &Request{
+		Path:       tmpFile,
+		Watch:      watchFunc,
+		LineOffset: offset,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Write some data to file
+	file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file.WriteString("DataA\n")
+	file.WriteString("DataB\n")
+	file.Close()
+
+	fmt.Println("....Waiting for the results..")
+	time.Sleep(time.Second * 5)
+
+	// Read the file, and get the offset lines to compare against.
+	sourceText, err := ioutil.ReadFile(tmpFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// wait so the watch function picked up the tail changes
+	offsetLines := strings.Split(strings.TrimSpace(string(sourceText)), "\n")
+	// Adding 2 to the offset, because we want to get
+	// the offset lines + our additions.
+	offsetLines = offsetLines[len(offsetLines)-(offset+2):]
+	if !reflect.DeepEqual(offsetLines, watchResult) {
+		t.Errorf(
+			"\nWatchFunc should callback with offset lines.\nWant: %#v\nGot : %#v\n",
+			offsetLines, watchResult,
+		)
+	}
+
+	if watchCount != offset+2 {
+		t.Errorf(
+			"WatchFunc should be called for each offsetline, and any new writes.\nWanted %d calls, Got %d calls",
+			offset+2, watchCount,
+		)
+	}
+}
+
+func TestGetOffsetLines(t *testing.T) {
+	// Create a new file for testing, so we can test offsetting and watching.
+	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(testfile1)
+
+	// Read the file, and get the offset lines to compare against.
+	sourceText, err := ioutil.ReadFile(testfile1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sourceLines := strings.Split(strings.TrimSpace(string(sourceText)), "\n")
+
+	// Open our file, to pass to the func
+	file1, err := os.Open(testfile1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file1.Close()
+
+	offset := 3
+	result, err := getOffsetLines(file1, offset)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := sourceLines[len(sourceLines)-offset:]
+	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"\nIt should return offset lines.\nWant: %#v\nGot : %#v\n",
+			expected, result,
+		)
+	}
+
+	// Set the offset to the entire file.
+	offset = len(sourceLines) + 1
+	result, err = getOffsetLines(file1, offset)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected = sourceLines
+	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"\nIt should return all the lines, if offset is larger than total.\nWant: %#v\nGot : %#v\n",
+			expected, result,
+		)
+	}
+
+	// Create the 2nd test file to be empty (Create truncates by default)
+	file2, err := os.Create(testfile2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println("Requesting empty lines")
+	offset = 3
+	result, err = getOffsetLines(file2, offset)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected = []string{}
+	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"\nIt should callback with no lines.\nWant: %#v\nGot : %#v\n",
+			expected, result,
+		)
 	}
 }

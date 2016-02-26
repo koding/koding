@@ -4,6 +4,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"io"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/koding/kite"
@@ -13,8 +17,27 @@ import (
 )
 
 type Request struct {
-	Path  string
+	// Path is the path that log.tail will read from.
+	Path string
+
+	// Watch is a callback, to be given file data based on the log.tail configuration.
 	Watch dnode.Function
+
+	// Offset is the number of characters to return *relative to the end of file*! It
+	// allows for behavior similar to `tail -fn X <path>`. The number should be
+	// positive.
+
+	// If an offset is provided, read the specified lines from the end of the file
+	// return them to the callback.
+	//
+	// This is done separately from the tail watcher due to how the watchers are
+	// shared among callbacks by path. To keep this optimization, we simply
+	// read what we need from the file before subscribing this to the watcher.
+	//
+	// Note that this can inherently create race conditions in the form of missing
+	// or duplicated lines between the file read and the log tail watcher, but
+	// that is an acceptable compromise given the existing optimizations.
+	LineOffset int
 }
 
 type PathTail struct {
@@ -43,6 +66,27 @@ func Tail(r *kite.Request) (interface{}, error) {
 
 	// unique ID for each new connection
 	clientId := randomStringLength(16)
+
+	// If an offset is specified, read the line offset and give it to the caller.
+	// For a more detailed explanation about why we are doing it this way, see
+	// the LineOffset docstring.
+	if params.LineOffset > 0 {
+		f, err := os.OpenFile(params.Path, os.O_RDONLY, 0600)
+		if err != nil {
+			return nil, err
+		}
+
+		lines, err := getOffsetLines(f, params.LineOffset)
+		f.Close()
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, line := range lines {
+			params.Watch.Call(line)
+		}
+	}
 
 	tailedMu.Lock()
 	p, ok := tailedFiles[params.Path]
@@ -127,6 +171,84 @@ func Tail(r *kite.Request) (interface{}, error) {
 	})
 
 	return true, nil
+}
+
+func getOffsetLines(f *os.File, requestedLines int) ([]string, error) {
+	var (
+		newLineChar   = byte('\n')
+		foundNewLines int
+		offset        int64
+		start         int64
+		// the byte slice that we read into
+		b   = make([]byte, 1)
+		err error
+	)
+
+	// Before we start looping, seek with an offset of zero, to identify if the
+	// file has contents. If the start is zero, and we offset with zero,
+	// then the start is the same as the end. Empty file, nothing we can do.
+	start, err = f.Seek(0, 2)
+	if err != nil {
+		return nil, fmt.Errorf("getOffsetLines: Failed to seek. err:%s", err)
+	}
+	if start == 0 {
+		return []string{}, nil
+	}
+
+	// Loop through the file, looking for all of our newlines.
+	for foundNewLines < requestedLines {
+		offset--
+
+		start, err = f.Seek(offset, 2)
+		if err != nil {
+			return nil, fmt.Errorf("getOffsetLines: Failed to seek newline. err:%s", err)
+		}
+
+		// if we're at the start of the file, we can't find anymore newlines. Return
+		// what we have.
+		if start == 0 {
+			break
+		}
+
+		_, err = f.ReadAt(b, start)
+		if err != nil {
+			return nil, fmt.Errorf("getOffsetLines: Failed to read newline. err:%s", err)
+		}
+
+		// If the char is a newline, and not at the very end of the file, record the
+		// newline count. For a further explanation about why we aren't counting
+		// the last newline on the file, see the docstring here we trim the last
+		// element of the bytes array.
+		if b[0] == newLineChar && offset != -1 {
+			foundNewLines++
+		}
+	}
+
+	// Make offset positive, because the total chars offset is the total chars we want
+	// to read.
+	matchedCharLen := offset * -1
+	b = make([]byte, matchedCharLen)
+	_, err = f.ReadAt(b, start)
+	if err != nil && err != io.EOF {
+		return nil, fmt.Errorf("getOffsetLines: Failed to read lines. err:%s", err)
+	}
+
+	// If the last char of the file was a newline, the last element in the lines
+	// slice will be empty. To keep a consistent UX with the way tail library
+	// returns newlines, we should trim this char.
+	if b[len(b)-1] == newLineChar {
+		b = b[:len(b)-1]
+	}
+
+	lines := strings.Split(string(b), string(newLineChar))
+
+	// If we are not at the beginning of the file, then the first character is a
+	// newline, one more line than the user requested. So trim that off.
+	if start > 0 {
+		return lines[1:], nil
+	}
+
+	return lines, nil
 }
 
 // randomStringLength is used to generate a session_id.
