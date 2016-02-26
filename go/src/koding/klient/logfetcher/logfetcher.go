@@ -51,6 +51,10 @@ func Tail(r *kite.Request) (interface{}, error) {
 		t, err := tail.TailFile(params.Path, tail.Config{
 			Follow:    true,
 			MustExist: true,
+			Location: &tail.SeekInfo{
+				Offset: 0,
+				Whence: 2, // Relative to the end of file.
+			},
 		})
 		if err != nil {
 			return nil, err

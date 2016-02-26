@@ -2,11 +2,9 @@ package logfetcher
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
@@ -23,15 +21,6 @@ var (
 	testfile1 = "testdata/testfile1.txt.tmp"
 	testfile2 = "testdata/testfile2.txt.tmp"
 )
-
-func init() {
-	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
-		panic(err)
-	}
-	if err := testutil.FileCopy("testdata/testfile2.txt", testfile2); err != nil {
-		panic(err)
-	}
-}
 
 func init() {
 	lf := kite.New("logfetcher", "0.0.1")
@@ -59,19 +48,34 @@ func init() {
 	}
 }
 
+func createTestFiles() error {
+	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
+		return err
+	}
+	if err := testutil.FileCopy("testdata/testfile2.txt", testfile2); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func TestTail(t *testing.T) {
-	initialText, err := ioutil.ReadFile(testfile1)
-	if err != nil {
+	if err := createTestFiles(); err != nil {
 		t.Fatal(err)
 	}
+	defer os.Remove(testfile1)
+	defer os.Remove(testfile2)
+
+	var watchCount int
 
 	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
+		watchCount++
 		line := r.One().MustString()
 		watchResult = append(watchResult, line)
 	})
 
-	_, err = remote.Tell("tail", &Request{
+	_, err := remote.Tell("tail", &Request{
 		Path:  testfile1,
 		Watch: watchFunc,
 	})
@@ -82,9 +86,20 @@ func TestTail(t *testing.T) {
 	fmt.Println("Waiting for the results..")
 	time.Sleep(time.Second * 1)
 
-	lines := strings.Split(strings.TrimSpace(string(initialText)), "\n")
-	if !reflect.DeepEqual(lines, watchResult) {
-		t.Errorf("\nWant: %v\nGot : %v\n", lines, watchResult)
+	// Should return empty by default, since no new lines were given.
+	if !reflect.DeepEqual([]string{}, watchResult) {
+		t.Errorf(
+			"\nWatchFunc should not be called for pre-existing lines.\nWant: %#v\nGot : %#v\n",
+			[]string{}, watchResult,
+		)
+	}
+
+	// Should not have called watcher at all
+	if watchCount != 0 {
+		t.Errorf(
+			"\nWatchFunc should not be called for pre-existing lines.\nWanted %d calls, Got %d calls",
+			0, watchCount,
+		)
 	}
 
 	file, err := os.OpenFile(testfile1, os.O_APPEND|os.O_WRONLY, 0600)
@@ -96,21 +111,27 @@ func TestTail(t *testing.T) {
 	file.WriteString("Tail3\n")
 	file.Close()
 
-	modifiedText, err := ioutil.ReadFile(testfile1)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	// wait so the watch function picked up the tail changes
 	time.Sleep(time.Second * 1)
 
-	modifiedLines := strings.Split(strings.TrimSpace(string(modifiedText)), "\n")
+	modifiedLines := []string{"Tail2", "Tail3"}
 	if !reflect.DeepEqual(modifiedLines, watchResult) {
-		t.Errorf("\nWant: %v\nGot : %v\n", modifiedLines, watchResult)
+		t.Errorf(
+			"\nWatchFunc should not be called for pre-existing lines.\nWant: %#v\nGot : %#v\n",
+			modifiedLines, watchResult,
+		)
 	}
 }
 
+// TestMultipleTail compares two log.tail calls on a single file, and ensures that
+// they both receive the same input.
 func TestMultipleTail(t *testing.T) {
+	if err := createTestFiles(); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(testfile1)
+	defer os.Remove(testfile2)
+
 	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
 		line := r.One().MustString()
