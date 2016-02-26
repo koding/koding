@@ -94,7 +94,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       switch paneType
         when 'editor'
           tabHandle.enableContextMenu()
-          tabHandle.on 'RenamingRequested', (newTitle) => pane.view.file.emit 'FilePathChanged', newTitle
+          tabHandle.on 'RenamingRequested', (newTitle) =>
+            pane.view.file.rename newTitle, (err)=>
+              if err then @notify null, null, err
+              @emit 'NodeRenamed', pane.view.file, newTitle
+
+              pane.view.file.emit 'FilePathChanged', newTitle
           tabHandle.makeEditable()
 
         when 'terminal'
@@ -287,6 +292,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       ace.on 'FindAndReplaceViewRequested', (withReplaceMode) ->
         appManager.tell 'IDE', 'showFindReplaceView', withReplaceMode
+
+      editorPane.once 'CloseRequested', =>
+        @tabView.removePane editorPane.parent
 
       ace.editor.scrollToRow 0
       editorPane.goToLine 1

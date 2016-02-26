@@ -95,9 +95,10 @@ module.exports = class IDEEditorPane extends IDEPane
       ace.ready @bound 'makeReadOnly'
 
 
-  updateFilePath: (name)->
+  updateFilePath: (name) ->
 
     ace = @getAce()
+    parentPath     = @file.getOptions().parentPath
     deleteFilePath = @file.getOptions().path
 
     [ node ] = @file.treeController.selectedNodes
@@ -106,20 +107,21 @@ module.exports = class IDEEditorPane extends IDEPane
     contents          = ace.getContents()
     oldCursorPosition = ace.editor.getCursorPosition()
     @file.machine     = parent.machine
-    parent.path       = @file.getOptions().parentPath
-
-    @file.emit 'file.requests.saveAs', contents, name, parent.path
+    parent.path       = parentPath
 
     @file.path = deleteFilePath
+
+    path = parentPath + '/' + name
+    newFile = FSHelper.createFileInstance { path, machine: parent.machine }
+
+    { tabView } = @getDelegate()
+
+    return  if tabView.willClose
+
+    @emit 'CloseRequested'
+    @getDelegate().openSavedFile newFile, contents
+
     @file.remove kd.noop
-
-    @file.once 'fs.saveAs.finished', (newFile) =>
-
-      { tabView } = @getDelegate()
-
-      return  if tabView.willClose
-
-      @getDelegate().openSavedFile newFile, contents
 
 
   bindFileSyncEvents: ->
