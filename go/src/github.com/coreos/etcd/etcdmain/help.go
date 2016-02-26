@@ -14,6 +14,8 @@
 
 package etcdmain
 
+import "strconv"
+
 var (
 	usageline = `usage: etcd [flags]
        start an etcd server
@@ -43,6 +45,10 @@ member flags:
 		list of URLs to listen on for peer traffic.
 	--listen-client-urls 'http://localhost:2379,http://localhost:4001'
 		list of URLs to listen on for client traffic.
+	--max-snapshots '` + strconv.Itoa(defaultMaxSnapshots) + `'
+		maximum number of snapshot files to retain (0 is unlimited).
+	--max-wals '` + strconv.Itoa(defaultMaxWALs) + `'
+		maximum number of wal files to retain (0 is unlimited).
 	-cors ''
 		comma-separated whitelist of origins for CORS (cross-origin resource sharing).
 
@@ -57,6 +63,7 @@ clustering flags:
 		initial cluster state ('new' or 'existing').
 	--initial-cluster-token 'etcd-cluster'
 		initial cluster token for the etcd cluster during bootstrap.
+		Specifying this can protect you from unintended cross-cluster interaction when running multiple clusters.
 	--advertise-client-urls 'http://localhost:2379,http://localhost:4001'
 		list of this member's client URLs to advertise to the public.
 		The client URLs advertised should be accessible to machines that talk to etcd cluster. etcd client libraries parse these URLs to connect to the cluster.
@@ -115,7 +122,7 @@ logging flags
 	--debug 'false'
 		enable debug-level logging for etcd.
 	--log-package-levels ''
-		set individual packages to various log levels (eg: 'etcdmain=CRITICAL,etcdserver=DEBUG')
+		specify a particular log level for each etcd package (eg: 'etcdmain=CRITICAL,etcdserver=DEBUG').
 
 unsafe flags:
 
@@ -129,6 +136,12 @@ given by the consensus protocol.
 experimental flags:
 
 	--experimental-v3demo 'false'
-		enable experimental v3 demo API
+		enable experimental v3 demo API.
+	--experimental-gRPC-addr '127.0.0.1:2378'
+		gRPC address for experimental v3 demo API.
+
+profiling flags:
+	--enable-pprof 'false'
+		Enable runtime profiling data via HTTP server. Address is at client URL + "/debug/pprof"
 `
 )

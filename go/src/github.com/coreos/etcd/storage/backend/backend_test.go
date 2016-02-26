@@ -16,28 +16,15 @@ package backend
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
-	"path"
 	"testing"
 	"time"
 
 	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/boltdb/bolt"
-	"github.com/coreos/etcd/pkg/testutil"
 )
 
-var tmpPath string
-
-func init() {
-	dir, err := ioutil.TempDir(os.TempDir(), "etcd_backend_test")
-	if err != nil {
-		log.Fatal(err)
-	}
-	tmpPath = path.Join(dir, "database")
-}
-
 func TestBackendClose(t *testing.T) {
-	b := newBackend(tmpPath, time.Hour, 10000)
+	b, tmpPath := NewTmpBackend(time.Hour, 10000)
 	defer os.Remove(tmpPath)
 
 	// check close could work
@@ -57,7 +44,7 @@ func TestBackendClose(t *testing.T) {
 }
 
 func TestBackendSnapshot(t *testing.T) {
-	b := New(tmpPath, time.Hour, 10000)
+	b, tmpPath := NewTmpBackend(time.Hour, 10000)
 	defer cleanup(b, tmpPath)
 
 	tx := b.BatchTx()
@@ -93,9 +80,12 @@ func TestBackendSnapshot(t *testing.T) {
 }
 
 func TestBackendBatchIntervalCommit(t *testing.T) {
-	// start backend with super short batch interval
-	b := newBackend(tmpPath, time.Nanosecond, 10000)
+	// start backend with super short batch interval so
+	// we do not need to wait long before commit to happen.
+	b, tmpPath := NewTmpBackend(time.Nanosecond, 10000)
 	defer cleanup(b, tmpPath)
+
+	pc := b.Commits()
 
 	tx := b.BatchTx()
 	tx.Lock()
@@ -103,11 +93,12 @@ func TestBackendBatchIntervalCommit(t *testing.T) {
 	tx.UnsafePut([]byte("test"), []byte("foo"), []byte("bar"))
 	tx.Unlock()
 
-	// give time for batch interval commit to happen
-	time.Sleep(time.Nanosecond)
-	testutil.WaitSchedule()
-	// give time for commit to finish, including possible disk IO
-	time.Sleep(50 * time.Millisecond)
+	for i := 0; i < 10; i++ {
+		if b.Commits() >= pc+1 {
+			break
+		}
+		time.Sleep(time.Duration(i*100) * time.Millisecond)
+	}
 
 	// check whether put happens via db view
 	b.db.View(func(tx *bolt.Tx) error {

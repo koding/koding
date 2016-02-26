@@ -18,11 +18,24 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
+	"io/ioutil"
 	"log"
+	"os"
+	"path"
 	"sync/atomic"
 	"time"
 
 	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/boltdb/bolt"
+)
+
+var (
+	defaultBatchLimit    = 10000
+	defaultBatchInterval = 100 * time.Millisecond
+
+	// InitialMmapSize is the initial size of the mmapped region. Setting this larger than
+	// the potential max db size can prevent writer from blocking reader.
+	// This only works for linux.
+	InitialMmapSize = 10 * 1024 * 1024 * 1024
 )
 
 type Backend interface {
@@ -38,7 +51,7 @@ type Backend interface {
 type Snapshot interface {
 	// Size gets the size of the snapshot.
 	Size() int64
-	// WriteTo writes the snapshot into the given writter.
+	// WriteTo writes the snapshot into the given writer.
 	WriteTo(w io.Writer) (n int64, err error)
 	// Close closes the snapshot.
 	Close() error
@@ -52,6 +65,9 @@ type backend struct {
 	batchTx       *batchTx
 	size          int64
 
+	// number of commits since start
+	commits int64
+
 	stopc chan struct{}
 	donec chan struct{}
 }
@@ -60,8 +76,12 @@ func New(path string, d time.Duration, limit int) Backend {
 	return newBackend(path, d, limit)
 }
 
+func NewDefaultBackend(path string) Backend {
+	return newBackend(path, defaultBatchInterval, defaultBatchLimit)
+}
+
 func newBackend(path string, d time.Duration, limit int) *backend {
-	db, err := bolt.Open(path, 0600, nil)
+	db, err := bolt.Open(path, 0600, boltOpenOptions)
 	if err != nil {
 		log.Panicf("backend: cannot open database at %s (%v)", path, err)
 	}
@@ -93,6 +113,7 @@ func (b *backend) ForceCommit() {
 }
 
 func (b *backend) Snapshot() Snapshot {
+	b.batchTx.Commit()
 	tx, err := b.db.Begin(false)
 	if err != nil {
 		log.Fatalf("storage: cannot begin tx (%s)", err)
@@ -149,6 +170,25 @@ func (b *backend) Close() error {
 	close(b.stopc)
 	<-b.donec
 	return b.db.Close()
+}
+
+// Commits returns total number of commits since start
+func (b *backend) Commits() int64 {
+	return atomic.LoadInt64(&b.commits)
+}
+
+// NewTmpBackend creates a backend implementation for testing.
+func NewTmpBackend(batchInterval time.Duration, batchLimit int) (*backend, string) {
+	dir, err := ioutil.TempDir(os.TempDir(), "etcd_backend_test")
+	if err != nil {
+		log.Fatal(err)
+	}
+	tmpPath := path.Join(dir, "database")
+	return newBackend(tmpPath, batchInterval, batchLimit), tmpPath
+}
+
+func NewDefaultTmpBackend() (*backend, string) {
+	return NewTmpBackend(defaultBatchInterval, defaultBatchLimit)
 }
 
 type snapshot struct {

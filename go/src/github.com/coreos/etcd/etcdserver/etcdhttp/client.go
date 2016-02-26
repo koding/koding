@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/pprof"
 	"net/url"
 	"path"
 	"strconv"
@@ -54,6 +55,7 @@ const (
 	healthPath               = "/health"
 	versionPath              = "/version"
 	configPath               = "/config"
+	pprofPrefix              = "/debug/pprof"
 )
 
 // NewClientHandler generates a muxed http.Handler with the given parameters to serve etcd client requests.
@@ -107,6 +109,23 @@ func NewClientHandler(server *etcdserver.EtcdServer, timeout time.Duration) http
 	mux.Handle(membersPrefix+"/", mh)
 	mux.Handle(deprecatedMachinesPrefix, dmh)
 	handleAuth(mux, sech)
+
+	if server.IsPprofEnabled() {
+		plog.Infof("pprof is enabled under %s", pprofPrefix)
+
+		mux.HandleFunc(pprofPrefix, pprof.Index)
+		mux.HandleFunc(pprofPrefix+"/profile", pprof.Profile)
+		mux.HandleFunc(pprofPrefix+"/symbol", pprof.Symbol)
+		mux.HandleFunc(pprofPrefix+"/cmdline", pprof.Cmdline)
+		// TODO: currently, we don't create an entry for pprof.Trace,
+		// because go 1.4 doesn't provide it. After support of go 1.4 is dropped,
+		// we should add the entry.
+
+		mux.Handle(pprofPrefix+"/heap", pprof.Handler("heap"))
+		mux.Handle(pprofPrefix+"/goroutine", pprof.Handler("goroutine"))
+		mux.Handle(pprofPrefix+"/threadcreate", pprof.Handler("threadcreate"))
+		mux.Handle(pprofPrefix+"/block", pprof.Handler("block"))
+	}
 
 	return requestLogger(mux)
 }
@@ -342,7 +361,7 @@ func serveVars(w http.ResponseWriter, r *http.Request) {
 }
 
 // TODO: change etcdserver to raft interface when we have it.
-//       add test for healthHeadler when we have the interface ready.
+//       add test for healthHandler when we have the interface ready.
 func healthHandler(server *etcdserver.EtcdServer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !allowMethod(w, r.Method, "GET") {
@@ -539,6 +558,34 @@ func parseKeyRequest(r *http.Request, clock clockwork.Clock) (etcdserverpb.Reque
 		pe = &bv
 	}
 
+	// refresh is nullable, so leave it null if not specified
+	var refresh *bool
+	if _, ok := r.Form["refresh"]; ok {
+		bv, err := getBool(r.Form, "refresh")
+		if err != nil {
+			return emptyReq, etcdErr.NewRequestError(
+				etcdErr.EcodeInvalidField,
+				"invalid value for refresh",
+			)
+		}
+		refresh = &bv
+		if refresh != nil && *refresh {
+			val := r.FormValue("value")
+			if _, ok := r.Form["value"]; ok && val != "" {
+				return emptyReq, etcdErr.NewRequestError(
+					etcdErr.EcodeRefreshValue,
+					`A value was provided on a refresh`,
+				)
+			}
+			if ttl == nil {
+				return emptyReq, etcdErr.NewRequestError(
+					etcdErr.EcodeRefreshTTLRequired,
+					`No TTL value set`,
+				)
+			}
+		}
+	}
+
 	rr := etcdserverpb.Request{
 		Method:    r.Method,
 		Path:      p,
@@ -557,6 +604,10 @@ func parseKeyRequest(r *http.Request, clock clockwork.Clock) (etcdserverpb.Reque
 
 	if pe != nil {
 		rr.PrevExist = pe
+	}
+
+	if refresh != nil {
+		rr.Refresh = refresh
 	}
 
 	// Null TTL is equivalent to unset Expiration
@@ -605,9 +656,9 @@ func writeKeyError(w http.ResponseWriter, err error) {
 	default:
 		switch err {
 		case etcdserver.ErrTimeoutDueToLeaderFail, etcdserver.ErrTimeoutDueToConnectionLost:
-			plog.Error(err)
+			mlog.MergeError(err)
 		default:
-			plog.Errorf("got unexpected response error (%v)", err)
+			mlog.MergeErrorf("got unexpected response error (%v)", err)
 		}
 		ee := etcdErr.NewError(etcdErr.EcodeRaftInternal, err.Error(), 0)
 		ee.WriteTo(w)

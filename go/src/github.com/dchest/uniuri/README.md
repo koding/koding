@@ -1,7 +1,7 @@
 Package uniuri
 =====================
 
-[![Build Status](https://travis-ci.org/dchest/uniuri.png)](https://travis-ci.org/dchest/uniuri)
+[![Build Status](https://travis-ci.org/dchest/uniuri.svg)](https://travis-ci.org/dchest/uniuri)
 
 ```go
 import "github.com/dchest/uniuri"
@@ -31,12 +31,13 @@ Constants
 
 ```go
 const (
-    // Standard length of uniuri string to achive ~95 bits of entropy.
-    StdLen = 16
-    // Length of uniurl string to achive ~119 bits of entropy, closest
-    // to what can be losslessly converted to UUIDv4 (122 bits).
-    UUIDLen = 20
+	// StdLen is a standard length of uniuri string to achive ~95 bits of entropy.
+	StdLen = 16
+	// UUIDLen is a length of uniuri string to achive ~119 bits of entropy, closest
+	// to what can be losslessly converted to UUIDv4 (122 bits).
+	UUIDLen = 20
 )
+
 ```
 
 
@@ -48,7 +49,8 @@ Variables
 var StdChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
 ```
 
-Standard characters allowed in uniuri string.
+
+StdChars is a set of standard characters allowed in uniuri string.
 
 
 Functions
@@ -80,4 +82,16 @@ func NewLenChars(length int, chars []byte) string
 
 NewLenChars returns a new random string of the provided length, consisting
 of the provided byte slice of allowed characters (maximum 256).
+
+
+
+Public domain dedication
+------------------------
+
+Written in 2011-2014 by Dmitry Chestnykh
+
+The author(s) have dedicated all copyright and related and
+neighboring rights to this software to the public domain
+worldwide. Distributed without any warranty.
+http://creativecommons.org/publicdomain/zero/1.0/
 

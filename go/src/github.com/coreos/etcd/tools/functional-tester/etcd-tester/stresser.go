@@ -16,6 +16,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math/rand"
 	"net"
 	"net/http"
@@ -23,8 +25,15 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
-	"github.com/coreos/etcd/client"
+	"github.com/coreos/etcd/Godeps/_workspace/src/google.golang.org/grpc"
+	"github.com/coreos/etcd/Godeps/_workspace/src/google.golang.org/grpc/grpclog"
+	clientV2 "github.com/coreos/etcd/client"
+	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 )
+
+func init() {
+	grpclog.SetLogger(log.New(ioutil.Discard, "", 0))
+}
 
 type Stresser interface {
 	// Stress starts to stress the etcd cluster
@@ -42,6 +51,81 @@ type stresser struct {
 	KeySuffixRange int
 
 	N int
+
+	mu     sync.Mutex
+	wg     *sync.WaitGroup
+	cancel func()
+	conn   *grpc.ClientConn
+
+	success int
+}
+
+func (s *stresser) Stress() error {
+	conn, err := grpc.Dial(s.Endpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
+	if err != nil {
+		return fmt.Errorf("%v (%s)", err, s.Endpoint)
+	}
+	defer conn.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	wg := &sync.WaitGroup{}
+	wg.Add(s.N)
+
+	s.mu.Lock()
+	s.conn = conn
+	s.cancel = cancel
+	s.wg = wg
+	s.mu.Unlock()
+
+	kvc := pb.NewKVClient(conn)
+
+	for i := 0; i < s.N; i++ {
+		go func(i int) {
+			defer wg.Done()
+			for {
+				putctx, putcancel := context.WithTimeout(ctx, 5*time.Second)
+				_, err := kvc.Put(putctx, &pb.PutRequest{
+					Key:   []byte(fmt.Sprintf("foo%d", rand.Intn(s.KeySuffixRange))),
+					Value: []byte(randStr(s.KeySize)),
+				})
+				putcancel()
+				if err != nil {
+					return
+				}
+				s.mu.Lock()
+				s.success++
+				s.mu.Unlock()
+			}
+		}(i)
+	}
+
+	<-ctx.Done()
+	return nil
+}
+
+func (s *stresser) Cancel() {
+	s.mu.Lock()
+	cancel, conn, wg := s.cancel, s.conn, s.wg
+	s.mu.Unlock()
+	cancel()
+	wg.Wait()
+	conn.Close()
+}
+
+func (s *stresser) Report() (int, int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	// TODO: find a better way to report v3 tests
+	return s.success, -1
+}
+
+type stresserV2 struct {
+	Endpoint string
+
+	KeySize        int
+	KeySuffixRange int
+
+	N int
 	// TODO: not implemented
 	Interval time.Duration
 
@@ -52,8 +136,8 @@ type stresser struct {
 	cancel func()
 }
 
-func (s *stresser) Stress() error {
-	cfg := client.Config{
+func (s *stresserV2) Stress() error {
+	cfg := clientV2.Config{
 		Endpoints: []string{s.Endpoint},
 		Transport: &http.Transport{
 			Dial: (&net.Dialer{
@@ -63,19 +147,19 @@ func (s *stresser) Stress() error {
 			MaxIdleConnsPerHost: s.N,
 		},
 	}
-	c, err := client.New(cfg)
+	c, err := clientV2.New(cfg)
 	if err != nil {
 		return err
 	}
 
-	kv := client.NewKeysAPI(c)
+	kv := clientV2.NewKeysAPI(c)
 	ctx, cancel := context.WithCancel(context.Background())
 	s.cancel = cancel
 
 	for i := 0; i < s.N; i++ {
 		go func() {
 			for {
-				setctx, setcancel := context.WithTimeout(ctx, time.Second)
+				setctx, setcancel := context.WithTimeout(ctx, clientV2.DefaultRequestTimeout)
 				key := fmt.Sprintf("foo%d", rand.Intn(s.KeySuffixRange))
 				_, err := kv.Set(setctx, key, randStr(s.KeySize), nil)
 				setcancel()
@@ -97,11 +181,11 @@ func (s *stresser) Stress() error {
 	return nil
 }
 
-func (s *stresser) Cancel() {
+func (s *stresserV2) Cancel() {
 	s.cancel()
 }
 
-func (s *stresser) Report() (success int, failure int) {
+func (s *stresserV2) Report() (success int, failure int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.success, s.failure

@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
-	"net/http"
 	"sync"
 	"time"
 
@@ -45,7 +44,7 @@ type pipeline struct {
 	from, to types.ID
 	cid      types.ID
 
-	tr     http.RoundTripper
+	tr     *Transport
 	picker *urlPicker
 	status *peerStatus
 	fs     *stats.FollowerStats
@@ -58,7 +57,7 @@ type pipeline struct {
 	stopc chan struct{}
 }
 
-func newPipeline(tr http.RoundTripper, picker *urlPicker, from, to, cid types.ID, status *peerStatus, fs *stats.FollowerStats, r Raft, errorc chan error) *pipeline {
+func newPipeline(tr *Transport, picker *urlPicker, from, to, cid types.ID, status *peerStatus, fs *stats.FollowerStats, r Raft, errorc chan error) *pipeline {
 	p := &pipeline{
 		from:   from,
 		to:     to,
@@ -80,43 +79,45 @@ func newPipeline(tr http.RoundTripper, picker *urlPicker, from, to, cid types.ID
 }
 
 func (p *pipeline) stop() {
-	close(p.msgc)
 	close(p.stopc)
 	p.wg.Wait()
 }
 
 func (p *pipeline) handle() {
 	defer p.wg.Done()
-	for m := range p.msgc {
-		start := time.Now()
-		err := p.post(pbutil.MustMarshal(&m))
-		if err == errStopped {
-			return
-		}
-		end := time.Now()
 
-		if err != nil {
-			p.status.deactivate(failureType{source: pipelineMsg, action: "write"}, err.Error())
+	for {
+		select {
+		case m := <-p.msgc:
+			start := time.Now()
+			err := p.post(pbutil.MustMarshal(&m))
+			end := time.Now()
 
-			reportSentFailure(pipelineMsg, m)
+			if err != nil {
+				p.status.deactivate(failureType{source: pipelineMsg, action: "write"}, err.Error())
+
+				reportSentFailure(pipelineMsg, m)
+				if m.Type == raftpb.MsgApp && p.fs != nil {
+					p.fs.Fail()
+				}
+				p.r.ReportUnreachable(m.To)
+				if isMsgSnap(m) {
+					p.r.ReportSnapshot(m.To, raft.SnapshotFailure)
+				}
+				continue
+			}
+
+			p.status.activate()
 			if m.Type == raftpb.MsgApp && p.fs != nil {
-				p.fs.Fail()
+				p.fs.Succ(end.Sub(start))
 			}
-			p.r.ReportUnreachable(m.To)
 			if isMsgSnap(m) {
-				p.r.ReportSnapshot(m.To, raft.SnapshotFailure)
+				p.r.ReportSnapshot(m.To, raft.SnapshotFinish)
 			}
+			reportSentDuration(pipelineMsg, m, time.Since(start))
+		case <-p.stopc:
 			return
 		}
-
-		p.status.activate()
-		if m.Type == raftpb.MsgApp && p.fs != nil {
-			p.fs.Succ(end.Sub(start))
-		}
-		if isMsgSnap(m) {
-			p.r.ReportSnapshot(m.To, raft.SnapshotFinish)
-		}
-		reportSentDuration(pipelineMsg, m, time.Since(start))
 	}
 }
 
@@ -124,28 +125,20 @@ func (p *pipeline) handle() {
 // error on any failure.
 func (p *pipeline) post(data []byte) (err error) {
 	u := p.picker.pick()
-	req := createPostRequest(u, RaftPrefix, bytes.NewBuffer(data), "application/protobuf", p.from, p.cid)
+	req := createPostRequest(u, RaftPrefix, bytes.NewBuffer(data), "application/protobuf", p.tr.URLs, p.from, p.cid)
 
-	var stopped bool
-	defer func() {
-		if stopped {
-			// rewrite to errStopped so the caller goroutine can stop itself
-			err = errStopped
-		}
-	}()
 	done := make(chan struct{}, 1)
-	cancel := httputil.RequestCanceler(p.tr, req)
+	cancel := httputil.RequestCanceler(p.tr.pipelineRt, req)
 	go func() {
 		select {
 		case <-done:
 		case <-p.stopc:
 			waitSchedule()
-			stopped = true
 			cancel()
 		}
 	}()
 
-	resp, err := p.tr.RoundTrip(req)
+	resp, err := p.tr.pipelineRt.RoundTrip(req)
 	done <- struct{}{}
 	if err != nil {
 		p.picker.unreachable(u)
@@ -159,13 +152,17 @@ func (p *pipeline) post(data []byte) (err error) {
 	resp.Body.Close()
 
 	err = checkPostResponse(resp, b, req, p.to)
-	// errMemberRemoved is a critical error since a removed member should
-	// always be stopped. So we use reportCriticalError to report it to errorc.
-	if err == errMemberRemoved {
-		reportCriticalError(err, p.errorc)
-		return nil
+	if err != nil {
+		p.picker.unreachable(u)
+		// errMemberRemoved is a critical error since a removed member should
+		// always be stopped. So we use reportCriticalError to report it to errorc.
+		if err == errMemberRemoved {
+			reportCriticalError(err, p.errorc)
+		}
+		return err
 	}
-	return err
+
+	return nil
 }
 
 // waitSchedule waits other goroutines to be scheduled for a while
