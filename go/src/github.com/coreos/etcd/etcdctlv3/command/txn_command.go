@@ -21,26 +21,24 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
-	"github.com/coreos/etcd/Godeps/_workspace/src/google.golang.org/grpc"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 )
 
-// NewTxnCommand returns the CLI command for "txn".
-func NewTxnCommand() cli.Command {
-	return cli.Command{
-		Name: "txn",
-		Action: func(c *cli.Context) {
-			txnCommandFunc(c)
-		},
+// NewTxnCommand returns the cobra command for "txn".
+func NewTxnCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "txn",
+		Short: "Txn processes all the requests in one transaction.",
+		Run:   txnCommandFunc,
 	}
 }
 
 // txnCommandFunc executes the "txn" command.
-func txnCommandFunc(c *cli.Context) {
-	if len(c.Args()) != 0 {
-		panic("unexpected args")
+func txnCommandFunc(cmd *cobra.Command, args []string) {
+	if len(args) != 0 {
+		ExitWithError(ExitBadArgs, fmt.Errorf("txn command does not accept argument."))
 	}
 
 	reader := bufio.NewReader(os.Stdin)
@@ -51,15 +49,9 @@ func txnCommandFunc(c *cli.Context) {
 		next = next(txn, reader)
 	}
 
-	conn, err := grpc.Dial(c.GlobalString("endpoint"))
+	resp, err := mustClientFromCmd(cmd).KV.Txn(context.Background(), txn)
 	if err != nil {
-		panic(err)
-	}
-	etcd := pb.NewEtcdClient(conn)
-
-	resp, err := etcd.Txn(context.Background(), txn)
-	if err != nil {
-		fmt.Println(err)
+		ExitWithError(ExitError, err)
 	}
 	if resp.Succeeded {
 		fmt.Println("executed success request list")
@@ -75,7 +67,7 @@ func compareState(txn *pb.TxnRequest, r *bufio.Reader) stateFunc {
 
 	line, err := r.ReadString('\n')
 	if err != nil {
-		os.Exit(1)
+		ExitWithError(ExitInvalidInput, err)
 	}
 
 	if len(line) == 1 {
@@ -86,8 +78,7 @@ func compareState(txn *pb.TxnRequest, r *bufio.Reader) stateFunc {
 	line = line[:len(line)-1]
 	c, err := parseCompare(line)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		ExitWithError(ExitInvalidInput, err)
 	}
 
 	txn.Compare = append(txn.Compare, c)
@@ -100,7 +91,7 @@ func successState(txn *pb.TxnRequest, r *bufio.Reader) stateFunc {
 
 	line, err := r.ReadString('\n')
 	if err != nil {
-		os.Exit(1)
+		ExitWithError(ExitInvalidInput, err)
 	}
 
 	if len(line) == 1 {
@@ -111,8 +102,7 @@ func successState(txn *pb.TxnRequest, r *bufio.Reader) stateFunc {
 	line = line[:len(line)-1]
 	ru, err := parseRequestUnion(line)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		ExitWithError(ExitInvalidInput, err)
 	}
 
 	txn.Success = append(txn.Success, ru)
@@ -125,7 +115,7 @@ func failureState(txn *pb.TxnRequest, r *bufio.Reader) stateFunc {
 
 	line, err := r.ReadString('\n')
 	if err != nil {
-		os.Exit(1)
+		ExitWithError(ExitInvalidInput, err)
 	}
 
 	if len(line) == 1 {
@@ -136,8 +126,7 @@ func failureState(txn *pb.TxnRequest, r *bufio.Reader) stateFunc {
 	line = line[:len(line)-1]
 	ru, err := parseRequestUnion(line)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		ExitWithError(ExitInvalidInput, err)
 	}
 
 	txn.Failure = append(txn.Failure, ru)
@@ -155,16 +144,36 @@ func parseRequestUnion(line string) (*pb.RequestUnion, error) {
 	key := []byte(parts[1])
 	switch parts[0] {
 	case "r", "range":
-		ru.RequestRange = &pb.RangeRequest{Key: key}
 		if len(parts) == 3 {
-			ru.RequestRange.RangeEnd = []byte(parts[2])
+			ru.Request = &pb.RequestUnion_RequestRange{
+				RequestRange: &pb.RangeRequest{
+					Key:      key,
+					RangeEnd: []byte(parts[2]),
+				}}
+		} else {
+			ru.Request = &pb.RequestUnion_RequestRange{
+				RequestRange: &pb.RangeRequest{
+					Key: key,
+				}}
 		}
 	case "p", "put":
-		ru.RequestPut = &pb.PutRequest{Key: key, Value: []byte(parts[2])}
+		ru.Request = &pb.RequestUnion_RequestPut{
+			RequestPut: &pb.PutRequest{
+				Key:   key,
+				Value: []byte(parts[2]),
+			}}
 	case "d", "deleteRange":
-		ru.RequestDeleteRange = &pb.DeleteRangeRequest{Key: key}
 		if len(parts) == 3 {
-			ru.RequestRange.RangeEnd = []byte(parts[2])
+			ru.Request = &pb.RequestUnion_RequestDeleteRange{
+				RequestDeleteRange: &pb.DeleteRangeRequest{
+					Key:      key,
+					RangeEnd: []byte(parts[2]),
+				}}
+		} else {
+			ru.Request = &pb.RequestUnion_RequestDeleteRange{
+				RequestDeleteRange: &pb.DeleteRangeRequest{
+					Key: key,
+				}}
 		}
 	default:
 		return nil, fmt.Errorf("invalid txn request: %s", line)
@@ -183,26 +192,34 @@ func parseCompare(line string) (*pb.Compare, error) {
 	c.Key = []byte(parts[0])
 	switch parts[1] {
 	case "ver", "version":
-		c.Target = pb.Compare_VERSION
-		c.Version, err = strconv.ParseInt(parts[3], 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("invalid txn compare request: %s", line)
+		tv, _ := c.TargetUnion.(*pb.Compare_Version)
+		if tv != nil {
+			tv.Version, err = strconv.ParseInt(parts[3], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid txn compare request: %s", line)
+			}
 		}
 	case "c", "create":
-		c.Target = pb.Compare_CREATE
-		c.CreateRevision, err = strconv.ParseInt(parts[3], 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("invalid txn compare request: %s", line)
+		tv, _ := c.TargetUnion.(*pb.Compare_CreateRevision)
+		if tv != nil {
+			tv.CreateRevision, err = strconv.ParseInt(parts[3], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid txn compare request: %s", line)
+			}
 		}
 	case "m", "mod":
-		c.Target = pb.Compare_MOD
-		c.ModRevision, err = strconv.ParseInt(parts[3], 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("invalid txn compare request: %s", line)
+		tv, _ := c.TargetUnion.(*pb.Compare_ModRevision)
+		if tv != nil {
+			tv.ModRevision, err = strconv.ParseInt(parts[3], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid txn compare request: %s", line)
+			}
 		}
 	case "val", "value":
-		c.Target = pb.Compare_VALUE
-		c.Value = []byte(parts[3])
+		tv, _ := c.TargetUnion.(*pb.Compare_Value)
+		if tv != nil {
+			tv.Value = []byte(parts[3])
+		}
 	default:
 		return nil, fmt.Errorf("invalid txn compare request: %s", line)
 	}

@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -36,44 +37,58 @@ import (
 // continuously, and closes it when stopped.
 func TestStreamWriterAttachOutgoingConn(t *testing.T) {
 	sw := startStreamWriter(types.ID(1), newPeerStatus(types.ID(1)), &stats.FollowerStats{}, &fakeRaft{})
-	// the expected initial state of streamWrite is not working
+	// the expected initial state of streamWriter is not working
 	if _, ok := sw.writec(); ok != false {
 		t.Errorf("initial working status = %v, want false", ok)
 	}
 
-	// repeatitive tests to ensure it can use latest connection
+	// repeat tests to ensure streamWriter can use last attached connection
 	var wfc *fakeWriteFlushCloser
 	for i := 0; i < 3; i++ {
 		prevwfc := wfc
 		wfc = &fakeWriteFlushCloser{}
 		sw.attach(&outgoingConn{t: streamTypeMessage, Writer: wfc, Flusher: wfc, Closer: wfc})
-		testutil.WaitSchedule()
-		// previous attached connection should be closed
-		if prevwfc != nil && prevwfc.closed != true {
-			t.Errorf("#%d: close of previous connection = %v, want true", i, prevwfc.closed)
+
+		// sw.attach happens asynchronously. Waits for its result in a for loop to make the
+		// test more robust on slow CI.
+		for j := 0; j < 3; j++ {
+			testutil.WaitSchedule()
+			// previous attached connection should be closed
+			if prevwfc != nil && prevwfc.Closed() != true {
+				continue
+			}
+			// write chan is available
+			if _, ok := sw.writec(); ok != true {
+				continue
+			}
 		}
-		// starts working
+
+		// previous attached connection should be closed
+		if prevwfc != nil && prevwfc.Closed() != true {
+			t.Errorf("#%d: close of previous connection = %v, want true", i, prevwfc.Closed())
+		}
+		// write chan is available
 		if _, ok := sw.writec(); ok != true {
 			t.Errorf("#%d: working status = %v, want true", i, ok)
 		}
 
 		sw.msgc <- raftpb.Message{}
 		testutil.WaitSchedule()
-		// still working
+		// write chan is available
 		if _, ok := sw.writec(); ok != true {
 			t.Errorf("#%d: working status = %v, want true", i, ok)
 		}
-		if wfc.written == 0 {
+		if wfc.Written() == 0 {
 			t.Errorf("#%d: failed to write to the underlying connection", i)
 		}
 	}
 
 	sw.stop()
-	// no longer in working status now
+	// write chan is unavailable since the writer is stopped.
 	if _, ok := sw.writec(); ok != false {
 		t.Errorf("working status after stop = %v, want false", ok)
 	}
-	if wfc.closed != true {
+	if wfc.Closed() != true {
 		t.Errorf("failed to close the underlying connection")
 	}
 }
@@ -92,7 +107,7 @@ func TestStreamWriterAttachBadOutgoingConn(t *testing.T) {
 	if _, ok := sw.writec(); ok != false {
 		t.Errorf("working = %v, want false", ok)
 	}
-	if wfc.closed != true {
+	if wfc.Closed() != true {
 		t.Errorf("failed to close the underlying connection")
 	}
 }
@@ -101,7 +116,7 @@ func TestStreamReaderDialRequest(t *testing.T) {
 	for i, tt := range []streamType{streamTypeMessage, streamTypeMsgAppV2} {
 		tr := &roundTripperRecorder{}
 		sr := &streamReader{
-			tr:     tr,
+			tr:     &Transport{streamRt: tr},
 			picker: mustNewURLPicker(t, []string{"http://localhost:2380"}),
 			local:  types.ID(1),
 			remote: types.ID(2),
@@ -151,7 +166,7 @@ func TestStreamReaderDialResult(t *testing.T) {
 			err:    tt.err,
 		}
 		sr := &streamReader{
-			tr:     tr,
+			tr:     &Transport{streamRt: tr},
 			picker: mustNewURLPicker(t, []string{"http://localhost:2380"}),
 			local:  types.ID(1),
 			remote: types.ID(2),
@@ -179,7 +194,7 @@ func TestStreamReaderDialDetectUnsupport(t *testing.T) {
 			header: http.Header{},
 		}
 		sr := &streamReader{
-			tr:     tr,
+			tr:     &Transport{streamRt: tr},
 			picker: mustNewURLPicker(t, []string{"http://localhost:2380"}),
 			local:  types.ID(1),
 			remote: types.ID(2),
@@ -239,7 +254,8 @@ func TestStream(t *testing.T) {
 		h.sw = sw
 
 		picker := mustNewURLPicker(t, []string{srv.URL})
-		sr := startStreamReader(&http.Transport{}, picker, tt.t, types.ID(1), types.ID(2), types.ID(1), newPeerStatus(types.ID(1)), recvc, propc, nil)
+		tr := &Transport{streamRt: &http.Transport{}}
+		sr := startStreamReader(tr, picker, tt.t, types.ID(1), types.ID(2), types.ID(1), newPeerStatus(types.ID(1)), recvc, propc, nil)
 		defer sr.stop()
 		// wait for stream to work
 		var writec chan<- raftpb.Message
@@ -297,19 +313,40 @@ func TestCheckStreamSupport(t *testing.T) {
 }
 
 type fakeWriteFlushCloser struct {
+	mu      sync.Mutex
 	err     error
 	written int
 	closed  bool
 }
 
 func (wfc *fakeWriteFlushCloser) Write(p []byte) (n int, err error) {
+	wfc.mu.Lock()
+	defer wfc.mu.Unlock()
+
 	wfc.written += len(p)
 	return len(p), wfc.err
 }
+
 func (wfc *fakeWriteFlushCloser) Flush() {}
+
 func (wfc *fakeWriteFlushCloser) Close() error {
+	wfc.mu.Lock()
+	defer wfc.mu.Unlock()
+
 	wfc.closed = true
 	return wfc.err
+}
+
+func (wfc *fakeWriteFlushCloser) Written() int {
+	wfc.mu.Lock()
+	defer wfc.mu.Unlock()
+	return wfc.written
+}
+
+func (wfc *fakeWriteFlushCloser) Closed() bool {
+	wfc.mu.Lock()
+	defer wfc.mu.Unlock()
+	return wfc.closed
 }
 
 type fakeStreamHandler struct {

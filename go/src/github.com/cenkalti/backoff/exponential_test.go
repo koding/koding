@@ -30,7 +30,7 @@ func TestBackOff(t *testing.T) {
 
 	for _, expected := range expectedResults {
 		assertEquals(t, expected, exp.currentInterval)
-		// Assert that the next back off falls in the expected range.
+		// Assert that the next backoff falls in the expected range.
 		var minInterval = expected - time.Duration(testRandomizationFactor*float64(expected))
 		var maxInterval = expected + time.Duration(testRandomizationFactor*float64(expected))
 		var actualInterval = exp.NextBackOff()
@@ -77,9 +77,6 @@ func TestGetElapsedTime(t *testing.T) {
 func TestMaxElapsedTime(t *testing.T) {
 	var exp = NewExponentialBackOff()
 	exp.Clock = &TestClock{start: time.Time{}.Add(10000 * time.Second)}
-	if exp.NextBackOff() != Stop {
-		t.Error("error2")
-	}
 	// Change the currentElapsedTime to be 0 ensuring that the elapsed time will be greater
 	// than the max elapsed time.
 	exp.startTime = time.Time{}
@@ -90,7 +87,7 @@ func TestBackOffOverflow(t *testing.T) {
 	var (
 		testInitialInterval time.Duration = math.MaxInt64 / 2
 		testMaxInterval     time.Duration = math.MaxInt64
-		testMultiplier      float64       = 2.1
+		testMultiplier                    = 2.1
 	)
 
 	exp := NewExponentialBackOff()

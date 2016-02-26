@@ -48,6 +48,7 @@ var (
 		"2.0.0": {},
 		"2.1.0": {streamTypeMsgAppV2, streamTypeMessage},
 		"2.2.0": {streamTypeMsgAppV2, streamTypeMessage},
+		"2.3.0": {streamTypeMsgAppV2, streamTypeMessage},
 	}
 )
 
@@ -223,9 +224,9 @@ func (cw *streamWriter) stop() {
 }
 
 // streamReader is a long-running go-routine that dials to the remote stream
-// endponit and reads messages from the response body returned.
+// endpoint and reads messages from the response body returned.
 type streamReader struct {
-	tr            http.RoundTripper
+	tr            *Transport
 	picker        *urlPicker
 	t             streamType
 	local, remote types.ID
@@ -242,7 +243,7 @@ type streamReader struct {
 	done   chan struct{}
 }
 
-func startStreamReader(tr http.RoundTripper, picker *urlPicker, t streamType, local, remote, cid types.ID, status *peerStatus, recvc chan<- raftpb.Message, propc chan<- raftpb.Message, errorc chan<- error) *streamReader {
+func startStreamReader(tr *Transport, picker *urlPicker, t streamType, local, remote, cid types.ID, status *peerStatus, recvc chan<- raftpb.Message, propc chan<- raftpb.Message, errorc chan<- error) *streamReader {
 	r := &streamReader{
 		tr:     tr,
 		picker: picker,
@@ -331,10 +332,9 @@ func (cr *streamReader) decodeLoop(rc io.ReadCloser, t streamType) error {
 		case recvc <- m:
 		default:
 			if cr.status.isActive() {
-				plog.Warningf("dropped %s from %s since receiving buffer is full", m.Type, types.ID(m.From))
-			} else {
-				plog.Debugf("dropped %s from %s since receiving buffer is full", m.Type, types.ID(m.From))
+				plog.MergeWarningf("dropped internal raft message from %s since receiving buffer is full (overloaded network)", types.ID(m.From))
 			}
+			plog.Debugf("dropped %s from %s since receiving buffer is full", m.Type, types.ID(m.From))
 		}
 	}
 }
@@ -372,6 +372,8 @@ func (cr *streamReader) dial(t streamType) (io.ReadCloser, error) {
 	req.Header.Set("X-Etcd-Cluster-ID", cr.cid.String())
 	req.Header.Set("X-Raft-To", cr.remote.String())
 
+	setPeerURLsHeader(req, cr.tr.URLs)
+
 	cr.mu.Lock()
 	select {
 	case <-cr.stopc:
@@ -379,10 +381,10 @@ func (cr *streamReader) dial(t streamType) (io.ReadCloser, error) {
 		return nil, fmt.Errorf("stream reader is stopped")
 	default:
 	}
-	cr.cancel = httputil.RequestCanceler(cr.tr, req)
+	cr.cancel = httputil.RequestCanceler(cr.tr.streamRt, req)
 	cr.mu.Unlock()
 
-	resp, err := cr.tr.RoundTrip(req)
+	resp, err := cr.tr.streamRt.RoundTrip(req)
 	if err != nil {
 		cr.picker.unreachable(u)
 		return nil, err
@@ -392,12 +394,14 @@ func (cr *streamReader) dial(t streamType) (io.ReadCloser, error) {
 	lv := semver.Must(semver.NewVersion(version.Version))
 	if compareMajorMinorVersion(rv, lv) == -1 && !checkStreamSupport(rv, t) {
 		resp.Body.Close()
+		cr.picker.unreachable(u)
 		return nil, errUnsupportedStreamType
 	}
 
 	switch resp.StatusCode {
 	case http.StatusGone:
 		resp.Body.Close()
+		cr.picker.unreachable(u)
 		err := fmt.Errorf("the member has been permanently removed from the cluster")
 		select {
 		case cr.errorc <- err:
@@ -408,6 +412,7 @@ func (cr *streamReader) dial(t streamType) (io.ReadCloser, error) {
 		return resp.Body, nil
 	case http.StatusNotFound:
 		resp.Body.Close()
+		cr.picker.unreachable(u)
 		return nil, fmt.Errorf("remote member %s could not recognize local member", cr.remote)
 	case http.StatusPreconditionFailed:
 		b, err := ioutil.ReadAll(resp.Body)
@@ -416,6 +421,7 @@ func (cr *streamReader) dial(t streamType) (io.ReadCloser, error) {
 			return nil, err
 		}
 		resp.Body.Close()
+		cr.picker.unreachable(u)
 
 		switch strings.TrimSuffix(string(b), "\n") {
 		case errIncompatibleVersion.Error():
@@ -430,6 +436,7 @@ func (cr *streamReader) dial(t streamType) (io.ReadCloser, error) {
 		}
 	default:
 		resp.Body.Close()
+		cr.picker.unreachable(u)
 		return nil, fmt.Errorf("unhandled http status %d", resp.StatusCode)
 	}
 }

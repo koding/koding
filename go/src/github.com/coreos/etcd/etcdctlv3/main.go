@@ -12,31 +12,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// etcdctlv3 is a command line application that utilizes v3 API.
 package main
 
 import (
-	"os"
+	"text/tabwriter"
 
-	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/coreos/etcd/etcdctlv3/command"
-	"github.com/coreos/etcd/version"
 )
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "etcdctlv3"
-	app.Version = version.Version
-	app.Usage = "A simple command line client for etcd3."
-	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "endpoint", Value: "127.0.0.1:2378", Usage: "gRPC endpoint"},
+const (
+	cliName        = "etcdctlv3"
+	cliDescription = "A simple command line client for etcd3."
+)
+
+var (
+	tabOut      *tabwriter.Writer
+	globalFlags = command.GlobalFlags{}
+)
+
+var (
+	rootCmd = &cobra.Command{
+		Use:        cliName,
+		Short:      cliDescription,
+		SuggestFor: []string{"etcctlv3", "etcdcltv3", "etlctlv3"},
 	}
-	app.Commands = []cli.Command{
+)
+
+func init() {
+	rootCmd.PersistentFlags().StringVar(&globalFlags.Endpoints, "endpoint", "127.0.0.1:2378", "gRPC endpoint")
+
+	rootCmd.PersistentFlags().StringVar(&globalFlags.TLS.CertFile, "cert", "", "identify secure client using this TLS certificate file")
+	rootCmd.PersistentFlags().StringVar(&globalFlags.TLS.KeyFile, "key", "", "identify secure client using this TLS key file")
+	rootCmd.PersistentFlags().StringVar(&globalFlags.TLS.CAFile, "cacert", "", "verify certificates of TLS-enabled secure servers using this CA bundle")
+
+	rootCmd.AddCommand(
 		command.NewRangeCommand(),
 		command.NewPutCommand(),
 		command.NewDeleteRangeCommand(),
 		command.NewTxnCommand(),
 		command.NewCompactionCommand(),
-	}
+		command.NewWatchCommand(),
+		command.NewVersionCommand(),
+		command.NewLeaseCommand(),
+		command.NewMemberCommand(),
+		command.NewSnapshotCommand(),
+		command.NewMakeMirrorCommand(),
+	)
+}
 
-	app.Run(os.Args)
+func init() {
+	cobra.EnablePrefixMatching = true
+}
+
+func main() {
+	rootCmd.SetUsageFunc(usageFunc)
+
+	// Make help just show the usage
+	rootCmd.SetHelpTemplate(`{{.UsageString}}`)
+
+	if err := rootCmd.Execute(); err != nil {
+		command.ExitWithError(command.ExitError, err)
+	}
 }

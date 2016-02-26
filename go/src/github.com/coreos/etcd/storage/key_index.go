@@ -44,9 +44,9 @@ var (
 //    {1.0, 2.0, 3.0(t)}
 //
 // Compact a keyIndex removes the versions with smaller or equal to
-// rev except the largest one. If the generations becomes empty
+// rev except the largest one. If the generation becomes empty
 // during compaction, it will be removed. if all the generations get
-// removed, the keyIndex Should be removed.
+// removed, the keyIndex should be removed.
 
 // For example:
 // compact(2) on the previous example
@@ -196,7 +196,7 @@ func (ki *keyIndex) compact(atRev int64, available map[revision]struct{}) {
 	}
 
 	// walk until reaching the first revision that has an revision smaller or equal to
-	// the atRevision.
+	// the atRev.
 	// add it to the available map
 	f := func(rev revision) bool {
 		if rev.main <= atRev {
@@ -237,7 +237,7 @@ func (ki *keyIndex) isEmpty() bool {
 	return len(ki.generations) == 1 && ki.generations[0].isEmpty()
 }
 
-// findGeneartion finds out the generation of the keyIndex that the
+// findGeneration finds out the generation of the keyIndex that the
 // given rev belongs to. If the given rev is at the gap of two generations,
 // which means that the key does not exist at the given rev, it returns nil.
 func (ki *keyIndex) findGeneration(rev int64) *generation {
@@ -294,6 +294,7 @@ func (ki *keyIndex) String() string {
 	return s
 }
 
+// generation contains multiple revisions of a key.
 type generation struct {
 	ver     int64
 	created revision // when the generation is created (put in first revision).
@@ -304,7 +305,7 @@ func (g *generation) isEmpty() bool { return g == nil || len(g.revs) == 0 }
 
 // walk walks through the revisions in the generation in descending order.
 // It passes the revision to the given function.
-// walk returns until: 1. it finishs walking all pairs 2. the function returns false.
+// walk returns until: 1. it finishes walking all pairs 2. the function returns false.
 // walk returns the position at where it stopped. If it stopped after
 // finishing walking, -1 will be returned.
 func (g *generation) walk(f func(rev revision) bool) int {

@@ -33,6 +33,8 @@ var (
 	ErrTimeoutDueToLeaderFail     = errors.New("etcdserver: request timed out, possibly due to previous leader failure")
 	ErrTimeoutDueToConnectionLost = errors.New("etcdserver: request timed out, possibly due to connection lost")
 	ErrNotEnoughStartedMembers    = errors.New("etcdserver: re-configuration failed due to not enough started members")
+	ErrNoLeader                   = errors.New("etcdserver: no leader")
+	ErrRequestTooLarge            = errors.New("etcdserver: request is too large")
 )
 
 func isKeyNotFound(err error) bool {
@@ -40,16 +42,11 @@ func isKeyNotFound(err error) bool {
 	return ok && e.ErrorCode == etcdErr.EcodeKeyNotFound
 }
 
-type discoveryError struct {
-	op  string
-	err error
+type DiscoveryError struct {
+	Op  string
+	Err error
 }
 
-func (e discoveryError) Error() string {
-	return fmt.Sprintf("failed to %s discovery cluster (%v)", e.op, e.err)
-}
-
-func IsDiscoveryError(err error) bool {
-	_, ok := err.(*discoveryError)
-	return ok
+func (e DiscoveryError) Error() string {
+	return fmt.Sprintf("failed to %s discovery cluster (%v)", e.Op, e.Err)
 }

@@ -23,12 +23,14 @@ import (
 
 func NewLsCommand() cli.Command {
 	return cli.Command{
-		Name:  "ls",
-		Usage: "retrieve a directory",
+		Name:      "ls",
+		Usage:     "retrieve a directory",
+		ArgsUsage: "[key]",
 		Flags: []cli.Flag{
 			cli.BoolFlag{Name: "sort", Usage: "returns result in sorted order"},
 			cli.BoolFlag{Name: "recursive", Usage: "returns all key names recursively for the given path"},
 			cli.BoolFlag{Name: "p", Usage: "append slash (/) to directories"},
+			cli.BoolFlag{Name: "quorum", Usage: "require quorum for get request"},
 		},
 		Action: func(c *cli.Context) {
 			lsCommandFunc(c, mustNewKeyAPI(c))
@@ -45,9 +47,10 @@ func lsCommandFunc(c *cli.Context, ki client.KeysAPI) {
 
 	sort := c.Bool("sort")
 	recursive := c.Bool("recursive")
+	quorum := c.Bool("quorum")
 
 	ctx, cancel := contextWithTotalTimeout(c)
-	resp, err := ki.Get(ctx, key, &client.GetOptions{Sort: sort, Recursive: recursive})
+	resp, err := ki.Get(ctx, key, &client.GetOptions{Sort: sort, Recursive: recursive, Quorum: quorum})
 	cancel()
 	if err != nil {
 		handleError(ExitServerError, err)
