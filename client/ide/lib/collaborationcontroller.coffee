@@ -1026,6 +1026,13 @@ module.exports = CollaborationController =
 
     @cleanupCollaboration()
 
+    { activitySidebar } = kd.singletons.mainView
+    channelId           = @getSocialChannelId()
+
+    return  unless box  = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
+
+    box.setUnreadCount channelId, 0
+
 
   endCollaborationForParticipant: (callback) ->
 
