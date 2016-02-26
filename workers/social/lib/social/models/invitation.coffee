@@ -116,10 +116,19 @@ module.exports = class JInvitation extends jraphical.Module
   # some selects result set for invitations, it adds group name automatically
   @some$: permit 'send invitations',
     success: (client, selector, options, callback) ->
-      groupName = client.context.group or 'koding'
+      { groupSlug } = selector
+      groupName     = client.context.group or 'koding'
+      { delegate }  = client.connection
+      globalFlags   = if delegate.globalFlags then delegate.globalFlags else []
+      isSuperAdmin  = 'super-admin' in globalFlags
+      selector    or= {}
 
-      selector or= {}
       selector.groupName = groupName # override group name in any case
+
+      if isSuperAdmin and groupSlug
+        delete selector.groupSlug
+        selector.groupName = groupSlug
+
       selector.status  or= 'pending'
 
       { limit }       = options
