@@ -436,7 +436,9 @@ func (k *KodingNetworkFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp
 		return err
 	}
 
-	file.WriteAt(op.Data, op.Offset)
+	if err := file.WriteAt(op.Data, op.Offset); err != nil {
+		return err
+	}
 
 	k.entryChanged(file)
 
@@ -538,6 +540,10 @@ func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) 
 	file, err := k.getFile(ctx, op.Inode)
 	if err != nil {
 		return err
+	}
+
+	if r, ok := trace.FromContext(ctx); ok {
+		r.LazyPrintf("syncing file=%s sized=%d", file.Name, len(file.Content))
 	}
 
 	return file.Sync()
