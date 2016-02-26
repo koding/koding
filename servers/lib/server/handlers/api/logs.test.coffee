@@ -180,7 +180,7 @@ runTests = -> describe 'server.handlers.api.logs', ->
       done()
 
 
-  it 'should send HTTP 200 and the result in data if session is valid', (done) ->
+  it.skip 'should send HTTP 200 and the result in data if session is valid', (done) ->
 
     { client, group } = TESTUSERS.admin
 
@@ -202,7 +202,7 @@ runTests = -> describe 'server.handlers.api.logs', ->
       done()
 
 
-  it 'should send HTTP 200 and the result in data if apiToken is valid', (done) ->
+  it.skip 'should send HTTP 200 and the result in data if apiToken is valid', (done) ->
 
     { apiToken, group } = TESTUSERS.team
 
