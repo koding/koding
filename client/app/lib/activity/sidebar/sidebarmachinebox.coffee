@@ -8,7 +8,6 @@ NavigationMachineItem   = require 'app/navigation/navigationmachineitem'
 SidebarWorkspaceItem    = require './sidebarworkspaceitem'
 MoreWorkspacesModal     = require 'app/activity/sidebar/moreworkspacesmodal'
 AddWorkspaceView        = require 'app/addworkspaceview'
-IDEAppController        = require 'ide'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 isKoding                = require 'app/util/isKoding'
 

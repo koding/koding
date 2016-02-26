@@ -2,7 +2,6 @@ kookies = require 'kookies'
 globals = require 'globals'
 doXhrRequest = require './util/doXhrRequest'
 sendDataDogEvent = require './util/sendDataDogEvent'
-remote = require('./remote').getInstance()
 whoami = require './util/whoami'
 kd = require 'kd'
 KDController = kd.Controller

@@ -1,12 +1,10 @@
 kd             = require 'kd'
 KDRouter       = kd.Router
-KDModalView    = kd.ModalView
 
 remote         = require('./remote').getInstance()
 globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
-registerRoutes = require './util/registerRoutes'
 isKoding       = require './util/isKoding'
 whoami         = require './util/whoami'
 

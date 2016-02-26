@@ -1,5 +1,4 @@
 kd           = require 'kd'
-whoami       = require 'app/util/whoami'
 dataProvider = require './userenvironmentdataprovider'
 
 module.exports = class MachineShareManager extends kd.Object

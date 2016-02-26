@@ -1,5 +1,4 @@
-$ = require 'jquery'
-kd = require 'kd'
+$       = require 'jquery'
 globals = require 'globals'
 
 module.exports = shortenUrl = (longUrl, callback) ->

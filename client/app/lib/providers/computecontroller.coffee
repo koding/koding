@@ -4,7 +4,6 @@ Encoder              = require 'htmlencode'
 
 kd                   = require 'kd'
 KDController         = kd.Controller
-KDNotificationView   = kd.NotificationView
 
 nick                 = require 'app/util/nick'
 isKoding             = require 'app/util/isKoding'

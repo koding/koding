@@ -1,6 +1,5 @@
 kd                             = require 'kd'
 React                          = require 'kd-react'
-ReactDOM                       = require 'react-dom'
 ActivityFlux                   = require 'activity/flux'
 EnvironmentFlux                = require 'app/flux/environment'
 Scroller                       = require 'app/components/scroller'

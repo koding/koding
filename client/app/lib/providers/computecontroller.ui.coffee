@@ -18,7 +18,6 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 
-TerminalModal        = require '../terminal/terminalmodal'
 
 MissingDataView      = require './missingdataview'
 

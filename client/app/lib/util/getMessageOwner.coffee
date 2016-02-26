@@ -1,4 +1,3 @@
-remote = require('../remote').getInstance()
 fetchAccount = require './fetchAccount'
 
 module.exports = (message, callback) ->

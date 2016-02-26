@@ -1,6 +1,4 @@
-kd   = require 'kd'
-
-nick    = require 'app/util/nick'
+kd      = require 'kd'
 Tracker = require 'app/util/tracker'
 
 
