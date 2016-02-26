@@ -309,8 +309,9 @@ func (c *MountCommand) prefetchAll() error {
 	doneErr := make(chan error)
 
 	// The creation of the pb objection presents a CLI progress bar to the user.
-	bar := pb.StartNew(100)
+	bar := pb.New(100)
 	bar.SetMaxWidth(100)
+	bar.Start()
 
 	// The callback, used to update the progress bar as remote.cache downloads
 	cacheProgressCallback := func(par *dnode.Partial) {
