@@ -962,8 +962,12 @@ module.exports = class JAccount extends jraphical.Module
     unless contents.sender
       return callback new KodingError 'Sender is not set'
 
+
     JAccount.one { 'profile.nickname': contents.receiver }, (err, receiver) ->
       return callback err  if err
+
+      contents.group = client?.context?.group or 'koding'
+
       receiver.sendNotification 'notificationFromOtherAccount', contents
 
       return callback null
