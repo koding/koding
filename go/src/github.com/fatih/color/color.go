@@ -2,15 +2,24 @@ package color
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
 )
+
+// NoColor defines if the output is colorized or not. It's dynamically set to
+// false or true based on the stdout's file descriptor referring to a terminal
+// or not. This is a global option and affects all colors. For more control
+// over each color block use the methods DisableColor() individually.
+var NoColor = !isatty.IsTerminal(os.Stdout.Fd())
 
 // Color defines a custom color object which is defined by SGR parameters.
 type Color struct {
-	params []Attribute
+	params  []Attribute
+	noColor *bool
 }
 
 // Attribute defines a single SGR Code
@@ -44,6 +53,18 @@ const (
 	FgWhite
 )
 
+// Foreground Hi-Intensity text colors
+const (
+	FgHiBlack Attribute = iota + 90
+	FgHiRed
+	FgHiGreen
+	FgHiYellow
+	FgHiBlue
+	FgHiMagenta
+	FgHiCyan
+	FgHiWhite
+)
+
 // Background text colors
 const (
 	BgBlack Attribute = iota + 40
@@ -54,6 +75,18 @@ const (
 	BgMagenta
 	BgCyan
 	BgWhite
+)
+
+// Background Hi-Intensity text colors
+const (
+	BgHiBlack Attribute = iota + 100
+	BgHiRed
+	BgHiGreen
+	BgHiYellow
+	BgHiBlue
+	BgHiMagenta
+	BgHiCyan
+	BgHiWhite
 )
 
 // New returns a newly created color object.
@@ -74,7 +107,29 @@ func Set(p ...Attribute) *Color {
 // Unset resets all escape attributes and clears the output. Usually should
 // be called after Set().
 func Unset() {
+	if NoColor {
+		return
+	}
+
 	fmt.Fprintf(Output, "%s[%dm", escape, Reset)
+}
+
+// Set sets the SGR sequence.
+func (c *Color) Set() *Color {
+	if c.isNoColorSet() {
+		return c
+	}
+
+	fmt.Fprintf(Output, c.format())
+	return c
+}
+
+func (c *Color) unset() {
+	if c.isNoColorSet() {
+		return
+	}
+
+	Unset()
 }
 
 // Add is used to chain SGR parameters. Use as many as parameters to combine
@@ -92,7 +147,7 @@ func (c *Color) prepend(value Attribute) {
 
 // Output defines the standard output of the print functions. By default
 // os.Stdout is used.
-var Output io.Writer = os.Stdout
+var Output = colorable.NewColorableStdout()
 
 // Print formats using the default formats for its operands and writes to
 // standard output. Spaces are added between operands when neither is a
@@ -101,7 +156,7 @@ var Output io.Writer = os.Stdout
 // color.
 func (c *Color) Print(a ...interface{}) (n int, err error) {
 	c.Set()
-	defer Unset()
+	defer c.unset()
 
 	return fmt.Fprint(Output, a...)
 }
@@ -111,7 +166,7 @@ func (c *Color) Print(a ...interface{}) (n int, err error) {
 // This is the standard fmt.Printf() method wrapped with the given color.
 func (c *Color) Printf(format string, a ...interface{}) (n int, err error) {
 	c.Set()
-	defer Unset()
+	defer c.unset()
 
 	return fmt.Fprintf(Output, format, a...)
 }
@@ -123,7 +178,7 @@ func (c *Color) Printf(format string, a ...interface{}) (n int, err error) {
 // color.
 func (c *Color) Println(a ...interface{}) (n int, err error) {
 	c.Set()
-	defer Unset()
+	defer c.unset()
 
 	return fmt.Fprintln(Output, a...)
 }
@@ -148,7 +203,10 @@ func (c *Color) PrintlnFunc() func(a ...interface{}) {
 
 // SprintFunc returns a new function that returns colorized strings for the
 // given arguments with fmt.Sprint(). Useful to put into or mix into other
-// string.
+// string. Windows users should use this in conjuction with color.Output, example:
+//
+//	put := New(FgYellow).SprintFunc()
+//	fmt.Fprintf(color.Output, "This is a %s", put("warning"))
 func (c *Color) SprintFunc() func(a ...interface{}) string {
 	return func(a ...interface{}) string {
 		return c.wrap(fmt.Sprint(a...))
@@ -157,7 +215,7 @@ func (c *Color) SprintFunc() func(a ...interface{}) string {
 
 // SprintfFunc returns a new function that returns colorized strings for the
 // given arguments with fmt.Sprintf(). Useful to put into or mix into other
-// string.
+// string. Windows users should use this in conjuction with color.Output.
 func (c *Color) SprintfFunc() func(format string, a ...interface{}) string {
 	return func(format string, a ...interface{}) string {
 		return c.wrap(fmt.Sprintf(format, a...))
@@ -166,7 +224,7 @@ func (c *Color) SprintfFunc() func(format string, a ...interface{}) string {
 
 // SprintlnFunc returns a new function that returns colorized strings for the
 // given arguments with fmt.Sprintln(). Useful to put into or mix into other
-// string.
+// string. Windows users should use this in conjuction with color.Output.
 func (c *Color) SprintlnFunc() func(a ...interface{}) string {
 	return func(a ...interface{}) string {
 		return c.wrap(fmt.Sprintln(a...))
@@ -184,16 +242,74 @@ func (c *Color) sequence() string {
 	return strings.Join(format, ";")
 }
 
-func (c *Color) wrap(s string) string { return c.format() + s + c.unformat() }
+// wrap wraps the s string with the colors attributes. The string is ready to
+// be printed.
+func (c *Color) wrap(s string) string {
+	if c.isNoColorSet() {
+		return s
+	}
 
-func (c *Color) format() string { return fmt.Sprintf("%s[%sm", escape, c.sequence()) }
+	return c.format() + s + c.unformat()
+}
 
-func (c *Color) unformat() string { return fmt.Sprintf("%s[%dm", escape, Reset) }
+func (c *Color) format() string {
+	return fmt.Sprintf("%s[%sm", escape, c.sequence())
+}
 
-// Set sets the SGR sequence.
-func (c *Color) Set() *Color {
-	fmt.Fprintf(Output, c.format())
-	return c
+func (c *Color) unformat() string {
+	return fmt.Sprintf("%s[%dm", escape, Reset)
+}
+
+// DisableColor disables the color output. Useful to not change any existing
+// code and still being able to output. Can be used for flags like
+// "--no-color". To enable back use EnableColor() method.
+func (c *Color) DisableColor() {
+	c.noColor = boolPtr(true)
+}
+
+// EnableColor enables the color output. Use it in conjuction with
+// DisableColor(). Otherwise this method has no side effects.
+func (c *Color) EnableColor() {
+	c.noColor = boolPtr(false)
+}
+
+func (c *Color) isNoColorSet() bool {
+	// check first if we have user setted action
+	if c.noColor != nil {
+		return *c.noColor
+	}
+
+	// if not return the global option, which is disabled by default
+	return NoColor
+}
+
+// Equals returns a boolean value indicating whether two colors are equal.
+func (c *Color) Equals(c2 *Color) bool {
+	if len(c.params) != len(c2.params) {
+		return false
+	}
+
+	for _, attr := range c.params {
+		if !c2.attrExists(attr) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (c *Color) attrExists(a Attribute) bool {
+	for _, attr := range c.params {
+		if attr == a {
+			return true
+		}
+	}
+
+	return false
+}
+
+func boolPtr(v bool) *bool {
+	return &v
 }
 
 // Black is an convenient helper function to print with black foreground. A

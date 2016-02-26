@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	_ "code.google.com/p/gosqlite/sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func newTestDb(t *testing.T) (*Database, string) {
@@ -52,7 +52,7 @@ func TestGetRootEntity(t *testing.T) {
 		t.Fatal("Entity should not be nil")
 	}
 	if e.ID() != "0" {
-		t.Fatalf("Enity id should be 0, got %s", e.ID())
+		t.Fatalf("Entity id should be 0, got %s", e.ID())
 	}
 }
 
@@ -74,7 +74,7 @@ func TestSetDuplicateEntity(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := db.Set("/foo", "43"); err == nil {
-		t.Fatalf("Creating an entry with a duplciate path did not cause an error")
+		t.Fatalf("Creating an entry with a duplicate path did not cause an error")
 	}
 }
 
@@ -121,7 +121,7 @@ func TestParents(t *testing.T) {
 		}
 
 		if len(parents) != 1 {
-			t.Fatalf("Expected 2 entries for %s got %d", key, len(parents))
+			t.Fatalf("Expected 1 entry for %s got %d", key, len(parents))
 		}
 
 		if parents[0] != p {
@@ -243,7 +243,7 @@ func TestAddSelfAsChild(t *testing.T) {
 	}
 }
 
-func TestAddChildToNonExistantRoot(t *testing.T) {
+func TestAddChildToNonExistentRoot(t *testing.T) {
 	db, dbpath := newTestDb(t)
 	defer destroyTestDb(dbpath)
 
