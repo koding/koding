@@ -1,13 +1,14 @@
 package fuseklient
 
 import (
-	"encoding/base64"
 	"io/ioutil"
 	"os"
 	"path"
 	"syscall"
 	"testing"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"koding/fuseklient/transport"
 
@@ -672,12 +673,14 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 	// Convey("NewKodingNetworkFS", t, func() {
 	// })
 
+	ctx := context.TODO()
+
 	Convey("KodingNetworkFS#getDir", tt, func() {
 		Convey("It should return error if specified id is not a directory", func() {
 			k := newknfs(t)
 			k.liveNodes[i] = newFile()
 
-			_, err := k.getDir(i)
+			_, err := k.getDir(ctx, i)
 			So(err, ShouldEqual, fuse.EIO)
 		})
 
@@ -685,7 +688,7 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 			k := newknfs(t)
 			k.liveNodes[i] = newDir()
 
-			dir, err := k.getDir(i)
+			dir, err := k.getDir(ctx, i)
 			So(err, ShouldBeNil)
 			So(dir, ShouldHaveSameTypeAs, &Dir{})
 		})
@@ -696,7 +699,7 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 			k := newknfs(t)
 			k.liveNodes[i] = newDir()
 
-			_, err := k.getFile(i)
+			_, err := k.getFile(ctx, i)
 			So(err, ShouldEqual, fuse.EIO)
 		})
 
@@ -704,7 +707,7 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 			k := newknfs(t)
 			k.liveNodes[i] = newFile()
 
-			file, err := k.getEntry(i)
+			file, err := k.getEntry(ctx, i)
 			So(err, ShouldBeNil)
 			So(file, ShouldHaveSameTypeAs, &File{})
 		})
@@ -713,7 +716,7 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 	Convey("KodingNetworkFS#getEntry", tt, func() {
 		Convey("It should return error if specified id doesn't exit", func() {
 			k := newknfs(t)
-			_, err := k.getEntry(i)
+			_, err := k.getEntry(ctx, i)
 			So(err, ShouldEqual, fuse.ENOENT)
 		})
 
@@ -721,7 +724,7 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 			k := newknfs(t)
 			k.liveNodes[i] = newDir()
 
-			_, err := k.getEntry(i)
+			_, err := k.getEntry(ctx, i)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -756,6 +759,8 @@ func TestKodingNetworkFSHandles(tt *testing.T) {
 		d := newDir()
 		f := newFile()
 
+		ctx := context.TODO()
+
 		Convey("It should save generate id for entry", func() {
 			handleId := k.setEntryByHandle(d)
 			So(handleId, ShouldEqual, 1)
@@ -772,7 +777,7 @@ func TestKodingNetworkFSHandles(tt *testing.T) {
 		Convey("It should get entry with handle id", func() {
 			handleId := k.setEntryByHandle(d)
 
-			node, err := k.getByHandle(handleId)
+			node, err := k.getByHandle(ctx, handleId)
 			So(err, ShouldBeNil)
 			So(node.GetID(), ShouldEqual, d.GetID())
 		})
@@ -780,7 +785,7 @@ func TestKodingNetworkFSHandles(tt *testing.T) {
 		Convey("It should get dir with handle id", func() {
 			handleId := k.setEntryByHandle(d)
 
-			savedDir, err := k.getDirByHandle(handleId)
+			savedDir, err := k.getDirByHandle(ctx, handleId)
 			So(err, ShouldBeNil)
 			So(savedDir.GetType(), ShouldEqual, fuseutil.DT_Directory)
 		})
@@ -788,7 +793,7 @@ func TestKodingNetworkFSHandles(tt *testing.T) {
 		Convey("It should get file with handle id", func() {
 			handleId := k.setEntryByHandle(f)
 
-			savedFile, err := k.getFileByHandle(handleId)
+			savedFile, err := k.getFileByHandle(ctx, handleId)
 			So(err, ShouldBeNil)
 			So(savedFile.GetType(), ShouldEqual, fuseutil.DT_File)
 		})
@@ -798,7 +803,7 @@ func TestKodingNetworkFSHandles(tt *testing.T) {
 
 			k.deleteEntryByHandle(handleId)
 
-			_, err := k.getFileByHandle(handleId)
+			_, err := k.getFileByHandle(ctx, handleId)
 			So(err, ShouldEqual, fuse.ENOENT)
 		})
 	})
@@ -813,7 +818,7 @@ func _unmount(k *KodingNetworkFS) error {
 }
 
 // newknfs creates a new KodingNetworkFS setup for testing. If the transport
-// argument is nil, a remote transport is automatically setup.
+// argument is ctx, a remote transport is automatically setup.
 func newknfs(t transport.Transport) *KodingNetworkFS {
 	mountDir, err := ioutil.TempDir("", "mounttest")
 	if err != nil {
