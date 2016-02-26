@@ -117,14 +117,14 @@ module.exports = class JCredential extends jraphical.Module
     success: (client, data, callback) ->
 
       { delegate } = client.connection
-      { provider, title, meta } = data
+      { provider, title, meta, rawContent } = data
       originId = delegate.getId()
 
       if provider not in ['custom', 'userInput'] and not PROVIDERS[provider]?
         callback new KodingError 'Provider is not supported'
         return
 
-      credData = new JCredentialData { meta, originId }
+      credData = new JCredentialData { meta, originId, rawContent }
       credData.save (err) ->
         return  if failed err, callback
 
@@ -382,6 +382,7 @@ module.exports = class JCredential extends jraphical.Module
         return callback err  if err
 
         cloneData.meta = data.meta  if data?.meta
+        cloneData.rawContent = data.rawContent  if data?.rawContent
         JCredential.create client, cloneData, callback
 
       , shadowSensitiveData = no
@@ -435,7 +436,7 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, options, callback) ->
 
-      { title, meta } = options
+      { title, meta, rawContent } = options
 
       unless title or meta
         return callback new KodingError 'Nothing to update'
@@ -449,7 +450,7 @@ module.exports = class JCredential extends jraphical.Module
 
           @fetchData (err, credData) ->
             return callback err  if err?
-            credData.update { $set : { meta } }, callback
+            credData.update { $set : { meta, rawContent } }, callback
 
         else
           callback null

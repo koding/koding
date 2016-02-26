@@ -25,10 +25,10 @@ setStackTemplateCredential = (options, callback) ->
 
 createAndUpdate = (options, callback) ->
 
-  { provider, title, meta, stackTemplate } = options
+  { provider, title, meta, rawContent, stackTemplate } = options
   { JCredential } = remote.api
 
-  JCredential.create { provider, title, meta }, (err, credential) ->
+  JCredential.create { provider, title, meta, rawContent }, (err, credential) ->
     return callback err  if err
 
     setStackTemplateCredential {
@@ -38,8 +38,8 @@ createAndUpdate = (options, callback) ->
 
 module.exports = updateCustomVariable = (options, callback) ->
 
-  { JCredential }         = remote.api
-  { stackTemplate, meta } = options
+  { JCredential } = remote.api
+  { stackTemplate, meta, rawContent } = options
 
   # TODO add multiple custom credential support if needed ~ GG
   identifier = stackTemplate.credentials.custom?.first
@@ -53,11 +53,11 @@ module.exports = updateCustomVariable = (options, callback) ->
 
     JCredential.one identifier, (err, credential) ->
       if err or not credential
-        createAndUpdate { provider, title, meta, stackTemplate }, callback
+        createAndUpdate { provider, title, meta, rawContent, stackTemplate }, callback
       else
-        credential.update { meta, title }, (err) ->
+        credential.update { meta, rawContent, title }, (err) ->
           shareWithGroup credential, ->
             callback err, stackTemplate
 
   else
-    createAndUpdate { provider, title, meta, stackTemplate }, callback
+    createAndUpdate { provider, title, meta, rawContent, stackTemplate }, callback

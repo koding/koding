@@ -308,8 +308,8 @@ module.exports = class DefineStackView extends KDView
         .add 'Template content saved.'
         .add 'Setting up custom variables...'
 
-      meta = @variablesView._providedData
-      data = { stackTemplate, meta }
+      { meta, rawContent } = @variablesView._providedData
+      data = { stackTemplate, meta, rawContent }
 
       updateCustomVariable data, (err, _stackTemplate) =>
 
@@ -610,7 +610,7 @@ module.exports = class DefineStackView extends KDView
 
     group         = kd.singletons.groupsController.getCurrentGroup()
     account       = whoami()
-    custom        = @variablesView._providedData
+    custom        = @variablesView._providedData.meta
     availableData = { group, account, custom }
 
     requiredData  = requirementsParser template
