@@ -52,7 +52,7 @@ func getOwn(userId bson.ObjectId, group *models.Group) []*MachineAndWorkspaces {
 }
 
 func getShared(userId bson.ObjectId, group *models.Group) []*MachineAndWorkspaces {
-	sharedMachines, err := modelhelper.GetSharedMachines(userId, group)
+	sharedMachines, err := modelhelper.GetSharedGroupMachines(userId, group)
 	if err != nil {
 		Log.Error(fmt.Sprintf(
 			"Error fetching shared machines for: %s %s", userId, err))

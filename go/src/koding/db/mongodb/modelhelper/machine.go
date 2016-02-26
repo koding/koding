@@ -200,7 +200,21 @@ func GetOwnGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineC
 	return findMachineContainers(query)
 }
 
-func GetSharedMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
+func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
+	query := bson.M{
+		"users": bson.M{
+			"$elemMatch": bson.M{
+				"id":        userId,
+				"owner":     false,
+				"permanent": true,
+			},
+		},
+	}
+
+	return findMachineContainers(query)
+}
+
+func GetSharedGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
 	query := bson.M{
 		"users": bson.M{
 			"$elemMatch": bson.M{
