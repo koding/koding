@@ -162,7 +162,7 @@ serveHome = (req, res, next) ->
       if KONFIG.environment in ['dev', 'sandbox']
         return serveKodingHome()  if isLoggedIn
 
-        return req.pipe(request(KONFIG.hubspotPageURL)).pipe(res)
+        return res.redirect 307, '/Teams'
 
       # all other requests coming to slash, goes back to KONFIG.hubspotPageURL
       return res.redirect 307, KONFIG.hubspotPageURL
