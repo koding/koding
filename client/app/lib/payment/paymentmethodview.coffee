@@ -1,7 +1,6 @@
 _                = require 'lodash'
 kd               = require 'kd'
 JView            = require '../jview'
-KDButtonView     = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 
 module.exports = class PaymentMethodView extends JView

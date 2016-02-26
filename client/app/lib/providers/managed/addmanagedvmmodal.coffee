@@ -1,7 +1,7 @@
 kd   = require 'kd'
 view = require './viewhelpers'
 ManagedVMBaseModal = require './basemodal'
-checkFlag = require 'app/util/checkFlag'
+
 
 module.exports = class AddManagedVMModal extends ManagedVMBaseModal
 

@@ -3,7 +3,6 @@ $                    = require 'jquery'
 _                    = require 'lodash'
 helper               = require '../helper'
 globals              = require 'globals'
-getNick              = require 'app/util/nick'
 KodingAppsController = require '../../kodingappscontroller'
 
 OPENTOK_URL = '//static.opentok.com/webrtc/v2.2/js/opentok.min.js'

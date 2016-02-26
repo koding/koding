@@ -1,5 +1,4 @@
 kd                = require 'kd'
-KDController      = kd.Controller
 CreditCardModal   = require './creditcardmodal'
 BaseWorkFlow      = require './baseworkflow'
 PaymentConstants  = require './paymentconstants'

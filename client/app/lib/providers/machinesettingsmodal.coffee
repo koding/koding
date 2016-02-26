@@ -1,8 +1,6 @@
 kd                   = require 'kd'
-KDView               = kd.View
 KDModalView          = kd.ModalView
 KDTabPaneView        = kd.TabPaneView
-KDCustomHTMLView     = kd.CustomHTMLView
 KDTabHandleContainer = kd.TabHandleContainer
 
 Machine                      = require 'app/providers/machine'

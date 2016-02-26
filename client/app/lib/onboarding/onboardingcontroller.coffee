@@ -1,6 +1,5 @@
 remote = require('../remote').getInstance()
 isLoggedIn = require '../util/isLoggedIn'
-$ = require 'jquery'
 kd = require 'kd'
 whoami = require 'app/util/whoami'
 checkFlag = require 'app/util/checkFlag'
@@ -8,7 +7,6 @@ KDController = kd.Controller
 OnboardingEvent = require './onboardingevent'
 OnboardingViewController = require './onboardingviewcontroller'
 OnboardingConstants = require './onboardingconstants'
-Promise = require 'bluebird'
 
 ###*
  * A controller that manages onboardings for the current user

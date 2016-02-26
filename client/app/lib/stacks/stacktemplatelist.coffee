@@ -1,12 +1,9 @@
-kd                    = require 'kd'
-KDListView            = kd.ListView
-KDModalView           = kd.ModalView
-KDOverlayView         = kd.OverlayView
-
-hljs                  = require 'highlight.js'
-showError             = require 'app/util/showError'
-
-StackTemplateListItem = require './stacktemplatelistitem'
+kd                        = require 'kd'
+KDListView                = kd.ListView
+KDModalView               = kd.ModalView
+KDOverlayView             = kd.OverlayView
+showError                 = require 'app/util/showError'
+StackTemplateListItem     = require './stacktemplatelistitem'
 StackTemplateContentModal = require './stacktemplatecontentmodal'
 
 
