@@ -404,6 +404,30 @@ module.exports = class JComputeStack extends jraphical.Module
 
         async.series queue, callback
 
+      else if options.prepareForMount and machineId = options.machineId
+
+        if machineId not in ("#{m}" for m in @getAt 'machines')
+          return callback new KodingError 'Machine not in this stack'
+
+        { connection: { delegate } } = client
+        { profile: { nickname } }    = delegate
+
+        group = @getAt 'group'
+
+        JMachine = require './computeproviders/machine'
+        JMachine.one { _id: machineId }, (err, machine) ->
+
+          if err or not machine
+            return callback err ? new KodingError 'Machine not found'
+
+          shareOptions = {
+            target     : [ nickname ]
+            permanent  : yes
+            group
+          }
+
+          machine.shareWith shareOptions, callback
+
       else
 
         callback new KodingError 'Please provide a vaild maintenance mode'
