@@ -36,7 +36,7 @@ module.exports = class ActivityInputWidget extends KDView
     {defaultValue, placeholder, inputViewClass, isSuggestionEnabled} = @getOptions()
     data = @getData()
 
-    if isSoloProductLite()
+    unless isSoloProductLite()
       @input      = new inputViewClass {defaultValue, placeholder}
     else
       @input      = new KDCustomHTMLView {cssClass:'input-view-disabled'}

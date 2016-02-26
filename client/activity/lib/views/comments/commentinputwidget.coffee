@@ -155,7 +155,7 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
 
   viewAppended: ->
 
-    if isSoloProductLite()
+    unless isSoloProductLite()
       if @getOption 'showAvatar'
         @addSubView new AvatarStaticView
           size    :

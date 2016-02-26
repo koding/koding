@@ -291,7 +291,7 @@ module.exports = class ActivityPane extends MessagePane
 
   createSearchInput: ->
 
-    if isSoloProductLite()
+    unless isSoloProductLite()
       {router} = kd.singletons
 
       @searchInput = new SearchInputView

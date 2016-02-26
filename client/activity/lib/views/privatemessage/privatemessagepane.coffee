@@ -333,7 +333,7 @@ module.exports = class PrivateMessagePane extends MessagePane
   createInputWidget: ->
 
     channel = @getData()
-    if isSoloProductLite()
+    unless isSoloProductLite()
       @input  = new ReplyInputWidget {channel, cssClass : 'private'}
       @input.on 'EditModeRequested', @bound 'editLastMessage'
     else
