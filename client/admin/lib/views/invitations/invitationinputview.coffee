@@ -1,6 +1,6 @@
 kd               = require 'kd'
 KDView           = kd.View
-KDInputView      = kd.In
+KDInputView      = kd.InputView
 KDCustomCheckBox = kd.CustomCheckBox
 
 
