@@ -41,7 +41,7 @@ module.exports = (req, res) ->
       return templateFn err, res  if err
       unless account
         err = new Error 'account not found'
-        return templateFn err, res  unless account
+        return templateFn err, res
 
       params = { token, accountId : account.getId() }
       post '/api/social/payments/paypal/return', params, (err) -> templateFn err, res
