@@ -1,4 +1,5 @@
 kd                         = require 'kd'
+_                          = require 'lodash'
 remote                     = require('app/remote').getInstance()
 KDView                     = kd.View
 KDCustomHTMLView           = kd.CustomHTMLView
@@ -153,4 +154,8 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
         { meta, rawContent } = data
         if (Object.keys meta).length
-          @getAce().setContent rawContent ? (jsonToYaml meta).content
+          content = if rawContent
+          then _.unescape rawContent
+          else (jsonToYaml meta).content
+
+          @getAce().setContent content
