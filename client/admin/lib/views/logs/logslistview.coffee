@@ -1,6 +1,4 @@
 kd                 = require 'kd'
-remote             = require('app/remote').getInstance()
-
 LogsList           = require './logslist'
 LogsListController = require './logslistcontroller'
 

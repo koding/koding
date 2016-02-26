@@ -1,8 +1,8 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-KDView = kd.View
-FooterView = require 'app/commonviews/footerview'
-CustomLinkView = require 'app/customlinkview'
+KDView           = kd.View
+FooterView       = require 'app/commonviews/footerview'
+CustomLinkView   = require 'app/customlinkview'
 
 
 module.exports = class FeaturesView extends KDView

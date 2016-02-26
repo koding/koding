@@ -1,17 +1,12 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDLabelView = kd.LabelView
-KDInputView = kd.InputView
-KDFormViewWithFields = kd.FormViewWithFields
-KDButtonBar = kd.ButtonBar
-KDListItemView = kd.ListItemView
-KDListViewController = kd.ListViewController
-KDNotificationView = kd.NotificationView
+kd                    = require 'kd'
+KDCustomHTMLView      = kd.CustomHTMLView
+KDLabelView           = kd.LabelView
+KDInputView           = kd.InputView
+KDButtonBar           = kd.ButtonBar
+KDListItemView        = kd.ListItemView
+KDListViewController  = kd.ListViewController
 AccountSshMachineList = require './accountsshmachinelist'
-$ = require 'jquery'
-Encoder = require 'htmlencode'
-showError = require 'app/util/showError'
+showError             = require 'app/util/showError'
 
 
 module.exports = class AccountNewSshKeyView extends KDListItemView

@@ -4,7 +4,6 @@ KDCustomHTMLView = kd.CustomHTMLView
 KDInputView = kd.InputView
 JView = require 'app/jview'
 Encoder = require 'htmlencode'
-AceView = require 'ace/aceview'
 CustomPartialHelpers = require 'dashboard/custompartialhelpers'
 
 

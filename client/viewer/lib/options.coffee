@@ -1,6 +1,6 @@
-kd = require 'kd'
-globals = require 'globals'
-nick = require 'app/util/nick'
+kd       = require 'kd'
+globals  = require 'globals'
+nick     = require 'app/util/nick'
 FSHelper = require 'app/util/fs/fshelper'
 
 module.exports =

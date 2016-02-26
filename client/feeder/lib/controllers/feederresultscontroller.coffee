@@ -1,4 +1,3 @@
-globals = require 'globals'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDListItemView = kd.ListItemView

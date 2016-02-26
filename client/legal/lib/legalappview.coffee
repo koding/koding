@@ -1,12 +1,12 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-CopyrightView = require './copyrightview'
-PrivacyView = require './privacyview'
-TosView = require './tosview'
-UserPolicyView = require './userpolicyview'
-JView = require 'app/jview'
-FooterView = require 'app/commonviews/footerview'
-CustomLinkView = require 'app/customlinkview'
+CopyrightView    = require './copyrightview'
+PrivacyView      = require './privacyview'
+TosView          = require './tosview'
+UserPolicyView   = require './userpolicyview'
+JView            = require 'app/jview'
+FooterView       = require 'app/commonviews/footerview'
+CustomLinkView   = require 'app/customlinkview'
 
 
 module.exports = class LegalAppView extends JView

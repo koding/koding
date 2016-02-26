@@ -1,5 +1,4 @@
 kd                    = require 'kd'
-KDView                = kd.View
 remote                = require('app/remote').getInstance()
 InvitedItemView       = require './inviteditemview'
 KDCustomHTMLView      = kd.CustomHTMLView

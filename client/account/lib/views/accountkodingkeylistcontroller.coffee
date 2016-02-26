@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd                        = require 'kd'
 AccountListViewController = require '../controllers/accountlistviewcontroller'
-remote = require('app/remote').getInstance()
+remote                    = require('app/remote').getInstance()
 
 
 module.exports = class AccountKodingKeyListController extends AccountListViewController

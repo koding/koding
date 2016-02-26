@@ -1,9 +1,7 @@
 kd                  = require 'kd'
 JView               = require 'app/jview'
 KDView              = kd.View
-KDTabView           = kd.TabView
 KDSelectBox         = kd.SelectBox
-KDTabPaneView       = kd.TabPaneView
 KDCustomHTMLView    = kd.CustomHTMLView
 
 isLoggedIn          = require 'app/util/isLoggedIn'

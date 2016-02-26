@@ -1,8 +1,11 @@
-kd = require 'kd'
+kd                   = require 'kd'
 KDDelimitedInputView = kd.DelimitedInputView
 KDFormViewWithFields = kd.FormViewWithFields
-remote = require('app/remote').getInstance()
+remote               = require('app/remote').getInstance()
+
+
 module.exports = class GroupPackEditForm extends KDFormViewWithFields
+
   constructor: (options = {}, data = new remote.api.JPaymentPack) ->
     options.fields ?= {}
 

@@ -2,7 +2,6 @@ _         = require 'lodash'
 kd        = require 'kd'
 JView     = require 'app/jview'
 remote    = require('app/remote').getInstance()
-showError = require 'app/util/showError'
 Validator = require 'validator'
 
 
