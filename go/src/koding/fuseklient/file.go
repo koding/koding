@@ -43,16 +43,15 @@ func (f *File) ReadAt(offset int64) ([]byte, error) {
 	f.Lock()
 	defer f.Unlock()
 
-	// fetch from remote is no content
-	if len(f.Content) == 0 {
+	if offset > int64(f.Attrs.Size) {
+		return nil, io.EOF
+	}
+
+	// fetch from remote when local size doesn't match remote
+	if len(f.Content) != int(f.Attrs.Size) {
 		if err := f.updateContentFromRemote(); err != nil {
 			return nil, err
 		}
-	}
-
-	// check offset only after fetching from remote
-	if offset > int64(len(f.Content)) {
-		return nil, io.EOF
 	}
 
 	return f.Content[offset:], nil
@@ -211,6 +210,7 @@ func (f *File) updateContentFromRemote() error {
 
 	f.Content = n
 	f.Attrs.Size = uint64(len(f.Content))
+	f.IsDirty = false
 
 	return nil
 }
