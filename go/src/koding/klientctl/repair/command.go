@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"koding/klient/remote/req"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/util/exec"
@@ -29,8 +30,9 @@ type Command struct {
 	Repairers []Repairer
 
 	// The klient instance this struct will use, mainly given to Repairers.
-	//Klient interface {
-	//}
+	Klient interface {
+		RemoteStatus(req.Status) (bool, error)
+	}
 
 	// The options to use if this struct needs to dial Klient.
 	//
@@ -87,12 +89,16 @@ func (c *Command) Run() (int, error) {
 		return 2, err
 	}
 
-	if err := c.initDefaultRepairers(); err != nil {
+	if err := c.setupKlient(); err != nil {
 		return 3, err
 	}
 
-	if err := c.runRepairers(); err != nil {
+	if err := c.initDefaultRepairers(); err != nil {
 		return 4, err
+	}
+
+	if err := c.runRepairers(); err != nil {
+		return 5, err
 	}
 
 	c.printfln("Everything looks healthy")
@@ -106,6 +112,26 @@ func (c *Command) handleOptions() error {
 		c.Help()
 		return errors.New("Missing mountname option")
 	}
+
+	return nil
+}
+
+// setupKlient creates and dials our Kite interface *only* if it is nil. If it is
+// not nil, someone else gave a kite to this Command, and it is expected to be
+// dialed and working.
+func (c *Command) setupKlient() error {
+	// if c.klient isnt nil, don't overrite it. Another command may have provided
+	// a pre-dialed klient.
+	if c.Klient != nil {
+		return nil
+	}
+
+	k, err := klient.NewDialedKlient(c.KlientOptions)
+	if err != nil {
+		return fmt.Errorf("Failed to get working Klient instance")
+	}
+
+	c.Klient = k
 
 	return nil
 }
@@ -169,9 +195,25 @@ func (c *Command) initDefaultRepairers() error {
 		},
 	}
 
+	// The kontrol repairer will check if we're connected to kontrol yet, and
+	// attempt to wait for it. Eventually restarting if needed.
+	kontrolRepair := &KontrolRepair{
+		Stdout: c.Stdout,
+		Klient: c.Klient,
+		RetryOptions: RetryOptions{
+			StatusRetries: 3,
+			StatusDelay:   10 * time.Second,
+		},
+		Exec: &exec.CommandRun{
+			Stdin:  c.Stdin,
+			Stdout: c.Stdout,
+		},
+	}
+
 	c.Repairers = []Repairer{
 		internetRepair,
 		klientRunningRepair,
+		kontrolRepair,
 	}
 
 	return nil

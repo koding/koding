@@ -43,15 +43,9 @@ func NewRetryRepair(r Repairer, opts RetryOptions) *RetryRepair {
 	}
 }
 
-// Name returns the RetryRepair's name, along with the underlying repairer.
-func (r *RetryRepair) Name() string {
-	return fmt.Sprintf("retryrepair:%s", r.Repairer.Name())
-}
-
-// Description returns the underlying repairers description, since the RetryRepair
-// has no user facing functionality.
-func (r *RetryRepair) Description() string {
-	return r.Repairer.Description()
+// String returns the RetryRepair's name, along with the underlying repairer.
+func (r *RetryRepair) String() string {
+	return fmt.Sprintf("retryrepair:%s", r.Repairer.String())
 }
 
 // Status returns the eventual (after any given retries needed) status of the

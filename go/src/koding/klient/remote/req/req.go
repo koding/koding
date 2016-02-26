@@ -55,3 +55,30 @@ type Cache struct {
 	// The keypath that SSH will use for rsync.
 	SSHPrivateKeyPath string `json:"sshPrivateKeyPath"`
 }
+
+type Status struct {
+	// Item is the name of the thing you want
+	Item StatusItem
+
+	// MountName is the mount name to query. This is only used if Section is
+	// "mount", or if Section is left empty (to run all status).
+	MountName string
+}
+
+type StatusItem int
+
+const (
+	EveryStatus StatusItem = iota
+	KontrolStatus
+)
+
+func (i StatusItem) String() string {
+	switch i {
+	case EveryStatus:
+		return "EveryStatus"
+	case KontrolStatus:
+		return "KontrolStatus"
+	default:
+		return "UnknownStatus"
+	}
+}
