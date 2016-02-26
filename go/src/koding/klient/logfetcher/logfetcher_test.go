@@ -18,11 +18,9 @@ import (
 )
 
 var (
-	lf        *kite.Kite
-	remote    *kite.Client
-	remote2   *kite.Client
-	testfile1 = "testdata/testfile1.txt.tmp"
-	testfile2 = "testdata/testfile2.txt.tmp"
+	lf      *kite.Kite
+	remote  *kite.Client
+	remote2 *kite.Client
 )
 
 func init() {
@@ -51,17 +49,6 @@ func init() {
 	}
 }
 
-func createTestFiles() error {
-	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
-		return err
-	}
-	if err := testutil.FileCopy("testdata/testfile2.txt", testfile2); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func makeTempAndCopy(copyFrom string) (dir, path string, err error) {
 	tmpDir, err := ioutil.TempDir("", "logfetcher")
 	if err != nil {
@@ -79,11 +66,11 @@ func makeTempAndCopy(copyFrom string) (dir, path string, err error) {
 }
 
 func TestTail(t *testing.T) {
-	if err := createTestFiles(); err != nil {
+	tmpDir, tmpFile, err := makeTempAndCopy("testdata/testfile1.txt")
+	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(testfile1)
-	defer os.Remove(testfile2)
+	defer os.RemoveAll(tmpDir)
 
 	var watchCount int
 	watchResult := []string{}
@@ -93,8 +80,8 @@ func TestTail(t *testing.T) {
 		watchResult = append(watchResult, line)
 	})
 
-	_, err := remote.Tell("tail", &Request{
-		Path:  testfile1,
+	_, err = remote.Tell("tail", &Request{
+		Path:  tmpFile,
 		Watch: watchFunc,
 	})
 	if err != nil {
@@ -120,7 +107,7 @@ func TestTail(t *testing.T) {
 		)
 	}
 
-	file, err := os.OpenFile(testfile1, os.O_APPEND|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,11 +131,11 @@ func TestTail(t *testing.T) {
 // TestMultipleTail compares two log.tail calls on a single file, and ensures that
 // they both receive the same input.
 func TestMultipleTail(t *testing.T) {
-	if err := createTestFiles(); err != nil {
+	tmpDir, tmpFile, err := makeTempAndCopy("testdata/testfile2.txt")
+	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(testfile1)
-	defer os.Remove(testfile2)
+	defer os.RemoveAll(tmpDir)
 
 	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
@@ -156,8 +143,8 @@ func TestMultipleTail(t *testing.T) {
 		watchResult = append(watchResult, line)
 	})
 
-	_, err := remote.Tell("tail", &Request{
-		Path:  testfile2,
+	_, err = remote.Tell("tail", &Request{
+		Path:  tmpFile,
 		Watch: watchFunc,
 	})
 	if err != nil {
@@ -171,7 +158,7 @@ func TestMultipleTail(t *testing.T) {
 	})
 
 	_, err = remote2.Tell("tail", &Request{
-		Path:  testfile2,
+		Path:  tmpFile,
 		Watch: watchFunc2,
 	})
 	if err != nil {
@@ -180,7 +167,7 @@ func TestMultipleTail(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	file, err := os.OpenFile(testfile2, os.O_APPEND|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,21 +283,21 @@ func TestTailOffset(t *testing.T) {
 }
 
 func TestGetOffsetLines(t *testing.T) {
-	// Create a new file for testing, so we can test offsetting and watching.
-	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
+	tmpDir, tmpFile, err := makeTempAndCopy("testdata/testfile1.txt")
+	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(testfile1)
+	defer os.RemoveAll(tmpDir)
 
 	// Read the file, and get the offset lines to compare against.
-	sourceText, err := ioutil.ReadFile(testfile1)
+	sourceText, err := ioutil.ReadFile(tmpFile)
 	if err != nil {
 		t.Fatal(err)
 	}
 	sourceLines := strings.Split(strings.TrimSpace(string(sourceText)), "\n")
 
 	// Open our file, to pass to the func
-	file1, err := os.Open(testfile1)
+	file1, err := os.Open(tmpFile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -346,7 +333,7 @@ func TestGetOffsetLines(t *testing.T) {
 	}
 
 	// Create the 2nd test file to be empty (Create truncates by default)
-	file2, err := os.Create(testfile2)
+	file2, err := os.Create(tmpFile)
 	if err != nil {
 		t.Fatal(err)
 	}
