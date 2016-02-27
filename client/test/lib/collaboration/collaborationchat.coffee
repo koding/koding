@@ -84,3 +84,14 @@ module.exports =
       browser.waitForElementVisible '.share-modal', 20000
 
       browser.end()
+
+
+  editMessage: (browser) ->
+
+    collaborationHelpers.editMessage_(browser)
+
+
+  editMessageWithUpArrow: (browser) ->
+
+    collaborationHelpers.editMessage_(browser, yes)
+

@@ -484,3 +484,76 @@ module.exports =
         .setValue              textAreaSelector, participantMessage + '\n'
         .pause                 5000
         .waitForTextToContain  messagePaneScroller, participantMessage
+
+
+  editMessage: (browser, withUpArrow, hostMessage, participantMessage) ->
+
+    host        = utils.getUser no, 0
+    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant = utils.getUser no, 1
+
+    inputSelector        = '.message-pane .activity-input-widget'
+    textAreaSelector     = "#{inputSelector} [testpath=ActivityInputView]"
+    messagePaneScroller  = '.message-pane .message-pane-scroller [testpath=activity-list]'
+    sendText             = "#{messagePaneScroller} .consequent:not(.join-leave)"
+    messagePaneSelector  = '.message-pane'
+    hostMessage        or= 'message from host'
+    participantMessage or= 'message from participant'
+    changeMessage        = 'Change Message'
+    arrowButtonSelector  = '.settings-menu-wrapper .activity-settings-menu span'
+    kdcontextmenu        = '.kdcontextmenu .context-list-wrapper'
+    editSelector         = "#{kdcontextmenu} .edit-post"
+    editWidgetSelector   = '.edit-widget-wrapper'
+    editWidgetInput      = '.activity-input-widget'
+
+    @sendMessage(browser)
+
+    if hostBrowser
+      if withUpArrow
+        browser
+          .waitForElementVisible  sendText, 20000
+          .pause                  2000 # wait for text
+          .setValue               inputSelector, browser.Keys.ARROW_UP
+          .waitForElementVisible  editWidgetSelector, 20000
+          .setValue               editWidgetInput, changeMessage + '\n'
+          .waitForTextToContain   messagePaneScroller, changeMessage
+      else
+        browser
+          .waitForElementVisible  sendText, 20000
+          .waitForElementVisible  messagePaneScroller, 20000
+          .waitForElementVisible  sendText,20000
+          .moveToElement          sendText, 130, 10
+          .waitForElementVisible  arrowButtonSelector, 20000
+          .click                  arrowButtonSelector
+          .waitForElementVisible  kdcontextmenu, 20000
+          .waitForElementVisible  editSelector, 20000
+          .click                  editSelector
+          .waitForElementVisible  editWidgetSelector, 20000
+          .setValue               editWidgetInput, changeMessage + '\n'
+          .waitForTextToContain   messagePaneScroller, changeMessage
+
+    else
+      browser
+        .waitForTextToContain   messagePaneScroller, participantMessage
+
+
+  editMessage_: (browser, withUpArrow) ->
+
+    host        = utils.getUser no, 0
+    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant = utils.getUser no, 1
+
+    if hostBrowser
+      collaborationHelpers.startSessionAndInviteUser(browser, host, participant, yes, no)
+
+      collaborationHelpers.sendMessage(browser)
+      collaborationHelpers.editMessage(browser, withUpArrow)
+
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
+    else
+      collaborationHelpers.joinSession(browser, host, participant)
+
+      collaborationHelpers.sendMessage(browser)
+      collaborationHelpers.leaveSessionFromSidebar(browser)
+      browser.end()

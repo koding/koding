@@ -76,6 +76,10 @@ module.exports = [
   ]
 
   [
+    { name: 'collaboration collaborationchat', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
     { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
