@@ -43,7 +43,7 @@ func (f *File) ReadAt(offset int64) ([]byte, error) {
 	f.Lock()
 	defer f.Unlock()
 
-	if offset > int64(f.Attrs.Size) {
+	if offset >= int64(f.Attrs.Size) {
 		return nil, io.EOF
 	}
 
@@ -183,7 +183,7 @@ func (f *File) Reset() error {
 
 func (f *File) syncToRemote() error {
 	// return if:
-	//   file is dirty, ie not written since last remote sync
+	//   file is not dirty, ie not written since last remote sync
 	//   file was reset, ie local cache was purged
 	if !f.IsDirty || f.IsReset {
 		return nil

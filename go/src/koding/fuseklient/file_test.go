@@ -69,6 +69,13 @@ func TestFile(tt *testing.T) {
 			So(string(content), ShouldEqual, "Hello World!")
 		})
 
+		Convey("It should return error if offset is equal to length of content", func() {
+			f := newFile()
+
+			_, err := f.ReadAt(int64(f.Attrs.Size))
+			So(err, ShouldEqual, io.EOF)
+		})
+
 		Convey("It should return error if offset is greater than length of content", func() {
 			f := newFile()
 
