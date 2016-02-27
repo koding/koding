@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// RemoteMachineRepair (name TBA) checks the remote machine's kite connection,
+// and waits for it to be healthy. If we cannot recover, it remounts.
 type RemoteMachineRepair struct {
 	// The name of the machine that the remote kite is using.
 	MachineName string
