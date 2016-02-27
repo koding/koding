@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/klient"
 	"os"
 	"text/tabwriter"
 
@@ -19,7 +20,7 @@ type kiteMounts struct {
 
 // MountsCommand returns list of previously mounted folders.
 func MountsCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
-	k, err := CreateKlientClient(NewKlientOptions())
+	k, err := klient.CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		fmt.Printf("Error connecting to %s: '%s'\n", KlientName, err)
 		return 1

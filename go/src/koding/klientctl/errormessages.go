@@ -48,12 +48,12 @@ var (
 
 	// FailedStartKlient is used when starting klient fails.
 	FailedStartKlient = fmt.Sprintf(
-		"Error: Failed to start the %s within the expected time.\n%s", KlientName,
+		"Error: Failed to start the %s within the expected time.\n", KlientName,
 	)
 
 	// FailedStopKlient is used when stopping klient fails.
 	FailedStopKlient = fmt.Sprintf(
-		"Error: Failed to stop the %s within the expected time.\n%s", KlientName,
+		"Error: Failed to stop the %s within the expected time.\n", KlientName,
 	)
 
 	// FailedGetSSHKey is used when we fail to get the ssh key

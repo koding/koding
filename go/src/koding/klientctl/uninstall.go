@@ -100,13 +100,13 @@ func (u *Uninstall) Uninstall() (string, int) {
 
 	// Remove the kitekey
 	if err := u.RemoveKiteKey(); err != nil {
-		log.Warning("Failed to remove kite key. err:%s", err)
+		u.log.Warning("Failed to remove kite key. err:%s", err)
 		u.addWarning(FailedToRemoveAuthFileWarn)
 	}
 
 	// Remove the klient/klient.sh files
 	if err := u.RemoveKlientFiles(); err != nil {
-		log.Warning("Failed to remove klient or klient.sh. err:%s", err)
+		u.log.Warning("Failed to remove klient or klient.sh. err:%s", err)
 		u.addWarning(FailedToRemoveFilesWarn)
 	}
 
@@ -115,13 +115,13 @@ func (u *Uninstall) Uninstall() (string, int) {
 	// Note that we're not printing any errors in removing the directories to avoid
 	// spamming the user with warnings.
 	if err := u.RemoveKlientDirectories(); err != nil {
-		log.Warning("Failed to remove klient directories. err:%s", err)
+		u.log.Warning("Failed to remove klient directories. err:%s", err)
 	}
 
 	// Remove the klientctl binary itself.
 	// (The current binary is removing itself.. So emo...)
 	if err := u.RemoveKlientctl(); err != nil {
-		log.Warning("Failed to remove klientctl. err:%s", err)
+		u.log.Warning("Failed to remove klientctl. err:%s", err)
 		u.addWarning(FailedToRemoveKlientWarn)
 	}
 
