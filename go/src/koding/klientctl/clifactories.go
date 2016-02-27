@@ -76,7 +76,7 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) c
 func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
 	log = log.New(fmt.Sprintf("command:%s", cmdName))
 
-	// Full our unmount options from the CLI. Any empty options are okay, as
+	// Fill our repair options from the CLI. Any empty options are okay, as
 	// the command struct is responsible for verifying valid opts.
 	opts := repair.Options{
 		MountName: c.Args().First(),
