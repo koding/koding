@@ -29,7 +29,6 @@ IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 CollaborationController       = require './collaborationcontroller'
-VideoCollaborationController  = require './videocollaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
@@ -43,7 +42,6 @@ module.exports =
 class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
-  _.extend @prototype, VideoCollaborationController
 
   {
     Stopped, Running, NotInitialized, Terminated, Unknown, Pending,

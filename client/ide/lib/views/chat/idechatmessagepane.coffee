@@ -31,7 +31,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     options.initialParticipantStatus = 'requestpending'
 
     @isInSession = options.isInSession
-    @videoActive = no
 
     isHost = not @isInSession
 
@@ -48,34 +47,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
       @autoComplete?.hideDropdown()
 
 
-  createVideoActionButton: (action) ->
-
-    @addSubView @videoActionButtonContainer = new kd.CustomHTMLView
-      cssClass : 'ChatVideo-actionButtonContainer'
-
-    switch action
-      when 'start'
-        method = 'requestStartVideo'
-        tooltipTitle = 'Start Video Chat [BETA]'
-      when 'join'
-        method = 'requestJoinVideo'
-        tooltipTitle = 'Join Video Chat [BETA]'
-
-    @videoActionButton = new kd.ButtonView
-      iconOnly : yes
-      cssClass : 'ChatVideo-actionButton'
-      callback : @bound method
-      tooltip  : { title: tooltipTitle, placement: 'left' }
-
-    @videoActionButtonContainer.addSubView @videoActionButton
-
-
-  handleThresholdReached: ->
-
-    return  unless @visible
-    return  unless kd.singletons.windowController.focused
-
-    @glance()
 
 
   handleFocus: (isFocused, event) ->
@@ -85,71 +56,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     return  unless @isPageAtBottom()
 
     @glance()
-
-
-  handleVideoActive: (participants) ->
-
-    nicknames = Object.keys participants
-
-    @startVideoButton?.hide()
-
-    @participantHeads.setVideoListTitle()
-    @participantsModel.setVideoState on, nicknames
-    @videoActive = yes
-
-
-
-  handleVideoEnded: ->
-
-    @startVideoButton?.show()
-
-    @participantHeads.setDefaultListTitle()
-    @participantsModel.setVideoState off
-    @videoActive = no
-
-
-  handleVideoParticipantsChanged: (payload) ->
-
-    @participantsModel.applyVideoUpdate payload
-
-
-  handleVideoParticipantConnected: (participant) ->
-
-    @participantsModel.addVideoConnectedParticipant participant.nick
-
-
-  handleVideoParticipantDisconnected: (participant) ->
-
-    @participantsModel.removeVideoConnectedParticipant participant.nick
-
-
-  handleVideoParticipantJoined: (participant) ->
-
-    @participantsModel.addVideoActiveParticipant participant.nick
-
-
-  handleVideoParticipantLeft: (participant) ->
-
-    @participantsModel.removeVideoActiveParticipant participant.nick
-
-
-  setActiveParticipantAvatar: (account) ->
-
-    @participantsModel.addVideoActiveParticipant account.profile.nickname
-
-
-  setSelectedParticipantAvatar: (account, isOnline) ->
-
-    participant = account?.profile.nickname or null
-
-    @participantsModel.setVideoSelectedParticipant participant, isOnline
-
-
-  setAvatarTalkingState: (nickname, state) ->
-
-    if state
-    then @participantsModel.addTalkingParticipant nickname
-    else @participantsModel.removeTalkingParticipant nickname
 
 
   glance: ->
@@ -244,12 +150,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
       attributes : href : link
 
     @addSubView header
-
-
-  requestStartVideo: -> @emit 'ChatVideoStartRequested'
-  requestEndVideo: -> @emit 'ChatVideoEndRequested'
-  requestJoinVideo: -> @emit 'ChatVideoJoinRequested'
-  requestLeaveVideo: -> @emit 'ChatVideoLeaveRequested'
 
 
   createMenu: ->

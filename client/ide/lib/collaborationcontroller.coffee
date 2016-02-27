@@ -916,11 +916,6 @@ module.exports = CollaborationController =
     @collectButtonShownMetric()
     @bindRealtimeEvents()
 
-    # this method comes from VideoCollaborationController.
-    # It's mixed into IDEAppController after CollaborationController.
-    # This is probably an anti pattern, we need to look into this again. ~Umut
-    @prepareVideoCollaboration()
-
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
 
