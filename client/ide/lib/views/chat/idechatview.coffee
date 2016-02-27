@@ -1,17 +1,12 @@
 kd                  = require 'kd'
-KDView              = kd.View
-KDTabView           = kd.TabView
-KDLoaderView        = kd.LoaderView
-KDCustomHTMLView    = kd.CustomHTMLView
-
 CustomLinkView      = require 'app/customlinkview'
-IDEChatMessagePane  = require './idechatmessagepane'
 IDEChatSettingsPane = require './idechatsettingspane'
 envDataProvider     = require 'app/userenvironmentdataprovider'
 
-socialHelpers = require '../../collaboration/helpers/social'
-
-module.exports = class IDEChatView extends KDTabView
+# refactor notes:
+# no need for a KDTabView here but
+# didnot invest more for the timebeing - SY
+module.exports = class IDEChatView extends kd.TabView
 
   constructor: (options = {}, data)->
 
@@ -50,14 +45,14 @@ module.exports = class IDEChatView extends KDTabView
 
   createLoader: ->
 
-    @loaderView = new KDView cssClass: 'loader-view'
+    @loaderView = new kd.View cssClass: 'loader-view'
 
-    @loaderView.addSubView new KDLoaderView
+    @loaderView.addSubView new kd.LoaderView
       showLoader : yes
       size       :
         width    : 24
 
-    @loaderView.addSubView new KDCustomHTMLView
+    @loaderView.addSubView new kd.CustomHTMLView
       cssClass : 'label'
       partial  : 'Preparing collaboration'
 
