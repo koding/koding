@@ -148,6 +148,10 @@ func TestFile(tt *testing.T) {
 				So(f.IsDirty, ShouldBeTrue)
 			})
 
+			Convey("It should set reset state to false", func() {
+				So(f.IsReset, ShouldBeFalse)
+			})
+
 			Convey("It should update size", func() {
 				So(f.Attrs.Size, ShouldEqual, len(c))
 			})

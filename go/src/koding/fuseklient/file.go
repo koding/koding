@@ -193,9 +193,7 @@ func (f *File) syncToRemote() error {
 }
 
 func (f *File) writeContentToRemote(content []byte) error {
-	f.IsDirty = false
-	f.IsReset = false
-
+	f.resetFlags()
 	return f.Transport.WriteFile(f.Path, content)
 }
 
@@ -210,7 +208,13 @@ func (f *File) updateContentFromRemote() error {
 
 	f.Content = n
 	f.Attrs.Size = uint64(len(f.Content))
-	f.IsDirty = false
+
+	f.resetFlags()
 
 	return nil
+}
+
+func (f *File) resetFlags() {
+	f.IsDirty = false
+	f.IsReset = false
 }
