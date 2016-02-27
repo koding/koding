@@ -962,9 +962,11 @@ module.exports = CollaborationController =
     settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
 
     @chat.emit 'CollaborationStarted'
-    @statusBar.emit 'CollaborationStarted',
-      channelId: @socialChannel.id
-      collaborationLink: generateCollaborationLink nick(), @socialChannel.id
+
+    generateCollaborationLink nick(), @socialChannel.id, {}, (url) =>
+      @statusBar.emit 'CollaborationStarted',
+        channelId: @socialChannel.id
+        collaborationLink: url
 
 
   onCollaborationEnding: ->
