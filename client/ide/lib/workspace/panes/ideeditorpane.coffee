@@ -105,7 +105,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
     parent            = node.getData()
     contents          = @getContent()
-    oldCursorPosition = @getCursor
+    oldCursorPosition = @getCursor()
     @file.machine     = parent.machine
     parent.path       = parentPath
 
