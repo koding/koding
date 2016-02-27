@@ -32,19 +32,6 @@ module.exports = class IDEStatusBar extends kd.View
 
     @addSubView @status = new kd.CustomHTMLView cssClass : 'status'
 
-    @addSubView @collaborationStatus = new kd.CustomHTMLView
-      cssClass: 'hidden collab-status'
-      partial : 'Collaboration session is <span>active</span><i></i>'
-      click   : (e) => @toggleSessionEndButton()  if e.target.tagName is 'SPAN'
-
-    @collaborationStatus.addSubView @collaborationEndButtonContainer = new kd.CustomHTMLView
-      cssClass : 'button-container hidden'
-
-    @collaborationEndButtonContainer.addSubView @collaborationEndButton = new kd.ButtonView
-      title    : 'END SESSION'
-      cssClass : 'compact solid red end-session'
-      callback : @bound 'handleSessionEnd'
-
     @addSubView @collaborationLinkContainer = new kd.CustomHTMLView
       cssClass: 'collaboration-link-container'
 
@@ -224,9 +211,6 @@ module.exports = class IDEStatusBar extends kd.View
     @updateCollaborationLink ''
 
     @status.show()
-    @collaborationStatus.hide()
-    @collaborationEndButtonContainer.setClass 'hidden'
-    @collaborationStatus.unsetClass 'participant'
     @participantAvatars = {}
 
 
@@ -238,42 +222,14 @@ module.exports = class IDEStatusBar extends kd.View
     @share.updatePartial 'Chat'
 
     @status.hide()
-    @collaborationStatus.show()
-
     @updateCollaborationLink options.collaborationLink
 
     unless @amIHost_()
-      @collaborationEndButton.setTitle 'LEAVE SESSION'
-      @collaborationStatus.setClass 'participant'
 
 
   updateCollaborationLink: (collaborationLink) ->
 
     @collaborationLink.updatePartial collaborationLink
-
-
-  showSessionEndButton: ->
-
-    @isSessionEndButtonVisible = yes
-    @collaborationEndButtonContainer.unsetClass 'hidden'
-    @collaborationStatus.setClass 'shown'
-
-    kd.singletons.windowController.addLayer @collaborationStatus
-    @collaborationStatus.once 'ReceivedClickElsewhere', =>
-      @hideSessionEndButton()
-
-
-  hideSessionEndButton: ->
-
-    @isSessionEndButtonVisible = no
-    @collaborationEndButtonContainer.setClass 'hidden'
-    @collaborationStatus.unsetClass 'shown'
-
-
-  toggleSessionEndButton: ->
-
-    if   @isSessionEndButtonVisible then @hideSessionEndButton()
-    else @showSessionEndButton()
 
 
   handleSessionEnd: ->
