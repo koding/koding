@@ -69,6 +69,13 @@ func TestFile(tt *testing.T) {
 			So(string(content), ShouldEqual, "Hello World!")
 		})
 
+		Convey("It should return error if offset is equal to length of content", func() {
+			f := newFile()
+
+			_, err := f.ReadAt(int64(f.Attrs.Size))
+			So(err, ShouldEqual, io.EOF)
+		})
+
 		Convey("It should return error if offset is greater than length of content", func() {
 			f := newFile()
 
@@ -139,6 +146,10 @@ func TestFile(tt *testing.T) {
 
 			Convey("It should set dirty state to true", func() {
 				So(f.IsDirty, ShouldBeTrue)
+			})
+
+			Convey("It should set reset state to false", func() {
+				So(f.IsReset, ShouldBeFalse)
 			})
 
 			Convey("It should update size", func() {
