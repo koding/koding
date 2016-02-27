@@ -104,14 +104,14 @@ module.exports = class IDEEditorPane extends IDEPane
     [ node ] = @file.treeController.selectedNodes
 
     parent            = node.getData()
-    contents          = ace.getContents()
-    oldCursorPosition = ace.editor.getCursorPosition()
+    contents          = @getContent()
+    oldCursorPosition = @getCursor
     @file.machine     = parent.machine
     parent.path       = parentPath
 
     @file.path = deleteFilePath
 
-    path = parentPath + '/' + name
+    path = "#{parentPath}/#{name}"
     newFile = FSHelper.createFileInstance { path, machine: parent.machine }
 
     { tabView } = @getDelegate()
