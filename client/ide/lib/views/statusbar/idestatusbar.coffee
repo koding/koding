@@ -85,13 +85,15 @@ module.exports = class IDEStatusBar extends kd.View
       href     : "#{kd.singletons.router.getCurrentPath()}/share"
       title    : 'Loading'
       cssClass : 'share fr hidden'
-      click    : (event) ->
+      click    : (event) =>
         kd.utils.stopDOMEvent event
 
-        return  if @hasClass 'loading'
+        return  if @share.hasClass 'loading'
         return  unless appManager.frontApp.isMachineRunning()
 
-        appManager.tell 'IDE', 'showChat'
+        if @share.hasClass 'active'
+        then @handleSessionEnd()
+        else appManager.tell 'IDE', 'showChat'
 
     if isKoding()
       if isSoloProductLite()
@@ -205,17 +207,15 @@ module.exports = class IDEStatusBar extends kd.View
   handleCollaborationLoading: ->
 
     @share.setClass      'loading'
-    @share.unsetClass    'active'
-    @share.unsetClass    'not-started'
+    @share.unsetClass    'active not-started'
     @share.updatePartial 'Loading'
 
 
   handleCollaborationEnded: ->
 
     @share.setClass      'not-started'
-    @share.unsetClass    'loading'
-    @share.unsetClass    'active'
-    @share.updatePartial 'Share'
+    @share.unsetClass    'active loading red'
+    @share.updatePartial 'START COLLABORATION'
     @avatars.destroySubViews()
 
     @updateCollaborationLink ''
@@ -226,15 +226,15 @@ module.exports = class IDEStatusBar extends kd.View
 
   handleCollaborationStarted: (options) ->
 
-    @share.setClass      'active'
-    @share.unsetClass    'loading'
-    @share.unsetClass    'not-started'
-    @share.updatePartial 'Chat'
+    @share.setClass      'active red'
+    @share.unsetClass    'loading not-started green'
+    @share.updatePartial 'END COLLABORATION'
 
     @status.hide()
     @updateCollaborationLink options.collaborationLink
 
     unless @amIHost_()
+      @share.updatePartial 'LEAVE SESSION'
 
 
   updateCollaborationLink: (collaborationLink) ->
