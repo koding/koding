@@ -14,4 +14,5 @@ type Node interface {
 	Forget()
 	IsForgotten() bool
 	Expire() error
+	ToString() string
 }

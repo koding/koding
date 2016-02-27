@@ -395,6 +395,7 @@ func TestDir(t *testing.T) {
 
 			f := NewFile(NewEntry(o, "file"))
 			f.Content = []byte("Hello World!")
+			f.Attrs.Size = uint64(len(f.Content))
 
 			o.EntriesList = map[string]Node{"file": f}
 

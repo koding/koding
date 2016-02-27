@@ -1,6 +1,7 @@
 package fuseklient
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/jacobsa/fuse/fuseutil"
@@ -17,31 +18,40 @@ type File struct {
 	// with remote.
 	IsDirty bool
 
+	// IsReset indicates if File was reset. This is used to update file contents
+	// before writing to it. Without this, if file was reset, then written to
+	// without reading it, it'll overwrite the file on remote.
+	IsReset bool
+
 	// Content is the remotely fetched contents of the File.
 	Content []byte
 }
 
-// NewFile is the required initializeChild for File. If internal cache is empty,
-// it'll fetch from remote.
+// NewFile is the required initializer for File.
 func NewFile(n *Entry) *File {
-	return &File{Entry: n, Content: []byte{}}
+	return &File{
+		Entry:   n,
+		Content: []byte{},
+		IsDirty: false,
+		IsReset: false,
+	}
 }
 
-// ReadAt returns contents of file at specified offset.
+// ReadAt returns contents of file at specified offset. It returns io.EOF if
+// ofset is greater than its Attrs#Size.
 func (f *File) ReadAt(offset int64) ([]byte, error) {
 	f.Lock()
 	defer f.Unlock()
 
-	// fetch from remote is no content
-	if len(f.Content) == 0 {
+	if offset > int64(f.Attrs.Size) {
+		return nil, io.EOF
+	}
+
+	// fetch from remote when local size doesn't match remote
+	if len(f.Content) != int(f.Attrs.Size) {
 		if err := f.updateContentFromRemote(); err != nil {
 			return nil, err
 		}
-	}
-
-	// check offset only after fetching from remote
-	if offset > int64(len(f.Content)) {
-		return nil, io.EOF
 	}
 
 	return f.Content[offset:], nil
@@ -56,10 +66,18 @@ func (f *File) Create() error {
 }
 
 // WriteAt saves specified content at specified offset. Note, this saves to
-// internal cache only.
-func (f *File) WriteAt(content []byte, offset int64) {
+// internal cache only, user will need to call Sync to save to remote.
+//
+// If file was reset, it fetches contents from remote and then writes to it.
+func (f *File) WriteAt(content []byte, offset int64) error {
 	f.Lock()
 	defer f.Unlock()
+
+	if f.IsReset {
+		if err := f.updateContentFromRemote(); err != nil {
+			return err
+		}
+	}
 
 	f.IsDirty = true
 
@@ -76,6 +94,8 @@ func (f *File) WriteAt(content []byte, offset int64) {
 	}
 
 	f.Attrs.Size = uint64(len(f.Content))
+
+	return nil
 }
 
 // TruncateTo reduces file contents to specified length.
@@ -122,8 +142,9 @@ func (f *File) GetType() fuseutil.DirentType {
 	return fuseutil.DT_File
 }
 
-// Expire removes the internal cache of file and fetches it from remote. It's
-// required to update from remote since Kernel caches file attrs.
+// Expire fetches content from from remote and changes its InodeID to next
+// available one. This is required to deal with cases where remote has updated
+// but Kernel has cached the file attrs.
 func (f *File) Expire() error {
 	f.Lock()
 	defer f.Unlock()
@@ -136,11 +157,24 @@ func (f *File) Expire() error {
 	return f.updateContentFromRemote()
 }
 
+func (f *File) ToString() string {
+	f.RLock()
+	defer f.RUnlock()
+
+	eToS := f.Entry.ToString()
+	return fmt.Sprintf(
+		"%s\nfile: size=%d memSize=%d isDirty=%v",
+		eToS, f.Attrs.Size, len(f.Content), f.IsDirty,
+	)
+}
+
+// Reset delete local contents and sets IsReset flag.
 func (f *File) Reset() error {
 	f.Lock()
 	defer f.Unlock()
 
 	f.Content = nil
+	f.IsReset = true
 
 	return nil
 }
@@ -148,8 +182,10 @@ func (f *File) Reset() error {
 ///// Helpers
 
 func (f *File) syncToRemote() error {
-	var isDirty = f.IsDirty
-	if !isDirty {
+	// return if:
+	//   file is dirty, ie not written since last remote sync
+	//   file was reset, ie local cache was purged
+	if !f.IsDirty || f.IsReset {
 		return nil
 	}
 
@@ -158,6 +194,8 @@ func (f *File) syncToRemote() error {
 
 func (f *File) writeContentToRemote(content []byte) error {
 	f.IsDirty = false
+	f.IsReset = false
+
 	return f.Transport.WriteFile(f.Path, content)
 }
 
@@ -167,8 +205,12 @@ func (f *File) updateContentFromRemote() error {
 		return err
 	}
 
-	f.Content = res.Content
+	n := make([]byte, len(res.Content))
+	copy(n, res.Content)
+
+	f.Content = n
 	f.Attrs.Size = uint64(len(f.Content))
+	f.IsDirty = false
 
 	return nil
 }
