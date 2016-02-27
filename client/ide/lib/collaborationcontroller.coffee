@@ -908,7 +908,7 @@ module.exports = CollaborationController =
 
   onCollaborationActive: ->
 
-    @showChatPane()
+    @hideChatPane()
 
     @bindAutoInviteHandlers()
 
@@ -963,12 +963,8 @@ module.exports = CollaborationController =
 
     @chat.emit 'CollaborationStarted'
     @statusBar.emit 'CollaborationStarted',
+      channelId: @socialChannel.id
       collaborationLink: generateCollaborationLink nick(), @socialChannel.id
-
-    { onboarding } = kd.singletons
-    onboarding.run 'CollaborationStarted'
-    @chat.on ['ViewBecameHidden', 'ViewBecameVisible'], ->
-      onboarding.refresh 'CollaborationStarted'
 
 
   onCollaborationEnding: ->
@@ -1110,7 +1106,7 @@ module.exports = CollaborationController =
     return showError 'Please wait a few seconds.'  unless @stateMachine
 
     switch @stateMachine.state
-      when 'Active'     then @showChatPane()
+      when 'Active'     then @hideChatPane()
       when 'Prepared'   then @chat.show()
       when 'NotStarted' then @stateMachine.transition 'Preparing'
 
@@ -1125,10 +1121,7 @@ module.exports = CollaborationController =
       when 'Active' then @stateMachine.transition 'Ending'
 
 
-  showChatPane: ->
-
-    @chat.showChatPane()
-    @chat.start()
+  hideChatPane: -> @chat.end()
 
 
   createChatPaneView: (channel) ->

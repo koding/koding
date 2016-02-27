@@ -45,28 +45,7 @@ module.exports = class IDEChatView extends KDTabView
     @once 'CollaborationEnded',          @bound 'destroy'
 
 
-  start: ->
-
-    @visible = yes
-    @show()
-
-
-  end: ->
-
-    @visible = no
-    @hide()
-    @emit 'ViewBecameHidden'
-
-
-  focus: -> @chatPane.focus()
-
-
-  show: ->
-
-    super
-
-    @chatPane?.refresh()
-    @emit 'ViewBecameVisible'
+  end: -> @hide()
 
 
   createLoader: ->
@@ -94,49 +73,23 @@ module.exports = class IDEChatView extends KDTabView
   createPanes: ->
 
     channel         = @getData()
-    type            = channel.typeConstant
-    channelId       = channel.id
-    name            = 'collaboration'
-    chatOptions     = { name, type, channelId, @isInSession, @mountedMachineUId }
     settingsOptions = { @rtm, @isInSession }
 
-    @createChatVideoView()
-
-    @addPane @chatPane     = new IDEChatMessagePane  chatOptions, channel
     @addPane @settingsPane = new IDEChatSettingsPane settingsOptions, channel
 
-    @chatPane.on 'ParticipantSelected', @bound 'handleParticipantSelected'
-
     @settingsPane.forwardEvents this, [
-      'CollaborationStarted', 'CollaborationEnded', 'CollaborationNotInitialized'
-      'ParticipantJoined', 'ParticipantLeft'
+      'CollaborationNotInitialized'
+      'CollaborationStarted'
+      'CollaborationEnded'
+      'ParticipantJoined'
+      'ParticipantLeft'
     ]
 
-    @settingsPane.on 'SessionStarted', @bound 'sessionStarted'
-    @settingsPane.on 'AddNewParticipantRequested', =>
-      @showChatPane()
-
-      kd.utils.wait 500, =>
-        @chatPane.showAutoCompleteInput()
-
-    @bindVideoCollaborationEvents()
+    @settingsPane.on 'SessionStarted', @bound 'hide'
 
     @emit 'ready'
 
 
   getIDEApp : -> envDataProvider.getIDEFromUId @mountedMachineUId
 
-
-  showChatPane: ->
-
-    @unsetClass 'onboarding'
-    @showPane @chatPane
-
-
   showSettingsPane: -> @showPane @settingsPane
-
-
-  sessionStarted: ->
-
-    @showChatPane()
-    @chatPane.refresh()
