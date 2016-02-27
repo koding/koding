@@ -34,7 +34,6 @@ type KlientService struct {
 // connection, it *just* attempts to verify that klient is running.
 func (s *KlientService) IsKlientRunning() bool {
 	res, err := http.Get(s.KlientAddress)
-
 	if res != nil {
 		defer res.Body.Close()
 	}

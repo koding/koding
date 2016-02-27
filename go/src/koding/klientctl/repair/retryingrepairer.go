@@ -61,7 +61,6 @@ func (r *RetryRepair) Status() (bool, error) {
 	// specified.
 	for i := uint(0); i <= r.Options.StatusRetries; i++ {
 		ok, err = r.Repairer.Status()
-
 		if ok {
 			break
 		}
@@ -83,9 +82,7 @@ func (r *RetryRepair) Repair() error {
 	// The <= check is to ensure we always run once, *plus* the number of retries
 	// specified.
 	for i := uint(0); i <= r.Options.RepairRetries; i++ {
-		err = r.Repairer.Repair()
-
-		if err == nil {
+		if err = r.Repairer.Repair(); err == nil {
 			break
 		}
 

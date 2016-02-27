@@ -256,8 +256,7 @@ func (c *Command) runRepairers() error {
 			r, err,
 		)
 
-		err = r.Repair()
-		if err != nil {
+		if err = r.Repair(); err != nil {
 			c.Log.Error("Repairer failed to repair. repairer:%s, err:%s", r, err)
 			return err
 		}
