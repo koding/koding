@@ -95,6 +95,14 @@ module.exports = class IDEStatusBar extends kd.View
         then @handleSessionEnd()
         else appManager.tell 'IDE', 'showChat'
 
+    @addSubView @video = new CustomLinkView
+      href       : '#'
+      cssClass   : 'appear-in-button share fr hidden'
+      attributes :
+        target   : '_blank'
+        title    : 'Start a video chat using appear.in'
+
+
     if isKoding()
       if isSoloProductLite()
         isPlanFree (err, isFree) =>
@@ -209,6 +217,7 @@ module.exports = class IDEStatusBar extends kd.View
     @share.setClass      'loading'
     @share.unsetClass    'active not-started'
     @share.updatePartial 'Loading'
+    @video.hide()
 
 
   handleCollaborationEnded: ->
@@ -220,6 +229,7 @@ module.exports = class IDEStatusBar extends kd.View
 
     @updateCollaborationLink ''
 
+    @video.hide()
     @status.show()
     @participantAvatars = {}
 
@@ -229,6 +239,8 @@ module.exports = class IDEStatusBar extends kd.View
     @share.setClass      'active red'
     @share.unsetClass    'loading not-started green'
     @share.updatePartial 'END COLLABORATION'
+    @video.show()
+    @video.setAttribute 'href', "http://appear.in/koding-#{options.channelId}"
 
     @status.hide()
     @updateCollaborationLink options.collaborationLink
