@@ -38,9 +38,16 @@ module.exports = class IDEStatusBar extends kd.View
     superKey = if globals.os is 'mac' then '⌘' else 'CTRL'
 
     @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
-      cssClass : 'collaboration-link'
-      partial  : ''
-      click    : ->
+      cssClass   : 'collaboration-link'
+      partial    : ''
+      bind       : 'mouseenter mouseleave'
+      mouseleave : -> @tooltip.hide()
+      mouseenter : ->
+        @tooltip.setTitle 'Click to share!'
+        @tooltip.show()
+        @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
+
+      click      : ->
         link = @getElement()
         @utils.selectText link
 
@@ -51,12 +58,15 @@ module.exports = class IDEStatusBar extends kd.View
         catch
           tooltipPartial = "Hit #{superKey} + C to copy!"
 
-        @setTooltip
-          title     : tooltipPartial
-          placement : 'above'
-          sticky    : yes
+        @tooltip.setTitle tooltipPartial
         @tooltip.show()
-        @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'destroy'
+        @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
+
+    @collaborationLink.setTooltip
+      title     : 'Click to share!'
+      placement : 'above'
+      sticky    : yes
+
 
 
     @addSubView new kd.CustomHTMLView
