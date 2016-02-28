@@ -33,7 +33,7 @@ var (
 	flagData = flag.String("data", "", "Data to be used for provisioning. Must be JSON encoded in base64")
 
 	// output defines the log and command execution outputs
-	output io.Writer = os.Stderr
+	output io.Writer = os.Stdout
 )
 
 func main() {
@@ -41,13 +41,13 @@ func main() {
 	if err != nil {
 		log.Println("couldn't crate file, going to log to stdout")
 	} else {
-		output = file
+		output = io.MultiWriter(file, os.Stdout)
 	}
 
 	log.SetOutput(output)
 
 	if err := realMain(); err != nil {
-		log.Fatalln(err)
+		log.Fatalln("ERROR:", err)
 	}
 }
 
@@ -87,22 +87,22 @@ func realMain() error {
 
 	log.Println(">> Creating /etc/kite folder")
 	if err := os.MkdirAll("/etc/kite", 0755); err != nil {
-		return err
+		return fmt.Errorf("error creating /etc/kite directory: %s", err)
 	}
 
 	log.Println(">> Creating /etc/kite/kite.key file")
 	if err := ioutil.WriteFile("/etc/kite/kite.key", []byte(val.KiteKey), 0644); err != nil {
-		return err
+		return fmt.Errorf("error writing /etc/kite/kite.key file: %s", err)
 	}
 
 	log.Printf(">> Creating user '%s' with groups: %+v\n", val.Username, val.Groups)
 	if err := createUser(val.Username, val.Groups); err != nil {
-		return err
+		return fmt.Errorf("error creating %q user: %s", val.Username, err)
 	}
 
 	log.Println(">> Installing klient from URL: %s", val.LatestKlientURL)
 	if err := installKlient(val); err != nil {
-		return err
+		return fmt.Errorf("error installing klient: %s", err)
 	}
 
 	return nil

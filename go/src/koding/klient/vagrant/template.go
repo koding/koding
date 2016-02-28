@@ -18,13 +18,26 @@ set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
+die() {
+	echo "error: $1"
+	exit 2
+}
+
 echo I am provisioning...
 date > /etc/vagrant_provisioned_at
-wget -q --retry-connrefused --tries 5 https://s3.amazonaws.com/kodingdev-provision/provisionklient.gz
-gzip -d -f provisionklient.gz
+wget -q --retry-connrefused --tries 5 https://s3.amazonaws.com/kodingdev-provision/provisionklient.gz || die "downloading provisionklient failed"
+gzip -d -f provisionklient.gz || die "unarchiving provisionklient failed"
 chmod +x provisionklient
 ./provisionklient -data '{{ .ProvisionData }}'
+
+user-script() {
 {{ .CustomScript }}
+}
+
+tmp=$(mktemp /var/log/user-script-XXXXX.log)
+
+user-script 2>&1 | tee -a $tmp || die "$(cat $tmp | tr '\n' ' ')"
+
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|

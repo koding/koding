@@ -6,9 +6,11 @@ package vagrant
 import (
 	"errors"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/boltdb/bolt"
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/vagrantutil"
@@ -391,13 +393,30 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 		return nil, errors.New("invalid request: missing failure callback")
 	}
 
-	var w vagrantutil.Waiter
+	var verr error
+	parseErr := func(line string) {
+		i := strings.Index(strings.ToLower(line), "error:")
+		if i == -1 {
+			return
+		}
+
+		msg := strings.TrimSpace(line[i+len("error:"):])
+
+		if msg != "" {
+			verr = multierror.Append(verr, errors.New(msg))
+		}
+	}
+
+	w := &vagrantutil.Waiter{
+		OutputFunc: parseErr,
+	}
 
 	if params.Output.IsValid() {
 		h.log.Debug("sending output to %q for %q", r.Username, r.Method)
 
 		w.OutputFunc = func(line string) {
 			h.log.Debug("%s: %s", r.Method, line)
+			parseErr(line)
 			params.Output.Call(line)
 		}
 	}
@@ -413,8 +432,10 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 		err := w.Wait(out, nil)
 
 		if err != nil {
-			h.log.Error("Klient %q error for %q: %s", r.Method, filePath, err)
-			params.Failure.Call(err.Error())
+			verr = multierror.Append(verr, err)
+
+			h.log.Error("Klient %q error for %q: %s", r.Method, filePath, verr)
+			params.Failure.Call(verr.Error())
 			return
 		}
 
