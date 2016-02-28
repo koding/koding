@@ -112,8 +112,8 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	var syncOpts rsync.SyncIntervalOpts
-	if remoteMachine.intervaler != nil {
-		syncOpts = remoteMachine.intervaler.SyncIntervalOpts()
+	if remoteMachine.Intervaler != nil {
+		syncOpts = remoteMachine.Intervaler.SyncIntervalOpts()
 	} else {
 		r.log.Warning(
 			"remote.mountFolder: Unable to locate Intervaler for the remotePath:%s",
@@ -125,8 +125,8 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		MountFolder:      params,
 		IP:               remoteMachine.IP,
 		MountName:        remoteMachine.Name,
-		kitePinger:       remoteMachine.kitePinger,
-		intervaler:       remoteMachine.intervaler,
+		kitePinger:       remoteMachine.KitePinger,
+		intervaler:       remoteMachine.Intervaler,
 		SyncIntervalOpts: syncOpts,
 	}
 

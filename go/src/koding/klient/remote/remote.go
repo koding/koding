@@ -9,6 +9,7 @@ import (
 
 	"koding/fuseklient"
 	"koding/klient/remote/kitepinger"
+	"koding/klient/remote/machine"
 	"koding/klient/storage"
 
 	"github.com/koding/kite"
@@ -54,7 +55,7 @@ type Remote struct {
 	storage storage.Interface
 
 	// The remote machines that we have cached, along with their expirations.
-	machines Machines
+	machines machine.Machines
 
 	// The time when the clients were cached at
 	machinesCachedAt time.Time
@@ -152,7 +153,7 @@ func (r *Remote) hostFromClient(k *kite.Client) (string, error) {
 // If we are unable to get the kites from kontrol, but the cached
 // results are not too old, we return the cached results rather than giving
 // the user a bad UX.
-func (r *Remote) GetKites() (Machines, error) {
+func (r *Remote) GetKites() (machine.Machines, error) {
 	// If the clientsCachedAt value is within clientsCachedMax duration,
 	// return them immediately.
 	if len(r.machines) > 0 && r.machinesCachedAt.After(time.Now().Add(-r.machinesCacheMax)) {
@@ -184,7 +185,7 @@ func (r *Remote) GetKites() (Machines, error) {
 	// If any names are not yet created, we need to create missing names.
 	var missingNames bool
 
-	var clients Machines
+	var clients machine.Machines
 
 	for _, k := range kites {
 		// If the Id is the same, don't add it to the map
@@ -206,9 +207,9 @@ func (r *Remote) GetKites() (Machines, error) {
 			missingNames = true
 		}
 
-		machine := NewMachine()
+		machine := machine.NewMachine()
 		machine.Client = k.Client
-		machine.kitePinger = kitepinger.NewKitePinger(k.Client)
+		machine.KitePinger = kitepinger.NewKitePinger(k.Client)
 		machine.MachineLabel = k.MachineLabel
 		machine.Teams = k.Teams
 		machine.IP = host
@@ -230,7 +231,7 @@ func (r *Remote) GetKites() (Machines, error) {
 
 // GetKitesOrCache fetches kites from the kite cache no matter how old they are. If
 // there is no cache, the kites are fetched from Kontrol like normal.
-func (r *Remote) GetKitesOrCache() (Machines, error) {
+func (r *Remote) GetKitesOrCache() (machine.Machines, error) {
 	if len(r.machines) == 0 {
 		return r.GetKites()
 	}

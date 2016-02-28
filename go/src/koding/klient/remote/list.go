@@ -1,6 +1,10 @@
 package remote
 
-import "github.com/koding/kite"
+import (
+	"koding/klient/remote/machine"
+
+	"github.com/koding/kite"
+)
 
 type kiteInfo struct {
 	// The Ip of the running machine
@@ -38,7 +42,7 @@ type mountInfo struct {
 // Note that this kite is not returned.
 func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 	var (
-		machines []*Machine
+		machines []*machine.Machine
 		err      error
 		params   struct {
 			UseCache bool `json:"useCache"`

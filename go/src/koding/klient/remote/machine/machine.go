@@ -1,4 +1,4 @@
-package remote
+package machine
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ type Machine struct {
 
 	// The kitePinger which can be used to handle network interruptions
 	// on the given machine.
-	kitePinger kitepinger.KitePinger
+	KitePinger kitepinger.KitePinger
 
 	// The machine label, as seen on the Koding UI
 	MachineLabel string
@@ -37,7 +37,7 @@ type Machine struct {
 	// TODO: In the future this needs to be a manager which associates folders to the
 	// given intervaler. For now however, we only support a single mount per-machine,
 	// so it's unneeded.
-	intervaler rsync.SyncIntervaler
+	Intervaler rsync.SyncIntervaler
 }
 
 // NewMachine initializes a new Machine struct with any internal vars created.
