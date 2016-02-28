@@ -81,7 +81,7 @@ module.exports = class IDEStatusBar extends kd.View
         kd.utils.stopDOMEvent event
         router.handleRoute '/Account/Shortcuts'
 
-    @share = new CustomLinkView
+    @addSubView @share = new CustomLinkView
       href     : "#{kd.singletons.router.getCurrentPath()}/share"
       title    : 'Loading'
       cssClass : 'share fr hidden'
@@ -95,27 +95,20 @@ module.exports = class IDEStatusBar extends kd.View
         then @handleSessionEnd()
         else appManager.tell 'IDE', 'showChat'
 
+    if isKoding() and isSoloProductLite()
+      isPlanFree (err, isFree) =>
+        return  if err
+        return  unless isFree
+
+        @share.destroy()
+        @share = null
+
     @addSubView @video = new CustomLinkView
       href       : '#'
       cssClass   : 'appear-in-button share fr hidden'
       attributes :
         target   : '_blank'
         title    : 'Start a video chat using appear.in'
-
-
-    if isKoding()
-      if isSoloProductLite()
-        isPlanFree (err, isFree) =>
-          return  if err
-          if isFree
-            @share = new kd.CustomHTMLView { cssClass: 'hidden' }
-            @addSubView @share
-          else
-            @addSubView @share
-      else
-        @addSubView @share
-    else
-      @addSubView @share
 
     @addSubView @avatars = new kd.CustomHTMLView cssClass : 'avatars fr hidden'
 
@@ -214,17 +207,19 @@ module.exports = class IDEStatusBar extends kd.View
 
   handleCollaborationLoading: ->
 
-    @share.setClass      'loading'
-    @share.unsetClass    'active not-started'
-    @share.updatePartial 'Loading'
+    if @share
+      @share.setClass      'loading'
+      @share.unsetClass    'active not-started'
+      @share.updatePartial 'Loading'
     @video.hide()
 
 
   handleCollaborationEnded: ->
 
-    @share.setClass      'not-started'
-    @share.unsetClass    'active loading red'
-    @share.updatePartial 'START COLLABORATION'
+    if @share
+      @share.setClass      'not-started'
+      @share.unsetClass    'active loading red'
+      @share.updatePartial 'START COLLABORATION'
     @avatars.destroySubViews()
 
     @updateCollaborationLink ''
@@ -236,9 +231,10 @@ module.exports = class IDEStatusBar extends kd.View
 
   handleCollaborationStarted: (options) ->
 
-    @share.setClass      'active red'
-    @share.unsetClass    'loading not-started green'
-    @share.updatePartial 'END COLLABORATION'
+    if @share
+      @share.setClass      'active red'
+      @share.unsetClass    'loading not-started green'
+      @share.updatePartial 'END COLLABORATION'
     @video.show()
     @video.setAttribute 'href', "http://appear.in/koding-#{options.channelId}"
 
@@ -246,7 +242,7 @@ module.exports = class IDEStatusBar extends kd.View
     @updateCollaborationLink options.collaborationLink
 
     unless @amIHost_()
-      @share.updatePartial 'LEAVE SESSION'
+      @share?.updatePartial 'LEAVE SESSION'
 
 
   updateCollaborationLink: (collaborationLink) ->

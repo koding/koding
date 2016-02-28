@@ -655,7 +655,7 @@ module.exports = CollaborationController =
 
     @ready =>
       @statusBar.handleCollaborationLoading()
-      @statusBar.share.show()
+      @statusBar.share?.show()
 
 
   collectButtonShownMetric: ->
@@ -749,7 +749,7 @@ module.exports = CollaborationController =
     approved = @mountedMachine.isApproved()
 
     if (not owned) and approved
-      @statusBar.share.hide()
+      @statusBar.share?.hide()
 
     @collectButtonShownMetric()
 
