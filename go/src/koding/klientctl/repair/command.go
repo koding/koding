@@ -27,6 +27,10 @@ type Command struct {
 	Log     logging.Logger
 
 	// A collection of Repairers responsible for actually repairing a given mount.
+	// Executed in the order they are defined, the effectiveness of the Repairers
+	// may depend on the order they are run in. An example being TokenNotValidYetRepair
+	// likely should be run *after* a restart, as Tokens not being valid yet usually
+	// happens after a restart.
 	Repairers []Repairer
 
 	// The klient instance this struct will use, mainly given to Repairers.
@@ -244,6 +248,11 @@ func (c *Command) initDefaultRepairers() error {
 		MachineName:   c.Options.MountName,
 	}
 
+	// A collection of Repairers responsible for actually repairing a given mount.
+	// Executed in the order they are defined, the effectiveness of the Repairers
+	// may depend on the order they are run in. An example being TokenNotValidYetRepair
+	// likely should be run *after* a restart, as Tokens not being valid yet usually
+	// happens after a restart.
 	c.Repairers = []Repairer{
 		internetRepair,
 		klientRunningRepair,
