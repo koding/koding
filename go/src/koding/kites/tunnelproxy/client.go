@@ -24,7 +24,8 @@ var (
 	defaultTimeout          = 1 * time.Minute
 )
 
-// TunnelKiteURLFromEnv
+// TunnelKiteURLFromEnv gives tunnel server kite URL base on the given
+// environment.
 func TunnelKiteURLFromEnv(env string) string {
 	switch env {
 	case "managed", "production":
@@ -34,34 +35,37 @@ func TunnelKiteURLFromEnv(env string) string {
 	}
 }
 
-// ClientOptions
+// ClientOptions are used to alternate behavior of
 type ClientOptions struct {
-	// TunnelName
+	// TunnelName is a name for the tunnel to use. Based on this value
+	// tunnel server creates virtual host names, which look like:
+	//
+	//   <TunnelName>.<Username>.<BaseVirtualHost>
 	//
 	// This field is required.
 	TunnelName string
 
-	// TunnelKiteURL
+	// TunnelKiteURL is a global tunnel server kite URL.
 	//
 	// If empty, TunnelKiteURLFromEnv is used instead.
 	TunnelKiteURL string
 
-	// VirtualHost
-	//
-	// Saved virtual host from previous connection.
-	VirtualHost string
+	// LastVirtualHost is saved virtual host from previous connection.
+	// When non-empty, it's used for the first register calls.
+	LastVirtualHost string
 
-	// OnRegister
-	//
-	// Optional
+	// OnRegister, when non-nil, is called each time client successfully
+	// registers to a tunnel server kite.
 	OnRegister func(*RegisterResult)
 
-	// MaxRegisterRetry
+	// MaxRegisterRetry tells at most how many times we should retry connecting
+	// to cached tunnel server address before giving up and falling back to
+	// global kite URL.
 	//
 	// If zero, default value of 5 is used.
 	MaxRegisterRetry int
 
-	// Timeout
+	// Timeout for connecting to tunnel server kite.
 	//
 	// If zero, default value of 1m s is used.
 	Timeout time.Duration
@@ -72,17 +76,13 @@ type ClientOptions struct {
 	// port on which it received connection.
 	LocalAddr string
 
-	// Debug
-	Debug bool
-
-	// Config configures kite.Kite to connect to tunnelserver.
-	Config *config.Config
-
-	// Log
-	Log logging.Logger
+	Debug  bool           // whether to use debug logging
+	Log    logging.Logger // overwrites logger used with custom one
+	Config *config.Config // configures kite.Kite to connect to tunnelserver
 }
 
-// Valid
+// Valid validates the ClientOptions, returning non-nil error when
+// a required field has zero value.
 func (opts *ClientOptions) Valid() error {
 	if opts.TunnelKiteURL == "" {
 		return errors.New("TunnelKiteURL is missing")
@@ -120,7 +120,8 @@ func (opts *ClientOptions) timeout() time.Duration {
 	return defaultTimeout
 }
 
-// Client
+// Client extends tunnel.Client with an ability of registering to
+// a tunnel server kite.
 type Client struct {
 	client *tunnel.Client
 	kite   *kite.Kite
@@ -131,7 +132,7 @@ type Client struct {
 	retry         int
 }
 
-// NewClient
+// NewClient gives new, unstarted tunnel client for the given options.
 func NewClient(opts *ClientOptions) (*Client, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
@@ -150,8 +151,13 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		tunnelKiteURL: optsCopy.tunnelKiteURL(),
 	}
 
-	if c.opts.VirtualHost != "" {
-		c.tunnelKiteURL = fmt.Sprintf("http://%s/kite", c.opts.VirtualHost)
+	// If VirtualHost was configured, try to connect to it first.
+	if c.opts.LastVirtualHost != "" {
+		c.tunnelKiteURL = fmt.Sprintf("http://%s/kite", c.opts.LastVirtualHost)
+		c.connected = &RegisterResult{
+			VirtualHost: c.opts.LastVirtualHost,
+			ServerAddr:  c.opts.LastVirtualHost,
+		}
 	}
 
 	c.kite.Config = c.opts.Config
@@ -264,7 +270,7 @@ func (c *Client) fetchIdent() (string, error) {
 // the fetchIdent call, so it just returns server address.
 func (c *Client) fetchServerAddr() (string, error) {
 	if c.connected == nil {
-		return "", fmt.Errorf("tunnel %q is not registered", c.opts.VirtualHost)
+		return "", fmt.Errorf("tunnel %q is not connected", c.opts.LastVirtualHost)
 	}
 	return c.connected.ServerAddr, nil
 }

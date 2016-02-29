@@ -148,8 +148,8 @@ func (t *TunnelClient) setDefaults(opts *tunnelproxy.ClientOptions) {
 		opts.TunnelKiteURL = t.opts.TunnelKiteURL
 	}
 
-	if opts.VirtualHost == "" {
-		opts.VirtualHost = t.opts.VirtualHost
+	if opts.LastVirtualHost == "" {
+		opts.LastVirtualHost = t.opts.VirtualHost
 	}
 }
 
