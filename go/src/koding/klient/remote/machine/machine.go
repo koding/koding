@@ -149,7 +149,7 @@ func (m *Machine) Dial() error {
 	return err
 }
 
-// Tell uses the Kite protocol (with a dnode respnse) to communicate with this
+// Tell uses the Kite protocol (with a dnode response) to communicate with this
 // machine.
 func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, error) {
 	return m.Teller.Tell(method, args...)
