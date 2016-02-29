@@ -107,7 +107,6 @@ module.exports = class IDEEditorPane extends IDEPane
     contents          = @getContent()
     oldCursorPosition = @getCursor()
     @file.machine     = parent.machine
-    parent.path       = parentPath
 
     @file.path = deleteFilePath
 
@@ -118,10 +117,8 @@ module.exports = class IDEEditorPane extends IDEPane
 
     return  if tabView.willClose
 
-    @emit 'CloseRequested'
+    tabView.emit 'CloseRequested', this
     @getDelegate().openSavedFile newFile, contents
-
-    @file.remove kd.noop
 
 
   bindFileSyncEvents: ->
@@ -558,4 +555,6 @@ module.exports = class IDEEditorPane extends IDEPane
     super
 
 
-  updateAceViewDelegate: (ideView) -> @aceView?.setDelegate ideView
+  updateAceViewDelegate: (ideView) ->
+    @aceView?.setDelegate ideView
+    @setDelegate ideView

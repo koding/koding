@@ -293,8 +293,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       ace.on 'FindAndReplaceViewRequested', (withReplaceMode) ->
         appManager.tell 'IDE', 'showFindReplaceView', withReplaceMode
 
-      editorPane.once 'CloseRequested', =>
-        @tabView.removePane editorPane.parent
+
 
       ace.editor.scrollToRow 0
       editorPane.goToLine 1
