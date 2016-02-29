@@ -26,7 +26,7 @@ module.exports = class JSession extends Model
       guestSessionBegan : Date
       lastAccess        :
         type            : Date
-        get             : -> new Date
+        default         : -> new Date
       foreignAuth       :
         github          : Object
         odesk           : Object
