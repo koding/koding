@@ -14,7 +14,7 @@ import (
 // deleted, not called during app runtime.
 func CreateDefaultPlans() error {
 	for id, pl := range paymentplan.DefaultPlans {
-		plan, err := FindPlan(pl.Title, pl.Interval.ToString(), pl.Type)
+		plan, err := FindPlan(pl.Title, pl.Interval.ToString(), pl.TypeConstant)
 		if err != nil && err != paymenterrors.ErrPlanNotFound {
 			return err
 		}
@@ -23,7 +23,9 @@ func CreateDefaultPlans() error {
 			continue
 		}
 
-		_, err = CreatePlan(id, pl.Title, pl.NameForStripe, pl.Type, pl.Interval, pl.Amount)
+		_, err = CreatePlan(
+			id, pl.Title, pl.NameForStripe, pl.TypeConstant, pl.Interval, pl.Amount,
+		)
 		if err != nil {
 			continue
 		}
@@ -66,7 +68,7 @@ func CreatePlan(id, title, nameForStripe, cType string, interval paymentplan.Pla
 		Provider:       ProviderName,
 		Interval:       interval.ToString(),
 		AmountInCents:  amount,
-		Type:           cType,
+		TypeConstant:   cType,
 	}
 
 	err := planModel.Create()

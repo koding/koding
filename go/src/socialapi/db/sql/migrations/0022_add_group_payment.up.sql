@@ -26,22 +26,22 @@ DO $$
   END;
 $$;
 
--- add 'type' to customer
+-- add 'type_constant' to customer
 DO $$
   BEGIN
     BEGIN
-      ALTER TABLE payment.customer ADD COLUMN "type" "payment"."customer_type_constant_enum";
+      ALTER TABLE payment.customer ADD COLUMN "type_constant" "payment"."customer_type_constant_enum";
       EXCEPTION
       WHEN duplicate_column THEN RAISE NOTICE 'column already exists';
     END;
   END;
 $$;
 
--- add 'type' to plan
+-- add 'type_constant' to plan
 DO $$
   BEGIN
     BEGIN
-      ALTER TABLE payment.plan ADD COLUMN "type" "payment"."plan_type_constant_enum";
+      ALTER TABLE payment.plan ADD COLUMN "type_constant" "payment"."plan_type_constant_enum";
       EXCEPTION
       WHEN duplicate_column THEN RAISE NOTICE 'column already exists';
     END;

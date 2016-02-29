@@ -29,7 +29,7 @@ type Plan struct {
 
 	// Type of customer. Enum:
 	//		'group', 'account'
-	Type string `json:"type"`
+	TypeConstant string `json:"type_constant"`
 
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`
@@ -47,9 +47,9 @@ func (p *Plan) ByProviderId(providerId, provider string) error {
 
 func (p *Plan) ByTitleAndInterval(title, interval, cType string) error {
 	selector := map[string]interface{}{
-		"title":    title,
-		"interval": interval,
-		"type":     cType,
+		"title":         title,
+		"interval":      interval,
+		"type_constant": cType,
 	}
 	return p.One(bongo.NewQS(selector))
 }

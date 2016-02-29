@@ -34,7 +34,7 @@ type Customer struct {
 
 	// Type of customer. Enum:
 	//		'group', 'account'
-	TypeConstant string `json:"type"`
+	TypeConstant string `json:"type_constant"`
 
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`
@@ -52,7 +52,7 @@ func (c *Customer) ByOldId(oldId string) (*Customer, error) {
 
 func (c *Customer) ByOldIdAndType(oldId string, cType string) (*Customer, error) {
 	query := &bongo.Query{
-		Selector: map[string]interface{}{"old_id": oldId, "type": cType},
+		Selector: map[string]interface{}{"old_id": oldId, "type_constant": cType},
 		Sort:     map[string]string{"created_at": "DESC"},
 	}
 
