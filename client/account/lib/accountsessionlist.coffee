@@ -30,7 +30,8 @@ module.exports = class AccountSessionList extends KDListView
 
           session.remove (err) =>
             modal.destroy()
-            @emit 'ItemDeleted', item  unless showError err
+            return showError err  if err
+            @emit 'ItemDeleted', item
 
             # if the deleted session is the current one logout user immediately
             if clientId is session.clientId
