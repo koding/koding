@@ -32,6 +32,6 @@ func (r *Remote) StatusHandler(kreq *kite.Request) (interface{}, error) {
 	case req.MachineStatus:
 		return nil, status.MachineStatus(params.MachineName)
 	default:
-		return nil, errors.New("Status item implemented")
+		return nil, fmt.Errorf("Status item %d:%q not supported", params.Item, params.Item)
 	}
 }
