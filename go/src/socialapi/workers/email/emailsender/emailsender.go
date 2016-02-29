@@ -13,6 +13,14 @@ import (
 
 var SendEmailEventName = "send"
 
+const (
+	keyStartRegister         = "started to register"
+	keyInvitedCreateTeam     = "was invited to create a team"
+	subjectStartRegister     = "Welcome to Koding! ♥"
+	subjectInvitedCreateTeam = "You're invited to try Koding for Teams!"
+	emailFrom                = "Devrim <dy@koding.com>"
+)
+
 // Controller holds required instances for processing events
 type Controller struct {
 	log                     logging.Logger
@@ -21,11 +29,13 @@ type Controller struct {
 	forcedRecipientEmail    string
 	env                     string
 	host                    string
+	mailgun                 *MailgunSender
 }
 
 // New Creates a new controller for mail worker
 // func New(exporter eventexporter.Exporter, log logging.Logger, conf runner.Config) *Controller {
 func New(exporter eventexporter.Exporter, log logging.Logger, conf *config.Config) *Controller {
+	vmHostname := conf.Protocol + "//" + conf.Hostname
 	return &Controller{
 		emailer:                 exporter,
 		log:                     log,
@@ -33,6 +43,7 @@ func New(exporter eventexporter.Exporter, log logging.Logger, conf *config.Confi
 		host:                    conf.Hostname,
 		forcedRecipientEmail:    conf.Email.ForcedRecipientEmail,
 		forcedRecipientUsername: conf.Email.ForcedRecipientUsername,
+		mailgun:                 NewMailgunSender(vmHostname, log),
 	}
 }
 
@@ -69,15 +80,23 @@ func (c *Controller) Process(m *Mail) error {
 	m.SetOption("env", c.env)
 	m.SetOption("host", c.host)
 
+	var err error
+
 	escapedBody := template.HTMLEscapeString(m.HTML)
-	event := &eventexporter.Event{
-		Name:       m.Subject,
-		User:       user,
-		Body:       &eventexporter.Body{Content: escapedBody},
-		Properties: m.Properties.Options,
+
+	if m.Properties.Options["subject"] != keyStartRegister && m.Properties.Options["subject"] != keyInvitedCreateTeam {
+		event := &eventexporter.Event{
+			Name:       m.Subject,
+			User:       user,
+			Body:       &eventexporter.Body{Content: escapedBody},
+			Properties: m.Properties.Options,
+		}
+		err = c.emailer.Send(event)
+	} else {
+		err = c.mailgun.SendMailgunEmail(m)
 	}
 
-	return c.emailer.Send(event)
+	return err
 }
 
 func (c *Controller) Close() {

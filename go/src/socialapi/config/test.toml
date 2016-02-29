@@ -134,3 +134,8 @@ botchannel = false
 [janitor]
 port = "6700"
 secretKey = "janitorsecretkey-dev"
+
+[mailgun]
+domain = "koding.com"
+privateKey = "key-6d4a0c191866434bf958aed924512758"
+publicKey = "pubkey-dabf6c392b39cce9bce12e9a582ad051"
