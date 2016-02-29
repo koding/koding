@@ -63,7 +63,7 @@ type Remote struct {
 	machinesCachedAt time.Time
 
 	// The maximum duration that the clients can be cached for, relative to
-	// the clientsCachedAt.
+	// the machinesCachedAt.
 	machinesCacheMax time.Duration
 
 	// If clients were cached within this duration value in the past, and
@@ -173,7 +173,7 @@ func (r *Remote) hostFromClient(k *kite.Client) (string, error) {
 //
 // TODO: Convert to the name GetMachines
 func (r *Remote) GetKites() (machine.Machines, error) {
-	// If the clientsCachedAt value is within clientsCachedMax duration,
+	// If the machinesCachedAt value is within machinesCachedMax duration,
 	// return them immediately.
 	if len(r.machines) > 0 && r.machinesCachedAt.After(time.Now().Add(-r.machinesCacheMax)) {
 		return r.machines, nil
@@ -191,14 +191,14 @@ func (r *Remote) GetMachinesWithoutCache() (machine.Machines, error) {
 	})
 
 	// If there is an error retreiving kites, check if our cache is too old.
-	// We base this "too old" decision off of the clientsErrCacheMax value,
-	// relative to the clientsCachedAt value.
+	// We base this "too old" decision off of the machinesErrCacheMax value,
+	// relative to the machinesCachedAt value.
 	if err != nil {
 		r.log.Error("Failed to getKites from Kontrol. Error: %s", err.Error())
 
 		if r.machinesCachedAt.After(time.Now().Add(-r.machinesErrCacheMax)) {
 			r.log.Warning(
-				"Using clientsCache after failing to getKites. Cached %s ago",
+				"Using machinesCache after failing to getKites. Cached %s ago",
 				time.Now().Sub(r.machinesCachedAt),
 			)
 			return r.machines, err
