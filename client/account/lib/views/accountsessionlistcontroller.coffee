@@ -1,13 +1,6 @@
 kd                        = require 'kd'
 AccountListViewController = require '../controllers/accountlistviewcontroller'
-AccountNewSshKeyView      = require './accountnewsshkeyview'
-remote                    = require('app/remote').getInstance()
 KDHeaderView              = kd.HeaderView
-Machine                   = require 'app/providers/machine'
-SshKey                    = require 'app/util/sshkey'
-KDModalView               = kd.ModalView
-nick                      = require 'app/util/nick'
-environmentDataProvider   = require 'app/userenvironmentdataprovider'
 whoami                    = require 'app/util/whoami'
 
 
