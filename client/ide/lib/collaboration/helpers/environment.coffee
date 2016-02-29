@@ -1,7 +1,7 @@
 _                           = require 'lodash'
 kd                          = require 'kd'
+async                       = require 'async'
 remote                      = require('app/remote').getInstance()
-sinkrow                     = require 'sinkrow'
 socialHelpers               = require './social'
 userEnvironmentDataProvider = require 'app/userenvironmentdataprovider'
 
@@ -54,18 +54,15 @@ setMachineUser = (machine, workspace, usernames, share, callback) ->
     method = if share then 'klientShare' else 'klientUnshare'
 
     queue = usernames.map (username) ->
-      ->
-        kite[method]({username}).then ->
-          queue.fin()
-
+      (fin) ->
+        kite[method]({username})
+        .then -> fin()
         .error (err) ->
-          queue.fin()
-
           return  if err.message is 'User not found' and not share
 
-          callback err
+          fin err
 
-    sinkrow.dash queue, callback
+    async.parallel queue, callback
 
 
 ###*
