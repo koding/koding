@@ -31,7 +31,7 @@ type Command struct {
 
 	// The klient instance this struct will use, mainly given to Repairers.
 	Klient interface {
-		RemoteStatus(req.Status) (bool, error)
+		RemoteStatus(req.Status) error
 	}
 
 	// The options to use if this struct needs to dial Klient.
@@ -268,10 +268,9 @@ func (c *Command) runRepairers() error {
 	}
 
 	for _, r := range c.Repairers {
-		ok, err := r.Status()
-
-		// If there is no problem from Status, we can just move onto the next Repairer.
-		if ok {
+		err := r.Status()
+		if err == nil {
+			// If there is no problem from Status, we can just move onto the next Repairer.
 			continue
 		}
 
@@ -280,7 +279,7 @@ func (c *Command) runRepairers() error {
 			r, err,
 		)
 
-		if err = r.Repair(); err != nil {
+		if err := r.Repair(); err != nil {
 			c.Log.Error("Repairer failed to repair. repairer:%s, err:%s", r, err)
 			return err
 		}

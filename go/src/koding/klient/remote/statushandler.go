@@ -28,10 +28,10 @@ func (r *Remote) StatusHandler(kreq *kite.Request) (interface{}, error) {
 	status := status.NewStatus(r.log, r)
 	switch params.Item {
 	case req.KontrolStatus:
-		return status.KontrolStatus()
+		return nil, status.KontrolStatus()
 	case req.MachineStatus:
-		return status.MachineStatus(params.MachineName)
+		return nil, status.MachineStatus(params.MachineName)
 	default:
-		return false, errors.New("Status item implemented")
+		return nil, errors.New("Status item implemented")
 	}
 }

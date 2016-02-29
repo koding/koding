@@ -22,7 +22,7 @@ type KiteUnreachableRepair struct {
 
 	// The klient we will be communicating with.
 	Klient interface {
-		RemoteStatus(req.Status) (bool, error)
+		RemoteStatus(req.Status) error
 	}
 
 	// The retry options that this repairer will use.
@@ -38,20 +38,19 @@ func (r *KiteUnreachableRepair) String() string {
 }
 
 // Status simply checks if the remote kite's status is KiteUnreachable.
-func (r *KiteUnreachableRepair) Status() (bool, error) {
+func (r *KiteUnreachableRepair) Status() error {
 	var (
 		newline bool
-		ok      bool
 		err     error
 	)
 
 	for i := uint(0); i <= r.StatusRetries; i++ {
-		ok, err = r.Klient.RemoteStatus(req.Status{
+		err = r.Klient.RemoteStatus(req.Status{
 			Item:        req.MachineStatus,
 			MachineName: r.MachineName,
 		})
 
-		if ok {
+		if err == nil {
 			break
 		}
 
@@ -63,7 +62,7 @@ func (r *KiteUnreachableRepair) Status() (bool, error) {
 		kErr, ok := err.(*kite.Error)
 		if !ok || kErr.Type != kiteerrortypes.MachineUnreachable {
 			r.Log.Warning("Status encountered unhandled error err:%s", err)
-			return true, nil
+			return nil
 		}
 
 		switch i {
@@ -81,7 +80,7 @@ func (r *KiteUnreachableRepair) Status() (bool, error) {
 		fmt.Fprint(r.Stdout, "\n")
 	}
 
-	return ok, err
+	return err
 }
 
 // Repair cannot actually fix unreachable, Status should have been given a semi-high

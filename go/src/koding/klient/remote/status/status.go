@@ -91,31 +91,25 @@ func (s *Status) handleKiteErr(err error) error {
 // TODO: IMPORTANT: Use a less costly method to determine if Kontrol is connected.
 // An ideal method would simply be `ping`, but Kontrol does not currently implement
 // ping.
-func (s *Status) KontrolStatus() (bool, error) {
+func (s *Status) KontrolStatus() error {
 	if _, err := s.MachineGetter.GetMachinesWithoutCache(); err != nil {
-		return false, fmt.Errorf("Unable to get kontrol connection. err:%s", err)
+		return fmt.Errorf("Unable to get kontrol connection. err:%s", err)
 	}
 
-	return true, nil
+	return nil
 }
 
 // MachineStatus dials the given machine name, pings it, and returns ok or not.
 // Custom type errors for any problems encountered.
-func (s *Status) MachineStatus(name string) (bool, error) {
+func (s *Status) MachineStatus(name string) error {
 	machine, err := s.MachineGetter.GetMachine(name)
 	if err != nil {
-		return false, err
-	}
-
-	if machine == nil {
-		return false, util.KiteErrorf(
-			kiteerrortypes.MachineNotFound, "Machine %q not found", name,
-		)
+		return err
 	}
 
 	// Try and ping it directly via http. This lets us
 	if _, err := s.HTTPClient.Get(fmt.Sprintf("http://%s:56789/kite", machine.IP)); err != nil {
-		return false, util.KiteErrorf(
+		return util.KiteErrorf(
 			kiteerrortypes.MachineUnreachable,
 			"Machine unreachable. host:%s, err:%s",
 			machine.IP, err,
@@ -123,12 +117,12 @@ func (s *Status) MachineStatus(name string) (bool, error) {
 	}
 
 	if err := machine.Dial(); err != nil {
-		return false, s.handleKiteErr(err)
+		return s.handleKiteErr(err)
 	}
 
 	if err := machine.Ping(); err != nil {
-		return false, s.handleKiteErr(err)
+		return s.handleKiteErr(err)
 	}
 
-	return true, nil
+	return nil
 }

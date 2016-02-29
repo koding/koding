@@ -22,7 +22,7 @@ type TokenNotYetValidRepair struct {
 
 	// The klient we will be communicating with.
 	Klient interface {
-		RemoteStatus(req.Status) (bool, error)
+		RemoteStatus(req.Status) error
 	}
 
 	// The retry options that this repairer will use.
@@ -38,14 +38,14 @@ func (r *TokenNotYetValidRepair) String() string {
 }
 
 // Status simply checks if the remote kite's status is TokenNotYetValid.
-func (r *TokenNotYetValidRepair) Status() (bool, error) {
-	ok, err := r.Klient.RemoteStatus(req.Status{
+func (r *TokenNotYetValidRepair) Status() error {
+	err := r.Klient.RemoteStatus(req.Status{
 		Item:        req.MachineStatus,
 		MachineName: r.MachineName,
 	})
 
-	if ok {
-		return ok, nil
+	if err == nil {
+		return nil
 	}
 
 	// If the error is not what this repairer is designed to handle, return ok.
@@ -56,10 +56,10 @@ func (r *TokenNotYetValidRepair) Status() (bool, error) {
 	kErr, ok := err.(*kite.Error)
 	if !ok || kErr.Type != kiteerrortypes.AuthErrTokenIsNotValidYet {
 		r.Log.Warning("Status encountered unhandled error err:%s", err)
-		return true, nil
+		return nil
 	}
 
-	return false, err
+	return err
 }
 
 // Repair is unable to actually fix this error, so we wait for a configured amount
@@ -70,13 +70,11 @@ func (r *TokenNotYetValidRepair) Status() (bool, error) {
 func (r *TokenNotYetValidRepair) Repair() error {
 	var (
 		newline bool
-		ok      bool
 		err     error
 	)
 
 	for i := uint(0); i <= r.RepairRetries; i++ {
-		ok, err = r.Status()
-		if ok {
+		if err = r.Status(); err == nil {
 			break
 		}
 

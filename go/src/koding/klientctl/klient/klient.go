@@ -162,14 +162,9 @@ func (k *Klient) RemoteMountFolder(r req.MountFolder) (string, error) {
 }
 
 // RemoteStatus calls klients remote.status method.
-func (k *Klient) RemoteStatus(r req.Status) (bool, error) {
-	resp, err := k.Tell("remote.status", r)
-
-	var ok bool
-	// TODO: Ignore the nil unmarshal error, but return others.
-	resp.Unmarshal(&ok)
-
-	return ok, err
+func (k *Klient) RemoteStatus(r req.Status) error {
+	_, err := k.Tell("remote.status", r)
+	return err
 }
 
 // RemoteMountInfo calls klients remote.mountInfo method.

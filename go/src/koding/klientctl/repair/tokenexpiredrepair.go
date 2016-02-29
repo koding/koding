@@ -21,7 +21,7 @@ type TokenExpiredRepair struct {
 
 	// The klient we will be communicating with.
 	Klient interface {
-		RemoteStatus(req.Status) (bool, error)
+		RemoteStatus(req.Status) error
 	}
 
 	// How long Repair will wait for the token to not be expired, because restarting
@@ -42,28 +42,28 @@ func (r *TokenExpiredRepair) String() string {
 }
 
 // Status simply checks if the remote kite's status is TokenExpired.
-func (r *TokenExpiredRepair) Status() (bool, error) {
-	ok, err := r.Klient.RemoteStatus(req.Status{
+func (r *TokenExpiredRepair) Status() error {
+	request := req.Status{
 		Item:        req.MachineStatus,
 		MachineName: r.MachineName,
-	})
-
-	if ok {
-		return true, nil
 	}
 
-	// If the error is not what this repairer is designed to handle, return ok.
-	// This seems counter intuitive, but if this Status() returns false, it is
-	// expected to fix the error. We don't know what that error is, so we shouldn't
-	// report a bad status. Log it, for debugging purposes though, and hope the
-	// next repairer in the list knows how to deal with this issue.
-	kErr, ok := err.(*kite.Error)
-	if !ok || kErr.Type != kiteerrortypes.AuthErrTokenIsExpired {
-		r.Log.Warning("Status encountered unhandled error err:%s", err)
-		return true, nil
+	if err := r.Klient.RemoteStatus(request); err != nil {
+		// If the error is not what this repairer is designed to handle, return ok.
+		// This seems counter intuitive, but if this Status() returns false, it is
+		// expected to fix the error. We don't know what that error is, so we shouldn't
+		// report a bad status. Log it, for debugging purposes though, and hope the
+		// next repairer in the list knows how to deal with this issue.
+		kErr, ok := err.(*kite.Error)
+		if !ok || kErr.Type != kiteerrortypes.AuthErrTokenIsExpired {
+			r.Log.Warning("Status encountered unhandled error err:%s", err)
+			return nil
+		}
+
+		return err
 	}
 
-	return false, err
+	return nil
 }
 
 // Repair if the token is expired, we can repair it (usually) by restarting klient.
@@ -77,8 +77,8 @@ func (r *TokenExpiredRepair) Repair() error {
 	for time.Now().Sub(start) < r.RepairWaitForToken {
 		// Ignoring the error here, because it should be the same error that Status
 		// ran into above - and Status *only* returns AuthErrTokenExpired errors.
-		ok, _ := r.Status()
-		if ok {
+		err := r.Status()
+		if err == nil {
 			// Close the dot progress
 			fmt.Fprint(r.Stdout, "\n")
 			return nil
@@ -105,11 +105,13 @@ func (r *TokenExpiredRepair) Repair() error {
 		)
 	}
 
-	_, err := r.Status()
-	if err != nil {
+	if err := r.Status(); err != nil {
 		fmt.Fprintln(r.Stdout,
 			"Error: Unable to renew auth token. Please wait a moment and try again..",
 		)
+
+		return err
 	}
-	return err
+
+	return nil
 }
