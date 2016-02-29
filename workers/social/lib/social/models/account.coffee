@@ -122,6 +122,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchMyPermissionsAndRoles:
           (signature Function)
+        fetchMySessions:
+          (signature Function)
         blockUser: [
           (signature String, Number, Function)
           (signature ObjectId, Number, Function)
@@ -1407,3 +1409,12 @@ module.exports = class JAccount extends jraphical.Module
 
       user.update { $set: { twofactorkey: key } }, (err) ->
         callback err
+
+
+  fetchMySessions: secure (client, callback) ->
+
+    JSession = require './session'
+    username = @profile.nickname
+    JSession.some { username }, { limit : 10 }, callback
+
+
