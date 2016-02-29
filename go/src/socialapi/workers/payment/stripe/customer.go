@@ -72,7 +72,7 @@ func createCustomer(token, id, username, email string, meta map[string]string, c
 		ProviderCustomerId: externalCustomer.Id,
 		Provider:           ProviderName,
 		Username:           username,
-		Type:               cType,
+		TypeConstant:       cType,
 	}
 
 	err = customerModel.Create()

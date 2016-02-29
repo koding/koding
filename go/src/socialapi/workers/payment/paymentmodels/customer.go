@@ -34,7 +34,7 @@ type Customer struct {
 
 	// Type of customer. Enum:
 	//		'group', 'account'
-	Type string `json:"type"`
+	TypeConstant string `json:"type"`
 
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`

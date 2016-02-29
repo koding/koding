@@ -208,7 +208,7 @@ func TestMultipleSubscriptionsRequest(t *testing.T) {
 			Username:           accId,
 			Provider:           stripe.ProviderName,
 			ProviderCustomerId: token,
-			Type:               paymentmodels.AccountCustomer,
+			TypeConstant:       paymentmodels.AccountCustomer,
 		}
 		So(customer.Create(), ShouldBeNil)
 
