@@ -5,12 +5,16 @@ import (
 	"io"
 	"koding/klient/remote/req"
 	"time"
+
+	"github.com/koding/logging"
 )
 
 type KontrolRepair struct {
+	Log logging.Logger
+
 	// The klient we will be communicating with.
 	Klient interface {
-		RemoteStatus(req.Status) (bool, error)
+		RemoteStatus(req.Status) error
 	}
 
 	// The options that this repairer will use.
@@ -29,16 +33,15 @@ func (r *KontrolRepair) String() string {
 	return "kontrolrepair"
 }
 
-func (r *KontrolRepair) Status() (bool, error) {
+func (r *KontrolRepair) Status() error {
 	var (
 		needNewline bool
-		ok          bool
 		err         error
 	)
 
 	for i := uint(0); i <= r.RetryOptions.StatusRetries; i++ {
-		ok, err = r.status()
-		if ok {
+		err = r.status()
+		if err == nil {
 			break
 		}
 
@@ -57,16 +60,18 @@ func (r *KontrolRepair) Status() (bool, error) {
 		fmt.Fprint(r.Stdout, "\n")
 	}
 
-	return ok, err
+	return err
 }
 
-func (r *KontrolRepair) status() (bool, error) {
+func (r *KontrolRepair) status() error {
 	return r.Klient.RemoteStatus(req.Status{
 		Item: req.KontrolStatus,
 	})
 }
 
 func (r *KontrolRepair) Repair() error {
+	fmt.Fprintln(r.Stdout, "Kontrol has not reconnected in expected time. Restarting.")
+
 	if err := r.Exec.Run("sudo", "kd", "restart"); err != nil {
 		return fmt.Errorf(
 			"Subprocess kd failed to start. err:%s", err,
@@ -75,9 +80,9 @@ func (r *KontrolRepair) Repair() error {
 
 	// Run status again, to confirm it's running as best we can. If not, we've
 	// tried and failed.
-	ok, err := r.status()
-	if !ok {
-		fmt.Fprint(r.Stdout, "Unable to reconnect to kontrol.")
+	if err := r.status(); err != nil {
+		fmt.Fprintln(r.Stdout, "Unable to reconnect to kontrol.")
 	}
-	return err
+
+	return nil
 }

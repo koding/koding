@@ -1,10 +1,10 @@
 package repair
 
 type Repairer interface {
-	// Status returns whether or not this repairer is ok. The
-	// originating error is also returned to track what the identified problem
-	// is.
-	Status() (bool, error)
+	// Status returns whether or not this repairer is ok via the returned error.
+	// If a repairer returns an error, it needs to be able to handle Fixing (or failing)
+	// the given issue.
+	Status() error
 
 	// Repair actually runs the recovery/repair process.
 	Repair() error

@@ -28,16 +28,16 @@ func (r *KlientRunningRepair) String() string {
 
 // Status checks if the klient is running via the Klient Service, as well as
 // dialing the klient to ensure that is working..
-func (r *KlientRunningRepair) Status() (bool, error) {
+func (r *KlientRunningRepair) Status() error {
 	if !r.KlientService.IsKlientRunning() {
-		return false, errors.New("Klient is not running")
+		return errors.New("Klient is not running")
 	}
 
 	if _, err := klient.NewDialedKlient(r.KlientOptions); err != nil {
-		return false, fmt.Errorf("Unable to dial klient. err:%s", err)
+		return fmt.Errorf("Unable to dial klient. err:%s", err)
 	}
 
-	return true, nil
+	return nil
 }
 
 // Repair uses a subprocess of KD with Sudo, to enable the required Service
@@ -51,6 +51,5 @@ func (r *KlientRunningRepair) Repair() error {
 	}
 
 	// Run status again, to confirm it's running as best we can.
-	_, err := r.Status()
-	return err
+	return r.Status()
 }

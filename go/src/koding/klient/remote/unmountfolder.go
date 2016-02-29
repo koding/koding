@@ -32,7 +32,7 @@ func (r *Remote) UnmountFolderHandler(kreq *kite.Request) (interface{}, error) {
 			"Error '%s' while unmarshalling request '%s'.\n", err, kreq.Args.One(),
 		)
 
-		r.log.Info(err.Error())
+		r.log.Error(err.Error())
 
 		return nil, err
 	}
