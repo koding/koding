@@ -1,8 +1,9 @@
-kd                 = require 'kd'
-FSFile             = require 'app/util/fs/fsfile'
-IDEPane            = require './idepane'
-AceView            = require 'ace/aceview'
-IDEAce             = require '../../views/ace/ideace'
+kd                      = require 'kd'
+FSFile                  = require 'app/util/fs/fsfile'
+IDEPane                 = require './idepane'
+AceView                 = require 'ace/aceview'
+IDEAce                  = require '../../views/ace/ideace'
+IDETailerPaneLineParser = require './idetailerpanelineparser'
 
 
 module.exports = class IDETailerPane extends IDEPane
@@ -20,11 +21,19 @@ module.exports = class IDETailerPane extends IDEPane
 
     @createEditor()
 
+    @enableLineParser = options.enableLineParser
+    unless @enableLineParser
+      # enable line parser with a delay to let the editor
+      # be filled in with existent file data since we don't
+      # need to run any parser action on existent content
+      kd.utils.wait 500, => @enableLineParser = yes
+
 
   handleFileUpdate: (newLine) ->
 
     @scrollToBottom()
     @getEditor().insert "\n#{newLine}"
+    IDETailerPaneLineParser.process newLine  if @enableLineParser
 
 
   createEditor: ->
