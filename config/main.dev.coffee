@@ -150,6 +150,13 @@ Configuration = (options={}) ->
     redirectUri       : "http://dev.koding.com:8090/api/social/slack/oauth/callback"
     verificationToken : "jldPRk6HmOL2FjeXZYwUdW6B"
 
+  sneakerS3 =
+    awsSecretAccessKey : "RN/JGsPt4S3hKHOd+aCvnhiz2opdY/zZanmW3hPM"
+    awsAccessKeyId : "AKIAJB5DPL652CCEE6EA"
+    sneakerS3Path : "//kodingdev-credentials/secrets/"
+    sneakerMasterKey :"3adede2a-ac33-4532-b63a-c25536c3ba8a"
+    awsRegion : "us-west-2"
+
   # if you want to disable a feature add here with "true" value do not forget to
   # add corresponding go struct properties
   # "true" value is used because of Go's default value for boolean properties is
@@ -190,6 +197,7 @@ Configuration = (options={}) ->
     googleapiServiceAccount : googleapiServiceAccount
     github                  : github
     slack                   : slack
+    sneakerS3               : sneakerS3
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
     disabledFeatures        : disabledFeatures
@@ -265,6 +273,7 @@ Configuration = (options={}) ->
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.upwork.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.upwork.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.upwork.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "1408510959475637"                             , clientSecret  : "bf837bc719dc63c870ac77f9c76fe26d"           , redirectUri  : "http://dev.koding.com:8090/-/oauth/facebook/callback"}
     slack                          : slack
+    sneakerS3                      : sneakerS3
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "http://dev.koding.com:8090/-/oauth/google/callback" }
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "http://dev.koding.com:8090/-/oauth/twitter/callback"                  , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "http://dev.koding.com:8090/-/oauth/linkedin/callback"}
