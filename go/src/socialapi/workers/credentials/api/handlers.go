@@ -15,9 +15,8 @@ import (
 
 // AddHandlers adds handlers for slack integration
 func AddHandlers(m *mux.Mux, config *config.Config) {
-	// m := loadManager()
-	s := &S3{
-		loadManager(),
+	s := &SneakerS3{
+		loadManager(config),
 	}
 
 	m.AddHandler(
@@ -39,9 +38,9 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 	)
 
 }
-func loadManager() *sneaker.Manager {
-	// s3://kodingdev-credentials/secrets/
-	u, err := url.Parse("s3://kodingdev-credentials/secrets/")
+
+func loadManager(config *config.Config) *sneaker.Manager {
+	u, err := url.Parse(config.SneakerS3.SneakerS3Path)
 	if err != nil {
 		log.Fatalf("bad SNEAKER_S3_PATH: %s", err)
 	}
@@ -49,6 +48,7 @@ func loadManager() *sneaker.Manager {
 		u.Path = u.Path[1:]
 	}
 
+	// we wont gonna use context in storing system
 	ctxt, err := parseContext("")
 	if err != nil {
 		log.Fatalf("bad SNEAKER_MASTER_CONTEXT: %s", err)
@@ -62,6 +62,6 @@ func loadManager() *sneaker.Manager {
 		Bucket:            u.Host,
 		Prefix:            u.Path,
 		EncryptionContext: ctxt,
-		KeyId:             "3adede2a-ac33-4532-b63a-c25536c3ba8a",
+		KeyId:             config.SneakerS3.SneakerMasterKey,
 	}
 }
