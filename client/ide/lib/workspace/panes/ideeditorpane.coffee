@@ -137,10 +137,9 @@ module.exports = class IDEEditorPane extends IDEPane
 
   updateContent: (content, isSaved = no) ->
 
-    return if @rtm and @rtm.isReady
-
     scrollTop = @getAceScrollTop()
     cursor    = @getCursor()
+
     @setContent content, no
     @setCursor cursor
     @setAceScrollTop scrollTop
@@ -185,7 +184,17 @@ module.exports = class IDEEditorPane extends IDEPane
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
 
-    @getAce().setContent content, emitFileContentChangedEvent
+    ace = @getAce()
+
+    unless emitFileContentChangedEvent
+      @dontEmitChangeEvent = yes
+      ace.suppressListeners = yes
+
+    ace.setContent content, emitFileContentChangedEvent
+
+    unless emitFileContentChangedEvent
+      @dontEmitChangeEvent = no
+      ace.suppressListeners = no
 
 
   getCursor: -> return @getEditor().selection.getCursor()
