@@ -21,7 +21,7 @@ func (r *Remote) StatusHandler(kreq *kite.Request) (interface{}, error) {
 			"remote.status: Error '%s' while unmarshalling request '%s'\n",
 			err, kreq.Args.One(),
 		)
-		r.log.Info(err.Error())
+		r.log.Error(err.Error())
 		return nil, err
 	}
 

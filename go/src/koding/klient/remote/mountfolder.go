@@ -62,8 +62,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 			"remote.mountFolder: Error '%s' while unmarshalling request '%s'\n",
 			err, kreq.Args.One(),
 		)
-
-		r.log.Info(err.Error())
+		r.log.Error(err.Error())
 
 		return nil, err
 	}

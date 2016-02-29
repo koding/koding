@@ -33,7 +33,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 			"remote.cacheFolder: Error '%s' while unmarshalling request '%s'\n",
 			err, kreq.Args.One(),
 		)
-		r.log.Info(err.Error())
+		r.log.Error(err.Error())
 		return nil, err
 	}
 
