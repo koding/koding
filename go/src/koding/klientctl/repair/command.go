@@ -132,7 +132,7 @@ func (c *Command) setupKlient() error {
 
 	k, err := klient.NewDialedKlient(c.KlientOptions)
 	if err != nil {
-		return fmt.Errorf("Failed to get working Klient instance")
+		return fmt.Errorf("Failed to get working Klient instance. err:%s", err)
 	}
 
 	c.Klient = k
