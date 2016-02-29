@@ -1,8 +1,11 @@
-{ Model } = require 'bongo'
+KodingError = require '../error'
+{ Model, secure, signature } = require 'bongo'
 
 module.exports = class JSession extends Model
 
   { v4: createId } = require 'node-uuid'
+
+  @share()
 
   @set
     indexes             :
@@ -38,6 +41,12 @@ module.exports = class JSession extends Model
     sharedEvents        :
       instance          : []
       static            : []
+    sharedMethods       :
+      instance          :
+        remove: [
+          (signature Function)
+          (signature Object, Function)
+        ]
 
   do ->
     JAccount  = require './account'
@@ -129,3 +138,8 @@ module.exports = class JSession extends Model
 
     JSession.update { clientId: clientId }, { $set: { clientIP: ipAddress } }, (err) ->
       callback err
+
+
+  remove$: secure (client, callback) ->
+
+    @remove callback
