@@ -80,6 +80,13 @@ app.settings.styl
     &.selected:before
       r-sprite              'account' 'sshkeys-active'
 
+  .AppModal-navItem.sessions
+    &:before
+      r-sprite              'account' 'twofactor'
+
+    &.selected:before
+      r-sprite              'account' 'twofactor-active'
+
   // FIXME credentials icon ~ GG
   .AppModal-navItem.credentials
     &:before
@@ -383,6 +390,29 @@ app.settings.styl
 
     a
       color                 #52a840
+
+  .session-item
+    height                  40px
+    padding                 12px 0
+    border-bottom           1px solid #dedede
+
+    .session-info
+      float                 left
+
+    .group-name
+      font-size             14px
+      color                 #434343
+
+    .last-access
+      font-size             12px
+      color                 #999
+      font-style            italic
+
+    .delete-button
+      abs()
+      right                 0
+      margin                5px 15px
+
 
   .add-ssh-key-view
 
