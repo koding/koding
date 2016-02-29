@@ -4,6 +4,7 @@ hljs                        = require 'highlight.js'
 KDListView                  = kd.ListView
 KDModalView                 = kd.ModalView
 
+Encoder                     = require 'htmlencode'
 showError                   = require 'app/util/showError'
 applyMarkdown               = require 'app/util/applyMarkdown'
 
@@ -118,12 +119,13 @@ module.exports = class AccountCredentialList extends KDListView
 
     credential = item.getData()
     credential.fetchData (err, data) ->
-      return if showError err
+      return  if showError err
 
       data.meta.identifier = credential.identifier
 
       cred = JSON.stringify data.meta, null, 2
       cred = hljs.highlight('json', cred).value
+      cred = Encoder.htmlDecode cred
 
       new KDModalView
         title          : credential.title

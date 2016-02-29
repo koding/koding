@@ -1,6 +1,7 @@
 kd                         = require 'kd'
 remote                     = require('app/remote').getInstance()
 KDView                     = kd.View
+Encoder                    = require 'htmlencode'
 KDCustomHTMLView           = kd.CustomHTMLView
 StackBaseEditorTabView     = require './stackbaseeditortabview'
 requirementsParser         = require './requirementsparser'
@@ -149,6 +150,8 @@ module.exports = class VariablesView extends StackBaseEditorTabView
         return kd.warn err  if err
 
         @_activeCredential = credential
-
         if (Object.keys data.meta).length
-          @getAce().setContent (jsonToYaml data.meta).content
+          { content } = jsonToYaml data.meta
+          content     = Encoder.htmlDecode content
+
+          @getAce().setContent content
