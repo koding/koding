@@ -289,7 +289,7 @@ module.exports = class DefineStackView extends KDView
 
   saveAndTestStackTemplate: ->
 
-    # Show default first pane.
+    # Show default first pane.
     @tabView.showPaneByIndex 0
     @outputView.clear().raise()
 
@@ -308,8 +308,8 @@ module.exports = class DefineStackView extends KDView
         .add 'Template content saved.'
         .add 'Setting up custom variables...'
 
-      { meta, rawContent } = @variablesView._providedData
-      data = { stackTemplate, meta, rawContent }
+      meta = @variablesView._providedData
+      data = { stackTemplate, meta }
 
       updateCustomVariable data, (err, _stackTemplate) =>
 
@@ -610,7 +610,7 @@ module.exports = class DefineStackView extends KDView
 
     group         = kd.singletons.groupsController.getCurrentGroup()
     account       = whoami()
-    custom        = @variablesView._providedData.meta
+    custom        = @variablesView._providedData
     availableData = { group, account, custom }
 
     requiredData  = requirementsParser template

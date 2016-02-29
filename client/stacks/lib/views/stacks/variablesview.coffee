@@ -60,8 +60,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       missings = []
 
       for field in @_requiredData
-        { meta } = @_providedData
-        if not value = meta[field] or value?.trim?() is ''
+        if not value = @_providedData[field] or value?.trim?() is ''
           missings.push field
 
       if missings.length then @setState 'MISSING', missings else @setState 'PASSED'
@@ -117,7 +116,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       @_providedData = {}
       @setState 'INVALID'
     else
-      @_providedData = { meta : converted.contentObject, rawContent : content }
+      @_providedData = _.extend converted.contentObject, { __rawContent : content }
       @handleDataChange()
 
 
@@ -152,9 +151,9 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
         @_activeCredential = credential
 
-        { meta, rawContent } = data
+        { meta } = data
         if (Object.keys meta).length
-          content = if rawContent
+          content = if rawContent = meta.__rawContent
           then _.unescape rawContent
           else (jsonToYaml meta).content
 
