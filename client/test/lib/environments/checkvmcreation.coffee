@@ -59,6 +59,7 @@ module.exports =
                 browser.url url
 
           browser
+            .waitForElementVisible  sidebarSelector, 20000
             .moveToElement          sidebarSelector, 10, 10
             .waitForElementVisible  "#{sidebarSelector} span", 20000
             .click                  "#{sidebarSelector} span"

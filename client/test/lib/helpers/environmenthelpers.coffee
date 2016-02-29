@@ -343,7 +343,7 @@ module.exports =
 
     createVMbutton    = '.content-container .kdbutton'
     addKodingVmButton = '.environments-modal .kdbutton.add-vm-button'
-    vmSelector        = '.sidebar-machine-box .notinitialized'
+    vmSelector        = '.sidebar-machine-box'
     vmStateModal      = '.env-machine-state .kdmodal-content'
 
     browser
