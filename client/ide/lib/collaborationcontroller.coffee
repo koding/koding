@@ -25,6 +25,7 @@ IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
 generateCollaborationLink     = require 'app/util/generateCollaborationLink'
+isKoding                      = require 'app/util/isKoding'
 
 {warn} = kd
 
@@ -1053,6 +1054,8 @@ module.exports = CollaborationController =
       kd.utils.defer @bound 'prepareCollaboration'
 
     @cleanupCollaboration()
+
+    return  unless isKoding()
 
     { activitySidebar } = kd.singletons.mainView
     channelId           = @getSocialChannelId()
