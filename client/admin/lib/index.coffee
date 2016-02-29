@@ -36,7 +36,7 @@ module.exports = class AdminAppController extends AppController
         { slug : 'General',        title : 'General',           viewClass : GroupGeneralSettingsView, role: 'member' }
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
-        { slug : 'Resources',      title : 'Rescources',        viewClass : AdminResourcesView       }
+        { slug : 'Resources',      title : 'Resources',         viewClass : AdminResourcesView       }
       # { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
         {
           slug      : 'Integrations'
