@@ -198,6 +198,7 @@ func (c *Command) initDefaultRepairers() error {
 	// The kontrol repairer will check if we're connected to kontrol yet, and
 	// attempt to wait for it. Eventually restarting if needed.
 	kontrolRepair := &KontrolRepair{
+		Log:    c.Log.New("KontrolRepair"),
 		Stdout: c.Stdout,
 		Klient: c.Klient,
 		RetryOptions: RetryOptions{
@@ -210,23 +211,46 @@ func (c *Command) initDefaultRepairers() error {
 		},
 	}
 
-	// Development In progress
-	//// The remote machine repairer will check if we're connected to the remote kite,
-	//// and attempt to wait for it. Eventually remounting if needed.
-	//remoteMachineRepair := &RemoteMachineRepair{
-	//	Stdout: c.Stdout,
-	//	Klient: c.Klient,
-	//	RetryOptions: RetryOptions{
-	//		StatusRetries: 5,
-	//		StatusDelay:   3 * time.Second,
-	//	},
-	//}
+	// The kite unreachable repairer ensures that the remote machine is on, and
+	// kite is reachable. No repair action is possible.
+	kiteUnreachableRepair := &KiteUnreachableRepair{
+		Log:           c.Log.New("KiteUnreachableRepair"),
+		Stdout:        c.Stdout,
+		Klient:        c.Klient,
+		StatusRetries: 10,
+		StatusDelay:   1 * time.Second,
+		MachineName:   c.Options.MountName,
+	}
+
+	// The token expired repair checks for token expired. This should be placed *before*
+	// TokenNotYetValidRepair, so that after we restart, we can check if the token
+	// is valid.
+	tokenExpired := &TokenExpiredRepair{
+		Log:                c.Log.New("TokenExpiredRepair"),
+		Stdout:             c.Stdout,
+		Klient:             c.Klient,
+		RepairWaitForToken: 5 * time.Second,
+		MachineName:        c.Options.MountName,
+	}
+
+	// The token not yet valid repairer will check if we're failing from the token
+	// not yet valid error, and wait for it to become valid.
+	tokenNotValidYetRepair := &TokenNotYetValidRepair{
+		Log:           c.Log.New("TokenNotYetValidRepair"),
+		Stdout:        c.Stdout,
+		Klient:        c.Klient,
+		RepairRetries: 5,
+		RepairDelay:   3 * time.Second,
+		MachineName:   c.Options.MountName,
+	}
 
 	c.Repairers = []Repairer{
 		internetRepair,
 		klientRunningRepair,
 		kontrolRepair,
-		//remoteMachineRepair,
+		kiteUnreachableRepair,
+		tokenExpired,
+		tokenNotValidYetRepair,
 	}
 
 	return nil

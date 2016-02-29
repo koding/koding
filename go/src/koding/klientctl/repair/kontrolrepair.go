@@ -5,9 +5,13 @@ import (
 	"io"
 	"koding/klient/remote/req"
 	"time"
+
+	"github.com/koding/logging"
 )
 
 type KontrolRepair struct {
+	Log logging.Logger
+
 	// The klient we will be communicating with.
 	Klient interface {
 		RemoteStatus(req.Status) (bool, error)
@@ -67,6 +71,8 @@ func (r *KontrolRepair) status() (bool, error) {
 }
 
 func (r *KontrolRepair) Repair() error {
+	fmt.Fprintln(r.Stdout, "Kontrol has not reconnected in expected time. Restarting.")
+
 	if err := r.Exec.Run("sudo", "kd", "restart"); err != nil {
 		return fmt.Errorf(
 			"Subprocess kd failed to start. err:%s", err,
@@ -77,7 +83,7 @@ func (r *KontrolRepair) Repair() error {
 	// tried and failed.
 	ok, err := r.status()
 	if !ok {
-		fmt.Fprint(r.Stdout, "Unable to reconnect to kontrol.")
+		fmt.Fprintln(r.Stdout, "Unable to reconnect to kontrol.")
 	}
 	return err
 }

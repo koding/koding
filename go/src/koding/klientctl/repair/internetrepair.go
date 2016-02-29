@@ -43,8 +43,9 @@ func (r *InternetRepair) String() string {
 // or they all fail.
 func (r *InternetRepair) Status() (bool, error) {
 	var (
-		ok  bool
-		err error
+		newline bool
+		ok      bool
+		err     error
 	)
 
 	for i := uint(0); i <= r.RetryOpts.StatusRetries; i++ {
@@ -52,6 +53,8 @@ func (r *InternetRepair) Status() (bool, error) {
 		if ok {
 			break
 		}
+
+		newline = true
 
 		switch i {
 		case 0:
@@ -63,7 +66,9 @@ func (r *InternetRepair) Status() (bool, error) {
 		time.Sleep(r.RetryOpts.StatusDelay)
 	}
 
-	fmt.Fprint(r.Stdout, "\n")
+	if newline {
+		fmt.Fprint(r.Stdout, "\n")
+	}
 
 	return ok, err
 }

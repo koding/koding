@@ -12,6 +12,8 @@ import (
 	"koding/klient/remote/machine"
 	"koding/klient/storage"
 
+	"github.com/koding/logging"
+
 	"github.com/koding/kite"
 	kiteprotocol "github.com/koding/kite/protocol"
 )
@@ -78,7 +80,7 @@ type Remote struct {
 	// A slice of local mounts (to list and unmount from, mainly).
 	mounts Mounts
 
-	log kite.Logger
+	log logging.Logger
 
 	// mockable interfaces and types, used for testing and abstracting the environment
 	// away.
@@ -90,11 +92,26 @@ type Remote struct {
 
 // NewRemote creates a new Remote instance.
 func NewRemote(k *kite.Kite, log kite.Logger, s storage.Interface) *Remote {
+
+	// TODO: Improve this usage. Basically i want a proper koding/logging struct,
+	// but we need to create it from somewhere. klient is always uses kite.Logger,
+	// which **should** always be implemented by a koding/logging.Logger.. but in
+	// the event that it's not, how do we handle it?
+	kodingLog, ok := log.(logging.Logger)
+	if !ok {
+		log.Error(
+			"Unable to convert koding/kite.Logger to koding/logging.Logger. Creating new logger",
+		)
+		kodingLog = logging.NewLogger("new-logger")
+	}
+
+	kodingLog = kodingLog.New("remote")
+
 	r := &Remote{
 		localKite:           k,
 		kitesGetter:         &KodingKite{Kite: k},
 		storage:             s,
-		log:                 log,
+		log:                 kodingLog,
 		machinesErrCacheMax: 5 * time.Minute,
 		machinesCacheMax:    10 * time.Second,
 		machineNamesCache:   map[string]string{},
@@ -153,6 +170,8 @@ func (r *Remote) hostFromClient(k *kite.Client) (string, error) {
 // If we are unable to get the kites from kontrol, but the cached
 // results are not too old, we return the cached results rather than giving
 // the user a bad UX.
+//
+// TODO: Convert to the name GetMachines
 func (r *Remote) GetKites() (machine.Machines, error) {
 	// If the clientsCachedAt value is within clientsCachedMax duration,
 	// return them immediately.
@@ -160,6 +179,12 @@ func (r *Remote) GetKites() (machine.Machines, error) {
 		return r.machines, nil
 	}
 
+	return r.GetMachinesWithoutCache()
+}
+
+// GetMachinesWithoutCache gets the remote kites and returns machines without
+// using the cache. Use this with caution!
+func (r *Remote) GetMachinesWithoutCache() (machine.Machines, error) {
 	kites, err := r.kitesGetter.GetKodingKites(&kiteprotocol.KontrolQuery{
 		Name:     "klient",
 		Username: r.localKite.Config.Username,
@@ -207,14 +232,17 @@ func (r *Remote) GetKites() (machine.Machines, error) {
 			missingNames = true
 		}
 
-		machine := machine.NewMachine()
-		machine.Client = k.Client
-		machine.KitePinger = kitepinger.NewKitePinger(k.Client)
-		machine.MachineLabel = k.MachineLabel
-		machine.Teams = k.Teams
-		machine.IP = host
-		machine.Name = name
-		clients = append(clients, machine)
+		machineMeta := machine.MachineMeta{
+			MachineLabel: k.MachineLabel,
+			IP:           host,
+			Name:         name,
+			Teams:        k.Teams,
+		}
+
+		m := machine.NewMachine(
+			machineMeta, r.log, k.Client, kitepinger.NewKitePinger(k.Client),
+		)
+		clients = append(clients, m)
 	}
 
 	r.machinesCachedAt = time.Now()
@@ -231,12 +259,28 @@ func (r *Remote) GetKites() (machine.Machines, error) {
 
 // GetKitesOrCache fetches kites from the kite cache no matter how old they are. If
 // there is no cache, the kites are fetched from Kontrol like normal.
+//
+// TODO: Convert to the name GetMachinesOrCache
 func (r *Remote) GetKitesOrCache() (machine.Machines, error) {
 	if len(r.machines) == 0 {
 		return r.GetKites()
 	}
 
 	return r.machines, nil
+}
+
+// GetMachine gets the machines from r.GetKites(), and then returns the requested
+// machine directly. For information on whether or not this uses a cache, see
+// r.GetKites() docstring.
+//
+// If the given machine is not found, machine.MachineNotFound is returned.
+func (r *Remote) GetMachine(name string) (*machine.Machine, error) {
+	machines, err := r.GetKites()
+	if err != nil {
+		return nil, err
+	}
+
+	return machines.GetByName(name)
 }
 
 // loadMachineNames loads the machine name map from database.
