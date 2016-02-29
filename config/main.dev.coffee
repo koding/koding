@@ -1160,6 +1160,9 @@ Configuration = (options={}) ->
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_type_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_type_enum\" ADD VALUE IF NOT EXISTS 'super';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_type_enum\" ADD VALUE IF NOT EXISTS 'startup';"
       }
 
       function run () {
@@ -1191,6 +1194,7 @@ Configuration = (options={}) ->
         # Do PG Migration if necessary
         migrate up
 
+        # Do manual migration (this needs to be done after `migrate up`)
         migrations
 
         # Create default workspaces
@@ -1676,6 +1680,7 @@ Configuration = (options={}) ->
 
         build_services
         importusers
+        migrate up
         migrations
 
       elif [ "$1" == "help" ]; then

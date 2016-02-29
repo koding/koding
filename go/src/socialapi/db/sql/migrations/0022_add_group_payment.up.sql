@@ -51,7 +51,7 @@ $$;
 -- create index
 DO $$
   BEGIN
-    CREATE INDEX  "payment_customer_lookup_idx" ON payment.customer USING btree(type DESC NULLS LAST, old_id DESC NULLS LAST);
+    CREATE INDEX  "payment_customer_lookup_idx" ON payment.customer USING btree(type_constant DESC NULLS LAST, old_id DESC NULLS LAST);
     EXCEPTION WHEN duplicate_table THEN
       RAISE NOTICE 'payment_customer_lookup_idx already exists';
   END;
