@@ -40,7 +40,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	user.Set("SessionId", userInfo.ClientId)
 	user.Set("Impersonating", userInfo.Impersonating)
 	user.Set("UserId", userInfo.UserId)
-	user.Set("UserEmail", userInfo.UserEmail)
 
 	// the goroutines below (and maybe one above) work in parallel
 	// and send items to here to be collected
