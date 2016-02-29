@@ -1,10 +1,11 @@
 package stripe
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"testing"
+
+	"gopkg.in/mgo.v2/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -118,7 +119,7 @@ func TestSubscribe4(t *testing.T) {
 					So(len(subs), ShouldEqual, 1)
 
 					currentSub := subs[0]
-					newPlan, err := FindPlanByTitleAndInterval(HigherPlan, HigherInterval, paymentmodels.AccountCustomer)
+					newPlan, err := FindPlan(HigherPlan, HigherInterval, paymentmodels.AccountCustomer)
 
 					So(err, ShouldBeNil)
 					So(currentSub.PlanId, ShouldEqual, newPlan.Id)
@@ -164,7 +165,7 @@ func TestSubscribe5(t *testing.T) {
 					So(len(subs), ShouldEqual, 1)
 
 					currentSub := subs[0]
-					newPlan, err := FindPlanByTitleAndInterval(LowerPlan, LowerInterval, paymentmodels.AccountCustomer)
+					newPlan, err := FindPlan(LowerPlan, LowerInterval, paymentmodels.AccountCustomer)
 
 					So(err, ShouldBeNil)
 					So(currentSub.PlanId, ShouldEqual, newPlan.Id)

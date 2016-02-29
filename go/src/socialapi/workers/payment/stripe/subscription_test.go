@@ -12,7 +12,7 @@ import (
 
 func TestCreateAndFindSubscription(t *testing.T) {
 	Convey("Given plan and customer id", t, func() {
-		plan, err := FindPlanByTitleAndInterval(StartingPlan, StartingInterval, paymentmodels.AccountCustomer)
+		plan, err := FindPlan(StartingPlan, StartingInterval, paymentmodels.AccountCustomer)
 
 		So(err, ShouldBeNil)
 		So(plan, ShouldNotBeNil)
@@ -56,7 +56,7 @@ func TestCreateAndFindSubscription(t *testing.T) {
 func TestCancelSubscription(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		createCustomerFn(func(accId string, c *paymentmodels.Customer) {
-			plan, err := FindPlanByTitleAndInterval(StartingPlan, StartingInterval, paymentmodels.AccountCustomer)
+			plan, err := FindPlan(StartingPlan, StartingInterval, paymentmodels.AccountCustomer)
 			So(err, ShouldBeNil)
 			So(plan, ShouldNotBeNil)
 
