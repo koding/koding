@@ -335,11 +335,11 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 		Status:     machinestate.Building,
 	})
 
-	if len(kiteIDs) != 0 {
-		s.Log.Debug("Checking total '%d' klients", len(kiteIDs))
-		if err := s.p.CheckKlients(ctx, kiteIDs); err != nil {
-			return err
-		}
+	s.Log.Debug("Checking total '%d' klients", len(kiteIDs))
+
+	urls, err := s.p.CheckKlients(ctx, kiteIDs)
+	if err != nil {
+		return err
 	}
 
 	output, err := s.p.MachinesFromState(state)
@@ -348,13 +348,11 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 	}
 
 	s.Log.Debug("Machines from state: %+v", output)
+	s.Log.Debug("Build data kiteIDS: %+v", kiteIDs)
 
-	if len(kiteIDs) != 0 {
-		s.Log.Debug("Build data kiteIDS: %+v", kiteIDs)
-		output.AppendQueryString(kiteIDs)
-	}
-
+	output.AppendQueryString(kiteIDs)
 	output.AppendHostQueryString(hostQueryString)
+	output.AppendRegisterURL(urls)
 
 	d, err := json.MarshalIndent(output, "", " ")
 	if err != nil {
