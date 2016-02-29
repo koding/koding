@@ -48,8 +48,7 @@ func (r *InternetRepair) Status() error {
 	)
 
 	for i := uint(0); i <= r.RetryOpts.StatusRetries; i++ {
-		err = r.status()
-		if err == nil {
+		if err = r.status(); err == nil {
 			break
 		}
 

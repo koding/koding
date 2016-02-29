@@ -77,8 +77,7 @@ func (r *TokenExpiredRepair) Repair() error {
 	for time.Now().Sub(start) < r.RepairWaitForToken {
 		// Ignoring the error here, because it should be the same error that Status
 		// ran into above - and Status *only* returns AuthErrTokenExpired errors.
-		err := r.Status()
-		if err == nil {
+		if err := r.Status(); err == nil {
 			// Close the dot progress
 			fmt.Fprint(r.Stdout, "\n")
 			return nil
