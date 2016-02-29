@@ -20,7 +20,7 @@ module.exports = class AccountSessionListItem extends KDListItemView
       callback : listView.lazyBound 'deleteItem', this
 
     if kookies.get('clientId') is data.clientId
-      deleteButtonOptions.tooltip = { title : 'This will log you out!' }
+      deleteButtonOptions.tooltip = { title : 'This will log you out!', placement: 'left' }
 
     @deleteButton = new kd.ButtonView deleteButtonOptions
 
