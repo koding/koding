@@ -277,15 +277,15 @@ module.exports = class IDEEditorPane extends IDEPane
 
   bindChangeListeners: ->
 
-    change = @getInitialChangeObject()
-
     @getAce()
-      .on 'ace.change.cursor',   @lazyBound 'handleCursorChange',      change
-      .on 'FileContentChanged',  @lazyBound 'handleFileContentChange', change
-      .on 'FileContentRestored', @lazyBound 'handleFileContentChange', change
+      .on 'ace.change.cursor', @bound 'handleCursorChange'
+      .on 'FileContentChanged', @bound 'handleFileContentChange'
+      .on 'FileContentRestored', @bound 'handleFileContentChange'
 
 
-  handleCursorChange: (change, cursor) ->
+  handleCursorChange: (cursor) ->
+
+    change = @getInitialChangeObject()
 
     change.type = 'CursorActivity'
     change.context.cursor = cursor
@@ -293,9 +293,11 @@ module.exports = class IDEEditorPane extends IDEPane
     @emit 'ChangeHappened', change
 
 
-  handleFileContentChange: (change) ->
+  handleFileContentChange: ->
 
-    return if @dontEmitChangeEvent
+    change = @getInitialChangeObject()
+
+    return  if @dontEmitChangeEvent
 
     change.type = 'ContentChange'
     change.context.file.content = @getContent()
