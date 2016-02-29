@@ -1,4 +1,3 @@
-$                      = require 'jquery'
 kd                     = require 'kd'
 kookies                = require 'kookies'
 showError              = require 'app/util/showError'
@@ -11,10 +10,8 @@ AccountSessionListItem = require './accountsessionlistitem'
 module.exports = class AccountSessionList extends KDListView
 
   constructor: (options,data) ->
-    options = $.extend
-      tagName   : "ul"
-      itemClass : AccountSessionListItem
-    ,options
+    options.tagName   ?= 'ul'
+    options.itemClass ?= AccountSessionListItem
     super options,data
 
 
@@ -36,7 +33,7 @@ module.exports = class AccountSessionList extends KDListView
             @emit 'ItemDeleted', item  unless showError err
 
             # if the deleted session is the current one logout user immediately
-            if clientId == session.clientId
+            if clientId is session.clientId
               kookies.expire 'clientId'
               global.location.replace '/'
 
