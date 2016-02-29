@@ -56,7 +56,7 @@ func NewStatus(log logging.Logger, mg MachineGetter) *Status {
 // If nil is given as an arg, nil is returned.
 func (s *Status) handleKiteErr(err error) error {
 	// By checking for nil, we allow usage of this func like:
-	// handleKIteErr(Dial()), if desired.
+	// handleKiteErr(Dial()), if desired.
 	if err == nil {
 		return nil
 	}
