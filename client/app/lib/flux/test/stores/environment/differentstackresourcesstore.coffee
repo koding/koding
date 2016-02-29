@@ -1,4 +1,3 @@
-mock                          = require '../../../../../../mocks/mockingjay'
 expect                        = require 'expect'
 Reactor                       = require 'app/flux/base/reactor'
 actionTypes                   = require 'app/flux/environment/actiontypes'

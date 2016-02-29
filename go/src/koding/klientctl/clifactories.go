@@ -7,6 +7,8 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/ctlcli"
+	"koding/klientctl/repair"
 	"koding/klientctl/util/mountcli"
 	"os"
 
@@ -16,7 +18,7 @@ import (
 
 // MountCommandFactory creates a mount.Command instance and runs it with
 // Stdin and Out.
-func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Command {
+func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
 	log = log.New(fmt.Sprintf("command:%s", cmdName))
 
 	opts := MountOptions{
@@ -39,15 +41,15 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Com
 		Stdin:         os.Stdin,
 		Log:           log,
 		KlientOptions: NewKlientOptions(),
-		helper:        CommandHelper(c, "mount"),
+		helper:        ctlcli.CommandHelper(c, "mount"),
 		mountLocker:   Lock,
 		homeDirGetter: homeDirGetter,
 	}
 }
 
-// MountCommandFactory creates a mount.Command instance and runs it with
+// UnmountCommandFactory creates a UnmountCommand instance and runs it with
 // Stdin and Out.
-func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) Command {
+func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
 	log = log.New(fmt.Sprintf("command:%s", cmdName))
 
 	// Full our unmount options from the CLI. Any empty options are okay, as
@@ -62,9 +64,33 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) C
 		Stdin:         os.Stdin,
 		Log:           log,
 		KlientOptions: NewKlientOptions(),
-		helper:        CommandHelper(c, cmdName),
+		helper:        ctlcli.CommandHelper(c, cmdName),
 		healthChecker: defaultHealthChecker,
 		fileRemover:   os.Remove,
 		mountFinder:   mountcli.NewMount(),
+	}
+}
+
+// RepairCommandFactory creates a repair.Command instance and runs it with
+// Stdin and Out.
+func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
+	log = log.New(fmt.Sprintf("command:%s", cmdName))
+
+	// Fill our repair options from the CLI. Any empty options are okay, as
+	// the command struct is responsible for verifying valid opts.
+	opts := repair.Options{
+		MountName: c.Args().First(),
+	}
+
+	return &repair.Command{
+		Options:       opts,
+		Stdout:        os.Stdout,
+		Stdin:         os.Stdin,
+		Log:           log,
+		KlientOptions: NewKlientOptions(),
+		Helper:        ctlcli.CommandHelper(c, cmdName),
+		// Used to create our KlientService instance. Really needs to be improved in
+		// the future, once it has proper access to a config package
+		ServiceConstructor: newService,
 	}
 }

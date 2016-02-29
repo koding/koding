@@ -6,69 +6,73 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 
 	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/libcontainer"
-	_ "github.com/docker/libcontainer/nsenter"
-	"github.com/docker/libcontainer/utils"
+	"github.com/opencontainers/runc/libcontainer"
+	// Blank import 'nsenter' so that init in that package will call c
+	// function 'nsexec()' to do 'setns' before Go runtime take over,
+	// it's used for join to exist ns like 'docker exec' command.
+	_ "github.com/opencontainers/runc/libcontainer/nsenter"
+	"github.com/opencontainers/runc/libcontainer/utils"
 )
 
-func (d *driver) Exec(c *execdriver.Command, processConfig *execdriver.ProcessConfig, pipes *execdriver.Pipes, startCallback execdriver.StartCallback) (int, error) {
+// Exec implements the exec driver Driver interface,
+// it calls libcontainer APIs to execute a container.
+func (d *Driver) Exec(c *execdriver.Command, processConfig *execdriver.ProcessConfig, pipes *execdriver.Pipes, hooks execdriver.Hooks) (int, error) {
 	active := d.activeContainers[c.ID]
 	if active == nil {
 		return -1, fmt.Errorf("No active container exists with ID %s", c.ID)
 	}
 
-	var term execdriver.Terminal
-	var err error
+	user := processConfig.User
+	if c.RemappedRoot.UID != 0 && user == "" {
+		//if user namespaces are enabled, set user explicitly so uid/gid is set to 0
+		//otherwise we end up with the overflow id and no permissions (65534)
+		user = "0"
+	}
 
 	p := &libcontainer.Process{
 		Args: append([]string{processConfig.Entrypoint}, processConfig.Arguments...),
 		Env:  c.ProcessConfig.Env,
 		Cwd:  c.WorkingDir,
-		User: processConfig.User,
+		User: user,
 	}
 
 	if processConfig.Privileged {
 		p.Capabilities = execdriver.GetAllCapabilities()
 	}
-
-	if processConfig.Tty {
-		config := active.Config()
-		rootuid, err := config.HostUID()
-		if err != nil {
-			return -1, err
+	// add CAP_ prefix to all caps for new libcontainer update to match
+	// the spec format.
+	for i, s := range p.Capabilities {
+		if !strings.HasPrefix(s, "CAP_") {
+			p.Capabilities[i] = fmt.Sprintf("CAP_%s", s)
 		}
-		cons, err := p.NewConsole(rootuid)
-		if err != nil {
-			return -1, err
-		}
-		term, err = NewTtyConsole(cons, pipes, rootuid)
-	} else {
-		p.Stdout = pipes.Stdout
-		p.Stderr = pipes.Stderr
-		p.Stdin = pipes.Stdin
-		term = &execdriver.StdConsole{}
 	}
-	if err != nil {
+
+	config := active.Config()
+	if err := setupPipes(&config, processConfig, p, pipes); err != nil {
 		return -1, err
 	}
-
-	processConfig.Terminal = term
 
 	if err := active.Start(p); err != nil {
 		return -1, err
 	}
 
-	if startCallback != nil {
+	if hooks.Start != nil {
 		pid, err := p.Pid()
 		if err != nil {
 			p.Signal(os.Kill)
 			p.Wait()
 			return -1, err
 		}
-		startCallback(&c.ProcessConfig, pid)
+
+		// A closed channel for OOM is returned here as it will be
+		// non-blocking and return the correct result when read.
+		chOOM := make(chan struct{})
+		close(chOOM)
+		hooks.Start(&c.ProcessConfig, pid, chOOM)
 	}
 
 	ps, err := p.Wait()

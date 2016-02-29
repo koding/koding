@@ -1,4 +1,3 @@
-_                   = require 'lodash'
 kd                  = require 'kd'
 twitter             = require 'twitter-text'
 getBlockquoteRanges = require './getBlockquoteRanges'

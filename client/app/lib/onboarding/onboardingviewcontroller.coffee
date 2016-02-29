@@ -1,8 +1,6 @@
 kd = require 'kd'
 KDViewController = kd.ViewController
 OnboardingItemView = require './onboardingitemview'
-OnboardingMetrics = require './onboardingmetrics'
-showNotification = require 'app/util/showNotification'
 OnboardingTask = require './onboardingtask'
 
 ###*

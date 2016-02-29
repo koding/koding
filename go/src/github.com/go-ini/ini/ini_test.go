@@ -15,6 +15,7 @@
 package ini
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -40,7 +41,7 @@ IMPORT_PATH = gopkg.in/%(NAME)s.%(VERSION)s
 # Information about package author
 # Bio can be written in multiple lines.
 [author]
-NAME = Unknwon  # Succeeding comment
+NAME = Unknwon  ; Succeeding comment
 E-MAIL = fake@localhost
 GITHUB = https://github.com/%(NAME)s
 BIO = """Gopher.
@@ -79,14 +80,21 @@ TIMES = 2015-01-01T20:17:05Z,2015-01-01T20:17:05Z,2015-01-01T20:17:05Z
 [note]
 empty_lines = next line is empty\
 
+; Comment before the section
+[comments] ; This is a comment for the section too
+; Comment before key
+key = "value"
+key2 = "value2" ; This is a comment for key2
+key3 = "one", "two", "three"
+
 [advance]
 value with quotes = "some value"
 value quote2 again = 'some value'
-true = """"2+3=5""""
+true = 2+3=5
 "1+1=2" = true
 """6+1=7""" = true
 """` + "`" + `5+5` + "`" + `""" = 10
-""""6+6"""" = 12
+` + "`" + `"6+6"` + "`" + ` = 12
 ` + "`" + `7-2=4` + "`" + ` = false
 ADDRESS = ` + "`" + `404 road,
 NotFound, State, 50000` + "`" + `
@@ -119,8 +127,9 @@ func Test_Load(t *testing.T) {
 			_, err := Load(_CONF_DATA)
 			So(err, ShouldNotBeNil)
 
-			_, err = Load("testdata/404.ini")
+			f, err := Load("testdata/404.ini")
 			So(err, ShouldNotBeNil)
+			So(f, ShouldBeNil)
 
 			_, err = Load(1)
 			So(err, ShouldNotBeNil)
@@ -129,8 +138,11 @@ func Test_Load(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 
-		Convey("Load with empty section name", func() {
+		Convey("Load with bad section name", func() {
 			_, err := Load([]byte("[]"))
+			So(err, ShouldNotBeNil)
+
+			_, err = Load([]byte("["))
 			So(err, ShouldNotBeNil)
 		})
 
@@ -153,9 +165,6 @@ func Test_Load(t *testing.T) {
 
 		Convey("Load with bad values", func() {
 			_, err := Load([]byte(`name="""Unknwon`))
-			So(err, ShouldNotBeNil)
-
-			_, err = Load([]byte(`key = "value`))
 			So(err, ShouldNotBeNil)
 		})
 	})
@@ -203,13 +212,14 @@ func Test_Values(t *testing.T) {
 
 		Convey("Get sections", func() {
 			sections := cfg.Sections()
-			for i, name := range []string{DEFAULT_SECTION, "author", "package", "package.sub", "features", "types", "array", "note", "advance"} {
+			for i, name := range []string{DEFAULT_SECTION, "author", "package", "package.sub", "features", "types", "array", "note", "comments", "advance"} {
 				So(sections[i].Name(), ShouldEqual, name)
 			}
 		})
 
 		Convey("Get parent section value", func() {
 			So(cfg.Section("package.sub").Key("CLONE_URL").String(), ShouldEqual, "https://gopkg.in/ini.v1")
+			So(cfg.Section("package.fake.sub").Key("CLONE_URL").String(), ShouldEqual, "https://gopkg.in/ini.v1")
 		})
 
 		Convey("Get multiple line value", func() {
@@ -340,36 +350,124 @@ func Test_Values(t *testing.T) {
 			So(len(sec.Key("STRINGS_404").Strings(",")), ShouldEqual, 0)
 
 			vals1 := sec.Key("FLOAT64S").Float64s(",")
-			for i, v := range []float64{1.1, 2.2, 3.3} {
-				So(vals1[i], ShouldEqual, v)
-			}
+			float64sEqual(vals1, 1.1, 2.2, 3.3)
 
 			vals2 := sec.Key("INTS").Ints(",")
-			for i, v := range []int{1, 2, 3} {
-				So(vals2[i], ShouldEqual, v)
-			}
+			intsEqual(vals2, 1, 2, 3)
 
 			vals3 := sec.Key("INTS").Int64s(",")
-			for i, v := range []int64{1, 2, 3} {
-				So(vals3[i], ShouldEqual, v)
-			}
+			int64sEqual(vals3, 1, 2, 3)
 
 			vals4 := sec.Key("UINTS").Uints(",")
-			for i, v := range []uint{1, 2, 3} {
-				So(vals4[i], ShouldEqual, v)
-			}
+			uintsEqual(vals4, 1, 2, 3)
 
 			vals5 := sec.Key("UINTS").Uint64s(",")
-			for i, v := range []uint64{1, 2, 3} {
-				So(vals5[i], ShouldEqual, v)
-			}
+			uint64sEqual(vals5, 1, 2, 3)
 
 			t, err := time.Parse(time.RFC3339, "2015-01-01T20:17:05Z")
 			So(err, ShouldBeNil)
 			vals6 := sec.Key("TIMES").Times(",")
-			for i, v := range []time.Time{t, t, t} {
-				So(vals6[i].String(), ShouldEqual, v.String())
-			}
+			timesEqual(vals6, t, t, t)
+		})
+
+		Convey("Get valid values into slice", func() {
+			sec := cfg.Section("array")
+			vals1 := sec.Key("FLOAT64S").ValidFloat64s(",")
+			float64sEqual(vals1, 1.1, 2.2, 3.3)
+
+			vals2 := sec.Key("INTS").ValidInts(",")
+			intsEqual(vals2, 1, 2, 3)
+
+			vals3 := sec.Key("INTS").ValidInt64s(",")
+			int64sEqual(vals3, 1, 2, 3)
+
+			vals4 := sec.Key("UINTS").ValidUints(",")
+			uintsEqual(vals4, 1, 2, 3)
+
+			vals5 := sec.Key("UINTS").ValidUint64s(",")
+			uint64sEqual(vals5, 1, 2, 3)
+
+			t, err := time.Parse(time.RFC3339, "2015-01-01T20:17:05Z")
+			So(err, ShouldBeNil)
+			vals6 := sec.Key("TIMES").ValidTimes(",")
+			timesEqual(vals6, t, t, t)
+		})
+
+		Convey("Get values one type into slice of another type", func() {
+			sec := cfg.Section("array")
+			vals1 := sec.Key("STRINGS").ValidFloat64s(",")
+			So(vals1, ShouldBeEmpty)
+
+			vals2 := sec.Key("STRINGS").ValidInts(",")
+			So(vals2, ShouldBeEmpty)
+
+			vals3 := sec.Key("STRINGS").ValidInt64s(",")
+			So(vals3, ShouldBeEmpty)
+
+			vals4 := sec.Key("STRINGS").ValidUints(",")
+			So(vals4, ShouldBeEmpty)
+
+			vals5 := sec.Key("STRINGS").ValidUint64s(",")
+			So(vals5, ShouldBeEmpty)
+
+			vals6 := sec.Key("STRINGS").ValidTimes(",")
+			So(vals6, ShouldBeEmpty)
+		})
+
+		Convey("Get valid values into slice without errors", func() {
+			sec := cfg.Section("array")
+			vals1, err := sec.Key("FLOAT64S").StrictFloat64s(",")
+			So(err, ShouldBeNil)
+			float64sEqual(vals1, 1.1, 2.2, 3.3)
+
+			vals2, err := sec.Key("INTS").StrictInts(",")
+			So(err, ShouldBeNil)
+			intsEqual(vals2, 1, 2, 3)
+
+			vals3, err := sec.Key("INTS").StrictInt64s(",")
+			So(err, ShouldBeNil)
+			int64sEqual(vals3, 1, 2, 3)
+
+			vals4, err := sec.Key("UINTS").StrictUints(",")
+			So(err, ShouldBeNil)
+			uintsEqual(vals4, 1, 2, 3)
+
+			vals5, err := sec.Key("UINTS").StrictUint64s(",")
+			So(err, ShouldBeNil)
+			uint64sEqual(vals5, 1, 2, 3)
+
+			t, err := time.Parse(time.RFC3339, "2015-01-01T20:17:05Z")
+			So(err, ShouldBeNil)
+			vals6, err := sec.Key("TIMES").StrictTimes(",")
+			So(err, ShouldBeNil)
+			timesEqual(vals6, t, t, t)
+		})
+
+		Convey("Get invalid values into slice", func() {
+			sec := cfg.Section("array")
+			vals1, err := sec.Key("STRINGS").StrictFloat64s(",")
+			So(vals1, ShouldBeEmpty)
+			So(err, ShouldNotBeNil)
+
+			vals2, err := sec.Key("STRINGS").StrictInts(",")
+			So(vals2, ShouldBeEmpty)
+			So(err, ShouldNotBeNil)
+
+			vals3, err := sec.Key("STRINGS").StrictInt64s(",")
+			So(vals3, ShouldBeEmpty)
+			So(err, ShouldNotBeNil)
+
+			vals4, err := sec.Key("STRINGS").StrictUints(",")
+			So(vals4, ShouldBeEmpty)
+			So(err, ShouldNotBeNil)
+
+			vals5, err := sec.Key("STRINGS").StrictUint64s(",")
+			So(vals5, ShouldBeEmpty)
+			So(err, ShouldNotBeNil)
+
+			vals6, err := sec.Key("STRINGS").StrictTimes(",")
+			So(vals6, ShouldBeEmpty)
+			So(err, ShouldNotBeNil)
 		})
 
 		Convey("Get key hash", func() {
@@ -392,11 +490,21 @@ func Test_Values(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 
-		Convey("Has Key", func() {
+		Convey("Has Key (backwards compatible)", func() {
 			sec := cfg.Section("package.sub")
 			haskey1 := sec.Haskey("UNUSED_KEY")
 			haskey2 := sec.Haskey("CLONE_URL")
 			haskey3 := sec.Haskey("CLONE_URL_NO")
+			So(haskey1, ShouldBeTrue)
+			So(haskey2, ShouldBeTrue)
+			So(haskey3, ShouldBeFalse)
+		})
+
+		Convey("Has Key", func() {
+			sec := cfg.Section("package.sub")
+			haskey1 := sec.HasKey("UNUSED_KEY")
+			haskey2 := sec.HasKey("CLONE_URL")
+			haskey3 := sec.HasKey("CLONE_URL_NO")
 			So(haskey1, ShouldBeTrue)
 			So(haskey2, ShouldBeTrue)
 			So(haskey3, ShouldBeFalse)
@@ -411,7 +519,7 @@ func Test_Values(t *testing.T) {
 		})
 
 		Convey("Get section strings", func() {
-			So(strings.Join(cfg.SectionStrings(), ","), ShouldEqual, "DEFAULT,author,package,package.sub,features,types,array,note,advance")
+			So(strings.Join(cfg.SectionStrings(), ","), ShouldEqual, "DEFAULT,author,package,package.sub,features,types,array,note,comments,advance")
 		})
 
 		Convey("Delete a section", func() {
@@ -458,6 +566,22 @@ func Test_Values(t *testing.T) {
 			So(s, ShouldNotBeNil)
 		})
 	})
+
+	Convey("Test key hash clone", t, func() {
+		cfg, err := Load([]byte(strings.Replace("network=tcp,addr=127.0.0.1:6379,db=4,pool_size=100,idle_timeout=180", ",", "\n", -1)))
+		So(err, ShouldBeNil)
+		for _, v := range cfg.Section("").KeysHash() {
+			So(len(v), ShouldBeGreaterThan, 0)
+		}
+	})
+
+	Convey("Key has empty value", t, func() {
+		_conf := `key1=
+key2= ; comment`
+		cfg, err := Load([]byte(_conf))
+		So(err, ShouldBeNil)
+		So(cfg.Section("").Key("key1").Value(), ShouldBeEmpty)
+	})
 }
 
 func Test_File_Append(t *testing.T) {
@@ -472,6 +596,14 @@ func Test_File_Append(t *testing.T) {
 			So(cfg.Append(1), ShouldNotBeNil)
 			So(cfg.Append([]byte(""), 1), ShouldNotBeNil)
 		})
+	})
+}
+
+func Test_File_WriteTo(t *testing.T) {
+	Convey("Write to somewhere", t, func() {
+		var buf bytes.Buffer
+		cfg := Empty()
+		cfg.WriteTo(&buf)
 	})
 }
 
@@ -526,5 +658,48 @@ func Benchmark_Key_SetValue(b *testing.B) {
 	c, _ := Load([]byte(_CONF_DATA))
 	for i := 0; i < b.N; i++ {
 		c.Section("").Key("NAME").SetValue("10")
+	}
+}
+
+// Helpers for slice tests.
+func float64sEqual(values []float64, expected ...float64) {
+	So(values, ShouldHaveLength, len(expected))
+	for i, v := range expected {
+		So(values[i], ShouldEqual, v)
+	}
+}
+
+func intsEqual(values []int, expected ...int) {
+	So(values, ShouldHaveLength, len(expected))
+	for i, v := range expected {
+		So(values[i], ShouldEqual, v)
+	}
+}
+
+func int64sEqual(values []int64, expected ...int64) {
+	So(values, ShouldHaveLength, len(expected))
+	for i, v := range expected {
+		So(values[i], ShouldEqual, v)
+	}
+}
+
+func uintsEqual(values []uint, expected ...uint) {
+	So(values, ShouldHaveLength, len(expected))
+	for i, v := range expected {
+		So(values[i], ShouldEqual, v)
+	}
+}
+
+func uint64sEqual(values []uint64, expected ...uint64) {
+	So(values, ShouldHaveLength, len(expected))
+	for i, v := range expected {
+		So(values[i], ShouldEqual, v)
+	}
+}
+
+func timesEqual(values []time.Time, expected ...time.Time) {
+	So(values, ShouldHaveLength, len(expected))
+	for i, v := range expected {
+		So(values[i].String(), ShouldEqual, v.String())
 	}
 }

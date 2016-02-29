@@ -1,7 +1,5 @@
 kd           = require 'kd'
 React        = require 'kd-react'
-helper       = require './helper'
-fetchAccount = require 'app/util/fetchAccount'
 
 module.exports = class ProfileLink extends React.Component
 

@@ -26,10 +26,12 @@ import (
 // NewGetCommand returns the CLI command for "get".
 func NewGetCommand() cli.Command {
 	return cli.Command{
-		Name:  "get",
-		Usage: "retrieve the value of a key",
+		Name:      "get",
+		Usage:     "retrieve the value of a key",
+		ArgsUsage: "<key>",
 		Flags: []cli.Flag{
 			cli.BoolFlag{Name: "sort", Usage: "returns result in sorted order"},
+			cli.BoolFlag{Name: "quorum", Usage: "require quorum for get request"},
 		},
 		Action: func(c *cli.Context) {
 			getCommandFunc(c, mustNewKeyAPI(c))
@@ -45,9 +47,10 @@ func getCommandFunc(c *cli.Context, ki client.KeysAPI) {
 
 	key := c.Args()[0]
 	sorted := c.Bool("sort")
+	quorum := c.Bool("quorum")
 
 	ctx, cancel := contextWithTotalTimeout(c)
-	resp, err := ki.Get(ctx, key, &client.GetOptions{Sort: sorted})
+	resp, err := ki.Get(ctx, key, &client.GetOptions{Sort: sorted, Quorum: quorum})
 	cancel()
 	if err != nil {
 		handleError(ExitServerError, err)

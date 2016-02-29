@@ -17,41 +17,34 @@ package command
 import (
 	"fmt"
 
-	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
-	"github.com/coreos/etcd/Godeps/_workspace/src/google.golang.org/grpc"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 )
 
-// NewDeleteRangeCommand returns the CLI command for "deleteRange".
-func NewDeleteRangeCommand() cli.Command {
-	return cli.Command{
-		Name: "delete-range",
-		Action: func(c *cli.Context) {
-			deleteRangeCommandFunc(c)
-		},
+// NewDeleteRangeCommand returns the cobra command for "deleteRange".
+func NewDeleteRangeCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "delete-range",
+		Short: "DeleteRange deletes the given range from the store.",
+		Run:   deleteRangeCommandFunc,
 	}
 }
 
-// deleteRangeCommandFunc executes the "delegeRange" command.
-func deleteRangeCommandFunc(c *cli.Context) {
-	if len(c.Args()) == 0 {
-		panic("bad arg")
+// deleteRangeCommandFunc executes the "deleteRange" command.
+func deleteRangeCommandFunc(cmd *cobra.Command, args []string) {
+	if len(args) == 0 {
+		ExitWithError(ExitBadArgs, fmt.Errorf("delete-range command needs arguments."))
 	}
 
 	var rangeEnd []byte
-	key := []byte(c.Args()[0])
-	if len(c.Args()) > 1 {
-		rangeEnd = []byte(c.Args()[1])
+	key := []byte(args[0])
+	if len(args) > 1 {
+		rangeEnd = []byte(args[1])
 	}
-	conn, err := grpc.Dial(c.GlobalString("endpoint"))
-	if err != nil {
-		panic(err)
-	}
-	etcd := pb.NewEtcdClient(conn)
-	req := &pb.DeleteRangeRequest{Key: key, RangeEnd: rangeEnd}
 
-	etcd.DeleteRange(context.Background(), req)
+	req := &pb.DeleteRangeRequest{Key: key, RangeEnd: rangeEnd}
+	mustClientFromCmd(cmd).KV.DeleteRange(context.Background(), req)
 
 	if rangeEnd != nil {
 		fmt.Printf("range [%s, %s) is deleted\n", string(key), string(rangeEnd))

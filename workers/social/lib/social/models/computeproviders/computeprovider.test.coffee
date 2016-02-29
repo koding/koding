@@ -202,14 +202,6 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       expectAccessDenied ComputeProvider, 'fetchTeamPlans', done
 
-    it 'should fail if user doesnt have permission', (done) ->
-
-      withConvertedUser ({ client }) ->
-
-        ComputeProvider.fetchTeamPlans client, (err, plans) ->
-          expect(err).to.exist
-          expect(err.message).to.be.equal 'Access denied'
-          done()
 
     it 'should be able to fetch team plans for koding admins', (done) ->
 

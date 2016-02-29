@@ -52,6 +52,7 @@ func (t *batchTx) UnsafeCreateBucket(name []byte) {
 	if err != nil && err != bolt.ErrBucketExists {
 		log.Fatalf("storage: cannot create bucket %s (%v)", string(name), err)
 	}
+	t.pending++
 }
 
 // before calling unsafePut, the caller MUST hold the lock on tx.
@@ -132,7 +133,13 @@ func (t *batchTx) commit(stop bool) {
 	var err error
 	// commit the last tx
 	if t.tx != nil {
+		if t.pending == 0 && !stop {
+			return
+		}
 		err = t.tx.Commit()
+		atomic.AddInt64(&t.backend.commits, 1)
+
+		t.pending = 0
 		if err != nil {
 			log.Fatalf("storage: cannot commit tx (%s)", err)
 		}

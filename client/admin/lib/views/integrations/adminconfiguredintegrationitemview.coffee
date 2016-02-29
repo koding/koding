@@ -1,12 +1,10 @@
 kd                       = require 'kd'
 remote                   = require('app/remote').getInstance()
-globals                  = require 'globals'
 showError                = require 'app/util/showError'
 KDButtonView             = kd.ButtonView
 KDTimeAgoView            = kd.TimeAgoView
 KDCustomHTMLView         = kd.CustomHTMLView
 AdminIntegrationItemView = require './adminintegrationitemview'
-integrationHelpers       = require 'app/helpers/integration'
 
 
 module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrationItemView

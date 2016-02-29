@@ -1,4 +1,3 @@
-kd     = require 'kd'
 expect = require 'expect'
 React  = require 'react/addons'
 

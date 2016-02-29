@@ -1,12 +1,13 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDListItemView = kd.ListItemView
+kd                           = require 'kd'
+KDCustomHTMLView             = kd.CustomHTMLView
+KDListItemView               = kd.ListItemView
+AccountEditorTags            = require './accounteditortags'
+AccountsSwappable            = require './accountsswappable'
 AccountEditorExtensionTagger = require './accounteditorextensiontagger'
-AccountEditorTags = require './accounteditortags'
-AccountsSwappable = require './accountsswappable'
 
 
 module.exports = class AccountEditorListItem extends KDListItemView
+
   constructor:(options,data)->
     options = tagName : "li"
     super options,data

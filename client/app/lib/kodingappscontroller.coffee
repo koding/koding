@@ -1,5 +1,4 @@
 kd               = require 'kd'
-KDModalView      = kd.ModalView
 KDController     = kd.Controller
 KDCustomHTMLView = kd.CustomHTMLView
 

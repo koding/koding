@@ -1,162 +1,139 @@
 package daemon
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"io"
-	"os"
 	"strconv"
-	"sync"
+	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/pkg/jsonlog"
+	"github.com/docker/docker/api/types/backend"
+	"github.com/docker/docker/container"
+	"github.com/docker/docker/daemon/logger"
+	"github.com/docker/docker/daemon/logger/jsonfilelog"
+	derr "github.com/docker/docker/errors"
+	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/docker/pkg/tailfile"
-	"github.com/docker/docker/pkg/timeutils"
+	timetypes "github.com/docker/engine-api/types/time"
 )
 
-type ContainerLogsConfig struct {
-	Follow, Timestamps   bool
-	Tail                 string
-	UseStdout, UseStderr bool
-	OutStream            io.Writer
-}
-
-func (daemon *Daemon) ContainerLogs(name string, config *ContainerLogsConfig) error {
-	var (
-		lines  = -1
-		format string
-	)
-	if !(config.UseStdout || config.UseStderr) {
-		return fmt.Errorf("You must choose at least one stream")
-	}
-	if config.Timestamps {
-		format = timeutils.RFC3339NanoFixed
-	}
-	if config.Tail == "" {
-		config.Tail = "all"
+// ContainerLogs hooks up a container's stdout and stderr streams
+// configured with the given struct.
+func (daemon *Daemon) ContainerLogs(containerName string, config *backend.ContainerLogsConfig, started chan struct{}) error {
+	container, err := daemon.GetContainer(containerName)
+	if err != nil {
+		return derr.ErrorCodeNoSuchContainer.WithArgs(containerName)
 	}
 
-	container, err := daemon.Get(name)
+	if !(config.ShowStdout || config.ShowStderr) {
+		return derr.ErrorCodeNeedStream
+	}
+
+	cLog, err := daemon.getLogger(container)
 	if err != nil {
 		return err
 	}
+	logReader, ok := cLog.(logger.LogReader)
+	if !ok {
+		return logger.ErrReadLogsNotSupported
+	}
 
-	var (
-		outStream = config.OutStream
-		errStream io.Writer
-	)
+	follow := config.Follow && container.IsRunning()
+	tailLines, err := strconv.Atoi(config.Tail)
+	if err != nil {
+		tailLines = -1
+	}
+
+	logrus.Debug("logs: begin stream")
+
+	var since time.Time
+	if config.Since != "" {
+		s, n, err := timetypes.ParseTimestamps(config.Since, 0)
+		if err != nil {
+			return err
+		}
+		since = time.Unix(s, n)
+	}
+	readConfig := logger.ReadConfig{
+		Since:  since,
+		Tail:   tailLines,
+		Follow: follow,
+	}
+	logs := logReader.ReadLogs(readConfig)
+
+	wf := ioutils.NewWriteFlusher(config.OutStream)
+	defer wf.Close()
+	close(started)
+	wf.Flush()
+
+	var outStream io.Writer = wf
+	errStream := outStream
 	if !container.Config.Tty {
 		errStream = stdcopy.NewStdWriter(outStream, stdcopy.Stderr)
 		outStream = stdcopy.NewStdWriter(outStream, stdcopy.Stdout)
-	} else {
-		errStream = outStream
 	}
 
-	if container.LogDriverType() != "json-file" {
-		return fmt.Errorf("\"logs\" endpoint is supported only for \"json-file\" logging driver")
-	}
-	cLog, err := container.ReadLog("json")
-	if err != nil && os.IsNotExist(err) {
-		// Legacy logs
-		logrus.Debugf("Old logs format")
-		if config.UseStdout {
-			cLog, err := container.ReadLog("stdout")
-			if err != nil {
-				logrus.Errorf("Error reading logs (stdout): %s", err)
-			} else if _, err := io.Copy(outStream, cLog); err != nil {
-				logrus.Errorf("Error streaming logs (stdout): %s", err)
+	for {
+		select {
+		case err := <-logs.Err:
+			logrus.Errorf("Error streaming logs: %v", err)
+			return nil
+		case <-config.Stop:
+			logs.Close()
+			return nil
+		case msg, ok := <-logs.Msg:
+			if !ok {
+				logrus.Debugf("logs: end stream")
+				return nil
 			}
-		}
-		if config.UseStderr {
-			cLog, err := container.ReadLog("stderr")
-			if err != nil {
-				logrus.Errorf("Error reading logs (stderr): %s", err)
-			} else if _, err := io.Copy(errStream, cLog); err != nil {
-				logrus.Errorf("Error streaming logs (stderr): %s", err)
+			logLine := msg.Line
+			if config.Timestamps {
+				logLine = append([]byte(msg.Timestamp.Format(logger.TimeFormat)+" "), logLine...)
 			}
-		}
-	} else if err != nil {
-		logrus.Errorf("Error reading logs (json): %s", err)
-	} else {
-		if config.Tail != "all" {
-			var err error
-			lines, err = strconv.Atoi(config.Tail)
-			if err != nil {
-				logrus.Errorf("Failed to parse tail %s, error: %v, show all logs", config.Tail, err)
-				lines = -1
+			if msg.Source == "stdout" && config.ShowStdout {
+				outStream.Write(logLine)
 			}
-		}
-		if lines != 0 {
-			if lines > 0 {
-				f := cLog.(*os.File)
-				ls, err := tailfile.TailFile(f, lines)
-				if err != nil {
-					return err
-				}
-				tmp := bytes.NewBuffer([]byte{})
-				for _, l := range ls {
-					fmt.Fprintf(tmp, "%s\n", l)
-				}
-				cLog = tmp
-			}
-			dec := json.NewDecoder(cLog)
-			l := &jsonlog.JSONLog{}
-			for {
-				if err := dec.Decode(l); err == io.EOF {
-					break
-				} else if err != nil {
-					logrus.Errorf("Error streaming logs: %s", err)
-					break
-				}
-				logLine := l.Log
-				if config.Timestamps {
-					// format can be "" or time format, so here can't be error
-					logLine, _ = l.Format(format)
-				}
-				if l.Stream == "stdout" && config.UseStdout {
-					io.WriteString(outStream, logLine)
-				}
-				if l.Stream == "stderr" && config.UseStderr {
-					io.WriteString(errStream, logLine)
-				}
-				l.Reset()
+			if msg.Source == "stderr" && config.ShowStderr {
+				errStream.Write(logLine)
 			}
 		}
 	}
-	if config.Follow && container.IsRunning() {
-		errors := make(chan error, 2)
-		wg := sync.WaitGroup{}
+}
 
-		if config.UseStdout {
-			wg.Add(1)
-			stdoutPipe := container.StdoutLogPipe()
-			defer stdoutPipe.Close()
-			go func() {
-				errors <- jsonlog.WriteLog(stdoutPipe, outStream, format)
-				wg.Done()
-			}()
-		}
-		if config.UseStderr {
-			wg.Add(1)
-			stderrPipe := container.StderrLogPipe()
-			defer stderrPipe.Close()
-			go func() {
-				errors <- jsonlog.WriteLog(stderrPipe, errStream, format)
-				wg.Done()
-			}()
-		}
-
-		wg.Wait()
-		close(errors)
-
-		for err := range errors {
-			if err != nil {
-				logrus.Errorf("%s", err)
-			}
-		}
-
+func (daemon *Daemon) getLogger(container *container.Container) (logger.Logger, error) {
+	if container.LogDriver != nil && container.IsRunning() {
+		return container.LogDriver, nil
 	}
+	cfg := container.GetLogConfig(daemon.defaultLogConfig)
+	if err := logger.ValidateLogOpts(cfg.Type, cfg.Config); err != nil {
+		return nil, err
+	}
+	return container.StartLogger(cfg)
+}
+
+// StartLogging initializes and starts the container logging stream.
+func (daemon *Daemon) StartLogging(container *container.Container) error {
+	cfg := container.GetLogConfig(daemon.defaultLogConfig)
+	if cfg.Type == "none" {
+		return nil // do not start logging routines
+	}
+
+	if err := logger.ValidateLogOpts(cfg.Type, cfg.Config); err != nil {
+		return err
+	}
+	l, err := container.StartLogger(cfg)
+	if err != nil {
+		return derr.ErrorCodeInitLogger.WithArgs(err)
+	}
+
+	copier := logger.NewCopier(container.ID, map[string]io.Reader{"stdout": container.StdoutPipe(), "stderr": container.StderrPipe()}, l)
+	container.LogCopier = copier
+	copier.Run()
+	container.LogDriver = l
+
+	// set LogPath field only for json-file logdriver
+	if jl, ok := l.(*jsonfilelog.JSONFileLogger); ok {
+		container.LogPath = jl.LogPath()
+	}
+
 	return nil
 }

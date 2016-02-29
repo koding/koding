@@ -1,16 +1,14 @@
 kd                     = require 'kd'
+globals                = require 'globals'
 nick                   = require 'app/util/nick'
-KDView                 = kd.View
-KDButtonView           = kd.ButtonView
 CustomLinkView         = require 'app/customlinkview'
-KDCustomHTMLView       = kd.CustomHTMLView
 HelpSupportModal       = require 'app/commonviews/helpsupportmodal'
 IDEStatusBarAvatarView = require './idestatusbaravatarview'
 isSoloProductLite      = require 'app/util/issoloproductlite'
 isPlanFree             = require 'app/util/isPlanFree'
 isKoding               = require 'app/util/isKoding'
 
-module.exports = class IDEStatusBar extends KDView
+module.exports = class IDEStatusBar extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -32,27 +30,54 @@ module.exports = class IDEStatusBar extends KDView
 
     { mainController, router, appManager } = kd.singletons
 
-    @addSubView @status = new KDCustomHTMLView cssClass : 'status'
+    @addSubView @status = new kd.CustomHTMLView cssClass : 'status'
 
-    @addSubView @collaborationStatus = new KDCustomHTMLView
+    @addSubView @collaborationStatus = new kd.CustomHTMLView
       cssClass: 'hidden collab-status'
       partial : 'Collaboration session is <span>active</span><i></i>'
       click   : (e) => @toggleSessionEndButton()  if e.target.tagName is 'SPAN'
 
-    @collaborationStatus.addSubView @collaborationEndButtonContainer = new KDCustomHTMLView
+    @collaborationStatus.addSubView @collaborationEndButtonContainer = new kd.CustomHTMLView
       cssClass : 'button-container hidden'
 
-    @collaborationEndButtonContainer.addSubView @collaborationEndButton = new KDButtonView
+    @collaborationEndButtonContainer.addSubView @collaborationEndButton = new kd.ButtonView
       title    : 'END SESSION'
       cssClass : 'compact solid red end-session'
       callback : @bound 'handleSessionEnd'
 
-    @addSubView new KDCustomHTMLView
+    @addSubView @collaborationLinkContainer = new kd.CustomHTMLView
+      cssClass: 'collaboration-link-container'
+
+    superKey = if globals.os is 'mac' then '⌘' else 'CTRL'
+
+    @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
+      cssClass : 'collaboration-link'
+      partial  : ''
+      click    : ->
+        link = @getElement()
+        @utils.selectText link
+
+        try
+          copied = document.execCommand 'copy'
+          throw "couldn't copy"  unless copied
+          tooltipPartial = 'Copied to clipboard!'
+        catch
+          tooltipPartial = "Hit #{superKey} + C to copy!"
+
+        @setTooltip
+          title     : tooltipPartial
+          placement : 'above'
+          sticky    : yes
+        @tooltip.show()
+        @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'destroy'
+
+
+    @addSubView new kd.CustomHTMLView
       tagName  : 'i'
       cssClass : 'icon help'
       click    : -> new HelpSupportModal
 
-    @addSubView new KDCustomHTMLView
+    @addSubView new kd.CustomHTMLView
       tagName  : 'i'
       cssClass : 'icon shortcuts'
       click    : (event) =>
@@ -76,7 +101,7 @@ module.exports = class IDEStatusBar extends KDView
         isPlanFree (err, isFree) =>
           return  if err
           if isFree
-            @share = new KDCustomHTMLView { cssClass: 'hidden' }
+            @share = new kd.CustomHTMLView { cssClass: 'hidden' }
             @addSubView @share
           else
             @addSubView @share
@@ -85,7 +110,7 @@ module.exports = class IDEStatusBar extends KDView
     else
       @addSubView @share
 
-    @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr hidden'
+    @addSubView @avatars = new kd.CustomHTMLView cssClass : 'avatars fr hidden'
 
     mainController.isFeatureDisabled 'collaboration', (collabDisabled) =>
       @_collabDisable = collabDisabled
@@ -196,6 +221,8 @@ module.exports = class IDEStatusBar extends KDView
     @share.updatePartial 'Share'
     @avatars.destroySubViews()
 
+    @updateCollaborationLink ''
+
     @status.show()
     @collaborationStatus.hide()
     @collaborationEndButtonContainer.setClass 'hidden'
@@ -203,7 +230,7 @@ module.exports = class IDEStatusBar extends KDView
     @participantAvatars = {}
 
 
-  handleCollaborationStarted: ->
+  handleCollaborationStarted: (options) ->
 
     @share.setClass      'active'
     @share.unsetClass    'loading'
@@ -213,9 +240,16 @@ module.exports = class IDEStatusBar extends KDView
     @status.hide()
     @collaborationStatus.show()
 
+    @updateCollaborationLink options.collaborationLink
+
     unless @amIHost_()
       @collaborationEndButton.setTitle 'LEAVE SESSION'
       @collaborationStatus.setClass 'participant'
+
+
+  updateCollaborationLink: (collaborationLink) ->
+
+    @collaborationLink.updatePartial collaborationLink
 
 
   showSessionEndButton: ->

@@ -1,8 +1,5 @@
 kd            = require 'kd'
 JView         = require 'app/jview'
-showError     = require 'app/util/showError'
-KDModalView   = kd.ModalView
-KDOverlayView = kd.OverlayView
 timeago       = require 'timeago'
 
 

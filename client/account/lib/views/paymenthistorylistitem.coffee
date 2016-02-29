@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd             = require 'kd'
 KDListItemView = kd.ListItemView
-dateFormat = require 'dateformat'
+dateFormat     = require 'dateformat'
 
 module.exports = class PaymentHistoryListItem extends KDListItemView
 

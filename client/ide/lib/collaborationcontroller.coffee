@@ -24,6 +24,7 @@ IDELayoutManager              = require './workspace/idelayoutmanager'
 IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
+generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 
 {warn} = kd
 
@@ -156,7 +157,8 @@ module.exports = CollaborationController =
     }
 
     # Check collaboration sessions of participant.
-    # If participant has 2 or more active collaboration sessions,  don't remove access from machine
+    # If participant has 2 or more active collaboration sessions, don't remove
+    # access from machine
     envHelpers.isUserStillParticipantOnMachine options, (status) =>
       @removeParticipantFromMachine username  unless status
 
@@ -402,7 +404,9 @@ module.exports = CollaborationController =
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
 
-      @setParticipantPermission nickname  if @amIHost
+      if @amIHost
+        @setParticipantPermission nickname
+        @setMachineUser [nickname]
 
 
   channelMessageAdded: (message) ->
@@ -905,6 +909,8 @@ module.exports = CollaborationController =
 
     @showChatPane()
 
+    @bindAutoInviteHandlers()
+
     @transitionViewsToActive()
     @collectButtonShownMetric()
     @bindRealtimeEvents()
@@ -930,6 +936,27 @@ module.exports = CollaborationController =
         @finderPane.finderController.expandFolder path
 
 
+  bindAutoInviteHandlers: ->
+
+    {actions} = require 'activity/flux'
+    {notificationController, mainController, socialapi} = kd.singletons
+
+    channel = @socialChannel
+
+    mainController.ready ->
+      notificationController.on 'notificationFromOtherAccount', (notification) ->
+        switch notification.action
+          when 'COLLABORATION_REQUEST'
+
+            return if notification.channelId isnt channel.id
+
+            {channelId, senderUserId, senderAccountId, sender} = notification
+            accountIds = [senderAccountId]
+
+            socialapi.channel.addParticipants { channelId, accountIds }, (err) ->
+              return throwError err  if err
+
+
   transitionViewsToActive: ->
 
     @listChatParticipants (accounts) =>
@@ -939,7 +966,8 @@ module.exports = CollaborationController =
     settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
 
     @chat.emit 'CollaborationStarted'
-    @statusBar.emit 'CollaborationStarted'
+    @statusBar.emit 'CollaborationStarted',
+      collaborationLink: generateCollaborationLink nick(), @socialChannel.id
 
     { onboarding } = kd.singletons
     onboarding.run 'CollaborationStarted'
@@ -1025,6 +1053,13 @@ module.exports = CollaborationController =
       kd.utils.defer @bound 'prepareCollaboration'
 
     @cleanupCollaboration()
+
+    { activitySidebar } = kd.singletons.mainView
+    channelId           = @getSocialChannelId()
+
+    return  unless box  = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
+
+    box.setUnreadCount channelId, 0
 
 
   endCollaborationForParticipant: (callback) ->

@@ -3,7 +3,6 @@ expect          = require 'expect'
 Reactor         = require 'app/flux/base/reactor'
 immutable       = require 'immutable'
 actionTypes     = require 'app/flux/environment/actiontypes'
-toImmutable     = require 'app/util/toImmutable'
 WorkspacesStore = require 'app/flux/environment/stores/workspacesstore'
 
 

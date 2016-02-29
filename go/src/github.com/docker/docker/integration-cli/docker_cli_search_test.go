@@ -1,97 +1,55 @@
 package main
 
 import (
-	"os/exec"
 	"strings"
-	"testing"
+
+	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/go-check/check"
 )
 
 // search for repos named  "registry" on the central registry
-func TestSearchOnCentralRegistry(t *testing.T) {
-	testRequires(t, Network)
-	searchCmd := exec.Command(dockerBinary, "search", "busybox")
-	out, exitCode, err := runCommandWithOutput(searchCmd)
-	if err != nil || exitCode != 0 {
-		t.Fatalf("failed to search on the central registry: %s, %v", out, err)
-	}
+func (s *DockerSuite) TestSearchOnCentralRegistry(c *check.C) {
+	testRequires(c, Network, DaemonIsLinux)
 
-	if !strings.Contains(out, "Busybox base image.") {
-		t.Fatal("couldn't find any repository named (or containing) 'Busybox base image.'")
-	}
-
-	logDone("search - search for repositories named (or containing) 'Busybox base image.'")
+	out, _ := dockerCmd(c, "search", "busybox")
+	c.Assert(out, checker.Contains, "Busybox base image.", check.Commentf("couldn't find any repository named (or containing) 'Busybox base image.'"))
 }
 
-func TestSearchStarsOptionWithWrongParameter(t *testing.T) {
-	searchCmdStarsChars := exec.Command(dockerBinary, "search", "--stars=a", "busybox")
-	out, exitCode, err := runCommandWithOutput(searchCmdStarsChars)
-	if err == nil || exitCode == 0 {
-		t.Fatalf("Should not get right information: %s, %v", out, err)
-	}
+func (s *DockerSuite) TestSearchStarsOptionWithWrongParameter(c *check.C) {
+	out, _, err := dockerCmdWithError("search", "--stars=a", "busybox")
+	c.Assert(err, check.NotNil, check.Commentf(out))
+	c.Assert(out, checker.Contains, "invalid value", check.Commentf("couldn't find the invalid value warning"))
 
-	if !strings.Contains(out, "invalid value") {
-		t.Fatal("couldn't find the invalid value warning")
-	}
-
-	searchCmdStarsNegativeNumber := exec.Command(dockerBinary, "search", "-s=-1", "busybox")
-	out, exitCode, err = runCommandWithOutput(searchCmdStarsNegativeNumber)
-	if err == nil || exitCode == 0 {
-		t.Fatalf("Should not get right information: %s, %v", out, err)
-	}
-
-	if !strings.Contains(out, "invalid value") {
-		t.Fatal("couldn't find the invalid value warning")
-	}
-
-	logDone("search - Verify search with wrong parameter.")
+	out, _, err = dockerCmdWithError("search", "-s=-1", "busybox")
+	c.Assert(err, check.NotNil, check.Commentf(out))
+	c.Assert(out, checker.Contains, "invalid value", check.Commentf("couldn't find the invalid value warning"))
 }
 
-func TestSearchCmdOptions(t *testing.T) {
-	testRequires(t, Network)
-	searchCmdhelp := exec.Command(dockerBinary, "search", "--help")
-	out, exitCode, err := runCommandWithOutput(searchCmdhelp)
-	if err != nil || exitCode != 0 {
-		t.Fatalf("failed to get search help information: %s, %v", out, err)
-	}
+func (s *DockerSuite) TestSearchCmdOptions(c *check.C) {
+	testRequires(c, Network)
 
-	if !strings.Contains(out, "Usage: docker search [OPTIONS] TERM") {
-		t.Fatalf("failed to show docker search usage: %s, %v", out, err)
-	}
+	out, _ := dockerCmd(c, "search", "--help")
+	c.Assert(out, checker.Contains, "Usage:\tdocker search [OPTIONS] TERM")
 
-	searchCmd := exec.Command(dockerBinary, "search", "busybox")
-	outSearchCmd, exitCode, err := runCommandWithOutput(searchCmd)
-	if err != nil || exitCode != 0 {
-		t.Fatalf("failed to search on the central registry: %s, %v", outSearchCmd, err)
-	}
+	outSearchCmd, _ := dockerCmd(c, "search", "busybox")
+	outSearchCmdNotrunc, _ := dockerCmd(c, "search", "--no-trunc=true", "busybox")
+	c.Assert(len(outSearchCmd) > len(outSearchCmdNotrunc), check.Equals, false, check.Commentf("The no-trunc option can't take effect."))
 
-	searchCmdautomated := exec.Command(dockerBinary, "search", "--automated=true", "busybox")
-	outSearchCmdautomated, exitCode, err := runCommandWithOutput(searchCmdautomated) //The busybox is a busybox base image, not an AUTOMATED image.
-	if err != nil || exitCode != 0 {
-		t.Fatalf("failed to search with automated=true on the central registry: %s, %v", outSearchCmdautomated, err)
-	}
-
+	outSearchCmdautomated, _ := dockerCmd(c, "search", "--automated=true", "busybox") //The busybox is a busybox base image, not an AUTOMATED image.
 	outSearchCmdautomatedSlice := strings.Split(outSearchCmdautomated, "\n")
 	for i := range outSearchCmdautomatedSlice {
-		if strings.HasPrefix(outSearchCmdautomatedSlice[i], "busybox ") {
-			t.Fatalf("The busybox is not an AUTOMATED image: %s, %v", out, err)
-		}
+		c.Assert(strings.HasPrefix(outSearchCmdautomatedSlice[i], "busybox "), check.Equals, false, check.Commentf("The busybox is not an AUTOMATED image: %s", out))
 	}
 
-	searchCmdStars := exec.Command(dockerBinary, "search", "-s=2", "busybox")
-	outSearchCmdStars, exitCode, err := runCommandWithOutput(searchCmdStars)
-	if err != nil || exitCode != 0 {
-		t.Fatalf("failed to search with stars=2 on the central registry: %s, %v", outSearchCmdStars, err)
-	}
+	outSearchCmdStars, _ := dockerCmd(c, "search", "-s=2", "busybox")
+	c.Assert(strings.Count(outSearchCmdStars, "[OK]") > strings.Count(outSearchCmd, "[OK]"), check.Equals, false, check.Commentf("The quantity of images with stars should be less than that of all images: %s", outSearchCmdStars))
 
-	if strings.Count(outSearchCmdStars, "[OK]") > strings.Count(outSearchCmd, "[OK]") {
-		t.Fatalf("The quantity of images with stars should be less than that of all images: %s, %v", outSearchCmdStars, err)
-	}
+	dockerCmd(c, "search", "--stars=2", "--automated=true", "--no-trunc=true", "busybox")
+}
 
-	searchCmdOptions := exec.Command(dockerBinary, "search", "--stars=2", "--automated=true", "--no-trunc=true", "busybox")
-	out, exitCode, err = runCommandWithOutput(searchCmdOptions)
-	if err != nil || exitCode != 0 {
-		t.Fatalf("failed to search with stars&automated&no-trunc options on the central registry: %s, %v", out, err)
-	}
+// search for repos which start with "ubuntu-" on the central registry
+func (s *DockerSuite) TestSearchOnCentralRegistryWithDash(c *check.C) {
+	testRequires(c, Network, DaemonIsLinux)
 
-	logDone("search - have a try for search options.")
+	dockerCmd(c, "search", "ubuntu-")
 }

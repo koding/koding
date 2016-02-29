@@ -2,7 +2,6 @@ kd                   = require 'kd'
 KDView               = kd.View
 whoami               = require 'app/util/whoami'
 KDSelectBox          = kd.SelectBox
-KDListItemView       = kd.ListItemView
 MemberItemView       = require './memberitemview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController

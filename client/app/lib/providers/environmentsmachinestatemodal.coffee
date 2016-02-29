@@ -17,7 +17,6 @@ ComputeController       = require './computecontroller'
 BaseModalView           = require './views/basemodalview'
 HelpSupportModal        = require '../commonviews/helpsupportmodal'
 
-MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
 MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 
 whoami                  = require 'app/util/whoami'

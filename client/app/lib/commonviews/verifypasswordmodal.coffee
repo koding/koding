@@ -3,7 +3,6 @@ KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView = kd.NotificationView
 whoami = require 'app/util/whoami'
 showError = require 'app/util/showError'
-globals = require 'globals'
 
 
 module.exports = class VerifyPasswordModal extends KDModalViewWithForms

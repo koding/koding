@@ -1,4 +1,3 @@
-globals                 = require 'globals'
 showError               = require '../util/showError'
 kd                      = require 'kd'
 KDButtonView            = kd.ButtonView

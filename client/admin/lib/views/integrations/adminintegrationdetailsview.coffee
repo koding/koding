@@ -5,7 +5,6 @@ remote               = require('app/remote').getInstance()
 globals              = require 'globals'
 showError            = require 'app/util/showError'
 applyMarkdown        = require 'app/util/applyMarkdown'
-CustomLinkView       = require 'app/customlinkview'
 integrationHelpers   = require 'app/helpers/integration'
 
 

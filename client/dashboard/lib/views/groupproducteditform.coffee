@@ -1,10 +1,12 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
+kd                   = require 'kd'
+KDCustomHTMLView     = kd.CustomHTMLView
 KDDelimitedInputView = kd.DelimitedInputView
 KDFormViewWithFields = kd.FormViewWithFields
-KDOnOffSwitch = kd.OnOffSwitch
-KDSelectBox = kd.SelectBox
-remote = require('app/remote').getInstance()
+KDOnOffSwitch        = kd.OnOffSwitch
+KDSelectBox          = kd.SelectBox
+remote               = require('app/remote').getInstance()
+
+
 module.exports = class GroupProductEditForm extends KDFormViewWithFields
 
   constructor: (options = {}, data = new remote.api.JPaymentProduct) ->

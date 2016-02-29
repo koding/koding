@@ -1,6 +1,5 @@
-kd                          = require 'kd'
-ChannelSidebarMoreLink      = require './channelsidebarmorelink'
-ActivitySideView            = require './activitysideview'
+ChannelSidebarMoreLink = require './channelsidebarmorelink'
+ActivitySideView       = require './activitysideview'
 
 
 module.exports = class ChannelActivitySideView extends ActivitySideView

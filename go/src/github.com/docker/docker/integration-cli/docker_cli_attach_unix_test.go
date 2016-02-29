@@ -6,105 +6,95 @@ import (
 	"bufio"
 	"os/exec"
 	"strings"
-	"testing"
 	"time"
 
+	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/docker/pkg/stringid"
+	"github.com/go-check/check"
 	"github.com/kr/pty"
 )
 
-// #9860
-func TestAttachClosedOnContainerStop(t *testing.T) {
-	defer deleteAllContainers()
+// #9860 Make sure attach ends when container ends (with no errors)
+func (s *DockerSuite) TestAttachClosedOnContainerStop(c *check.C) {
+	testRequires(c, SameHostDaemon)
 
-	cmd := exec.Command(dockerBinary, "run", "-dti", "busybox", "sleep", "2")
-	out, _, err := runCommandWithOutput(cmd)
-	if err != nil {
-		t.Fatalf("failed to start container: %v (%v)", out, err)
-	}
+	out, _ := dockerCmd(c, "run", "-dti", "busybox", "/bin/sh", "-c", `trap 'exit 0' SIGTERM; while true; do sleep 1; done`)
 
 	id := strings.TrimSpace(out)
-	if err := waitRun(id); err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(waitRun(id), check.IsNil)
 
-	done := make(chan struct{})
+	_, tty, err := pty.Open()
+	c.Assert(err, check.IsNil)
 
+	attachCmd := exec.Command(dockerBinary, "attach", id)
+	attachCmd.Stdin = tty
+	attachCmd.Stdout = tty
+	attachCmd.Stderr = tty
+	err = attachCmd.Start()
+	c.Assert(err, check.IsNil)
+
+	errChan := make(chan error)
 	go func() {
-		defer close(done)
-
-		_, tty, err := pty.Open()
-		if err != nil {
-			t.Fatalf("could not open pty: %v", err)
-		}
-		attachCmd := exec.Command(dockerBinary, "attach", id)
-		attachCmd.Stdin = tty
-		attachCmd.Stdout = tty
-		attachCmd.Stderr = tty
-
-		if err := attachCmd.Run(); err != nil {
-			t.Fatalf("attach returned error %s", err)
-		}
+		defer close(errChan)
+		// Container is waiting for us to signal it to stop
+		dockerCmd(c, "stop", id)
+		// And wait for the attach command to end
+		errChan <- attachCmd.Wait()
 	}()
 
-	waitCmd := exec.Command(dockerBinary, "wait", id)
-	if out, _, err = runCommandWithOutput(waitCmd); err != nil {
-		t.Fatalf("error thrown while waiting for container: %s, %v", out, err)
-	}
+	// Wait for the docker to end (should be done by the
+	// stop command in the go routine)
+	dockerCmd(c, "wait", id)
+
 	select {
-	case <-done:
+	case err := <-errChan:
+		c.Assert(err, check.IsNil)
 	case <-time.After(attachWait):
-		t.Fatal("timed out without attach returning")
+		c.Fatal("timed out without attach returning")
 	}
 
-	logDone("attach - return after container finished")
 }
 
-func TestAttachAfterDetach(t *testing.T) {
-	defer deleteAllContainers()
+func (s *DockerSuite) TestAttachAfterDetach(c *check.C) {
 
 	name := "detachtest"
 
 	cpty, tty, err := pty.Open()
-	if err != nil {
-		t.Fatalf("Could not open pty: %v", err)
-	}
+	c.Assert(err, checker.IsNil, check.Commentf("Could not open pty: %v", err))
 	cmd := exec.Command(dockerBinary, "run", "-ti", "--name", name, "busybox")
 	cmd.Stdin = tty
 	cmd.Stdout = tty
 	cmd.Stderr = tty
 
-	detached := make(chan struct{})
+	errChan := make(chan error)
 	go func() {
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("attach returned error %s", err)
-		}
-		close(detached)
+		errChan <- cmd.Run()
+		close(errChan)
 	}()
 
-	time.Sleep(500 * time.Millisecond)
-	if err := waitRun(name); err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(waitRun(name), check.IsNil)
+
 	cpty.Write([]byte{16})
 	time.Sleep(100 * time.Millisecond)
 	cpty.Write([]byte{17})
 
-	<-detached
+	select {
+	case err := <-errChan:
+		c.Assert(err, check.IsNil)
+	case <-time.After(5 * time.Second):
+		c.Fatal("timeout while detaching")
+	}
 
 	cpty, tty, err = pty.Open()
-	if err != nil {
-		t.Fatalf("Could not open pty: %v", err)
-	}
+	c.Assert(err, checker.IsNil, check.Commentf("Could not open pty: %v", err))
 
 	cmd = exec.Command(dockerBinary, "attach", name)
 	cmd.Stdin = tty
 	cmd.Stdout = tty
 	cmd.Stderr = tty
 
-	if err := cmd.Start(); err != nil {
-		t.Fatal(err)
-	}
+	err = cmd.Start()
+	c.Assert(err, checker.IsNil)
 
 	bytes := make([]byte, 10)
 	var nBytes int
@@ -122,71 +112,49 @@ func TestAttachAfterDetach(t *testing.T) {
 
 	select {
 	case err := <-readErr:
-		if err != nil {
-			t.Fatal(err)
-		}
+		c.Assert(err, check.IsNil)
 	case <-time.After(2 * time.Second):
-		t.Fatal("timeout waiting for attach read")
+		c.Fatal("timeout waiting for attach read")
 	}
 
-	if err := cmd.Wait(); err != nil {
-		t.Fatal(err)
-	}
+	err = cmd.Wait()
+	c.Assert(err, checker.IsNil)
 
-	if !strings.Contains(string(bytes[:nBytes]), "/ #") {
-		t.Fatalf("failed to get a new prompt. got %s", string(bytes[:nBytes]))
-	}
+	c.Assert(string(bytes[:nBytes]), checker.Contains, "/ #")
 
-	logDone("attach - reconnect after detaching")
 }
 
 // TestAttachDetach checks that attach in tty mode can be detached using the long container ID
-func TestAttachDetach(t *testing.T) {
-	out, _, _ := dockerCmd(t, "run", "-itd", "busybox", "cat")
+func (s *DockerSuite) TestAttachDetach(c *check.C) {
+	out, _ := dockerCmd(c, "run", "-itd", "busybox", "cat")
 	id := strings.TrimSpace(out)
-	if err := waitRun(id); err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(waitRun(id), check.IsNil)
 
 	cpty, tty, err := pty.Open()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(err, check.IsNil)
 	defer cpty.Close()
 
 	cmd := exec.Command(dockerBinary, "attach", id)
 	cmd.Stdin = tty
 	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(err, check.IsNil)
 	defer stdout.Close()
-	if err := cmd.Start(); err != nil {
-		t.Fatal(err)
-	}
-	if err := waitRun(id); err != nil {
-		t.Fatalf("error waiting for container to start: %v", err)
-	}
+	err = cmd.Start()
+	c.Assert(err, check.IsNil)
+	c.Assert(waitRun(id), check.IsNil)
 
-	if _, err := cpty.Write([]byte("hello\n")); err != nil {
-		t.Fatal(err)
-	}
+	_, err = cpty.Write([]byte("hello\n"))
+	c.Assert(err, check.IsNil)
 	out, err = bufio.NewReader(stdout).ReadString('\n')
-	if err != nil {
-		t.Fatal(err)
-	}
-	if strings.TrimSpace(out) != "hello" {
-		t.Fatalf("exepected 'hello', got %q", out)
-	}
+	c.Assert(err, check.IsNil)
+	c.Assert(strings.TrimSpace(out), checker.Equals, "hello", check.Commentf("expected 'hello', got %q", out))
 
 	// escape sequence
-	if _, err := cpty.Write([]byte{16}); err != nil {
-		t.Fatal(err)
-	}
+	_, err = cpty.Write([]byte{16})
+	c.Assert(err, checker.IsNil)
 	time.Sleep(100 * time.Millisecond)
-	if _, err := cpty.Write([]byte{17}); err != nil {
-		t.Fatal(err)
-	}
+	_, err = cpty.Write([]byte{17})
+	c.Assert(err, checker.IsNil)
 
 	ch := make(chan struct{})
 	go func() {
@@ -194,71 +162,51 @@ func TestAttachDetach(t *testing.T) {
 		ch <- struct{}{}
 	}()
 
-	running, err := inspectField(id, "State.Running")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if running != "true" {
-		t.Fatal("exepected container to still be running")
-	}
+	running := inspectField(c, id, "State.Running")
+	c.Assert(running, checker.Equals, "true", check.Commentf("expected container to still be running"))
 
 	go func() {
-		dockerCmd(t, "kill", id)
+		dockerCmd(c, "kill", id)
 	}()
 
 	select {
 	case <-ch:
 	case <-time.After(10 * time.Millisecond):
-		t.Fatal("timed out waiting for container to exit")
+		c.Fatal("timed out waiting for container to exit")
 	}
 
-	logDone("attach - detach")
 }
 
 // TestAttachDetachTruncatedID checks that attach in tty mode can be detached
-func TestAttachDetachTruncatedID(t *testing.T) {
-	out, _, _ := dockerCmd(t, "run", "-itd", "busybox", "cat")
+func (s *DockerSuite) TestAttachDetachTruncatedID(c *check.C) {
+	out, _ := dockerCmd(c, "run", "-itd", "busybox", "cat")
 	id := stringid.TruncateID(strings.TrimSpace(out))
-	if err := waitRun(id); err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(waitRun(id), check.IsNil)
 
 	cpty, tty, err := pty.Open()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(err, checker.IsNil)
 	defer cpty.Close()
 
 	cmd := exec.Command(dockerBinary, "attach", id)
 	cmd.Stdin = tty
 	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(err, checker.IsNil)
 	defer stdout.Close()
-	if err := cmd.Start(); err != nil {
-		t.Fatal(err)
-	}
+	err = cmd.Start()
+	c.Assert(err, checker.IsNil)
 
-	if _, err := cpty.Write([]byte("hello\n")); err != nil {
-		t.Fatal(err)
-	}
+	_, err = cpty.Write([]byte("hello\n"))
+	c.Assert(err, checker.IsNil)
 	out, err = bufio.NewReader(stdout).ReadString('\n')
-	if err != nil {
-		t.Fatal(err)
-	}
-	if strings.TrimSpace(out) != "hello" {
-		t.Fatalf("exepected 'hello', got %q", out)
-	}
+	c.Assert(err, checker.IsNil)
+	c.Assert(strings.TrimSpace(out), checker.Equals, "hello", check.Commentf("expected 'hello', got %q", out))
 
 	// escape sequence
-	if _, err := cpty.Write([]byte{16}); err != nil {
-		t.Fatal(err)
-	}
+	_, err = cpty.Write([]byte{16})
+	c.Assert(err, checker.IsNil)
 	time.Sleep(100 * time.Millisecond)
-	if _, err := cpty.Write([]byte{17}); err != nil {
-		t.Fatal(err)
-	}
+	_, err = cpty.Write([]byte{17})
+	c.Assert(err, checker.IsNil)
 
 	ch := make(chan struct{})
 	go func() {
@@ -266,23 +214,17 @@ func TestAttachDetachTruncatedID(t *testing.T) {
 		ch <- struct{}{}
 	}()
 
-	running, err := inspectField(id, "State.Running")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if running != "true" {
-		t.Fatal("exepected container to still be running")
-	}
+	running := inspectField(c, id, "State.Running")
+	c.Assert(running, checker.Equals, "true", check.Commentf("expected container to still be running"))
 
 	go func() {
-		dockerCmd(t, "kill", id)
+		dockerCmd(c, "kill", id)
 	}()
 
 	select {
 	case <-ch:
 	case <-time.After(10 * time.Millisecond):
-		t.Fatal("timed out waiting for container to exit")
+		c.Fatal("timed out waiting for container to exit")
 	}
 
-	logDone("attach - detach truncated ID")
 }

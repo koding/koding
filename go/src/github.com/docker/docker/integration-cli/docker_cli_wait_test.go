@@ -1,122 +1,95 @@
 package main
 
 import (
+	"bytes"
 	"os/exec"
 	"strings"
-	"testing"
 	"time"
+
+	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/go-check/check"
 )
 
 // non-blocking wait with 0 exit code
-func TestWaitNonBlockedExitZero(t *testing.T) {
-	defer deleteAllContainers()
-
-	runCmd := exec.Command(dockerBinary, "run", "-d", "busybox", "sh", "-c", "true")
-	out, _, err := runCommandWithOutput(runCmd)
-	if err != nil {
-		t.Fatal(out, err)
-	}
+func (s *DockerSuite) TestWaitNonBlockedExitZero(c *check.C) {
+	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", "true")
 	containerID := strings.TrimSpace(out)
 
-	status := "true"
-	for i := 0; status != "false"; i++ {
-		runCmd = exec.Command(dockerBinary, "inspect", "--format='{{.State.Running}}'", containerID)
-		status, _, err = runCommandWithOutput(runCmd)
-		if err != nil {
-			t.Fatal(status, err)
-		}
-		status = strings.TrimSpace(status)
+	err := waitInspect(containerID, "{{.State.Running}}", "false", 30*time.Second)
+	c.Assert(err, checker.IsNil) //Container should have stopped by now
 
-		time.Sleep(time.Second)
-		if i >= 60 {
-			t.Fatal("Container should have stopped by now")
-		}
-	}
+	out, _ = dockerCmd(c, "wait", containerID)
+	c.Assert(strings.TrimSpace(out), checker.Equals, "0", check.Commentf("failed to set up container, %v", out))
 
-	runCmd = exec.Command(dockerBinary, "wait", containerID)
-	out, _, err = runCommandWithOutput(runCmd)
-
-	if err != nil || strings.TrimSpace(out) != "0" {
-		t.Fatal("failed to set up container", out, err)
-	}
-
-	logDone("wait - non-blocking wait with 0 exit code")
 }
 
 // blocking wait with 0 exit code
-func TestWaitBlockedExitZero(t *testing.T) {
-	defer deleteAllContainers()
-
-	runCmd := exec.Command(dockerBinary, "run", "-d", "busybox", "sh", "-c", "sleep 10")
-	out, _, err := runCommandWithOutput(runCmd)
-	if err != nil {
-		t.Fatal(out, err)
-	}
+func (s *DockerSuite) TestWaitBlockedExitZero(c *check.C) {
+	// Windows busybox does not support trap in this way, not sleep with sub-second
+	// granularity. It will always exit 0x40010004.
+	testRequires(c, DaemonIsLinux)
+	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", "trap 'exit 0' TERM; while true; do usleep 10; done")
 	containerID := strings.TrimSpace(out)
 
-	runCmd = exec.Command(dockerBinary, "wait", containerID)
-	out, _, err = runCommandWithOutput(runCmd)
+	c.Assert(waitRun(containerID), checker.IsNil)
 
-	if err != nil || strings.TrimSpace(out) != "0" {
-		t.Fatal("failed to set up container", out, err)
+	chWait := make(chan string)
+	go func() {
+		out, _, _ := runCommandWithOutput(exec.Command(dockerBinary, "wait", containerID))
+		chWait <- out
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	dockerCmd(c, "stop", containerID)
+
+	select {
+	case status := <-chWait:
+		c.Assert(strings.TrimSpace(status), checker.Equals, "0", check.Commentf("expected exit 0, got %s", status))
+	case <-time.After(2 * time.Second):
+		c.Fatal("timeout waiting for `docker wait` to exit")
 	}
 
-	logDone("wait - blocking wait with 0 exit code")
 }
 
 // non-blocking wait with random exit code
-func TestWaitNonBlockedExitRandom(t *testing.T) {
-	defer deleteAllContainers()
-
-	runCmd := exec.Command(dockerBinary, "run", "-d", "busybox", "sh", "-c", "exit 99")
-	out, _, err := runCommandWithOutput(runCmd)
-	if err != nil {
-		t.Fatal(out, err)
-	}
+func (s *DockerSuite) TestWaitNonBlockedExitRandom(c *check.C) {
+	out, _ := dockerCmd(c, "run", "-d", "busybox", "sh", "-c", "exit 99")
 	containerID := strings.TrimSpace(out)
 
-	status := "true"
-	for i := 0; status != "false"; i++ {
-		runCmd = exec.Command(dockerBinary, "inspect", "--format='{{.State.Running}}'", containerID)
-		status, _, err = runCommandWithOutput(runCmd)
-		if err != nil {
-			t.Fatal(status, err)
-		}
-		status = strings.TrimSpace(status)
+	err := waitInspect(containerID, "{{.State.Running}}", "false", 30*time.Second)
+	c.Assert(err, checker.IsNil) //Container should have stopped by now
+	out, _ = dockerCmd(c, "wait", containerID)
+	c.Assert(strings.TrimSpace(out), checker.Equals, "99", check.Commentf("failed to set up container, %v", out))
 
-		time.Sleep(time.Second)
-		if i >= 60 {
-			t.Fatal("Container should have stopped by now")
-		}
-	}
-
-	runCmd = exec.Command(dockerBinary, "wait", containerID)
-	out, _, err = runCommandWithOutput(runCmd)
-
-	if err != nil || strings.TrimSpace(out) != "99" {
-		t.Fatal("failed to set up container", out, err)
-	}
-
-	logDone("wait - non-blocking wait with random exit code")
 }
 
 // blocking wait with random exit code
-func TestWaitBlockedExitRandom(t *testing.T) {
-	defer deleteAllContainers()
-
-	runCmd := exec.Command(dockerBinary, "run", "-d", "busybox", "sh", "-c", "sleep 10; exit 99")
-	out, _, err := runCommandWithOutput(runCmd)
-	if err != nil {
-		t.Fatal(out, err)
-	}
+func (s *DockerSuite) TestWaitBlockedExitRandom(c *check.C) {
+	// Cannot run on Windows as trap in Windows busybox does not support trap in this way.
+	testRequires(c, DaemonIsLinux)
+	out, _ := dockerCmd(c, "run", "-d", "busybox", "/bin/sh", "-c", "trap 'exit 99' TERM; while true; do usleep 10; done")
 	containerID := strings.TrimSpace(out)
+	c.Assert(waitRun(containerID), checker.IsNil)
 
-	runCmd = exec.Command(dockerBinary, "wait", containerID)
-	out, _, err = runCommandWithOutput(runCmd)
+	chWait := make(chan error)
+	waitCmd := exec.Command(dockerBinary, "wait", containerID)
+	waitCmdOut := bytes.NewBuffer(nil)
+	waitCmd.Stdout = waitCmdOut
+	c.Assert(waitCmd.Start(), checker.IsNil)
+	go func() {
+		chWait <- waitCmd.Wait()
+	}()
 
-	if err != nil || strings.TrimSpace(out) != "99" {
-		t.Fatal("failed to set up container", out, err)
+	dockerCmd(c, "stop", containerID)
+
+	select {
+	case err := <-chWait:
+		c.Assert(err, checker.IsNil)
+		status, err := waitCmdOut.ReadString('\n')
+		c.Assert(err, checker.IsNil)
+		c.Assert(strings.TrimSpace(status), checker.Equals, "99", check.Commentf("expected exit 99, got %s", status))
+	case <-time.After(2 * time.Second):
+		waitCmd.Process.Kill()
+		c.Fatal("timeout waiting for `docker wait` to exit")
 	}
-
-	logDone("wait - blocking wait with random exit code")
 }

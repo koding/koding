@@ -1,5 +1,4 @@
 React                     = require 'kd-react'
-Popover                   = require 'app/components/common/popover'
 actions                   = require 'app/flux/environment/actions'
 SidebarWidget             = require './sidebarwidget'
 InvitationWidgetUserPart  = require './invitationwidgetuserpart'

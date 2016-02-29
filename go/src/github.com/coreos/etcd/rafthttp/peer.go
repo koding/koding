@@ -15,7 +15,6 @@
 package rafthttp
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
@@ -23,13 +22,14 @@ import (
 	"github.com/coreos/etcd/pkg/types"
 	"github.com/coreos/etcd/raft"
 	"github.com/coreos/etcd/raft/raftpb"
+	"github.com/coreos/etcd/snap"
 )
 
 const (
-	// ConnRead/WriteTimeout is the i/o timeout set on each connection rafthttp pkg creates.
+	// ConnReadTimeout and ConnWriteTimeout are the i/o timeout set on each connection rafthttp pkg creates.
 	// A 5 seconds timeout is good enough for recycling bad connections. Or we have to wait for
 	// tcp keepalive failing to detect a bad connection, which is at minutes level.
-	// For long term streaming connections, rafthttp pkg sends application level linkHeartbeat
+	// For long term streaming connections, rafthttp pkg sends application level linkHeartbeatMessage
 	// to keep the connection alive.
 	// For short term pipeline connections, the connection MUST be killed to avoid it being
 	// put back to http pkg connection pool.
@@ -57,9 +57,15 @@ type Peer interface {
 	// When it fails to send message out, it will report the status to underlying
 	// raft.
 	send(m raftpb.Message)
+
+	// sendSnap sends the merged snapshot message to the remote peer. Its behavior
+	// is similar to send.
+	sendSnap(m snap.Message)
+
 	// update updates the urls of remote peer.
 	update(urls types.URLs)
-	// attachOutgoingConn attachs the outgoing connection to the peer for
+
+	// attachOutgoingConn attaches the outgoing connection to the peer for
 	// stream usage. After the call, the ownership of the outgoing
 	// connection hands over to the peer. The peer will close the connection
 	// when it is no longer used.
@@ -91,6 +97,8 @@ type peer struct {
 
 	status *peerStatus
 
+	picker *urlPicker
+
 	msgAppV2Writer *streamWriter
 	writer         *streamWriter
 	pipeline       *pipeline
@@ -110,18 +118,19 @@ type peer struct {
 	done  chan struct{}
 }
 
-func startPeer(streamRt, pipelineRt http.RoundTripper, urls types.URLs, local, to, cid types.ID, snapst *snapshotStore, r Raft, fs *stats.FollowerStats, errorc chan error, v3demo bool) *peer {
-	picker := newURLPicker(urls)
+func startPeer(transport *Transport, urls types.URLs, local, to, cid types.ID, r Raft, fs *stats.FollowerStats, errorc chan error, v3demo bool) *peer {
 	status := newPeerStatus(to)
+	picker := newURLPicker(urls)
 	p := &peer{
 		id:             to,
 		r:              r,
 		v3demo:         v3demo,
 		status:         status,
+		picker:         picker,
 		msgAppV2Writer: startStreamWriter(to, status, fs, r),
 		writer:         startStreamWriter(to, status, fs, r),
-		pipeline:       newPipeline(pipelineRt, picker, local, to, cid, status, fs, r, errorc),
-		snapSender:     newSnapshotSender(pipelineRt, picker, local, to, cid, status, snapst, r, errorc),
+		pipeline:       newPipeline(transport, picker, local, to, cid, status, fs, r, errorc),
+		snapSender:     newSnapshotSender(transport, picker, local, to, cid, status, r, errorc),
 		sendc:          make(chan raftpb.Message),
 		recvc:          make(chan raftpb.Message, recvBufSize),
 		propc:          make(chan raftpb.Message, maxPendingProposals),
@@ -148,18 +157,14 @@ func startPeer(streamRt, pipelineRt http.RoundTripper, urls types.URLs, local, t
 		}
 	}()
 
-	p.msgAppV2Reader = startStreamReader(streamRt, picker, streamTypeMsgAppV2, local, to, cid, status, p.recvc, p.propc, errorc)
-	reader := startStreamReader(streamRt, picker, streamTypeMessage, local, to, cid, status, p.recvc, p.propc, errorc)
+	p.msgAppV2Reader = startStreamReader(transport, picker, streamTypeMsgAppV2, local, to, cid, status, p.recvc, p.propc, errorc)
+	reader := startStreamReader(transport, picker, streamTypeMessage, local, to, cid, status, p.recvc, p.propc, errorc)
 	go func() {
 		var paused bool
 		for {
 			select {
 			case m := <-p.sendc:
 				if paused {
-					continue
-				}
-				if p.v3demo && isMsgSnap(m) {
-					go p.snapSender.send(m)
 					continue
 				}
 				writec, name := p.pick(m)
@@ -171,10 +176,9 @@ func startPeer(streamRt, pipelineRt http.RoundTripper, urls types.URLs, local, t
 						p.r.ReportSnapshot(m.To, raft.SnapshotFailure)
 					}
 					if status.isActive() {
-						plog.Warningf("dropped %s to %s since %s's sending buffer is full", m.Type, p.id, name)
-					} else {
-						plog.Debugf("dropped %s to %s since %s's sending buffer is full", m.Type, p.id, name)
+						plog.MergeWarningf("dropped internal raft message to %s since %s's sending buffer is full (bad/overloaded network)", p.id, name)
 					}
+					plog.Debugf("dropped %s to %s since %s's sending buffer is full", m.Type, p.id, name)
 				}
 			case mm := <-p.recvc:
 				if err := r.Process(context.TODO(), mm); err != nil {
@@ -210,6 +214,10 @@ func (p *peer) send(m raftpb.Message) {
 	}
 }
 
+func (p *peer) sendSnap(m snap.Message) {
+	go p.snapSender.send(m)
+}
+
 func (p *peer) update(urls types.URLs) {
 	select {
 	case p.newURLsC <- urls:
@@ -235,7 +243,7 @@ func (p *peer) attachOutgoingConn(conn *outgoingConn) {
 func (p *peer) activeSince() time.Time { return p.status.activeSince }
 
 // Pause pauses the peer. The peer will simply drops all incoming
-// messages without retruning an error.
+// messages without returning an error.
 func (p *peer) Pause() {
 	select {
 	case p.pausec <- struct{}{}:

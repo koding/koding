@@ -1,12 +1,12 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
+$                    = require 'jquery'
+kd                   = require 'kd'
+KDButtonView         = kd.ButtonView
+KDCustomHTMLView     = kd.CustomHTMLView
 KDFormViewWithFields = kd.FormViewWithFields
-KDListItemView = kd.ListItemView
-KDNotificationView = kd.NotificationView
-AccountsSwappable = require './accountsswappable'
-$ = require 'jquery'
-Encoder = require 'htmlencode'
+KDListItemView       = kd.ListItemView
+KDNotificationView   = kd.NotificationView
+AccountsSwappable    = require './accountsswappable'
+Encoder              = require 'htmlencode'
 
 
 module.exports = class AccountSshKeyListItem extends KDListItemView

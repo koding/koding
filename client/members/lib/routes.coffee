@@ -5,7 +5,7 @@ module.exports = ->
 
   registerRoutes 'Members',
     "/:name?/Members" : ({params, query}) ->
-      {router, appManager} = kd.singletons
+      {appManager} = kd.singletons
       kd.getSingleton('groupsController').ready ->
         group = getGroup()
         kd.getSingleton("appManager").tell 'Members', 'createContentDisplay', group, (contentDisplay) ->

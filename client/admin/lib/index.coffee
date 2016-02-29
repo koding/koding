@@ -13,6 +13,7 @@ TopicModerationView        = require './views/moderation/topicmoderationview'
 OnboardingAdminView        = require './views/onboarding/onboardingadminview'
 AdminInvitationsView       = require './views/invitations/admininvitationsview'
 GroupPermissionsView       = require './views/permissions/grouppermissionsview'
+GroupPlanBillingView       = require './views/plan-billing/groupplanbillingview'
 GroupsBlockedUserView      = require './views/members/groupsblockeduserview'
 AdminIntegrationsView      = require './views/integrations/adminintegrationsview'
 GroupGeneralSettingsView   = require './views/general/groupgeneralsettingsview'
@@ -47,6 +48,7 @@ module.exports = class AdminAppController extends AppController
         }
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
         { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 }
+        # { slug : 'Plan-Billing',   title : 'Plan & Billing',    viewClass : GroupPlanBillingView     }
       ]
     koding     :
       title    : 'Koding Administration'

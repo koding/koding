@@ -32,20 +32,21 @@ const (
 )
 
 var (
-	// capabilityMap is a static map of version to capability map.
+	// capabilityMaps is a static map of version to capability map.
 	// the base capabilities is the set of capability 2.0 supports.
 	capabilityMaps = map[string]map[capability]bool{
 		"2.1.0": {authCapability: true},
 		"2.2.0": {authCapability: true},
+		"2.3.0": {authCapability: true},
 	}
 
 	enableMapMu sync.Mutex
-	// enabled points to a map in cpapbilityMaps
+	// enabledMap points to a map in capabilityMaps
 	enabledMap map[capability]bool
 )
 
 // capabilityLoop checks the cluster version every 500ms and updates
-// the enabledCapability when the cluster version increased.
+// the enabledMap when the cluster version increased.
 // capabilityLoop MUST be ran in a goroutine before checking capability
 // or using capabilityHandler.
 func capabilityLoop(s *etcdserver.EtcdServer) {

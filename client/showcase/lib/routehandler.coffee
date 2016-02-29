@@ -1,5 +1,4 @@
 lazyrouter = require 'app/lazyrouter'
-kd = require 'kd'
 
 
 module.exports = -> lazyrouter.bind 'showcase', (type, info, state, path, ctx) ->

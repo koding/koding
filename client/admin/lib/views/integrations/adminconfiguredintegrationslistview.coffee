@@ -1,4 +1,3 @@
-kd                                 = require 'kd'
 AdminIntegrationsListView          = require './adminintegrationslistview'
 AdminConfiguredIntegrationItemView = require './adminconfiguredintegrationitemview'
 

@@ -1,4 +1,3 @@
-$                         = require 'jquery'
 kd                        = require 'kd'
 KDButtonView              = kd.ButtonView
 KDCustomHTMLView          = kd.CustomHTMLView
@@ -6,7 +5,6 @@ AccountListViewController = require '../controllers/accountlistviewcontroller'
 AccountNewSshKeyView      = require './accountnewsshkeyview'
 remote                    = require('app/remote').getInstance()
 KDHeaderView              = kd.HeaderView
-showError                 = require 'app/util/showError'
 Machine                   = require 'app/providers/machine'
 SshKey                    = require 'app/util/sshkey'
 KDModalView               = kd.ModalView
