@@ -19,7 +19,7 @@ psql $WERCKER_POSTGRESQL_URL < $1/definition/004-table.sql
 # create constraints
 psql $WERCKER_POSTGRESQL_URL < $1/definition/005-constraint.sql
 
-# KONTROL 
+# KONTROL
 
 psql $WERCKER_POSTGRESQL_URL < $1/kontrol/001-schema.sql
 psql $WERCKER_POSTGRESQL_URL < $1/kontrol/002-table.sql
@@ -67,15 +67,6 @@ psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/004-table.sql
 psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/005-constraint.sql
 
 psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/006-paymentro.sql
-
-# modifications
-psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/modifications/001-add-koding-to-enum.sql
-
-psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/modifications/002-add-betatester-plan.sql
-
-psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/modifications/003-drop-customer-oldid-constraint.sql
-
-psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/modifications/006-add-plan-title-enum.sql
 
 # create sequences
 psql $WERCKER_POSTGRESQL_URL < $1/integration_definition/002-schema.sql
