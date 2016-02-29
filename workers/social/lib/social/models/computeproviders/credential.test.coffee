@@ -9,6 +9,7 @@ JCredentialData  = require './credentialdata'
   generateRandomString
   checkBongoConnectivity } = require '../../../../testhelper'
 { generateMetaData
+  generateRawContent
   withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
 { withConvertedUserAnd } = require \
@@ -57,9 +58,10 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
         credentialData = null
 
         options =
-          meta     : generateMetaData provider
-          title    : title
-          provider : provider
+          meta       : generateMetaData provider
+          rawContent : generateRawContent provider
+          title      : title
+          provider   : provider
 
         queue = [
 
@@ -82,6 +84,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               expect(credentialData).to.exist
               expect(credentialData.meta).to.be.an 'object'
               expect(credentialData.meta).to.be.deep.equal options.meta
+              expect(credentialData.rawContent).to.be.equal options.rawContent
               next()
 
           (next) ->
@@ -488,8 +491,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
           (next) ->
             options =
-              title : 'newTitle'
-              meta  : { data : 'newMeta' }
+              title      : 'newTitle'
+              meta       : { data : 'newMeta' }
+              rawContent : "data : 'newData'"
 
             credential.update$ client, options, (err) ->
               expect(err).to.not.exist
@@ -506,6 +510,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             JCredentialData.one options, (err, credData) ->
               expect(err).to.not.exist
               expect(credData.meta).to.be.deep.equal { data : 'newMeta' }
+              expect(credData.rawContent).to.be.equal "data : 'newData'"
               next()
 
         ]
