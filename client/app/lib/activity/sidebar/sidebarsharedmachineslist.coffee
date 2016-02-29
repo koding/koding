@@ -1,5 +1,4 @@
 SidebarMachineList = require './sidebarmachinelist'
-kd = require 'kd'
 
 
 module.exports = class SidebarSharedMachinesList extends SidebarMachineList

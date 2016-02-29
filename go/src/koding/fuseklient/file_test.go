@@ -37,15 +37,24 @@ func TestFile(tt *testing.T) {
 			So(string(content), ShouldEqual, "ello World!")
 		})
 
-		Convey("It should fetch content from remote if content is empty", func() {
-			f := newFileWithTransport()
+		Convey("It should not fetch content from remote if content is same size as Attrs#Size", func() {
+			f := newFile()
 
 			content, err := f.ReadAt(0)
 			So(err, ShouldBeNil)
 			So(string(content), ShouldEqual, "Hello World!")
 		})
 
-		Convey("It should not fetch content from remote if content exists", func() {
+		Convey("It should fetch content from remote if content is not same as Attrs#Size", func() {
+			f := newFileWithTransport()
+			f.Content = nil
+
+			content, err := f.ReadAt(0)
+			So(err, ShouldBeNil)
+			So(string(content), ShouldEqual, "Hello World!")
+		})
+
+		Convey("It should not fetch content from remote if content is same length of Attr#size", func() {
 			f := newFileWithTransport()
 
 			content, err := f.ReadAt(0)
@@ -60,10 +69,17 @@ func TestFile(tt *testing.T) {
 			So(string(content), ShouldEqual, "Hello World!")
 		})
 
+		Convey("It should return error if offset is equal to length of content", func() {
+			f := newFile()
+
+			_, err := f.ReadAt(int64(f.Attrs.Size))
+			So(err, ShouldEqual, io.EOF)
+		})
+
 		Convey("It should return error if offset is greater than length of content", func() {
 			f := newFile()
 
-			_, err := f.ReadAt(int64(len(f.Content) + 1))
+			_, err := f.ReadAt(int64(f.Attrs.Size) + 1)
 			So(err, ShouldEqual, io.EOF)
 		})
 	})
@@ -130,6 +146,10 @@ func TestFile(tt *testing.T) {
 
 			Convey("It should set dirty state to true", func() {
 				So(f.IsDirty, ShouldBeTrue)
+			})
+
+			Convey("It should set reset state to false", func() {
+				So(f.IsReset, ShouldBeFalse)
 			})
 
 			Convey("It should update size", func() {
@@ -277,6 +297,7 @@ func newFileWithTransport() *File {
 	d := newDir()
 	f := NewFile(i)
 	f.Parent = d
+	f.Attrs.Size = uint64(len([]byte("Hello World!")))
 
 	return f
 }
@@ -285,6 +306,7 @@ func newFile() *File {
 	i := &Entry{Transport: &fakeTransport{}}
 	f := NewFile(i)
 	f.Content = []byte("Hello World!")
+	f.Attrs.Size = uint64(len([]byte("Hello World!")))
 
 	return f
 }

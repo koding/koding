@@ -1,6 +1,5 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
-nick = require '../util/nick'
 
 
 module.exports = class ShareLink extends KDButtonView

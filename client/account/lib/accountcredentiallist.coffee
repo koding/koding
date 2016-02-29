@@ -1,11 +1,8 @@
 kd                          = require 'kd'
 hljs                        = require 'highlight.js'
-Promise                     = require 'bluebird'
 
 KDListView                  = kd.ListView
 KDModalView                 = kd.ModalView
-KDOverlayView               = kd.OverlayView
-KDNotificationView          = kd.NotificationView
 
 showError                   = require 'app/util/showError'
 applyMarkdown               = require 'app/util/applyMarkdown'

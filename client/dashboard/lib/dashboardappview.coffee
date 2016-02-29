@@ -1,12 +1,12 @@
-kd = require 'kd'
-KDTabPaneView = kd.TabPaneView
-KDTabView = kd.TabView
-KDView = kd.View
-globals = require 'globals'
-JView = require 'app/jview'
-CommonInnerNavigationList = require 'app/commonviews/commoninnernavigationlist'
+kd                            = require 'kd'
+KDTabPaneView                 = kd.TabPaneView
+KDTabView                     = kd.TabView
+KDView                        = kd.View
+globals                       = require 'globals'
+JView                         = require 'app/jview'
+CommonInnerNavigationList     = require 'app/commonviews/commoninnernavigationlist'
 CommonInnerNavigationListItem = require 'app/commonviews/commoninnernavigationlistitem'
-NavigationController = require 'app/navigation/navigationcontroller'
+NavigationController          = require 'app/navigation/navigationcontroller'
 
 
 module.exports = class DashboardAppView extends JView

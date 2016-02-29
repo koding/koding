@@ -1,5 +1,3 @@
-$           = require 'jquery'
-isLoggedIn  = require '../util/isLoggedIn'
 kd          = require 'kd'
 KDView      = kd.View
 

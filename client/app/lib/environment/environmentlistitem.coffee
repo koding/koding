@@ -3,7 +3,6 @@ JView                     = require 'app/jview'
 
 isKoding                  = require 'app/util/isKoding'
 checkFlag                 = require 'app/util/checkFlag'
-showError                 = require 'app/util/showError'
 showNotification          = require 'app/util/showNotification'
 isManagedVMStack          = require 'app/util/isManagedVMStack'
 hasManagedVMStack         = require 'app/util/hasManagedVMStack'

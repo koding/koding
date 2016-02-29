@@ -19,8 +19,6 @@ FSHelper                   = require 'app/util/fs/fshelper'
 AvatarStaticView           = require 'app/commonviews/avatarviews/avatarstaticview'
 MetaInfoButtonView         = require 'app/commonviews/metainfobuttonview'
 TrollButtonView            = require 'app/commonviews/trollbuttonview'
-Encoder                    = require 'htmlencode'
-Traverse                   = require 'traverse'
 
 module.exports = class ProfileView extends JView
 

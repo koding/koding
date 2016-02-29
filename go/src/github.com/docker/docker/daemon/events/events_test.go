@@ -5,23 +5,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/engine-api/types/events"
 )
 
 func TestEventsLog(t *testing.T) {
 	e := New()
-	_, l1 := e.Subscribe()
-	_, l2 := e.Subscribe()
+	_, l1, _ := e.Subscribe()
+	_, l2, _ := e.Subscribe()
 	defer e.Evict(l1)
 	defer e.Evict(l2)
 	count := e.SubscribersCount()
 	if count != 2 {
 		t.Fatalf("Must be 2 subscribers, got %d", count)
 	}
-	e.Log("test", "cont", "image")
+	actor := events.Actor{
+		ID:         "cont",
+		Attributes: map[string]string{"image": "image"},
+	}
+	e.Log("test", events.ContainerEventType, actor)
 	select {
 	case msg := <-l1:
-		jmsg, ok := msg.(*jsonmessage.JSONMessage)
+		jmsg, ok := msg.(events.Message)
 		if !ok {
 			t.Fatalf("Unexpected type %T", msg)
 		}
@@ -42,7 +46,7 @@ func TestEventsLog(t *testing.T) {
 	}
 	select {
 	case msg := <-l2:
-		jmsg, ok := msg.(*jsonmessage.JSONMessage)
+		jmsg, ok := msg.(events.Message)
 		if !ok {
 			t.Fatalf("Unexpected type %T", msg)
 		}
@@ -65,12 +69,15 @@ func TestEventsLog(t *testing.T) {
 
 func TestEventsLogTimeout(t *testing.T) {
 	e := New()
-	_, l := e.Subscribe()
+	_, l, _ := e.Subscribe()
 	defer e.Evict(l)
 
 	c := make(chan struct{})
 	go func() {
-		e.Log("test", "cont", "image")
+		actor := events.Actor{
+			ID: "image",
+		}
+		e.Log("test", events.ImageEventType, actor)
 		close(c)
 	}()
 
@@ -88,25 +95,35 @@ func TestLogEvents(t *testing.T) {
 		action := fmt.Sprintf("action_%d", i)
 		id := fmt.Sprintf("cont_%d", i)
 		from := fmt.Sprintf("image_%d", i)
-		e.Log(action, id, from)
+
+		actor := events.Actor{
+			ID:         id,
+			Attributes: map[string]string{"image": from},
+		}
+		e.Log(action, events.ContainerEventType, actor)
 	}
 	time.Sleep(50 * time.Millisecond)
-	current, l := e.Subscribe()
+	current, l, _ := e.Subscribe()
 	for i := 0; i < 10; i++ {
 		num := i + eventsLimit + 16
 		action := fmt.Sprintf("action_%d", num)
 		id := fmt.Sprintf("cont_%d", num)
 		from := fmt.Sprintf("image_%d", num)
-		e.Log(action, id, from)
+
+		actor := events.Actor{
+			ID:         id,
+			Attributes: map[string]string{"image": from},
+		}
+		e.Log(action, events.ContainerEventType, actor)
 	}
 	if len(e.events) != eventsLimit {
 		t.Fatalf("Must be %d events, got %d", eventsLimit, len(e.events))
 	}
 
-	var msgs []*jsonmessage.JSONMessage
+	var msgs []events.Message
 	for len(msgs) < 10 {
 		m := <-l
-		jm, ok := (m).(*jsonmessage.JSONMessage)
+		jm, ok := (m).(events.Message)
 		if !ok {
 			t.Fatalf("Unexpected type %T", m)
 		}

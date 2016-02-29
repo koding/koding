@@ -63,6 +63,7 @@ module.exports = class TeamSelectorView extends JView
   goToTeam: (formData) ->
 
     { slug } = formData
+    slug     = slug.toLowerCase()
 
     return notify()  if slug is 'koding'
 

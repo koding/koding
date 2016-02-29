@@ -1,5 +1,4 @@
 kd      = require 'kd'
-nick    = require 'app/util/nick'
 helpers = require './helpers'
 Machine = require '../machine'
 

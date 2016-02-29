@@ -1,6 +1,9 @@
-kd = require 'kd'
+kd     = require 'kd'
 KDView = kd.View
+
+
 module.exports = class AccountEditorTags extends KDView
+
   viewAppended:->
     @setPartial @partial @data
 

@@ -1,5 +1,4 @@
 DatadogMetrics = require 'app/datadogmetrics'
-kd = require 'kd'
 
 
 module.exports = class OnboardingMetrics extends DatadogMetrics

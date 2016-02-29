@@ -44,7 +44,7 @@ type Mount struct {
 	// needed.
 	kitePinger kitepinger.KitePinger
 
-	MountedFS *fuseklient.KodingNetworkFS `json:"-"`
+	MountedFS fuseklient.FS `json:"-"`
 
 	// mockable interfaces and types, used for testing and abstracting the environment
 	// away.

@@ -1,4 +1,4 @@
-kd = require 'kd'
+kd     = require 'kd'
 remote = require('app/remote').getInstance()
 
 

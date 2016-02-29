@@ -1,14 +1,13 @@
-kd = require 'kd'
-globals = require 'globals'
-KDViewController = kd.ViewController
-FeederFacetsController = require './controllers/feederfacetscontroller'
+kd                           = require 'kd'
+globals                      = require 'globals'
+KDViewController             = kd.ViewController
+FeederFacetsController       = require './controllers/feederfacetscontroller'
 FeederHeaderFacetsController = require './controllers/feederheaderfacetscontroller'
-FeederResultsController = require './controllers/feederresultscontroller'
-FeederSingleView = require './views/feedersingleview'
-FeederSplitView = require './views/feedersplitview'
-remote = require('app/remote').getInstance()
-globals = require 'globals'
-jspath = require 'jspath'
+FeederResultsController      = require './controllers/feederresultscontroller'
+FeederSingleView             = require './views/feedersingleview'
+FeederSplitView              = require './views/feedersplitview'
+remote                       = require('app/remote').getInstance()
+jspath                       = require 'jspath'
 
 
 module.exports = class FeedController extends KDViewController

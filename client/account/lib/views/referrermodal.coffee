@@ -1,12 +1,13 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDInputView = kd.InputView
-KDModalView = kd.ModalView
-nick = require 'app/util/nick'
-getReferralUrl = require 'app/util/getReferralUrl'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+KDInputView       = kd.InputView
+KDModalView       = kd.ModalView
+nick              = require 'app/util/nick'
+getReferralUrl    = require 'app/util/getReferralUrl'
 FacebookShareLink = require 'app/commonviews/facebooksharelink'
-TwitterShareLink = require 'app/commonviews/twittersharelink'
+TwitterShareLink  = require 'app/commonviews/twittersharelink'
 LinkedInShareLink = require 'app/commonviews/linkedinsharelink'
+
 
 module.exports = class ReferrerModal extends KDModalView
 

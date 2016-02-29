@@ -1,8 +1,8 @@
-kd = require 'kd'
-_  = require 'lodash'
-facade = require('./accounteditshortcutsfacade')
-EventType = require './accounteditshortcutseventtype'
-recorder = require 'record-shortcuts'
+kd                 = require 'kd'
+_                  = require 'lodash'
+facade             = require('./accounteditshortcutsfacade')
+EventType          = require './accounteditshortcutseventtype'
+recorder           = require 'record-shortcuts'
 { presentBinding } = require 'app/shortcutscontroller'
 
 module.exports =
@@ -26,7 +26,7 @@ class AccountEditShortcutsRow extends kd.View
 
   # The maximum description string length.
   DESCRIPTION_TRUNC_LEN = 100
-  
+
   # The maximum description string length for a single line.
   SINGLE_LINE_LEN = 50
 
@@ -66,7 +66,7 @@ class AccountEditShortcutsRow extends kd.View
     if @model.enabled then toggle.setClass ENABLED_CLASS_NAME
 
     descriptionText = _.escape @model.description
-    
+
     if descriptionText.length > SINGLE_LINE_LEN
       @setClass 'multi-line-row'
 

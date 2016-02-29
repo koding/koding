@@ -1,6 +1,5 @@
-kd                = require 'kd'
-KDController      = kd.Controller
-PaymentConstants  = require './paymentconstants'
+kd           = require 'kd'
+KDController = kd.Controller
 
 
 module.exports = class BaseWorkFlow extends KDController

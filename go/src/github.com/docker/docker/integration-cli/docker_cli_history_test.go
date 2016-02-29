@@ -2,16 +2,22 @@ package main
 
 import (
 	"fmt"
-	"os/exec"
+	"regexp"
+	"strconv"
 	"strings"
-	"testing"
+
+	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/go-check/check"
 )
 
 // This is a heisen-test.  Because the created timestamp of images and the behavior of
 // sort is not predictable it doesn't always fail.
-func TestBuildHistory(t *testing.T) {
+func (s *DockerSuite) TestBuildHistory(c *check.C) {
+	testRequires(c, DaemonIsLinux) // TODO Windows: This test passes on Windows,
+	// but currently adds a disproportionate amount of time for the value it has.
+	// Removing it from Windows CI for now, but this will be revisited in the
+	// TP5 timeframe when perf is better.
 	name := "testbuildhistory"
-	defer deleteImages(name)
 	_, err := buildImage(name, `FROM busybox
 RUN echo "A"
 RUN echo "B"
@@ -41,87 +47,79 @@ RUN echo "Y"
 RUN echo "Z"`,
 		true)
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(err, checker.IsNil)
 
-	out, exitCode, err := runCommandWithOutput(exec.Command(dockerBinary, "history", "testbuildhistory"))
-	if err != nil || exitCode != 0 {
-		t.Fatalf("failed to get image history: %s, %v", out, err)
-	}
-
+	out, _ := dockerCmd(c, "history", "testbuildhistory")
 	actualValues := strings.Split(out, "\n")[1:27]
 	expectedValues := [26]string{"Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q", "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F", "E", "D", "C", "B", "A"}
 
 	for i := 0; i < 26; i++ {
 		echoValue := fmt.Sprintf("echo \"%s\"", expectedValues[i])
 		actualValue := actualValues[i]
-
-		if !strings.Contains(actualValue, echoValue) {
-			t.Fatalf("Expected layer \"%s\", but was: %s", expectedValues[i], actualValue)
-		}
+		c.Assert(actualValue, checker.Contains, echoValue)
 	}
 
-	logDone("history - build history")
 }
 
-func TestHistoryExistentImage(t *testing.T) {
-	historyCmd := exec.Command(dockerBinary, "history", "busybox")
-	_, exitCode, err := runCommandWithOutput(historyCmd)
-	if err != nil || exitCode != 0 {
-		t.Fatal("failed to get image history")
-	}
-	logDone("history - history on existent image must pass")
+func (s *DockerSuite) TestHistoryExistentImage(c *check.C) {
+	dockerCmd(c, "history", "busybox")
 }
 
-func TestHistoryNonExistentImage(t *testing.T) {
-	historyCmd := exec.Command(dockerBinary, "history", "testHistoryNonExistentImage")
-	_, exitCode, err := runCommandWithOutput(historyCmd)
-	if err == nil || exitCode == 0 {
-		t.Fatal("history on a non-existent image didn't result in a non-zero exit status")
-	}
-	logDone("history - history on non-existent image must pass")
+func (s *DockerSuite) TestHistoryNonExistentImage(c *check.C) {
+	_, _, err := dockerCmdWithError("history", "testHistoryNonExistentImage")
+	c.Assert(err, checker.NotNil, check.Commentf("history on a non-existent image should fail."))
 }
 
-func TestHistoryImageWithComment(t *testing.T) {
+func (s *DockerSuite) TestHistoryImageWithComment(c *check.C) {
 	name := "testhistoryimagewithcomment"
-	defer deleteContainer(name)
-	defer deleteImages(name)
 
 	// make a image through docker commit <container id> [ -m messages ]
-	//runCmd := exec.Command(dockerBinary, "run", "-i", "-a", "stdin", "busybox", "echo", "foo")
-	runCmd := exec.Command(dockerBinary, "run", "--name", name, "busybox", "true")
-	out, _, err := runCommandWithOutput(runCmd)
-	if err != nil {
-		t.Fatalf("failed to run container: %s, %v", out, err)
-	}
 
-	waitCmd := exec.Command(dockerBinary, "wait", name)
-	if out, _, err := runCommandWithOutput(waitCmd); err != nil {
-		t.Fatalf("error thrown while waiting for container: %s, %v", out, err)
-	}
+	dockerCmd(c, "run", "--name", name, "busybox", "true")
+	dockerCmd(c, "wait", name)
 
 	comment := "This_is_a_comment"
-
-	commitCmd := exec.Command(dockerBinary, "commit", "-m="+comment, name, name)
-	if out, _, err := runCommandWithOutput(commitCmd); err != nil {
-		t.Fatalf("failed to commit container to image: %s, %v", out, err)
-	}
+	dockerCmd(c, "commit", "-m="+comment, name, name)
 
 	// test docker history <image id> to check comment messages
-	historyCmd := exec.Command(dockerBinary, "history", name)
-	out, exitCode, err := runCommandWithOutput(historyCmd)
-	if err != nil || exitCode != 0 {
-		t.Fatalf("failed to get image history: %s, %v", out, err)
-	}
 
+	out, _ := dockerCmd(c, "history", name)
 	outputTabs := strings.Fields(strings.Split(out, "\n")[1])
-	//outputTabs := regexp.MustCompile("  +").Split(outputLine, -1)
 	actualValue := outputTabs[len(outputTabs)-1]
+	c.Assert(actualValue, checker.Contains, comment)
+}
 
-	if !strings.Contains(actualValue, comment) {
-		t.Fatalf("Expected comments %q, but found %q", comment, actualValue)
+func (s *DockerSuite) TestHistoryHumanOptionFalse(c *check.C) {
+	out, _ := dockerCmd(c, "history", "--human=false", "busybox")
+	lines := strings.Split(out, "\n")
+	sizeColumnRegex, _ := regexp.Compile("SIZE +")
+	indices := sizeColumnRegex.FindStringIndex(lines[0])
+	startIndex := indices[0]
+	endIndex := indices[1]
+	for i := 1; i < len(lines)-1; i++ {
+		if endIndex > len(lines[i]) {
+			endIndex = len(lines[i])
+		}
+		sizeString := lines[i][startIndex:endIndex]
+
+		_, err := strconv.Atoi(strings.TrimSpace(sizeString))
+		c.Assert(err, checker.IsNil, check.Commentf("The size '%s' was not an Integer", sizeString))
 	}
+}
 
-	logDone("history - history on image with comment")
+func (s *DockerSuite) TestHistoryHumanOptionTrue(c *check.C) {
+	out, _ := dockerCmd(c, "history", "--human=true", "busybox")
+	lines := strings.Split(out, "\n")
+	sizeColumnRegex, _ := regexp.Compile("SIZE +")
+	humanSizeRegexRaw := "\\d+.*B" // Matches human sizes like 10 MB, 3.2 KB, etc
+	indices := sizeColumnRegex.FindStringIndex(lines[0])
+	startIndex := indices[0]
+	endIndex := indices[1]
+	for i := 1; i < len(lines)-1; i++ {
+		if endIndex > len(lines[i]) {
+			endIndex = len(lines[i])
+		}
+		sizeString := lines[i][startIndex:endIndex]
+		c.Assert(strings.TrimSpace(sizeString), checker.Matches, humanSizeRegexRaw, check.Commentf("The size '%s' was not in human format", sizeString))
+	}
 }

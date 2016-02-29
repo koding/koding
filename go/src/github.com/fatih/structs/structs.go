@@ -1,7 +1,11 @@
 // Package structs contains various utilities functions to work with structs.
 package structs
 
-import "reflect"
+import (
+	"fmt"
+
+	"reflect"
+)
 
 var (
 	// DefaultTagName is the default tag name for struct fields which provides
@@ -13,16 +17,18 @@ var (
 // Struct encapsulates a struct type to provide several high level functions
 // around the struct.
 type Struct struct {
-	raw   interface{}
-	value reflect.Value
+	raw     interface{}
+	value   reflect.Value
+	TagName string
 }
 
 // New returns a new *Struct with the struct s. It panics if the s's kind is
 // not struct.
 func New(s interface{}) *Struct {
 	return &Struct{
-		raw:   s,
-		value: strctVal(s),
+		raw:     s,
+		value:   strctVal(s),
+		TagName: DefaultTagName,
 	}
 }
 
@@ -39,6 +45,12 @@ func New(s interface{}) *Struct {
 //
 //   // Field is ignored by this package.
 //   Field bool `structs:"-"`
+//
+// A tag value with the content of "string" uses the stringer to get the value. Example:
+//
+//   // The value will be output of Animal's String() func.
+//   // Map will panic if Animal does not implement String().
+//   Field *Animal `structs:"field,string"`
 //
 // A tag value with the option of "omitnested" stops iterating further if the type
 // is a struct. Example:
@@ -71,7 +83,7 @@ func (s *Struct) Map() map[string]interface{} {
 
 		var finalVal interface{}
 
-		tagName, tagOpts := parseTag(field.Tag.Get(DefaultTagName))
+		tagName, tagOpts := parseTag(field.Tag.Get(s.TagName))
 		if tagName != "" {
 			name = tagName
 		}
@@ -90,9 +102,24 @@ func (s *Struct) Map() map[string]interface{} {
 		if IsStruct(val.Interface()) && !tagOpts.Has("omitnested") {
 			// look out for embedded structs, and convert them to a
 			// map[string]interface{} too
-			finalVal = Map(val.Interface())
+			n := New(val.Interface())
+			n.TagName = s.TagName
+			m := n.Map()
+			if len(m) == 0 {
+				finalVal = val.Interface()
+			} else {
+				finalVal = m
+			}
 		} else {
 			finalVal = val.Interface()
+		}
+
+		if tagOpts.Has("string") {
+			s, ok := val.Interface().(fmt.Stringer)
+			if ok {
+				out[name] = s.String()
+			}
+			continue
 		}
 
 		out[name] = finalVal
@@ -131,7 +158,7 @@ func (s *Struct) Values() []interface{} {
 	for _, field := range fields {
 		val := s.value.FieldByName(field.Name)
 
-		_, tagOpts := parseTag(field.Tag.Get(DefaultTagName))
+		_, tagOpts := parseTag(field.Tag.Get(s.TagName))
 
 		// if the value is a zero value and the field is marked as omitempty do
 		// not include
@@ -142,6 +169,14 @@ func (s *Struct) Values() []interface{} {
 			if reflect.DeepEqual(current, zero) {
 				continue
 			}
+		}
+
+		if tagOpts.Has("string") {
+			s, ok := val.Interface().(fmt.Stringer)
+			if ok {
+				t = append(t, s.String())
+			}
+			continue
 		}
 
 		if IsStruct(val.Interface()) && !tagOpts.Has("omitnested") {
@@ -166,10 +201,29 @@ func (s *Struct) Values() []interface{} {
 //
 // It panics if s's kind is not struct.
 func (s *Struct) Fields() []*Field {
-	return getFields(s.value)
+	return getFields(s.value, s.TagName)
 }
 
-func getFields(v reflect.Value) []*Field {
+// Names returns a slice of field names. A struct tag with the content of "-"
+// ignores the checking of that particular field. Example:
+//
+//   // Field is ignored by this package.
+//   Field bool `structs:"-"`
+//
+// It panics if s's kind is not struct.
+func (s *Struct) Names() []string {
+	fields := getFields(s.value, s.TagName)
+
+	names := make([]string, len(fields))
+
+	for i, field := range fields {
+		names[i] = field.Name()
+	}
+
+	return names
+}
+
+func getFields(v reflect.Value, tagName string) []*Field {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
@@ -181,7 +235,7 @@ func getFields(v reflect.Value) []*Field {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 
-		if tag := field.Tag.Get(DefaultTagName); tag == "-" {
+		if tag := field.Tag.Get(tagName); tag == "-" {
 			continue
 		}
 
@@ -220,8 +274,9 @@ func (s *Struct) FieldOk(name string) (*Field, bool) {
 	}
 
 	return &Field{
-		field: field,
-		value: s.value.FieldByName(name),
+		field:      field,
+		value:      s.value.FieldByName(name),
+		defaultTag: s.TagName,
 	}, true
 }
 
@@ -247,7 +302,7 @@ func (s *Struct) IsZero() bool {
 	for _, field := range fields {
 		val := s.value.FieldByName(field.Name)
 
-		_, tagOpts := parseTag(field.Tag.Get(DefaultTagName))
+		_, tagOpts := parseTag(field.Tag.Get(s.TagName))
 
 		if IsStruct(val.Interface()) && !tagOpts.Has("omitnested") {
 			ok := IsZero(val.Interface())
@@ -294,7 +349,7 @@ func (s *Struct) HasZero() bool {
 	for _, field := range fields {
 		val := s.value.FieldByName(field.Name)
 
-		_, tagOpts := parseTag(field.Tag.Get(DefaultTagName))
+		_, tagOpts := parseTag(field.Tag.Get(s.TagName))
 
 		if IsStruct(val.Interface()) && !tagOpts.Has("omitnested") {
 			ok := HasZero(val.Interface())
@@ -341,7 +396,7 @@ func (s *Struct) structFields() []reflect.StructField {
 		}
 
 		// don't check if it's omitted
-		if tag := field.Tag.Get(DefaultTagName); tag == "-" {
+		if tag := field.Tag.Get(s.TagName); tag == "-" {
 			continue
 		}
 
@@ -382,6 +437,12 @@ func Values(s interface{}) []interface{} {
 // Fields() method.  It panics if s's kind is not struct.
 func Fields(s interface{}) []*Field {
 	return New(s).Fields()
+}
+
+// Names returns a slice of field names. For more info refer to Struct types
+// Names() method.  It panics if s's kind is not struct.
+func Names(s interface{}) []string {
+	return New(s).Names()
 }
 
 // IsZero returns true if all fields is equal to a zero value. For more info

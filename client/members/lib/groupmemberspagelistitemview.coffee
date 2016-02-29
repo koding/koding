@@ -1,4 +1,3 @@
-whoami = require 'app/util/whoami'
 MembersListItemView = require 'app/commonviews/memberslistitemview'
 
 

@@ -1,4 +1,3 @@
-kd              = require 'kd'
 CustomLinkView  = require '../customlinkview'
 
 

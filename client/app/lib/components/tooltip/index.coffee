@@ -1,6 +1,5 @@
-kd           = require 'kd'
-React        = require 'kd-react'
-dateFormat   = require 'dateformat'
+kd    = require 'kd'
+React = require 'kd-react'
 
 module.exports = class Tooltip extends React.Component
 

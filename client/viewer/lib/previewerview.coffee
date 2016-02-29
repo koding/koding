@@ -1,7 +1,7 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-KDView = kd.View
-ViewerTopBar = require './viewertopbar'
+KDView           = kd.View
+ViewerTopBar     = require './viewertopbar'
 
 
 module.exports = class PreviewerView extends KDView

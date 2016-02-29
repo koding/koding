@@ -37,6 +37,14 @@ const (
 	// dialingFailedErrType is the kite.Error.Type used for errors encountered when
 	// dialing the remote.
 	dialingFailedErrType = "dialing failed"
+
+	// machineNotFound is the kite.Error.Type used for errors encountered when
+	// the machine name given cannot be found.
+	machineNotFoundErrType = "machine not found"
+
+	// mountNotFound is the kite.Error.Type used for errors encountered when
+	// the mount name given cannot be found.
+	mountNotFoundErrType = "mount not found"
 )
 
 var (
@@ -176,9 +184,10 @@ func fuseMountFolder(m *Mount, c *kite.Client) error {
 		NoIgnore:       m.NoIgnore,
 		NoPrefetchMeta: m.NoPrefetchMeta,
 		NoWatch:        m.NoWatch,
+		Debug:          true, // turn on debug permanently till v1
 	}
 
-	f, err := fuseklient.NewKodingNetworkFS(t, cf)
+	f, err := fuseklient.New(t, cf)
 	if err != nil {
 		return err
 	}

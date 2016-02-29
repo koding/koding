@@ -1,7 +1,6 @@
 kd                      = require 'kd'
 KDView                  = kd.View
 KDTabView               = kd.TabView
-KDButtonView            = kd.ButtonView
 KDTabPaneView           = kd.TabPaneView
 InviteSomeoneView       = require './invitesomeoneview'
 SlackInviteView         = require './slackinviteview'

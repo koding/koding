@@ -1,9 +1,5 @@
-Encoder                   = require 'htmlencode'
-
 kd                        = require 'kd'
 remote                    = require('app/remote').getInstance()
-
-{handleNewMachineRequest} = require './computehelpers'
 JView                     = require '../jview'
 nicetime                  = require '../util/nicetime'
 

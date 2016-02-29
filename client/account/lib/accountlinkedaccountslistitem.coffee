@@ -1,10 +1,10 @@
-kd = require 'kd'
-KDListItemView = kd.ListItemView
+kd                 = require 'kd'
+KDListItemView     = kd.ListItemView
 KDNotificationView = kd.NotificationView
-whoami = require 'app/util/whoami'
-showError = require 'app/util/showError'
-KodingSwitch = require 'app/commonviews/kodingswitch'
-JView = require 'app/jview'
+whoami             = require 'app/util/whoami'
+showError          = require 'app/util/showError'
+KodingSwitch       = require 'app/commonviews/kodingswitch'
+JView              = require 'app/jview'
 
 
 module.exports = class AccountLinkedAccountsListItem extends KDListItemView
