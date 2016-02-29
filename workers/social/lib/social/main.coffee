@@ -2,12 +2,12 @@ process.title = 'koding-socialworker'
 
 log = -> console.log arguments...
 
-{ argv } = require 'optimist'
-
+{ argv }           = require 'optimist'
 { exec }           = require 'child_process'
 { extend }         = require 'underscore'
 { join: joinPath } = require 'path'
 { NodejsProfiler } = require 'koding-datadog'
+memoryLeakWatcher  = require 'memoryleakwatcher'
 
 usertracker = require '../../../usertracker'
 datadog     = require '../../../datadog'
@@ -146,6 +146,8 @@ do ->
   # start monitoring nodejs metrics (memory, gc, cpu etc...)
   nodejsProfiler = new NodejsProfiler 'socialWorker'
   nodejsProfiler.startMonitoring()
+
+  memoryLeakWatcher.setup()
 
   compression = require 'compression'
   bodyParser = require 'body-parser'
