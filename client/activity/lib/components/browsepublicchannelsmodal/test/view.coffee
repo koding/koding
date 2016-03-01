@@ -1,4 +1,3 @@
-React     = require 'kd-react'
 expect    = require 'expect'
 ModalView = require '../view'
 TestUtils = require 'react-addons-test-utils'

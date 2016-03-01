@@ -1,7 +1,5 @@
-View         = require './view'
 React        = require 'kd-react'
 expect       = require 'expect'
-ReactDOM     = require 'react-dom'
 TestUtils    = require 'react-addons-test-utils'
 InputWidget  = require '../container'
 KeyboardKeys = require 'app/constants/keyboardKeys'

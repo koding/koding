@@ -1,4 +1,3 @@
-React             = require 'kd-react'
 expect            = require 'expect'
 TestUtils         = require 'react-addons-test-utils'
 SocialMediaWidget = require '../socialmediawidget'

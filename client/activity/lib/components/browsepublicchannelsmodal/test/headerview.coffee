@@ -1,4 +1,3 @@
-React     = require 'kd-react'
 ReactDOM  = require 'react-dom'
 expect    = require 'expect'
 Header    = require '../headerview'
