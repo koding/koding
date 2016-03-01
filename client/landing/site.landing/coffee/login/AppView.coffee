@@ -10,16 +10,12 @@ RedeemInlineForm                      = require './redeemform'
 RecoverInlineForm                     = require './recoverform'
 ResetInlineForm                       = require './resetform'
 ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
-LoginOptions                          = require './loginoptions'
-RegisterOptions                       = require './registeroptions'
-MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
 { getGroupNameFromLocation }          = utils
 
 
 module.exports = class LoginView extends JView
 
   RECAPTCHA_JS         = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
-  stop                 = kd.utils.stopDOMEvent
   ENTER                = 13
   USERNAME_VALID       = no
   pendingSignupRequest = no

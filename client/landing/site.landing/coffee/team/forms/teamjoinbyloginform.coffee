@@ -1,4 +1,3 @@
-JView           = require './../../core/jview'
 TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'
 

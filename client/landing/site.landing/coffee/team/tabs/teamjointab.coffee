@@ -6,7 +6,7 @@ MainHeaderView                 = require './../../core/mainheaderview'
 TeamJoinByLoginForm            = require './../forms/teamjoinbyloginform'
 TeamJoinBySignupForm           = require './../forms/teamjoinbysignupform'
 TeamJoinWithInvitedAccountForm = require './../forms/teamjoinwithinvitedaccountform'
-TeamLoginAndCreateTabForm      = require './../forms/teamloginandcreatetabform'
+
 
 track = (action) ->
 
