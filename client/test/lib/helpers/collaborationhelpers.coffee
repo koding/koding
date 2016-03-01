@@ -72,17 +72,6 @@ module.exports =
     @endSessionModal(browser, shouldAssert)
 
 
-  endSessionFromChat: (browser) ->
-
-    @openChatSettingsMenu(browser)
-
-    browser
-      .waitForElementVisible  '.chat-dropdown li.end-session', 20000
-      .click                  '.chat-dropdown li.end-session'
-
-    @endSessionModal(browser)
-
-
   endSessionModal: (browser, shouldAssert = yes) ->
 
     buttonsSelector = '.kdmodal .kdmodal-buttons'
@@ -97,18 +86,9 @@ module.exports =
       browser.waitForElementVisible  notStartedButtonSelector, 20000 # Assertion
 
 
-  openChatSettingsMenu: (browser) ->
 
-    chatSettingsIcon = messagePane + ' .general-header .chat-dropdown .chevron'
 
     browser
-      .waitForElementVisible  messagePane, 20000
-      .waitForElementVisible  messagePane + ' .general-header', 20000
-      .click                  messagePane + ' .general-header'
-      .waitForElementVisible  chatSettingsIcon, 20000
-      .click                  chatSettingsIcon
-
-
   inviteUser: (browser, username, selectUser = yes) ->
 
     console.log " ✔ Inviting #{username} to collaboration session"
