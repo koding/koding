@@ -1,6 +1,3 @@
-CustomLinkView   = require './../core/customlinkview'
-HomeRegisterForm = require './registerform'
-
 TWEET_TEXT       = 'I\'ve applied for the world\'s first global virtual #hackathon by @koding. Join my team!'
 SHARE_URL        = 'http://koding.com/Hackathon2014'
 
@@ -15,6 +12,7 @@ MONTHS           = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JUL
   judges   : JUDGES
   partners : PARTNERS
 } = KD.campaignStats.campaign
+
 
 module.exports = class HomeView extends KDView
 

@@ -1,7 +1,6 @@
-LoginViewInlineForm      = require './../login/loginviewinlineform'
-LoginInputView           = require './../login/logininputview'
-
+LoginInputView     = require './../login/logininputview'
 RegisterInlineForm = require './../login/registerform'
+
 
 module.exports = class HomeRegisterForm extends RegisterInlineForm
 
