@@ -1,4 +1,3 @@
-$                = require 'jquery'
 kd               = require 'kd'
 KDObject         = kd.Object
 IDEMetrics       = require './idemetrics'

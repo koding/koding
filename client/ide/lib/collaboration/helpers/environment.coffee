@@ -1,5 +1,4 @@
 _                           = require 'lodash'
-kd                          = require 'kd'
 async                       = require 'async'
 remote                      = require('app/remote').getInstance()
 socialHelpers               = require './social'

@@ -1,11 +1,8 @@
 _                             = require 'lodash'
-$                             = require 'jquery'
 kd                            = require 'kd'
 nick                          = require 'app/util/nick'
 ndpane                        = require 'ndpane'
 remote                        = require('app/remote').getInstance()
-whoami                        = require 'app/util/whoami'
-globals                       = require 'globals'
 actions                       = require 'app/flux/environment/actions'
 kookies                       = require 'kookies'
 Encoder                       = require 'htmlencode'

@@ -1,10 +1,10 @@
-kd = require 'kd'
-KDContextMenu = kd.ContextMenu
-KDCustomHTMLView = kd.CustomHTMLView
-IDEStatusBarMenuItem = require './idestatusbarmenuitem'
+_                         = require 'lodash'
+kd                        = require 'kd'
+KDContextMenu             = kd.ContextMenu
+IDEStatusBarMenuItem      = require './idestatusbarmenuitem'
 IDESyntaxSelectorMenuItem = require './idesyntaxselectormenuitem'
-{ presentBinding } = require 'app/shortcutscontroller'
-_ = require 'lodash'
+{ presentBinding }        = require 'app/shortcutscontroller'
+
 
 module.exports = class IDEStatusBarMenu extends KDContextMenu
 

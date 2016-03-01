@@ -1,5 +1,4 @@
 kd                  = require 'kd'
-$                   = require 'jquery'
 KDModalView         = kd.ModalView
 KDTabView           = kd.TabView
 IDETabHandleView    = require './idetabhandleview'
