@@ -62,6 +62,11 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+
+			"fqdn": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -115,11 +120,11 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("invalid record ID: %v", err)
 	}
 
-	rec, _, err := client.Domains.Record(domain, id)
+	rec, resp, err := client.Domains.Record(domain, id)
 	if err != nil {
 		// If the record is somehow already destroyed, mark as
 		// successfully gone
-		if strings.Contains(err.Error(), "404 Not Found") {
+		if resp.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
@@ -145,6 +150,10 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("weight", strconv.Itoa(rec.Weight))
 	d.Set("priority", strconv.Itoa(rec.Priority))
 	d.Set("port", strconv.Itoa(rec.Port))
+
+	en := constructFqdn(rec.Name, d.Get("domain").(string))
+	log.Printf("[DEBUG] Constructed FQDN: %s", en)
+	d.Set("fqdn", en)
 
 	return nil
 }
@@ -183,16 +192,25 @@ func resourceDigitalOceanRecordDelete(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[INFO] Deleting record: %s, %d", domain, id)
 
-	_, err = client.Domains.DeleteRecord(domain, id)
-	if err != nil {
+	resp, delErr := client.Domains.DeleteRecord(domain, id)
+	if delErr != nil {
 		// If the record is somehow already destroyed, mark as
 		// successfully gone
-		if strings.Contains(err.Error(), "404 Not Found") {
+		if resp.StatusCode == 404 {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting record: %s", err)
+		return fmt.Errorf("Error deleting record: %s", delErr)
 	}
 
 	return nil
+}
+
+func constructFqdn(name, domain string) string {
+	rn := strings.ToLower(strings.TrimSuffix(name, "."))
+	domain = strings.TrimSuffix(domain, ".")
+	if !strings.HasSuffix(rn, domain) {
+		rn = strings.Join([]string{name, domain}, ".")
+	}
+	return rn
 }

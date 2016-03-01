@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/json/parser"
+	"github.com/hashicorp/hil"
 	"github.com/hashicorp/terraform/config"
-	"github.com/hashicorp/terraform/config/lang"
 	"github.com/koding/logging"
 )
 
@@ -150,7 +150,7 @@ func (t *Template) DetectUserVariables(prefix string) (map[string]string, error)
 	}
 
 	// get AST first, it's capable of parsing json
-	a, err := lang.Parse(out)
+	a, err := hil.Parse(out)
 	if err != nil {
 		return nil, err
 	}
