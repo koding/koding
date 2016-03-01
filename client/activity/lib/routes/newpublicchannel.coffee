@@ -1,7 +1,6 @@
 CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
-helper = require './helper'
+helper                   = require './helper'
 
-ChannelThreadPane = require 'activity/components/channelthreadpane'
 
 module.exports = class NewChannelRoute
 
