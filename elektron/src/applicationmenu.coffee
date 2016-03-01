@@ -75,6 +75,10 @@ module.exports = class ApplicationMenu
       ,
         type: 'separator'
       ,
+        label: "Minimize Koding"
+        accelerator: 'Command+M'
+        role: 'minimize'
+      ,
         label: "Hide Koding"
         accelerator: 'Command+H'
         role: 'hide'
