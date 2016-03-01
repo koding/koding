@@ -6,9 +6,10 @@ package sessions
 
 import (
 	"encoding/base32"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -50,13 +51,16 @@ type Store interface {
 // Use the convenience function securecookie.GenerateRandomKey() to create
 // strong keys.
 func NewCookieStore(keyPairs ...[]byte) *CookieStore {
-	return &CookieStore{
+	cs := &CookieStore{
 		Codecs: securecookie.CodecsFromPairs(keyPairs...),
 		Options: &Options{
 			Path:   "/",
 			MaxAge: 86400 * 30,
 		},
 	}
+
+	cs.MaxAge(cs.Options.MaxAge)
+	return cs
 }
 
 // CookieStore stores sessions using secure cookies.
@@ -109,6 +113,20 @@ func (s *CookieStore) Save(r *http.Request, w http.ResponseWriter,
 	return nil
 }
 
+// MaxAge sets the maximum age for the store and the underlying cookie
+// implementation. Individual sessions can be deleted by setting Options.MaxAge
+// = -1 for that session.
+func (s *CookieStore) MaxAge(age int) {
+	s.Options.MaxAge = age
+
+	// Set the maxAge for each securecookie instance.
+	for _, codec := range s.Codecs {
+		if sc, ok := codec.(*securecookie.SecureCookie); ok {
+			sc.MaxAge(age)
+		}
+	}
+}
+
 // FilesystemStore ------------------------------------------------------------
 
 var fileMutex sync.RWMutex
@@ -123,10 +141,7 @@ func NewFilesystemStore(path string, keyPairs ...[]byte) *FilesystemStore {
 	if path == "" {
 		path = os.TempDir()
 	}
-	if path[len(path)-1] != '/' {
-		path += "/"
-	}
-	return &FilesystemStore{
+	fs := &FilesystemStore{
 		Codecs: securecookie.CodecsFromPairs(keyPairs...),
 		Options: &Options{
 			Path:   "/",
@@ -134,11 +149,14 @@ func NewFilesystemStore(path string, keyPairs ...[]byte) *FilesystemStore {
 		},
 		path: path,
 	}
+
+	fs.MaxAge(fs.Options.MaxAge)
+	return fs
 }
 
 // FilesystemStore stores sessions in the filesystem.
 //
-// It also serves as a referece for custom stores.
+// It also serves as a reference for custom stores.
 //
 // This store is still experimental and not well tested. Feedback is welcome.
 type FilesystemStore struct {
@@ -208,6 +226,20 @@ func (s *FilesystemStore) Save(r *http.Request, w http.ResponseWriter,
 	return nil
 }
 
+// MaxAge sets the maximum age for the store and the underlying cookie
+// implementation. Individual sessions can be deleted by setting Options.MaxAge
+// = -1 for that session.
+func (s *FilesystemStore) MaxAge(age int) {
+	s.Options.MaxAge = age
+
+	// Set the maxAge for each securecookie instance.
+	for _, codec := range s.Codecs {
+		if sc, ok := codec.(*securecookie.SecureCookie); ok {
+			sc.MaxAge(age)
+		}
+	}
+}
+
 // save writes encoded session.Values to a file.
 func (s *FilesystemStore) save(session *Session) error {
 	encoded, err := securecookie.EncodeMulti(session.Name(), session.Values,
@@ -215,40 +247,20 @@ func (s *FilesystemStore) save(session *Session) error {
 	if err != nil {
 		return err
 	}
-	filename := s.path + "session_" + session.ID
+	filename := filepath.Join(s.path, "session_"+session.ID)
 	fileMutex.Lock()
 	defer fileMutex.Unlock()
-	fp, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return err
-	}
-	if _, err = fp.Write([]byte(encoded)); err != nil {
-		return err
-	}
-	fp.Close()
-	return nil
+	return ioutil.WriteFile(filename, []byte(encoded), 0600)
 }
 
 // load reads a file and decodes its content into session.Values.
 func (s *FilesystemStore) load(session *Session) error {
-	filename := s.path + "session_" + session.ID
-	fp, err := os.OpenFile(filename, os.O_RDONLY, 0400)
+	filename := filepath.Join(s.path, "session_"+session.ID)
+	fileMutex.RLock()
+	defer fileMutex.RUnlock()
+	fdata, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
-	}
-	defer fp.Close()
-	var fdata []byte
-	buf := make([]byte, 128)
-	for {
-		var n int
-		n, err = fp.Read(buf[0:])
-		fdata = append(fdata, buf[0:n]...)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
-		}
 	}
 	if err = securecookie.DecodeMulti(session.Name(), string(fdata),
 		&session.Values, s.Codecs...); err != nil {
