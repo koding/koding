@@ -43,10 +43,7 @@ module.exports = class JSession extends Model
       static            : []
     sharedMethods       :
       instance          :
-        remove: [
-          (signature Function)
-          (signature Object, Function)
-        ]
+        remove: (signature Function)
 
   do ->
     JAccount  = require './account'
