@@ -1413,8 +1413,15 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchMySessions: secure (client, callback) ->
 
+    { sessionToken } = client
+    return callback new KodingError 'Invalid session.'  unless sessionToken
+
     JSession = require './session'
-    username = @profile.nickname
-    JSession.some { username }, { limit : 10 }, callback
+    JSession.one { clientId : sessionToken }, (err, session) ->
+      return callback err  if err
+      return callback new KodingError 'Invalid session.'  unless session
+
+      username = session.username
+      JSession.some { username }, { limit : 10 }, callback
 
 
