@@ -181,12 +181,9 @@ module.exports = class FSItem extends KDObject
 
     .then (actualPath) =>
 
-      folderName  = @name.split(".")[0]
-      extractPath = if actualPath.search("#{folderName}_") > -1 then actualPath else @parentPath
-
       command =
         if isTarGz
-          "cd #{escapeFilePath @parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath @name} -C #{escapeFilePath extractPath}"
+          "cd #{escapeFilePath @parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath @name} -C #{escapeFilePath actualPath}"
         else
           "cd #{escapeFilePath @parentPath};unzip -o #{escapeFilePath @name} -d #{escapeFilePath actualPath}"
 
