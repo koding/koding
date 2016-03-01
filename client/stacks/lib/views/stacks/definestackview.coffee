@@ -361,6 +361,8 @@ module.exports = class DefineStackView extends KDView
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
+      @stackTemplateView.editorView.getAce().saveFinished()
+
       @emit 'Reload'
 
       if err
