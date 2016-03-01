@@ -31,7 +31,13 @@ type Command struct {
 	// may depend on the order they are run in. An example being TokenNotValidYetRepair
 	// likely should be run *after* a restart, as Tokens not being valid yet usually
 	// happens after a restart.
+	// Order matters.
 	Repairers []Repairer
+
+	// A collection of Repairers responsible for repairing anything that this command
+	// needs to run. Namely making sure internet is working, klient is working, etc.
+	// Order matters.
+	SetupRepairers []Repairer
 
 	// The klient instance this struct will use, mainly given to Repairers.
 	Klient interface {
@@ -93,16 +99,24 @@ func (c *Command) Run() (int, error) {
 		return 2, err
 	}
 
-	if err := c.setupKlient(); err != nil {
+	if err := c.initSetupRepairers(); err != nil {
 		return 3, err
 	}
 
-	if err := c.initDefaultRepairers(); err != nil {
+	if err := c.runRepairers(c.SetupRepairers); err != nil {
 		return 4, err
 	}
 
-	if err := c.runRepairers(); err != nil {
+	if err := c.setupKlient(); err != nil {
 		return 5, err
+	}
+
+	if err := c.initDefaultRepairers(); err != nil {
+		return 6, err
+	}
+
+	if err := c.runRepairers(c.Repairers); err != nil {
+		return 7, err
 	}
 
 	c.printfln("Everything looks healthy")
@@ -120,9 +134,52 @@ func (c *Command) handleOptions() error {
 	return nil
 }
 
+// initSetupRepairers handles creating the repairers that Command needs to operate,
+// namely dealing with starting klient, or requirements for klient to run.
+//
+// If klient isn't able to run, we can't run most of our repairers anyway - that's
+// what this one deals with.
+func (c *Command) initSetupRepairers() error {
+	// Our internet repairer retries status many times, until it finally gives up.
+	internetRepair := &InternetRepair{
+		Stdout:               c.Stdout,
+		InternetConfirmAddrs: DefaultInternetConfirmAddrs,
+		HTTPTimeout:          time.Second,
+		RetryOpts: RetryOptions{
+			StatusRetries: 10,
+			StatusDelay:   1 * time.Second,
+		},
+	}
+
+	// The klient running repairer, will check if klient is running and connectable,
+	// and restart it if not.
+	klientRunningRepair := &KlientRunningRepair{
+		KlientOptions: c.KlientOptions,
+		KlientService: c.KlientService,
+		Exec: &exec.CommandRun{
+			Stdin:  c.Stdin,
+			Stdout: c.Stdout,
+		},
+	}
+
+	// A collection of Repairers responsible for actually repairing a given mount.
+	// Executed in the order they are defined, the effectiveness of the Repairers
+	// may depend on the order they are run in.
+	// *Order matters*
+	c.SetupRepairers = []Repairer{
+		internetRepair,
+		klientRunningRepair,
+	}
+
+	return nil
+}
+
 // setupKlient creates and dials our Kite interface *only* if it is nil. If it is
 // not nil, someone else gave a kite to this Command, and it is expected to be
 // dialed and working.
+//
+// TODO: Move this logic to a repairer, since failing to connect is part of a
+// repairers workflow.
 func (c *Command) setupKlient() error {
 	// if c.klient isnt nil, don't overrite it. Another command may have provided
 	// a pre-dialed klient.
@@ -175,28 +232,6 @@ func (c *Command) initService() error {
 func (c *Command) initDefaultRepairers() error {
 	if c.Repairers != nil {
 		return nil
-	}
-
-	// Our internet repairer retries status many times, until it finally gives up.
-	internetRepair := &InternetRepair{
-		Stdout:               c.Stdout,
-		InternetConfirmAddrs: DefaultInternetConfirmAddrs,
-		HTTPTimeout:          time.Second,
-		RetryOpts: RetryOptions{
-			StatusRetries: 10,
-			StatusDelay:   1 * time.Second,
-		},
-	}
-
-	// The klient running repairer, will check if klient is running and connectable,
-	// and restart it if not.
-	klientRunningRepair := &KlientRunningRepair{
-		KlientOptions: c.KlientOptions,
-		KlientService: c.KlientService,
-		Exec: &exec.CommandRun{
-			Stdin:  c.Stdin,
-			Stdout: c.Stdout,
-		},
 	}
 
 	// The kontrol repairer will check if we're connected to kontrol yet, and
@@ -254,8 +289,6 @@ func (c *Command) initDefaultRepairers() error {
 	// likely should be run *after* a restart, as Tokens not being valid yet usually
 	// happens after a restart.
 	c.Repairers = []Repairer{
-		internetRepair,
-		klientRunningRepair,
 		kontrolRepair,
 		kiteUnreachableRepair,
 		tokenExpired,
@@ -269,14 +302,8 @@ func (c *Command) initDefaultRepairers() error {
 // Repair() on any of the Statuses that don't succeed. If any Repairs fail,
 // the error is returned. It is the responsibility of the Repairer (usualy via the
 // RetryRepairer) to repeat repair attempts on failures.
-func (c *Command) runRepairers() error {
-	// If there are no repairers to run, the core functionality of this command
-	// is incapable of working. So, return an error.
-	if len(c.Repairers) == 0 {
-		return errors.New("Repair command has 0 repairers.")
-	}
-
-	for _, r := range c.Repairers {
+func (c *Command) runRepairers(repairers []Repairer) error {
+	for _, r := range repairers {
 		err := r.Status()
 		if err == nil {
 			// If there is no problem from Status, we can just move onto the next Repairer.
