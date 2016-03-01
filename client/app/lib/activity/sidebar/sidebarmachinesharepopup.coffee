@@ -141,7 +141,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
       return showError err  if err
 
-      {router, mainView} = kd.singletons
+      {router, mainView, socialapi} = kd.singletons
 
       doNavigation = =>
         if machine.isPermanent()
@@ -167,9 +167,12 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       { channelId } = @getOptions()
 
       if channelId
-        kd.singletons.socialapi.channel.acceptInvite { channelId }, (err) =>
+        socialapi.channel.byId {id: channelId}, (err, channel) ->
           return showError err  if err
-          callback()
+          return callback()  if channel.isParticipant
+          socialapi.channel.acceptInvite { channelId }, (err) ->
+            return showError err  if err
+            callback()
       else
         callback()
 
