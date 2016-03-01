@@ -1,10 +1,7 @@
-expect = require 'expect'
-
-Reactor = require 'app/flux/base/reactor'
-whoami = require 'app/util/whoami'
-
+expect              = require 'expect'
+Reactor             = require 'app/flux/base/reactor'
 ChannelThreadsStore = require '../stores/channelthreadsstore'
-actionTypes = require '../actions/actiontypes'
+actionTypes         = require '../actions/actiontypes'
 
 describe 'ChannelThreadsStore', ->
 
