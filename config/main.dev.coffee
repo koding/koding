@@ -65,6 +65,11 @@ Configuration = (options={}) ->
       accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
       secretAccessKey : "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"
 
+    #Encryption and Storage on S3
+    sneakerS3 :
+      awsSecretAccessKey : "RN/JGsPt4S3hKHOd+aCvnhiz2opdY/zZanmW3hPM"
+      awsAccessKeyId     : "AKIAJB5DPL652CCEE6EA"
+
 
 
   publicPort          = options.publicPort     or "8090"
