@@ -18,29 +18,26 @@ module.exports =
     utils.registerSuiteHook 'before'
 
 
-  rejectInvitation: (browser) ->
+  # rejectInvitation: (browser) ->
 
-    host            = utils.getUser no, 0
-    hostBrowser     = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant     = utils.getUser no, 1
-    secondUserName  = participant.username
-    chatHeads       = ".chat-view .chat-heads .ParticipantHeads [href='/#{participant.username}']"
+  #   host              = utils.getUser no, 0
+  #   hostBrowser       = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+  #   participant       = utils.getUser no, 1
+  #   secondUserName    = participant.username
+  #   participantAvatar = ".avatars .avatarview[href='/#{participant.username}']"
 
-    browser.pause 2500, -> # wait for user.json creation
-      if hostBrowser
-        collaborationHelpers.startSessionAndInviteUser(browser, host, participant, no)
-        browser.waitForElementNotPresent(chatHeads, 60000)
-        collaborationHelpers.endSessionFromStatusBar(browser)
-        browser.end()
-      else
-        collaborationHelpers.rejectInvitation(browser)
-        browser.pause 5000
-        browser.end()
+  #   browser.pause 2500, -> # wait for user.json creation
 
+  #     collaborationHelpers.initiateCollaborationSession(browser, no, no)
 
-  leaveSessionFromChat: (browser) ->
-
-    collaborationHelpers.testLeaveSessionFrom_(browser, 'Chat')
+  #     if hostBrowser
+  #       browser.waitForElementNotPresent(participantAvatar, 60000)
+  #       collaborationHelpers.endSessionFromStatusBar(browser)
+  #       browser.end()
+  #     else
+  #       collaborationHelpers.rejectInvitation(browser)
+  #       browser.pause 5000
+  #       browser.end()
 
 
   leaveSessionFromSidebar: (browser) ->
@@ -61,12 +58,10 @@ module.exports =
 
     if hostBrowser
        collaborationHelpers.startSessionAndInviteUser(browser, host, participant, yes, yes)
-       collaborationHelpers.closeChatPage(browser)
        collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
        browser.end()
     else
       collaborationHelpers.joinSession(browser, host, participant)
-      collaborationHelpers.closeChatPage(browser)
       browser
         .waitForElementVisible     '.application-page.read-only', 20000
         .waitForElementNotVisible  '.panel-1 .panel-0 .application-tab-handle-holder .plus', 20000

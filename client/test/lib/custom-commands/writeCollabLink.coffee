@@ -1,4 +1,4 @@
-fs      = require('fs')
+fs      = require 'fs'
 tempDir = require 'os-tmpdir'
 
 exports.command = writeCollabLink = (url, callback) ->
@@ -7,10 +7,8 @@ exports.command = writeCollabLink = (url, callback) ->
 
   try
     fs.writeFileSync path, url
-  catch err
-    console.log err
-    throw "Unable to write file: #{path}"
-
-  callback?.call this, url
+    callback? url
+  catch
+    console.log 'Failed to write collab link file.'
 
   return this

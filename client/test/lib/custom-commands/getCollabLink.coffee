@@ -1,16 +1,22 @@
-fs      = require('fs')
+fs      = require 'fs'
 tempDir = require 'os-tmpdir'
 
 exports.command = getCollabLink = (callback) ->
 
   path = "#{tempDir()}/collabLink.txt"
 
-  try
-    url = fs.readFileSync path, 'utf8'
-  catch err
-    console.log err
-    throw "Unable to read file: #{path}"
+  getUrl = ->
+    try
+      url = fs.readFileSync path, 'utf8'
 
-  callback?.call this, url
+      if url
+        clearInterval interval
+        fs.unlinkSync path
+        callback? url
+
+    catch
+      console.log ' ✔ Checking for collaboration url...'
+
+  interval = setInterval getUrl, 3000
 
   return this
