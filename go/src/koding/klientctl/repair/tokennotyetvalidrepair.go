@@ -88,7 +88,7 @@ func (r *TokenNotYetValidRepair) Repair() error {
 				r.MachineName,
 			)
 		default:
-			fmt.Fprint(r.Stdout, " .")
+			fmt.Fprint(r.Stdout, ".")
 		}
 
 		time.Sleep(r.RepairDelay)

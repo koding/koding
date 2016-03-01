@@ -58,7 +58,7 @@ func (r *InternetRepair) Status() error {
 		case 0:
 			fmt.Fprint(r.Stdout, "Internet appears to be down. Waiting for reconnect.")
 		default:
-			fmt.Fprint(r.Stdout, " .")
+			fmt.Fprint(r.Stdout, ".")
 		}
 
 		time.Sleep(r.RetryOpts.StatusDelay)
