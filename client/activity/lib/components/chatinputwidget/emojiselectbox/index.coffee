@@ -1,6 +1,5 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
-ReactDOM              = require 'react-dom'
 immutable             = require 'immutable'
 ChatInputFlux         = require 'activity/flux/chatinput'
 PortalDropbox         = require 'activity/components/dropbox/portaldropbox'

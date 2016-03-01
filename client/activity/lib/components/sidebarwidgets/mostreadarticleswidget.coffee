@@ -1,5 +1,5 @@
-React    = require 'kd-react'
-Scroller = require 'app/components/scroller'
+React = require 'kd-react'
+
 
 module.exports = class MostReadArticlesWidget extends React.Component
 

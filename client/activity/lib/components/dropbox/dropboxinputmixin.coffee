@@ -1,6 +1,4 @@
 kd           = require 'kd'
-$            = require 'jquery'
-React        = require 'kd-react'
 keyboardKeys = require 'app/constants/keyboardKeys'
 
 

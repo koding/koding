@@ -1,6 +1,5 @@
 kd                      = require 'kd'
 React                   = require 'kd-react'
-ReactDOM                = require 'react-dom'
 Avatar                  = require 'app/components/profile/avatar'
 immutable               = require 'immutable'
 MessageBody             = require 'activity/components/common/messagebody'

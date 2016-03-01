@@ -1,7 +1,5 @@
 kd         = require 'kd'
 React      = require 'kd-react'
-Tabs       = require 'activity/constants/sidebarpublicchannelstabs'
-classnames = require 'classnames'
 
 module.exports = class BrowsePublicChannelsModalHeaderView extends React.Component
 

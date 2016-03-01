@@ -1,8 +1,6 @@
-_ = require 'lodash'
-kd             = require 'kd'
-React          = require 'kd-react'
-KDReactorMixin = require 'app/flux/base/reactormixin'
-classnames     = require 'classnames'
+kd         = require 'kd'
+React      = require 'kd-react'
+classnames = require 'classnames'
 
 
 module.exports = class ActivityAppComponent extends React.Component

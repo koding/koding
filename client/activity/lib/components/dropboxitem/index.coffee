@@ -1,7 +1,6 @@
 kd           = require 'kd'
 React        = require 'kd-react'
 immutable    = require 'immutable'
-ActivityFlux = require 'activity/flux'
 classnames   = require 'classnames'
 
 
