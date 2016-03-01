@@ -18,9 +18,11 @@ var (
 	ErrPathNotFound = errors.New("required a path name to store keys")
 )
 
+// KeyValue holds the credentials whatever you want as key-value pair
+type KeyValue map[string]interface{}
+
 type Credentials struct {
-	KeyId    string `json:"keyId"`
-	SecretId string `json:"secretId"`
+	KeyValues []KeyValue `json:"keyValue"`
 }
 
 type SneakerS3 struct {
