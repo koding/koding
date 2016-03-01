@@ -137,9 +137,9 @@ module.exports = class FSItem extends KDObject
 
       command =
         if type is "tar.gz"
-          "tar -pczf #{escapeFilePath actualPath} #{escapeFilePath @getPath()}"
+          "cd #{escapeFilePath @parentPath};tar -pczf #{escapeFilePath actualPath} #{escapeFilePath @name}"
         else
-          "zip -r #{escapeFilePath actualPath} #{escapeFilePath @getPath()}"
+          "cd #{escapeFilePath @parentPath};zip -r #{escapeFilePath actualPath} #{escapeFilePath @name}"
 
       kite.exec { command }
 
