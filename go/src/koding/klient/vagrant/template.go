@@ -17,6 +17,7 @@ $script = <<SCRIPT
 set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
+export USER_LOG=/var/log/user-script.log
 
 die() {
 	echo "error: $1"
@@ -30,13 +31,12 @@ gzip -d -f provisionklient.gz || die "unarchiving provisionklient failed"
 chmod +x provisionklient
 ./provisionklient -data '{{ .ProvisionData }}'
 
-user-script() {
+cat >user-script.sh <<EOF
 {{ .CustomScript }}
-}
+EOF
 
-tmp=$(mktemp /var/log/user-script-XXXXX.log)
-
-user-script 2>&1 | tee -a $tmp || die "$(cat $tmp | tr '\n' ' ')"
+chmod +x user-script.sh
+./user-script.sh 2>&1 | tee -a $USER_LOG || die "$(cat $USER_LOG | perl -pe 's/\n/\\\\n/g')"
 
 SCRIPT
 

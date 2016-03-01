@@ -112,6 +112,14 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 	}, nil
 }
 
+func newKite(k *kite.Kite) *kite.Kite {
+	cfg := k.Config.Copy()
+	cfg.Transport = config.XHRPolling
+	kCopy := kite.New(kloud.NAME, kloud.VERSION)
+	kCopy.Config = cfg
+	return kCopy
+}
+
 func sessionFromContext(ctx context.Context) (*session.Session, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -119,10 +127,7 @@ func sessionFromContext(ctx context.Context) (*session.Session, error) {
 	}
 
 	// TODO(rjeczalik): remove after TMS-2245 and use sess.Kite directly
-	cfg := sess.Kite.Config
-	cfg.Transport = config.XHRPolling
-	sess.Kite = kite.New(kloud.NAME, kloud.VERSION)
-	sess.Kite.Config = cfg
+	sess.Kite = newKite(sess.Kite)
 
 	return sess, nil
 }
