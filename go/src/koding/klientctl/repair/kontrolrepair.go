@@ -34,36 +34,33 @@ func (r *KontrolRepair) String() string {
 }
 
 func (r *KontrolRepair) Status() error {
-	var (
-		needNewline bool
-		err         error
-	)
+	if err := r.remoteStatus(); err == nil {
+		return nil
+	}
+
+	fmt.Fprint(r.Stdout, "Kontrol not connected. Waiting for reconnect.")
+
+	return r.statusLoop()
+}
+
+// statusLoop runs the status loop, optionally printing a dot to indicate progress.
+func (r *KontrolRepair) statusLoop() error {
+	var err error
 
 	for i := uint(0); i <= r.RetryOptions.StatusRetries; i++ {
-		err = r.status()
-		if err == nil {
+		if err = r.remoteStatus(); err == nil {
 			break
 		}
 
-		switch i {
-		case 0:
-			needNewline = true
-			fmt.Fprint(r.Stdout, "Kontrol not connected. Waiting for reconnect.")
-		default:
-			fmt.Fprint(r.Stdout, " .")
-		}
+		fmt.Fprint(r.Stdout, ".")
 
 		time.Sleep(r.RetryOptions.StatusDelay)
-	}
-
-	if needNewline {
-		fmt.Fprint(r.Stdout, "\n")
 	}
 
 	return err
 }
 
-func (r *KontrolRepair) status() error {
+func (r *KontrolRepair) remoteStatus() error {
 	return r.Klient.RemoteStatus(req.Status{
 		Item: req.KontrolStatus,
 	})
@@ -80,9 +77,13 @@ func (r *KontrolRepair) Repair() error {
 
 	// Run status again, to confirm it's running as best we can. If not, we've
 	// tried and failed.
-	if err := r.status(); err != nil {
+	fmt.Fprint(r.Stdout, "Waiting for reconnect.")
+
+	if err := r.statusLoop(); err != nil {
 		fmt.Fprintln(r.Stdout, "Unable to reconnect to kontrol.")
+		return err
 	}
 
+	fmt.Fprint(r.Stdout, "\nReconnected to kontrol.")
 	return nil
 }
