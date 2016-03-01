@@ -9,6 +9,7 @@ KDCustomHTMLView    = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'
 InvitationInputView = require './invitationinputview'
+whoami              = require 'app/util/whoami'
 
 module.exports = class InviteSomeoneView extends KDView
 
@@ -75,24 +76,30 @@ module.exports = class InviteSomeoneView extends KDView
     invites = []
     admins  = []
 
-    for view in @inputViews
-      value = view.email.getValue().trim()
+    whoami().fetchEmail (err, email) =>
 
-      continue  unless value
+      for view in @inputViews
+        value = view.email.getValue().trim()
 
-      result = if not value then no else view.email.validate()
+        continue  unless value
 
-      if value and not result
-        showError 'That doesn\'t seem like a valid email address.'
-        return view.email.setClass 'validation-error'
+        result = if not value then no else view.email.validate()
 
-      invites.push invite = view.serialize()
-      admins.push invite.email  if invite.role is 'admin'
+        if value is email
+          showError 'You can not invite yourself!'
+          return view.email.setClass 'validation-error'
 
-    if admins.length
-      @notifyAdminInvites invites, admins
-    else
-      @handleInvitationRequest invites
+        if value and not result
+          showError 'That doesn\'t seem like a valid email address.'
+          return view.email.setClass 'validation-error'
+
+        invites.push invite = view.serialize()
+        admins.push invite.email  if invite.role is 'admin'
+
+      if admins.length
+        @notifyAdminInvites invites, admins
+      else
+        @handleInvitationRequest invites
 
 
   notifyAdminInvites: (invites, admins) ->
