@@ -27,11 +27,15 @@ type Command struct {
 	Log     logging.Logger
 
 	// A collection of Repairers responsible for actually repairing a given mount.
+	// Executed in the order they are defined, the effectiveness of the Repairers
+	// may depend on the order they are run in. An example being TokenNotValidYetRepair
+	// likely should be run *after* a restart, as Tokens not being valid yet usually
+	// happens after a restart.
 	Repairers []Repairer
 
 	// The klient instance this struct will use, mainly given to Repairers.
 	Klient interface {
-		RemoteStatus(req.Status) (bool, error)
+		RemoteStatus(req.Status) error
 	}
 
 	// The options to use if this struct needs to dial Klient.
@@ -128,7 +132,7 @@ func (c *Command) setupKlient() error {
 
 	k, err := klient.NewDialedKlient(c.KlientOptions)
 	if err != nil {
-		return fmt.Errorf("Failed to get working Klient instance")
+		return fmt.Errorf("Failed to get working Klient instance. err:%s", err)
 	}
 
 	c.Klient = k
@@ -198,6 +202,7 @@ func (c *Command) initDefaultRepairers() error {
 	// The kontrol repairer will check if we're connected to kontrol yet, and
 	// attempt to wait for it. Eventually restarting if needed.
 	kontrolRepair := &KontrolRepair{
+		Log:    c.Log.New("KontrolRepair"),
 		Stdout: c.Stdout,
 		Klient: c.Klient,
 		RetryOptions: RetryOptions{
@@ -210,23 +215,51 @@ func (c *Command) initDefaultRepairers() error {
 		},
 	}
 
-	// Development In progress
-	//// The remote machine repairer will check if we're connected to the remote kite,
-	//// and attempt to wait for it. Eventually remounting if needed.
-	//remoteMachineRepair := &RemoteMachineRepair{
-	//	Stdout: c.Stdout,
-	//	Klient: c.Klient,
-	//	RetryOptions: RetryOptions{
-	//		StatusRetries: 5,
-	//		StatusDelay:   3 * time.Second,
-	//	},
-	//}
+	// The kite unreachable repairer ensures that the remote machine is on, and
+	// kite is reachable. No repair action is possible.
+	kiteUnreachableRepair := &KiteUnreachableRepair{
+		Log:           c.Log.New("KiteUnreachableRepair"),
+		Stdout:        c.Stdout,
+		Klient:        c.Klient,
+		StatusRetries: 10,
+		StatusDelay:   1 * time.Second,
+		MachineName:   c.Options.MountName,
+	}
 
+	// The token expired repair checks for token expired. This should be placed *before*
+	// TokenNotYetValidRepair, so that after we restart, we can check if the token
+	// is valid.
+	tokenExpired := &TokenExpiredRepair{
+		Log:                c.Log.New("TokenExpiredRepair"),
+		Stdout:             c.Stdout,
+		Klient:             c.Klient,
+		RepairWaitForToken: 5 * time.Second,
+		MachineName:        c.Options.MountName,
+	}
+
+	// The token not yet valid repairer will check if we're failing from the token
+	// not yet valid error, and wait for it to become valid.
+	tokenNotValidYetRepair := &TokenNotYetValidRepair{
+		Log:           c.Log.New("TokenNotYetValidRepair"),
+		Stdout:        c.Stdout,
+		Klient:        c.Klient,
+		RepairRetries: 5,
+		RepairDelay:   3 * time.Second,
+		MachineName:   c.Options.MountName,
+	}
+
+	// A collection of Repairers responsible for actually repairing a given mount.
+	// Executed in the order they are defined, the effectiveness of the Repairers
+	// may depend on the order they are run in. An example being TokenNotValidYetRepair
+	// likely should be run *after* a restart, as Tokens not being valid yet usually
+	// happens after a restart.
 	c.Repairers = []Repairer{
 		internetRepair,
 		klientRunningRepair,
 		kontrolRepair,
-		//remoteMachineRepair,
+		kiteUnreachableRepair,
+		tokenExpired,
+		tokenNotValidYetRepair,
 	}
 
 	return nil
@@ -244,10 +277,9 @@ func (c *Command) runRepairers() error {
 	}
 
 	for _, r := range c.Repairers {
-		ok, err := r.Status()
-
-		// If there is no problem from Status, we can just move onto the next Repairer.
-		if ok {
+		err := r.Status()
+		if err == nil {
+			// If there is no problem from Status, we can just move onto the next Repairer.
 			continue
 		}
 
@@ -256,7 +288,7 @@ func (c *Command) runRepairers() error {
 			r, err,
 		)
 
-		if err = r.Repair(); err != nil {
+		if err := r.Repair(); err != nil {
 			c.Log.Error("Repairer failed to repair. repairer:%s, err:%s", r, err)
 			return err
 		}

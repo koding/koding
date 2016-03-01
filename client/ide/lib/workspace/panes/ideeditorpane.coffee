@@ -137,10 +137,9 @@ module.exports = class IDEEditorPane extends IDEPane
 
   updateContent: (content, isSaved = no) ->
 
-    return if @rtm and @rtm.isReady
-
     scrollTop = @getAceScrollTop()
     cursor    = @getCursor()
+
     @setContent content, no
     @setCursor cursor
     @setAceScrollTop scrollTop
@@ -185,7 +184,17 @@ module.exports = class IDEEditorPane extends IDEPane
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
 
-    @getAce().setContent content, emitFileContentChangedEvent
+    ace = @getAce()
+
+    unless emitFileContentChangedEvent
+      @dontEmitChangeEvent = yes
+      ace.suppressListeners = yes
+
+    ace.setContent content, emitFileContentChangedEvent
+
+    unless emitFileContentChangedEvent
+      @dontEmitChangeEvent = no
+      ace.suppressListeners = no
 
 
   getCursor: -> return @getEditor().selection.getCursor()
@@ -268,15 +277,15 @@ module.exports = class IDEEditorPane extends IDEPane
 
   bindChangeListeners: ->
 
-    change = @getInitialChangeObject()
-
     @getAce()
-      .on 'ace.change.cursor',   @lazyBound 'handleCursorChange',      change
-      .on 'FileContentChanged',  @lazyBound 'handleFileContentChange', change
-      .on 'FileContentRestored', @lazyBound 'handleFileContentChange', change
+      .on 'ace.change.cursor', @bound 'handleCursorChange'
+      .on 'FileContentChanged', @bound 'handleFileContentChange'
+      .on 'FileContentRestored', @bound 'handleFileContentChange'
 
 
-  handleCursorChange: (change, cursor) ->
+  handleCursorChange: (cursor) ->
+
+    change = @getInitialChangeObject()
 
     change.type = 'CursorActivity'
     change.context.cursor = cursor
@@ -284,9 +293,11 @@ module.exports = class IDEEditorPane extends IDEPane
     @emit 'ChangeHappened', change
 
 
-  handleFileContentChange: (change) ->
+  handleFileContentChange: ->
 
-    return if @dontEmitChangeEvent
+    change = @getInitialChangeObject()
+
+    return  if @dontEmitChangeEvent
 
     change.type = 'ContentChange'
     change.context.file.content = @getContent()

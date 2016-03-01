@@ -8,7 +8,7 @@ import (
 type StatusItem int
 
 const (
-	EveryStatus StatusItem = iota
+	UnknownStatus StatusItem = iota
 	KontrolStatus
 	MachineStatus
 )
@@ -82,8 +82,6 @@ type MountInfo struct {
 
 func (i StatusItem) String() string {
 	switch i {
-	case EveryStatus:
-		return "EveryStatus"
 	case KontrolStatus:
 		return "KontrolStatus"
 	case MachineStatus:

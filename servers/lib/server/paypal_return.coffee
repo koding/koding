@@ -34,10 +34,14 @@ module.exports = (req, res) ->
   { clientId } = req.cookies
 
   findUsernameFromSession req, res, (err, username) ->
-    return templateFn err  if err
+    return templateFn err, res  if err
 
     koding.models.JAccount.one { 'profile.nickname' : username }, (err, account) ->
-      return templateFn err  if err
 
-      params = { token, accountId : account._id }
+      return templateFn err, res  if err
+      unless account
+        err = new Error 'account not found'
+        return templateFn err, res
+
+      params = { token, accountId : account.getId() }
       post '/api/social/payments/paypal/return', params, (err) -> templateFn err, res

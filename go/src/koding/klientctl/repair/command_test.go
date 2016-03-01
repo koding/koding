@@ -5,12 +5,19 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/klient/remote/req"
 	"koding/klientctl/util/testutil"
 	"testing"
 
 	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type fakeRepairKlient struct{}
+
+func (k *fakeRepairKlient) RemoteStatus(req.Status) error {
+	return nil
+}
 
 var discardLogger logging.Logger
 
@@ -53,6 +60,7 @@ func TestRepairCommandRun(t *testing.T) {
 			Helper:        func(w io.Writer) { fmt.Fprintln(w, "help called") },
 			Repairers:     []Repairer{repairerA, repairerB},
 			KlientService: &testutil.FakeService{},
+			Klient:        &fakeRepairKlient{},
 		}
 
 		Convey("It should call all of the repairers status, but not Repair", func() {
@@ -81,9 +89,11 @@ func TestRepairCommandRun(t *testing.T) {
 			Helper:        func(w io.Writer) { fmt.Fprintln(w, "help called") },
 			Repairers:     []Repairer{repairerA, repairerB, repairerC},
 			KlientService: &testutil.FakeService{},
+			Klient:        &fakeRepairKlient{},
 		}
 
 		Convey("It should call all of the repairers status, and repair the status that fails", func() {
+
 			exit, err := c.Run()
 			So(err, ShouldNotBeNil)
 			// Our error should be the one from fakeRepairer, not anything else

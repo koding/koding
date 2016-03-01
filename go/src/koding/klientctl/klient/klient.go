@@ -64,6 +64,14 @@ type KlientOptions struct {
 // CreateKlientClient creates a kite to the klient specified by KlientOptions, and
 // returns a Kite Client to talk to that Klient.
 func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
+	if opts.Version == "" {
+		return nil, errors.New("CreateKlientClient: Version is required")
+	}
+
+	if opts.Address == "" {
+		return nil, errors.New("CreateKlientClient: Address is required")
+	}
+
 	k := kite.New("klientctl", opts.Version)
 	c := k.NewClient(opts.Address)
 
@@ -162,14 +170,9 @@ func (k *Klient) RemoteMountFolder(r req.MountFolder) (string, error) {
 }
 
 // RemoteStatus calls klients remote.status method.
-func (k *Klient) RemoteStatus(r req.Status) (bool, error) {
-	resp, err := k.Tell("remote.status", r)
-
-	var ok bool
-	// TODO: Ignore the nil unmarshal error, but return others.
-	resp.Unmarshal(&ok)
-
-	return ok, err
+func (k *Klient) RemoteStatus(r req.Status) error {
+	_, err := k.Tell("remote.status", r)
+	return err
 }
 
 // RemoteMountInfo calls klients remote.mountInfo method.

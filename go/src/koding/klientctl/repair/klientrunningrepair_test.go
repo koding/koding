@@ -35,9 +35,8 @@ func TestKlientRunningRepairStatus(t *testing.T) {
 		}
 
 		Convey("It should show status ok", func() {
-			ok, err := r.Status()
+			err := r.Status()
 			So(err, ShouldBeNil)
-			So(ok, ShouldBeTrue)
 		})
 	})
 
@@ -64,10 +63,9 @@ func TestKlientRunningRepairStatus(t *testing.T) {
 		}
 
 		Convey("It should show status not ok", func() {
-			ok, err := r.Status()
+			err := r.Status()
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldContainSubstring, "dial klient")
-			So(ok, ShouldBeFalse)
 		})
 	})
 
@@ -88,10 +86,9 @@ func TestKlientRunningRepairStatus(t *testing.T) {
 		}
 
 		Convey("It should show status not ok", func() {
-			ok, err := r.Status()
+			err := r.Status()
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldContainSubstring, "not running")
-			So(ok, ShouldBeFalse)
 		})
 	})
 }

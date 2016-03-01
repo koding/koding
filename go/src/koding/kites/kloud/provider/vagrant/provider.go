@@ -138,5 +138,13 @@ func (p *Provider) tunnelURL() (*url.URL, error) {
 	if p.TunnelURL == "" {
 		return nil, errors.New("no tunnel URL provided")
 	}
-	return url.Parse(p.TunnelURL)
+
+	u, err := url.Parse(p.TunnelURL)
+	if err != nil {
+		return nil, err
+	}
+
+	u.Path = "/kite"
+
+	return u, nil
 }

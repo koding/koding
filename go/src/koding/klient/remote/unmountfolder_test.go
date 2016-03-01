@@ -4,9 +4,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/remote/req"
-	"github.com/koding/klient/storage"
+	"koding/klient/remote/req"
+
+	"koding/klient/storage"
+
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
