@@ -29,7 +29,7 @@ module.exports = ->
   for method in ['trace','time','timeEnd']
     global[method] = kd.noop
 
-  for method in ['warn','log','error','info']
+  for method in ['warn','log','error','info','debug']
     global.konsole[method] ?= global.console[method]
     global.console[method] = global[method] = _log method
 
