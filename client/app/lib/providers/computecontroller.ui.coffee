@@ -39,6 +39,26 @@ module.exports = class ComputeController_UI
   KNOWN_FIELD_TYPES   =
     'ssh_private_key' : 'textarea'
 
+  showPrivateKeyWarning = (privateKey) ->
+
+    new kd.ModalView
+      title           : "Please save private key content"
+      subtitle        : applyMarkdown "
+                         This stack only requires public key which means
+                         private key of this public key is not goint to be
+                         stored, please take a copy of following private key.
+                         \n
+                         **You won't be able to access this private key later**
+                        "
+      content         : applyMarkdown "```\n#{privateKey}\n```"
+      cssClass        : 'has-markdown'
+      width           : 530
+      overlay         : yes
+      overlayClick    : yes
+      overlayOptions  :
+        cssClass      : 'second-overlay'
+
+
   injectCustomActions = (requiredFields, buttons, callback) ->
 
     if 'ssh_public_key' in requiredFields
@@ -59,6 +79,9 @@ module.exports = class ComputeController_UI
 
             @hideLoader()
             return  if showError err, KodingError: 'Service not available'
+
+            unless 'ssh_private_key' in requiredFields
+              showPrivateKeyWarning res.private
 
             callback
               'ssh_public_key'  : res.public
