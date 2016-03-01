@@ -289,7 +289,7 @@ module.exports = class DefineStackView extends KDView
 
   saveAndTestStackTemplate: ->
 
-    # Show default first pane.
+    # Show default first pane.
     @tabView.showPaneByIndex 0
     @outputView.clear().raise()
 
