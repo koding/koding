@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	ErrPathNotFound = errors.New("required a path name to store keys")
+	ErrPathNotFound           = errors.New("required a path name to store keys")
+	ErrRequiredValuesNotFound = errors.New("required fields not found")
 )
 
 // KeyValue holds the credentials whatever you want as key-value pair
@@ -38,6 +39,10 @@ func (s *SneakerS3) Store(u *url.URL, h http.Header, cr *Credentials, context *m
 
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	if cr.KeyValues == nil {
+		return response.NewBadRequest(ErrRequiredValuesNotFound)
 	}
 
 	// convert credentials to bytes
