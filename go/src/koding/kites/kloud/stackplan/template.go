@@ -123,7 +123,7 @@ var unescapeJSON = strings.NewReplacer(
 
 // JsonOutput returns a JSON formatted output of the template
 func (t *Template) JsonOutput() (string, error) {
-	out, err := json.MarshalIndent(&t, "", "  ")
+	out, err := json.Marshal(t)
 	if err != nil {
 		return "", err
 	}
