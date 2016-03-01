@@ -1,5 +1,6 @@
 kd             = require 'kd'
 JView          = require 'app/jview'
+globals        = require 'globals'
 kookies        = require 'kookies'
 timeago        = require 'timeago'
 KDListItemView = kd.ListItemView
@@ -29,10 +30,15 @@ module.exports = class AccountSessionListItem extends KDListItemView
 
     { groupName, lastAccess } = @getData()
 
+    console.log globals.config
+    hostname = switch globals.config.environment
+      when 'production' then 'koding.com'
+      else "#{globals.config.environment}.koding.com"
+
     group =
       if groupName is 'koding'
-      then 'koding.com'
-      else "#{groupName}.koding.com"
+      then hostname
+      else "#{groupName}.#{hostname}"
 
     """
     <div class="session-item">
