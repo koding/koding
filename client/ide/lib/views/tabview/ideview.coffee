@@ -609,9 +609,16 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     terminalSessions = {}
     activeSessions   = []
+    inActiveSessions = []
 
+    # Collect active sessions
     frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) =>
       activeSessions.push pane.remote.session  if pane.remote?
+
+    # Collect inactive sessions
+    for session in sessions
+      isActive = activeSessions.indexOf session
+      inActiveSessions.push session  if isActive is -1
 
     sessions.forEach (session, i) =>
       isActive = session in activeSessions
@@ -629,7 +636,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     terminalSessions["New Session"] =
       callback            : => @createTerminal { machine }
-      separator           : canTerminateSessions
+      separator           : (canTerminateSessions or inActiveSessions.length)
+
+    if inActiveSessions.length
+      terminalSessions['Open All']  =
+        callback          : => @openAllSessions { machine, inActiveSessions }
 
     if canTerminateSessions
       terminalSessions["Terminate all"] =
@@ -657,6 +668,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       callback            : => @toggleFullscreen()
 
     return items
+
+
+  openAllSessions: (params) ->
+
+    { machine, inActiveSessions } = params
+
+    for session in inActiveSessions
+      @createTerminal { machine, session }
 
 
   createPlusContextMenu: ->
