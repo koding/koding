@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/url"
 	"socialapi/config"
 	"socialapi/workers/common/handler"
@@ -13,16 +12,25 @@ import (
 	"github.com/codahale/sneaker"
 )
 
+const (
+	CredentialStore = "credential-store"
+	CredentialGet   = "credential-get"
+)
+
 // AddHandlers adds handlers for slack integration
 func AddHandlers(m *mux.Mux, config *config.Config) {
+	manager, err := loadManager(config)
+	if err != nil {
+		panic(err)
+	}
 	s := &SneakerS3{
-		loadManager(config),
+		manager,
 	}
 
 	m.AddHandler(
 		handler.Request{
 			Handler:  s.Store,
-			Name:     "credential-store",
+			Name:     CredentialStore,
 			Type:     handler.PostRequest,
 			Endpoint: "/credential/{pathName}",
 		},
@@ -31,7 +39,7 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  s.Get,
-			Name:     "credential-get",
+			Name:     CredentialGet,
 			Type:     handler.GetRequest,
 			Endpoint: "/credential/{pathName}",
 		},
@@ -39,29 +47,26 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 
 }
 
-func loadManager(config *config.Config) *sneaker.Manager {
+func loadManager(config *config.Config) (*sneaker.Manager, error) {
 	u, err := url.Parse(config.SneakerS3.SneakerS3Path)
 	if err != nil {
-		log.Fatalf("bad SNEAKER_S3_PATH: %s", err)
+
+		return nil, err
 	}
 	if u.Path != "" && u.Path[0] == '/' {
 		u.Path = u.Path[1:]
 	}
 
-	// we wont gonna use context in storing system
-	ctxt, err := parseContext("")
-	if err != nil {
-		log.Fatalf("bad SNEAKER_MASTER_CONTEXT: %s", err)
-	}
+	session := session.New()
 
 	return &sneaker.Manager{
-		Objects: s3.New(session.New()),
+		Objects: s3.New(session),
 		Envelope: sneaker.Envelope{
-			KMS: kms.New(session.New()),
+			KMS: kms.New(session),
 		},
 		Bucket:            u.Host,
 		Prefix:            u.Path,
-		EncryptionContext: ctxt,
+		EncryptionContext: nil,
 		KeyId:             config.SneakerS3.SneakerMasterKey,
-	}
+	}, nil
 }
