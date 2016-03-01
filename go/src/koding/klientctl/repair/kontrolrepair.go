@@ -38,7 +38,7 @@ func (r *KontrolRepair) Status() error {
 		return nil
 	}
 
-	fmt.Fprint(r.Stdout, "Kontrol not connected. Waiting for reconnect.")
+	fmt.Fprint(r.Stdout, "Unable to connect to koding.com. Waiting...")
 
 	return r.statusLoop()
 }
@@ -84,6 +84,6 @@ func (r *KontrolRepair) Repair() error {
 		return err
 	}
 
-	fmt.Fprint(r.Stdout, "\nReconnected to kontrol.")
+	fmt.Fprint(r.Stdout, "\nReconnected to koding.com")
 	return nil
 }

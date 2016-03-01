@@ -128,7 +128,7 @@ func (c *Command) Run() (int, error) {
 		return exitcodes.RepairRunDefaultRepairersErr, err
 	}
 
-	c.printfln("Everything looks healthy")
+	c.printfln("Everything looks healthy.")
 
 	return exitcodes.Success, nil
 }
@@ -228,16 +228,14 @@ func (c *Command) checkMachineExist() error {
 	if err != nil {
 		// TODO: Senthil, fix this message please.
 		c.printfln(
-			`Error: Unable to list machines from Koding. Your connection to Koding may
-be intermittent. Please run this repair command again to attempt a diagnosis.`,
+			`Error: Unable to list machines from koding.com.
+There maybe be a connectivity problem. Please try again.`,
 		)
 		return err
 	}
 
-	_, ok := infos.FindFromName(c.Options.MountName)
-	if !ok {
+	if _, ok := infos.FindFromName(c.Options.MountName); !ok {
 		err := fmt.Errorf("Error: Machine %q does not exist.", c.Options.MountName)
-		// TODO: Senthil, fix this message please.
 		c.printfln(err.Error())
 		return err
 	}

@@ -98,7 +98,7 @@ func (r *TokenNotYetValidRepair) Repair() error {
 		fmt.Fprint(r.Stdout, "\n")
 	}
 
-	fmt.Fprintln(r.Stdout, "Success, auth token now valid.")
+	fmt.Fprintln(r.Stdout, "Successfully authenticated to koding.com")
 
 	return err
 }
