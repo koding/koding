@@ -615,13 +615,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) =>
       activeSessions.push pane.remote.session  if pane.remote?
 
-    # Collect inactive sessions
-    for session in sessions
-      isActive = activeSessions.indexOf session
-      inActiveSessions.push session  if isActive is -1
-
     sessions.forEach (session, i) =>
       isActive = session in activeSessions
+
+      # Collect inactive sessions
+      inActiveSessions.push session  unless isActive
+
       terminalSessions["Session (#{session[0..5]}) &nbsp"] =
         disabled          : isActive
         separator         : sessions.length is i
