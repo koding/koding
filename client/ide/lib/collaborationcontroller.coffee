@@ -193,6 +193,9 @@ module.exports = CollaborationController =
     @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
 
+    { hubspotController } = kd.singletons
+    hubspotController.track 'used collaboration'
+
     if @amIHost and targetUser isnt nick()
       @ensureMachineShare [targetUser], (err) =>
         return throwError err  if err

@@ -101,6 +101,9 @@ module.exports = class WelcomeAppView extends kd.View
 
       hintEl.innerHTML = "Hit #{key} to copy!"
 
+    { hubspotController } = kd.singletons
+    hubspotController.track 'installed kd'
+
     kd.singletons.mainView.mainTabView.scrollToBottom 200
 
 

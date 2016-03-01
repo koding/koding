@@ -677,6 +677,8 @@ module.exports = class ComputeController extends KDController
     unless state is 'NotInitialized'
       if state is 'Building'
         @eventListener.addListener 'apply', stack._id
+        { hubspotController } = kd.singletons
+        hubspotController.track 'setup stack'
       else
         kd.warn 'Stack already initialized, skipping.', stack
       return

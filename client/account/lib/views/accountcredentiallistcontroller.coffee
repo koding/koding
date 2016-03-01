@@ -211,6 +211,10 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       view.form.destroy()
       @addItem credential
 
+      if provider is 'aws'
+        { hubspotController } = kd.singletons
+        hubspotController.track 'added aws keys'
+
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.
     view.on 'NotifyResizeListeners', -> kd.singletons.windowController.notifyWindowResizeListeners()

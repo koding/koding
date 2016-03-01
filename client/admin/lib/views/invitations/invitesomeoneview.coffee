@@ -89,6 +89,9 @@ module.exports = class InviteSomeoneView extends KDView
       invites.push invite = view.serialize()
       admins.push invite.email  if invite.role is 'admin'
 
+    { hubspotController } = kd.singletons
+    hubspotController.track 'invited team members'
+
     if admins.length
       @notifyAdminInvites invites, admins
     else
