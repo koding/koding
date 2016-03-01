@@ -35,6 +35,9 @@ module.exports = class ComputeController_UI
     fn args...
 
 
+  KNOWN_FIELD_TYPES   =
+    'ssh_private_key' : 'textarea'
+
   @generateAddCredentialFormFor = (options) ->
 
     { provider, requiredFields, defaultTitle, defaultValues, callback } = options
@@ -53,7 +56,7 @@ module.exports = class ComputeController_UI
       for field in requiredFields
         continue  if field is '__rawContent'
         name = field.name ? field
-        type = field.type ? 'text'
+        type = field.type ? KNOWN_FIELD_TYPES[field] ? 'text'
         { values } = field
         credentialFields[name] = {
           label: name.capitalize()
