@@ -4,9 +4,11 @@ ideHelpers = require './idehelpers.js'
 utils      = require '../utils/utils.js'
 
 messagePane              = '.message-pane.privatemessage'
-notStartedButtonSelector = '.status-bar a.share.not-started'
 chatBox                  = '.collaboration.message-pane'
-shareButtonSelector      = '.status-bar a.share:not(.loading)'
+shareButtonSelector      = '.status-bar a.share:not(.loading):not(.appear-in-button)'
+startedButtonSelector    = '.status-bar a.share.active'
+notStartedButtonSelector = '.status-bar a.share.not-started'
+collabLink               = '.collaboration-link'
 
 
 module.exports =
@@ -46,10 +48,7 @@ module.exports =
           .waitForElementVisible  chatViewSelector, 20000
           .waitForElementVisible  startButtonSelector, 20000
           .click                  startButtonSelector
-
-      browser
-        .waitForElementVisible  messagePane, 200000 # Assertion
-        .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
+          .waitForElementVisible  startedButtonSelector, 200000 # Assertion
 
 
   leaveSessionFromStatusBar: (browser) ->
@@ -63,24 +62,10 @@ module.exports =
     buttonContainerSelector = statusBarSelector + ' .button-container'
 
     browser
-      .waitForElementVisible  statusBarSelector, 20000
-      .waitForElementVisible  statusBarSelector + ' span', 20000
-      .click                  statusBarSelector + ' span'
-      .waitForElementVisible  buttonContainerSelector, 20000
-      .click                  buttonContainerSelector + ' button.end-session'
+      .waitForElementVisible  startedButtonSelector, 20000
+      .click                  startedButtonSelector
 
     @endSessionModal(browser, shouldAssert)
-
-
-  endSessionFromChat: (browser) ->
-
-    @openChatSettingsMenu(browser)
-
-    browser
-      .waitForElementVisible  '.chat-dropdown li.end-session', 20000
-      .click                  '.chat-dropdown li.end-session'
-
-    @endSessionModal(browser)
 
 
   endSessionModal: (browser, shouldAssert = yes) ->
@@ -97,82 +82,10 @@ module.exports =
       browser.waitForElementVisible  notStartedButtonSelector, 20000 # Assertion
 
 
-  openChatSettingsMenu: (browser) ->
-
-    chatSettingsIcon = messagePane + ' .general-header .chat-dropdown .chevron'
-
-    browser
-      .waitForElementVisible  messagePane, 20000
-      .waitForElementVisible  messagePane + ' .general-header', 20000
-      .click                  messagePane + ' .general-header'
-      .waitForElementVisible  chatSettingsIcon, 20000
-      .click                  chatSettingsIcon
-
-
-  inviteUser: (browser, username, selectUser = yes) ->
-
-    console.log " ✔ Inviting #{username} to collaboration session"
-
-    chatSelecor = "span.profile[href='/#{username}']"
-
-    browser
-      .waitForElementVisible   '.ParticipantHeads-button--new', 20000
-      .click                   '.ParticipantHeads-button--new'
-      .waitForElementVisible   '.kdautocompletewrapper input', 20000
-      .setValue                '.kdautocompletewrapper input', username
-      .pause                   5000
-
-    if selectUser
-      browser
-        .element                 'css selector', chatSelecor, (result) ->
-          if result.status is 0
-            browser.click        chatSelecor
-          else
-            browser
-              .click             '.ParticipantHeads-button--new'
-              .pause             500
-              .click             '.ParticipantHeads-button--new'
-              .pause             500
-              .click             chatSelecor
-
-
-  closeChatPage: (browser) ->
-
-    closeButtonSelector = '.chat-view a.close span'
-    chatBox             = '.chat-view'
-
-
-    browser.element 'css selector', chatBox, (result) =>
-      if result.status is 0
-        browser
-          .waitForElementVisible     chatBox, 20000
-          .waitForElementVisible     closeButtonSelector, 20000
-          .click                     closeButtonSelector
-          .waitForElementNotVisible  chatBox, 20000
-          .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000
-      else
-        browser
-          .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000
-
-
-  openChatWindow: (browser) ->
-
-    chatLink = '.status-bar .custom-link-view'
-    chatBox  = '.chat-view'
-
-    browser
-      .pause 3000
-      .waitForElementVisible  chatLink, 20000
-      .click                  chatLink
-      .waitForElementVisible  chatBox, 20000 # Assertion
-
-
   startSessionAndInviteUser: (browser, firstUser, secondUser, assertOnline = yes, readOnlySession = no) ->
 
-    secondUserName         = secondUser.username
-    secondUserAvatar       = ".avatars .avatarview[href='/#{secondUserName}']"
+    secondUserAvatar       = ".avatars .avatarview[href='/#{secondUser.username}']"
     secondUserOnlineAvatar = "#{secondUserAvatar}.online"
-    chatTextSelector       = '.status-bar a.active'
 
     helpers.beginTest browser, firstUser
     helpers.waitForVMRunning browser
@@ -184,62 +97,63 @@ module.exports =
       if isActive then browser.end()
       else
         @startSession browser, readOnlySession
-        @inviteUser   browser, secondUserName
-
-        browser.waitForElementVisible  secondUserAvatar, 60000
-
-        if assertOnline
-          browser.waitForElementVisible  secondUserOnlineAvatar, 50000 # Assertion
 
         browser
-          .waitForElementVisible  chatTextSelector, 50000
-          .assert.containsText    chatTextSelector, 'CHAT' # Assertion
+          .waitForElementVisible  startedButtonSelector, 50000
+          .assert.containsText    startedButtonSelector, 'END COLLABORATION' # Assertion
+          .getText                collabLink, (result) ->
+            console.log ' ✔ Collaboration link is ', result.value
+            browser.writeCollabLink result.value, ->
+              browser.waitForElementVisible secondUserAvatar, 60000
+
+              if assertOnline
+                browser.waitForElementVisible secondUserOnlineAvatar, 50000 # Assertion
 
 
-  joinSession: (browser, firstUser, secondUser) ->
+  joinSession: (browser, firstUser, secondUser, join = yes) ->
 
     firstUserName    = firstUser.username
     secondUserName   = secondUser.username
     sharedMachineBox = '[testpath=main-sidebar] .shared-machines:not(.hidden)'
     shareModal       = '.share-modal'
-
     fullName         = "#{shareModal} .user-details .fullname"
     acceptButton     = "#{shareModal} .kdbutton.green"
     rejectButton     = "#{shareModal} .kdbutton.red"
     selectedMachine  = '.sidebar-machine-box.selected'
     filetree         = '.ide-files-tab'
-    message          = '.kdlistitemview-activity.privatemessage'
     chatUsers        = "#{chatBox} .chat-heads"
     userAvatar       = ".avatars .avatarview.online[href='/#{firstUserName}']"
-    chatTextSelector = '.status-bar a.active'
     sessionLoading   = '.session-starting'
 
+    console.log ' ✔ Getting collaboration link...'
+
     helpers.beginTest browser, secondUser
+    browser.getCollabLink (url) =>
 
-    browser.element 'css selector', sharedMachineBox, (result) =>
+      browser.url url
+      browser.element 'css selector', sharedMachineBox, (result) =>
 
-      if result.status is 0 then browser.end()
-      else
-        browser
-          .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
-          .waitForElementVisible     fullName, 50000
-          .assert.containsText       shareModal, firstUserName
-          .waitForElementVisible     acceptButton, 50000
-          .waitForElementVisible     rejectButton, 50000
-          .click                     acceptButton
-          .waitForElementNotPresent  shareModal, 50000
-          .pause                     3000 # wait for sidebar redraw
-          .waitForElementVisible     selectedMachine, 50000
-          .waitForElementNotPresent  sessionLoading, 50000
-          .waitForElementVisible     chatBox, 50000
-          .waitForElementVisible     chatUsers, 50000
-          .waitForElementVisible     message, 50000
-          .assert.containsText       chatBox, firstUserName
-          .assert.containsText       chatBox, secondUserName
-          .assert.containsText       filetree, firstUserName
-          .waitForElementVisible     userAvatar, 50000 # Assertion
-          .waitForElementVisible     chatTextSelector, 50000
-          .assert.containsText       chatTextSelector, 'CHAT' # Assertion
+        if result.status is 0
+          return browser.end()
+
+        if join
+          browser
+            .pause                     5000 # sidebar redraw
+            .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
+            .waitForElementVisible     fullName, 50000
+            .assert.containsText       shareModal, firstUserName
+            .waitForElementVisible     acceptButton, 50000
+            .waitForElementVisible     rejectButton, 50000
+            .click                     acceptButton
+            .waitForElementNotPresent  shareModal, 50000
+            .pause                     3000 # wait for sidebar redraw
+            .waitForElementVisible     selectedMachine, 50000
+            .waitForElementNotPresent  sessionLoading, 50000
+            .assert.containsText       filetree, firstUserName
+            .waitForElementVisible     shareButtonSelector, 50000
+            .assert.containsText       shareButtonSelector, 'LEAVE SESSION' # Assertion
+        else
+          @rejectInvitation(browser)
 
 
   waitParticipantLeaveAndEndSession: (browser) ->
@@ -265,7 +179,7 @@ module.exports =
       # assert that no shared vm on sidebar
 
 
-  initiateCollaborationSession: (browser) ->
+  initiateCollaborationSession: (browser, join = yes) ->
 
     host        = utils.getUser no, 0
     participant = utils.getUser no, 1
@@ -279,36 +193,29 @@ module.exports =
     if hostBrowser
       @startSessionAndInviteUser browser, host, participant
     else
-      @joinSession browser, host, participant
+      @joinSession browser, host, participant, join
 
 
   rejectInvitation: (browser) ->
 
-    host        = utils.getUser no, 0
-    participant = utils.getUser no, 1
-
+    host             = utils.getUser no, 0
+    participant      = utils.getUser no, 1
     firstUserName    = host.username
-    secondUserName   = participant.username
     sharedMachineBox = '[testpath=main-sidebar] .shared-machines:not(.hidden)'
     shareModal       = '.share-modal'
     fullName         =  "#{shareModal} .user-details .fullname"
     rejectButton     =  "#{shareModal} .kdbutton.red"
 
-    helpers.beginTest browser, participant
-
-    browser.element 'css selector', sharedMachineBox, (result) =>
-
-      if result.status is 0 then browser.end()
-      else
-        browser
-          .waitForElementVisible    shareModal, 500000 # wait for vm turn on for host
-          .waitForElementVisible    fullName, 50000
-          .assert.containsText      shareModal, firstUserName
-          .waitForElementVisible    rejectButton, 50000
-          .click                    rejectButton
-          .waitForElementNotPresent rejectButton, 20000
-          .waitForElementNotPresent shareModal, 20000
-          .waitForElementNotPresent sharedMachineBox, 20000
+    browser
+      .pause                    5000 # wait for sidebar
+      .waitForElementVisible    shareModal, 500000 # wait for vm turn on for host
+      .waitForElementVisible    fullName, 50000
+      .assert.containsText      shareModal, firstUserName
+      .waitForElementVisible    rejectButton, 50000
+      .click                    rejectButton
+      .waitForElementNotPresent rejectButton, 20000
+      .waitForElementNotPresent shareModal, 20000
+      .waitForElementNotPresent sharedMachineBox, 20000
 
 
   leaveSessionFromChat: (browser) ->
@@ -412,7 +319,6 @@ module.exports =
       browser.end()
     else
       @joinSession(browser, host, participant)
-      @closeChatPage(browser)
 
       switch where
         when 'Chat'      then @leaveSessionFromChat(browser)
@@ -438,7 +344,6 @@ module.exports =
 
         hostCallback?()
 
-        @closeChatPage(browser)
         @endSessionFromStatusBar(browser)
         browser.end()
       else

@@ -10,10 +10,10 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 
 module.exports =
 
-  beginTest: (browser, user) ->
+  beginTest: (browser, user, url) ->
 
-    url = @getUrl()
-    user ?= utils.getUser()
+    url  or= @getUrl()
+    user  ?= utils.getUser()
 
     browser.url url
     browser.resizeWindow 1440, 900

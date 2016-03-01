@@ -655,7 +655,7 @@ module.exports = CollaborationController =
 
     @ready =>
       @statusBar.handleCollaborationLoading()
-      @statusBar.share.show()
+      @statusBar.share?.show()
 
 
   collectButtonShownMetric: ->
@@ -749,7 +749,7 @@ module.exports = CollaborationController =
     approved = @mountedMachine.isApproved()
 
     if (not owned) and approved
-      @statusBar.share.hide()
+      @statusBar.share?.hide()
 
     @collectButtonShownMetric()
 
@@ -908,18 +908,13 @@ module.exports = CollaborationController =
 
   onCollaborationActive: ->
 
-    @showChatPane()
+    @hideChatPane()
 
     @bindAutoInviteHandlers()
 
     @transitionViewsToActive()
     @collectButtonShownMetric()
     @bindRealtimeEvents()
-
-    # this method comes from VideoCollaborationController.
-    # It's mixed into IDEAppController after CollaborationController.
-    # This is probably an anti pattern, we need to look into this again. ~Umut
-    @prepareVideoCollaboration()
 
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
@@ -967,13 +962,11 @@ module.exports = CollaborationController =
     settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
 
     @chat.emit 'CollaborationStarted'
-    @statusBar.emit 'CollaborationStarted',
-      collaborationLink: generateCollaborationLink nick(), @socialChannel.id
 
-    { onboarding } = kd.singletons
-    onboarding.run 'CollaborationStarted'
-    @chat.on ['ViewBecameHidden', 'ViewBecameVisible'], ->
-      onboarding.refresh 'CollaborationStarted'
+    generateCollaborationLink nick(), @socialChannel.id, {}, (url) =>
+      @statusBar.emit 'CollaborationStarted',
+        channelId: @socialChannel.id
+        collaborationLink: url
 
 
   onCollaborationEnding: ->
@@ -1115,7 +1108,7 @@ module.exports = CollaborationController =
     return showError 'Please wait a few seconds.'  unless @stateMachine
 
     switch @stateMachine.state
-      when 'Active'     then @showChatPane()
+      when 'Active'     then @hideChatPane()
       when 'Prepared'   then @chat.show()
       when 'NotStarted' then @stateMachine.transition 'Preparing'
 
@@ -1130,10 +1123,7 @@ module.exports = CollaborationController =
       when 'Active' then @stateMachine.transition 'Ending'
 
 
-  showChatPane: ->
-
-    @chat.showChatPane()
-    @chat.start()
+  hideChatPane: -> @chat.end()
 
 
   createChatPaneView: (channel) ->
