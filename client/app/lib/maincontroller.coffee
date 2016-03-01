@@ -21,6 +21,7 @@ ComputeController              = require './providers/computecontroller'
 ContentDisplayController       = require './contentdisplay/contentdisplaycontroller'
 GroupsController               = require './maincontroller/groupscontroller'
 HelpController                 = require './maincontroller/helpcontroller'
+HubspotTracker                 = require './hubspot/hubspotcontroller'
 IdleUserDetector               = require './idleuserdetector'
 KiteCache                      = require './kite/kitecache'
 KodingAppsController           = require './kodingappscontroller'
@@ -100,6 +101,7 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'computeController',         new ComputeController
     kd.registerSingleton 'locationController',        new LocationController
     kd.registerSingleton 'helpController',            new HelpController
+    kd.registerSingleton 'hubspotController',         new HubspotTracker
     kd.registerSingleton 'appStorageController',      new AppStorageController
     kd.registerSingleton 'localSync',                 new LocalSyncController
     kd.registerSingleton 'mainView',             mv = new MainView
