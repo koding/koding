@@ -226,16 +226,18 @@ func (t *Template) FillVariables(prefix string) error {
 // InjectVariables
 func (t *Template) InjectVariables(prefix string, meta interface{}) error {
 	for k, v := range t.b.New(prefix).Build(meta) {
+		// Ignore custom variables prefixed with __ from injecting.
+		// The ignored variables may contain interpolations which are
+		// not meant to be sent to Terraform.
+		if strings.HasPrefix(k, "custom___") {
+			t.log.Debug("Not injecting variable: %s=%s", k, v)
+			continue
+		}
+
 		t.log.Debug("Injecting variable: %s=%v", k, v)
 
-		if str, ok := v.(string); ok {
-			t.Variable[k] = map[string]interface{}{
-				"default": strings.Replace(str, "\n", "\\n", -1),
-			}
-		} else {
-			t.Variable[k] = map[string]interface{}{
-				"default": v,
-			}
+		t.Variable[k] = map[string]interface{}{
+			"default": v,
 		}
 	}
 
