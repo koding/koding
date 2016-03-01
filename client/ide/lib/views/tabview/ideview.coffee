@@ -639,7 +639,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     if inActiveSessions.length
       terminalSessions['Open All']  =
-        callback          : => @openAllSessions { machine, inActiveSessions }
+        callback          : => @openAllSessions { machine, sessions : inActiveSessions }
 
     if canTerminateSessions
       terminalSessions["Terminate all"] =
@@ -671,9 +671,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   openAllSessions: (params) ->
 
-    { machine, inActiveSessions } = params
+    { machine, sessions } = params
 
-    for session in inActiveSessions
+    for session in sessions
       @createTerminal { machine, session }
 
 
