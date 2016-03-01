@@ -16,7 +16,7 @@ import (
 
 var (
 	ErrPathNotFound           = errors.New("required a path name to store keys")
-	ErrRequiredValuesNotFound = errors.New("required fields not found")
+	ErrRequiredValuesNotFound = errors.New("required fields not found to store")
 )
 
 // KeyValue holds the credentials whatever you want as key-value pair
