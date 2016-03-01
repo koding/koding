@@ -1,5 +1,3 @@
-kd               = require 'kd'
-globals          = require 'globals'
 remote           = require('app/remote').getInstance()
 isFeatureEnabled = require 'app/util/isFeatureEnabled'
 
