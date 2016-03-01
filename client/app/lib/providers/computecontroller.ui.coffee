@@ -17,6 +17,7 @@ isMine               = require 'app/util/isMine'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
+doXhrRequest         = require 'app/util/doXhrRequest'
 
 
 MissingDataView      = require './missingdataview'
@@ -37,6 +38,34 @@ module.exports = class ComputeController_UI
 
   KNOWN_FIELD_TYPES   =
     'ssh_private_key' : 'textarea'
+
+  injectCustomActions = (requiredFields, buttons, callback) ->
+
+    if 'ssh_public_key' in requiredFields
+
+      buttons['Auto Generate SSH Keys'] =
+        style    : 'solid medium green'
+        type     : 'button'
+        loader   : yes
+        tooltip  :
+          title  : "This stack requires SSH keys that you
+                    can automatically create one from here"
+        callback : ->
+
+          endPoint = '/api/social/sshkeys'
+          type     = 'GET'
+
+          doXhrRequest { endPoint, type }, (err, res) =>
+
+            @hideLoader()
+            return  if showError err, KodingError: 'Service not available'
+
+            callback
+              'ssh_public_key'  : res.public
+              'ssh_private_key' : res.private
+
+    return buttons
+
 
   @generateAddCredentialFormFor = (options) ->
 
@@ -90,7 +119,6 @@ module.exports = class ComputeController_UI
 
         selectOptions.push { field, values }
 
-
     buttons      =
       Save       :
         title    : "Save"
@@ -99,10 +127,15 @@ module.exports = class ComputeController_UI
         loader   : color : "#444444"
         callback : -> @hideLoader()
 
-      Cancel     :
-        style    : "solid medium"
-        type     : "button"
-        callback : -> form.emit "Cancel"
+    buttons = injectCustomActions requiredFields, buttons, (generatedKeys) ->
+      for own field, input of form.inputs
+        input.setValue data  if data = generatedKeys[field]
+
+    buttons.Cancel =
+      style        : "solid medium"
+      type         : "button"
+      callback     : -> form.emit "Cancel"
+
 
     # Add advanced fields into form
     if advancedFields = currentProvider.advancedFields
