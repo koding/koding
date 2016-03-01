@@ -54,7 +54,7 @@ module.exports = class ComputeController_UI
       credentialFields = {}
 
       for field in requiredFields
-        continue  if field is '__rawContent'
+        continue  if field.indexOf('__') is 0
         name = field.name ? field
         type = field.type ? KNOWN_FIELD_TYPES[field] ? 'text'
         { values } = field
