@@ -9,6 +9,7 @@ import (
 	"koding/klient/remote/req"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
+	"koding/klientctl/list"
 	"koding/klientctl/util/exec"
 
 	"github.com/koding/logging"
@@ -41,6 +42,7 @@ type Command struct {
 
 	// The klient instance this struct will use, mainly given to Repairers.
 	Klient interface {
+		RemoteList() (list.KiteInfos, error)
 		RemoteStatus(req.Status) error
 	}
 
@@ -111,12 +113,18 @@ func (c *Command) Run() (int, error) {
 		return 5, err
 	}
 
-	if err := c.initDefaultRepairers(); err != nil {
+	// Check for the existence of the machine *after* we run the repairers. That
+	// way the setup repairers can check for the health of klient, start it, etc.
+	if err := c.checkMachineExist(); err != nil {
 		return 6, err
 	}
 
-	if err := c.runRepairers(c.Repairers); err != nil {
+	if err := c.initDefaultRepairers(); err != nil {
 		return 7, err
+	}
+
+	if err := c.runRepairers(c.Repairers); err != nil {
+		return 8, err
 	}
 
 	c.printfln("Everything looks healthy")
@@ -140,6 +148,10 @@ func (c *Command) handleOptions() error {
 // If klient isn't able to run, we can't run most of our repairers anyway - that's
 // what this one deals with.
 func (c *Command) initSetupRepairers() error {
+	if c.SetupRepairers != nil {
+		return nil
+	}
+
 	// Our internet repairer retries status many times, until it finally gives up.
 	internetRepair := &InternetRepair{
 		Stdout:               c.Stdout,
@@ -193,6 +205,41 @@ func (c *Command) setupKlient() error {
 	}
 
 	c.Klient = k
+
+	return nil
+}
+
+// checkMachineExists will list the remote machines and check if the given machine
+// exists.
+//
+// TODO: This function needs to list *all* machines, offline or online, because
+// offline machines may be in need of repair. This is not currently possible,
+// but will be implemented by TMS-2443.
+func (c *Command) checkMachineExist() error {
+	infos, err := c.Klient.RemoteList()
+
+	// Because we just ran health checks against Kontrol, this really shouldn't happen.
+	// Lets log a meaningful message to the user.
+	//
+	// Asking them to run repair again (so we can run the repairers again) seems
+	// reasonable. We could of course manually run the repairers, but that seems like
+	// a good way to confuse order of operations for our developers.
+	if err != nil {
+		// TODO: Senthil, fix this message please.
+		c.printfln(
+			`Error: Unable to list machines from Koding. Your connection to Koding may
+be intermittent. Please run this repair command again to attempt a diagnosis.`,
+		)
+		return err
+	}
+
+	_, ok := infos.FindFromName(c.Options.MountName)
+	if !ok {
+		err := fmt.Errorf("Error: Machine %q does not exist.", c.Options.MountName)
+		// TODO: Senthil, fix this message please.
+		c.printfln(err.Error())
+		return err
+	}
 
 	return nil
 }
