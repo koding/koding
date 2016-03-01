@@ -1,6 +1,5 @@
 actions         = require 'activity/flux/chatinput/actions/actiontypes'
 KodingFluxStore = require 'app/flux/base/store'
-toImmutable     = require 'app/util/toImmutable'
 immutable       = require 'immutable'
 
 ###*
