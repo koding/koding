@@ -295,10 +295,9 @@ module.exports = class IDEEditorPane extends IDEPane
 
   handleFileContentChange: ->
 
-    change = @getInitialChangeObject()
-
     return  if @dontEmitChangeEvent
 
+    change = @getInitialChangeObject()
     change.type = 'ContentChange'
     change.context.file.content = @getContent()
 
