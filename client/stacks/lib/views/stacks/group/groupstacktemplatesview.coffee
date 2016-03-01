@@ -1,4 +1,3 @@
-kd                     = require 'kd'
 GroupInitialView       = require './groupinitialview'
 BaseStackTemplatesView = require '../basestacktemplatesview'
 

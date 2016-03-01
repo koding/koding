@@ -1,6 +1,5 @@
 kd                  = require 'kd'
 KDView              = kd.View
-KDCustomHTMLView    = kd.CustomHTMLView
 CredentialListView  = require './credentiallistview'
 
 

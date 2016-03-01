@@ -4,7 +4,6 @@ curryIn                     = require 'app/util/curryIn'
 FSHelper                    = require 'app/util/fs/fshelper'
 { jsonToYaml, yamlToJson }  = require '../yamlutils'
 IDEEditorPane               = require 'ide/workspace/panes/ideeditorpane'
-KDNotificationView          = kd.NotificationView
 
 
 module.exports = class BaseStackEditorView extends IDEEditorPane
