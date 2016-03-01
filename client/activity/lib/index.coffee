@@ -1,12 +1,9 @@
 kd                       = require 'kd'
 ActivityAppView          = require './activityappview'
 ActivityFlux             = require 'activity/flux'
-remote                   = require('app/remote').getInstance()
 globals                  = require 'globals'
 getGroup                 = require 'app/util/getGroup'
-checkFlag                = require 'app/util/checkFlag'
 isKoding                 = require 'app/util/isKoding'
-AppStorage               = require 'app/appstorage'
 AppController            = require 'app/appcontroller'
 KodingAppsController     = require 'app/kodingappscontroller'
 keyboardKeys             = require 'app/constants/keyboardKeys'
