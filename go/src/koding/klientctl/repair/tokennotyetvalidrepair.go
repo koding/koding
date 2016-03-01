@@ -98,5 +98,7 @@ func (r *TokenNotYetValidRepair) Repair() error {
 		fmt.Fprint(r.Stdout, "\n")
 	}
 
+	fmt.Fprintln(r.Stdout, "Success, auth token now valid.")
+
 	return err
 }

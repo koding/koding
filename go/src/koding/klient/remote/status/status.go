@@ -120,7 +120,14 @@ func (s *Status) MachineStatus(name string) error {
 		return s.handleKiteErr(err)
 	}
 
-	if err := machine.Ping(); err != nil {
+	// We have to use klient.info here, because we're trying to catch the
+	// TokenIsNotValidYet error. kite.ping does not use auth, and does not show
+	// that error as a result. klient.info does use auth, and doesn't reset klient
+	// usage. So it seems like an okay method for this.
+	//
+	// In the future, we should probably add auth'd ping to klient, to avoid side
+	// effects.
+	if _, err := machine.Tell("klient.info"); err != nil {
 		return s.handleKiteErr(err)
 	}
 
