@@ -9,7 +9,6 @@ KDCustomHTMLView    = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'
 InvitationInputView = require './invitationinputview'
-hubspotTracker      = require 'app/util/hubspotTracker'
 
 module.exports = class InviteSomeoneView extends KDView
 
@@ -90,7 +89,8 @@ module.exports = class InviteSomeoneView extends KDView
       invites.push invite = view.serialize()
       admins.push invite.email  if invite.role is 'admin'
 
-    hubspotTracker '000000537085', null
+    { hubspotController } = kd.singletons
+    hubspotController.track 'invited team members'
 
     if admins.length
       @notifyAdminInvites invites, admins

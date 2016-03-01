@@ -3,7 +3,6 @@ kd                  = require 'kd'
 globals             = require 'globals'
 whoami              = require 'app/util/whoami'
 { boxes, HANDLERS } = require './boxes'
-hubspotTracker      = require 'app/util/hubspotTracker'
 
 module.exports = class WelcomeAppView extends kd.View
 
@@ -102,7 +101,8 @@ module.exports = class WelcomeAppView extends kd.View
 
       hintEl.innerHTML = "Hit #{key} to copy!"
 
-    hubspotTracker '000000537087', null
+    { hubspotController } = kd.singletons
+    hubspotController.track 'installed kd'
 
     kd.singletons.mainView.mainTabView.scrollToBottom 200
 

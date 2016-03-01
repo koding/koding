@@ -11,7 +11,6 @@ FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 actions              = require 'app/flux/environment/actions'
-hubspotTracker       = require 'app/util/hubspotTracker'
 
 remote               = require('../remote').getInstance()
 Machine              = require './machine'
@@ -678,7 +677,8 @@ module.exports = class ComputeController extends KDController
     unless state is 'NotInitialized'
       if state is 'Building'
         @eventListener.addListener 'apply', stack._id
-        hubspotTracker '000000537109', null
+        { hubspotController } = kd.singletons
+        hubspotController.track 'setup stack'
       else
         kd.warn 'Stack already initialized, skipping.', stack
       return
