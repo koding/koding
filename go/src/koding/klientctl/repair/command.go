@@ -8,6 +8,7 @@ import (
 
 	"koding/klient/remote/req"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/exitcodes"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
 	"koding/klientctl/util/exec"
@@ -94,42 +95,42 @@ func (c *Command) printfln(f string, i ...interface{}) {
 // Run the Mount command
 func (c *Command) Run() (int, error) {
 	if err := c.handleOptions(); err != nil {
-		return 1, err
+		return exitcodes.RepairHandleOptionsErr, err
 	}
 
 	if err := c.initService(); err != nil {
-		return 2, err
+		return exitcodes.RepairInitServiceErr, err
 	}
 
 	if err := c.initSetupRepairers(); err != nil {
-		return 3, err
+		return exitcodes.RepairInitSetupRepairersErr, err
 	}
 
 	if err := c.runRepairers(c.SetupRepairers); err != nil {
-		return 4, err
+		return exitcodes.RepairRunSetupRepairersErr, err
 	}
 
 	if err := c.setupKlient(); err != nil {
-		return 5, err
+		return exitcodes.RepairSetupKlientErr, err
 	}
 
 	// Check for the existence of the machine *after* we run the repairers. That
 	// way the setup repairers can check for the health of klient, start it, etc.
 	if err := c.checkMachineExist(); err != nil {
-		return 6, err
+		return exitcodes.RepairCheckMachineExistErr, err
 	}
 
 	if err := c.initDefaultRepairers(); err != nil {
-		return 7, err
+		return exitcodes.RepairInitDefaultRepairersErr, err
 	}
 
 	if err := c.runRepairers(c.Repairers); err != nil {
-		return 8, err
+		return exitcodes.RepairRunDefaultRepairersErr, err
 	}
 
 	c.printfln("Everything looks healthy")
 
-	return 0, nil
+	return exitcodes.Success, nil
 }
 
 func (c *Command) handleOptions() error {
