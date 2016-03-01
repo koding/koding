@@ -4,9 +4,10 @@ ideHelpers = require './idehelpers.js'
 utils      = require '../utils/utils.js'
 
 messagePane              = '.message-pane.privatemessage'
-notStartedButtonSelector = '.status-bar a.share.not-started'
 chatBox                  = '.collaboration.message-pane'
 shareButtonSelector      = '.status-bar a.share:not(.loading)'
+startedButtonSelector    = '.status-bar a.share.active'
+notStartedButtonSelector = '.status-bar a.share.not-started'
 
 
 module.exports =
@@ -48,8 +49,7 @@ module.exports =
           .click                  startButtonSelector
 
       browser
-        .waitForElementVisible  messagePane, 200000 # Assertion
-        .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
+        .waitForElementVisible  startedButtonSelector, 200000 # Assertion
 
 
   leaveSessionFromStatusBar: (browser) ->
@@ -63,11 +63,8 @@ module.exports =
     buttonContainerSelector = statusBarSelector + ' .button-container'
 
     browser
-      .waitForElementVisible  statusBarSelector, 20000
-      .waitForElementVisible  statusBarSelector + ' span', 20000
-      .click                  statusBarSelector + ' span'
-      .waitForElementVisible  buttonContainerSelector, 20000
-      .click                  buttonContainerSelector + ' button.end-session'
+      .waitForElementVisible  startedButtonSelector, 20000
+      .click                  startedButtonSelector
 
     @endSessionModal(browser, shouldAssert)
 
