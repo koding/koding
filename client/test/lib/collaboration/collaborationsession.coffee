@@ -18,28 +18,6 @@ module.exports =
     utils.registerSuiteHook 'before'
 
 
-  # rejectInvitation: (browser) ->
-
-  #   host              = utils.getUser no, 0
-  #   hostBrowser       = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-  #   participant       = utils.getUser no, 1
-  #   secondUserName    = participant.username
-  #   participantAvatar = ".avatars .avatarview[href='/#{participant.username}']"
-
-  #   browser.pause 2500, -> # wait for user.json creation
-
-  #     collaborationHelpers.initiateCollaborationSession(browser, no, no)
-
-  #     if hostBrowser
-  #       browser.waitForElementNotPresent(participantAvatar, 60000)
-  #       collaborationHelpers.endSessionFromStatusBar(browser)
-  #       browser.end()
-  #     else
-  #       collaborationHelpers.rejectInvitation(browser)
-  #       browser.pause 5000
-  #       browser.end()
-
-
   leaveSessionFromSidebar: (browser) ->
 
     collaborationHelpers.testLeaveSessionFrom_(browser, 'Sidebar')
