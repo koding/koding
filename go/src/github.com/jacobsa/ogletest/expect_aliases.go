@@ -15,70 +15,50 @@
 
 package ogletest
 
-import (
-	"github.com/jacobsa/oglematchers"
-	"path"
-	"runtime"
-)
-
-func getCallerForAlias() (fileName string, lineNumber int) {
-	_, fileName, lineNumber, _ = runtime.Caller(2)
-	fileName = path.Base(fileName)
-	return
-}
+import "github.com/jacobsa/oglematchers"
 
 // ExpectEq(e, a) is equivalent to ExpectThat(a, oglematchers.Equals(e)).
-func ExpectEq(expected, actual interface{}, errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(actual, oglematchers.Equals(expected), errorParts...)
-	res.SetCaller(getCallerForAlias())
-	return res
+func ExpectEq(expected, actual interface{}, errorParts ...interface{}) {
+	expectThat(actual, oglematchers.Equals(expected), 1, errorParts)
 }
 
-// ExpectNe(e, a) is equivalent to ExpectThat(a, oglematchers.Not(oglematchers.Equals(e))).
-func ExpectNe(expected, actual interface{}, errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(actual, oglematchers.Not(oglematchers.Equals(expected)), errorParts...)
-	res.SetCaller(getCallerForAlias())
-	return res
+// ExpectNe(e, a) is equivalent to
+// ExpectThat(a, oglematchers.Not(oglematchers.Equals(e))).
+func ExpectNe(expected, actual interface{}, errorParts ...interface{}) {
+	expectThat(
+		actual,
+		oglematchers.Not(oglematchers.Equals(expected)),
+		1,
+		errorParts)
 }
 
 // ExpectLt(x, y) is equivalent to ExpectThat(x, oglematchers.LessThan(y)).
-func ExpectLt(x, y interface{}, errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(x, oglematchers.LessThan(y), errorParts...)
-	res.SetCaller(getCallerForAlias())
-	return res
+func ExpectLt(x, y interface{}, errorParts ...interface{}) {
+	expectThat(x, oglematchers.LessThan(y), 1, errorParts)
 }
 
 // ExpectLe(x, y) is equivalent to ExpectThat(x, oglematchers.LessOrEqual(y)).
-func ExpectLe(x, y interface{}, errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(x, oglematchers.LessOrEqual(y), errorParts...)
-	res.SetCaller(getCallerForAlias())
-	return res
+func ExpectLe(x, y interface{}, errorParts ...interface{}) {
+	expectThat(x, oglematchers.LessOrEqual(y), 1, errorParts)
 }
 
 // ExpectGt(x, y) is equivalent to ExpectThat(x, oglematchers.GreaterThan(y)).
-func ExpectGt(x, y interface{}, errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(x, oglematchers.GreaterThan(y), errorParts...)
-	res.SetCaller(getCallerForAlias())
-	return res
+func ExpectGt(x, y interface{}, errorParts ...interface{}) {
+	expectThat(x, oglematchers.GreaterThan(y), 1, errorParts)
 }
 
-// ExpectGe(x, y) is equivalent to ExpectThat(x, oglematchers.GreaterOrEqual(y)).
-func ExpectGe(x, y interface{}, errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(x, oglematchers.GreaterOrEqual(y), errorParts...)
-	res.SetCaller(getCallerForAlias())
-	return res
+// ExpectGe(x, y) is equivalent to
+// ExpectThat(x, oglematchers.GreaterOrEqual(y)).
+func ExpectGe(x, y interface{}, errorParts ...interface{}) {
+	expectThat(x, oglematchers.GreaterOrEqual(y), 1, errorParts)
 }
 
 // ExpectTrue(b) is equivalent to ExpectThat(b, oglematchers.Equals(true)).
-func ExpectTrue(b interface{}, errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(b, oglematchers.Equals(true), errorParts...)
-	res.SetCaller(getCallerForAlias())
-	return res
+func ExpectTrue(b interface{}, errorParts ...interface{}) {
+	expectThat(b, oglematchers.Equals(true), 1, errorParts)
 }
 
 // ExpectFalse(b) is equivalent to ExpectThat(b, oglematchers.Equals(false)).
-func ExpectFalse(b interface{}, errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(b, oglematchers.Equals(false), errorParts...)
-	res.SetCaller(getCallerForAlias())
-	return res
+func ExpectFalse(b interface{}, errorParts ...interface{}) {
+	expectThat(b, oglematchers.Equals(false), 1, errorParts)
 }

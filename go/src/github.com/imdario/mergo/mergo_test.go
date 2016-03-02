@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"reflect"
 	"testing"
+	"time"
 
 	"gopkg.in/yaml.v1"
 )
@@ -20,7 +21,7 @@ type simpleTest struct {
 type complexTest struct {
 	St simpleTest
 	sz int
-	Id string
+	ID string
 }
 
 type moreComplextText struct {
@@ -102,7 +103,7 @@ func TestSimpleStruct(t *testing.T) {
 
 func TestComplexStruct(t *testing.T) {
 	a := complexTest{}
-	a.Id = "athing"
+	a.ID = "athing"
 	b := complexTest{simpleTest{42}, 1, "bthing"}
 	if err := Merge(&a, b); err != nil {
 		t.FailNow()
@@ -113,8 +114,8 @@ func TestComplexStruct(t *testing.T) {
 	if a.sz == 1 {
 		t.Fatalf("a's private field sz not preserved from merge: a.sz(%d) == b.sz(%d)", a.sz, b.sz)
 	}
-	if a.Id == b.Id {
-		t.Fatalf("a's field Id merged unexpectedly: a.Id(%s) == b.Id(%s)", a.Id, b.Id)
+	if a.ID == b.ID {
+		t.Fatalf("a's field ID merged unexpectedly: a.ID(%s) == b.ID(%s)", a.ID, b.ID)
 	}
 }
 
@@ -245,23 +246,23 @@ func TestSliceStruct(t *testing.T) {
 
 func TestMapsWithOverwrite(t *testing.T) {
 	m := map[string]simpleTest{
-		"a": simpleTest{},   // overwritten by 16
-		"b": simpleTest{42}, // not overwritten by empty value
-		"c": simpleTest{13}, // overwritten by 12
-		"d": simpleTest{61},
+		"a": {},   // overwritten by 16
+		"b": {42}, // not overwritten by empty value
+		"c": {13}, // overwritten by 12
+		"d": {61},
 	}
 	n := map[string]simpleTest{
-		"a": simpleTest{16},
-		"b": simpleTest{},
-		"c": simpleTest{12},
-		"e": simpleTest{14},
+		"a": {16},
+		"b": {},
+		"c": {12},
+		"e": {14},
 	}
 	expect := map[string]simpleTest{
-		"a": simpleTest{16},
-		"b": simpleTest{},
-		"c": simpleTest{12},
-		"d": simpleTest{61},
-		"e": simpleTest{14},
+		"a": {16},
+		"b": {},
+		"c": {12},
+		"d": {61},
+		"e": {14},
 	}
 
 	if err := MergeWithOverwrite(&m, n); err != nil {
@@ -275,23 +276,23 @@ func TestMapsWithOverwrite(t *testing.T) {
 
 func TestMaps(t *testing.T) {
 	m := map[string]simpleTest{
-		"a": simpleTest{},
-		"b": simpleTest{42},
-		"c": simpleTest{13},
-		"d": simpleTest{61},
+		"a": {},
+		"b": {42},
+		"c": {13},
+		"d": {61},
 	}
 	n := map[string]simpleTest{
-		"a": simpleTest{16},
-		"b": simpleTest{},
-		"c": simpleTest{12},
-		"e": simpleTest{14},
+		"a": {16},
+		"b": {},
+		"c": {12},
+		"e": {14},
 	}
 	expect := map[string]simpleTest{
-		"a": simpleTest{0},
-		"b": simpleTest{42},
-		"c": simpleTest{13},
-		"d": simpleTest{61},
-		"e": simpleTest{14},
+		"a": {0},
+		"b": {42},
+		"c": {13},
+		"d": {61},
+		"e": {14},
 	}
 
 	if err := Merge(&m, n); err != nil {
@@ -341,7 +342,7 @@ func TestTwoPointerValues(t *testing.T) {
 
 func TestMap(t *testing.T) {
 	a := complexTest{}
-	a.Id = "athing"
+	a.ID = "athing"
 	c := moreComplextText{a, simpleTest{}, simpleTest{}}
 	b := map[string]interface{}{
 		"ct": map[string]interface{}{
@@ -374,8 +375,8 @@ func TestMap(t *testing.T) {
 	if c.Ct.sz == 1 {
 		t.Fatalf("a's private field sz not preserved from merge: c.Ct.sz(%d) == b.Ct.sz(%d)", c.Ct.sz, m["sz"])
 	}
-	if c.Ct.Id == m["id"] {
-		t.Fatalf("a's field Id merged unexpectedly: c.Ct.Id(%s) == b.Ct.Id(%s)", c.Ct.Id, m["id"])
+	if c.Ct.ID == m["id"] {
+		t.Fatalf("a's field ID merged unexpectedly: c.Ct.ID(%s) == b.Ct.ID(%s)", c.Ct.ID, m["id"])
 	}
 }
 
@@ -433,9 +434,92 @@ func TestBackAndForth(t *testing.T) {
 	}
 }
 
+type structWithTimePointer struct {
+	Birth *time.Time
+}
+
+func TestTime(t *testing.T) {
+	now := time.Now()
+	dataStruct := structWithTimePointer{
+		Birth: &now,
+	}
+	dataMap := map[string]interface{}{
+		"Birth": &now,
+	}
+	b := structWithTimePointer{}
+	if err := Merge(&b, dataStruct); err != nil {
+		t.FailNow()
+	}
+	if b.Birth.IsZero() {
+		t.Fatalf("time.Time not merged in properly: b.Birth(%v) != dataStruct['Birth'](%v)", b.Birth, dataStruct.Birth)
+	}
+	if b.Birth != dataStruct.Birth {
+		t.Fatalf("time.Time not merged in properly: b.Birth(%v) != dataStruct['Birth'](%v)", b.Birth, dataStruct.Birth)
+	}
+	b = structWithTimePointer{}
+	if err := Map(&b, dataMap); err != nil {
+		t.FailNow()
+	}
+	if b.Birth.IsZero() {
+		t.Fatalf("time.Time not merged in properly: b.Birth(%v) != dataMap['Birth'](%v)", b.Birth, dataMap["Birth"])
+	}
+}
+
+type simpleNested struct {
+	A int
+}
+
+type structWithNestedPtrValueMap struct {
+	NestedPtrValue map[string]*simpleNested
+}
+
+func TestNestedPtrValueInMap(t *testing.T) {
+	src := &structWithNestedPtrValueMap{
+		NestedPtrValue: map[string]*simpleNested{
+			"x": {
+				A: 1,
+			},
+		},
+	}
+	dst := &structWithNestedPtrValueMap{
+		NestedPtrValue: map[string]*simpleNested{
+			"x": {},
+		},
+	}
+	if err := Map(dst, src); err != nil {
+		t.FailNow()
+	}
+	if dst.NestedPtrValue["x"].A == 0 {
+		t.Fatalf("Nested Ptr value not merged in properly: dst.NestedPtrValue[\"x\"].A(%v) != src.NestedPtrValue[\"x\"].A(%v)", dst.NestedPtrValue["x"].A, src.NestedPtrValue["x"].A)
+	}
+}
+
 func loadYAML(path string) (m map[string]interface{}) {
 	m = make(map[string]interface{})
 	raw, _ := ioutil.ReadFile(path)
 	_ = yaml.Unmarshal(raw, &m)
 	return
+}
+
+type structWithMap struct {
+	m map[string]structWithUnexportedProperty
+}
+
+type structWithUnexportedProperty struct {
+	s string
+}
+
+func TestUnexportedProperty(t *testing.T) {
+	a := structWithMap{map[string]structWithUnexportedProperty{
+		"key": structWithUnexportedProperty{"hello"},
+	}}
+	b := structWithMap{map[string]structWithUnexportedProperty{
+		"key": structWithUnexportedProperty{"hi"},
+	}}
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("Should not have panicked")
+		}
+	}()
+	Merge(&a, b)
 }

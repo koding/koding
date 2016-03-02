@@ -89,6 +89,7 @@ func main() {
 - https://github.com/adoxa/ansicon
 - https://github.com/aslakhellesoy/wac
 - https://github.com/wsxiaoys/terminal
+- https://github.com/mattn/go-colorable
 
 ## Contributing
 

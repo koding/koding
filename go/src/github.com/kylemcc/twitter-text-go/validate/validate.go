@@ -2,16 +2,17 @@
 package validate
 
 import (
-	"code.google.com/p/go.text/unicode/norm"
 	"fmt"
-	"github.com/kylemcc/twitter-text-go/extract"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/kylemcc/twitter-text-go/extract"
+	"golang.org/x/text/unicode/norm"
 )
 
 const (
 	maxLength           = 140
-	shortUrlLength      = 22
+	shortUrlLength      = 23
 	shortHttpsUrlLength = 23
 	invalidChars        = "\uFFFE\uFEFF\uFFFF\u202A\u202B\u202C\u202D\u202E"
 )

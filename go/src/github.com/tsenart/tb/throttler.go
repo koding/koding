@@ -42,17 +42,16 @@ func NewThrottler(freq time.Duration) *Throttler {
 // You must call Close when you're done with the Throttler in order to not leak
 // a go-routine and a system-timer.
 func (t *Throttler) Bucket(key string, rate int64) *Bucket {
-	t.mu.RLock()
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	b, ok := t.buckets[key]
-	t.mu.RUnlock()
 
 	if !ok {
 		b = NewBucket(rate, -1)
 		b.inc = int64(math.Floor(.5 + (float64(b.capacity) * t.freq.Seconds())))
 		b.freq = t.freq
-		t.mu.Lock()
 		t.buckets[key] = b
-		t.mu.Unlock()
 	}
 
 	return b

@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go/build"
+
 	"github.com/smartystreets/goconvey/convey/reporting"
 	"github.com/smartystreets/goconvey/web/server/messaging"
 )
@@ -13,6 +15,7 @@ type Package struct {
 	Name          string
 	Ignored       bool
 	Disabled      bool
+	BuildTags     []string
 	TestArguments []string
 	Error         error
 	Output        string
@@ -28,6 +31,7 @@ func NewPackage(folder *messaging.Folder, hasImportCycle bool) *Package {
 	self.Result = NewPackageResult(self.Name)
 	self.Ignored = folder.Ignored
 	self.Disabled = folder.Disabled
+	self.BuildTags = folder.BuildTags
 	self.TestArguments = folder.TestArguments
 	self.HasImportCycle = hasImportCycle
 	return self
@@ -101,13 +105,13 @@ func NewTestResult(testName string) *TestResult {
 }
 
 func resolvePackageName(path string) string {
-	index := strings.Index(path, endGoPath)
-	if index < 0 {
-		return path
+	pkg, err := build.ImportDir(path, build.FindOnly)
+	if err == nil {
+		return pkg.ImportPath
 	}
-	packageBeginning := index + len(endGoPath)
-	name := path[packageBeginning:]
-	return name
+
+	nameArr := strings.Split(path, endGoPath)
+	return nameArr[len(nameArr)-1]
 }
 
 const (

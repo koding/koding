@@ -17,10 +17,15 @@ import (
 	"time"
 )
 
-const defaultHeartbeat = 10 * time.Second
-const defaultConnectionTimeout = 30 * time.Second
-const defaultProduct = "https://github.com/streadway/amqp"
-const defaultVersion = "β"
+const (
+	maxChannelMax = (2 << 15) - 1
+
+	defaultHeartbeat         = 10 * time.Second
+	defaultConnectionTimeout = 30 * time.Second
+	defaultProduct           = "https://github.com/streadway/amqp"
+	defaultVersion           = "β"
+	defaultChannelMax        = maxChannelMax
+)
 
 // Config is used in DialConfig and Open to specify the desired tuning
 // parameters used during a connection open handshake.  The negotiated tuning
@@ -35,9 +40,9 @@ type Config struct {
 	// bindings on the server.  Dial sets this to the path parsed from the URL.
 	Vhost string
 
-	Channels  int           // 0 max channels means unlimited
-	FrameSize int           // 0 max bytes means unlimited
-	Heartbeat time.Duration // less than 1s uses the server's interval
+	ChannelMax int           // 0 max channels means 2^16 - 1
+	FrameSize  int           // 0 max bytes means unlimited
+	Heartbeat  time.Duration // less than 1s uses the server's interval
 
 	// TLSClientConfig specifies the client configuration of the TLS connection
 	// when establishing a tls transport.
@@ -74,7 +79,8 @@ type Connection struct {
 	sends     chan time.Time     // timestamps of each frame sent
 	deadlines chan readDeadliner // heartbeater updates read deadlines
 
-	channels channelRegistry
+	allocator *allocator // id generator valid after openTune
+	channels  map[uint16]*Channel
 
 	noNotify bool // true when we will never notify again
 	closes   []chan *Error
@@ -91,6 +97,10 @@ type Connection struct {
 
 type readDeadliner interface {
 	SetReadDeadline(time.Time) error
+}
+
+type localNetAddr interface {
+	LocalAddr() net.Addr
 }
 
 // defaultDial establishes a connection when config.Dial is not provided
@@ -201,7 +211,7 @@ func Open(conn io.ReadWriteCloser, config Config) (*Connection, error) {
 	me := &Connection{
 		conn:      conn,
 		writer:    &writer{bufio.NewWriter(conn)},
-		channels:  channelRegistry{channels: make(map[uint16]*Channel)},
+		channels:  make(map[uint16]*Channel),
 		rpc:       make(chan message),
 		sends:     make(chan time.Time),
 		errors:    make(chan *Error, 1),
@@ -209,6 +219,17 @@ func Open(conn io.ReadWriteCloser, config Config) (*Connection, error) {
 	}
 	go me.reader(conn)
 	return me, me.open(config)
+}
+
+/*
+LocalAddr returns the local TCP peer address, or ":0" (the zero value of net.TCPAddr)
+as a fallback default value if the underlying transport does not support LocalAddr().
+*/
+func (me *Connection) LocalAddr() net.Addr {
+	if c, ok := me.conn.(localNetAddr); ok {
+		return c.LocalAddr()
+	}
+	return &net.TCPAddr{}
 }
 
 /*
@@ -319,17 +340,14 @@ func (me *Connection) send(f frame) error {
 
 func (me *Connection) shutdown(err *Error) {
 	me.destructor.Do(func() {
-		me.m.Lock()
-		defer me.m.Unlock()
-
 		if err != nil {
 			for _, c := range me.closes {
 				c <- err
 			}
 		}
 
-		for _, ch := range me.channels.removeAll() {
-			ch.shutdown(err)
+		for _, ch := range me.channels {
+			me.closeChannel(ch, err)
 		}
 
 		if err != nil {
@@ -346,7 +364,9 @@ func (me *Connection) shutdown(err *Error) {
 			close(c)
 		}
 
+		me.m.Lock()
 		me.noNotify = true
+		me.m.Unlock()
 	})
 }
 
@@ -392,7 +412,11 @@ func (me *Connection) dispatch0(f frame) {
 }
 
 func (me *Connection) dispatchN(f frame) {
-	if channel := me.channels.get(f.channel()); channel != nil {
+	me.m.Lock()
+	channel := me.channels[f.channel()]
+	me.m.Unlock()
+
+	if channel != nil {
 		channel.recv(channel, f)
 	} else {
 		me.dispatchClosed(f)
@@ -459,7 +483,9 @@ func (me *Connection) heartbeater(interval time.Duration, done chan *Error) {
 
 	var sendTicks <-chan time.Time
 	if interval > 0 {
-		sendTicks = time.Tick(interval)
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		sendTicks = ticker.C
 	}
 
 	lastSent := time.Now()
@@ -497,13 +523,62 @@ func (me *Connection) heartbeater(interval time.Duration, done chan *Error) {
 	}
 }
 
-// Convienence method to inspect the Connection.Properties["capabilities"]
+// Convenience method to inspect the Connection.Properties["capabilities"]
 // Table for server identified capabilities like "basic.ack" or
 // "confirm.select".
 func (me *Connection) isCapable(featureName string) bool {
 	capabilities, _ := me.Properties["capabilities"].(Table)
 	hasFeature, _ := capabilities[featureName].(bool)
 	return hasFeature
+}
+
+// allocateChannel records but does not open a new channel with a unique id.
+// This method is the initial part of the channel lifecycle and paired with
+// releaseChannel
+func (me *Connection) allocateChannel() (*Channel, error) {
+	me.m.Lock()
+	defer me.m.Unlock()
+
+	id, ok := me.allocator.next()
+	if !ok {
+		return nil, ErrChannelMax
+	}
+
+	ch := newChannel(me, uint16(id))
+	me.channels[uint16(id)] = ch
+
+	return ch, nil
+}
+
+// releaseChannel removes a channel from the registry as the final part of the
+// channel lifecycle
+func (me *Connection) releaseChannel(id uint16) {
+	me.m.Lock()
+	defer me.m.Unlock()
+
+	delete(me.channels, id)
+	me.allocator.release(int(id))
+}
+
+// openChannel allocates and opens a channel, must be paired with closeChannel
+func (me *Connection) openChannel() (*Channel, error) {
+	ch, err := me.allocateChannel()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ch.open(); err != nil {
+		return nil, err
+	}
+	return ch, nil
+}
+
+// closeChannel releases and initiates a shutdown of the channel.  All channel
+// closures should be initiated here for proper channel lifecycle management on
+// this connection.
+func (me *Connection) closeChannel(ch *Channel, e *Error) {
+	ch.shutdown(e)
+	me.releaseChannel(ch.id)
 }
 
 /*
@@ -513,10 +588,7 @@ invalid and a new Channel should be opened.
 
 */
 func (me *Connection) Channel() (*Channel, error) {
-	id := me.channels.next()
-	channel := newChannel(me, id)
-	me.channels.add(id, channel)
-	return channel, channel.open()
+	return me.openChannel()
 }
 
 func (me *Connection) call(req message, res ...message) error {
@@ -618,10 +690,13 @@ func (me *Connection) openTune(config Config, auth Authentication) error {
 		return ErrCredentials
 	}
 
-	// When this is bounded, share the bound.  We're effectively only bounded
-	// by MaxUint16.  If you hit a wrap around bug, throw a small party then
-	// make an github issue.
-	me.Config.Channels = pick(config.Channels, int(tune.ChannelMax))
+	// When the server and client both use default 0, then the max channel is
+	// only limited by uint16.
+	me.Config.ChannelMax = pick(config.ChannelMax, int(tune.ChannelMax))
+	if me.Config.ChannelMax == 0 {
+		me.Config.ChannelMax = defaultChannelMax
+	}
+	me.Config.ChannelMax = min(me.Config.ChannelMax, maxChannelMax)
 
 	// Frame size includes headers and end byte (len(payload)+8), even if
 	// this is less than FrameMinSize, use what the server sends because the
@@ -640,7 +715,7 @@ func (me *Connection) openTune(config Config, auth Authentication) error {
 	if err := me.send(&methodFrame{
 		ChannelId: 0,
 		Method: &connectionTuneOk{
-			ChannelMax: uint16(me.Config.Channels),
+			ChannelMax: uint16(me.Config.ChannelMax),
 			FrameMax:   uint32(me.Config.FrameSize),
 			Heartbeat:  uint16(me.Config.Heartbeat / time.Second),
 		},
@@ -662,24 +737,33 @@ func (me *Connection) openVhost(config Config) error {
 
 	me.Config.Vhost = config.Vhost
 
+	return me.openComplete()
+}
+
+// openComplete performs any final Connection initialization dependent on the
+// connection handshake.
+func (me *Connection) openComplete() error {
+	me.allocator = newAllocator(1, me.Config.ChannelMax)
 	return nil
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func pick(client, server int) int {
 	if client == 0 || server == 0 {
-		// max
-		if client > server {
-			return client
-		} else {
-			return server
-		}
-	} else {
-		// min
-		if client > server {
-			return server
-		} else {
-			return client
-		}
+		return max(client, server)
 	}
-	panic("unreachable")
+	return min(client, server)
 }

@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io/ioutil"
+	"net"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/consul/lib"
 )
 
 func TestConfigEncryptBytes(t *testing.T) {
@@ -190,7 +193,82 @@ func TestDecodeConfig(t *testing.T) {
 		t.Fatalf("bad: %#v", config)
 	}
 
+	if config.AdvertiseAddrWan != "" {
+		t.Fatalf("bad: %#v", config)
+	}
+
 	if config.Ports.Server != 8000 {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// Advertise address for wan
+	input = `{"advertise_addr_wan": "127.0.0.5"}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.AdvertiseAddr != "" {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.AdvertiseAddrWan != "127.0.0.5" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// Advertise addresses for serflan
+	input = `{"advertise_addrs": {"serf_lan": "127.0.0.5:1234"}}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.AdvertiseAddrs.SerfLanRaw != "127.0.0.5:1234" {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.AdvertiseAddrs.SerfLan.String() != "127.0.0.5:1234" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// Advertise addresses for serfwan
+	input = `{"advertise_addrs": {"serf_wan": "127.0.0.5:1234"}}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.AdvertiseAddrs.SerfWanRaw != "127.0.0.5:1234" {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.AdvertiseAddrs.SerfWan.String() != "127.0.0.5:1234" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// Advertise addresses for rpc
+	input = `{"advertise_addrs": {"rpc": "127.0.0.5:1234"}}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.AdvertiseAddrs.RPCRaw != "127.0.0.5:1234" {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.AdvertiseAddrs.RPC.String() != "127.0.0.5:1234" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// WAN address translation disabled by default
+	config, err = DecodeConfig(bytes.NewReader([]byte(`{}`)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.TranslateWanAddrs != false {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// WAN address translation
+	input = `{"translate_wan_addrs": true}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.TranslateWanAddrs != true {
 		t.Fatalf("bad: %#v", config)
 	}
 
@@ -228,7 +306,7 @@ func TestDecodeConfig(t *testing.T) {
 	}
 
 	// TLS
-	input = `{"verify_incoming": true, "verify_outgoing": true}`
+	input = `{"verify_incoming": true, "verify_outgoing": true, "verify_server_hostname": true}`
 	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -239,6 +317,10 @@ func TestDecodeConfig(t *testing.T) {
 	}
 
 	if config.VerifyOutgoing != true {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	if config.VerifyServerHostname != true {
 		t.Fatalf("bad: %#v", config)
 	}
 
@@ -377,6 +459,17 @@ func TestDecodeConfig(t *testing.T) {
 	}
 
 	if config.RetryMaxAttemptsWan != 3 {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// Static UI server
+	input = `{"ui": true}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if !config.EnableUi {
 		t.Fatalf("bad: %#v", config)
 	}
 
@@ -561,10 +654,67 @@ func TestDecodeConfig(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if config.StatsiteAddr != "127.0.0.1:7250" {
+	if config.Telemetry.StatsiteAddr != "127.0.0.1:7250" {
 		t.Fatalf("bad: %#v", config)
 	}
-	if config.StatsdAddr != "127.0.0.1:7251" {
+	if config.Telemetry.StatsdAddr != "127.0.0.1:7251" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// dogstatsd
+	input = `{"dogstatsd_addr": "127.0.0.1:7254", "dogstatsd_tags":["tag_1:val_1", "tag_2:val_2"]}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.Telemetry.DogStatsdAddr != "127.0.0.1:7254" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	if len(config.Telemetry.DogStatsdTags) != 2 {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	if config.Telemetry.DogStatsdTags[0] != "tag_1:val_1" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	if config.Telemetry.DogStatsdTags[1] != "tag_2:val_2" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// Statsite prefix
+	input = `{"statsite_prefix": "my_prefix"}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.Telemetry.StatsitePrefix != "my_prefix" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// New telemetry
+	input = `{"telemetry": { "statsite_prefix": "my_prefix", "statsite_address": "127.0.0.1:7250", "statsd_address":"127.0.0.1:7251", "disable_hostname": true, "dogstatsd_addr": "1.1.1.1:111", "dogstatsd_tags": [ "tag_1:val_1" ] } }`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if config.Telemetry.StatsitePrefix != "my_prefix" {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.Telemetry.StatsiteAddr != "127.0.0.1:7250" {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.Telemetry.StatsdAddr != "127.0.0.1:7251" {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.Telemetry.DisableHostname != true {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.Telemetry.DogStatsdAddr != "1.1.1.1:111" {
+		t.Fatalf("bad: %#v", config)
+	}
+	if config.Telemetry.DogStatsdTags[0] != "tag_1:val_1" {
 		t.Fatalf("bad: %#v", config)
 	}
 
@@ -635,7 +785,13 @@ func TestDecodeConfig(t *testing.T) {
 	}
 
 	// Atlas configs
-	input = `{"atlas_infrastructure": "hashicorp/prod", "atlas_token": "abcdefg", "atlas_acl_token": "123456789", "atlas_join": true}`
+	input = `{
+		"atlas_infrastructure": "hashicorp/prod",
+		"atlas_token": "abcdefg",
+		"atlas_acl_token": "123456789",
+		"atlas_join": true,
+		"atlas_endpoint": "foo.bar:1111"
+}`
 	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -653,6 +809,20 @@ func TestDecodeConfig(t *testing.T) {
 	if !config.AtlasJoin {
 		t.Fatalf("bad: %#v", config)
 	}
+	if config.AtlasEndpoint != "foo.bar:1111" {
+		t.Fatalf("bad: %#v", config)
+	}
+
+	// Coordinate disable
+	input = `{"disable_coordinates": true}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if config.DisableCoordinates != true {
+		t.Fatalf("bad: coordinates not disabled: %#v", config)
+	}
 
 	// SessionTTLMin
 	input = `{"session_ttl_min": "5s"}`
@@ -663,6 +833,27 @@ func TestDecodeConfig(t *testing.T) {
 
 	if config.SessionTTLMin != 5*time.Second {
 		t.Fatalf("bad: %s %#v", config.SessionTTLMin.String(), config)
+	}
+
+	// Reap
+	input = `{"reap": true}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if config.Reap == nil || *config.Reap != true {
+		t.Fatalf("bad: reap not enabled: %#v", config)
+	}
+
+	input = `{}`
+	config, err = DecodeConfig(bytes.NewReader([]byte(input)))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if config.Reap != nil {
+		t.Fatalf("bad: reap not tri-stated: %#v", config)
 	}
 }
 
@@ -958,7 +1149,7 @@ func TestDecodeConfig_Service(t *testing.T) {
 		t.Fatalf("bad: %v", serv)
 	}
 
-	if !strContains(serv.Tags, "master") {
+	if !lib.StrContains(serv.Tags, "master") {
 		t.Fatalf("bad: %v", serv)
 	}
 
@@ -981,7 +1172,7 @@ func TestDecodeConfig_Service(t *testing.T) {
 
 func TestDecodeConfig_Check(t *testing.T) {
 	// Basics
-	input := `{"check": {"id": "chk1", "name": "mem", "notes": "foobar", "script": "/bin/check_redis", "interval": "10s", "ttl": "15s" }}`
+	input := `{"check": {"id": "chk1", "name": "mem", "notes": "foobar", "script": "/bin/check_redis", "interval": "10s", "ttl": "15s", "shell": "/bin/bash", "docker_container_id": "redis" }}`
 	config, err := DecodeConfig(bytes.NewReader([]byte(input)))
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -1015,6 +1206,14 @@ func TestDecodeConfig_Check(t *testing.T) {
 	if chk.TTL != 15*time.Second {
 		t.Fatalf("bad: %v", chk)
 	}
+
+	if chk.Shell != "/bin/bash" {
+		t.Fatalf("bad: %v", chk)
+	}
+
+	if chk.DockerContainerID != "redis" {
+		t.Fatalf("bad: %v", chk)
+	}
 }
 
 func TestMergeConfig(t *testing.T) {
@@ -1036,6 +1235,14 @@ func TestMergeConfig(t *testing.T) {
 		CheckUpdateIntervalRaw: "8m",
 		RetryIntervalRaw:       "10s",
 		RetryIntervalWanRaw:    "10s",
+		Telemetry: Telemetry{
+			DisableHostname: false,
+			StatsdAddr:      "nope",
+			StatsiteAddr:    "nope",
+			StatsitePrefix:  "nope",
+			DogStatsdAddr:   "nope",
+			DogStatsdTags:   []string{"nope"},
+		},
 	}
 
 	b := &Config{
@@ -1053,12 +1260,13 @@ func TestMergeConfig(t *testing.T) {
 			MaxStale:       30 * time.Second,
 			EnableTruncate: true,
 		},
-		Domain:        "other",
-		LogLevel:      "info",
-		NodeName:      "baz",
-		ClientAddr:    "127.0.0.1",
-		BindAddr:      "127.0.0.1",
-		AdvertiseAddr: "127.0.0.1",
+		Domain:           "other",
+		LogLevel:         "info",
+		NodeName:         "baz",
+		ClientAddr:       "127.0.0.2",
+		BindAddr:         "127.0.0.2",
+		AdvertiseAddr:    "127.0.0.2",
+		AdvertiseAddrWan: "127.0.0.2",
 		Ports: PortConfig{
 			DNS:     1,
 			HTTP:    2,
@@ -1087,6 +1295,7 @@ func TestMergeConfig(t *testing.T) {
 		Services:               []*ServiceDefinition{nil},
 		StartJoin:              []string{"1.1.1.1"},
 		StartJoinWan:           []string{"1.1.1.1"},
+		EnableUi:               true,
 		UiDir:                  "/opt/consul-ui",
 		EnableSyslog:           true,
 		RejoinAfterLeave:       true,
@@ -1112,9 +1321,15 @@ func TestMergeConfig(t *testing.T) {
 				"handler": "foobar",
 			},
 		},
-		DisableRemoteExec:         true,
-		StatsiteAddr:              "127.0.0.1:7250",
-		StatsdAddr:                "127.0.0.1:7251",
+		DisableRemoteExec: true,
+		Telemetry: Telemetry{
+			StatsiteAddr:    "127.0.0.1:7250",
+			StatsitePrefix:  "stats_prefix",
+			StatsdAddr:      "127.0.0.1:7251",
+			DisableHostname: true,
+			DogStatsdAddr:   "127.0.0.1:7254",
+			DogStatsdTags:   []string{"tag_1:val_1", "tag_2:val_2"},
+		},
 		DisableUpdateCheck:        true,
 		DisableAnonymousSignature: true,
 		HTTPAPIResponseHeaders: map[string]string{
@@ -1133,6 +1348,15 @@ func TestMergeConfig(t *testing.T) {
 		AtlasJoin:           true,
 		SessionTTLMinRaw:    "1000s",
 		SessionTTLMin:       1000 * time.Second,
+		AdvertiseAddrs: AdvertiseAddrsConfig{
+			SerfLan:    &net.TCPAddr{},
+			SerfLanRaw: "127.0.0.5:1231",
+			SerfWan:    &net.TCPAddr{},
+			SerfWanRaw: "127.0.0.5:1232",
+			RPC:        &net.TCPAddr{},
+			RPCRaw:     "127.0.0.5:1233",
+		},
+		Reap: Bool(true),
 	}
 
 	c := MergeConfig(a, b)
@@ -1190,6 +1414,13 @@ func TestReadConfigPaths_dir(t *testing.T) {
 	// A non-json file, shouldn't be read
 	err = ioutil.WriteFile(filepath.Join(td, "c"),
 		[]byte(`{"node_name": "bad"}`), 0644)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	// An empty file shouldn't be read
+	err = ioutil.WriteFile(filepath.Join(td, "d.json"),
+		[]byte{}, 0664)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

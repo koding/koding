@@ -7,11 +7,15 @@ import (
 )
 
 func TestSelectBuilderToSql(t *testing.T) {
+	subQ := Select("aa", "bb").From("dd")
 	b := Select("a", "b").
 		Prefix("WITH prefix AS ?", 0).
 		Distinct().
 		Columns("c").
 		Column("IF(d IN ("+Placeholders(3)+"), 1, 0) as stat_column", 1, 2, 3).
+		Column(Expr("a > ?", 100)).
+		Column(Alias(Eq{"b": []int{101, 102, 103}}, "b_alias")).
+		Column(Alias(subQ, "subq")).
 		From("e").
 		JoinClause("CROSS JOIN j1").
 		Join("j2").
@@ -34,7 +38,9 @@ func TestSelectBuilderToSql(t *testing.T) {
 
 	expectedSql :=
 		"WITH prefix AS ? " +
-			"SELECT DISTINCT a, b, c, IF(d IN (?,?,?), 1, 0) as stat_column " +
+			"SELECT DISTINCT a, b, c, IF(d IN (?,?,?), 1, 0) as stat_column, a > ?, " +
+			"(b IN (?,?,?)) AS b_alias, " +
+			"(SELECT aa, bb FROM dd) AS subq " +
 			"FROM e " +
 			"CROSS JOIN j1 JOIN j2 LEFT JOIN j3 RIGHT JOIN j4 " +
 			"WHERE f = ? AND g = ? AND h = ? AND i IN (?,?,?) AND (j = ? OR (k = ? AND true)) " +
@@ -42,7 +48,20 @@ func TestSelectBuilderToSql(t *testing.T) {
 			"FETCH FIRST ? ROWS ONLY"
 	assert.Equal(t, expectedSql, sql)
 
-	expectedArgs := []interface{}{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 14}
+	expectedArgs := []interface{}{0, 1, 2, 3, 100, 101, 102, 103, 4, 5, 6, 7, 8, 9, 10, 11, 14}
+	assert.Equal(t, expectedArgs, args)
+}
+
+func TestSelectBuilderFromSelect(t *testing.T) {
+	subQ := Select("c").From("d").Where(Eq{"i": 0})
+	b := Select("a", "b").FromSelect(subQ, "subq")
+	sql, args, err := b.ToSql()
+	assert.NoError(t, err)
+
+	expectedSql := "SELECT a, b FROM (SELECT c FROM d WHERE i = ?) AS subq"
+	assert.Equal(t, expectedSql, sql)
+
+	expectedArgs := []interface{}{0}
 	assert.Equal(t, expectedArgs, args)
 }
 
@@ -91,4 +110,48 @@ func TestSelectBuilderNoRunner(t *testing.T) {
 
 	err = b.Scan()
 	assert.Equal(t, RunnerNotSet, err)
+}
+
+func TestSelectBuilderSimpleJoin(t *testing.T) {
+
+	expectedSql := "SELECT * FROM bar JOIN baz ON bar.foo = baz.foo"
+	expectedArgs := []interface{}(nil)
+
+	b := Select("*").From("bar").Join("baz ON bar.foo = baz.foo")
+
+	sql, args, err := b.ToSql()
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedSql, sql)
+	assert.Equal(t, args, expectedArgs)
+}
+
+func TestSelectBuilderParamJoin(t *testing.T) {
+
+	expectedSql := "SELECT * FROM bar JOIN baz ON bar.foo = baz.foo AND baz.foo = ?"
+	expectedArgs := []interface{}{42}
+
+	b := Select("*").From("bar").Join("baz ON bar.foo = baz.foo AND baz.foo = ?", 42)
+
+	sql, args, err := b.ToSql()
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedSql, sql)
+	assert.Equal(t, args, expectedArgs)
+}
+
+func TestSelectBuilderNestedSelectJoin(t *testing.T) {
+
+	expectedSql := "SELECT * FROM bar JOIN ( SELECT * FROM baz WHERE foo = ? ) r ON bar.foo = r.foo"
+	expectedArgs := []interface{}{42}
+
+	nestedSelect := Select("*").From("baz").Where("foo = ?", 42)
+
+	b := Select("*").From("bar").JoinClause(nestedSelect.Prefix("JOIN (").Suffix(") r ON bar.foo = r.foo"))
+
+	sql, args, err := b.ToSql()
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedSql, sql)
+	assert.Equal(t, args, expectedArgs)
 }

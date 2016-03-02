@@ -1,11 +1,12 @@
 package packer
 
 import (
-	"github.com/mitchellh/iochan"
 	"io"
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/mitchellh/iochan"
 )
 
 // RemoteCmd represents a remote command being prepared or run.
@@ -74,6 +75,8 @@ type Communicator interface {
 	// with the contents writing to the given writer. This method will
 	// block until it completes.
 	Download(string, io.Writer) error
+
+	DownloadDir(src string, dst string, exclude []string) error
 }
 
 // StartWithUi runs the remote command and streams the output to any
@@ -115,16 +118,16 @@ func (r *RemoteCmd) StartWithUi(c Communicator, ui Ui) error {
 	}
 
 	// Create the channels we'll use for data
-	exitCh := make(chan int, 1)
+	exitCh := make(chan struct{})
 	stdoutCh := iochan.DelimReader(stdout_r, '\n')
 	stderrCh := iochan.DelimReader(stderr_r, '\n')
 
 	// Start the goroutine to watch for the exit
 	go func() {
+		defer close(exitCh)
 		defer stdout_w.Close()
 		defer stderr_w.Close()
 		r.Wait()
-		exitCh <- r.ExitStatus
 	}()
 
 	// Loop and get all our output
@@ -132,9 +135,13 @@ OutputLoop:
 	for {
 		select {
 		case output := <-stderrCh:
-			ui.Message(r.cleanOutputLine(output))
+			if output != "" {
+				ui.Message(r.cleanOutputLine(output))
+			}
 		case output := <-stdoutCh:
-			ui.Message(r.cleanOutputLine(output))
+			if output != "" {
+				ui.Message(r.cleanOutputLine(output))
+			}
 		case <-exitCh:
 			break OutputLoop
 		}
