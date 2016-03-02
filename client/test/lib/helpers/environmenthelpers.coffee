@@ -365,14 +365,14 @@ module.exports =
     addVmSelector = '.footer .button-container .add-vm-button'
 
     browser
-     .moveToElement           '.sidebar-machine-box .notinitialized', 10, 10
-     .waitForElementVisible   vmSelector, 20000
-     .click                   vmSelector
-     .waitForElementVisible   addVmSelector, 20000
-     .click                   addVmSelector
-     .waitForElementVisible   createVmModal, 20000
-     .assert.containsText     createVmModal, 'Hobbyist plan is restricted to only one VM.'
-     .assert.containsText     '.kdmodal-inner .kdmodal-content .custom-link-view span', 'Upgrade your account for more VMs RAM and Storage'
+      .moveToElement           '.sidebar-machine-box .notinitialized', 10, 10
+      .waitForElementVisible   vmSelector, 20000
+      .click                   vmSelector
+      .waitForElementVisible   addVmSelector, 20000
+      .click                   addVmSelector
+      .waitForElementVisible   createVmModal, 20000
+      .assert.containsText     createVmModal, 'Hobbyist plan is restricted to only one VM.'
+      .assert.containsText     '.kdmodal-inner .kdmodal-content .custom-link-view span', 'Upgrade your account for more VMs RAM and Storage'
 
 
   addNewVM: (browser, vmAssert, addNewVmNotAllowed = no) ->
@@ -450,4 +450,3 @@ module.exports =
       .waitForElementVisible   '.kdmodal-content .success-msg', 20000
       .click                   'button.submit-btn'
       .waitForElementVisible   '[testpath=main-sidebar]', 20000
-

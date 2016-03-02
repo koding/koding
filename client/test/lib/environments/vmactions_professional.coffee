@@ -25,6 +25,7 @@ module.exports =
 
   check2AlwaysOnVmProfessionalPlan: (browser, secondVM = no) ->
 
+
     browser.element 'css selector', secondVmSelector, (result) ->
       if result.status is -1
         environmentHelpers.setAlwaysOnVm(browser, yes)
