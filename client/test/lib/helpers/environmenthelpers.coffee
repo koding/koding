@@ -365,7 +365,6 @@ module.exports =
     addVmSelector = '.footer .button-container .add-vm-button'
 
     browser
-     .waitForElementVisible   '[testpath=main-sidebar]', 20000
      .moveToElement           '.sidebar-machine-box .notinitialized', 10, 10
      .waitForElementVisible   vmSelector, 20000
      .click                   vmSelector
@@ -442,3 +441,13 @@ module.exports =
               .waitForElementVisible  "#{alwaysOnSelector}.off", 20000
               .click                  "#{alwaysOnSelector}.off"
               .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
+
+
+  simplifiedSubmitForm: (browser) ->
+    browser
+      .waitForElementVisible   'button.submit-btn', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '.kdmodal-content .success-msg', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '[testpath=main-sidebar]', 20000
+

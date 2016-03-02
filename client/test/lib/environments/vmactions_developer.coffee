@@ -17,11 +17,7 @@ module.exports =
       if result.status is -1
         helpers.selectPlan(browser)
         helpers.fillPaymentForm(browser)
-        browser
-          .waitForElementVisible   'button.submit-btn', 20000
-          .click                   'button.submit-btn'
-          .waitForElementVisible   '.kdmodal-content .success-msg', 20000
-          .click                   'button.submit-btn'
+        environmentHelpers.simplifiedSubmitForm(browser)
       else
       	browser.url url
 
