@@ -77,21 +77,16 @@ module.exports =
 
       # wait for participant file opening
       browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
-        # .waitForElementVisible "#{lineWidgetSelector}#{participant.username}", 60000
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
     else
       # wait for host file opening
       browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
 
       # open file in host's vm
       ideHelpers.openFileFromWebFolder browser, host, participantFileName, participantFileContent
-      # browser.waitForElementVisible "#{lineWidgetSelector}#{host.username}", 60000
 
       collaborationHelpers.leaveSession(browser)
 
-    # assert no line widget after participant left
-    # browser.waitForElementNotPresent "#{lineWidgetSelector}#{participant.username}", 60000
-
-    collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
     browser.end()
 
 
