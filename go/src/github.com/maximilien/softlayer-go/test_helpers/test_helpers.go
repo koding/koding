@@ -33,6 +33,10 @@ const (
 	TEST_LABEL_PREFIX  = "TEST:softlayer-go"
 	DEFAULT_DATACENTER = "dal09"
 
+	TEST_EMAIL = "testemail@sl.com"
+	TEST_HOST  = "test.example.com"
+	TEST_TTL   = 900
+
 	MAX_WAIT_RETRIES = 10
 	WAIT_TIME        = 5
 )
@@ -462,6 +466,24 @@ func WaitForVirtualGuestToBeRunning(virtualGuestId int) {
 	WaitForVirtualGuest(virtualGuestId, "RUNNING", TIMEOUT)
 }
 
+func WaitForVirtualGuestTransactionWithStatus(virtualGuestId int, status string) {
+	virtualGuestService, err := CreateVirtualGuestService()
+	Expect(err).ToNot(HaveOccurred())
+
+	fmt.Printf("----> waiting for virtual guest %d to have ugrade transactions with status '%s'\n", virtualGuestId, status)
+	Eventually(func() bool {
+		activeTransactions, err := virtualGuestService.GetActiveTransactions(virtualGuestId)
+		Expect(err).ToNot(HaveOccurred())
+		for _, transaction := range activeTransactions {
+			if strings.Contains(transaction.TransactionStatus.Name, status) {
+				return true
+			}
+		}
+		fmt.Printf("----> virtual guest: %d, doesn't have transactions with status '%s' yet\n", virtualGuestId, status)
+		return false
+	}, TIMEOUT, POLLING_INTERVAL).Should(BeTrue(), "failed waiting for virtual guest to have transactions with specifc status")
+}
+
 func WaitForVirtualGuestToHaveNoActiveTransactions(virtualGuestId int) {
 	virtualGuestService, err := CreateVirtualGuestService()
 	Expect(err).ToNot(HaveOccurred())
@@ -667,6 +689,145 @@ func GetVirtualGuestPrimaryIpAddress(virtualGuestId int) string {
 	Expect(err).ToNot(HaveOccurred())
 
 	return vgIpAddress
+}
+
+func CreateDnsDomainService() (softlayer.SoftLayer_Dns_Domain_Service, error) {
+	username, apiKey, err := GetUsernameAndApiKey()
+	if err != nil {
+		return nil, err
+	}
+
+	client := slclient.NewSoftLayerClient(username, apiKey)
+	dnsDomainService, err := client.GetSoftLayer_Dns_Domain_Service()
+	if err != nil {
+		return nil, err
+	}
+
+	return dnsDomainService, nil
+}
+
+func CreateDnsDomainResourceRecordService() (softlayer.SoftLayer_Dns_Domain_ResourceRecord_Service, error) {
+	username, apiKey, err := GetUsernameAndApiKey()
+	if err != nil {
+		return nil, err
+	}
+
+	client := slclient.NewSoftLayerClient(username, apiKey)
+	dnsDomainResourceRecordService, err := client.GetSoftLayer_Dns_Domain_ResourceRecord_Service()
+	if err != nil {
+		return nil, err
+	}
+
+	return dnsDomainResourceRecordService, nil
+}
+
+func CreateTestDnsDomain(name string) datatypes.SoftLayer_Dns_Domain {
+	template := datatypes.SoftLayer_Dns_Domain_Template{
+		Name: name,
+	}
+
+	dnsDomainService, err := CreateDnsDomainService()
+	Expect(err).ToNot(HaveOccurred())
+
+	fmt.Printf("----> creating dns domain in SL\n")
+	createdDnsDomain, err := dnsDomainService.CreateObject(template)
+	Expect(err).ToNot(HaveOccurred())
+
+	Expect(createdDnsDomain.Name).To(Equal(template.Name))
+	fmt.Printf("----> created dns domain : %d\n in SL", createdDnsDomain.Id)
+
+	return createdDnsDomain
+}
+
+func WaitForCreatedDnsDomainToBePresent(dnsDomainId int) {
+	dnsDomainService, err := CreateDnsDomainService()
+	Expect(err).ToNot(HaveOccurred())
+
+	fmt.Printf("----> waiting for created dns domain to be present\n")
+	Eventually(func() bool {
+		dnsDomain, err := dnsDomainService.GetObject(dnsDomainId)
+		Expect(err).ToNot(HaveOccurred())
+
+		if dnsDomain.Id == dnsDomainId {
+			return true
+		}
+		return false
+	}, TIMEOUT, POLLING_INTERVAL).Should(BeTrue(), "created dns domain but not found")
+}
+
+func WaitForDeletedDnsDomainToNoLongerBePresent(dnsDomainId int) {
+	dnsDomainService, err := CreateDnsDomainService()
+	Expect(err).ToNot(HaveOccurred())
+
+	fmt.Printf("----> waiting for deleted dns domain to no longer be present\n")
+	Eventually(func() bool {
+		dnsDomain, err := dnsDomainService.GetObject(dnsDomainId)
+		Expect(err).ToNot(HaveOccurred())
+
+		if dnsDomain.Id == dnsDomainId {
+			return false
+		}
+		return true
+	}, TIMEOUT, POLLING_INTERVAL).Should(BeTrue(), "failed waiting for deleted dns domain to be removed")
+}
+
+func CreateTestDnsDomainResourceRecord(domainId int) datatypes.SoftLayer_Dns_Domain_ResourceRecord {
+	template := datatypes.SoftLayer_Dns_Domain_ResourceRecord_Template{
+		Data:              "127.0.0.1",
+		DomainId:          domainId,
+		Host:              TEST_HOST,
+		ResponsiblePerson: TEST_EMAIL,
+		Ttl:               TEST_TTL,
+		Type:              "A",
+	}
+
+	dnsDomainResourceRecordService, err := CreateDnsDomainResourceRecordService()
+	Expect(err).ToNot(HaveOccurred())
+
+	fmt.Printf("----> creating dns domain resource record in SL\n")
+	createdDnsDomainResourceRecord, err := dnsDomainResourceRecordService.CreateObject(template)
+	Expect(err).ToNot(HaveOccurred())
+
+	Expect(createdDnsDomainResourceRecord.Data).To(Equal(template.Data), "127.0.0.1")
+	Expect(createdDnsDomainResourceRecord.Host).To(Equal(template.Host), TEST_HOST)
+	Expect(createdDnsDomainResourceRecord.ResponsiblePerson).To(Equal(template.ResponsiblePerson), TEST_EMAIL)
+	Expect(createdDnsDomainResourceRecord.Ttl).To(Equal(template.Ttl), "900")
+	Expect(createdDnsDomainResourceRecord.Type).To(Equal(template.Type), "A")
+	fmt.Printf("----> created dns domain resource record: %d\n in SL", createdDnsDomainResourceRecord.Id)
+
+	return createdDnsDomainResourceRecord
+}
+
+func WaitForCreatedDnsDomainResourceRecordToBePresent(dnsDomainResourceRecordId int) {
+	dnsDomainResourceRecordService, err := CreateDnsDomainResourceRecordService()
+	Expect(err).ToNot(HaveOccurred())
+
+	fmt.Printf("----> waiting for created dns domain resource record to be present\n")
+	Eventually(func() bool {
+		dnsDomainResourceRecord, err := dnsDomainResourceRecordService.GetObject(dnsDomainResourceRecordId)
+		Expect(err).ToNot(HaveOccurred())
+
+		if dnsDomainResourceRecord.Id == dnsDomainResourceRecordId {
+			return true
+		}
+		return false
+	}, TIMEOUT, POLLING_INTERVAL).Should(BeTrue(), "created dns domain resource record but not found")
+}
+
+func WaitForDeletedDnsDomainResourceRecordToNoLongerBePresent(dnsDomainResourceRecordId int) {
+	dnsDomainResourceRecordService, err := CreateDnsDomainResourceRecordService()
+	Expect(err).ToNot(HaveOccurred())
+
+	fmt.Printf("----> waiting for deleted dns domain resource record to no longer be present\n")
+	Eventually(func() bool {
+		dnsDomainResourceRecord, err := dnsDomainResourceRecordService.GetObject(dnsDomainResourceRecordId)
+		Expect(err).ToNot(HaveOccurred())
+
+		if dnsDomainResourceRecord.Id == dnsDomainResourceRecordId {
+			return false
+		}
+		return true
+	}, TIMEOUT, POLLING_INTERVAL).Should(BeTrue(), "failed waiting for deleted dns domain resource record to be removed")
 }
 
 // Private functions

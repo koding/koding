@@ -399,6 +399,18 @@ func HandleServerDeletionSuccessfully(t *testing.T) {
 	})
 }
 
+// HandleAdminPasswordChangeSuccessfully sets up the test server to respond to a server password
+// change request.
+func HandleServerForceDeletionSuccessfully(t *testing.T) {
+	th.Mux.HandleFunc("/servers/asdfasdfasdf/action", func(w http.ResponseWriter, r *http.Request) {
+		th.TestMethod(t, r, "POST")
+		th.TestHeader(t, r, "X-Auth-Token", client.TokenID)
+		th.TestJSONRequest(t, r, `{ "forceDelete": "" }`)
+
+		w.WriteHeader(http.StatusAccepted)
+	})
+}
+
 // HandleServerGetSuccessfully sets up the test server to respond to a server Get request.
 func HandleServerGetSuccessfully(t *testing.T) {
 	th.Mux.HandleFunc("/servers/1234asdf", func(w http.ResponseWriter, r *http.Request) {
@@ -651,3 +663,14 @@ func HandleNetworkAddressListSuccessfully(t *testing.T) {
 			}`)
 	})
 }
+
+// HandleCreateServerImageSuccessfully sets up the test server to respond to a TestCreateServerImage request.
+func HandleCreateServerImageSuccessfully(t *testing.T) {
+	th.Mux.HandleFunc("/servers/serverimage/action", func(w http.ResponseWriter, r *http.Request) {
+		th.TestMethod(t, r, "POST")
+		th.TestHeader(t, r, "X-Auth-Token", client.TokenID)
+		w.Header().Add("Location", "https://0.0.0.0/images/xxxx-xxxxx-xxxxx-xxxx")
+		w.WriteHeader(http.StatusAccepted)
+	})
+}
+

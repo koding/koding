@@ -49,7 +49,7 @@ and JSON as the interoperability layer.
 ## Syntax
 
 For a complete grammar, please see the parser itself. A high-level overview
-of the syntax and grammer is listed here.
+of the syntax and grammar is listed here.
 
   * Single line comments start with `#` or `//`
 
@@ -63,6 +63,16 @@ of the syntax and grammer is listed here.
 
   * Strings are double-quoted and can contain any UTF-8 characters.
     Example: `"Hello, World"`
+
+  * Multi-line strings start with `<<EOF` at the end of a line, and end
+    with `EOF` on its own line ([here documents](https://en.wikipedia.org/wiki/Here_document)).
+    Any text may be used in place of `EOF`. Example:
+```
+<<FOO
+hello
+world
+FOO
+```
 
   * Numbers are assumed to be base 10. If you prefix a number with 0x,
     it is treated as a hexadecimal. If it is prefixed with 0, it is

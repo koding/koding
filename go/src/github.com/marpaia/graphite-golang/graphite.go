@@ -11,18 +11,13 @@ import (
 // Graphite is a struct that defines the relevant properties of a graphite
 // connection
 type Graphite struct {
-	Host    string
-	Port    int
-	Timeout time.Duration
-	conn    net.Conn
-	nop     bool
-}
-
-// Metric is a struct that defines the relevant properties of a graphite metric
-type Metric struct {
-	Name      string
-	Value     string
-	Timestamp int64
+	Host     string
+	Port     int
+	Protocol string
+	Timeout  time.Duration
+	Prefix   string
+	conn     net.Conn
+	nop      bool
 }
 
 // defaultTimeout is the default number of seconds that we're willing to wait
@@ -33,22 +28,25 @@ const defaultTimeout = 5
 func (graphite *Graphite) IsNop() bool {
 	if graphite.nop {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 // Given a Graphite struct, Connect populates the Graphite.conn field with an
 // appropriate TCP connection
 func (graphite *Graphite) Connect() error {
 	if !graphite.IsNop() {
+		if graphite.conn != nil {
+			graphite.conn.Close()
+		}
+
 		address := fmt.Sprintf("%s:%d", graphite.Host, graphite.Port)
 
 		if graphite.Timeout == 0 {
 			graphite.Timeout = defaultTimeout * time.Second
 		}
 
-		conn, err := net.DialTimeout("tcp", address, graphite.Timeout)
+		conn, err := net.DialTimeout(graphite.Protocol, address, graphite.Timeout)
 		if err != nil {
 			return err
 		}
@@ -59,47 +57,99 @@ func (graphite *Graphite) Connect() error {
 	return nil
 }
 
+// Given a Graphite struct, Disconnect closes the Graphite.conn field
+func (graphite *Graphite) Disconnect() error {
+	err := graphite.conn.Close()
+	graphite.conn = nil
+	return err
+}
+
 // Given a Metric struct, the SendMetric method sends the supplied metric to the
 // Graphite connection that the method is called upon
-func (graphite *Graphite) SendMetric(metric Metric) {
-	if metric.Timestamp == 0 {
-		metric.Timestamp = time.Now().Unix()
-	}
+func (graphite *Graphite) SendMetric(metric Metric) error {
+	metrics := make([]Metric, 1)
+	metrics[0] = metric
 
-	graphite.sendMetric(metric)
+	return graphite.sendMetrics(metrics)
+}
+
+// Given a slice of Metrics, the SendMetrics method sends the metrics, as a
+// batch, to the Graphite connection that the method is called upon
+func (graphite *Graphite) SendMetrics(metrics []Metric) error {
+	return graphite.sendMetrics(metrics)
+}
+
+// sendMetrics is an internal function that is used to write to the TCP
+// connection in order to communicate metrics to the remote Graphite host
+func (graphite *Graphite) sendMetrics(metrics []Metric) error {
+	zeroed_metric := Metric{} // ignore unintialized metrics
+	if !graphite.IsNop() {
+		buf := bytes.NewBufferString("")
+		for _, metric := range metrics {
+			if metric == zeroed_metric {
+				continue // ignore unintialized metrics
+			}
+			if metric.Timestamp == 0 {
+				metric.Timestamp = time.Now().Unix()
+			}
+			metric_name := ""
+			if graphite.Prefix != "" {
+				metric_name = fmt.Sprintf("%s.%s", graphite.Prefix, metric.Name)
+			} else {
+				metric_name = metric.Name
+			}
+			buf.WriteString(fmt.Sprintf("%s %s %d\n", metric_name, metric.Value, metric.Timestamp))
+		}
+		_, err := graphite.conn.Write(buf.Bytes())
+		//fmt.Print("Sent msg:", buf.String(), "'")
+		if err != nil {
+			return err
+		}
+	} else {
+		for _, metric := range metrics {
+			log.Printf("Graphite: %s\n", metric)
+		}
+	}
+	return nil
 }
 
 // The SimpleSend method can be used to just pass a metric name and value and
 // have it be sent to the Graphite host with the current timestamp
 func (graphite *Graphite) SimpleSend(stat string, value string) error {
-	metric := Metric{Name: stat, Value: value, Timestamp: time.Now().Unix()}
-	err := graphite.sendMetric(metric)
+	metrics := make([]Metric, 1)
+	metrics[0] = NewMetric(stat, value, time.Now().Unix())
+	err := graphite.sendMetrics(metrics)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// sendMetric is an internal function that is used to write to the TCP
-// connection in order to communicate a metric to the remote Graphite host
-func (graphite *Graphite) sendMetric(metric Metric) error {
-	if !graphite.IsNop() {
-		buf := bytes.NewBufferString(fmt.Sprintf("%s %s %d\n", metric.Name, metric.Value, metric.Timestamp))
-		_, err := graphite.conn.Write(buf.Bytes())
-		if err != nil {
-			return err
-		}
-	} else {
-		log.Printf("Graphite: %s %s %d\n", metric.Name, metric.Value, metric.Timestamp)
+// NewGraphite is a factory method that's used to create a new Graphite
+func NewGraphite(host string, port int) (*Graphite, error) {
+	Graphite := &Graphite{Host: host, Port: port, Protocol: "tcp"}
+	err := Graphite.Connect()
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	return Graphite, nil
 }
 
-// NewGraphiteHost is a factory method that's used to create a new Graphite
-// connection given a hostname and a port number
-func NewGraphite(host string, port int) (*Graphite, error) {
-	Graphite := &Graphite{Host: host, Port: port}
+// NewGraphiteWithMetricPrefix is a factory method that's used to create a new Graphite with a metric prefix
+func NewGraphiteWithMetricPrefix(host string, port int, prefix string) (*Graphite, error) {
+	Graphite := &Graphite{Host: host, Port: port, Protocol: "tcp", Prefix: prefix}
+	err := Graphite.Connect()
+	if err != nil {
+		return nil, err
+	}
+
+	return Graphite, nil
+}
+
+// When a UDP connection to Graphite is required
+func NewGraphiteUDP(host string, port int) (*Graphite, error) {
+	Graphite := &Graphite{Host: host, Port: port, Protocol: "udp"}
 	err := Graphite.Connect()
 	if err != nil {
 		return nil, err

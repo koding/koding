@@ -8,7 +8,7 @@ Actual:   17
 
 [  FAILED  ] RunTwiceTest.FailingMethod
 [----------] Finished with tests from RunTwiceTest
---- FAIL: somepkg (1.23 seconds)
+--- FAIL: TestSomething (1.23s)
 FAIL
 exit status 1
 FAIL somepkg 1.234s

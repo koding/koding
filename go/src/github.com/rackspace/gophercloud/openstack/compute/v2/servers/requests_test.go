@@ -1,6 +1,8 @@
 package servers
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -73,6 +75,15 @@ func TestDeleteServer(t *testing.T) {
 	HandleServerDeletionSuccessfully(t)
 
 	res := Delete(client.ServiceClient(), "asdfasdfasdf")
+	th.AssertNoErr(t, res.Err)
+}
+
+func TestForceDeleteServer(t *testing.T) {
+	th.SetupHTTP()
+	defer th.TeardownHTTP()
+	HandleServerForceDeletionSuccessfully(t)
+
+	res := ForceDelete(client.ServiceClient(), "asdfasdfasdf")
 	th.AssertNoErr(t, res.Err)
 }
 
@@ -324,4 +335,48 @@ func TestListAddressesByNetwork(t *testing.T) {
 	})
 	th.AssertNoErr(t, err)
 	th.CheckEquals(t, 1, pages)
+}
+
+func TestCreateServerImage(t *testing.T) {
+	th.SetupHTTP()
+	defer th.TeardownHTTP()
+	HandleCreateServerImageSuccessfully(t)
+
+	_, err := CreateImage(client.ServiceClient(), "serverimage", CreateImageOpts{Name: "test"}).ExtractImageID()
+	th.AssertNoErr(t, err)
+}
+
+func TestMarshalPersonality(t *testing.T) {
+	name := "/etc/test"
+	contents := []byte("asdfasdf")
+
+	personality := Personality{
+		&File{
+			Path:     name,
+			Contents: contents,
+		},
+	}
+
+	data, err := json.Marshal(personality)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var actual []map[string]string
+	err = json.Unmarshal(data, &actual)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(actual) != 1 {
+		t.Fatal("expected personality length 1")
+	}
+
+	if actual[0]["path"] != name {
+		t.Fatal("file path incorrect")
+	}
+
+	if actual[0]["contents"] != base64.StdEncoding.EncodeToString(contents) {
+		t.Fatal("file contents incorrect")
+	}
 }

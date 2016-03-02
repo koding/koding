@@ -24,7 +24,7 @@
 //      ... Use conn to send and receive messages.
 //  }
 //
-// Call the connection WriteMessage and ReadMessages methods to send and
+// Call the connection's WriteMessage and ReadMessage methods to send and
 // receive messages as a slice of bytes. This snippet of code shows how to echo
 // messages using these methods:
 //
@@ -46,8 +46,7 @@
 // method to get an io.WriteCloser, write the message to the writer and close
 // the writer when done. To receive a message, call the connection NextReader
 // method to get an io.Reader and read until io.EOF is returned. This snippet
-// snippet shows how to echo messages using the NextWriter and NextReader
-// methods:
+// shows how to echo messages using the NextWriter and NextReader methods:
 //
 //  for {
 //      messageType, r, err := conn.NextReader()
@@ -86,20 +85,64 @@
 // and pong. Call the connection WriteControl, WriteMessage or NextWriter
 // methods to send a control message to the peer.
 //
-// Connections handle received ping and pong messages by invoking a callback
-// function set with SetPingHandler and SetPongHandler methods. These callback
-// functions can be invoked from the ReadMessage method, the NextReader method
-// or from a call to the data message reader returned from NextReader.
+// Connections handle received ping and pong messages by invoking callback
+// functions set with SetPingHandler and SetPongHandler methods. The default
+// ping handler sends a pong to the client. The callback functions can be
+// invoked from the NextReader, ReadMessage or the message Read method.
 //
-// Connections handle received close messages by returning an error from the
-// ReadMessage method, the NextReader method or from a call to the data message
-// reader returned from NextReader.
+// Connections handle received close messages by sending a close message to the
+// peer and returning a *CloseError from the the NextReader, ReadMessage or the
+// message Read method.
+//
+// The application must read the connection to process ping and close messages
+// sent from the peer. If the application is not otherwise interested in
+// messages from the peer, then the application should start a goroutine to
+// read and discard messages from the peer. A simple example is:
+//
+//  func readLoop(c *websocket.Conn) {
+//      for {
+//          if _, _, err := c.NextReader(); err != nil {
+//              c.Close()
+//              break
+//          }
+//      }
+//  }
 //
 // Concurrency
 //
-// A Conn supports a single concurrent caller to the write methods (NextWriter,
-// SetWriteDeadline, WriteMessage) and a single concurrent caller to the read
-// methods (NextReader, SetReadDeadline, ReadMessage). The Close and
-// WriteControl methods can be called concurrently with all other methods.
+// Connections support one concurrent reader and one concurrent writer.
 //
+// Applications are responsible for ensuring that no more than one goroutine
+// calls the write methods (NextWriter, SetWriteDeadline, WriteMessage,
+// WriteJSON) concurrently and that no more than one goroutine calls the read
+// methods (NextReader, SetReadDeadline, ReadMessage, ReadJSON, SetPongHandler,
+// SetPingHandler) concurrently.
+//
+// The Close and WriteControl methods can be called concurrently with all other
+// methods.
+//
+// Origin Considerations
+//
+// Web browsers allow Javascript applications to open a WebSocket connection to
+// any host. It's up to the server to enforce an origin policy using the Origin
+// request header sent by the browser.
+//
+// The Upgrader calls the function specified in the CheckOrigin field to check
+// the origin. If the CheckOrigin function returns false, then the Upgrade
+// method fails the WebSocket handshake with HTTP status 403.
+//
+// If the CheckOrigin field is nil, then the Upgrader uses a safe default: fail
+// the handshake if the Origin request header is present and not equal to the
+// Host request header.
+//
+// An application can allow connections from any origin by specifying a
+// function that always returns true:
+//
+//  var upgrader = websocket.Upgrader{
+//      CheckOrigin: func(r *http.Request) bool { return true },
+//  }
+//
+// The deprecated Upgrade function does not enforce an origin policy. It's the
+// application's responsibility to check the Origin header before calling
+// Upgrade.
 package websocket

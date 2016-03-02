@@ -6,21 +6,41 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"testing"
 )
+
+func setupGitFixtures(t *testing.T) (string, func()) {
+	testDir := testFixture("archive-git")
+	oldName := filepath.Join(testDir, "DOTgit")
+	newName := filepath.Join(testDir, ".git")
+
+	cleanup := func() {
+		os.Rename(newName, oldName)
+		// Windows leaves an empty folder lying around afterward
+		if runtime.GOOS == "windows" {
+			os.Remove(newName)
+		}
+	}
+
+	// We call this BEFORE and after each setup for tests that make lower-level
+	// calls like runCommand
+	cleanup()
+
+	if err := os.Rename(oldName, newName); err != nil {
+		t.Fatal(err)
+	}
+
+	return testDir, cleanup
+}
 
 func TestVCSPreflight(t *testing.T) {
 	if !testHasGit {
 		t.Skip("git not found")
 	}
 
-	testDir := testFixture("archive-git")
-	oldName := filepath.Join(testDir, "DOTgit")
-	newName := filepath.Join(testDir, ".git")
-	if err := os.Rename(oldName, newName); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Rename(newName, oldName)
+	testDir, cleanup := setupGitFixtures(t)
+	defer cleanup()
 
 	if err := vcsPreflight(testDir); err != nil {
 		t.Fatal(err)
@@ -32,13 +52,8 @@ func TestGitBranch(t *testing.T) {
 		t.Skip("git not found")
 	}
 
-	testDir := testFixture("archive-git")
-	oldName := filepath.Join(testDir, "DOTgit")
-	newName := filepath.Join(testDir, ".git")
-	if err := os.Rename(oldName, newName); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Rename(newName, oldName)
+	testDir, cleanup := setupGitFixtures(t)
+	defer cleanup()
 
 	branch, err := gitBranch(testDir)
 	if err != nil {
@@ -87,13 +102,8 @@ func TestGitCommit(t *testing.T) {
 		t.Skip("git not found")
 	}
 
-	testDir := testFixture("archive-git")
-	oldName := filepath.Join(testDir, "DOTgit")
-	newName := filepath.Join(testDir, ".git")
-	if err := os.Rename(oldName, newName); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Rename(newName, oldName)
+	testDir, cleanup := setupGitFixtures(t)
+	defer cleanup()
 
 	commit, err := gitCommit(testDir)
 	if err != nil {
@@ -111,13 +121,8 @@ func TestGitRemotes(t *testing.T) {
 		t.Skip("git not found")
 	}
 
-	testDir := testFixture("archive-git")
-	oldName := filepath.Join(testDir, "DOTgit")
-	newName := filepath.Join(testDir, ".git")
-	if err := os.Rename(oldName, newName); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Rename(newName, oldName)
+	testDir, cleanup := setupGitFixtures(t)
+	defer cleanup()
 
 	remotes, err := gitRemotes(testDir)
 	if err != nil {
@@ -139,13 +144,8 @@ func TestVCSMetadata_git(t *testing.T) {
 		t.Skip("git not found")
 	}
 
-	testDir := testFixture("archive-git")
-	oldName := filepath.Join(testDir, "DOTgit")
-	newName := filepath.Join(testDir, ".git")
-	if err := os.Rename(oldName, newName); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Rename(newName, oldName)
+	testDir, cleanup := setupGitFixtures(t)
+	defer cleanup()
 
 	metadata, err := vcsMetadata(testDir)
 	if err != nil {
@@ -199,6 +199,51 @@ func TestVCSMetadata_git_detached(t *testing.T) {
 
 	if !reflect.DeepEqual(metadata, expected) {
 		t.Fatalf("expected %+v to be %+v", metadata, expected)
+	}
+}
+
+func TestVCSPathDetect_git(t *testing.T) {
+	testDir, cleanup := setupGitFixtures(t)
+	defer cleanup()
+
+	vcs, err := vcsDetect(testDir)
+	if err != nil {
+		t.Errorf("VCS detection failed")
+	}
+
+	if vcs.Name != "git" {
+		t.Errorf("Expected to find git; found %s", vcs.Name)
+	}
+}
+
+func TestVCSPathDetect_git_failure(t *testing.T) {
+	_, err := vcsDetect(testFixture("archive-flat"))
+	// We expect to get an error because there is no git repo here
+	if err == nil {
+		t.Errorf("VCS detection failed")
+	}
+}
+
+func TestVCSPathDetect_hg(t *testing.T) {
+	vcs, err := vcsDetect(testFixture("archive-hg"))
+	if err != nil {
+		t.Errorf("VCS detection failed")
+	}
+
+	if vcs.Name != "hg" {
+		t.Errorf("Expected to find hg; found %s", vcs.Name)
+	}
+}
+
+func TestVCSPathDetect_hg_absolute(t *testing.T) {
+	abspath, err := filepath.Abs(testFixture("archive-hg"))
+	vcs, err := vcsDetect(abspath)
+	if err != nil {
+		t.Errorf("VCS detection failed")
+	}
+
+	if vcs.Name != "hg" {
+		t.Errorf("Expected to find hg; found %s", vcs.Name)
 	}
 }
 

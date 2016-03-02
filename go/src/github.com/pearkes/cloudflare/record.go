@@ -232,6 +232,8 @@ func (c *Client) UpdateRecord(domain string, id string, opts *UpdateRecord) erro
 
 	if opts.Ttl != "" {
 		params["ttl"] = opts.Ttl
+	} else {
+		params["ttl"] = "1"
 	}
 
 	req, err := c.NewRequest(params, "POST", "rec_edit")

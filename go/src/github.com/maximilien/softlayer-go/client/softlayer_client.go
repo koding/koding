@@ -10,8 +10,8 @@ import (
 	"net/http/httputil"
 	"os"
 	"path/filepath"
-	"text/template"
 	"regexp"
+	"text/template"
 
 	services "github.com/maximilien/softlayer-go/services"
 	softlayer "github.com/maximilien/softlayer-go/softlayer"
@@ -86,6 +86,15 @@ func (slc *SoftLayerClient) GetSoftLayer_Virtual_Guest_Service() (softlayer.Soft
 	}
 
 	return slService.(softlayer.SoftLayer_Virtual_Guest_Service), nil
+}
+
+func (slc *SoftLayerClient) GetSoftLayer_Dns_Domain_Service() (softlayer.SoftLayer_Dns_Domain_Service, error) {
+	slService, err := slc.GetService("SoftLayer_Dns_Domain")
+	if err != nil {
+		return nil, err
+	}
+
+	return slService.(softlayer.SoftLayer_Dns_Domain_Service), nil
 }
 
 func (slc *SoftLayerClient) GetSoftLayer_Virtual_Disk_Image_Service() (softlayer.SoftLayer_Virtual_Disk_Image_Service, error) {
@@ -167,6 +176,15 @@ func (slc *SoftLayerClient) GetSoftLayer_Hardware_Service() (softlayer.SoftLayer
 	}
 
 	return slService.(softlayer.SoftLayer_Hardware_Service), nil
+}
+
+func (slc *SoftLayerClient) GetSoftLayer_Dns_Domain_ResourceRecord_Service() (softlayer.SoftLayer_Dns_Domain_ResourceRecord_Service, error) {
+	slService, err := slc.GetService("SoftLayer_Dns_Domain_ResourceRecord")
+	if err != nil {
+		return nil, err
+	}
+
+	return slService.(softlayer.SoftLayer_Dns_Domain_ResourceRecord_Service), nil
 }
 
 //Public methods
@@ -263,12 +281,14 @@ func (slc *SoftLayerClient) initSoftLayerServices() {
 	slc.softLayerServices["SoftLayer_Billing_Item_Cancellation_Request"] = services.NewSoftLayer_Billing_Item_Cancellation_Request_Service(slc)
 	slc.softLayerServices["SoftLayer_Virtual_Guest_Block_Device_Template_Group"] = services.NewSoftLayer_Virtual_Guest_Block_Device_Template_Group_Service(slc)
 	slc.softLayerServices["SoftLayer_Hardware"] = services.NewSoftLayer_Hardware_Service(slc)
+	slc.softLayerServices["SoftLayer_Dns_Domain"] = services.NewSoftLayer_Dns_Domain_Service(slc)
+	slc.softLayerServices["SoftLayer_Dns_Domain_ResourceRecord"] = services.NewSoftLayer_Dns_Domain_ResourceRecord_Service(slc)
 }
 
 func hideCredentials(s string) string {
 	hiddenStr := "\"password\":\"******\""
 	r := regexp.MustCompile(`"password":"[^"]*"`)
-	
+
 	return r.ReplaceAllString(s, hiddenStr)
 }
 

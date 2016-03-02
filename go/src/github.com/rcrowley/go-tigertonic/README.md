@@ -1,6 +1,8 @@
 Tiger Tonic
 ===========
 
+[![Build Status](https://travis-ci.org/rcrowley/go-tigertonic.png?branch=master)](https://travis-ci.org/rcrowley/go-tigertonic)
+
 A Go framework for building JSON web services inspired by [Dropwizard](http://dropwizard.codahale.com).  If HTML is your game, this will hurt a little.
 
 Like the Go language itself, Tiger Tonic strives to keep features orthogonal.  It defers what it can to the Go standard library and a few other packages.
@@ -56,6 +58,10 @@ func myHandler(*url.URL, http.Header, *MyRequest) (int, http.Header, *MyResponse
 ```
 
 Alternatively, you can return a valid status as the first output parameter and an `error` as the last; that status will be used in the error response.
+
+If the return type of a `tigertonic.Marshaled` handler interface implements the `io.Reader` interface the stream will be written directly to the requestor. A `Content-Type` header is required to be specified in the response headers and the `Accept` header for these particular requests can be anything.
+
+Additionally, if the return type of the `tigertonic.Marshaled` handler implements the `io.Closer` interface the stream will be automatically closed after it is flushed to the requestor.
 
 ### `tigertonic.Logged`, `tigertonic.JSONLogged`, and `tigertonic.ApacheLogged`
 
