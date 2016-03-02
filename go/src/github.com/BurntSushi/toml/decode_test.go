@@ -67,7 +67,7 @@ cauchy = "cat 2"
 			{"cyan", "magenta", "yellow", "black"},
 		},
 		My: map[string]cats{
-			"Cats": cats{Plato: "cat 1", Cauchy: "cat 2"},
+			"Cats": {Plato: "cat 1", Cauchy: "cat 2"},
 		},
 	}
 	if !reflect.DeepEqual(val, answer) {
@@ -116,6 +116,23 @@ func TestDecodeEmbedded(t *testing.T) {
 			t.Errorf("%s: want decoded == %+v, got %+v",
 				label, test.wantDecoded, test.decodeInto)
 		}
+	}
+}
+
+func TestDecodeIgnoredFields(t *testing.T) {
+	type simple struct {
+		Number int `toml:"-"`
+	}
+	const input = `
+Number = 123
+- = 234
+`
+	var s simple
+	if _, err := Decode(input, &s); err != nil {
+		t.Fatal(err)
+	}
+	if s.Number != 0 {
+		t.Errorf("got: %d; want 0", s.Number)
 	}
 }
 
@@ -282,6 +299,43 @@ Description = "da base"
 	}
 	if !reflect.DeepEqual(expected, dict) {
 		t.Fatalf("\n%#v\n!=\n%#v\n", expected, dict)
+	}
+}
+
+func TestDecodeBadTimestamp(t *testing.T) {
+	var x struct {
+		T time.Time
+	}
+	for _, s := range []string{
+		"T = 123", "T = 2006-01-50T00:00:00Z", "T = 2006-01-30T00:00:00",
+	} {
+		if _, err := Decode(s, &x); err == nil {
+			t.Errorf("Expected invalid DateTime error for %q", s)
+		}
+	}
+}
+
+func TestDecodeMultilineStrings(t *testing.T) {
+	var x struct {
+		S string
+	}
+	const s0 = `s = """
+a b \n c
+d e f
+"""`
+	if _, err := Decode(s0, &x); err != nil {
+		t.Fatal(err)
+	}
+	if want := "a b \n c\nd e f\n"; x.S != want {
+		t.Errorf("got: %q; want: %q", x.S, want)
+	}
+	const s1 = `s = """a b c\
+"""`
+	if _, err := Decode(s1, &x); err != nil {
+		t.Fatal(err)
+	}
+	if want := "a b c"; x.S != want {
+		t.Errorf("got: %q; want: %q", x.S, want)
 	}
 }
 
@@ -468,6 +522,20 @@ type ingredient struct {
 	Name string
 }
 
+func TestDecodeSlices(t *testing.T) {
+	s := struct{ Test []string }{Test: []string{}}
+	if _, err := Decode(`Test = ["test"]`, &s); err != nil {
+		t.Errorf("Error decoding into empty slice: %s", err)
+	}
+	s.Test = []string{"a", "b", "c"}
+	if _, err := Decode(`Test = ["test"]`, &s); err != nil {
+		t.Errorf("Error decoding into oversized slice: %s", err)
+	}
+	if want := []string{"test"}; !reflect.DeepEqual(s.Test, want) {
+		t.Errorf("Got %v; want %v", s.Test, want)
+	}
+}
+
 func ExampleMetaData_PrimitiveDecode() {
 	var md MetaData
 	var err error
@@ -553,7 +621,7 @@ ip = "10.0.0.2"
 	}
 
 	type server struct {
-		IP     string       `toml:"ip"`
+		IP     string       `toml:"ip,omitempty"`
 		Config serverConfig `toml:"config"`
 	}
 
