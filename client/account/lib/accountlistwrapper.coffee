@@ -17,6 +17,7 @@ AccountEditShortcuts                = require './views/accounteditshortcuts'
 AccountKodingKeyList                = require './accountkodingkeylist'
 AccountReferralSystem               = require './views/referral/accountreferralsystem'
 AccountCredentialListWrapper        = require './accountcredentiallistwrapper'
+AccountSessionListWrapper           = require './accountsessionlistwrapper'
 AccountEmailNotifications           = require './views/accountemailnotifications'
 AccountLinkedAccountsList           = require './accountlinkedaccountslist'
 AccountSshKeyListController         = require './views/accountsshkeylistcontroller'
@@ -40,11 +41,10 @@ module.exports = class AccountListWrapper extends KDView
     editors                    : AccountEditorList
     keysController             : AccountSshKeyListController
     keys                       : AccountSshKeyList
-    sessionsController         : AccountSessionListController
-    sessions                   : AccountSessionList
     kodingKeysController       : AccountKodingKeyListController
     kodingKeys                 : AccountKodingKeyList
     credentials                : AccountCredentialListWrapper
+    sessions                   : AccountSessionListWrapper
     twofactorauth              : AccountTwoFactorAuth
     deleteAccount              : DeleteAccountView
     leaveGroup                 : LeaveGroupView
