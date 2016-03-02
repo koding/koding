@@ -250,9 +250,18 @@ func TestTailOffset(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	file.WriteString("DataA\n")
-	file.WriteString("DataB\n")
-	file.Close()
+	_, err = file.WriteString("DataA\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = file.WriteString("DataB\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = file.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	fmt.Println("....Waiting for the results..")
 	time.Sleep(time.Second * 5)

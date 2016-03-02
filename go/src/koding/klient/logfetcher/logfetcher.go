@@ -192,7 +192,7 @@ func getOffsetLines(f *os.File, requestedLines int) ([]string, error) {
 		return nil, fmt.Errorf("getOffsetLines: Failed to seek. err:%s", err)
 	}
 	if start == 0 {
-		return []string{}, nil
+		return nil, nil
 	}
 
 	// Loop through the file, looking for all of our newlines.
@@ -210,8 +210,7 @@ func getOffsetLines(f *os.File, requestedLines int) ([]string, error) {
 			break
 		}
 
-		_, err = f.ReadAt(b, start)
-		if err != nil {
+		if _, err = f.ReadAt(b, start); err != nil {
 			return nil, fmt.Errorf("getOffsetLines: Failed to read newline. err:%s", err)
 		}
 
