@@ -21,7 +21,7 @@ func testGitClone(t *testing.T, mountDir string) {
 			}
 
 			md5 := func(dir string) (string, error) {
-				cmd := exec.Command("bash", "-c", fmt.Sprintf("ls %s | md5sum", dir))
+				cmd := exec.Command("bash", "-c", fmt.Sprintf("ls %s | md5", dir))
 				output, err := cmd.Output()
 
 				return string(output), err
