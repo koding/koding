@@ -1,0 +1,14 @@
+*.6
+*.8
+*.o
+*.so
+*.out
+*.go~
+*.cgo?.*
+_cgo_*
+_obj
+_test
+_testmain.go
+*.swp
+_site
+.DS_Store

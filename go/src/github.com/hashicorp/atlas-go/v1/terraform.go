@@ -12,6 +12,7 @@ import (
 // Terraform configuration.
 type TerraformConfigVersion struct {
 	Version   int
+	Remotes   []string          `json:"remotes"`
 	Metadata  map[string]string `json:"metadata"`
 	Variables map[string]string `json:"variables"`
 }
