@@ -30,7 +30,6 @@ module.exports = class AccountSessionListItem extends KDListItemView
 
     { groupName, lastAccess } = @getData()
 
-    console.log globals.config
     hostname = switch globals.config.environment
       when 'production' then 'koding.com'
       else "#{globals.config.environment}.koding.com"

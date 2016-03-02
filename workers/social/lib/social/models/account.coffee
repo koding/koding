@@ -1428,7 +1428,6 @@ module.exports = class JAccount extends jraphical.Module
 
       selector = { username : session.username }
       options  = { limit, skip, sort }
-      console.log options
       JSession.some selector, options, callback
 
 

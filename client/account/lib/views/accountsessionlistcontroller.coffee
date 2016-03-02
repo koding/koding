@@ -26,7 +26,6 @@ module.exports = class AccountSessionListController extends AccountListViewContr
       @busy = yes
       limit = @getOption 'limit'
       @skip += limit
-      console.log @skip
 
       @fetch { @skip, limit }, (err, sessions) =>
         @hideLazyLoader()
@@ -52,7 +51,6 @@ module.exports = class AccountSessionListController extends AccountListViewContr
 
     options.limit or= @getOption 'limit'
     options.sort  or= { 'sessionBegan' : -1 }
-    console.log options
 
     whoami().fetchMySessions options, (err, sessions) =>
 
