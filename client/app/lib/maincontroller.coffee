@@ -46,7 +46,6 @@ MachineShareManager            = require './machinesharemanager'
 KodingFluxReactor              = require './flux/base/reactor'
 DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
-setRegistrationCookie          = require 'app/util/setregistrationcookie'
 
 
 module.exports = class MainController extends KDController
@@ -79,9 +78,6 @@ module.exports = class MainController extends KDController
 
     @detectIdleUser()
     @setTeamCookie()
-
-    # this call should be activated when we decide to switch solo product-hakan
-    # @setRegistrationClosed()
 
 
   createSingletons:->
@@ -155,11 +151,6 @@ module.exports = class MainController extends KDController
     return yes  if disabledFeatures[role] and name in disabledFeatures[role]
 
     return no
-
-
-  setRegistrationClosed: ->
-
-    setRegistrationCookie yes  unless kookies.get 'isRegistrationClosed'
 
 
   accountChanged: (account, firstLoad = no)->
