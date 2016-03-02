@@ -336,7 +336,7 @@ module.exports = class JCredential extends jraphical.Module
       { permission   : 'update credential', validateWith: Validators.own }
       {
         permission   : 'update credential'
-        validateWith : Validators.group.resource mode: 'w'
+        validateWith : Validators.group.resource { mode: 'w' }
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -377,7 +377,7 @@ module.exports = class JCredential extends jraphical.Module
       { permission   : 'update credential', validateWith: Validators.own }
       {
         permission   : 'update credential'
-        validateWith : Validators.group.resource mode: 'w'
+        validateWith : Validators.group.resource { mode: 'w' }
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -449,7 +449,7 @@ module.exports = class JCredential extends jraphical.Module
       { permission   : 'update credential', validateWith: Validators.own }
       {
         permission   : 'update credential'
-        validateWith : Validators.group.resource mode: 'w'
+        validateWith : Validators.group.resource { mode: 'w' }
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
