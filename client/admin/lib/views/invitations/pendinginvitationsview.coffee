@@ -1,6 +1,5 @@
 kd                    = require 'kd'
 remote                = require('app/remote').getInstance()
-isKoding              = require 'app/util/isKoding'
 checkFlag             = require 'app/util/checkFlag'
 InvitedItemView       = require './inviteditemview'
 KDCustomHTMLView      = kd.CustomHTMLView
