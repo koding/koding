@@ -103,9 +103,8 @@ type KlientConfig struct {
 
 	VagrantHome string
 
-	TunnelServerAddr string
-	TunnelLocalAddr  string
-	NoTunnel         bool
+	TunnelName    string
+	TunnelKiteURL string
 }
 
 // NewKlient returns a new Klient instance
@@ -168,7 +167,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		kite:         k,
 		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
-		tunnelclient: klienttunnel.NewClient(db),
+		tunnelclient: klienttunnel.NewClient(db, k.Log),
 		vagrant:      vagrant.NewHandlers(vagrantOpts),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
@@ -224,14 +223,8 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.unshare", k.collab.Unshare)
 	k.kite.HandleFunc("klient.shared", k.collab.Shared)
 
-	// Remote handles interaction specific to remote Klient machines.
-	k.kite.HandleFunc("remote.cacheFolder", k.remote.CacheFolderHandler)
-	k.kite.HandleFunc("remote.list", k.remote.ListHandler)
-	k.kite.HandleFunc("remote.mounts", k.remote.MountsHandler)
-	k.kite.HandleFunc("remote.mountFolder", k.remote.MountFolderHandler)
-	k.kite.HandleFunc("remote.unmountFolder", k.remote.UnmountFolderHandler)
-	k.kite.HandleFunc("remote.sshKeysAdd", k.remote.SSHKeyAddHandler)
-	k.kite.HandleFunc("remote.exec", k.remote.ExecHandler)
+	// Adds the remote.* methods, depending on OS.
+	k.addRemoteHandlers()
 
 	// SSH keys
 	k.kite.HandleFunc("sshkeys.list", sshkeys.List)
@@ -382,13 +375,7 @@ func (k *Klient) Run() {
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
 
-	// TODO(rjeczalik): enable it after TMS-2203
-	// useTunnel := !isKoding && !k.config.NoTunnel
-	useTunnel := false
-
-	// TODO(rjeczalik): check if k.kite.Config.Port is accessible from outside,
-	// don't start tunnel for managed hosts with public IP.
-	if err := k.register(useTunnel); err != nil {
+	if err := k.register(); err != nil {
 		panic(err)
 	}
 
@@ -404,12 +391,7 @@ func (k *Klient) Run() {
 	// Initializing the remote re-establishes any previously-running remote
 	// connections, such as mounted folders. This needs to be run *after*
 	// Klient is setup and running, to get a valid connection to Kontrol.
-	go func() {
-		err := k.remote.Initialize()
-		if err != nil {
-			k.log.Error("Failed to initialize Remote. Error: %s", err.Error())
-		}
-	}()
+	go k.initRemote()
 
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 

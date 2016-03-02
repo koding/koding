@@ -654,39 +654,6 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     font-size               13px
     abs()
 
-    .collab-status
-      float                 left
-      margin-left           10px
-
-      .button-container
-        display             inline-block
-        position            absolute
-        top                 -38px
-        height              38px
-        padding             8px 8px 0 8px
-        bg                  color #131313
-        rounded             4px 4px 0 0
-        left                113px
-        z-index             21
-        borderBox()
-
-      > span
-        color               #55A645
-        text-decoration     underline
-        vendor              user-select, none
-        pointer()
-
-      i
-        r-sprite            'finder', 'expanded'
-        display             inline-block
-        vendor              transform, rotate(180deg)
-        position            relative
-        top                 5px
-
-      &.shown i
-        top                 3px
-        vendor              transform, rotate(0deg)
-
     .status
       margin-left           12px
       fl()
@@ -696,6 +663,16 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
 
         &.line
           width             50px
+
+    .collaboration-link-container
+      padding-left          12px
+      pointer()
+      fl()
+
+    .collaboration-link::selection
+      color                 white
+    .collaboration-link::-moz-selection
+      color                 white
 
     .share
       color                 #b9b9b9
@@ -714,6 +691,15 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
       &:hover
         color               #fff
         bg                  color #24b444
+
+      &.red:hover
+        color               #fff
+        bg                  color #e14a35
+
+    .appear-in-button
+      background            transparent url('/a/images/vendors/appearin-logo.svg') no-repeat center center
+      bg                    size, 26px 22px
+      width                 36px
 
     .icon
       size                  auto 37px
@@ -1446,3 +1432,7 @@ body.ide .kddialogview.save-as-dialog
 
 .kdmodal.autoremovepane-confirm
     width                   650px !important
+
+
+.ide .ace-base16 .ace_marker-layer .ace_selected-word
+  border                    1px solid #008DC0

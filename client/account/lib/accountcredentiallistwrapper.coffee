@@ -3,7 +3,6 @@ KDView         = kd.View
 globals        = require 'globals'
 KDSelectBox    = kd.SelectBox
 KDLabelView    = kd.LabelView
-KDContextMenu  = kd.ContextMenu
 KDHeaderView   = kd.HeaderView
 
 AccountCredentialList           = require './accountcredentiallist'

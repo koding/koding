@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/klient"
 
 	"github.com/koding/logging"
 
@@ -97,7 +98,7 @@ type RunCommand struct {
 
 // NewRunCommand is the required initializer for RunCommand.
 func NewRunCommand() (*RunCommand, error) {
-	klientKite, err := CreateKlientClient(NewKlientOptions())
+	klientKite, err := klient.CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,10 @@ import (
 	"time"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/ctlcli"
+	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
+	"koding/klientctl/list"
 	"koding/klientctl/util"
 
 	"github.com/cheggaaa/pb"
@@ -46,7 +49,7 @@ type MountCommand struct {
 
 	// The klient instance this struct will use.
 	Klient interface {
-		RemoteList() (KiteInfos, error)
+		RemoteList() (list.KiteInfos, error)
 		RemoteCache(req.Cache, func(par *dnode.Partial)) error
 		RemoteMountFolder(req.MountFolder) (string, error)
 
@@ -62,13 +65,13 @@ type MountCommand struct {
 	//
 	// Note! These will be ignored if c.Klient is already defined before Run() is
 	// called.
-	KlientOptions KlientOptions
+	KlientOptions klient.KlientOptions
 
 	// the following vars exist primarily for mocking ability, and ensuring
 	// an enclosed environment within the struct.
 
 	// The Helper. See it's docs for a better understanding of this.
-	helper Helper
+	helper ctlcli.Helper
 
 	// homeDirGetter gets the users home directory.
 	homeDirGetter func() (string, error)
@@ -100,6 +103,14 @@ func (c *MountCommand) printfln(f string, i ...interface{}) {
 
 // Run the Mount command
 func (c *MountCommand) Run() (int, error) {
+	// Cleanup local folder when command exists with failure.
+	cleanupPath := false
+	defer func() {
+		if cleanupPath {
+			c.cleanupPath()
+		}
+	}()
+
 	if exit, err := c.handleOptions(); err != nil {
 		return exit, err
 	}
@@ -117,6 +128,8 @@ func (c *MountCommand) Run() (int, error) {
 	// TODO: Try out using Cache Only here, we don't need a new VM list.
 	infos, err := c.Klient.RemoteList()
 	if err != nil {
+		cleanupPath = true
+
 		// Using internal error here, because a list error would be confusing to the
 		// user.
 		//
@@ -132,6 +145,8 @@ func (c *MountCommand) Run() (int, error) {
 
 	if c.Options.PrefetchAll {
 		if err := c.prefetchAll(); err != nil {
+			cleanupPath = true
+
 			return 1, fmt.Errorf("Failed to prefetch. err:%s", err)
 		}
 	}
@@ -149,11 +164,15 @@ func (c *MountCommand) Run() (int, error) {
 
 	// Actually mount the folder. Errors are printed by the mountFolder func to the user.
 	if err := c.mountFolder(mountRequest); err != nil {
+		cleanupPath = true
+
 		return 1, err
 	}
 
 	// Lock the mount, so that run/etc knows it's a mount folder.
 	if err := c.mountLocker(c.Options.LocalPath, c.Options.Name); err != nil {
+		cleanupPath = true
+
 		c.printfln(FailedToLockMount)
 		return 1, fmt.Errorf("Error locking. err:%s", err)
 	}
@@ -249,7 +268,7 @@ func (c *MountCommand) setupKlient() (int, error) {
 		return 0, nil
 	}
 
-	k, err := NewDialedKlient(c.KlientOptions)
+	k, err := klient.NewDialedKlient(c.KlientOptions)
 	if err != nil {
 		return 1, fmt.Errorf("Failed to get working Klient instance")
 	}
@@ -309,8 +328,9 @@ func (c *MountCommand) prefetchAll() error {
 	doneErr := make(chan error)
 
 	// The creation of the pb objection presents a CLI progress bar to the user.
-	bar := pb.StartNew(100)
+	bar := pb.New(100)
 	bar.SetMaxWidth(100)
+	bar.Start()
 
 	// The callback, used to update the progress bar as remote.cache downloads
 	cacheProgressCallback := func(par *dnode.Partial) {
@@ -415,6 +435,12 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 	}
 
 	return nil
+}
+
+func (c *MountCommand) cleanupPath() {
+	if err := util.NewRemovePath().Remove(c.Options.LocalPath); err != nil {
+		c.printfln(UnmountFailedRemoveMountPath)
+	}
 }
 
 // askToCreate checks if the folder does not exist, and creates it

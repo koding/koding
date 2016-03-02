@@ -2,8 +2,6 @@ kd = require 'kd'
 KDFormViewWithFields = kd.FormViewWithFields
 KDSelectBox = kd.SelectBox
 remote = require('app/remote').getInstance()
-globals = require 'globals'
-KodingSwitch = require 'app/commonviews/kodingswitch'
 
 
 module.exports = class OnboardingSectionForm extends KDFormViewWithFields

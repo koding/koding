@@ -11,9 +11,6 @@ type Config struct {
 	// Debug determines if application debug logs are turned on.
 	Debug bool `default:true`
 
-	// FuseConfig determines if fuse library debug logs are turned on.
-	FuseDebug bool `default:false`
-
 	// NoIgnore determines whether to ignore default or user specified folders.
 	// Use this to turn off default ignoring of folders.
 	NoIgnore bool `default:false`

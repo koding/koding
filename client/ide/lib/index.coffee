@@ -4,7 +4,6 @@ kd                            = require 'kd'
 nick                          = require 'app/util/nick'
 ndpane                        = require 'ndpane'
 remote                        = require('app/remote').getInstance()
-KDView                        = kd.View
 whoami                        = require 'app/util/whoami'
 globals                       = require 'globals'
 actions                       = require 'app/flux/environment/actions'
@@ -15,8 +14,6 @@ IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
 showError                     = require 'app/util/showError'
 actionTypes                   = require 'app/flux/environment/actiontypes'
-KDModalView                   = kd.ModalView
-KDSplitView                   = kd.SplitView
 IDEWorkspace                  = require './workspace/ideworkspace'
 IDEStatusBar                  = require './views/statusbar/idestatusbar'
 AppController                 = require 'app/appcontroller'
@@ -26,17 +23,12 @@ splashMarkups                 = require './util/splashmarkups'
 isTeamReactSide               = require 'app/util/isTeamReactSide'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
-KDCustomHTMLView              = kd.CustomHTMLView
-KDSplitViewPanel              = kd.SplitViewPanel
 IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
 IDEContentSearch              = require './views/contentsearch/idecontentsearch'
-KDNotificationView            = kd.NotificationView
-KDBlockingModalView           = kd.BlockingModalView
 IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 CollaborationController       = require './collaborationcontroller'
-VideoCollaborationController  = require './videocollaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
@@ -50,7 +42,6 @@ module.exports =
 class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
-  _.extend @prototype, VideoCollaborationController
 
   {
     Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
@@ -63,7 +54,7 @@ class IDEAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    options.view    = new KDView cssClass: 'dark'
+    options.view    = new kd.View cssClass: 'dark'
     options.appInfo =
       type          : 'application'
       name          : 'IDE'
@@ -280,7 +271,7 @@ class IDEAppController extends AppController
     newIdeView.setHash newIdeViewHash
 
     splitViewPanel = @activeTabView.parent.parent
-    if splitViewPanel instanceof KDSplitViewPanel
+    if splitViewPanel instanceof kd.SplitViewPanel
     then layout = splitViewPanel._layout
     else layout = @layout
 
@@ -288,7 +279,7 @@ class IDEAppController extends AppController
 
     ideView.detach()
 
-    splitView = new KDSplitView
+    splitView = new kd.SplitView
       type  : type
       views : [ null, newIdeView ]
 
@@ -347,7 +338,7 @@ class IDEAppController extends AppController
     ideViewHash = tabView.parent.hash
     { parent }  = splitView
 
-    return  unless panel instanceof KDSplitViewPanel
+    return  unless panel instanceof kd.SplitViewPanel
 
     # Remove merged `ideView` from `ideViews`
     index = @ideViews.indexOf tabView.parent
@@ -373,7 +364,7 @@ class IDEAppController extends AppController
     splitView.detach()  # Detach `splitView` from DOM.
 
     # Point shot.
-    # `targetView` can be a `KDSplitView` or an `IDEView`.
+    # `targetView` can be a `kd.SplitView` or an `IDEView`.
     targetView = splitView.panels.first.getSubViews().first
     targetView.unsetParent()  # Remove `parent` of `targetView`.
 
@@ -549,9 +540,9 @@ class IDEAppController extends AppController
 
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
-          fakeTerminalView  = new KDCustomHTMLView partial: splashes.getTerminal nickname
+          fakeTerminalView  = new kd.CustomHTMLView partial: splashes.getTerminal nickname
           @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
-          @fakeFinderView   = new KDCustomHTMLView partial: splashes.getFileTree nickname, machineLabel
+          @fakeFinderView   = new kd.CustomHTMLView partial: splashes.getFileTree nickname, machineLabel
 
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
           @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
@@ -838,7 +829,7 @@ class IDEAppController extends AppController
     return unless tabView?.parent
 
     panel = tabView.parent.parent
-    return  unless panel instanceof KDSplitViewPanel
+    return  unless panel instanceof kd.SplitViewPanel
 
     targetOffset = @layout[direction](panel._layout.data.offset)
     return  unless targetOffset?
@@ -1327,7 +1318,7 @@ class IDEAppController extends AppController
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
 
     return unless title
-    new KDNotificationView { title, cssClass, type, duration }
+    new kd.NotificationView { title, cssClass, type, duration }
 
 
   resizeActiveTerminalPane: ->
@@ -1613,7 +1604,7 @@ class IDEAppController extends AppController
         cssClass : 'solid light-gray medium'
         callback : => @modal.destroy()
 
-    ModalClass = if modalOptions.blocking then KDBlockingModalView else KDModalView
+    ModalClass = if modalOptions.blocking then kd.BlockingModalView else kd.ModalView
 
     @modal = new ModalClass modalOptions
     @modal.once 'KDObjectWillBeDestroyed', =>
@@ -1905,11 +1896,11 @@ class IDEAppController extends AppController
   ###*
    * Update `@layoutMap` for move tab with keyboard shortcuts.
    *
-   * @param {KDSplitView|IDEView} parent
+   * @param {kd.SplitView|IDEView} parent
   ###
   updateLayoutMap_: (splitView, targetView) ->
 
-    return  if targetView instanceof KDSplitViewPanel
+    return  if targetView instanceof kd.SplitViewPanel
 
     @mergeLayoutMap_ splitView
 
@@ -1922,11 +1913,11 @@ class IDEAppController extends AppController
 
   ###*
    *
-   * @param {KDSplitViewPanel} view
+   * @param {kd.SplitViewPanel} view
   ###
   mergeLayoutMap_: (view) ->
 
-    return  unless view instanceof KDSplitViewPanel
+    return  unless view instanceof kd.SplitViewPanel
 
     view._layout.leafs?.forEach (leaf) =>
       @layoutMap[leaf.data.offset] = null

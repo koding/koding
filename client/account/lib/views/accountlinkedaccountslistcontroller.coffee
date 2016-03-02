@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd                   = require 'kd'
 KDListViewController = kd.ListViewController
-globals = require 'globals'
+globals              = require 'globals'
 
 
 module.exports = class AccountLinkedAccountsListController extends KDListViewController

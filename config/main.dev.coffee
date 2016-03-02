@@ -1160,6 +1160,9 @@ Configuration = (options={}) ->
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_tittle_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_tittle_enum\" ADD VALUE IF NOT EXISTS 'startup';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_tittle_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
       }
 
       function run () {
@@ -1190,8 +1193,6 @@ Configuration = (options={}) ->
 
         # Do PG Migration if necessary
         migrate up
-
-        migrations
 
         # Create default workspaces
         node scripts/create-default-workspace
@@ -1257,6 +1258,8 @@ Configuration = (options={}) ->
       }
 
       function migrate () {
+        migrations
+
         params=(create up down version reset redo to goto)
         param=$1
 
@@ -1676,7 +1679,7 @@ Configuration = (options={}) ->
 
         build_services
         importusers
-        migrations
+        migrate up
 
       elif [ "$1" == "help" ]; then
         printHelp
@@ -1764,6 +1767,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "sanitize-email" ]; then
         node #{projectRoot}/scripts/sanitize-email
+
+      elif [ "$1" == "migrations" ]; then
+        migrations
 
       else
         echo "Unknown command: $1"

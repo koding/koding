@@ -1,11 +1,9 @@
 kd                          = require 'kd'
 hljs                        = require 'highlight.js'
-Promise                     = require 'bluebird'
+_                           = require 'lodash'
 
 KDListView                  = kd.ListView
 KDModalView                 = kd.ModalView
-KDOverlayView               = kd.OverlayView
-KDNotificationView          = kd.NotificationView
 
 showError                   = require 'app/util/showError'
 applyMarkdown               = require 'app/util/applyMarkdown'
@@ -123,9 +121,12 @@ module.exports = class AccountCredentialList extends KDListView
     credential.fetchData (err, data) ->
       return if showError err
 
-      data.meta.identifier = credential.identifier
+      { meta } = data
 
-      cred = JSON.stringify data.meta, null, 2
+      meta            = helper.prepareCredentialMeta meta
+      meta.identifier = credential.identifier
+
+      cred = JSON.stringify meta, null, 2
       cred = hljs.highlight('json', cred).value
 
       new KDModalView
@@ -149,6 +150,7 @@ module.exports = class AccountCredentialList extends KDListView
     credential.fetchData (err, data) ->
       return if showError err
 
+      data.meta  = helper.prepareCredentialMeta data.meta
       data.title = credential.title
 
       new AccountCredentialEditModal { provider, credential }, data
@@ -199,3 +201,11 @@ module.exports = class AccountCredentialList extends KDListView
 
         console.warn "Verify failed:", err
         err
+
+
+  helper =
+
+    prepareCredentialMeta: (meta) ->
+
+      delete meta.__rawContent
+      return _.mapValues meta, (val) -> _.unescape val

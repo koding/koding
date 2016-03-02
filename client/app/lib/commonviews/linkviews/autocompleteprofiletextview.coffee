@@ -1,5 +1,4 @@
 ProfileTextView = require './profiletextview'
-kd = require 'kd'
 getFullnameFromAccount = require '../../util/getFullnameFromAccount'
 
 

@@ -135,7 +135,6 @@ func TestMultipleLatencyRequest(t *testing.T) {
 		wg.Add(1)
 
 		go func(i int) {
-			defer wg.Done()
 			msg := "hello" + strconv.Itoa(i)
 			res, err := makeRequest(tenv.remoteListener.Addr().String(), msg)
 			if err != nil {
@@ -145,6 +144,7 @@ func TestMultipleLatencyRequest(t *testing.T) {
 			if res != msg {
 				t.Errorf("Expecting %s, got %s", msg, res)
 			}
+			wg.Done()
 		}(i)
 	}
 
@@ -254,6 +254,9 @@ func TestSingleLatencyRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// wait til the environment is ready, just for test
+	time.Sleep(time.Second * 2)
 
 	msg := "hello"
 	res, err := makeRequest(tenv.remoteListener.Addr().String(), msg)

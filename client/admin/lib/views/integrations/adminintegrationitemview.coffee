@@ -1,9 +1,7 @@
 kd                 = require 'kd'
 JView              = require 'app/jview'
-remote             = require('app/remote').getInstance()
 KDButtonView       = kd.ButtonView
 KDListItemView     = kd.ListItemView
-integrationHelpers = require 'app/helpers/integration'
 
 
 module.exports = class AdminIntegrationItemView extends KDListItemView

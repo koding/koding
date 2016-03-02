@@ -1,13 +1,13 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDFormView = kd.FormView
-KDInputView = kd.InputView
-KDLabelView = kd.LabelView
+kd                 = require 'kd'
+KDButtonView       = kd.ButtonView
+KDCustomHTMLView   = kd.CustomHTMLView
+KDFormView         = kd.FormView
+KDInputView        = kd.InputView
+KDLabelView        = kd.LabelView
 KDNotificationView = kd.NotificationView
-KDView = kd.View
-AccountsSwappable = require '../accountsswappable'
-remote = require('app/remote').getInstance()
+KDView             = kd.View
+AccountsSwappable  = require '../accountsswappable'
+remote             = require('app/remote').getInstance()
 
 
 

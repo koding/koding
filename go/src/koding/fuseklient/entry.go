@@ -1,6 +1,7 @@
 package fuseklient
 
 import (
+	"fmt"
 	"path/filepath"
 	"sync"
 
@@ -145,6 +146,18 @@ func (e *Entry) UpdateAttrsFromRemote() error {
 	e.Attrs = attrs
 
 	return nil
+}
+
+func (e *Entry) ToString() string {
+	var p string = "none"
+	if e.Parent != nil {
+		p = e.Parent.Name
+	}
+
+	return fmt.Sprintf(
+		"entry: id=%d parent=%s name=%s path=%s uid=%d gid=%d forgotten=%v",
+		e.ID, p, e.Name, e.Path, e.Uid, e.Gid, e.Forgotten,
+	)
 }
 
 ///// Helpers

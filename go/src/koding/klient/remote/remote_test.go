@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/protocol"
-	"github.com/koding/klient/storage"
+	"koding/klient/storage"
+
+	"github.com/koding/kite"
+	"github.com/koding/kite/config"
+	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
 

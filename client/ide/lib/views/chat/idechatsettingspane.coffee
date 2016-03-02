@@ -101,11 +101,6 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
       cssClass : 'solid red hidden'
       callback : => if @isInSession then @leaveSession() else @stopSession()
 
-    @back = new CustomLinkView
-      title    : 'Chat'
-      cssClass : 'chat-link'
-      click    : => @getDelegate().showChatPane()
-
     @everyone  = new KDCustomHTMLView
       tagName  : 'ul'
       cssClass : 'settings everyone loading'
@@ -370,9 +365,6 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
   pistachio: ->
 
     return """
-      <header class='chat-settings'>
-        {{> @back}}
-      </header>
       {{> @everyone}}
       <div class="warning">
         <div class="key-icon"></div>

@@ -1,9 +1,7 @@
 globals              = require 'globals'
 kd                   = require 'kd'
 remote               = require('./remote').getInstance()
-isLoggedIn           = require './util/isLoggedIn'
 showError            = require './util/showError'
-isGroup              = require './util/isGroup'
 KodingAppsController = require './kodingappscontroller'
 
 

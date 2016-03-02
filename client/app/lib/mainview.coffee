@@ -1,7 +1,6 @@
 kd                      = require 'kd'
 KDCustomHTMLView        = kd.CustomHTMLView
 KDCustomScrollView      = kd.CustomScrollView
-KDScrollView            = kd.ScrollView
 KDButtonView            = kd.ButtonView
 KDView                  = kd.View
 async                   = require 'async'

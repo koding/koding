@@ -1,5 +1,4 @@
 $                    = require 'jquery'
-_                    = require 'lodash'
 async                = require 'async'
 globals              = require 'globals'
 getAppOptions        = require './util/getAppOptions'

@@ -2,11 +2,9 @@
 sinon         = require 'sinon'
 React         = require 'react/addons'
 { TestUtils } = React.addons
-helper        = require '../helper'
 
 ProfileLinkContainer = require '../profilelinkcontainer'
 
-fetchAccount = require 'app/util/fetchAccount'
 
 describe 'ProfileLinkContainer', ->
 

@@ -26,7 +26,8 @@ module.exports = class StripeFormView extends KDFormViewWithFields
     fields = {}
     fields.cardNumber = {
       label          : 'Card Number'
-
+      attributes     :
+        autofocus    : on
       blur           : ->
         @oldValue = @getValue()
         @setValue @oldValue.replace /\s|-/g, ''

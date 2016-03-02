@@ -1,6 +1,17 @@
 package req
 
-import "time"
+import (
+	"koding/klient/remote/rsync"
+	"time"
+)
+
+type StatusItem int
+
+const (
+	UnknownStatus StatusItem = iota
+	KontrolStatus
+	MachineStatus
+)
 
 // MountFolder is the request struct for remote.mountFolder method.
 type MountFolder struct {
@@ -54,4 +65,36 @@ type Cache struct {
 
 	// The keypath that SSH will use for rsync.
 	SSHPrivateKeyPath string `json:"sshPrivateKeyPath"`
+}
+
+type Status struct {
+	// Item is the name of the thing you want
+	Item StatusItem `json:"item"`
+
+	// MachineName is the machine name to query the status of.
+	MachineName string `json:"machineName"`
+}
+
+type MountInfo struct {
+	// MountName is the mount name to get info on.
+	MountName string `json:"mountName"`
+}
+
+func (i StatusItem) String() string {
+	switch i {
+	case KontrolStatus:
+		return "KontrolStatus"
+	case MachineStatus:
+		return "MachineStatus"
+	default:
+		return "UnknownStatus"
+	}
+}
+
+type MountInfoResponse struct {
+	// Embedded mountfolder fields
+	MountFolder
+
+	// Used for prefetch / cache.
+	SyncIntervalOpts rsync.SyncIntervalOpts
 }

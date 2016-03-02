@@ -1,5 +1,4 @@
 kd           = require 'kd'
-showError    = require 'app/util/showError'
 TeamListItem = require './teamlistitem'
 
 

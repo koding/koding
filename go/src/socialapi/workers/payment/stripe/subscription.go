@@ -88,8 +88,7 @@ func findCustomerSubscriptions(customer *paymentmodels.Customer, query *bongo.Qu
 	}
 
 	s := paymentmodels.Subscription{}
-	err := s.Some(&subscriptions, query)
-	if err != nil {
+	if err := s.Some(&subscriptions, query); err != nil {
 		return nil, err
 	}
 
@@ -101,8 +100,7 @@ func findCustomerSubscriptions(customer *paymentmodels.Customer, query *bongo.Qu
 }
 
 func CancelSubscriptionAndRemoveCC(customer *paymentmodels.Customer, currentSubscription *paymentmodels.Subscription) error {
-	err := CancelSubscription(customer, currentSubscription)
-	if err != nil {
+	if err := CancelSubscription(customer, currentSubscription); err != nil {
 		return err
 	}
 
@@ -116,8 +114,7 @@ func handleUpgrade(currentSubscription *paymentmodels.Subscription, customer *pa
 	}
 
 	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
-	_, err := stripeSub.Update(currentSubscriptionId, subParams)
-	if err != nil {
+	if _, err := stripeSub.Update(currentSubscriptionId, subParams); err != nil {
 		return handleStripeError(err)
 	}
 
@@ -125,8 +122,7 @@ func handleUpgrade(currentSubscription *paymentmodels.Subscription, customer *pa
 		Customer: customer.ProviderCustomerId,
 	}
 
-	_, err = stripeInvoice.New(invoiceParams)
-	if err != nil {
+	if _, err := stripeInvoice.New(invoiceParams); err != nil {
 		stripeErr := handleStripeError(err)
 
 		if !paymenterrors.IsNothingToInvoiceErr(stripeErr) {
@@ -145,8 +141,7 @@ func handleDowngrade(currentSubscription *paymentmodels.Subscription, customer *
 	}
 
 	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
-	_, err := stripeSub.Update(currentSubscriptionId, subParams)
-	if err != nil {
+	if _, err := stripeSub.Update(currentSubscriptionId, subParams); err != nil {
 		return handleStripeError(err)
 	}
 

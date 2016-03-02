@@ -128,6 +128,25 @@ func (b *Builder) BuildStack(stackID string) error {
 	return nil
 }
 
+// FindMachine looks for a jMachine document in b.Machines which meta.assignedLabel
+// matches the given paramter.
+//
+// If assignedLabel is empty, FindMachine returns nil.
+// If no machine was found, FindMachine returns nil.
+func (b *Builder) FindMachine(assignedLabel string) *models.Machine {
+	if assignedLabel == "" {
+		return nil
+	}
+
+	for _, m := range b.Machines {
+		if label, ok := m.Meta["assignedLabel"].(string); ok && label == assignedLabel {
+			return m
+		}
+	}
+
+	return nil
+}
+
 // BuildMachines fetches machines that belongs to existing b.Stack.
 //
 // It validates whether user is allowed to perform apply operation.
@@ -290,6 +309,11 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		return fmt.Errorf("fetching credentials %v: %s", identifiers, err)
 	}
 
+	credentialTitles := make(map[string]string, len(credentials))
+	for _, cred := range credentials {
+		credentialTitles[cred.Identifier] = cred.Title
+	}
+
 	// 3- count relationship with credential id and jaccount id as user or
 	// owner. Any non valid credentials will be discarded
 	validKeys := make(map[string]string, 0)
@@ -354,6 +378,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		fn := metaFunc(provider)
 
 		cred := &Credential{
+			Title:      credentialTitles[c.Identifier],
 			Provider:   provider,
 			Identifier: c.Identifier,
 			Meta:       fn(),

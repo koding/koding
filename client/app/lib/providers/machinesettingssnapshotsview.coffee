@@ -1,6 +1,5 @@
 kd                          = require 'kd'
 remote                      = require('app/remote').getInstance()
-Encoder                     = require 'htmlencode'
 snapshotHelpers             = require './snapshothelpers'
 openIdeByMachine            = require '../util/openIdeByMachine'
 JView                       = require '../jview'

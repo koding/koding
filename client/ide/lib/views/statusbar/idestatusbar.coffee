@@ -1,16 +1,14 @@
 kd                     = require 'kd'
+globals                = require 'globals'
 nick                   = require 'app/util/nick'
-KDView                 = kd.View
-KDButtonView           = kd.ButtonView
 CustomLinkView         = require 'app/customlinkview'
-KDCustomHTMLView       = kd.CustomHTMLView
 HelpSupportModal       = require 'app/commonviews/helpsupportmodal'
 IDEStatusBarAvatarView = require './idestatusbaravatarview'
 isSoloProductLite      = require 'app/util/issoloproductlite'
 isPlanFree             = require 'app/util/isPlanFree'
 isKoding               = require 'app/util/isKoding'
 
-module.exports = class IDEStatusBar extends KDView
+module.exports = class IDEStatusBar extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -32,60 +30,87 @@ module.exports = class IDEStatusBar extends KDView
 
     { mainController, router, appManager } = kd.singletons
 
-    @addSubView @status = new KDCustomHTMLView cssClass : 'status'
+    @addSubView @status = new kd.CustomHTMLView cssClass : 'status'
 
-    @addSubView @collaborationStatus = new KDCustomHTMLView
-      cssClass: 'hidden collab-status'
-      partial : 'Collaboration session is <span>active</span><i></i>'
-      click   : (e) => @toggleSessionEndButton()  if e.target.tagName is 'SPAN'
+    @addSubView @collaborationLinkContainer = new kd.CustomHTMLView
+      cssClass: 'collaboration-link-container'
 
-    @collaborationStatus.addSubView @collaborationEndButtonContainer = new KDCustomHTMLView
-      cssClass : 'button-container hidden'
+    superKey = if globals.os is 'mac' then '⌘' else 'CTRL'
 
-    @collaborationEndButtonContainer.addSubView @collaborationEndButton = new KDButtonView
-      title    : 'END SESSION'
-      cssClass : 'compact solid red end-session'
-      callback : @bound 'handleSessionEnd'
+    @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
+      cssClass   : 'collaboration-link'
+      partial    : ''
+      bind       : 'mouseenter mouseleave'
+      mouseleave : -> @tooltip.hide()
+      mouseenter : ->
+        @tooltip.setTitle 'Click to share!'
+        @tooltip.show()
+        @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
-    @addSubView new KDCustomHTMLView
+      click      : ->
+        link = @getElement()
+        @utils.selectText link
+
+        try
+          copied = document.execCommand 'copy'
+          throw "couldn't copy"  unless copied
+          tooltipPartial = 'Copied to clipboard!'
+        catch
+          tooltipPartial = "Hit #{superKey} + C to copy!"
+
+        @tooltip.setTitle tooltipPartial
+        @tooltip.show()
+        @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
+
+    @collaborationLink.setTooltip
+      title     : 'Click to share!'
+      placement : 'above'
+      sticky    : yes
+
+
+
+    @addSubView new kd.CustomHTMLView
       tagName  : 'i'
       cssClass : 'icon help'
       click    : -> new HelpSupportModal
 
-    @addSubView new KDCustomHTMLView
+    @addSubView new kd.CustomHTMLView
       tagName  : 'i'
       cssClass : 'icon shortcuts'
       click    : (event) =>
         kd.utils.stopDOMEvent event
         router.handleRoute '/Account/Shortcuts'
 
-    @share = new CustomLinkView
+    @addSubView @share = new CustomLinkView
       href     : "#{kd.singletons.router.getCurrentPath()}/share"
       title    : 'Loading'
       cssClass : 'share fr hidden'
-      click    : (event) ->
+      click    : (event) =>
         kd.utils.stopDOMEvent event
 
-        return  if @hasClass 'loading'
+        return  if @share.hasClass 'loading'
         return  unless appManager.frontApp.isMachineRunning()
 
-        appManager.tell 'IDE', 'showChat'
+        if @share.hasClass 'active'
+        then @handleSessionEnd()
+        else appManager.tell 'IDE', 'showChat'
 
-    if isKoding()
-      if isSoloProductLite()
-        isPlanFree (err, isFree) =>
-          return  if err
-          if isFree
-            @share = new KDCustomHTMLView { cssClass: 'hidden' }
-            @addSubView @share
-          else
-            @addSubView @share
-      else
-        @addSubView @share
-    else
-      @addSubView @share
+    if isKoding() and isSoloProductLite()
+      isPlanFree (err, isFree) =>
+        return  if err
+        return  unless isFree
 
-    @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr hidden'
+        @share.destroy()
+        @share = null
+
+    @addSubView @video = new CustomLinkView
+      href       : '#'
+      cssClass   : 'appear-in-button share fr hidden'
+      attributes :
+        target   : '_blank'
+        title    : 'Start a video chat using appear.in'
+
+    @addSubView @avatars = new kd.CustomHTMLView cssClass : 'avatars fr hidden'
 
     mainController.isFeatureDisabled 'collaboration', (collabDisabled) =>
       @_collabDisable = collabDisabled
@@ -182,64 +207,47 @@ module.exports = class IDEStatusBar extends KDView
 
   handleCollaborationLoading: ->
 
-    @share.setClass      'loading'
-    @share.unsetClass    'active'
-    @share.unsetClass    'not-started'
-    @share.updatePartial 'Loading'
+    if @share
+      @share.setClass      'loading'
+      @share.unsetClass    'active not-started'
+      @share.updatePartial 'Loading'
+    @video.hide()
 
 
   handleCollaborationEnded: ->
 
-    @share.setClass      'not-started'
-    @share.unsetClass    'loading'
-    @share.unsetClass    'active'
-    @share.updatePartial 'Share'
+    if @share
+      @share.setClass      'not-started'
+      @share.unsetClass    'active loading red'
+      @share.updatePartial 'START COLLABORATION'
     @avatars.destroySubViews()
 
+    @updateCollaborationLink ''
+
+    @video.hide()
     @status.show()
-    @collaborationStatus.hide()
-    @collaborationEndButtonContainer.setClass 'hidden'
-    @collaborationStatus.unsetClass 'participant'
     @participantAvatars = {}
 
 
-  handleCollaborationStarted: ->
+  handleCollaborationStarted: (options) ->
 
-    @share.setClass      'active'
-    @share.unsetClass    'loading'
-    @share.unsetClass    'not-started'
-    @share.updatePartial 'Chat'
+    if @share
+      @share.setClass      'active red'
+      @share.unsetClass    'loading not-started green'
+      @share.updatePartial 'END COLLABORATION'
+    @video.show()
+    @video.setAttribute 'href', "http://appear.in/koding-#{options.channelId}"
 
     @status.hide()
-    @collaborationStatus.show()
+    @updateCollaborationLink options.collaborationLink
 
     unless @amIHost_()
-      @collaborationEndButton.setTitle 'LEAVE SESSION'
-      @collaborationStatus.setClass 'participant'
+      @share?.updatePartial 'LEAVE SESSION'
 
 
-  showSessionEndButton: ->
+  updateCollaborationLink: (collaborationLink) ->
 
-    @isSessionEndButtonVisible = yes
-    @collaborationEndButtonContainer.unsetClass 'hidden'
-    @collaborationStatus.setClass 'shown'
-
-    kd.singletons.windowController.addLayer @collaborationStatus
-    @collaborationStatus.once 'ReceivedClickElsewhere', =>
-      @hideSessionEndButton()
-
-
-  hideSessionEndButton: ->
-
-    @isSessionEndButtonVisible = no
-    @collaborationEndButtonContainer.setClass 'hidden'
-    @collaborationStatus.unsetClass 'shown'
-
-
-  toggleSessionEndButton: ->
-
-    if   @isSessionEndButtonVisible then @hideSessionEndButton()
-    else @showSessionEndButton()
+    @collaborationLink.updatePartial collaborationLink
 
 
   handleSessionEnd: ->

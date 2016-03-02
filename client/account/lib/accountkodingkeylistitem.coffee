@@ -1,8 +1,8 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDListItemView = kd.ListItemView
-KDModalView = kd.ModalView
-whoami = require 'app/util/whoami'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+KDListItemView    = kd.ListItemView
+KDModalView       = kd.ModalView
+whoami            = require 'app/util/whoami'
 
 
 module.exports = class AccountKodingKeyListItem extends KDListItemView

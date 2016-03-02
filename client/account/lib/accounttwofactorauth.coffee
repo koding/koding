@@ -1,7 +1,7 @@
-kd                  = require 'kd'
-whoami              = require 'app/util/whoami'
-KDView              = kd.View
-KDButtonView        = kd.ButtonView
+kd           = require 'kd'
+whoami       = require 'app/util/whoami'
+KDView       = kd.View
+KDButtonView = kd.ButtonView
 
 
 module.exports = class AccountTwoFactorAuth extends KDView

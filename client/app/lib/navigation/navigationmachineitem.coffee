@@ -1,12 +1,10 @@
 kd                           = require 'kd'
-globals                      = require 'globals'
 htmlencode                   = require 'htmlencode'
 
 JView                        = require 'app/jview'
 KDCustomHTMLView             = kd.CustomHTMLView
 KDProgressBarView            = kd.ProgressBarView
 
-nick                         = require 'app/util/nick'
 Machine                      = require 'app/providers/machine'
 groupifyLink                 = require 'app/util/groupifyLink'
 isMachineSettingsIconEnabled = require 'app/util/isMachineSettingsIconEnabled'

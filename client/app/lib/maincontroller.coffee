@@ -1,7 +1,6 @@
 kd                             = require 'kd'
 KDController                   = kd.Controller
 KDNotificationView             = kd.NotificationView
-Promise                        = require 'bluebird'
 kookies                        = require 'kookies'
 globals                        = require 'globals'
 remote                         = require('./remote').getInstance()
@@ -12,7 +11,6 @@ logToExternalWithTime          = require './util/logToExternalWithTime'
 isLoggedIn                     = require './util/isLoggedIn'
 whoami                         = require './util/whoami'
 checkFlag                      = require './util/checkFlag'
-setVersionCookie               = require './util/setVersionCookie'
 expireClientId                 = require './util/expireClientId'
 ActivityController             = require './activitycontroller'
 AppStorageController           = require './appstoragecontroller'

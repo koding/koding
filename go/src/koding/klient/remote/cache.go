@@ -7,6 +7,7 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 
+	"koding/klient/remote/machine"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 )
@@ -32,7 +33,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 			"remote.cacheFolder: Error '%s' while unmarshalling request '%s'\n",
 			err, kreq.Args.One(),
 		)
-		r.log.Info(err.Error())
+		r.log.Error(err.Error())
 		return nil, err
 	}
 
@@ -132,7 +133,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 
 // startIntervaler starts the given rsync interval, logs any errors, and adds the
 // resulting Intervaler to the Mount struct for later Stoppage.
-func startIntervaler(log kite.Logger, remoteMachine *Machine, c *rsync.Client, opts rsync.SyncIntervalOpts) {
+func startIntervaler(log kite.Logger, remoteMachine *machine.Machine, c *rsync.Client, opts rsync.SyncIntervalOpts) {
 	if opts.Interval <= 0 {
 		log.Warning(
 			"startIntervaler() called with interval:%d. Cannot start Intervaler",
@@ -147,5 +148,5 @@ func startIntervaler(log kite.Logger, remoteMachine *Machine, c *rsync.Client, o
 		return
 	}
 
-	remoteMachine.intervaler = intervaler
+	remoteMachine.Intervaler = intervaler
 }

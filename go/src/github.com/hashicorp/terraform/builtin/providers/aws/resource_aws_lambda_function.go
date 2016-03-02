@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,6 +14,7 @@ import (
 
 	"errors"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -83,6 +83,29 @@ func resourceAwsLambdaFunction() *schema.Resource {
 				Default:  3,
 				ForceNew: true, // TODO make this editable
 			},
+			"vpc_config": &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"subnet_ids": &schema.Schema{
+							Type:     schema.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+						"security_group_ids": &schema.Schema{
+							Type:     schema.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+					},
+				},
+			},
 			"arn": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -149,22 +172,48 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 		Timeout:      aws.Int64(int64(d.Get("timeout").(int))),
 	}
 
-	var err error
-	for i := 0; i < 5; i++ {
-		_, err = conn.CreateFunction(params)
-		if awsErr, ok := err.(awserr.Error); ok {
-
-			// IAM profiles can take ~10 seconds to propagate in AWS:
-			//  http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
-			// Error creating Lambda function: InvalidParameterValueException: The role defined for the task cannot be assumed by Lambda.
-			if awsErr.Code() == "InvalidParameterValueException" && strings.Contains(awsErr.Message(), "The role defined for the task cannot be assumed by Lambda.") {
-				log.Printf("[DEBUG] Invalid IAM Instance Profile referenced, retrying...")
-				time.Sleep(2 * time.Second)
-				continue
-			}
+	if v, ok := d.GetOk("vpc_config"); ok {
+		config, err := validateVPCConfig(v)
+		if err != nil {
+			return err
 		}
-		break
+
+		var subnetIds []*string
+		for _, id := range config["subnet_ids"].(*schema.Set).List() {
+			subnetIds = append(subnetIds, aws.String(id.(string)))
+		}
+
+		var securityGroupIds []*string
+		for _, id := range config["security_group_ids"].(*schema.Set).List() {
+			securityGroupIds = append(securityGroupIds, aws.String(id.(string)))
+		}
+
+		params.VpcConfig = &lambda.VpcConfig{
+			SubnetIds:        subnetIds,
+			SecurityGroupIds: securityGroupIds,
+		}
 	}
+
+	// IAM profiles can take ~10 seconds to propagate in AWS:
+	// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
+	// Error creating Lambda function: InvalidParameterValueException: The role defined for the task cannot be assumed by Lambda.
+	err := resource.Retry(1*time.Minute, func() error {
+		_, err := conn.CreateFunction(params)
+		if err != nil {
+			if awserr, ok := err.(awserr.Error); ok {
+				if awserr.Code() == "InvalidParameterValueException" {
+					log.Printf("[DEBUG] InvalidParameterValueException creating Lambda Function: %s", awserr)
+					// Retryable
+					return awserr
+				}
+			}
+			log.Printf("[DEBUG] Error creating Lambda Function: %s", err)
+			// Not retryable
+			return resource.RetryError{Err: err}
+		}
+		// No error
+		return nil
+	})
 	if err != nil {
 		return fmt.Errorf("Error creating Lambda function: %s", err)
 	}
@@ -205,6 +254,9 @@ func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("role", function.Role)
 	d.Set("runtime", function.Runtime)
 	d.Set("timeout", function.Timeout)
+	if config := flattenLambdaVpcConfigResponse(function.VpcConfig); len(config) > 0 {
+		d.Set("vpc_config", config)
+	}
 
 	return nil
 }
@@ -233,7 +285,28 @@ func resourceAwsLambdaFunctionDelete(d *schema.ResourceData, meta interface{}) e
 // resourceAwsLambdaFunctionUpdate maps to:
 // UpdateFunctionCode in the API / SDK
 func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) error {
-	// conn := meta.(*AWSClient).lambdaconn
-
 	return nil
+}
+
+func validateVPCConfig(v interface{}) (map[string]interface{}, error) {
+	configs := v.([]interface{})
+	if len(configs) > 1 {
+		return nil, errors.New("Only a single vpc_config block is expected")
+	}
+
+	config, ok := configs[0].(map[string]interface{})
+
+	if !ok {
+		return nil, errors.New("vpc_config is <nil>")
+	}
+
+	if config["subnet_ids"].(*schema.Set).Len() == 0 {
+		return nil, errors.New("vpc_config.subnet_ids cannot be empty")
+	}
+
+	if config["security_group_ids"].(*schema.Set).Len() == 0 {
+		return nil, errors.New("vpc_config.security_group_ids cannot be empty")
+	}
+
+	return config, nil
 }

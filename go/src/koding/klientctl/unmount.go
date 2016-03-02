@@ -6,6 +6,10 @@ import (
 	"io"
 
 	"koding/klient/remote/req"
+	"koding/klientctl/ctlcli"
+	"koding/klientctl/klient"
+	"koding/klientctl/list"
+	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
 
@@ -33,7 +37,7 @@ type UnmountCommand struct {
 
 	// The klient instance this struct will use.
 	Klient interface {
-		RemoteList() (KiteInfos, error)
+		RemoteList() (list.KiteInfos, error)
 		GetClient() *kite.Client
 		Tell(string, ...interface{}) (*dnode.Partial, error)
 	}
@@ -42,13 +46,13 @@ type UnmountCommand struct {
 	//
 	// Note! These will be ignored if c.Klient is already defined before Run() is
 	// called.
-	KlientOptions KlientOptions
+	KlientOptions klient.KlientOptions
 
 	// the following vars exist primarily for mocking ability, and ensuring
 	// an enclosed environment within the struct.
 
 	// The ctlcli Helper. See the type docs for a better understanding of this.
-	helper Helper
+	helper ctlcli.Helper
 
 	// The HealthChecker we'll use if we suspect that there may be problems.
 	healthChecker *HealthChecker
@@ -165,7 +169,7 @@ func (c *UnmountCommand) setupKlient() error {
 		return nil
 	}
 
-	k, err := NewDialedKlient(c.KlientOptions)
+	k, err := klient.NewDialedKlient(c.KlientOptions)
 	if err != nil {
 		return fmt.Errorf("Failed to get working Klient instance. err:", err)
 	}
@@ -186,23 +190,18 @@ func (c *UnmountCommand) setupKlient() error {
 func (c *UnmountCommand) removeMountFolder() error {
 	rmPath := c.Options.Path
 
-	if rmPath == "" {
-		c.printfln(UnmountFailedRemoveMountPath)
-		return errors.New("Unable to remove path. Path option empty and cannot find path")
+	r := util.RemovePath{
+		IgnorePaths: c.Options.NeverRemove,
 	}
-
-	for _, p := range c.Options.NeverRemove {
-		if p == rmPath {
-			c.Log.Warning("NeverRemove path %q was requested to be removed! Not removing", p)
+	if err := r.Remove(rmPath); err != nil {
+		if err == util.ErrRestrictedPath {
 			c.printfln(AttemptedRemoveRestrictedPath)
-			// Print a warning, but still return an error for API usage.
-			return fmt.Errorf("Restricted path %q cannot be removed.", p)
+		} else {
+			c.printfln(UnmountFailedRemoveMountPath)
 		}
-	}
 
-	if err := c.fileRemover(rmPath); err != nil {
 		c.Log.Warning("Unable to remove mountPath:%s, err:%s", rmPath, err)
-		c.printfln(UnmountFailedRemoveMountPath)
+
 		// Print a warning, but still return an error for API usage.
 		return err
 	}

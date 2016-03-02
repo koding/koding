@@ -1,4 +1,3 @@
-_                   = require 'lodash'
 kd                  = require 'kd'
 async               = require 'async'
 Promise             = require 'bluebird'

@@ -1,5 +1,4 @@
 kd           = require 'kd'
-whoami       = require 'app/util/whoami'
 dataProvider = require './userenvironmentdataprovider'
 
 module.exports = class MachineShareManager extends kd.Object
@@ -62,17 +61,21 @@ module.exports = class MachineShareManager extends kd.Object
     @set machineUId, {type, workspaceId}
 
 
-  registerChannelEvent: (channelId) ->
+  registerChannelEvent: (channelId, callback = kd.noop) ->
 
     { socialapi, groupsController } = kd.singletons
 
     socialapi.channel.byId { id: channelId }, (err, channel) ->
-      return callback err  if err
+      if err
+        kd.warn err
+        return callback err
 
       group = groupsController.getCurrentGroup()
       socialapi.registerAndOpenChannel group, channel, (err, pubnubChannel) ->
 
-        return callback err  if err
+        if err
+          kd.warn err
+          return callback err
 
         pubnubChannel?.channel?.once 'RemovedFromChannel', ->
           dataProvider.fetch ->

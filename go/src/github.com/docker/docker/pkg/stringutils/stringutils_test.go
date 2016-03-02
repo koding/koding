@@ -43,15 +43,15 @@ func TestGenerateRandomAlphaOnlyStringUniqueness(t *testing.T) {
 }
 
 func TestGenerateRandomAsciiStringLength(t *testing.T) {
-	testLengthHelper(GenerateRandomAsciiString, t)
+	testLengthHelper(GenerateRandomASCIIString, t)
 }
 
 func TestGenerateRandomAsciiStringUniqueness(t *testing.T) {
-	testUniquenessHelper(GenerateRandomAsciiString, t)
+	testUniquenessHelper(GenerateRandomASCIIString, t)
 }
 
 func TestGenerateRandomAsciiStringIsAscii(t *testing.T) {
-	str := GenerateRandomAsciiString(64)
+	str := GenerateRandomASCIIString(64)
 	if !isASCII(str) {
 		t.Fatalf("%s contained non-ascii characters", str)
 	}
@@ -83,5 +83,23 @@ func TestInSlice(t *testing.T) {
 	test = InSlice(slice, "notinslice")
 	if test {
 		t.Fatalf("Expected string notinslice not to be in slice")
+	}
+}
+
+func TestShellQuoteArgumentsEmpty(t *testing.T) {
+	actual := ShellQuoteArguments([]string{})
+	expected := ""
+	if actual != expected {
+		t.Fatalf("Expected an empty string")
+	}
+}
+
+func TestShellQuoteArguments(t *testing.T) {
+	simpleString := "simpleString"
+	complexString := "This is a 'more' complex $tring with some special char *"
+	actual := ShellQuoteArguments([]string{simpleString, complexString})
+	expected := "simpleString 'This is a '\\''more'\\'' complex $tring with some special char *'"
+	if actual != expected {
+		t.Fatalf("Expected \"%v\", got \"%v\"", expected, actual)
 	}
 }

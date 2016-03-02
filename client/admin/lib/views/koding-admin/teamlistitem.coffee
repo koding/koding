@@ -2,13 +2,11 @@ kd                        = require 'kd'
 JView                     = require 'app/jview'
 remote                    = require('app/remote').getInstance()
 
-timeago                   = require 'timeago'
 showError                 = require 'app/util/showError'
 applyMarkdown             = require 'app/util/applyMarkdown'
 objectToString            = require 'app/util/objectToString'
 
 AdminAppView              = require 'admin/views/customviews/adminappview'
-ActivityItemMenuItem      = require 'activity/views/activityitemmenuitem'
 GroupsDangerModalView     = require 'admin/views/permissions/groupsdangermodalview'
 
 

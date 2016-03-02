@@ -1,4 +1,5 @@
 kd                         = require 'kd'
+_                          = require 'lodash'
 remote                     = require('app/remote').getInstance()
 KDView                     = kd.View
 KDCustomHTMLView           = kd.CustomHTMLView
@@ -115,7 +116,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       @_providedData = {}
       @setState 'INVALID'
     else
-      @_providedData = converted.contentObject
+      @_providedData = _.extend converted.contentObject, { __rawContent : content }
       @handleDataChange()
 
 
@@ -150,5 +151,10 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
         @_activeCredential = credential
 
-        if (Object.keys data.meta).length
-          @getAce().setContent (jsonToYaml data.meta).content
+        { meta } = data
+        if (Object.keys meta).length
+          content = if rawContent = meta.__rawContent
+          then rawContent
+          else (jsonToYaml meta).content
+
+          @getAce().setContent _.unescape content

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/route53"
 )
 
@@ -82,6 +83,23 @@ func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
 	})
 }
 
+func TestAccAWSRoute53Record_spfSupport(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53RecordDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccRoute53RecordConfigSPF,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					resource.TestCheckResourceAttr(
+						"aws_route53_record.default", "records.2930149397", "include:notexample.com"),
+				),
+			},
+		},
+	})
+}
 func TestAccAWSRoute53Record_generatesSuffix(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -240,6 +258,58 @@ func TestAccAWSRoute53Record_TypeChange(t *testing.T) {
 	})
 }
 
+// Test record deletion out of band and make sure we render a new plan
+// Part of regression test(s) for https://github.com/hashicorp/terraform/pull/4892
+func TestAccAWSRoute53Record_planUpdate(t *testing.T) {
+	var zone route53.GetHostedZoneOutput
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53RecordDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccRoute53RecordConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					testAccCheckRoute53ZoneExists("aws_route53_zone.main", &zone),
+				),
+			},
+			resource.TestStep{
+				Config: testAccRoute53RecordConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53DeleteRecord("aws_route53_record.default", &zone),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+			resource.TestStep{
+				Config: testAccRoute53RecordNoConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53ZoneExists("aws_route53_zone.main", &zone),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckRoute53DeleteRecord(n string, zone *route53.GetHostedZoneOutput) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No hosted zone ID is set")
+		}
+
+		// Manually set the weight to 0 to replicate a record created in Terraform
+		// pre-0.6.9
+		rs.Primary.Attributes["weight"] = "0"
+
+		return nil
+	}
+}
+
 func testAccCheckRoute53RecordDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).r53conn
 	for _, rs := range s.RootModule().Resources {
@@ -260,6 +330,12 @@ func testAccCheckRoute53RecordDestroy(s *terraform.State) error {
 
 		resp, err := conn.ListResourceRecordSets(lopts)
 		if err != nil {
+			if awsErr, ok := err.(awserr.Error); ok {
+				// if NoSuchHostedZone, then all the things are destroyed
+				if awsErr.Code() == "NoSuchHostedZone" {
+					return nil
+				}
+			}
 			return err
 		}
 		if len(resp.ResourceRecordSets) == 0 {
@@ -327,6 +403,12 @@ resource "aws_route53_record" "default" {
 	type = "A"
 	ttl = "30"
 	records = ["127.0.0.1", "127.0.0.27"]
+}
+`
+
+const testAccRoute53RecordNoConfig = `
+resource "aws_route53_zone" "main" {
+	name = "notexample.com"
 }
 `
 
@@ -398,6 +480,19 @@ resource "aws_route53_record" "default" {
 	type = "TXT"
 	ttl = "30"
 	records = ["lalalala"]
+}
+`
+const testAccRoute53RecordConfigSPF = `
+resource "aws_route53_zone" "main" {
+	name = "notexample.com"
+}
+
+resource "aws_route53_record" "default" {
+	zone_id = "${aws_route53_zone.main.zone_id}"
+	name = "test"
+	type = "SPF"
+	ttl = "30"
+	records = ["include:notexample.com"]
 }
 `
 

@@ -1,6 +1,5 @@
 kd                        = require 'kd'
 nick                      = require 'app/util/nick'
-KDView                    = kd.View
 globals                   = require 'globals'
 Machine                   = require 'app/providers/machine'
 htmlencode                = require 'htmlencode'

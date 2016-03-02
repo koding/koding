@@ -37,6 +37,10 @@ const (
 	// dialingFailedErrType is the kite.Error.Type used for errors encountered when
 	// dialing the remote.
 	dialingFailedErrType = "dialing failed"
+
+	// mountNotFound is the kite.Error.Type used for errors encountered when
+	// the mount name given cannot be found.
+	mountNotFoundErrType = "mount not found"
 )
 
 var (
@@ -58,8 +62,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 			"remote.mountFolder: Error '%s' while unmarshalling request '%s'\n",
 			err, kreq.Args.One(),
 		)
-
-		r.log.Info(err.Error())
+		r.log.Error(err.Error())
 
 		return nil, err
 	}
@@ -104,8 +107,8 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	}
 
 	var syncOpts rsync.SyncIntervalOpts
-	if remoteMachine.intervaler != nil {
-		syncOpts = remoteMachine.intervaler.SyncIntervalOpts()
+	if remoteMachine.Intervaler != nil {
+		syncOpts = remoteMachine.Intervaler.SyncIntervalOpts()
 	} else {
 		r.log.Warning(
 			"remote.mountFolder: Unable to locate Intervaler for the remotePath:%s",
@@ -117,8 +120,8 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		MountFolder:      params,
 		IP:               remoteMachine.IP,
 		MountName:        remoteMachine.Name,
-		kitePinger:       remoteMachine.kitePinger,
-		intervaler:       remoteMachine.intervaler,
+		kitePinger:       remoteMachine.KitePinger,
+		intervaler:       remoteMachine.Intervaler,
 		SyncIntervalOpts: syncOpts,
 	}
 
@@ -176,9 +179,10 @@ func fuseMountFolder(m *Mount, c *kite.Client) error {
 		NoIgnore:       m.NoIgnore,
 		NoPrefetchMeta: m.NoPrefetchMeta,
 		NoWatch:        m.NoWatch,
+		Debug:          true, // turn on debug permanently till v1
 	}
 
-	f, err := fuseklient.NewKodingNetworkFS(t, cf)
+	f, err := fuseklient.New(t, cf)
 	if err != nil {
 		return err
 	}

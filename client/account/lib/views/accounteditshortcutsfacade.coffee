@@ -1,7 +1,7 @@
-_ = require 'lodash'
-recorder = require 'record-shortcuts'
+_         = require 'lodash'
+recorder  = require 'record-shortcuts'
 EventType = require './accounteditshortcutseventtype'
-kd = require 'kd'
+kd        = require 'kd'
 
 running = no
 entities = {}

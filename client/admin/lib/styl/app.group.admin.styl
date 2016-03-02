@@ -1514,6 +1514,7 @@ Admin main styles
     &.members
     &.invitations
     &.integrations
+    &.plan-billing
       padding-top           40px
 
   .breadcrumb
@@ -1522,3 +1523,106 @@ Admin main styles
 
     .active
       font-weight           regular
+
+
+.AppModal--admin
+  .plan-billing
+    .kdtabhandle
+      a
+        noTextDeco()
+
+    .billing-info
+      > .kdview
+        padding-top         20px
+
+      section
+        margin-bottom       40px
+
+        .kdheaderview
+          font-size         14px
+          color             #787878
+          line-height       30px
+          padding           0 0 17px
+
+          span
+            margin          0
+
+          .kdbutton
+            fr()
+
+        .subscription
+          color             #434343
+          font-size         14px
+          line-height       20px
+          margin-top        15px
+
+        .listview-wrapper
+          margin-top        20px
+          font-size         14px
+
+        .payment-method
+          .billing-link
+            padding-left    0
+            float           none
+            height          30px
+            cf()
+
+          .credit-card-title
+            line-height     23px
+            height          23px
+            fl()
+
+          .icon
+            display         block
+            margin-right    5px
+            fl()
+
+            &.visa
+              r-sprite              'pricing', 'visa'
+            &.american-express
+              r-sprite              'pricing', 'american-express'
+            &.mastercard
+              r-sprite              'pricing', 'mastercard'
+            &.discover
+              r-sprite              'pricing', 'discover'
+
+    .teams-plan
+      .kdlistitemview
+        display             table
+        height              95px
+        border-bottom       2px solid #ECECEC
+
+        > *
+          display           table-cell
+          vertical-align    middle
+
+        .plan-name
+          width             120px
+          color             #7B7B7B
+          rel()
+          top               -10px
+
+        .plan-info
+          strong
+            color           #595959
+            font-weight     bold
+
+          i
+            color           #A59999
+            dBlock()
+            font-style      italic
+            font-size       14px
+
+        .button
+          width             120px
+          text-align        center
+
+          .kdview
+            color           #9F9F9F
+            text-transform  uppercase
+            margin-top      70px
+            font-size       14px
+
+            &.upgrade
+              color         #749DCE
+              cursor        pointer

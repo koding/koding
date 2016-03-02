@@ -289,7 +289,7 @@ module.exports = class DefineStackView extends KDView
 
   saveAndTestStackTemplate: ->
 
-    # Show default first pane.
+    # Show default first pane.
     @tabView.showPaneByIndex 0
     @outputView.clear().raise()
 
@@ -361,6 +361,8 @@ module.exports = class DefineStackView extends KDView
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
+      @stackTemplateView.editorView.getAce().saveFinished()
+
       @emit 'Reload'
 
       if err

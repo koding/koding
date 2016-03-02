@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
 
 	"github.com/codegangsta/cli"
@@ -135,7 +136,7 @@ func (c *HealthChecker) CheckLocal() error {
 
 	// The only error CreateKlientClient returns (currently) is kite read
 	// error, so we can handle that.
-	k, err := CreateKlientClient(NewKlientOptions())
+	k, err := klient.CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		return ErrHealthUnreadableKiteKey{Message: fmt.Sprintf(
 			"The klient kite key is unable to be read. Reason: '%s'", err.Error(),

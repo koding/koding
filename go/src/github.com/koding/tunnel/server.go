@@ -253,10 +253,12 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 
 	conn, _, err := hj.Hijack()
 	if err != nil {
-		return fmt.Errorf("hijack not possible %s", err)
+		return fmt.Errorf("hijack not possible: %s", err)
 	}
 
-	io.WriteString(conn, "HTTP/1.1 "+connected+"\n\n")
+	if _, err := io.WriteString(conn, "HTTP/1.1 "+connected+"\n\n"); err != nil {
+		return fmt.Errorf("error writing response: %s", err)
+	}
 
 	conn.SetDeadline(time.Time{})
 

@@ -24,6 +24,8 @@ IDELayoutManager              = require './workspace/idelayoutmanager'
 IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
+generateCollaborationLink     = require 'app/util/generateCollaborationLink'
+isKoding                      = require 'app/util/isKoding'
 
 {warn} = kd
 
@@ -156,7 +158,8 @@ module.exports = CollaborationController =
     }
 
     # Check collaboration sessions of participant.
-    # If participant has 2 or more active collaboration sessions,  don't remove access from machine
+    # If participant has 2 or more active collaboration sessions, don't remove
+    # access from machine
     envHelpers.isUserStillParticipantOnMachine options, (status) =>
       @removeParticipantFromMachine username  unless status
 
@@ -402,7 +405,9 @@ module.exports = CollaborationController =
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
 
-      @setParticipantPermission nickname  if @amIHost
+      if @amIHost
+        @setParticipantPermission nickname
+        @setMachineUser [nickname]
 
 
   channelMessageAdded: (message) ->
@@ -650,7 +655,7 @@ module.exports = CollaborationController =
 
     @ready =>
       @statusBar.handleCollaborationLoading()
-      @statusBar.share.show()
+      @statusBar.share?.show()
 
 
   collectButtonShownMetric: ->
@@ -744,7 +749,7 @@ module.exports = CollaborationController =
     approved = @mountedMachine.isApproved()
 
     if (not owned) and approved
-      @statusBar.share.hide()
+      @statusBar.share?.hide()
 
     @collectButtonShownMetric()
 
@@ -903,16 +908,13 @@ module.exports = CollaborationController =
 
   onCollaborationActive: ->
 
-    @showChatPane()
+    @hideChatPane()
+
+    @bindAutoInviteHandlers()
 
     @transitionViewsToActive()
     @collectButtonShownMetric()
     @bindRealtimeEvents()
-
-    # this method comes from VideoCollaborationController.
-    # It's mixed into IDEAppController after CollaborationController.
-    # This is probably an anti pattern, we need to look into this again. ~Umut
-    @prepareVideoCollaboration()
 
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
@@ -930,6 +932,27 @@ module.exports = CollaborationController =
         @finderPane.finderController.expandFolder path
 
 
+  bindAutoInviteHandlers: ->
+
+    {actions} = require 'activity/flux'
+    {notificationController, mainController, socialapi} = kd.singletons
+
+    channel = @socialChannel
+
+    mainController.ready ->
+      notificationController.on 'notificationFromOtherAccount', (notification) ->
+        switch notification.action
+          when 'COLLABORATION_REQUEST'
+
+            return if notification.channelId isnt channel.id
+
+            {channelId, senderUserId, senderAccountId, sender} = notification
+            accountIds = [senderAccountId]
+
+            socialapi.channel.addParticipants { channelId, accountIds }, (err) ->
+              return throwError err  if err
+
+
   transitionViewsToActive: ->
 
     @listChatParticipants (accounts) =>
@@ -939,12 +962,11 @@ module.exports = CollaborationController =
     settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
 
     @chat.emit 'CollaborationStarted'
-    @statusBar.emit 'CollaborationStarted'
 
-    { onboarding } = kd.singletons
-    onboarding.run 'CollaborationStarted'
-    @chat.on ['ViewBecameHidden', 'ViewBecameVisible'], ->
-      onboarding.refresh 'CollaborationStarted'
+    generateCollaborationLink nick(), @socialChannel.id, {}, (url) =>
+      @statusBar.emit 'CollaborationStarted',
+        channelId: @socialChannel.id
+        collaborationLink: url
 
 
   onCollaborationEnding: ->
@@ -1026,6 +1048,15 @@ module.exports = CollaborationController =
 
     @cleanupCollaboration()
 
+    return  unless isKoding()
+
+    { activitySidebar } = kd.singletons.mainView
+    channelId           = @getSocialChannelId()
+
+    return  unless box  = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
+
+    box.setUnreadCount channelId, 0
+
 
   endCollaborationForParticipant: (callback) ->
 
@@ -1077,7 +1108,7 @@ module.exports = CollaborationController =
     return showError 'Please wait a few seconds.'  unless @stateMachine
 
     switch @stateMachine.state
-      when 'Active'     then @showChatPane()
+      when 'Active'     then @hideChatPane()
       when 'Prepared'   then @chat.show()
       when 'NotStarted' then @stateMachine.transition 'Preparing'
 
@@ -1092,10 +1123,7 @@ module.exports = CollaborationController =
       when 'Active' then @stateMachine.transition 'Ending'
 
 
-  showChatPane: ->
-
-    @chat.showChatPane()
-    @chat.start()
+  hideChatPane: -> @chat.end()
 
 
   createChatPaneView: (channel) ->

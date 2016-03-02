@@ -1,6 +1,5 @@
 kd = require 'kd'
 KDAutoCompleteListItemView = kd.AutoCompleteListItemView
-KDAutoCompletedItem = kd.AutoCompletedItem
 AutoCompleteProfileTextView = require './linkviews/autocompleteprofiletextview'
 JView = require '../jview'
 

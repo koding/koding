@@ -48,12 +48,12 @@ var (
 
 	// FailedStartKlient is used when starting klient fails.
 	FailedStartKlient = fmt.Sprintf(
-		"Error: Failed to start the %s within the expected time.\n%s", KlientName,
+		"Error: Failed to start the %s within the expected time.\n", KlientName,
 	)
 
 	// FailedStopKlient is used when stopping klient fails.
 	FailedStopKlient = fmt.Sprintf(
-		"Error: Failed to stop the %s within the expected time.\n%s", KlientName,
+		"Error: Failed to stop the %s within the expected time.\n", KlientName,
 	)
 
 	// FailedGetSSHKey is used when we fail to get the ssh key
@@ -88,11 +88,8 @@ Please wait a few minutes and try again.`,
 
 	// CannotMountPathExists is used when the user provides a path that already
 	// exists.
-	//
-	// TODO: Write meaningful message.
-	CannotMountPathExists = "Error: A file or directory already exists at the requested path."
+	CannotMountPathExists = "Error: given path already exists. Please remove and try again."
 
-	// CannotMountUnableToOpenPath is used when we are unable to read from the
 	// given path. A possible example might be that the user asked to mount to
 	// /root/foo and kd doesn't have permission to even look in that directory.
 	//

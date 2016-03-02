@@ -1,7 +1,5 @@
-KodingFluxStore      = require 'app/flux/base/store'
-toImmutable          = require 'app/util/toImmutable'
-immutable            = require 'immutable'
-actions              = require '../actiontypes'
+KodingFluxStore = require 'app/flux/base/store'
+actions         = require '../actiontypes'
 
 
 module.exports = class ActiveWorkspaceStore extends KodingFluxStore

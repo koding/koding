@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd     = require 'kd'
 KDView = kd.View
-$ = require 'jquery'
+$      = require 'jquery'
 
 module.exports = class AccountsSwappable extends KDView
   constructor:(options,data)->

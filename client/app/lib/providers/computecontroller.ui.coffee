@@ -18,7 +18,6 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 
-TerminalModal        = require '../terminal/terminalmodal'
 
 MissingDataView      = require './missingdataview'
 
@@ -52,6 +51,7 @@ module.exports = class ComputeController_UI
       credentialFields = {}
 
       for field in requiredFields
+        continue  if field is '__rawContent'
         name = field.name ? field
         type = field.type ? 'text'
         { values } = field

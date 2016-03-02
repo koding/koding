@@ -98,6 +98,7 @@ cp bin/broker build/broker/broker
 terraformservices=(
   github.com/hashicorp/terraform/builtin/bins/provider-aws
   github.com/hashicorp/terraform/builtin/bins/provider-terraform
+  github.com/hashicorp/terraform/builtin/bins/provider-null
   github.com/koding/terraform-provider-github/cmd/provider-github
   koding/kites/cmd/provider-vagrant
 

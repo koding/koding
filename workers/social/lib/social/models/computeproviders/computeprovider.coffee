@@ -188,9 +188,8 @@ module.exports = class ComputeProvider extends Base
       callback null, PLANS
 
 
-  @fetchTeamPlans = permit
-    advanced : [{ permission: 'sudoer', superadmin: yes }]
-    success  : (client, callback) ->
+  @fetchTeamPlans = permit 'create machines',
+    success: (client, callback) ->
       callback null, teamutils.TEAMPLANS
 
 

@@ -1,6 +1,5 @@
 kd        = require 'kd'
 React     = require 'kd-react'
-ReactDOM  = require 'react-dom'
 expect    = require 'expect'
 TestUtils = require 'react-addons-test-utils'
 Dropbox   = require 'activity/components/dropbox/dropboxbody'

@@ -1,17 +1,12 @@
 kd                  = require 'kd'
-KDCustomHTMLView    = kd.CustomHTMLView
-KDLoaderView        = kd.LoaderView
-KDTabView           = kd.TabView
-KDView              = kd.View
 CustomLinkView      = require 'app/customlinkview'
-IDEChatMessagePane  = require './idechatmessagepane'
 IDEChatSettingsPane = require './idechatsettingspane'
-IDEChatVideoView    = require './idechatvideoview'
 envDataProvider     = require 'app/userenvironmentdataprovider'
 
-socialHelpers = require '../../collaboration/helpers/social'
-
-module.exports = class IDEChatView extends KDTabView
+# refactor notes:
+# no need for a KDTabView here but
+# didnot invest more for the timebeing - SY
+module.exports = class IDEChatView extends kd.TabView
 
   constructor: (options = {}, data)->
 
@@ -44,102 +39,20 @@ module.exports = class IDEChatView extends KDTabView
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
     @once 'CollaborationEnded',          @bound 'destroy'
 
-    @on 'VideoSessionConnected', @bound 'handleVideoSessionConnected'
 
-    @on 'VideoCollaborationActive', @bound 'handleVideoActive'
-    @on 'VideoCollaborationEnded',  @bound 'handleVideoEnded'
-    @on 'VideoActiveParticipantDidChange', @bound 'handleVideoActiveParticipantChanged'
-    @on 'VideoSelectedParticipantDidChange', @bound 'handleVideoSelectedParticipantChanged'
-    @on 'VideoParticipantTalkingStateDidChange', @bound 'handleVideoParticipantTalkingStateChanged'
-
-    @on 'VideoParticipantDidConnect', @bound 'handleVideoParticipantConnected'
-    @on 'VideoParticipantDidDisconnect', @bound 'handleVideoParticipantDisconnected'
-    @on 'VideoParticipantDidJoin', @bound 'handleVideoParticipantJoined'
-    @on 'VideoParticipantDidLeave', @bound 'handleVideoParticipantLeft'
-
-    @on 'VideoParticipantsDidChange', @bound 'handleVideoParticipantsChanged'
-
-
-  handleVideoParticipantsChanged: (payload) ->
-
-    @chatPane.handleVideoParticipantsChanged payload
-
-
-  handleParticipantSelected: (account) ->
-
-    { nickname } = account.profile
-    @getIDEApp()?.switchToUserVideo nickname
-
-
-  handleVideoActiveParticipantChanged: (nickname, account) ->
-
-    @chatPane.setActiveParticipantAvatar account
-
-
-  handleVideoSelectedParticipantChanged: (nickname, account, isOnline) ->
-
-    @chatPane.setSelectedParticipantAvatar account, isOnline
-
-
-  handleVideoParticipantTalkingStateChanged: (nickname, state) ->
-
-    @chatPane.setAvatarTalkingState nickname, state
-
-
-  handleVideoParticipantConnected: (participant) ->
-
-    @chatPane.handleVideoParticipantConnected participant
-
-
-  handleVideoParticipantDisconnected: (participant) ->
-
-    @chatPane.handleVideoParticipantDisconnected participant
-
-
-  handleVideoParticipantJoined: (participant) ->
-
-    @chatPane.handleVideoParticipantJoined participant
-
-
-  handleVideoParticipantLeft: (participant) ->
-
-    @chatPane.handleVideoParticipantLeft participant
-
-
-  start: ->
-
-    @visible = yes
-    @show()
-
-
-  end: ->
-
-    @visible = no
-    @hide()
-    @emit 'ViewBecameHidden'
-
-
-  focus: -> @chatPane.focus()
-
-
-  show: ->
-
-    super
-
-    @chatPane?.refresh()
-    @emit 'ViewBecameVisible'
+  end: -> @hide()
 
 
   createLoader: ->
 
-    @loaderView = new KDView cssClass: 'loader-view'
+    @loaderView = new kd.View cssClass: 'loader-view'
 
-    @loaderView.addSubView new KDLoaderView
+    @loaderView.addSubView new kd.LoaderView
       showLoader : yes
       size       :
         width    : 24
 
-    @loaderView.addSubView new KDCustomHTMLView
+    @loaderView.addSubView new kd.CustomHTMLView
       cssClass : 'label'
       partial  : 'Preparing collaboration'
 
@@ -152,103 +65,26 @@ module.exports = class IDEChatView extends KDTabView
     @unsetClass 'loading'
 
 
-  setVideoActiveState: (state) ->
-
-    if state
-    then @setClass 'is-videoActive'
-    else @unsetClass 'is-videoActive'
-
-    kd.utils.defer @bound 'focus'
-
-
-  handleVideoSessionConnected: (options) ->
-
-    @chatPane.createVideoActionButton options.action
-
-
-  handleVideoActive: ->
-
-    @getIDEApp()?.fetchVideoParticipants (participants) =>
-      @setVideoActiveState on
-      @chatVideoView.show()
-      @chatPane.handleVideoActive participants
-
-
-  handleVideoEnded: ->
-
-    @setVideoActiveState off
-    @chatPane.handleVideoEnded()
-    @chatVideoView.hide()
-
-
-  getVideoView: -> @chatVideoView
-
-
-  createChatVideoView: ->
-
-    @chatVideoView = new IDEChatVideoView { cssClass: 'hidden' }, @getData()
-    @addSubView @chatVideoView
-
-
   createPanes: ->
 
     channel         = @getData()
-    type            = channel.typeConstant
-    channelId       = channel.id
-    name            = 'collaboration'
-    chatOptions     = { name, type, channelId, @isInSession, @mountedMachineUId }
     settingsOptions = { @rtm, @isInSession }
 
-    @createChatVideoView()
-
-    @addPane @chatPane     = new IDEChatMessagePane  chatOptions, channel
     @addPane @settingsPane = new IDEChatSettingsPane settingsOptions, channel
 
-    @chatPane.on 'ParticipantSelected', @bound 'handleParticipantSelected'
-
     @settingsPane.forwardEvents this, [
-      'CollaborationStarted', 'CollaborationEnded', 'CollaborationNotInitialized'
-      'ParticipantJoined', 'ParticipantLeft'
+      'CollaborationNotInitialized'
+      'CollaborationStarted'
+      'CollaborationEnded'
+      'ParticipantJoined'
+      'ParticipantLeft'
     ]
 
-    @settingsPane.on 'SessionStarted', @bound 'sessionStarted'
-    @settingsPane.on 'AddNewParticipantRequested', =>
-      @showChatPane()
-
-      kd.utils.wait 500, =>
-        @chatPane.showAutoCompleteInput()
-
-    @bindVideoCollaborationEvents()
+    @settingsPane.on 'SessionStarted', @bound 'hide'
 
     @emit 'ready'
 
 
-  bindVideoCollaborationEvents: ->
-
-    ideApp = @getIDEApp()
-
-    return  unless ideApp
-
-    @chatPane
-      .on 'ChatVideoStartRequested' , ideApp.bound 'startVideoCollaboration'
-      .on 'ChatVideoEndRequested'   , ideApp.bound 'endVideoCollaboration'
-      .on 'ChatVideoJoinRequested'  , ideApp.bound 'joinVideoCollaboration'
-      .on 'ChatVideoLeaveRequested' , ideApp.bound 'leaveVideoCollaboration'
-
-
   getIDEApp : -> envDataProvider.getIDEFromUId @mountedMachineUId
 
-
-  showChatPane: ->
-
-    @unsetClass 'onboarding'
-    @showPane @chatPane
-
-
   showSettingsPane: -> @showPane @settingsPane
-
-
-  sessionStarted: ->
-
-    @showChatPane()
-    @chatPane.refresh()

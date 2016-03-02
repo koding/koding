@@ -9,6 +9,7 @@ import (
 
 	"koding/fuseklient"
 	"koding/klient/remote/kitepinger"
+	"koding/klient/remote/machine"
 	"koding/klient/remote/req"
 	"koding/klient/remote/rsync"
 )
@@ -44,7 +45,7 @@ type Mount struct {
 	// needed.
 	kitePinger kitepinger.KitePinger
 
-	MountedFS *fuseklient.KodingNetworkFS `json:"-"`
+	MountedFS fuseklient.FS `json:"-"`
 
 	// mockable interfaces and types, used for testing and abstracting the environment
 	// away.
@@ -242,7 +243,7 @@ func (r *Remote) restoreMounts() error {
 		}
 
 		// Now that we have the remoteMachine, apply the kitePinger reference.
-		m.kitePinger = remoteMachine.kitePinger
+		m.kitePinger = remoteMachine.KitePinger
 
 		kiteClient := remoteMachine.Client
 		if err := kiteClient.Dial(); err != nil {
@@ -268,7 +269,7 @@ func (r *Remote) restoreMounts() error {
 			// After the progress chan is done, start our SyncInterval
 			startIntervaler(r.log, remoteMachine, rs, m.SyncIntervalOpts)
 			// Assign the rsync intervaler to the mount.
-			m.intervaler = remoteMachine.intervaler
+			m.intervaler = remoteMachine.Intervaler
 		} else {
 			r.log.Warning(
 				"Unable to restore Interval for remote, SyncOpts is zero value. This likely means that SyncOpts were not saved or didn't exist in the previous binary. machineName:%s",
@@ -281,7 +282,7 @@ func (r *Remote) restoreMounts() error {
 }
 
 // watchClientAndReconnect
-func watchClientAndReconnect(log kite.Logger, machine *Machine, mount *Mount, kiteClient *kite.Client, changeSummaries chan kitepinger.ChangeSummary, changes <-chan bool) {
+func watchClientAndReconnect(log kite.Logger, machine *machine.Machine, mount *Mount, kiteClient *kite.Client, changeSummaries chan kitepinger.ChangeSummary, changes <-chan bool) {
 	kiteClient.Reconnect = true
 
 	log.Info(
@@ -289,8 +290,8 @@ func watchClientAndReconnect(log kite.Logger, machine *Machine, mount *Mount, ki
 		machine.IP, machine.Name, mount.LocalPath,
 	)
 
-	machine.kitePinger.Subscribe(changeSummaries)
-	machine.kitePinger.Start()
+	machine.KitePinger.Subscribe(changeSummaries)
+	machine.KitePinger.Start()
 	mount.pingerSub = changeSummaries
 
 	for summary := range changeSummaries {

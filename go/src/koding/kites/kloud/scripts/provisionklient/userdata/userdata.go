@@ -16,6 +16,9 @@ type Value struct {
 	// Kontrol URL of the klient to be registered.
 	KontrolURL string
 
-	// TunnelURL address of the tunnel to connect.
-	TunnelURL string
+	// TunnelName - name of the registered tunnel.
+	TunnelName string
+
+	// TunnelKiteURL address of the tunnel server kite to register.
+	TunnelKiteURL string
 }

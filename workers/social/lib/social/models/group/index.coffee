@@ -472,13 +472,17 @@ module.exports = class JGroup extends Module
           console.log 'created socialApiId ids'
           next()
 
-      (next) ->
-        { shareCredentials } = require '../computeproviders/teamutils'
-        account = client.connection.delegate
+      # Auto credential share mechanism is disabled for teams launch
+      # This means we won't share any credential with created teams
+      # uncomment to enable it again if needed ~ GG
+      #
+      # (next) ->
+      #   { shareCredentials } = require '../computeproviders/teamutils'
+      #   account = client.connection.delegate
 
-        shareCredentials { group, account }, (err) ->
-          console.log 'shared credentials', err
-          next()
+      #   shareCredentials { group, account }, (err) ->
+      #     console.log 'shared credentials', err
+      #     next()
 
     ]
 

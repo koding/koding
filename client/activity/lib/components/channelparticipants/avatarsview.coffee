@@ -1,6 +1,5 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
-ReactDOM             = require 'react-dom'
 immutable            = require 'immutable'
 Tooltip              = require 'app/components/tooltip'
 Avatar               = require 'app/components/profile/avatar'

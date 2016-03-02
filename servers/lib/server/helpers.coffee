@@ -106,6 +106,20 @@ serve = (content, res) ->
   res.header 'Content-type', 'text/html'
   res.send content
 
+isTeamPage = (req) ->
+  hostname = req?.headers?['x-host']
+  return no  unless hostname
+  for i, env of ['dev', 'sandbox', 'latest']
+    if hostname.indexOf(env) is 0 # damn nodejs doesnt have startsWith
+      return no
+
+  subdomains = hostname.split('.')
+
+  if subdomains.length < 3 # only koding.com has 2
+    return no
+
+  return yes
+
 serveHome = (req, res, next) ->
   { JGroup } = bongoModels = koding.models
   { generateFakeClient }   = require './client'
@@ -114,30 +128,45 @@ serveHome = (req, res, next) ->
     if err or not client
       console.error err
       return next()
-    isLoggedIn req, res, (err, state, account) ->
+    isLoggedIn req, res, (err, isLoggedIn, account) ->
       if err
         res.status(500).send error_500()
         return console.error err
 
-      # if user is not logged in and requests the root page, serve the content
-      # of hubspot
-      if not state and req.path is '/' and KONFIG.environment not in ['dev', 'sandbox']
+      # construct options
+      client.connection.delegate = account
+      { params }                 = req
+      { loggedIn, loggedOut }    = JGroup.render
+      fn                         = if isLoggedIn then loggedIn else loggedOut
+      options                    = { client, account, bongoModels, params, session }
 
-        # pipe incoming request directly to hubspot and pipe the response from
-        # hubspot as our response
-        return req.pipe(request(KONFIG.hubspotPageURL)).pipe(res)
-
-      else
-        client.connection.delegate = account
-
-        { params }              = req
-        { loggedIn, loggedOut } = JGroup.render
-        fn                      = if state then loggedIn else loggedOut
-        options = { client, account, bongoModels, params, session }
-
+      serveKodingHome = ->
         fn.kodingHome options, (err, subPage) ->
           return next()  if err
-          serve subPage, res
+          return serve subPage, res
+
+      if req.path isnt '/'
+        return serveKodingHome()
+
+      # main path has a special case where all users should be redirected to
+      # hubspot
+
+      # if incoming request goes to a team page, should resolve immediately -
+      # without a redirection requirement
+      if isTeamPage(req)
+        return serveKodingHome() if isLoggedIn
+
+        return res.redirect 307, '/Login'
+
+      # but if we are in dev or sandbox env, serve content as we used to
+      if KONFIG.environment in ['dev', 'sandbox']
+        return serveKodingHome()  if isLoggedIn
+
+        return res.redirect 307, '/Teams'
+
+      # all other requests coming to slash, goes back to KONFIG.hubspotPageURL
+      return res.redirect 307, KONFIG.hubspotPageURL
+
 
 
 isLoggedIn = (req, res, callback) ->
@@ -313,4 +342,5 @@ module.exports = {
   isMainDomain
   setSessionCookie
   checkAuthorizationBearerHeader
+  isTeamPage
 }

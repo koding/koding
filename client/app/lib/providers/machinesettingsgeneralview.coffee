@@ -9,7 +9,6 @@ KodingSwitch              = require '../commonviews/kodingswitch'
 KDLoaderView              = kd.LoaderView
 CustomLinkView            = require '../customlinkview'
 CopyTooltipView           = require 'app/components/common/copytooltipview'
-KDCustomHTMLView          = kd.CustomHTMLView
 KDHitEnterInputView       = kd.HitEnterInputView
 KDFormViewWithFields      = kd.FormViewWithFields
 ComputeErrorUsageModal    = require './computeerrorusagemodal'

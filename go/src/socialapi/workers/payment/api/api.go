@@ -13,7 +13,17 @@ func InitCheckers() error {
 	return err
 }
 
-func Subscribe(u *url.URL, h http.Header, req *payment.SubscribeRequest) (int, http.Header, interface{}, error) {
+//----------------------------------------------------------
+// Subscribe
+//----------------------------------------------------------
+
+func AccountSubscribe(u *url.URL, h http.Header, req *payment.AccountSubscribeRequest) (int, http.Header, interface{}, error) {
+	return response.HandleResultAndClientError(
+		req.Do(),
+	)
+}
+
+func GroupSubscribe(u *url.URL, h http.Header, req *payment.GroupSubscribeRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndClientError(
 		req.Do(),
 	)
@@ -75,7 +85,13 @@ func CreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Head
 	)
 }
 
-func UpdateCreditCardRequest(u *url.URL, h http.Header, req *payment.UpdateCreditCardRequest) (int, http.Header, interface{}, error) {
+func AccountUpdateCreditCardRequest(u *url.URL, h http.Header, req *payment.AccountUpdateCreditCardRequest) (int, http.Header, interface{}, error) {
+	return response.HandleResultAndClientError(
+		req.Do(),
+	)
+}
+
+func GroupUpdateCreditCardRequest(u *url.URL, h http.Header, req *payment.GroupUpdateCreditCardRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndClientError(
 		req.Do(),
 	)

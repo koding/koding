@@ -4,7 +4,6 @@ React              = require 'kd-react'
 isKoding           = require 'app/util/isKoding'
 classnames         = require 'classnames'
 UnreadCount        = require 'app/components/sidebarmachineslistitem/unreadcount'
-CreateChannelFlux  = require 'activity/flux/createchannel'
 
 
 module.exports = class SidebarSection extends React.Component

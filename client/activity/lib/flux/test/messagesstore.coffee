@@ -1,13 +1,9 @@
-expect = require 'expect'
-
-Reactor = require 'app/flux/base/reactor'
-whoami = require 'app/util/whoami'
-
-MessagesStore = require '../stores/messagesstore'
-actionTypes = require '../actions/actiontypes'
-chatInputActionTypes = require '../chatinput/actions/actiontypes'
-
+expect                   = require 'expect'
+Reactor                  = require 'app/flux/base/reactor'
+MessagesStore            = require '../stores/messagesstore'
+actionTypes              = require '../actions/actiontypes'
 MessageCollectionHelpers = require '../helpers/messagecollection'
+
 
 describe 'MessagesStore', ->
 

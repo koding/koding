@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDViewController = kd.ViewController
-LegalAppView = require './legalappview'
+LegalAppView     = require './legalappview'
 
 
 module.exports = class LegalAppController extends KDViewController

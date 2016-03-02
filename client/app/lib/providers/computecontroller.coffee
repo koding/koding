@@ -4,7 +4,6 @@ Encoder              = require 'htmlencode'
 
 kd                   = require 'kd'
 KDController         = kd.Controller
-KDNotificationView   = kd.NotificationView
 
 nick                 = require 'app/util/nick'
 isKoding             = require 'app/util/isKoding'
@@ -1113,11 +1112,14 @@ module.exports = class ComputeController extends KDController
     path = '/var/log/cloud-init-output.log'
     file = FSHelper.createFileInstance { path, machine }
 
-    kd.singletons.appManager.tell 'IDE', 'tailFile', {
+    return  unless ideApp = envDataProvider.getIDEFromUId machine.uid
+
+    ideApp.tailFile {
       file
-      description:
-        "Your Koding Stack has successfully been initialized. The log here
-         describes each executed step of the Stack creation process."
+      description : "
+        Your Koding Stack has successfully been initialized. The log here
+        describes each executed step of the Stack creation process.
+      "
     }
 
 

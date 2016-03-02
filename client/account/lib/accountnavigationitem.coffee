@@ -1,5 +1,7 @@
-kd = require 'kd'
+kd             = require 'kd'
 KDListItemView = kd.ListItemView
+
+
 module.exports = class AccountNavigationItem extends KDListItemView
 
   constructor:(options = {}, data)->

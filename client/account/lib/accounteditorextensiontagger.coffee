@@ -1,12 +1,13 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+kd               = require 'kd'
+KDView           = kd.View
+KDFormView       = kd.FormView
+KDInputView      = kd.InputView
+KDButtonView     = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
-KDFormView = kd.FormView
-KDInputView = kd.InputView
-KDView = kd.View
 
 
 module.exports = class AccountEditorExtensionTagger extends KDFormView
+
   viewAppended:->
     # FIXME : SET AUTOCOMPLETE VIEW AS IN MEMBERS SEARCH
     @addSubView tagInput = new KDInputView
