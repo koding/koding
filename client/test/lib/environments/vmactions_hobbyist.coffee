@@ -33,17 +33,5 @@ module.exports =
 
   checkAlwaysOnVmForHobbyistPlan: (browser) ->
 
-    sidebarSelector  = '.kdview.sidebar-machine-box .vm'
-    alwaysOnSelector = '.kdinput.koding-on-off.statustoggle.small'
-
-    browser
-      .moveToElement          sidebarSelector, 10, 10
-      .waitForElementVisible  "#{sidebarSelector} span", 20000
-      .click                  "#{sidebarSelector} span"
-      .pause                  1000
-      .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
-        if result.status is 0
-          browser
-            .click                  "#{alwaysOnSelector}.off"
-            .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
-      browser.end()
+    environmentHelpers.checkAlwaysOnVM(browser)
+    browser.end()
