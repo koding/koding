@@ -64,13 +64,13 @@ module.exports = [
     { name: 'environments snapshot' }
   ]
 
-  # [
-  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
+  [
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
 
-  # [
-  #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
+  [
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
 
   [
     { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }

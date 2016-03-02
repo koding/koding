@@ -34,14 +34,22 @@ module.exports =
     hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant = utils.getUser no, 1
 
-    if hostBrowser
-       collaborationHelpers.startSessionAndInviteUser(browser, host, participant, yes, yes)
-       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-       browser.end()
-    else
-      collaborationHelpers.joinSession(browser, host, participant)
+
+    hostCallback = ->
+
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
+
+
+    participantCallback = ->
+
       browser
         .waitForElementVisible     '.application-page.read-only', 20000
         .waitForElementNotVisible  '.panel-1 .panel-0 .application-tab-handle-holder .plus', 20000
+
       collaborationHelpers.leaveSessionFromSidebar(browser)
       browser.end()
+
+
+    browser.readOnlySession = yes
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
