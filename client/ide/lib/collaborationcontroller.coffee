@@ -27,6 +27,7 @@ BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
 generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 isKoding                      = require 'app/util/isKoding'
+Tracker                       = require 'app/util/tracker'
 
 {warn} = kd
 
@@ -196,6 +197,8 @@ module.exports = CollaborationController =
 
     @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
+
+    Tracker.track track.USED_COLLABORATION
 
     if @amIHost and targetUser isnt nick()
       @ensureMachineShare [targetUser], (err) =>

@@ -4,6 +4,7 @@ remote        = require('app/remote').getInstance()
 whoami        = require 'app/util/whoami'
 SlackUserItem = require './slackuseritem'
 async         = require 'async'
+Tracker       = require 'app/util/tracker'
 
 titleDecorator = (channel) -> if channel.is_group then channel.name else "##{channel.name}"
 
@@ -50,7 +51,9 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
     info.addSubView button = new kd.ButtonView
       cssClass : 'solid medium green slack-oauth'
       title    : 'Import from  <cite></cite>'
-      callback : -> location.assign OAUTH_URL
+      callback : ->
+        location.assign OAUTH_URL
+        Tracker.track Tracker.CONNECTED_SLACK
 
 
   reset: ->

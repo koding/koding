@@ -16,4 +16,18 @@ module.exports = {
   LABEL_CLICK     : 'click'
 
   LABEL_MODAL_SUCCESS : 'ModalSuccess'
+
+  # KD
+  INSTALLED_KD    : 'installed kd'
+
+  # STACKS
+  ADDED_AWS_KEYS  : 'added aws keys'
+  SETUP_STACK     : 'setup stack'
+
+  # TEAM
+  INVITED_TEAMMEMBERS  : 'invited team members'
+  CONNECTED_SLACK      : 'connected slack'
+
+  # COLLABORATION
+  USED_COLLABORATION   : 'used collaboration'
 }

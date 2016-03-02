@@ -3,6 +3,7 @@ kd                  = require 'kd'
 globals             = require 'globals'
 whoami              = require 'app/util/whoami'
 { boxes, HANDLERS } = require './boxes'
+Tracker             = require 'app/util/tracker'
 
 module.exports = class WelcomeAppView extends kd.View
 
@@ -100,6 +101,8 @@ module.exports = class WelcomeAppView extends kd.View
       key    = if globals.os is 'mac' then 'Cmd + C' else 'Ctrl + C'
 
       hintEl.innerHTML = "Hit #{key} to copy!"
+
+    Tracker.track Tracker.INSTALLED_KD
 
     kd.singletons.mainView.mainTabView.scrollToBottom 200
 
