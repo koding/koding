@@ -8,11 +8,12 @@ import (
 	"bytes"
 	_ "crypto/sha512"
 	"encoding/hex"
-	"golang.org/x/crypto/openpgp/errors"
 	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
+
+	"golang.org/x/crypto/openpgp/errors"
 )
 
 func readerFromHex(s string) io.Reader {
@@ -135,6 +136,25 @@ func TestTextSignedMessage(t *testing.T) {
 	checkSignedMessage(t, signedTextMessageHex, signedTextInput)
 }
 
+// The reader should detect "compressed quines", which are compressed
+// packets that expand into themselves and cause an infinite recursive
+// parsing loop.
+// The packet in this test case comes from Taylor R. Campbell at
+// http://mumble.net/~campbell/misc/pgp-quine/
+func TestCampbellQuine(t *testing.T) {
+	md, err := ReadMessage(readerFromHex(campbellQuine), nil, nil, nil)
+	if md != nil {
+		t.Errorf("Reading a compressed quine should not return any data: %#v", md)
+	}
+	structural, ok := err.(errors.StructuralError)
+	if !ok {
+		t.Fatalf("Unexpected class of error: %T", err)
+	}
+	if !strings.Contains(string(structural), "too many layers of packets") {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+}
+
 var signedEncryptedMessageTests = []struct {
 	keyRingHex       string
 	messageHex       string
@@ -223,7 +243,7 @@ func TestUnspecifiedRecipient(t *testing.T) {
 }
 
 func TestSymmetricallyEncrypted(t *testing.T) {
-	expected := "Symmetrically encrypted.\n"
+	firstTimeCalled := true
 
 	prompt := func(keys []Key, symmetric bool) ([]byte, error) {
 		if len(keys) != 0 {
@@ -232,6 +252,11 @@ func TestSymmetricallyEncrypted(t *testing.T) {
 
 		if !symmetric {
 			t.Errorf("symmetric is not set")
+		}
+
+		if firstTimeCalled {
+			firstTimeCalled = false
+			return []byte("wrongpassword"), nil
 		}
 
 		return []byte("password"), nil
@@ -253,6 +278,7 @@ func TestSymmetricallyEncrypted(t *testing.T) {
 		t.Errorf("LiteralData.Time is %d, want %d", md.LiteralData.Time, expectedCreationTime)
 	}
 
+	const expected = "Symmetrically encrypted.\n"
 	if string(contents) != expected {
 		t.Errorf("contents got: %s want: %s", string(contents), expected)
 	}
@@ -295,6 +321,11 @@ func TestDetachedSignatureDSA(t *testing.T) {
 	testDetachedSignature(t, kring, readerFromHex(detachedSignatureDSAHex), signedInput, "binary", testKey3KeyId)
 }
 
+func TestMultipleSignaturePacketsDSA(t *testing.T) {
+	kring, _ := ReadKeyRing(readerFromHex(dsaTestKeyHex))
+	testDetachedSignature(t, kring, readerFromHex(missingHashFunctionHex+detachedSignatureDSAHex), signedInput, "binary", testKey3KeyId)
+}
+
 func testHashFunctionError(t *testing.T, signatureHex string) {
 	kring, _ := ReadKeyRing(readerFromHex(testKeys1And2Hex))
 	_, err := CheckDetachedSignature(kring, nil, readerFromHex(signatureHex))
@@ -318,8 +349,16 @@ func TestUnknownHashFunction(t *testing.T) {
 
 func TestMissingHashFunction(t *testing.T) {
 	// missingHashFunctionHex contains a signature packet that uses
-	// RIPEMD160, which isn't compiled in.
-	testHashFunctionError(t, missingHashFunctionHex)
+	// RIPEMD160, which isn't compiled in.  Since that's the only signature
+	// packet we don't find any suitable packets and end up with ErrUnknownIssuer
+	kring, _ := ReadKeyRing(readerFromHex(testKeys1And2Hex))
+	_, err := CheckDetachedSignature(kring, nil, readerFromHex(missingHashFunctionHex))
+	if err == nil {
+		t.Fatal("Packet with missing hash type was correctly parsed")
+	}
+	if err != errors.ErrUnknownIssuer {
+		t.Fatalf("Unexpected class of error: %s", err)
+	}
 }
 
 func TestReadingArmoredPrivateKey(t *testing.T) {
@@ -347,6 +386,35 @@ func TestNoArmoredData(t *testing.T) {
 	if _, ok := err.(errors.InvalidArgumentError); !ok {
 		t.Errorf("error was not an InvalidArgumentError: %s", err)
 	}
+}
+
+func testReadMessageError(t *testing.T, messageHex string) {
+	buf, err := hex.DecodeString(messageHex)
+	if err != nil {
+		t.Errorf("hex.DecodeString(): %v", err)
+	}
+
+	kr, err := ReadKeyRing(new(bytes.Buffer))
+	if err != nil {
+		t.Errorf("ReadKeyring(): %v", err)
+	}
+
+	_, err = ReadMessage(bytes.NewBuffer(buf), kr,
+		func([]Key, bool) ([]byte, error) {
+			return []byte("insecure"), nil
+		}, nil)
+
+	if err == nil {
+		t.Errorf("ReadMessage(): Unexpected nil error")
+	}
+}
+
+func TestIssue11503(t *testing.T) {
+	testReadMessageError(t, "8c040402000aa430aa8228b9248b01fc899a91197130303030")
+}
+
+func TestIssue11504(t *testing.T) {
+	testReadMessageError(t, "9303000130303030303030303030983002303030303030030000000130")
 }
 
 const testKey1KeyId = 0xA34D7E18C20C31BB
@@ -439,4 +507,6 @@ const dsaKeyWithSHA512 = `9901a2044f04b07f110400db244efecc7316553ee08d179972aab8
 
 const unknownHashFunctionHex = `8a00000040040001990006050253863c24000a09103b4fe6acc0b21f32ffff01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101`
 
-const missingHashFunctionHex = `8a00000040040001030006050253863c24000a09103b4fe6acc0b21f32ffff01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101`
+const missingHashFunctionHex = `8a00000040040001030006050253863c24000a09103b4fe6acc0b21f32ffff0101010101010101010101010101010101010101010101010101010101010101010101010101`
+
+const campbellQuine = `a0b001000300fcffa0b001000d00f2ff000300fcffa0b001000d00f2ff8270a01c00000500faff8270a01c00000500faff000500faff001400ebff8270a01c00000500faff000500faff001400ebff428821c400001400ebff428821c400001400ebff428821c400001400ebff428821c400001400ebff428821c400000000ffff000000ffff000b00f4ff428821c400000000ffff000000ffff000b00f4ff0233214c40000100feff000233214c40000100feff0000`

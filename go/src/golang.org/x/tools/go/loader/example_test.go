@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.6
+// +build !windows
+
 package loader_test
 
 import (
@@ -11,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 
 	"golang.org/x/tools/go/loader"
 )
@@ -28,6 +32,9 @@ func printProgram(prog *loader.Program) {
 	// call to Import or ImportWithTests.
 	names = nil
 	for _, info := range prog.Imported {
+		if strings.Contains(info.Pkg.Path(), "internal") {
+			continue // skip, to reduce fragility
+		}
 		names = append(names, info.Pkg.Path())
 	}
 	sort.Strings(names)
@@ -80,7 +87,7 @@ func ExampleConfig_FromArgs() {
 	// created: []
 	// imported: [errors runtime unicode/utf8]
 	// initial: [errors runtime unicode/utf8]
-	// all: [errors runtime unicode/utf8]
+	// all: [errors runtime runtime/internal/atomic runtime/internal/sys unicode/utf8 unsafe]
 }
 
 // This example creates and type-checks a single package (without tests)
@@ -136,8 +143,8 @@ func ExampleConfig_CreateFromFiles() {
 	// created: [hello]
 	// imported: []
 	// initial: [hello]
-	// all: [errors fmt hello io math os reflect runtime strconv sync sync/atomic syscall time unicode/utf8]
-	// strconv.Files: [atob.go atof.go atoi.go decimal.go extfloat.go ftoa.go isprint.go itoa.go quote.go]
+	// all: [errors fmt hello internal/race io math os reflect runtime runtime/internal/atomic runtime/internal/sys strconv sync sync/atomic syscall time unicode/utf8 unsafe]
+	// strconv.Files: [atob.go atof.go atoi.go decimal.go doc.go extfloat.go ftoa.go isprint.go itoa.go quote.go]
 }
 
 // This example imports three packages, including the tests for one of
@@ -164,7 +171,7 @@ func ExampleConfig_Import() {
 	// created: [strconv_test]
 	// imported: [errors strconv unicode/utf8]
 	// initial: [errors strconv strconv_test unicode/utf8]
-	// all: [bufio bytes errors flag fmt io math math/rand os reflect runtime runtime/pprof sort strconv strconv_test strings sync sync/atomic syscall testing text/tabwriter time unicode unicode/utf8]
-	// strconv.Files: [atob.go atof.go atoi.go decimal.go extfloat.go ftoa.go isprint.go itoa.go quote.go internal_test.go]
-	// strconv_test.Files: [atob_test.go atof_test.go atoi_test.go decimal_test.go fp_test.go ftoa_test.go itoa_test.go quote_example_test.go quote_test.go strconv_test.go]
+	// all: [bufio bytes errors flag fmt internal/race io log math math/rand os reflect runtime runtime/debug runtime/internal/atomic runtime/internal/sys runtime/pprof runtime/trace sort strconv strconv_test strings sync sync/atomic syscall testing text/tabwriter time unicode unicode/utf8 unsafe]
+	// strconv.Files: [atob.go atof.go atoi.go decimal.go doc.go extfloat.go ftoa.go isprint.go itoa.go quote.go internal_test.go]
+	// strconv_test.Files: [atob_test.go atof_test.go atoi_test.go decimal_test.go example_test.go fp_test.go ftoa_test.go itoa_test.go quote_test.go strconv_test.go]
 }

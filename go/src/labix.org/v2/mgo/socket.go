@@ -45,8 +45,8 @@ type mongoSocket struct {
 	nextRequestId uint32
 	replyFuncs    map[uint32]replyFunc
 	references    int
-	auth          []authInfo
-	logout        []authInfo
+	creds         []Credential
+	logout        []Credential
 	cachedNonce   string
 	gotNonce      sync.Cond
 	dead          error
@@ -191,8 +191,9 @@ func (socket *mongoSocket) InitialAcquire(serverInfo *mongoServerInfo, timeout t
 		panic("Socket acquired out of cache with references")
 	}
 	if socket.dead != nil {
+		dead := socket.dead
 		socket.Unlock()
-		return socket.dead
+		return dead
 	}
 	socket.references++
 	socket.serverInfo = serverInfo
@@ -300,9 +301,9 @@ func (socket *mongoSocket) kill(err error, abend bool) {
 	server := socket.server
 	socket.server = nil
 	socket.Unlock()
-	for _, f := range replyFuncs {
+	for _, replyFunc := range replyFuncs {
 		logf("Socket %p to %s: notifying replyFunc of closed socket: %s", socket, socket.addr, err.Error())
-		f(err, nil, -1, nil)
+		replyFunc(err, nil, -1, nil)
 	}
 	if abend {
 		server.AbendSocket(socket)
@@ -425,7 +426,7 @@ func (socket *mongoSocket) Query(ops ...interface{}) (err error) {
 			}
 
 		default:
-			panic("Internal error: unknown operation type")
+			panic("internal error: unknown operation type")
 		}
 
 		setInt32(buf, start, int32(len(buf)-start))
@@ -442,6 +443,7 @@ func (socket *mongoSocket) Query(ops ...interface{}) (err error) {
 
 	socket.Lock()
 	if socket.dead != nil {
+		dead := socket.dead
 		socket.Unlock()
 		debugf("Socket %p to %s: failing query, already closed: %s", socket, socket.addr, socket.dead.Error())
 		// XXX This seems necessary in case the session is closed concurrently
@@ -449,10 +451,10 @@ func (socket *mongoSocket) Query(ops ...interface{}) (err error) {
 		for i := 0; i != requestCount; i++ {
 			request := &requests[i]
 			if request.replyFunc != nil {
-				request.replyFunc(socket.dead, nil, -1, nil)
+				request.replyFunc(dead, nil, -1, nil)
 			}
 		}
-		return socket.dead
+		return dead
 	}
 
 	wasWaiting := len(socket.replyFuncs) > 0
@@ -533,7 +535,10 @@ func (socket *mongoSocket) readLoop() {
 		stats.receivedDocs(int(reply.replyDocs))
 
 		socket.Lock()
-		replyFunc, replyFuncFound := socket.replyFuncs[uint32(responseTo)]
+		replyFunc, ok := socket.replyFuncs[uint32(responseTo)]
+		if ok {
+			delete(socket.replyFuncs, uint32(responseTo))
+		}
 		socket.Unlock()
 
 		if replyFunc != nil && reply.replyDocs == 0 {
@@ -542,6 +547,9 @@ func (socket *mongoSocket) readLoop() {
 			for i := 0; i != int(reply.replyDocs); i++ {
 				err := fill(conn, s)
 				if err != nil {
+					if replyFunc != nil {
+						replyFunc(err, nil, -1, nil)
+					}
 					socket.kill(err, true)
 					return
 				}
@@ -556,6 +564,9 @@ func (socket *mongoSocket) readLoop() {
 
 				err = fill(conn, b[4:])
 				if err != nil {
+					if replyFunc != nil {
+						replyFunc(err, nil, -1, nil)
+					}
 					socket.kill(err, true)
 					return
 				}
@@ -575,11 +586,7 @@ func (socket *mongoSocket) readLoop() {
 			}
 		}
 
-		// Only remove replyFunc after iteration, so that kill() will see it.
 		socket.Lock()
-		if replyFuncFound {
-			delete(socket.replyFuncs, uint32(responseTo))
-		}
 		if len(socket.replyFuncs) == 0 {
 			// Nothing else to read for now. Disable deadline.
 			socket.conn.SetReadDeadline(time.Time{})

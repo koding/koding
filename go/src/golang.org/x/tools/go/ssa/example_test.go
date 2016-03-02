@@ -2,20 +2,22 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssa_test
 
 import (
 	"fmt"
-	"os"
-
 	"go/ast"
+	"go/importer"
 	"go/parser"
 	"go/token"
+	"go/types"
+	"os"
 
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
-	"golang.org/x/tools/go/types"
 )
 
 const hello = `
@@ -64,7 +66,7 @@ func ExampleBuildPackage() {
 	// Type-check the package, load dependencies.
 	// Create and build the SSA program.
 	hello, _, err := ssautil.BuildPackage(
-		new(types.Config), fset, pkg, files, ssa.SanityCheckFunctions)
+		&types.Config{Importer: importer.Default()}, fset, pkg, files, ssa.SanityCheckFunctions)
 	if err != nil {
 		fmt.Print(err) // type error in some package
 		return
@@ -113,15 +115,15 @@ func ExampleBuildPackage() {
 	// 	return
 }
 
-// This program shows how to load a main package (cmd/nm) and all its
+// This program shows how to load a main package (cmd/cover) and all its
 // dependencies from source, using the loader, and then build SSA code
 // for the entire program.  This is what you'd typically use for a
 // whole-program analysis.
 //
 func ExampleLoadProgram() {
-	// Load cmd/nm and its dependencies.
+	// Load cmd/cover and its dependencies.
 	var conf loader.Config
-	conf.Import("cmd/nm")
+	conf.Import("cmd/cover")
 	lprog, err := conf.Load()
 	if err != nil {
 		fmt.Print(err) // type error in some package
@@ -131,8 +133,8 @@ func ExampleLoadProgram() {
 	// Create SSA-form program representation.
 	prog := ssautil.CreateProgram(lprog, ssa.SanityCheckFunctions)
 
-	// Build SSA code for the entire cmd/nm program.
-	prog.BuildAll()
+	// Build SSA code for the entire cmd/cover program.
+	prog.Build()
 
 	// Output:
 }

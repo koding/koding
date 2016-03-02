@@ -1,3 +1,9 @@
+// Copyright 2014 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// +build go1.5
+
 // Package cha computes the call graph of a Go program using the Class
 // Hierarchy Analysis (CHA) algorithm.
 //
@@ -20,10 +26,11 @@
 package cha // import "golang.org/x/tools/go/callgraph/cha"
 
 import (
+	"go/types"
+
 	"golang.org/x/tools/go/callgraph"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
-	"golang.org/x/tools/go/types"
 	"golang.org/x/tools/go/types/typeutil"
 )
 
