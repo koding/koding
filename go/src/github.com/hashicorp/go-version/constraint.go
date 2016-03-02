@@ -103,9 +103,7 @@ func parseSingle(v string) (*Constraint, error) {
 
 	check, err := NewVersion(matches[2])
 	if err != nil {
-		// This is a panic because the regular expression above should
-		// properly validate any version.
-		panic(err)
+		return nil, err
 	}
 
 	return &Constraint{
