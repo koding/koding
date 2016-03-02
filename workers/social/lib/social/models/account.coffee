@@ -123,7 +123,7 @@ module.exports = class JAccount extends jraphical.Module
         fetchMyPermissionsAndRoles:
           (signature Function)
         fetchMySessions:
-          (signature Function)
+          (signature Object, Function)
         blockUser: [
           (signature String, Number, Function)
           (signature ObjectId, Number, Function)
@@ -1411,17 +1411,24 @@ module.exports = class JAccount extends jraphical.Module
         callback err
 
 
-  fetchMySessions: secure (client, callback) ->
+  fetchMySessions: secure (client, options, callback) ->
 
     { sessionToken } = client
     return callback new KodingError 'Invalid session.'  unless sessionToken
+
+    { skip, limit, sort } = options
+    sort  ?= { 'sessionBegan' : -1 }
+    skip  ?= 0
+    limit ?= 10
 
     JSession = require './session'
     JSession.one { clientId : sessionToken }, (err, session) ->
       return callback err  if err
       return callback new KodingError 'Invalid session.'  unless session
 
-      username = session.username
-      JSession.some { username }, { limit : 10 }, callback
+      selector = { username : session.username }
+      options  = { limit, skip, sort }
+      console.log options
+      JSession.some selector, options, callback
 
 
