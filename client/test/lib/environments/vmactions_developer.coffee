@@ -22,6 +22,12 @@ module.exports =
       	browser.url url
 
 
+  checkAlwaysOnVmForDevelopmentPlan: (browser) ->
+
+    environmentHelpers.checkAlwaysOnVM(browser)
+    browser.end()
+
+
   checkMaximum3VmsForDeveloperPlan: (browser) ->
 
     vmSelector       = '.activity-sidebar .machines-wrapper .vms.my-machines .koding-vm-'
@@ -37,3 +43,5 @@ module.exports =
         environmentHelpers.addNewVM(browser, usageVmSelector, yes)
 
     browser.end()
+
+

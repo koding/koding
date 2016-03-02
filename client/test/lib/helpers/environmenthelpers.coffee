@@ -400,6 +400,7 @@ module.exports =
         browser
           .waitForElementVisible  disabledCreateVmButton, 20000
           .click                  disabledCreateVmButton
+          .pause                  2000 #for page to finish loading
           .waitForElementVisible  vmAssert, 20000
 
 
@@ -450,3 +451,21 @@ module.exports =
       .waitForElementVisible   '.kdmodal-content .success-msg', 20000
       .click                   'button.submit-btn'
       .waitForElementVisible   '[testpath=main-sidebar]', 20000
+
+
+  checkAlwaysOnVM: (browser) ->
+
+    sidebarSelector  = '.kdview.sidebar-machine-box .vm'
+    alwaysOnSelector = '.kdinput.koding-on-off.statustoggle.small'
+
+    browser
+      .moveToElement          sidebarSelector, 10, 10
+      .waitForElementVisible  "#{sidebarSelector} span", 20000
+      .click                  "#{sidebarSelector} span"
+      .pause                  1000
+      .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
+        if result.status is 0
+          browser
+            .click                  "#{alwaysOnSelector}.off"
+            .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
+
