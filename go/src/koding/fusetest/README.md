@@ -7,4 +7,4 @@ It uses the test helper package GoConvey to check for assertions.
 
 ## Getting starting
 
-    go run cmd/fusetest/main.go <mount folder> -test.v=true
+    go run $GOPATH/koding/fuseklient/cmd/fusetest/main.go <mount folder> -test.v=true`

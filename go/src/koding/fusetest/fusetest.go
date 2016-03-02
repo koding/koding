@@ -8,7 +8,15 @@ import (
 	"testing"
 )
 
-func RunAllTests(t *testing.T, mountDir string) {
+func RunAllTests(t *testing.T, mountParent string) {
+	// create a temp dir inside given dir to run the tests
+	mountDir, err := ioutil.TempDir(mountParent, "tests")
+	if err != nil {
+		panic(err)
+	}
+
+	defer os.RemoveAll(mountDir)
+
 	// dir ops
 	testMkDir(t, mountDir)
 	testOpenDir(t, mountDir)
@@ -41,8 +49,7 @@ func createDir(mountDir, name string, fn func(string)) func() {
 
 		fn(dirPath)
 
-		err = os.RemoveAll(dirPath)
-		if err != nil {
+		if err = os.RemoveAll(dirPath); err != nil {
 			panic(err)
 		}
 	}
