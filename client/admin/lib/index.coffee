@@ -37,7 +37,6 @@ module.exports = class AdminAppController extends AppController
         { slug : 'General',        title : 'General',           viewClass : GroupGeneralSettingsView, role: 'member' }
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
-        { slug : 'Resources',      title : 'Resources',         viewClass : AdminResourcesView       }
       # { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
         {
           slug      : 'Integrations'
@@ -49,7 +48,8 @@ module.exports = class AdminAppController extends AppController
           ]
         }
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
-        { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 }
+        { slug : 'Resources',      title : 'Resources',         viewClass : AdminResourcesView       , beta: yes }
+        { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 , beta: yes }
         # { slug : 'Plan-Billing',   title : 'Plan & Billing',    viewClass : GroupPlanBillingView     }
       ]
     koding     :
