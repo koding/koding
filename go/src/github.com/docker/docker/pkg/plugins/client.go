@@ -30,7 +30,9 @@ func NewClient(addr string, tlsConfig tlsconfig.Options) (*Client, error) {
 	tr.TLSClientConfig = c
 
 	protoAndAddr := strings.Split(addr, "://")
-	sockets.ConfigureTransport(tr, protoAndAddr[0], protoAndAddr[1])
+	if err := sockets.ConfigureTransport(tr, protoAndAddr[0], protoAndAddr[1]); err != nil {
+		return nil, err
+	}
 
 	scheme := protoAndAddr[0]
 	if scheme != "https" {
@@ -122,6 +124,7 @@ func (c *Client) callWithRetry(serviceMethod string, data io.Reader, retry bool)
 
 		if resp.StatusCode != http.StatusOK {
 			b, err := ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
 			if err != nil {
 				return nil, &statusError{resp.StatusCode, serviceMethod, err.Error()}
 			}

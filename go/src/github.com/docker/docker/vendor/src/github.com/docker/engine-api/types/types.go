@@ -148,6 +148,7 @@ type Container struct {
 		NetworkMode string `json:",omitempty"`
 	}
 	NetworkSettings *SummaryNetworkSettings
+	Mounts          []MountPoint
 }
 
 // CopyConfig contains request body of Remote API:
@@ -217,6 +218,7 @@ type Info struct {
 	SystemTime         string
 	ExecutionDriver    string
 	LoggingDriver      string
+	CgroupDriver       string
 	NEventsListener    int
 	KernelVersion      string
 	OperatingSystem    string

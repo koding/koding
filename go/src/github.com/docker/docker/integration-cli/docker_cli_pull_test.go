@@ -74,10 +74,37 @@ func (s *DockerHubPullSuite) TestPullNonExistingImage(c *check.C) {
 // multiple images.
 func (s *DockerHubPullSuite) TestPullFromCentralRegistryImplicitRefParts(c *check.C) {
 	testRequires(c, DaemonIsLinux)
-	s.Cmd(c, "pull", "hello-world")
+
+	// Pull hello-world from v2
+	pullFromV2 := func(ref string) (int, string) {
+		out := s.Cmd(c, "pull", "hello-world")
+		v1Retries := 0
+		for strings.Contains(out, "this image was pulled from a legacy registry") {
+			// Some network errors may cause fallbacks to the v1
+			// protocol, which would violate the test's assumption
+			// that it will get the same images. To make the test
+			// more robust against these network glitches, allow a
+			// few retries if we end up with a v1 pull.
+
+			if v1Retries > 2 {
+				c.Fatalf("too many v1 fallback incidents when pulling %s", ref)
+			}
+
+			s.Cmd(c, "rmi", ref)
+			out = s.Cmd(c, "pull", ref)
+
+			v1Retries++
+		}
+
+		return v1Retries, out
+	}
+
+	pullFromV2("hello-world")
 	defer deleteImages("hello-world")
 
-	for _, i := range []string{
+	s.Cmd(c, "tag", "hello-world", "hello-world-backup")
+
+	for _, ref := range []string{
 		"hello-world",
 		"hello-world:latest",
 		"library/hello-world",
@@ -85,9 +112,25 @@ func (s *DockerHubPullSuite) TestPullFromCentralRegistryImplicitRefParts(c *chec
 		"docker.io/library/hello-world",
 		"index.docker.io/library/hello-world",
 	} {
-		out := s.Cmd(c, "pull", i)
+		var out string
+		for {
+			var v1Retries int
+			v1Retries, out = pullFromV2(ref)
+
+			// Keep repeating the test case until we don't hit a v1
+			// fallback case. We won't get the right "Image is up
+			// to date" message if the local image was replaced
+			// with one pulled from v1.
+			if v1Retries == 0 {
+				break
+			}
+			s.Cmd(c, "rmi", ref)
+			s.Cmd(c, "tag", "hello-world-backup", "hello-world")
+		}
 		c.Assert(out, checker.Contains, "Image is up to date for hello-world:latest")
 	}
+
+	s.Cmd(c, "rmi", "hello-world-backup")
 
 	// We should have a single entry in images.
 	img := strings.TrimSpace(s.Cmd(c, "images"))

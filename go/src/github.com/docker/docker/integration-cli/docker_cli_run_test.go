@@ -20,6 +20,7 @@ import (
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/docker/pkg/mount"
+	"github.com/docker/docker/pkg/stringutils"
 	"github.com/docker/docker/runconfig"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/libnetwork/netutils"
@@ -463,7 +464,7 @@ func (s *DockerSuite) TestRunVolumesFromInReadWriteMode(c *check.C) {
 	dockerCmd(c, "run", "--name", "parent", "-v", volumeDir, "busybox", "true")
 	dockerCmd(c, "run", "--volumes-from", "parent:rw", "busybox", "touch", fileInVol)
 
-	if out, _, err := dockerCmdWithError("run", "--volumes-from", "parent:bar", "busybox", "touch", fileInVol); err == nil || !strings.Contains(out, `invalid mode: "bar"`) {
+	if out, _, err := dockerCmdWithError("run", "--volumes-from", "parent:bar", "busybox", "touch", fileInVol); err == nil || !strings.Contains(out, `invalid mode: bar`) {
 		c.Fatalf("running --volumes-from parent:bar should have failed with invalid mode: %q", out)
 	}
 
@@ -658,7 +659,12 @@ func (s *DockerSuite) TestRunExitCode(c *check.C) {
 func (s *DockerSuite) TestRunUserDefaults(c *check.C) {
 	expected := "uid=0(root) gid=0(root)"
 	if daemonPlatform == "windows" {
-		expected = "uid=1000(SYSTEM) gid=1000(SYSTEM)"
+		// TODO Windows: Remove this check once TP4 is no longer supported.
+		if windowsDaemonKV < 14250 {
+			expected = "uid=1000(SYSTEM) gid=1000(SYSTEM)"
+		} else {
+			expected = "uid=1000(ContainerAdministrator) gid=1000(ContainerAdministrator)"
+		}
 	}
 	out, _ := dockerCmd(c, "run", "busybox", "id")
 	if !strings.Contains(out, expected) {
@@ -818,7 +824,7 @@ func (s *DockerSuite) TestRunEnvironmentErase(c *check.C) {
 	// the container
 
 	cmd := exec.Command(dockerBinary, "run", "-e", "FOO", "-e", "HOSTNAME", "busybox", "env")
-	cmd.Env = appendBaseEnv([]string{})
+	cmd.Env = appendBaseEnv(true)
 
 	out, _, err := runCommandWithOutput(cmd)
 	if err != nil {
@@ -852,7 +858,7 @@ func (s *DockerSuite) TestRunEnvironmentOverride(c *check.C) {
 	// already in the env that we're overriding them
 
 	cmd := exec.Command(dockerBinary, "run", "-e", "HOSTNAME", "-e", "HOME=/root2", "busybox", "env")
-	cmd.Env = appendBaseEnv([]string{"HOSTNAME=bar"})
+	cmd.Env = appendBaseEnv(true, "HOSTNAME=bar")
 
 	out, _, err := runCommandWithOutput(cmd)
 	if err != nil {
@@ -1710,7 +1716,12 @@ func (s *DockerSuite) TestRunCleanupCmdOnEntrypoint(c *check.C) {
 	out = strings.TrimSpace(out)
 	expected := "root"
 	if daemonPlatform == "windows" {
-		expected = `nt authority\system`
+		// TODO Windows: Remove this check once TP4 is no longer supported.
+		if windowsDaemonKV < 14250 {
+			expected = `nt authority\system`
+		} else {
+			expected = `user manager\containeradministrator`
+		}
 	}
 	if out != expected {
 		c.Fatalf("Expected output %s, got %q", expected, out)
@@ -1806,8 +1817,10 @@ func (s *DockerSuite) TestRunWriteHostsFileAndNotCommit(c *check.C) {
 }
 
 func eqToBaseDiff(out string, c *check.C) bool {
-	out1, _ := dockerCmd(c, "run", "-d", "busybox", "echo", "hello")
-	cID := strings.TrimSpace(out1)
+	name := "eqToBaseDiff" + stringutils.GenerateRandomAlphaOnlyString(32)
+	dockerCmd(c, "run", "--name", name, "busybox", "echo", "hello")
+	cID, err := getIDByName(name)
+	c.Assert(err, check.IsNil)
 
 	baseDiff, _ := dockerCmd(c, "diff", cID)
 	baseArr := strings.Split(baseDiff, "\n")
@@ -2029,10 +2042,10 @@ func (s *DockerSuite) TestRunInspectMacAddress(c *check.C) {
 	}
 }
 
-// test docker run use a invalid mac address
+// test docker run use an invalid mac address
 func (s *DockerSuite) TestRunWithInvalidMacAddress(c *check.C) {
 	out, _, err := dockerCmdWithError("run", "--mac-address", "92:d0:c6:0a:29", "busybox")
-	//use a invalid mac address should with a error out
+	//use an invalid mac address should with an error out
 	if err == nil || !strings.Contains(out, "is not a valid mac address") {
 		c.Fatalf("run with an invalid --mac-address should with error out")
 	}
@@ -2312,13 +2325,10 @@ func (s *DockerSuite) TestRunAllowPortRangeThroughExpose(c *check.C) {
 	}
 }
 
-// test docker run expose a invalid port
 func (s *DockerSuite) TestRunExposePort(c *check.C) {
 	out, _, err := dockerCmdWithError("run", "--expose", "80000", "busybox")
-	//expose a invalid port should with a error out
-	if err == nil || !strings.Contains(out, "Invalid range format for --expose") {
-		c.Fatalf("run --expose a invalid port should with error out")
-	}
+	c.Assert(err, checker.NotNil, check.Commentf("--expose with an invalid port should error out"))
+	c.Assert(out, checker.Contains, "invalid range format for --expose")
 }
 
 func (s *DockerSuite) TestRunUnknownCommand(c *check.C) {
@@ -2521,6 +2531,8 @@ func (s *DockerSuite) TestRunModeUTSHost(c *check.C) {
 }
 
 func (s *DockerSuite) TestRunTLSverify(c *check.C) {
+	// Remote daemons use TLS and this test is not applicable when TLS is required.
+	testRequires(c, SameHostDaemon)
 	if out, code, err := dockerCmdWithError("ps"); err != nil || code != 0 {
 		c.Fatalf("Should have worked: %v:\n%v", err, out)
 	}
@@ -2921,7 +2933,7 @@ func (s *DockerSuite) TestRunReadProcLatency(c *check.C) {
 	// some kernels don't have this configured so skip the test if this file is not found
 	// on the host running the tests.
 	if _, err := os.Stat("/proc/latency_stats"); err != nil {
-		c.Skip("kernel doesnt have latency_stats configured")
+		c.Skip("kernel doesn't have latency_stats configured")
 		return
 	}
 	out, code, err := dockerCmdWithError("run", "busybox", "cat", "/proc/latency_stats")
@@ -3251,7 +3263,7 @@ func (s *DockerTrustSuite) TestTrustedRunFromBadTrustServer(c *check.C) {
 	// Windows does not support this functionality
 	testRequires(c, DaemonIsLinux)
 	repoName := fmt.Sprintf("%v/dockerclievilrun/trusted:latest", privateRegistryURL)
-	evilLocalConfigDir, err := ioutil.TempDir("", "evil-local-config-dir")
+	evilLocalConfigDir, err := ioutil.TempDir("", "evilrun-local-config-dir")
 	if err != nil {
 		c.Fatalf("Failed to create local temp dir")
 	}
@@ -3307,15 +3319,15 @@ func (s *DockerTrustSuite) TestTrustedRunFromBadTrustServer(c *check.C) {
 		c.Fatalf("Missing expected output on trusted push:\n%s", out)
 	}
 
-	// Now, try running with the original client from this new trust server. This should fail.
+	// Now, try running with the original client from this new trust server. This should fallback to our cached timestamp and metadata.
 	runCmd = exec.Command(dockerBinary, "run", repoName)
 	s.trustedCmd(runCmd)
 	out, _, err = runCommandWithOutput(runCmd)
-	if err == nil {
-		c.Fatalf("Expected to fail on this run due to different remote data: %s\n%s", err, out)
-	}
 
-	if !strings.Contains(string(out), "valid signatures did not meet threshold") {
+	if err != nil {
+		c.Fatalf("Error falling back to cached trust data: %s\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "Error while downloading remote metadata, using cached timestamp") {
 		c.Fatalf("Missing expected output on trusted push:\n%s", out)
 	}
 }

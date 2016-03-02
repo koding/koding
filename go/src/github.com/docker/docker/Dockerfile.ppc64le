@@ -11,14 +11,6 @@
 # # Run the test suite:
 # docker run --privileged docker hack/make.sh test
 #
-# # Publish a release:
-# docker run --privileged \
-#  -e AWS_S3_BUCKET=baz \
-#  -e AWS_ACCESS_KEY=foo \
-#  -e AWS_SECRET_KEY=bar \
-#  -e GPG_PASSPHRASE=gloubiboulga \
-#  docker hack/release.sh
-#
 # Note: AppArmor used to mess with privileged mode, but this is no longer
 # the case. Therefore, you don't have to disable it anymore.
 #
@@ -83,9 +75,9 @@ RUN cd /usr/local/lvm2 \
 # possibly a ppc64le/golang image?
 
 ## BUILD GOLANG 1.6
-ENV GO_VERSION 1.6rc2
+ENV GO_VERSION 1.6
 ENV GO_DOWNLOAD_URL https://golang.org/dl/go${GO_VERSION}.src.tar.gz
-ENV GO_DOWNLOAD_SHA256 92914a23cde7e34e1d017175d785e5850fbb28f323a145028e2e26053ef1a598
+ENV GO_DOWNLOAD_SHA256 a96cce8ce43a9bf9b2a4c7d470bc7ee0cb00410da815980681c8353218dcf146
 ENV GOROOT_BOOTSTRAP /usr/local
 
 RUN curl -fsSL "$GO_DOWNLOAD_URL" -o golang.tar.gz \
@@ -135,16 +127,16 @@ RUN set -x \
 		go build -o /usr/local/bin/registry-v2-schema1 github.com/docker/distribution/cmd/registry \
 	&& rm -rf "$GOPATH"
 
-# TODO update this when we upgrade to Go 1.5.1+
+
 # Install notary server
-#ENV NOTARY_VERSION docker-v1.10-5
-#RUN set -x \
-#	&& export GOPATH="$(mktemp -d)" \
-#	&& git clone https://github.com/docker/notary.git "$GOPATH/src/github.com/docker/notary" \
-#	&& (cd "$GOPATH/src/github.com/docker/notary" && git checkout -q "$NOTARY_VERSION") \
-#	&& GOPATH="$GOPATH/src/github.com/docker/notary/Godeps/_workspace:$GOPATH" \
-#		go build -o /usr/local/bin/notary-server github.com/docker/notary/cmd/notary-server \
-#	&& rm -rf "$GOPATH"
+ENV NOTARY_VERSION v0.2.0
+RUN set -x \
+	&& export GOPATH="$(mktemp -d)" \
+	&& git clone https://github.com/docker/notary.git "$GOPATH/src/github.com/docker/notary" \
+	&& (cd "$GOPATH/src/github.com/docker/notary" && git checkout -q "$NOTARY_VERSION") \
+	&& GOPATH="$GOPATH/src/github.com/docker/notary/Godeps/_workspace:$GOPATH" \
+		go build -o /usr/local/bin/notary-server github.com/docker/notary/cmd/notary-server \
+	&& rm -rf "$GOPATH"
 
 # Get the "docker-py" source so we can run their integration tests
 ENV DOCKER_PY_COMMIT e2878cbcc3a7eef99917adc1be252800b0e41ece

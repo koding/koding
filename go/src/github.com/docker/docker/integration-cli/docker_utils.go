@@ -36,9 +36,12 @@ import (
 )
 
 func init() {
-	out, err := exec.Command(dockerBinary, "images").CombinedOutput()
+	cmd := exec.Command(dockerBinary, "images")
+	cmd.Env = appendBaseEnv(true)
+	fmt.Println("foobar", cmd.Env)
+	out, err := cmd.CombinedOutput()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("err=%v\nout=%s\n", err, out))
 	}
 	lines := strings.Split(string(out), "\n")[1:]
 	for _, l := range lines {
@@ -196,7 +199,7 @@ func (d *Daemon) getClientConfig() (*clientConfig, error) {
 		transport = &http.Transport{}
 	}
 
-	sockets.ConfigureTransport(transport, proto, addr)
+	d.c.Assert(sockets.ConfigureTransport(transport, proto, addr), check.IsNil)
 
 	return &clientConfig{
 		transport: transport,
@@ -321,24 +324,7 @@ func (d *Daemon) StartWithBusybox(arg ...string) error {
 	if err := d.Start(arg...); err != nil {
 		return err
 	}
-	bb := filepath.Join(d.folder, "busybox.tar")
-	if _, err := os.Stat(bb); err != nil {
-		if !os.IsNotExist(err) {
-			return fmt.Errorf("unexpected error on busybox.tar stat: %v", err)
-		}
-		// saving busybox image from main daemon
-		if err := exec.Command(dockerBinary, "save", "--output", bb, "busybox:latest").Run(); err != nil {
-			return fmt.Errorf("could not save busybox image: %v", err)
-		}
-	}
-	// loading busybox image to this daemon
-	if out, err := d.Cmd("load", "--input", bb); err != nil {
-		return fmt.Errorf("could not load busybox image: %s", out)
-	}
-	if err := os.Remove(bb); err != nil {
-		d.c.Logf("could not remove %s: %v", bb, err)
-	}
-	return nil
+	return d.LoadBusybox()
 }
 
 // Stop will send a SIGINT every second and wait for the daemon to stop.
@@ -413,6 +399,28 @@ func (d *Daemon) Restart(arg ...string) error {
 	return d.Start(arg...)
 }
 
+// LoadBusybox will load the stored busybox into a newly started daemon
+func (d *Daemon) LoadBusybox() error {
+	bb := filepath.Join(d.folder, "busybox.tar")
+	if _, err := os.Stat(bb); err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("unexpected error on busybox.tar stat: %v", err)
+		}
+		// saving busybox image from main daemon
+		if err := exec.Command(dockerBinary, "save", "--output", bb, "busybox:latest").Run(); err != nil {
+			return fmt.Errorf("could not save busybox image: %v", err)
+		}
+	}
+	// loading busybox image to this daemon
+	if out, err := d.Cmd("load", "--input", bb); err != nil {
+		return fmt.Errorf("could not load busybox image: %s", out)
+	}
+	if err := os.Remove(bb); err != nil {
+		d.c.Logf("could not remove %s: %v", bb, err)
+	}
+	return nil
+}
+
 func (d *Daemon) queryRootDir() (string, error) {
 	// update daemon root by asking /info endpoint (to support user
 	// namespaced daemon with root remapped uid.gid directory)
@@ -466,7 +474,6 @@ func (d *Daemon) waitRun(contID string) error {
 }
 
 func (d *Daemon) getBaseDeviceSize(c *check.C) int64 {
-
 	infoCmdOutput, _, err := runCommandPipelineWithOutput(
 		exec.Command(dockerBinary, "-H", d.sock(), "info"),
 		exec.Command("grep", "Base Device Size"),
@@ -514,6 +521,23 @@ func (d *Daemon) CmdWithArgs(daemonArgs []string, name string, arg ...string) (s
 // LogFileName returns the path the the daemon's log file
 func (d *Daemon) LogFileName() string {
 	return d.logFile.Name()
+}
+
+func (d *Daemon) getIDByName(name string) (string, error) {
+	return d.inspectFieldWithError(name, "Id")
+}
+
+func (d *Daemon) inspectFilter(name, filter string) (string, error) {
+	format := fmt.Sprintf("{{%s}}", filter)
+	out, err := d.Cmd("inspect", "-f", format, name)
+	if err != nil {
+		return "", fmt.Errorf("failed to inspect %s: %s", name, out)
+	}
+	return strings.TrimSpace(out), nil
+}
+
+func (d *Daemon) inspectFieldWithError(name, field string) (string, error) {
+	return d.inspectFilter(name, fmt.Sprintf(".%s", field))
 }
 
 func daemonHost() string {
@@ -751,7 +775,9 @@ func getAllVolumes() ([]*types.Volume, error) {
 var protectedImages = map[string]struct{}{}
 
 func deleteAllImages() error {
-	out, err := exec.Command(dockerBinary, "images").CombinedOutput()
+	cmd := exec.Command(dockerBinary, "images")
+	cmd.Env = appendBaseEnv(true)
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
 	}
@@ -867,30 +893,66 @@ func pullImageIfNotExist(image string) error {
 }
 
 func dockerCmdWithError(args ...string) (string, int, error) {
+	if err := validateArgs(args...); err != nil {
+		return "", 0, err
+	}
 	return integration.DockerCmdWithError(dockerBinary, args...)
 }
 
 func dockerCmdWithStdoutStderr(c *check.C, args ...string) (string, string, int) {
+	if err := validateArgs(args...); err != nil {
+		c.Fatalf(err.Error())
+	}
 	return integration.DockerCmdWithStdoutStderr(dockerBinary, c, args...)
 }
 
 func dockerCmd(c *check.C, args ...string) (string, int) {
+	if err := validateArgs(args...); err != nil {
+		c.Fatalf(err.Error())
+	}
 	return integration.DockerCmd(dockerBinary, c, args...)
 }
 
 // execute a docker command with a timeout
 func dockerCmdWithTimeout(timeout time.Duration, args ...string) (string, int, error) {
+	if err := validateArgs(args...); err != nil {
+		return "", 0, err
+	}
 	return integration.DockerCmdWithTimeout(dockerBinary, timeout, args...)
 }
 
 // execute a docker command in a directory
 func dockerCmdInDir(c *check.C, path string, args ...string) (string, int, error) {
+	if err := validateArgs(args...); err != nil {
+		c.Fatalf(err.Error())
+	}
 	return integration.DockerCmdInDir(dockerBinary, path, args...)
 }
 
 // execute a docker command in a directory with a timeout
 func dockerCmdInDirWithTimeout(timeout time.Duration, path string, args ...string) (string, int, error) {
+	if err := validateArgs(args...); err != nil {
+		return "", 0, err
+	}
 	return integration.DockerCmdInDirWithTimeout(dockerBinary, timeout, path, args...)
+}
+
+// validateArgs is a checker to ensure tests are not running commands which are
+// not supported on platforms. Specifically on Windows this is 'busybox top'.
+func validateArgs(args ...string) error {
+	if daemonPlatform != "windows" {
+		return nil
+	}
+	foundBusybox := -1
+	for key, value := range args {
+		if strings.ToLower(value) == "busybox" {
+			foundBusybox = key
+		}
+		if (foundBusybox != -1) && (key == foundBusybox+1) && (strings.ToLower(value) == "top") {
+			return errors.New("Cannot use 'busybox top' in tests on Windows. Use runSleepingContainer()")
+		}
+	}
+	return nil
 }
 
 // find the State.ExitCode in container metadata
@@ -1295,7 +1357,7 @@ func getContainerState(c *check.C, id string) (int, bool, error) {
 }
 
 func buildImageCmd(name, dockerfile string, useCache bool, buildFlags ...string) *exec.Cmd {
-	args := []string{"-D", "build", "-t", name}
+	args := []string{"build", "-t", name}
 	if !useCache {
 		args = append(args, "--no-cache")
 	}
@@ -1637,7 +1699,7 @@ func setupNotary(c *check.C) *testNotary {
 // appendBaseEnv appends the minimum set of environment variables to exec the
 // docker cli binary for testing with correct configuration to the given env
 // list.
-func appendBaseEnv(env []string) []string {
+func appendBaseEnv(isTLS bool, env ...string) []string {
 	preserveList := []string{
 		// preserve remote test host
 		"DOCKER_HOST",
@@ -1645,6 +1707,9 @@ func appendBaseEnv(env []string) []string {
 		// windows: requires preserving SystemRoot, otherwise dial tcp fails
 		// with "GetAddrInfoW: A non-recoverable error occurred during a database lookup."
 		"SystemRoot",
+	}
+	if isTLS {
+		preserveList = append(preserveList, "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH")
 	}
 
 	for _, key := range preserveList {
@@ -1779,6 +1844,23 @@ func runSleepingContainerInImage(c *check.C, image string, extraArgs ...string) 
 	args = append(args, image)
 	args = append(args, defaultSleepCommand...)
 	return dockerCmd(c, args...)
+}
+
+func getRootUIDGID() (int, int, error) {
+	uidgid := strings.Split(filepath.Base(dockerBasePath), ".")
+	if len(uidgid) == 1 {
+		//user namespace remapping is not turned on; return 0
+		return 0, 0, nil
+	}
+	uid, err := strconv.Atoi(uidgid[0])
+	if err != nil {
+		return 0, 0, err
+	}
+	gid, err := strconv.Atoi(uidgid[1])
+	if err != nil {
+		return 0, 0, err
+	}
+	return uid, gid, nil
 }
 
 // minimalBaseImage returns the name of the minimal base image for the current
