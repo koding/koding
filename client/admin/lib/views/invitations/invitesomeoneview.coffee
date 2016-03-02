@@ -85,7 +85,7 @@ module.exports = class InviteSomeoneView extends KDView
 
       result = if not value then no else view.email.validate()
 
-      if value is ownEmail
+      if value.toLowerCase() is ownEmail
         showError 'You can not invite yourself!'
         return view.email.setClass 'validation-error'
 
