@@ -16,11 +16,14 @@ package command
 
 import (
 	"errors"
+	"fmt"
+	"sync/atomic"
+	"time"
 
 	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
 	"github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/clientv3/sync"
+	"github.com/coreos/etcd/clientv3/mirror"
 	"github.com/coreos/etcd/etcdserver/api/v3rpc"
 	"github.com/coreos/etcd/storage/storagepb"
 )
@@ -35,7 +38,7 @@ var (
 // NewMakeMirrorCommand returns the cobra command for "makeMirror".
 func NewMakeMirrorCommand() *cobra.Command {
 	c := &cobra.Command{
-		Use:   "make-mirror [options] [destination]",
+		Use:   "make-mirror [options] <destination>",
 		Short: "make-mirror makes a mirror at the destination etcd cluster",
 		Run:   makeMirrorCommandFunc,
 	}
@@ -62,19 +65,27 @@ func makeMirrorCommandFunc(cmd *cobra.Command, args []string) {
 }
 
 func makeMirror(ctx context.Context, c *clientv3.Client, dc *clientv3.Client) error {
-	// TODO: remove the prefix of the destination cluster?
-	dkv := clientv3.NewKV(dc)
+	total := int64(0)
 
-	s := sync.NewSyncer(c, mmprefix, 0)
+	go func() {
+		for {
+			time.Sleep(30 * time.Second)
+			fmt.Println(atomic.LoadInt64(&total))
+		}
+	}()
+
+	// TODO: remove the prefix of the destination cluster?
+	s := mirror.NewSyncer(c, mmprefix, 0)
 
 	rc, errc := s.SyncBase(ctx)
 
 	for r := range rc {
 		for _, kv := range r.Kvs {
-			_, err := dkv.Put(ctx, string(kv.Key), string(kv.Value))
+			_, err := dc.Put(ctx, string(kv.Key), string(kv.Value))
 			if err != nil {
 				return err
 			}
+			atomic.AddInt64(&total, 1)
 		}
 	}
 
@@ -96,7 +107,7 @@ func makeMirror(ctx context.Context, c *clientv3.Client, dc *clientv3.Client) er
 		for _, ev := range wr.Events {
 			nrev := ev.Kv.ModRevision
 			if rev != 0 && nrev > rev {
-				_, err := dkv.Txn(ctx).Then(ops...).Commit()
+				_, err := dc.Txn(ctx).Then(ops...).Commit()
 				if err != nil {
 					return err
 				}
@@ -105,15 +116,17 @@ func makeMirror(ctx context.Context, c *clientv3.Client, dc *clientv3.Client) er
 			switch ev.Type {
 			case storagepb.PUT:
 				ops = append(ops, clientv3.OpPut(string(ev.Kv.Key), string(ev.Kv.Value)))
+				atomic.AddInt64(&total, 1)
 			case storagepb.DELETE, storagepb.EXPIRE:
 				ops = append(ops, clientv3.OpDelete(string(ev.Kv.Key)))
+				atomic.AddInt64(&total, 1)
 			default:
 				panic("unexpected event type")
 			}
 		}
 
 		if len(ops) != 0 {
-			_, err := dkv.Txn(ctx).Then(ops...).Commit()
+			_, err := dc.Txn(ctx).Then(ops...).Commit()
 			if err != nil {
 				return err
 			}

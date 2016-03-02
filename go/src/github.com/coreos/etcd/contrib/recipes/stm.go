@@ -16,13 +16,12 @@ package recipe
 
 import (
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
-	"github.com/coreos/etcd/clientv3"
-	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
+	v3 "github.com/coreos/etcd/clientv3"
 )
 
 // STM implements software transactional memory over etcd
 type STM struct {
-	client *clientv3.Client
+	client *v3.Client
 	// rset holds the read key's value and revision of read
 	rset map[string]*RemoteKV
 	// wset holds the write key and its value
@@ -33,7 +32,7 @@ type STM struct {
 }
 
 // NewSTM creates new transaction loop for a given apply function.
-func NewSTM(client *clientv3.Client, apply func(*STM) error) <-chan error {
+func NewSTM(client *v3.Client, apply func(*STM) error) <-chan error {
 	s := &STM{client: client, apply: apply}
 	errc := make(chan error, 1)
 	go func() {
@@ -43,7 +42,8 @@ func NewSTM(client *clientv3.Client, apply func(*STM) error) <-chan error {
 			if err = apply(s); err != nil || s.aborted {
 				break
 			}
-			if ok, err := s.commit(); ok || err != nil {
+			if ok, cerr := s.commit(); ok || cerr != nil {
+				err = cerr
 				break
 			}
 		}
@@ -76,30 +76,21 @@ func (s *STM) Get(key string) (string, error) {
 func (s *STM) Put(key string, val string) { s.wset[key] = val }
 
 // commit attempts to apply the txn's changes to the server.
-func (s *STM) commit() (ok bool, err error) {
+func (s *STM) commit() (ok bool, rr error) {
 	// read set must not change
-	cmps := []*pb.Compare{}
+	cmps := make([]v3.Cmp, 0, len(s.rset))
 	for k, rk := range s.rset {
 		// use < to support updating keys that don't exist yet
-		cmp := &pb.Compare{
-			Result:      pb.Compare_LESS,
-			Target:      pb.Compare_MOD,
-			Key:         []byte(k),
-			TargetUnion: &pb.Compare_ModRevision{ModRevision: rk.Revision() + 1},
-		}
+		cmp := v3.Compare(v3.ModifiedRevision(k), "<", rk.Revision()+1)
 		cmps = append(cmps, cmp)
 	}
+
 	// apply all writes
-	puts := []*pb.RequestUnion{}
+	puts := make([]v3.Op, 0, len(s.wset))
 	for k, v := range s.wset {
-		puts = append(puts, &pb.RequestUnion{
-			Request: &pb.RequestUnion_RequestPut{
-				RequestPut: &pb.PutRequest{
-					Key:   []byte(k),
-					Value: []byte(v),
-				}}})
+		puts = append(puts, v3.OpPut(k, v))
 	}
-	txnresp, err := s.client.KV.Txn(context.TODO(), &pb.TxnRequest{cmps, puts, nil})
+	txnresp, err := s.client.Txn(context.TODO()).If(cmps...).Then(puts...).Commit()
 	return txnresp.Succeeded, err
 }
 

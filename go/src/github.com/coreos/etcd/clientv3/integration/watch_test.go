@@ -73,7 +73,7 @@ func testWatchMultiWatcher(t *testing.T, wctx *watchctx) {
 	for _, k := range keys {
 		// key watcher
 		go func(key string) {
-			ch := wctx.w.Watch(context.TODO(), key, 0)
+			ch := wctx.w.Watch(context.TODO(), key)
 			if ch == nil {
 				t.Fatalf("expected watcher channel, got nil")
 			}
@@ -94,7 +94,7 @@ func testWatchMultiWatcher(t *testing.T, wctx *watchctx) {
 	}
 	// prefix watcher on "b" (bar and baz)
 	go func() {
-		prefixc := wctx.w.WatchPrefix(context.TODO(), "b", 0)
+		prefixc := wctx.w.Watch(context.TODO(), "b", clientv3.WithPrefix())
 		if prefixc == nil {
 			t.Fatalf("expected watcher channel, got nil")
 		}
@@ -157,29 +157,52 @@ func testWatchMultiWatcher(t *testing.T, wctx *watchctx) {
 	}
 }
 
+// TestWatchRange tests watcher creates ranges
+func TestWatchRange(t *testing.T) {
+	runWatchTest(t, testWatchReconnInit)
+}
+
+func testWatchRange(t *testing.T, wctx *watchctx) {
+	if wctx.ch = wctx.w.Watch(context.TODO(), "a", clientv3.WithRange("c")); wctx.ch == nil {
+		t.Fatalf("expected non-nil channel")
+	}
+	putAndWatch(t, wctx, "a", "a")
+	putAndWatch(t, wctx, "b", "b")
+	putAndWatch(t, wctx, "bar", "bar")
+}
+
 // TestWatchReconnRequest tests the send failure path when requesting a watcher.
 func TestWatchReconnRequest(t *testing.T) {
 	runWatchTest(t, testWatchReconnRequest)
 }
 
 func testWatchReconnRequest(t *testing.T, wctx *watchctx) {
-	// take down watcher connection
-	donec := make(chan struct{})
+	donec, stopc := make(chan struct{}), make(chan struct{}, 1)
 	go func() {
+		timer := time.After(2 * time.Second)
+		defer close(donec)
+		// take down watcher connection
 		for {
 			wctx.wclient.ActiveConnection().Close()
 			select {
-			case <-donec:
+			case <-timer:
+				// spinning on close may live lock reconnection
+				return
+			case <-stopc:
 				return
 			default:
 			}
 		}
 	}()
 	// should reconnect when requesting watch
-	if wctx.ch = wctx.w.Watch(context.TODO(), "a", 0); wctx.ch == nil {
+	if wctx.ch = wctx.w.Watch(context.TODO(), "a"); wctx.ch == nil {
 		t.Fatalf("expected non-nil channel")
 	}
-	close(donec)
+
+	// wait for disconnections to stop
+	stopc <- struct{}{}
+	<-donec
+
 	// ensure watcher works
 	putAndWatch(t, wctx, "a", "a")
 }
@@ -191,7 +214,7 @@ func TestWatchReconnInit(t *testing.T) {
 }
 
 func testWatchReconnInit(t *testing.T, wctx *watchctx) {
-	if wctx.ch = wctx.w.Watch(context.TODO(), "a", 0); wctx.ch == nil {
+	if wctx.ch = wctx.w.Watch(context.TODO(), "a"); wctx.ch == nil {
 		t.Fatalf("expected non-nil channel")
 	}
 	// take down watcher connection
@@ -207,7 +230,7 @@ func TestWatchReconnRunning(t *testing.T) {
 }
 
 func testWatchReconnRunning(t *testing.T, wctx *watchctx) {
-	if wctx.ch = wctx.w.Watch(context.TODO(), "a", 0); wctx.ch == nil {
+	if wctx.ch = wctx.w.Watch(context.TODO(), "a"); wctx.ch == nil {
 		t.Fatalf("expected non-nil channel")
 	}
 	putAndWatch(t, wctx, "a", "a")
@@ -217,6 +240,26 @@ func testWatchReconnRunning(t *testing.T, wctx *watchctx) {
 	putAndWatch(t, wctx, "a", "b")
 }
 
+// TestWatchCancelImmediate ensures a closed channel is returned
+// if the context is cancelled.
+func TestWatchCancelImmediate(t *testing.T) {
+	runWatchTest(t, testWatchCancelImmediate)
+}
+
+func testWatchCancelImmediate(t *testing.T, wctx *watchctx) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	wch := wctx.w.Watch(ctx, "a")
+	select {
+	case wresp, ok := <-wch:
+		if ok {
+			t.Fatalf("read wch got %v; expected closed channel", wresp)
+		}
+	default:
+		t.Fatalf("closed watcher channel should not block")
+	}
+}
+
 // TestWatchCancelInit tests watcher closes correctly after no events.
 func TestWatchCancelInit(t *testing.T) {
 	runWatchTest(t, testWatchCancelInit)
@@ -224,7 +267,7 @@ func TestWatchCancelInit(t *testing.T) {
 
 func testWatchCancelInit(t *testing.T, wctx *watchctx) {
 	ctx, cancel := context.WithCancel(context.Background())
-	if wctx.ch = wctx.w.Watch(ctx, "a", 0); wctx.ch == nil {
+	if wctx.ch = wctx.w.Watch(ctx, "a"); wctx.ch == nil {
 		t.Fatalf("expected non-nil watcher channel")
 	}
 	cancel()
@@ -245,7 +288,7 @@ func TestWatchCancelRunning(t *testing.T) {
 
 func testWatchCancelRunning(t *testing.T, wctx *watchctx) {
 	ctx, cancel := context.WithCancel(context.Background())
-	if wctx.ch = wctx.w.Watch(ctx, "a", 0); wctx.ch == nil {
+	if wctx.ch = wctx.w.Watch(ctx, "a"); wctx.ch == nil {
 		t.Fatalf("expected non-nil watcher channel")
 	}
 	if _, err := wctx.kv.Put(ctx, "a", "a"); err != nil {
@@ -286,5 +329,30 @@ func putAndWatch(t *testing.T, wctx *watchctx, key, val string) {
 		if string(v.Events[0].Kv.Value) != val {
 			t.Fatalf("bad value got %v, wanted %v", v.Events[0].Kv.Value, val)
 		}
+	}
+}
+
+func TestWatchInvalidFutureRevision(t *testing.T) {
+	defer testutil.AfterTest(t)
+
+	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: 3})
+	defer clus.Terminate(t)
+
+	w := clientv3.NewWatcher(clus.RandClient())
+	defer w.Close()
+
+	rch := w.Watch(context.Background(), "foo", clientv3.WithRev(100))
+
+	wresp, ok := <-rch // WatchResponse from canceled one
+	if !ok {
+		t.Fatalf("expected wresp 'open'(ok true), but got ok %v", ok)
+	}
+	if !wresp.Canceled {
+		t.Fatalf("wresp.Canceled expected 'true', but got %v", wresp.Canceled)
+	}
+
+	_, ok = <-rch // ensure the channel is closed
+	if ok != false {
+		t.Fatalf("expected wresp 'closed'(ok false), but got ok %v", ok)
 	}
 }
