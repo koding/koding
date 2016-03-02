@@ -152,6 +152,9 @@ module.exports = CollaborationController =
     @removeParticipant username
     @removeWorkspaceSnapshot username
 
+    @unwatchParticipant username
+    @removeParticipantPermissions username
+
     options = {
       username
       machineUId : @mountedMachineUId
@@ -387,8 +390,6 @@ module.exports = CollaborationController =
       { nickname } = account.profile
 
       @statusBar.removeParticipantAvatar nickname
-      @unwatchParticipant nickname
-      @removeParticipantPermissions nickname
 
 
   participantAdded: (participant) ->
