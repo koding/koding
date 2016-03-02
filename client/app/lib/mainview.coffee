@@ -38,6 +38,7 @@ module.exports = class MainView extends kd.View
     @createSidebar()
     @createHeader()
     @createPanelWrapper()
+    @showRegistrationsClosedWarning()  if isSoloProductLite()
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
@@ -202,11 +203,11 @@ module.exports = class MainView extends kd.View
 
   createPanelWrapper:->
 
-    @addSubView @panelWrapper = new KDView
+    @addSubView @panelWrapper = new kd.View
       tagName  : 'section'
       domId    : 'main-panel-wrapper'
 
-    @panelWrapper.addSubView new KDCustomHTMLView
+    @panelWrapper.addSubView new kd.CustomHTMLView
       tagName  : 'cite'
       domId    : 'sidebar-toggle'
       click    : @bound 'toggleSidebar'
@@ -261,22 +262,36 @@ module.exports = class MainView extends kd.View
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, whoami()
 
 
+  showRegistrationsClosedWarning: ->
+
+    return  unless isSoloProductLite()
+
+    { appStorageController } = kd.singletons
+    appStorage = appStorageController.storage 'Activity', '2.0'
+
+    appStorage.fetchValue 'registrationsClosedDismissed', (isDismissed) =>
+
+      return  if isDismissed
+
+      @panelWrapper.addSubView warning = new kd.CustomHTMLView
+        cssClass : 'system-notification'
+        partial  : '<p><b>UPDATE: </b>We launched Koding for Teams and there are some important
+                    updates to the solo product.
+                    <a href="https://koding.com/blog/goodbye-koding-solo-welcome-koding-for-teams"
+                    target="_blank">Read more...</a></p><a href="#" class="close"></a>'
+
+        click : (event) ->
+
+          return  unless event.target.classList.contains 'close'
+
+          appStorage.setValue 'registrationsClosedDismissed', yes
+          @unsetClass 'in'
+          kd.utils.wait 1000, -> warning.destroy()
+
+      kd.utils.wait 2000, -> warning.setClass 'in'
+
+
   createMainTabView:->
-    if isSoloProductLite()
-      modal = new KDModalView
-        title : 'Where are my chats'
-        buttons :
-          'Take me back' :
-            style : 'solid red medium'
-            callback : (event) ->
-              setRegistrationCookie no
-              window.location.reload()
-              modal.destroy()
-          'Continue with new version':
-            style : 'solid green medium'
-            callback : (event) ->
-              modal.destroy()
-              console.log 'Close'
 
     @mainTabView = new MainTabView
       domId               : 'main-tab-view'
