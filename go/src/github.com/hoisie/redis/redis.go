@@ -170,7 +170,7 @@ func (client *Client) openConnection() (c net.Conn, err error) {
     if err != nil {
         return
     }
-    
+
     //handle authentication here authored by @shxsun
     if client.Password != "" {
         cmd := fmt.Sprintf("AUTH %s\r\n", client.Password)
@@ -624,6 +624,16 @@ func (client *Client) Substr(key string, start int, end int) ([]byte, error) {
     return data, nil
 }
 
+func (client *Client) Strlen(key string) (int, error) {
+    res, err := client.sendCommand("STRLEN", key)
+    if err != nil {
+        return -1, err
+    }
+
+    return int(res.(int64)), nil
+}
+
+
 // List commands
 
 func (client *Client) Rpush(key string, val []byte) error {
@@ -691,12 +701,11 @@ func (client *Client) Lset(key string, index int, value []byte) error {
     return nil
 }
 
-func (client *Client) Lrem(key string, index int) (int, error) {
-    res, err := client.sendCommand("LREM", key, strconv.Itoa(index))
+func (client *Client) Lrem(key string, count int, value []byte) (int, error) {
+    res, err := client.sendCommand("LREM", key, strconv.Itoa(count), string(value))
     if err != nil {
         return -1, err
     }
-
     return int(res.(int64)), nil
 }
 
@@ -976,6 +985,24 @@ func (client *Client) Zrangebyscore(key string, start float64, end float64) ([][
     return res.([][]byte), nil
 }
 
+func (client *Client) Zcount(key string, min float64, max float64) (int, error) {
+	res, err := client.sendCommand("ZCOUNT", key, strconv.FormatFloat(min, 'f', -1, 64), strconv.FormatFloat(max, 'f', -1, 64))
+	if err != nil {
+		return 0, err
+	}
+
+	return int(res.(int64)), nil
+}
+
+func (client *Client) ZcountAll(key string) (int, error) {
+	res, err := client.sendCommand("ZCOUNT", key, "-INF", "+INF")
+	if err != nil {
+		return 0, err
+	}
+
+	return int(res.(int64)), nil
+}
+
 func (client *Client) Zcard(key string) (int, error) {
     res, err := client.sendCommand("ZCARD", key)
     if err != nil {
@@ -1076,7 +1103,7 @@ func valueToString(v reflect.Value) (string, error) {
         typ := v.Type()
         if typ.Elem().Kind() == reflect.Uint || typ.Elem().Kind() == reflect.Uint8 || typ.Elem().Kind() == reflect.Uint16 || typ.Elem().Kind() == reflect.Uint32 || typ.Elem().Kind() == reflect.Uint64 || typ.Elem().Kind() == reflect.Uintptr {
             if v.Len() > 0 {
-                if v.Index(1).OverflowUint(257) {
+                if v.Index(0).OverflowUint(257) {
                     return string(v.Interface().([]byte)), nil
                 }
             }
@@ -1130,6 +1157,19 @@ func (client *Client) Hmset(key string, mapping interface{}) error {
         return err
     }
     return nil
+}
+
+func (client *Client) Hmget(key string, fields ...string) ([][]byte, error) {
+    var args []string
+    args = append(args, key)
+    for _, field := range fields {
+        args = append(args, field)
+    }
+    res, err := client.sendCommand("HMGET", args...)
+    if err != nil {
+        return nil, err
+    }
+    return res.([][]byte), nil
 }
 
 func (client *Client) Hincrby(key string, field string, val int64) (int64, error) {
