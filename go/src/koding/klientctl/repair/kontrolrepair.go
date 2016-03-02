@@ -79,10 +79,10 @@ func (r *KontrolRepair) Repair() error {
 
 	// Run status again, to confirm it's running as best we can. If not, we've
 	// tried and failed.
-	fmt.Fprint(r.Stdout, "Waiting for reconnect..")
+	fmt.Fprint(r.Stdout, "Waiting to reconnect..")
 
 	if err := r.statusLoop(); err != nil {
-		fmt.Fprintln(r.Stdout, "Unable to reconnect to kontrol.")
+		fmt.Fprintln(r.Stdout, "Unable to reconnect to koding.com.")
 		return err
 	}
 
