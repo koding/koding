@@ -2,7 +2,7 @@ environmentHelpers = require '../helpers/environmenthelpers.js'
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 
-professionalPlanSelector = '.single-plan.hobbyist.professional.current'
+professionalPlanSelector = '.single-plan.professional.current'
 secondVmSelector         = '.activity-sidebar .machines-wrapper .koding-vm-1'
 url                      = helpers.getUrl()
 
