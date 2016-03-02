@@ -140,6 +140,8 @@ func TestBucket_Wait(t *testing.T) {
 	t.Parallel()
 
 	cases := map[*Bucket]time.Duration{
+		NewBucket(250, 100*time.Millisecond): 7 * time.Second,
+		NewBucket(500, 100*time.Millisecond): 3 * time.Second,
 		NewBucket(1e3, 500*time.Millisecond): 1 * time.Second,
 		NewBucket(1e3, 20*time.Millisecond):  1 * time.Second,
 		NewBucket(1e3, 1*time.Millisecond):   1 * time.Second,
@@ -153,9 +155,18 @@ func TestBucket_Wait(t *testing.T) {
 		go func(bucket *Bucket, wait time.Duration) {
 			defer bucket.Close()
 
-			if got := bucket.Wait(2000); int(wait.Seconds()) != int(got.Seconds()) {
+			start := time.Now()
+			got := bucket.Wait(2000)
+			took := time.Since(start)
+			if int(wait.Seconds()) != int(got.Seconds()) {
 				errors <- fmt.Errorf("bucket.Wait(2000) with cap=%d, freq=%s: Want: %s, Got %s",
 					bucket.capacity, bucket.freq, wait, got)
+			} else if took < wait-time.Second || took > wait+time.Second {
+				// took is the actual time the bucket.Wait() took
+				// wait is the time we expected it to take
+				// if took is more than 1 second different from wait, then return an error
+				errors <- fmt.Errorf("bucket.Wait(2000) with cap=%d, freq=%s: Waited for %v which isn't within 1 second of %v",
+					bucket.capacity, bucket.freq, wait, took)
 			} else {
 				errors <- nil
 			}

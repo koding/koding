@@ -223,7 +223,7 @@ func (p *ArchiveAlertsParams) toURLValues() url.Values {
 		u.Set("enddate", v.(string))
 	}
 	if v, found := p.p["ids"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("ids", vv)
 	}
 	if v, found := p.p["startdate"]; found {
@@ -307,7 +307,7 @@ func (p *DeleteAlertsParams) toURLValues() url.Values {
 		u.Set("enddate", v.(string))
 	}
 	if v, found := p.p["ids"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("ids", vv)
 	}
 	if v, found := p.p["startdate"]; found {
@@ -471,14 +471,12 @@ func (s *AlertService) GenerateAlert(p *GenerateAlertParams) (*GenerateAlertResp
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {

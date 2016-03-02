@@ -40,7 +40,7 @@ func (p *CreateNetworkACLParams) toURLValues() url.Values {
 		u.Set("action", v.(string))
 	}
 	if v, found := p.p["cidrlist"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("cidrlist", vv)
 	}
 	if v, found := p.p["endport"]; found {
@@ -186,14 +186,12 @@ func (s *NetworkACLService) CreateNetworkACL(p *CreateNetworkACLParams) (*Create
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -249,7 +247,7 @@ func (p *UpdateNetworkACLItemParams) toURLValues() url.Values {
 		u.Set("action", v.(string))
 	}
 	if v, found := p.p["cidrlist"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("cidrlist", vv)
 	}
 	if v, found := p.p["endport"]; found {
@@ -387,14 +385,12 @@ func (s *NetworkACLService) UpdateNetworkACLItem(p *UpdateNetworkACLItemParams) 
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -483,14 +479,12 @@ func (s *NetworkACLService) DeleteNetworkACL(p *DeleteNetworkACLParams) (*Delete
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -718,6 +712,21 @@ func (s *NetworkACLService) GetNetworkACLByID(id string) (*NetworkACL, int, erro
 	}
 
 	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListNetworkACLs(p)
+		if err != nil {
+			if strings.Contains(err.Error(), fmt.Sprintf(
+				"Invalid parameter id value=%s due to incorrect long value format, "+
+					"or entity does not exist", id)) {
+				return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
+			}
+			return nil, -1, err
+		}
+	}
+
+	if l.Count == 0 {
 		return nil, l.Count, fmt.Errorf("No match found for %s: %+v", id, l)
 	}
 
@@ -842,14 +851,12 @@ func (s *NetworkACLService) CreateNetworkACLList(p *CreateNetworkACLListParams) 
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -918,14 +925,12 @@ func (s *NetworkACLService) DeleteNetworkACLList(p *DeleteNetworkACLListParams) 
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -1009,14 +1014,12 @@ func (s *NetworkACLService) ReplaceNetworkACLList(p *ReplaceNetworkACLListParams
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -1201,6 +1204,16 @@ func (s *NetworkACLService) GetNetworkACLListID(name string) (string, error) {
 	}
 
 	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListNetworkACLLists(p)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if l.Count == 0 {
 		return "", fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
@@ -1247,6 +1260,21 @@ func (s *NetworkACLService) GetNetworkACLListByID(id string) (*NetworkACLList, i
 			return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
 		}
 		return nil, -1, err
+	}
+
+	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListNetworkACLLists(p)
+		if err != nil {
+			if strings.Contains(err.Error(), fmt.Sprintf(
+				"Invalid parameter id value=%s due to incorrect long value format, "+
+					"or entity does not exist", id)) {
+				return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
+			}
+			return nil, -1, err
+		}
 	}
 
 	if l.Count == 0 {
