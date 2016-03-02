@@ -30,15 +30,10 @@ import (
 	"sort"
 	"strings"
 	"unicode"
-
-	"github.com/svanharmelen/gocs"
 )
 
 var (
 	version = flag.String("version", "", "The CloudStack API version for which to generate the client package, like 'v43', 'v44' or 'latest'.")
-	apiurl  = flag.String("apiurl", "", "URL to the CloudStack API.")
-	apikey  = flag.String("apikey", "", "API key to authenticate to the CloudStack API.")
-	secret  = flag.String("secret", "", "API secret to authenticate to the CloudStack API.")
 )
 
 type apiInfo map[string][]string
@@ -104,6 +99,7 @@ func (s services) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+// APIParams represents a list of API params
 type APIParams []*APIParam
 
 // Add functions for the Sort interface
@@ -119,6 +115,7 @@ func (s APIParams) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+// API represents an API endpoint we can call
 type API struct {
 	Name        string       `json:"name"`
 	Description string       `json:"description"`
@@ -127,14 +124,15 @@ type API struct {
 	Response    APIResponses `json:"response"`
 }
 
+// APIParam represents a single API parameter
 type APIParam struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Type        string `json:"type"`
-	Length      int    `json:"length"`
 	Required    bool   `json:"required"`
 }
 
+// APIResponse represents a API response
 type APIResponse struct {
 	Name        string       `json:"name"`
 	Description string       `json:"description"`
@@ -142,6 +140,7 @@ type APIResponse struct {
 	Response    APIResponses `json:"response,omitempty"`
 }
 
+// APIResponses represents a list of API responses
 type APIResponses []*APIResponse
 
 // Add functions for the Sort interface
@@ -248,22 +247,24 @@ func (as *allServices) GeneralCode() ([]byte, error) {
 	pn(")")
 	pn("")
 	pn("type CSError struct {")
-	pn("  ErrorCode   int    `json:\"errorcode\"`")
-	pn("  CSErrorCode int    `json:\"cserrorcode\"`")
-	pn("  ErrorText   string `json:\"errortext\"`")
+	pn("	ErrorCode   int    `json:\"errorcode\"`")
+	pn("	CSErrorCode int    `json:\"cserrorcode\"`")
+	pn("	ErrorText   string `json:\"errortext\"`")
 	pn("}")
 	pn("")
 	pn("func (e *CSError) Error() error {")
-	pn("  return fmt.Errorf(\"CloudStack API error %%d (CSExceptionErrorCode: %%d): %%s\", e.ErrorCode, e.CSErrorCode, e.ErrorText)")
+	pn("	return fmt.Errorf(\"CloudStack API error %%d (CSExceptionErrorCode: %%d): %%s\", e.ErrorCode, e.CSErrorCode, e.ErrorText)")
 	pn("}")
 	pn("")
 	pn("type CloudStackClient struct {")
-	pn("  client  *http.Client // The http client for communicating")
-	pn("  baseURL string       // The base URL of the API")
-	pn("  apiKey  string       // Api key")
-	pn("  secret  string       // Secret key")
-	pn("  async   bool         // Wait for async calls to finish")
-	pn("  timeout int64        // Max waiting timeout in seconds for async jobs to finish; defaults to 60 seconds")
+	pn("	HTTPGETOnly bool // If `true` only use HTTP GET calls")
+	pn("")
+	pn("	client  *http.Client // The http client for communicating")
+	pn("	baseURL string       // The base URL of the API")
+	pn("	apiKey  string       // Api key")
+	pn("	secret  string       // Secret key")
+	pn("	async   bool         // Wait for async calls to finish")
+	pn("	timeout int64        // Max waiting timeout in seconds for async jobs to finish; defaults to 300 seconds")
 	pn("")
 	for _, s := range as.services {
 		pn("  %s *%s", strings.TrimSuffix(s.name, "Service"), s.name)
@@ -272,31 +273,32 @@ func (as *allServices) GeneralCode() ([]byte, error) {
 	pn("")
 	pn("// Creates a new client for communicating with CloudStack")
 	pn("func newClient(apiurl string, apikey string, secret string, async bool, verifyssl bool) *CloudStackClient {")
-	pn("  cs := &CloudStackClient{")
-	pn("    client: &http.Client{")
-	pn("      Transport: &http.Transport{")
-	pn("        Proxy:           http.ProxyFromEnvironment,")
-	pn("        TLSClientConfig: &tls.Config{InsecureSkipVerify: !verifyssl}, // If verifyssl is true, skipping the verify should be false and vice versa")
-	pn("      },")
-	pn("    },")
-	pn("    baseURL: apiurl,")
-	pn("    apiKey:  apikey,")
-	pn("    secret:  secret,")
-	pn("    async:   async,")
-	pn("    timeout: 60,")
-	pn("  }")
+	pn("	cs := &CloudStackClient{")
+	pn("		client: &http.Client{")
+	pn("			Transport: &http.Transport{")
+	pn("				Proxy:           http.ProxyFromEnvironment,")
+	pn("				TLSClientConfig: &tls.Config{InsecureSkipVerify: !verifyssl}, // If verifyssl is true, skipping the verify should be false and vice versa")
+	pn("			},")
+	pn("		Timeout: time.Duration(60 * time.Second),")
+	pn("		},")
+	pn("		baseURL: apiurl,")
+	pn("		apiKey:  apikey,")
+	pn("		secret:  secret,")
+	pn("		async:   async,")
+	pn("		timeout: 300,")
+	pn("	}")
 	for _, s := range as.services {
 		pn("	cs.%s = New%s(cs)", strings.TrimSuffix(s.name, "Service"), s.name)
 	}
-	pn("  return cs")
+	pn("	return cs")
 	pn("}")
 	pn("")
 	pn("// Default non-async client. So for async calls you need to implement and check the async job result yourself. When using")
 	pn("// HTTPS with a self-signed certificate to connect to your CloudStack API, you would probably want to set 'verifyssl' to")
 	pn("// false so the call ignores the SSL errors/warnings.")
 	pn("func NewClient(apiurl string, apikey string, secret string, verifyssl bool) *CloudStackClient {")
-	pn("  cs := newClient(apiurl, apikey, secret, false, verifyssl)")
-	pn("  return cs")
+	pn("	cs := newClient(apiurl, apikey, secret, false, verifyssl)")
+	pn("	return cs")
 	pn("}")
 	pn("")
 	pn("// For sync API calls this client behaves exactly the same as a standard client call, but for async API calls")
@@ -304,72 +306,83 @@ func (as *allServices) GeneralCode() ([]byte, error) {
 	pn("// job finishes successfully it will return actual object received from the API and nil, but when the timout is")
 	pn("// reached it will return the initial object containing the async job ID for the running job and a warning.")
 	pn("func NewAsyncClient(apiurl string, apikey string, secret string, verifyssl bool) *CloudStackClient {")
-	pn("  cs := newClient(apiurl, apikey, secret, true, verifyssl)")
-	pn("  return cs")
+	pn("	cs := newClient(apiurl, apikey, secret, true, verifyssl)")
+	pn("	return cs")
 	pn("}")
 	pn("")
-	pn("// When using the async client an api call will wait for the async call to finish before returning. The default is to poll for 60")
+	pn("// When using the async client an api call will wait for the async call to finish before returning. The default is to poll for 300 seconds")
 	pn("// seconds, to check if the async job is finished.")
 	pn("func (cs *CloudStackClient) AsyncTimeout(timeoutInSeconds int64) {")
 	pn("	cs.timeout = timeoutInSeconds")
 	pn("}")
 	pn("")
+	pn("var AsyncTimeoutErr = errors.New(\"Timeout while waiting for async job to finish\")")
+	pn("")
 	pn("// A helper function that you can use to get the result of a running async job. If the job is not finished within the configured")
-	pn("// timeout, the async job return a warning saying the timer has expired.")
-	pn("func (cs *CloudStackClient) GetAsyncJobResult(jobid string, timeout int64) (b json.RawMessage, warn error, err error) {")
-	pn("  currentTime := time.Now().Unix()")
-	pn("  for {")
-	pn("    p := cs.Asyncjob.NewQueryAsyncJobResultParams(jobid)")
-	pn("    r, err := cs.Asyncjob.QueryAsyncJobResult(p)")
-	pn("    if err != nil {")
-	pn("      return nil, nil, err")
-	pn("    }")
+	pn("// timeout, the async job returns a AsyncTimeoutErr.")
+	pn("func (cs *CloudStackClient) GetAsyncJobResult(jobid string, timeout int64) (json.RawMessage, error) {")
+	pn("	var timer time.Duration")
+	pn("	currentTime := time.Now().Unix()")
 	pn("")
-	pn("    // Status 1 means the job is finished successfully")
-	pn("    if r.Jobstatus == 1 {")
-	pn("      return r.Jobresult, nil, nil")
-	pn("    }")
+	pn("		for {")
+	pn("		p := cs.Asyncjob.NewQueryAsyncJobResultParams(jobid)")
+	pn("		r, err := cs.Asyncjob.QueryAsyncJobResult(p)")
+	pn("		if err != nil {")
+	pn("			return nil, err")
+	pn("		}")
 	pn("")
-	pn("    // When the status is 2, the job has failed")
-	pn("    if r.Jobstatus == 2 {")
-	pn("      if r.Jobresulttype == \"text\" {")
-	pn("        return nil, nil, fmt.Errorf(string(r.Jobresult))")
-	pn("      } else {")
-	pn("        return nil, nil, fmt.Errorf(\"Undefined error: %%s\", string(r.Jobresult))")
-	pn("      }")
-	pn("    }")
+	pn("		// Status 1 means the job is finished successfully")
+	pn("		if r.Jobstatus == 1 {")
+	pn("			return r.Jobresult, nil")
+	pn("		}")
 	pn("")
-	pn("    if time.Now().Unix()-currentTime > timeout {")
-	pn("      return nil, fmt.Errorf(\"Timeout while waiting for async job to finish\"), nil")
-	pn("    }")
-	pn("    time.Sleep(3 * time.Second)")
-	pn("  }")
+	pn("		// When the status is 2, the job has failed")
+	pn("		if r.Jobstatus == 2 {")
+	pn("			if r.Jobresulttype == \"text\" {")
+	pn("				return nil, fmt.Errorf(string(r.Jobresult))")
+	pn("			} else {")
+	pn("				return nil, fmt.Errorf(\"Undefined error: %%s\", string(r.Jobresult))")
+	pn("			}")
+	pn("		}")
+	pn("")
+	pn("		if time.Now().Unix()-currentTime > timeout {")
+	pn("			return nil, AsyncTimeoutErr")
+	pn("		}")
+	pn("")
+	pn("		// Add an (extremely simple) exponential backoff like feature to prevent")
+	pn("		// flooding the CloudStack API")
+	pn("		if timer < 15 {")
+	pn("			timer++")
+	pn("		}")
+	pn("")
+	pn("		time.Sleep(timer * time.Second)")
+	pn("	}")
 	pn("}")
 	pn("")
 	pn("// Execute the request against a CS API. Will return the raw JSON data returned by the API and nil if")
 	pn("// no error occured. If the API returns an error the result will be nil and the HTTP error code and CS")
 	pn("// error details. If a processing (code) error occurs the result will be nil and the generated error")
 	pn("func (cs *CloudStackClient) newRequest(api string, params url.Values) (json.RawMessage, error) {")
-	pn("  params.Set(\"apikey\", cs.apiKey)")
-	pn("  params.Set(\"command\", api)")
-	pn("  params.Set(\"response\", \"json\")")
+	pn("	params.Set(\"apiKey\", cs.apiKey)")
+	pn("	params.Set(\"command\", api)")
+	pn("	params.Set(\"response\", \"json\")")
 	pn("")
-	pn("  // Generate signature for API call")
-	pn("  // * Serialize parameters and sort them by key, done by Encode")
-	pn("  // * Convert the entire argument string to lowercase")
-	pn("  // * Replace all instances of '+' to '%%20'")
-	pn("  // * Calculate HMAC SHA1 of argument string with CloudStack secret")
-	pn("  // * URL encode the string and convert to base64")
-	pn("  s := params.Encode()")
-	pn("  s2 := strings.ToLower(s)")
-	pn("  s3 := strings.Replace(s2, \"+\", \"%%20\", -1)")
-	pn("  mac := hmac.New(sha1.New, []byte(cs.secret))")
-	pn("  mac.Write([]byte(s3))")
-	pn("  signature := base64.StdEncoding.EncodeToString(mac.Sum(nil))")
+	pn("	// Generate signature for API call")
+	pn("	// * Serialize parameters, URL encoding only values and sort them by key, done by encodeValues")
+	pn("	// * Convert the entire argument string to lowercase")
+	pn("	// * Replace all instances of '+' to '%%20'")
+	pn("	// * Calculate HMAC SHA1 of argument string with CloudStack secret")
+	pn("	// * URL encode the string and convert to base64")
+	pn("	s := encodeValues(params)")
+	pn("	s2 := strings.ToLower(s)")
+	pn("	s3 := strings.Replace(s2, \"+\", \"%%20\", -1)")
+	pn("	mac := hmac.New(sha1.New, []byte(cs.secret))")
+	pn("	mac.Write([]byte(s3))")
+	pn("	signature := base64.StdEncoding.EncodeToString(mac.Sum(nil))")
 	pn("")
 	pn("	var err error")
 	pn("	var resp *http.Response")
-	pn("	if api == \"deployVirtualMachine\" {")
+	pn("	if !cs.HTTPGETOnly && (api == \"deployVirtualMachine\" || api == \"updateVirtualMachine\") {")
 	pn("		// The deployVirtualMachine API should be called using a POST call")
 	pn("  	// so we don't have to worry about the userdata size")
 	pn("")
@@ -379,48 +392,74 @@ func (as *allServices) GeneralCode() ([]byte, error) {
 	pn("		// Make a POST call")
 	pn("		resp, err = cs.client.PostForm(cs.baseURL, params)")
 	pn("	} else {")
-	pn("  	// Create the final URL before we issue the request")
-	pn("  	url := cs.baseURL + \"?\" + s + \"&signature=\" + url.QueryEscape(signature)")
+	pn("		// Create the final URL before we issue the request")
+	pn("		url := cs.baseURL + \"?\" + s + \"&signature=\" + url.QueryEscape(signature)")
 	pn("")
 	pn("		// Make a GET call")
-	pn("  	resp, err = cs.client.Get(url)")
+	pn("		resp, err = cs.client.Get(url)")
 	pn("	}")
-	pn("  if err != nil {")
-	pn("    return nil, err")
-	pn("  }")
+	pn("	if err != nil {")
+	pn("		return nil, err")
+	pn("	}")
+	pn("	defer resp.Body.Close()")
 	pn("")
-	pn("  b, err := ioutil.ReadAll(resp.Body)")
-	pn("  resp.Body.Close()")
-	pn("  if err != nil {")
-	pn("    return nil, err")
-	pn("  }")
+	pn("	b, err := ioutil.ReadAll(resp.Body)")
+	pn("	if err != nil {")
+	pn("		return nil, err")
+	pn("	}")
 	pn("")
-	pn("  // Need to get the raw value to make the result play nice")
-	pn("  b, err = getRawValue(b)")
-	pn("  if err != nil {")
-	pn("    return nil, err")
-	pn("  }")
+	pn("	// Need to get the raw value to make the result play nice")
+	pn("	b, err = getRawValue(b)")
+	pn("	if err != nil {")
+	pn("		return nil, err")
+	pn("	}")
 	pn("")
-	pn("  if resp.StatusCode != 200 {")
-	pn("    var e CSError")
-	pn("    if err := json.Unmarshal(b, &e); err != nil {")
-	pn("      return nil, err")
-	pn("    }")
-	pn("    return nil, e.Error()")
-	pn("  }")
-	pn("  return b, nil")
+	pn("	if resp.StatusCode != 200 {")
+	pn("		var e CSError")
+	pn("		if err := json.Unmarshal(b, &e); err != nil {")
+	pn("			return nil, err")
+	pn("		}")
+	pn("		return nil, e.Error()")
+	pn("	}")
+	pn("	return b, nil")
+	pn("}")
+	pn("")
+	pn("// Custom version of net/url Encode that only URL escapes values")
+	pn("// Unmodified portions here remain under BSD license of The Go Authors: https://go.googlesource.com/go/+/master/LICENSE")
+	pn("func encodeValues(v url.Values) string {")
+	pn("	if v == nil {")
+	pn("		return \"\"")
+	pn("	}")
+	pn("	var buf bytes.Buffer")
+	pn("	keys := make([]string, 0, len(v))")
+	pn("	for k := range v {")
+	pn("		keys = append(keys, k)")
+	pn("	}")
+	pn("	sort.Strings(keys)")
+	pn("	for _, k := range keys {")
+	pn("		vs := v[k]")
+	pn("		prefix := k + \"=\"")
+	pn("		for _, v := range vs {")
+	pn("			if buf.Len() > 0 {")
+	pn("				buf.WriteByte('&')")
+	pn("			}")
+	pn("			buf.WriteString(prefix)")
+	pn("			buf.WriteString(url.QueryEscape(v))")
+	pn("		}")
+	pn("	}")
+	pn("	return buf.String()")
 	pn("}")
 	pn("")
 	pn("// Generic function to get the first raw value from a response as json.RawMessage")
 	pn("func getRawValue(b json.RawMessage) (json.RawMessage, error) {")
-	pn("  var m map[string]json.RawMessage")
-	pn("  if err := json.Unmarshal(b, &m); err != nil {")
-	pn("    return nil, err")
-	pn("  }")
-	pn("  for _, v := range m {")
-	pn("    return v, nil")
-	pn("  }")
-	pn("  return nil, fmt.Errorf(\"Unable to extract the raw value from:\\n\\n%%s\\n\\n\", string(b))")
+	pn("	var m map[string]json.RawMessage")
+	pn("	if err := json.Unmarshal(b, &m); err != nil {")
+	pn("		return nil, err")
+	pn("	}")
+	pn("	for _, v := range m {")
+	pn("		return v, nil")
+	pn("	}")
+	pn("	return nil, fmt.Errorf(\"Unable to extract the raw value from:\\n\\n%%s\\n\\n\", string(b))")
 	pn("}")
 	pn("")
 	for _, s := range as.services {
@@ -556,13 +595,19 @@ func (s *service) generateConvertCode(name, typ string) {
 		pn("vv := strconv.FormatBool(v.(bool))")
 		pn("u.Set(\"%s\", vv)", n)
 	case "[]string":
-		pn("vv := strings.Join(v.([]string), \", \")")
+		pn("vv := strings.Join(v.([]string), \",\")")
 		pn("u.Set(\"%s\", vv)", n)
 	case "map[string]string":
 		pn("i := 0")
 		pn("for k, vv := range v.(map[string]string) {")
-		pn("	u.Set(fmt.Sprintf(\"%s[%%d].key\", i), k)", n)
-		pn("	u.Set(fmt.Sprintf(\"%s[%%d].value\", i), vv)", n)
+		switch name {
+		case "serviceproviderlist":
+			pn("	u.Set(fmt.Sprintf(\"%s[%%d].service\", i), k)", n)
+			pn("	u.Set(fmt.Sprintf(\"%s[%%d].provider\", i), vv)", n)
+		default:
+			pn("	u.Set(fmt.Sprintf(\"%s[%%d].key\", i), k)", n)
+			pn("	u.Set(fmt.Sprintf(\"%s[%%d].value\", i), vv)", n)
+		}
 		pn("	i++")
 		pn("}")
 	}
@@ -656,8 +701,13 @@ func (s *service) generateHelperFuncs(a *API) {
 					p("%s %s, ", s.parseParamName(ap.Name), mapType(ap.Type))
 				}
 			}
-			// Add an addition (needed) parameter for the GetTemplateId helper function
-			if parseSingular(ln) == "Template" {
+
+			// Add an addition (needed) parameters for the GetTemplateID and
+			// GetIsoID helper functions
+			if parseSingular(ln) == "Iso" {
+				p("isofilter string, ")
+			}
+			if parseSingular(ln) == "Template" || parseSingular(ln) == "Iso" {
 				p("zoneid string, ")
 			}
 			pn(") (string, error) {")
@@ -672,8 +722,13 @@ func (s *service) generateHelperFuncs(a *API) {
 					pn("	p.p[\"%s\"] = %s", s.parseParamName(ap.Name), s.parseParamName(ap.Name))
 				}
 			}
-			// Assign the additional parameter for the GetTemplateId helper function
-			if parseSingular(ln) == "Template" {
+
+			// Assign the additional parameters for the GetTemplateID and
+			// GetIsoID helper functions
+			if parseSingular(ln) == "Iso" {
+				pn("	p.p[\"isofilter\"] = isofilter")
+			}
+			if parseSingular(ln) == "Template" || parseSingular(ln) == "Iso" {
 				pn("	p.p[\"zoneid\"] = zoneid")
 			}
 			pn("")
@@ -682,6 +737,21 @@ func (s *service) generateHelperFuncs(a *API) {
 			pn("		return \"\", err")
 			pn("	}")
 			pn("")
+
+			// If we have a function that also has a projectid parameter, add some logic
+			// that will also search in all existing projects if no match was found
+			if hasProjectIDParamField(a.Params) {
+				pn("	if l.Count == 0 {")
+				pn("		// If no matches, search all projects")
+				pn("		p.p[\"projectid\"] = \"-1\"")
+				pn("")
+				pn("		l, err = s.List%s(p)", ln)
+				pn("		if err != nil {")
+				pn("			return \"\", err")
+				pn("		}")
+				pn("	}")
+				pn("")
+			}
 			pn("	if l.Count == 0 {")
 			pn("	  return \"\", fmt.Errorf(\"No match found for %%s: %%+v\", %s, l)", v)
 			pn("	}")
@@ -701,7 +771,7 @@ func (s *service) generateHelperFuncs(a *API) {
 			pn("}\n")
 			pn("")
 
-			if found := hasIDParamField(a.Params); found {
+			if hasIDParamField(a.Params) {
 				// Generate the function signature
 				pn("// This is a courtesy helper function, which in some cases may not work as expected!")
 				p("func (s *%s) Get%sByName(name string, ", s.name, parseSingular(ln))
@@ -710,8 +780,13 @@ func (s *service) generateHelperFuncs(a *API) {
 						p("%s %s, ", s.parseParamName(ap.Name), mapType(ap.Type))
 					}
 				}
-				// Add an addition (needed) parameter for the GetTemplateId helper function
-				if parseSingular(ln) == "Template" {
+
+				// Add an addition (needed) parameter for the GetTemplateID and
+				// GetIsoID helper functions
+				if parseSingular(ln) == "Iso" {
+					p("isofilter string, ")
+				}
+				if parseSingular(ln) == "Template" || parseSingular(ln) == "Iso" {
 					p("zoneid string, ")
 				}
 				pn(") (*%s, int, error) {", parseSingular(ln))
@@ -723,8 +798,13 @@ func (s *service) generateHelperFuncs(a *API) {
 						p("%s, ", s.parseParamName(ap.Name))
 					}
 				}
-				// Assign the additional parameter for the GetTemplateId helper function
-				if parseSingular(ln) == "Template" {
+
+				// Assign the additional parameter for the GetTemplateID and
+				// GetIsoID helper functions
+				if parseSingular(ln) == "Iso" {
+					p("isofilter, ")
+				}
+				if parseSingular(ln) == "Template" || parseSingular(ln) == "Iso" {
 					p("zoneid")
 				}
 				pn(")")
@@ -748,7 +828,7 @@ func (s *service) generateHelperFuncs(a *API) {
 			}
 		}
 
-		if found := hasIDParamField(a.Params); found {
+		if hasIDParamField(a.Params) {
 			ln := strings.TrimPrefix(a.Name, "list")
 
 			// Generate the function signature
@@ -782,6 +862,26 @@ func (s *service) generateHelperFuncs(a *API) {
 			pn("		return nil, -1, err")
 			pn("	}")
 			pn("")
+
+			// If we have a function that also has a projectid parameter, add some logic
+			// that will also search in all existing projects if no match was found
+			if hasProjectIDParamField(a.Params) {
+				pn("	if l.Count == 0 {")
+				pn("		// If no matches, search all projects")
+				pn("		p.p[\"projectid\"] = \"-1\"")
+				pn("")
+				pn("		l, err = s.List%s(p)", ln)
+				pn("		if err != nil {")
+				pn("			if strings.Contains(err.Error(), fmt.Sprintf(")
+				pn("				\"Invalid parameter id value=%%s due to incorrect long value format, \"+")
+				pn("				\"or entity does not exist\", id)) {")
+				pn("				return nil, 0, fmt.Errorf(\"No match found for %%s: %%+v\", id, l)")
+				pn("			}")
+				pn("			return nil, -1, err")
+				pn("		}")
+				pn("	}")
+				pn("")
+			}
 			pn("	if l.Count == 0 {")
 			pn("	  return nil, l.Count, fmt.Errorf(\"No match found for %%s: %%+v\", id, l)")
 			pn("	}")
@@ -820,6 +920,15 @@ func hasIDParamField(params APIParams) bool {
 	return false
 }
 
+func hasProjectIDParamField(params APIParams) bool {
+	for _, p := range params {
+		if p.Name == "projectid" && mapType(p.Type) == "string" {
+			return true
+		}
+	}
+	return false
+}
+
 func hasIDAndNameResponseField(resp APIResponses) bool {
 	id := false
 	name := false
@@ -844,12 +953,27 @@ func (s *service) generateNewAPICallFunc(a *API) {
 	pn("func (s *%s) %s(p *%s) (*%s, error) {", s.name, n, n+"Params", n+"Response")
 
 	// Generate the function body
-	pn("	resp, err := s.cs.newRequest(\"%s\", p.toURLValues())", a.Name)
+	if n == "QueryAsyncJobResult" {
+		pn("	var resp json.RawMessage")
+		pn("	var err error")
+		pn("")
+		pn("	// We should be able to retry on failure as this call is idempotent")
+		pn("	for i := 0; i < 3; i++ {")
+		pn("		resp, err = s.cs.newRequest(\"%s\", p.toURLValues())", a.Name)
+		pn("		if err == nil {")
+		pn("			break")
+		pn("		}")
+		pn("		time.Sleep(500 * time.Millisecond)")
+		pn("	}")
+	} else {
+		pn("	resp, err := s.cs.newRequest(\"%s\", p.toURLValues())", a.Name)
+	}
 	pn("	if err != nil {")
 	pn("		return nil, err")
 	pn("	}")
 	pn("")
-	if n == "CreateNetwork" {
+	switch n {
+	case "CreateNetwork", "CreateNetworkOffering", "CreateServiceOffering", "CreateSSHKeyPair", "RegisterSSHKeyPair":
 		pn("	if resp, err = getRawValue(resp); err != nil {")
 		pn("		return nil, err")
 		pn("	}")
@@ -863,14 +987,12 @@ func (s *service) generateNewAPICallFunc(a *API) {
 		pn("")
 		pn("	// If we have a async client, we need to wait for the async result")
 		pn("	if s.cs.async {")
-		pn("		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)")
+		pn("		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)")
 		pn("		if err != nil {")
+		pn("			if err == AsyncTimeoutErr {")
+		pn("				return &r, err")
+		pn("			}")
 		pn("			return nil, err")
-		pn("		}")
-		pn("		// If 'warn' has a value it means the job is running longer than the configured")
-		pn("		// timeout, the resonse will contain the jobid of the running async job")
-		pn("		if warn != nil {")
-		pn("			return &r, warn")
 		pn("		}")
 		pn("")
 		if !isSuccessOnlyResponse(a.Response) {
@@ -916,8 +1038,11 @@ func (s *service) generateResponseType(a *API) {
 	if strings.HasPrefix(a.Name, "list") || a.Name == "registerTemplate" {
 		pn("type %s struct {", tn)
 		pn("	Count int `json:\"count\"`")
+
 		// This nasty check is for some specific response that do not behave consistent
 		switch a.Name {
+		case "listAsyncJobs":
+			pn("	%s []*%s `json:\"%s\"`", ln, parseSingular(ln), "asyncjobs")
 		case "listEgressFirewallRules":
 			pn("	%s []*%s `json:\"%s\"`", ln, parseSingular(ln), "firewallrule")
 		case "registerTemplate":
@@ -959,6 +1084,13 @@ func (s *service) recusiveGenerateResponseType(resp APIResponses, async bool) (o
 		if r.Name == "" {
 			continue
 		}
+		if r.Name == "secondaryip" {
+			pn("%s []struct {", capitalize(r.Name))
+			pn("Id string `json:\"id,omitempty\"`")
+			pn("Ipaddress string `json:\"ipaddress,omitempty\"`")
+			pn("} `json:\"%s,omitempty\"`", r.Name)
+			continue
+		}
 		if r.Response != nil {
 			pn("%s []struct {", capitalize(r.Name))
 			sort.Sort(r.Response)
@@ -985,7 +1117,7 @@ func (s *service) recusiveGenerateResponseType(resp APIResponses, async bool) (o
 
 func getAllServices() (*allServices, []error, error) {
 	// Get a map with all API info
-	ai, err := getApiInfo()
+	ai, err := getAPIInfo()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1012,14 +1144,16 @@ func getAllServices() (*allServices, []error, error) {
 	return as, errors, nil
 }
 
-func getApiInfo() (map[string]*API, error) {
-	cs, err := gocs.NewClient(*apiurl, *apikey, *secret, false)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := cs.RawRequest("listApis", "")
-	if err != nil {
-		return nil, err
+func getAPIInfo() (map[string]*API, error) {
+	var apiInfo []byte
+
+	switch *version {
+	case "v43":
+		apiInfo = []byte(v43api)
+	case "v44", "latest":
+		apiInfo = []byte(v44api)
+	default:
+		return nil, fmt.Errorf("Unknown version: %s", *version)
 	}
 
 	var ar struct {
@@ -1028,7 +1162,7 @@ func getApiInfo() (map[string]*API, error) {
 			APIs  []*API `json:"api"`
 		} `json:"listapisresponse"`
 	}
-	if err := json.Unmarshal(resp, &ar); err != nil {
+	if err := json.Unmarshal(apiInfo, &ar); err != nil {
 		return nil, err
 	}
 

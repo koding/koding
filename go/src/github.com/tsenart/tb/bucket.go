@@ -94,8 +94,9 @@ func (b *Bucket) Wait(n int64) time.Duration {
 
 	var wait time.Duration
 	for rem > 0 {
-		wait += b.wait(rem)
-		time.Sleep(wait)
+		sleep := b.wait(rem)
+		wait += sleep
+		time.Sleep(sleep)
 		rem -= b.Take(rem)
 	}
 	return wait

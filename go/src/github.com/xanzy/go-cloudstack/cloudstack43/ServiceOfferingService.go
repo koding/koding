@@ -301,6 +301,10 @@ func (s *ServiceOfferingService) CreateServiceOffering(p *CreateServiceOfferingP
 		return nil, err
 	}
 
+	if resp, err = getRawValue(resp); err != nil {
+		return nil, err
+	}
+
 	var r CreateServiceOfferingResponse
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
