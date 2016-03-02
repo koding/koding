@@ -68,38 +68,38 @@ module.exports = class InviteSomeoneView extends KDView
     @addSubView new KDButtonView
       title    : 'INVITE MEMBERS'
       cssClass : 'solid medium green invite-members'
-      callback : @bound 'inviteMembers'
+      callback :  =>
+        whoami().fetchEmail (err, email) =>
+          @inviteMembers email
 
 
-  inviteMembers: ->
+  inviteMembers: (ownEmail) ->
 
     invites = []
     admins  = []
 
-    whoami().fetchEmail (err, email) =>
+    for view in @inputViews
+      value = view.email.getValue().trim()
 
-      for view in @inputViews
-        value = view.email.getValue().trim()
+      continue  unless value
 
-        continue  unless value
+      result = if not value then no else view.email.validate()
 
-        result = if not value then no else view.email.validate()
+      if value is ownEmail
+        showError 'You can not invite yourself!'
+        return view.email.setClass 'validation-error'
 
-        if value is email
-          showError 'You can not invite yourself!'
-          return view.email.setClass 'validation-error'
+      if value and not result
+        showError 'That doesn\'t seem like a valid email address.'
+        return view.email.setClass 'validation-error'
 
-        if value and not result
-          showError 'That doesn\'t seem like a valid email address.'
-          return view.email.setClass 'validation-error'
+      invites.push invite = view.serialize()
+      admins.push invite.email  if invite.role is 'admin'
 
-        invites.push invite = view.serialize()
-        admins.push invite.email  if invite.role is 'admin'
-
-      if admins.length
-        @notifyAdminInvites invites, admins
-      else
-        @handleInvitationRequest invites
+    if admins.length
+      @notifyAdminInvites invites, admins
+    else
+      @handleInvitationRequest invites
 
 
   notifyAdminInvites: (invites, admins) ->
