@@ -307,25 +307,27 @@ module.exports =
   # This is not an helper method. It is here because of reusability in tests.
   testLeaveSessionFrom_: (browser, where) ->
 
-    host        = utils.getUser no, 0
-    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant = utils.getUser no, 1
-    chatHeads   = ".chat-view .chat-heads .ParticipantHeads [href='/#{participant.username}']"
+    browser.pause 2500, => # wait for user.json creation
 
-    if hostBrowser
-      @startSessionAndInviteUser(browser, host, participant)
-      browser.waitForElementNotPresent chatHeads, 50000
-      @waitParticipantLeaveAndEndSession(browser)
-      browser.end()
-    else
-      @joinSession(browser, host, participant)
+      host        = utils.getUser no, 0
+      hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+      participant = utils.getUser no, 1
+      chatHeads   = ".chat-view .chat-heads .ParticipantHeads [href='/#{participant.username}']"
 
-      switch where
-        when 'Chat'      then @leaveSessionFromChat(browser)
-        when 'Sidebar'   then @leaveSessionFromSidebar(browser)
-        when 'StatusBar' then @leaveSessionFromStatusBar(browser)
+      if hostBrowser
+        @startSessionAndInviteUser(browser, host, participant)
+        browser.waitForElementNotPresent chatHeads, 50000
+        @waitParticipantLeaveAndEndSession(browser)
+        browser.end()
+      else
+        @joinSession(browser, host, participant)
 
-      browser.end()
+        switch where
+          when 'Chat'      then @leaveSessionFromChat(browser)
+          when 'Sidebar'   then @leaveSessionFromSidebar(browser)
+          when 'StatusBar' then @leaveSessionFromStatusBar(browser)
+
+        browser.end()
 
 
   testKickUser_: (browser, hostCallback, participantCallback) ->
