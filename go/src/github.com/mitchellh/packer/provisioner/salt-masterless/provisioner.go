@@ -3,15 +3,21 @@
 package saltmasterless
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"github.com/mitchellh/packer/common"
-	"github.com/mitchellh/packer/packer"
 	"os"
 	"path/filepath"
+
+	"github.com/mitchellh/packer/common"
+	"github.com/mitchellh/packer/helper/config"
+	"github.com/mitchellh/packer/packer"
+	"github.com/mitchellh/packer/template/interpolate"
 )
 
 const DefaultTempConfigDir = "/tmp/salt"
+const DefaultStateTreeDir = "/srv/salt"
+const DefaultPillarRootDir = "/srv/pillar"
 
 type Config struct {
 	common.PackerConfig `mapstructure:",squash"`
@@ -19,6 +25,8 @@ type Config struct {
 	// If true, run the salt-bootstrap script
 	SkipBootstrap bool   `mapstructure:"skip_bootstrap"`
 	BootstrapArgs string `mapstructure:"bootstrap_args"`
+
+	DisableSudo bool `mapstructure:"disable_sudo"`
 
 	// Local path to the minion config
 	MinionConfig string `mapstructure:"minion_config"`
@@ -29,10 +37,25 @@ type Config struct {
 	// Local path to the salt pillar roots
 	LocalPillarRoots string `mapstructure:"local_pillar_roots"`
 
+	// Remote path to the salt state tree
+	RemoteStateTree string `mapstructure:"remote_state_tree"`
+
+	// Remote path to the salt pillar roots
+	RemotePillarRoots string `mapstructure:"remote_pillar_roots"`
+
 	// Where files will be copied before moving to the /srv/salt directory
 	TempConfigDir string `mapstructure:"temp_config_dir"`
 
-	tpl *packer.ConfigTemplate
+	// Don't exit packer if salt-call returns an error code
+	NoExitOnFailure bool `mapstructure:"no_exit_on_failure"`
+
+	// Set the logging level for the salt highstate run
+	LogLevel string `mapstructure:"log_level"`
+
+	// Command line args passed onto salt-call
+	CmdArgs string ""
+
+	ctx interpolate.Context
 }
 
 type Provisioner struct {
@@ -40,65 +63,77 @@ type Provisioner struct {
 }
 
 func (p *Provisioner) Prepare(raws ...interface{}) error {
-	md, err := common.DecodeConfig(&p.config, raws...)
+	err := config.Decode(&p.config, &config.DecodeOpts{
+		Interpolate:        true,
+		InterpolateContext: &p.config.ctx,
+		InterpolateFilter: &interpolate.RenderFilter{
+			Exclude: []string{},
+		},
+	}, raws...)
 	if err != nil {
 		return err
 	}
-
-	p.config.tpl, err = packer.NewConfigTemplate()
-	if err != nil {
-		return err
-	}
-	p.config.tpl.UserVars = p.config.PackerUserVars
 
 	if p.config.TempConfigDir == "" {
 		p.config.TempConfigDir = DefaultTempConfigDir
 	}
 
-	// Accumulate any errors
-	errs := common.CheckUnusedConfig(md)
-
-	templates := map[string]*string{
-		"bootstrap_args":     &p.config.BootstrapArgs,
-		"minion_config":      &p.config.MinionConfig,
-		"local_state_tree":   &p.config.LocalStateTree,
-		"local_pillar_roots": &p.config.LocalPillarRoots,
-		"temp_config_dir":    &p.config.TempConfigDir,
-	}
-
-	for n, ptr := range templates {
-		var err error
-		*ptr, err = p.config.tpl.Process(*ptr, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("Error processing %s: %s", n, err))
-		}
-	}
+	var errs *packer.MultiError
 
 	// require a salt state tree
-	if p.config.LocalStateTree == "" {
+	err = validateDirConfig(p.config.LocalStateTree, "local_state_tree", true)
+	if err != nil {
+		errs = packer.MultiErrorAppend(errs, err)
+	}
+
+	err = validateDirConfig(p.config.LocalPillarRoots, "local_pillar_roots", false)
+	if err != nil {
+		errs = packer.MultiErrorAppend(errs, err)
+	}
+
+	err = validateFileConfig(p.config.MinionConfig, "minion_config", false)
+	if err != nil {
+		errs = packer.MultiErrorAppend(errs, err)
+	}
+
+	if p.config.MinionConfig != "" && (p.config.RemoteStateTree != "" || p.config.RemotePillarRoots != "") {
 		errs = packer.MultiErrorAppend(errs,
-			errors.New("local_state_tree must be supplied"))
+			errors.New("remote_state_tree and remote_pillar_roots only apply when minion_config is not used"))
+	}
+
+	// build the command line args to pass onto salt
+	var cmd_args bytes.Buffer
+
+	if p.config.MinionConfig == "" {
+		// pass --file-root and --pillar-root if no minion_config is supplied
+		if p.config.RemoteStateTree != "" {
+			cmd_args.WriteString(" --file-root=")
+			cmd_args.WriteString(p.config.RemoteStateTree)
+		} else {
+			cmd_args.WriteString(" --file-root=")
+			cmd_args.WriteString(DefaultStateTreeDir)
+		}
+		if p.config.RemotePillarRoots != "" {
+			cmd_args.WriteString(" --pillar-root=")
+			cmd_args.WriteString(p.config.RemotePillarRoots)
+		} else {
+			cmd_args.WriteString(" --pillar-root=")
+			cmd_args.WriteString(DefaultPillarRootDir)
+		}
+	}
+
+	if !p.config.NoExitOnFailure {
+		cmd_args.WriteString(" --retcode-passthrough")
+	}
+
+	if p.config.LogLevel == "" {
+		cmd_args.WriteString(" -l info")
 	} else {
-		if _, err := os.Stat(p.config.LocalStateTree); err != nil {
-			errs = packer.MultiErrorAppend(errs,
-				errors.New("local_state_tree must exist and be accessible"))
-		}
+		cmd_args.WriteString(" -l ")
+		cmd_args.WriteString(p.config.LogLevel)
 	}
 
-	if p.config.LocalPillarRoots != "" {
-		if _, err := os.Stat(p.config.LocalPillarRoots); err != nil {
-			errs = packer.MultiErrorAppend(errs,
-				errors.New("local_pillar_roots must exist and be accessible"))
-		}
-	}
-
-	if p.config.MinionConfig != "" {
-		if _, err := os.Stat(p.config.MinionConfig); err != nil {
-			errs = packer.MultiErrorAppend(errs,
-				errors.New("minion_config must exist and be accessible"))
-		}
-	}
+	p.config.CmdArgs = cmd_args.String()
 
 	if errs != nil && len(errs.Errors) > 0 {
 		return errs
@@ -121,7 +156,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 			return fmt.Errorf("Unable to download Salt: %s", err)
 		}
 		cmd = &packer.RemoteCmd{
-			Command: fmt.Sprintf("sudo sh /tmp/install_salt.sh %s", p.config.BootstrapArgs),
+			Command: fmt.Sprintf("%s /tmp/install_salt.sh %s", p.sudo("sh"), p.config.BootstrapArgs),
 		}
 		ui.Message(fmt.Sprintf("Installing Salt with command %s", cmd.Command))
 		if err = cmd.StartWithUi(comm, ui); err != nil {
@@ -129,9 +164,9 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		}
 	}
 
-	ui.Message(fmt.Sprintf("Creating remote directory: %s", p.config.TempConfigDir))
+	ui.Message(fmt.Sprintf("Creating remote temporary directory: %s", p.config.TempConfigDir))
 	if err := p.createDir(ui, comm, p.config.TempConfigDir); err != nil {
-		return fmt.Errorf("Error creating remote salt state directory: %s", err)
+		return fmt.Errorf("Error creating remote temporary directory: %s", err)
 	}
 
 	if p.config.MinionConfig != "" {
@@ -143,6 +178,10 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		}
 
 		// move minion config into /etc/salt
+		ui.Message(fmt.Sprintf("Make sure directory %s exists", "/etc/salt"))
+		if err := p.createDir(ui, comm, "/etc/salt"); err != nil {
+			return fmt.Errorf("Error creating remote salt configuration directory: %s", err)
+		}
 		src = filepath.ToSlash(filepath.Join(p.config.TempConfigDir, "minion"))
 		dst = "/etc/salt/minion"
 		if err = p.moveFile(ui, comm, dst, src); err != nil {
@@ -157,11 +196,18 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		return fmt.Errorf("Error uploading local state tree to remote: %s", err)
 	}
 
-	// move state tree into /srv/salt
+	// move state tree from temporary directory
 	src = filepath.ToSlash(filepath.Join(p.config.TempConfigDir, "states"))
-	dst = "/srv/salt"
+	if p.config.RemoteStateTree != "" {
+		dst = p.config.RemoteStateTree
+	} else {
+		dst = DefaultStateTreeDir
+	}
+	if err = p.removeDir(ui, comm, dst); err != nil {
+		return fmt.Errorf("Unable to clear salt tree: %s", err)
+	}
 	if err = p.moveFile(ui, comm, dst, src); err != nil {
-		return fmt.Errorf("Unable to move %s/states to /srv/salt: %s", p.config.TempConfigDir, err)
+		return fmt.Errorf("Unable to move %s/states to %s: %s", p.config.TempConfigDir, dst, err)
 	}
 
 	if p.config.LocalPillarRoots != "" {
@@ -172,16 +218,23 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 			return fmt.Errorf("Error uploading local pillar roots to remote: %s", err)
 		}
 
-		// move pillar tree into /srv/pillar
+		// move pillar root from temporary directory
 		src = filepath.ToSlash(filepath.Join(p.config.TempConfigDir, "pillar"))
-		dst = "/srv/pillar"
+		if p.config.RemotePillarRoots != "" {
+			dst = p.config.RemotePillarRoots
+		} else {
+			dst = DefaultPillarRootDir
+		}
+		if err = p.removeDir(ui, comm, dst); err != nil {
+			return fmt.Errorf("Unable to clear pillar root: %s", err)
+		}
 		if err = p.moveFile(ui, comm, dst, src); err != nil {
-			return fmt.Errorf("Unable to move %s/pillar to /srv/pillar: %s", p.config.TempConfigDir, err)
+			return fmt.Errorf("Unable to move %s/pillar to %s: %s", p.config.TempConfigDir, dst, err)
 		}
 	}
 
 	ui.Message("Running highstate")
-	cmd := &packer.RemoteCmd{Command: "sudo salt-call --local state.highstate -l info --retcode-passthrough"}
+	cmd := &packer.RemoteCmd{Command: p.sudo(fmt.Sprintf("salt-call --local state.highstate %s", p.config.CmdArgs))}
 	if err = cmd.StartWithUi(comm, ui); err != nil || cmd.ExitStatus != 0 {
 		if err == nil {
 			err = fmt.Errorf("Bad exit status: %d", cmd.ExitStatus)
@@ -199,6 +252,45 @@ func (p *Provisioner) Cancel() {
 	os.Exit(0)
 }
 
+// Prepends sudo to supplied command if config says to
+func (p *Provisioner) sudo(cmd string) string {
+	if p.config.DisableSudo {
+		return cmd
+	}
+
+	return "sudo " + cmd
+}
+
+func validateDirConfig(path string, name string, required bool) error {
+	if required == true && path == "" {
+		return fmt.Errorf("%s cannot be empty", name)
+	} else if required == false && path == "" {
+		return nil
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("%s: path '%s' is invalid: %s", name, path, err)
+	} else if !info.IsDir() {
+		return fmt.Errorf("%s: path '%s' must point to a directory", name, path)
+	}
+	return nil
+}
+
+func validateFileConfig(path string, name string, required bool) error {
+	if required == true && path == "" {
+		return fmt.Errorf("%s cannot be empty", name)
+	} else if required == false && path == "" {
+		return nil
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("%s: path '%s' is invalid: %s", name, path, err)
+	} else if info.IsDir() {
+		return fmt.Errorf("%s: path '%s' must point to a file", name, path)
+	}
+	return nil
+}
+
 func (p *Provisioner) uploadFile(ui packer.Ui, comm packer.Communicator, dst, src string) error {
 	f, err := os.Open(src)
 	if err != nil {
@@ -214,13 +306,13 @@ func (p *Provisioner) uploadFile(ui packer.Ui, comm packer.Communicator, dst, sr
 
 func (p *Provisioner) moveFile(ui packer.Ui, comm packer.Communicator, dst, src string) error {
 	ui.Message(fmt.Sprintf("Moving %s to %s", src, dst))
-	cmd := &packer.RemoteCmd{Command: fmt.Sprintf("sudo mv %s %s", src, dst)}
+	cmd := &packer.RemoteCmd{Command: fmt.Sprintf(p.sudo("mv %s %s"), src, dst)}
 	if err := cmd.StartWithUi(comm, ui); err != nil || cmd.ExitStatus != 0 {
 		if err == nil {
 			err = fmt.Errorf("Bad exit status: %d", cmd.ExitStatus)
 		}
 
-		return fmt.Errorf("Unable to move %s/minion to /etc/salt/minion: %s", p.config.TempConfigDir, err)
+		return fmt.Errorf("Unable to move %s to %s: %s", src, dst, err)
 	}
 	return nil
 }
@@ -229,6 +321,20 @@ func (p *Provisioner) createDir(ui packer.Ui, comm packer.Communicator, dir stri
 	ui.Message(fmt.Sprintf("Creating directory: %s", dir))
 	cmd := &packer.RemoteCmd{
 		Command: fmt.Sprintf("mkdir -p '%s'", dir),
+	}
+	if err := cmd.StartWithUi(comm, ui); err != nil {
+		return err
+	}
+	if cmd.ExitStatus != 0 {
+		return fmt.Errorf("Non-zero exit status.")
+	}
+	return nil
+}
+
+func (p *Provisioner) removeDir(ui packer.Ui, comm packer.Communicator, dir string) error {
+	ui.Message(fmt.Sprintf("Removing directory: %s", dir))
+	cmd := &packer.RemoteCmd{
+		Command: fmt.Sprintf("rm -rf '%s'", dir),
 	}
 	if err := cmd.StartWithUi(comm, ui); err != nil {
 		return err
