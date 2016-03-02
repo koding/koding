@@ -313,7 +313,7 @@ func TestGetOffsetLines(t *testing.T) {
 	defer file1.Close()
 
 	offset := 3
-	result, err := getOffsetLines(file1, offset)
+	result, err := getOffsetLines(file1, 4, offset)
 	if err != nil {
 		t.Error(err)
 	}
@@ -328,7 +328,7 @@ func TestGetOffsetLines(t *testing.T) {
 
 	// Set the offset to the entire file.
 	offset = len(sourceLines) + 1
-	result, err = getOffsetLines(file1, offset)
+	result, err = getOffsetLines(file1, 4, offset)
 	if err != nil {
 		t.Error(err)
 	}
@@ -349,15 +349,42 @@ func TestGetOffsetLines(t *testing.T) {
 
 	fmt.Println("Requesting empty lines")
 	offset = 3
-	result, err = getOffsetLines(file2, offset)
+	result, err = getOffsetLines(file2, 4, offset)
 	if err != nil {
 		t.Error(err)
 	}
 
-	expected = []string{}
+	expected = nil
 	if !reflect.DeepEqual(expected, result) {
 		t.Errorf(
 			"\nIt should callback with no lines.\nWant: %#v\nGot : %#v\n",
+			expected, result,
+		)
+	}
+
+	tmpDir2, tmpFile, err := makeTempAndCopy("testdata/testfile1.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir2)
+
+	// Open our file, to pass to the func
+	file1, err = os.Open(tmpFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file1.Close()
+
+	offset = 3
+	result, err = getOffsetLines(file1, defaultOffsetChunkSize, offset)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected = sourceLines[len(sourceLines)-offset:]
+	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"\nIt should return offset lines with a chunkSize larger than the file.\nWant: %#v\nGot : %#v\n",
 			expected, result,
 		)
 	}

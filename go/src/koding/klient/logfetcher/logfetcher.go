@@ -5,9 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/koding/kite"
@@ -15,6 +13,10 @@ import (
 
 	"github.com/hpcloud/tail"
 )
+
+// defaultOffsetChunkSize is the buffersize that the logfetcher will use when
+// reading the offsets.
+const defaultOffsetChunkSize int64 = 4096
 
 type Request struct {
 	// Path is the path that log.tail will read from.
@@ -76,7 +78,7 @@ func Tail(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		lines, err := getOffsetLines(f, params.LineOffset)
+		lines, err := getOffsetLines(f, defaultOffsetChunkSize, params.LineOffset)
 		f.Close()
 
 		if err != nil {
@@ -173,21 +175,20 @@ func Tail(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func getOffsetLines(f *os.File, requestedLines int) ([]string, error) {
+func getOffsetLines(f *os.File, chunkSize int64, requestedLines int) ([]string, error) {
 	var (
-		newLineChar   = byte('\n')
-		foundNewLines int
-		offset        int64
-		start         int64
-		// the byte slice that we read into
-		b   = make([]byte, 1)
-		err error
+		newLineChar = byte('\n')
+		foundLines  []string
+		offset      int64
+		start       int64
+		// A partial, buffered line.
+		bufLine string
 	)
 
 	// Before we start looping, seek with an offset of zero, to identify if the
 	// file has contents. If the start is zero, and we offset with zero,
 	// then the start is the same as the end. Empty file, nothing we can do.
-	start, err = f.Seek(0, 2)
+	start, err := f.Seek(0, 2)
 	if err != nil {
 		return nil, fmt.Errorf("getOffsetLines: Failed to seek. err:%s", err)
 	}
@@ -195,13 +196,73 @@ func getOffsetLines(f *os.File, requestedLines int) ([]string, error) {
 		return nil, nil
 	}
 
+	// At this point, Start represents how long the file is. If chunkSize is bigger
+	// than that, we're not going to be able to offset by such a large amount.
+	//
+	// So, we reduce the chunkSize to the size of the file.
+	if chunkSize > start {
+		chunkSize = start
+	}
+
+	// the byte slice that we read into
+	b := make([]byte, chunkSize)
+
 	// Loop through the file, looking for all of our newlines.
-	for foundNewLines < requestedLines {
-		offset--
+	for len(foundLines) < requestedLines {
+		offset -= chunkSize
 
 		start, err = f.Seek(offset, 2)
 		if err != nil {
 			return nil, fmt.Errorf("getOffsetLines: Failed to seek newline. err:%s", err)
+		}
+
+		if _, err = f.ReadAt(b, start); err != nil {
+			return nil, fmt.Errorf("getOffsetLines: Failed to read newline. err:%s", err)
+		}
+
+		chunkEnd := chunkSize
+		for i := chunkSize - 1; i >= 0 && len(foundLines) < requestedLines; i-- {
+			if b[i] == newLineChar {
+				// If the offset is negative chunksize, and i is chunksize sub one,
+				// then this is the very first character we've looked at. Ignore this
+				// newline.
+				//
+				// This is to match behavior with the existing tail library.
+				if offset == -chunkSize && i == chunkSize-1 {
+					chunkEnd = i
+					continue
+				}
+
+				// Set chunkBegin to the location *after* the newline. This lets us trim
+				// the newline.
+				chunkBegin := i + 1
+
+				// If the first char in a chunk is a newline, chunkBegin (due to trimming
+				// above) will be bigger than chunkEnd. So, change the beginning to be
+				// the same as the end - this also trims the newline.
+				if chunkBegin > chunkEnd {
+					chunkBegin = chunkEnd
+				}
+
+				line := string(b[chunkBegin:chunkEnd])
+				chunkEnd = i
+
+				// Combine a previous chunks line, with the current line.
+				if len(bufLine) > 0 {
+					line = line + bufLine
+					bufLine = ""
+				}
+
+				// Since we found a line, prepend it to the foundLines slice
+				foundLines = append(
+					[]string{line},
+					foundLines...,
+				)
+			}
+		}
+
+		if chunkEnd > 0 {
+			bufLine = string(b[:chunkEnd]) + bufLine
 		}
 
 		// if we're at the start of the file, we can't find anymore newlines. Return
@@ -209,45 +270,18 @@ func getOffsetLines(f *os.File, requestedLines int) ([]string, error) {
 		if start == 0 {
 			break
 		}
-
-		if _, err = f.ReadAt(b, start); err != nil {
-			return nil, fmt.Errorf("getOffsetLines: Failed to read newline. err:%s", err)
-		}
-
-		// If the char is a newline, and not at the very end of the file, record the
-		// newline count. For a further explanation about why we aren't counting
-		// the last newline on the file, see the docstring here we trim the last
-		// element of the bytes array.
-		if b[0] == newLineChar && offset != -1 {
-			foundNewLines++
-		}
 	}
 
-	// Make offset positive, because the total chars offset is the total chars we want
-	// to read.
-	matchedCharLen := offset * -1
-	b = make([]byte, matchedCharLen)
-	_, err = f.ReadAt(b, start)
-	if err != nil && err != io.EOF {
-		return nil, fmt.Errorf("getOffsetLines: Failed to read lines. err:%s", err)
+	// If we found less lines than requested, prepend any existing data to the lines
+	// list.
+	if len(foundLines) < requestedLines && len(bufLine) > 0 {
+		foundLines = append(
+			[]string{bufLine},
+			foundLines...,
+		)
 	}
 
-	// If the last char of the file was a newline, the last element in the lines
-	// slice will be empty. To keep a consistent UX with the way tail library
-	// returns newlines, we should trim this char.
-	if b[len(b)-1] == newLineChar {
-		b = b[:len(b)-1]
-	}
-
-	lines := strings.Split(string(b), string(newLineChar))
-
-	// If we are not at the beginning of the file, then the first character is a
-	// newline, one more line than the user requested. So trim that off.
-	if start > 0 {
-		return lines[1:], nil
-	}
-
-	return lines, nil
+	return foundLines, nil
 }
 
 // randomStringLength is used to generate a session_id.
