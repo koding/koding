@@ -194,6 +194,11 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchResources: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         searchMembers: [
           (signature String, Object, Function)
         ]
@@ -957,6 +962,26 @@ module.exports = class JGroup extends Module
 
       @mergeAccountsWithEmail records, (err, accounts) ->
         return callback err, accounts
+
+
+  fetchResources$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
+    success: (client, rest...) ->
+
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
+
+      if client.context.group isnt @getAt 'slug'
+        return callback new KodingError 'Access denied'
+
+      if selector.searchFor?
+        selector.title = ///#{selector.searchFor}///
+        delete selector.searchFor
+
+      ComputeProvider = require '../computeproviders/computeprovider'
+      ComputeProvider.fetchGroupResources this, selector, options, callback
 
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.
