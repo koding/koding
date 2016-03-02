@@ -17,28 +17,12 @@ package ogletest
 
 import (
 	"fmt"
-	"github.com/jacobsa/oglematchers"
 	"path"
 	"reflect"
 	"runtime"
+
+	"github.com/jacobsa/oglematchers"
 )
-
-// ExpectationResult is an interface returned by ExpectThat that allows callers
-// to get information about the result of the expectation and set their own
-// custom information. This is not useful to the average consumer, but may be
-// helpful if you're writing widely used test utility functions.
-type ExpectationResult interface {
-	// SetCaller updates the file name and line number associated with the
-	// expectation. This allows, for example, a utility function to express that
-	// *its* caller should have its line number printed if the expectation fails,
-	// instead of the line number of the ExpectThat call within the utility
-	// function.
-	SetCaller(fileName string, lineNumber int)
-
-	// MatchResult returns the result returned by the expectation's matcher for
-	// the supplied candidate.
-	MatchResult() error
-}
 
 // ExpectThat confirms that the supplied matcher matches the value x, adding a
 // failure record to the currently running test if it does not. If additional
@@ -54,87 +38,63 @@ type ExpectationResult interface {
 func ExpectThat(
 	x interface{},
 	m oglematchers.Matcher,
-	errorParts ...interface{}) ExpectationResult {
-	res := &expectationResultImpl{}
+	errorParts ...interface{}) {
+	expectThat(x, m, 1, errorParts)
+}
 
-	// Get information about the call site.
-	_, file, lineNumber, ok := runtime.Caller(1)
-	if !ok {
-		panic("ExpectThat: runtime.Caller")
+// The generalized form of ExpectThat. depth is the distance on the stack
+// between the caller's frame and the user's frame. Returns passed iff the
+// match succeeded.
+func expectThat(
+	x interface{},
+	m oglematchers.Matcher,
+	depth int,
+	errorParts []interface{}) (passed bool) {
+	// Check whether the value matches. If it does, we are finished.
+	matcherErr := m.Matches(x)
+	if matcherErr == nil {
+		passed = true
+		return
 	}
 
-	// Assemble the user error, if any.
-	userError := ""
+	var r FailureRecord
+
+	// Get information about the call site.
+	var ok bool
+	if _, r.FileName, r.LineNumber, ok = runtime.Caller(depth + 1); !ok {
+		panic("expectThat: runtime.Caller")
+	}
+
+	r.FileName = path.Base(r.FileName)
+
+	// Create an appropriate failure message. Make sure that the expected and
+	// actual values align properly.
+	relativeClause := ""
+	if matcherErr.Error() != "" {
+		relativeClause = fmt.Sprintf(", %s", matcherErr.Error())
+	}
+
+	r.Error = fmt.Sprintf(
+		"Expected: %s\nActual:   %v%s",
+		m.Description(),
+		x,
+		relativeClause)
+
+	// Add the user error, if any.
 	if len(errorParts) != 0 {
 		v := reflect.ValueOf(errorParts[0])
 		if v.Kind() != reflect.String {
 			panic(fmt.Sprintf("ExpectThat: invalid format string type %v", v.Kind()))
 		}
 
-		userError = fmt.Sprintf(v.String(), errorParts[1:]...)
+		r.Error = fmt.Sprintf(
+			"%s\n%s",
+			r.Error,
+			fmt.Sprintf(v.String(), errorParts[1:]...))
 	}
 
-	// Grab the current test info.
-	info := currentlyRunningTest
-	if info == nil {
-		panic("ExpectThat: no test info.")
-	}
+	// Report the failure.
+	AddFailureRecord(r)
 
-	// Check whether the value matches.
-	matcherErr := m.Matches(x)
-	res.matchError = matcherErr
-
-	// Return immediately on success.
-	if matcherErr == nil {
-		return res
-	}
-
-	// Form an appropriate failure message. Make sure that the expected and
-	// actual values align properly.
-	var record failureRecord
-	relativeClause := ""
-	if matcherErr.Error() != "" {
-		relativeClause = fmt.Sprintf(", %s", matcherErr.Error())
-	}
-
-	record.GeneratedError = fmt.Sprintf(
-		"Expected: %s\nActual:   %v%s",
-		m.Description(),
-		x,
-		relativeClause)
-
-	// Record additional failure info.
-	record.FileName = path.Base(file)
-	record.LineNumber = lineNumber
-	record.UserError = userError
-
-	// Store the failure.
-	info.mutex.Lock()
-	defer info.mutex.Unlock()
-
-	info.failureRecords = append(info.failureRecords, &record)
-	res.failureRecord = &record
-
-	return res
-}
-
-type expectationResultImpl struct {
-	// The failure record created by the expectation, or nil if none.
-	failureRecord *failureRecord
-
-	// The result of the matcher.
-	matchError error
-}
-
-func (r *expectationResultImpl) SetCaller(fileName string, lineNumber int) {
-	if r.failureRecord == nil {
-		return
-	}
-
-	r.failureRecord.FileName = fileName
-	r.failureRecord.LineNumber = lineNumber
-}
-
-func (r *expectationResultImpl) MatchResult() error {
-	return r.matchError
+	return
 }

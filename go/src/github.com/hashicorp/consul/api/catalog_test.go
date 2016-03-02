@@ -8,8 +8,9 @@ import (
 )
 
 func TestCatalog_Datacenters(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	catalog := c.Catalog()
 
@@ -30,8 +31,9 @@ func TestCatalog_Datacenters(t *testing.T) {
 }
 
 func TestCatalog_Nodes(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	catalog := c.Catalog()
 
@@ -56,8 +58,9 @@ func TestCatalog_Nodes(t *testing.T) {
 }
 
 func TestCatalog_Services(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	catalog := c.Catalog()
 
@@ -82,8 +85,9 @@ func TestCatalog_Services(t *testing.T) {
 }
 
 func TestCatalog_Service(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	catalog := c.Catalog()
 
@@ -108,8 +112,9 @@ func TestCatalog_Service(t *testing.T) {
 }
 
 func TestCatalog_Node(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	catalog := c.Catalog()
 	name, _ := c.Agent().NodeName()
@@ -134,8 +139,9 @@ func TestCatalog_Node(t *testing.T) {
 }
 
 func TestCatalog_Registration(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	catalog := c.Catalog()
 

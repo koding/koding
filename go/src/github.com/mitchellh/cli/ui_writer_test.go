@@ -22,3 +22,16 @@ func TestUiWriter(t *testing.T) {
 		t.Fatalf("bad: %s", ui.OutputWriter.String())
 	}
 }
+
+func TestUiWriter_empty(t *testing.T) {
+	ui := new(MockUi)
+	w := &UiWriter{
+		Ui: ui,
+	}
+
+	w.Write([]byte(""))
+
+	if ui.OutputWriter.String() != "\n" {
+		t.Fatalf("bad: %s", ui.OutputWriter.String())
+	}
+}

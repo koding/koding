@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/hashicorp/go-cleanhttp"
 )
 
 // Client provides a client to the Mailgun API
@@ -39,7 +41,7 @@ func NewClient(key string) (*Client, error) {
 	client := Client{
 		ApiKey: key,
 		URL:    "https://api.mailgun.net/v2",
-		Http:   http.DefaultClient,
+		Http:   cleanhttp.DefaultClient(),
 	}
 
 	return &client, nil

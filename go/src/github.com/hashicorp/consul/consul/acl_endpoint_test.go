@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/consul/lib"
 	"github.com/hashicorp/consul/testutil"
+	"github.com/hashicorp/net-rpc-msgpackrpc"
 )
 
 func TestACLEndpoint_Apply(t *testing.T) {
@@ -17,10 +19,10 @@ func TestACLEndpoint_Apply(t *testing.T) {
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	arg := structs.ACLRequest{
 		Datacenter: "dc1",
@@ -32,7 +34,7 @@ func TestACLEndpoint_Apply(t *testing.T) {
 		WriteRequest: structs.WriteRequest{Token: "root"},
 	}
 	var out string
-	if err := client.Call("ACL.Apply", &arg, &out); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	id := out
@@ -56,7 +58,7 @@ func TestACLEndpoint_Apply(t *testing.T) {
 	// Do a delete
 	arg.Op = structs.ACLDelete
 	arg.ACL.ID = out
-	if err := client.Call("ACL.Apply", &arg, &out); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -77,10 +79,10 @@ func TestACLEndpoint_Update_PurgeCache(t *testing.T) {
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	arg := structs.ACLRequest{
 		Datacenter: "dc1",
@@ -92,7 +94,7 @@ func TestACLEndpoint_Update_PurgeCache(t *testing.T) {
 		WriteRequest: structs.WriteRequest{Token: "root"},
 	}
 	var out string
-	if err := client.Call("ACL.Apply", &arg, &out); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	id := out
@@ -112,7 +114,7 @@ func TestACLEndpoint_Update_PurgeCache(t *testing.T) {
 	// Do an update
 	arg.ACL.ID = out
 	arg.ACL.Rules = `{"key": {"": {"policy": "deny"}}}`
-	if err := client.Call("ACL.Apply", &arg, &out); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -134,7 +136,7 @@ func TestACLEndpoint_Update_PurgeCache(t *testing.T) {
 	// Do a delete
 	arg.Op = structs.ACLDelete
 	arg.ACL.Rules = ""
-	if err := client.Call("ACL.Apply", &arg, &out); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -148,16 +150,63 @@ func TestACLEndpoint_Update_PurgeCache(t *testing.T) {
 	}
 }
 
+func TestACLEndpoint_Apply_CustomID(t *testing.T) {
+	dir1, s1 := testServerWithConfig(t, func(c *Config) {
+		c.ACLDatacenter = "dc1"
+		c.ACLMasterToken = "root"
+	})
+	defer os.RemoveAll(dir1)
+	defer s1.Shutdown()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
+
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
+
+	arg := structs.ACLRequest{
+		Datacenter: "dc1",
+		Op:         structs.ACLSet,
+		ACL: structs.ACL{
+			ID:   "foobarbaz", // Specify custom ID, does not exist
+			Name: "User token",
+			Type: structs.ACLTypeClient,
+		},
+		WriteRequest: structs.WriteRequest{Token: "root"},
+	}
+	var out string
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if out != "foobarbaz" {
+		t.Fatalf("bad token ID: %s", out)
+	}
+
+	// Verify
+	state := s1.fsm.State()
+	_, s, err := state.ACLGet(out)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if s == nil {
+		t.Fatalf("should not be nil")
+	}
+	if s.ID != out {
+		t.Fatalf("bad: %v", s)
+	}
+	if s.Name != "User token" {
+		t.Fatalf("bad: %v", s)
+	}
+}
+
 func TestACLEndpoint_Apply_Denied(t *testing.T) {
 	dir1, s1 := testServerWithConfig(t, func(c *Config) {
 		c.ACLDatacenter = "dc1"
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	arg := structs.ACLRequest{
 		Datacenter: "dc1",
@@ -168,7 +217,7 @@ func TestACLEndpoint_Apply_Denied(t *testing.T) {
 		},
 	}
 	var out string
-	err := client.Call("ACL.Apply", &arg, &out)
+	err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out)
 	if err == nil || !strings.Contains(err.Error(), permissionDenied) {
 		t.Fatalf("err: %v", err)
 	}
@@ -181,10 +230,10 @@ func TestACLEndpoint_Apply_DeleteAnon(t *testing.T) {
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	arg := structs.ACLRequest{
 		Datacenter: "dc1",
@@ -197,7 +246,7 @@ func TestACLEndpoint_Apply_DeleteAnon(t *testing.T) {
 		WriteRequest: structs.WriteRequest{Token: "root"},
 	}
 	var out string
-	err := client.Call("ACL.Apply", &arg, &out)
+	err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out)
 	if err == nil || !strings.Contains(err.Error(), "delete anonymous") {
 		t.Fatalf("err: %v", err)
 	}
@@ -210,10 +259,10 @@ func TestACLEndpoint_Apply_RootChange(t *testing.T) {
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	arg := structs.ACLRequest{
 		Datacenter: "dc1",
@@ -226,7 +275,7 @@ func TestACLEndpoint_Apply_RootChange(t *testing.T) {
 		WriteRequest: structs.WriteRequest{Token: "root"},
 	}
 	var out string
-	err := client.Call("ACL.Apply", &arg, &out)
+	err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out)
 	if err == nil || !strings.Contains(err.Error(), "root ACL") {
 		t.Fatalf("err: %v", err)
 	}
@@ -239,10 +288,10 @@ func TestACLEndpoint_Get(t *testing.T) {
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	arg := structs.ACLRequest{
 		Datacenter: "dc1",
@@ -254,7 +303,7 @@ func TestACLEndpoint_Get(t *testing.T) {
 		WriteRequest: structs.WriteRequest{Token: "root"},
 	}
 	var out string
-	if err := client.Call("ACL.Apply", &arg, &out); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -263,7 +312,7 @@ func TestACLEndpoint_Get(t *testing.T) {
 		ACL:        out,
 	}
 	var acls structs.IndexedACLs
-	if err := client.Call("ACL.Get", &getR, &acls); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Get", &getR, &acls); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -286,10 +335,10 @@ func TestACLEndpoint_GetPolicy(t *testing.T) {
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	arg := structs.ACLRequest{
 		Datacenter: "dc1",
@@ -301,7 +350,7 @@ func TestACLEndpoint_GetPolicy(t *testing.T) {
 		WriteRequest: structs.WriteRequest{Token: "root"},
 	}
 	var out string
-	if err := client.Call("ACL.Apply", &arg, &out); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -310,7 +359,7 @@ func TestACLEndpoint_GetPolicy(t *testing.T) {
 		ACL:        out,
 	}
 	var acls structs.ACLPolicy
-	if err := client.Call("ACL.GetPolicy", &getR, &acls); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.GetPolicy", &getR, &acls); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -324,7 +373,7 @@ func TestACLEndpoint_GetPolicy(t *testing.T) {
 	// Do a conditional lookup with etag
 	getR.ETag = acls.ETag
 	var out2 structs.ACLPolicy
-	if err := client.Call("ACL.GetPolicy", &getR, &out2); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.GetPolicy", &getR, &out2); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -343,10 +392,10 @@ func TestACLEndpoint_List(t *testing.T) {
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	ids := []string{}
 	for i := 0; i < 5; i++ {
@@ -360,7 +409,7 @@ func TestACLEndpoint_List(t *testing.T) {
 			WriteRequest: structs.WriteRequest{Token: "root"},
 		}
 		var out string
-		if err := client.Call("ACL.Apply", &arg, &out); err != nil {
+		if err := msgpackrpc.CallWithCodec(codec, "ACL.Apply", &arg, &out); err != nil {
 			t.Fatalf("err: %v", err)
 		}
 		ids = append(ids, out)
@@ -371,7 +420,7 @@ func TestACLEndpoint_List(t *testing.T) {
 		QueryOptions: structs.QueryOptions{Token: "root"},
 	}
 	var acls structs.IndexedACLs
-	if err := client.Call("ACL.List", &getR, &acls); err != nil {
+	if err := msgpackrpc.CallWithCodec(codec, "ACL.List", &getR, &acls); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -388,7 +437,7 @@ func TestACLEndpoint_List(t *testing.T) {
 		if s.ID == anonymousToken || s.ID == "root" {
 			continue
 		}
-		if !strContains(ids, s.ID) {
+		if !lib.StrContains(ids, s.ID) {
 			t.Fatalf("bad: %v", s)
 		}
 		if s.Name != "User token" {
@@ -403,16 +452,16 @@ func TestACLEndpoint_List_Denied(t *testing.T) {
 	})
 	defer os.RemoveAll(dir1)
 	defer s1.Shutdown()
-	client := rpcClient(t, s1)
-	defer client.Close()
+	codec := rpcClient(t, s1)
+	defer codec.Close()
 
-	testutil.WaitForLeader(t, client.Call, "dc1")
+	testutil.WaitForLeader(t, s1.RPC, "dc1")
 
 	getR := structs.DCSpecificRequest{
 		Datacenter: "dc1",
 	}
 	var acls structs.IndexedACLs
-	err := client.Call("ACL.List", &getR, &acls)
+	err := msgpackrpc.CallWithCodec(codec, "ACL.List", &getR, &acls)
 	if err == nil || !strings.Contains(err.Error(), permissionDenied) {
 		t.Fatalf("err: %v", err)
 	}

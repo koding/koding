@@ -270,3 +270,22 @@ func (slas *softLayer_Account_Service) GetHardware() ([]datatypes.SoftLayer_Hard
 
 	return hardwares, nil
 }
+
+func (slas *softLayer_Account_Service) GetDnsDomains() ([]datatypes.SoftLayer_Dns_Domain, error) {
+	path := fmt.Sprintf("%s/%s", slas.GetName(), "getDomains.json")
+	responseBytes, err := slas.client.DoRawHttpRequest(path, "GET", &bytes.Buffer{})
+	if err != nil {
+		errorMessage := fmt.Sprintf("softlayer-go: could not SoftLayer_Account#getDomains, error message '%s'", err.Error())
+		return []datatypes.SoftLayer_Dns_Domain{}, errors.New(errorMessage)
+	}
+
+	domains := []datatypes.SoftLayer_Dns_Domain{}
+	err = json.Unmarshal(responseBytes, &domains)
+	if err != nil {
+		errorMessage := fmt.Sprintf("softlayer-go: failed to decode JSON response, err message '%s'", err.Error())
+		err := errors.New(errorMessage)
+		return []datatypes.SoftLayer_Dns_Domain{}, err
+	}
+
+	return domains, nil
+}

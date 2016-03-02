@@ -71,7 +71,7 @@ func TestConvertToString(t *testing.T) {
 		true,
 
 		[]int{-3, 4, -2},
-		map[int]float64{-2: 4.5, -3: 0.1},
+		map[int]float64{-2: 4.5},
 
 		new(bool),
 		float32(5.2),
@@ -104,7 +104,7 @@ func TestConvertToString(t *testing.T) {
 		"true",
 
 		"[-3, 4, -2]",
-		"{-2:4.5, -3:0.1}",
+		"{-2:4.5}",
 
 		"false",
 		"5.2",
@@ -156,28 +156,4 @@ func TestConvertToStringInvalidUintBase(t *testing.T) {
 	}
 
 	assertError(t, err, ErrMarshal, "strconv.ParseInt: parsing \"no\": invalid syntax")
-}
-
-func TestWrapText(t *testing.T) {
-	s := "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-
-	got := wrapText(s, 60, "      ")
-	expected := `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-      sed do eiusmod tempor incididunt ut labore et dolore magna
-      aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-      ullamco laboris nisi ut aliquip ex ea commodo consequat.
-      Duis aute irure dolor in reprehenderit in voluptate velit
-      esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-      occaecat cupidatat non proident, sunt in culpa qui officia
-      deserunt mollit anim id est laborum.`
-
-	if got != expected {
-		ret, err := helpDiff(got, expected)
-
-		if err != nil {
-			t.Errorf("Unexpected wrapped text, expected:\n\n%s\n\nbut got\n\n%s", expected, got)
-		} else {
-			t.Errorf("Unexpected wrapped text:\n\n%s", ret)
-		}
-	}
 }

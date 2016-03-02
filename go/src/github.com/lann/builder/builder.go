@@ -2,7 +2,7 @@
 package builder
 
 import (
-	"github.com/mndrix/ps"
+	"github.com/lann/ps"
 	"go/ast"
 	"reflect"
 )

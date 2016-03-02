@@ -11,38 +11,140 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"os/user"
 	"path"
 	"path/filepath"
 	"reflect"
+	"regexp"
+	"strconv"
 	"testing"
 	"testing/quick"
+	"time"
 
 	"github.com/kr/fs"
 )
 
 const (
-	READONLY  = true
-	READWRITE = false
+	READONLY                = true
+	READWRITE               = false
+	NO_DELAY  time.Duration = 0
 
 	debuglevel = "ERROR" // set to "DEBUG" for debugging
 )
 
+var testServerImpl = flag.Bool("testserver", false, "perform integration tests against sftp package server instance")
 var testIntegration = flag.Bool("integration", false, "perform integration tests against sftp server process")
+var testSftp = flag.String("sftp", sftpServer, "location of the sftp server binary")
+
+type delayedWrite struct {
+	t time.Time
+	b []byte
+}
+
+// delayedWriter wraps a writer and artificially delays the write. This is
+// meant to mimic connections with various latencies. Error's returned from the
+// underlying writer will panic so this should only be used over reliable
+// connections.
+type delayedWriter struct {
+	w      io.WriteCloser
+	ch     chan delayedWrite
+	closed chan struct{}
+}
+
+func newDelayedWriter(w io.WriteCloser, delay time.Duration) io.WriteCloser {
+	ch := make(chan delayedWrite, 128)
+	closed := make(chan struct{})
+	go func() {
+		for writeMsg := range ch {
+			time.Sleep(writeMsg.t.Add(delay).Sub(time.Now()))
+			n, err := w.Write(writeMsg.b)
+			if err != nil {
+				panic("write error")
+			}
+			if n < len(writeMsg.b) {
+				panic("showrt write")
+			}
+		}
+		w.Close()
+		close(closed)
+	}()
+	return delayedWriter{w: w, ch: ch, closed: closed}
+}
+
+func (w delayedWriter) Write(b []byte) (int, error) {
+	bcopy := make([]byte, len(b))
+	copy(bcopy, b)
+	w.ch <- delayedWrite{t: time.Now(), b: bcopy}
+	return len(b), nil
+}
+
+func (w delayedWriter) Close() error {
+	close(w.ch)
+	<-w.closed
+	return nil
+}
+
+func testClientGoSvr(t testing.TB, readonly bool, delay time.Duration) (*Client, *exec.Cmd) {
+	txPipeRd, txPipeWr, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rxPipeRd, rxPipeWr, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	options := []ServerOption{WithDebug(os.Stderr)}
+	if readonly {
+		options = append(options, ReadOnly())
+	}
+
+	server, err := NewServer(
+		txPipeRd,
+		rxPipeWr,
+		options...,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	go server.Serve()
+
+	var ctx io.WriteCloser = txPipeWr
+	if delay > NO_DELAY {
+		ctx = newDelayedWriter(ctx, delay)
+	}
+
+	client, err := NewClientPipe(rxPipeRd, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// dummy command...
+	return client, exec.Command("true")
+}
 
 // testClient returns a *Client connected to a localy running sftp-server
 // the *exec.Cmd returned must be defer Wait'd.
-func testClient(t *testing.T, readonly bool) (*Client, *exec.Cmd) {
+func testClient(t testing.TB, readonly bool, delay time.Duration) (*Client, *exec.Cmd) {
 	if !*testIntegration {
 		t.Skip("skipping intergration test")
 	}
-	cmd := exec.Command("/usr/lib/openssh/sftp-server", "-e", "-R", "-l", debuglevel) // log to stderr, read only
+
+	if *testServerImpl {
+		return testClientGoSvr(t, readonly, delay)
+	}
+
+	cmd := exec.Command(*testSftp, "-e", "-R", "-l", debuglevel) // log to stderr, read only
 	if !readonly {
-		cmd = exec.Command("/usr/lib/openssh/sftp-server", "-e", "-l", debuglevel) // log to stderr
+		cmd = exec.Command(*testSftp, "-e", "-l", debuglevel) // log to stderr
 	}
 	cmd.Stderr = os.Stdout
 	pw, err := cmd.StdinPipe()
 	if err != nil {
 		t.Fatal(err)
+	}
+	if delay > NO_DELAY {
+		pw = newDelayedWriter(pw, delay)
 	}
 	pr, err := cmd.StdoutPipe()
 	if err != nil {
@@ -51,23 +153,17 @@ func testClient(t *testing.T, readonly bool) (*Client, *exec.Cmd) {
 	if err := cmd.Start(); err != nil {
 		t.Skipf("could not start sftp-server process: %v", err)
 	}
-	sftp := &Client{
-		w: pw,
-		r: pr,
-	}
-	if err := sftp.sendInit(); err != nil {
-		defer cmd.Wait()
+
+	sftp, err := NewClientPipe(pr, pw)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := sftp.recvVersion(); err != nil {
-		defer cmd.Wait()
-		t.Fatal(err)
-	}
+
 	return sftp, cmd
 }
 
 func TestNewClient(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 
 	if err := sftp.Close(); err != nil {
@@ -76,7 +172,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClientLstat(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -101,8 +197,8 @@ func TestClientLstat(t *testing.T) {
 	}
 }
 
-func TestClientLstatMissing(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+func TestClientLstatIsNotExist(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -112,14 +208,31 @@ func TestClientLstatMissing(t *testing.T) {
 	}
 	os.Remove(f.Name())
 
-	_, err = sftp.Lstat(f.Name())
-	if err1, ok := err.(*StatusError); !ok || err1.Code != ssh_FX_NO_SUCH_FILE {
-		t.Fatalf("Lstat: want: %v, got %#v", ssh_FX_NO_SUCH_FILE, err)
+	if _, err := sftp.Lstat(f.Name()); !os.IsNotExist(err) {
+		t.Errorf("os.IsNotExist(%v) = false, want true", err)
+	}
+}
+
+func TestClientMkdir(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	dir, err := ioutil.TempDir("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sub := path.Join(dir, "mkdir1")
+	if err := sftp.Mkdir(sub); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Lstat(sub); err != nil {
+		t.Fatal(err)
 	}
 }
 
 func TestClientOpen(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -135,6 +248,26 @@ func TestClientOpen(t *testing.T) {
 	}
 	if err := got.Close(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestClientOpenIsNotExist(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	if _, err := sftp.Open("/doesnt/exist/"); !os.IsNotExist(err) {
+		t.Errorf("os.IsNotExist(%v) = false, want true", err)
+	}
+}
+
+func TestClientStatIsNotExist(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	if _, err := sftp.Stat("/doesnt/exist/"); !os.IsNotExist(err) {
+		t.Errorf("os.IsNotExist(%v) = false, want true", err)
 	}
 }
 
@@ -178,7 +311,7 @@ func (s seek) end(t *testing.T, r io.ReadSeeker) {
 }
 
 func TestClientSeek(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -222,7 +355,7 @@ func TestClientSeek(t *testing.T) {
 }
 
 func TestClientCreate(t *testing.T) {
-	sftp, cmd := testClient(t, READWRITE)
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -241,7 +374,7 @@ func TestClientCreate(t *testing.T) {
 }
 
 func TestClientAppend(t *testing.T) {
-	sftp, cmd := testClient(t, READWRITE)
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -260,7 +393,7 @@ func TestClientAppend(t *testing.T) {
 }
 
 func TestClientCreateFailed(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -280,8 +413,29 @@ func TestClientCreateFailed(t *testing.T) {
 	}
 }
 
+func TestClientFileName(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(f.Name())
+
+	f2, err := sftp.Open(f.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got, want := f2.Name(), f.Name(); got != want {
+		t.Fatalf("Name: got %q want %q", want, got)
+	}
+}
+
 func TestClientFileStat(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -312,7 +466,7 @@ func TestClientFileStat(t *testing.T) {
 }
 
 func TestClientRemove(t *testing.T) {
-	sftp, cmd := testClient(t, READWRITE)
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -328,8 +482,25 @@ func TestClientRemove(t *testing.T) {
 	}
 }
 
+func TestClientRemoveDir(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	dir, err := ioutil.TempDir("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sftp.Remove(dir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Lstat(dir); !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+}
+
 func TestClientRemoveFailed(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -346,7 +517,7 @@ func TestClientRemoveFailed(t *testing.T) {
 }
 
 func TestClientRename(t *testing.T) {
-	sftp, cmd := testClient(t, READWRITE)
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -366,9 +537,396 @@ func TestClientRename(t *testing.T) {
 	}
 }
 
+func TestClientGetwd(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	lwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rwd, err := sftp.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !path.IsAbs(rwd) {
+		t.Fatalf("Getwd: wanted absolute path, got %q", rwd)
+	}
+	if lwd != rwd {
+		t.Fatalf("Getwd: want %q, got %q", lwd, rwd)
+	}
+}
+
+func TestClientReadLink(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f2 := f.Name() + ".sym"
+	if err := os.Symlink(f.Name(), f2); err != nil {
+		t.Fatal(err)
+	}
+	if rl, err := sftp.ReadLink(f2); err != nil {
+		t.Fatal(err)
+	} else if rl != f.Name() {
+		t.Fatalf("unexpected link target: %v, not %v", rl, f.Name())
+	}
+}
+
+func TestClientSymlink(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f2 := f.Name() + ".sym"
+	if err := sftp.Symlink(f.Name(), f2); err != nil {
+		t.Fatal(err)
+	}
+	if rl, err := sftp.ReadLink(f2); err != nil {
+		t.Fatal(err)
+	} else if rl != f.Name() {
+		t.Fatalf("unexpected link target: %v, not %v", rl, f.Name())
+	}
+}
+
+func TestClientChmod(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sftp.Chmod(f.Name(), 0531); err != nil {
+		t.Fatal(err)
+	}
+	if stat, err := os.Stat(f.Name()); err != nil {
+		t.Fatal(err)
+	} else if stat.Mode()&os.ModePerm != 0531 {
+		t.Fatalf("invalid perm %o\n", stat.Mode())
+	}
+}
+
+func TestClientChmodReadonly(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sftp.Chmod(f.Name(), 0531); err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestClientChown(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	usr, err := user.Current()
+	if err != nil {
+		t.Fatal(err)
+	}
+	chownto, err := user.Lookup("daemon") // seems common-ish...
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if usr.Uid != "0" {
+		t.Log("must be root to run chown tests")
+		t.Skip()
+	}
+	toUID, err := strconv.Atoi(chownto.Uid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	toGID, err := strconv.Atoi(chownto.Gid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	before, err := exec.Command("ls", "-nl", f.Name()).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sftp.Chown(f.Name(), toUID, toGID); err != nil {
+		t.Fatal(err)
+	}
+	after, err := exec.Command("ls", "-nl", f.Name()).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	spaceRegex := regexp.MustCompile(`\s+`)
+
+	beforeWords := spaceRegex.Split(string(before), -1)
+	if beforeWords[2] != "0" {
+		t.Fatalf("bad previous user? should be root")
+	}
+	afterWords := spaceRegex.Split(string(after), -1)
+	if afterWords[2] != chownto.Uid || afterWords[3] != chownto.Gid {
+		t.Fatalf("bad chown: %#v", afterWords)
+	}
+	t.Logf("before: %v", string(before))
+	t.Logf(" after: %v", string(after))
+}
+
+func TestClientChownReadonly(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	usr, err := user.Current()
+	if err != nil {
+		t.Fatal(err)
+	}
+	chownto, err := user.Lookup("daemon") // seems common-ish...
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if usr.Uid != "0" {
+		t.Log("must be root to run chown tests")
+		t.Skip()
+	}
+	toUID, err := strconv.Atoi(chownto.Uid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	toGID, err := strconv.Atoi(chownto.Gid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sftp.Chown(f.Name(), toUID, toGID); err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestClientChtimes(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	atime := time.Date(2013, 2, 23, 13, 24, 35, 0, time.UTC)
+	mtime := time.Date(1985, 6, 12, 6, 6, 6, 0, time.UTC)
+	if err := sftp.Chtimes(f.Name(), atime, mtime); err != nil {
+		t.Fatal(err)
+	}
+	if stat, err := os.Stat(f.Name()); err != nil {
+		t.Fatal(err)
+	} else if stat.ModTime().Sub(mtime) != 0 {
+		t.Fatalf("incorrect mtime: %v vs %v", stat.ModTime(), mtime)
+	}
+}
+
+func TestClientChtimesReadonly(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	atime := time.Date(2013, 2, 23, 13, 24, 35, 0, time.UTC)
+	mtime := time.Date(1985, 6, 12, 6, 6, 6, 0, time.UTC)
+	if err := sftp.Chtimes(f.Name(), atime, mtime); err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestClientTruncate(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fname := f.Name()
+
+	if n, err := f.Write([]byte("hello world")); n != 11 || err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+
+	if err := sftp.Truncate(fname, 5); err != nil {
+		t.Fatal(err)
+	}
+	if stat, err := os.Stat(fname); err != nil {
+		t.Fatal(err)
+	} else if stat.Size() != 5 {
+		t.Fatalf("unexpected size: %d", stat.Size())
+	}
+}
+
+func TestClientTruncateReadonly(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fname := f.Name()
+
+	if n, err := f.Write([]byte("hello world")); n != 11 || err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+
+	if err := sftp.Truncate(fname, 5); err == nil {
+		t.Fatal("expected error")
+	}
+	if stat, err := os.Stat(fname); err != nil {
+		t.Fatal(err)
+	} else if stat.Size() != 11 {
+		t.Fatalf("unexpected size: %d", stat.Size())
+	}
+}
+
 func sameFile(want, got os.FileInfo) bool {
 	return want.Name() == got.Name() &&
 		want.Size() == got.Size()
+}
+
+func TestClientReadSimple(t *testing.T) {
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	d, err := ioutil.TempDir("", "sftptest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(d)
+
+	f, err := ioutil.TempFile(d, "read-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fname := f.Name()
+	f.Write([]byte("hello"))
+	f.Close()
+
+	f2, err := sftp.Open(fname)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f2.Close()
+	stuff := make([]byte, 32)
+	n, err := f2.Read(stuff)
+	if err != nil && err != io.EOF {
+		t.Fatalf("err: %v", err)
+	}
+	if n != 5 {
+		t.Fatalf("n should be 5, is %v", n)
+	}
+	if string(stuff[0:5]) != "hello" {
+		t.Fatalf("invalid contents")
+	}
+}
+
+func TestClientReadDir(t *testing.T) {
+	sftp1, cmd1 := testClient(t, READONLY, NO_DELAY)
+	sftp2, cmd2 := testClientGoSvr(t, READONLY, NO_DELAY)
+	defer cmd1.Wait()
+	defer cmd2.Wait()
+	defer sftp1.Close()
+	defer sftp2.Close()
+
+	dir := "/dev/"
+
+	d, err := os.Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	osfiles, err := d.Readdir(4096)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sftp1Files, err := sftp1.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sftp2Files, err := sftp2.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	osFilesByName := map[string]os.FileInfo{}
+	for _, f := range osfiles {
+		osFilesByName[f.Name()] = f
+	}
+	sftp1FilesByName := map[string]os.FileInfo{}
+	for _, f := range sftp1Files {
+		sftp1FilesByName[f.Name()] = f
+	}
+	sftp2FilesByName := map[string]os.FileInfo{}
+	for _, f := range sftp2Files {
+		sftp2FilesByName[f.Name()] = f
+	}
+
+	if len(osFilesByName) != len(sftp1FilesByName) || len(sftp1FilesByName) != len(sftp2FilesByName) {
+		t.Fatalf("os gives %v, sftp1 gives %v, sftp2 gives %v", len(osFilesByName), len(sftp1FilesByName), len(sftp2FilesByName))
+	}
+
+	for name, osF := range osFilesByName {
+		sftp1F, ok := sftp1FilesByName[name]
+		if !ok {
+			t.Fatalf("%v present in os but not sftp1", name)
+		}
+		sftp2F, ok := sftp2FilesByName[name]
+		if !ok {
+			t.Fatalf("%v present in os but not sftp2", name)
+		}
+
+		//t.Logf("%v: %v %v %v", name, osF, sftp1F, sftp2F)
+		if osF.Size() != sftp1F.Size() || sftp1F.Size() != sftp2F.Size() {
+			t.Fatalf("size %v %v %v", osF.Size(), sftp1F.Size(), sftp2F.Size())
+		}
+		if osF.IsDir() != sftp1F.IsDir() || sftp1F.IsDir() != sftp2F.IsDir() {
+			t.Fatalf("isdir %v %v %v", osF.IsDir(), sftp1F.IsDir(), sftp2F.IsDir())
+		}
+		if osF.ModTime().Sub(sftp1F.ModTime()) > time.Second || sftp1F.ModTime() != sftp2F.ModTime() {
+			t.Fatalf("modtime %v %v %v", osF.ModTime(), sftp1F.ModTime(), sftp2F.ModTime())
+		}
+		if osF.Mode() != sftp1F.Mode() || sftp1F.Mode() != sftp2F.Mode() {
+			t.Fatalf("mode %x %x %x", osF.Mode(), sftp1F.Mode(), sftp2F.Mode())
+		}
+	}
 }
 
 var clientReadTests = []struct {
@@ -393,7 +951,7 @@ var clientReadTests = []struct {
 }
 
 func TestClientRead(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -481,7 +1039,7 @@ var clientWriteTests = []struct {
 }
 
 func TestClientWrite(t *testing.T) {
-	sftp, cmd := testClient(t, READWRITE)
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
@@ -608,21 +1166,21 @@ func mark(path string, info os.FileInfo, err error, errors *[]error, clear bool)
 }
 
 func TestClientWalk(t *testing.T) {
-	sftp, cmd := testClient(t, READONLY)
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
 	defer cmd.Wait()
 	defer sftp.Close()
 
 	makeTree(t)
 	errors := make([]error, 0, 10)
 	clear := true
-	markFn := func(walker *fs.Walker) (err error) {
+	markFn := func(walker *fs.Walker) error {
 		for walker.Step() {
-			err = mark(walker.Path(), walker.Stat(), walker.Err(), &errors, clear)
+			err := mark(walker.Path(), walker.Stat(), walker.Err(), &errors, clear)
 			if err != nil {
-				break
+				return err
 			}
 		}
-		return err
+		return nil
 	}
 	// Expect no errors.
 	err := markFn(sftp.Walk(tree.name))
@@ -689,4 +1247,370 @@ func TestClientWalk(t *testing.T) {
 	if err := os.RemoveAll(tree.name); err != nil {
 		t.Errorf("removeTree: %v", err)
 	}
+}
+
+// sftp/issue/42, abrupt server hangup would result in client hangs.
+func TestServerRoughDisconnect(t *testing.T) {
+	if *testServerImpl {
+		t.Skipf("skipping with -testserver")
+	}
+	sftp, cmd := testClient(t, READONLY, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := sftp.Open("/dev/zero")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		cmd.Process.Kill()
+	}()
+
+	io.Copy(ioutil.Discard, f)
+}
+
+// sftp/issue/26 writing to a read only file caused client to loop.
+func TestClientWriteToROFile(t *testing.T) {
+	sftp, cmd := testClient(t, READWRITE, NO_DELAY)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	f, err := sftp.Open("/dev/zero")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	_, err = f.Write([]byte("hello"))
+	if err == nil {
+		t.Fatal("expected error, got", err)
+	}
+}
+
+func benchmarkRead(b *testing.B, bufsize int, delay time.Duration) {
+	size := 10*1024*1024 + 123 // ~10MiB
+
+	// open sftp client
+	sftp, cmd := testClient(b, READONLY, delay)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	buf := make([]byte, bufsize)
+
+	b.ResetTimer()
+	b.SetBytes(int64(size))
+
+	for i := 0; i < b.N; i++ {
+		offset := 0
+
+		f2, err := sftp.Open("/dev/zero")
+		if err != nil {
+			b.Fatal(err)
+		}
+		defer f2.Close()
+
+		for offset < size {
+			n, err := io.ReadFull(f2, buf)
+			offset += n
+			if err == io.ErrUnexpectedEOF && offset != size {
+				b.Fatalf("read too few bytes! want: %d, got: %d", size, n)
+			}
+
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			offset += n
+		}
+	}
+}
+
+func BenchmarkRead1k(b *testing.B) {
+	benchmarkRead(b, 1*1024, NO_DELAY)
+}
+
+func BenchmarkRead16k(b *testing.B) {
+	benchmarkRead(b, 16*1024, NO_DELAY)
+}
+
+func BenchmarkRead32k(b *testing.B) {
+	benchmarkRead(b, 32*1024, NO_DELAY)
+}
+
+func BenchmarkRead128k(b *testing.B) {
+	benchmarkRead(b, 128*1024, NO_DELAY)
+}
+
+func BenchmarkRead512k(b *testing.B) {
+	benchmarkRead(b, 512*1024, NO_DELAY)
+}
+
+func BenchmarkRead1MiB(b *testing.B) {
+	benchmarkRead(b, 1024*1024, NO_DELAY)
+}
+
+func BenchmarkRead4MiB(b *testing.B) {
+	benchmarkRead(b, 4*1024*1024, NO_DELAY)
+}
+
+func BenchmarkRead4MiBDelay10Msec(b *testing.B) {
+	benchmarkRead(b, 4*1024*1024, 10*time.Millisecond)
+}
+
+func BenchmarkRead4MiBDelay50Msec(b *testing.B) {
+	benchmarkRead(b, 4*1024*1024, 50*time.Millisecond)
+}
+
+func BenchmarkRead4MiBDelay150Msec(b *testing.B) {
+	benchmarkRead(b, 4*1024*1024, 150*time.Millisecond)
+}
+
+func benchmarkWrite(b *testing.B, bufsize int, delay time.Duration) {
+	size := 10*1024*1024 + 123 // ~10MiB
+
+	// open sftp client
+	sftp, cmd := testClient(b, false, delay)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	data := make([]byte, size)
+
+	b.ResetTimer()
+	b.SetBytes(int64(size))
+
+	for i := 0; i < b.N; i++ {
+		offset := 0
+
+		f, err := ioutil.TempFile("", "sftptest")
+		if err != nil {
+			b.Fatal(err)
+		}
+		defer os.Remove(f.Name())
+
+		f2, err := sftp.Create(f.Name())
+		if err != nil {
+			b.Fatal(err)
+		}
+		defer f2.Close()
+
+		for offset < size {
+			n, err := f2.Write(data[offset:min(len(data), offset+bufsize)])
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			if offset+n < size && n != bufsize {
+				b.Fatalf("wrote too few bytes! want: %d, got: %d", size, n)
+			}
+
+			offset += n
+		}
+
+		f2.Close()
+
+		fi, err := os.Stat(f.Name())
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		if fi.Size() != int64(size) {
+			b.Fatalf("wrong file size: want %d, got %d", size, fi.Size())
+		}
+
+		os.Remove(f.Name())
+	}
+}
+
+func BenchmarkWrite1k(b *testing.B) {
+	benchmarkWrite(b, 1*1024, NO_DELAY)
+}
+
+func BenchmarkWrite16k(b *testing.B) {
+	benchmarkWrite(b, 16*1024, NO_DELAY)
+}
+
+func BenchmarkWrite32k(b *testing.B) {
+	benchmarkWrite(b, 32*1024, NO_DELAY)
+}
+
+func BenchmarkWrite128k(b *testing.B) {
+	benchmarkWrite(b, 128*1024, NO_DELAY)
+}
+
+func BenchmarkWrite512k(b *testing.B) {
+	benchmarkWrite(b, 512*1024, NO_DELAY)
+}
+
+func BenchmarkWrite1MiB(b *testing.B) {
+	benchmarkWrite(b, 1024*1024, NO_DELAY)
+}
+
+func BenchmarkWrite4MiB(b *testing.B) {
+	benchmarkWrite(b, 4*1024*1024, NO_DELAY)
+}
+
+func BenchmarkWrite4MiBDelay10Msec(b *testing.B) {
+	benchmarkWrite(b, 4*1024*1024, 10*time.Millisecond)
+}
+
+func BenchmarkWrite4MiBDelay50Msec(b *testing.B) {
+	benchmarkWrite(b, 4*1024*1024, 50*time.Millisecond)
+}
+
+func BenchmarkWrite4MiBDelay150Msec(b *testing.B) {
+	benchmarkWrite(b, 4*1024*1024, 150*time.Millisecond)
+}
+
+func benchmarkCopyDown(b *testing.B, fileSize int64, delay time.Duration) {
+	// Create a temp file and fill it with zero's.
+	src, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer src.Close()
+	srcFilename := src.Name()
+	defer os.Remove(srcFilename)
+	zero, err := os.Open("/dev/zero")
+	if err != nil {
+		b.Fatal(err)
+	}
+	n, err := io.Copy(src, io.LimitReader(zero, fileSize))
+	if err != nil {
+		b.Fatal(err)
+	}
+	if n < fileSize {
+		b.Fatal("short copy")
+	}
+	zero.Close()
+	src.Close()
+
+	sftp, cmd := testClient(b, READONLY, delay)
+	defer cmd.Wait()
+	defer sftp.Close()
+	b.ResetTimer()
+	b.SetBytes(fileSize)
+
+	for i := 0; i < b.N; i++ {
+		dst, err := ioutil.TempFile("", "sftptest")
+		if err != nil {
+			b.Fatal(err)
+		}
+		defer os.Remove(dst.Name())
+
+		src, err := sftp.Open(srcFilename)
+		if err != nil {
+			b.Fatal(err)
+		}
+		defer src.Close()
+		n, err := io.Copy(dst, src)
+		if err != nil {
+			b.Fatalf("copy error: %v", err)
+		}
+		if n < fileSize {
+			b.Fatal("unable to copy all bytes")
+		}
+		dst.Close()
+		fi, err := os.Stat(dst.Name())
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		if fi.Size() != fileSize {
+			b.Fatalf("wrong file size: want %d, got %d", fileSize, fi.Size())
+		}
+		os.Remove(dst.Name())
+	}
+}
+
+func BenchmarkCopyDown10MiBDelay10Msec(b *testing.B) {
+	benchmarkCopyDown(b, 10*1024*1024, 10*time.Millisecond)
+}
+
+func BenchmarkCopyDown10MiBDelay50Msec(b *testing.B) {
+	benchmarkCopyDown(b, 10*1024*1024, 50*time.Millisecond)
+}
+
+func BenchmarkCopyDown10MiBDelay150Msec(b *testing.B) {
+	benchmarkCopyDown(b, 10*1024*1024, 150*time.Millisecond)
+}
+
+func benchmarkCopyUp(b *testing.B, fileSize int64, delay time.Duration) {
+	// Create a temp file and fill it with zero's.
+	src, err := ioutil.TempFile("", "sftptest")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer src.Close()
+	srcFilename := src.Name()
+	defer os.Remove(srcFilename)
+	zero, err := os.Open("/dev/zero")
+	if err != nil {
+		b.Fatal(err)
+	}
+	n, err := io.Copy(src, io.LimitReader(zero, fileSize))
+	if err != nil {
+		b.Fatal(err)
+	}
+	if n < fileSize {
+		b.Fatal("short copy")
+	}
+	zero.Close()
+	src.Close()
+
+	sftp, cmd := testClient(b, false, delay)
+	defer cmd.Wait()
+	defer sftp.Close()
+
+	b.ResetTimer()
+	b.SetBytes(fileSize)
+
+	for i := 0; i < b.N; i++ {
+		tmp, err := ioutil.TempFile("", "sftptest")
+		if err != nil {
+			b.Fatal(err)
+		}
+		tmp.Close()
+		defer os.Remove(tmp.Name())
+
+		dst, err := sftp.Create(tmp.Name())
+		if err != nil {
+			b.Fatal(err)
+		}
+		defer dst.Close()
+		src, err := os.Open(srcFilename)
+		if err != nil {
+			b.Fatal(err)
+		}
+		defer src.Close()
+		n, err := io.Copy(dst, src)
+		if err != nil {
+			b.Fatalf("copy error: %v", err)
+		}
+		if n < fileSize {
+			b.Fatal("unable to copy all bytes")
+		}
+
+		fi, err := os.Stat(tmp.Name())
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		if fi.Size() != fileSize {
+			b.Fatalf("wrong file size: want %d, got %d", fileSize, fi.Size())
+		}
+		os.Remove(tmp.Name())
+	}
+}
+
+func BenchmarkCopyUp10MiBDelay10Msec(b *testing.B) {
+	benchmarkCopyUp(b, 10*1024*1024, 10*time.Millisecond)
+}
+
+func BenchmarkCopyUp10MiBDelay50Msec(b *testing.B) {
+	benchmarkCopyUp(b, 10*1024*1024, 50*time.Millisecond)
+}
+
+func BenchmarkCopyUp10MiBDelay150Msec(b *testing.B) {
+	benchmarkCopyUp(b, 10*1024*1024, 150*time.Millisecond)
 }
