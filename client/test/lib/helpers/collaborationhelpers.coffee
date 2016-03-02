@@ -94,23 +94,25 @@ module.exports =
 
     @isSessionActive browser, (isActive) =>
 
-      if isActive then browser.end()
-      else
-        @startSession browser, readOnlySession
+      if isActive
+        @endSessionFromStatusBar(browser)
+        browser.pause 5000
 
-        browser
-          .waitForElementVisible  startedButtonSelector, 50000
-          .assert.containsText    startedButtonSelector, 'END COLLABORATION' # Assertion
-          .getText                collabLink, (result) ->
-            console.log ' ✔ Collaboration link is ', result.value
-            browser.writeCollabLink result.value, ->
-              browser.waitForElementVisible secondUserAvatar, 60000
+      @startSession browser, readOnlySession
 
-              if assertOnline
-                browser.waitForElementVisible secondUserOnlineAvatar, 50000 # Assertion
+      browser
+        .waitForElementVisible  startedButtonSelector, 50000
+        .assert.containsText    startedButtonSelector, 'END COLLABORATION' # Assertion
+        .getText                collabLink, (result) ->
+          console.log ' ✔ Collaboration link is ', result.value
+          browser.writeCollabLink result.value, ->
+            browser.waitForElementVisible secondUserAvatar, 60000
+
+            if assertOnline
+              browser.waitForElementVisible secondUserOnlineAvatar, 50000 # Assertion
 
 
-  joinSession: (browser, firstUser, secondUser, join = yes) ->
+  joinSession: (browser, firstUser, secondUser) ->
 
     firstUserName    = firstUser.username
     secondUserName   = secondUser.username
@@ -136,24 +138,21 @@ module.exports =
         if result.status is 0
           return browser.end()
 
-        if join
-          browser
-            .pause                     5000 # sidebar redraw
-            .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
-            .waitForElementVisible     fullName, 50000
-            .assert.containsText       shareModal, firstUserName
-            .waitForElementVisible     acceptButton, 50000
-            .waitForElementVisible     rejectButton, 50000
-            .click                     acceptButton
-            .waitForElementNotPresent  shareModal, 50000
-            .pause                     3000 # wait for sidebar redraw
-            .waitForElementVisible     selectedMachine, 50000
-            .waitForElementNotPresent  sessionLoading, 50000
-            .assert.containsText       filetree, firstUserName
-            .waitForElementVisible     shareButtonSelector, 50000
-            .assert.containsText       shareButtonSelector, 'LEAVE SESSION' # Assertion
-        else
-          @rejectInvitation(browser)
+        browser
+          .pause                     5000 # sidebar redraw
+          .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
+          .waitForElementVisible     fullName, 50000
+          .assert.containsText       shareModal, firstUserName
+          .waitForElementVisible     acceptButton, 50000
+          .waitForElementVisible     rejectButton, 50000
+          .click                     acceptButton
+          .waitForElementNotPresent  shareModal, 50000
+          .pause                     3000 # wait for sidebar redraw
+          .waitForElementVisible     selectedMachine, 50000
+          .waitForElementNotPresent  sessionLoading, 50000
+          .assert.containsText       filetree, firstUserName
+          .waitForElementVisible     shareButtonSelector, 50000
+          .assert.containsText       shareButtonSelector, 'LEAVE SESSION' # Assertion
 
 
   waitParticipantLeaveAndEndSession: (browser) ->
@@ -179,7 +178,7 @@ module.exports =
       # assert that no shared vm on sidebar
 
 
-  initiateCollaborationSession: (browser, join = yes) ->
+  initiateCollaborationSession: (browser) ->
 
     host        = utils.getUser no, 0
     participant = utils.getUser no, 1
@@ -193,7 +192,7 @@ module.exports =
     if hostBrowser
       @startSessionAndInviteUser browser, host, participant
     else
-      @joinSession browser, host, participant, join
+      @joinSession browser, host, participant
 
 
   rejectInvitation: (browser) ->
