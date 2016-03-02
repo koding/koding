@@ -83,7 +83,7 @@ module.exports = class DefineStackView extends KDView
       stackTemplate
     }
     @tabView.addPane variablesPane     = new KDTabPaneView
-      name : 'Private Variables'
+      name : 'Custom Variables'
       view : @variablesView
 
     @readmeView                        = new ReadmeView { stackTemplate }

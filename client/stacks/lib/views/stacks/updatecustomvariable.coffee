@@ -7,7 +7,7 @@ shareWithGroup = (credential, callback) ->
   # group, so anyone in this group can reach these custom variables ~ GG
   { slug } = kd.singletons.groupsController.getCurrentGroup()
 
-  credential.shareWith { target: slug }, (err) ->
+  credential.shareWith { target: slug, role: 'admin', mode: 'w' }, (err) ->
     console.warn 'Failed to share credential:', err  if err
     callback err
 
