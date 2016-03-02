@@ -374,8 +374,12 @@ module.exports = class JCredential extends jraphical.Module
   clone: permit
 
     advanced: [
-      # { permission: 'modify credential' }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'update credential'
+        validateWith : Validators.group.resource mode: 'w'
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: (client, callback) ->
