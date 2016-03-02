@@ -35,7 +35,6 @@ module.exports =
 
     if hostBrowser
       collaborationHelpers.startSessionAndInviteUser(browser, host, participant, yes, yes)
-      collaborationHelpers.closeChatPage(browser)
 
       helpers.createFile(browser, host, null, null, fileName)
       ideHelpers.openFile(browser, host, fileName)
@@ -45,7 +44,6 @@ module.exports =
       browser.end()
     else
       collaborationHelpers.joinSession(browser, host, participant)
-      collaborationHelpers.closeChatPage(browser)
 
       browser
         .waitForElementPresent tabSelector, 50000 # Assertion
@@ -77,13 +75,11 @@ module.exports =
       terminalHelpers.openTerminal(browser)
 
       collaborationHelpers.startSessionAndInviteUser_(browser, host, participant, yes)
-      collaborationHelpers.closeChatPage(browser)
 
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
     else
       collaborationHelpers.joinSession(browser, host, participant)
-      collaborationHelpers.closeChatPage(browser)
 
       browser
         .waitForElementVisible  '.kdtabhandle.indexhtml', 50000
