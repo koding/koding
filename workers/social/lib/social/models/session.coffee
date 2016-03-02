@@ -139,4 +139,9 @@ module.exports = class JSession extends Model
 
   remove$: secure (client, callback) ->
 
-    @remove callback
+    { sessionToken } = client
+
+    JSession.one { clientId : sessionToken }, (err, session) =>
+      return callback err  if err
+      return callback new KodingError 'Invalid session.'  unless session
+      @remove callback
