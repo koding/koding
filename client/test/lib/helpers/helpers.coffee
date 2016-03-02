@@ -488,7 +488,7 @@ module.exports =
       .setValue                'input[name=cardName]', name
 
 
-  submitForm: (browser, validCardDetails = yes) ->
+  submitForm: (browser, validCardDetails = yes, remainOnFirstPage = no) ->
 
     upgradePlanButton = '.kdmodal-inner .green:not(.paypal)'
     planType          = 'developer'
@@ -500,9 +500,12 @@ module.exports =
         .waitForElementVisible   '.kdmodal-content .success-msg', 20000
         .click                   'button.submit-btn'
         .waitForElementVisible   '[testpath=main-sidebar]', 20000
-        .url                     "#{@getUrl()}/Pricing"
-        .waitForElementVisible   '.content-page.pricing', 20000
-        .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
+        
+        if not remainOnFirstPage
+          browser
+            .url                     "#{@getUrl()}/Pricing"
+            .waitForElementVisible   '.content-page.pricing', 20000
+            .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
     else
       browser
         .pause  3000
