@@ -1,38 +1,43 @@
 package analytics
 
-import "github.com/jehiah/go-strftime"
-import "github.com/xtgo/uuid"
-import "encoding/json"
-import "net/http"
-import "errors"
-import "bytes"
-import "time"
-import "log"
+import (
+	"io/ioutil"
+	"os"
+	"sync"
+
+	"bytes"
+	"encoding/json"
+	"errors"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/jehiah/go-strftime"
+	"github.com/segmentio/backo-go"
+	"github.com/xtgo/uuid"
+)
 
 // Version of the client.
-var version = "2.0.0"
+const Version = "2.1.0"
 
 // Endpoint for the Segment API.
-var Endpoint = "https://api.segment.io"
+const Endpoint = "https://api.segment.io"
 
 // DefaultContext of message batches.
 var DefaultContext = map[string]interface{}{
 	"library": map[string]interface{}{
 		"name":    "analytics-go",
-		"version": version,
+		"version": Version,
 	},
 }
+
+// Backoff policy.
+var Backo = backo.DefaultBacko()
 
 // Message interface.
 type message interface {
 	setMessageId(string)
 	setTimestamp(string)
-}
-
-// Response from API.
-type response struct {
-	Message string `json:"message"`
-	Code    string `json:"code"`
 }
 
 // Message fields common to all.
@@ -52,41 +57,45 @@ type Batch struct {
 
 // Identify message.
 type Identify struct {
-	Context     map[string]interface{} `json:"context,omitempty"`
-	Traits      map[string]interface{} `json:"traits,omitempty"`
-	AnonymousId string                 `json:"anonymousId,omitempty"`
-	UserId      string                 `json:"userId,omitempty"`
+	Context      map[string]interface{} `json:"context,omitempty"`
+	Integrations map[string]interface{} `json:"integrations,omitempty"`
+	Traits       map[string]interface{} `json:"traits,omitempty"`
+	AnonymousId  string                 `json:"anonymousId,omitempty"`
+	UserId       string                 `json:"userId,omitempty"`
 	Message
 }
 
 // Group message.
 type Group struct {
-	Context     map[string]interface{} `json:"context,omitempty"`
-	Traits      map[string]interface{} `json:"traits,omitempty"`
-	AnonymousId string                 `json:"anonymousId,omitempty"`
-	UserId      string                 `json:"userId,omitempty"`
-	GroupId     string                 `json:"groupId"`
+	Context      map[string]interface{} `json:"context,omitempty"`
+	Integrations map[string]interface{} `json:"integrations,omitempty"`
+	Traits       map[string]interface{} `json:"traits,omitempty"`
+	AnonymousId  string                 `json:"anonymousId,omitempty"`
+	UserId       string                 `json:"userId,omitempty"`
+	GroupId      string                 `json:"groupId"`
 	Message
 }
 
 // Track message.
 type Track struct {
-	Context     map[string]interface{} `json:"context,omitempty"`
-	Properties  map[string]interface{} `json:"properties,omitempty"`
-	AnonymousId string                 `json:"anonymousId,omitempty"`
-	UserId      string                 `json:"userId,omitempty"`
-	Event       string                 `json:"event"`
+	Context      map[string]interface{} `json:"context,omitempty"`
+	Integrations map[string]interface{} `json:"integrations,omitempty"`
+	Properties   map[string]interface{} `json:"properties,omitempty"`
+	AnonymousId  string                 `json:"anonymousId,omitempty"`
+	UserId       string                 `json:"userId,omitempty"`
+	Event        string                 `json:"event"`
 	Message
 }
 
 // Page message.
 type Page struct {
-	Context     map[string]interface{} `json:"context,omitempty"`
-	Traits      map[string]interface{} `json:"properties,omitempty"`
-	AnonymousId string                 `json:"anonymousId,omitempty"`
-	UserId      string                 `json:"userId,omitempty"`
-	Category    string                 `json:"category,omitempty"`
-	Name        string                 `json:"name,omitempty"`
+	Context      map[string]interface{} `json:"context,omitempty"`
+	Integrations map[string]interface{} `json:"integrations,omitempty"`
+	Traits       map[string]interface{} `json:"properties,omitempty"`
+	AnonymousId  string                 `json:"anonymousId,omitempty"`
+	UserId       string                 `json:"userId,omitempty"`
+	Category     string                 `json:"category,omitempty"`
+	Name         string                 `json:"name,omitempty"`
 	Message
 }
 
@@ -102,31 +111,38 @@ type Alias struct {
 // logging output.
 type Client struct {
 	Endpoint string
+	// Interval represents the duration at which messages are flushed. It may be
+	// configured only before any messages are enqueued.
 	Interval time.Duration
-	Verbose  bool
 	Size     int
+	Logger   *log.Logger
+	Verbose  bool
+	Client   http.Client
 	key      string
 	msgs     chan interface{}
-	quit     chan bool
-
-	uid func() string
-	now func() time.Time
+	quit     chan struct{}
+	shutdown chan struct{}
+	uid      func() string
+	now      func() time.Time
+	once     sync.Once
 }
 
 // New client with write key.
 func New(key string) *Client {
 	c := &Client{
-		msgs:     make(chan interface{}, 100),
-		quit:     make(chan bool),
-		Interval: 5 * time.Second,
 		Endpoint: Endpoint,
+		Interval: 5 * time.Second,
 		Size:     250,
+		Logger:   log.New(os.Stderr, "segment ", log.LstdFlags),
+		Verbose:  false,
+		Client:   *http.DefaultClient,
 		key:      key,
+		msgs:     make(chan interface{}, 100),
+		quit:     make(chan struct{}),
+		shutdown: make(chan struct{}),
 		now:      time.Now,
 		uid:      uid,
 	}
-
-	go c.loop()
 
 	return c
 }
@@ -203,8 +219,13 @@ func (c *Client) Track(msg *Track) error {
 	return nil
 }
 
+func (c *Client) startLoop() {
+	go c.loop()
+}
+
 // Queue message.
 func (c *Client) queue(msg message) {
+	c.once.Do(c.startLoop)
 	msg.setMessageId(c.uid())
 	msg.setTimestamp(timestamp(c.now()))
 	c.msgs <- msg
@@ -212,14 +233,18 @@ func (c *Client) queue(msg message) {
 
 // Close and flush metrics.
 func (c *Client) Close() error {
-	c.quit <- true
+	c.quit <- struct{}{}
 	close(c.msgs)
-	<-c.quit
+	<-c.shutdown
 	return nil
 }
 
 // Send batch request.
 func (c *Client) send(msgs []interface{}) {
+	if len(msgs) == 0 {
+		return
+	}
+
 	batch := new(Batch)
 	batch.Messages = msgs
 	batch.MessageId = c.uid()
@@ -232,26 +257,38 @@ func (c *Client) send(msgs []interface{}) {
 		return
 	}
 
+	for i := 0; i < 10; i++ {
+		if err := c.upload(b); err == nil {
+			break
+		}
+		Backo.Sleep(i)
+	}
+}
+
+// Upload serialized batch message.
+func (c *Client) upload(b []byte) error {
 	url := c.Endpoint + "/v1/batch"
 	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
 	if err != nil {
 		c.log("error creating request: %s", err)
-		return
+		return err
 	}
 
-	req.Header.Add("User-Agent", "analytics-go (version: "+version+")")
+	req.Header.Add("User-Agent", "analytics-go (version: "+Version+")")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Content-Length", string(len(b)))
 	req.SetBasicAuth(c.key, "")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := c.Client.Do(req)
 	if err != nil {
 		c.log("error sending request: %s", err)
-		return
+		return err
 	}
 	defer res.Body.Close()
 
 	c.report(res)
+
+	return nil
 }
 
 // Report on response body.
@@ -261,14 +298,14 @@ func (c *Client) report(res *http.Response) {
 		return
 	}
 
-	msg := new(response)
-	err := json.NewDecoder(res.Body).Decode(msg)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		c.log("error reading response: %s", err)
+		c.log("error reading response body: %s", err)
 		return
 	}
 
-	c.log("response %s: %s – %s", res.Status, msg.Code, msg.Message)
+	c.log("response %s: %s – %s", res.Status, res.StatusCode, body)
 }
 
 // Batch loop.
@@ -295,10 +332,17 @@ func (c *Client) loop() {
 				c.verbose("interval reached – nothing to send")
 			}
 		case <-c.quit:
+			tick.Stop()
+			c.verbose("exit requested – draining msgs")
+			// drain the msg channel.
+			for msg := range c.msgs {
+				c.verbose("buffer (%d/%d) %v", len(msgs), c.Size, msg)
+				msgs = append(msgs, msg)
+			}
 			c.verbose("exit requested – flushing %d", len(msgs))
 			c.send(msgs)
 			c.verbose("exit")
-			c.quit <- true
+			c.shutdown <- struct{}{}
 			return
 		}
 	}
@@ -307,18 +351,20 @@ func (c *Client) loop() {
 // Verbose log.
 func (c *Client) verbose(msg string, args ...interface{}) {
 	if c.Verbose {
-		log.Printf("segment: "+msg, args...)
+		c.Logger.Printf(msg, args...)
 	}
 }
 
 // Unconditional log.
 func (c *Client) log(msg string, args ...interface{}) {
-	log.Printf("segment: "+msg, args...)
+	c.Logger.Printf(msg, args...)
 }
 
-// Set message timestamp.
+// Set message timestamp if one is not already set.
 func (m *Message) setTimestamp(s string) {
-	m.Timestamp = s
+	if m.Timestamp == "" {
+		m.Timestamp = s
+	}
 }
 
 // Set message id.

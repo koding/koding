@@ -1,6 +1,11 @@
 package servers
 
 import (
+	"crypto/rsa"
+	"encoding/base64"
+	"fmt"
+	"net/url"
+	"path"
 	"reflect"
 
 	"github.com/mitchellh/mapstructure"
@@ -72,6 +77,69 @@ type ActionResult struct {
 // RescueResult represents the result of a server rescue operation
 type RescueResult struct {
 	ActionResult
+}
+
+// CreateImageResult represents the result of an image creation operation
+type CreateImageResult struct {
+	gophercloud.Result
+}
+
+// GetPasswordResult represent the result of a get os-server-password operation.
+type GetPasswordResult struct {
+	gophercloud.Result
+}
+
+// ExtractPassword gets the encrypted password.
+// If privateKey != nil the password is decrypted with the private key.
+// If privateKey == nil the encrypted password is returned and can be decrypted with:
+//   echo '<pwd>' | base64 -D | openssl rsautl -decrypt -inkey <private_key>
+func (r GetPasswordResult) ExtractPassword(privateKey *rsa.PrivateKey) (string, error) {
+
+	if r.Err != nil {
+		return "", r.Err
+	}
+
+	var response struct {
+		Password string `mapstructure:"password"`
+	}
+
+	err := mapstructure.Decode(r.Body, &response)
+	if err == nil && privateKey != nil && response.Password != "" {
+		return decryptPassword(response.Password, privateKey)
+	}
+	return response.Password, err
+}
+
+func decryptPassword(encryptedPassword string, privateKey *rsa.PrivateKey) (string, error) {
+	b64EncryptedPassword := make([]byte, base64.StdEncoding.DecodedLen(len(encryptedPassword)))
+
+	n, err := base64.StdEncoding.Decode(b64EncryptedPassword, []byte(encryptedPassword))
+	if err != nil {
+		return "", fmt.Errorf("Failed to base64 decode encrypted password: %s", err)
+	}
+	password, err := rsa.DecryptPKCS1v15(nil, privateKey, b64EncryptedPassword[0:n])
+	if err != nil {
+		return "", fmt.Errorf("Failed to decrypt password: %s", err)
+	}
+
+	return string(password), nil
+}
+
+// ExtractImageID gets the ID of the newly created server image from the header
+func (res CreateImageResult) ExtractImageID() (string, error) {
+	if res.Err != nil {
+		return "", res.Err
+	}
+	// Get the image id from the header
+	u, err := url.ParseRequestURI(res.Header.Get("Location"))
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse the image id: %s", err.Error())
+	}
+	imageId := path.Base(u.Path)
+	if imageId == "." || imageId == "/" {
+		return "", fmt.Errorf("Failed to parse the ID of newly created image: %s", u)
+	}
+	return imageId, nil
 }
 
 // Extract interprets any RescueResult as an AdminPass, if possible.

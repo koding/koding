@@ -85,9 +85,9 @@ type RequestOpts struct {
 	// content type of the request will default to "application/json" unless overridden by MoreHeaders.
 	// It's an error to specify both a JSONBody and a RawBody.
 	JSONBody interface{}
-	// RawBody contains an io.Reader that will be consumed by the request directly. No content-type
+	// RawBody contains an io.ReadSeeker that will be consumed by the request directly. No content-type
 	// will be set unless one is provided explicitly by MoreHeaders.
-	RawBody io.Reader
+	RawBody io.ReadSeeker
 
 	// JSONResponse, if provided, will be populated with the contents of the response body parsed as
 	// JSON.
@@ -124,11 +124,11 @@ var applicationJSON = "application/json"
 // Request performs an HTTP request using the ProviderClient's current HTTPClient. An authentication
 // header will automatically be provided.
 func (client *ProviderClient) Request(method, url string, options RequestOpts) (*http.Response, error) {
-	var body io.Reader
+	var body io.ReadSeeker
 	var contentType *string
 
 	// Derive the content body by either encoding an arbitrary object as JSON, or by taking a provided
-	// io.Reader as-is. Default the content-type to application/json.
+	// io.ReadSeeker as-is. Default the content-type to application/json.
 	if options.JSONBody != nil {
 		if options.RawBody != nil {
 			panic("Please provide only one of JSONBody or RawBody to gophercloud.Request().")
@@ -177,6 +177,9 @@ func (client *ProviderClient) Request(method, url string, options RequestOpts) (
 		}
 	}
 
+	// Set connection parameter to close the connection immediately when we've got the response
+	req.Close = true
+	
 	// Issue the request.
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
@@ -189,10 +192,16 @@ func (client *ProviderClient) Request(method, url string, options RequestOpts) (
 			if err != nil {
 				return nil, fmt.Errorf("Error trying to re-authenticate: %s", err)
 			}
+			if options.RawBody != nil {
+				options.RawBody.Seek(0, 0)
+			}
+			resp.Body.Close()
 			resp, err = client.Request(method, url, options)
 			if err != nil {
 				return nil, fmt.Errorf("Successfully re-authenticated, but got error executing request: %s", err)
 			}
+
+			return resp, nil
 		}
 	}
 
@@ -224,7 +233,9 @@ func (client *ProviderClient) Request(method, url string, options RequestOpts) (
 	// Parse the response body as JSON, if requested to do so.
 	if options.JSONResponse != nil {
 		defer resp.Body.Close()
-		json.NewDecoder(resp.Body).Decode(options.JSONResponse)
+		if err := json.NewDecoder(resp.Body).Decode(options.JSONResponse); err != nil {
+			return nil, err
+		}
 	}
 
 	return resp, nil
@@ -238,6 +249,8 @@ func defaultOkCodes(method string) []int {
 		return []int{201, 202}
 	case method == "PUT":
 		return []int{201, 202}
+	case method == "PATCH":
+		return []int{200, 204}
 	case method == "DELETE":
 		return []int{202, 204}
 	}
@@ -260,7 +273,7 @@ func (client *ProviderClient) Post(url string, JSONBody interface{}, JSONRespons
 		opts = &RequestOpts{}
 	}
 
-	if v, ok := (JSONBody).(io.Reader); ok {
+	if v, ok := (JSONBody).(io.ReadSeeker); ok {
 		opts.RawBody = v
 	} else if JSONBody != nil {
 		opts.JSONBody = JSONBody
@@ -278,7 +291,7 @@ func (client *ProviderClient) Put(url string, JSONBody interface{}, JSONResponse
 		opts = &RequestOpts{}
 	}
 
-	if v, ok := (JSONBody).(io.Reader); ok {
+	if v, ok := (JSONBody).(io.ReadSeeker); ok {
 		opts.RawBody = v
 	} else if JSONBody != nil {
 		opts.JSONBody = JSONBody
@@ -289,6 +302,24 @@ func (client *ProviderClient) Put(url string, JSONBody interface{}, JSONResponse
 	}
 
 	return client.Request("PUT", url, *opts)
+}
+
+func (client *ProviderClient) Patch(url string, JSONBody interface{}, JSONResponse *interface{}, opts *RequestOpts) (*http.Response, error) {
+	if opts == nil {
+		opts = &RequestOpts{}
+	}
+
+	if v, ok := (JSONBody).(io.ReadSeeker); ok {
+		opts.RawBody = v
+	} else if JSONBody != nil {
+		opts.JSONBody = JSONBody
+	}
+
+	if JSONResponse != nil {
+		opts.JSONResponse = JSONResponse
+	}
+
+	return client.Request("PATCH", url, *opts)
 }
 
 func (client *ProviderClient) Delete(url string, opts *RequestOpts) (*http.Response, error) {

@@ -40,6 +40,7 @@ func (jl *JSONLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	tee := NewTeeResponseWriter(w)
 	rURI := r.URL.RequestURI()
 	body := &jsonReadCloser{r.Body, bytes.Buffer{}}
+	requestID := jl.RequestIDCreator(r)
 	r.Body = body
 	jl.handler.ServeHTTP(tee, r)
 	buf, err := json.Marshal(&jsonLog{
@@ -68,7 +69,7 @@ func (jl *JSONLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			tee.StatusCode,
 			http.StatusText(tee.StatusCode),
 		),
-		RequestID: jl.RequestIDCreator(r),
+		RequestID: requestID,
 		Type:      "http",
 	})
 	if err != nil {

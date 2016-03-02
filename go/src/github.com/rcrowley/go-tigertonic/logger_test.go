@@ -91,7 +91,31 @@ func TestLogger(t *testing.T) {
 		requestID,
 		requestID,
 	) != s {
-		t.Fatal(s)
+		// The map of headers might be sorted differently
+		// TODO less copypaste way of checking this
+		if fmt.Sprintf(
+			`%s > POST /foo?bar=baz HTTP/1.1
+%s > Content-Type: application/json
+%s > Accept: application/json
+%s >
+%s > {"foo":"bar"}
+%s < HTTP/1.1 200 OK
+%s < Content-Type: application/json
+%s <
+%s < {"foo":"bar"}
+`,
+			requestID,
+			requestID,
+			requestID,
+			requestID,
+			requestID,
+			requestID,
+			requestID,
+			requestID,
+			requestID,
+		) != s {
+			t.Fatal(s)
+		}
 	}
 }
 

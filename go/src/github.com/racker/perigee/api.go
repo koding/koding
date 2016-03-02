@@ -39,17 +39,15 @@ func Request(method string, url string, opts Options) (*Response, error) {
 	}
 
 	contentType := opts.ContentType
-	if contentType == "" {
-		contentType = "application/json"
-	}
-
-	accept := opts.Accept
-	if accept == "" {
-		accept = "application/json"
-	}
 
 	body = nil
 	if opts.ReqBody != nil {
+		// if the content-type header is empty, but the user expicitly asked for it
+		// to be unset, then don't set contentType to application/json.
+		if contentType == "" && !opts.OmitContentType {
+			contentType = "application/json"
+		}
+
 		if contentType == "application/json" {
 			bodyText, err := json.Marshal(opts.ReqBody)
 			if err != nil {
@@ -70,8 +68,9 @@ func Request(method string, url string, opts Options) (*Response, error) {
 		return nil, err
 	}
 
-	req.Header.Add("Content-Type", contentType)
-	req.Header.Add("Accept", accept)
+	if contentType != "" {
+		req.Header.Add("Content-Type", contentType)
+	}
 
 	if opts.ContentLength > 0 {
 		req.ContentLength = opts.ContentLength
@@ -82,6 +81,16 @@ func Request(method string, url string, opts Options) (*Response, error) {
 		for k, v := range opts.MoreHeaders {
 			req.Header.Add(k, v)
 		}
+	}
+
+	// if the accept header is empty, but the user expicitly asked for it
+	// to be unset, then don't set accept to application/json.
+	if accept := req.Header.Get("Accept"); accept == "" && !opts.OmitAccept {
+		accept = opts.Accept
+		if accept == "" {
+			accept = "application/json"
+		}
+		req.Header.Add("Accept", accept)
 	}
 
 	if opts.SetHeaders != nil {
@@ -227,20 +236,27 @@ func Put(url string, opts Options) error {
 // SetHeaders allows the caller to provide code to set any custom headers programmatically.  Typically, this
 // facility can invoke, e.g., SetBasicAuth() on the request to easily set up authentication.
 // Any error generated will terminate the request and will propegate back to the caller.
+//
+// OmitContentType allows the caller to explicitly omit the content-type header, even if a request
+// body is provided.
+//
+// OmitAccept allows the caller to explicitly omit the accept header. This is needed to appease some 204 response codes.
 type Options struct {
-	CustomClient  *http.Client
-	ReqBody       interface{}
-	Results       interface{}
-	MoreHeaders   map[string]string
-	OkCodes       []int
-	StatusCode    *int    `DEPRECATED`
-	DumpReqJson   bool    `UNSUPPORTED`
-	ResponseJson  *[]byte `DEPRECATED`
-	Response      **Response
-	ContentType   string `json:"Content-Type,omitempty"`
-	ContentLength int64  `json:"Content-Length,omitempty"`
-	Accept        string `json:"Accept,omitempty"`
-	SetHeaders    func(r *http.Request) error
+	CustomClient    *http.Client
+	ReqBody         interface{}
+	Results         interface{}
+	MoreHeaders     map[string]string
+	OkCodes         []int
+	StatusCode      *int    `DEPRECATED`
+	DumpReqJson     bool    `UNSUPPORTED`
+	ResponseJson    *[]byte `DEPRECATED`
+	Response        **Response
+	ContentType     string `json:"Content-Type,omitempty"`
+	ContentLength   int64  `json:"Content-Length,omitempty"`
+	Accept          string `json:"Accept,omitempty"`
+	SetHeaders      func(r *http.Request) error
+	OmitContentType bool
+	OmitAccept      bool
 }
 
 // Response contains return values from the various request calls.
