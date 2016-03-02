@@ -17,6 +17,6 @@ exports.command = getCollabLink = (callback) ->
     catch
       console.log ' ✔ Checking for collaboration url...'
 
-  interval = setInterval getUrl, 3000
+  interval = setInterval getUrl, 10000
 
   return this
