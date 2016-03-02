@@ -39,6 +39,9 @@ module.exports = [
   [
     { name: 'unittests' }
     { name: 'account accountpage' }
+    { name: 'environments vmactions_hobbyist' }
+    { name: 'environments vmactions_developer' }
+    { name: 'environments vmactions_professional' }
   ]
 
   [
