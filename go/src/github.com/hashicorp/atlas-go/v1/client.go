@@ -12,9 +12,21 @@ import (
 	"path"
 	"runtime"
 	"strings"
+
+	"github.com/hashicorp/go-cleanhttp"
 )
 
-const atlasURL = "https://atlas.hashicorp.com"
+const (
+	// atlasDefaultEndpoint is the default base URL for connecting to Atlas.
+	atlasDefaultEndpoint = "https://atlas.hashicorp.com"
+
+	// atlasEndpointEnvVar is the environment variable that overrrides the
+	// default Atlas address.
+	atlasEndpointEnvVar = "ATLAS_ADDRESS"
+
+	// atlasTokenHeader is the header key used for authenticating with Atlas
+	atlasTokenHeader = "X-Atlas-Token"
+)
 
 var projectURL = "https://github.com/hashicorp/atlas-go"
 var userAgent = fmt.Sprintf("AtlasGo/1.0 (+%s; %s)",
@@ -52,7 +64,12 @@ type Client struct {
 
 // DefaultClient returns a client that connects to the Atlas API.
 func DefaultClient() *Client {
-	client, err := NewClient(atlasURL)
+	atlasEndpoint := os.Getenv(atlasEndpointEnvVar)
+	if atlasEndpoint == "" {
+		atlasEndpoint = atlasDefaultEndpoint
+	}
+
+	client, err := NewClient(atlasEndpoint)
 	if err != nil {
 		panic(err)
 	}
@@ -62,7 +79,7 @@ func DefaultClient() *Client {
 
 // NewClient creates a new Atlas Client from the given URL (as a string). If
 // the URL cannot be parsed, an error is returned. The HTTPClient is set to
-// http.DefaultClient, but this can be changed programmatically by setting
+// an empty http.Client, but this can be changed programmatically by setting
 // client.HTTPClient. The user can also programmatically set the URL as a
 // *url.URL.
 func NewClient(urlString string) (*Client, error) {
@@ -94,7 +111,7 @@ func NewClient(urlString string) (*Client, error) {
 
 // init() sets defaults on the client.
 func (c *Client) init() error {
-	c.HTTPClient = http.DefaultClient
+	c.HTTPClient = cleanhttp.DefaultClient()
 	return nil
 }
 
@@ -128,11 +145,11 @@ func (c *Client) Request(verb, spath string, ro *RequestOptions) (*http.Request,
 	// Add the token and other params
 	if c.Token != "" {
 		log.Printf("[DEBUG] request: appending token (%s)", maskString(c.Token))
-		if ro.Params == nil {
-			ro.Params = make(map[string]string)
+		if ro.Headers == nil {
+			ro.Headers = make(map[string]string)
 		}
 
-		ro.Params["access_token"] = c.Token
+		ro.Headers[atlasTokenHeader] = c.Token
 	}
 
 	return c.rawRequest(verb, &u, ro)
@@ -192,7 +209,7 @@ func (c *Client) rawRequest(verb string, u *url.URL, ro *RequestOptions) (*http.
 	// Set the User-Agent
 	request.Header.Set("User-Agent", userAgent)
 
-	// Add any headers
+	// Add any headers (auth will be here if set)
 	for k, v := range ro.Headers {
 		request.Header.Add(k, v)
 	}

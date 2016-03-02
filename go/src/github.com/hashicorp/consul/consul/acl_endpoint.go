@@ -7,6 +7,7 @@ import (
 	"github.com/armon/go-metrics"
 	"github.com/hashicorp/consul/acl"
 	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/go-uuid"
 )
 
 // ACL endpoint is used to manipulate ACLs
@@ -55,24 +56,18 @@ func (a *ACL) Apply(args *structs.ACLRequest, reply *string) error {
 			return fmt.Errorf("ACL rule compilation failed: %v", err)
 		}
 
-		// Check if this is an update
-		state := a.srv.fsm.State()
-		var existing *structs.ACL
-		if args.ACL.ID != "" {
-			_, existing, err = state.ACLGet(args.ACL.ID)
-			if err != nil {
-				a.srv.logger.Printf("[ERR] consul.acl: ACL lookup failed: %v", err)
-				return err
-			}
-		}
-
-		// If this is a create, generate a new ID. This must
+		// If no ID is provided, generate a new ID. This must
 		// be done prior to appending to the raft log, because the ID is not
 		// deterministic. Once the entry is in the log, the state update MUST
 		// be deterministic or the followers will not converge.
-		if existing == nil {
+		if args.ACL.ID == "" {
+			state := a.srv.fsm.State()
 			for {
-				args.ACL.ID = generateUUID()
+				if args.ACL.ID, err = uuid.GenerateUUID(); err != nil {
+					a.srv.logger.Printf("[ERR] consul.acl: UUID generation failed: %v", err)
+					return err
+				}
+
 				_, acl, err := state.ACLGet(args.ACL.ID)
 				if err != nil {
 					a.srv.logger.Printf("[ERR] consul.acl: ACL lookup failed: %v", err)
@@ -133,16 +128,20 @@ func (a *ACL) Get(args *structs.ACLSpecificRequest,
 	state := a.srv.fsm.State()
 	return a.srv.blockingRPC(&args.QueryOptions,
 		&reply.QueryMeta,
-		state.QueryTables("ACLGet"),
+		state.GetQueryWatch("ACLGet"),
 		func() error {
 			index, acl, err := state.ACLGet(args.ACL)
+			if err != nil {
+				return err
+			}
+
 			reply.Index = index
 			if acl != nil {
 				reply.ACLs = structs.ACLs{acl}
 			} else {
 				reply.ACLs = nil
 			}
-			return err
+			return nil
 		})
 }
 
@@ -204,10 +203,14 @@ func (a *ACL) List(args *structs.DCSpecificRequest,
 	state := a.srv.fsm.State()
 	return a.srv.blockingRPC(&args.QueryOptions,
 		&reply.QueryMeta,
-		state.QueryTables("ACLList"),
+		state.GetQueryWatch("ACLList"),
 		func() error {
-			var err error
-			reply.Index, reply.ACLs, err = state.ACLList()
-			return err
+			index, acls, err := state.ACLList()
+			if err != nil {
+				return err
+			}
+
+			reply.Index, reply.ACLs = index, acls
+			return nil
 		})
 }
