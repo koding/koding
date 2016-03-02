@@ -21,6 +21,10 @@ module.exports = class JInvitation extends jraphical.Module
 
   { permit } = require './group/permissionset'
 
+  ADMIN_PERMISSIONS = [
+    { superadmin: yes }
+  ]
+
   @share()
 
   @set
@@ -118,26 +122,23 @@ module.exports = class JInvitation extends jraphical.Module
     success: (client, selector, options, callback) ->
       { groupSlug } = selector
       groupName     = client.context.group or 'koding'
-      { delegate }  = client.connection
-      globalFlags   = if delegate.globalFlags then delegate.globalFlags else []
-      isSuperAdmin  = 'super-admin' in globalFlags
-      selector    or= {}
+      @canFetchInvitationsAsAdmin client, (err, isSuperAdmin) ->
+        selector           or= {}
+        selector.groupName   = groupName # override group name in any case
+        selector.status    or= 'pending'
 
-      selector.groupName = groupName # override group name in any case
+        if isSuperAdmin and groupSlug
+          selector.groupName = groupSlug
 
-      if isSuperAdmin and groupSlug
         delete selector.groupSlug
-        selector.groupName = groupSlug
 
-      selector.status  or= 'pending'
+        { limit }       = options
+        options.sort  or= { createdAt : -1 }
+        options.limit or= 25
+        options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
+        options.skip   ?= 0
 
-      { limit }       = options
-      options.sort  or= { createdAt : -1 }
-      options.limit or= 25
-      options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
-      options.skip   ?= 0
-
-      JInvitation.some selector, options, callback
+        JInvitation.some selector, options, callback
 
   # search searches database with given query string, adds `starting
   # with regex` around query param
@@ -182,6 +183,11 @@ module.exports = class JInvitation extends jraphical.Module
           return callback err  if err
           return callback()  unless returnCodes
           return callback null, codes
+
+
+  @canFetchInvitationsAsAdmin: permit
+    advanced: ADMIN_PERMISSIONS
+
 
   createSingleInvite = (client, group, invitationData, end) ->
     { email, role, forceInvite, noEmail } = invitationData
