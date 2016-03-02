@@ -29,9 +29,19 @@ func GroupSubscribe(u *url.URL, h http.Header, req *payment.GroupSubscribeReques
 	)
 }
 
-func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func AccountSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	subscriptionRequest := &payment.AccountRequest{
 		AccountId: u.Query().Get("account_id"),
+	}
+
+	return response.HandleResultAndClientError(
+		subscriptionRequest.Subscriptions(),
+	)
+}
+
+func GroupSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	subscriptionRequest := &payment.GroupRequest{
+		GroupId: u.Query().Get("group_id"),
 	}
 
 	return response.HandleResultAndClientError(
@@ -81,7 +91,7 @@ func CreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Head
 	}
 
 	return response.HandleResultAndClientError(
-		req.CreditCard(),
+		req.GetCreditCard(),
 	)
 }
 

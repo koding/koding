@@ -1,7 +1,6 @@
 package stripe
 
 import (
-	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paymentplan"
 	"testing"
 
@@ -24,8 +23,7 @@ func TestCreateAndFindPlan(t *testing.T) {
 
 		Convey("Then it should save the plans", func() {
 			for _, pl := range paymentplan.DefaultPlans {
-				plan, err := FindPlan(pl.Title, pl.Interval.ToString(), paymentmodels.AccountCustomer)
-
+				plan, err := FindPlan(pl.Title, pl.Interval.ToString(), pl.TypeConstant)
 				So(err, ShouldBeNil)
 				So(plan, ShouldNotBeNil)
 
