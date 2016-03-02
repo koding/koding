@@ -16,14 +16,7 @@ Currently, only extraction and validation have been implemented. Install those p
 Implement the rest of the twitter-text APIs: Auto-linking and Hit Highlighting
 
 ## Contributing ##
-Pull requests welcome.
-
-## Testing ##
-The unit tests rely on the [twitter-text-conformance](https://github.com/twitter/twitter-text-conformance) project. To add this project as a submodule, run the following from the root of the project:
-
-	git submodule add git@github.com:twitter/twitter-text-conformance.git
-	git submodule init
-	git submodule update
+Pull requests welcome!
 
 ## License ##
 

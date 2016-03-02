@@ -3,14 +3,16 @@ package agent
 import (
 	"errors"
 	"fmt"
-	"github.com/hashicorp/consul/consul/structs"
-	"github.com/hashicorp/consul/testutil"
-	"github.com/hashicorp/serf/serf"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/consul/testutil"
+	"github.com/hashicorp/serf/serf"
 )
 
 func TestHTTPAgentServices(t *testing.T) {
@@ -25,7 +27,7 @@ func TestHTTPAgentServices(t *testing.T) {
 		Tags:    []string{"master"},
 		Port:    5000,
 	}
-	srv.agent.state.AddService(srv1)
+	srv.agent.state.AddService(srv1, "")
 
 	obj, err := srv.AgentServices(nil, nil)
 	if err != nil {
@@ -52,7 +54,7 @@ func TestHTTPAgentChecks(t *testing.T) {
 		Name:    "mysql",
 		Status:  structs.HealthPassing,
 	}
-	srv.agent.state.AddCheck(chk1)
+	srv.agent.state.AddCheck(chk1, "")
 
 	obj, err := srv.AgentChecks(nil, nil)
 	if err != nil {
@@ -80,7 +82,7 @@ func TestHTTPAgentSelf(t *testing.T) {
 
 	obj, err := srv.AgentSelf(nil, req)
 	if err != nil {
-		t.Fatalf("Err: %v", err)
+		t.Fatalf("err: %v", err)
 	}
 
 	val := obj.(AgentSelf)
@@ -90,6 +92,24 @@ func TestHTTPAgentSelf(t *testing.T) {
 
 	if int(val.Config.Ports.SerfLan) != srv.agent.config.Ports.SerfLan {
 		t.Fatalf("incorrect port: %v", obj)
+	}
+
+	c, err := srv.agent.server.GetLANCoordinate()
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if !reflect.DeepEqual(c, val.Coord) {
+		t.Fatalf("coordinates are not equal: %v != %v", c, val.Coord)
+	}
+
+	srv.agent.config.DisableCoordinates = true
+	obj, err = srv.AgentSelf(nil, req)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	val = obj.(AgentSelf)
+	if val.Coord != nil {
+		t.Fatalf("should have been nil: %v", val.Coord)
 	}
 }
 
@@ -252,7 +272,7 @@ func TestHTTPAgentRegisterCheck(t *testing.T) {
 	defer srv.agent.Shutdown()
 
 	// Register node
-	req, err := http.NewRequest("GET", "/v1/agent/check/register", nil)
+	req, err := http.NewRequest("GET", "/v1/agent/check/register?token=abc123", nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -280,6 +300,89 @@ func TestHTTPAgentRegisterCheck(t *testing.T) {
 	if _, ok := srv.agent.checkTTLs["test"]; !ok {
 		t.Fatalf("missing test check ttl")
 	}
+
+	// Ensure the token was configured
+	if token := srv.agent.state.CheckToken("test"); token == "" {
+		t.Fatalf("missing token")
+	}
+
+	// By default, checks start in critical state.
+	state := srv.agent.state.Checks()["test"]
+	if state.Status != structs.HealthCritical {
+		t.Fatalf("bad: %v", state)
+	}
+}
+
+func TestHTTPAgentRegisterCheckPassing(t *testing.T) {
+	dir, srv := makeHTTPServer(t)
+	defer os.RemoveAll(dir)
+	defer srv.Shutdown()
+	defer srv.agent.Shutdown()
+
+	// Register node
+	req, err := http.NewRequest("GET", "/v1/agent/check/register", nil)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	args := &CheckDefinition{
+		Name: "test",
+		CheckType: CheckType{
+			TTL: 15 * time.Second,
+		},
+		Status: structs.HealthPassing,
+	}
+	req.Body = encodeReq(args)
+
+	obj, err := srv.AgentRegisterCheck(nil, req)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if obj != nil {
+		t.Fatalf("bad: %v", obj)
+	}
+
+	// Ensure we have a check mapping
+	if _, ok := srv.agent.state.Checks()["test"]; !ok {
+		t.Fatalf("missing test check")
+	}
+
+	if _, ok := srv.agent.checkTTLs["test"]; !ok {
+		t.Fatalf("missing test check ttl")
+	}
+
+	state := srv.agent.state.Checks()["test"]
+	if state.Status != structs.HealthPassing {
+		t.Fatalf("bad: %v", state)
+	}
+}
+
+func TestHTTPAgentRegisterCheckBadStatus(t *testing.T) {
+	dir, srv := makeHTTPServer(t)
+	defer os.RemoveAll(dir)
+	defer srv.Shutdown()
+	defer srv.agent.Shutdown()
+
+	// Register node
+	req, err := http.NewRequest("GET", "/v1/agent/check/register", nil)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	args := &CheckDefinition{
+		Name: "test",
+		CheckType: CheckType{
+			TTL: 15 * time.Second,
+		},
+		Status: "fluffy",
+	}
+	req.Body = encodeReq(args)
+
+	resp := httptest.NewRecorder()
+	if _, err := srv.AgentRegisterCheck(resp, req); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if resp.Code != 400 {
+		t.Fatalf("accepted bad status")
+	}
 }
 
 func TestHTTPAgentDeregisterCheck(t *testing.T) {
@@ -289,7 +392,7 @@ func TestHTTPAgentDeregisterCheck(t *testing.T) {
 	defer srv.agent.Shutdown()
 
 	chk := &structs.HealthCheck{Name: "test", CheckID: "test"}
-	if err := srv.agent.AddCheck(chk, nil, false); err != nil {
+	if err := srv.agent.AddCheck(chk, nil, false, ""); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -321,7 +424,7 @@ func TestHTTPAgentPassCheck(t *testing.T) {
 
 	chk := &structs.HealthCheck{Name: "test", CheckID: "test"}
 	chkType := &CheckType{TTL: 15 * time.Second}
-	if err := srv.agent.AddCheck(chk, chkType, false); err != nil {
+	if err := srv.agent.AddCheck(chk, chkType, false, ""); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -354,7 +457,7 @@ func TestHTTPAgentWarnCheck(t *testing.T) {
 
 	chk := &structs.HealthCheck{Name: "test", CheckID: "test"}
 	chkType := &CheckType{TTL: 15 * time.Second}
-	if err := srv.agent.AddCheck(chk, chkType, false); err != nil {
+	if err := srv.agent.AddCheck(chk, chkType, false, ""); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -387,7 +490,7 @@ func TestHTTPAgentFailCheck(t *testing.T) {
 
 	chk := &structs.HealthCheck{Name: "test", CheckID: "test"}
 	chkType := &CheckType{TTL: 15 * time.Second}
-	if err := srv.agent.AddCheck(chk, chkType, false); err != nil {
+	if err := srv.agent.AddCheck(chk, chkType, false, ""); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -419,7 +522,7 @@ func TestHTTPAgentRegisterService(t *testing.T) {
 	defer srv.agent.Shutdown()
 
 	// Register node
-	req, err := http.NewRequest("GET", "/v1/agent/service/register", nil)
+	req, err := http.NewRequest("GET", "/v1/agent/service/register?token=abc123", nil)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -463,6 +566,11 @@ func TestHTTPAgentRegisterService(t *testing.T) {
 	if len(srv.agent.checkTTLs) != 3 {
 		t.Fatalf("missing test check ttls: %v", srv.agent.checkTTLs)
 	}
+
+	// Ensure the token was configured
+	if token := srv.agent.state.ServiceToken("test"); token == "" {
+		t.Fatalf("missing token")
+	}
 }
 
 func TestHTTPAgentDeregisterService(t *testing.T) {
@@ -475,7 +583,7 @@ func TestHTTPAgentDeregisterService(t *testing.T) {
 		ID:      "test",
 		Service: "test",
 	}
-	if err := srv.agent.AddService(service, nil, false); err != nil {
+	if err := srv.agent.AddService(service, nil, false, ""); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
@@ -561,12 +669,12 @@ func TestHTTPAgent_EnableServiceMaintenance(t *testing.T) {
 		ID:      "test",
 		Service: "test",
 	}
-	if err := srv.agent.AddService(service, nil, false); err != nil {
+	if err := srv.agent.AddService(service, nil, false, ""); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
 	// Force the service into maintenance mode
-	req, _ := http.NewRequest("PUT", "/v1/agent/service/maintenance/test?enable=true&reason=broken", nil)
+	req, _ := http.NewRequest("PUT", "/v1/agent/service/maintenance/test?enable=true&reason=broken&token=mytoken", nil)
 	resp := httptest.NewRecorder()
 	if _, err := srv.AgentServiceMaintenance(resp, req); err != nil {
 		t.Fatalf("err: %s", err)
@@ -580,6 +688,11 @@ func TestHTTPAgent_EnableServiceMaintenance(t *testing.T) {
 	check, ok := srv.agent.state.Checks()[checkID]
 	if !ok {
 		t.Fatalf("should have registered maintenance check")
+	}
+
+	// Ensure the token was added
+	if token := srv.agent.state.CheckToken(checkID); token != "mytoken" {
+		t.Fatalf("expected 'mytoken', got '%s'", token)
 	}
 
 	// Ensure the reason was set in notes
@@ -599,12 +712,12 @@ func TestHTTPAgent_DisableServiceMaintenance(t *testing.T) {
 		ID:      "test",
 		Service: "test",
 	}
-	if err := srv.agent.AddService(service, nil, false); err != nil {
+	if err := srv.agent.AddService(service, nil, false, ""); err != nil {
 		t.Fatalf("err: %v", err)
 	}
 
 	// Force the service into maintenance mode
-	if err := srv.agent.EnableServiceMaintenance("test", ""); err != nil {
+	if err := srv.agent.EnableServiceMaintenance("test", "", ""); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
@@ -660,7 +773,7 @@ func TestHTTPAgent_EnableNodeMaintenance(t *testing.T) {
 
 	// Force the node into maintenance mode
 	req, _ := http.NewRequest(
-		"PUT", "/v1/agent/self/maintenance?enable=true&reason=broken", nil)
+		"PUT", "/v1/agent/self/maintenance?enable=true&reason=broken&token=mytoken", nil)
 	resp := httptest.NewRecorder()
 	if _, err := srv.AgentNodeMaintenance(resp, req); err != nil {
 		t.Fatalf("err: %s", err)
@@ -673,6 +786,11 @@ func TestHTTPAgent_EnableNodeMaintenance(t *testing.T) {
 	check, ok := srv.agent.state.Checks()[nodeMaintCheckID]
 	if !ok {
 		t.Fatalf("should have registered maintenance check")
+	}
+
+	// Check that the token was used
+	if token := srv.agent.state.CheckToken(nodeMaintCheckID); token != "mytoken" {
+		t.Fatalf("expected 'mytoken', got '%s'", token)
 	}
 
 	// Ensure the reason was set in notes
@@ -688,7 +806,7 @@ func TestHTTPAgent_DisableNodeMaintenance(t *testing.T) {
 	defer srv.agent.Shutdown()
 
 	// Force the node into maintenance mode
-	srv.agent.EnableNodeMaintenance("")
+	srv.agent.EnableNodeMaintenance("", "")
 
 	// Leave maintenance mode
 	req, _ := http.NewRequest("PUT", "/v1/agent/self/maintenance?enable=false", nil)

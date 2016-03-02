@@ -1,18 +1,28 @@
 # Squirrel - fluent SQL generator for Go
 
 ```go
-import "github.com/lann/squirrel"
+import "gopkg.in/Masterminds/squirrel.v1"
+```
+or if you prefer using `master` (which may be arbitrarily ahead of or behind `v1`):
+```go
+import "github.com/Masterminds/squirrel"
 ```
 
-[![GoDoc](https://godoc.org/github.com/lann/squirrel?status.png)](https://godoc.org/github.com/lann/squirrel)
-[![Build Status](https://travis-ci.org/lann/squirrel.png?branch=master)](https://travis-ci.org/lann/squirrel)
+[![GoDoc](https://godoc.org/github.com/Masterminds/squirrel?status.png)](https://godoc.org/github.com/Masterminds/squirrel)
+[![Build Status](https://travis-ci.org/Masterminds/squirrel.svg?branch=v1)](https://travis-ci.org/Masterminds/squirrel)
 
-**Squirrel is not an ORM.**
+_**Note:** This project has moved from `github.com/lann/squirrel` to
+`github.com/Masterminds/squirrel`. Lann remains the architect of the
+project, but we're helping him currate.
+
+**Squirrel is not an ORM.** For an application of Squirrel, check out
+[structable, a table-struct mapper](https://github.com/technosophos/structable)
+
 
 Squirrel helps you build SQL queries from composable parts:
 
 ```go
-import sq "github.com/lann/squirrel"
+import sq "github.com/Masterminds/squirrel"
 
 users := sq.Select("*").From("users").Join("emails USING (email_id)")
 
@@ -26,7 +36,7 @@ sql == "SELECT * FROM users JOIN emails USING (email_id) WHERE deleted_at IS NUL
 ```go
 sql, args, err := sq.
     Insert("users").Columns("name", "age").
-    Values("moe", 13).Values("larry", Expr("? + 5", 12)).
+    Values("moe", 13).Values("larry", sq.Expr("? + 5", 12)).
     ToSql()
 
 sql == "INSERT INTO users (name,age) VALUES (?,?),(?,? + 5)"
@@ -66,14 +76,39 @@ select_users := mydb.Select("*").From("users")
 Squirrel loves PostgreSQL:
 
 ```go
-psql := sq.StatementBuilder.PlaceholderFormat(Dollar)
+psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 // You use question marks for placeholders...
 sql, _, _ := psql.Select("*").From("elephants").Where("name IN (?,?)", "Dumbo", "Verna")
 
 /// ...squirrel replaces them using PlaceholderFormat.
 sql == "SELECT * FROM elephants WHERE name IN ($1,$2)"
+
+
+/// You can retrieve id ...
+query := sq.Insert("nodes").
+    Columns("uuid", "type", "data").
+    Values(node.Uuid, node.Type, node.Data).
+    Suffix("RETURNING \"id\"").
+    RunWith(m.db).
+    PlaceholderFormat(sq.Dollar)
+
+query.QueryRow().Scan(&node.id)
 ```
+
+You can escape question mask by inserting two question marks:
+
+```sql
+SELECT * FROM nodes WHERE meta->'format' ??| array[?,?]
+```
+
+will generate with the Dollar Placeholder:
+
+```sql
+SELECT * FROM nodes WHERE meta->'format' ?| array[$1,$2]
+```
+
+
 
 ## License
 

@@ -17,7 +17,7 @@ var response = `<s:Envelope xml:lang="en-US" xmlns:s="http://www.w3.org/2003/05/
 </s:Header>
 <s:Body>
     <x:ResourceCreated>
-        <a:Address>http://107.20.128.235:5985/wsman</a:Address>
+        <a:Address>http://107.20.128.235:15985/wsman</a:Address>
         <a:ReferenceParameters>
             <w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI>
             <w:SelectorSet>
@@ -45,7 +45,7 @@ func (s *WinRMSuite) TestHttpRequest(c *C) {
 		w.Header().Set("Content-Type", "application/soap+xml")
 		w.Write([]byte(response))
 	}))
-	l, err := net.Listen("tcp", "127.0.0.1:5985")
+	l, err := net.Listen("tcp", "127.0.0.1:15985")
 	if err != nil {
 		c.Fatalf("Can't listen %s", err)
 	}
@@ -53,7 +53,7 @@ func (s *WinRMSuite) TestHttpRequest(c *C) {
 	ts.Start()
 	defer ts.Close()
 
-	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "test", "test")
+	client, err := NewClient(&Endpoint{Host: "localhost", Port: 15985}, "test", "test")
 	c.Assert(err, IsNil)
 	shell, err := client.CreateShell()
 	if err != nil {

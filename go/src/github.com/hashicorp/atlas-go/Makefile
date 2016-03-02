@@ -1,4 +1,5 @@
-DEPS = $(go list -f '{{range .TestImports}}{{.}} {{end}}' ./...)
+TEST?=./...
+DEPS = $(shell go list -f '{{range .TestImports}}{{.}} {{end}}' ./...)
 
 all: deps build
 
@@ -10,7 +11,9 @@ build:
 	@mkdir -p bin/
 	go build -o bin/atlas-go ./v1
 
-test: deps
-	go list ./... | xargs -n1 go test -timeout=3s
+test:
+	go test $(TEST) $(TESTARGS) -timeout=3s -parallel=4
+	go vet $(TEST)
+	go test $(TEST) -race
 
 .PHONY: all deps build test

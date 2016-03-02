@@ -2,7 +2,6 @@ package extract
 
 import (
 	"fmt"
-	"github.com/kylemcc/twitter-text-go/extract"
 	"os"
 	"path"
 )
@@ -19,11 +18,12 @@ type Test struct {
 
 var cwd, _ = os.Getwd()
 var parentDir = path.Dir(cwd)
-var extractYmlPath = path.Join(parentDir, "twitter-text-conformance", "extract.yml")
+var extractYmlPath = path.Join(parentDir, "conformance", "extract.yml")
+var tldYmlPath = path.Join(parentDir, "conformance", "tlds.yml")
 
 func ExampleExtractEntities() {
 	text := "tweet mentioning @username with a url http://t.co/abcde and a #hashtag"
-	entities := extract.ExtractEntities(text)
+	entities := ExtractEntities(text)
 
 	for _, e := range entities {
 		fmt.Printf("Entity:%s Type:%v\n", e.Text, e.Type)
@@ -36,7 +36,7 @@ func ExampleExtractEntities() {
 
 func ExampleExtractMentionedScreenNames() {
 	text := "mention @user1 @user2 and @user3"
-	entities := extract.ExtractMentionedScreenNames(text)
+	entities := ExtractMentionedScreenNames(text)
 	for i, e := range entities {
 		sn, _ := e.ScreenName()
 		fmt.Printf("Match[%d]:%s Screenname:%s Range:%s\n", i, e.Text, sn, e.Range)
