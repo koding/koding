@@ -21,8 +21,6 @@ func checksumShortName(name string) uint8 {
 // name and generates the next valid short name. This process is done
 // according to the MS specification.
 func generateShortName(longName string, used []string) (string, error) {
-	// Remove leading periods and uppercase, as required
-	longName = strings.TrimLeft(longName, ".")
 	longName = strings.ToUpper(longName)
 
 	// Split the string at the final "."
@@ -97,6 +95,10 @@ func shortNameEntryValue(name string) string {
 		shortParts = []string{name, ""}
 	} else {
 		shortParts = strings.Split(name, ".")
+	}
+
+	if len(shortParts) == 1 {
+		shortParts = append(shortParts, "")
 	}
 
 	if len(shortParts[0]) < 8 {
