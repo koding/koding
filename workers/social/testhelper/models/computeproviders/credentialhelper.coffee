@@ -30,6 +30,8 @@ generateMetaData = (provider) ->
       storage_size         : storage
       alwaysOn             : no
 
+    when 'custom', 'userInput' then {}
+
     else 'unimplemented provider'
 
   return meta
