@@ -426,8 +426,12 @@ module.exports = class JCredential extends jraphical.Module
   fetchData$: permit
 
     advanced: [
-      { permission: 'modify credential', superadmin: yes }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'update credential'
+        validateWith : Validators.group.resource()
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: (client, callback) ->
