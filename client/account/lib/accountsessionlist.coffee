@@ -9,8 +9,7 @@ AccountSessionListItem = require './accountsessionlistitem'
 
 module.exports = class AccountSessionList extends KDListView
 
-  constructor: (options,data) ->
-    options.tagName   ?= 'ul'
+  constructor: (options = {}, data) ->
     options.itemClass ?= AccountSessionListItem
     super options,data
 
