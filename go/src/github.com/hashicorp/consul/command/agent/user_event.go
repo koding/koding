@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/go-uuid"
 )
 
 const (
@@ -71,41 +72,37 @@ func validateUserEventParams(params *UserEvent) error {
 }
 
 // UserEvent is used to fire an event via the Serf layer on the LAN
-func (a *Agent) UserEvent(dc string, params *UserEvent) error {
+func (a *Agent) UserEvent(dc, token string, params *UserEvent) error {
 	// Validate the params
 	if err := validateUserEventParams(params); err != nil {
 		return err
 	}
 
 	// Format message
-	params.ID = generateUUID()
+	var err error
+	if params.ID, err = uuid.GenerateUUID(); err != nil {
+		return fmt.Errorf("UUID generation failed: %v", err)
+	}
 	params.Version = userEventMaxVersion
 	payload, err := encodeMsgPack(&params)
 	if err != nil {
 		return fmt.Errorf("UserEvent encoding failed: %v", err)
 	}
 
-	// Check if this is the local DC, fire locally
-	if dc == "" || dc == a.config.Datacenter {
-		if a.server != nil {
-			return a.server.UserEvent(params.Name, payload)
-		} else {
-			return a.client.UserEvent(params.Name, payload)
-		}
-	} else {
-		// Send an RPC to remote datacenter to service this
-		args := structs.EventFireRequest{
-			Datacenter: dc,
-			Name:       params.Name,
-			Payload:    payload,
-		}
-
-		// Any server can process in the remote DC, since the
-		// gossip will take over anyways
-		args.AllowStale = true
-		var out structs.EventFireResponse
-		return a.RPC("Internal.EventFire", &args, &out)
+	// Service the event fire over RPC. This ensures that we authorize
+	// the request against the token first.
+	args := structs.EventFireRequest{
+		Datacenter:   dc,
+		Name:         params.Name,
+		Payload:      payload,
+		QueryOptions: structs.QueryOptions{Token: token},
 	}
+
+	// Any server can process in the remote DC, since the
+	// gossip will take over anyways
+	args.AllowStale = true
+	var out structs.EventFireResponse
+	return a.RPC("Internal.EventFire", &args, &out)
 }
 
 // handleEvents is used to process incoming user events
