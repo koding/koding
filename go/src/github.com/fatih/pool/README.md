@@ -1,4 +1,4 @@
-# Pool [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/gopkg.in/fatih/pool.v2) [![Build Status](http://img.shields.io/travis/fatih/pool.svg?style=flat-square)](https://travis-ci.org/fatih/pool)
+# Pool [![GoDoc](https://godoc.org/gopkg.in/fatih/pool.v2?status.svg)](https://godoc.org/gopkg.in/fatih/pool.v2) [![Build Status](https://travis-ci.org/fatih/pool.svg)](https://travis-ci.org/fatih/pool)
 
 
 Pool is a thread safe connection pool for net.Conn interface. It can be used to
