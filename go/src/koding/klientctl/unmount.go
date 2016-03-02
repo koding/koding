@@ -9,6 +9,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
 
@@ -189,23 +190,18 @@ func (c *UnmountCommand) setupKlient() error {
 func (c *UnmountCommand) removeMountFolder() error {
 	rmPath := c.Options.Path
 
-	if rmPath == "" {
-		c.printfln(UnmountFailedRemoveMountPath)
-		return errors.New("Unable to remove path. Path option empty and cannot find path")
+	r := util.RemovePath{
+		IgnorePaths: c.Options.NeverRemove,
 	}
-
-	for _, p := range c.Options.NeverRemove {
-		if p == rmPath {
-			c.Log.Warning("NeverRemove path %q was requested to be removed! Not removing", p)
+	if err := r.Remove(rmPath); err != nil {
+		if err == util.ErrRestrictedPath {
 			c.printfln(AttemptedRemoveRestrictedPath)
-			// Print a warning, but still return an error for API usage.
-			return fmt.Errorf("Restricted path %q cannot be removed.", p)
+		} else {
+			c.printfln(UnmountFailedRemoveMountPath)
 		}
-	}
 
-	if err := c.fileRemover(rmPath); err != nil {
 		c.Log.Warning("Unable to remove mountPath:%s, err:%s", rmPath, err)
-		c.printfln(UnmountFailedRemoveMountPath)
+
 		// Print a warning, but still return an error for API usage.
 		return err
 	}

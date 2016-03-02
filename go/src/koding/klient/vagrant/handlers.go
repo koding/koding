@@ -367,6 +367,8 @@ func (h *Handlers) init() {
 	h.boxAdd(v, "ubuntu/trusty64", "")
 }
 
+var unquoter = strings.NewReplacer("\\n", "\n")
+
 // watchCommand is an helper method to send back the command outputs of
 // commands like Halt,Destroy or Up to the callback function passed in the
 // request.
@@ -403,6 +405,7 @@ func (h *Handlers) watchCommand(r *kite.Request, filePath string, fn func() (<-c
 		msg := strings.TrimSpace(line[i+len("error:"):])
 
 		if msg != "" {
+			msg = unquoter.Replace(msg)
 			verr = multierror.Append(verr, errors.New(msg))
 		}
 	}

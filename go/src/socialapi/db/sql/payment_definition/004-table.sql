@@ -37,7 +37,10 @@ CREATE TYPE "payment"."plan_title_enum" AS ENUM (
     'hobbyist',
     'developer',
     'professional',
-    'super'
+    'super',
+    'bootstrap',
+    'startup',
+    'enterprise'
 );
 ALTER TYPE "payment"."plan_title_enum" OWNER TO "social";
 

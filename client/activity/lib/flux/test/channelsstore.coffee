@@ -5,7 +5,6 @@ Reactor = require 'app/flux/base/reactor'
 ChannelsStore = require '../stores/channelsstore'
 actionTypes = require '../actions/actiontypes'
 
-MessageCollectionHelpers = require '../helpers/messagecollection'
 
 describe 'ChannelsStore', ->
 

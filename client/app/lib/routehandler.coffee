@@ -149,10 +149,10 @@ requestCollaboration = ({nickname, channelId})->
       senderUserId: whoami()._id
       senderAccountId: whoami().socialApiId
     , (err) ->
+
       # FIXME: better error message
       return new kd.NotificationView title: 'There is an error'  if err
 
-      new kd.NotificationView title: 'Collaboration request sent.'
       kd.singletons.router.back()
 
 

@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
@@ -46,6 +47,11 @@ var (
 	LowerInterval     = "month"
 	FreePlan          = "free"
 	FreeInterval      = "month"
+
+	GroupStartingPlan = "startup"
+	GroupHigherPlan   = "enterprise"
+	GroupLowerPlan    = "boostrap"
+	GroupInterval     = "month"
 
 	LowerPlanProviderId = "hobbyist_month"
 )
@@ -114,7 +120,7 @@ func createCustomerFn(fn func(string, *paymentmodels.Customer)) func() {
 func subscribeFn(fn func(string, string, string)) func() {
 	return func() {
 		token, accId, email := generateFakeUserInfo()
-		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		err := SubscribeForAccount(token, accId, email, StartingPlan, StartingInterval)
 
 		So(err, ShouldBeNil)
 
@@ -131,7 +137,7 @@ func existingSubscribeFn(fn func(string, string, string)) func() {
 
 		token, _, _ = generateFakeUserInfo()
 
-		err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		err = SubscribeForAccount(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
 		fn(token, accId, email)
@@ -142,7 +148,7 @@ func subscribeWithReturnsFn(fn func(*paymentmodels.Customer, *paymentmodels.Subs
 	return func() {
 		token, accId, email := generateFakeUserInfo()
 
-		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		err := SubscribeForAccount(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
 		customer, err := paymentmodels.NewCustomer().ByOldId(accId)
@@ -152,5 +158,24 @@ func subscribeWithReturnsFn(fn func(*paymentmodels.Customer, *paymentmodels.Subs
 		So(err, ShouldBeNil)
 
 		fn(customer, subscription)
+	}
+}
+
+///// Group
+
+func subscribeGroupFn(fn func(string, string, string)) func() {
+	return func() {
+		token, gId, email := generateFakeUserInfo()
+		group := &models.Group{
+			Id:   bson.ObjectIdHex(gId),
+			Slug: token[0:23],
+		}
+		err := modelhelper.CreateGroup(group)
+		So(err, ShouldBeNil)
+
+		err = SubscribeForGroup(token, gId, email, GroupStartingPlan, GroupInterval)
+		So(err, ShouldBeNil)
+
+		fn(token, gId, email)
 	}
 }

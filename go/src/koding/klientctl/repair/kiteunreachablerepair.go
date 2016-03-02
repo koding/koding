@@ -70,7 +70,7 @@ func (r *KiteUnreachableRepair) Status() error {
 			newline = true
 			fmt.Fprint(r.Stdout, "Machine is unreachable. Trying again.")
 		default:
-			fmt.Fprint(r.Stdout, " .")
+			fmt.Fprint(r.Stdout, ".")
 		}
 
 		time.Sleep(r.StatusDelay)

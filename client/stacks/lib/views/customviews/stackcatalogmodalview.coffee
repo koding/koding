@@ -13,7 +13,7 @@ module.exports = class StackCatalogModalView extends AdminAppView
 
     super options, data
 
-    @overlay.once 'click', @bound 'handleOverlayClick'
+    @overlay.on 'click', @bound 'handleOverlayClick'
 
 
   handleOverlayClick: ->

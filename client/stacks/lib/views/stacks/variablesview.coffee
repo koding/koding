@@ -116,7 +116,6 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       @_providedData = {}
       @setState 'INVALID'
     else
-      content = helper.encodeRawContent content
       @_providedData = _.extend converted.contentObject, { __rawContent : content }
       @handleDataChange()
 
@@ -155,27 +154,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
         { meta } = data
         if (Object.keys meta).length
           content = if rawContent = meta.__rawContent
-          then helper.decodeRawContent rawContent
+          then rawContent
           else (jsonToYaml meta).content
 
-          @getAce().setContent content
-
-
-  helper =
-
-    encodeRawContent: (content) ->
-
-      content
-        .replace '$', encodeURIComponent('$'), 'g'
-        .replace '{', encodeURIComponent('{'), 'g'
-        .replace '}', encodeURIComponent('}'), 'g'
-
-
-    decodeRawContent: (content) ->
-
-      _.unescape(
-        content
-          .replace encodeURIComponent('$'), '$', 'g'
-          .replace encodeURIComponent('{'), '{', 'g'
-          .replace encodeURIComponent('}'), '}', 'g'
-      )
+          @getAce().setContent _.unescape content

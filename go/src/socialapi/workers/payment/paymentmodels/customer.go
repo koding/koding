@@ -12,6 +12,12 @@ import (
 	"github.com/koding/bongo"
 )
 
+var (
+	GroupCustomer               = "group"
+	AccountCustomer             = "account"
+	ErrProviderCustomerIdIsSame = errors.New("provider customer id is the same")
+)
+
 type Customer struct {
 	Id int64 `json:"id,string"`
 
@@ -26,6 +32,10 @@ type Customer struct {
 	//    'stripe', 'paypal'
 	Provider string `json:"provider"`
 
+	// Type of customer. Enum:
+	//		'group', 'account'
+	TypeConstant string `json:"type_constant"`
+
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" `
@@ -37,12 +47,16 @@ func (c *Customer) ByOldId(oldId string) (*Customer, error) {
 		Sort:     map[string]string{"created_at": "DESC"},
 	}
 
-	err := c.One(query)
-	if err == gorm.RecordNotFound {
-		return nil, paymenterrors.ErrCustomerNotFound
+	return c.findByQuery(query)
+}
+
+func (c *Customer) ByOldIdAndType(oldId string, cType string) (*Customer, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{"old_id": oldId, "type_constant": cType},
+		Sort:     map[string]string{"created_at": "DESC"},
 	}
 
-	return c, err
+	return c.findByQuery(query)
 }
 
 func (c *Customer) FindActiveSubscription() (*Subscription, error) {
@@ -55,8 +69,6 @@ func (c *Customer) FindActiveSubscription() (*Subscription, error) {
 
 	return subscription, err
 }
-
-var ErrProviderCustomerIdIsSame = errors.New("provider customer id is the same")
 
 func (c *Customer) UpdateProviderCustomerId(id string) error {
 	if c.ProviderCustomerId == id {
@@ -157,4 +169,16 @@ func (c *Customer) GetUser(providerCustomerId string) (*models.User, error) {
 	}
 
 	return modelhelper.GetUserByAccountId(c.OldId)
+}
+
+func (c *Customer) findByQuery(query *bongo.Query) (*Customer, error) {
+	if err := c.One(query); err != nil {
+		if err == gorm.RecordNotFound {
+			return nil, paymenterrors.ErrCustomerNotFound
+		}
+
+		return nil, err
+	}
+
+	return c, nil
 }

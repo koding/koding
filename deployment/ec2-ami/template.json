@@ -11,14 +11,14 @@
       "region": "us-east-1",
       "vpc_id": "vpc-ddf154b8",
       "subnet_id": "subnet-b47692ed",
-      "source_ami": "ami-b30a56d9",
-      "instance_type": "c3.2xlarge",
+      "source_ami": "ami-23c6fb49",
+      "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
       "ami_name": "koding-eb-{{timestamp}}",
       "launch_block_device_mappings": [
         {
-          "device_name": "/dev/sda1",
-          "volume_size": 16,
+          "device_name": "/dev/xvda",
+          "volume_size": 8,
           "delete_on_termination": true
         }
       ],
