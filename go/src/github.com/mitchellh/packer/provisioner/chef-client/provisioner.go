@@ -9,49 +9,78 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/common/uuid"
+	"github.com/mitchellh/packer/helper/config"
 	"github.com/mitchellh/packer/packer"
+	"github.com/mitchellh/packer/provisioner"
+	"github.com/mitchellh/packer/template/interpolate"
 )
+
+type guestOSTypeConfig struct {
+	executeCommand string
+	installCommand string
+	stagingDir     string
+}
+
+var guestOSTypeConfigs = map[string]guestOSTypeConfig{
+	provisioner.UnixOSType: guestOSTypeConfig{
+		executeCommand: "{{if .Sudo}}sudo {{end}}chef-client --no-color -c {{.ConfigPath}} -j {{.JsonPath}}",
+		installCommand: "curl -L https://www.chef.io/chef/install.sh | {{if .Sudo}}sudo {{end}}bash",
+		stagingDir:     "/tmp/packer-chef-client",
+	},
+	provisioner.WindowsOSType: guestOSTypeConfig{
+		executeCommand: "c:/opscode/chef/bin/chef-client.bat --no-color -c {{.ConfigPath}} -j {{.JsonPath}}",
+		installCommand: "powershell.exe -Command \"(New-Object System.Net.WebClient).DownloadFile('http://chef.io/chef/install.msi', 'C:\\Windows\\Temp\\chef.msi');Start-Process 'msiexec' -ArgumentList '/qb /i C:\\Windows\\Temp\\chef.msi' -NoNewWindow -Wait\"",
+		stagingDir:     "C:/Windows/Temp/packer-chef-client",
+	},
+}
 
 type Config struct {
 	common.PackerConfig `mapstructure:",squash"`
 
-	ChefEnvironment      string `mapstructure:"chef_environment"`
-	SslVerifyMode        string `mapstructure:"ssl_verify_mode"`
-	ConfigTemplate       string `mapstructure:"config_template"`
-	ExecuteCommand       string `mapstructure:"execute_command"`
-	InstallCommand       string `mapstructure:"install_command"`
-	Json                 map[string]interface{}
-	NodeName             string   `mapstructure:"node_name"`
-	PreventSudo          bool     `mapstructure:"prevent_sudo"`
-	RunList              []string `mapstructure:"run_list"`
-	ServerUrl            string   `mapstructure:"server_url"`
-	SkipCleanClient      bool     `mapstructure:"skip_clean_client"`
-	SkipCleanNode        bool     `mapstructure:"skip_clean_node"`
-	SkipInstall          bool     `mapstructure:"skip_install"`
-	StagingDir           string   `mapstructure:"staging_directory"`
-	ValidationKeyPath    string   `mapstructure:"validation_key_path"`
-	ValidationClientName string   `mapstructure:"validation_client_name"`
+	Json map[string]interface{}
 
-	tpl *packer.ConfigTemplate
+	ChefEnvironment            string   `mapstructure:"chef_environment"`
+	ClientKey                  string   `mapstructure:"client_key"`
+	ConfigTemplate             string   `mapstructure:"config_template"`
+	EncryptedDataBagSecretPath string   `mapstructure:"encrypted_data_bag_secret_path"`
+	ExecuteCommand             string   `mapstructure:"execute_command"`
+	GuestOSType                string   `mapstructure:"guest_os_type"`
+	InstallCommand             string   `mapstructure:"install_command"`
+	NodeName                   string   `mapstructure:"node_name"`
+	PreventSudo                bool     `mapstructure:"prevent_sudo"`
+	RunList                    []string `mapstructure:"run_list"`
+	ServerUrl                  string   `mapstructure:"server_url"`
+	SkipCleanClient            bool     `mapstructure:"skip_clean_client"`
+	SkipCleanNode              bool     `mapstructure:"skip_clean_node"`
+	SkipInstall                bool     `mapstructure:"skip_install"`
+	SslVerifyMode              string   `mapstructure:"ssl_verify_mode"`
+	StagingDir                 string   `mapstructure:"staging_directory"`
+	ValidationClientName       string   `mapstructure:"validation_client_name"`
+	ValidationKeyPath          string   `mapstructure:"validation_key_path"`
+
+	ctx interpolate.Context
 }
 
 type Provisioner struct {
-	config Config
+	config            Config
+	guestOSTypeConfig guestOSTypeConfig
+	guestCommands     *provisioner.GuestCommands
 }
 
 type ConfigTemplate struct {
-	NodeName             string
-	ServerUrl            string
-	ValidationKeyPath    string
-	ValidationClientName string
-	ChefEnvironment      string
-	SslVerifyMode        string
+	ChefEnvironment            string
+	ClientKey                  string
+	EncryptedDataBagSecretPath string
+	NodeName                   string
+	ServerUrl                  string
+	SslVerifyMode              string
+	ValidationClientName       string
+	ValidationKeyPath          string
 }
 
 type ExecuteTemplate struct {
@@ -65,51 +94,42 @@ type InstallChefTemplate struct {
 }
 
 func (p *Provisioner) Prepare(raws ...interface{}) error {
-	md, err := common.DecodeConfig(&p.config, raws...)
+	err := config.Decode(&p.config, &config.DecodeOpts{
+		Interpolate:        true,
+		InterpolateContext: &p.config.ctx,
+		InterpolateFilter: &interpolate.RenderFilter{
+			Exclude: []string{
+				"execute_command",
+				"install_command",
+			},
+		},
+	}, raws...)
 	if err != nil {
 		return err
 	}
 
-	p.config.tpl, err = packer.NewConfigTemplate()
+	if p.config.GuestOSType == "" {
+		p.config.GuestOSType = provisioner.DefaultOSType
+	}
+	p.config.GuestOSType = strings.ToLower(p.config.GuestOSType)
+
+	var ok bool
+	p.guestOSTypeConfig, ok = guestOSTypeConfigs[p.config.GuestOSType]
+	if !ok {
+		return fmt.Errorf("Invalid guest_os_type: \"%s\"", p.config.GuestOSType)
+	}
+
+	p.guestCommands, err = provisioner.NewGuestCommands(p.config.GuestOSType, !p.config.PreventSudo)
 	if err != nil {
-		return err
-	}
-	p.config.tpl.UserVars = p.config.PackerUserVars
-
-	// Accumulate any errors
-	errs := common.CheckUnusedConfig(md)
-
-	templates := map[string]*string{
-		"chef_environment":       &p.config.ChefEnvironment,
-		"ssl_verify_mode":        &p.config.SslVerifyMode,
-		"config_template":        &p.config.ConfigTemplate,
-		"node_name":              &p.config.NodeName,
-		"staging_dir":            &p.config.StagingDir,
-		"chef_server_url":        &p.config.ServerUrl,
-		"execute_command":        &p.config.ExecuteCommand,
-		"install_command":        &p.config.InstallCommand,
-		"validation_key_path":    &p.config.ValidationKeyPath,
-		"validation_client_name": &p.config.ValidationClientName,
-	}
-
-	for n, ptr := range templates {
-		var err error
-		*ptr, err = p.config.tpl.Process(*ptr, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("Error processing %s: %s", n, err))
-		}
+		return fmt.Errorf("Invalid guest_os_type: \"%s\"", p.config.GuestOSType)
 	}
 
 	if p.config.ExecuteCommand == "" {
-		p.config.ExecuteCommand = "{{if .Sudo}}sudo {{end}}chef-client " +
-			"--no-color -c {{.ConfigPath}} -j {{.JsonPath}}"
+		p.config.ExecuteCommand = p.guestOSTypeConfig.executeCommand
 	}
 
 	if p.config.InstallCommand == "" {
-		p.config.InstallCommand = "curl -L " +
-			"https://www.opscode.com/chef/install.sh | " +
-			"{{if .Sudo}}sudo {{end}}bash"
+		p.config.InstallCommand = p.guestOSTypeConfig.installCommand
 	}
 
 	if p.config.RunList == nil {
@@ -117,36 +137,10 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	}
 
 	if p.config.StagingDir == "" {
-		p.config.StagingDir = "/tmp/packer-chef-client"
+		p.config.StagingDir = p.guestOSTypeConfig.stagingDir
 	}
 
-	sliceTemplates := map[string][]string{
-		"run_list": p.config.RunList,
-	}
-
-	for n, slice := range sliceTemplates {
-		for i, elem := range slice {
-			var err error
-			slice[i], err = p.config.tpl.Process(elem, nil)
-			if err != nil {
-				errs = packer.MultiErrorAppend(
-					errs, fmt.Errorf("Error processing %s[%d]: %s", n, i, err))
-			}
-		}
-	}
-
-	validates := map[string]*string{
-		"execute_command": &p.config.ExecuteCommand,
-		"install_command": &p.config.InstallCommand,
-	}
-
-	for n, ptr := range validates {
-		if err := p.config.tpl.Validate(*ptr); err != nil {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("Error parsing %s: %s", n, err))
-		}
-	}
-
+	var errs *packer.MultiError
 	if p.config.ConfigTemplate != "" {
 		fi, err := os.Stat(p.config.ConfigTemplate)
 		if err != nil {
@@ -158,9 +152,27 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		}
 	}
 
+	if p.config.EncryptedDataBagSecretPath != "" {
+		pFileInfo, err := os.Stat(p.config.EncryptedDataBagSecretPath)
+
+		if err != nil || pFileInfo.IsDir() {
+			errs = packer.MultiErrorAppend(
+				errs, fmt.Errorf("Bad encrypted data bag secret '%s': %s", p.config.EncryptedDataBagSecretPath, err))
+		}
+	}
+
 	if p.config.ServerUrl == "" {
 		errs = packer.MultiErrorAppend(
 			errs, fmt.Errorf("server_url must be set"))
+	}
+
+	if p.config.EncryptedDataBagSecretPath != "" {
+		pFileInfo, err := os.Stat(p.config.EncryptedDataBagSecretPath)
+
+		if err != nil || pFileInfo.IsDir() {
+			errs = packer.MultiErrorAppend(
+				errs, fmt.Errorf("Bad encrypted data bag secret '%s': %s", p.config.EncryptedDataBagSecretPath, err))
+		}
 	}
 
 	jsonValid := true
@@ -209,17 +221,40 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		return fmt.Errorf("Error creating staging directory: %s", err)
 	}
 
-	if p.config.ValidationKeyPath != "" {
-		remoteValidationKeyPath = fmt.Sprintf("%s/validation.pem", p.config.StagingDir)
-		if err := p.copyValidationKey(ui, comm, remoteValidationKeyPath); err != nil {
-			return fmt.Errorf("Error copying validation key: %s", err)
-		}
+	if p.config.ClientKey == "" {
+		p.config.ClientKey = fmt.Sprintf("%s/client.pem", p.config.StagingDir)
 	}
 
+	encryptedDataBagSecretPath := ""
+	if p.config.EncryptedDataBagSecretPath != "" {
+		encryptedDataBagSecretPath = fmt.Sprintf("%s/encrypted_data_bag_secret", p.config.StagingDir)
+		if err := p.uploadFile(ui,
+			comm,
+			encryptedDataBagSecretPath,
+			p.config.EncryptedDataBagSecretPath); err != nil {
+			return fmt.Errorf("Error uploading encrypted data bag secret: %s", err)
+		}
+	}
 	configPath, err := p.createConfig(
-		ui, comm, nodeName, serverUrl, remoteValidationKeyPath, p.config.ValidationClientName, p.config.ChefEnvironment, p.config.SslVerifyMode)
+		ui,
+		comm,
+		nodeName,
+		serverUrl,
+		p.config.ClientKey,
+		encryptedDataBagSecretPath,
+		remoteValidationKeyPath,
+		p.config.ValidationClientName,
+		p.config.ChefEnvironment,
+		p.config.SslVerifyMode)
 	if err != nil {
 		return fmt.Errorf("Error creating Chef config file: %s", err)
+	}
+
+	if p.config.ValidationKeyPath != "" {
+		remoteValidationKeyPath = fmt.Sprintf("%s/validation.pem", p.config.StagingDir)
+		if err := p.uploadFile(ui, comm, remoteValidationKeyPath, p.config.ValidationKeyPath); err != nil {
+			return fmt.Errorf("Error copying validation key: %s", err)
+		}
 	}
 
 	jsonPath, err := p.createJson(ui, comm)
@@ -228,14 +263,20 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	}
 
 	err = p.executeChef(ui, comm, configPath, jsonPath)
+
+	knifeConfigPath, err2 := p.createKnifeConfig(
+		ui, comm, nodeName, serverUrl, p.config.ClientKey, p.config.SslVerifyMode)
+	if err2 != nil {
+		return fmt.Errorf("Error creating knife config on node: %s", err2)
+	}
 	if !p.config.SkipCleanNode {
-		if err2 := p.cleanNode(ui, comm, nodeName); err2 != nil {
+		if err2 := p.cleanNode(ui, comm, nodeName, knifeConfigPath); err2 != nil {
 			return fmt.Errorf("Error cleaning up chef node: %s", err2)
 		}
 	}
 
 	if !p.config.SkipCleanClient {
-		if err2 := p.cleanClient(ui, comm, nodeName); err2 != nil {
+		if err2 := p.cleanClient(ui, comm, nodeName, knifeConfigPath); err2 != nil {
 			return fmt.Errorf("Error cleaning up chef client: %s", err2)
 		}
 	}
@@ -245,7 +286,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 	}
 
 	if err := p.removeDir(ui, comm, p.config.StagingDir); err != nil {
-		return fmt.Errorf("Error removing /etc/chef directory: %s", err)
+		return fmt.Errorf("Error removing %s: %s", p.config.StagingDir, err)
 	}
 
 	return nil
@@ -271,7 +312,30 @@ func (p *Provisioner) uploadDirectory(ui packer.Ui, comm packer.Communicator, ds
 	return comm.UploadDir(dst, src, nil)
 }
 
-func (p *Provisioner) createConfig(ui packer.Ui, comm packer.Communicator, nodeName string, serverUrl string, remoteKeyPath string, validationClientName string, chefEnvironment string, sslVerifyMode string) (string, error) {
+func (p *Provisioner) uploadFile(ui packer.Ui, comm packer.Communicator, remotePath string, localPath string) error {
+	ui.Message(fmt.Sprintf("Uploading %s...", localPath))
+
+	f, err := os.Open(localPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return comm.Upload(remotePath, f, nil)
+}
+
+func (p *Provisioner) createConfig(
+	ui packer.Ui,
+	comm packer.Communicator,
+	nodeName string,
+	serverUrl string,
+	clientKey string,
+	encryptedDataBagSecretPath,
+	remoteKeyPath string,
+	validationClientName string,
+	chefEnvironment string,
+	sslVerifyMode string) (string, error) {
+
 	ui.Message("Creating configuration file 'client.rb'")
 
 	// Read the template
@@ -291,19 +355,49 @@ func (p *Provisioner) createConfig(ui packer.Ui, comm packer.Communicator, nodeN
 		tpl = string(tplBytes)
 	}
 
-	configString, err := p.config.tpl.Process(tpl, &ConfigTemplate{
-		NodeName:             nodeName,
-		ServerUrl:            serverUrl,
-		ValidationKeyPath:    remoteKeyPath,
-		ValidationClientName: validationClientName,
-		ChefEnvironment:      chefEnvironment,
-		SslVerifyMode:        sslVerifyMode,
-	})
+	ctx := p.config.ctx
+	ctx.Data = &ConfigTemplate{
+		NodeName:                   nodeName,
+		ServerUrl:                  serverUrl,
+		ClientKey:                  clientKey,
+		ValidationKeyPath:          remoteKeyPath,
+		ValidationClientName:       validationClientName,
+		ChefEnvironment:            chefEnvironment,
+		SslVerifyMode:              sslVerifyMode,
+		EncryptedDataBagSecretPath: encryptedDataBagSecretPath,
+	}
+	configString, err := interpolate.Render(tpl, &ctx)
 	if err != nil {
 		return "", err
 	}
 
 	remotePath := filepath.ToSlash(filepath.Join(p.config.StagingDir, "client.rb"))
+	if err := comm.Upload(remotePath, bytes.NewReader([]byte(configString)), nil); err != nil {
+		return "", err
+	}
+
+	return remotePath, nil
+}
+
+func (p *Provisioner) createKnifeConfig(ui packer.Ui, comm packer.Communicator, nodeName string, serverUrl string, clientKey string, sslVerifyMode string) (string, error) {
+	ui.Message("Creating configuration file 'knife.rb'")
+
+	// Read the template
+	tpl := DefaultKnifeTemplate
+
+	ctx := p.config.ctx
+	ctx.Data = &ConfigTemplate{
+		NodeName:      nodeName,
+		ServerUrl:     serverUrl,
+		ClientKey:     clientKey,
+		SslVerifyMode: sslVerifyMode,
+	}
+	configString, err := interpolate.Render(tpl, &ctx)
+	if err != nil {
+		return "", err
+	}
+
+	remotePath := filepath.ToSlash(filepath.Join(p.config.StagingDir, "knife.rb"))
 	if err := comm.Upload(remotePath, bytes.NewReader([]byte(configString)), nil); err != nil {
 		return "", err
 	}
@@ -343,53 +437,67 @@ func (p *Provisioner) createJson(ui packer.Ui, comm packer.Communicator) (string
 func (p *Provisioner) createDir(ui packer.Ui, comm packer.Communicator, dir string) error {
 	ui.Message(fmt.Sprintf("Creating directory: %s", dir))
 
-	mkdirCmd := fmt.Sprintf("mkdir -p '%s'", dir)
-	if !p.config.PreventSudo {
-		mkdirCmd = "sudo " + mkdirCmd
-	}
-
-	cmd := &packer.RemoteCmd{
-		Command: mkdirCmd,
-	}
-
+	cmd := &packer.RemoteCmd{Command: p.guestCommands.CreateDir(dir)}
 	if err := cmd.StartWithUi(comm, ui); err != nil {
 		return err
 	}
-
 	if cmd.ExitStatus != 0 {
-		return fmt.Errorf("Non-zero exit status.")
+		return fmt.Errorf("Non-zero exit status. See output above for more info.")
+	}
+
+	// Chmod the directory to 0777 just so that we can access it as our user
+	cmd = &packer.RemoteCmd{Command: p.guestCommands.Chmod(dir, "0777")}
+	if err := cmd.StartWithUi(comm, ui); err != nil {
+		return err
+	}
+	if cmd.ExitStatus != 0 {
+		return fmt.Errorf("Non-zero exit status. See output above for more info.")
 	}
 
 	return nil
 }
 
-func (p *Provisioner) cleanNode(ui packer.Ui, comm packer.Communicator, node string) error {
+func (p *Provisioner) cleanNode(ui packer.Ui, comm packer.Communicator, node string, knifeConfigPath string) error {
 	ui.Say("Cleaning up chef node...")
-	app := fmt.Sprintf("knife node delete %s -y", node)
-
-	cmd := exec.Command("sh", "-c", app)
-	out, err := cmd.Output()
-
-	ui.Message(fmt.Sprintf("%s", out))
-
-	if err != nil {
-		return err
+	args := []string{"node", "delete", node}
+	if err := p.knifeExec(ui, comm, node, knifeConfigPath, args); err != nil {
+		return fmt.Errorf("Failed to cleanup node: %s", err)
 	}
 
 	return nil
 }
 
-func (p *Provisioner) cleanClient(ui packer.Ui, comm packer.Communicator, node string) error {
+func (p *Provisioner) cleanClient(ui packer.Ui, comm packer.Communicator, node string, knifeConfigPath string) error {
 	ui.Say("Cleaning up chef client...")
-	app := fmt.Sprintf("knife client delete %s -y", node)
+	args := []string{"client", "delete", node}
+	if err := p.knifeExec(ui, comm, node, knifeConfigPath, args); err != nil {
+		return fmt.Errorf("Failed to cleanup client: %s", err)
+	}
 
-	cmd := exec.Command("sh", "-c", app)
-	out, err := cmd.Output()
+	return nil
+}
 
-	ui.Message(fmt.Sprintf("%s", out))
+func (p *Provisioner) knifeExec(ui packer.Ui, comm packer.Communicator, node string, knifeConfigPath string, args []string) error {
+	flags := []string{
+		"-y",
+		"-c", knifeConfigPath,
+	}
 
-	if err != nil {
+	cmdText := fmt.Sprintf(
+		"knife %s %s", strings.Join(args, " "), strings.Join(flags, " "))
+	if !p.config.PreventSudo {
+		cmdText = "sudo " + cmdText
+	}
+
+	cmd := &packer.RemoteCmd{Command: cmdText}
+	if err := cmd.StartWithUi(comm, ui); err != nil {
 		return err
+	}
+	if cmd.ExitStatus != 0 {
+		return fmt.Errorf(
+			"Non-zero exit status. See output above for more info.\n\n"+
+				"Command: %s",
+			cmdText)
 	}
 
 	return nil
@@ -398,15 +506,7 @@ func (p *Provisioner) cleanClient(ui packer.Ui, comm packer.Communicator, node s
 func (p *Provisioner) removeDir(ui packer.Ui, comm packer.Communicator, dir string) error {
 	ui.Message(fmt.Sprintf("Removing directory: %s", dir))
 
-	rmCmd := fmt.Sprintf("rm -rf '%s'", dir)
-	if !p.config.PreventSudo {
-		rmCmd = "sudo " + rmCmd
-	}
-
-	cmd := &packer.RemoteCmd{
-		Command: rmCmd,
-	}
-
+	cmd := &packer.RemoteCmd{Command: p.guestCommands.RemoveDir(dir)}
 	if err := cmd.StartWithUi(comm, ui); err != nil {
 		return err
 	}
@@ -415,11 +515,12 @@ func (p *Provisioner) removeDir(ui packer.Ui, comm packer.Communicator, dir stri
 }
 
 func (p *Provisioner) executeChef(ui packer.Ui, comm packer.Communicator, config string, json string) error {
-	command, err := p.config.tpl.Process(p.config.ExecuteCommand, &ExecuteTemplate{
+	p.config.ctx.Data = &ExecuteTemplate{
 		ConfigPath: config,
 		JsonPath:   json,
 		Sudo:       !p.config.PreventSudo,
-	})
+	}
+	command, err := interpolate.Render(p.config.ExecuteCommand, &p.config.ctx)
 	if err != nil {
 		return err
 	}
@@ -444,12 +545,15 @@ func (p *Provisioner) executeChef(ui packer.Ui, comm packer.Communicator, config
 func (p *Provisioner) installChef(ui packer.Ui, comm packer.Communicator) error {
 	ui.Message("Installing Chef...")
 
-	command, err := p.config.tpl.Process(p.config.InstallCommand, &InstallChefTemplate{
+	p.config.ctx.Data = &InstallChefTemplate{
 		Sudo: !p.config.PreventSudo,
-	})
+	}
+	command, err := interpolate.Render(p.config.InstallCommand, &p.config.ctx)
 	if err != nil {
 		return err
 	}
+
+	ui.Message(command)
 
 	cmd := &packer.RemoteCmd{Command: command}
 	if err := cmd.StartWithUi(comm, ui); err != nil {
@@ -459,23 +563,6 @@ func (p *Provisioner) installChef(ui packer.Ui, comm packer.Communicator) error 
 	if cmd.ExitStatus != 0 {
 		return fmt.Errorf(
 			"Install script exited with non-zero exit status %d", cmd.ExitStatus)
-	}
-
-	return nil
-}
-
-func (p *Provisioner) copyValidationKey(ui packer.Ui, comm packer.Communicator, remotePath string) error {
-	ui.Message("Uploading validation key...")
-
-	// First upload the validation key to a writable location
-	f, err := os.Open(p.config.ValidationKeyPath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	if err := comm.Upload(remotePath, f, nil); err != nil {
-		return err
 	}
 
 	return nil
@@ -532,24 +619,25 @@ func (p *Provisioner) processJsonUserVars() (map[string]interface{}, error) {
 	// Copy the user variables so that we can restore them later, and
 	// make sure we make the quotes JSON-friendly in the user variables.
 	originalUserVars := make(map[string]string)
-	for k, v := range p.config.tpl.UserVars {
+	for k, v := range p.config.ctx.UserVariables {
 		originalUserVars[k] = v
 	}
 
 	// Make sure we reset them no matter what
 	defer func() {
-		p.config.tpl.UserVars = originalUserVars
+		p.config.ctx.UserVariables = originalUserVars
 	}()
 
 	// Make the current user variables JSON string safe.
-	for k, v := range p.config.tpl.UserVars {
+	for k, v := range p.config.ctx.UserVariables {
 		v = strings.Replace(v, `\`, `\\`, -1)
 		v = strings.Replace(v, `"`, `\"`, -1)
-		p.config.tpl.UserVars[k] = v
+		p.config.ctx.UserVariables[k] = v
 	}
 
 	// Process the bytes with the template processor
-	jsonBytesProcessed, err := p.config.tpl.Process(string(jsonBytes), nil)
+	p.config.ctx.Data = nil
+	jsonBytesProcessed, err := interpolate.Render(string(jsonBytes), &p.config.ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -566,6 +654,10 @@ var DefaultConfigTemplate = `
 log_level        :info
 log_location     STDOUT
 chef_server_url  "{{.ServerUrl}}"
+client_key       "{{.ClientKey}}"
+{{if ne .EncryptedDataBagSecretPath ""}}
+encrypted_data_bag_secret "{{.EncryptedDataBagSecretPath}}"
+{{end}}
 {{if ne .ValidationClientName ""}}
 validation_client_name "{{.ValidationClientName}}"
 {{else}}
@@ -578,6 +670,17 @@ node_name "{{.NodeName}}"
 {{if ne .ChefEnvironment ""}}
 environment "{{.ChefEnvironment}}"
 {{end}}
+{{if ne .SslVerifyMode ""}}
+ssl_verify_mode :{{.SslVerifyMode}}
+{{end}}
+`
+
+var DefaultKnifeTemplate = `
+log_level        :info
+log_location     STDOUT
+chef_server_url  "{{.ServerUrl}}"
+client_key       "{{.ClientKey}}"
+node_name "{{.NodeName}}"
 {{if ne .SslVerifyMode ""}}
 ssl_verify_mode :{{.SslVerifyMode}}
 {{end}}

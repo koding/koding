@@ -3,8 +3,9 @@ package extract
 import (
 	"fmt"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"testing"
+
+	"launchpad.net/goyaml"
 )
 
 func TestExtractUrls(t *testing.T) {
@@ -128,6 +129,62 @@ func TestExtractUrlsWithIndices(t *testing.T) {
 
 			if actual.Type != URL {
 				t.Errorf("ExtractUrls returned entity with wrong type. Expected:URL Got:%v", actual.Type)
+			}
+		}
+	}
+}
+
+func TestTlds(t *testing.T) {
+	contents, err := ioutil.ReadFile(tldYmlPath)
+	if err != nil {
+		t.Errorf("Error reading extract.yml: %v", err)
+		t.FailNow()
+	}
+
+	var conformance = &Conformance{}
+	err = goyaml.Unmarshal(contents, &conformance)
+	if err != nil {
+		t.Errorf("Error parsing extract.yml: %v", err)
+		t.FailNow()
+	}
+
+	urlTests, ok := conformance.Tests["country"]
+	if !ok {
+		t.Errorf("Conformance file did not contain 'country' key")
+		t.FailNow()
+	}
+
+	if generic, ok := conformance.Tests["generic"]; !ok {
+		t.Errorf("Conformance file did not contain 'generic' key")
+		t.FailNow()
+	} else {
+		urlTests = append(urlTests, generic...)
+	}
+
+	for _, test := range urlTests {
+		result := ExtractUrls(test.Text)
+
+		expected, ok := test.Expected.([]interface{})
+		if !ok {
+			fmt.Printf("e: %#v\n", test)
+			t.Errorf("Expected value in conformance file was not a list. Test name: %s.\n", test.Description)
+			t.FailNow()
+		}
+
+		if len(result) != len(expected) {
+			t.Errorf("Wrong number of entities returned for text [%s]. Expected:%v Got:%v.\n", test.Text, expected, result)
+			continue
+		}
+
+		for n, e := range expected {
+			actual := result[n]
+			tmpValue := e.(string)
+			if actual.Text != tmpValue {
+				t.Errorf("ExtractUrls returned incorrect value for test: [%s]. Expected:[%s] Got:[%s]\n", test.Text, tmpValue, actual.Text)
+			}
+
+			if actual.Type != URL {
+				t.Errorf("ExtractMentionedScreenNames returned entity with wrong type. Expected:MENTION Got:%v", actual.Type)
 			}
 		}
 	}

@@ -5,15 +5,35 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
+	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 )
 
+type logCapture struct{ bytes.Buffer }
+
+func (l *logCapture) logs() []string {
+	return strings.Split(strings.TrimSpace(l.String()), "\n")
+}
+
+func (l *logCapture) match(expect []string) bool {
+	return reflect.DeepEqual(l.logs(), expect)
+}
+
+func captureLogs(s *Session) *logCapture {
+	buf := new(logCapture)
+	s.logger = log.New(buf, "", 0)
+	return buf
+}
+
 type pipeConn struct {
-	reader *io.PipeReader
-	writer *io.PipeWriter
+	reader       *io.PipeReader
+	writer       *io.PipeWriter
+	writeBlocker sync.Mutex
 }
 
 func (p *pipeConn) Read(b []byte) (int, error) {
@@ -21,6 +41,8 @@ func (p *pipeConn) Read(b []byte) (int, error) {
 }
 
 func (p *pipeConn) Write(b []byte) (int, error) {
+	p.writeBlocker.Lock()
+	defer p.writeBlocker.Unlock()
 	return p.writer.Write(b)
 }
 
@@ -32,14 +54,27 @@ func (p *pipeConn) Close() error {
 func testConn() (io.ReadWriteCloser, io.ReadWriteCloser) {
 	read1, write1 := io.Pipe()
 	read2, write2 := io.Pipe()
-	return &pipeConn{read1, write2}, &pipeConn{read2, write1}
+	conn1 := &pipeConn{reader: read1, writer: write2}
+	conn2 := &pipeConn{reader: read2, writer: write1}
+	return conn1, conn2
 }
 
-func testClientServer() (*Session, *Session) {
+func testConf() *Config {
 	conf := DefaultConfig()
 	conf.AcceptBacklog = 64
 	conf.KeepAliveInterval = 100 * time.Millisecond
-	return testClientServerConfig(conf)
+	conf.ConnectionWriteTimeout = 250 * time.Millisecond
+	return conf
+}
+
+func testConfNoKeepAlive() *Config {
+	conf := testConf()
+	conf.EnableKeepAlive = false
+	return conf
+}
+
+func testClientServer() (*Session, *Session) {
+	return testClientServerConfig(testConf())
 }
 
 func testClientServerConfig(conf *Config) (*Session, *Session) {
@@ -68,6 +103,48 @@ func TestPing(t *testing.T) {
 	}
 	if rtt == 0 {
 		t.Fatalf("bad: %v", rtt)
+	}
+}
+
+func TestPing_Timeout(t *testing.T) {
+	client, server := testClientServerConfig(testConfNoKeepAlive())
+	defer client.Close()
+	defer server.Close()
+
+	// Prevent the client from responding
+	clientConn := client.conn.(*pipeConn)
+	clientConn.writeBlocker.Lock()
+
+	errCh := make(chan error, 1)
+	go func() {
+		_, err := server.Ping() // Ping via the server session
+		errCh <- err
+	}()
+
+	select {
+	case err := <-errCh:
+		if err != ErrTimeout {
+			t.Fatalf("err: %v", err)
+		}
+	case <-time.After(client.config.ConnectionWriteTimeout * 2):
+		t.Fatalf("failed to timeout within expected %v", client.config.ConnectionWriteTimeout)
+	}
+
+	// Verify that we recover, even if we gave up
+	clientConn.writeBlocker.Unlock()
+
+	go func() {
+		_, err := server.Ping() // Ping via the server session
+		errCh <- err
+	}()
+
+	select {
+	case err := <-errCh:
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+	case <-time.After(client.config.ConnectionWriteTimeout):
+		t.Fatalf("timeout")
 	}
 }
 
@@ -419,6 +496,7 @@ func TestManyStreams_PingPong(t *testing.T) {
 
 		buf := make([]byte, 4)
 		for {
+			// Read the 'ping'
 			n, err := stream.Read(buf)
 			if err == io.EOF {
 				return
@@ -432,6 +510,11 @@ func TestManyStreams_PingPong(t *testing.T) {
 			if !bytes.Equal(buf, ping) {
 				t.Fatalf("bad: %s", buf)
 			}
+
+			// Shrink the internal buffer!
+			stream.Shrink()
+
+			// Write out the 'pong'
 			n, err = stream.Write(pong)
 			if err != nil {
 				t.Fatalf("err: %v", err)
@@ -443,7 +526,7 @@ func TestManyStreams_PingPong(t *testing.T) {
 	}
 	sender := func(i int) {
 		defer wg.Done()
-		stream, err := client.Open()
+		stream, err := client.OpenStream()
 		if err != nil {
 			t.Fatalf("err: %v", err)
 		}
@@ -451,6 +534,7 @@ func TestManyStreams_PingPong(t *testing.T) {
 
 		buf := make([]byte, 4)
 		for i := 0; i < 1000; i++ {
+			// Send the 'ping'
 			n, err := stream.Write(ping)
 			if err != nil {
 				t.Fatalf("err: %v", err)
@@ -459,6 +543,7 @@ func TestManyStreams_PingPong(t *testing.T) {
 				t.Fatalf("short write %d", n)
 			}
 
+			// Read the 'pong'
 			n, err = stream.Read(buf)
 			if err != nil {
 				t.Fatalf("err: %v", err)
@@ -469,6 +554,9 @@ func TestManyStreams_PingPong(t *testing.T) {
 			if !bytes.Equal(buf, pong) {
 				t.Fatalf("bad: %s", buf)
 			}
+
+			// Shrink the buffer
+			stream.Shrink()
 		}
 	}
 
@@ -657,6 +745,49 @@ func TestKeepAlive(t *testing.T) {
 	}
 }
 
+func TestKeepAlive_Timeout(t *testing.T) {
+	conn1, conn2 := testConn()
+
+	clientConf := testConf()
+	clientConf.ConnectionWriteTimeout = time.Hour // We're testing keep alives, not connection writes
+	clientConf.EnableKeepAlive = false            // Just test one direction, so it's deterministic who hangs up on whom
+	client, _ := Client(conn1, clientConf)
+	defer client.Close()
+
+	server, _ := Server(conn2, testConf())
+	defer server.Close()
+
+	_ = captureLogs(client) // Client logs aren't part of the test
+	serverLogs := captureLogs(server)
+
+	errCh := make(chan error, 1)
+	go func() {
+		_, err := server.Accept() // Wait until server closes
+		errCh <- err
+	}()
+
+	// Prevent the client from responding
+	clientConn := client.conn.(*pipeConn)
+	clientConn.writeBlocker.Lock()
+
+	select {
+	case err := <-errCh:
+		if err != ErrKeepAliveTimeout {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	case <-time.After(1 * time.Second):
+		t.Fatalf("timeout waiting for timeout")
+	}
+
+	if !server.IsClosed() {
+		t.Fatalf("server should have closed")
+	}
+
+	if !serverLogs.match([]string{"[ERR] yamux: keepalive failed: i/o deadline reached"}) {
+		t.Fatalf("server log incorect: %v", serverLogs.logs())
+	}
+}
+
 func TestLargeWindow(t *testing.T) {
 	conf := DefaultConfig()
 	conf.MaxStreamWindowSize *= 2
@@ -798,4 +929,225 @@ func TestBacklogExceeded_Accept(t *testing.T) {
 			t.Fatalf("err: %v", err)
 		}
 	}
+}
+
+func TestSession_WindowUpdateWriteDuringRead(t *testing.T) {
+	client, server := testClientServerConfig(testConfNoKeepAlive())
+	defer client.Close()
+	defer server.Close()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Choose a huge flood size that we know will result in a window update.
+	flood := int64(client.config.MaxStreamWindowSize) - 1
+
+	// The server will accept a new stream and then flood data to it.
+	go func() {
+		defer wg.Done()
+
+		stream, err := server.AcceptStream()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		defer stream.Close()
+
+		n, err := stream.Write(make([]byte, flood))
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		if int64(n) != flood {
+			t.Fatalf("short write: %d", n)
+		}
+	}()
+
+	// The client will open a stream, block outbound writes, and then
+	// listen to the flood from the server, which should time out since
+	// it won't be able to send the window update.
+	go func() {
+		defer wg.Done()
+
+		stream, err := client.OpenStream()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		defer stream.Close()
+
+		conn := client.conn.(*pipeConn)
+		conn.writeBlocker.Lock()
+
+		_, err = stream.Read(make([]byte, flood))
+		if err != ErrConnectionWriteTimeout {
+			t.Fatalf("err: %v", err)
+		}
+	}()
+
+	wg.Wait()
+}
+
+func TestSession_sendNoWait_Timeout(t *testing.T) {
+	client, server := testClientServerConfig(testConfNoKeepAlive())
+	defer client.Close()
+	defer server.Close()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		stream, err := server.AcceptStream()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		defer stream.Close()
+	}()
+
+	// The client will open the stream and then block outbound writes, we'll
+	// probe sendNoWait once it gets into that state.
+	go func() {
+		defer wg.Done()
+
+		stream, err := client.OpenStream()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		defer stream.Close()
+
+		conn := client.conn.(*pipeConn)
+		conn.writeBlocker.Lock()
+
+		hdr := header(make([]byte, headerSize))
+		hdr.encode(typePing, flagACK, 0, 0)
+		for {
+			err = client.sendNoWait(hdr)
+			if err == nil {
+				continue
+			} else if err == ErrConnectionWriteTimeout {
+				break
+			} else {
+				t.Fatalf("err: %v", err)
+			}
+		}
+	}()
+
+	wg.Wait()
+}
+
+func TestSession_PingOfDeath(t *testing.T) {
+	client, server := testClientServerConfig(testConfNoKeepAlive())
+	defer client.Close()
+	defer server.Close()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	var doPingOfDeath sync.Mutex
+	doPingOfDeath.Lock()
+
+	// This is used later to block outbound writes.
+	conn := server.conn.(*pipeConn)
+
+	// The server will accept a stream, block outbound writes, and then
+	// flood its send channel so that no more headers can be queued.
+	go func() {
+		defer wg.Done()
+
+		stream, err := server.AcceptStream()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		defer stream.Close()
+
+		conn.writeBlocker.Lock()
+		for {
+			hdr := header(make([]byte, headerSize))
+			hdr.encode(typePing, 0, 0, 0)
+			err = server.sendNoWait(hdr)
+			if err == nil {
+				continue
+			} else if err == ErrConnectionWriteTimeout {
+				break
+			} else {
+				t.Fatalf("err: %v", err)
+			}
+		}
+
+		doPingOfDeath.Unlock()
+	}()
+
+	// The client will open a stream and then send the server a ping once it
+	// can no longer write. This makes sure the server doesn't deadlock reads
+	// while trying to reply to the ping with no ability to write.
+	go func() {
+		defer wg.Done()
+
+		stream, err := client.OpenStream()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		defer stream.Close()
+
+		// This ping will never unblock because the ping id will never
+		// show up in a response.
+		doPingOfDeath.Lock()
+		go func() { client.Ping() }()
+
+		// Wait for a while to make sure the previous ping times out,
+		// then turn writes back on and make sure a ping works again.
+		time.Sleep(2 * server.config.ConnectionWriteTimeout)
+		conn.writeBlocker.Unlock()
+		if _, err = client.Ping(); err != nil {
+			t.Fatalf("err: %v", err)
+		}
+	}()
+
+	wg.Wait()
+}
+
+func TestSession_ConnectionWriteTimeout(t *testing.T) {
+	client, server := testClientServerConfig(testConfNoKeepAlive())
+	defer client.Close()
+	defer server.Close()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		stream, err := server.AcceptStream()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		defer stream.Close()
+	}()
+
+	// The client will open the stream and then block outbound writes, we'll
+	// tee up a write and make sure it eventually times out.
+	go func() {
+		defer wg.Done()
+
+		stream, err := client.OpenStream()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
+		defer stream.Close()
+
+		conn := client.conn.(*pipeConn)
+		conn.writeBlocker.Lock()
+
+		// Since the write goroutine is blocked then this will return a
+		// timeout since it can't get feedback about whether the write
+		// worked.
+		n, err := stream.Write([]byte("hello"))
+		if err != ErrConnectionWriteTimeout {
+			t.Fatalf("err: %v", err)
+		}
+		if n != 0 {
+			t.Fatalf("lied about writes: %d", n)
+		}
+	}()
+
+	wg.Wait()
 }

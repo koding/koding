@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -31,7 +32,7 @@ func TestShortRequired(t *testing.T) {
 		Value bool `short:"v" required:"true"`
 	}{}
 
-	assertParseFail(t, ErrRequired, "the required flag `-v' was not specified", &opts)
+	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts)
 }
 
 func TestShortMultiConcat(t *testing.T) {
@@ -39,6 +40,30 @@ func TestShortMultiConcat(t *testing.T) {
 		V bool `short:"v"`
 		O bool `short:"o"`
 		F bool `short:"f"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-vo", "-f")
+
+	assertStringArray(t, ret, []string{})
+
+	if !opts.V {
+		t.Errorf("Expected V to be true")
+	}
+
+	if !opts.O {
+		t.Errorf("Expected O to be true")
+	}
+
+	if !opts.F {
+		t.Errorf("Expected F to be true")
+	}
+}
+
+func TestShortMultiRequiredConcat(t *testing.T) {
+	var opts = struct {
+		V bool `short:"v" required:"true"`
+		O bool `short:"o" required:"true"`
+		F bool `short:"f" required:"true"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-vo", "-f")
@@ -119,7 +144,7 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, ErrExpectedArgument, "expected argument for flag `-v'", &opts, "-ffv=value")
+	assertParseFail(t, ErrExpectedArgument, fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter), &opts, "-ffv=value")
 }
 
 func TestShortMultiArg(t *testing.T) {
@@ -141,7 +166,7 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, ErrExpectedArgument, "expected argument for flag `-v'", &opts, "-ffvvalue")
+	assertParseFail(t, ErrExpectedArgument, fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter), &opts, "-ffvvalue")
 }
 
 func TestShortMultiArgConcat(t *testing.T) {

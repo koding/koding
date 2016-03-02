@@ -23,7 +23,7 @@ const (
 	// ErrMarshal indicates a marshalling error while converting values.
 	ErrMarshal
 
-	// ErrHelp indicates that the builtin help was shown (the error
+	// ErrHelp indicates that the built-in help was shown (the error
 	// contains the help message).
 	ErrHelp
 
@@ -51,7 +51,46 @@ const (
 
 	// ErrUnknownCommand indicates that an unknown command was specified.
 	ErrUnknownCommand
+
+	// ErrInvalidChoice indicates an invalid option value which only allows
+	// a certain number of choices.
+	ErrInvalidChoice
 )
+
+func (e ErrorType) String() string {
+	switch e {
+	case ErrUnknown:
+		return "unknown"
+	case ErrExpectedArgument:
+		return "expected argument"
+	case ErrUnknownFlag:
+		return "unknown flag"
+	case ErrUnknownGroup:
+		return "unknown group"
+	case ErrMarshal:
+		return "marshal"
+	case ErrHelp:
+		return "help"
+	case ErrNoArgumentForBool:
+		return "no argument for bool"
+	case ErrRequired:
+		return "required"
+	case ErrShortNameTooLong:
+		return "short name too long"
+	case ErrDuplicatedFlag:
+		return "duplicated flag"
+	case ErrTag:
+		return "tag"
+	case ErrCommandRequired:
+		return "command required"
+	case ErrUnknownCommand:
+		return "unknown command"
+	case ErrInvalidChoice:
+		return "invalid choice"
+	}
+
+	return "unrecognized error type"
+}
 
 // Error represents a parser error. The error returned from Parse is of this
 // type. The error contains both a Type and Message.

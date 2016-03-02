@@ -151,7 +151,7 @@ func (p *Parser) objectItem() (*ast.ObjectItem, error) {
 
 	// do a look-ahead for line comment
 	p.scan()
-	if o.Val.Pos().Line == keys[0].Pos().Line && p.lineComment != nil {
+	if len(keys) > 0 && o.Val.Pos().Line == keys[0].Pos().Line && p.lineComment != nil {
 		o.LineComment = p.lineComment
 		p.lineComment = nil
 	}
@@ -246,6 +246,11 @@ func (p *Parser) objectType() (*ast.ObjectType, error) {
 		return nil, err
 	}
 
+	// If there is no error, we should be at a RBRACE to end the object
+	if p.tok.Type != token.RBRACE {
+		return nil, fmt.Errorf("object expected closing RBRACE got: %s", p.tok.Type)
+	}
+
 	o.List = l
 	o.Rbrace = p.tok.Pos // advanced via parseObjectList
 	return o, nil
@@ -264,7 +269,7 @@ func (p *Parser) listType() (*ast.ListType, error) {
 	for {
 		tok := p.scan()
 		switch tok.Type {
-		case token.NUMBER, token.FLOAT, token.STRING:
+		case token.NUMBER, token.FLOAT, token.STRING, token.HEREDOC:
 			if needComma {
 				return nil, &PosError{
 					Pos: tok.Pos,

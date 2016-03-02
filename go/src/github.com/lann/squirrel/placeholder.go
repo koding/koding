@@ -34,15 +34,26 @@ type dollarFormat struct{}
 
 func (_ dollarFormat) ReplacePlaceholders(sql string) (string, error) {
 	buf := &bytes.Buffer{}
-	for i := 1; ; i++ {
+	i := 0
+	for {
 		p := strings.Index(sql, "?")
 		if p == -1 {
 			break
 		}
 
-		buf.WriteString(sql[:p])
-		fmt.Fprintf(buf, "$%d", i)
-		sql = sql[p+1:]
+		if len(sql[p:]) > 1 && sql[p:p+2] == "??" { // escape ?? => ?
+			buf.WriteString(sql[:p])
+			buf.WriteString("?")
+			if len(sql[p:]) == 1 {
+				break
+			}
+			sql = sql[p+2:]
+		} else {
+			i++
+			buf.WriteString(sql[:p])
+			fmt.Fprintf(buf, "$%d", i)
+			sql = sql[p+1:]
+		}
 	}
 
 	buf.WriteString(sql)
@@ -51,9 +62,9 @@ func (_ dollarFormat) ReplacePlaceholders(sql string) (string, error) {
 
 // Placeholders returns a string with count ? placeholders joined with commas.
 func Placeholders(count int) string {
-	placeholders := make([]string, count)
-	for i := 0; i < count; i++ {
-		placeholders[i] = "?"
+	if count < 1 {
+		return ""
 	}
-	return strings.Join(placeholders, ",")
+
+	return strings.Repeat(",?", count)[1:]
 }

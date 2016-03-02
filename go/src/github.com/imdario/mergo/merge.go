@@ -46,15 +46,31 @@ func deepMerge(dst, src reflect.Value, visited map[uintptr]*visit, depth int, ov
 				continue
 			}
 			dstElement := dst.MapIndex(key)
-			switch reflect.TypeOf(srcElement.Interface()).Kind() {
-			case reflect.Struct:
+			switch srcElement.Kind() {
+			case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Slice:
+				if srcElement.IsNil() {
+					continue
+				}
 				fallthrough
-			case reflect.Map:
-				if err = deepMerge(dstElement, srcElement, visited, depth+1, overwrite); err != nil {
-					return
+			default:
+				if !srcElement.CanInterface() {
+					continue
+				}
+				switch reflect.TypeOf(srcElement.Interface()).Kind() {
+				case reflect.Struct:
+					fallthrough
+				case reflect.Ptr:
+					fallthrough
+				case reflect.Map:
+					if err = deepMerge(dstElement, srcElement, visited, depth+1, overwrite); err != nil {
+						return
+					}
 				}
 			}
 			if !isEmptyValue(srcElement) && (overwrite || (!dstElement.IsValid() || isEmptyValue(dst))) {
+				if dst.IsNil() {
+					dst.Set(reflect.MakeMap(dst.Type()))
+				}
 				dst.SetMapIndex(key, srcElement)
 			}
 		}
@@ -78,16 +94,16 @@ func deepMerge(dst, src reflect.Value, visited map[uintptr]*visit, depth int, ov
 	return
 }
 
-// Merge sets fields' values in dst from src if they have a zero
-// value of their type.
-// dst and src must be valid same-type structs and dst must be
-// a pointer to struct.
-// It won't merge unexported (private) fields and will do recursively
-// any exported field.
+// Merge will fill any empty for value type attributes on the dst struct using corresponding
+// src attributes if they themselves are not empty. dst and src must be valid same-type structs
+// and dst must be a pointer to struct.
+// It won't merge unexported (private) fields and will do recursively any exported field.
 func Merge(dst, src interface{}) error {
 	return merge(dst, src, false)
 }
 
+// MergeWithOverwrite will do the same as Merge except that non-empty dst attributes will be overriden by
+// non-empty src attribute values.
 func MergeWithOverwrite(dst, src interface{}) error {
 	return merge(dst, src, true)
 }

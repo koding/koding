@@ -48,6 +48,9 @@ body must look something like:
       "v1"
     ],
     "Address": "127.0.0.1",
+    "TaggedAddresses": {
+      "wan": "127.0.0.1"
+    },
     "Port": 8000
   },
   "Check": {
@@ -64,7 +67,9 @@ body must look something like:
 The behavior of the endpoint depends on what keys are provided. The endpoint
 requires `Node` and `Address` to be provided while `Datacenter` will be defaulted
 to match that of the agent. If only those are provided, the endpoint will register
-the node with the catalog.
+the node with the catalog. `TaggedAddresses` can be used in conjunction with the
+[`translate_wan_addrs`](/docs/agent/options.html#translate_wan_addrs) configuration
+option. Currently only the "wan" tag is supported.
 
 If the `Service` key is provided, the service will also be registered. If
 `ID` is not provided, it will be defaulted to the value of the `Service.Service` property.
@@ -87,6 +92,17 @@ to indicate that the initial check has not been performed yet.
 
 It is important to note that `Check` does not have to be provided with `Service`
 and vice versa. A catalog entry can have either, neither, or both.
+
+An optional ACL token may be provided to perform the registration by including a
+`WriteRequest` block in the query payload, like this:
+
+```javascript
+{
+  "WriteRequest": {
+    "Token": "foo"
+  }
+}
+```
 
 If the API call succeeds, a 200 status code is returned.
 
@@ -130,12 +146,27 @@ all associated services and checks are deleted. If `CheckID` is provided, only
 that check is removed. If `ServiceID` is provided, the
 service and its associated health check (if any) are removed.
 
+An optional ACL token may be provided to perform the deregister action by adding
+a `WriteRequest` block to the payload, like this:
+
+```javascript
+{
+  "WriteRequest": {
+    "Token": "foo"
+  }
+}
+```
+
 If the API call succeeds a 200 status code is returned.
 
 ### <a name="catalog_datacenters"></a> /v1/catalog/datacenters
 
 This endpoint is hit with a GET and is used to return all the
 datacenters that are known by the Consul server.
+
+The datacenters will be sorted in ascending order based on the
+estimated median round trip time from the server to the servers
+in that datacenter.
 
 It returns a JSON body like this:
 
@@ -153,6 +184,11 @@ This endpoint is hit with a GET and returns the nodes registered
 in a given DC. By default, the datacenter of the agent is queried;
 however, the dc can be provided using the "?dc=" query parameter.
 
+Adding the optional "?near=" parameter with a node name will sort
+the node list in ascending order based on the estimated round trip
+time from that node. Passing "?near=_agent" will use the agent's
+node for the sort.
+
 It returns a JSON body like this:
 
 ```javascript
@@ -160,10 +196,16 @@ It returns a JSON body like this:
   {
     "Node": "baz",
     "Address": "10.1.10.11"
+    "TaggedAddresses": {
+      "wan": "10.1.10.11"
+    }
   },
   {
     "Node": "foobar",
-    "Address": "10.1.10.12"
+    "Address": "10.1.10.12",
+    "TaggedAddresses": {
+      "wan": "10.1.10.12"
+    }
   }
 ]
 ```
@@ -204,6 +246,11 @@ The service being queried must be provided on the path. By default
 all nodes in that service are returned. However, the list can be filtered
 by tag using the "?tag=" query parameter.
 
+Adding the optional "?near=" parameter with a node name will sort
+the node list in ascending order based on the estimated round trip
+time from that node. Passing "?near=_agent" will use the agent's
+node for the sort.
+
 It returns a JSON body like this:
 
 ```javascript
@@ -235,7 +282,10 @@ It returns a JSON body like this:
 {
   "Node": {
     "Node": "foobar",
-    "Address": "10.1.10.12"
+    "Address": "10.1.10.12",
+    "TaggedAddresses": {
+      "wan": "10.1.10.12"
+    }
   },
   "Services": {
     "consul": {

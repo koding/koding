@@ -17,33 +17,83 @@ package oglematchers_test
 
 import (
 	"fmt"
+	"log"
+	"testing"
+
 	. "github.com/jacobsa/oglematchers"
 	. "github.com/jacobsa/ogletest"
-	"testing"
 )
 
+func TestPanickingTest(t *testing.T) { RunTests(t) }
+
 ////////////////////////////////////////////////////////////////////////
-// Helpers
+// PanickingTest
 ////////////////////////////////////////////////////////////////////////
+
+func someFuncThatPanics() {
+	panic("Panic in someFuncThatPanics")
+}
 
 type PanickingTest struct {
 }
 
-func init()                          { RegisterTestSuite(&PanickingTest{}) }
-func TestPanickingTest(t *testing.T) { RunTests(t) }
+func init() { RegisterTestSuite(&PanickingTest{}) }
 
 func (t *PanickingTest) TearDown() {
 	fmt.Println("TearDown running.")
 }
 
-////////////////////////////////////////////////////////////////////////
-// Tests
-////////////////////////////////////////////////////////////////////////
+func (t *PanickingTest) ExplicitPanic() {
+	panic("Panic in ExplicitPanic")
+}
 
-func (t *PanickingTest) PanickingTest() {
-	panic("foobar")
+func (t *PanickingTest) ExplicitPanicInHelperFunction() {
+	someFuncThatPanics()
+}
+
+func (t *PanickingTest) NilPointerDerefence() {
+	var p *int
+	log.Println(*p)
 }
 
 func (t *PanickingTest) ZzzSomeOtherTest() {
 	ExpectThat(17, Equals(17.0))
+}
+
+////////////////////////////////////////////////////////////////////////
+// SetUpPanicTest
+////////////////////////////////////////////////////////////////////////
+
+type SetUpPanicTest struct {
+}
+
+func init() { RegisterTestSuite(&SetUpPanicTest{}) }
+
+func (t *SetUpPanicTest) SetUp(ti *TestInfo) {
+	fmt.Println("SetUp about to panic.")
+	panic("Panic in SetUp")
+}
+
+func (t *SetUpPanicTest) TearDown() {
+	fmt.Println("TearDown running.")
+}
+
+func (t *SetUpPanicTest) SomeTestCase() {
+}
+
+////////////////////////////////////////////////////////////////////////
+// TearDownPanicTest
+////////////////////////////////////////////////////////////////////////
+
+type TearDownPanicTest struct {
+}
+
+func init() { RegisterTestSuite(&TearDownPanicTest{}) }
+
+func (t *TearDownPanicTest) TearDown() {
+	fmt.Println("TearDown about to panic.")
+	panic("Panic in TearDown")
+}
+
+func (t *TearDownPanicTest) SomeTestCase() {
 }
