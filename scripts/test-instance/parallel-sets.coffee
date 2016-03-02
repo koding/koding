@@ -37,7 +37,6 @@ module.exports = [
 
   [
     { name: 'unittests' }
-    { name: 'account accountpage' }
   ]
 
   [
