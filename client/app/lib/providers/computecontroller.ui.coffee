@@ -213,25 +213,24 @@ module.exports = class ComputeController_UI
           title   : "Resize VM?"
           message : "
             If you choose to proceed, this VM will be resized #{resizeDetails}.
-            During the resize process, you will not be able to use the VM but
-            all your files, workspaces and data will be safe.
+            During the resize process, you will not be able to use your VM.
+            No need to worry, your files, workspaces and your data therein will be safe.
           "
           button  : "Proceed"
         reinit    :
           title   : "Reinitialize VM?"
           message : "
-            If you choose to proceed, this VM will be reset to default state.
-            You will lose all your files, workspaces, collaboration sessions and data but your VM
-            settings (VM aliases, sub-domains etc.) will not be lost.
+            If you choose to proceed, this VM will be reset to its default state.
+            That means you will lose all of its data i.e. your files, workspaces, collaboration
+            sessions. Your VM settings however, (VM aliases, sub-domains etc.) will not be lost.
           "
           button  : "Proceed"
         reinitStack :
           title   : "Reinitialize Stack?"
           message : "
-            If you choose to proceed, this stack and all the VMs will be
+            If you choose to proceed, this stack and all of its VMs will be
             re-initialized from the latest revision of this stack.
-            You will lose all of your existing files, workspaces, VMs and all
-            of your data.
+            You will lose all of your existing VMs, workspaces and your data therein.
           "
           button  : "Proceed"
         deleteStack :
@@ -247,17 +246,17 @@ module.exports = class ComputeController_UI
         forceDeleteStack :
           title   : "Delete Stack data?"
           message : "
-            <p>If you choose to proceed, all the meta data and related
-            informations for this stack will be removed from Koding.</p>
+            <p>If you choose to proceed, all of the meta data and related
+            information for this stack will be removed from Koding.</p>
 
             <p><strong>
-              WARNING! This action won't destroy created resources in your
-              stack provider, you need to cleanup those resources
+              WARNING! This action won't destroy created resources on your
+              stack provider, you need to perform a cleanup for those resources
               (such as VMs, domains, security groups etc.) manually.
             </strong></p>
 
-            <p>With this action you'll remove all the connection between
-            this stack on Koding and related resources on stack provider.</p>
+            <p>With this action you'll remove the connection between
+            this stack on Koding and related resources on your stack provider.</p>
 
             <p>Do you want to continue?</p>
           "
