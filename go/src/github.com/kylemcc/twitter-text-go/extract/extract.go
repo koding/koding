@@ -267,6 +267,8 @@ func ExtractUrls(text string) []*TwitterEntity {
 				lastEntity.Text += substr[pathStart:pathEnd]
 				lastEntity.ByteRange.Stop = pathEnd + offset
 				nextOffset = lastEntity.ByteRange.Stop - 1
+			} else if validSpecialShortDomain.MatchString(lastEntity.Text) {
+				result = append(result, lastEntity)
 			}
 		} else {
 			// Else, the url contains a protocol
