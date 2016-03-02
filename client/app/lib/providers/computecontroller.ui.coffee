@@ -150,9 +150,10 @@ module.exports = class ComputeController_UI
         loader   : color : "#444444"
         callback : -> @hideLoader()
 
-    buttons = injectCustomActions requiredFields, buttons, (generatedKeys) ->
-      for own field, input of form.inputs
-        input.setValue data  if data = generatedKeys[field]
+    if requiredFields
+      buttons = injectCustomActions requiredFields, buttons, (generatedKeys) ->
+        for own field, input of form.inputs
+          input.setValue data  if data = generatedKeys[field]
 
     buttons.Cancel =
       style        : "solid medium"
