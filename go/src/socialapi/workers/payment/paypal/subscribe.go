@@ -13,7 +13,7 @@ import (
 )
 
 func SubscribeWithPlan(token, accId, planTitle, planInterval string) error {
-	plan, err := stripe.FindPlanByTitleAndInterval(planTitle, planInterval)
+	plan, err := stripe.FindPlan(planTitle, planInterval, paymentmodels.AccountCustomer)
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func SubscribeWithPlan(token, accId, planTitle, planInterval string) error {
 }
 
 func Subscribe(token, accId string) error {
-	plan, err := FindPlanFromToken(token)
+	plan, err := FindPlanFromToken(token, paymentmodels.AccountCustomer)
 	if err != nil {
 		return err
 	}
