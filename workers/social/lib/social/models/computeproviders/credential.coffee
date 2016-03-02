@@ -333,8 +333,12 @@ module.exports = class JCredential extends jraphical.Module
   shareWith$: permit
 
     advanced: [
-      { permission: 'modify credential', superadmin: yes }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'update credential'
+        validateWith : Validators.group.resource mode: 'w'
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: JCredential::shareWith
@@ -434,8 +438,12 @@ module.exports = class JCredential extends jraphical.Module
   update$: permit
 
     advanced: [
-      { permission: 'modify credential', superadmin: yes }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'update credential'
+        validateWith : Validators.group.resource mode: 'w'
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: (client, options, callback) ->
