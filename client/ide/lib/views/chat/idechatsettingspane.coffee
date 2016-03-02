@@ -125,7 +125,7 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
 
     @createReadOnlySettingElements()
     @createUnwatchSettingElements()
-    @createMuteHostSettingElements()
+    # @createMuteHostSettingElements()
 
 
   WATCH_MODE_GUIDE_LINK = 'https://koding.com/docs/collaboration/#watch_mode'
