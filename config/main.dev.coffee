@@ -66,9 +66,9 @@ Configuration = (options={}) ->
       secretAccessKey : "aK3jcGlvOzDs8HkW87eq+rXi6f4a7J/21dwpSwzj"
 
     #Encryption and Storage on S3
-    sneakerS3 :
-      awsSecretAccessKey : "RN/JGsPt4S3hKHOd+aCvnhiz2opdY/zZanmW3hPM"
-      awsAccessKeyId     : "AKIAJB5DPL652CCEE6EA"
+    worker_sneakerS3 :
+      accessKeyId     : "AKIAJB5DPL652CCEE6EA"
+      secretAccessKey : "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"
 
 
 
@@ -156,8 +156,8 @@ Configuration = (options={}) ->
     verificationToken : "jldPRk6HmOL2FjeXZYwUdW6B"
 
   sneakerS3 =
-    awsSecretAccessKey : "RN/JGsPt4S3hKHOd+aCvnhiz2opdY/zZanmW3hPM"
-    awsAccessKeyId : "AKIAJB5DPL652CCEE6EA"
+    awsSecretAccessKey  : "#{awsKeys.worker_sneakerS3.secretAccessKey}"
+    awsAccessKeyId      : "#{awsKeys.worker_sneakerS3.accessKeyId}"
     sneakerS3Path : "//kodingdev-credentials/secrets/"
     sneakerMasterKey :"3adede2a-ac33-4532-b63a-c25536c3ba8a"
     awsRegion : "us-west-2"
