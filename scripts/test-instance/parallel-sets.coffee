@@ -25,6 +25,7 @@ module.exports = [
     { name: 'register' }
     { name: 'login' }
     { name: 'logout' }
+    { name: 'environments vmactions_hobbyist' }
   ]
 
   [
@@ -34,10 +35,12 @@ module.exports = [
 
   [
     { name: 'account accountsettings' }
+    { name: 'environments vmactions_professional' }
   ]
 
   [
     { name: 'unittests' }
+    { name: 'environments vmactions_developer' }
   ]
 
   [
