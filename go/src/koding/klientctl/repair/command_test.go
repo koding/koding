@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/klient/remote/req"
 	"koding/klientctl/list"
 	"koding/klientctl/util/testutil"
 	"testing"
@@ -13,18 +12,6 @@ import (
 	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-type fakeRepairKlient struct {
-	ReturnInfos list.KiteInfos
-}
-
-func (k *fakeRepairKlient) RemoteStatus(req.Status) error {
-	return nil
-}
-
-func (k *fakeRepairKlient) RemoteList() (list.KiteInfos, error) {
-	return k.ReturnInfos, nil
-}
 
 var discardLogger logging.Logger
 
@@ -68,7 +55,7 @@ func TestRepairCommandRun(t *testing.T) {
 			SetupRepairers: []Repairer{},
 			Repairers:      []Repairer{repairerA, repairerB},
 			KlientService:  &testutil.FakeService{},
-			Klient: &fakeRepairKlient{
+			Klient: &testutil.FakeKlient{
 				ReturnInfos: []list.KiteInfo{list.KiteInfo{VMName: "foo"}},
 			},
 		}
@@ -100,7 +87,7 @@ func TestRepairCommandRun(t *testing.T) {
 			SetupRepairers: []Repairer{},
 			Repairers:      []Repairer{repairerA, repairerB, repairerC},
 			KlientService:  &testutil.FakeService{},
-			Klient: &fakeRepairKlient{
+			Klient: &testutil.FakeKlient{
 				ReturnInfos: []list.KiteInfo{list.KiteInfo{VMName: "foo"}},
 			},
 		}

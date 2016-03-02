@@ -14,6 +14,7 @@ const (
 
 	MachineNotFound           = "MachineNotFound"
 	MachineUnreachable        = "MachineUnreachable"
+	MountNotFound             = "MountNotFound"
 	AuthErrTokenIsExpired     = "AuthErrTokenIsExpired"
 	AuthErrTokenIsNotValidYet = "AuthErrTokenIsNotValidYet"
 )

@@ -11,7 +11,9 @@ import (
 	"koding/klientctl/exitcodes"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"koding/klientctl/util"
 	"koding/klientctl/util/exec"
+	"koding/klientctl/util/mountcli"
 
 	"github.com/koding/logging"
 	"github.com/leeola/service"
@@ -45,6 +47,7 @@ type Command struct {
 	Klient interface {
 		RemoteList() (list.KiteInfos, error)
 		RemoteStatus(req.Status) error
+		RemoteMountInfo(string) (req.MountInfoResponse, error)
 	}
 
 	// The options to use if this struct needs to dial Klient.
@@ -361,6 +364,14 @@ func (c *Command) initDefaultRepairers() error {
 		MachineName:   c.Options.MountName,
 	}
 
+	mountExistsRepair := &MountExistsRepair{
+		Log:       c.Log.New("MountExistsRepair"),
+		Stdout:    util.NewFprint(c.Stdout),
+		MountName: c.Options.MountName,
+		Klient:    c.Klient,
+		Mountcli:  mountcli.NewMount(),
+	}
+
 	// A collection of Repairers responsible for actually repairing a given mount.
 	// Executed in the order they are defined, the effectiveness of the Repairers
 	// may depend on the order they are run in. An example being TokenNotValidYetRepair
@@ -371,6 +382,7 @@ func (c *Command) initDefaultRepairers() error {
 		kiteUnreachableRepair,
 		tokenExpired,
 		tokenNotValidYetRepair,
+		mountExistsRepair,
 	}
 
 	return nil
