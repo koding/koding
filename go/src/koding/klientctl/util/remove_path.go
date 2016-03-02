@@ -26,7 +26,7 @@ func NewRemovePath() *RemovePath {
 // RemovePath removes given path if:
 //	1. path is not an import path, see NeverRemovePaths
 //	2. if path is a folder, it should be empty
-func (r *RemovePath) Do(path string) error {
+func (r *RemovePath) Remove(path string) error {
 	if path == "" {
 		return errors.New("Path is empty.")
 	}

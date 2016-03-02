@@ -193,7 +193,7 @@ func (c *UnmountCommand) removeMountFolder() error {
 	r := util.RemovePath{
 		IgnorePaths: c.Options.NeverRemove,
 	}
-	if err := r.Do(rmPath); err != nil {
+	if err := r.Remove(rmPath); err != nil {
 		if err == util.ErrRestrictedPath {
 			c.printfln(AttemptedRemoveRestrictedPath)
 		} else {

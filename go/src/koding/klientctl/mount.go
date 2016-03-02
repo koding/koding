@@ -438,7 +438,7 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 }
 
 func (c *MountCommand) cleanupPath() {
-	if err := util.NewRemovePath().Do(c.Options.LocalPath); err != nil {
+	if err := util.NewRemovePath().Remove(c.Options.LocalPath); err != nil {
 		c.printfln(UnmountFailedRemoveMountPath)
 	}
 }
