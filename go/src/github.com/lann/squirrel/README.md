@@ -26,7 +26,7 @@ sql == "SELECT * FROM users JOIN emails USING (email_id) WHERE deleted_at IS NUL
 ```go
 sql, args, err := sq.
     Insert("users").Columns("name", "age").
-    Values("moe", 13).Values("larry", Expr("? + 5", 12)).
+    Values("moe", 13).Values("larry", sq.Expr("? + 5", 12)).
     ToSql()
 
 sql == "INSERT INTO users (name,age) VALUES (?,?),(?,? + 5)"
@@ -73,7 +73,32 @@ sql, _, _ := psql.Select("*").From("elephants").Where("name IN (?,?)", "Dumbo", 
 
 /// ...squirrel replaces them using PlaceholderFormat.
 sql == "SELECT * FROM elephants WHERE name IN ($1,$2)"
+
+
+/// You can retrieve id ...
+query := sq.Insert("nodes").
+    Columns("uuid", "type", "data").
+    Values(node.Uuid, node.Type, node.Data).
+    Suffix("RETURNING \"id\"").
+    RunWith(m.db).
+    PlaceholderFormat(sq.Dollar)
+
+query.QueryRow().Scan(&node.id)
 ```
+
+You can escape question mask by inserting two question marks:
+
+```sql
+SELECT * FROM nodes WHERE meta->'format' ??| array[?,?]
+```
+
+will generate with the Dollar Placeholder:
+
+```sql
+SELECT * FROM nodes WHERE meta->'format' ?| array[$1,$2] 
+```
+
+
 
 ## License
 

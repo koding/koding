@@ -36,18 +36,7 @@ func BuildAndRunDir(dir string, filters []string) error {
 			if pkgName == "_test" {
 				continue
 			}
-
-			// TODO figure out fully qualified package name in GOPATH
-			a, _ := filepath.Abs(filepath.Dir(file))
-			absPath, fullPkg := filepath.ToSlash(a), ""
-			for _, p := range filepath.SplitList(os.Getenv("GOPATH")) {
-				a, _ = filepath.Abs(p)
-				p = filepath.ToSlash(a)
-				if strings.HasPrefix(absPath, p) {
-					fullPkg = absPath[len(p+"/src/"):]
-					break
-				}
-			}
+			fullPkg := assembleImportPath(file)
 
 			if fullPkg == "" {
 				return fmt.Errorf("could not determine package path for %s", file)
@@ -83,6 +72,25 @@ func BuildAndRunDir(dir string, filters []string) error {
 	}
 
 	return nil
+}
+
+// ToSlash is being used to coerce the different
+// os PathSeparators into the forward slash
+// as the forward slash is required by Go's import statement
+func assembleImportPath(file string) string {
+	a, _ := filepath.Abs(filepath.Dir(file))
+	absPath, fullPkg := filepath.ToSlash(a), ""
+	for _, p := range filepath.SplitList(os.Getenv("GOPATH")) {
+		a, _ = filepath.Abs(p)
+		p = filepath.ToSlash(a)
+		if strings.HasPrefix(absPath, p) {
+			prefixPath := filepath.ToSlash(filepath.Join(p, "src"))
+			rpath, _ := filepath.Rel(prefixPath, absPath)
+			fullPkg = filepath.ToSlash(rpath)
+			break
+		}
+	}
+	return fullPkg
 }
 
 type buildInfo struct {
