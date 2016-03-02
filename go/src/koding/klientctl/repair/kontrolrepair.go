@@ -38,7 +38,7 @@ func (r *KontrolRepair) Status() error {
 		return nil
 	}
 
-	fmt.Fprint(r.Stdout, "Unable to connect to koding.com. Waiting...")
+	fmt.Fprint(r.Stdout, "Unable to connect to koding.com. Waiting..")
 
 	return r.statusLoop()
 }
@@ -48,14 +48,16 @@ func (r *KontrolRepair) statusLoop() error {
 	var err error
 
 	for i := uint(0); i <= r.RetryOptions.StatusRetries; i++ {
+		fmt.Fprint(r.Stdout, ".")
+
 		if err = r.remoteStatus(); err == nil {
 			break
 		}
 
-		fmt.Fprint(r.Stdout, ".")
-
 		time.Sleep(r.RetryOptions.StatusDelay)
 	}
+
+	fmt.Fprint(r.Stdout, "\n")
 
 	return err
 }
@@ -77,13 +79,13 @@ func (r *KontrolRepair) Repair() error {
 
 	// Run status again, to confirm it's running as best we can. If not, we've
 	// tried and failed.
-	fmt.Fprint(r.Stdout, "Waiting for reconnect.")
+	fmt.Fprint(r.Stdout, "Waiting for reconnect..")
 
 	if err := r.statusLoop(); err != nil {
 		fmt.Fprintln(r.Stdout, "Unable to reconnect to kontrol.")
 		return err
 	}
 
-	fmt.Fprint(r.Stdout, "\nReconnected to koding.com")
+	fmt.Fprintln(r.Stdout, "Reconnected to koding.com")
 	return nil
 }

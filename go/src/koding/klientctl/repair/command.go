@@ -114,6 +114,35 @@ func (c *Command) Run() (int, error) {
 		return exitcodes.RepairSetupKlientErr, err
 	}
 
+	// Only run the kontrol repairers if we have not already explicitly defined
+	// repairers ahead of time.
+	if c.Repairers == nil {
+		// The kontrol repairer will check if we're connected to kontrol yet, and
+		// attempt to wait for it. Eventually restarting if needed.
+		kontrolRepair := []Repairer{
+			&KontrolRepair{
+				Log:    c.Log.New("KontrolRepair"),
+				Stdout: c.Stdout,
+				Klient: c.Klient,
+				RetryOptions: RetryOptions{
+					StatusRetries: 3,
+					StatusDelay:   10 * time.Second,
+				},
+				Exec: &exec.CommandRun{
+					Stdin:  c.Stdin,
+					Stdout: c.Stdout,
+				},
+			},
+		}
+
+		// TODO: Remove this. Currently this exists because we're manually running it
+		// before the checkMachineExist() call. This is to ensure we check kontrol
+		// before running remote.list inside of klient (which requires kontrol)
+		if err := c.runRepairers(kontrolRepair); err != nil {
+			return exitcodes.RepairRunSetupRepairersErr, err
+		}
+	}
+
 	// Check for the existence of the machine *after* we run the repairers. That
 	// way the setup repairers can check for the health of klient, start it, etc.
 	if err := c.checkMachineExist(); err != nil {
@@ -280,21 +309,24 @@ func (c *Command) initDefaultRepairers() error {
 		return nil
 	}
 
-	// The kontrol repairer will check if we're connected to kontrol yet, and
-	// attempt to wait for it. Eventually restarting if needed.
-	kontrolRepair := &KontrolRepair{
-		Log:    c.Log.New("KontrolRepair"),
-		Stdout: c.Stdout,
-		Klient: c.Klient,
-		RetryOptions: RetryOptions{
-			StatusRetries: 3,
-			StatusDelay:   10 * time.Second,
-		},
-		Exec: &exec.CommandRun{
-			Stdin:  c.Stdin,
-			Stdout: c.Stdout,
-		},
-	}
+	// TODO: Re-enable. Currently disabled because we're manually running it
+	// before the checkMachineExist() call inside of Run().
+	//
+	//// The kontrol repairer will check if we're connected to kontrol yet, and
+	//// attempt to wait for it. Eventually restarting if needed.
+	//kontrolRepair := &KontrolRepair{
+	//	Log:    c.Log.New("KontrolRepair"),
+	//	Stdout: c.Stdout,
+	//	Klient: c.Klient,
+	//	RetryOptions: RetryOptions{
+	//		StatusRetries: 3,
+	//		StatusDelay:   10 * time.Second,
+	//	},
+	//	Exec: &exec.CommandRun{
+	//		Stdin:  c.Stdin,
+	//		Stdout: c.Stdout,
+	//	},
+	//}
 
 	// The kite unreachable repairer ensures that the remote machine is on, and
 	// kite is reachable. No repair action is possible.
@@ -335,7 +367,7 @@ func (c *Command) initDefaultRepairers() error {
 	// likely should be run *after* a restart, as Tokens not being valid yet usually
 	// happens after a restart.
 	c.Repairers = []Repairer{
-		kontrolRepair,
+		//kontrolRepair,
 		kiteUnreachableRepair,
 		tokenExpired,
 		tokenNotValidYetRepair,
