@@ -4,6 +4,7 @@ assert  = require 'assert'
 
 hobbyistPlanSelector = '.single-plan.hobbyist.current'
 url                  = helpers.getUrl()
+planType             = 'hobbyist'
 
 module.exports =
 
@@ -17,7 +18,11 @@ module.exports =
       if result.status is -1
         helpers.selectPlan(browser, 'hobbyist')
         helpers.fillPaymentForm(browser, 'hobbyist')
-        helpers.submitForm(browser, yes, yes)
+        browser
+          .waitForElementVisible   'button.submit-btn', 20000
+          .click                   'button.submit-btn'
+          .waitForElementVisible   '.kdmodal-content .success-msg', 20000
+          .click                   'button.submit-btn'
       else
       	browser.url url
 
