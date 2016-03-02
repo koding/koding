@@ -30,7 +30,7 @@ func (g *GroupSubscribeRequest) Do() (interface{}, error) {
 }
 
 //----------------------------------------------------------
-// GroupSubscriptions
+// GroupRequest
 //----------------------------------------------------------
 
 type GroupRequest struct {
@@ -38,7 +38,7 @@ type GroupRequest struct {
 }
 
 type GroupSubscriptionResponse struct {
-	GroupId string
+	GroupId string `json:"groupId"`
 	SubscriptionResponse
 }
 
@@ -66,6 +66,18 @@ func (g *GroupRequest) Subscriptions() (*GroupSubscriptionResponse, error) {
 		GroupId:              g.GroupId,
 		SubscriptionResponse: resp,
 	}, nil
+}
+
+func (g *GroupRequest) Delete() (interface{}, error) {
+	return nil, stripe.DeleteCustomer(g.GroupId)
+}
+
+func (g *GroupRequest) GetCreditCard() (*stripe.CreditCardResponse, error) {
+	return stripe.GetCreditCard(g.GroupId)
+}
+
+func (g *GroupRequest) GetInvoices() ([]*stripe.StripeInvoiceResponse, error) {
+	return stripe.FindInvoicesForCustomer(g.GroupId)
 }
 
 //----------------------------------------------------------
