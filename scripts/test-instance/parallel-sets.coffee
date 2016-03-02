@@ -32,7 +32,6 @@ module.exports = [
   ]
 
   [
-    { name: 'messages privatemessage' }
     { name: 'account accountsettings' }
   ]
 
