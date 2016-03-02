@@ -1,9 +1,4 @@
 kd                      = require 'kd'
-KDCustomHTMLView        = kd.CustomHTMLView
-KDCustomScrollView      = kd.CustomScrollView
-KDButtonView            = kd.ButtonView
-KDModalView             = kd.ModalView
-KDView                  = kd.View
 async                   = require 'async'
 globals                 = require 'globals'
 remote                  = require('./remote').getInstance()
@@ -22,12 +17,11 @@ getGroup                = require 'app/util/getGroup'
 isSoloProductLite       = require 'app/util/issoloproductlite'
 kookies                 = require 'kookies'
 
-module.exports = class MainView extends KDView
+module.exports = class MainView extends kd.View
 
   constructor: (options = {}, data)->
 
     mobileDevices       = /Android|iPhone|iPod/i
-
     options.domId       = 'kdmaincontainer'
     options.cssClass    = if globals.isLoggedInOnLoad then 'with-sidebar' else ''
     options.deviceType  = if mobileDevices.test navigator.userAgent then 'mobile' else 'desktop'
@@ -54,13 +48,13 @@ module.exports = class MainView extends KDView
 
   createMobileHeader:->
 
-    @addSubView @header = new KDView
+    @addSubView @header = new kd.View
       tagName    : 'header'
       domId      : 'main-header'
       attributes :
         testpath : 'main-header'
 
-    @header.addSubView @hamburgerMenu = new KDButtonView
+    @header.addSubView @hamburgerMenu = new kd.ButtonView
       cssClass  : 'hamburger-menu'
       iconOnly  : yes
       callback  : =>
@@ -73,10 +67,10 @@ module.exports = class MainView extends KDView
     router.on 'RouteInfoHandled', =>
       @unsetClass 'mobile-menu-active'
 
-    logoWrapper = new KDCustomHTMLView
+    logoWrapper = new kd.CustomHTMLView
       cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
 
-    logoWrapper.addSubView new KDCustomHTMLView
+    logoWrapper.addSubView new kd.CustomHTMLView
       tagName    : 'a'
       attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
@@ -92,7 +86,7 @@ module.exports = class MainView extends KDView
     if @getOption('deviceType') is 'mobile'
       return @createMobileHeader()
 
-    @addSubView @header = new KDView
+    @addSubView @header = new kd.View
       tagName    : 'header'
       domId      : 'main-header'
       attributes :
@@ -100,7 +94,7 @@ module.exports = class MainView extends KDView
 
     @header.addSubView new TopNavigation
 
-    @header.addSubView @logo = new KDCustomHTMLView
+    @header.addSubView @logo = new kd.CustomHTMLView
       tagName    : "a"
       attributes : href : '/'
       domId      : "koding-logo"
@@ -128,7 +122,7 @@ module.exports = class MainView extends KDView
     timer = null
     @setClass 'with-sidebar'
 
-    @addSubView @aside = new KDCustomHTMLView
+    @addSubView @aside = new kd.CustomHTMLView
       bind       : 'mouseenter mouseleave'
       tagName    : 'aside'
       cssClass   : unless isKoding() then 'team' else ''
@@ -144,22 +138,22 @@ module.exports = class MainView extends KDView
 
     entryPoint = globals.config.entryPoint
 
-    @logoWrapper = new KDCustomHTMLView
+    @logoWrapper = new kd.CustomHTMLView
       cssClass  : unless isKoding() then 'logo-wrapper group' else 'logo-wrapper'
 
     if isKoding()
-      @logoWrapper.addSubView new KDCustomHTMLView
+      @logoWrapper.addSubView new kd.CustomHTMLView
         tagName    : 'a'
         attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else
-      @logoWrapper.addSubView new KDCustomHTMLView
+      @logoWrapper.addSubView new kd.CustomHTMLView
         tagName    : 'span'
         partial    : getGroup().title
         cssClass   : 'team-name'
 
-    @logoWrapper.addSubView closeHandle = new KDCustomHTMLView
+    @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : "sidebar-close-handle"
       partial  : "<span class='icon'></span>"
       click    : @bound 'toggleSidebar'
@@ -173,17 +167,17 @@ module.exports = class MainView extends KDView
       @aside.addSubView @sidebar = new SidebarView
       return
 
-    @aside.addSubView @sidebar = new KDCustomScrollView
+    @aside.addSubView @sidebar = new kd.CustomScrollView
       offscreenIndicatorClassName: 'unread'
       # FW should be checked
       # this works weird somehow - SY
       # offscreenIndicatorClassName: if isKoding() then 'unread' else 'SidebarListItem-unreadCount'
 
-    @sidebar.addSubView moreItemsAbove = new KDView
+    @sidebar.addSubView moreItemsAbove = new kd.View
       cssClass  : 'more-items above hidden'
       partial   : 'Unread items'
 
-    @sidebar.addSubView moreItemsBelow = new KDView
+    @sidebar.addSubView moreItemsBelow = new kd.View
       cssClass  : 'more-items below hidden'
       partial   : 'Unread items'
 
@@ -257,7 +251,7 @@ module.exports = class MainView extends KDView
 
   createAccountArea:->
 
-    @accountArea = new KDCustomHTMLView { cssClass: 'account-area' }
+    @accountArea = new kd.CustomHTMLView { cssClass: 'account-area' }
 
     if isKoding()
     then @aside.addSubView @accountArea
@@ -291,14 +285,10 @@ module.exports = class MainView extends KDView
       slidingPanes        : no
       hideHandleContainer : yes
 
-
     @mainTabView.on 'PaneDidShow', (pane) => @emit 'MainTabPaneShown', pane
-
 
     @mainTabView.on "AllPanesClosed", ->
       kd.getSingleton('router').handleRoute "/Activity"
-
-
 
     @panelWrapper.addSubView @mainTabView
 
@@ -399,8 +389,8 @@ module.exports = class MainView extends KDView
   _logoutAnimation: ->
 
     {body}      = global.document
-    turnOffLine = new KDCustomHTMLView cssClass : "turn-off-line"
-    turnOffDot  = new KDCustomHTMLView cssClass : "turn-off-dot"
+    turnOffLine = new kd.CustomHTMLView cssClass : "turn-off-line"
+    turnOffDot  = new kd.CustomHTMLView cssClass : "turn-off-dot"
 
     turnOffLine.appendToDomBody()
     turnOffDot.appendToDomBody()
