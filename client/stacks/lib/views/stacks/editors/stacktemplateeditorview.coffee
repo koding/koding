@@ -37,8 +37,10 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
     { ace } = @aceView
 
-    if descriptionView = @getOption 'descriptionView'
-      ace.ready =>
+    ace.ready =>
+      if descriptionView = @getOption 'descriptionView'
         ace.descriptionView = descriptionView
         ace.prepend descriptionView
         @resize()
+
+      ace.contentChanged = no

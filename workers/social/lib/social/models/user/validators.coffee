@@ -94,3 +94,18 @@ module.exports = class Validators
         createKodingError 'Password must be at least 8 characters'
       else
         null
+
+  @isSoloAccessible: ({ groupName, account, cutoffDate, env }) ->
+    # old data might not have createdAt?
+    return yes if not account?.meta?.createdAt?
+
+    # everyone can login to their own team
+    return yes  if groupName isnt 'koding'
+
+    # user should be created before cutoffDate to be able to login to koding
+    return yes  if account.meta.createdAt.getTime() < cutoffDate.getTime()
+
+    # but in any case allow logins on dev and sandbox env
+    return yes if env in ['dev', 'sandbox']
+
+    return no

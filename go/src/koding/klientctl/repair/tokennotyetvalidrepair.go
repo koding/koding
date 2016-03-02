@@ -88,7 +88,7 @@ func (r *TokenNotYetValidRepair) Repair() error {
 				r.MachineName,
 			)
 		default:
-			fmt.Fprint(r.Stdout, " .")
+			fmt.Fprint(r.Stdout, ".")
 		}
 
 		time.Sleep(r.RepairDelay)
@@ -97,6 +97,8 @@ func (r *TokenNotYetValidRepair) Repair() error {
 	if newline {
 		fmt.Fprint(r.Stdout, "\n")
 	}
+
+	fmt.Fprintln(r.Stdout, "Successfully authenticated to koding.com")
 
 	return err
 }

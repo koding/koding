@@ -7,8 +7,8 @@ import (
 	"github.com/koding/paypal"
 )
 
-func GetToken(planTitle, planInterval string) (string, error) {
-	plan, err := stripe.FindPlanByTitleAndInterval(planTitle, planInterval)
+func GetToken(planTitle, planInterval, cType string) (string, error) {
+	plan, err := stripe.FindPlan(planTitle, planInterval, cType)
 	if err != nil {
 		return "", err
 	}

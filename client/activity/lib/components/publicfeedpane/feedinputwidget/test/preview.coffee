@@ -1,9 +1,7 @@
 kd        = require 'kd'
-Link      = require 'app/components/common/link'
 React     = require 'kd-react'
 expect    = require 'expect'
 Preview   = require '../preview'
-ReactDOM  = require 'react-dom'
 TestUtils = require 'react-addons-test-utils'
 
 

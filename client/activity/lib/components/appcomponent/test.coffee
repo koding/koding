@@ -1,4 +1,3 @@
-React                = require 'react/addons'
 expect               = require 'expect'
 ActivityAppComponent = require '../appcomponent'
 TestUtils            = require 'react-addons-test-utils'

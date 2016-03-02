@@ -1,5 +1,4 @@
 kd          = require 'kd'
-React       = require 'kd-react'
 expect      = require 'expect'
 View        = require '../view'
 immutable   = require 'immutable'

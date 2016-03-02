@@ -8,17 +8,21 @@ import (
 	stripeCustomer "github.com/stripe/stripe-go/customer"
 )
 
-func Subscribe(token, accId, email, planTitle, planInterval string) error {
-	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
+func SubscribeForGroup(token, groupId, email, planTitle, planInterval string) error {
+	return subscribe(token, email, planTitle, planInterval, groupId, paymentmodels.GroupCustomer)
+}
+
+func SubscribeForAccount(token, accId, email, planTitle, planInterval string) error {
+	return subscribe(token, email, planTitle, planInterval, accId, paymentmodels.AccountCustomer)
+}
+
+func subscribe(token, email, planTitle, planInterval, id string, cType string) error {
+	plan, err := FindPlan(planTitle, planInterval, cType)
 	if err != nil {
 		return err
 	}
 
-	return subscribe(token, accId, email, plan)
-}
-
-func subscribe(token, accId, email string, plan *paymentmodels.Plan) error {
-	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
+	customer, err := paymentmodels.NewCustomer().ByOldIdAndType(id, cType)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}
@@ -39,7 +43,7 @@ func subscribe(token, accId, email string, plan *paymentmodels.Plan) error {
 
 	switch status {
 	case paymentstatus.NewSub, paymentstatus.ExpiredSub:
-		err = handleNewSubscription(token, accId, email, plan)
+		err = handleNewSubscription(token, email, id, cType, plan)
 	case paymentstatus.ExistingUserHasNoSub:
 		err = handleUserNoSub(customer, token, plan)
 	case paymentstatus.AlreadySubscribedToPlan:
@@ -58,14 +62,23 @@ func subscribe(token, accId, email string, plan *paymentmodels.Plan) error {
 	return err
 }
 
-func handleNewSubscription(token, accId, email string, plan *paymentmodels.Plan) error {
-	customer, err := CreateCustomer(token, accId, email)
-	if err != nil {
-		return err
+func handleNewSubscription(token, email, id, cType string, plan *paymentmodels.Plan) error {
+	var customer *paymentmodels.Customer
+
+	switch cType {
+	case paymentmodels.AccountCustomer:
+		var err error
+		if customer, err = CreateCustomer(token, id, email); err != nil {
+			return err
+		}
+	case paymentmodels.GroupCustomer:
+		var err error
+		if customer, err = CreateCustomerForGroup(token, id, email); err != nil {
+			return err
+		}
 	}
 
-	_, err = CreateSubscription(customer, plan)
-	if err != nil {
+	if _, err := CreateSubscription(customer, plan); err != nil {
 		deleteCustomer(customer)
 		return err
 	}
@@ -75,8 +88,7 @@ func handleNewSubscription(token, accId, email string, plan *paymentmodels.Plan)
 
 func handleUserNoSub(customer *paymentmodels.Customer, token string, plan *paymentmodels.Plan) error {
 	if token != "" {
-		err := UpdateCreditCard(customer.OldId, token)
-		if err != nil {
+		if err := UpdateCreditCard(customer.OldId, token); err != nil {
 			return err
 		}
 	}
@@ -92,8 +104,7 @@ func handleCancel(customer *paymentmodels.Customer) error {
 	}
 
 	for _, sub := range subscriptions {
-		err = CancelSubscription(customer, &sub)
-		if err != nil {
+		if err = CancelSubscription(customer, &sub); err != nil {
 			Log.Error(err.Error())
 		}
 	}
@@ -106,13 +117,11 @@ func handleCancel(customer *paymentmodels.Customer) error {
 func deleteCustomer(customer *paymentmodels.Customer) {
 	removeCreditCardHelper(customer)
 
-	err := stripeCustomer.Del(customer.ProviderCustomerId)
-	if err != nil {
+	if err := stripeCustomer.Del(customer.ProviderCustomerId); err != nil {
 		Log.Error("Error deleting customer from Stripe: %v", err)
 	}
 
-	err = customer.Delete()
-	if err != nil {
+	if err := customer.Delete(); err != nil {
 		Log.Error("Removing cc failed for customer: %v. %v", customer.Id, err)
 	}
 }

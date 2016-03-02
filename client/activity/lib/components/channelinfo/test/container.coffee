@@ -1,5 +1,4 @@
 kd          = require 'kd'
-React       = require 'kd-react'
 expect      = require 'expect'
 ChannelInfo = require '../index'
 TestUtils   = require 'react-addons-test-utils'

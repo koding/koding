@@ -84,7 +84,7 @@ func (r *TokenExpiredRepair) Repair() error {
 		}
 
 		// Show a dot progress
-		fmt.Fprint(r.Stdout, " .")
+		fmt.Fprint(r.Stdout, ".")
 
 		time.Sleep(1 * time.Second)
 	}
