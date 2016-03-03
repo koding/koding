@@ -74,6 +74,21 @@ func GetUserById(id string) (*models.User, error) {
 	return user, nil
 }
 
+// GetAnyUserTokenWithGroup checks the token of users if does exits or not
+func GetAnyUserTokenWithGroup(groupName string) ([]*models.User, error) {
+
+	key := fmt.Sprintf("foreignAuth.slack.%s.token", groupName)
+	var users []*models.User
+	if err := Mongo.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Find(bson.M{key: bson.M{"$exists": true}}).All(&users)
+	}); err != nil {
+		return nil, fmt.Errorf("jUsers lookup error: %v", err)
+	}
+
+	return users, nil
+
+}
+
 func GetAccountByUserId(id bson.ObjectId) (*models.Account, error) {
 	user := new(models.User)
 	err := Mongo.One(UserColl, id.Hex(), user)
