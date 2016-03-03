@@ -1,4 +1,3 @@
-kd              = require 'kd'
 BaseInitialView = require '../baseinitialview'
 
 

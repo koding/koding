@@ -1,4 +1,3 @@
-kd                          = require 'kd'
 AdminAppView                = require 'admin/views/customviews/adminappview'
 StackCatalogMainTabPaneView = require './stackcatalogmaintabpaneview'
 
