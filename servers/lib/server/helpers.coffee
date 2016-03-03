@@ -106,9 +106,18 @@ serve = (content, res) ->
   res.header 'Content-type', 'text/html'
   res.send content
 
+# www.regextester.com/22
+ipv4Regex = ///^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$///
+isV4Format = (ip) -> ipv4Regex.test ip
+
+
 isTeamPage = (req) ->
   hostname = req?.headers?['x-host']
   return no  unless hostname
+
+  # special case for QA team, sometimes they test on ips
+  return yes  if isV4Format hostname
+
   for i, env of ['dev', 'sandbox', 'latest']
     if hostname.indexOf(env) is 0 # damn nodejs doesnt have startsWith
       return no
