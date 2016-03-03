@@ -357,11 +357,10 @@ module.exports = CollaborationController =
     @getHostSnapshot (snapshot) =>
 
       remainingPanes = @layoutManager.clearLayout yes # Recover opened panes
-      @layoutManager.resurrectSnapshot snapshot, yes
+      @layoutManager.resurrectSnapshot snapshot, yes, =>
 
-      return  unless remainingPanes.length
+        return  unless remainingPanes.length
 
-      kd.utils.defer =>
         for pane in remainingPanes
           isAdded = no
 
