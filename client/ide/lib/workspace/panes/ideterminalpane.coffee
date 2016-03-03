@@ -129,10 +129,10 @@ module.exports = class IDETerminalPane extends IDEPane
       cursor.stopBlink()
 
 
-  makeEditable: -> @setEditMode yes
+  makeEditable: -> @ready => @setEditMode yes
 
 
-  makeReadOnly: -> @setEditMode no
+  makeReadOnly: -> @ready => @setEditMode no
 
 
   setSession: (session) ->
