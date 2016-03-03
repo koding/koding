@@ -10,17 +10,9 @@ import (
 
 	"koding/kites/common"
 	"koding/kites/tunnelproxy"
-	"koding/klient/info/publicip"
 )
 
-func (k *Klient) register() error {
-	// Attempt to get the IP, and retry up to 10 times with 5 second pauses between
-	// retries.
-	ip, err := publicip.PublicIPRetry(10, 5*time.Second, k.log)
-	if err != nil {
-		return err
-	}
-
+func (k *Klient) register(addr string, useTunnel bool) error {
 	scheme := "http"
 	if k.kite.TLSConfig != nil {
 		scheme = "https"
@@ -28,11 +20,11 @@ func (k *Klient) register() error {
 
 	registerURL := &url.URL{
 		Scheme: scheme,
-		Host:   ip.String() + ":" + strconv.Itoa(k.config.Port),
+		Host:   addr,
 		Path:   "/kite",
 	}
 
-	if k.config.TunnelName != "" {
+	if useTunnel {
 		// TODO(rjeczalik): sockjs does not like tunneling, crashes receive
 		// loop with:
 		//

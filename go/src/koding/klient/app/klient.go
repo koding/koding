@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"koding/klient/fs"
 	"koding/klient/gatherrun"
 	"koding/klient/info"
+	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
 	"koding/klient/protocol"
 	"koding/klient/remote"
@@ -375,7 +377,34 @@ func (k *Klient) Run() {
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
 
-	if err := k.register(); err != nil {
+	// Attempt to get the IP, and retry up to 10 times with 5 second pauses between
+	// retries.
+	ip, err := publicip.PublicIPRetry(10, 5*time.Second, k.log)
+	if err != nil {
+		panic(err)
+	}
+
+	addr := ip.String() + ":" + strconv.Itoa(k.config.Port)
+
+	// If tunnel name is set explicitely, use tunnel by default.
+	useTunnel := k.config.TunnelName != ""
+
+	// Check if public IP is not reachable and use tunnel when we're not
+	// on a Koding machine.
+	if !isKoding && !useTunnel {
+		k.log.Debug("testing reachability of %q", addr)
+
+		ok, err := publicip.IsReachableRetry(addr, 10, 5*time.Second, k.log)
+		if err != nil {
+			k.log.Warning("unable to test public IP: %s", err)
+		} else {
+			useTunnel = !ok
+		}
+
+		k.log.Debug("address %q is reachable: %t", addr, ok)
+	}
+
+	if err := k.register(addr, useTunnel); err != nil {
 		panic(err)
 	}
 

@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	defaultMaxRegisterRetry = 3
+	defaultMaxRegisterRetry = 7
 	defaultTimeout          = 1 * time.Minute
 )
 
@@ -62,7 +62,7 @@ type ClientOptions struct {
 	// to cached tunnel server address before giving up and falling back to
 	// global kite URL.
 	//
-	// If zero, default value of 5 is used.
+	// If zero, default value of 7 is used.
 	MaxRegisterRetry int
 
 	// Timeout for connecting to tunnel server kite.
@@ -84,10 +84,6 @@ type ClientOptions struct {
 // Valid validates the ClientOptions, returning non-nil error when
 // a required field has zero value.
 func (opts *ClientOptions) Valid() error {
-	if opts.TunnelName == "" {
-		return errors.New("TunnelName is missing")
-	}
-
 	if opts.Config == nil {
 		return errors.New("kite configuration is missing")
 	}
