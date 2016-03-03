@@ -227,3 +227,25 @@ func getSlackToken(context *models.Context) (string, error) {
 	return token, models.ErrTokenIsNotFound
 
 }
+
+func getAynUserTokenFromGroup(context *models.Context) (string, error) {
+	var token string
+	groupName := context.GroupName
+
+	users, err := modelhelper.GetAnyUserTokenWithGroup(groupName)
+	if err != nil {
+		return token, err
+	}
+
+	for _, user := range users {
+		if user.ForeignAuth.Slack != nil {
+			if gName, ok := user.ForeignAuth.Slack[groupName]; ok {
+				if gName.Token != "" {
+					return gName.Token, nil
+				}
+			}
+		}
+	}
+
+	return token, models.ErrTokenIsNotFound
+}
