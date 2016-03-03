@@ -1,6 +1,5 @@
 kd      = require 'kd.js'
 utils   = require './../core/utils'
-kookies = require 'kookies'
 JView   = require './../core/jview'
 
 
