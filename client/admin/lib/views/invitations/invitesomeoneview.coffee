@@ -98,8 +98,8 @@ module.exports = class InviteSomeoneView extends KDView
       admins.push invite.email  if invite.role is 'admin'
 
     Tracker.track Tracker.INVITED_TEAMMEMBERS, {
-      invites_count : invites.length
-      admins_count  : admins.length
+      invitesCount : invites.length
+      adminsCount  : admins.length
     }
 
     if admins.length
