@@ -28,13 +28,7 @@ module.exports = class TeamDomainTab extends kd.FormView
       @inputView.unsetClass 'validation-error validation-passed'
 
     # Listen text change event in real time
-    @input.on 'input', =>
-      @input.getElement().removeAttribute 'size'
-
-      element           = @fakeView.getElement()
-      element.innerHTML = @input.getValue()
-      { width }         = element.getBoundingClientRect()
-      @input.setWidth width or 100
+    @input.on [ 'input', 'viewAppended' ], => utils.repositionSuffix @input, @fakeView
 
     @inputView.addSubView @suffix = new kd.View
       tagName      : 'span'
