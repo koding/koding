@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 
 	"koding/fuseklient"
 	"koding/klient/remote/kitepinger"
@@ -151,6 +152,21 @@ func (r *Remote) addMount(m *Mount) error {
 	return nil
 }
 
+// addMount adds the given Mount struct to the mounts slice, and saves it
+// to the db.
+func (r *Remote) saveMounts() error {
+	data, err := json.Marshal(r.mounts)
+	if err != nil {
+		return err
+	}
+
+	if err := r.storage.Set(mountsStorageKey, string(data)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // removeMount removes the given Mount struct from the mounts slice, and
 // saves the change to the db.
 func (r *Remote) removeMount(m *Mount) error {
@@ -200,46 +216,54 @@ func (r *Remote) restoreMounts() error {
 	// Now, loop through our mounts and compare them to the fsMounts,
 	// acting as needed.
 	for _, m := range r.mounts {
+		log := r.log.New(
+			"method", "restoreMounts",
+			"mountName", m.MountName,
+			"mountFolder", m.MountFolder.LocalPath,
+			"ip", m.IP,
+			"prefetchAll", m.MountFolder.PrefetchAll,
+		)
+
 		// Ignoring the error here, because it is not a problem if there is
 		// no mountName for the given path.
 		fsMountInfo, _ := fuseklient.GetMountByPath(m.LocalPath)
 
 		if fsMountInfo != nil {
+			failOnUnmount := true
 			fsMountName := fsMountInfo.FSName
 
 			// Mount path exists, but the name doesn't match our mount name.
 			// This occurs if the folder has been mounted by something else (ie,
 			// the user), so to be safe we should not mount this folder.
-			//
-			// TODO: Possibly store all of these drops? That way we can inform
-			// the user if the user calls this func via some klient method.
 			if fsMountName != m.MountName {
-				r.log.Warning(
-					"resolveMounts: The path '%s' has a fs mountName of '%s', but "+
-						"'%s' was expected. Removing the mount from Klient.",
+				log.Warning(
+					"The path %q has a fs mountName of %q, but %q was expected.",
 					m.LocalPath, fsMountName, m.MountName,
 				)
-				r.removeMount(m)
-				// Since we're removing this mount from the list, we don't want to
-				// unmount/modify/etc the mount. We can skip it.
-				continue
+
+				failOnUnmount = false
 			}
 
 			// Mount path exists, and the names match. Unmount it, so that we
 			// can remount it below.
-			r.log.Debug("Automatically unmounting '%s'", m.LocalPath)
+			log.Info("Automatically unmounting %q", m.LocalPath)
 			if err := fuseklient.Unmount(m.LocalPath); err != nil {
-				return err
+				if failOnUnmount {
+					log.Error("Failed to automatically unmount. err:%s", err)
+					continue
+				} else {
+					log.Error("Failed to automatically unmount, but ignoring unmount error. Continuing. err:%s", err)
+				}
 			}
 		}
 
 		// Mount path has been unmounted, or didn't exist locally.
 		// Remount it, to improve UX.
-		r.log.Debug("Automatically mounting '%s'", m.LocalPath)
-
+		log.Info("Automatically mounting %q", m.LocalPath)
 		remoteMachine, err := remoteMachines.GetByIP(m.IP)
 		if err != nil {
-			return err
+			log.Error("Failed to get machine by ip. err:%s", err)
+			continue
 		}
 
 		// Now that we have the remoteMachine, apply the kitePinger reference.
@@ -247,7 +271,8 @@ func (r *Remote) restoreMounts() error {
 
 		kiteClient := remoteMachine.Client
 		if err := kiteClient.Dial(); err != nil {
-			return err
+			log.Error("Failed to dial remote klient. err:%s", err)
+			continue
 		}
 
 		// Create our changes channel, so that fuseMount can be told when we lose and
@@ -256,7 +281,8 @@ func (r *Remote) restoreMounts() error {
 		changes := changeSummaryToBool(changeSummaries)
 
 		if err = fuseMountFolder(m, kiteClient); err != nil {
-			return err
+			log.Error("Failed to mount folder. err:%s", err)
+			continue
 		}
 
 		go watchClientAndReconnect(
@@ -282,7 +308,7 @@ func (r *Remote) restoreMounts() error {
 }
 
 // watchClientAndReconnect
-func watchClientAndReconnect(log kite.Logger, machine *machine.Machine, mount *Mount, kiteClient *kite.Client, changeSummaries chan kitepinger.ChangeSummary, changes <-chan bool) {
+func watchClientAndReconnect(log logging.Logger, machine *machine.Machine, mount *Mount, kiteClient *kite.Client, changeSummaries chan kitepinger.ChangeSummary, changes <-chan bool) {
 	kiteClient.Reconnect = true
 
 	log.Info(
