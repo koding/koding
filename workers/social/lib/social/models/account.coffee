@@ -1413,6 +1413,10 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchMySessions: secure (client, options, callback) ->
 
+    # check if requester is the owner of the account
+    unless @equals client.connection.delegate
+      return callback new KodingError 'Access denied.'
+
     { sessionToken } = client
     return callback new KodingError 'Invalid session.'  unless sessionToken
 
@@ -1425,10 +1429,6 @@ module.exports = class JAccount extends jraphical.Module
     JSession.one { clientId : sessionToken }, (err, session) =>
       return callback err  if err
       return callback new KodingError 'Invalid session.'  unless session
-
-      # check if requester is the owner of the account
-      unless @profile.nickname is session.username
-        return callback new KodingError 'Access denied.'
 
       selector = { username : session.username }
       options  = { limit, skip, sort }
