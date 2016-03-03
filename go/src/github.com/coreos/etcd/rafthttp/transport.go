@@ -106,7 +106,7 @@ type Transport struct {
 	// used to record transportation statistics with followers when
 	// performing as leader in raft protocol
 	LeaderStats *stats.LeaderStats
-	// error channel used to report detected critical error, e.g.,
+	// ErrorC is used to report detected critical errors, e.g.,
 	// the member has been permanently removed from the cluster
 	// When an error is received from ErrorC, user should stop raft state
 	// machine and thus stop the Transport.
@@ -289,6 +289,8 @@ func (t *Transport) ActiveSince(id types.ID) time.Time {
 }
 
 func (t *Transport) SendSnapshot(m snap.Message) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	p := t.peers[types.ID(m.To)]
 	if p == nil {
 		m.CloseWithError(errMemberNotFound)
@@ -297,12 +299,12 @@ func (t *Transport) SendSnapshot(m snap.Message) {
 	p.sendSnap(m)
 }
 
+// Pausable is a testing interface for pausing transport traffic.
 type Pausable interface {
 	Pause()
 	Resume()
 }
 
-// for testing
 func (t *Transport) Pause() {
 	for _, p := range t.peers {
 		p.(Pausable).Pause()

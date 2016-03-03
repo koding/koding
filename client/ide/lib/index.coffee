@@ -1641,9 +1641,6 @@ class IDEAppController extends AppController
 
   makeReadOnly: ->
 
-    return  if @isReadOnly
-
-    @isReadOnly = yes
     ideView.isReadOnly = yes  for ideView in @ideViews
     @forEachSubViewInIDEViews_ (pane) -> pane.makeReadOnly()
     @finderPane.makeReadOnly()
@@ -1652,9 +1649,6 @@ class IDEAppController extends AppController
 
   makeEditable: ->
 
-    return  unless @isReadOnly
-
-    @isReadOnly = no
     ideView.isReadOnly = no  for ideView in @ideViews
     @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
     @finderPane.makeEditable()

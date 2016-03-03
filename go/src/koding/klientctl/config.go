@@ -40,7 +40,7 @@ const (
 	// Version is the current version of klientctl. This number is used
 	// by CheckUpdate to determine if current version is behind or equal to latest
 	// version on S3 bucket.
-	Version = 23
+	Version = 24
 
 	osName = runtime.GOOS
 

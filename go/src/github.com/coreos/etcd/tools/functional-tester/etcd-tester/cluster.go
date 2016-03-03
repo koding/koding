@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"net"
 	"strings"
@@ -252,7 +251,7 @@ func (c *cluster) Status() ClusterStatus {
 		desc := c.agentEndpoints[i]
 		if err != nil {
 			cs.AgentStatuses[desc] = client.Status{State: "unknown"}
-			log.Printf("etcd-tester: failed to get the status of agent [%s]", desc)
+			plog.Printf("failed to get the status of agent [%s]", desc)
 		}
 		cs.AgentStatuses[desc] = s
 	}
@@ -270,6 +269,7 @@ func setHealthKey(us []string) error {
 		kvc := pb.NewKVClient(conn)
 		_, err = kvc.Put(ctx, &pb.PutRequest{Key: []byte("health"), Value: []byte("good")})
 		cancel()
+		conn.Close()
 		if err != nil {
 			return err
 		}

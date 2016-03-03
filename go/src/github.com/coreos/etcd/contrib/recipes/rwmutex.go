@@ -15,23 +15,25 @@
 package recipe
 
 import (
-	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
+	v3 "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/storage/storagepb"
 )
 
 type RWMutex struct {
-	client *clientv3.Client
-	key    string
-	myKey  *RemoteKV
+	client *v3.Client
+	ctx    context.Context
+
+	key   string
+	myKey *EphemeralKV
 }
 
-func NewRWMutex(client *clientv3.Client, key string) *RWMutex {
-	return &RWMutex{client, key, nil}
+func NewRWMutex(client *v3.Client, key string) *RWMutex {
+	return &RWMutex{client, context.TODO(), key, nil}
 }
 
 func (rwm *RWMutex) RLock() error {
-	// XXX: make reads ephemeral locks?
-	rk, err := NewUniqueKey(rwm.client, rwm.key+"/read")
+	rk, err := NewUniqueEphemeralKey(rwm.client, rwm.key+"/read")
 	if err != nil {
 		return err
 	}
@@ -39,7 +41,7 @@ func (rwm *RWMutex) RLock() error {
 
 	// if there are nodes with "write-" and a lower
 	// revision number than us we must wait
-	resp, err := NewRange(rwm.client, rwm.key+"/write").FirstRev()
+	resp, err := rwm.client.Get(rwm.ctx, rwm.key+"/write", v3.WithFirstRev()...)
 	if err != nil {
 		return err
 	}
@@ -51,21 +53,22 @@ func (rwm *RWMutex) RLock() error {
 }
 
 func (rwm *RWMutex) Lock() error {
-	rk, err := NewUniqueKey(rwm.client, rwm.key+"/write")
+	rk, err := NewUniqueEphemeralKey(rwm.client, rwm.key+"/write")
 	if err != nil {
 		return err
 	}
 	rwm.myKey = rk
 
 	for {
-		// any key of lower rev number blocks the write lock
-		resp, err := NewRangeRev(rwm.client, rwm.key, rk.Revision()-1).LastRev()
+		// find any key of lower rev number blocks the write lock
+		opts := append(v3.WithLastRev(), v3.WithRev(rk.Revision()-1))
+		resp, err := rwm.client.Get(rwm.ctx, rwm.key, opts...)
 		if err != nil {
 			return err
 		}
 		if len(resp.Kvs) == 0 {
 			// no matching for revision before myKey; acquired
-			return nil
+			break
 		}
 		if err := rwm.waitOnLowest(); err != nil {
 			return err
@@ -78,7 +81,8 @@ func (rwm *RWMutex) Lock() error {
 
 func (rwm *RWMutex) waitOnLowest() error {
 	// must block; get key before ek for waiting
-	lastKey, err := NewRangeRev(rwm.client, rwm.key, rwm.myKey.Revision()-1).LastRev()
+	opts := append(v3.WithLastRev(), v3.WithRev(rwm.myKey.Revision()-1))
+	lastKey, err := rwm.client.Get(rwm.ctx, rwm.key, opts...)
 	if err != nil {
 		return err
 	}

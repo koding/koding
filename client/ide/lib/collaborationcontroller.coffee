@@ -152,6 +152,9 @@ module.exports = CollaborationController =
     @removeParticipant username
     @removeWorkspaceSnapshot username
 
+    @unwatchParticipant username
+    @removeParticipantPermissions username
+
     options = {
       username
       machineUId : @mountedMachineUId
@@ -270,7 +273,9 @@ module.exports = CollaborationController =
     @resurrectParticipantSnapshot()
 
     if @permissions.get(nick()) is 'read'
-      @makeReadOnly()
+      return @makeReadOnly()  if @layoutManager.isRestored
+
+      @layoutManager.once 'LayoutResurrected', @bound 'makeReadOnly'
 
 
   setCollaborativeReferences: ->
@@ -352,11 +357,10 @@ module.exports = CollaborationController =
     @getHostSnapshot (snapshot) =>
 
       remainingPanes = @layoutManager.clearLayout yes # Recover opened panes
-      @layoutManager.resurrectSnapshot snapshot, yes
+      @layoutManager.resurrectSnapshot snapshot, yes, =>
 
-      return  unless remainingPanes.length
+        return  unless remainingPanes.length
 
-      kd.utils.defer =>
         for pane in remainingPanes
           isAdded = no
 
@@ -387,8 +391,6 @@ module.exports = CollaborationController =
       { nickname } = account.profile
 
       @statusBar.removeParticipantAvatar nickname
-      @unwatchParticipant nickname
-      @removeParticipantPermissions nickname
 
 
   participantAdded: (participant) ->
@@ -1047,15 +1049,6 @@ module.exports = CollaborationController =
       kd.utils.defer @bound 'prepareCollaboration'
 
     @cleanupCollaboration()
-
-    return  unless isKoding()
-
-    { activitySidebar } = kd.singletons.mainView
-    channelId           = @getSocialChannelId()
-
-    return  unless box  = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
-
-    box.setUnreadCount channelId, 0
 
 
   endCollaborationForParticipant: (callback) ->

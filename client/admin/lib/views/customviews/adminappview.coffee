@@ -47,6 +47,7 @@ module.exports = class AdminAppView extends kd.ModalView
     @tabs.on 'PaneAdded', (pane) ->
       { tabHandle } = pane
       tabHandle.setClass 'AppModal-navItem'
+      tabHandle.setClass 'beta'  if pane._beta
       tabHandle.unsetClass 'kdtabhandle'
 
 
@@ -118,6 +119,8 @@ module.exports = class AdminAppView extends kd.ModalView
       parentTabTitle = item.parentTabTitle or null
 
       pane = new KDTabPaneView { name, slug, action, hiddenHandle, title, parentTabTitle }
+      pane._beta = item.beta
+
       @tabs.addPane pane, i is 0
 
     @emit 'ready'

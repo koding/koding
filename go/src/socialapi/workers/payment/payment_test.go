@@ -304,10 +304,12 @@ func TestExpireOutofDateSubscriptions(t *testing.T) {
 //----------------------------------------------------------
 
 var (
-	FreePlan         = "free"
-	FreeInterval     = "month"
-	StartingPlan     = "developer"
-	StartingInterval = "month"
+	FreePlan              = "free"
+	FreeInterval          = "month"
+	StartingPlan          = "developer"
+	StartingInterval      = "month"
+	GroupStartingPlan     = "startup"
+	GroupStartingInterval = "month"
 )
 
 func generateFakeUserInfo() (string, string, string) {

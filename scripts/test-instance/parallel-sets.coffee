@@ -32,13 +32,11 @@ module.exports = [
   ]
 
   [
-    { name: 'messages privatemessage' }
     { name: 'account accountsettings' }
   ]
 
   [
     { name: 'unittests' }
-    { name: 'account accountpage' }
   ]
 
   [

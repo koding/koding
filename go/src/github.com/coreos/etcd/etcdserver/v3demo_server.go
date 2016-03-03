@@ -319,9 +319,7 @@ func applyRange(txnID int64, kv dstorage.KV, r *pb.RangeRequest) (*pb.RangeRespo
 		err error
 	)
 
-	// grpc sends empty byte strings as nils, so use a '\0' to indicate
-	// wanting a >= query
-	if len(r.RangeEnd) == 1 && r.RangeEnd[0] == 0 {
+	if isGteRange(r.RangeEnd) {
 		r.RangeEnd = []byte{}
 	}
 
@@ -386,19 +384,25 @@ func applyDeleteRange(txnID int64, kv dstorage.KV, dr *pb.DeleteRangeRequest) (*
 	resp.Header = &pb.ResponseHeader{}
 
 	var (
+		n   int64
 		rev int64
 		err error
 	)
 
+	if isGteRange(dr.RangeEnd) {
+		dr.RangeEnd = []byte{}
+	}
+
 	if txnID != noTxn {
-		_, rev, err = kv.TxnDeleteRange(txnID, dr.Key, dr.RangeEnd)
+		n, rev, err = kv.TxnDeleteRange(txnID, dr.Key, dr.RangeEnd)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		_, rev = kv.DeleteRange(dr.Key, dr.RangeEnd)
+		n, rev = kv.DeleteRange(dr.Key, dr.RangeEnd)
 	}
 
+	resp.Deleted = n
 	resp.Header.Revision = rev
 	return resp, nil
 }
@@ -630,4 +634,10 @@ func compareInt64(a, b int64) int {
 	default:
 		return 0
 	}
+}
+
+// isGteRange determines if the range end is a >= range. This works around grpc
+// sending empty byte strings as nil; >= is encoded in the range end as '\0'.
+func isGteRange(rangeEnd []byte) bool {
+	return len(rangeEnd) == 1 && rangeEnd[0] == 0
 }

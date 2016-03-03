@@ -119,16 +119,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   messageAddedToChannel: (update) ->
 
-    { channel, channelMessage, unreadCount } = update
-
-    if isChannelCollaborative(channel) and channelMessage.payload
-      { systemType } = channelMessage.payload
-      systemType or= channelMessage.payload['system-message']
-
-      if systemType in ['start', 'stop']
-        @fetchEnvironmentData =>
-          @setWorkspaceUnreadCount channel, unreadCount
-
     @handleFollowedFeedUpdate update
 
 
@@ -146,11 +136,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     return  unless item = @itemsById[channel.id]
 
     item.setUnreadCount? update.unreadCount
-
-
-  glanceChannelWorkspace: (channel) ->
-
-    @setWorkspaceUnreadCount channel, 0
 
 
   setUnreadCount: (item, data, unreadCount) ->
@@ -175,18 +160,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         pane.putNewMessageIndicator()
 
     item.setUnreadCount? unreadCount
-
-
-  setWorkspaceUnreadCount: (data, count) ->
-
-    channelId = data._id
-    provider  = environmentDataProvider
-
-    provider.fetchMachineAndWorkspaceByChannelId channelId, (machine, workspace) =>
-
-      return  unless machine and workspace
-      return  unless box = @getMachineBoxByMachineUId machine.uid
-      box.setUnreadCount channelId, count
 
 
   handleFollowedFeedUpdate: (update) ->
@@ -215,9 +188,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       if isFeatureEnabled('botchannel') and data.typeConstant is 'privatemessage'
         index = 1
 
-      if isChannelCollaborative data
-        @setWorkspaceUnreadCount data, unreadCount
-      else
+      unless isChannelCollaborative data
         item = @addItem data, index
         @setUnreadCount item, data, unreadCount
 
@@ -268,11 +239,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
       index = 0  if isPrivateMessage
 
-      if isChannelCollaborative channel
-        @fetchEnvironmentData (data) =>
-          # @sharedMachinesList.updateList data.shared.concat data.collaboration
-          @setWorkspaceUnreadCount channel, unreadCount
-      else
+      unless isChannelCollaborative channel
         item = @addItem channel, index
         @setUnreadCount item, channel, unreadCount
 
@@ -814,22 +781,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       countSource: (callback) ->
         fetchChatChannelCount {}, callback
 
-    @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
-
 
   handleReloadMessages: ->
 
     environmentDataProvider.fetch => @sections.messages.reload()
-
-
-  handleWorkspaceUnreadCounts: (chatData) ->
-
-    cb = =>
-      chatData.forEach (data) =>
-        @setWorkspaceUnreadCount data, data.unreadCount
-
-    if @isMachinesListed then cb()
-    else @once 'MachinesListed', cb
 
 
   updateMachines: (callback = kd.noop) ->

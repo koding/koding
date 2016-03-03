@@ -22,7 +22,7 @@ import (
 	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
 	"github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/clientv3/sync"
+	"github.com/coreos/etcd/clientv3/mirror"
 	"github.com/coreos/etcd/etcdserver/api/v3rpc"
 )
 
@@ -52,9 +52,7 @@ func snapshotCommandFunc(cmd *cobra.Command, args []string) {
 // snapshotToStdout streams a snapshot over stdout
 func snapshotToStdout(c *clientv3.Client) {
 	// must explicitly fetch first revision since no retry on stdout
-	wapi := clientv3.NewWatcher(c)
-	defer wapi.Close()
-	wr := <-wapi.WatchPrefix(context.TODO(), "", 1)
+	wr := <-c.Watch(context.TODO(), "", clientv3.WithPrefix(), clientv3.WithRev(1))
 	if len(wr.Events) > 0 {
 		wr.CompactRevision = 1
 	}
@@ -90,7 +88,7 @@ func snapshotToFile(c *clientv3.Client, path string) {
 // snapshot reads all of a watcher; returns compaction revision if incomplete
 // TODO: stabilize snapshot format
 func snapshot(w io.Writer, c *clientv3.Client, rev int64) int64 {
-	s := sync.NewSyncer(c, "", rev)
+	s := mirror.NewSyncer(c, "", rev)
 
 	rc, errc := s.SyncBase(context.TODO())
 
