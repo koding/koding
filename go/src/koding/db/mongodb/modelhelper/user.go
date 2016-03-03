@@ -75,7 +75,7 @@ func GetUserById(id string) (*models.User, error) {
 }
 
 // GetAnyUserTokenWithGroup checks the token of users if does exits or not
-func GetAnyUserTokenWithGroup(groupName string) ([]*models.User, error) {
+func GetAnySlackTokenWithGroup(groupName string) ([]*models.User, error) {
 
 	key := fmt.Sprintf("foreignAuth.slack.%s.token", groupName)
 	var users []*models.User

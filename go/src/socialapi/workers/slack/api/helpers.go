@@ -228,7 +228,7 @@ func getSlackToken(context *models.Context) (string, error) {
 
 }
 
-func getAynUserTokenFromGroup(context *models.Context) (string, error) {
+func getAnySlackTokenWithGroup(context *models.Context) (string, error) {
 	var token string
 	groupName := context.GroupName
 

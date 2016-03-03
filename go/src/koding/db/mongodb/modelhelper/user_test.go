@@ -138,7 +138,7 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 		t.Error("Error while updating user")
 	}
 
-	users, err := GetAnyUserTokenWithGroup(groupName)
+	users, err := GetAnySlackTokenWithGroup(groupName)
 	if err != nil {
 		t.Error("Error while getting user token")
 	}

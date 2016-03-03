@@ -150,7 +150,7 @@ func (s *Slack) ListUsers(u *url.URL, h http.Header, _ interface{}, context *mod
 
 	userToken, err := getSlackToken(context)
 	if err != nil {
-		groupToken, err = getAynUserTokenFromGroup(context)
+		groupToken, err = getAnySlackTokenWithGroup(context)
 		if err != nil {
 			return response.NewBadRequest(err)
 		}
@@ -176,7 +176,7 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *
 
 	userToken, err := getSlackToken(context)
 	if err != nil || token == "" {
-		groupToken, err = getAynUserTokenFromGroup(context)
+		groupToken, err = getAnySlackTokenWithGroup(context)
 		if err != nil {
 			return response.NewBadRequest(err)
 		}
