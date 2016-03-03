@@ -30,6 +30,7 @@ import (
 	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
 	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/coreos/pkg/capnslog"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
+	"github.com/coreos/etcd/compactor"
 	"github.com/coreos/etcd/discovery"
 	"github.com/coreos/etcd/etcdserver/etcdhttp/httptypes"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
@@ -40,7 +41,6 @@ import (
 	"github.com/coreos/etcd/pkg/pbutil"
 	"github.com/coreos/etcd/pkg/runtime"
 	"github.com/coreos/etcd/pkg/schedule"
-	"github.com/coreos/etcd/pkg/timeutil"
 	"github.com/coreos/etcd/pkg/types"
 	"github.com/coreos/etcd/pkg/wait"
 	"github.com/coreos/etcd/raft"
@@ -179,6 +179,8 @@ type EtcdServer struct {
 	lstats *stats.LeaderStats
 
 	SyncTicker <-chan time.Time
+	// compactor is used to auto-compact the KV.
+	compactor *compactor.Periodic
 
 	// consistent index used to hold the offset of current executing entry
 	// It is initialized to 0 before executing any entry.
@@ -368,6 +370,10 @@ func NewServer(cfg *ServerConfig) (*EtcdServer, error) {
 		srv.be = backend.NewDefaultBackend(path.Join(cfg.SnapDir(), databaseFilename))
 		srv.lessor = lease.NewLessor(srv.be)
 		srv.kv = dstorage.New(srv.be, srv.lessor, &srv.consistIndex)
+		if h := cfg.AutoCompactionRetention; h != 0 {
+			srv.compactor = compactor.NewPeriodic(h, srv.kv, srv)
+			srv.compactor.Run()
+		}
 	}
 
 	// TODO: move transport initialization near the definition of remote
@@ -517,6 +523,9 @@ func (s *EtcdServer) run() {
 		}
 		if s.be != nil {
 			s.be.Close()
+		}
+		if s.compactor != nil {
+			s.compactor.Stop()
 		}
 		close(s.done)
 	}()
@@ -814,11 +823,12 @@ func (s *EtcdServer) UpdateMember(ctx context.Context, memb Member) error {
 }
 
 // Implement the RaftTimer interface
+
 func (s *EtcdServer) Index() uint64 { return atomic.LoadUint64(&s.r.index) }
 
 func (s *EtcdServer) Term() uint64 { return atomic.LoadUint64(&s.r.term) }
 
-// Only for testing purpose
+// Lead is only for testing purposes.
 // TODO: add Raft server interface to expose raft related info:
 // Index, Term, Lead, Committed, Applied, LastIndex, etc.
 func (s *EtcdServer) Lead() uint64 { return atomic.LoadUint64(&s.r.lead) }
@@ -908,6 +918,7 @@ func (s *EtcdServer) publish(timeout time.Duration) {
 	}
 }
 
+// TODO: move this function into raft.go
 func (s *EtcdServer) send(ms []raftpb.Message) {
 	for i := range ms {
 		if s.cluster.IsIDRemoved(types.ID(ms[i].To)) {
@@ -927,6 +938,14 @@ func (s *EtcdServer) send(ms []raftpb.Message) {
 					// drop msgSnap if the inflight chan if full.
 				}
 				ms[i].To = 0
+			}
+		}
+		if ms[i].Type == raftpb.MsgHeartbeat {
+			ok, exceed := s.r.td.Observe(ms[i].To)
+			if !ok {
+				// TODO: limit request rate.
+				plog.Warningf("failed to send out heartbeat on time (deadline exceeded for %v)", exceed)
+				plog.Warningf("server is likely overloaded")
 			}
 		}
 	}
@@ -1016,9 +1035,13 @@ func (s *EtcdServer) applyRequest(r pb.Request) Response {
 	f := func(ev *store.Event, err error) Response {
 		return Response{Event: ev, err: err}
 	}
-	expr := timeutil.UnixNanoToTime(r.Expiration)
+
 	refresh, _ := pbutil.GetBool(r.Refresh)
-	ttlOptions := store.TTLOptionSet{ExpireTime: expr, Refresh: refresh}
+	ttlOptions := store.TTLOptionSet{Refresh: refresh}
+	if r.Expiration != 0 {
+		ttlOptions.ExpireTime = time.Unix(0, r.Expiration)
+	}
+
 	switch r.Method {
 	case "POST":
 		return f(s.store.Create(r.Path, r.Dir, r.Val, true, ttlOptions))
