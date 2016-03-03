@@ -87,6 +87,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
+      frontApp.writeSnapshot()
       @focusTab()  unless frontApp.isChatInputFocused()
 
     @tabView.on 'PaneAdded', (pane) =>
