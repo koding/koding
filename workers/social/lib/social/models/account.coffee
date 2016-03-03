@@ -1426,7 +1426,7 @@ module.exports = class JAccount extends jraphical.Module
     limit ?= 10
 
     JSession = require './session'
-    JSession.one { clientId : sessionToken }, (err, session) =>
+    JSession.one { clientId : sessionToken }, (err, session) ->
       return callback err  if err
       return callback new KodingError 'Invalid session.'  unless session
 
