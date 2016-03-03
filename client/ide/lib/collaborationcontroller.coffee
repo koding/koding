@@ -6,6 +6,7 @@ globals                       = require 'globals'
 kd                            = require 'kd'
 KDNotificationView            = kd.NotificationView
 KDModalView                   = kd.ModalView
+FSFile                        = require 'app/util/fs/fsfile'
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
@@ -361,13 +362,18 @@ module.exports = CollaborationController =
 
         return  unless remainingPanes.length
 
+        snapshotAsArray = IDELayoutManager.convertSnapshotToFlatArray snapshot
+        snapshotFiles   = {}
+
+        for item in snapshotAsArray when item.context?.paneType is 'editor'
+          { path, name } = item.context.file
+          snapshotFiles[path] = name
+
         for pane in remainingPanes
-          isAdded = no
-
-          @forEachSubViewInIDEViews_ (p) ->
-            isAdded = yes  if p.hash is pane.view.hash
-
-          @activeTabView.addPane pane  unless isAdded
+          if pane.data instanceof FSFile # editor, tailer
+            @activeTabView.addPane pane  unless snapshotFiles[pane.data.path]
+          else
+            @activeTabView.addPane pane
 
         @doResize()
 
