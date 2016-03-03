@@ -506,13 +506,14 @@ module.exports =
 
   selectPlan: (browser, planType = 'developer') ->
 
-    pricingPage = '.content-page.pricing'
+    pricingPage          = '.content-page.pricing'
+    selectButtonSelector = pricingPage + ' .plans .' + planType + ' .plan-buy-button .button-title'
 
     browser
       .waitForElementVisible   pricingPage, 25000
       .waitForElementVisible   pricingPage + ' .plans .' + planType, 25000
       .pause                   5000
-      .click                   pricingPage + ' .plans .' + planType + ' .plan-buy-button'
+      .click                   selectButtonSelector
       .pause                   5000
 
 
