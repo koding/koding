@@ -92,7 +92,8 @@ module.exports = [
     { name: 'teams teams' }
   ]
 
-  # [
+  [
     # { name: 'environments vm-advanced' }
-  # ]
+    { name: 'environments paidaccountvm' }
+  ]
 ]
