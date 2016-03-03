@@ -15,10 +15,12 @@ module.exports =
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
       teamSlug = name.toLowerCase().replace(/\s/g, '-').replace(/'/g, '').replace('.', '')
+      helpers  = require '../helpers/helpers'
+      fakeText = helpers.getFakeText()
 
       email = "kodingtestuser+#{username}@koding.com"
 
-      users.push { name, email, username, password, teamSlug }
+      users.push { name, email, username, password, teamSlug, fakeText }
 
     fs.writeFileSync 'users.json', formatter users, 'utf-8'
 
