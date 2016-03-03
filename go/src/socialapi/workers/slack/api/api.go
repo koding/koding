@@ -145,21 +145,9 @@ func (s *Slack) ListUsers(u *url.URL, h http.Header, _ interface{}, context *mod
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	var token string
-	var groupToken string
-
-	userToken, err := getSlackToken(context)
+	token, err := getSlackTokenWithContext(context)
 	if err != nil {
-		groupToken, err = getAnySlackTokenWithGroup(context)
-		if err != nil {
-			return response.NewBadRequest(err)
-		}
-	}
-
-	if userToken != "" {
-		token = userToken
-	} else {
-		token = groupToken
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(getUsers(token))
@@ -171,21 +159,9 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	var token string
-	var groupToken string
-
-	userToken, err := getSlackToken(context)
-	if err != nil || token == "" {
-		groupToken, err = getAnySlackTokenWithGroup(context)
-		if err != nil {
-			return response.NewBadRequest(err)
-		}
-	}
-
-	if userToken != "" {
-		token = userToken
-	} else {
-		token = groupToken
+	token, err := getSlackTokenWithContext(context)
+	if err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(getChannels(token))
