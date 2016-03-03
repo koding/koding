@@ -190,6 +190,7 @@ module.exports = class IDELayoutManager extends KDObject
     @applyLayoutSize()
 
     @isRestored = yes
+    @emit 'LayoutResurrected'
 
 
   ###*
