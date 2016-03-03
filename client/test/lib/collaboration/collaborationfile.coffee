@@ -25,7 +25,7 @@ module.exports =
     host               = utils.getUser no, 0
     hostBrowser        = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant        = utils.getUser no, 1
-    hostFakeText       = host.fakeText.split ' '
+    hostFakeText       = host.fakeText.split(' ')
     fileName           = hostFakeText[0]
     fileSlug           = fileName.replace '.', ''
     tabSelector        = ".kdtabhandle.#{fileSlug}"
@@ -33,8 +33,7 @@ module.exports =
     hostContent        = hostFakeText[1]
     participantContent = participant.fakeText.split(' ')[0]
 
-    if hostBrowser
-      collaborationHelpers.startSessionAndInviteUser(browser, host, participant, yes, yes)
+    hostCallback = ->
 
       helpers.createFile(browser, host, null, null, fileName)
       ideHelpers.openFile(browser, host, fileName)
@@ -42,8 +41,8 @@ module.exports =
       browser.waitForTextToContain(editorSelector, participantContent)
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
-    else
-      collaborationHelpers.joinSession(browser, host, participant)
+
+    participantCallback = ->
 
       browser
         .waitForElementPresent tabSelector, 50000 # Assertion
@@ -56,6 +55,8 @@ module.exports =
       collaborationHelpers.leaveSessionFromSidebar(browser)
       browser.end()
 
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
+
 
   checkIfInvitedUserCanSeeExistingOpenIDETabs: (browser) ->
 
@@ -64,7 +65,8 @@ module.exports =
     participant = utils.getUser no, 1
     pyContent   = 'Hello World from Python by Koding'
 
-    if hostBrowser
+    hostCallback = ->
+
       helpers.beginTest browser, host
       helpers.waitForVMRunning browser
       ideHelpers.closeAllTabs(browser)
@@ -78,7 +80,9 @@ module.exports =
 
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
       browser.end()
-    else
+
+    participantCallback = ->
+
       collaborationHelpers.joinSession(browser, host, participant)
 
       browser
@@ -88,5 +92,14 @@ module.exports =
 
       collaborationHelpers.leaveSessionFromSidebar(browser)
       browser.end()
+
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
+
+
+
+
+
+
+
 
 
