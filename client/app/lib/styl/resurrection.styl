@@ -260,6 +260,38 @@ pre
   bg                        color, white
   vendor                    transition, box-shadow .177s ease
 
+  .system-notification
+    abs                     0px 0px
+    size                    100% 50px
+    bg                      color #F69C31
+    color                   white
+    z-index                 10
+    font-family             SoleilFamily
+    font-size               14px
+    font-weight             400
+    line-height             18px
+    padding                 17px 50px 17px 18px
+    // opacity                 0
+    vendor                  transform, translateY(-100%) translateZ(0)
+    vendor                  transition, transform .177s ease-out
+    borderBox()
+    &.in
+      // opacity               1
+      vendor                transform, translateY(0%)
+    b
+      font-weight           600
+    a
+      color                 white
+      text-decoration       underline
+    a.close
+      abs                   0px 0px
+      size                  50px 50px
+      &:before
+        content             ''
+        display             block
+        r-sprite            app 'notification-warning-close'
+        margin              17px 0 0 17px
+
 #main-header
   margin                    0
   size                      100%,55px

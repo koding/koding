@@ -459,6 +459,7 @@ module.exports =
       .waitForElementVisible  inviteMemberButton, 20000
       .click                  inviteMemberButton
 
+    browser.pause  2000 # wait for modal
     browser.element 'css selector', confirmModal, (result) ->
       if result.status is 0
         browser

@@ -24,37 +24,9 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 				TokenURL: "https://slack.com/api/oauth.access",
 			}, // https://slack.com/oauth/authorize
 			Scopes: []string{
-				// channels.info
-				// channels.list
-				"channels:read",
-
-				// chat.postMessage
-				"chat:write:bot",
-
-				// groups.info
-				// groups.list
-				"groups:read",
-
-				// im.list
-				"im:read",
-
-				// mpim.list
-				"mpim:read",
-
-				// team.info
-				"team:read",
-
 				// usergroups.list
 				// usergroups.users.list
 				"usergroups:read",
-
-				// users.getPresence
-				// users.info
-				"users:read",
-
-				// allows teams to easily install an incoming webhook that can
-				// post from your app to a single Slack channel.
-				"incoming-webhook",
 
 				// allows teams to install slash commands bundled in your Slack
 				// app.

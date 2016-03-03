@@ -7,6 +7,7 @@ AdminAppView               = require './views/customviews/adminappview'
 TeamInviteView             = require './views/koding-admin/teaminviteview'
 TeamManageView             = require './views/koding-admin/teammanageview'
 AdminMembersView           = require './views/members/adminmembersview'
+AdminResourcesView         = require './views/resources/adminresourcesview'
 AdministrationView         = require './views/koding-admin/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
 TopicModerationView        = require './views/moderation/topicmoderationview'
@@ -47,7 +48,8 @@ module.exports = class AdminAppController extends AppController
           ]
         }
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
-        { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 }
+        { slug : 'Resources',      title : 'Resources',         viewClass : AdminResourcesView       , beta: yes }
+        { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 , beta: yes }
         # { slug : 'Plan-Billing',   title : 'Plan & Billing',    viewClass : GroupPlanBillingView     }
       ]
     koding     :
