@@ -20,6 +20,7 @@ ComputeEventListener = require './computeeventlistener'
 ComputeController_UI = require './computecontroller.ui'
 ManagedKiteChecker   = require './managed/managedkitechecker'
 envDataProvider      = require 'app/userenvironmentdataprovider'
+Tracker              = require 'app/util/tracker'
 
 require './config'
 
@@ -677,6 +678,7 @@ module.exports = class ComputeController extends KDController
     unless state is 'NotInitialized'
       if state is 'Building'
         @eventListener.addListener 'apply', stack._id
+        Tracker.track Tracker.SETUP_STACK
       else
         kd.warn 'Stack already initialized, skipping.', stack
       return
