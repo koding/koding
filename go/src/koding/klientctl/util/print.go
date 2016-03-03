@@ -26,10 +26,10 @@ func Fprintlnf(w io.Writer, f string, i ...interface{}) {
 }
 
 func (p *Fprint) Printf(f string, i ...interface{}) {
-	fmt.Fprintf(p.W, f, i)
+	fmt.Fprintf(p.W, f, i...)
 }
 
 // Printlnf implements Fprintlnf for the Fprint struct.
 func (p *Fprint) Printlnf(f string, i ...interface{}) {
-	Fprintlnf(p.W, f, i)
+	Fprintlnf(p.W, f, i...)
 }

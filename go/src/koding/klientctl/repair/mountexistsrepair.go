@@ -20,6 +20,7 @@ type MountExistsRepair struct {
 	// The klient we will be communicating with.
 	Klient interface {
 		RemoteMountInfo(string) (req.MountInfoResponse, error)
+		RemoteRemount(string) error
 	}
 
 	// Mountcli is responsible for looking at our local system and finding a given
@@ -34,18 +35,20 @@ func (r *MountExistsRepair) String() string {
 }
 
 func (r *MountExistsRepair) Status() error {
-	_, err := r.Klient.RemoteMountInfo(r.MountName)
-	if err != nil {
-		return err
-	}
-
+	// TODO: How do we handle the actual error object here? If Mountcli returns
+	// an error, it means the process failed itself. Which means we don't *really*
+	// know if the mount exists or not.
 	path, err := r.Mountcli.FindMountedPathByName(r.MountName)
 	if err != nil {
-		return err
+		r.Log.Error(
+			"Error encountered when trying to find Mountcli MountPath by name. name:%s, err:%s",
+			r.MountName, err,
+		)
 	}
 
 	// If path is empty, we could not find the mount name.
 	if path == "" {
+		r.Stdout.Printlnf("Unable to find %q on filesystem.", r.MountName)
 		return errors.New("Mount cannot be found on file system")
 	}
 
@@ -53,5 +56,20 @@ func (r *MountExistsRepair) Status() error {
 }
 
 func (r *MountExistsRepair) Repair() error {
-	return errors.New("Not implemented")
+	r.Stdout.Printlnf(
+		"Remounting %q to resolve detected issue. Remounting..",
+		r.MountName,
+	)
+
+	if err := r.Klient.RemoteRemount(r.MountName); err != nil {
+		r.Log.Error(
+			"Error when running remote.remount. mountName:%s, err:%s",
+			r.MountName, err,
+		)
+		r.Stdout.Printlnf("Remounting failed.")
+		return err
+	}
+
+	// Status will print additional messages to the user.
+	return r.Status()
 }

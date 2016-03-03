@@ -189,3 +189,10 @@ func (k *Klient) RemoteMountInfo(mountName string) (req.MountInfoResponse, error
 
 	return mountInfo, nil
 }
+
+// RemoteRemount calls klient's remote.remount method.
+func (k *Klient) RemoteRemount(mountName string) error {
+	r := req.Remount{MountName: mountName}
+	_, err := k.Tell("remote.remount", r)
+	return err
+}

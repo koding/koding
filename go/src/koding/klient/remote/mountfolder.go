@@ -11,13 +11,10 @@ import (
 
 	"github.com/koding/kite"
 
-	"golang.org/x/net/context"
-
 	"koding/fuseklient"
-	"koding/fuseklient/transport"
 	"koding/klient/remote/kitepinger"
+	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
-	"koding/klient/remote/rsync"
 )
 
 const (
@@ -71,8 +68,13 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 	case params.Name == "":
 		return nil, errors.New("Missing required argument `name`.")
 	case params.LocalPath == "":
-		return nil, errors.New("Missing required argument `remotePath`.")
+		return nil, errors.New("Missing required argument `localPath`.")
 	}
+
+	log := r.log.New(
+		"mountName", params.Name,
+		"localPath", params.LocalPath,
+	)
 
 	if err := checkIfUserHasFolderPerms(params.LocalPath); err != nil {
 		return nil, err
@@ -88,8 +90,6 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	kiteClient := remoteMachine.Client
-
 	if params.RemotePath == "" {
 		params.RemotePath = path.Join("/home", remoteMachine.Client.Username)
 	}
@@ -98,107 +98,26 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, ErrExistingMount
 	}
 
-	if err := kiteClient.Dial(); err != nil {
-		r.log.Error("Error dialing remote klient. err:%s", err)
-		return nil, &kite.Error{
-			Type:    dialingFailedErrType,
-			Message: err.Error(),
-		}
+	// Construct our mounter
+	mounter := &mount.Mounter{
+		Log:           log,
+		Options:       params,
+		IP:            remoteMachine.IP,
+		KitePinger:    remoteMachine.KitePinger,
+		Intervaler:    remoteMachine.Intervaler,
+		Client:        remoteMachine.Client,
+		Dialer:        remoteMachine.Client,
+		Teller:        remoteMachine.Client,
+		PathUnmounter: fuseklient.Unmount,
+		MountAdder:    r,
 	}
 
-	var syncOpts rsync.SyncIntervalOpts
-	if remoteMachine.Intervaler != nil {
-		syncOpts = remoteMachine.Intervaler.SyncIntervalOpts()
-	} else {
-		r.log.Warning(
-			"remote.mountFolder: Unable to locate Intervaler for the remotePath:%s",
-			params.RemotePath,
-		)
-	}
-
-	mount := &Mount{
-		MountFolder:      params,
-		IP:               remoteMachine.IP,
-		MountName:        remoteMachine.Name,
-		kitePinger:       remoteMachine.KitePinger,
-		intervaler:       remoteMachine.Intervaler,
-		SyncIntervalOpts: syncOpts,
-	}
-
-	// Create our changes channel, so that fuseMount can be told when we lose and
-	// reconnect to klient.
-	changeSummaries := make(chan kitepinger.ChangeSummary, 1)
-	changes := changeSummaryToBool(changeSummaries)
-
-	//if err := fuseMountFolder(mount, kiteClient, changes); err != nil {
-	if err := fuseMountFolder(mount, kiteClient); err != nil {
+	if _, err = mounter.Mount(); err != nil {
 		return nil, err
 	}
 
-	if err := r.addMount(mount); err != nil {
-		return nil, err
-	}
-
-	go watchClientAndReconnect(
-		r.log, remoteMachine, mount, kiteClient,
-		changeSummaries, changes,
-	)
-
-	return checkSizeOfRemoteFolder(kiteClient, params.RemotePath)
-}
-
-// fuseMountFolder uses the fuseklient library to mount the given
-// folder. It is used in multiple places, and is mainly an abstraction.
-func fuseMountFolder(m *Mount, c *kite.Client) error {
-	var (
-		t   transport.Transport
-		err error
-	)
-
-	t, err = transport.NewRemoteTransport(c, fuseTellTimeout, m.RemotePath)
-	if err != nil {
-		return err
-	}
-
-	// user specifies to prefetch all content upfront
-	if m.PrefetchAll {
-		dt, err := transport.NewDiskTransport(m.CachePath)
-		if err != nil {
-			return err
-		}
-
-		// cast into RemoteTransport for NewRemoteOrCacheTransport
-		rt := t.(*transport.RemoteTransport)
-
-		t = transport.NewRemoteOrCacheTransport(rt, dt)
-	}
-
-	cf := &fuseklient.Config{
-		Path:           m.LocalPath,
-		MountName:      m.MountName,
-		NoIgnore:       m.NoIgnore,
-		NoPrefetchMeta: m.NoPrefetchMeta,
-		NoWatch:        m.NoWatch,
-		Debug:          true, // turn on debug permanently till v1
-	}
-
-	f, err := fuseklient.New(t, cf)
-	if err != nil {
-		return err
-	}
-
-	m.MountedFS = f
-	m.unmounter = f
-
-	fs, err := f.Mount()
-	if err != nil {
-		return err
-	}
-
-	// TODO: what context to use?
-	go fs.Join(context.TODO())
-
-	return nil
+	// Check the remote size, so we can print a warning to the user if needed.
+	return checkSizeOfRemoteFolder(remoteMachine.Client, params.RemotePath)
 }
 
 // checkIfUserHasFolderPerms checks if user can at least open the directory

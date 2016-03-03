@@ -48,6 +48,7 @@ type Command struct {
 		RemoteList() (list.KiteInfos, error)
 		RemoteStatus(req.Status) error
 		RemoteMountInfo(string) (req.MountInfoResponse, error)
+		RemoteRemount(string) error
 	}
 
 	// The options to use if this struct needs to dial Klient.
@@ -191,7 +192,7 @@ func (c *Command) initSetupRepairers() error {
 		InternetConfirmAddrs: DefaultInternetConfirmAddrs,
 		HTTPTimeout:          time.Second,
 		RetryOpts: RetryOptions{
-			StatusRetries: 10,
+			StatusRetries: 900,
 			StatusDelay:   1 * time.Second,
 		},
 	}
@@ -199,6 +200,7 @@ func (c *Command) initSetupRepairers() error {
 	// The klient running repairer, will check if klient is running and connectable,
 	// and restart it if not.
 	klientRunningRepair := &KlientRunningRepair{
+		Stdout:        util.NewFprint(c.Stdout),
 		KlientOptions: c.KlientOptions,
 		KlientService: c.KlientService,
 		Exec: &exec.CommandRun{
@@ -266,8 +268,20 @@ There maybe be a connectivity problem. Please try again.`,
 		return err
 	}
 
-	if _, ok := infos.FindFromName(c.Options.MountName); !ok {
+	info, ok := infos.FindFromName(c.Options.MountName)
+	if !ok {
 		err := fmt.Errorf("Error: Machine %q does not exist.", c.Options.MountName)
+		c.printfln(err.Error())
+		return err
+	}
+
+	// If klient can't find the mount, we don't have enough data to remount.
+	// We can't do anything unfortunately. Inform the user, and return an error.
+	//if _, err := c.Klient.RemoteMountInfo(r.MountName); err != nil {
+	if len(info.Mounts) == 0 {
+		err := fmt.Errorf(
+			"Error: Machine %q is not mounted.", c.Options.MountName,
+		)
 		c.printfln(err.Error())
 		return err
 	}

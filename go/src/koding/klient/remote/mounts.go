@@ -2,16 +2,11 @@ package remote
 
 import (
 	"encoding/json"
-	"errors"
-	"time"
 
 	"github.com/koding/kite"
-	"github.com/koding/logging"
 
 	"koding/fuseklient"
-	"koding/klient/remote/kitepinger"
-	"koding/klient/remote/machine"
-	"koding/klient/remote/req"
+	"koding/klient/remote/mount"
 	"koding/klient/remote/rsync"
 )
 
@@ -19,122 +14,14 @@ const (
 	mountsStorageKey = "mounted_folders"
 )
 
-// Mount stores information about mounted folders, and is both with
-// to various Remote.* kite methods as well as being saved in
-// klient's storage.
-type Mount struct {
-	req.MountFolder
-
-	IP        string `json:"ip"`
-	MountName string `json:"mountName"`
-
-	// The options used for the local Intervaler. Used to store and retrieve from
-	// the database.
-	SyncIntervalOpts rsync.SyncIntervalOpts `json:"syncIntervalOpts"`
-
-	// The intervaler for this mount, used to update the remote.cache, if it exists.
-	//
-	// Note: If remote.cache is not called, or not called with an interval, this
-	// will be null. Check before using.
-	intervaler rsync.SyncIntervaler
-
-	// The channel that sends notification of connection statuses on. This may be
-	// nil unless the Mount is actively started and subscribed.
-	pingerSub chan kitepinger.ChangeSummary
-
-	// A kitepinger reference from the parent machine, so that Mounts can unsub as
-	// needed.
-	kitePinger kitepinger.KitePinger
-
-	MountedFS fuseklient.FS `json:"-"`
-
-	// mockable interfaces and types, used for testing and abstracting the environment
-	// away.
-
-	// the mountedFs Unmounter
-	unmounter interface {
-		Unmount() error
-	}
-}
-
-// Mounts is a basic slice of Mount, providing convenience sorting methods.
-type Mounts []*Mount
-
-// FindByName sorts through the Mounts, returning the first Mount with a
-// matching name.
-//
-// TODO: Make this func signature consistent with the other GetByX methods.
-func (ms Mounts) FindByName(name string) (*Mount, bool) {
-	for _, m := range ms {
-		if m.MountName == name {
-			return m, true
-		}
-	}
-
-	return nil, false
-}
-
-// RemoveByName returns a new list with the first occurence given name removed.
-func (ms Mounts) RemoveByName(name string) (Mounts, error) {
-	for i, m := range ms {
-		if m.MountName == name {
-			return append(ms[:i], ms[i+1:]...), nil
-		}
-	}
-
-	return nil, errors.New("Name not found")
-}
-
-// IsDuplicate compares the given ip, remote and local folders to all of the
-// mounts in the slice. If a Mount is found with matching data, it is
-// considered a duplicate.
-//
-// Duplicate is decided in two main ways:
-//
-// 1. It has the same local path. Two mounts cannot occupy the same local
-// path, so a matching local means it is duplicate.
-//
-// 2. The remote folder *and* IP are the same.
-func (ms Mounts) IsDuplicate(ip, remote, local string) bool {
-	for _, m := range ms {
-		// If the local is already in use, it's a duplicate mount
-		if m.LocalPath == local {
-			return true
-		}
-
-		// If *both* the remote Ip and Path are in use, it's a duplicate
-		// mount
-		//
-		// TODO: Confirm that this is cared about. I suspect not.
-		if m.IP == ip && m.RemotePath == remote {
-			return true
-		}
-	}
-	return false
-}
-
-// GetByLocalPath sorts through the Mounts slice, returning the first Mount
-// with a matching local Path.
-//
-// TODO: Make this func signature consistent with the other GetByX methods.
-func (ms Mounts) GetByLocalPath(local string) *Mount {
-	for _, m := range ms {
-		if m.LocalPath == local {
-			return m
-		}
-	}
-
-	return nil
-}
-
 // MountsHandler lists all of the locally mounted folders
 func (r *Remote) MountsHandler(req *kite.Request) (interface{}, error) {
 	return r.mounts, nil
 }
 
-// addMount adds the given Mount struct to the mounts slice, and saves it
+// AddMount adds the given Mount struct to the mounts slice, and saves it
 // to the db.
-func (r *Remote) addMount(m *Mount) error {
+func (r *Remote) AddMount(m *mount.Mount) error {
 	mounts := append(r.mounts, m)
 
 	data, err := json.Marshal(mounts)
@@ -152,24 +39,9 @@ func (r *Remote) addMount(m *Mount) error {
 	return nil
 }
 
-// addMount adds the given Mount struct to the mounts slice, and saves it
-// to the db.
-func (r *Remote) saveMounts() error {
-	data, err := json.Marshal(r.mounts)
-	if err != nil {
-		return err
-	}
-
-	if err := r.storage.Set(mountsStorageKey, string(data)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// removeMount removes the given Mount struct from the mounts slice, and
+// RemoveMount removes the given Mount struct from the mounts slice, and
 // saves the change to the db.
-func (r *Remote) removeMount(m *Mount) error {
+func (r *Remote) RemoveMount(m *mount.Mount) error {
 	mounts, err := r.mounts.RemoveByName(m.MountName)
 	if err != nil {
 		return err
@@ -216,11 +88,10 @@ func (r *Remote) restoreMounts() error {
 	// Now, loop through our mounts and compare them to the fsMounts,
 	// acting as needed.
 	for _, m := range r.mounts {
-		log := r.log.New(
-			"method", "restoreMounts",
+		// The two New methods is to tweak how the log is displayed.
+		log := r.log.New("restoreMounts").New(
 			"mountName", m.MountName,
 			"mountFolder", m.MountFolder.LocalPath,
-			"ip", m.IP,
 			"prefetchAll", m.MountFolder.PrefetchAll,
 		)
 
@@ -246,7 +117,7 @@ func (r *Remote) restoreMounts() error {
 
 			// Mount path exists, and the names match. Unmount it, so that we
 			// can remount it below.
-			log.Info("Automatically unmounting %q", m.LocalPath)
+			log.Info("Automatically unmounting")
 			if err := fuseklient.Unmount(m.LocalPath); err != nil {
 				if failOnUnmount {
 					log.Error("Failed to automatically unmount. err:%s", err)
@@ -259,45 +130,38 @@ func (r *Remote) restoreMounts() error {
 
 		// Mount path has been unmounted, or didn't exist locally.
 		// Remount it, to improve UX.
-		log.Info("Automatically mounting %q", m.LocalPath)
+		log.Info("Automatically mounting")
 		remoteMachine, err := remoteMachines.GetByIP(m.IP)
 		if err != nil {
 			log.Error("Failed to get machine by ip. err:%s", err)
 			continue
 		}
 
-		// Now that we have the remoteMachine, apply the kitePinger reference.
-		m.kitePinger = remoteMachine.KitePinger
-
-		kiteClient := remoteMachine.Client
-		if err := kiteClient.Dial(); err != nil {
-			log.Error("Failed to dial remote klient. err:%s", err)
-			continue
+		// Construct our mounter
+		mounter := &mount.Mounter{
+			Log:           log,
+			Options:       m.MountFolder,
+			IP:            remoteMachine.IP,
+			KitePinger:    remoteMachine.KitePinger,
+			Client:        remoteMachine.Client,
+			Dialer:        remoteMachine.Client,
+			Teller:        remoteMachine.Client,
+			PathUnmounter: fuseklient.Unmount,
 		}
 
-		// Create our changes channel, so that fuseMount can be told when we lose and
-		// reconnect to klient.
-		changeSummaries := make(chan kitepinger.ChangeSummary, 1)
-		changes := changeSummaryToBool(changeSummaries)
-
-		if err = fuseMountFolder(m, kiteClient); err != nil {
-			log.Error("Failed to mount folder. err:%s", err)
+		if err := mounter.MountExisting(m); err != nil {
+			log.Error("Mounter returned error. err:%s", err)
 			continue
 		}
-
-		go watchClientAndReconnect(
-			r.log, remoteMachine, m, kiteClient,
-			changeSummaries, changes,
-		)
 
 		if !m.SyncIntervalOpts.IsZero() {
 			rs := rsync.NewClient(r.log)
 			// After the progress chan is done, start our SyncInterval
-			startIntervaler(r.log, remoteMachine, rs, m.SyncIntervalOpts)
+			startIntervaler(log, remoteMachine, rs, m.SyncIntervalOpts)
 			// Assign the rsync intervaler to the mount.
-			m.intervaler = remoteMachine.Intervaler
+			m.Intervaler = remoteMachine.Intervaler
 		} else {
-			r.log.Warning(
+			log.Warning(
 				"Unable to restore Interval for remote, SyncOpts is zero value. This likely means that SyncOpts were not saved or didn't exist in the previous binary. machineName:%s",
 				remoteMachine.Name,
 			)
@@ -305,38 +169,4 @@ func (r *Remote) restoreMounts() error {
 	}
 
 	return nil
-}
-
-// watchClientAndReconnect
-func watchClientAndReconnect(log logging.Logger, machine *machine.Machine, mount *Mount, kiteClient *kite.Client, changeSummaries chan kitepinger.ChangeSummary, changes <-chan bool) {
-	kiteClient.Reconnect = true
-
-	log.Info(
-		"Monitoring Klient connection.. Ip:%s, machineName:%s, localPath:%s",
-		machine.IP, machine.Name, mount.LocalPath,
-	)
-
-	machine.KitePinger.Subscribe(changeSummaries)
-	machine.KitePinger.Start()
-	mount.pingerSub = changeSummaries
-
-	for summary := range changeSummaries {
-		if summary.OldStatus == kitepinger.Failure && summary.OldStatusDur > time.Minute*30 {
-
-			log.Info(
-				"Remounting directory after reconnect. Disconnected for:%s, machineName:%s, localPath:%s",
-				summary.OldStatusDur, machine.Name, mount.LocalPath,
-			)
-
-			// Log error and return to exit loop, since something is broke
-			if err := fuseklient.Unmount(mount.LocalPath); err != nil {
-				log.Error(err.Error())
-				return
-			}
-
-			if err := fuseMountFolder(mount, kiteClient); err != nil {
-				log.Error(err.Error())
-			}
-		}
-	}
 }
