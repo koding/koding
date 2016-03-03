@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"reflect"
+	"runtime"
 	"strings"
 	"unicode/utf8"
 )
@@ -20,6 +20,41 @@ type alignmentInfo struct {
 	hasValueName    bool
 	terminalColumns int
 	indent          bool
+}
+
+const (
+	paddingBeforeOption                 = 2
+	distanceBetweenOptionAndDescription = 2
+)
+
+func (a *alignmentInfo) descriptionStart() int {
+	ret := a.maxLongLen + distanceBetweenOptionAndDescription
+
+	if a.hasShort {
+		ret += 2
+	}
+
+	if a.maxLongLen > 0 {
+		ret += 4
+	}
+
+	if a.hasValueName {
+		ret += 3
+	}
+
+	return ret
+}
+
+func (a *alignmentInfo) updateLen(name string, indent bool) {
+	l := utf8.RuneCountInString(name)
+
+	if indent {
+		l = l + 4
+	}
+
+	if l > a.maxLongLen {
+		a.maxLongLen = l
+	}
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
@@ -34,7 +69,15 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		ret.terminalColumns = 80
 	}
 
+	var prevcmd *Command
+
 	p.eachActiveGroup(func(c *Command, grp *Group) {
+		if c != prevcmd {
+			for _, arg := range c.args {
+				ret.updateLen(arg.Name, c != p.Command)
+			}
+		}
+
 		for _, info := range grp.options {
 			if !info.canCli() {
 				continue
@@ -44,24 +87,71 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.hasShort = true
 			}
 
-			lv := utf8.RuneCountInString(info.ValueName)
-
-			if lv != 0 {
+			if len(info.ValueName) > 0 {
 				ret.hasValueName = true
 			}
 
-			l := utf8.RuneCountInString(info.LongName) + lv
+			l := info.LongNameWithNamespace() + info.ValueName
 
-			if c != p.Command {
-				// for indenting
-				l = l + 4
+			if len(info.Choices) != 0 {
+				l += "[" + strings.Join(info.Choices, "|") + "]"
 			}
 
-			if l > ret.maxLongLen {
-				ret.maxLongLen = l
-			}
+			ret.updateLen(l, c != p.Command)
 		}
 	})
+
+	return ret
+}
+
+func wrapText(s string, l int, prefix string) string {
+	var ret string
+
+	// Basic text wrapping of s at spaces to fit in l
+	lines := strings.Split(s, "\n")
+
+	for _, line := range lines {
+		var retline string
+
+		line = strings.TrimSpace(line)
+
+		for len(line) > l {
+			// Try to split on space
+			suffix := ""
+
+			pos := strings.LastIndex(line[:l], " ")
+
+			if pos < 0 {
+				pos = l - 1
+				suffix = "-\n"
+			}
+
+			if len(retline) != 0 {
+				retline += "\n" + prefix
+			}
+
+			retline += strings.TrimSpace(line[:pos]) + suffix
+			line = strings.TrimSpace(line[pos:])
+		}
+
+		if len(line) > 0 {
+			if len(retline) != 0 {
+				retline += "\n" + prefix
+			}
+
+			retline += line
+		}
+
+		if len(ret) > 0 {
+			ret += "\n"
+
+			if len(retline) > 0 {
+				ret += prefix
+			}
+		}
+
+		ret += retline
+	}
 
 	return ret
 }
@@ -69,13 +159,14 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alignmentInfo) {
 	line := &bytes.Buffer{}
 
-	distanceBetweenOptionAndDescription := 2
-	paddingBeforeOption := 2
-
 	prefix := paddingBeforeOption
 
 	if info.indent {
 		prefix += 4
+	}
+
+	if option.Hidden {
+		return
 	}
 
 	line.WriteString(strings.Repeat(" ", prefix))
@@ -87,19 +178,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		line.WriteString("  ")
 	}
 
-	descstart := info.maxLongLen + paddingBeforeOption + distanceBetweenOptionAndDescription
-
-	if info.hasShort {
-		descstart += 2
-	}
-
-	if info.maxLongLen > 0 {
-		descstart += 4
-	}
-
-	if info.hasValueName {
-		descstart += 3
-	}
+	descstart := info.descriptionStart() + paddingBeforeOption
 
 	if len(option.LongName) > 0 {
 		if option.ShortName != 0 {
@@ -109,7 +188,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		}
 
 		line.WriteString(defaultLongOptDelimiter)
-		line.WriteString(option.LongName)
+		line.WriteString(option.LongNameWithNamespace())
 	}
 
 	if option.canArgument() {
@@ -117,6 +196,10 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 		if len(option.ValueName) > 0 {
 			line.WriteString(option.ValueName)
+		}
+
+		if len(option.Choices) > 0 {
+			line.WriteString("[" + strings.Join(option.Choices, "|") + "]")
 		}
 	}
 
@@ -127,41 +210,31 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		dw := descstart - written
 		writer.WriteString(strings.Repeat(" ", dw))
 
-		def := ""
-		defs := option.Default
+		var def string
 
-		if len(option.DefaultMask) != 0 {
-			if option.DefaultMask != "-" {
-				def = option.DefaultMask
-			}
-		} else if len(defs) == 0 && option.canArgument() {
-			var showdef bool
+		if len(option.DefaultMask) != 0 && option.DefaultMask != "-" {
+			def = option.DefaultMask
+		} else {
+			def = option.defaultLiteral
+		}
 
-			switch option.field.Type.Kind() {
-			case reflect.Func, reflect.Ptr:
-				showdef = !option.value.IsNil()
-			case reflect.Slice, reflect.String, reflect.Array:
-				showdef = option.value.Len() > 0
-			case reflect.Map:
-				showdef = !option.value.IsNil() && option.value.Len() > 0
-			default:
-				zeroval := reflect.Zero(option.field.Type)
-				showdef = !reflect.DeepEqual(zeroval.Interface(), option.value.Interface())
+		var envDef string
+		if option.EnvDefaultKey != "" {
+			var envPrintable string
+			if runtime.GOOS == "windows" {
+				envPrintable = "%" + option.EnvDefaultKey + "%"
+			} else {
+				envPrintable = "$" + option.EnvDefaultKey
 			}
-
-			if showdef {
-				def, _ = convertToString(option.value, option.tag)
-			}
-		} else if len(defs) != 0 {
-			def = strings.Join(defs, ", ")
+			envDef = fmt.Sprintf(" [%s]", envPrintable)
 		}
 
 		var desc string
 
 		if def != "" {
-			desc = fmt.Sprintf("%s (%v)", option.Description, def)
+			desc = fmt.Sprintf("%s (default: %v)%s", option.Description, def, envDef)
 		} else {
-			desc = option.Description
+			desc = option.Description + envDef
 		}
 
 		writer.WriteString(wrapText(desc,
@@ -236,6 +309,28 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 				fmt.Fprintf(wr, " %s", allcmd.Name)
 			}
 
+			if len(allcmd.args) > 0 {
+				fmt.Fprintf(wr, " ")
+			}
+
+			for i, arg := range allcmd.args {
+				if i != 0 {
+					fmt.Fprintf(wr, " ")
+				}
+
+				name := arg.Name
+
+				if arg.isRemaining() {
+					name = name + "..."
+				}
+
+				if !allcmd.ArgsRequired {
+					fmt.Fprintf(wr, "[%s]", name)
+				} else {
+					fmt.Fprintf(wr, "%s", name)
+				}
+			}
+
 			if allcmd.Active == nil && len(allcmd.commands) > 0 {
 				var co, cc string
 
@@ -245,10 +340,12 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 					co, cc = "<", ">"
 				}
 
-				if len(allcmd.commands) > 3 {
+				visibleCommands := allcmd.visibleCommands()
+
+				if len(visibleCommands) > 3 {
 					fmt.Fprintf(wr, " %scommand%s", co, cc)
 				} else {
-					subcommands := allcmd.sortedCommands()
+					subcommands := allcmd.sortedVisibleCommands()
 					names := make([]string, len(subcommands))
 
 					for i, subc := range subcommands {
@@ -275,26 +372,32 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		}
 	}
 
-	prevcmd := p.Command
+	c := p.Command
 
-	p.eachActiveGroup(func(c *Command, grp *Group) {
-		first := true
+	for c != nil {
+		printcmd := c != p.Command
 
-		// Skip builtin help group for all commands except the toplevel
-		// parser
-		if grp.isBuiltinHelp && c != p.Command {
-			return
-		}
+		c.eachGroup(func(grp *Group) {
+			first := true
 
-		for _, info := range grp.options {
-			if info.canCli() {
-				if prevcmd != c {
-					fmt.Fprintf(wr, "\n[%s command options]\n", c.Name)
-					prevcmd = c
-					aligninfo.indent = true
+			// Skip built-in help group for all commands except the top-level
+			// parser
+			if grp.Hidden || (grp.isBuiltinHelp && c != p.Command) {
+				return
+			}
+
+			for _, info := range grp.options {
+				if !info.canCli() || info.Hidden {
+					continue
 				}
 
-				if first && prevcmd.Group != grp {
+				if printcmd {
+					fmt.Fprintf(wr, "\n[%s command options]\n", c.Name)
+					aligninfo.indent = true
+					printcmd = false
+				}
+
+				if first && cmd.Group != grp {
 					fmt.Fprintln(wr)
 
 					if aligninfo.indent {
@@ -307,10 +410,41 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 
 				p.writeHelpOption(wr, info, aligninfo)
 			}
-		}
-	})
+		})
 
-	scommands := cmd.sortedCommands()
+		var args []*Arg
+		for _, arg := range c.args {
+			if arg.Description != "" {
+				args = append(args, arg)
+			}
+		}
+
+		if len(args) > 0 {
+			if c == p.Command {
+				fmt.Fprintf(wr, "\nArguments:\n")
+			} else {
+				fmt.Fprintf(wr, "\n[%s command arguments]\n", c.Name)
+			}
+
+			maxlen := aligninfo.descriptionStart()
+
+			for _, arg := range args {
+				prefix := strings.Repeat(" ", paddingBeforeOption)
+				fmt.Fprintf(wr, "%s%s", prefix, arg.Name)
+
+				if len(arg.Description) > 0 {
+					align := strings.Repeat(" ", maxlen-len(arg.Name)-1)
+					fmt.Fprintf(wr, ":%s%s", align, arg.Description)
+				}
+
+				fmt.Fprintln(wr)
+			}
+		}
+
+		c = c.Active
+	}
+
+	scommands := cmd.sortedVisibleCommands()
 
 	if len(scommands) > 0 {
 		maxnamelen := maxCommandLength(scommands)
@@ -324,6 +458,11 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			if len(c.ShortDescription) > 0 {
 				pad := strings.Repeat(" ", maxnamelen-len(c.Name))
 				fmt.Fprintf(wr, "%s  %s", pad, c.ShortDescription)
+
+				if len(c.Aliases) > 0 {
+					fmt.Fprintf(wr, " (aliases: %s)", strings.Join(c.Aliases, ", "))
+				}
+
 			}
 
 			fmt.Fprintln(wr)

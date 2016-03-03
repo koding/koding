@@ -5,13 +5,13 @@ import (
 	"testing"
 )
 
-type marshalled bool
+type marshalled string
 
 func (m *marshalled) UnmarshalFlag(value string) error {
 	if value == "yes" {
-		*m = true
+		*m = "true"
 	} else if value == "no" {
-		*m = false
+		*m = "false"
 	} else {
 		return fmt.Errorf("`%s' is not a valid value, please specify `yes' or `no'", value)
 	}
@@ -20,7 +20,7 @@ func (m *marshalled) UnmarshalFlag(value string) error {
 }
 
 func (m marshalled) MarshalFlag() (string, error) {
-	if m {
+	if m == "true" {
 		return "yes", nil
 	}
 
@@ -42,8 +42,8 @@ func TestUnmarshal(t *testing.T) {
 
 	assertStringArray(t, ret, []string{})
 
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
+	if opts.Value != "true" {
+		t.Errorf("Expected Value to be \"true\"")
 	}
 }
 
@@ -56,8 +56,8 @@ func TestUnmarshalDefault(t *testing.T) {
 
 	assertStringArray(t, ret, []string{})
 
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
+	if opts.Value != "true" {
+		t.Errorf("Expected Value to be \"true\"")
 	}
 }
 
@@ -70,8 +70,8 @@ func TestUnmarshalOptional(t *testing.T) {
 
 	assertStringArray(t, ret, []string{})
 
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
+	if opts.Value != "true" {
+		t.Errorf("Expected Value to be \"true\"")
 	}
 }
 
@@ -80,7 +80,7 @@ func TestUnmarshalError(t *testing.T) {
 		Value marshalled `short:"v"`
 	}{}
 
-	assertParseFail(t, ErrMarshal, "invalid argument for flag `-v' (expected flags.marshalled): `invalid' is not a valid value, please specify `yes' or `no'", &opts, "-vinvalid")
+	assertParseFail(t, ErrMarshal, fmt.Sprintf("invalid argument for flag `%cv' (expected flags.marshalled): `invalid' is not a valid value, please specify `yes' or `no'", defaultShortOptDelimiter), &opts, "-vinvalid")
 }
 
 func TestMarshalError(t *testing.T) {
