@@ -17,33 +17,62 @@ package command
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/coreos/etcd/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
-	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
+	"github.com/coreos/etcd/clientv3"
+)
+
+var (
+	watchRev         int64
+	watchPrefix      bool
+	watchInteractive bool
 )
 
 // NewWatchCommand returns the cobra command for "watch".
 func NewWatchCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "watch",
-		Short: "Watch watches the events happening or happened.",
+	cmd := &cobra.Command{
+		Use:   "watch [key or prefix]",
+		Short: "Watch watches events stream on keys or prefixes.",
 		Run:   watchCommandFunc,
 	}
+
+	cmd.Flags().BoolVarP(&watchInteractive, "interactive", "i", false, "interactive mode")
+	cmd.Flags().BoolVar(&watchPrefix, "prefix", false, "watch on a prefix if prefix is set")
+	cmd.Flags().Int64Var(&watchRev, "rev", 0, "revision to start watching")
+
+	return cmd
 }
 
 // watchCommandFunc executes the "watch" command.
 func watchCommandFunc(cmd *cobra.Command, args []string) {
-	wStream, err := mustClientFromCmd(cmd).Watch.Watch(context.TODO())
-	if err != nil {
-		ExitWithError(ExitBadConnection, err)
+	if watchInteractive {
+		watchInteractiveFunc(cmd, args)
+		return
 	}
 
-	go recvLoop(wStream)
+	if len(args) != 1 {
+		ExitWithError(ExitBadArgs, fmt.Errorf("watch in non-interactive mode requires an argument as key or prefix"))
+	}
+
+	opts := []clientv3.OpOption{clientv3.WithRev(watchRev)}
+	if watchPrefix {
+		opts = append(opts, clientv3.WithPrefix())
+	}
+	c := mustClientFromCmd(cmd)
+	wc := c.Watch(context.TODO(), args[0], opts...)
+	printWatchCh(wc)
+	err := c.Close()
+	if err == nil {
+		ExitWithError(ExitInterrupted, fmt.Errorf("watch is canceled by the server"))
+	}
+	ExitWithError(ExitBadConnection, err)
+}
+
+func watchInteractiveFunc(cmd *cobra.Command, args []string) {
+	c := mustClientFromCmd(cmd)
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -54,67 +83,44 @@ func watchCommandFunc(cmd *cobra.Command, args []string) {
 		}
 		l = strings.TrimSuffix(l, "\n")
 
-		// TODO: support start and end revision
-		segs := strings.Split(l, " ")
-		if len(segs) != 2 {
-			fmt.Fprintf(os.Stderr, "Invalid watch request format: use \"watch [key]\", \"watchprefix [prefix]\" or \"cancel [watcher ID]\"\n")
+		args := argify(l)
+		if len(args) < 2 {
+			fmt.Fprintf(os.Stderr, "Invalid command %s (command type or key is not provided)\n", l)
 			continue
 		}
 
-		var r *pb.WatchRequest
-		switch segs[0] {
-		case "watch":
-			r = &pb.WatchRequest{
-				RequestUnion: &pb.WatchRequest_CreateRequest{
-					CreateRequest: &pb.WatchCreateRequest{
-						Key: []byte(segs[1])}}}
-		case "watchprefix":
-			r = &pb.WatchRequest{
-				RequestUnion: &pb.WatchRequest_CreateRequest{
-					CreateRequest: &pb.WatchCreateRequest{
-						Prefix: []byte(segs[1])}}}
-		case "cancel":
-			id, perr := strconv.ParseInt(segs[1], 10, 64)
-			if perr != nil {
-				fmt.Fprintf(os.Stderr, "Invalid cancel ID (%v)\n", perr)
-				continue
-			}
-			r = &pb.WatchRequest{
-				RequestUnion: &pb.WatchRequest_CancelRequest{
-					CancelRequest: &pb.WatchCancelRequest{
-						WatchId: id}}}
-		default:
-			fmt.Fprintf(os.Stderr, "Invalid watch request type: use watch, watchprefix or cancel\n")
+		if args[0] != "watch" {
+			fmt.Fprintf(os.Stderr, "Invalid command %s (only support watch)\n", l)
 			continue
 		}
 
-		err = wStream.Send(r)
+		flagset := NewWatchCommand().Flags()
+		err = flagset.Parse(args[1:])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error sending request to server: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Invalid command %s (%v)\n", l, err)
+			continue
 		}
+		moreargs := flagset.Args()
+		if len(moreargs) != 1 {
+			fmt.Fprintf(os.Stderr, "Invalid command %s (Too many arguments)\n", l)
+			continue
+		}
+		var key string
+		_, err = fmt.Sscanf(moreargs[0], "%q", &key)
+		if err != nil {
+			key = moreargs[0]
+		}
+		opts := []clientv3.OpOption{clientv3.WithRev(watchRev)}
+		if watchPrefix {
+			opts = append(opts, clientv3.WithPrefix())
+		}
+		ch := c.Watch(context.TODO(), key, opts...)
+		go printWatchCh(ch)
 	}
 }
 
-func recvLoop(wStream pb.Watch_WatchClient) {
-	for {
-		resp, err := wStream.Recv()
-		if err == io.EOF {
-			os.Exit(ExitSuccess)
-		}
-		if err != nil {
-			ExitWithError(ExitError, err)
-		}
-
-		switch {
-		// TODO: handle canceled/compacted and other control response types
-		case resp.Created:
-			fmt.Printf("watcher created: id %08x\n", resp.WatchId)
-		case resp.Canceled:
-			fmt.Printf("watcher canceled: id %08x\n", resp.WatchId)
-		default:
-			for _, ev := range resp.Events {
-				fmt.Printf("%s: %s %s\n", ev.Type, string(ev.Kv.Key), string(ev.Kv.Value))
-			}
-		}
+func printWatchCh(ch clientv3.WatchChan) {
+	for resp := range ch {
+		display.Watch(resp)
 	}
 }
