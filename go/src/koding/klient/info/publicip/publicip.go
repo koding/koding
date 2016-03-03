@@ -120,6 +120,7 @@ func isReachable(addr, service string) (bool, error) {
 		return false, nil
 	}
 
+	// addr is reachable when it replied with 2xx HTTP status code
 	if resp.StatusCode/100 == 2 {
 		return true, nil
 	}
