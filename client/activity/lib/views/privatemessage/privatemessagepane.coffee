@@ -1,5 +1,4 @@
 kd                               = require 'kd'
-KDButtonView                     = kd.ButtonView
 KDCustomHTMLView                 = kd.CustomHTMLView
 KDFormViewWithFields             = kd.FormViewWithFields
 KDView                           = kd.View
@@ -12,7 +11,6 @@ PrivateMessageSettingsView       = require './privatemessagesettingsview'
 ReplyInputWidget                 = require './replyinputwidget'
 ReplyPreviousLink                = require './replypreviouslink'
 showError                        = require 'app/util/showError'
-AvatarView                       = require 'app/commonviews/avatarviews/avatarview'
 dateFormat                       = require 'dateformat'
 isMyPost                         = require 'app/util/isMyPost'
 fetchAccount                     = require 'app/util/fetchAccount'

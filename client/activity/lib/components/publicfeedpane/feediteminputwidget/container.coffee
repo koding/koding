@@ -2,7 +2,6 @@ kd           = require 'kd'
 View         = require './view'
 React        = require 'kd-react'
 ReactDOM     = require 'react-dom'
-ActivityFlux = require 'activity/flux'
 KeyboardKeys = require 'app/constants/keyboardKeys'
 
 module.exports = class FeedItemInputContainer extends React.Component

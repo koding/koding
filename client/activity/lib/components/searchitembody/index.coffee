@@ -1,5 +1,4 @@
 kd        = require 'kd'
-$         = require 'jquery'
 React     = require 'kd-react'
 Constants = require 'activity/flux/actions/searchconstants'
 emojify   = require 'emojify.js'

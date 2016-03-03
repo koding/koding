@@ -1,7 +1,6 @@
 kd                        = require 'kd'
 React                     = require 'kd-react'
 ReactDOM                  = require 'react-dom'
-createHistory             = require 'history/lib/createHistory'
 createLocation            = require 'history/lib/createLocation'
 handlers                  = require './routehandlers'
 lazyrouter                = require 'app/lazyrouter'

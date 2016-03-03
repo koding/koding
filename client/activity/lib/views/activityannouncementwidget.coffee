@@ -1,6 +1,4 @@
-kd    = require 'kd'
 JView = require 'app/jview'
-AddManagedMachineModal = require 'app/providers/managed/addmanagedmachinemodal'
 
 
 module.exports = class ActivityAnnouncementWidget extends JView

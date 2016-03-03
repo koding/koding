@@ -1,4 +1,3 @@
-kd           = require 'kd'
 ActivityFlux = require 'activity/flux'
 
 {

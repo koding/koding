@@ -4,8 +4,6 @@ whoami                 = require 'app/util/whoami'
 Button                 = require 'app/components/common/button'
 Encoder                = require 'htmlencode'
 Preview                = require './preview'
-KeyboardKeys           = require 'app/constants/keyboardKeys'
-ActivityFlux           = require 'activity/flux'
 AutoSizeTextarea       = require 'app/components/common/autosizetextarea'
 
 module.exports = class FeedInputWidgetView extends React.Component

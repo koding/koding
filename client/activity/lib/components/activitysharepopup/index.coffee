@@ -5,7 +5,6 @@ ReactDOM            = require 'react-dom'
 shortenUrl          = require 'app/util/shortenUrl'
 shortenText         = require 'app/util/shortenText'
 Portal              = require('react-portal').default
-ActivityFlux        = require 'activity/flux'
 Link                = require 'app/components/common/link'
 SocialShareLinkItem = require './socialsharelinkitem'
 

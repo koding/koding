@@ -6,7 +6,6 @@ KDView                  = kd.View
 ActivityInputHelperView = require './activityinputhelperview'
 ActivityInputView       = require './activityinputview'
 EmbedBoxWidget          = require './embedboxwidget'
-globals                 = require 'globals'
 showError               = require 'app/util/showError'
 generateDummyMessage    = require 'app/util/generateDummyMessage'
 generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'

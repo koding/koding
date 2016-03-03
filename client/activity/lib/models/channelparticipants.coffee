@@ -1,7 +1,6 @@
 immutable     = require 'immutable'
 kd            = require 'kd'
 fetchAccounts = require 'app/util/fetchAccounts'
-sinkrow       = require 'sinkrow'
 
 ###*
  * A model class to handle participant works of given channel. Hopefully this

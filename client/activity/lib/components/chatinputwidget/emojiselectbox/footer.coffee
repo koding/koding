@@ -1,6 +1,5 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
-ReactDOM              = require 'react-dom'
 EmojiIcon             = require 'activity/components/emojiicon'
 formatEmojiName       = require 'activity/util/formatEmojiName'
 getEmojiSynonyms      = require 'activity/util/getEmojiSynonyms'
