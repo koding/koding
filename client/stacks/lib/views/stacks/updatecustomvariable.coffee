@@ -28,6 +28,9 @@ createAndUpdate = (options, callback) ->
   { provider, title, meta, stackTemplate } = options
   { JCredential } = remote.api
 
+  if not meta or (Object.keys meta).length is 0
+    return callback null, stackTemplate
+
   JCredential.create { provider, title, meta }, (err, credential) ->
     return callback err  if err
 
@@ -51,13 +54,16 @@ module.exports = updateCustomVariable = (options, callback) ->
     JCredential.one identifier, (err, credential) ->
       if err or not credential
         createAndUpdate { provider, title, meta, stackTemplate }, callback
-      else
+      else if meta and (Object.keys meta).length
         credential.update { meta, title }, (err) ->
           shareWithGroup credential, ->
             callback err, stackTemplate
+      else
+        credential.delete (err) ->
+          { credentials } = stackTemplate
+          delete credentials.custom
+          stackTemplate.update { credentials }, (err) ->
+            callback err, stackTemplate
 
   else
-    if not meta or (Object.keys meta).length is 0
-      return callback null, stackTemplate
-
     createAndUpdate { provider, title, meta, stackTemplate }, callback
