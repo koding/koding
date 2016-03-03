@@ -83,13 +83,25 @@ func (s *stresser) Stress() error {
 		go func(i int) {
 			defer wg.Done()
 			for {
-				putctx, putcancel := context.WithTimeout(ctx, 5*time.Second)
+				// TODO: 10-second is enough timeout to cover leader failure
+				// and immediate leader election. Find out what other cases this
+				// could be timed out.
+				putctx, putcancel := context.WithTimeout(ctx, 10*time.Second)
 				_, err := kvc.Put(putctx, &pb.PutRequest{
 					Key:   []byte(fmt.Sprintf("foo%d", rand.Intn(s.KeySuffixRange))),
 					Value: []byte(randStr(s.KeySize)),
 				})
 				putcancel()
 				if err != nil {
+					if grpc.ErrorDesc(err) == context.DeadlineExceeded.Error() {
+						// This retries when request is triggered at the same time as
+						// leader failure. When we terminate the leader, the request to
+						// that leader cannot be processed, and times out. Also requests
+						// to followers cannot be forwarded to the old leader, so timing out
+						// as well. We want to keep stressing until the cluster elects a
+						// new leader and start processing requests again.
+						continue
+					}
 					return
 				}
 				s.mu.Lock()

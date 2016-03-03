@@ -23,7 +23,7 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 			err, kreq.Args.One(),
 		)
 
-		r.log.Info(err.Error())
+		r.log.Error(err.Error())
 		return nil, err
 	}
 

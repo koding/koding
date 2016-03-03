@@ -1,5 +1,6 @@
 $             = require 'jquery'
 kd            = require 'kd'
+remote        = require('app/remote').getInstance()
 whoami        = require 'app/util/whoami'
 SlackUserItem = require './slackuseritem'
 async         = require 'async'
@@ -198,7 +199,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
       firstName : profile.first_name
       lastName  : profile.last_name
 
-    kd.remote.api.JInvitation.create
+    remote.api.JInvitation.create
       invitations : invitations
       returnCodes : yes
       noEmail     : yes

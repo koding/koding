@@ -48,9 +48,8 @@ var (
 	flagVagrantHome = flag.String("vagrant-home", "", "Change Vagrant home path")
 
 	// Tunnel flags
-	flagTunnelServerAddr = flag.String("tunnel-server", "", "Tunnel server address")
-	flagTunnelLocalAddr  = flag.String("tunnel-local", "", "Address of local server to be tunneled (optional)")
-	flagNoTunnel         = flag.Bool("no-tunnel", false, "Force klient to not use tunnel.")
+	flagTunnelName    = flag.String("tunnel-name", "", "Enable tunneling by setting non-empty tunnel name")
+	flagTunnelKiteURL = flag.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
 )
 
 func main() {
@@ -94,23 +93,22 @@ func realMain() int {
 	}
 
 	conf := &app.KlientConfig{
-		Name:             protocol.Name,
-		Environment:      protocol.Environment,
-		Region:           protocol.Region,
-		Version:          protocol.Version,
-		DBPath:           dbPath,
-		IP:               *flagIP,
-		Port:             *flagPort,
-		RegisterURL:      *flagRegisterURL,
-		KontrolURL:       *flagKontrolURL,
-		Debug:            *flagDebug,
-		UpdateInterval:   *flagUpdateInterval,
-		UpdateURL:        *flagUpdateURL,
-		ScreenrcPath:     *flagScreenrc,
-		VagrantHome:      vagrantHome,
-		TunnelServerAddr: *flagTunnelServerAddr,
-		TunnelLocalAddr:  *flagTunnelLocalAddr,
-		NoTunnel:         *flagNoTunnel,
+		Name:           protocol.Name,
+		Environment:    protocol.Environment,
+		Region:         protocol.Region,
+		Version:        protocol.Version,
+		DBPath:         dbPath,
+		IP:             *flagIP,
+		Port:           *flagPort,
+		RegisterURL:    *flagRegisterURL,
+		KontrolURL:     *flagKontrolURL,
+		Debug:          *flagDebug,
+		UpdateInterval: *flagUpdateInterval,
+		UpdateURL:      *flagUpdateURL,
+		ScreenrcPath:   *flagScreenrc,
+		VagrantHome:    vagrantHome,
+		TunnelName:     *flagTunnelName,
+		TunnelKiteURL:  *flagTunnelKiteURL,
 	}
 
 	a := app.NewKlient(conf)

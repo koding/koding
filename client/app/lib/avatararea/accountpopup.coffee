@@ -59,7 +59,7 @@ module.exports = class AccountPopup extends AvatarPopup
     # FIXME:
     groupsController.ready =>
       group = groupsController.getCurrentGroup()
-      if group.slug isnt 'koding'
+      if group.slug isnt 'koding' and not isSoloProductLite()
         @paymentActionLabel.hide()
 
       group.canEditGroup (err, success) ->
@@ -83,6 +83,9 @@ module.exports = class AccountPopup extends AvatarPopup
 
 
   updatePaymentTitle: ->
+
+    return  if isSoloProductLite()
+
     { paymentController } = kd.singletons
 
     paymentController.subscriptions (err, subscription) =>

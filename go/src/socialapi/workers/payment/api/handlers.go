@@ -7,12 +7,13 @@ import (
 
 func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
-	// Subscriptions
+	// Subscribe
 	//----------------------------------------------------------
 
+	// this is same /payments/account/subscribe, here for backwards compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  Subscribe,
+			Handler:  AccountSubscribe,
 			Name:     "payment-subsrcibe",
 			Type:     handler.PostRequest,
 			Endpoint: "/payments/subscribe",
@@ -21,10 +22,52 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  SubscriptionRequest,
+			Handler:  AccountSubscribe,
+			Name:     "payment-account-subscribe",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/account/subscribe",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupSubscribe,
+			Name:     "payment-group-subscribe",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/group/subscribe",
+		},
+	)
+
+	//----------------------------------------------------------
+	// Subscriptions
+	//----------------------------------------------------------
+
+	// this is same /payments/account/subscriptions, here for backwards
+	// compatibilty
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountSubscriptionRequest,
 			Name:     "payment-subscriptions",
 			Type:     handler.GetRequest,
 			Endpoint: "/payments/subscriptions",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountSubscriptionRequest,
+			Name:     "payment-account-subscriptions",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/account/subscriptions",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupSubscriptionRequest,
+			Name:     "payment-group-subscriptions",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/group/subscriptions",
 		},
 	)
 
@@ -85,12 +128,32 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	// this is same /payments/account/creditcard/update, here for backwards
+	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  UpdateCreditCardRequest,
+			Handler:  AccountUpdateCreditCardRequest,
 			Name:     "payment-updatecreditcard",
 			Type:     handler.PostRequest,
 			Endpoint: "/payments/creditcard/update",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AccountUpdateCreditCardRequest,
+			Name:     "payment-account-updatecreditcard",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/account/creditcard/update",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  GroupUpdateCreditCardRequest,
+			Name:     "payment-group-updatecreditcard",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/group/creditcard/update",
 		},
 	)
 

@@ -17,6 +17,7 @@ isMine               = require 'app/util/isMine'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
+doXhrRequest         = require 'app/util/doXhrRequest'
 
 
 MissingDataView      = require './missingdataview'
@@ -35,6 +36,60 @@ module.exports = class ComputeController_UI
     fn args...
 
 
+  KNOWN_FIELD_TYPES   =
+    'ssh_private_key' : 'textarea'
+
+  showPrivateKeyWarning = (privateKey) ->
+
+    new kd.ModalView
+      title           : "Please save private key content"
+      subtitle        : applyMarkdown "
+                         This stack only requires public key which means
+                         private key of this public key is not goint to be
+                         stored, please take a copy of following private key.
+                         \n
+                         **You won't be able to access this private key later**
+                        "
+      content         : applyMarkdown "```\n#{privateKey}\n```"
+      cssClass        : 'has-markdown'
+      width           : 530
+      overlay         : yes
+      overlayClick    : yes
+      overlayOptions  :
+        cssClass      : 'second-overlay'
+
+
+  injectCustomActions = (requiredFields, buttons, callback) ->
+
+    if 'ssh_public_key' in requiredFields
+
+      buttons['Auto Generate SSH Keys'] =
+        style    : 'solid medium green'
+        type     : 'button'
+        loader   : yes
+        tooltip  :
+          title  : "This stack requires SSH keys that you
+                    can automatically create one from here"
+        callback : ->
+
+          endPoint = '/api/social/sshkeys'
+          type     = 'GET'
+
+          doXhrRequest { endPoint, type }, (err, res) =>
+
+            @hideLoader()
+            return  if showError err, KodingError: 'Service not available'
+
+            unless 'ssh_private_key' in requiredFields
+              showPrivateKeyWarning res.private
+
+            callback
+              'ssh_public_key'  : res.public
+              'ssh_private_key' : res.private
+
+    return buttons
+
+
   @generateAddCredentialFormFor = (options) ->
 
     { provider, requiredFields, defaultTitle, defaultValues, callback } = options
@@ -51,8 +106,9 @@ module.exports = class ComputeController_UI
       credentialFields = {}
 
       for field in requiredFields
+        continue  if field.indexOf('__') is 0
         name = field.name ? field
-        type = field.type ? 'text'
+        type = field.type ? KNOWN_FIELD_TYPES[field] ? 'text'
         { values } = field
         credentialFields[name] = {
           label: name.capitalize()
@@ -86,7 +142,6 @@ module.exports = class ComputeController_UI
 
         selectOptions.push { field, values }
 
-
     buttons      =
       Save       :
         title    : "Save"
@@ -95,10 +150,16 @@ module.exports = class ComputeController_UI
         loader   : color : "#444444"
         callback : -> @hideLoader()
 
-      Cancel     :
-        style    : "solid medium"
-        type     : "button"
-        callback : -> form.emit "Cancel"
+    if requiredFields
+      buttons = injectCustomActions requiredFields, buttons, (generatedKeys) ->
+        for own field, input of form.inputs
+          input.setValue data  if data = generatedKeys[field]
+
+    buttons.Cancel =
+      style        : "solid medium"
+      type         : "button"
+      callback     : -> form.emit "Cancel"
+
 
     # Add advanced fields into form
     if advancedFields = currentProvider.advancedFields
@@ -212,34 +273,52 @@ module.exports = class ComputeController_UI
           title   : "Resize VM?"
           message : "
             If you choose to proceed, this VM will be resized #{resizeDetails}.
-            During the resize process, you will not be able to use the VM but
-            all your files, workspaces and data will be safe.
+            During the resize process, you will not be able to use your VM.
+            No need to worry, your files, workspaces and your data therein will be safe.
           "
           button  : "Proceed"
         reinit    :
           title   : "Reinitialize VM?"
           message : "
-            If you choose to proceed, this VM will be reset to default state.
-            You will lose all your files, workspaces, collaboration sessions and data but your VM
-            settings (VM aliases, sub-domains etc.) will not be lost.
+            If you choose to proceed, this VM will be reset to its default state.
+            That means you will lose all of its data i.e. your files, workspaces, collaboration
+            sessions. Your VM settings however, (VM aliases, sub-domains etc.) will not be lost.
           "
           button  : "Proceed"
         reinitStack :
           title   : "Reinitialize Stack?"
           message : "
-            If you choose to proceed, this stack and all the VMs will be
+            If you choose to proceed, this stack and all of its VMs will be
             re-initialized from the latest revision of this stack.
-            You will lose all of your existing files, workspaces, VMs and all
-            of your data.
+            You will lose all of your existing VMs, workspaces and your data therein.
           "
           button  : "Proceed"
         deleteStack :
-          title   : "Delete Stack?"
+          title   : "Destroy Stack?"
           message : "
-            If you choose to proceed, this stack and all the VMs will be
-            deleted, and you won't be able to revert this.
-            You will lose all of your existing files, workspaces, VMs and all
-            of your data.
+            <p>If you choose to proceed, this stack and all the VMs will be
+            destroyed, and you won't be able to revert this.</p>
+
+            <p>Any existing data will be lost including existing files,
+            workspaces, VMs and anything provided by this stack.</p>
+          "
+          button  : "Proceed"
+        forceDeleteStack :
+          title   : "Delete Stack data?"
+          message : "
+            <p>If you choose to proceed, all of the meta data and related
+            information for this stack will be removed from Koding.</p>
+
+            <p><strong>
+              WARNING! This action won't destroy created resources on your
+              stack provider, you need to perform a cleanup for those resources
+              (such as VMs, domains, security groups etc.) manually.
+            </strong></p>
+
+            <p>With this action you'll remove the connection between
+            this stack on Koding and related resources on your stack provider.</p>
+
+            <p>Do you want to continue?</p>
           "
           button  : "Proceed"
         reinitNoSnapshot :

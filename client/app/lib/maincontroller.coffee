@@ -153,7 +153,6 @@ module.exports = class MainController extends KDController
     return no
 
 
-
   accountChanged: (account, firstLoad = no)->
 
     unless account instanceof remote.api.JAccount

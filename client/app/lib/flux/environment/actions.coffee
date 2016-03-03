@@ -206,7 +206,8 @@ rejectInvitation = (machine) ->
       else 'SHARED_VM_INVITATION_REJECTED'
 
       kd.singletons.reactor.dispatch actions[actionType], machine.get '_id'
-      callback()
+      kd.singletons.computeController.reset callback
+
   ])
 
 

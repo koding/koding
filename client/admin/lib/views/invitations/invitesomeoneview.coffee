@@ -9,6 +9,7 @@ KDCustomHTMLView    = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'
 InvitationInputView = require './invitationinputview'
+whoami              = require 'app/util/whoami'
 
 module.exports = class InviteSomeoneView extends KDView
 
@@ -67,10 +68,12 @@ module.exports = class InviteSomeoneView extends KDView
     @addSubView new KDButtonView
       title    : 'INVITE MEMBERS'
       cssClass : 'solid medium green invite-members'
-      callback : @bound 'inviteMembers'
+      callback :  =>
+        whoami().fetchEmail (err, email) =>
+          @inviteMembers email
 
 
-  inviteMembers: ->
+  inviteMembers: (ownEmail) ->
 
     invites = []
     admins  = []
@@ -81,6 +84,10 @@ module.exports = class InviteSomeoneView extends KDView
       continue  unless value
 
       result = if not value then no else view.email.validate()
+
+      if value.toLowerCase() is ownEmail
+        showError 'You can not invite yourself!'
+        return view.email.setClass 'validation-error'
 
       if value and not result
         showError 'That doesn\'t seem like a valid email address.'

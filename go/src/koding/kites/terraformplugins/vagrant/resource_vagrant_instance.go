@@ -76,11 +76,6 @@ func resourceVagrantBuild() *schema.Resource {
 				Computed:    true,
 				Description: "URL of the Klient inside the host machine where the Vagrant box residues",
 			},
-			"klientGuestURL": &schema.Schema{
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "URL of the Klient inside the guest machine where the Vagrant box residues",
-			},
 		},
 	}
 }
@@ -115,13 +110,14 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 
 	err = c.Vagrant.Up(queryString, resp.FilePath)
 	if err != nil {
-		return fmt.Errorf("Vagrant up failed, please try again: " + err.Error())
+		// ensure the machine is deleted on failure
+		c.Vagrant.Destroy(queryString, resp.FilePath)
+		return fmt.Errorf("vagrant provisioning has failed: " + err.Error())
 	}
 
 	d.SetId(queryString)
 	d.Set("filePath", resp.FilePath)
 	d.Set("klientHostURL", resp.HostURL)
-	d.Set("klientGuestURL", d.Get("registerURL").(string))
 	d.Set("hostname", resp.Hostname)
 	d.Set("box", resp.Box)
 	d.Set("cpus", resp.Cpus)

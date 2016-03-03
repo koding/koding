@@ -18,8 +18,6 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 )
 
-var defaultClient = ec2metadata.New(session.New(aws.NewConfig()))
-
 func s3Factory(conf map[string]string) (Client, error) {
 	bucketName, ok := conf["bucket"]
 	if !ok {
@@ -29,6 +27,11 @@ func s3Factory(conf map[string]string) (Client, error) {
 	keyName, ok := conf["key"]
 	if !ok {
 		return nil, fmt.Errorf("missing 'key' configuration")
+	}
+
+	endpoint, ok := conf["endpoint"]
+	if !ok {
+		endpoint = os.Getenv("AWS_S3_ENDPOINT")
 	}
 
 	regionName, ok := conf["region"]
@@ -55,6 +58,7 @@ func s3Factory(conf map[string]string) (Client, error) {
 	if raw, ok := conf["acl"]; ok {
 		acl = raw
 	}
+	kmsKeyID := conf["kms_key_id"]
 
 	accessKeyId := conf["access_key"]
 	secretAccessKey := conf["secret_key"]
@@ -67,7 +71,7 @@ func s3Factory(conf map[string]string) (Client, error) {
 		}},
 		&credentials.EnvProvider{},
 		&credentials.SharedCredentialsProvider{Filename: "", Profile: ""},
-		&ec2rolecreds.EC2RoleProvider{Client: defaultClient},
+		&ec2rolecreds.EC2RoleProvider{Client: ec2metadata.New(session.New())},
 	})
 
 	// Make sure we got some sort of working credentials.
@@ -79,6 +83,7 @@ func s3Factory(conf map[string]string) (Client, error) {
 
 	awsConfig := &aws.Config{
 		Credentials: credentialsProvider,
+		Endpoint:    aws.String(endpoint),
 		Region:      aws.String(regionName),
 		HTTPClient:  cleanhttp.DefaultClient(),
 	}
@@ -91,6 +96,7 @@ func s3Factory(conf map[string]string) (Client, error) {
 		keyName:              keyName,
 		serverSideEncryption: serverSideEncryption,
 		acl:                  acl,
+		kmsKeyID:             kmsKeyID,
 	}, nil
 }
 
@@ -100,6 +106,7 @@ type S3Client struct {
 	keyName              string
 	serverSideEncryption bool
 	acl                  string
+	kmsKeyID             string
 }
 
 func (c *S3Client) Get() (*Payload, error) {
@@ -152,7 +159,12 @@ func (c *S3Client) Put(data []byte) error {
 	}
 
 	if c.serverSideEncryption {
-		i.ServerSideEncryption = aws.String("AES256")
+		if c.kmsKeyID != "" {
+			i.SSEKMSKeyId = &c.kmsKeyID
+			i.ServerSideEncryption = aws.String("aws:kms")
+		} else {
+			i.ServerSideEncryption = aws.String("AES256")
+		}
 	}
 
 	if c.acl != "" {

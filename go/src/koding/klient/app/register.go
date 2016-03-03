@@ -13,7 +13,7 @@ import (
 	"koding/klient/info/publicip"
 )
 
-func (k *Klient) register(useTunnel bool) error {
+func (k *Klient) register() error {
 	// Attempt to get the IP, and retry up to 10 times with 5 second pauses between
 	// retries.
 	ip, err := publicip.PublicIPRetry(10, 5*time.Second, k.log)
@@ -32,7 +32,7 @@ func (k *Klient) register(useTunnel bool) error {
 		Path:   "/kite",
 	}
 
-	if useTunnel {
+	if k.config.TunnelName != "" {
 		// TODO(rjeczalik): sockjs does not like tunneling, crashes receive
 		// loop with:
 		//
@@ -76,18 +76,17 @@ func (k *Klient) register(useTunnel bool) error {
 
 func (k *Klient) setupTunnel() (string, error) {
 	opts := &tunnelproxy.ClientOptions{
-		ServerAddr: k.config.TunnelServerAddr,
-		LocalAddr:  k.config.TunnelLocalAddr,
-		Debug:      k.config.Debug,
-		Config:     k.kite.Config,
-		NoTLS:      k.kite.TLSConfig == nil,
-		Log:        common.NewLogger("tunnelclient", k.config.Debug),
-		Timeout:    5 * time.Minute,
+		TunnelName:    k.config.TunnelName,
+		TunnelKiteURL: k.config.TunnelKiteURL,
+		Debug:         k.config.Debug,
+		Config:        k.kite.Config,
+		Log:           common.NewLogger("tunnelclient", k.config.Debug),
+		Timeout:       5 * time.Minute,
 	}
 
-	if opts.LocalAddr == "" && k.config.Port != 0 {
+	if k.config.Port != 0 {
 		opts.LocalAddr = "127.0.0.1:" + strconv.Itoa(k.config.Port)
 	}
 
-	return k.tunnelclient.Start(opts, k.config.RegisterURL)
+	return k.tunnelclient.Start(opts)
 }

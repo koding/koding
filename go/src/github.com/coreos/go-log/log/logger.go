@@ -17,7 +17,7 @@ package log
 // based on previous package by: Cong Ding <dinggnu@gmail.com>
 
 import (
-	"bitbucket.org/kardianos/osext"
+	"github.com/kardianos/osext"
 	"os"
 	"path"
 	"time"

@@ -8,6 +8,9 @@ fi
 
 cd $(dirname $0)
 
+LOG_DIR=$(pwd)/../../.logs
+mkdir -p $LOG_DIR
+
 NIGHTWATCH_BIN="../node_modules/.bin/nightwatch"
 NIGHTWATCH_CMD="$NIGHTWATCH_BIN --config ../.nightwatch.json $NIGHTWATCH_OPTIONS"
 
@@ -19,8 +22,8 @@ export REVISION=${REVISION:0:7}
 make --quiet compile
 
 function start_selenium_server() {
-  RUN_SELENIUM_OUTPUT_HOST=$(mktemp)
-  RUN_SELENIUM_OUTPUT_PARTICIPANT=$(mktemp)
+  RUN_SELENIUM_OUTPUT_HOST="$LOG_DIR/selenium-host.log"
+  RUN_SELENIUM_OUTPUT_PARTICIPANT="$LOG_DIR/selenium-participant.log"
 
   java -jar vendor/selenium-server-standalone.jar \
        -host 0.0.0.0 \

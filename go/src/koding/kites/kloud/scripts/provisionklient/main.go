@@ -16,7 +16,6 @@ import (
 	"koding/kites/kloud/scripts/provisionklient/userdata"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -34,7 +33,7 @@ var (
 	flagData = flag.String("data", "", "Data to be used for provisioning. Must be JSON encoded in base64")
 
 	// output defines the log and command execution outputs
-	output io.Writer = os.Stderr
+	output io.Writer = os.Stdout
 )
 
 func main() {
@@ -42,13 +41,13 @@ func main() {
 	if err != nil {
 		log.Println("couldn't crate file, going to log to stdout")
 	} else {
-		output = file
+		output = io.MultiWriter(file, os.Stdout)
 	}
 
 	log.SetOutput(output)
 
 	if err := realMain(); err != nil {
-		log.Fatalln(err)
+		log.Fatalln("ERROR:", err)
 	}
 }
 
@@ -88,22 +87,22 @@ func realMain() error {
 
 	log.Println(">> Creating /etc/kite folder")
 	if err := os.MkdirAll("/etc/kite", 0755); err != nil {
-		return err
+		return fmt.Errorf("error creating /etc/kite directory: %s", err)
 	}
 
 	log.Println(">> Creating /etc/kite/kite.key file")
 	if err := ioutil.WriteFile("/etc/kite/kite.key", []byte(val.KiteKey), 0644); err != nil {
-		return err
+		return fmt.Errorf("error writing /etc/kite/kite.key file: %s", err)
 	}
 
 	log.Printf(">> Creating user '%s' with groups: %+v\n", val.Username, val.Groups)
 	if err := createUser(val.Username, val.Groups); err != nil {
-		return err
+		return fmt.Errorf("error creating %q user: %s", val.Username, err)
 	}
 
 	log.Println(">> Installing klient from URL: %s", val.LatestKlientURL)
-	if err := installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL, val.TunnelURL); err != nil {
-		return err
+	if err := installKlient(val); err != nil {
+		return fmt.Errorf("error installing klient: %s", err)
 	}
 
 	return nil
@@ -136,37 +135,11 @@ func createUser(username string, groups []string) error {
 	return nil
 }
 
-func guessTunnelServerAddr(username, registerURL, tunnelURL string) string {
-	// If tunnelURL was overwritten, we use it.
-	if u, err := url.Parse(tunnelURL); err != nil {
-		return u.Host
-	}
-
-	// If registerURL has <box>.<username>.<server-addr> format, we treat
-	// it as url for tunnel request and split <server-addr> out of it.
-	// parse the server addr out of it.
-	//
-	// We expect <server-addr> has ".koding." domain or subdomain in it.
-	u, err := url.Parse(registerURL)
-	if err != nil {
-		return ""
-	}
-
-	userPart := "." + username + "."
-
-	i := strings.Index(u.Host, userPart)
-	j := strings.Index(u.Host, ".koding.")
-
-	if i == -1 || j == -1 || i > j {
-		return ""
-	}
-
-	return u.Host[i+len(userPart):]
-}
-
-func installKlient(username, url, registerURL, kontrolURL, tunnelURL string) error {
+// installKlient(val.Username, val.LatestKlientURL, val.RegisterURL, val.KontrolURL, val.TunnelURL)
+// func installKlient(username, url, registerURL, kontrolURL, tunnelURL string) error {
+func installKlient(val *userdata.Value) error {
 	var tmpFile = "/tmp/latest-klient.deb"
-	var args = []string{url, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
+	var args = []string{val.LatestKlientURL, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
 
 	log.Println(">> Downloading klient")
 	download := newCommand("wget", args...)
@@ -187,17 +160,21 @@ func installKlient(username, url, registerURL, kontrolURL, tunnelURL string) err
 		return err
 	}
 
-	initLine := fmt.Sprintf("sudo -E -u %s KITE_HOME=/etc/kite ./klient ", username)
-	if registerURL != "" {
-		initLine += fmt.Sprintf(" -register-url '%s'", registerURL)
+	initLine := fmt.Sprintf("sudo -E -u %s KITE_HOME=/etc/kite ./klient ", val.Username)
+	if val.TunnelName == "" && val.RegisterURL != "" {
+		initLine += fmt.Sprintf(" -register-url '%s'", val.RegisterURL)
 	}
 
-	if kontrolURL != "" {
-		initLine += fmt.Sprintf(" -kontrol-url '%s'", kontrolURL)
+	if val.KontrolURL != "" {
+		initLine += fmt.Sprintf(" -kontrol-url '%s'", val.KontrolURL)
 	}
 
-	if tunnelAddr := guessTunnelServerAddr(username, registerURL, tunnelURL); tunnelAddr != "" {
-		initLine += fmt.Sprintf(" -tunnel-server '%s'", tunnelAddr)
+	if val.TunnelName != "" {
+		initLine += fmt.Sprintf(" -tunnel-name '%s'", val.TunnelName)
+	}
+
+	if val.TunnelKiteURL != "" {
+		initLine += fmt.Sprintf(" -tunnel-kite-url '%s'", val.TunnelKiteURL)
 	}
 
 	newContent := strings.Replace(string(content), "./klient", initLine, -1)

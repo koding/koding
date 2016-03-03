@@ -14,20 +14,23 @@
 package recipe
 
 import (
-	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
+	v3 "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/etcdserver"
 	"github.com/coreos/etcd/storage/storagepb"
 )
 
 type Election struct {
-	client    *clientv3.Client
+	client *v3.Client
+	ctx    context.Context
+
 	keyPrefix string
 	leaderKey *EphemeralKV
 }
 
 // NewElection returns a new election on a given key prefix.
-func NewElection(client *clientv3.Client, keyPrefix string) *Election {
-	return &Election{client, keyPrefix, nil}
+func NewElection(client *v3.Client, keyPrefix string) *Election {
+	return &Election{client, context.TODO(), keyPrefix, nil}
 }
 
 // Volunteer puts a value as eligible for the election. It blocks until
@@ -58,7 +61,7 @@ func (e *Election) Resign() (err error) {
 
 // Leader returns the leader value for the current election.
 func (e *Election) Leader() (string, error) {
-	resp, err := NewRange(e.client, e.keyPrefix).FirstCreate()
+	resp, err := e.client.Get(e.ctx, e.keyPrefix, v3.WithFirstCreate()...)
 	if err != nil {
 		return "", err
 	} else if len(resp.Kvs) == 0 {
@@ -70,7 +73,7 @@ func (e *Election) Leader() (string, error) {
 
 // Wait waits for a leader to be elected, returning the leader value.
 func (e *Election) Wait() (string, error) {
-	resp, err := NewRange(e.client, e.keyPrefix).FirstCreate()
+	resp, err := e.client.Get(e.ctx, e.keyPrefix, v3.WithFirstCreate()...)
 	if err != nil {
 		return "", err
 	} else if len(resp.Kvs) != 0 {
@@ -89,10 +92,8 @@ func (e *Election) Wait() (string, error) {
 }
 
 func (e *Election) waitLeadership(tryKey *EphemeralKV) error {
-	resp, err := NewRangeRev(
-		e.client,
-		e.keyPrefix,
-		tryKey.Revision()-1).LastCreate()
+	opts := append(v3.WithLastCreate(), v3.WithRev(tryKey.Revision()-1))
+	resp, err := e.client.Get(e.ctx, e.keyPrefix, opts...)
 	if err != nil {
 		return err
 	} else if len(resp.Kvs) == 0 {

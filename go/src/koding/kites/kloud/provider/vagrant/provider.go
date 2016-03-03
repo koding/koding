@@ -113,7 +113,7 @@ func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
 
 	m.Session = &session.Session{
 		DB:         p.DB,
-		Kite:       p.Kite,
+		Kite:       newKite(p.Kite), // TODO(rjeczalik): remove after TMS-2245 and use p.Kite directly
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,
@@ -138,5 +138,13 @@ func (p *Provider) tunnelURL() (*url.URL, error) {
 	if p.TunnelURL == "" {
 		return nil, errors.New("no tunnel URL provided")
 	}
-	return url.Parse(p.TunnelURL)
+
+	u, err := url.Parse(p.TunnelURL)
+	if err != nil {
+		return nil, err
+	}
+
+	u.Path = "/kite"
+
+	return u, nil
 }

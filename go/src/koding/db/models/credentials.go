@@ -6,6 +6,7 @@ type Credential struct {
 	Id         bson.ObjectId `bson:"_id" json:"-"`
 	Provider   string        `bson:"provider"`
 	Identifier string        `bson:"identifier"`
+	Title      string        `bson:"title"`
 	OriginId   bson.ObjectId `bson:"originId"`
 }
 

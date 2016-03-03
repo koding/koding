@@ -496,6 +496,19 @@ module.exports = class JUser extends jraphical.Module
           next()
 
       (next) ->
+        { isSoloAccessible } = require './validators'
+
+        opts =
+          groupName: groupName
+          account: account
+          cutoffDate: new Date 2016, 2, 1 # 1 March 2016
+          env: KONFIG.environment
+
+        return next() if isSoloAccessible opts
+
+        next  new Error 'You can not login to koding team, please use your own team'
+
+      (next) ->
         # if we dont have an invitation code, do not continue
         return next()  unless invitationToken
 

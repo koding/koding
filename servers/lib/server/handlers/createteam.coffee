@@ -148,7 +148,7 @@ createGroupKallback = (client, req, res, body) ->
     JGroup.create client,
       slug            : slug
       title           : companyName
-      config          : { plan: 'trial' }
+    # config          : { plan: 'trial' } # default team plan
       visibility      : 'hidden'
       initialData     : body
       allowedDomains  : convertToArray domains # clear & convert domains into array

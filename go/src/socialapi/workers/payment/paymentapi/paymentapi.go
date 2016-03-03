@@ -39,7 +39,7 @@ func (c *Client) IsPaidAccount(account *models.Account) (bool, error) {
 	return sub.PlanTitle != FreePlanName, nil
 }
 
-func (c *Client) GetByUsername(username string) (*payment.SubscriptionsResponse, error) {
+func (c *Client) GetByUsername(username string) (*payment.AccountSubscriptionResponse, error) {
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (c *Client) GetByUsername(username string) (*payment.SubscriptionsResponse,
 	return c.GetByAccount(account)
 }
 
-func (c *Client) GetByAccountId(accountId string) (*payment.SubscriptionsResponse, error) {
+func (c *Client) GetByAccountId(accountId string) (*payment.AccountSubscriptionResponse, error) {
 	account, err := modelhelper.GetAccountById(accountId)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (c *Client) GetByAccountId(accountId string) (*payment.SubscriptionsRespons
 	return c.GetByAccount(account)
 }
 
-func (c *Client) GetByAccount(account *models.Account) (*payment.SubscriptionsResponse, error) {
+func (c *Client) GetByAccount(account *models.Account) (*payment.AccountSubscriptionResponse, error) {
 	url := fmt.Sprintf("%s?account_id=%s", c.PlanUrl, account.Id.Hex())
 	resp, err := http.Get(url)
 	defer func() {
@@ -70,7 +70,7 @@ func (c *Client) GetByAccount(account *models.Account) (*payment.SubscriptionsRe
 		return nil, err
 	}
 
-	var subscription *payment.SubscriptionsResponse
+	var subscription *payment.AccountSubscriptionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&subscription); err != nil {
 		return nil, err
 	}

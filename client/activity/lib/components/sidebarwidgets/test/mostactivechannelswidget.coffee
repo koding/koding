@@ -1,5 +1,4 @@
 mock                     = require '../../../../../mocks/mockingjay'
-React                    = require 'kd-react'
 expect                   = require 'expect'
 immutable                = require 'immutable'
 TestUtils                = require 'react-addons-test-utils'

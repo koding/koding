@@ -16,11 +16,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/exec"
 	"path"
+	"syscall"
 	"time"
 
 	"github.com/coreos/etcd/pkg/netutil"
@@ -80,18 +80,37 @@ func (a *Agent) stop() error {
 	if a.state != stateStarted {
 		return nil
 	}
-	err := a.cmd.Process.Kill()
-	if err != nil {
-		return err
-	}
-	_, err = a.cmd.Process.Wait()
-	if err != nil {
-		return err
 
+	err := sigtermAndWait(a.cmd)
+	if err != nil {
+		return err
 	}
 
 	a.state = stateStopped
 	return nil
+}
+
+func sigtermAndWait(cmd *exec.Cmd) error {
+	err := cmd.Process.Signal(syscall.SIGTERM)
+	if err != nil {
+		return err
+	}
+
+	errc := make(chan error)
+	go func() {
+		_, err := cmd.Process.Wait()
+		errc <- err
+		close(errc)
+	}()
+
+	select {
+	case <-time.After(5 * time.Second):
+		cmd.Process.Kill()
+	case err := <-errc:
+		return err
+	}
+	err = <-errc
+	return err
 }
 
 // restart restarts the stopped etcd process.
@@ -128,7 +147,7 @@ func (a *Agent) cleanup() error {
 	// https://github.com/torvalds/linux/blob/master/fs/drop_caches.c
 	cmd := exec.Command("/bin/sh", "-c", `echo "echo 1 > /proc/sys/vm/drop_caches" | sudo sh`)
 	if err := cmd.Run(); err != nil {
-		log.Printf("error when cleaning page cache (%v)", err)
+		plog.Printf("error when cleaning page cache (%v)", err)
 	}
 	return nil
 }
@@ -193,12 +212,12 @@ func archiveLogAndDataDir(log string, datadir string) error {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
-	if err := os.Rename(log, path.Join(dir, log)); err != nil {
+	if err := os.Rename(log, path.Join(dir, path.Base(log))); err != nil {
 		if !os.IsNotExist(err) {
 			return err
 		}
 	}
-	if err := os.Rename(datadir, path.Join(dir, datadir)); err != nil {
+	if err := os.Rename(datadir, path.Join(dir, path.Base(datadir))); err != nil {
 		if !os.IsNotExist(err) {
 			return err
 		}

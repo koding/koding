@@ -50,7 +50,7 @@ func TestGetAllCustomers(t *testing.T) {
 		accId := account.Id.Hex()
 
 		token, _, email := generateFakeUserInfo()
-		err = stripe.Subscribe(
+		err = stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -82,7 +82,7 @@ func TestGetAllCustomers(t *testing.T) {
 func TestExpireSubscription(t *testing.T) {
 	Convey("Given user with active subscription", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := stripe.Subscribe(
+		err := stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -116,7 +116,7 @@ func TestSubscriptionsRequest1(t *testing.T) {
 
 	Convey("Given user subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := stripe.Subscribe(
+		err := stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -146,7 +146,7 @@ func TestSubscriptionsRequest1(t *testing.T) {
 
 	Convey("Given user subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := stripe.Subscribe(
+		err := stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -176,7 +176,7 @@ func TestSubscriptionsRequest1(t *testing.T) {
 
 	Convey("Given user subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := stripe.Subscribe(
+		err := stripe.SubscribeForAccount(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -208,6 +208,7 @@ func TestMultipleSubscriptionsRequest(t *testing.T) {
 			Username:           accId,
 			Provider:           stripe.ProviderName,
 			ProviderCustomerId: token,
+			TypeConstant:       paymentmodels.AccountCustomer,
 		}
 		So(customer.Create(), ShouldBeNil)
 
@@ -216,6 +217,7 @@ func TestMultipleSubscriptionsRequest(t *testing.T) {
 			Interval:       StartingInterval,
 			Provider:       stripe.ProviderName,
 			ProviderPlanId: token,
+			TypeConstant:   paymentmodels.AccountCustomer,
 		}
 		So(plan.Create(), ShouldBeNil)
 
@@ -254,7 +256,7 @@ func TestExpireOutofDateSubscriptions(t *testing.T) {
 	Convey("Given subscriptions", t, func() {
 		Convey("Then it should expire out of date subscriptions", func() {
 			token, accId, email := generateFakeUserInfo()
-			err := stripe.Subscribe(
+			err := stripe.SubscribeForAccount(
 				token, accId, email, StartingPlan, StartingInterval,
 			)
 			So(err, ShouldBeNil)
@@ -278,7 +280,7 @@ func TestExpireOutofDateSubscriptions(t *testing.T) {
 
 		Convey("Then it shouldn't expire active subscriptions", func() {
 			token, accId, email := generateFakeUserInfo()
-			err := stripe.Subscribe(
+			err := stripe.SubscribeForAccount(
 				token, accId, email, StartingPlan, StartingInterval,
 			)
 			So(err, ShouldBeNil)
@@ -302,10 +304,12 @@ func TestExpireOutofDateSubscriptions(t *testing.T) {
 //----------------------------------------------------------
 
 var (
-	FreePlan         = "free"
-	FreeInterval     = "month"
-	StartingPlan     = "developer"
-	StartingInterval = "month"
+	FreePlan              = "free"
+	FreeInterval          = "month"
+	StartingPlan          = "developer"
+	StartingInterval      = "month"
+	GroupStartingPlan     = "startup"
+	GroupStartingInterval = "month"
 )
 
 func generateFakeUserInfo() (string, string, string) {

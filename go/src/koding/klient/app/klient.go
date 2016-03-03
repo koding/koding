@@ -103,9 +103,8 @@ type KlientConfig struct {
 
 	VagrantHome string
 
-	TunnelServerAddr string
-	TunnelLocalAddr  string
-	NoTunnel         bool
+	TunnelName    string
+	TunnelKiteURL string
 }
 
 // NewKlient returns a new Klient instance
@@ -168,7 +167,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		kite:         k,
 		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
-		tunnelclient: klienttunnel.NewClient(db),
+		tunnelclient: klienttunnel.NewClient(db, k.Log),
 		vagrant:      vagrant.NewHandlers(vagrantOpts),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
@@ -376,13 +375,7 @@ func (k *Klient) Run() {
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
 
-	// TODO(rjeczalik): enable it after TMS-2203
-	// useTunnel := !isKoding && !k.config.NoTunnel
-	useTunnel := false
-
-	// TODO(rjeczalik): check if k.kite.Config.Port is accessible from outside,
-	// don't start tunnel for managed hosts with public IP.
-	if err := k.register(useTunnel); err != nil {
+	if err := k.register(); err != nil {
 		panic(err)
 	}
 

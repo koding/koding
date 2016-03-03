@@ -73,9 +73,7 @@ GO_TARBALL="go$GO_VERSION.linux-amd64.tar.gz"
 GO_SRC_URL="https://storage.googleapis.com/golang/$GO_TARBALL"
 curl --silent $GO_SRC_URL | tar --extract --gzip --directory=/usr/local
 
-echo "export PATH=$PATH:/usr/local/go/bin" > /etc/profile.d/golang.sh
-chmod +x /etc/profile.d/golang.sh
-
+echo "export PATH=/usr/local/go/bin:\$PATH" > /etc/profile.d/golang.sh
 source /etc/profile
 
 go version

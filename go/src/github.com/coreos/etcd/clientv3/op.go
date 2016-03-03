@@ -36,9 +36,11 @@ type Op struct {
 
 	// for range
 	limit        int64
-	rev          int64
 	sort         *SortOption
 	serializable bool
+
+	// for range, watch
+	rev int64
 
 	// for put
 	val     []byte
@@ -111,28 +113,115 @@ func OpPut(key, val string, opts ...OpOption) Op {
 	return ret
 }
 
+func opWatch(key string, opts ...OpOption) Op {
+	ret := Op{t: tRange, key: []byte(key)}
+	ret.applyOpts(opts)
+	switch {
+	case ret.leaseID != 0:
+		panic("unexpected lease in watch")
+	case ret.limit != 0:
+		panic("unexpected limit in watch")
+	case ret.sort != nil:
+		panic("unexpected sort in watch")
+	case ret.serializable != false:
+		panic("unexpected serializable in watch")
+	}
+	return ret
+}
+
 func (op *Op) applyOpts(opts []OpOption) {
 	for _, opt := range opts {
 		opt(op)
 	}
 }
 
+// OpOption configures Operations like Get, Put, Delete.
 type OpOption func(*Op)
 
+// WithLease attaches a lease ID to a key in 'Put' request.
 func WithLease(leaseID lease.LeaseID) OpOption {
 	return func(op *Op) { op.leaseID = leaseID }
 }
+
+// WithLimit limits the number of results to return from 'Get' request.
 func WithLimit(n int64) OpOption { return func(op *Op) { op.limit = n } }
+
+// WithRev specifies the store revision for 'Get' request.
+// Or the start revision of 'Watch' request.
 func WithRev(rev int64) OpOption { return func(op *Op) { op.rev = rev } }
-func WithSort(tgt SortTarget, order SortOrder) OpOption {
+
+// WithSort specifies the ordering in 'Get' request. It requires
+// 'WithRange' and/or 'WithPrefix' to be specified too.
+// 'target' specifies the target to sort by: key, version, revisions, value.
+// 'order' can be either 'SortNone', 'SortAscend', 'SortDescend'.
+func WithSort(target SortTarget, order SortOrder) OpOption {
 	return func(op *Op) {
-		op.sort = &SortOption{tgt, order}
+		op.sort = &SortOption{target, order}
 	}
 }
+
+func getPrefix(key []byte) []byte {
+	end := make([]byte, len(key))
+	copy(end, key)
+	for i := len(end) - 1; i >= 0; i-- {
+		if end[i] < 0xff {
+			end[i] = end[i] + 1
+			end = end[:i+1]
+			return end
+		}
+	}
+	// next prefix does not exist (e.g., 0xffff);
+	// default to WithFromKey policy
+	end = []byte{0}
+	return end
+}
+
+// WithPrefix enables 'Get', 'Delete', or 'Watch' requests to operate
+// on the keys with matching prefix. For example, 'Get(foo, WithPrefix())'
+// can return 'foo1', 'foo2', and so on.
+func WithPrefix() OpOption {
+	return func(op *Op) {
+		op.end = getPrefix(op.key)
+	}
+}
+
+// WithRange specifies the range of 'Get' or 'Delete' requests.
+// For example, 'Get' requests with 'WithRange(end)' returns
+// the keys in the range [key, end).
 func WithRange(endKey string) OpOption {
 	return func(op *Op) { op.end = []byte(endKey) }
 }
+
+// WithFromKey specifies the range of 'Get' or 'Delete' requests
+// to be equal or greater than they key in the argument.
 func WithFromKey() OpOption { return WithRange("\x00") }
+
+// WithSerializable makes 'Get' request serializable. By default,
+// it's linearizable. Serializable requests are better for lower latency
+// requirement.
 func WithSerializable() OpOption {
 	return func(op *Op) { op.serializable = true }
+}
+
+// WithFirstCreate gets the key with the oldest creation revision in the request range.
+func WithFirstCreate() []OpOption { return withTop(SortByCreatedRev, SortAscend) }
+
+// WithLastCreate gets the key with the latest creation revision in the request range.
+func WithLastCreate() []OpOption { return withTop(SortByCreatedRev, SortDescend) }
+
+// WithFirstKey gets the lexically first key in the request range.
+func WithFirstKey() []OpOption { return withTop(SortByKey, SortAscend) }
+
+// WithLastKey gets the lexically last key in the request range.
+func WithLastKey() []OpOption { return withTop(SortByKey, SortDescend) }
+
+// WithFirstRev gets the key with the oldest modification revision in the request range.
+func WithFirstRev() []OpOption { return withTop(SortByModifiedRev, SortAscend) }
+
+// WithLastRev gets the key with the latest modification revision in the request range.
+func WithLastRev() []OpOption { return withTop(SortByModifiedRev, SortDescend) }
+
+// withTop gets the first key over the get's prefix given a sort order
+func withTop(target SortTarget, order SortOrder) []OpOption {
+	return []OpOption{WithPrefix(), WithSort(target, order), WithLimit(1)}
 }
