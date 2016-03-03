@@ -28,7 +28,7 @@ module.exports = class AccountSessionListItem extends KDListItemView
 
   pistachio: ->
 
-    { groupName, lastAccess } = @getData()
+    { groupName, lastAccess, lastLoginDate } = @getData()
 
     hostname = switch globals.config.environment
       when 'production' then 'koding.com'
@@ -38,6 +38,8 @@ module.exports = class AccountSessionListItem extends KDListItemView
       if groupName is 'koding'
       then hostname
       else "#{groupName}.#{hostname}"
+
+    lastAccess = lastLoginDate or lastAccess
 
     """
     <div class="session-item">
