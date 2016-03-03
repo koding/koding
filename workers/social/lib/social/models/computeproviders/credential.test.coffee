@@ -482,7 +482,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
     it 'should be able to update credential', (done) ->
 
-      withConvertedUserAndCredential ({ client, credential }) ->
+      withConvertedUserAndCredential { provider : 'custom' }, ({ client, credential }) ->
 
         queue = [
 
@@ -499,6 +499,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             JCredential.one { _id : credential._id }, (err, credential_) ->
               expect(err).to.not.exist
               expect(credential_.title).to.be.equal 'newTitle'
+              expect(credential.fields).to.be.deep.equal [ 'data' ]
               next()
 
           (next) ->

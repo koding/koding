@@ -6,7 +6,6 @@ remote                         = require('app/remote').getInstance()
 actions                        = require 'app/flux/environment/actions'
 Machine                        = require 'app/providers/machine'
 isKoding                       = require 'app/util/isKoding'
-UnreadCount                    = require './unreadcount'
 getMachineLink                 = require 'app/util/getMachineLink'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
 EnvironmentFlux                = require 'app/flux/environment'
@@ -226,21 +225,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
       />
 
 
-  getTotalUnreadCount: ->
-
-    totalCount = 0
-
-    @machine('workspaces').toList().map (workspace) ->
-      totalCount += (workspace.getIn(['channel', 'unreadCount'])) or 0
-
-    return totalCount
-
-
-  renderUnreadCount: ->
-
-    <UnreadCount count={@getTotalUnreadCount()} />
-
-
   render: ->
 
     return null  unless @props.showInSidebar
@@ -252,11 +236,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
       activeClass = 'active'
       actions.setActiveStackId @props.stack.get('_id')  if @props.stack
 
-    unread = if @getTotalUnreadCount() and @state.collapsed
-    then 'unread'
-    else ''
-
-    <div className="SidebarMachinesListItem #{status} #{activeClass} #{unread}">
+    <div className="SidebarMachinesListItem #{status} #{activeClass}">
       <Link
         className="SidebarMachinesListItem--MainLink"
         href='#'
@@ -265,7 +245,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
         >
         <cite className={"SidebarListItem-icon"} title={"Machine status: #{status}"}/>
         <span className='SidebarListItem-title'>{@getMachineLabel()}</span>
-        {@renderUnreadCount()}
         {@renderProgressbar()}
         {@renderMachineSettingsIcon()}
       </Link>

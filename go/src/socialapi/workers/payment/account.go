@@ -2,6 +2,7 @@ package payment
 
 import (
 	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paypal"
 	"socialapi/workers/payment/stripe"
 )
@@ -39,7 +40,7 @@ type AccountRequest struct {
 }
 
 type AccountSubscriptionResponse struct {
-	AccountId string
+	AccountId string `json:"accountId"`
 	SubscriptionResponse
 }
 
@@ -70,6 +71,49 @@ func (a *AccountRequest) Subscriptions() (*AccountSubscriptionResponse, error) {
 		AccountId:            a.AccountId,
 		SubscriptionResponse: resp,
 	}, nil
+}
+
+func (a *AccountRequest) Delete() (interface{}, error) {
+	return nil, stripe.DeleteCustomer(a.AccountId)
+}
+
+func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
+	return stripe.FindInvoicesForCustomer(a.AccountId)
+}
+
+func (a *AccountRequest) GetCreditCard() (*stripe.CreditCardResponse, error) {
+	return stripe.GetCreditCard(a.AccountId)
+}
+
+func (a *AccountRequest) ActiveUsernames() ([]string, error) {
+	customer := paymentmodels.NewCustomer()
+	customers, err := customer.ByActiveSubscription()
+	if err != nil {
+		return nil, err
+	}
+
+	usernames := []string{}
+	for _, customer := range customers {
+		if customer.Username != "" {
+			usernames = append(usernames, customer.Username)
+		}
+	}
+
+	return usernames, nil
+}
+
+func (a *AccountRequest) Expire() (interface{}, error) {
+	customer, err := paymentmodels.NewCustomer().ByOldId(a.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	subscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, subscription.Expire()
 }
 
 //----------------------------------------------------------
