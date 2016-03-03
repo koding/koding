@@ -29,6 +29,7 @@ module.exports = [
 
   [
     { name: 'pricing payment' }
+    { name: 'collaboration collaborationsingle'}
   ]
 
   [
