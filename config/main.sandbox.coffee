@@ -64,8 +64,10 @@ Configuration = (options={}) ->
 
     #Encryption and Storage on S3
     worker_sneakerS3 :
-      accessKeyId     : "AKIAJB5DPL652CCEE6EA"
-      secretAccessKey : "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"
+      accessKeyId     : "AKIAJUABLMTHXUWP5DWQ"
+      secretAccessKey : "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"
+
+
 
   publicPort     = options.publicPort          = "80"
   hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
@@ -147,9 +149,9 @@ Configuration = (options={}) ->
   sneakerS3 =
     awsSecretAccessKey  : "#{awsKeys.worker_sneakerS3.secretAccessKey}"
     awsAccessKeyId      : "#{awsKeys.worker_sneakerS3.accessKeyId}"
-    sneakerS3Path       : "//kodingdev-credentials/secrets/"
-    sneakerMasterKey    :"3adede2a-ac33-4532-b63a-c25536c3ba8a"
-    awsRegion           : "us-west-2"
+    sneakerS3Path       : "s3://koding-credentials/"
+    sneakerMasterKey    :"e8b39897-4d66-4aad-a623-45cc0419e222"
+    awsRegion           : "us-east-1"
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
