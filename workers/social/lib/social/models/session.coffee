@@ -144,4 +144,9 @@ module.exports = class JSession extends Model
     JSession.one { clientId : sessionToken }, (err, session) =>
       return callback err  if err
       return callback new KodingError 'Invalid session.'  unless session
+
+      # check if requester is the owner of the session
+      unless @username is session.username
+        return callback new KodingError 'Access denied.'
+
       @remove callback
