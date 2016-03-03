@@ -240,16 +240,6 @@ module.exports = class MainView extends kd.View
     @toggleSidebar()
 
 
-  glanceChannelWorkspace: (channel) ->
-
-    if isTeamReactSide()
-      kd.singletons.reactor.dispatch actionTypes.SET_CHANNEL_UNREAD_COUNT,
-        unreadCount : 0
-        channelId   : channel.id
-    else
-      @activitySidebar.glanceChannelWorkspace channel
-
-
   createAccountArea:->
 
     @accountArea = new kd.CustomHTMLView { cssClass: 'account-area' }
