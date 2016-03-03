@@ -46,9 +46,6 @@ module.exports = updateCustomVariable = (options, callback) ->
   title      = "Custom variables for #{stackTemplate.title}"
   provider   = 'custom'
 
-  if not meta or (Object.keys meta).length is 0
-    return callback null, stackTemplate
-
   if identifier
 
     JCredential.one identifier, (err, credential) ->
@@ -60,4 +57,7 @@ module.exports = updateCustomVariable = (options, callback) ->
             callback err, stackTemplate
 
   else
+    if not meta or (Object.keys meta).length is 0
+      return callback null, stackTemplate
+
     createAndUpdate { provider, title, meta, stackTemplate }, callback
