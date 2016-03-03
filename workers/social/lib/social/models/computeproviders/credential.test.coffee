@@ -127,12 +127,12 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
   describe '#one$()', ->
 
-    it 'should fail to fetch credential data if user doesnt have permission', (done) ->
+    it 'should fail to fetch credential if user doesnt have permission', (done) ->
 
       expectAccessDenied JCredential, 'one$', identifier = '', done
 
 
-    it 'should be able to fetch credential data', (done) ->
+    it 'should be able to fetch credential', (done) ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
         JCredential.one$ client, credential.identifier, (err, credential_) ->
@@ -144,12 +144,12 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
   describe '#some$()', ->
 
-    it 'should fail to fetch credential data if user doesnt have permission', (done) ->
+    it 'should fail to fetch credentials if user doesnt have permission', (done) ->
 
       expectAccessDenied JCredential, 'some$', selector = {}, options = {}, done
 
 
-    it 'should be able to fetch credential data', (done) ->
+    it 'should be able to fetch credentials', (done) ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
         selector = { _id : credential._id }
