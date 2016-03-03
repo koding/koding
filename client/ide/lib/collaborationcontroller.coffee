@@ -198,7 +198,7 @@ module.exports = CollaborationController =
     @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
 
-    Tracker.track track.USED_COLLABORATION
+    Tracker.track Tracker.USED_COLLABORATION
 
     if @amIHost and targetUser isnt nick()
       @ensureMachineShare [targetUser], (err) =>
