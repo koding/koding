@@ -1,15 +1,15 @@
-TEST?=./...
-VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
+TEST?=$$(go list ./... | grep -v /vendor/)
+VETARGS?=-all
 
-default: test
+default: test vet
 
 # bin generates the releaseable binaries for Terraform
-bin: generate
+bin: fmtcheck generate
 	@sh -c "'$(CURDIR)/scripts/build.sh'"
 
 # dev creates binaries for testing Terraform locally. These are put
 # into ./bin/ as well as $GOPATH/bin
-dev: generate
+dev: fmtcheck generate
 	@TF_DEV=1 sh -c "'$(CURDIR)/scripts/build.sh'"
 
 quickdev: generate
@@ -18,48 +18,35 @@ quickdev: generate
 # Shorthand for quickly building the core of Terraform. Note that some
 # changes will require a rebuild of everything, in which case the dev
 # target should be used.
-core-dev: generate
+core-dev: fmtcheck generate
 	go install github.com/hashicorp/terraform
+
+# Shorthand for quickly testing the core of Terraform (i.e. "not providers")
+core-test: generate
+	@echo "Testing core packages..." && go test $(shell go list ./... | grep -v builtin)
 
 # Shorthand for building and installing just one plugin for local testing.
 # Run as (for example): make plugin-dev PLUGIN=provider-aws
-plugin-dev: generate
+plugin-dev: fmtcheck generate
 	go install github.com/hashicorp/terraform/builtin/bins/$(PLUGIN)
 	mv $(GOPATH)/bin/$(PLUGIN) $(GOPATH)/bin/terraform-$(PLUGIN)
 
-release: updatedeps
-	gox -build-toolchain
-	@$(MAKE) bin
-
-# test runs the unit tests and vets the code
-test: generate
+# test runs the unit tests
+test: fmtcheck generate
 	TF_ACC= go test $(TEST) $(TESTARGS) -timeout=30s -parallel=4
-	@$(MAKE) vet
 
 # testacc runs acceptance tests
-testacc: generate
+testacc: fmtcheck generate
 	@if [ "$(TEST)" = "./..." ]; then \
 		echo "ERROR: Set TEST to a specific package. For example,"; \
 		echo "  make testacc TEST=./builtin/providers/aws"; \
 		exit 1; \
 	fi
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 90m
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
 # testrace runs the race checker
-testrace: generate
+testrace: fmtcheck generate
 	TF_ACC= go test -race $(TEST) $(TESTARGS)
-
-# updatedeps installs all the dependencies that Terraform needs to run
-# and build.
-updatedeps:
-	go get -u github.com/mitchellh/gox
-	go get -u golang.org/x/tools/cmd/stringer
-	go list ./... \
-		| xargs go list -f '{{join .Deps "\n"}}' \
-		| grep -v github.com/hashicorp/terraform \
-		| grep -v '/internal/' \
-		| sort -u \
-		| xargs go get -f -u -v
 
 cover:
 	@go tool cover 2>/dev/null; if [ $$? -eq 3 ]; then \
@@ -76,7 +63,7 @@ vet:
 		go get golang.org/x/tools/cmd/vet; \
 	fi
 	@echo "go tool vet $(VETARGS) ."
-	@go tool vet $(VETARGS) . ; if [ $$? -eq 1 ]; then \
+	@go tool vet $(VETARGS) $$(ls -d */ | grep -v vendor) ; if [ $$? -eq 1 ]; then \
 		echo ""; \
 		echo "Vet found suspicious constructs. Please check the reported constructs"; \
 		echo "and fix them if necessary before submitting the code for review."; \
@@ -86,6 +73,15 @@ vet:
 # generate runs `go generate` to build the dynamically generated
 # source files.
 generate:
-	go generate ./...
+	@which stringer ; if [ $$? -ne 0 ]; then \
+	  go get -u golang.org/x/tools/cmd/stringer; \
+	fi
+	go generate $$(go list ./... | grep -v /vendor/)
 
-.PHONY: bin default generate test updatedeps vet
+fmt:
+	gofmt -w .
+
+fmtcheck:
+	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
+
+.PHONY: bin default generate test updatedeps vet fmt fmtcheck

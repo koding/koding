@@ -113,7 +113,7 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 	// write to remote before saving to local or else this'll become divergent
 	// when there's network disruptions.
 	path := filepath.Join(d.Path, name)
-	if err := d.Transport.CreateDir(path, 0755); err != nil {
+	if err := d.Transport.CreateDir(path, mode); err != nil {
 		return nil, err
 	}
 

@@ -164,7 +164,7 @@ module.exports = class IDELayoutManager extends KDObject
    * @param {Array} snapshot
    * @param {boolean=} silent  Don't dispatch `SplitViewWasMerged` or `NewSplitViewCreated` event.
   ###
-  resurrectSnapshot: (snapshot, silent = no) ->
+  resurrectSnapshot: (snapshot, silent = no, callback) ->
 
     ## The `ideApp` is an `IDEAppController`s instance
     ideApp = @getDelegate()
@@ -190,6 +190,9 @@ module.exports = class IDELayoutManager extends KDObject
     @applyLayoutSize()
 
     @isRestored = yes
+    @emit 'LayoutResurrected'
+
+    callback?()
 
 
   ###*

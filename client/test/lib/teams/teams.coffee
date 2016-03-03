@@ -86,7 +86,7 @@ module.exports =
       .waitForElementVisible  postgresqlSelector, 20000
       .click                  postgresqlSelector
       .waitForElementVisible  stackPreview, 20000
-      .assert.containsText    codeSelector, 'mysql postgresql'
+      .assert.containsText    codeSelector, 'mysql-server postgresql'
       .waitForElementVisible  nextButtonSelector, 20000
       .pause                  2000 # wait for animation
       .click                  nextButtonSelector

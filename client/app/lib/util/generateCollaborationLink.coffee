@@ -1,9 +1,11 @@
-module.exports = generateCollaborationLink = (nickname, channelId, options = {}) ->
+shortenUrl = require 'app/util/shortenUrl'
+
+module.exports = generateCollaborationLink = (nickname, channelId, options = {}, callback) ->
 
   {origin} = global.location
 
   isAbsolute = options.isAbsolute ? yes
 
-  return "#{if isAbsolute then origin else ''}/Collaboration/#{nickname}/#{channelId}"
+  shortenUrl "#{if isAbsolute then origin else ''}/Collaboration/#{nickname}/#{channelId}", callback
 
 

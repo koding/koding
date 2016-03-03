@@ -730,12 +730,14 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @getKloud().buildStack { stackId: stack._id, destroy: yes }
+    stackId = stack._id
+    call    = @getKloud().buildStack { stackId, destroy: yes }
 
     .then (res) =>
 
       stack.destroy callback
       actions.reinitStack stack._id
+      @eventListener.addListener 'apply', stackId
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
@@ -1110,11 +1112,14 @@ module.exports = class ComputeController extends KDController
     path = '/var/log/cloud-init-output.log'
     file = FSHelper.createFileInstance { path, machine }
 
-    kd.singletons.appManager.tell 'IDE', 'tailFile', {
+    return  unless ideApp = envDataProvider.getIDEFromUId machine.uid
+
+    ideApp.tailFile {
       file
-      description:
-        "Your Koding Stack has successfully been initialized. The log here
-         describes each executed step of the Stack creation process."
+      description : "
+        Your Koding Stack has successfully been initialized. The log here
+        describes each executed step of the Stack creation process.
+      "
     }
 
 

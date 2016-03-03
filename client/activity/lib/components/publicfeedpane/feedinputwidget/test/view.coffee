@@ -1,6 +1,5 @@
 kd        = require 'kd'
 View      = require '../view'
-Link      = require 'app/components/common/link'
 React     = require 'kd-react'
 expect    = require 'expect'
 ReactDOM  = require 'react-dom'

@@ -336,6 +336,10 @@ ArrayOfMixedSlices = [[1, 2], ["a", "b"]]
 			}{struct{ *Embedded }{&Embedded{1}}},
 			wantOutput: "[_struct]\n  _int = 1\n",
 		},
+		"embedded non-struct": {
+			input:      struct{ NonStruct }{5},
+			wantOutput: "NonStruct = 5\n",
+		},
 		"array of tables": {
 			input: struct {
 				Structs []*struct{ Int int } `toml:"struct"`
@@ -349,7 +353,7 @@ ArrayOfMixedSlices = [[1, 2], ["a", "b"]]
 				"map": map[string]interface{}{
 					"zero": 5,
 					"arr": []map[string]int{
-						map[string]int{
+						{
 							"friend": 5,
 						},
 					},
@@ -372,10 +376,6 @@ ArrayOfMixedSlices = [[1, 2], ["a", "b"]]
 		"(error) map no string key": {
 			input:     map[int]string{1: ""},
 			wantError: errNonString,
-		},
-		"(error) anonymous non-struct": {
-			input:     struct{ NonStruct }{5},
-			wantError: errAnonNonStruct,
 		},
 		"(error) empty key name": {
 			input:     map[string]int{"": 1},
@@ -489,6 +489,30 @@ real = 20.0
 unsigned = 5
 `
 	encodeExpected(t, "simple with omitzero, non-zero", value, expected, nil)
+}
+
+func TestEncodeAnonymousStructPointerField(t *testing.T) {
+	type Sub struct{}
+	type simple struct {
+		*Sub
+	}
+
+	value := simple{}
+	expected := ""
+	encodeExpected(t, "nil anonymous struct pointer field", value, expected, nil)
+
+	value = simple{Sub: &Sub{}}
+	expected = ""
+	encodeExpected(t, "non-nil anonymous struct pointer field", value, expected, nil)
+}
+
+func TestEncodeIgnoredFields(t *testing.T) {
+	type simple struct {
+		Number int `toml:"-"`
+	}
+	value := simple{}
+	expected := ""
+	encodeExpected(t, "ignored field", value, expected, nil)
 }
 
 func encodeExpected(

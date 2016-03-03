@@ -192,6 +192,10 @@ func (r *Request) Build() error {
 			return r.Error
 		}
 		r.Handlers.Build.Run(r)
+		if r.Error != nil {
+			debugLogReqError(r, "Build Request", false, r.Error)
+			return r.Error
+		}
 		r.built = true
 	}
 
@@ -229,6 +233,10 @@ func (r *Request) Send() error {
 				r.Config.Logger.Log(fmt.Sprintf("DEBUG: Retrying Request %s/%s, attempt %d",
 					r.ClientInfo.ServiceName, r.Operation.Name, r.RetryCount))
 			}
+
+			// Closing response body. Since we are setting a new request to send off, this
+			// response will get squashed and leaked.
+			r.HTTPResponse.Body.Close()
 
 			// Re-seek the body back to the original point in for a retry so that
 			// send will send the body's contents again in the upcoming request.

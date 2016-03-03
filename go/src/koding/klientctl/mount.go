@@ -103,6 +103,14 @@ func (c *MountCommand) printfln(f string, i ...interface{}) {
 
 // Run the Mount command
 func (c *MountCommand) Run() (int, error) {
+	// Cleanup local folder when command exists with failure.
+	cleanupPath := false
+	defer func() {
+		if cleanupPath {
+			c.cleanupPath()
+		}
+	}()
+
 	if exit, err := c.handleOptions(); err != nil {
 		return exit, err
 	}
@@ -120,6 +128,8 @@ func (c *MountCommand) Run() (int, error) {
 	// TODO: Try out using Cache Only here, we don't need a new VM list.
 	infos, err := c.Klient.RemoteList()
 	if err != nil {
+		cleanupPath = true
+
 		// Using internal error here, because a list error would be confusing to the
 		// user.
 		//
@@ -135,6 +145,8 @@ func (c *MountCommand) Run() (int, error) {
 
 	if c.Options.PrefetchAll {
 		if err := c.prefetchAll(); err != nil {
+			cleanupPath = true
+
 			return 1, fmt.Errorf("Failed to prefetch. err:%s", err)
 		}
 	}
@@ -152,11 +164,15 @@ func (c *MountCommand) Run() (int, error) {
 
 	// Actually mount the folder. Errors are printed by the mountFolder func to the user.
 	if err := c.mountFolder(mountRequest); err != nil {
+		cleanupPath = true
+
 		return 1, err
 	}
 
 	// Lock the mount, so that run/etc knows it's a mount folder.
 	if err := c.mountLocker(c.Options.LocalPath, c.Options.Name); err != nil {
+		cleanupPath = true
+
 		c.printfln(FailedToLockMount)
 		return 1, fmt.Errorf("Error locking. err:%s", err)
 	}
@@ -419,6 +435,12 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 	}
 
 	return nil
+}
+
+func (c *MountCommand) cleanupPath() {
+	if err := util.NewRemovePath().Remove(c.Options.LocalPath); err != nil {
+		c.printfln(UnmountFailedRemoveMountPath)
+	}
 }
 
 // askToCreate checks if the folder does not exist, and creates it

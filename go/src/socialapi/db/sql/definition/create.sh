@@ -82,13 +82,6 @@ sudo -u postgres psql social < $1/payment_definition/005-constraint.sql
 
 sudo -u postgres psql social < $1/payment_definition/006-paymentro.sql
 
-# modifications
-sudo -u postgres psql social < $1/payment_definition/modifications/001-add-koding-to-enum.sql
-
-sudo -u postgres psql social < $1/payment_definition/modifications/002-add-betatester-plan.sql
-
-sudo -u postgres psql social < $1/payment_definition/modifications/003-drop-customer-oldid-constraint.sql
-
 # create sequences
 sudo -u postgres psql social < $1/integration_definition/002-schema.sql
 

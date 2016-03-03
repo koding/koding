@@ -29,7 +29,6 @@ IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 CollaborationController       = require './collaborationcontroller'
-VideoCollaborationController  = require './videocollaborationcontroller'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
@@ -43,7 +42,6 @@ module.exports =
 class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
-  _.extend @prototype, VideoCollaborationController
 
   {
     Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
@@ -1643,9 +1641,6 @@ class IDEAppController extends AppController
 
   makeReadOnly: ->
 
-    return  if @isReadOnly
-
-    @isReadOnly = yes
     ideView.isReadOnly = yes  for ideView in @ideViews
     @forEachSubViewInIDEViews_ (pane) -> pane.makeReadOnly()
     @finderPane.makeReadOnly()
@@ -1654,9 +1649,6 @@ class IDEAppController extends AppController
 
   makeEditable: ->
 
-    return  unless @isReadOnly
-
-    @isReadOnly = no
     ideView.isReadOnly = no  for ideView in @ideViews
     @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
     @finderPane.makeEditable()

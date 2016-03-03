@@ -374,6 +374,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         options.path = frontApp.workspaceData.rootPath
 
     terminalPane = new IDETerminalPane options
+    terminalPane.ready -> frontApp.setRealtimeManager terminalPane
 
     @createPane_ terminalPane, { name: 'Terminal' }
 
@@ -609,12 +610,18 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     terminalSessions = {}
     activeSessions   = []
+    inActiveSessions = []
 
+    # Collect active sessions
     frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) =>
       activeSessions.push pane.remote.session  if pane.remote?
 
     sessions.forEach (session, i) =>
       isActive = session in activeSessions
+
+      # Collect inactive sessions
+      inActiveSessions.push session  unless isActive
+
       terminalSessions["Session (#{session[0..5]}) &nbsp"] =
         disabled          : isActive
         separator         : sessions.length is i
@@ -629,7 +636,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     terminalSessions["New Session"] =
       callback            : => @createTerminal { machine }
-      separator           : canTerminateSessions
+      separator           : (canTerminateSessions or inActiveSessions.length)
+
+    if inActiveSessions.length
+      terminalSessions['Open All']  =
+        callback          : => @openAllSessions { machine, sessions : inActiveSessions }
 
     if canTerminateSessions
       terminalSessions["Terminate all"] =
@@ -657,6 +668,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       callback            : => @toggleFullscreen()
 
     return items
+
+
+  openAllSessions: (params) ->
+
+    { machine, sessions } = params
+
+    for session in sessions
+      @createTerminal { machine, session }
 
 
   createPlusContextMenu: ->

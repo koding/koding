@@ -18,7 +18,6 @@ import (
 // TODO(rjeczalik): use klient.KlientPool for caching connected kites with reconnect
 
 const (
-	magicEnd           = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
 	defaultDialTimeout = 30 * time.Second
 	defaultTimeout     = 10 * time.Minute
 )

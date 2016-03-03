@@ -16,9 +16,9 @@ module.exports =
     if hostBrowser
       utils.getUser()
 
-    if utils.suiteHookHasRun 'before'
-    then return
-    else utils.registerSuiteHook 'before'
+    return if utils.suiteHookHasRun 'before'
+
+    utils.registerSuiteHook 'before'
 
 
   start: (browser) ->
@@ -40,7 +40,6 @@ module.exports =
     activeTerminal = '.kdtabpaneview.terminal.active'
 
     collaborationHelpers.initiateCollaborationSession(browser)
-    collaborationHelpers.closeChatPage(browser)
 
     if hostBrowser
       browser.element 'css selector', activeTerminal, (result) ->
@@ -51,12 +50,9 @@ module.exports =
           terminalHelpers.openTerminal(browser)
           helpers.runCommandOnTerminal(browser, terminalText)
     else
-      # wait for terminal command appears on participant
-      # we couldn't find a better way to avoid this pause
-      # because there is no way to be sure when some text
-      # is inserted to terminal or we couldn't find a way. - acetgiller
-      browser.pause 13000
-      browser.assert.containsText activeTerminal, terminalText
+      browser
+        .waitForElementVisible activeTerminal, 50000
+        .waitForTextToContain  activeTerminal, terminalText
 
     collaborationHelpers.leaveSession(browser)
     collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
@@ -75,8 +71,6 @@ module.exports =
     participantFileContent = 'Hello World from Python by Koding'
 
     collaborationHelpers.initiateCollaborationSession(browser)
-
-    collaborationHelpers.closeChatPage(browser)
 
     if hostBrowser
       ideHelpers.openFileFromWebFolder browser, host
@@ -111,7 +105,6 @@ module.exports =
     terminalPane = "#{paneSelector} .kdtabpaneview.terminal.active .terminal-pane"
 
     collaborationHelpers.initiateCollaborationSession(browser)
-    collaborationHelpers.closeChatPage(browser)
 
     unless hostBrowser
       terminalHelpers.openNewTerminalMenu(browser)

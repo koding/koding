@@ -31,7 +31,7 @@ module.exports = globals.config.providers =
     advancedFields         : [
                               'subnet', 'sg', 'vpc',
                               'ami','acl','cidr_block',
-                              'igw','key_pair','rtb'
+                              'igw','rtb'
                              ]
     credentialFields       :
       access_key           :

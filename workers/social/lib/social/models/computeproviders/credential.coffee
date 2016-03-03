@@ -442,7 +442,10 @@ module.exports = class JCredential extends jraphical.Module
 
       title ?= @title
 
-      @update { $set : { title } }, (err) =>
+      if @provider in ['custom', 'userInput']
+        fields = if meta then (Object.keys meta) else []
+
+      @update { $set : { title, fields } }, (err) =>
         return callback err  if err?
 
         if meta?

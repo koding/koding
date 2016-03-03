@@ -1,5 +1,4 @@
 kd          = require 'kd'
-React       = require 'kd-react'
 expect      = require 'expect'
 Container   = require '../container'
 TestUtils   = require 'react-addons-test-utils'

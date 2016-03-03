@@ -33,7 +33,7 @@ func TestV3PutOverwrite(t *testing.T) {
 	clus := NewClusterV3(t, &ClusterConfig{Size: 3})
 	defer clus.Terminate(t)
 
-	kvc := clus.RandClient().KV
+	kvc := toGRPC(clus.RandClient()).KV
 	key := []byte("foo")
 	reqput := &pb.PutRequest{Key: key, Value: []byte("bar")}
 
@@ -77,7 +77,7 @@ func TestV3TxnTooManyOps(t *testing.T) {
 	clus := NewClusterV3(t, &ClusterConfig{Size: 3})
 	defer clus.Terminate(t)
 
-	kvc := clus.RandClient().KV
+	kvc := toGRPC(clus.RandClient()).KV
 
 	// unique keys
 	i := new(int)
@@ -161,7 +161,7 @@ func TestV3TxnDuplicateKeys(t *testing.T) {
 	},
 	}
 
-	kvc := clus.RandClient().KV
+	kvc := toGRPC(clus.RandClient()).KV
 	tests := []struct {
 		txnSuccess []*pb.RequestUnion
 
@@ -208,7 +208,7 @@ func TestV3PutMissingLease(t *testing.T) {
 	clus := NewClusterV3(t, &ClusterConfig{Size: 3})
 	defer clus.Terminate(t)
 
-	kvc := clus.RandClient().KV
+	kvc := toGRPC(clus.RandClient()).KV
 	key := []byte("foo")
 	preq := &pb.PutRequest{Key: key, Lease: 123456}
 	tests := []func(){
@@ -282,48 +282,49 @@ func TestV3DeleteRange(t *testing.T) {
 		end    string
 
 		wantSet [][]byte
+		deleted int64
 	}{
 		// delete middle
 		{
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/", "fop",
-			[][]byte{[]byte("foo"), []byte("fop")},
+			[][]byte{[]byte("foo"), []byte("fop")}, 1,
 		},
 		// no delete
 		{
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/", "foo/",
-			[][]byte{[]byte("foo"), []byte("foo/abc"), []byte("fop")},
+			[][]byte{[]byte("foo"), []byte("foo/abc"), []byte("fop")}, 0,
 		},
 		// delete first
 		{
 			[]string{"foo", "foo/abc", "fop"},
 			"fo", "fop",
-			[][]byte{[]byte("fop")},
+			[][]byte{[]byte("fop")}, 2,
 		},
 		// delete tail
 		{
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/", "fos",
-			[][]byte{[]byte("foo")},
+			[][]byte{[]byte("foo")}, 2,
 		},
 		// delete exact
 		{
 			[]string{"foo", "foo/abc", "fop"},
 			"foo/abc", "",
-			[][]byte{[]byte("foo"), []byte("fop")},
+			[][]byte{[]byte("foo"), []byte("fop")}, 1,
 		},
 		// delete none, [x,x)
 		{
 			[]string{"foo"},
 			"foo", "foo",
-			[][]byte{[]byte("foo")},
+			[][]byte{[]byte("foo")}, 0,
 		},
 	}
 
 	for i, tt := range tests {
 		clus := NewClusterV3(t, &ClusterConfig{Size: 3})
-		kvc := clus.RandClient().KV
+		kvc := toGRPC(clus.RandClient()).KV
 
 		ks := tt.keySet
 		for j := range ks {
@@ -340,6 +341,9 @@ func TestV3DeleteRange(t *testing.T) {
 		dresp, err := kvc.DeleteRange(context.TODO(), dreq)
 		if err != nil {
 			t.Fatalf("couldn't delete range on test %d (%v)", i, err)
+		}
+		if tt.deleted != dresp.Deleted {
+			t.Errorf("expected %d on test %v, got %d", tt.deleted, i, dresp.Deleted)
 		}
 
 		rreq := &pb.RangeRequest{Key: []byte{0x0}, RangeEnd: []byte{0xff}}
@@ -371,7 +375,7 @@ func TestV3TxnInvaildRange(t *testing.T) {
 	clus := NewClusterV3(t, &ClusterConfig{Size: 3})
 	defer clus.Terminate(t)
 
-	kvc := clus.RandClient().KV
+	kvc := toGRPC(clus.RandClient()).KV
 	preq := &pb.PutRequest{Key: []byte("foo"), Value: []byte("bar")}
 
 	for i := 0; i < 3; i++ {
@@ -415,7 +419,7 @@ func TestV3TooLargeRequest(t *testing.T) {
 	clus := NewClusterV3(t, &ClusterConfig{Size: 3})
 	defer clus.Terminate(t)
 
-	kvc := clus.RandClient().KV
+	kvc := toGRPC(clus.RandClient()).KV
 
 	// 2MB request value
 	largeV := make([]byte, 2*1024*1024)
@@ -433,7 +437,7 @@ func TestV3Hash(t *testing.T) {
 	clus := NewClusterV3(t, &ClusterConfig{Size: 3})
 	defer clus.Terminate(t)
 
-	kvc := clus.RandClient().KV
+	kvc := toGRPC(clus.RandClient()).KV
 	preq := &pb.PutRequest{Key: []byte("foo"), Value: []byte("bar")}
 
 	for i := 0; i < 3; i++ {
@@ -586,7 +590,7 @@ func TestV3RangeRequest(t *testing.T) {
 	for i, tt := range tests {
 		clus := NewClusterV3(t, &ClusterConfig{Size: 3})
 		for _, k := range tt.putKeys {
-			kvc := clus.RandClient().KV
+			kvc := toGRPC(clus.RandClient()).KV
 			req := &pb.PutRequest{Key: []byte(k), Value: []byte("bar")}
 			if _, err := kvc.Put(context.TODO(), req); err != nil {
 				t.Fatalf("#%d: couldn't put key (%v)", i, err)
@@ -594,7 +598,7 @@ func TestV3RangeRequest(t *testing.T) {
 		}
 
 		for j, req := range tt.reqs {
-			kvc := clus.RandClient().KV
+			kvc := toGRPC(clus.RandClient()).KV
 			resp, err := kvc.Range(context.TODO(), &req)
 			if err != nil {
 				t.Errorf("#%d.%d: Range error: %v", i, j, err)
@@ -664,7 +668,7 @@ func TestTLSGRPCRejectInsecureClient(t *testing.T) {
 	donec := make(chan error, 1)
 	go func() {
 		reqput := &pb.PutRequest{Key: []byte("foo"), Value: []byte("bar")}
-		_, perr := client.KV.Put(ctx, reqput)
+		_, perr := toGRPC(client).KV.Put(ctx, reqput)
 		donec <- perr
 	}()
 
@@ -713,7 +717,7 @@ func TestTLSGRPCAcceptSecureAll(t *testing.T) {
 	defer client.Close()
 
 	reqput := &pb.PutRequest{Key: []byte("foo"), Value: []byte("bar")}
-	if _, err := client.KV.Put(context.TODO(), reqput); err != nil {
+	if _, err := toGRPC(client).KV.Put(context.TODO(), reqput); err != nil {
 		t.Fatalf("unexpected error on put over tls (%v)", err)
 	}
 }

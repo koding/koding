@@ -4,6 +4,7 @@ sudo: false
 go:
   - 1.4
   - 1.5
+  - 1.6
   - tip
 
 matrix:
@@ -14,6 +15,11 @@ addons:
   apt:
     packages:
     - libpcap-dev
+    - libaspell-dev
+    - libhunspell-dev
+
+before_install:
+ - go get -v github.com/chzchzchz/goword
 
 script:
  - ./test

@@ -32,13 +32,11 @@ module.exports = [
   ]
 
   [
-    { name: 'messages privatemessage' }
     { name: 'account accountsettings' }
   ]
 
   [
     { name: 'unittests' }
-    { name: 'account accountpage' }
   ]
 
   [
@@ -71,9 +69,9 @@ module.exports = [
   #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   # ]
 
-  [
-    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
+  # [
+  #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
   [
     { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }

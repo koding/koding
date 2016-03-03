@@ -1,7 +1,11 @@
 package stripe
 
 import (
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"testing"
+
+	"gopkg.in/mgo.v2/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -16,7 +20,7 @@ import (
 func TestSubscribe1(t *testing.T) {
 	Convey("Given nonexistent plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := Subscribe(token, accId, email, "random_plans", "random_interval")
+		err := SubscribeForAccount(token, accId, email, "random_plans", "random_interval")
 
 		Convey("Then it should throw error", func() {
 			So(err, ShouldEqual, paymenterrors.ErrPlanNotFound)
@@ -49,7 +53,7 @@ func TestSubscribe2(t *testing.T) {
 			})
 
 			Convey("Then customer can't subscribe to same plan again", func() {
-				err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
+				err = SubscribeForAccount(token, accId, email, StartingPlan, StartingInterval)
 				So(err, ShouldEqual, paymenterrors.ErrCustomerAlreadySubscribedToPlan)
 			})
 		}),
@@ -91,12 +95,12 @@ func TestSubscribe4(t *testing.T) {
 			subId := currentSub.ProviderSubscriptionId
 
 			Convey("Then customer can't subscribe to same plan again", func() {
-				err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
+				err = SubscribeForAccount(token, accId, email, StartingPlan, StartingInterval)
 				So(err, ShouldEqual, paymenterrors.ErrCustomerAlreadySubscribedToPlan)
 			})
 
 			Convey("When customer upgrades to higher plan", func() {
-				err = Subscribe(token, accId, email, HigherPlan, HigherInterval)
+				err = SubscribeForAccount(token, accId, email, HigherPlan, HigherInterval)
 				So(err, ShouldBeNil)
 
 				Convey("Then subscription is updated on stripe", func() {
@@ -115,7 +119,7 @@ func TestSubscribe4(t *testing.T) {
 					So(len(subs), ShouldEqual, 1)
 
 					currentSub := subs[0]
-					newPlan, err := FindPlanByTitleAndInterval(HigherPlan, HigherInterval)
+					newPlan, err := FindPlan(HigherPlan, HigherInterval, paymentmodels.AccountCustomer)
 
 					So(err, ShouldBeNil)
 					So(currentSub.PlanId, ShouldEqual, newPlan.Id)
@@ -142,7 +146,7 @@ func TestSubscribe5(t *testing.T) {
 			subId := currentSub.ProviderSubscriptionId
 
 			Convey("When customer downgrades to lower plan", func() {
-				err = Subscribe(token, accId, email, LowerPlan, LowerInterval)
+				err = SubscribeForAccount(token, accId, email, LowerPlan, LowerInterval)
 				So(err, ShouldBeNil)
 
 				Convey("Then subscription is updated on stripe", func() {
@@ -161,7 +165,7 @@ func TestSubscribe5(t *testing.T) {
 					So(len(subs), ShouldEqual, 1)
 
 					currentSub := subs[0]
-					newPlan, err := FindPlanByTitleAndInterval(LowerPlan, LowerInterval)
+					newPlan, err := FindPlan(LowerPlan, LowerInterval, paymentmodels.AccountCustomer)
 
 					So(err, ShouldBeNil)
 					So(currentSub.PlanId, ShouldEqual, newPlan.Id)
@@ -175,7 +179,7 @@ func TestSubscribe6(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		subscribeFn(func(token, accId, email string) {
 			Convey("When customer downgrades to free plan", func() {
-				err := Subscribe(token, accId, email, FreePlan, FreeInterval)
+				err := SubscribeForAccount(token, accId, email, FreePlan, FreeInterval)
 				So(err, ShouldBeNil)
 
 				Convey("Then subscription is canceled", func() {
@@ -223,7 +227,7 @@ func TestSubscribe7(t *testing.T) {
 				token, err := stripeToken.New(tokenParams)
 				So(err, ShouldBeNil)
 
-				err = Subscribe(token.Id, accId, email, StartingPlan, StartingInterval)
+				err = SubscribeForAccount(token.Id, accId, email, StartingPlan, StartingInterval)
 				So(err, ShouldBeNil)
 
 				Convey("Then the customer has new credit card", func() {
@@ -253,7 +257,7 @@ func TestSubscribe8(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("When customer buys plan with credit card that'll decline", func() {
-			err := Subscribe(token.Id, accId, email, StartingPlan, StartingInterval)
+			err := SubscribeForAccount(token.Id, accId, email, StartingPlan, StartingInterval)
 
 			Convey("Then it should throw error", func() {
 				So(err, ShouldNotBeNil)
@@ -262,6 +266,53 @@ func TestSubscribe8(t *testing.T) {
 			Convey("Then customer should be deleted", func() {
 				_, err := paymentmodels.NewCustomer().ByOldId(accId)
 				So(err, ShouldEqual, paymenterrors.ErrCustomerNotFound)
+			})
+		})
+	})
+}
+
+func TestGroupSubscribe1(t *testing.T) {
+	Convey("Given nonexistent customer, plan", t,
+		subscribeGroupFn(func(token, groupId, email string) {
+			customer, err := paymentmodels.NewCustomer().ByOldId(groupId)
+			id := customer.ProviderCustomerId
+
+			So(err, ShouldBeNil)
+			So(customer, ShouldNotBeNil)
+
+			Convey("Then it should save customer", func() {
+				So(checkCustomerIsSaved(groupId), ShouldBeTrue)
+			})
+
+			Convey("Then it should create an customer in Stripe", func() {
+				So(checkCustomerExistsInStripe(id), ShouldBeTrue)
+			})
+
+			Convey("Then it should subscribe user to plan", func() {
+				customer, err := GetCustomer(id)
+				So(err, ShouldBeNil)
+
+				So(customer.Subs.Count, ShouldEqual, 1)
+			})
+		}),
+	)
+}
+
+func TestGroupSubscribe2(t *testing.T) {
+	Convey("Given nonexistent customer, plan", t, func() {
+		token, gId, email := generateFakeUserInfo()
+		group := &models.Group{
+			Id:   bson.ObjectIdHex(gId),
+			Slug: token[0:10],
+		}
+		err := modelhelper.CreateGroup(group)
+		So(err, ShouldBeNil)
+
+		Convey("When customer tries to buy solo plan", func() {
+			err := SubscribeForGroup(token, gId, email, StartingPlan, StartingInterval)
+
+			Convey("Then it should throw error", func() {
+				So(err, ShouldEqual, paymenterrors.ErrPlanNotFound)
 			})
 		})
 	})
