@@ -273,7 +273,9 @@ module.exports = CollaborationController =
     @resurrectParticipantSnapshot()
 
     if @permissions.get(nick()) is 'read'
-      @makeReadOnly()
+      return @makeReadOnly()  if @layoutManager.isRestored
+
+      @layoutManager.once 'LayoutResurrected', @bound 'makeReadOnly'
 
 
   setCollaborativeReferences: ->
