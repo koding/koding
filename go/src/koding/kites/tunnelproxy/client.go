@@ -84,10 +84,6 @@ type ClientOptions struct {
 // Valid validates the ClientOptions, returning non-nil error when
 // a required field has zero value.
 func (opts *ClientOptions) Valid() error {
-	if opts.TunnelKiteURL == "" {
-		return errors.New("TunnelKiteURL is missing")
-	}
-
 	if opts.TunnelName == "" {
 		return errors.New("TunnelName is missing")
 	}
@@ -222,7 +218,7 @@ func (c *Client) handleReg(resp *RegisterResult, err error) error {
 	// If we exceeded number of max retries or we were not connected before,
 	// we use default tunnelserver kite URL.
 	if c.connected == nil || c.retry >= c.opts.maxRegisterRetry() {
-		c.tunnelKiteURL = c.opts.TunnelKiteURL
+		c.tunnelKiteURL = c.opts.tunnelKiteURL()
 		c.connected = nil
 	}
 
