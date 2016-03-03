@@ -176,10 +176,9 @@ module.exports = class JCredential extends jraphical.Module
       @fetchByIdentifier client, identifier, callback
 
 
-  fetchRelationships = (options, callback) ->
+  fetchRolesAndGroup = (client, callback) ->
 
     try
-      { relSelector, client } = options
       { context: { group: slug }, connection: { delegate } } = client
     catch e
       return callback new KodingError 'Insufficient arguments provided', e
@@ -193,18 +192,26 @@ module.exports = class JCredential extends jraphical.Module
       group.fetchRolesByAccount delegate, (err, roles = []) ->
         return callback err  if err
 
-        if 'admin' in roles
-          relSelector['$or'] = [
-            { sourceId    : delegate.getId() }
-            {
-              'data.role' : 'admin'
-              sourceId    : group.getId()
-            }
-          ]
-        else
-          relSelector.sourceId = delegate.getId()
+        callback err, { group, roles }
 
-        Relationship.someData relSelector, { targetId: 1, as: 1 }, callback
+
+  fetchRelationships = ({ selector, group, delegate }, callback) ->
+
+    relSelector = { targetName: 'JCredential' }
+    relOptions  = { targetId: 1, sourceId: 1, as: 1 }
+
+    if selector.as? and selector.as in ['owner', 'user']
+      relSelector.as = selector.as
+      delete selector.as
+
+    # Find all the documents shared with the delegate or group ~ GG
+    relSelector.sourceId = {
+      $in: [ delegate.getId(), group.getId() ]
+    }
+
+    Relationship.someData relSelector, relOptions, (err, cursor) =>
+      return callback err  if err?
+      cursor.toArray callback
 
 
   @some$ = permit 'list credentials',
@@ -217,24 +224,27 @@ module.exports = class JCredential extends jraphical.Module
       { delegate } = client.connection
       items        = []
 
-      relSelector = { targetName: 'JCredential' }
+      fetchRolesAndGroup client, (err, res) =>
+        return callback err  if err
 
-      if selector.as? and selector.as in ['owner', 'user']
-        relSelector.as = selector.as
-        delete selector.as
+        { group, roles } = res
 
-      fetchRelationships { client, relSelector }, (err, cursor) =>
-        return callback err  if err?
+        fetchRelationships { selector, group, delegate }, (err, rels) =>
 
-        cursor.toArray (err, arr) =>
+          if err or not rels
+            return callback err ? new KodingError 'Failed to fetch credentials'
 
-          map = arr.reduce (memo, doc) ->
+          unless 'admin' in roles
+            groupId = group.getId()
+            rels    = rels.filter (rel) -> not groupId.equals rel.sourceId
+
+          map = rels.reduce (memo, doc) ->
             memo[doc.targetId] = doc.as
             memo
           , {}
 
           selector    ?= {}
-          selector._id = { $in: (t.targetId for t in arr) }
+          selector._id = { $in: (t.targetId for t in rels) }
 
           @some selector, options, (err, items) ->
             return callback err  if err?
