@@ -144,7 +144,7 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 	}
 
 	if len(users) != 1 {
-		t.Error("Lenght of users should be 1")
+		t.Error("Length of user should be 1")
 	}
 
 	err = RemoveUser(username)
