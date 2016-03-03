@@ -232,7 +232,7 @@ func getAnySlackTokenWithGroup(context *models.Context) (string, error) {
 	var token string
 	groupName := context.GroupName
 
-	users, err := modelhelper.GetAnyUserTokenWithGroup(groupName)
+	users, err := modelhelper.GetAnySlackTokenWithGroup(groupName)
 	if err != nil {
 		return token, err
 	}
