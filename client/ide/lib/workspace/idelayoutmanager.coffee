@@ -123,9 +123,13 @@ module.exports = class IDELayoutManager extends KDObject
         @getSubLevel pane
 
     else if target instanceof KDTabPaneView
+
       return  unless target.view.serialize
+      return  unless target.parent
 
       pane = context : target.view.serialize()
+      pane.context.isActivePane = target.parent.getActivePane() is target
+
       last = @findLastSplitView @subViews
 
       if last                     ## If there is last view
