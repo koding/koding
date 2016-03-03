@@ -97,7 +97,10 @@ module.exports = class InviteSomeoneView extends KDView
       invites.push invite = view.serialize()
       admins.push invite.email  if invite.role is 'admin'
 
-    Tracker.track Tracker.INVITED_TEAMMEMBERS
+    Tracker.track Tracker.INVITED_TEAMMEMBERS, {
+      invites_count : invites.length
+      admins_count  : admins.length
+    }
 
     if admins.length
       @notifyAdminInvites invites, admins
