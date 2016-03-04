@@ -8,7 +8,7 @@ import (
 
 func StoreCredentialWithAuth(pathName string, token string) error {
 	url := fmt.Sprintf("/credential/%s", pathName)
-	// cr := &credential.Credentials{}
+
 	keyValue := make(credential.KeyValue, 0)
 	keyValue["test-key"] = "test-value"
 

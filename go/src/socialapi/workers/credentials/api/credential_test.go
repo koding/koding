@@ -24,9 +24,6 @@ type CR struct {
 
 func TestStoreCredentials(t *testing.T) {
 	Convey("While storing credentials", t, func() {
-		// Convey("ENV variables and necessary fields should be set", func() {
-		// 	So(os.Getenv("AWS_REGION"), ShouldNotBeNil)
-		// })
 		Convey("storing should be successful", func() {
 			c := &CR{
 				Name: "test-Name",
