@@ -262,7 +262,7 @@ module.exports = class Payment extends Base
 
     return subscription  unless subscription.planTitle is 'free'
 
-    return extend subscription, {planTitle: 'trial'}
+    return extend subscription, { planTitle: 'trial' }
 
 
   dateDiffInDays = (a, b) ->
