@@ -46,8 +46,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   bindListeners: ->
 
-    { frontApp } = kd.singletons.appManager
-
     @on 'PlusHandleClicked',        @bound 'createPlusContextMenu'
     @on 'CloseHandleClicked',       @bound 'closeSplitView'
     @on 'FullscreenHandleClicked',  @bound 'toggleFullscreen'
@@ -76,6 +74,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @tabView.on 'FileNeedsToBeTailed', @bound 'tailFile'
 
     @tabView.on 'PaneDidShow', =>
+      { frontApp } = kd.singletons.appManager
       @updateStatusBar()
       frontApp.writeSnapshot()
       @focusTab()  unless frontApp.isChatInputFocused()
