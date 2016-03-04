@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"testing"
@@ -35,9 +34,7 @@ func TestStoreCredentials(t *testing.T) {
 			}
 
 			byt, err := json.Marshal(c)
-			if err != nil {
-				fmt.Println("ERR-Marhal", err)
-			}
+			So(err, ShouldBeNil)
 
 			aa := bytes.NewReader(byt)
 
