@@ -8,10 +8,9 @@ module.exports = helpers =
     skipNextClick = no
     popupIsHidden = no
 
-    view.click = (event) ->
+    view.on 'click', (event) ->
 
       kd.utils.stopDOMEvent event
-
       { mainView } = kd.singletons
 
       if mainView.hasClass('hover') or mainView.isSidebarCollapsed
@@ -36,4 +35,4 @@ module.exports = helpers =
 
   containsOrEqual: (element1, element2) ->
 
-    return element1 is element2 or $.contains element1, element2    
+    return element1 is element2 or $.contains element1, element2

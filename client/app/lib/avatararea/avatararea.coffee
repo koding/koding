@@ -21,79 +21,146 @@ module.exports = class AvatarArea extends KDCustomHTMLView
 
     super options, data
 
+    if isKoding()
+      if isSoloProductLite()
+      then @createLiteSoloViews()
+      else @createSoloViews()
+    else
+      @createTeamViews()
+
+
+  createLiteSoloViews: ->
+
     { mainView } = kd.singletons
     account      = @getData()
-    {profile} = @getData()
 
-    href = if isSoloProductLite() then '/#' else "/#{profile.nickname}"
+    @accountPopup = new AccountPopup
+
+    @avatar = new AvatarStaticView
+      cssClass   : 'avatar-image-wrapper'
+      attributes :
+        title    : 'View your notifications and account settings'
+      size       :
+        width    : 25
+        height   : 25
+    , account
 
     @profileName = new JCustomHTMLView
       tagName    : 'a'
       cssClass   : 'profile'
       attributes :
-        href     : href
+        href     : '#'
         title    : 'Your profile'
       pistachio  : '{{ #(profile.firstName) }}'
     , account
-
-    @accountPopup = new AccountPopup
-
-    if isSoloProductLite()
-      @notificationsIcon = new KDCustomHTMLView { cssClass: 'hidden' }
-    else
-      @notificationsPopup = new PopupNotifications
-        cssClass : if isKoding() then 'notification-list' else 'notification-list team'
-
-      @notificationsIcon = new AvatarAreaIconLink
-        cssClass   : 'notifications acc-notification-icon'
-        attributes :
-          title    : 'Notifications'
-      helpers.makePopupButton @notificationsIcon, @notificationsPopup
 
     @accountIcon = new AvatarAreaIconLink
       cssClass   : 'acc-dropdown-icon'
       attributes :
         title    : 'Account'
         testpath : 'AvatarAreaIconLink'
+
     helpers.makePopupButton @accountIcon, @accountPopup
 
-    if isKoding() and not isSoloProductLite()
-      @avatar = new AvatarView
-        cssClass   : 'avatar-image-wrapper'
-        attributes :
-          title    : 'View your public profile'
-        size       :
-          width    : 25
-          height   : 25
-      , account
-    else
-      @avatar = new AvatarStaticView
-        cssClass   : 'avatar-image-wrapper'
-        attributes :
-          title    : 'View your notifications and account settings'
-        size       :
-          width    : 25
-          height   : 25
-      , account
-      helpers.makePopupButton @avatar, @notificationsPopup
+    @once 'viewAppended', -> mainView.addSubView @accountPopup
 
 
-    @on 'viewAppended', ->
+  createSoloViews: ->
 
+    { mainView } = kd.singletons
+    account      = @getData()
+    { profile }  = account
+
+    @notificationsPopup = new PopupNotifications
+      cssClass : 'notification-list'
+
+    @accountPopup = new AccountPopup
+
+    @avatar = new AvatarView
+      cssClass   : 'avatar-image-wrapper'
+      attributes :
+        title    : 'View your public profile'
+      size       :
+        width    : 25
+        height   : 25
+    , account
+
+    @profileName = new JCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'profile'
+      attributes :
+        href     : "/#{profile.nickname}"
+        title    : 'Your profile'
+      pistachio  : '{{ #(profile.firstName) }}'
+    , account
+
+    @notificationsIcon = new AvatarAreaIconLink
+      cssClass   : 'notifications acc-notification-icon'
+      attributes :
+        title    : 'Notifications'
+        href     : '#'
+
+    @accountIcon = new AvatarAreaIconLink
+      cssClass   : 'acc-dropdown-icon'
+      attributes :
+        title    : 'Account'
+        testpath : 'AvatarAreaIconLink'
+
+    helpers.makePopupButton @notificationsIcon, @notificationsPopup
+    helpers.makePopupButton @accountIcon, @accountPopup
+
+    @once 'viewAppended', ->
       mainView.addSubView @accountPopup
-
-      return  if isSoloProductLite()
-
       mainView.addSubView @notificationsPopup
+      @bindNotificationsPopupEvents()
 
-      @notificationsPopup.on 'NotificationCountDidChange', (count)=>
-        kd.utils.killWait @notificationsPopup.loaderTimeout
-        @notificationsIcon.updateCount count
+
+  createTeamViews: ->
+
+    { mainView } = kd.singletons
+    account      = @getData()
+
+    @notificationsPopup = new PopupNotifications
+      cssClass : 'notification-list team'
+
+    @avatar = new AvatarStaticView
+      cssClass   : 'avatar-image-wrapper'
+      attributes :
+        title    : 'View your notifications and account settings'
+      size       :
+        width    : 25
+        height   : 25
+    , account
+
+    @notificationsIcon = new AvatarAreaIconLink
+      cssClass   : 'notifications acc-notification-icon'
+      attributes :
+        title    : 'Notifications'
+        href     : '#'
+
+    helpers.makePopupButton @avatar, @notificationsPopup
+
+    @once 'viewAppended', ->
+      mainView.addSubView @notificationsPopup
+      @bindNotificationsPopupEvents()
+
+
+  bindNotificationsPopupEvents: ->
+
+    @notificationsPopup.on 'NotificationCountDidChange', (count)=>
+      kd.utils.killWait @notificationsPopup.loaderTimeout
+      @notificationsIcon.updateCount count
 
 
   pistachio: ->
 
-    if isKoding()
+    if isKoding() and isSoloProductLite()
+      """
+      {{> @avatar}}
+      {{> @profileName}}
+      {{> @accountIcon}}
+      """
+    else if isKoding()
       """
       {{> @avatar}}
       {{> @profileName}}
@@ -102,7 +169,6 @@ module.exports = class AvatarArea extends KDCustomHTMLView
       """
     else
       """
-      {{> @accountIcon}}
       {{> @avatar}}
       {{> @notificationsIcon}}
       """
