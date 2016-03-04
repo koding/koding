@@ -75,15 +75,16 @@ func GetUserById(id string) (*models.User, error) {
 }
 
 // GetAnySlackTokenWithGroup checks the slack token of users if does exits or not
-func GetAnySlackTokenWithGroup(groupName string) ([]*models.User, error) {
-	var users []*models.User
+func GetAnySlackTokenWithGroup(groupName string) ([]models.User, error) {
+	var users []models.User
 
 	key := fmt.Sprintf("foreignAuth.slack.%s.token", groupName)
 
-	if err := Mongo.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Find(bson.M{key: bson.M{"$exists": true}}).All(&users)
-	}); err != nil {
-		return nil, fmt.Errorf("jUsers foreignAuth Slack error: %v", err)
+	selector := Selector{key: bson.M{"$exists": true}}
+
+	users, err := GetSomeUsersBySelector(selector)
+	if err != nil {
+		return nil, err
 	}
 
 	return users, nil
