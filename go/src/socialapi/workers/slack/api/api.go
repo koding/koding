@@ -145,7 +145,7 @@ func (s *Slack) ListUsers(u *url.URL, h http.Header, _ interface{}, context *mod
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	token, err := getSlackToken(context)
+	token, err := getSlackTokenWithContext(context)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -159,12 +159,21 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	token, err := getSlackToken(context)
-	if err != nil {
-		return response.NewBadRequest(err)
+	var groupToken string
+
+	userToken, err := getSlackToken(context)
+	if err != nil || userToken == "" {
+		groupToken, err = getAnySlackTokenWithGroup(context)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
 	}
 
-	return response.HandleResultAndError(getChannels(token))
+	if userToken != "" {
+		return response.HandleResultAndError(getChannels(userToken))
+	} else {
+		return response.HandleResultAndError(getOnlyChannels(groupToken))
+	}
 }
 
 // TeamInfo shows basic info regarding a slack team
