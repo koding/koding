@@ -20,16 +20,12 @@ var (
 // KeyValue holds the credentials whatever you want as key-value pair
 type KeyValue map[string]interface{}
 
-type Credentials struct {
-	KeyValue KeyValue `json:"keyValue"`
-}
-
 type SneakerS3 struct {
 	*sneaker.Manager
 }
 
 // Store stores the given credentials on s3
-func (s *SneakerS3) Store(u *url.URL, h http.Header, cr *Credentials, context *models.Context) (int, http.Header, interface{}, error) {
+func (s *SneakerS3) Store(u *url.URL, h http.Header, kv KeyValue, context *models.Context) (int, http.Header, interface{}, error) {
 
 	pathName := u.Query().Get("pathName")
 	if pathName == "" {
@@ -40,12 +36,12 @@ func (s *SneakerS3) Store(u *url.URL, h http.Header, cr *Credentials, context *m
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	if cr.KeyValue == nil {
+	if kv == nil {
 		return response.NewBadRequest(ErrRequiredValuesNotFound)
 	}
 
 	// convert credentials to bytes
-	byt, err := json.Marshal(cr)
+	byt, err := json.Marshal(kv)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -80,10 +76,10 @@ func (s *SneakerS3) Get(u *url.URL, h http.Header, _ interface{}, context *model
 		return response.NewBadRequest(err)
 	}
 
-	x := &Credentials{}
+	var x KeyValue
 
 	downX := bytes.NewReader(down[pathName])
-	if err := json.NewDecoder(downX).Decode(x); err != nil {
+	if err := json.NewDecoder(downX).Decode(&x); err != nil {
 		return response.NewBadRequest(err)
 	}
 
