@@ -1,6 +1,9 @@
 Bongo = require 'bongo'
 { secure, signature, Base } = Bongo
 KodingError = require '../error'
+{ extend } = require 'underscore'
+
+TEAM_PLANS = require '../models/computeproviders/teamplans'
 
 module.exports = class Payment extends Base
   @share()
@@ -27,6 +30,8 @@ module.exports = class Payment extends Base
         getToken          :
           (signature Object, Function)
         canUserPurchase   :
+          (signature Function)
+        fetchGroupPlan    :
           (signature Function)
 
 
@@ -61,6 +66,34 @@ module.exports = class Payment extends Base
             SiftScience = require './siftscience'
             SiftScience.transaction client, data, (err) ->
               log 'logging to SiftScience failed', err  if err
+
+
+  @fetchGroupPlan = (group, callback) ->
+
+    return callback new KodingError 'No such group'  unless group
+
+    url = "#{socialProxyUrl}/payments/group/subscriptions?group_id=#{group._id}"
+    get url, {}, (err, subscription) ->
+      return callback err  if err
+
+      unless isSubscriptionOk group, subscription
+        return callback new KodingError 'Trial period exceeded'
+
+      subscription = sanitizeSubscription subscription
+
+      callback null, subscription
+
+
+  @fetchGroupPlan$ = secure (client, callback) ->
+
+    slug = client?.context?.group
+
+    return callback new KodingError 'No such group'  unless slug
+
+    JGroup = require './group'
+    JGroup.one { slug }, (err, group) ->
+      return callback err  if err
+      Payment.fetchGroupPlan group, callback
 
 
   @subscriptions$ = secure (client, data, callback) ->
@@ -208,3 +241,37 @@ module.exports = class Payment extends Base
     JReward.fetchEarnedAmount options, (err, amount) ->
       return callback err  if err?
       callback null, amount / 1000
+
+
+  isSubscriptionOk = (group, subscription) ->
+
+    return yes  unless subscription.planTitle is 'free'
+
+    # returns a date object from ObjectId
+    groupCreationDay = group._id.getTimestamp()
+    today = new Date
+
+    # how many days a trial period is for.
+    trialRestrictions = TEAM_PLANS['trial']
+    { validFor } = trialRestrictions
+
+    return dateDiffInDays(today, groupCreationDay) < validFor
+
+
+  sanitizeSubscription = (subscription) ->
+
+    return subscription  unless subscription.planTitle is 'free'
+
+    return extend subscription, {planTitle: 'trial'}
+
+
+  dateDiffInDays = (a, b) ->
+
+    MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24
+
+    a = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
+    b = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
+
+    return Math.floor((a - b) / MILLISECONDS_PER_DAY)
+
+
