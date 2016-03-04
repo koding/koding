@@ -145,6 +145,40 @@ module.exports = class JCredential extends jraphical.Module
     return true
 
 
+  accessValidator = ({ accessLevel }) -> (client, group, rest..., callback) ->
+
+    # using any validator to check permission based on the role in the group
+    Validators.any client, group, rest..., (err, allowed) =>
+
+      # you first need to have access on the active group
+      # if you are not allowed we stop here
+      if err or not allowed
+        return callback err, allowed
+
+      deny = -> callback new KodingError 'Access denied'
+
+      # if this is an old credential which doesn't have any accessLevel
+      # defined on it, we are denying all requests to it
+      return deny()  unless currentLevel = @getAt 'accessLevel'
+
+      # if you have access then we need to check
+      # if document allows provided accessLevel
+
+      { WRITE, READ, LIST, PRIVATE } = ACCESSLEVEL
+
+      return deny()  if currentLevel is PRIVATE
+
+      switch accessLevel
+        when WRITE
+          return deny()  unless currentLevel is  WRITE
+        when READ
+          return deny()  unless currentLevel in [WRITE, READ]
+        when LIST
+          return deny()  unless currentLevel in [WRITE, READ, LIST]
+
+      return callback null, yes
+
+
   @create = permit 'create credential',
 
     success: (client, data, callback) ->
