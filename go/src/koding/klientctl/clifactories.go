@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/repair"
 	"koding/klientctl/util/mountcli"
@@ -31,8 +32,8 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 		PrefetchAll:      c.Bool("prefetch-all"),     // note the lowercase of all chars
 		PrefetchInterval: c.Int("prefetch-interval"), // note the lowercase of all chars
 		// Used for prefetch
-		SSHDefaultKeyDir:  SSHDefaultKeyDir,
-		SSHDefaultKeyName: SSHDefaultKeyName,
+		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,
+		SSHDefaultKeyName: config.SSHDefaultKeyName,
 	}
 
 	return &MountCommand{
