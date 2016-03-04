@@ -24,9 +24,6 @@ type PermDeniedRepair struct {
 		RemoteMountInfo(string) (req.MountInfoResponse, error)
 		RemoteRemount(string) error
 	}
-
-	// As found by status.
-	mountPath string
 }
 
 func (r *PermDeniedRepair) String() string {
@@ -47,7 +44,6 @@ func (r *PermDeniedRepair) getMountPath() (string, error) {
 // Permission denied, return an error.
 func (r *PermDeniedRepair) Status() error {
 	path, err := r.getMountPath()
-	r.mountPath = path
 
 	// If we can't even get the mount dir from klient, return the error
 	// so that repair can fail with the same issue.
@@ -55,6 +51,7 @@ func (r *PermDeniedRepair) Status() error {
 	// TODO: Fix this behavior by adding bool to Status(), so that errors mean
 	// bad things. ~LO
 	if err != nil {
+		r.Log.Warning("Encountered ignored error. err:%s", err)
 		return nil
 	}
 
@@ -62,6 +59,7 @@ func (r *PermDeniedRepair) Status() error {
 	// So, we ignore this error.
 	fi, err := os.Stat(path)
 	if err != nil {
+		r.Log.Warning("Encountered ignored error. err:%s", err)
 		return nil
 	}
 
