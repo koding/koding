@@ -15,6 +15,12 @@ module.exports = class JCredential extends jraphical.Module
   { permit }           = require '../group/permissionset'
   Validators           = require '../group/validators'
 
+  ACCESSLEVEL =
+    WRITE     : 'write'
+    READ      : 'read'
+    LIST      : 'list'
+    PRIVATE   : 'private'
+
   @trait __dirname, '../../traits/protected'
 
   @share()
@@ -65,6 +71,7 @@ module.exports = class JCredential extends jraphical.Module
     indexes           :
       identifier      : 'unique'
       fields          : 'sparse'
+      accessLevel     : 'sparse'
 
     schema            :
 
@@ -93,6 +100,32 @@ module.exports = class JCredential extends jraphical.Module
       verified        :
         type          : Boolean
         default       : -> no
+
+      # accessLevel is defined for admins if a credential shared with
+      # a group. scopes can be;
+      #
+      #  write   : allows admins to update this credential
+      #  read    : allows admins to read credential data
+      #  list    : allows admins to list this credential (some)
+      #  private : even admins can not interact with this credential
+      #            only owners of the credential can access/interact
+      #
+      #  write > read > list > private
+      #
+      #  if read used, admins can read but not update
+      #  if write used, admins can read and update and so on.
+      #
+      accessLevel     :
+        type          : String
+        enum          : ['Wrong access level specified!',
+          [
+            ACCESSLEVEL.WRITE
+            ACCESSLEVEL.READ
+            ACCESSLEVEL.LIST
+            ACCESSLEVEL.PRIVATE
+          ]
+        ]
+        default       : 'private'
 
     relationships     :
 
