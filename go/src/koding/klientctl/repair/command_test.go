@@ -56,7 +56,10 @@ func TestRepairCommandRun(t *testing.T) {
 			Repairers:      []Repairer{repairerA, repairerB},
 			KlientService:  &testutil.FakeService{},
 			Klient: &testutil.FakeKlient{
-				ReturnInfos: []list.KiteInfo{list.KiteInfo{VMName: "foo"}},
+				ReturnInfos: []list.KiteInfo{list.KiteInfo{
+					VMName: "foo",
+					// Content doesn't matter, just length
+					Mounts: []list.MountInfo{list.MountInfo{}}}},
 			},
 		}
 
@@ -88,7 +91,11 @@ func TestRepairCommandRun(t *testing.T) {
 			Repairers:      []Repairer{repairerA, repairerB, repairerC},
 			KlientService:  &testutil.FakeService{},
 			Klient: &testutil.FakeKlient{
-				ReturnInfos: []list.KiteInfo{list.KiteInfo{VMName: "foo"}},
+				ReturnInfos: []list.KiteInfo{list.KiteInfo{
+					VMName: "foo",
+					// Content doesn't matter, just length
+					Mounts: []list.MountInfo{list.MountInfo{}},
+				}},
 			},
 		}
 
