@@ -56,16 +56,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'SplitViewMerged',          @bound 'handleSplitViewMerged'
     @on 'CloseFullScreen',          @bound 'handleCloseFullScreen'
 
-    @on 'VerticalSplitHandleClicked', =>
-      frontApp.setActiveTabView @tabView
-      frontApp.splitVertically()
-      @ensureSplitHandlers()
-
-    @on 'HorizontalSplitHandleClicked', =>
-      frontApp.setActiveTabView @tabView
-      frontApp.splitHorizontally()
-      @ensureSplitHandlers()
-
     @on 'RemoveSplitRegions', => @tabView.removeSplitRegions()
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
