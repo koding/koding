@@ -268,6 +268,8 @@ module.exports = class InviteSomeoneView extends KDView
         title    : title
         duration : 5000
 
+      Tracker.track Tracker.SENT_INVITATION for invite in invites
+
       @closeConfirmModals()
       @emit 'NewInvitationsAdded'
 

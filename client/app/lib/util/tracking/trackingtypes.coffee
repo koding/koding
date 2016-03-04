@@ -14,9 +14,10 @@ module.exports = {
 
   # LABELS
   LABEL_CLICK     : 'click'
-
   LABEL_MODAL_SUCCESS : 'ModalSuccess'
 
+  # USER ACTIONS
+  LOGOUT          : 'logged out'
   # KD
   INSTALLED_KD    : 'installed kd'
 
@@ -26,6 +27,7 @@ module.exports = {
 
   # TEAM
   INVITED_TEAMMEMBERS  : 'invited team members'
+  SENT_INVITATION      : 'sent invitation'
   CONNECTED_SLACK      : 'connected slack'
 
   # COLLABORATION

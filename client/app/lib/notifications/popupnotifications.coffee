@@ -5,6 +5,7 @@ NotificationListController  = require './notificationlistcontroller'
 NotificationListItemView    = require './notificationlistitemview'
 PopupList                   = require '../avatararea/popuplist'
 isKoding                    = require 'app/util/isKoding'
+Tracker                     = require '../util/tracker'
 
 
 
@@ -52,7 +53,10 @@ module.exports = class PopupNotifications extends AvatarPopup
     @avatarPopupContent.addSubView ul = new kd.CustomHTMLView
       tagName  : 'ul'
       cssClass : 'popup-settings'
-      click    : (event) => if event.target.tagName is 'A' then @hide()
+      click    : (event) =>
+          if event.target.tagName is 'A' then @hide()
+          if event.target.parentElement.className is 'logout'
+          then Tracker.track Tracker.LOGOUT
       partial  : """
         <li class='account'><a href='/Account'>Account</a></li>
         <li class='admin hidden'><a href='/Admin'>Team Settings</a></li>
