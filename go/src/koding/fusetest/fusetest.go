@@ -1,114 +1,62 @@
 package fusetest
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-func RunAllTests(t *testing.T, mountParent string) {
-	// create a temp dir inside given dir to run the tests
-	mountDir, err := ioutil.TempDir(mountParent, "tests")
+// Fusetest runs common file & dir operations on already mounted folder
+// then checks if local mount and remote VM are synchronized using ssh.
+type Fusetest struct {
+	Machine  string
+	MountDir string
+
+	T *testing.T
+
+	*Remote
+}
+
+func NewFusetest(machine string) (*Fusetest, error) {
+	r, err := NewRemote(machine)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	defer os.RemoveAll(mountDir)
+	mountDir, err := ioutil.TempDir(r.local, "tests")
+	if err != nil {
+		return nil, err
+	}
 
+	return &Fusetest{
+		Machine:  machine,
+		MountDir: mountDir,
+		T:        &testing.T{},
+		Remote:   r,
+	}, nil
+}
+
+func (f *Fusetest) RunAllTests() {
 	// dir ops
-	testMkDir(t, mountDir)
-	testOpenDir(t, mountDir)
-	testReadDir(t, mountDir)
-	testRmDir(t, mountDir)
-	testStatDir(t, mountDir)
+	f.TestMkDir()
+	f.TestReadDir()
+	f.TestRmDir()
 
 	// file ops
-	testCreateFile(t, mountDir)
-	testOpenFile(t, mountDir)
-	testReadFile(t, mountDir)
-	testWriteFile(t, mountDir)
+	f.TestCreateFile()
+	f.TestReadFile()
+	f.TestWriteFile()
 
 	// common ops
-	testRename(t, mountDir)
+	f.TestRename()
 
-	// git ops
-	testGitClone(t, mountDir)
+	os.RemoveAll(f.MountDir)
 }
 
-///// helpers
-
-func createDir(mountDir, name string, fn func(string)) func() {
-	return func() {
-		dirPath := path.Join(mountDir, name)
-		err := os.Mkdir(dirPath, 0705)
-		if err != nil {
-			panic(err)
-		}
-
+func (f *Fusetest) setupConvey(name string, fn func(string)) {
+	Convey(name, f.T, createDir(f.MountDir, name, func(dirPath string) {
 		fn(dirPath)
-
-		if err = os.RemoveAll(dirPath); err != nil {
-			panic(err)
-		}
-	}
-}
-
-func statDirCheck(dir string) (os.FileInfo, error) {
-	fi, err := os.Stat(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	if !fi.IsDir() {
-		return nil, fmt.Errorf("Expected %s to be a dir.", dir)
-	}
-
-	return fi, nil
-}
-
-func statFileCheck(file string, mode os.FileMode) (os.FileInfo, error) {
-	fi, err := os.Stat(file)
-	if err != nil {
-		return nil, err
-	}
-
-	if fi.IsDir() {
-		return nil, fmt.Errorf("Expected %s to be not a dir.", file)
-	}
-
-	if fi.Mode() != mode {
-		return nil, fmt.Errorf(
-			"Expected %s to have mode %v, has mode %v", file, mode, fi.Mode(),
-		)
-	}
-
-	return fi, nil
-}
-
-func readFile(filePath string, str string) error {
-	d, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
-
-	if string(d) != str {
-		return fmt.Errorf("Expected %s to equal %s.", str, d)
-	}
-
-	return nil
-}
-
-func readFileAt(fi *os.File, offset int64, str string) error {
-	d := make([]byte, len(str))
-	if _, err := fi.ReadAt(d, offset); err != nil {
-		return err
-	}
-
-	if string(d) != str {
-		return fmt.Errorf("Expected %s to equal %s.", str, d)
-	}
-
-	return nil
+	}))
 }
