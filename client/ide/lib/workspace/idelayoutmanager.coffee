@@ -307,7 +307,7 @@ module.exports = class IDELayoutManager extends KDObject
     ideView         = new IDEView
     ideApp.ideViews = []  # Reset `ideViews`s array
 
-    splitView.detach()
+    splitView.destroy()
 
     parentView.addSubView ideView
 
