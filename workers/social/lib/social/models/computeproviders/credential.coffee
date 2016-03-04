@@ -301,6 +301,8 @@ module.exports = class JCredential extends jraphical.Module
           if err or not rels
             return callback err ? new KodingError 'Failed to fetch credentials'
 
+          # if user doesn't have admin roles exclude all the items shared with
+          # the group because regular users do not have rights to list those
           unless 'admin' in roles
             groupId = group.getId()
             rels    = rels.filter (rel) -> not groupId.equals rel.sourceId
@@ -325,8 +327,12 @@ module.exports = class JCredential extends jraphical.Module
   fetchUsers: permit
 
     advanced: [
-      { permission: 'modify credential', superadmin: yes }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'modify credential'
+        validateWith : accessValidator { accessLevel: ACCESSLEVEL.READ }
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: (client, callback) ->
@@ -412,8 +418,8 @@ module.exports = class JCredential extends jraphical.Module
     advanced: [
       { permission   : 'update credential', validateWith: Validators.own }
       {
-        permission   : 'update credential'
-        validateWith : Validators.group.resource { mode: 'w' }
+        permission   : 'modify credential'
+        validateWith : accessValidator { accessLevel: ACCESSLEVEL.WRITE }
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -453,8 +459,8 @@ module.exports = class JCredential extends jraphical.Module
     advanced: [
       { permission   : 'update credential', validateWith: Validators.own }
       {
-        permission   : 'update credential'
-        validateWith : Validators.group.resource { mode: 'w' }
+        permission   : 'modify credential'
+        validateWith : accessValidator { accessLevel: ACCESSLEVEL.READ }
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -509,8 +515,8 @@ module.exports = class JCredential extends jraphical.Module
     advanced: [
       { permission   : 'update credential', validateWith: Validators.own }
       {
-        permission   : 'update credential'
-        validateWith : Validators.group.resource()
+        permission   : 'modify credential'
+        validateWith : accessValidator { accessLevel: ACCESSLEVEL.READ }
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -525,8 +531,8 @@ module.exports = class JCredential extends jraphical.Module
     advanced: [
       { permission   : 'update credential', validateWith: Validators.own }
       {
-        permission   : 'update credential'
-        validateWith : Validators.group.resource { mode: 'w' }
+        permission   : 'modify credential'
+        validateWith : accessValidator { accessLevel: ACCESSLEVEL.WRITE }
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
