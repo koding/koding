@@ -67,8 +67,8 @@ Configuration = (options={}) ->
 
     #Encryption and Storage on S3
     worker_sneakerS3 :
-      accessKeyId     : "AKIAJUABLMTHXUWP5DWQ"
-      secretAccessKey : "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"
+      accessKeyId     : "AKIAJV2BZT3DBCEUOIXQ"
+      secretAccessKey : "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"
 
 
 
@@ -158,8 +158,8 @@ Configuration = (options={}) ->
   sneakerS3 =
     awsSecretAccessKey  : "#{awsKeys.worker_sneakerS3.secretAccessKey}"
     awsAccessKeyId      : "#{awsKeys.worker_sneakerS3.accessKeyId}"
-    sneakerS3Path       : "s3://koding-credentials/"
-    sneakerMasterKey    :"e8b39897-4d66-4aad-a623-45cc0419e222"
+    sneakerS3Path       : "s3://kodingdev-credentials/secrets/"
+    sneakerMasterKey    : "fecea2c8-e569-4d87-9179-8e7c93253072"
     awsRegion           : "us-east-1"
 
   # if you want to disable a feature add here with "true" value do not forget to
