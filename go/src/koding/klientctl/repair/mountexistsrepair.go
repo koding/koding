@@ -57,7 +57,7 @@ func (r *MountExistsRepair) Status() error {
 
 func (r *MountExistsRepair) Repair() error {
 	r.Stdout.Printlnf(
-		"Remounting %q to resolve detected issue. Remounting..",
+		"Remounting %q to resolve detected issue..",
 		r.MountName,
 	)
 
