@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/config"
 	"koding/klientctl/klient"
 	"os"
 	"text/tabwriter"
@@ -22,18 +23,18 @@ type kiteMounts struct {
 func MountsCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
-		fmt.Printf("Error connecting to %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error connecting to %s: '%s'\n", config.KlientName, err)
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error connecting to %s: '%s'\n", config.KlientName, err)
 		return 1
 	}
 
 	res, err := k.Tell("remote.mounts")
 	if err != nil {
-		fmt.Printf("Error getting list of mounts from %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error getting list of mounts from %s: '%s'\n", config.KlientName, err)
 		return 1
 	}
 

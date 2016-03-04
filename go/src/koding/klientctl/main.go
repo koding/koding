@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/util"
 
@@ -72,8 +73,8 @@ func main() {
 	}
 
 	app := cli.NewApp()
-	app.Name = Name
-	app.Version = fmt.Sprintf("%d", Version)
+	app.Name = config.Name
+	app.Version = fmt.Sprintf("%d", config.Version)
 
 	app.Commands = []cli.Command{
 		cli.Command{
@@ -144,7 +145,7 @@ func main() {
 		},
 		cli.Command{
 			Name:        "install",
-			Usage:       fmt.Sprintf("Install the %s.", KlientName),
+			Usage:       fmt.Sprintf("Install the %s.", config.KlientName),
 			Description: cmdDescriptions["install"],
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -157,37 +158,37 @@ func main() {
 		},
 		cli.Command{
 			Name:        "uninstall",
-			Usage:       fmt.Sprintf("Uninstall the %s.", KlientName),
+			Usage:       fmt.Sprintf("Uninstall the %s.", config.KlientName),
 			Description: cmdDescriptions["uninstall"],
 			Action:      ExitWithMessage(UninstallCommand, log, "uninstall"),
 		},
 		cli.Command{
 			Name:        "status",
-			Usage:       fmt.Sprintf("Check status of the %s.", KlientName),
+			Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 			Description: cmdDescriptions["status"],
 			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
 		},
 		cli.Command{
 			Name:        "start",
-			Usage:       fmt.Sprintf("Start the %s.", KlientName),
+			Usage:       fmt.Sprintf("Start the %s.", config.KlientName),
 			Description: cmdDescriptions["start"],
 			Action:      ctlcli.ExitAction(StartCommand, log, "start"),
 		},
 		cli.Command{
 			Name:        "stop",
-			Usage:       fmt.Sprintf("Stop the %s.", KlientName),
+			Usage:       fmt.Sprintf("Stop the %s.", config.KlientName),
 			Description: cmdDescriptions["stop"],
 			Action:      ctlcli.ExitAction(StopCommand, log, "stop"),
 		},
 		cli.Command{
 			Name:        "restart",
-			Usage:       fmt.Sprintf("Restart the %s.", KlientName),
+			Usage:       fmt.Sprintf("Restart the %s.", config.KlientName),
 			Description: cmdDescriptions["restart"],
 			Action:      ctlcli.ExitAction(RestartCommand, log, "restart"),
 		},
 		cli.Command{
 			Name:        "update",
-			Usage:       fmt.Sprintf("Update %s to latest version.", KlientName),
+			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
 			Description: cmdDescriptions["update"],
 			Action:      ctlcli.ExitAction(UpdateCommand, log, "update"),
 		},

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/config"
 	"time"
 
 	"github.com/codegangsta/cli"
@@ -29,7 +30,9 @@ func StartCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	fmt.Println("Waiting until started...")
-	if err := WaitUntilStarted(KlientAddress, 5, 1*time.Second); err != nil {
+
+	err = WaitUntilStarted(config.KlientAddress, 5, 1*time.Second)
+	if err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
@@ -38,7 +41,7 @@ func StartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Printf("Successfully started %s\n", KlientName)
+	fmt.Printf("Successfully started %s\n", config.KlientName)
 	return 0
 }
 

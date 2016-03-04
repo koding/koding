@@ -9,9 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"koding/klientctl/config"
+	"koding/klientctl/ctlcli"
+
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
-	"koding/klientctl/ctlcli"
 )
 
 func init() {
@@ -30,7 +32,7 @@ func CheckUpdateFirst(f ctlcli.ExitingCommand, log logging.Logger, cmd string) (
 			// TODO: Fix the abstraction leak here.. this is wrong. This likely
 			// needs to be added as a type, and the actual commands (inside Run()) will
 			// run this check.
-			fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", Name, Name)
+			fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", config.Name, config.Name)
 		}
 
 		return f(c, log, cmd)
@@ -61,7 +63,7 @@ type CheckUpdate struct {
 // NewCheckUpdate is the required initializer for CheckUpdate.
 func NewCheckUpdate() *CheckUpdate {
 	return &CheckUpdate{
-		LocalVersion:       Version,
+		LocalVersion:       config.Version,
 		Location:           S3UpdateLocation,
 		RandomSeededNumber: rand.Intn(3),
 		ForceCheck:         false,

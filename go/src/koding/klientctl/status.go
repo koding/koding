@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"koding/klientctl/config"
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
 
@@ -22,7 +23,7 @@ func init() {
 		HTTPClient: &http.Client{
 			Timeout: 4 * time.Second,
 		},
-		LocalKiteAddress:  KlientAddress,
+		LocalKiteAddress:  config.KlientAddress,
 		RemoteKiteAddress: KontrolURL,
 		RemoteHTTPAddress: S3UpdateLocation,
 	}
@@ -224,7 +225,7 @@ the following command to start it:
 
     sudo kd start
 `,
-				KlientName)
+				config.KlientName)
 
 		case ErrHealthUnexpectedResponse:
 			res = fmt.Sprintf(`Error: The %s is not running properly. Please run the
@@ -232,7 +233,7 @@ following command to restart it:
 
     sudo kd restart
 `,
-				KlientName)
+				config.KlientName)
 
 		case ErrHealthUnreadableKiteKey:
 			res = fmt.Sprintf(`Error: The authorization file for the %s is malformed
@@ -240,7 +241,7 @@ or missing. Please run the following command:
 
     sudo kd install
 `,
-				KlientName)
+				config.KlientName)
 
 		// TODO: What are some good steps for the user to take if dial fails?
 		case ErrHealthDialFailed:
@@ -249,7 +250,7 @@ Please run the following command:
 
     sudo kd restart
 `,
-				KlientName)
+				config.KlientName)
 
 		default:
 			res = fmt.Sprintf("Unknown local healthcheck error: %s", err.Error())
@@ -274,7 +275,7 @@ Please run the following command:
 	}
 
 	res = fmt.Sprintf(
-		"The %s appears to be running and is healthy.", KlientName,
+		"The %s appears to be running and is healthy.", config.KlientName,
 	)
 
 	return res, true
@@ -289,14 +290,14 @@ Please run the following command:
 // here is the syntax that this method provides:
 //
 //     fmt.Println(defaultHealthChecker.FailureResponseOrMessagef(
-//       "Error connecting to %s: '%s'\n", KlientName, err,
+//       "Error connecting to %s: '%s'\n", config.KlientName, err,
 //     ))
 //
 // And here is the syntax we're avoiding:
 //
 //     s, ok := defaultHealthChecker.CheckAllWithResponse()
 //     if ok {
-//       fmt.Printf("Error connecting to %s: '%s'\n", KlientName, err)
+//       fmt.Printf("Error connecting to %s: '%s'\n", config.KlientName, err)
 //     } else {
 //       fmt.Println(s)
 //     }
