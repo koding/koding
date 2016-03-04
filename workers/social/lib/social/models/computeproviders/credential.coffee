@@ -356,7 +356,7 @@ module.exports = class JCredential extends jraphical.Module
             callback null, []
 
 
-  setPermissionFor: (target, { user, owner, role, mode }, callback) ->
+  setPermissionFor: (target, { user, owner, accessLevel }, callback) ->
 
     Relationship.remove
       targetId : @getId()
@@ -365,13 +365,12 @@ module.exports = class JCredential extends jraphical.Module
 
       if user
         options = { as: if owner then 'owner' else 'user' }
-
-        if role or mode
-          options.data = {}
-          options.data.role = role  if role
-          options.data.mode = mode  if mode
-
-        target.addCredential this, options, (err) -> callback err
+        if accessLevel
+          @update { $set: { accessLevel } }, (err) =>
+            return callback err  if err?
+            target.addCredential this, options, callback
+        else
+          target.addCredential this, options, callback
       else
         callback err
 
@@ -379,7 +378,7 @@ module.exports = class JCredential extends jraphical.Module
   shareWith: (client, options, callback) ->
 
     { delegate } = client.connection
-    { target, user, owner, role, mode } = options
+    { target, user, owner, accessLevel } = options
     user ?= yes
 
     # Owners cannot unassign them from a credential
@@ -399,10 +398,10 @@ module.exports = class JCredential extends jraphical.Module
         target.fetchOwnAccount (err, account) =>
           if err or not account
             return callback new KodingError 'Failed to fetch account.'
-          @setPermissionFor account, { user, owner, mode }, callback
+          @setPermissionFor account, { user, owner }, callback
 
       else if target instanceof JGroup
-        @setPermissionFor target, { user, owner, role, mode }, callback
+        @setPermissionFor target, { user, owner, accessLevel }, callback
 
       else
         callback new KodingError 'Target does not support credentials.'
