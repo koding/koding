@@ -62,6 +62,21 @@ func newSlashCommandFromURLValues(postForm url.Values) (*SlashCommand, error) {
 	return c, nil
 }
 
+// getOnlyChannels send a request to the slack with user's token & gets the channels
+func getOnlyChannels(token string) (*SlackChannelsResponse, error) {
+	api := slack.New(token)
+	var channels []slack.Channel
+
+	channels, err := api.GetChannels(true)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SlackChannelsResponse{
+		Channels: channels,
+	}, nil
+}
+
 // getChannels send a request to the slack with user's token & gets the channels
 func getChannels(token string) (*SlackChannelsResponse, error) {
 	api := slack.New(token)
