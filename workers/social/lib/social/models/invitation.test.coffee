@@ -11,7 +11,8 @@ JInvitation                   = require './invitation'
   generateRandomEmail
   generateRandomString
   checkBongoConnectivity
-  generateDummyUserFormData } = require '../../../testhelper'
+  generateDummyUserFormData
+  expectAccessDenied } = require '../../../testhelper'
 
 
 # making sure we have mongo connection before tests
@@ -146,6 +147,91 @@ runTests = ->
           ]
 
           async.series queue, done
+
+
+  describe 'workers.social.invitation.some', ->
+
+    describe 'if user does not have permission', ->
+
+      it 'should fail', (done) ->
+
+        expectAccessDenied JInvitation, 'some$', {}, {}, done
+
+      it 'should have default group name if user is not an admin', (done) ->
+
+        withConvertedUser { createGroup: yes }, (data) ->
+          { client: adminClient } = data
+          dummyGroupName = 'Foo'
+          selector = { groupSlug: dummyGroupName }
+
+          email = generateRandomEmail()
+          invitationReq = { invitations:[ { email } ] }
+          JInvitation.create adminClient, invitationReq, (err) ->
+            JInvitation.some$ adminClient, selector, {}, (err, invitations) ->
+
+              invitationGroupName = invitations[0].data.groupName
+              expect(invitationGroupName).to.not.equal dummyGroupName
+              expect(invitationGroupName).to.be.equal data.group.slug
+
+              done()
+
+      it 'should update groupSlug and fetch other group invitations', (done) ->
+
+        groupSlug1   = null
+        groupSlug2   = null
+        adminClient1 = null
+        adminClient2 = null
+        adminAccount = null
+        invitedUser1 = null
+        invitedUser2 = null
+
+        queue = [
+
+          # create first group
+          (next) ->
+            withConvertedUser { createGroup: yes }, ({ client, group }) ->
+              groupSlug1   = group.slug
+              adminClient1 = client
+              next()
+
+          # invite a user to first group
+          (next) ->
+            email = invitedUser1 = generateRandomEmail()
+            invitationReq = { invitations:[ { email } ] }
+            JInvitation.create adminClient1, invitationReq, (err) ->
+              expect(err).to.not.exist
+              next()
+
+          # create second group
+          (next) ->
+            withConvertedUser { createGroup: yes }, ({ client, account, group }) ->
+              groupSlug2   = group.slug
+              adminClient2 = client
+              adminAccount = account
+              next()
+
+          # invite a user to second group
+          (next) ->
+            email = invitedUser2 = generateRandomEmail()
+            invitationReq = { invitations:[ { email } ] }
+            JInvitation.create adminClient2, invitationReq, (err) ->
+              expect(err).to.not.exist
+              next()
+
+          # add super-admin global flag to second converted account
+          (next) ->
+            adminAccount.update { $set: { globalFlags: [ 'super-admin' ] } }, ->
+              next()
+
+          # try to hijack groupSlug with first group admin
+          # returned result set should be for admin's own group
+          (next) ->
+            JInvitation.some$ adminClient1, { groupSlug: groupSlug2 }, {}, (err, invitations) ->
+              expect(invitations[0].data.groupName).to.equal groupSlug1
+              next()
+        ]
+
+        async.series queue, done
 
 
 beforeTests()
