@@ -176,15 +176,23 @@ func (k *Klient) RemoteStatus(r req.Status) error {
 }
 
 // RemoteMountInfo calls klients remote.mountInfo method.
-func (k *Klient) RemoteMountInfo(r req.MountInfo) (req.MountFolder, error) {
+func (k *Klient) RemoteMountInfo(mountName string) (req.MountInfoResponse, error) {
+	r := req.MountInfo{MountName: mountName}
 	resp, err := k.Tell("remote.mountInfo", r)
 	if err != nil {
-		return req.MountFolder{}, err
+		return req.MountInfoResponse{}, err
 	}
 
-	var mountFolder req.MountFolder
+	var mountInfo req.MountInfoResponse
 	// TODO: Ignore the nil unmarshal error, but return others.
-	resp.Unmarshal(&mountFolder)
+	resp.Unmarshal(&mountInfo)
 
-	return mountFolder, nil
+	return mountInfo, nil
+}
+
+// RemoteRemount calls klient's remote.remount method.
+func (k *Klient) RemoteRemount(mountName string) error {
+	r := req.Remount{MountName: mountName}
+	_, err := k.Tell("remote.remount", r)
+	return err
 }
