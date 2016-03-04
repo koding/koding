@@ -276,7 +276,7 @@ module.exports = class JCredential extends jraphical.Module
       $in: [ delegate.getId(), group.getId() ]
     }
 
-    Relationship.someData relSelector, relOptions, (err, cursor) =>
+    Relationship.someData relSelector, relOptions, (err, cursor) ->
       return callback err  if err?
       cursor.toArray callback
 
