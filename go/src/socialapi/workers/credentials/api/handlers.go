@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	CredentialStore = "credential-store"
-	CredentialGet   = "credential-get"
+	CredentialStore  = "credential-store"
+	CredentialGet    = "credential-get"
+	CredentialDelete = "credential-delete"
 )
 
 // AddHandlers adds handlers for slack integration
@@ -41,6 +42,15 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 			Handler:  s.Get,
 			Name:     CredentialGet,
 			Type:     handler.GetRequest,
+			Endpoint: "/credential/{pathName}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  s.Delete,
+			Name:     CredentialDelete,
+			Type:     handler.DeleteRequest,
 			Endpoint: "/credential/{pathName}",
 		},
 	)

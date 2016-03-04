@@ -88,3 +88,21 @@ func (s *SneakerS3) Get(u *url.URL, h http.Header, _ interface{}, context *model
 
 	return response.NewOK(x)
 }
+
+func (s *SneakerS3) Delete(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	pathName := u.Query().Get("pathName")
+	if pathName == "" {
+		return response.NewBadRequest(ErrPathNotFound)
+	}
+
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	err := s.Manager.Rm(pathName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewDeleted()
+}
