@@ -362,18 +362,15 @@ module.exports = CollaborationController =
 
         return  unless remainingPanes.length
 
-        snapshotAsArray = IDELayoutManager.convertSnapshotToFlatArray snapshot
-        snapshotFiles   = {}
-
-        for item in snapshotAsArray when item.context?.paneType is 'editor'
-          { path, name } = item.context.file
-          snapshotFiles[path] = name
+        snapshotPanes = IDELayoutManager.getPaneHashMap snapshot
 
         for pane in remainingPanes
           if pane.data instanceof FSFile # editor, tailer
-            @activeTabView.addPane pane  unless snapshotFiles[pane.data.path]
-          else
-            @activeTabView.addPane pane
+            paneIdentifier = pane.data.path
+          else if pane.options.type is 'terminal'
+            paneIdentifier = pane.view.session
+
+          @activeTabView.addPane pane  unless snapshotPanes[paneIdentifier]
 
         @doResize()
 
