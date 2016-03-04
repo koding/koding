@@ -1,7 +1,7 @@
 kd           = require 'kd'
 React        = require 'kd-react'
 Link         = require 'app/components/common/link'
-ActivityFlux = require 'activity/flux'
+
 
 module.exports = class SocialShareLink extends React.Component
 

@@ -14,15 +14,15 @@ type cors struct {
 	allowedHeaders         []string
 	allowedMethods         []string
 	allowedOrigins         []string
-	allowedOriginValidator originValidator
+	allowedOriginValidator OriginValidator
 	exposedHeaders         []string
 	maxAge                 int
 	ignoreOptions          bool
 	allowCredentials       bool
 }
 
-// originValidator takes an origin string and returns whether or not that origin is allowed.
-type originValidator func(string) bool
+// OriginValidator takes an origin string and returns whether or not that origin is allowed.
+type OriginValidator func(string) bool
 
 var (
 	defaultCorsMethods = []string{"GET", "HEAD", "POST"}
@@ -224,7 +224,7 @@ func AllowedOrigins(origins []string) CORSOption {
 
 // AllowedOriginValidator sets a function for evaluating allowed origins in CORS requests, represented by the
 // 'Allow-Access-Control-Origin' HTTP header.
-func AllowedOriginValidator(fn originValidator) CORSOption {
+func AllowedOriginValidator(fn OriginValidator) CORSOption {
 	return func(ch *cors) error {
 		ch.allowedOriginValidator = fn
 		return nil

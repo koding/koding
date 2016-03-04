@@ -1,6 +1,5 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
-checkFlag             = require 'app/util/checkFlag'
 ButtonWithMenu        = require 'app/components/buttonwithmenu'
 getMessageOwner       = require 'app/util/getMessageOwner'
 ActivityFlux          = require 'activity/flux'

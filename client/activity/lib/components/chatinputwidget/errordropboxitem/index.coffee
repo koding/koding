@@ -1,6 +1,5 @@
 kd          = require 'kd'
 React       = require 'kd-react'
-immutable   = require 'immutable'
 DropboxItem = require 'activity/components/dropboxitem'
 
 

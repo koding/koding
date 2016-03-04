@@ -4,7 +4,10 @@ set -e
 # Read the address to join from the file we provisioned
 JOIN_ADDRS=$(cat /tmp/consul-server-addr | tr -d '\n')
 
-sudo sh -c 'echo "127.0.0.1 consul-node-'$(cat /tmp/consul-server-index)'" >> /etc/hosts' 
+# consul version to install
+CONSUL_VERSION=0.5.2
+
+sudo sh -c 'echo "127.0.0.1 consul-node-'$(cat /tmp/consul-server-index)'" >> /etc/hosts'
 
 echo "Installing dependencies..."
 sudo apt-get update -y
@@ -12,7 +15,7 @@ sudo apt-get install -y unzip
 
 echo "Fetching Consul..."
 cd /tmp
-wget https://dl.bintray.com/mitchellh/consul/0.5.0_linux_amd64.zip -O consul.zip
+wget "https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip" -O consul.zip
 
 echo "Installing Consul..."
 unzip consul.zip >/dev/null

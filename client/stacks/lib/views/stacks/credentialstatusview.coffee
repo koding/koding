@@ -3,7 +3,6 @@ KDView         = kd.View
 JView          = require 'app/jview'
 remote         = require('app/remote').getInstance()
 curryIn        = require 'app/util/curryIn'
-showError      = require 'app/util/showError'
 
 
 module.exports = class CredentialStatusView extends KDView

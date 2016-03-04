@@ -4,10 +4,7 @@ Encoder              = require 'htmlencode'
 
 KDView               = kd.View
 KDTabView            = kd.TabView
-KDModalView          = kd.ModalView
-KDButtonView         = kd.ButtonView
 KDTabPaneView        = kd.TabPaneView
-KDCustomHTMLView     = kd.CustomHTMLView
 KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
 

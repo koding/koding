@@ -1,6 +1,5 @@
 actions         = require '../actions/actiontypes'
 immutable       = require 'immutable'
-toImmutable     = require 'app/util/toImmutable'
 KodingFluxStore = require 'app/flux/base/store'
 
 

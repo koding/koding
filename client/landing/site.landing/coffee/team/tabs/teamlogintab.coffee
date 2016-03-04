@@ -1,7 +1,6 @@
 kd              = require 'kd.js'
 utils           = require './../../core/utils'
 JView           = require './../../core/jview'
-CustomLinkView  = require './../../core/customlinkview'
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
 

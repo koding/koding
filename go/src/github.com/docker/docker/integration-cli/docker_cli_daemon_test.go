@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
@@ -71,7 +72,7 @@ func (s *DockerDaemonSuite) TestDaemonRestartWithVolumesRefs(c *check.C) {
 		c.Fatal(err)
 	}
 
-	if out, err := s.d.Cmd("run", "-d", "--name", "volrestarttest1", "-v", "/foo", "busybox"); err != nil {
+	if out, err := s.d.Cmd("run", "--name", "volrestarttest1", "-v", "/foo", "busybox"); err != nil {
 		c.Fatal(err, out)
 	}
 
@@ -971,6 +972,7 @@ func (s *DockerDaemonSuite) TestDaemonIP(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TestDaemonICCPing(c *check.C) {
+	testRequires(c, bridgeNfIptables)
 	d := s.d
 
 	bridgeName := "external-bridge"
@@ -1155,15 +1157,11 @@ func (s *DockerDaemonSuite) TestDaemonLoggingDriverDefault(c *check.C) {
 		c.Fatal(err)
 	}
 
-	out, err := s.d.Cmd("run", "-d", "busybox", "echo", "testline")
-	if err != nil {
-		c.Fatal(out, err)
-	}
-	id := strings.TrimSpace(out)
+	out, err := s.d.Cmd("run", "--name=test", "busybox", "echo", "testline")
+	c.Assert(err, check.IsNil, check.Commentf(out))
+	id, err := s.d.getIDByName("test")
+	c.Assert(err, check.IsNil)
 
-	if out, err := s.d.Cmd("wait", id); err != nil {
-		c.Fatal(out, err)
-	}
 	logPath := filepath.Join(s.d.root, "containers", id, id+"-json.log")
 
 	if _, err := os.Stat(logPath); err != nil {
@@ -1197,15 +1195,13 @@ func (s *DockerDaemonSuite) TestDaemonLoggingDriverDefaultOverride(c *check.C) {
 		c.Fatal(err)
 	}
 
-	out, err := s.d.Cmd("run", "-d", "--log-driver=none", "busybox", "echo", "testline")
+	out, err := s.d.Cmd("run", "--name=test", "--log-driver=none", "busybox", "echo", "testline")
 	if err != nil {
 		c.Fatal(out, err)
 	}
-	id := strings.TrimSpace(out)
+	id, err := s.d.getIDByName("test")
+	c.Assert(err, check.IsNil)
 
-	if out, err := s.d.Cmd("wait", id); err != nil {
-		c.Fatal(out, err)
-	}
 	logPath := filepath.Join(s.d.root, "containers", id, id+"-json.log")
 
 	if _, err := os.Stat(logPath); err == nil || !os.IsNotExist(err) {
@@ -1218,14 +1214,12 @@ func (s *DockerDaemonSuite) TestDaemonLoggingDriverNone(c *check.C) {
 		c.Fatal(err)
 	}
 
-	out, err := s.d.Cmd("run", "-d", "busybox", "echo", "testline")
+	out, err := s.d.Cmd("run", "--name=test", "busybox", "echo", "testline")
 	if err != nil {
 		c.Fatal(out, err)
 	}
-	id := strings.TrimSpace(out)
-	if out, err := s.d.Cmd("wait", id); err != nil {
-		c.Fatal(out, err)
-	}
+	id, err := s.d.getIDByName("test")
+	c.Assert(err, check.IsNil)
 
 	logPath := filepath.Join(s.d.folder, "graph", "containers", id, id+"-json.log")
 
@@ -1239,15 +1233,13 @@ func (s *DockerDaemonSuite) TestDaemonLoggingDriverNoneOverride(c *check.C) {
 		c.Fatal(err)
 	}
 
-	out, err := s.d.Cmd("run", "-d", "--log-driver=json-file", "busybox", "echo", "testline")
+	out, err := s.d.Cmd("run", "--name=test", "--log-driver=json-file", "busybox", "echo", "testline")
 	if err != nil {
 		c.Fatal(out, err)
 	}
-	id := strings.TrimSpace(out)
+	id, err := s.d.getIDByName("test")
+	c.Assert(err, check.IsNil)
 
-	if out, err := s.d.Cmd("wait", id); err != nil {
-		c.Fatal(out, err)
-	}
 	logPath := filepath.Join(s.d.root, "containers", id, id+"-json.log")
 
 	if _, err := os.Stat(logPath); err != nil {
@@ -1277,22 +1269,15 @@ func (s *DockerDaemonSuite) TestDaemonLoggingDriverNoneOverride(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TestDaemonLoggingDriverNoneLogsError(c *check.C) {
-	if err := s.d.StartWithBusybox("--log-driver=none"); err != nil {
-		c.Fatal(err)
-	}
+	c.Assert(s.d.StartWithBusybox("--log-driver=none"), checker.IsNil)
 
-	out, err := s.d.Cmd("run", "-d", "busybox", "echo", "testline")
-	if err != nil {
-		c.Fatal(out, err)
-	}
-	id := strings.TrimSpace(out)
-	out, err = s.d.Cmd("logs", id)
-	if err == nil {
-		c.Fatalf("Logs should fail with 'none' driver")
-	}
-	if !strings.Contains(out, `"logs" command is supported only for "json-file" and "journald" logging drivers (got: none)`) {
-		c.Fatalf("There should be an error about none not being a recognized log driver, got: %s", out)
-	}
+	out, err := s.d.Cmd("run", "--name=test", "busybox", "echo", "testline")
+	c.Assert(err, checker.IsNil, check.Commentf(out))
+
+	out, err = s.d.Cmd("logs", "test")
+	c.Assert(err, check.NotNil, check.Commentf("Logs should fail with 'none' driver"))
+	expected := `"logs" command is supported only for "json-file" and "journald" logging drivers (got: none)`
+	c.Assert(out, checker.Contains, expected)
 }
 
 func (s *DockerDaemonSuite) TestDaemonDots(c *check.C) {
@@ -1574,7 +1559,7 @@ func (s *DockerDaemonSuite) TestDaemonRestartWithSocketAsVolume(c *check.C) {
 
 	socket := filepath.Join(s.d.folder, "docker.sock")
 
-	out, err := s.d.Cmd("run", "-d", "--restart=always", "-v", socket+":/sock", "busybox")
+	out, err := s.d.Cmd("run", "--restart=always", "-v", socket+":/sock", "busybox")
 	c.Assert(err, check.IsNil, check.Commentf("Output: %s", out))
 	c.Assert(s.d.Restart(), check.IsNil)
 }
@@ -1888,7 +1873,7 @@ func (s *DockerDaemonSuite) TestBridgeIPIsExcludedFromAllocatorPool(c *check.C) 
 
 // Test daemon for no space left on device error
 func (s *DockerDaemonSuite) TestDaemonNoSpaceleftOnDeviceError(c *check.C) {
-	testRequires(c, SameHostDaemon, DaemonIsLinux)
+	testRequires(c, SameHostDaemon, DaemonIsLinux, Network)
 
 	// create a 2MiB image and mount it as graph root
 	cmd := exec.Command("dd", "of=/tmp/testfs.img", "bs=1M", "seek=2", "count=0")
@@ -1912,8 +1897,7 @@ func (s *DockerDaemonSuite) TestDaemonNoSpaceleftOnDeviceError(c *check.C) {
 
 	// pull a repository large enough to fill the mount point
 	out, err := s.d.Cmd("pull", "registry:2")
-
-	c.Assert(strings.Contains(out, "no space left on device"), check.Equals, true)
+	c.Assert(out, checker.Contains, "no space left on device")
 }
 
 // Test daemon restart with container links + auto restart
@@ -2156,4 +2140,44 @@ func (s *DockerDaemonSuite) TestDaemonDebugLog(c *check.C) {
 	newD.StartWithLogFile(tty, "--debug")
 	newD.Stop()
 	c.Assert(b.String(), checker.Contains, debugLog)
+}
+
+func (s *DockerSuite) TestDaemonDiscoveryBackendConfigReload(c *check.C) {
+	testRequires(c, SameHostDaemon, DaemonIsLinux)
+
+	// daemon config file
+	daemonConfig := `{ "debug" : false }`
+	configFilePath := "test.json"
+
+	configFile, err := os.Create(configFilePath)
+	c.Assert(err, checker.IsNil)
+	fmt.Fprintf(configFile, "%s", daemonConfig)
+
+	d := NewDaemon(c)
+	err = d.Start(fmt.Sprintf("--config-file=%s", configFilePath))
+	c.Assert(err, checker.IsNil)
+	defer d.Stop()
+
+	// daemon config file
+	daemonConfig = `{
+	      "cluster-store": "consul://consuladdr:consulport/some/path",
+	      "cluster-advertise": "192.168.56.100:0",
+	      "debug" : false
+	}`
+
+	configFile.Close()
+	os.Remove(configFilePath)
+
+	configFile, err = os.Create(configFilePath)
+	c.Assert(err, checker.IsNil)
+	fmt.Fprintf(configFile, "%s", daemonConfig)
+
+	syscall.Kill(d.cmd.Process.Pid, syscall.SIGHUP)
+
+	time.Sleep(3 * time.Second)
+
+	out, err := d.Cmd("info")
+	c.Assert(err, checker.IsNil)
+	c.Assert(out, checker.Contains, fmt.Sprintf("Cluster store: consul://consuladdr:consulport/some/path"))
+	c.Assert(out, checker.Contains, fmt.Sprintf("Cluster advertise: 192.168.56.100:0"))
 }

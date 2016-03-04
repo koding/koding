@@ -47,24 +47,26 @@ type ArtifactSearchOpts struct {
 
 // UploadArtifactOpts are the options used to upload an artifact.
 type UploadArtifactOpts struct {
-	User     string
-	Name     string
-	Type     string
-	ID       string
-	File     io.Reader
-	FileSize int64
-	Metadata map[string]string
-	BuildID  int
+	User      string
+	Name      string
+	Type      string
+	ID        string
+	File      io.Reader
+	FileSize  int64
+	Metadata  map[string]string
+	BuildID   int
+	CompileID int
 }
 
 // MarshalJSON converts the UploadArtifactOpts into a JSON struct.
 func (o *UploadArtifactOpts) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
 		"artifact_version": map[string]interface{}{
-			"id":       o.ID,
-			"file":     o.File != nil,
-			"metadata": o.Metadata,
-			"build_id": o.BuildID,
+			"id":         o.ID,
+			"file":       o.File != nil,
+			"metadata":   o.Metadata,
+			"build_id":   o.BuildID,
+			"compile_id": o.CompileID,
 		},
 	})
 }

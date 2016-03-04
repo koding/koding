@@ -5,7 +5,6 @@ KDButtonView       = kd.ButtonView
 KDView             = kd.View
 EmbedBoxImageView  = require './embedbox/embedboximageview'
 EmbedBoxLinkView   = require './embedbox/embedboxlinkview'
-EmbedBoxLinksView  = require './embedbox/embedboxlinksview'
 EmbedBoxObjectView = require './embedbox/embedboxobjectview'
 getEmbedType       = require 'app/util/getEmbedType'
 regexps            = require 'app/util/regexps'

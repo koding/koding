@@ -40,7 +40,7 @@ func TestPool_Get_Impl(t *testing.T) {
 		t.Errorf("Get error: %s", err)
 	}
 
-	_, ok := conn.(*PoolConn)
+	_, ok := conn.(poolConn)
 	if !ok {
 		t.Errorf("Conn is not of type poolConn")
 	}
@@ -116,33 +116,6 @@ func TestPool_Put(t *testing.T) {
 	conn.Close() // try to put into a full pool
 	if p.Len() != 0 {
 		t.Errorf("Put error. Closed pool shouldn't allow to put connections.")
-	}
-}
-
-func TestPool_PutUnusableConn(t *testing.T) {
-	p, _ := newChannelPool()
-	defer p.Close()
-
-	// ensure pool is not empty
-	conn, _ := p.Get()
-	conn.Close()
-
-	poolSize := p.Len()
-	conn, _ = p.Get()
-	conn.Close()
-	if p.Len() != poolSize {
-		t.Errorf("Pool size is expected to be equal to initial size")
-	}
-
-	conn, _ = p.Get()
-	if pc, ok := conn.(*PoolConn); !ok {
-		t.Errorf("impossible")
-	} else {
-		pc.MarkUnusable()
-	}
-	conn.Close()
-	if p.Len() != poolSize-1 {
-		t.Errorf("Pool size is expected to be initial_size - 1", p.Len(), poolSize-1)
 	}
 }
 

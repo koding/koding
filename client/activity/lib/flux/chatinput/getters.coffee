@@ -1,4 +1,3 @@
-kd                            = require 'kd'
 immutable                     = require 'immutable'
 toImmutable                   = require 'app/util/toImmutable'
 ActivityFluxGetters           = require 'activity/flux/getters'

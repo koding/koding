@@ -1,11 +1,7 @@
 kd                      = require 'kd'
-
 KDButtonView            = kd.ButtonView
-KDCustomHTMLView        = kd.CustomHTMLView
-
 Encoder                 = require 'htmlencode'
 curryIn                 = require 'app/util/curryIn'
-
 StackBaseEditorTabView  = require './stackbaseeditortabview'
 StackTemplateEditorView = require './editors/stacktemplateeditorview'
 

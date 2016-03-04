@@ -2,9 +2,9 @@ kd           = require 'kd'
 React        = require 'kd-react'
 immutable    = require 'immutable'
 classnames   = require 'classnames'
-ActivityFlux = require 'activity/flux'
 ChannelLabel = require 'activity/components/channellabel'
 Button       = require 'app/components/common/button'
+
 
 module.exports = class FeedThreadHeader extends React.Component
 

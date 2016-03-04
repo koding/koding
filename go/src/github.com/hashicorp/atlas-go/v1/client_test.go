@@ -1,8 +1,8 @@
 package atlas
 
 import (
-	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -11,8 +11,24 @@ import (
 func TestDefaultClient_url(t *testing.T) {
 	client := DefaultClient()
 
-	if client.URL.String() != atlasURL {
-		t.Fatalf("expected %q to be %q", client.URL.String(), atlasURL)
+	if client.URL.String() != atlasDefaultEndpoint {
+		t.Fatalf("expected %q to be %q", client.URL.String(), atlasDefaultEndpoint)
+	}
+}
+
+func TestDefaultClient_urlFromEnvVar(t *testing.T) {
+	defer os.Setenv(atlasEndpointEnvVar, os.Getenv(atlasEndpointEnvVar))
+	otherEndpoint := "http://127.0.0.1:1234"
+
+	err := os.Setenv(atlasEndpointEnvVar, otherEndpoint)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	client := DefaultClient()
+
+	if client.URL.String() != otherEndpoint {
+		t.Fatalf("expected %q to be %q", client.URL.String(), otherEndpoint)
 	}
 }
 
@@ -45,13 +61,9 @@ func TestNewClient_parsesURL(t *testing.T) {
 }
 
 func TestNewClient_setsDefaultHTTPClient(t *testing.T) {
-	client, err := NewClient("https://example.com/foo/bar")
+	_, err := NewClient("https://example.com/foo/bar")
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if !reflect.DeepEqual(client.HTTPClient, http.DefaultClient) {
-		t.Fatalf("expected %#v to equal %#v", client.HTTPClient, http.DefaultClient)
 	}
 }
 
@@ -128,6 +140,27 @@ func TestLogin_success(t *testing.T) {
 
 	if token == "" {
 		t.Fatal("expected token to be returned")
+	}
+}
+
+func TestRequest_tokenAuth(t *testing.T) {
+	server := newTestAtlasServer(t)
+	defer server.Stop()
+
+	client, err := NewClient(server.URL.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	client.Token = "a.atlasv1.b"
+
+	request, err := client.Request("GET", "/api/v1/token", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = checkResp(client.HTTPClient.Do(request))
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

@@ -1,6 +1,5 @@
 kd                 = require 'kd'
 React              = require 'kd-react'
-classnames         = require 'classnames'
 immutable          = require 'immutable'
 CommentList        = require 'activity/components/commentlist'
 CommentInputWidget = require 'activity/components/commentinputwidget'

@@ -7,7 +7,6 @@ CommentInputView        = require './commentinputview'
 EmbedBoxWidget          = require '../embedboxwidget'
 showError               = require 'app/util/showError'
 whoami                  = require 'app/util/whoami'
-generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
 AvatarStaticView        = require 'app/commonviews/avatarviews/avatarstaticview'
 isSoloProductLite       = require 'app/util/issoloproductlite'
 

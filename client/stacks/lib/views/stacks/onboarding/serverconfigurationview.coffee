@@ -1,5 +1,4 @@
 kd                    = require 'kd'
-KodingSwitch          = require 'app/commonviews/kodingswitch'
 SERVER_CONFIG_OPTIONS = require './serverconfigoptions'
 
 

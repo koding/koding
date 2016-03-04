@@ -1,6 +1,5 @@
 kd                   = require 'kd'
 AppFlux              = require 'app/flux'
-whoami               = require 'app/util/whoami'
 actions              = require '../actiontypes'
 isPublicChannel      = require 'app/util/isPublicChannel'
 desktopNotifications = require './desktopnotifications'

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/hcl/hcl/token"
+	"strings"
 )
 
 var f100 = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -73,6 +74,7 @@ var tokenLists = map[string][]tokenPair{
 	},
 	"heredoc": []tokenPair{
 		{token.HEREDOC, "<<EOF\nhello\nworld\nEOF"},
+		{token.HEREDOC, "<<EOF123\nhello\nworld\nEOF123"},
 	},
 	"string": []tokenPair{
 		{token.STRING, `" "`},
@@ -129,6 +131,7 @@ var tokenLists = map[string][]tokenPair{
 		{token.NUMBER, "-00"},
 		{token.NUMBER, "-01"},
 		{token.NUMBER, "-07"},
+		{token.NUMBER, "-29"},
 		{token.NUMBER, "-042"},
 		{token.NUMBER, "-01234567"},
 		{token.NUMBER, "-0x0"},
@@ -305,6 +308,44 @@ func TestNumber(t *testing.T) {
 
 func TestFloat(t *testing.T) {
 	testTokenList(t, tokenLists["float"])
+}
+
+func TestWindowsLineEndings(t *testing.T) {
+	hcl := `// This should have Windows line endings
+resource "aws_instance" "foo" {
+    user_data=<<HEREDOC
+    test script
+HEREDOC
+}`
+	hclWindowsEndings := strings.Replace(hcl, "\n", "\r\n", -1)
+
+	literals := []struct {
+		tokenType token.Type
+		literal   string
+	}{
+		{token.COMMENT, "// This should have Windows line endings\r"},
+		{token.IDENT, `resource`},
+		{token.STRING, `"aws_instance"`},
+		{token.STRING, `"foo"`},
+		{token.LBRACE, `{`},
+		{token.IDENT, `user_data`},
+		{token.ASSIGN, `=`},
+		{token.HEREDOC, "<<HEREDOC\r\n    test script\r\nHEREDOC\r\n"},
+		{token.RBRACE, `}`},
+	}
+
+	s := New([]byte(hclWindowsEndings))
+	for _, l := range literals {
+		tok := s.Scan()
+
+		if l.tokenType != tok.Type {
+			t.Errorf("got: %s want %s for %s\n", tok, l.tokenType, tok.String())
+		}
+
+		if l.literal != tok.Text {
+			t.Errorf("got:\n%v\nwant:\n%v\n", []byte(tok.Text), []byte(l.literal))
+		}
+	}
 }
 
 func TestRealExample(t *testing.T) {

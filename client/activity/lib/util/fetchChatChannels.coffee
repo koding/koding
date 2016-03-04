@@ -1,5 +1,4 @@
 kd               = require 'kd'
-globals          = require 'globals'
 fetchAccount     = require 'app/util/fetchAccount'
 isFeatureEnabled = require 'app/util/isFeatureEnabled'
 
