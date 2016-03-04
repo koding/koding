@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/common/response"
-	"strings"
 
 	"github.com/codahale/sneaker"
 )
@@ -89,20 +87,4 @@ func (s *SneakerS3) Get(u *url.URL, h http.Header, _ interface{}, context *model
 	}
 
 	return response.NewOK(x)
-}
-
-func parseContext(s string) (map[string]string, error) {
-	if s == "" {
-		return nil, nil
-	}
-
-	context := map[string]string{}
-	for _, v := range strings.Split(s, ",") {
-		parts := strings.SplitN(v, "=", 2)
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("unable to parse context: %q", v)
-		}
-		context[parts[0]] = parts[1]
-	}
-	return context, nil
 }
