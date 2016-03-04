@@ -32,6 +32,7 @@ func init() {
 	protocolVersionMap = map[uint8]uint8{
 		1: 4,
 		2: 4,
+		3: 4,
 	}
 }
 
@@ -53,8 +54,14 @@ type Config struct {
 	// DataDir is the directory to store our state in
 	DataDir string
 
+	// DevMode is used to enable a development server mode.
+	DevMode bool
+
 	// Node name is the name we use to advertise. Defaults to hostname.
 	NodeName string
+
+	// Domain is the DNS domain for the records. Defaults to "consul."
+	Domain string
 
 	// RaftConfig is the configuration used for Raft in the local DC
 	RaftConfig *raft.Config
@@ -99,6 +106,14 @@ type Config struct {
 	// must match a provided certificate authority. This is used to verify authenticity of
 	// server nodes.
 	VerifyOutgoing bool
+
+	// VerifyServerHostname is used to enable hostname verification of servers. This
+	// ensures that the certificate presented is valid for server.<datacenter>.<domain>.
+	// This prevents a compromised client from being restarted as a server, and then
+	// intercepting request traffic as well as being added as a raft peer. This should be
+	// enabled by default with VerifyOutgoing, but for legacy reasons we cannot break
+	// existing clients.
+	VerifyServerHostname bool
 
 	// CAFile is a path to a certificate authority file. This is used with VerifyIncoming
 	// or VerifyOutgoing to verify the TLS connection.
@@ -169,7 +184,7 @@ type Config struct {
 	// is also monotonic. This prevents deletes from reducing the disk space
 	// used.
 	// In theory, neither of these are intrinsic limitations, however for the
-	// purposes of building a practical system, they are reaonable trade offs.
+	// purposes of building a practical system, they are reasonable trade offs.
 	//
 	// It is also possible to set this to an incredibly long time, thereby
 	// simulating infinite retention. This is not recommended however.
@@ -191,6 +206,24 @@ type Config struct {
 	// UserEventHandler callback can be used to handle incoming
 	// user events. This function should not block.
 	UserEventHandler func(serf.UserEvent)
+
+	// DisableCoordinates controls features related to network coordinates.
+	DisableCoordinates bool
+
+	// CoordinateUpdatePeriod controls how long a server batches coordinate
+	// updates before applying them in a Raft transaction. A larger period
+	// leads to fewer Raft transactions, but also the stored coordinates
+	// being more stale.
+	CoordinateUpdatePeriod time.Duration
+
+	// CoordinateUpdateBatchSize controls the maximum number of updates a
+	// server batches before applying them in a Raft transaction.
+	CoordinateUpdateBatchSize int
+
+	// CoordinateUpdateMaxBatches controls the maximum number of batches we
+	// are willing to apply in one period. After this limit we will issue a
+	// warning and discard the remaining updates.
+	CoordinateUpdateMaxBatches int
 }
 
 // CheckVersion is used to check if the ProtocolVersion is valid
@@ -238,13 +271,21 @@ func DefaultConfig() *Config {
 		SerfLANConfig:           serf.DefaultConfig(),
 		SerfWANConfig:           serf.DefaultConfig(),
 		ReconcileInterval:       60 * time.Second,
-		ProtocolVersion:         ProtocolVersionMax,
+		ProtocolVersion:         ProtocolVersion2Compatible,
 		ACLTTL:                  30 * time.Second,
 		ACLDefaultPolicy:        "allow",
 		ACLDownPolicy:           "extend-cache",
 		TombstoneTTL:            15 * time.Minute,
 		TombstoneTTLGranularity: 30 * time.Second,
 		SessionTTLMin:           10 * time.Second,
+		DisableCoordinates:      false,
+
+		// These are tuned to provide a total throughput of 128 updates
+		// per second. If you update these, you should update the client-
+		// side SyncCoordinateRateTarget parameter accordingly.
+		CoordinateUpdatePeriod:     5 * time.Second,
+		CoordinateUpdateBatchSize:  128,
+		CoordinateUpdateMaxBatches: 5,
 	}
 
 	// Increase our reap interval to 3 days instead of 24h.
@@ -267,13 +308,15 @@ func DefaultConfig() *Config {
 
 func (c *Config) tlsConfig() *tlsutil.Config {
 	tlsConf := &tlsutil.Config{
-		VerifyIncoming: c.VerifyIncoming,
-		VerifyOutgoing: c.VerifyOutgoing,
-		CAFile:         c.CAFile,
-		CertFile:       c.CertFile,
-		KeyFile:        c.KeyFile,
-		NodeName:       c.NodeName,
-		ServerName:     c.ServerName}
-
+		VerifyIncoming:       c.VerifyIncoming,
+		VerifyOutgoing:       c.VerifyOutgoing,
+		VerifyServerHostname: c.VerifyServerHostname,
+		CAFile:               c.CAFile,
+		CertFile:             c.CertFile,
+		KeyFile:              c.KeyFile,
+		NodeName:             c.NodeName,
+		ServerName:           c.ServerName,
+		Domain:               c.Domain,
+	}
 	return tlsConf
 }

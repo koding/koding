@@ -6,8 +6,9 @@ import (
 )
 
 func TestAgent_Self(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -23,8 +24,9 @@ func TestAgent_Self(t *testing.T) {
 }
 
 func TestAgent_Members(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -39,8 +41,9 @@ func TestAgent_Members(t *testing.T) {
 }
 
 func TestAgent_Services(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -63,13 +66,18 @@ func TestAgent_Services(t *testing.T) {
 	if _, ok := services["foo"]; !ok {
 		t.Fatalf("missing service: %v", services)
 	}
-
 	checks, err := agent.Checks()
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if _, ok := checks["service:foo"]; !ok {
+	chk, ok := checks["service:foo"]
+	if !ok {
 		t.Fatalf("missing check: %v", checks)
+	}
+
+	// Checks should default to critical
+	if chk.Status != "critical" {
+		t.Fatalf("Bad: %#v", chk)
 	}
 
 	if err := agent.ServiceDeregister("foo"); err != nil {
@@ -77,9 +85,74 @@ func TestAgent_Services(t *testing.T) {
 	}
 }
 
-func TestAgent_ServiceAddress(t *testing.T) {
+func TestAgent_Services_CheckPassing(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
+
+	agent := c.Agent()
+	reg := &AgentServiceRegistration{
+		Name: "foo",
+		Tags: []string{"bar", "baz"},
+		Port: 8000,
+		Check: &AgentServiceCheck{
+			TTL:    "15s",
+			Status: "passing",
+		},
+	}
+	if err := agent.ServiceRegister(reg); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	services, err := agent.Services()
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if _, ok := services["foo"]; !ok {
+		t.Fatalf("missing service: %v", services)
+	}
+
+	checks, err := agent.Checks()
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	chk, ok := checks["service:foo"]
+	if !ok {
+		t.Fatalf("missing check: %v", checks)
+	}
+
+	if chk.Status != "passing" {
+		t.Fatalf("Bad: %#v", chk)
+	}
+	if err := agent.ServiceDeregister("foo"); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+}
+
+func TestAgent_Services_CheckBadStatus(t *testing.T) {
+	t.Parallel()
+	c, s := makeClient(t)
+	defer s.Stop()
+
+	agent := c.Agent()
+	reg := &AgentServiceRegistration{
+		Name: "foo",
+		Tags: []string{"bar", "baz"},
+		Port: 8000,
+		Check: &AgentServiceCheck{
+			TTL:    "15s",
+			Status: "fluffy",
+		},
+	}
+	if err := agent.ServiceRegister(reg); err == nil {
+		t.Fatalf("bad status accepted")
+	}
+}
+
+func TestAgent_ServiceAddress(t *testing.T) {
+	t.Parallel()
+	c, s := makeClient(t)
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -123,9 +196,53 @@ func TestAgent_ServiceAddress(t *testing.T) {
 	}
 }
 
-func TestAgent_Services_MultipleChecks(t *testing.T) {
+func TestAgent_EnableTagOverride(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
+
+	agent := c.Agent()
+
+	reg1 := &AgentServiceRegistration{
+		Name:              "foo1",
+		Port:              8000,
+		Address:           "192.168.0.42",
+		EnableTagOverride: true,
+	}
+	reg2 := &AgentServiceRegistration{
+		Name: "foo2",
+		Port: 8000,
+	}
+	if err := agent.ServiceRegister(reg1); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if err := agent.ServiceRegister(reg2); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	services, err := agent.Services()
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	if _, ok := services["foo1"]; !ok {
+		t.Fatalf("missing service: %v", services)
+	}
+	if services["foo1"].EnableTagOverride != true {
+		t.Fatalf("tag override not set on service foo1: %v", services)
+	}
+	if _, ok := services["foo2"]; !ok {
+		t.Fatalf("missing service: %v", services)
+	}
+	if services["foo2"].EnableTagOverride != false {
+		t.Fatalf("tag override set on service foo2: %v", services)
+	}
+}
+
+func TestAgent_Services_MultipleChecks(t *testing.T) {
+	t.Parallel()
+	c, s := makeClient(t)
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -167,8 +284,9 @@ func TestAgent_Services_MultipleChecks(t *testing.T) {
 }
 
 func TestAgent_SetTTLStatus(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -207,8 +325,9 @@ func TestAgent_SetTTLStatus(t *testing.T) {
 }
 
 func TestAgent_Checks(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -224,8 +343,47 @@ func TestAgent_Checks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if _, ok := checks["foo"]; !ok {
+	chk, ok := checks["foo"]
+	if !ok {
 		t.Fatalf("missing check: %v", checks)
+	}
+	if chk.Status != "critical" {
+		t.Fatalf("check not critical: %v", chk)
+	}
+
+	if err := agent.CheckDeregister("foo"); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+}
+
+func TestAgent_CheckStartPassing(t *testing.T) {
+	t.Parallel()
+	c, s := makeClient(t)
+	defer s.Stop()
+
+	agent := c.Agent()
+
+	reg := &AgentCheckRegistration{
+		Name: "foo",
+		AgentServiceCheck: AgentServiceCheck{
+			Status: "passing",
+		},
+	}
+	reg.TTL = "15s"
+	if err := agent.CheckRegister(reg); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	checks, err := agent.Checks()
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	chk, ok := checks["foo"]
+	if !ok {
+		t.Fatalf("missing check: %v", checks)
+	}
+	if chk.Status != "passing" {
+		t.Fatalf("check not passing: %v", chk)
 	}
 
 	if err := agent.CheckDeregister("foo"); err != nil {
@@ -234,8 +392,9 @@ func TestAgent_Checks(t *testing.T) {
 }
 
 func TestAgent_Checks_serviceBound(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -271,9 +430,54 @@ func TestAgent_Checks_serviceBound(t *testing.T) {
 	}
 }
 
-func TestAgent_Join(t *testing.T) {
+func TestAgent_Checks_Docker(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
+
+	agent := c.Agent()
+
+	// First register a service
+	serviceReg := &AgentServiceRegistration{
+		Name: "redis",
+	}
+	if err := agent.ServiceRegister(serviceReg); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	// Register a check bound to the service
+	reg := &AgentCheckRegistration{
+		Name:      "redischeck",
+		ServiceID: "redis",
+		AgentServiceCheck: AgentServiceCheck{
+			DockerContainerID: "f972c95ebf0e",
+			Script:            "/bin/true",
+			Shell:             "/bin/bash",
+			Interval:          "10s",
+		},
+	}
+	if err := agent.CheckRegister(reg); err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	checks, err := agent.Checks()
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	check, ok := checks["redischeck"]
+	if !ok {
+		t.Fatalf("missing check: %v", checks)
+	}
+	if check.ServiceID != "redis" {
+		t.Fatalf("missing service association for check: %v", check)
+	}
+}
+
+func TestAgent_Join(t *testing.T) {
+	t.Parallel()
+	c, s := makeClient(t)
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -291,8 +495,9 @@ func TestAgent_Join(t *testing.T) {
 }
 
 func TestAgent_ForceLeave(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -304,8 +509,9 @@ func TestAgent_ForceLeave(t *testing.T) {
 }
 
 func TestServiceMaintenance(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 
@@ -358,8 +564,9 @@ func TestServiceMaintenance(t *testing.T) {
 }
 
 func TestNodeMaintenance(t *testing.T) {
+	t.Parallel()
 	c, s := makeClient(t)
-	defer s.stop()
+	defer s.Stop()
 
 	agent := c.Agent()
 

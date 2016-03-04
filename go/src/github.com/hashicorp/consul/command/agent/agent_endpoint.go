@@ -3,6 +3,7 @@ package agent
 import (
 	"fmt"
 	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/serf/coordinate"
 	"github.com/hashicorp/serf/serf"
 	"net/http"
 	"strconv"
@@ -11,12 +12,22 @@ import (
 
 type AgentSelf struct {
 	Config *Config
+	Coord  *coordinate.Coordinate
 	Member serf.Member
 }
 
 func (s *HTTPServer) AgentSelf(resp http.ResponseWriter, req *http.Request) (interface{}, error) {
+	var c *coordinate.Coordinate
+	if !s.agent.config.DisableCoordinates {
+		var err error
+		if c, err = s.agent.GetCoordinate(); err != nil {
+			return nil, err
+		}
+	}
+
 	return AgentSelf{
 		Config: s.agent.config,
+		Coord:  c,
 		Member: s.agent.LocalMember(),
 	}, nil
 }
@@ -67,6 +78,8 @@ func (s *HTTPServer) AgentForceLeave(resp http.ResponseWriter, req *http.Request
 	return nil, s.agent.ForceLeave(addr)
 }
 
+const invalidCheckMessage = "Must provide TTL or Script/DockerContainerID/HTTP/TCP and Interval"
+
 func (s *HTTPServer) AgentRegisterCheck(resp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	var args CheckDefinition
 	// Fixup the type decode of TTL or Interval
@@ -86,6 +99,12 @@ func (s *HTTPServer) AgentRegisterCheck(resp http.ResponseWriter, req *http.Requ
 		return nil, nil
 	}
 
+	if args.Status != "" && !structs.ValidStatus(args.Status) {
+		resp.WriteHeader(400)
+		resp.Write([]byte("Bad check status"))
+		return nil, nil
+	}
+
 	// Construct the health check
 	health := args.HealthCheck(s.agent.config.NodeName)
 
@@ -93,12 +112,16 @@ func (s *HTTPServer) AgentRegisterCheck(resp http.ResponseWriter, req *http.Requ
 	chkType := &args.CheckType
 	if !chkType.Valid() {
 		resp.WriteHeader(400)
-		resp.Write([]byte("Must provide TTL or Script and Interval!"))
+		resp.Write([]byte(invalidCheckMessage))
 		return nil, nil
 	}
 
+	// Get the provided token, if any
+	var token string
+	s.parseToken(req, &token)
+
 	// Add the check
-	if err := s.agent.AddCheck(health, chkType, true); err != nil {
+	if err := s.agent.AddCheck(health, chkType, true, token); err != nil {
 		return nil, err
 	}
 	s.syncChanges()
@@ -192,15 +215,24 @@ func (s *HTTPServer) AgentRegisterService(resp http.ResponseWriter, req *http.Re
 	// Verify the check type
 	chkTypes := args.CheckTypes()
 	for _, check := range chkTypes {
+		if check.Status != "" && !structs.ValidStatus(check.Status) {
+			resp.WriteHeader(400)
+			resp.Write([]byte("Status for checks must 'passing', 'warning', 'critical', 'unknown'"))
+			return nil, nil
+		}
 		if !check.Valid() {
 			resp.WriteHeader(400)
-			resp.Write([]byte("Must provide TTL or Script and Interval!"))
+			resp.Write([]byte(invalidCheckMessage))
 			return nil, nil
 		}
 	}
 
+	// Get the provided token, if any
+	var token string
+	s.parseToken(req, &token)
+
 	// Add the check
-	if err := s.agent.AddService(ns, chkTypes, true); err != nil {
+	if err := s.agent.AddService(ns, chkTypes, true, token); err != nil {
 		return nil, err
 	}
 	s.syncChanges()
@@ -247,9 +279,13 @@ func (s *HTTPServer) AgentServiceMaintenance(resp http.ResponseWriter, req *http
 		return nil, nil
 	}
 
+	// Get the provided token, if any
+	var token string
+	s.parseToken(req, &token)
+
 	if enable {
 		reason := params.Get("reason")
-		if err = s.agent.EnableServiceMaintenance(serviceID, reason); err != nil {
+		if err = s.agent.EnableServiceMaintenance(serviceID, reason, token); err != nil {
 			resp.WriteHeader(404)
 			resp.Write([]byte(err.Error()))
 			return nil, nil
@@ -288,8 +324,12 @@ func (s *HTTPServer) AgentNodeMaintenance(resp http.ResponseWriter, req *http.Re
 		return nil, nil
 	}
 
+	// Get the provided token, if any
+	var token string
+	s.parseToken(req, &token)
+
 	if enable {
-		s.agent.EnableNodeMaintenance(params.Get("reason"))
+		s.agent.EnableNodeMaintenance(params.Get("reason"), token)
 	} else {
 		s.agent.DisableNodeMaintenance()
 	}

@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"testing"
 )
@@ -78,7 +79,7 @@ func TestArchive_file(t *testing.T) {
 		"foo.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -95,7 +96,7 @@ func TestArchive_fileCompressed(t *testing.T) {
 		"./foo.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -145,7 +146,7 @@ func TestArchive_dirExtra(t *testing.T) {
 		"hello.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -170,13 +171,38 @@ func TestArchive_dirExtraDir(t *testing.T) {
 		"foo/hello.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
 }
 
+func TestArchive_dirMode(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("modes don't work on Windows")
+	}
+
+	opts := &ArchiveOpts{}
+
+	r, err := CreateArchive(testFixture("archive-dir-mode"), opts)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	expected := []string{
+		"file.txt-exec",
+	}
+
+	entries := testArchive(t, r, true)
+	if !reflect.DeepEqual(entries, expected) {
+		t.Fatalf("bad: %#v", entries)
+	}
+}
 func TestArchive_dirSymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("git symlinks don't work on Windows")
+	}
+
 	path := filepath.Join(testFixture("archive-symlink"), "link", "link")
 	r, err := CreateArchive(path, new(ArchiveOpts))
 	if err != nil {
@@ -187,13 +213,17 @@ func TestArchive_dirSymlink(t *testing.T) {
 		"foo.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
 }
 
 func TestArchive_dirWithSymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("git symlinks don't work on Windows")
+	}
+
 	path := filepath.Join(testFixture("archive-symlink"), "link")
 	r, err := CreateArchive(path, new(ArchiveOpts))
 	if err != nil {
@@ -205,7 +235,7 @@ func TestArchive_dirWithSymlink(t *testing.T) {
 		"link/foo.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -222,7 +252,7 @@ func TestArchive_dirNoVCS(t *testing.T) {
 		"foo.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -241,7 +271,7 @@ func TestArchive_dirSubdirsNoVCS(t *testing.T) {
 		"subdir/hello.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -262,7 +292,7 @@ func TestArchive_dirExclude(t *testing.T) {
 		"foo.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -282,7 +312,31 @@ func TestArchive_dirInclude(t *testing.T) {
 		"bar.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
+	if !reflect.DeepEqual(entries, expected) {
+		t.Fatalf("bad: %#v", entries)
+	}
+}
+
+func TestArchive_dirIncludeStar(t *testing.T) {
+	opts := &ArchiveOpts{
+		Include: []string{"build/**/*"},
+	}
+
+	r, err := CreateArchive(testFixture("archive-subdir-splat"), opts)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	expected := []string{
+		"build/",
+		"build/darwin-amd64/",
+		"build/darwin-amd64/build.txt",
+		"build/linux-amd64/",
+		"build/linux-amd64/build.txt",
+	}
+
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -297,8 +351,9 @@ func TestArchive_git(t *testing.T) {
 	// Git doesn't allow nested ".git" directories so we do some hackiness
 	// here to get around that...
 	testDir := testFixture("archive-git")
-	oldName := filepath.Join(testDir, "DOTgit")
-	newName := filepath.Join(testDir, ".git")
+	oldName := filepath.ToSlash(filepath.Join(testDir, "DOTgit"))
+	newName := filepath.ToSlash(filepath.Join(testDir, ".git"))
+	os.Remove(newName)
 	if err := os.Rename(oldName, newName); err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -317,7 +372,7 @@ func TestArchive_git(t *testing.T) {
 		"subdir/hello.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -348,8 +403,9 @@ func TestArchive_gitSubdir(t *testing.T) {
 	// Git doesn't allow nested ".git" directories so we do some hackiness
 	// here to get around that...
 	testDir := testFixture("archive-git")
-	oldName := filepath.Join(testDir, "DOTgit")
-	newName := filepath.Join(testDir, ".git")
+	oldName := filepath.ToSlash(filepath.Join(testDir, "DOTgit"))
+	newName := filepath.ToSlash(filepath.Join(testDir, ".git"))
+	os.Remove(newName)
 	if err := os.Rename(oldName, newName); err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -365,7 +421,7 @@ func TestArchive_gitSubdir(t *testing.T) {
 		"hello.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
 		t.Fatalf("bad: %#v", entries)
 	}
@@ -391,9 +447,9 @@ func TestArchive_hg(t *testing.T) {
 		"subdir/hello.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
-		t.Fatalf("bad: %#v", entries)
+		t.Fatalf("\n-- Expected --\n%#v\n-- Found --\n%#v", expected, entries)
 	}
 }
 
@@ -414,9 +470,9 @@ func TestArchive_hgSubdir(t *testing.T) {
 		"hello.txt",
 	}
 
-	entries := testArchive(t, r)
+	entries := testArchive(t, r, false)
 	if !reflect.DeepEqual(entries, expected) {
-		t.Fatalf("bad: %#v", entries)
+		t.Fatalf("\n-- Expected --\n%#v\n-- Found --\n%#v", expected, entries)
 	}
 }
 
@@ -436,7 +492,7 @@ func TestReadCloseRemover(t *testing.T) {
 	}
 }
 
-func testArchive(t *testing.T, r *Archive) []string {
+func testArchive(t *testing.T, r *Archive, detailed bool) []string {
 	// Finish the archiving process in-memory
 	var buf bytes.Buffer
 	n, err := io.Copy(&buf, r)
@@ -464,7 +520,19 @@ func testArchive(t *testing.T, r *Archive) []string {
 			t.Fatalf("err: %s", err)
 		}
 
-		result = append(result, hdr.Name)
+		text := hdr.Name
+		if detailed {
+			// Check if the file is executable. We use these stub names
+			// to compensate for umask differences in test environments
+			// and limitations in using "git clone".
+			if hdr.FileInfo().Mode()&0111 != 0 {
+				text = hdr.Name + "-exec"
+			} else {
+				text = hdr.Name + "-reg"
+			}
+		}
+
+		result = append(result, text)
 	}
 
 	sort.Strings(result)
