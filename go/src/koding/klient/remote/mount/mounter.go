@@ -30,8 +30,6 @@ const (
 	fuseTellTimeout = 55 * time.Second
 )
 
-var ()
-
 // Mounter is responsible for actually mounting fuse mounts from Klient.
 type Mounter struct {
 	Log logging.Logger
