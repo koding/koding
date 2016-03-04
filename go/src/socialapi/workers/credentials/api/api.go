@@ -30,6 +30,7 @@ type SneakerS3 struct {
 
 // Store stores the given credentials on s3
 func (s *SneakerS3) Store(u *url.URL, h http.Header, cr *Credentials, context *models.Context) (int, http.Header, interface{}, error) {
+
 	pathName := u.Query().Get("pathName")
 	if pathName == "" {
 		return response.NewBadRequest(ErrPathNotFound)

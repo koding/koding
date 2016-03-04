@@ -6,6 +6,8 @@ import (
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -67,7 +69,11 @@ func loadManager(config *config.Config) (*sneaker.Manager, error) {
 		u.Path = u.Path[1:]
 	}
 
-	session := session.New()
+	// here, we provide access and secret keys for aws
+	creds := credentials.NewStaticCredentials(config.SneakerS3.AwsAccesskeyId, config.SneakerS3.AwsSecretAccessKey, "")
+
+	// we'r gonna use aws providers and region to init aws config
+	session := session.New(aws.NewConfig().WithCredentials(creds).WithRegion(config.SneakerS3.AwsRegion))
 
 	return &sneaker.Manager{
 		Objects: s3.New(session),
