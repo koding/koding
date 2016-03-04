@@ -195,14 +195,14 @@ type (
 
 	SneakerS3 struct {
 		//AWS_SECRET_ACCESS_KEY
-		AwsSecretAccessKey string `env:"key=KONFIG_AWS_SECRET_ACCESS_KEY"`
+		AwsSecretAccessKey string `env:"key=KONFIG_SOCIALAPI_AWS_SECRET_ACCESS_KEY"`
 		// AWS_ACCESS_KEY_ID
-		AwsAccesskeyId string `env:"key=KONFIG_AWS_ACCESS_KEY_ID"`
+		AwsAccesskeyId string `env:"key=KONFIG_SOCIALAPI_AWS_ACCESS_KEY_ID"`
 		// SNEAKER_S3_PATH
-		SneakerS3Path string `env:"key=KONFIG_SNEAKER_S3_PATH"`
+		SneakerS3Path string `env:"key=KONFIG_SOCIALAPI_SNEAKER_S3_PATH"`
 		// SNEAKER_MASTER_KEY
-		SneakerMasterKey string `env:"key=KONFIG_SNEAKER_MASTER_KEY"`
+		SneakerMasterKey string `env:"key=KONFIG_SOCIALAPI_SNEAKER_MASTER_KEY"`
 		// AWS_REGION
-		AwsRegion string `env:"key=KONFIG_AWS_REGION"`
+		AwsRegion string `env:"key=KONFIG_SOCIALAPI_AWS_REGION"`
 	}
 )
