@@ -18,6 +18,7 @@ describe 'helpers::isTeamPage', ->
       { host: 'hawaii.koding.com',         expected: yes }
       { host: 'hawaii.latest.koding.com',  expected: yes }
       { host: 'hawaii.sandbox.koding.com', expected: yes }
+      { host: '192.168.24.1',              expected: yes }
   ]
 
   it 'cases should complete successfully', (done) ->
