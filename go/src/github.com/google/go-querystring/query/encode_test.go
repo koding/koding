@@ -203,6 +203,15 @@ type D struct {
 	C string
 }
 
+type e struct {
+	B
+	C string
+}
+
+type F struct {
+	e
+}
+
 func TestValues_embeddedStructs(t *testing.T) {
 	tests := []struct {
 		in   interface{}
@@ -214,6 +223,10 @@ func TestValues_embeddedStructs(t *testing.T) {
 		},
 		{
 			D{B: B{C: "bar"}, C: "foo"},
+			url.Values{"C": {"foo", "bar"}},
+		},
+		{
+			F{e{B: B{C: "bar"}, C: "foo"}}, // With unexported embed
 			url.Values{"C": {"foo", "bar"}},
 		},
 	}

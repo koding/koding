@@ -62,6 +62,21 @@ func newSlashCommandFromURLValues(postForm url.Values) (*SlashCommand, error) {
 	return c, nil
 }
 
+// getOnlyChannels send a request to the slack with user's token & gets the channels
+func getOnlyChannels(token string) (*SlackChannelsResponse, error) {
+	api := slack.New(token)
+	var channels []slack.Channel
+
+	channels, err := api.GetChannels(true)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SlackChannelsResponse{
+		Channels: channels,
+	}, nil
+}
+
 // getChannels send a request to the slack with user's token & gets the channels
 func getChannels(token string) (*SlackChannelsResponse, error) {
 	api := slack.New(token)
@@ -226,4 +241,49 @@ func getSlackToken(context *models.Context) (string, error) {
 
 	return token, models.ErrTokenIsNotFound
 
+}
+
+func getAnySlackTokenWithGroup(context *models.Context) (string, error) {
+	var token string
+	groupName := context.GroupName
+
+	users, err := modelhelper.GetAnySlackTokenWithGroup(groupName)
+	if err != nil {
+		return token, err
+	}
+
+	for _, user := range users {
+		if user.ForeignAuth.Slack != nil {
+			if gName, ok := user.ForeignAuth.Slack[groupName]; ok {
+				if gName.Token != "" {
+					return gName.Token, nil
+				}
+			}
+		}
+	}
+
+	return token, models.ErrTokenIsNotFound
+}
+
+// getSlackTokenWithContext fecthes the token of user,
+// if it doesn't exists, then checks the anyone's token from user's group
+func getSlackTokenWithContext(context *models.Context) (string, error) {
+	var token string
+	var groupToken string
+
+	userToken, err := getSlackToken(context)
+	if err != nil || token == "" {
+		groupToken, err = getAnySlackTokenWithGroup(context)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if userToken != "" {
+		token = userToken
+	} else {
+		token = groupToken
+	}
+
+	return token, nil
 }

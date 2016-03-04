@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+	"fmt"
 	"time"
 )
 
@@ -14,6 +16,8 @@ const (
 	// It can be used in a way similar to Ephemeral Nodes in ZooKeeper.
 	SessionBehaviorDelete = "delete"
 )
+
+var ErrSessionExpired = errors.New("session expired")
 
 // SessionEntry represents a session in consul
 type SessionEntry struct {
@@ -101,7 +105,7 @@ func (s *Session) create(obj interface{}, q *WriteOptions) (string, *WriteMeta, 
 	return out.ID, wm, nil
 }
 
-// Destroy invalides a given session
+// Destroy invalidates a given session
 func (s *Session) Destroy(id string, q *WriteOptions) (*WriteMeta, error) {
 	wm, err := s.c.write("/v1/session/destroy/"+id, nil, nil, q)
 	if err != nil {
@@ -112,10 +116,25 @@ func (s *Session) Destroy(id string, q *WriteOptions) (*WriteMeta, error) {
 
 // Renew renews the TTL on a given session
 func (s *Session) Renew(id string, q *WriteOptions) (*SessionEntry, *WriteMeta, error) {
-	var entries []*SessionEntry
-	wm, err := s.c.write("/v1/session/renew/"+id, nil, &entries, q)
+	r := s.c.newRequest("PUT", "/v1/session/renew/"+id)
+	r.setWriteOptions(q)
+	rtt, resp, err := s.c.doRequest(r)
 	if err != nil {
 		return nil, nil, err
+	}
+	defer resp.Body.Close()
+
+	wm := &WriteMeta{RequestTime: rtt}
+
+	if resp.StatusCode == 404 {
+		return nil, wm, nil
+	} else if resp.StatusCode != 200 {
+		return nil, nil, fmt.Errorf("Unexpected response code: %d", resp.StatusCode)
+	}
+
+	var entries []*SessionEntry
+	if err := decodeBody(resp, &entries); err != nil {
+		return nil, nil, fmt.Errorf("Failed to read response: %v", err)
 	}
 	if len(entries) > 0 {
 		return entries[0], wm, nil
@@ -131,19 +150,30 @@ func (s *Session) RenewPeriodic(initialTTL string, id string, q *WriteOptions, d
 	if err != nil {
 		return err
 	}
+
+	waitDur := ttl / 2
+	lastRenewTime := time.Now()
+	var lastErr error
 	for {
+		if time.Since(lastRenewTime) > ttl {
+			return lastErr
+		}
 		select {
-		case <-time.After(ttl / 2):
+		case <-time.After(waitDur):
 			entry, _, err := s.Renew(id, q)
 			if err != nil {
-				return err
+				waitDur = time.Second
+				lastErr = err
+				continue
 			}
 			if entry == nil {
-				return nil
+				return ErrSessionExpired
 			}
 
 			// Handle the server updating the TTL
 			ttl, _ = time.ParseDuration(entry.TTL)
+			waitDur = ttl / 2
+			lastRenewTime = time.Now()
 
 		case <-doneCh:
 			// Attempt a session destroy

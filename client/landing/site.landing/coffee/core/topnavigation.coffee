@@ -1,6 +1,6 @@
-kd = require 'kd.js'
+kd             = require 'kd.js'
 CustomLinkView = require './customlinkview'
-kookies        = require 'kookies'
+
 
 module.exports = class TopNavigation extends kd.CustomHTMLView
 

@@ -7,8 +7,6 @@ RedeemInlineForm                      = require './redeemform'
 RecoverInlineForm                     = require './recoverform'
 ResetInlineForm                       = require './resetform'
 ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
-LoginOptions                          = require './loginoptions'
-RegisterOptions                       = require './registeroptions'
 MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
 
 module.exports = class LoginView extends JView

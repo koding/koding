@@ -1,6 +1,5 @@
 KodingFluxStore = require 'app/flux/base/store'
-toImmutable     = require 'app/util/toImmutable'
-actions        = require 'activity/flux/createchannel/actions/actiontypes'
+actions         = require 'activity/flux/createchannel/actions/actiontypes'
 
 ###*
  * Store to handle participants-dropdown of create new channel modal selected index

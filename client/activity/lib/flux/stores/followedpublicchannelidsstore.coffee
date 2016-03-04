@@ -1,6 +1,5 @@
 KodingFluxStore      = require 'app/flux/base/store'
 actions              = require '../actions/actiontypes'
-toImmutable          = require 'app/util/toImmutable'
 immutable            = require 'immutable'
 createChannelActions = require 'activity/flux/createchannel/actions/actiontypes'
 

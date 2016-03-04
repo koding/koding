@@ -1,6 +1,4 @@
-kd             = require 'kd'
-dateFormat     = require 'dateformat'
-objectToString = require 'app/util/objectToString'
+kd = require 'kd'
 
 # You can find the list of AWS error messages here
 # http://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html

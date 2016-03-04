@@ -29,6 +29,7 @@ module.exports = [
 
   [
     { name: 'pricing payment' }
+    { name: 'collaboration collaborationsingle'}
   ]
 
   [
@@ -61,13 +62,12 @@ module.exports = [
   ]
 
   [
-    { name: 'collaboration collaboration' }
     { name: 'environments snapshot' }
   ]
 
-  # [
-  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
+  [
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
 
   # [
   #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
@@ -90,7 +90,8 @@ module.exports = [
     { name: 'teams teams' }
   ]
 
-  # [
+  [
     # { name: 'environments vm-advanced' }
-  # ]
+    { name: 'environments paidaccountvm' }
+  ]
 ]

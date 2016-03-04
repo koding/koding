@@ -14,6 +14,7 @@ MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemvi
 remote                      = require('app/remote').getInstance()
 globals                     = require 'globals'
 showError                   = require 'app/util/showError'
+Tracker                     = require 'app/util/tracker'
 
 
 module.exports = class AccountCredentialListController extends AccountListViewController
@@ -210,6 +211,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       credential.owner = yes
       view.form.destroy()
       @addItem credential
+
+      if provider is 'aws'
+        Tracker.track Tracker.ADDED_AWS_KEYS
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.

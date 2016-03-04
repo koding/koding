@@ -6,6 +6,7 @@ import (
 
 	"github.com/armon/go-metrics"
 	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/go-uuid"
 )
 
 // Session endpoint is used to manipulate sessions for KV
@@ -61,7 +62,11 @@ func (s *Session) Apply(args *structs.SessionRequest, reply *string) error {
 		// Generate a new session ID, verify uniqueness
 		state := s.srv.fsm.State()
 		for {
-			args.Session.ID = generateUUID()
+			var err error
+			if args.Session.ID, err = uuid.GenerateUUID(); err != nil {
+				s.srv.logger.Printf("[ERR] consul.session: UUID generation failed: %v", err)
+				return err
+			}
 			_, sess, err := state.SessionGet(args.Session.ID)
 			if err != nil {
 				s.srv.logger.Printf("[ERR] consul.session: Session lookup failed: %v", err)
@@ -109,18 +114,23 @@ func (s *Session) Get(args *structs.SessionSpecificRequest,
 
 	// Get the local state
 	state := s.srv.fsm.State()
-	return s.srv.blockingRPC(&args.QueryOptions,
+	return s.srv.blockingRPC(
+		&args.QueryOptions,
 		&reply.QueryMeta,
-		state.QueryTables("SessionGet"),
+		state.GetQueryWatch("SessionGet"),
 		func() error {
 			index, session, err := state.SessionGet(args.Session)
+			if err != nil {
+				return err
+			}
+
 			reply.Index = index
 			if session != nil {
 				reply.Sessions = structs.Sessions{session}
 			} else {
 				reply.Sessions = nil
 			}
-			return err
+			return nil
 		})
 }
 
@@ -133,13 +143,18 @@ func (s *Session) List(args *structs.DCSpecificRequest,
 
 	// Get the local state
 	state := s.srv.fsm.State()
-	return s.srv.blockingRPC(&args.QueryOptions,
+	return s.srv.blockingRPC(
+		&args.QueryOptions,
 		&reply.QueryMeta,
-		state.QueryTables("SessionList"),
+		state.GetQueryWatch("SessionList"),
 		func() error {
-			var err error
-			reply.Index, reply.Sessions, err = state.SessionList()
-			return err
+			index, sessions, err := state.SessionList()
+			if err != nil {
+				return err
+			}
+
+			reply.Index, reply.Sessions = index, sessions
+			return nil
 		})
 }
 
@@ -152,13 +167,18 @@ func (s *Session) NodeSessions(args *structs.NodeSpecificRequest,
 
 	// Get the local state
 	state := s.srv.fsm.State()
-	return s.srv.blockingRPC(&args.QueryOptions,
+	return s.srv.blockingRPC(
+		&args.QueryOptions,
 		&reply.QueryMeta,
-		state.QueryTables("NodeSessions"),
+		state.GetQueryWatch("NodeSessions"),
 		func() error {
-			var err error
-			reply.Index, reply.Sessions, err = state.NodeSessions(args.Node)
-			return err
+			index, sessions, err := state.NodeSessions(args.Node)
+			if err != nil {
+				return err
+			}
+
+			reply.Index, reply.Sessions = index, sessions
+			return nil
 		})
 }
 

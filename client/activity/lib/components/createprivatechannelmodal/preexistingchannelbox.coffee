@@ -1,5 +1,4 @@
 React = require 'kd-react'
-ProfileText = require 'app/components/profile/profiletext'
 
 
 module.exports = class PreExistingChannelBox extends React.Component

@@ -1,7 +1,7 @@
 $              = require 'jquery'
 React          = require 'kd-react'
-ReactDOM       = require 'react-dom'
 scrollToTarget = require 'app/util/scrollToTarget'
+
 
 module.exports = (Component) ->
 

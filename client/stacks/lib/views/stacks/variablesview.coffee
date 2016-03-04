@@ -2,7 +2,6 @@ kd                         = require 'kd'
 _                          = require 'lodash'
 remote                     = require('app/remote').getInstance()
 KDView                     = kd.View
-KDCustomHTMLView           = kd.CustomHTMLView
 StackBaseEditorTabView     = require './stackbaseeditortabview'
 requirementsParser         = require './requirementsparser'
 VariablesEditorView        = require './editors/variableseditorview'

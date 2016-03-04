@@ -1,7 +1,7 @@
 React                     = require 'kd-react'
 immutable                 = require 'immutable'
-Link                      = require 'app/components/common/link'
 MostActiveChannelListItem = require './mostactivechannellistitem'
+
 
 module.exports = class MostActiveChannelsWidget extends React.Component
 

@@ -5,7 +5,9 @@
 package handlers
 
 import (
+	"bufio"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -87,4 +89,66 @@ func TestCompressHandlerGzipDeflate(t *testing.T) {
 	if w.HeaderMap.Get("Content-Type") != "text/plain; charset=utf-8" {
 		t.Fatalf("wrong content type, got %s want %s", w.HeaderMap.Get("Content-Type"), "text/plain; charset=utf-8")
 	}
+}
+
+type fullyFeaturedResponseWriter struct{}
+
+// Header/Write/WriteHeader implement the http.ResponseWriter interface.
+func (fullyFeaturedResponseWriter) Header() http.Header {
+	return http.Header{}
+}
+func (fullyFeaturedResponseWriter) Write([]byte) (int, error) {
+	return 0, nil
+}
+func (fullyFeaturedResponseWriter) WriteHeader(int) {}
+
+// Flush implements the http.Flusher interface.
+func (fullyFeaturedResponseWriter) Flush() {}
+
+// Hijack implements the http.Hijacker interface.
+func (fullyFeaturedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return nil, nil, nil
+}
+
+// CloseNotify implements the http.CloseNotifier interface.
+func (fullyFeaturedResponseWriter) CloseNotify() <-chan bool {
+	return nil
+}
+
+func TestCompressHandlerPreserveInterfaces(t *testing.T) {
+	// Compile time validation fullyFeaturedResponseWriter implements all the
+	// interfaces we're asserting in the test case below.
+	var (
+		_ http.Flusher       = fullyFeaturedResponseWriter{}
+		_ http.CloseNotifier = fullyFeaturedResponseWriter{}
+		_ http.Hijacker      = fullyFeaturedResponseWriter{}
+	)
+	var h http.Handler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		comp := r.Header.Get("Accept-Encoding")
+		if _, ok := rw.(*compressResponseWriter); !ok {
+			t.Fatalf("ResponseWriter wasn't wrapped by compressResponseWriter, got %T type", rw)
+		}
+		if _, ok := rw.(http.Flusher); !ok {
+			t.Errorf("ResponseWriter lost http.Flusher interface for %q", comp)
+		}
+		if _, ok := rw.(http.CloseNotifier); !ok {
+			t.Errorf("ResponseWriter lost http.CloseNotifier interface for %q", comp)
+		}
+		if _, ok := rw.(http.Hijacker); !ok {
+			t.Errorf("ResponseWriter lost http.Hijacker interface for %q", comp)
+		}
+	})
+	h = CompressHandler(h)
+	var (
+		rw fullyFeaturedResponseWriter
+	)
+	r, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatalf("Failed to create test request: %v", err)
+	}
+	r.Header.Set("Accept-Encoding", "gzip")
+	h.ServeHTTP(rw, r)
+
+	r.Header.Set("Accept-Encoding", "deflate")
+	h.ServeHTTP(rw, r)
 }

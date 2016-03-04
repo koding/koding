@@ -375,4 +375,17 @@ module.exports = utils = {
     if pathname and pathname.indexOf(loginRoute) is -1
       return pathname.substring 1
 
+
+  repositionSuffix: (input, fakeView) ->
+
+    input.getElement().removeAttribute 'size'
+
+    element           = fakeView.getElement()
+    element.innerHTML = input.getValue()
+
+    { width }         = element.getBoundingClientRect()
+    width             = if width then width + 3 else 100
+
+    input.setWidth width
+
 }

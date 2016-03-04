@@ -10,6 +10,7 @@ KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'
 InvitationInputView = require './invitationinputview'
 whoami              = require 'app/util/whoami'
+Tracker             = require 'app/util/tracker'
 
 module.exports = class InviteSomeoneView extends KDView
 
@@ -95,6 +96,11 @@ module.exports = class InviteSomeoneView extends KDView
 
       invites.push invite = view.serialize()
       admins.push invite.email  if invite.role is 'admin'
+
+    Tracker.track Tracker.INVITED_TEAMMEMBERS, {
+      invitesCount : invites.length
+      adminsCount  : admins.length
+    }
 
     if admins.length
       @notifyAdminInvites invites, admins

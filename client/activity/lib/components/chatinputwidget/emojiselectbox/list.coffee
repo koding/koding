@@ -1,7 +1,5 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
-ReactDOM              = require 'react-dom'
-classnames            = require 'classnames'
 immutable             = require 'immutable'
 EmojiSelectBoxItem    = require './item'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'

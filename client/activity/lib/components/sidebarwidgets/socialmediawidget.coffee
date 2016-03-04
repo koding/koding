@@ -1,8 +1,7 @@
 React          = require 'kd-react'
-Scroller       = require 'app/components/scroller'
-
 TWITTER_LINK   = 'https://twitter.com/intent/follow?user_id=42704386'
 FACEBOOK_LINK  = 'https://facebook.com/koding'
+
 
 module.exports = class SocialMediaWidget extends React.Component
 

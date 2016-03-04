@@ -23,13 +23,13 @@ clone git github.com/vdemeester/shakers 24d7f1d6a71aa5d9cbe7390e4afb66b7eef9e1b3
 clone git golang.org/x/net 47990a1ba55743e6ef1affd3a14e5bac8553615d https://github.com/golang/net.git
 clone git golang.org/x/sys eb2c74142fd19a79b3f237334c7384d5167b1b46 https://github.com/golang/sys.git
 clone git github.com/docker/go-units 651fc226e7441360384da338d0fd37f2440ffbe3
-clone git github.com/docker/go-connections v0.1.3
-clone git github.com/docker/engine-api ddfd776c787a013c39d4eb3fa9c44006347e207a
+clone git github.com/docker/go-connections v0.2.0
+clone git github.com/docker/engine-api 70d266e96080e3c3d63c55a4d8659e00ac1f7e6c
 clone git github.com/RackSec/srslog 6eb773f331e46fbba8eecb8e794e635e75fc04de
 clone git github.com/imdario/mergo 0.2.1
 
 #get libnetwork packages
-clone git github.com/docker/libnetwork v0.7.0-dev.2
+clone git github.com/docker/libnetwork v0.7.0-dev.3
 clone git github.com/armon/go-metrics eb0af217e5e9747e41dd5303755356b62d28e3ec
 clone git github.com/hashicorp/go-msgpack 71c2886f5a673a35f909803f38ece5810165097b
 clone git github.com/hashicorp/memberlist 9a1e242e454d2443df330bdd51a436d5a9058fc4
@@ -52,14 +52,14 @@ clone git github.com/docker/distribution 7b66c50bb7e0e4b3b83f8fd134a9f6ea4be08b5
 clone git github.com/vbatts/tar-split v0.9.11
 
 # get desired notary commit, might also need to be updated in Dockerfile
-clone git github.com/docker/notary docker-v1.10-5
+clone git github.com/docker/notary v0.2.0
 
 clone git google.golang.org/grpc 174192fc93efcb188fc8f46ca447f0da606b6885 https://github.com/grpc/grpc-go.git
-clone git github.com/miekg/pkcs11 80f102b5cac759de406949c47f0928b99bd64cdf
+clone git github.com/miekg/pkcs11 df8ae6ca730422dba20c768ff38ef7d79077a59f
 clone git github.com/docker/go v1.5.1-1-1-gbaf439e
 clone git github.com/agl/ed25519 d2b94fd789ea21d12fac1a4443dd3a3f79cda72c
 
-clone git github.com/opencontainers/runc 3d8a20bb772defc28c355534d83486416d1719b4 # libcontainer
+clone git github.com/opencontainers/runc 2c3115481ee1782ad687a9e0b4834f89533c2acf # libcontainer
 clone git github.com/seccomp/libseccomp-golang 1b506fc7c24eec5a3693cdcbed40d9c226cfc6a1
 # libcontainer deps (see src/github.com/opencontainers/runc/Godeps/Godeps.json)
 clone git github.com/coreos/go-systemd v4
@@ -81,5 +81,10 @@ clone git gopkg.in/fsnotify.v1 v1.2.0
 # awslogs deps
 clone git github.com/aws/aws-sdk-go v0.9.9
 clone git github.com/vaughan0/go-ini a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
+
+# gcplogs deps
+clone git golang.org/x/oauth2 2baa8a1b9338cf13d9eeb27696d761155fa480be https://github.com/golang/oauth2.git
+clone git google.golang.org/api dc6d2353af16e2a2b0ff6986af051d473a4ed468 https://code.googlesource.com/google-api-go-client
+clone git google.golang.org/cloud dae7e3d993bc3812a2185af60552bb6b847e52a0 https://code.googlesource.com/gocloud
 
 clean
