@@ -158,7 +158,7 @@ Configuration = (options={}) ->
   sneakerS3 =
     awsSecretAccessKey  : "#{awsKeys.worker_sneakerS3.secretAccessKey}"
     awsAccessKeyId      : "#{awsKeys.worker_sneakerS3.accessKeyId}"
-    sneakerS3Path       : "s3://kodingdev-credentials/secrets/"
+    sneakerS3Path       : "s3://kodingdev-credentials/"
     sneakerMasterKey    : "fecea2c8-e569-4d87-9179-8e7c93253072"
     awsRegion           : "us-east-1"
 
