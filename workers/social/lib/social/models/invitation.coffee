@@ -22,7 +22,7 @@ module.exports = class JInvitation extends jraphical.Module
   { permit } = require './group/permissionset'
 
   ADMIN_PERMISSIONS = [
-    { superadmin: yes }
+    { permission: 'send invitations', superadmin: yes }
   ]
 
   @share()
@@ -122,14 +122,16 @@ module.exports = class JInvitation extends jraphical.Module
     success: (client, selector, options, callback) ->
       { groupSlug } = selector
       groupName     = client.context.group or 'koding'
-      @canFetchInvitationsAsAdmin client, (err, isSuperAdmin) ->
+      @canFetchInvitationsAsSuperAdmin client, (err, isSuperAdmin) ->
         selector           or= {}
         selector.groupName   = groupName # override group name in any case
         selector.status    or= 'pending'
 
-        if isSuperAdmin and groupSlug
+        # allow only koding super admin to update groupName in query
+        if isSuperAdmin and groupSlug and client.context.group is 'koding'
           selector.groupName = groupSlug
 
+        # delete groupSlug to prevent suspicious queries
         delete selector.groupSlug
 
         { limit }       = options
@@ -185,7 +187,7 @@ module.exports = class JInvitation extends jraphical.Module
           return callback null, codes
 
 
-  @canFetchInvitationsAsAdmin: permit
+  @canFetchInvitationsAsSuperAdmin: permit
     advanced: ADMIN_PERMISSIONS
 
 
