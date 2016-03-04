@@ -149,7 +149,7 @@ Configuration = (options={}) ->
   sneakerS3 =
     awsSecretAccessKey  : "#{awsKeys.worker_sneakerS3.secretAccessKey}"
     awsAccessKeyId      : "#{awsKeys.worker_sneakerS3.accessKeyId}"
-    sneakerS3Path       : "s3://kodingdev-credentials/"
+    sneakerS3Path       : "s3://kodingdev-credential/"
     sneakerMasterKey    : "fecea2c8-e569-4d87-9179-8e7c93253072"
     awsRegion           : "us-east-1"
 
@@ -598,6 +598,10 @@ Configuration = (options={}) ->
           {
             location    : "~* ^/api/social/slack/(.*)"
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
+          }
+          {
+            location    : "~* ^/api/social/credential/(.*)"
+            proxyPass   : "http://socialapi/credential/$1$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"
