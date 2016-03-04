@@ -584,10 +584,6 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
           }
           {
-            location    : "~* ^/api/social/credential/(.*)"
-            proxyPass   : "http://socialapi/credential/$1$is_args$args"
-          }
-          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
