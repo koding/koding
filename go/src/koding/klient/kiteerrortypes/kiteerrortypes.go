@@ -1,9 +1,15 @@
+// A series of kite error type constants. Because the usage of the kite error
+// types can be used anywhere, these types should never be changed.
+// Incosistencies in formatting likely means that the type came from somewhere
+// else. New types should adhere to camelcase.
+//
+// Leave existing cases as is!
+//
 package kiteerrortypes
 
 const (
 	//
 	// Kite error types not generated from Klient:
-	// (Leave cases as is)
 	//
 
 	AuthenticationError = "authenticationError"
