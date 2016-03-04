@@ -54,15 +54,9 @@ module.exports = updateCustomVariable = (options, callback) ->
     JCredential.one identifier, (err, credential) ->
       if err or not credential
         createAndUpdate { provider, title, meta, stackTemplate }, callback
-      else if meta and (Object.keys meta).length
+      else
         credential.update { meta, title }, (err) ->
           shareWithGroup credential, ->
-            callback err, stackTemplate
-      else
-        credential.delete (err) ->
-          { credentials } = stackTemplate
-          delete credentials.custom
-          stackTemplate.update { credentials }, (err) ->
             callback err, stackTemplate
 
   else
