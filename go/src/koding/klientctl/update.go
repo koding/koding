@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"koding/klientctl/config"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -52,7 +53,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	fmt.Printf("An update is available...\n")
-	fmt.Printf("Stopping %s...\n", KlientName)
+	fmt.Printf("Stopping %s...\n", config.KlientName)
 
 	// stop klient before we update it
 	if err := s.Stop(); err != nil {
@@ -89,7 +90,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	klientSh := klientSh{
 		User:          sudoUserFromEnviron(os.Environ()),
-		KiteHome:      KiteHome,
+		KiteHome:      config.KiteHome,
 		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
 		KontrolURL:    KontrolURL,
 	}
@@ -100,7 +101,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Printf("Successfully updated to latest version of %s.\n", Name)
+	fmt.Printf("Successfully updated to latest version of %s.\n", config.Name)
 	return 0
 }
 

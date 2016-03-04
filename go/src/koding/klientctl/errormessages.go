@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"koding/klientctl/config"
+)
 
 const (
 	waitRetry    = "Please wait a moment and try again."
@@ -25,35 +28,35 @@ var (
 
 	// FailedInstallingKlient is generic for when a klient install fails.
 	FailedInstallingKlient = fmt.Sprintf(
-		"Error: Unable to install the %s.\n%s", KlientName, retryNewCode,
+		"Error: Unable to install the %s.\n%s", config.KlientName, retryNewCode,
 	)
 
 	// FailedDownloadingKlient is used when downloading klient fails.
 	FailedDownloadingKlient = fmt.Sprintf(
 		"Error: Unable to download the %s binary.\n%s",
-		KlientName, retryNewCode,
+		config.KlientName, retryNewCode,
 	)
 
 	// FailedRegisteringKlient is used when registering klient to kontrol fails.
 	FailedRegisteringKlient = fmt.Sprintf(
 		"Error: Unable to authenticate %s to koding.com.\n%s",
-		Name, retryNewCode,
+		config.Name, retryNewCode,
 	)
 
 	// FailedVerifyingInstall is used when verifying the install fails.
 	FailedVerifyingInstall = fmt.Sprintf(
 		"Error: Unable to verify the installation of %s.\n%s",
-		Name, retryNewCode,
+		config.Name, retryNewCode,
 	)
 
 	// FailedStartKlient is used when starting klient fails.
 	FailedStartKlient = fmt.Sprintf(
-		"Error: Failed to start the %s within the expected time.\n", KlientName,
+		"Error: Failed to start the %s within the expected time.\n", config.KlientName,
 	)
 
 	// FailedStopKlient is used when stopping klient fails.
 	FailedStopKlient = fmt.Sprintf(
-		"Error: Failed to stop the %s within the expected time.\n", KlientName,
+		"Error: Failed to stop the %s within the expected time.\n", config.KlientName,
 	)
 
 	// FailedGetSSHKey is used when we fail to get the ssh key
@@ -79,7 +82,7 @@ var (
 	ReconnectingToKontrol = fmt.Sprintf(
 		`%s has been disconnected from Koding, and is in the process of reconnecting.
 Please wait a few minutes and try again.`,
-		Name,
+		config.Name,
 	)
 
 	// CannotMountDirNotExist is used when the user chooses not to make the dir on
@@ -127,12 +130,12 @@ Please unmount and try again`
 	// FailedUninstallingKlientWarn is when the service fails
 	// (connecting or uninstalling)
 	FailedUninstallingKlientWarn = fmt.Sprintf(
-		"Warning: Unable to uninstall %s service.", Name,
+		"Warning: Unable to uninstall %s service.", config.Name,
 	)
 
 	// FailedToRemoveFiles is a generic failed to remove warning.
 	FailedToRemoveFilesWarn = fmt.Sprintf(
-		"Warning: Failed to remove %s files. This is not a critical issue.", Name,
+		"Warning: Failed to remove %s files. This is not a critical issue.", config.Name,
 	)
 
 	// FailedToRemoveAuthFile for when we can't remove the kite key.
@@ -140,7 +143,7 @@ Please unmount and try again`
 
 	// FailedToRemoveKlient for when we can't remove the klient binary.
 	FailedToRemoveKlientWarn = fmt.Sprintf(
-		"Warning: Failed to remove %s binary. This is not a critical issue.", Name,
+		"Warning: Failed to remove %s binary. This is not a critical issue.", config.Name,
 	)
 
 	// FailedCheckingUpdateAvailable is used when checking if an update failed.

@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"koding/klientctl/config"
 	"os"
 	"path/filepath"
 	"strings"
@@ -132,7 +133,7 @@ func (u *Uninstall) Uninstall() (string, int) {
 		), 0
 	}
 
-	return fmt.Sprintf("Successfully uninstalled %s\n", KlientName), 0
+	return fmt.Sprintf("Successfully uninstalled %s\n", config.KlientName), 0
 }
 
 // UninstallCommand configures the Uninstall struct and calls it based on the
@@ -150,9 +151,9 @@ func UninstallCommand(c *cli.Context, log logging.Logger, _ string) (string, int
 
 	uninstaller := &Uninstall{
 		ServiceUninstaller: s,
-		KlientName:         KlientName,
-		KlientctlName:      Name,
-		KiteKeyDirectory:   KiteHome,
+		KlientName:         config.KlientName,
+		KlientctlName:      config.Name,
+		KiteKeyDirectory:   config.KiteHome,
 		// TODO: Store the kite.key path somewhere
 		KiteKeyFilename: "kite.key",
 		KlientctlPath:   filepath.Join(KlientctlDirectory, KlientctlBinName),
