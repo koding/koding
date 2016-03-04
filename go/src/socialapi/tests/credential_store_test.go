@@ -33,7 +33,8 @@ func TestStoreGetDeleteCredentials(t *testing.T) {
 					So(res, ShouldNotBeNil)
 					// As default, we create map[string]interface in rest.StoreCredentialWithAuth()
 					// map["test-key"]= "test-value" is created in rest function
-					So(res.KeyValue["test-key"], ShouldEqual, "test-value")
+					So(res["test-key"], ShouldEqual, "test-value")
+
 				})
 				Convey("We should be able to delete credentials after storing", func() {
 					err := rest.DeleteCredentialWithAuth(pathName, ownerSes.ClientId)
