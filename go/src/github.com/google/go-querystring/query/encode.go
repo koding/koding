@@ -138,7 +138,7 @@ func reflectValue(values url.Values, val reflect.Value, scope string) error {
 	typ := val.Type()
 	for i := 0; i < typ.NumField(); i++ {
 		sf := typ.Field(i)
-		if sf.PkgPath != "" { // unexported
+		if sf.PkgPath != "" && !sf.Anonymous { // unexported
 			continue
 		}
 
