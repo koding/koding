@@ -17,8 +17,9 @@ package ogletest
 
 import (
 	"errors"
-	. "github.com/jacobsa/oglematchers"
 	"testing"
+
+	. "github.com/jacobsa/oglematchers"
 )
 
 ////////////////////////////////////////////////////////////////////////
@@ -81,7 +82,7 @@ func TestNoCurrentTest(t *testing.T) {
 	}()
 
 	currentlyRunningTest = nil
-	ExpectThat(17, Equals(17))
+	ExpectThat(17, Equals(19))
 }
 
 func TestNoFailure(t *testing.T) {
@@ -121,9 +122,8 @@ func TestNoMatchWithoutErrorText(t *testing.T) {
 
 	record := currentlyRunningTest.failureRecords[0]
 	expectEqStr(t, "expect_that_test.go", record.FileName)
-	expectEqInt(t, 118, record.LineNumber)
-	expectEqStr(t, "Expected: taco\nActual:   17", record.GeneratedError)
-	expectEqStr(t, "", record.UserError)
+	expectEqInt(t, 119, record.LineNumber)
+	expectEqStr(t, "Expected: taco\nActual:   17", record.Error)
 }
 
 func TestNoMatchWithErrorTExt(t *testing.T) {
@@ -134,7 +134,10 @@ func TestNoMatchWithErrorTExt(t *testing.T) {
 	assertEqInt(t, 1, len(currentlyRunningTest.failureRecords))
 	record := currentlyRunningTest.failureRecords[0]
 
-	expectEqStr(t, "Expected: taco\nActual:   17, which is foo", record.GeneratedError)
+	expectEqStr(
+		t,
+		"Expected: taco\nActual:   17, which is foo",
+		record.Error)
 }
 
 func TestFailureWithUserMessage(t *testing.T) {
@@ -145,7 +148,7 @@ func TestFailureWithUserMessage(t *testing.T) {
 	assertEqInt(t, 1, len(currentlyRunningTest.failureRecords))
 	record := currentlyRunningTest.failureRecords[0]
 
-	expectEqStr(t, "Asd: 19 taco", record.UserError)
+	expectEqStr(t, "Expected: taco\nActual:   17\nAsd: 19 taco", record.Error)
 }
 
 func TestAdditionalFailure(t *testing.T) {
@@ -160,6 +163,6 @@ func TestAdditionalFailure(t *testing.T) {
 	record1 := currentlyRunningTest.failureRecords[0]
 	record2 := currentlyRunningTest.failureRecords[1]
 
-	expectEqStr(t, "taco", record1.UserError)
-	expectEqStr(t, "burrito", record2.UserError)
+	expectEqStr(t, "Expected: \nActual:   17\ntaco", record1.Error)
+	expectEqStr(t, "Expected: \nActual:   19\nburrito", record2.Error)
 }
