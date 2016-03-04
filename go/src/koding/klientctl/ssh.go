@@ -28,7 +28,7 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	err = cmd.Run(c)
+	err = cmd.Run(c.Args()[0])
 
 	switch err {
 	case nil:
