@@ -21,7 +21,7 @@ var (
 type KeyValue map[string]interface{}
 
 type Credentials struct {
-	KeyValues []KeyValue `json:"keyValue"`
+	KeyValue KeyValue `json:"keyValue"`
 }
 
 type SneakerS3 struct {
@@ -39,7 +39,7 @@ func (s *SneakerS3) Store(u *url.URL, h http.Header, cr *Credentials, context *m
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	if cr.KeyValues == nil {
+	if cr.KeyValue == nil {
 		return response.NewBadRequest(ErrRequiredValuesNotFound)
 	}
 
