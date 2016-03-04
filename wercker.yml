@@ -256,9 +256,9 @@ deploy:
   s3-klientkite-development:
     - script:
         name: deploy klient
-        script: ./scripts/deploy-klient.sh
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
   s3-klientkite-production:
     - script:
         name: deploy klient
-        script: ./scripts/deploy-klient.sh
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh
