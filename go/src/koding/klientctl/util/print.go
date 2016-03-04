@@ -11,12 +11,12 @@ import (
 // Fprints methods will panic if used without a Writer, in the same way that
 // fmt.Fprint will panic without a writer.
 type Fprint struct {
-	W io.Writer
+	io.Writer
 }
 
 func NewFprint(w io.Writer) *Fprint {
 	return &Fprint{
-		W: w,
+		Writer: w,
 	}
 }
 
@@ -26,10 +26,10 @@ func Fprintlnf(w io.Writer, f string, i ...interface{}) {
 }
 
 func (p *Fprint) Printf(f string, i ...interface{}) {
-	fmt.Fprintf(p.W, f, i...)
+	fmt.Fprintf(p.Writer, f, i...)
 }
 
 // Printlnf implements Fprintlnf for the Fprint struct.
 func (p *Fprint) Printlnf(f string, i ...interface{}) {
-	Fprintlnf(p.W, f, i...)
+	Fprintlnf(p.Writer, f, i...)
 }

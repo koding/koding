@@ -386,6 +386,13 @@ func (c *Command) initDefaultRepairers() error {
 		Mountcli:  mountcli.NewMount(),
 	}
 
+	permDeniedRepair := &PermDeniedRepair{
+		Log:       c.Log.New("PermDeniedRepair"),
+		Stdout:    util.NewFprint(c.Stdout),
+		MountName: c.Options.MountName,
+		Klient:    c.Klient,
+	}
+
 	// A collection of Repairers responsible for actually repairing a given mount.
 	// Executed in the order they are defined, the effectiveness of the Repairers
 	// may depend on the order they are run in. An example being TokenNotValidYetRepair
@@ -397,6 +404,7 @@ func (c *Command) initDefaultRepairers() error {
 		tokenExpired,
 		tokenNotValidYetRepair,
 		mountExistsRepair,
+		permDeniedRepair,
 	}
 
 	return nil
