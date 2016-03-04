@@ -4,7 +4,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"koding/klient/remote/req"
+	"koding/klientctl/config"
 	"koding/klientctl/list"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -59,6 +61,19 @@ type KlientOptions struct {
 
 	// Version, as passed to the second argument to `kite.New()`.
 	Version string
+}
+
+func NewKlientOptions() KlientOptions {
+	return KlientOptions{
+		Address:     config.KlientAddress,
+		KiteKeyPath: filepath.Join(config.KiteHome, "kite.key"),
+		Name:        config.Name,
+		Version:     config.KiteVersion,
+	}
+}
+
+func CreateKlientWithDefaultOpts() (*kite.Client, error) {
+	return CreateKlientClient(NewKlientOptions())
 }
 
 // CreateKlientClient creates a kite to the klient specified by KlientOptions, and
