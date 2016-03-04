@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"koding/klientctl/config"
 	"time"
 
 	"github.com/codegangsta/cli"
@@ -29,7 +30,8 @@ func StopCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
+	err = WaitUntilStopped(config.KlientAddress, 5, 1*time.Second)
+	if err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
@@ -38,7 +40,7 @@ func StopCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Printf("Successfully stopped %s\n", KlientName)
+	fmt.Printf("Successfully stopped %s\n", config.KlientName)
 	return 0
 }
 

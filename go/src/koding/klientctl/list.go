@@ -22,7 +22,7 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	k, err := klient.CreateKlientClient(NewKlientOptions())
+	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
 		log.Error("Error creating klient client. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))

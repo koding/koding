@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/config"
 	"time"
 
 	"github.com/codegangsta/cli"
@@ -23,9 +24,9 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Printf("Restarting the %s, this may take a moment...\n", KlientName)
+	fmt.Printf("Restarting the %s, this may take a moment...\n", config.KlientName)
 
-	klientWasRunning := IsKlientRunning(KlientAddress)
+	klientWasRunning := IsKlientRunning(config.KlientAddress)
 
 	if klientWasRunning {
 		// If klient is running, stop it, and tell the user if we fail
@@ -40,7 +41,7 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		s.Stop()
 	}
 
-	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
+	if err := WaitUntilStopped(config.KlientAddress, 5, 1*time.Second); err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
@@ -60,7 +61,7 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	fmt.Println("Waiting until started...")
-	if err := WaitUntilStarted(KlientAddress, 5, 1*time.Second); err != nil {
+	if err := WaitUntilStarted(config.KlientAddress, 5, 1*time.Second); err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
@@ -69,6 +70,6 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Printf("Successfully restarted %s\n", KlientName)
+	fmt.Printf("Successfully restarted %s\n", config.KlientName)
 	return 0
 }
