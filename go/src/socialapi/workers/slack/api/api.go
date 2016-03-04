@@ -159,11 +159,10 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	var token string
 	var groupToken string
 
 	userToken, err := getSlackToken(context)
-	if err != nil || token == "" {
+	if err != nil || userToken == "" {
 		groupToken, err = getAnySlackTokenWithGroup(context)
 		if err != nil {
 			return response.NewBadRequest(err)
@@ -171,11 +170,9 @@ func (s *Slack) ListChannels(u *url.URL, h http.Header, _ interface{}, context *
 	}
 
 	if userToken != "" {
-		token = userToken
-		return response.HandleResultAndError(getChannels(token))
+		return response.HandleResultAndError(getChannels(userToken))
 	} else {
-		token = groupToken
-		return response.HandleResultAndError(getOnlyChannels(token))
+		return response.HandleResultAndError(getOnlyChannels(groupToken))
 	}
 }
 
