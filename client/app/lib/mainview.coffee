@@ -38,7 +38,7 @@ module.exports = class MainView extends kd.View
     @createSidebar()
     @createHeader()
     @createPanelWrapper()
-    @showRegistrationsClosedWarning()  if isSoloProductLite()
+    @showRegistrationsClosedWarning()  if isSoloProductLite() and isKoding()
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
