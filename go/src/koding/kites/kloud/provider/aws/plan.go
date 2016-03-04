@@ -89,7 +89,7 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Injecting AWS data")
 
-	if _, err := s.InjectAWSData(ctx, s.Req.Username); err != nil {
+	if _, err := s.InjectAWSData(ctx, s.Req.Username, true); err != nil {
 		return nil, err
 	}
 
