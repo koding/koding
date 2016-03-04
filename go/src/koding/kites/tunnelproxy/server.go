@@ -51,13 +51,19 @@ type ServerOptions struct {
 
 // customPort adds a port part to the given address. If port is a zero-value,
 // or the addr parameter already has a port set - this function is a nop.
-func customPort(addr string, port int) string {
+func customPort(addr string, port int, ignore ...int) string {
 	if addr == "" {
 		return ""
 	}
 
 	if port == 0 {
 		return addr
+	}
+
+	for _, n := range ignore {
+		if port == n {
+			return addr
+		}
 	}
 
 	_, _, err := net.SplitHostPort(addr)
@@ -94,7 +100,7 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		optsCopy.Log = common.NewLogger("tunnelserver", optsCopy.Debug)
 	}
 
-	optsCopy.BaseVirtualHost = customPort(optsCopy.BaseVirtualHost, opts.Port)
+	optsCopy.BaseVirtualHost = customPort(optsCopy.BaseVirtualHost, opts.Port, 80, 443)
 	optsCopy.ServerAddr = customPort(optsCopy.ServerAddr, opts.Port)
 
 	tunnelCfg := &tunnel.ServerConfig{
@@ -156,15 +162,7 @@ type RegisterResult struct {
 }
 
 func (s *Server) vhost(req *RegisterRequest) string {
-	host := fmt.Sprintf("%s.%s.%s", req.TunnelName, req.Username, s.opts.BaseVirtualHost)
-
-	// Adjust port if tunnel server is running on different port than
-	// default HTTP/HTTPS one. Used mainly for development environment.
-	if _, port, err := net.SplitHostPort(s.opts.ServerAddr); err == nil {
-		host = host + ":" + port
-	}
-
-	return host
+	return fmt.Sprintf("%s.%s.%s", req.TunnelName, req.Username, s.opts.BaseVirtualHost)
 }
 
 // Register creates a virtual host and DNS record for the user.
@@ -191,6 +189,8 @@ func (s *Server) Register(r *kite.Request) (interface{}, error) {
 	if req.TunnelName == "" {
 		req.TunnelName = utils.RandString(12)
 	}
+
+	s.opts.Log.Debug("received register request: %# v", &req)
 
 	vhost := s.vhost(&req)
 
@@ -219,6 +219,13 @@ func (s *Server) Register(r *kite.Request) (interface{}, error) {
 func (s *Server) upsert(vhost string) error {
 	rec := *s.record
 	rec.Name = vhost
+
+	// Trim port part from s.opts.BaseVirtualHost.
+	if host, _, err := net.SplitHostPort(rec.Name); err == nil {
+		rec.Name = host
+	}
+
+	s.opts.Log.Debug("upserting %# v", rec)
 
 	if host, _, err := net.SplitHostPort(vhost); err == nil {
 		rec.Name = host
