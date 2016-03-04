@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/klient"
 	"koding/klientctl/repair"
 	"koding/klientctl/util/mountcli"
 	"os"
@@ -41,6 +42,7 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 		Stdout:        os.Stdout,
 		Stdin:         os.Stdin,
 		Log:           log,
+		KlientOptions: klient.NewKlientOptions(),
 		helper:        ctlcli.CommandHelper(c, "mount"),
 		mountLocker:   Lock,
 		homeDirGetter: homeDirGetter,
@@ -63,6 +65,7 @@ func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) c
 		Stdout:        os.Stdout,
 		Stdin:         os.Stdin,
 		Log:           log,
+		KlientOptions: klient.NewKlientOptions(),
 		helper:        ctlcli.CommandHelper(c, cmdName),
 		healthChecker: defaultHealthChecker,
 		fileRemover:   os.Remove,
@@ -82,11 +85,12 @@ func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ct
 	}
 
 	return &repair.Command{
-		Options: opts,
-		Stdout:  os.Stdout,
-		Stdin:   os.Stdin,
-		Log:     log,
-		Helper:  ctlcli.CommandHelper(c, cmdName),
+		Options:       opts,
+		Stdout:        os.Stdout,
+		Stdin:         os.Stdin,
+		Log:           log,
+		KlientOptions: klient.NewKlientOptions(),
+		Helper:        ctlcli.CommandHelper(c, cmdName),
 		// Used to create our KlientService instance. Really needs to be improved in
 		// the future, once it has proper access to a config package
 		ServiceConstructor: newService,
