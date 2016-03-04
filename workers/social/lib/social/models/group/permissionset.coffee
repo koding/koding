@@ -116,16 +116,15 @@ module.exports = class JPermissionSet extends Module
     # permission checker helper, walks on the all required permissions
     # if one of them passes, breaks the loop and returns true
     kallback = (current, main) ->
-      hasPermission = no
 
-      queue = advanced.map ({ permission, validateWith, superadmin }) -> (fin) ->
+      queue = advanced.map ({ permission, validateWith, superadmin }) -> (next) ->
 
         if superadmin
 
           # if permission requires superadmin and current group is not 'koding'
           # or if somehow 'koding' group (main) not exists then pass ~ GG
           if currentGroup isnt MAIN_GROUP or not main
-            return fin()
+            return next()
 
           # if permission requires superadmin then do the permission check on
           # main group and permissionSet (which is 'koding' group) ~ GG
@@ -139,13 +138,14 @@ module.exports = class JPermissionSet extends Module
         validateWith ?= anyValidator
 
         validateWith.call target, client, group, permission, permissionSet, args,
-          (err, hasPermission_) ->
-            hasPermission = yes  if hasPermission_
-            fin err
+          (err, hasPermission) ->
+            if hasPermission
+            then callback null, yes
+            else next err
 
-      async.parallel queue, (err) ->
+      async.series queue, (err) ->
         return callback err  if err
-        callback null, hasPermission
+        callback null, no
 
     # set groupName from given target or client
     client.groupName = getGroupnameFrom target, client
