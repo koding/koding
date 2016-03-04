@@ -47,8 +47,7 @@ func (r *MountEmptyRepair) isDirEmpty(p string) (bool, error) {
 	}
 	defer f.Close()
 
-	_, err = f.Readdirnames(1)
-	if err == io.EOF {
+	if _, err = f.Readdirnames(1); err == io.EOF {
 		return true, nil
 	}
 
