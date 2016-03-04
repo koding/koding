@@ -63,6 +63,7 @@ type KlientOptions struct {
 	Version string
 }
 
+// NewKlientOptions returns KlientOptions initialized to default values.
 func NewKlientOptions() KlientOptions {
 	return KlientOptions{
 		Address:     config.KlientAddress,
@@ -72,12 +73,15 @@ func NewKlientOptions() KlientOptions {
 	}
 }
 
+// CreateKlientClient creates a kite with default KlientOptions and returns a
+// Kite Client to talk to that Klient.
 func CreateKlientWithDefaultOpts() (*kite.Client, error) {
 	return CreateKlientClient(NewKlientOptions())
 }
 
-// CreateKlientClient creates a kite to the klient specified by KlientOptions, and
-// returns a Kite Client to talk to that Klient.
+// CreateKlientClient creates a kite to the klient specified by KlientOptions.
+// In most cases CreateKlientWithDefaultOpts should be used instead of this, ie
+// this should be used only if you want to override KlientOptions.
 func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
 	if opts.Version == "" {
 		return nil, errors.New("CreateKlientClient: Version is required")
@@ -106,7 +110,15 @@ func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
 	return c, nil
 }
 
-// NewDialedKlient creates a pre-dialed Klient instance
+// NewDefaultDialedKlient creates a pre-dialed Klient instance using default
+// klient options.
+func NewDefaultDialedKlient() (*Klient, error) {
+	return NewDialedKlient(NewKlientOptions())
+}
+
+// NewDialedKlient creates a pre-dialed Klient instance. In most cases
+// NewDefaultDialedKlient should be used instead of this, ie this should be used
+// only if you want to override KlientOptions.
 func NewDialedKlient(opts KlientOptions) (*Klient, error) {
 	c, err := CreateKlientClient(opts)
 	if err != nil {
