@@ -70,7 +70,7 @@ func NewSSHCommand(log logging.Logger) (*SSHCommand, error) {
 		return nil, err
 	}
 
-	klientKite, err := klient.CreateKlientClient(NewKlientOptions())
+	klientKite, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
 		return nil, err
 	}
