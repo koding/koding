@@ -34,6 +34,7 @@ module.exports = [
 
   [
     { name: 'account accountsettings' }
+    { name: 'environments vmactions_hobbyist' }
   ]
 
   [
