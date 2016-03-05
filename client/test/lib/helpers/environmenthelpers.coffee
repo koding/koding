@@ -365,7 +365,7 @@ module.exports =
     addVmSelector = '.footer .button-container .add-vm-button'
 
     browser
-      .moveToElement           '.sidebar-machine-box .notinitialized', 10, 10
+      .moveToElement           '.sidebar-machine-box', 10, 10
       .waitForElementVisible   vmSelector, 20000
       .click                   vmSelector
       .waitForElementVisible   addVmSelector, 20000
