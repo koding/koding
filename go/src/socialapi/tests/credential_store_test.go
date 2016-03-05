@@ -6,6 +6,8 @@ import (
 	"socialapi/workers/common/tests"
 	"testing"
 
+	credential "socialapi/workers/credentials/api"
+
 	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -24,15 +26,16 @@ func TestStoreGetDeleteCredentials(t *testing.T) {
 				pathName := "testcredential"
 
 				Convey("We should be able to store credentials", func() {
-					err := rest.StoreCredentialWithAuth(pathName, ownerSes.ClientId)
+					keyValue := make(credential.KeyValue, 0)
+					keyValue["test-key"] = "test-value"
+
+					err := rest.StoreCredentialWithAuth(pathName, keyValue, ownerSes.ClientId)
 					So(err, ShouldBeNil)
 				})
 				Convey("We should be able to get credentials after storing", func() {
 					res, err := rest.GetCredentialWithAuth(pathName, ownerSes.ClientId)
 					So(err, ShouldBeNil)
 					So(res, ShouldNotBeNil)
-					// As default, we create map[string]interface in rest.StoreCredentialWithAuth()
-					// map["test-key"]= "test-value" is created in rest function
 					So(res["test-key"], ShouldEqual, "test-value")
 
 				})

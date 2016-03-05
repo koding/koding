@@ -6,13 +6,13 @@ import (
 	credential "socialapi/workers/credentials/api"
 )
 
-func StoreCredentialWithAuth(pathName string, token string) error {
+func StoreCredentialWithAuth(pathName string, kv credential.KeyValue, token string) error {
 	url := fmt.Sprintf("/credential/%s", pathName)
+	//
+	// keyValue := make(credential.KeyValue, 0)
+	// keyValue["test-key"] = "test-value"
 
-	keyValue := make(credential.KeyValue, 0)
-	keyValue["test-key"] = "test-value"
-
-	_, err := marshallAndSendRequestWithAuth("POST", url, keyValue, token)
+	_, err := marshallAndSendRequestWithAuth("POST", url, kv, token)
 	return err
 }
 

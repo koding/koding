@@ -15,6 +15,7 @@ import (
 var (
 	ErrPathNotFound           = errors.New("required a path name to store keys")
 	ErrRequiredValuesNotFound = errors.New("required fields not found to store")
+	ErrPathContentNotFound    = errors.New("Path content not found")
 )
 
 // KeyValue holds the credentials whatever you want as key-value pair
@@ -26,7 +27,6 @@ type SneakerS3 struct {
 
 // Store stores the given credentials on s3
 func (s *SneakerS3) Store(u *url.URL, h http.Header, kv KeyValue, context *models.Context) (int, http.Header, interface{}, error) {
-
 	pathName := u.Query().Get("pathName")
 	if pathName == "" {
 		return response.NewBadRequest(ErrPathNotFound)
@@ -76,14 +76,18 @@ func (s *SneakerS3) Get(u *url.URL, h http.Header, _ interface{}, context *model
 		return response.NewBadRequest(err)
 	}
 
-	var x KeyValue
+	if down[pathName] == nil {
+		return response.NewBadRequest(ErrPathContentNotFound)
+	}
+
+	var kv KeyValue
 
 	downX := bytes.NewReader(down[pathName])
-	if err := json.NewDecoder(downX).Decode(&x); err != nil {
+	if err := json.NewDecoder(downX).Decode(&kv); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(x)
+	return response.NewOK(kv)
 }
 
 func (s *SneakerS3) Delete(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
