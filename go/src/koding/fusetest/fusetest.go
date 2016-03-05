@@ -51,6 +51,7 @@ func (f *Fusetest) RunAllTests() {
 
 	// common ops
 	f.TestRename()
+	f.TestCpOutToIn()
 
 	os.RemoveAll(f.MountDir)
 }
