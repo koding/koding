@@ -40,12 +40,14 @@ module.exports =
 
   checkIncreasedDiskSizeUntilLimit: (browser) ->
 
-    resizeDiskLink      = '.disk-usage-info .footline .resize'
-    resizeVmButton      = '.kdmodal-content .container .solid.medium.green'
-    confirmResizeButton = '.kddraggable.with-buttons .kdmodal-buttons .solid.red'
-    contentVmSelector   = '.content-container .state-label.'
-    vmSidebarSelector   = '.activity-sidebar .machines-wrapper .vms.my-machines .koding.running'
-    diskUsageSelector   = '.disk-usage-info .usage-info span'
+    resizeDiskLink         = '.disk-usage-info .footline .resize'
+    resizeVmButton         = '.kdmodal-content .container .solid.medium.green'
+    confirmResizeButton    = '.kddraggable.with-buttons .kdmodal-buttons .solid.red'
+    contentVmSelector      = '.content-container .state-label.'
+    vmSidebarSelector      = '.activity-sidebar .machines-wrapper .vms.my-machines .koding.running'
+    disabledResizeVmButton = '.kdmodal-content .container [disabled="disabled"]'
+    diskUsageSelector      = '.disk-usage-info .usage-info span'
+    sliderSelector         = '.kdmodal-content .storage-container .sliderbar-container'
 
     browser.element 'css selector', vmSelector, (result) =>
       if result.status is 0
@@ -57,26 +59,30 @@ module.exports =
 
     browser
       .waitForElementVisible  diskUsageSelector, 20000
-      .assert.containsText    diskUsageSelector, 'of 2.'
-      .click				  resizeDiskLink
-      .waitForElementVisible  '.kdmodal-content .storage-container .sliderbar-container', 20000
-      .click                  '.kdmodal-content .storage-container .sliderbar-container [style="left: 47.0588%;"]'
-      .waitForElementVisible  '.kdmodal-content .container [disabled="disabled"]', 20000
-      .click                  '.kdmodal-content .storage-container .sliderbar-container [style="left: 41.1765%;"]'
-      .waitForElementVisible  resizeVmButton, 20000
-      .click                  resizeVmButton
-      .waitForElementVisible  confirmResizeButton, 20000
-      .click                  confirmResizeButton
-      .waitForElementVisible  "#{contentVmSelector}pending", 35000
-      .waitForElementVisible  "#{contentVmSelector}stopping", 35000
-      .waitForElementVisible  "#{contentVmSelector}pending", 350000
-      .waitForElementVisible  "#{contentVmSelector}starting", 350000
-      .waitForElementVisible  vmSidebarSelector, 350000
+      .click                  resizeDiskLink
+      .element 'css selector', disabledResizeVmButton, (result) ->
+        if result.status is -1
+          browser
+            .waitForElementVisible  sliderSelector, 20000
+            .click                  '.kdmodal-content .storage-container .sliderbar-container [style="left: 47.0588%;"]'
+            .waitForElementVisible  disabledResizeVmButton, 20000
+            .click                  '.kdmodal-content .storage-container .sliderbar-container [style="left: 41.1765%;"]'
+            .waitForElementVisible  resizeVmButton, 20000
+            .click                  resizeVmButton
+            .waitForElementVisible  confirmResizeButton, 20000
+            .click                  confirmResizeButton
+            .waitForElementVisible  "#{contentVmSelector}pending", 650000
+            .waitForElementVisible  "#{contentVmSelector}stopping", 650000
+            .waitForElementVisible  "#{contentVmSelector}pending", 650000
+            .waitForElementVisible  "#{contentVmSelector}starting", 650000
+            .waitForElementVisible  vmSidebarSelector, 650000
 
-    environmentHelpers.openVmSettingsModal(browser)
-    environmentHelpers.openDiskUsageSettings(browser)
+          environmentHelpers.openVmSettingsModal(browser)
+          environmentHelpers.openDiskUsageSettings(browser)
 
-    browser
-      .waitForElementVisible  diskUsageSelector, 20000
-      .assert.containsText    diskUsageSelector, 'of 9.'
-      .end()
+          browser
+            .waitForElementVisible  diskUsageSelector, 20000
+            .assert.containsText    diskUsageSelector, 'of 9.'
+            .end()
+        else
+          browser.end()

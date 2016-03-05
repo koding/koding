@@ -35,12 +35,14 @@ module.exports =
     vmSelector1      = "#{vmSelector}1"
     vmSelector2      = "#{vmSelector}2"
     usageVmSelector  = '.kdview.storage-container .kdview:nth-of-type(3)'
+    remainingSlots   = 'Remaining VM slots: 0/3'
+    usedStorage      = 'You will be using 18GB/25GB storage'
 
     browser.element 'css selector', secondVmSelector, (result) ->
       if result.status is -1
         environmentHelpers.addNewVM(browser, vmSelector1)
         environmentHelpers.addNewVM(browser, vmSelector2)
-        environmentHelpers.addNewVM(browser, usageVmSelector, yes)
+        environmentHelpers.addNewVM(browser, usageVmSelector, yes, remainingSlots, usedStorage)
 
     browser.end()
 
