@@ -22,10 +22,10 @@ func testMkDir(t *testing.T, mountDir string) {
 				nestedPath := path.Join(dirPath, "dir1")
 				So(os.Mkdir(nestedPath, 0700), ShouldBeNil)
 
-				fi, err := statDirCheck(dirPath)
+				fi, err := statDirCheck(nestedPath)
 				So(err, ShouldBeNil)
 
-				So(fi.Name(), ShouldEqual, "MkDir")
+				So(fi.Name(), ShouldEqual, "dir1")
 			})
 
 			Convey("It should create with given permissions", func() {
@@ -132,12 +132,12 @@ func testReadDir(t *testing.T, mountDir string) {
 }
 
 func testRmDir(t *testing.T, mountDir string) {
-	Convey("RmDir", t, createDir(mountDir, "CreateFile", func(dirPath string) {
+	Convey("RmDir", t, createDir(mountDir, "RmDir", func(dirPath string) {
 		nestedDir := path.Join(dirPath, "dir1")
 		So(os.MkdirAll(nestedDir, 0705), ShouldBeNil)
 
 		Convey("It should remove directory in root dir", func() {
-			So(os.RemoveAll(dirPath), ShouldBeNil)
+			So(os.RemoveAll(nestedDir), ShouldBeNil)
 		})
 
 		Convey("It should remove all entries inside specified directory", func() {
@@ -228,7 +228,7 @@ func testRename(t *testing.T, mountDir string) {
 			err := ioutil.WriteFile(file1, []byte("Hello"), 0700)
 			So(err, ShouldBeNil)
 
-			file2 := path.Join(mountDir, "file2")
+			file2 := path.Join(dirPath, "file2")
 			err = ioutil.WriteFile(file2, []byte("World!"), 0700)
 			So(err, ShouldBeNil)
 

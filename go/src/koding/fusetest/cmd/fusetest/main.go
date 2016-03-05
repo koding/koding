@@ -4,13 +4,17 @@ import (
 	"koding/fusetest"
 	"log"
 	"os"
-	"testing"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal("Pass mounted path as argument to run tests.")
+		log.Fatal("Pass machine name as arguments to run tests.")
 	}
 
-	fusetest.RunAllTests(&testing.T{}, os.Args[1])
+	f, err := fusetest.NewFusetest(os.Args[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	f.RunAllTests()
 }
