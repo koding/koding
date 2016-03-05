@@ -365,7 +365,7 @@ module.exports =
     addVmSelector = '.footer .button-container .add-vm-button'
 
     browser
-      .moveToElement           '.sidebar-machine-box .notinitialized', 10, 10
+      .moveToElement           '.sidebar-machine-box', 10, 10
       .waitForElementVisible   vmSelector, 20000
       .click                   vmSelector
       .waitForElementVisible   addVmSelector, 20000
@@ -375,7 +375,7 @@ module.exports =
       .assert.containsText     '.kdmodal-inner .kdmodal-content .custom-link-view span', 'Upgrade your account for more VMs RAM and Storage'
 
 
-  addNewVM: (browser, vmAssert, addNewVmNotAllowed = no) ->
+  addNewVM: (browser, vmAssert, addNewVmNotAllowed = no, remainingSlots, usedStorage) ->
 
     sidebarSelector        = '.kdview.sidebar-machine-box .vm'
     addVmSelector          = '.sidebar-title .custom-link-view.add-icon.buy-vm'
@@ -394,8 +394,8 @@ module.exports =
       if addNewVmNotAllowed
         browser
           .waitForElementVisible  '.computeplan-modal [disabled="disabled"]', 20000
-          .assert.containsText    '.kdmodal-content .kdview.modal-title.warn', 'Remaining VM slots: 0/3'
-          .assert.containsText    vmAssert, 'You will be using 18GB/25GB storage'
+          .assert.containsText    '.kdmodal-content .kdview.modal-title.warn', remainingSlots
+          .assert.containsText    vmAssert, usedStorage
       else
         browser
           .waitForElementVisible  disabledCreateVmButton, 20000
@@ -459,6 +459,7 @@ module.exports =
     alwaysOnSelector = '.kdinput.koding-on-off.statustoggle.small'
 
     browser
+      .waitForElementVisible  sidebarSelector, 20000
       .moveToElement          sidebarSelector, 10, 10
       .waitForElementVisible  "#{sidebarSelector} span", 20000
       .click                  "#{sidebarSelector} span"
