@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+REPO_PATH=$(git rev-parse --show-toplevel)
+
 # configure s3cmd
 cat > $HOME/.s3cfg <<EOF
 [default]
@@ -31,11 +33,11 @@ gzip -N klient
 mv klient.gz klient-0.1.$NEWBUILDNO.gz
 
 # prepare klient.deb
-go run build/build.go -e $KLIENT_CHANNEL -b $NEWBUILDNO
+go run "${REPO_PATH}/go/src/koding/klient/build/build.go" -e $KLIENT_CHANNEL -b $NEWBUILDNO
 dpkg -f *.deb
 
 # upload gz and deb to s3
-  
+
 #  Copy files to S3.
 s3cmd -P put *.deb  $S3DIR/$NEWBUILDNO/
 s3cmd -P put *.gz  $S3DIR/$NEWBUILDNO/
@@ -52,5 +54,5 @@ s3cmd -P put latest-version.txt $S3DIR/latest-version.txt
 
 #  Update install.sh file
 s3cmd del s3://koding-klient/install.sh
-s3cmd -P put install.sh s3://koding-klient/install.sh
+s3cmd -P put "${REPO_PATH}/go/src/koding/klient/install.sh" s3://koding-klient/install.sh
 
