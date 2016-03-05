@@ -3,9 +3,11 @@
 set -euo pipefail
 
 # configure s3cmd
-echo '[default]' > ~/.s3cfg
-echo "access_key=$S3_ACCESS_KEY" >> ~/.s3cfg
-echo "secret_key=$S3_SECRET_KEY" >> ~/.s3cfg
+cat > $HOME/.s3cfg <<EOF
+[default]
+access_key=$S3_KEY_ID
+secret_key=$S3_KEY_SECRET
+EOF
 
 export S3DIR="s3://koding-klient/$KLIENT_CHANNEL"
 
