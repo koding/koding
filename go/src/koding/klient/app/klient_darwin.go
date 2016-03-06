@@ -10,6 +10,8 @@ func (k *Klient) addRemoteHandlers() {
 	k.kite.HandleFunc("remote.sshKeysAdd", k.remote.SSHKeyAddHandler)
 	k.kite.HandleFunc("remote.exec", k.remote.ExecHandler)
 	k.kite.HandleFunc("remote.status", k.remote.StatusHandler)
+	k.kite.HandleFunc("remote.remount", k.remote.RemountHandler)
+	k.kite.HandleFunc("remote.mountInfo", k.remote.MountInfoHandler)
 }
 
 // Initializing the remote re-establishes any previously-running remote

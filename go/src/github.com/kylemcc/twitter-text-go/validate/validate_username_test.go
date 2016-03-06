@@ -2,8 +2,9 @@ package validate
 
 import (
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"testing"
+
+	"launchpad.net/goyaml"
 )
 
 func TestUsernameIsValid(t *testing.T) {

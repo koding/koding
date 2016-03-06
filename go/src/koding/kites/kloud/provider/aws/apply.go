@@ -189,7 +189,7 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 		}
 	}
 
-	if _, err := s.InjectAWSData(ctx, username); err != nil {
+	if _, err := s.InjectAWSData(ctx, username, false); err != nil {
 		return err
 	}
 
@@ -315,7 +315,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 		}
 	}
 
-	kiteIDs, err := s.InjectAWSData(ctx, username)
+	kiteIDs, err := s.InjectAWSData(ctx, username, true)
 	if err != nil {
 		return err
 	}

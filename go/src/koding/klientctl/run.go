@@ -98,7 +98,7 @@ type RunCommand struct {
 
 // NewRunCommand is the required initializer for RunCommand.
 func NewRunCommand() (*RunCommand, error) {
-	klientKite, err := klient.CreateKlientClient(NewKlientOptions())
+	klientKite, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
 		return nil, err
 	}

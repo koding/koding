@@ -2,7 +2,9 @@ package repair
 
 import (
 	"fmt"
+	"io/ioutil"
 	"koding/klientctl/klient"
+	"koding/klientctl/util"
 	"koding/klientctl/util/testutil"
 	"net/http"
 	"net/http/httptest"
@@ -22,6 +24,7 @@ func TestKlientRunningRepairStatus(t *testing.T) {
 		klientAddress := fmt.Sprintf("%s/kite", ts.URL)
 
 		r := &KlientRunningRepair{
+			Stdout: util.NewFprint(ioutil.Discard),
 			KlientService: &klient.KlientService{
 				KlientAddress: klientAddress,
 				PauseInterval: time.Millisecond,
@@ -50,6 +53,7 @@ func TestKlientRunningRepairStatus(t *testing.T) {
 		klientAddress := fmt.Sprintf("%s/kite", ts.URL)
 
 		r := &KlientRunningRepair{
+			Stdout: util.NewFprint(ioutil.Discard),
 			KlientService: &klient.KlientService{
 				KlientAddress: klientAddress,
 				PauseInterval: time.Millisecond,
@@ -73,6 +77,7 @@ func TestKlientRunningRepairStatus(t *testing.T) {
 		// 999 is just a randomly chosen port.
 		klientAddress := "http://127.0.0.1:999/kite"
 		r := &KlientRunningRepair{
+			Stdout: util.NewFprint(ioutil.Discard),
 			KlientService: &klient.KlientService{
 				KlientAddress: klientAddress,
 				PauseInterval: time.Millisecond,
@@ -99,6 +104,7 @@ func TestKlientRunningRepairRepair(t *testing.T) {
 		// 999 is just a randomly chosen port.
 		klientAddress := "http://127.0.0.1:999/kite"
 		r := &KlientRunningRepair{
+			Stdout: util.NewFprint(ioutil.Discard),
 			KlientService: &klient.KlientService{
 				KlientAddress: klientAddress,
 				PauseInterval: time.Millisecond,

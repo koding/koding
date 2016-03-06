@@ -3,8 +3,9 @@ package extract
 import (
 	"fmt"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"testing"
+
+	"launchpad.net/goyaml"
 )
 
 func TestExtractCashtags(t *testing.T) {

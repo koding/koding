@@ -42,7 +42,8 @@ module.exports = class IDETerminalPane extends IDEPane
     @addSubView @webtermView
 
     @webtermView.on 'WebTermConnected', (remote) =>
-      @remote = remote
+      @remote  = remote
+      @session = remote.session  unless @session
       @emit 'WebtermCreated'
       @emit 'ready'
 

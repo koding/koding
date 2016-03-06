@@ -80,6 +80,19 @@ type MountInfo struct {
 	MountName string `json:"mountName"`
 }
 
+type MountInfoResponse struct {
+	// Embedded mountfolder fields
+	MountFolder
+
+	// Used for prefetch / cache.
+	SyncIntervalOpts rsync.SyncIntervalOpts
+}
+
+// Remount is the struct for klient's remote.remount method.
+type Remount struct {
+	MountName string `json:"mountName"`
+}
+
 func (i StatusItem) String() string {
 	switch i {
 	case KontrolStatus:
@@ -89,12 +102,4 @@ func (i StatusItem) String() string {
 	default:
 		return "UnknownStatus"
 	}
-}
-
-type MountInfoResponse struct {
-	// Embedded mountfolder fields
-	MountFolder
-
-	// Used for prefetch / cache.
-	SyncIntervalOpts rsync.SyncIntervalOpts
 }

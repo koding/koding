@@ -5,6 +5,7 @@ package tunnel
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"sync"
 
 	"koding/kites/tunnelproxy"
@@ -115,8 +116,33 @@ func (t *TunnelClient) saveOptions() error {
 	})
 }
 
+func guessTunnelName(vhost string) string {
+	// If vhost is <tunnelName>.<user>.koding.me return the
+	// <tunnelName> part (production environment).
+	//
+	// Example: 62ee1f899a4e.rafal.koding.me
+	i := strings.LastIndex(vhost, ".koding.me")
+	if i != -1 {
+		i = strings.LastIndex(vhost[:i], ".")
+		if i != -1 {
+			return vhost[:i]
+		}
+	}
+
+	// If vhost is <tunnelName>.<customBaseVirtualHost> return the
+	// <tunnelName> part (development environment).
+	//
+	// Example: macbook.rafal.t.dev.koding.io:8081
+	if strings.Count(vhost, ".") > 1 {
+		return vhost[:strings.IndexRune(vhost, '.')]
+	}
+
+	return ""
+}
+
 func (t *TunnelClient) updateOptions(reg *tunnelproxy.RegisterResult) {
 	t.opts.VirtualHost = reg.VirtualHost
+	t.opts.TunnelName = guessTunnelName(reg.VirtualHost)
 	t.once.Do(t.register.Done)
 
 	if err := t.saveOptions(); err != nil {
@@ -151,12 +177,22 @@ func (t *TunnelClient) setDefaults(opts *tunnelproxy.ClientOptions) {
 	if opts.LastVirtualHost == "" {
 		opts.LastVirtualHost = t.opts.VirtualHost
 	}
+
+	if t.opts.TunnelName == "" {
+		t.opts.TunnelName = opts.TunnelName
+	}
+
+	if t.opts.TunnelKiteURL == "" {
+		t.opts.TunnelKiteURL = opts.TunnelKiteURL
+	}
 }
 
 // Start setups the client and connects to a tunnel server based on the given
 // configuration. It's non blocking and should be called only once.
 func (t *TunnelClient) Start(opts *tunnelproxy.ClientOptions) (string, error) {
 	t.setDefaults(opts)
+
+	t.log.Debug("starting tunnel client: %# v", opts)
 
 	client, err := tunnelproxy.NewClient(opts)
 	if err != nil {

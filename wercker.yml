@@ -254,11 +254,11 @@ deploy:
         opts: "--no-mime-magic --guess-mime-type"
 
   s3-klientkite-development:
-      script:
-          name: deploy klient
-          script: ./scripts/deploy-klient.sh
+    - script:
+        name: deploy klient
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
   s3-klientkite-production:
-      script:
-          name: deploy klient
-          script: ./scripts/deploy-klient.sh
+    - script:
+        name: deploy klient
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh

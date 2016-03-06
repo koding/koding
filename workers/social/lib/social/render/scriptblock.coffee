@@ -29,14 +29,15 @@ module.exports = (options = {}, callback) ->
     replacer             = (k, v) -> if 'string' is typeof v then encoder.XSSEncode v else v
     { segment, client }  = KONFIG
     { siftScience }      = client.runtimeOptions
-    config               = JSON.stringify client.runtimeOptions
+    config               = JSON.stringify client.runtimeOptions, replacer
     encodedSocialApiData = JSON.stringify socialapidata, replacer
-    currentGroup         = JSON.stringify currentGroup
-    userAccount          = JSON.stringify delegate
-    userMachines         = JSON.stringify userMachines
-    userWorkspaces       = JSON.stringify userWorkspaces
-    userEnvironmentData  = JSON.stringify userEnvironmentData
-    userId               = JSON.stringify userId
+    currentGroup         = JSON.stringify currentGroup, replacer
+    userAccount          = JSON.stringify delegate, replacer
+    userMachines         = JSON.stringify userMachines, replacer
+    userWorkspaces       = JSON.stringify userWorkspaces, replacer
+    userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
+    userId               = JSON.stringify userId, replacer
+
 
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes

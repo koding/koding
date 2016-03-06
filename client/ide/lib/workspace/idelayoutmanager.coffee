@@ -253,6 +253,31 @@ module.exports = class IDELayoutManager extends KDObject
 
     return panes
 
+  ###*
+   * This method will create a map where keys will be file path or terminal
+   * session key. Values are not important here by design however they will
+   * be file name or session key.
+   *
+   * @param {Object} snapshot
+   * @return {Object} Key value map with pane identifiers.
+  ###
+  @getPaneHashMap: (snapshot) ->
+
+    panes   = {}
+    asArray = IDELayoutManager.convertSnapshotToFlatArray snapshot
+
+    for item in asArray when item.context
+      { paneType } = item.context
+
+      if paneType is 'editor'
+        { path, name } = item.context.file
+        panes[path] = name
+      else if paneType is 'terminal'
+        { session } = item.context
+        panes[session] = session
+
+    return panes
+
 
   ###*
    * Find panes from array.

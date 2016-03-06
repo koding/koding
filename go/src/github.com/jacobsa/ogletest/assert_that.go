@@ -19,6 +19,17 @@ import (
 	"github.com/jacobsa/oglematchers"
 )
 
+func assertThat(
+	x interface{},
+	m oglematchers.Matcher,
+	depth int,
+	errorParts []interface{}) {
+	passed := expectThat(x, m, depth+1, errorParts)
+	if !passed {
+		AbortTest()
+	}
+}
+
 // AssertThat is identical to ExpectThat, except that in the event of failure
 // it halts the currently running test immediately. It is thus useful for
 // things like bounds checking:
@@ -30,20 +41,6 @@ import (
 func AssertThat(
 	x interface{},
 	m oglematchers.Matcher,
-	errorParts ...interface{}) ExpectationResult {
-	res := ExpectThat(x, m, errorParts...)
-	res.SetCaller(getCallerForAlias())
-
-	matcherErr := res.MatchResult()
-	if matcherErr != nil {
-		panic(&assertThatError{})
-	}
-
-	return res
-}
-
-// assertThatError is a sentinel type that is used in a conspiracy between
-// AssertThat and runTests. If runTests sees a *assertThatError as the value
-// given to a panic() call, it will avoid printing the panic error.
-type assertThatError struct {
+	errorParts ...interface{}) {
+	assertThat(x, m, 1, errorParts)
 }

@@ -17,6 +17,7 @@ import (
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
+	"koding/klientctl/ssh"
 	"koding/klientctl/util"
 
 	"github.com/cheggaaa/pb"
@@ -294,7 +295,7 @@ func (c *MountCommand) prefetchAll() error {
 
 	// TODO: Use the ssh.Command's implementation of this logic, once ssh.Command is
 	// moved to this new struct setup.
-	sshKey := &SSHKey{
+	sshKey := &ssh.SSHKey{
 		KeyPath: path.Join(homeDir, c.Options.SSHDefaultKeyDir),
 		KeyName: c.Options.SSHDefaultKeyName,
 		Klient:  c.Klient,
