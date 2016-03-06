@@ -42,7 +42,7 @@ func (s *Stack) SetAwsRegion(region string) error {
 	return t.Flush()
 }
 
-func (s *Stack) InjectAWSData(ctx context.Context, username string) (stackplan.KiteMap, error) {
+func (s *Stack) InjectAWSData(ctx context.Context, username string, expandUserData bool) (stackplan.KiteMap, error) {
 	t := s.Builder.Template
 
 	sess, ok := session.FromContext(ctx)
@@ -140,7 +140,7 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string) (stackplan.K
 		//
 		//   https://github.com/hashicorp/terraform/issues/4084
 		//
-		if cmd, ok := instance["user_data"].(string); ok {
+		if cmd, ok := instance["user_data"].(string); ok && expandUserData {
 			userCfg.UserData = fmt.Sprintf("${base64encode(null_resource.%s.triggers.user_data)}", resourceName)
 
 			nullRes, ok := t.Resource["null_resource"].(map[string]interface{})

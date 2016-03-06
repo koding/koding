@@ -4,7 +4,6 @@ whoami           = require 'app/util/whoami'
 Encoder          = require 'htmlencode'
 AutoSizeTextarea = require 'app/components/common/autosizetextarea'
 Button           = require 'app/components/common/button'
-ActivityFlux     = require 'activity/flux'
 
 
 module.exports = class FeedItemInputWidget extends React.Component

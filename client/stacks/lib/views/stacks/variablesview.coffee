@@ -2,7 +2,6 @@ kd                         = require 'kd'
 _                          = require 'lodash'
 remote                     = require('app/remote').getInstance()
 KDView                     = kd.View
-KDCustomHTMLView           = kd.CustomHTMLView
 StackBaseEditorTabView     = require './stackbaseeditortabview'
 requirementsParser         = require './requirementsparser'
 VariablesEditorView        = require './editors/variableseditorview'
@@ -116,7 +115,10 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       @_providedData = {}
       @setState 'INVALID'
     else
-      @_providedData = _.extend converted.contentObject, { __rawContent : content }
+      { contentObject } = converted
+      @_providedData = if Object.keys(contentObject).length
+      then _.extend contentObject, { __rawContent : content }
+      else {}
       @handleDataChange()
 
 

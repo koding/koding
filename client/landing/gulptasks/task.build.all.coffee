@@ -1,4 +1,3 @@
-fs      = require 'fs'
 gulp    = require 'gulp'
 shell   = require 'gulp-shell'
 

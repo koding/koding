@@ -1,6 +1,5 @@
 kd        = require 'kd'
 React     = require 'kd-react'
-ReactDOM  = require 'react-dom'
 immutable = require 'immutable'
 
 module.exports = class DropboxContainer extends React.Component

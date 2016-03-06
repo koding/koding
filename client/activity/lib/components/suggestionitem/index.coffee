@@ -1,5 +1,4 @@
 kd                    = require 'kd'
-immutable             = require 'immutable'
 React                 = require 'kd-react'
 Avatar                = require 'app/components/profile/avatar'
 SearchItemBody        = require 'activity/components/searchitembody'

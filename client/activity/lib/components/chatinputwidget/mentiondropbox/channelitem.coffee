@@ -1,7 +1,6 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
-classnames           = require 'classnames'
 DropboxItem          = require 'activity/components/dropboxitem'
 highlightQueryInWord = require 'activity/util/highlightQueryInWord'
 

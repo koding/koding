@@ -47,6 +47,24 @@ func TestStaticACL(t *testing.T) {
 	if !all.ServiceWrite("foobar") {
 		t.Fatalf("should allow")
 	}
+	if !all.EventRead("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !all.EventWrite("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !all.PreparedQueryRead("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !all.PreparedQueryWrite("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !all.KeyringRead() {
+		t.Fatalf("should allow")
+	}
+	if !all.KeyringWrite() {
+		t.Fatalf("should allow")
+	}
 	if all.ACLList() {
 		t.Fatalf("should not allow")
 	}
@@ -66,11 +84,35 @@ func TestStaticACL(t *testing.T) {
 	if none.ServiceWrite("foobar") {
 		t.Fatalf("should not allow")
 	}
+	if none.EventRead("foobar") {
+		t.Fatalf("should not allow")
+	}
+	if none.EventRead("") {
+		t.Fatalf("should not allow")
+	}
+	if none.EventWrite("foobar") {
+		t.Fatalf("should not allow")
+	}
+	if none.EventWrite("") {
+		t.Fatalf("should not allow")
+	}
+	if none.PreparedQueryRead("foobar") {
+		t.Fatalf("should not allow")
+	}
+	if none.PreparedQueryWrite("foobar") {
+		t.Fatalf("should not allow")
+	}
+	if none.KeyringRead() {
+		t.Fatalf("should now allow")
+	}
+	if none.KeyringWrite() {
+		t.Fatalf("should not allow")
+	}
 	if none.ACLList() {
-		t.Fatalf("should not noneow")
+		t.Fatalf("should not allow")
 	}
 	if none.ACLModify() {
-		t.Fatalf("should not noneow")
+		t.Fatalf("should not allow")
 	}
 
 	if !manage.KeyRead("foobar") {
@@ -83,6 +125,24 @@ func TestStaticACL(t *testing.T) {
 		t.Fatalf("should allow")
 	}
 	if !manage.ServiceWrite("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !manage.EventRead("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !manage.EventWrite("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !manage.PreparedQueryRead("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !manage.PreparedQueryWrite("foobar") {
+		t.Fatalf("should allow")
+	}
+	if !manage.KeyringRead() {
+		t.Fatalf("should allow")
+	}
+	if !manage.KeyringWrite() {
 		t.Fatalf("should allow")
 	}
 	if !manage.ACLList() {
@@ -99,33 +159,69 @@ func TestPolicyACL(t *testing.T) {
 		Keys: []*KeyPolicy{
 			&KeyPolicy{
 				Prefix: "foo/",
-				Policy: KeyPolicyWrite,
+				Policy: PolicyWrite,
 			},
 			&KeyPolicy{
 				Prefix: "foo/priv/",
-				Policy: KeyPolicyDeny,
+				Policy: PolicyDeny,
 			},
 			&KeyPolicy{
 				Prefix: "bar/",
-				Policy: KeyPolicyDeny,
+				Policy: PolicyDeny,
 			},
 			&KeyPolicy{
 				Prefix: "zip/",
-				Policy: KeyPolicyRead,
+				Policy: PolicyRead,
 			},
 		},
 		Services: []*ServicePolicy{
 			&ServicePolicy{
 				Name:   "",
-				Policy: ServicePolicyWrite,
+				Policy: PolicyWrite,
 			},
 			&ServicePolicy{
 				Name:   "foo",
-				Policy: ServicePolicyRead,
+				Policy: PolicyRead,
 			},
 			&ServicePolicy{
 				Name:   "bar",
-				Policy: ServicePolicyDeny,
+				Policy: PolicyDeny,
+			},
+			&ServicePolicy{
+				Name:   "barfoo",
+				Policy: PolicyWrite,
+			},
+		},
+		Events: []*EventPolicy{
+			&EventPolicy{
+				Event:  "",
+				Policy: PolicyRead,
+			},
+			&EventPolicy{
+				Event:  "foo",
+				Policy: PolicyWrite,
+			},
+			&EventPolicy{
+				Event:  "bar",
+				Policy: PolicyDeny,
+			},
+		},
+		PreparedQueries: []*PreparedQueryPolicy{
+			&PreparedQueryPolicy{
+				Prefix: "",
+				Policy: PolicyRead,
+			},
+			&PreparedQueryPolicy{
+				Prefix: "foo",
+				Policy: PolicyWrite,
+			},
+			&PreparedQueryPolicy{
+				Prefix: "bar",
+				Policy: PolicyDeny,
+			},
+			&PreparedQueryPolicy{
+				Prefix: "zoo",
+				Policy: PolicyWrite,
 			},
 		},
 	}
@@ -171,6 +267,10 @@ func TestPolicyACL(t *testing.T) {
 		{"other", true, true},
 		{"foo", true, false},
 		{"bar", false, false},
+		{"foobar", true, false},
+		{"barfo", false, false},
+		{"barfoo", true, true},
+		{"barfoo2", true, true},
 	}
 	for _, c := range scases {
 		if c.read != acl.ServiceRead(c.inp) {
@@ -178,6 +278,53 @@ func TestPolicyACL(t *testing.T) {
 		}
 		if c.write != acl.ServiceWrite(c.inp) {
 			t.Fatalf("Write fail: %#v", c)
+		}
+	}
+
+	// Test the events
+	type eventcase struct {
+		inp   string
+		read  bool
+		write bool
+	}
+	eventcases := []eventcase{
+		{"foo", true, true},
+		{"foobar", true, true},
+		{"bar", false, false},
+		{"barbaz", false, false},
+		{"baz", true, false},
+	}
+	for _, c := range eventcases {
+		if c.read != acl.EventRead(c.inp) {
+			t.Fatalf("Event fail: %#v", c)
+		}
+		if c.write != acl.EventWrite(c.inp) {
+			t.Fatalf("Event fail: %#v", c)
+		}
+	}
+
+	// Test prepared queries
+	type querycase struct {
+		inp   string
+		read  bool
+		write bool
+	}
+	querycases := []querycase{
+		{"foo", true, true},
+		{"foobar", true, true},
+		{"bar", false, false},
+		{"barbaz", false, false},
+		{"baz", true, false},
+		{"nope", true, false},
+		{"zoo", true, true},
+		{"zookeeper", true, true},
+	}
+	for _, c := range querycases {
+		if c.read != acl.PreparedQueryRead(c.inp) {
+			t.Fatalf("Prepared query fail: %#v", c)
+		}
+		if c.write != acl.PreparedQueryWrite(c.inp) {
+			t.Fatalf("Prepared query fail: %#v", c)
 		}
 	}
 }
@@ -188,21 +335,31 @@ func TestPolicyACL_Parent(t *testing.T) {
 		Keys: []*KeyPolicy{
 			&KeyPolicy{
 				Prefix: "foo/",
-				Policy: KeyPolicyWrite,
+				Policy: PolicyWrite,
 			},
 			&KeyPolicy{
 				Prefix: "bar/",
-				Policy: KeyPolicyRead,
+				Policy: PolicyRead,
 			},
 		},
 		Services: []*ServicePolicy{
 			&ServicePolicy{
 				Name:   "other",
-				Policy: ServicePolicyWrite,
+				Policy: PolicyWrite,
 			},
 			&ServicePolicy{
 				Name:   "foo",
-				Policy: ServicePolicyRead,
+				Policy: PolicyRead,
+			},
+		},
+		PreparedQueries: []*PreparedQueryPolicy{
+			&PreparedQueryPolicy{
+				Prefix: "other",
+				Policy: PolicyWrite,
+			},
+			&PreparedQueryPolicy{
+				Prefix: "foo",
+				Policy: PolicyRead,
 			},
 		},
 	}
@@ -215,21 +372,27 @@ func TestPolicyACL_Parent(t *testing.T) {
 		Keys: []*KeyPolicy{
 			&KeyPolicy{
 				Prefix: "foo/priv/",
-				Policy: KeyPolicyRead,
+				Policy: PolicyRead,
 			},
 			&KeyPolicy{
 				Prefix: "bar/",
-				Policy: KeyPolicyDeny,
+				Policy: PolicyDeny,
 			},
 			&KeyPolicy{
 				Prefix: "zip/",
-				Policy: KeyPolicyRead,
+				Policy: PolicyRead,
 			},
 		},
 		Services: []*ServicePolicy{
 			&ServicePolicy{
 				Name:   "bar",
-				Policy: ServicePolicyDeny,
+				Policy: PolicyDeny,
+			},
+		},
+		PreparedQueries: []*PreparedQueryPolicy{
+			&PreparedQueryPolicy{
+				Prefix: "bar",
+				Policy: PolicyDeny,
 			},
 		},
 	}
@@ -281,6 +444,64 @@ func TestPolicyACL_Parent(t *testing.T) {
 		}
 		if c.write != acl.ServiceWrite(c.inp) {
 			t.Fatalf("Write fail: %#v", c)
+		}
+	}
+
+	// Test prepared queries
+	type querycase struct {
+		inp   string
+		read  bool
+		write bool
+	}
+	querycases := []querycase{
+		{"foo", true, false},
+		{"foobar", true, false},
+		{"bar", false, false},
+		{"barbaz", false, false},
+		{"baz", false, false},
+		{"nope", false, false},
+	}
+	for _, c := range querycases {
+		if c.read != acl.PreparedQueryRead(c.inp) {
+			t.Fatalf("Prepared query fail: %#v", c)
+		}
+		if c.write != acl.PreparedQueryWrite(c.inp) {
+			t.Fatalf("Prepared query fail: %#v", c)
+		}
+	}
+
+	// Check some management functions that chain up
+	if acl.ACLList() {
+		t.Fatalf("should not allow")
+	}
+	if acl.ACLModify() {
+		t.Fatalf("should not allow")
+	}
+}
+
+func TestPolicyACL_Keyring(t *testing.T) {
+	// Test keyring ACLs
+	type keyringcase struct {
+		inp   string
+		read  bool
+		write bool
+	}
+	keyringcases := []keyringcase{
+		{"", false, false},
+		{PolicyRead, true, false},
+		{PolicyWrite, true, true},
+		{PolicyDeny, false, false},
+	}
+	for _, c := range keyringcases {
+		acl, err := New(DenyAll(), &Policy{Keyring: c.inp})
+		if err != nil {
+			t.Fatalf("bad: %s", err)
+		}
+		if acl.KeyringRead() != c.read {
+			t.Fatalf("bad: %#v", c)
+		}
+		if acl.KeyringWrite() != c.write {
+			t.Fatalf("bad: %#v", c)
 		}
 	}
 }

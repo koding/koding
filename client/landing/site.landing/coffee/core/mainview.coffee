@@ -1,6 +1,6 @@
-kd = require 'kd.js'
-CustomLinkView = require './customlinkview'
-MainTabView    = require './maintabview'
+kd          = require 'kd.js'
+MainTabView = require './maintabview'
+
 
 module.exports = class MainView extends kd.View
 

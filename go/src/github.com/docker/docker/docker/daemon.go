@@ -14,6 +14,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/uuid"
 	apiserver "github.com/docker/docker/api/server"
+	"github.com/docker/docker/api/server/router"
 	"github.com/docker/docker/api/server/router/build"
 	"github.com/docker/docker/api/server/router/container"
 	"github.com/docker/docker/api/server/router/image"
@@ -282,14 +283,25 @@ func (cli *DaemonCli) CmdDaemon(args ...string) error {
 		"graphdriver": d.GraphDriverName(),
 	}).Info("Docker daemon")
 
-	initRouters(api, d)
+	initRouter(api, d)
 
 	reload := func(config *daemon.Config) {
 		if err := d.Reload(config); err != nil {
 			logrus.Errorf("Error reconfiguring the daemon: %v", err)
 			return
 		}
-		api.Reload(config.Debug)
+		if config.IsValueSet("debug") {
+			debugEnabled := utils.IsDebugEnabled()
+			switch {
+			case debugEnabled && !config.Debug: // disable debug
+				utils.DisableDebug()
+				api.DisableProfiler()
+			case config.Debug && !debugEnabled: // enable debug
+				utils.EnableDebug()
+				api.EnableProfiler()
+			}
+
+		}
 	}
 
 	setupConfigReloadTrap(*configFile, cli.flags, reload)
@@ -386,11 +398,17 @@ func loadDaemonCliConfig(config *daemon.Config, daemonFlags *flag.FlagSet, commo
 	return config, nil
 }
 
-func initRouters(s *apiserver.Server, d *daemon.Daemon) {
-	s.AddRouters(container.NewRouter(d),
+func initRouter(s *apiserver.Server, d *daemon.Daemon) {
+	routers := []router.Router{
+		container.NewRouter(d),
 		image.NewRouter(d),
-		network.NewRouter(d),
 		systemrouter.NewRouter(d),
 		volume.NewRouter(d),
-		build.NewRouter(dockerfile.NewBuildManager(d)))
+		build.NewRouter(dockerfile.NewBuildManager(d)),
+	}
+	if d.NetworkControllerEnabled() {
+		routers = append(routers, network.NewRouter(d))
+	}
+
+	s.InitRouter(utils.IsDebugEnabled(), routers...)
 }

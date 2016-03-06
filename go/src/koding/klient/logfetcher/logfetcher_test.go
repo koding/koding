@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -17,21 +18,10 @@ import (
 )
 
 var (
-	lf        *kite.Kite
-	remote    *kite.Client
-	remote2   *kite.Client
-	testfile1 = "testdata/testfile1.txt.tmp"
-	testfile2 = "testdata/testfile2.txt.tmp"
+	lf      *kite.Kite
+	remote  *kite.Client
+	remote2 *kite.Client
 )
-
-func init() {
-	if err := testutil.FileCopy("testdata/testfile1.txt", testfile1); err != nil {
-		panic(err)
-	}
-	if err := testutil.FileCopy("testdata/testfile2.txt", testfile2); err != nil {
-		panic(err)
-	}
-}
 
 func init() {
 	lf := kite.New("logfetcher", "0.0.1")
@@ -59,20 +49,39 @@ func init() {
 	}
 }
 
+func makeTempAndCopy(copyFrom string) (dir, path string, err error) {
+	tmpDir, err := ioutil.TempDir("", "logfetcher")
+	if err != nil {
+		return "", "", err
+	}
+
+	tmpFile := filepath.Join(tmpDir, "file")
+
+	// Create a new file for testing, so we can test offsetting and watching.
+	if err := testutil.FileCopy(copyFrom, tmpFile); err != nil {
+		return "", "", err
+	}
+
+	return tmpDir, tmpFile, nil
+}
+
 func TestTail(t *testing.T) {
-	initialText, err := ioutil.ReadFile(testfile1)
+	tmpDir, tmpFile, err := makeTempAndCopy("testdata/testfile1.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer os.RemoveAll(tmpDir)
 
+	var watchCount int
 	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
+		watchCount++
 		line := r.One().MustString()
 		watchResult = append(watchResult, line)
 	})
 
 	_, err = remote.Tell("tail", &Request{
-		Path:  testfile1,
+		Path:  tmpFile,
 		Watch: watchFunc,
 	})
 	if err != nil {
@@ -82,12 +91,23 @@ func TestTail(t *testing.T) {
 	fmt.Println("Waiting for the results..")
 	time.Sleep(time.Second * 1)
 
-	lines := strings.Split(strings.TrimSpace(string(initialText)), "\n")
-	if !reflect.DeepEqual(lines, watchResult) {
-		t.Errorf("\nWant: %v\nGot : %v\n", lines, watchResult)
+	// Should return empty by default, since no new lines were given.
+	if !reflect.DeepEqual([]string{}, watchResult) {
+		t.Errorf(
+			"\nWatchFunc should not be called for pre-existing lines.\nWant: %#v\nGot : %#v\n",
+			[]string{}, watchResult,
+		)
 	}
 
-	file, err := os.OpenFile(testfile1, os.O_APPEND|os.O_WRONLY, 0600)
+	// Should not have called watcher at all
+	if watchCount != 0 {
+		t.Errorf(
+			"\nWatchFunc should not be called for pre-existing lines.\nWanted %d calls, Got %d calls",
+			0, watchCount,
+		)
+	}
+
+	file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,29 +116,35 @@ func TestTail(t *testing.T) {
 	file.WriteString("Tail3\n")
 	file.Close()
 
-	modifiedText, err := ioutil.ReadFile(testfile1)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	// wait so the watch function picked up the tail changes
 	time.Sleep(time.Second * 1)
 
-	modifiedLines := strings.Split(strings.TrimSpace(string(modifiedText)), "\n")
+	modifiedLines := []string{"Tail2", "Tail3"}
 	if !reflect.DeepEqual(modifiedLines, watchResult) {
-		t.Errorf("\nWant: %v\nGot : %v\n", modifiedLines, watchResult)
+		t.Errorf(
+			"\nWatchFunc should not be called for pre-existing lines.\nWant: %#v\nGot : %#v\n",
+			modifiedLines, watchResult,
+		)
 	}
 }
 
+// TestMultipleTail compares two log.tail calls on a single file, and ensures that
+// they both receive the same input.
 func TestMultipleTail(t *testing.T) {
+	tmpDir, tmpFile, err := makeTempAndCopy("testdata/testfile2.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
 	watchResult := []string{}
 	watchFunc := dnode.Callback(func(r *dnode.Partial) {
 		line := r.One().MustString()
 		watchResult = append(watchResult, line)
 	})
 
-	_, err := remote.Tell("tail", &Request{
-		Path:  testfile2,
+	_, err = remote.Tell("tail", &Request{
+		Path:  tmpFile,
 		Watch: watchFunc,
 	})
 	if err != nil {
@@ -132,7 +158,7 @@ func TestMultipleTail(t *testing.T) {
 	})
 
 	_, err = remote2.Tell("tail", &Request{
-		Path:  testfile2,
+		Path:  tmpFile,
 		Watch: watchFunc2,
 	})
 	if err != nil {
@@ -141,7 +167,7 @@ func TestMultipleTail(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	file, err := os.OpenFile(testfile2, os.O_APPEND|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,5 +214,178 @@ func TestMultipleTail(t *testing.T) {
 
 	if currentWatchLen+2 != len(watchResult) {
 		t.Errorf("WatchFunc2 is not triggered, got %d should have %d", len(watchResult), currentWatchLen+2)
+	}
+}
+
+func TestTailOffset(t *testing.T) {
+	tmpDir, tmpFile, err := makeTempAndCopy("testdata/testfile1.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Read the last 3 lines of the file.
+	offset := 3
+
+	var watchCount int
+	watchResult := []string{}
+	watchFunc := dnode.Callback(func(r *dnode.Partial) {
+		watchCount++
+		line := r.One().MustString()
+		watchResult = append(watchResult, line)
+	})
+
+	_, err = remote.Tell("tail", &Request{
+		Path:       tmpFile,
+		Watch:      watchFunc,
+		LineOffset: offset,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Write some data to file
+	file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = file.WriteString("DataA\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = file.WriteString("DataB\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = file.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println("....Waiting for the results..")
+	time.Sleep(time.Second * 5)
+
+	// Read the file, and get the offset lines to compare against.
+	sourceText, err := ioutil.ReadFile(tmpFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// wait so the watch function picked up the tail changes
+	offsetLines := strings.Split(strings.TrimSpace(string(sourceText)), "\n")
+	// Adding 2 to the offset, because we want to get
+	// the offset lines + our additions.
+	offsetLines = offsetLines[len(offsetLines)-(offset+2):]
+	if !reflect.DeepEqual(offsetLines, watchResult) {
+		t.Errorf(
+			"\nWatchFunc should callback with offset lines.\nWant: %#v\nGot : %#v\n",
+			offsetLines, watchResult,
+		)
+	}
+
+	if watchCount != offset+2 {
+		t.Errorf(
+			"WatchFunc should be called for each offsetline, and any new writes.\nWanted %d calls, Got %d calls",
+			offset+2, watchCount,
+		)
+	}
+}
+
+func TestGetOffsetLines(t *testing.T) {
+	tmpDir, tmpFile, err := makeTempAndCopy("testdata/testfile1.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Read the file, and get the offset lines to compare against.
+	sourceText, err := ioutil.ReadFile(tmpFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sourceLines := strings.Split(strings.TrimSpace(string(sourceText)), "\n")
+
+	// Open our file, to pass to the func
+	file1, err := os.Open(tmpFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file1.Close()
+
+	offset := 3
+	result, err := getOffsetLines(file1, 4, offset)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := sourceLines[len(sourceLines)-offset:]
+	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"\nIt should return offset lines.\nWant: %#v\nGot : %#v\n",
+			expected, result,
+		)
+	}
+
+	// Set the offset to the entire file.
+	offset = len(sourceLines) + 1
+	result, err = getOffsetLines(file1, 4, offset)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected = sourceLines
+	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"\nIt should return all the lines, if offset is larger than total.\nWant: %#v\nGot : %#v\n",
+			expected, result,
+		)
+	}
+
+	// Create the 2nd test file to be empty (Create truncates by default)
+	file2, err := os.Create(tmpFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println("Requesting empty lines")
+	offset = 3
+	result, err = getOffsetLines(file2, 4, offset)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected = nil
+	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"\nIt should callback with no lines.\nWant: %#v\nGot : %#v\n",
+			expected, result,
+		)
+	}
+
+	tmpDir2, tmpFile, err := makeTempAndCopy("testdata/testfile1.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir2)
+
+	// Open our file, to pass to the func
+	file1, err = os.Open(tmpFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file1.Close()
+
+	offset = 3
+	result, err = getOffsetLines(file1, defaultOffsetChunkSize, offset)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected = sourceLines[len(sourceLines)-offset:]
+	if !reflect.DeepEqual(expected, result) {
+		t.Errorf(
+			"\nIt should return offset lines with a chunkSize larger than the file.\nWant: %#v\nGot : %#v\n",
+			expected, result,
+		)
 	}
 }

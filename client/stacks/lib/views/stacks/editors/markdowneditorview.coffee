@@ -1,7 +1,5 @@
 kd                  = require 'kd'
-KDModalView         = kd.ModalView
 KDButtonView        = kd.ButtonView
-
 BaseStackEditorView = require './basestackeditorview'
 applyMarkdown       = require 'app/util/applyMarkdown'
 

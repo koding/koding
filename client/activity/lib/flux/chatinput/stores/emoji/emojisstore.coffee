@@ -1,5 +1,3 @@
-kd              = require 'kd'
-immutable       = require 'immutable'
 KodingFluxStore = require 'app/flux/base/store'
 toImmutable     = require 'app/util/toImmutable'
 emojisKeywords  = require 'emojis-keywords'

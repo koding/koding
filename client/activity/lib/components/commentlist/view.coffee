@@ -3,7 +3,7 @@ React           = require 'kd-react'
 Link            = require 'app/components/common/link'
 immutable       = require 'immutable'
 CommentListItem = require 'activity/components/commentlistitem'
-ActivityFlux    = require 'activity/flux'
+
 
 module.exports = class CommentListView extends React.Component
 

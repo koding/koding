@@ -12,7 +12,7 @@ package now
 import "time"
 
 var FirstDayMonday bool
-var TimeFormats = []string{"2006-1-2 15:4:5", "2006-1-2 15:4", "2006-1-2", "1-2", "15:4:5", "15:4", "15", "15:4:5 Jan 2, 2006 MST"}
+var TimeFormats = []string{"1/2/2006", "1/2/2006 15:4:5", "2006-1-2 15:4:5", "2006-1-2 15:4", "2006-1-2", "1-2", "15:4:5", "15:4", "15", "15:4:5 Jan 2, 2006 MST"}
 
 type Now struct {
 	time.Time
@@ -42,6 +42,10 @@ func BeginningOfMonth() time.Time {
 	return New(time.Now()).BeginningOfMonth()
 }
 
+func BeginningOfQuarter() time.Time {
+	return New(time.Now()).BeginningOfQuarter()
+}
+
 func BeginningOfYear() time.Time {
 	return New(time.Now()).BeginningOfYear()
 }
@@ -66,16 +70,20 @@ func EndOfMonth() time.Time {
 	return New(time.Now()).EndOfMonth()
 }
 
+func EndOfQuarter() time.Time {
+	return New(time.Now()).EndOfQuarter()
+}
+
 func EndOfYear() time.Time {
 	return New(time.Now()).EndOfYear()
 }
 
 func Monday() time.Time {
-	return New(time.Now()).EndOfYear()
+	return New(time.Now()).Monday()
 }
 
 func Sunday() time.Time {
-	return New(time.Now()).EndOfYear()
+	return New(time.Now()).Sunday()
 }
 
 func EndOfSunday() time.Time {
@@ -88,4 +96,8 @@ func Parse(strs ...string) (time.Time, error) {
 
 func MustParse(strs ...string) time.Time {
 	return New(time.Now()).MustParse(strs...)
+}
+
+func Between(time1, time2 string) bool {
+	return New(time.Now()).Between(time1, time2)
 }

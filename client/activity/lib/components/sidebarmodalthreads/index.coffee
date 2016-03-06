@@ -1,12 +1,10 @@
-kd             = require 'kd'
-React          = require 'kd-react'
-immutable      = require 'immutable'
-ActivityFlux   = require 'activity/flux'
-Scroller       = require 'app/components/scroller'
-ScrollerMixin  = require 'app/components/scroller/scrollermixin'
-classnames     = require 'classnames'
-
+kd                    = require 'kd'
+React                 = require 'kd-react'
+immutable             = require 'immutable'
+Scroller              = require 'app/components/scroller'
+ScrollerMixin         = require 'app/components/scroller/scrollermixin'
 PublicChannelListItem = require 'activity/components/publicchannellistitem'
+
 
 module.exports = class SidebarModalThreads extends React.Component
 

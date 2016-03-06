@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"koding/klientctl/config"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -97,7 +98,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	// environ checking.
 	klientSh := klientSh{
 		User:          sudoUserFromEnviron(os.Environ()),
-		KiteHome:      KiteHome,
+		KiteHome:      config.KiteHome,
 		KlientBinPath: klientBinPath,
 		KontrolURL:    kontrolURL,
 	}
@@ -119,12 +120,12 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	fmt.Printf("Created %s\n", klientBinPath)
 	fmt.Printf(`Authenticating you to the %s
 
-`, KlientName)
+`, config.KlientName)
 
 	cmd := exec.Command(klientBinPath, "-register",
 		"-token", authToken,
 		"--kontrol-url", kontrolURL,
-		"--kite-home", KiteHome,
+		"--kite-home", config.KiteHome,
 	)
 	// Note that we are *only* printing to Stdout. This is done because
 	// Klient logs error messages to Stderr, and we want to control the UX for
@@ -140,24 +141,24 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Printf("Created %s\n", filepath.Join(KiteHome, "kite.key"))
+	fmt.Printf("Created %s\n", filepath.Join(config.KiteHome, "kite.key"))
 
 	// Klient is setting the wrong file permissions when installed by ctl,
 	// so since this is just ctl problem, we'll just fix the permission
 	// here for now.
-	if err = os.Chmod(KiteHome, 0755); err != nil {
+	if err = os.Chmod(config.KiteHome, 0755); err != nil {
 		log.Error(
 			"Error chmodding KiteHome directory. dir:%s, err:%s",
-			KiteHome, err,
+			config.KiteHome, err,
 		)
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
 
-	if err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644); err != nil {
+	if err = os.Chmod(filepath.Join(config.KiteHome, "kite.key"), 0644); err != nil {
 		log.Error(
 			"Error chmodding kite.key. path:%s, err:%s",
-			filepath.Join(KiteHome, "kite.key"), err,
+			filepath.Join(config.KiteHome, "kite.key"), err,
 		)
 		fmt.Println(FailedInstallingKlient)
 		return 1
@@ -188,7 +189,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	s.Start()
 
 	fmt.Println("Verifying installation...")
-	err = WaitUntilStarted(KlientAddress, 5, 1*time.Second)
+	err = WaitUntilStarted(config.KlientAddress, 5, 1*time.Second)
 
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
@@ -198,7 +199,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", KlientName)
+	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 
 	return 0
 }

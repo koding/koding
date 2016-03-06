@@ -23,15 +23,19 @@ module.exports =
 
   start: (browser) ->
 
-    browser.pause 2500, -> # wait for user.json creation
-      collaborationHelpers.initiateCollaborationSession(browser)
+    callback = ->
+
       collaborationHelpers.leaveSession(browser)
       collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
 
       browser.end()
 
 
-  runCommandOnInviteUserTerminal: (browser) ->
+    browser.pause 2500, -> # wait for user.json creation
+      collaborationHelpers.initiateCollaborationSession(browser, callback, callback)
+
+
+  runCommandOnTerminal: (browser) ->
 
     host           = utils.getUser no, 0
     hostBrowser    = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
@@ -39,9 +43,8 @@ module.exports =
     terminalText   = host.teamSlug
     activeTerminal = '.kdtabpaneview.terminal.active'
 
-    collaborationHelpers.initiateCollaborationSession(browser)
+    hostCallback = ->
 
-    if hostBrowser
       browser.element 'css selector', activeTerminal, (result) ->
         if result.status is 0
           helpers.runCommandOnTerminal(browser, terminalText)
@@ -49,15 +52,23 @@ module.exports =
           terminalHelpers.openNewTerminalMenu(browser)
           terminalHelpers.openTerminal(browser)
           helpers.runCommandOnTerminal(browser, terminalText)
-    else
+
+        collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+        browser.end()
+
+
+    participantCallback = ->
+
       browser
         .waitForElementVisible activeTerminal, 50000
         .waitForTextToContain  activeTerminal, terminalText
 
-    collaborationHelpers.leaveSession(browser)
-    collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      collaborationHelpers.leaveSession(browser)
+      browser.end()
 
-    browser.end()
+
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
+
 
 
   openFile: (browser) ->
@@ -70,29 +81,23 @@ module.exports =
     participantFileName    = 'python.py'
     participantFileContent = 'Hello World from Python by Koding'
 
-    collaborationHelpers.initiateCollaborationSession(browser)
+    hostCallback = ->
 
-    if hostBrowser
       ideHelpers.openFileFromWebFolder browser, host
-
-      # wait for participant file opening
       browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
-        # .waitForElementVisible "#{lineWidgetSelector}#{participant.username}", 60000
-    else
-      # wait for host file opening
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
+
+
+    participantCallback = ->
+
       browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
-
-      # open file in host's vm
       ideHelpers.openFileFromWebFolder browser, host, participantFileName, participantFileContent
-      # browser.waitForElementVisible "#{lineWidgetSelector}#{host.username}", 60000
-
       collaborationHelpers.leaveSession(browser)
+      browser.end()
 
-    # assert no line widget after participant left
-    # browser.waitForElementNotPresent "#{lineWidgetSelector}#{participant.username}", 60000
 
-    collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-    browser.end()
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)
 
 
   openTerminalWithInvitedUser: (browser) ->
@@ -104,17 +109,29 @@ module.exports =
     terminalTab  = "#{paneSelector} .application-tab-handle-holder .kdtabhandle.terminal.active"
     terminalPane = "#{paneSelector} .kdtabpaneview.terminal.active .terminal-pane"
 
-    collaborationHelpers.initiateCollaborationSession(browser)
+    commonCallback = ->
 
-    unless hostBrowser
+      browser
+        .waitForElementVisible terminalTab,  35000
+        .pause                 6000 # wait for connecting text
+        .assert.containsText   terminalPane, host.username
+
+
+    hostCallback = ->
+
+      commonCallback()
+      collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
+      browser.end()
+
+    participantCallback = ->
+
       terminalHelpers.openNewTerminalMenu(browser)
       terminalHelpers.openTerminal(browser)
 
-    browser
-      .waitForElementVisible terminalTab,  35000
-      .pause                 6000 # wait for connecting text
-      .assert.containsText   terminalPane, host.username
+      commonCallback()
 
-    collaborationHelpers.leaveSession(browser)
-    collaborationHelpers.waitParticipantLeaveAndEndSession(browser)
-    browser.end()
+      collaborationHelpers.leaveSession(browser)
+      browser.end()
+
+
+    collaborationHelpers.initiateCollaborationSession(browser, hostCallback, participantCallback)

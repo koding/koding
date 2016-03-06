@@ -1,6 +1,6 @@
 kd      = require 'kd'
 React   = require 'kd-react'
-Encoder = require 'htmlencode'
+
 
 module.exports = class EmbedBoxLinkContent extends React.Component
 

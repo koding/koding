@@ -29,6 +29,7 @@ module.exports = [
 
   [
     { name: 'pricing payment' }
+    { name: 'collaboration collaborationsingle'}
   ]
 
   [
@@ -61,7 +62,6 @@ module.exports = [
   ]
 
   [
-    { name: 'collaboration collaboration' }
     { name: 'environments snapshot' }
   ]
 
@@ -90,7 +90,8 @@ module.exports = [
     { name: 'teams teams' }
   ]
 
-  # [
+  [
     # { name: 'environments vm-advanced' }
-  # ]
+    { name: 'environments paidaccountvm' }
+  ]
 ]

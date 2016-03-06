@@ -11,15 +11,22 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func clone(dir string) error {
+	cmd := exec.Command(
+		"git",
+		"clone",
+		"-q", // quiet to prevent SIGALARM errors
+		"https://github.com/sent-hil/bitesized",
+		dir,
+	)
+
+	_, err := cmd.Output()
+	return err
+}
+
 func testGitClone(t *testing.T, mountDir string) {
 	Convey("Git", t, createDir(mountDir, "GitClone", func(dirPath string) {
 		Convey("It should clone repo", func() {
-			clone := func(dir string) error {
-				cmd := exec.Command("git", "clone", "-q", "https://github.com/sent-hil/bitesized", dir)
-				_, err := cmd.Output()
-				return err
-			}
-
 			md5 := func(dir string) (string, error) {
 				cmd := exec.Command("bash", "-c", fmt.Sprintf("ls %s | md5", dir))
 				output, err := cmd.Output()

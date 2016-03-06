@@ -158,6 +158,8 @@ func testWriteFile(t *testing.T, mountDir string) {
 			bytes, err := fi.Write(newContent)
 			So(err, ShouldBeNil)
 			So(bytes, ShouldEqual, len(newContent))
+
+			So(fi.Close(), ShouldBeNil)
 		})
 
 		Convey("It should modify a new file inside newly created deeply nested directory", func() {
@@ -175,6 +177,8 @@ func testWriteFile(t *testing.T, mountDir string) {
 			bytes, err := fi.Write(newContent)
 			So(err, ShouldBeNil)
 			So(bytes, ShouldEqual, len(newContent))
+
+			So(fi.Close(), ShouldBeNil)
 
 			So(readFile(filePath, string(newContent)), ShouldBeNil)
 		})

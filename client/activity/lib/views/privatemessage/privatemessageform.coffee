@@ -1,15 +1,14 @@
-kd = require 'kd'
-KDAutoCompleteController = kd.AutoCompleteController
-KDAutoCompleteNothingFoundItem = kd.AutoCompleteNothingFoundItem
-KDFormViewWithFields = kd.FormViewWithFields
-KDView = kd.View
-ActivityAutoCompleteUserItemView = require '../activityautocompleteuseritemview'
-ChatHead = require '../chathead'
+kd                                       = require 'kd'
+KDAutoCompleteController                 = kd.AutoCompleteController
+KDAutoCompleteNothingFoundItem           = kd.AutoCompleteNothingFoundItem
+KDFormViewWithFields                     = kd.FormViewWithFields
+KDView                                   = kd.View
+ActivityAutoCompleteUserItemView         = require '../activityautocompleteuseritemview'
+ChatHead                                 = require '../chathead'
 FetchingActivityAutoCompleteUserItemView = require '../fetchingactivityautocompleteuseritemview'
-PrivateMessageInputWidget = require './privatemessageinputwidget'
-getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
-Encoder = require 'htmlencode'
-Promise = require 'bluebird'
+PrivateMessageInputWidget                = require './privatemessageinputwidget'
+getFullnameFromAccount                   = require 'app/util/getFullnameFromAccount'
+Encoder                                  = require 'htmlencode'
 
 
 module.exports = class PrivateMessageForm extends KDFormViewWithFields

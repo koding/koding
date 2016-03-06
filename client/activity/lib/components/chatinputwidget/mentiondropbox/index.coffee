@@ -1,7 +1,6 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
-classnames           = require 'classnames'
 PortalDropbox        = require 'activity/components/dropbox/portaldropbox'
 UserMentionItem      = require './useritem'
 ChannelMentionItem   = require './channelitem'

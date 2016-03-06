@@ -1,12 +1,9 @@
-kd                     = require  'kd'
-View                   = require './view'
-React                  = require 'kd-react'
-Button                 = require 'app/components/common/button'
-whoami                 = require 'app/util/whoami'
-Encoder                = require 'htmlencode'
-KeyboardKeys           = require 'app/constants/keyboardKeys'
-ActivityFlux           = require 'activity/flux'
-AutoSizeTextarea       = require 'app/components/common/autosizetextarea'
+kd           = require  'kd'
+View         = require './view'
+React        = require 'kd-react'
+KeyboardKeys = require 'app/constants/keyboardKeys'
+ActivityFlux = require 'activity/flux'
+
 
 module.exports = class FeedInputWidgetContainer extends React.Component
 

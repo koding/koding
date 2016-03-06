@@ -50,7 +50,8 @@ func TestFindFilesWithSymlinks(t *testing.T) {
 		t.Errorf("Symlink source and target should have the same number of assets.  Expected %d got %d", len(tocTarget), len(tocSrc))
 	} else {
 		for i, _ := range tocSrc {
-			targetFunc := strings.TrimPrefix(tocTarget[i].Func, "symlinktarget_")
+			targetFunc := strings.TrimPrefix(tocTarget[i].Func, "symlinktarget")
+			targetFunc = strings.ToLower(targetFunc[:1]) + targetFunc[1:]
 			if tocSrc[i].Func != targetFunc {
 				t.Errorf("Symlink source and target produced different function lists.  Expected %s to be %s", targetFunc, tocSrc[i].Func)
 			}

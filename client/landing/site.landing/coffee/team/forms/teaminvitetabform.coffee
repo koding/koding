@@ -1,6 +1,6 @@
 kd = require 'kd.js'
 JView          = require './../../core/jview'
-CustomLinkView = require './../../core/customlinkview'
+
 
 module.exports = class TeamInviteTabForm extends kd.FormView
 

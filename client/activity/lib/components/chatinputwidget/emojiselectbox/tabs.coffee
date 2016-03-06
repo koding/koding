@@ -1,7 +1,5 @@
-$                    = require 'jquery'
 kd                   = require 'kd'
 React                = require 'kd-react'
-ReactDOM             = require 'react-dom'
 classnames           = require 'classnames'
 immutable            = require 'immutable'
 EmojiIcon            = require 'activity/components/emojiicon'

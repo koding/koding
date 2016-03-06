@@ -4,7 +4,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"koding/klient/remote/req"
+	"koding/klientctl/config"
 	"koding/klientctl/list"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -61,8 +63,25 @@ type KlientOptions struct {
 	Version string
 }
 
-// CreateKlientClient creates a kite to the klient specified by KlientOptions, and
-// returns a Kite Client to talk to that Klient.
+// NewKlientOptions returns KlientOptions initialized to default values.
+func NewKlientOptions() KlientOptions {
+	return KlientOptions{
+		Address:     config.KlientAddress,
+		KiteKeyPath: filepath.Join(config.KiteHome, "kite.key"),
+		Name:        config.Name,
+		Version:     config.KiteVersion,
+	}
+}
+
+// CreateKlientClient creates a kite with default KlientOptions and returns a
+// Kite Client to talk to that Klient.
+func CreateKlientWithDefaultOpts() (*kite.Client, error) {
+	return CreateKlientClient(NewKlientOptions())
+}
+
+// CreateKlientClient creates a kite to the klient specified by KlientOptions.
+// In most cases CreateKlientWithDefaultOpts should be used instead of this, ie
+// this should be used only if you want to override KlientOptions.
 func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
 	if opts.Version == "" {
 		return nil, errors.New("CreateKlientClient: Version is required")
@@ -91,7 +110,15 @@ func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
 	return c, nil
 }
 
-// NewDialedKlient creates a pre-dialed Klient instance
+// NewDefaultDialedKlient creates a pre-dialed Klient instance using default
+// klient options.
+func NewDefaultDialedKlient() (*Klient, error) {
+	return NewDialedKlient(NewKlientOptions())
+}
+
+// NewDialedKlient creates a pre-dialed Klient instance. In most cases
+// NewDefaultDialedKlient should be used instead of this, ie this should be used
+// only if you want to override KlientOptions.
 func NewDialedKlient(opts KlientOptions) (*Klient, error) {
 	c, err := CreateKlientClient(opts)
 	if err != nil {
@@ -176,15 +203,23 @@ func (k *Klient) RemoteStatus(r req.Status) error {
 }
 
 // RemoteMountInfo calls klients remote.mountInfo method.
-func (k *Klient) RemoteMountInfo(r req.MountInfo) (req.MountFolder, error) {
+func (k *Klient) RemoteMountInfo(mountName string) (req.MountInfoResponse, error) {
+	r := req.MountInfo{MountName: mountName}
 	resp, err := k.Tell("remote.mountInfo", r)
 	if err != nil {
-		return req.MountFolder{}, err
+		return req.MountInfoResponse{}, err
 	}
 
-	var mountFolder req.MountFolder
+	var mountInfo req.MountInfoResponse
 	// TODO: Ignore the nil unmarshal error, but return others.
-	resp.Unmarshal(&mountFolder)
+	resp.Unmarshal(&mountInfo)
 
-	return mountFolder, nil
+	return mountInfo, nil
+}
+
+// RemoteRemount calls klient's remote.remount method.
+func (k *Klient) RemoteRemount(mountName string) error {
+	r := req.Remount{MountName: mountName}
+	_, err := k.Tell("remote.remount", r)
+	return err
 }

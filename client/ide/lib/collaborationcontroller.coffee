@@ -6,6 +6,7 @@ globals                       = require 'globals'
 kd                            = require 'kd'
 KDNotificationView            = kd.NotificationView
 KDModalView                   = kd.ModalView
+FSFile                        = require 'app/util/fs/fsfile'
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
@@ -26,6 +27,7 @@ BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
 generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 isKoding                      = require 'app/util/isKoding'
+Tracker                       = require 'app/util/tracker'
 
 {warn} = kd
 
@@ -196,6 +198,8 @@ module.exports = CollaborationController =
     @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
 
+    Tracker.track Tracker.USED_COLLABORATION
+
     if @amIHost and targetUser isnt nick()
       @ensureMachineShare [targetUser], (err) =>
         return throwError err  if err
@@ -361,13 +365,15 @@ module.exports = CollaborationController =
 
         return  unless remainingPanes.length
 
+        snapshotPanes = IDELayoutManager.getPaneHashMap snapshot
+
         for pane in remainingPanes
-          isAdded = no
+          if pane.data instanceof FSFile # editor, tailer
+            paneIdentifier = pane.data.path
+          else if pane.options.type is 'terminal'
+            paneIdentifier = pane.view.session
 
-          @forEachSubViewInIDEViews_ (p) ->
-            isAdded = yes  if p.hash is pane.view.hash
-
-          @activeTabView.addPane pane  unless isAdded
+          @activeTabView.addPane pane  unless snapshotPanes[paneIdentifier]
 
         @doResize()
 

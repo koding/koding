@@ -1,4 +1,3 @@
-$                    = require 'jquery'
 React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
 formatContent        = require 'app/util/formatReactivityContent'

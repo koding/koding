@@ -65,6 +65,11 @@ module.exports = class PaymentController extends kd.Controller
     @api().logOrder params, callback
 
 
+  fetchGroupPlan: (callback) ->
+
+    @api().fetchGroupPlan callback
+
+
   paypalReturn: (err) -> @emit 'PaypalRequestFinished', err
   paypalCancel: ->
 

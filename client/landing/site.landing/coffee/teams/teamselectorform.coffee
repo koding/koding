@@ -1,6 +1,5 @@
 kd      = require 'kd.js'
 utils   = require './../core/utils'
-kookies = require 'kookies'
 JView   = require './../core/jview'
 
 
@@ -46,16 +45,7 @@ module.exports = class TeamsSelectorForm extends kd.FormView
       @inputView.unsetClass 'validation-error validation-passed'
 
     # Listen text change event in real time
-    @input.on [ 'input', 'viewAppended' ], @bound 'repositionSuffix'
-
-
-  repositionSuffix: ->
-
-    @input.getElement().removeAttribute 'size'
-    element           = @fakeView.getElement()
-    element.innerHTML = @input.getValue()
-    { width }         = element.getBoundingClientRect()
-    @input.setWidth width or 100
+    @input.on [ 'input', 'viewAppended' ], => utils.repositionSuffix @input, @fakeView
 
 
   pistachio: ->

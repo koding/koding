@@ -12,10 +12,26 @@ const (
 	defaultNameArgDelimiter  = ':'
 )
 
+func argumentStartsOption(arg string) bool {
+	return len(arg) > 0 && (arg[0] == '-' || arg[0] == '/')
+}
+
 func argumentIsOption(arg string) bool {
 	// Windows-style options allow front slash for the option
 	// delimiter.
-	return len(arg) > 0 && (arg[0] == '-' || arg[0] == '/')
+	if len(arg) > 1 && arg[0] == '/' {
+		return true
+	}
+
+	if len(arg) > 1 && arg[0] == '-' && arg[1] != '-' {
+		return true
+	}
+
+	if len(arg) > 2 && arg[0] == '-' && arg[1] == '-' && arg[2] != '-' {
+		return true
+	}
+
+	return false
 }
 
 // stripOptionPrefix returns the option without the prefix and whether or
@@ -43,9 +59,9 @@ func stripOptionPrefix(optname string) (prefix string, name string, islong bool)
 
 // splitOption attempts to split the passed option into a name and an argument.
 // When there is no argument specified, nil will be returned for it.
-func splitOption(prefix string, option string, islong bool) (string, *string) {
+func splitOption(prefix string, option string, islong bool) (string, string, *string) {
 	if len(option) == 0 {
-		return option, nil
+		return option, "", nil
 	}
 
 	// Windows typically uses a colon for the option name and argument
@@ -53,19 +69,22 @@ func splitOption(prefix string, option string, islong bool) (string, *string) {
 	// but don't allow the two to be mixed.  That is to say /foo:bar and
 	// --foo=bar are acceptable, but /foo=bar and --foo:bar are not.
 	var pos int
+	var sp string
 
 	if prefix == "/" {
-		pos = strings.Index(option, ":")
+		sp = ":"
+		pos = strings.Index(option, sp)
 	} else if len(prefix) > 0 {
-		pos = strings.Index(option, "=")
+		sp = "="
+		pos = strings.Index(option, sp)
 	}
 
 	if (islong && pos >= 0) || (!islong && pos == 1) {
 		rest := option[pos+1:]
-		return option[:pos], &rest
+		return option[:pos], sp, &rest
 	}
 
-	return option, nil
+	return option, "", nil
 }
 
 // addHelpGroup adds a new group that contains default help parameters.

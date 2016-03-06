@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/config"
 
 	"github.com/codegangsta/cli"
 )
@@ -11,7 +12,7 @@ import (
 var cmdDescriptions = map[string]string{
 	"install": fmtDesc(
 		"<authToken>",
-		fmt.Sprintf("Install the %s. sudo is required.", KlientName),
+		fmt.Sprintf("Install the %s. sudo is required.", config.KlientName),
 	),
 	"mount": fmtDesc(
 		"<alias> <local folder>",
@@ -41,22 +42,22 @@ var cmdDescriptions = map[string]string{
 		"", "List running machines for user.",
 	),
 	"restart": fmtDesc(
-		"", fmt.Sprintf("Restart the %s.", KlientName),
+		"", fmt.Sprintf("Restart the %s.", config.KlientName),
 	),
 	"stop": fmtDesc(
-		"", fmt.Sprintf("Stop the %s.", KlientName),
+		"", fmt.Sprintf("Stop the %s.", config.KlientName),
 	),
 	"start": fmtDesc(
-		"", fmt.Sprintf("Start the %s.", KlientName),
+		"", fmt.Sprintf("Start the %s.", config.KlientName),
 	),
 	"status": fmtDesc(
-		"", fmt.Sprintf("Check status of the %s.", KlientName),
+		"", fmt.Sprintf("Check status of the %s.", config.KlientName),
 	),
 	"uninstall": fmtDesc(
-		"", fmt.Sprintf("Uninstall the %s.", KlientName),
+		"", fmt.Sprintf("Uninstall the %s.", config.KlientName),
 	),
 	"update": fmtDesc(
-		"", fmt.Sprintf("Update %s to latest version.", KlientName),
+		"", fmt.Sprintf("Update %s to latest version.", config.KlientName),
 	),
 }
 

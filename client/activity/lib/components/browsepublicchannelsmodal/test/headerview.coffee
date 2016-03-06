@@ -1,4 +1,4 @@
-ReactDOM  = require 'react-dom'
+React     = require 'kd-react'
 expect    = require 'expect'
 Header    = require '../headerview'
 TestUtils = require 'react-addons-test-utils'
