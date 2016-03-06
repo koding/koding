@@ -8,9 +8,6 @@ import (
 
 func StoreCredentialWithAuth(pathName string, kv credential.KeyValue, token string) error {
 	url := fmt.Sprintf("/credential/%s", pathName)
-	//
-	// keyValue := make(credential.KeyValue, 0)
-	// keyValue["test-key"] = "test-value"
 
 	_, err := marshallAndSendRequestWithAuth("POST", url, kv, token)
 	return err
