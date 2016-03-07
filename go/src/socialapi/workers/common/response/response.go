@@ -139,3 +139,22 @@ func NewDefaultOK() (int, http.Header, interface{}, error) {
 
 	return NewOK(res)
 }
+
+func NewBadRequestWithDetailedLogger(l logging.Logger, detailedLog interface{}, err error) (int, http.Header, interface{}, error) {
+	if err == nil {
+		err = errors.New("request is not valid")
+	}
+
+	// make sure errors are outputted
+	l.Error("Bad Request: %s", detailedLog)
+
+	// do not expose errors to the client
+	env := config.MustGet().Environment
+
+	// do not expose errors to the client.
+	if env != "dev" && env != "test" && socialApiEnv != "wercker" {
+		err = genericError
+	}
+
+	return http.StatusBadRequest, nil, nil, BadRequest{err}
+}
