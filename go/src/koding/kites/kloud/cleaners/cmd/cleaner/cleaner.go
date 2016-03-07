@@ -63,11 +63,12 @@ func NewCleaner(conf *Config) *Cleaner {
 		MaxResults:  int64(conf.MaxResults),
 	}
 
-	l, err := lookup.NewAWS(opts)
+	m := lookup.NewMongoDB(conf.MongoURL)
+
+	l, err := lookup.NewAWS(opts, m.DB)
 	if err != nil {
 		panic(err)
 	}
-	m := lookup.NewMongoDB(conf.MongoURL)
 
 	dnsOpts := &dnsclient.Options{
 		Creds:      creds,

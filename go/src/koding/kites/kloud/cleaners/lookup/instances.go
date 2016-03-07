@@ -6,12 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/go-multierror"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -86,7 +88,7 @@ func (i Instances) Ids() []string {
 	return ids
 }
 
-func deleteDocument(i *ec2.Instance) error {
+func deleteDocument(i *ec2.Instance, db *mongodb.MongoDB) error {
 	if i == nil {
 		return errors.New("nil instance")
 	}
@@ -109,11 +111,11 @@ func deleteDocument(i *ec2.Instance) error {
 		return errors.New("unable to find valid jMachine.ObjectId")
 	}
 
-	return modelhelper.DeleteMachine(id)
+	return db.Run(modelhelper.MachinesColl, func(c *mgo.Collection) error { return c.RemoveId(id) })
 }
 
 // Terminate terminates all instances
-func (i Instances) TerminateAll(client *amazon.Client) {
+func (i Instances) TerminateAll(client *amazon.Client, db *mongodb.MongoDB) {
 	if len(i) == 0 {
 		return
 	}
@@ -128,7 +130,7 @@ func (i Instances) TerminateAll(client *amazon.Client) {
 		merr := new(multierror.Error)
 
 		for _, id := range split {
-			if err := deleteDocument(i[id]); err != nil {
+			if err := deleteDocument(i[id], db); err != nil {
 				merr = multierror.Append(merr, fmt.Errorf("instance %q error: %s", id, err))
 			}
 		}
@@ -140,7 +142,7 @@ func (i Instances) TerminateAll(client *amazon.Client) {
 }
 
 // Terminate terminates the given instance specified with the id
-func (i Instances) Terminate(client *amazon.Client, id string) {
+func (i Instances) Terminate(client *amazon.Client, db *mongodb.MongoDB, id string) {
 	if id == "" {
 		return
 	}
@@ -149,7 +151,7 @@ func (i Instances) Terminate(client *amazon.Client, id string) {
 	if err != nil {
 		fmt.Printf("[%s] terminate error: %s\n", client.Region, err)
 	} else {
-		if err := deleteDocument(i[id]); err != nil {
+		if err := deleteDocument(i[id], db); err != nil {
 			fmt.Printf("[%s] deleting document for %q error: %s\n", client.Region, id, err)
 		}
 	}

@@ -3,6 +3,7 @@ package lookup
 import (
 	"bytes"
 	"fmt"
+	"koding/db/mongodb"
 	"koding/kites/kloud/api/amazon"
 	"sync"
 	"text/tabwriter"
@@ -14,11 +15,12 @@ import (
 
 // MultiInstances represents EC2 instance list per region.
 type MultiInstances struct {
-	m map[*amazon.Client]Instances // read-only, mutated only by NewMultiInstance
+	m  map[*amazon.Client]Instances // read-only, mutated only by NewMultiInstance
+	db *mongodb.MongoDB
 }
 
 // NewMultiInstances fetches EC2 instance list from each region.
-func NewMultiInstances(clients *amazon.Clients, log logging.Logger) *MultiInstances {
+func NewMultiInstances(clients *amazon.Clients, db *mongodb.MongoDB, log logging.Logger) *MultiInstances {
 	if log == nil {
 		log = defaultLogger
 	}
@@ -166,7 +168,7 @@ func (m *MultiInstances) TerminateAll() {
 
 		go func(client *amazon.Client, instances Instances) {
 			defer wg.Done()
-			instances.TerminateAll(client)
+			instances.TerminateAll(client, m.db)
 		}(client, instances)
 	}
 
