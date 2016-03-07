@@ -126,7 +126,7 @@ module.exports = class JCredential extends jraphical.Module
             ACCESSLEVEL.PRIVATE
           ]
         ]
-        default       : 'private'
+        default       : -> ACCESSLEVEL.PRIVATE
 
     relationships     :
 
