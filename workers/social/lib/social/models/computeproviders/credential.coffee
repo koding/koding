@@ -145,7 +145,7 @@ module.exports = class JCredential extends jraphical.Module
     return true
 
 
-  accessValidator = ({ accessLevel }) -> (client, group, rest..., callback) ->
+  accessValidator = (accessLevel) -> (client, group, rest..., callback) ->
 
     # using any validator to check permission based on the role in the group
     Validators.any client, group, rest..., (err, allowed) =>
@@ -330,7 +330,7 @@ module.exports = class JCredential extends jraphical.Module
       { permission   : 'update credential', validateWith: Validators.own }
       {
         permission   : 'modify credential'
-        validateWith : accessValidator { accessLevel: ACCESSLEVEL.READ }
+        validateWith : accessValidator ACCESSLEVEL.READ
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -418,7 +418,7 @@ module.exports = class JCredential extends jraphical.Module
       { permission   : 'update credential', validateWith: Validators.own }
       {
         permission   : 'modify credential'
-        validateWith : accessValidator { accessLevel: ACCESSLEVEL.WRITE }
+        validateWith : accessValidator ACCESSLEVEL.WRITE
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -459,7 +459,7 @@ module.exports = class JCredential extends jraphical.Module
       { permission   : 'update credential', validateWith: Validators.own }
       {
         permission   : 'modify credential'
-        validateWith : accessValidator { accessLevel: ACCESSLEVEL.READ }
+        validateWith : accessValidator ACCESSLEVEL.READ
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -515,7 +515,7 @@ module.exports = class JCredential extends jraphical.Module
       { permission   : 'update credential', validateWith: Validators.own }
       {
         permission   : 'modify credential'
-        validateWith : accessValidator { accessLevel: ACCESSLEVEL.READ }
+        validateWith : accessValidator ACCESSLEVEL.READ
       }
       { permission   : 'modify credential', superadmin: yes }
     ]
@@ -531,7 +531,7 @@ module.exports = class JCredential extends jraphical.Module
       { permission   : 'update credential', validateWith: Validators.own }
       {
         permission   : 'modify credential'
-        validateWith : accessValidator { accessLevel: ACCESSLEVEL.WRITE }
+        validateWith : accessValidator ACCESSLEVEL.WRITE
       }
       { permission   : 'modify credential', superadmin: yes }
     ]

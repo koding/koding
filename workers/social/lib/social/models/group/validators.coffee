@@ -76,7 +76,6 @@ module.exports = Validators =
 
   group:
 
-
     admin: (client, group, permission, permissionSet, _, callback) ->
 
       { delegate } = client.connection
@@ -89,26 +88,3 @@ module.exports = Validators =
         as         : { $in: [ 'owner', 'admin' ] }
 
       Relationship.count relSelector, createExistenceCallback callback
-
-
-    resource: (options = {}) ->
-
-      { mode } = options
-
-      (client, group, rest..., callback) ->
-
-        Validators.group.admin client, group, rest..., (err, isAdmin) =>
-
-          # you first need to be admin on the active group
-          if err or not isAdmin
-            return callback err, isAdmin
-
-          # then we can check if this document has `admin` role on it
-          relSelector   =
-            sourceId    : group.getId()
-            targetId    : @getId()
-            'data.role' : 'admin'
-
-          relSelector['data.mode'] = mode  if mode
-
-          Relationship.count relSelector, createExistenceCallback callback
