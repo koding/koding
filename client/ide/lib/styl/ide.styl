@@ -657,6 +657,8 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     .status
       margin-left           12px
       fl()
+      ellipsis()
+      max-width             40%
 
       p
         display             inline-block
@@ -1436,3 +1438,7 @@ body.ide .kddialogview.save-as-dialog
 
 .ide .ace-base16 .ace_marker-layer .ace_selected-word
   border                    1px solid #008DC0
+
+@media only screen and (max-width : 950px)
+  .ide .status-bar .status
+    hidden()
