@@ -272,6 +272,11 @@ func (s *Session) Ping() (time.Duration, error) {
 	start := time.Now()
 	select {
 	case <-ch:
+	case <-time.After(s.config.ConnectionWriteTimeout):
+		s.pingLock.Lock()
+		delete(s.pings, id) // Ignore it if a response comes later.
+		s.pingLock.Unlock()
+		return 0, ErrTimeout
 	case <-s.shutdownCh:
 		return 0, ErrSessionShutdown
 	}
@@ -286,7 +291,12 @@ func (s *Session) keepalive() {
 	for {
 		select {
 		case <-time.After(s.config.KeepAliveInterval):
-			s.Ping()
+			_, err := s.Ping()
+			if err != nil {
+				s.logger.Printf("[ERR] yamux: keepalive failed: %v", err)
+				s.exitErr(ErrKeepAliveTimeout)
+				return
+			}
 		case <-s.shutdownCh:
 			return
 		}
@@ -299,29 +309,46 @@ func (s *Session) waitForSend(hdr header, body io.Reader) error {
 	return s.waitForSendErr(hdr, body, errCh)
 }
 
-// waitForSendErr waits to send a header, checking for a potential shutdown
+// waitForSendErr waits to send a header with optional data, checking for a
+// potential shutdown. Since there's the expectation that sends can happen
+// in a timely manner, we enforce the connection write timeout here.
 func (s *Session) waitForSendErr(hdr header, body io.Reader, errCh chan error) error {
+	timer := time.NewTimer(s.config.ConnectionWriteTimeout)
+	defer timer.Stop()
+
 	ready := sendReady{Hdr: hdr, Body: body, Err: errCh}
 	select {
 	case s.sendCh <- ready:
 	case <-s.shutdownCh:
 		return ErrSessionShutdown
+	case <-timer.C:
+		return ErrConnectionWriteTimeout
 	}
+
 	select {
 	case err := <-errCh:
 		return err
 	case <-s.shutdownCh:
 		return ErrSessionShutdown
+	case <-timer.C:
+		return ErrConnectionWriteTimeout
 	}
 }
 
-// sendNoWait does a send without waiting
+// sendNoWait does a send without waiting. Since there's the expectation that
+// the send happens right here, we enforce the connection write timeout if we
+// can't queue the header to be sent.
 func (s *Session) sendNoWait(hdr header) error {
+	timer := time.NewTimer(s.config.ConnectionWriteTimeout)
+	defer timer.Stop()
+
 	select {
 	case s.sendCh <- sendReady{Hdr: hdr}:
 		return nil
 	case <-s.shutdownCh:
 		return ErrSessionShutdown
+	case <-timer.C:
+		return ErrConnectionWriteTimeout
 	}
 }
 
@@ -446,7 +473,9 @@ func (s *Session) handleStreamMessage(hdr header) error {
 	// Check if this is a window update
 	if hdr.MsgType() == typeWindowUpdate {
 		if err := stream.incrSendWindow(hdr, flags); err != nil {
-			s.sendNoWait(s.goAway(goAwayProtoErr))
+			if sendErr := s.sendNoWait(s.goAway(goAwayProtoErr)); sendErr != nil {
+				s.logger.Printf("[WARN] yamux: failed to send go away: %v", sendErr)
+			}
 			return err
 		}
 		return nil
@@ -454,7 +483,9 @@ func (s *Session) handleStreamMessage(hdr header) error {
 
 	// Read the new data
 	if err := stream.readData(hdr, flags, s.bufRead); err != nil {
-		s.sendNoWait(s.goAway(goAwayProtoErr))
+		if sendErr := s.sendNoWait(s.goAway(goAwayProtoErr)); sendErr != nil {
+			s.logger.Printf("[WARN] yamux: failed to send go away: %v", sendErr)
+		}
 		return err
 	}
 	return nil
@@ -465,11 +496,16 @@ func (s *Session) handlePing(hdr header) error {
 	flags := hdr.Flags()
 	pingID := hdr.Length()
 
-	// Check if this is a query, respond back
+	// Check if this is a query, respond back in a separate context so we
+	// don't interfere with the receiving thread blocking for the write.
 	if flags&flagSYN == flagSYN {
-		hdr := header(make([]byte, headerSize))
-		hdr.encode(typePing, flagACK, 0, pingID)
-		s.sendNoWait(hdr)
+		go func() {
+			hdr := header(make([]byte, headerSize))
+			hdr.encode(typePing, flagACK, 0, pingID)
+			if err := s.sendNoWait(hdr); err != nil {
+				s.logger.Printf("[WARN] yamux: failed to send ping reply: %v", err)
+			}
+		}()
 		return nil
 	}
 
@@ -521,7 +557,9 @@ func (s *Session) incomingStream(id uint32) error {
 	// Check if stream already exists
 	if _, ok := s.streams[id]; ok {
 		s.logger.Printf("[ERR] yamux: duplicate stream declared")
-		s.sendNoWait(s.goAway(goAwayProtoErr))
+		if sendErr := s.sendNoWait(s.goAway(goAwayProtoErr)); sendErr != nil {
+			s.logger.Printf("[WARN] yamux: failed to send go away: %v", sendErr)
+		}
 		return ErrDuplicateStream
 	}
 

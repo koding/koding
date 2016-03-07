@@ -117,7 +117,10 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       @_providedData = {}
       @setState 'INVALID'
     else
-      @_providedData = _.extend converted.contentObject, { __rawContent : content }
+      { contentObject } = converted
+      @_providedData = if Object.keys(contentObject).length
+      then _.extend contentObject, { __rawContent : content }
+      else {}
       @handleDataChange()
 
 

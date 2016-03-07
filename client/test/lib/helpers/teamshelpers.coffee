@@ -446,7 +446,7 @@ module.exports =
     invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
     inviteUserView           = "#{invitationsModalSelector} .invite-view"
     emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
-    userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
+    userEmail                = "#{helpers.getFakeText().split(' ')[0]}#{Date.now()}@kd.io"
     inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
     confirmModal             = '.admin-invite-confirm-modal'
     confirmButton            = "#{confirmModal} button.confirm"
@@ -505,6 +505,7 @@ module.exports =
     pendingMemberViewTime     = "#{pendingMemberView} time"
     pendingMemberViewSettings = "#{pendingMemberView}.settings-visible .settings"
     actionButton              = "#{pendingMemberViewSettings} .resend-button"
+    invitedMemberAvatar       = "#{invitationsModalSelector} span[title='#{userEmail}']"
 
     if revoke
       actionButton = "#{pendingMemberViewSettings} .revoke-button"
@@ -517,12 +518,15 @@ module.exports =
       .waitForElementVisible  actionButton, 20000
       .pause                  3000
       .click                  actionButton
-      .pause                  2000
 
     if revoke
-      browser.expect.element(pendingMemberView).text.to.not.contain userEmail
+      browser
+        .waitForElementNotPresent invitedMemberAvatar, 20000
+        .expect.element(invitationsModalSelector).text.to.not.contain userEmail
     else
-      browser.waitForElementVisible  '.kdnotification', 20000 # Assertion
+      browser
+        .waitForElementVisible '.kdnotification', 20000 # Assertion
+        .assert.containsText   '.kdnotification', 'Invitation is resent.'
 
 
   searchPendingInvitation: (browser, userEmail) ->

@@ -3,6 +3,7 @@ package remote
 import (
 	"errors"
 	"fmt"
+	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 
 	"github.com/koding/kite"
@@ -30,10 +31,11 @@ func (r *Remote) MountInfoHandler(kreq *kite.Request) (interface{}, error) {
 func (r *Remote) MountInfo(params req.MountInfo) (req.MountInfoResponse, error) {
 	m, ok := r.mounts.FindByName(params.MountName)
 	if !ok {
-		return req.MountInfoResponse{}, &kite.Error{
-			Type:    mountNotFoundErrType,
-			Message: fmt.Sprintf("Mount %q not found", params.MountName),
-		}
+		r.log.Error(
+			"MountInfo requested but mount could not be found. mount:%s",
+			params.MountName,
+		)
+		return req.MountInfoResponse{}, mount.ErrMountNotFound
 	}
 
 	mountInfo := req.MountInfoResponse{

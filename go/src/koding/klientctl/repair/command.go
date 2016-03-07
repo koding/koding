@@ -11,7 +11,9 @@ import (
 	"koding/klientctl/exitcodes"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"koding/klientctl/util"
 	"koding/klientctl/util/exec"
+	"koding/klientctl/util/mountcli"
 
 	"github.com/koding/logging"
 	"github.com/leeola/service"
@@ -45,6 +47,8 @@ type Command struct {
 	Klient interface {
 		RemoteList() (list.KiteInfos, error)
 		RemoteStatus(req.Status) error
+		RemoteMountInfo(string) (req.MountInfoResponse, error)
+		RemoteRemount(string) error
 	}
 
 	// The options to use if this struct needs to dial Klient.
@@ -188,7 +192,7 @@ func (c *Command) initSetupRepairers() error {
 		InternetConfirmAddrs: DefaultInternetConfirmAddrs,
 		HTTPTimeout:          time.Second,
 		RetryOpts: RetryOptions{
-			StatusRetries: 10,
+			StatusRetries: 900,
 			StatusDelay:   1 * time.Second,
 		},
 	}
@@ -196,6 +200,7 @@ func (c *Command) initSetupRepairers() error {
 	// The klient running repairer, will check if klient is running and connectable,
 	// and restart it if not.
 	klientRunningRepair := &KlientRunningRepair{
+		Stdout:        util.NewFprint(c.Stdout),
 		KlientOptions: c.KlientOptions,
 		KlientService: c.KlientService,
 		Exec: &exec.CommandRun{
@@ -263,8 +268,20 @@ There maybe be a connectivity problem. Please try again.`,
 		return err
 	}
 
-	if _, ok := infos.FindFromName(c.Options.MountName); !ok {
+	info, ok := infos.FindFromName(c.Options.MountName)
+	if !ok {
 		err := fmt.Errorf("Error: Machine %q does not exist.", c.Options.MountName)
+		c.printfln(err.Error())
+		return err
+	}
+
+	// If klient can't find the mount, we don't have enough data to remount.
+	// We can't do anything unfortunately. Inform the user, and return an error.
+	//if _, err := c.Klient.RemoteMountInfo(r.MountName); err != nil {
+	if len(info.Mounts) == 0 {
+		err := fmt.Errorf(
+			"Error: Machine %q is not mounted.", c.Options.MountName,
+		)
 		c.printfln(err.Error())
 		return err
 	}
@@ -361,6 +378,28 @@ func (c *Command) initDefaultRepairers() error {
 		MachineName:   c.Options.MountName,
 	}
 
+	mountExistsRepair := &MountExistsRepair{
+		Log:       c.Log.New("MountExistsRepair"),
+		Stdout:    util.NewFprint(c.Stdout),
+		MountName: c.Options.MountName,
+		Klient:    c.Klient,
+		Mountcli:  mountcli.NewMount(),
+	}
+
+	permDeniedRepair := &PermDeniedRepair{
+		Log:       c.Log.New("PermDeniedRepair"),
+		Stdout:    util.NewFprint(c.Stdout),
+		MountName: c.Options.MountName,
+		Klient:    c.Klient,
+	}
+
+	mountEmptyRepair := &MountEmptyRepair{
+		Log:       c.Log.New("MountEmptyRepair"),
+		Stdout:    util.NewFprint(c.Stdout),
+		MountName: c.Options.MountName,
+		Klient:    c.Klient,
+	}
+
 	// A collection of Repairers responsible for actually repairing a given mount.
 	// Executed in the order they are defined, the effectiveness of the Repairers
 	// may depend on the order they are run in. An example being TokenNotValidYetRepair
@@ -371,6 +410,9 @@ func (c *Command) initDefaultRepairers() error {
 		kiteUnreachableRepair,
 		tokenExpired,
 		tokenNotValidYetRepair,
+		mountExistsRepair,
+		permDeniedRepair,
+		mountEmptyRepair,
 	}
 
 	return nil

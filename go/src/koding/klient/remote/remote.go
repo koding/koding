@@ -10,6 +10,7 @@ import (
 	"koding/fuseklient"
 	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/machine"
+	"koding/klient/remote/mount"
 	"koding/klient/storage"
 
 	"github.com/koding/logging"
@@ -78,7 +79,7 @@ type Remote struct {
 	machineNamesCache map[string]string
 
 	// A slice of local mounts (to list and unmount from, mainly).
-	mounts Mounts
+	mounts mount.Mounts
 
 	log logging.Logger
 

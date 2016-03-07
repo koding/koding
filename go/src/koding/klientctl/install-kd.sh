@@ -68,6 +68,15 @@ EOF
 fi
 
 
+platform=`uname | tr '[:upper:]' '[:lower:]'`
+if [ "$platform" = "linux" ]; then
+  cat << EOF
+Linux installations are not yet support.
+EOF
+  exit 1
+fi
+
+
 echo "Hello, this is the Koding application (kd) installer."
 echo "This installer requires sudo permissions, please input password if prompted..."
 sudo -l > /dev/null 2> /dev/null
@@ -128,7 +137,6 @@ if which kd > /dev/null; then
 fi
 
 
-platform=`uname | tr '[:upper:]' '[:lower:]'`
 case "$platform" in
   darwin|linux)
     installDir="/usr/local/bin"

@@ -31,6 +31,9 @@ createAndUpdate = (options, callback) ->
   { provider, title, meta, stackTemplate } = options
   { JCredential } = remote.api
 
+  if not meta or (Object.keys meta).length is 0
+    return callback null, stackTemplate
+
   JCredential.create { provider, title, meta }, (err, credential) ->
     return callback err  if err
 
@@ -48,9 +51,6 @@ module.exports = updateCustomVariable = (options, callback) ->
   identifier = stackTemplate.credentials.custom?.first
   title      = "Custom variables for #{stackTemplate.title}"
   provider   = 'custom'
-
-  if not meta or (Object.keys meta).length is 0
-    return callback null, stackTemplate
 
   if identifier
 
