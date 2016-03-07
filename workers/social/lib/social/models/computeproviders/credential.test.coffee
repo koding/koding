@@ -254,32 +254,38 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
   describe 'setPermissionFor()', ->
 
-    it 'should be able to set permission of target', (done) ->
+    describe 'should be able to set permission of target', ->
 
       client         = {}
       account        = {}
       credential     = {}
       anotherAccount = {}
+      group          = {}
 
-      queue = [
+      before (done) ->
 
-        (next) ->
-          withConvertedUserAndCredential (data) ->
-            { client, account, credential } = data
-            next()
+        async.series [
 
-        (next) ->
-          withConvertedUser (data) ->
-            { account : anotherAccount } = data
-            next()
+          (next) ->
+            withConvertedUserAndCredential (data) ->
+              { client, account, credential } = data
+              next()
 
-        (next) ->
-          options = { user : true, owner : true }
-          credential.setPermissionFor anotherAccount, options, (err) ->
-            expect(err).to.not.exist
-            next()
+          (next) ->
+            withConvertedUser { createGroup: yes }, (data) ->
+              { account: anotherAccount, group } = data
+              next()
 
-        (next) ->
+        ], done
+
+
+      it 'should set permission for given account', (done) ->
+
+        options = { user: yes, owner: yes }
+
+        credential.setPermissionFor anotherAccount, options, (err) ->
+          expect(err).to.not.exist
+
           options =
             as         : 'owner'
             targetId   : credential._id
@@ -289,11 +295,26 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
           expectRelation.toExist options, (relationship) ->
             expect(relationship.sourceId).to.be.deep.equal anotherAccount._id
-            next()
+            done()
 
-      ]
+      it 'should set permission for given group with custom accessLevel', (done) ->
 
-      async.series queue, done
+        options = { user: true, accessLevel: JCredential.ACCESSLEVEL.READ }
+
+        credential.setPermissionFor group, options, (err) ->
+          expect(err).to.not.exist
+          expect(credential.getAt('accessLevel')).to.be.equal JCredential.ACCESSLEVEL.READ
+
+          options =
+            as         : 'user'
+            targetId   : credential._id
+            sourceId   : group._id
+            targetName : 'JCredential'
+            sourceName : 'JGroup'
+
+          expectRelation.toExist options, (relationship) ->
+            expect(relationship.sourceId).to.be.deep.equal group._id
+            done()
 
 
   describe 'shareWith', ->
