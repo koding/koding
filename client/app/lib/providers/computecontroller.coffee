@@ -302,6 +302,9 @@ module.exports = class ComputeController extends KDController
       for machine in stack.machines
         return stack  if machine._id is machineId
 
+  findStackFromTemplateId: (baseStackId) ->
+    return stack  for stack in @stacks when stack.baseStackId is baseStackId
+
   findMachineFromQueryString: (queryString) ->
 
     return  unless queryString

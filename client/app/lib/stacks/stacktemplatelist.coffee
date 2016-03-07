@@ -25,6 +25,9 @@ module.exports = class StackTemplateList extends KDListView
     if template._id in (currentGroup.stackTemplates ? [])
       return showError 'This template currently in use by the Team'
 
+    if kd.singletons.computeController.findStackFromTemplateId template._id
+      return showError 'You currently have a stack generated from this template'
+
     # Since KDModalView.confirm not passing overlay options
     # to the base class (KDModalView) I had to do this hack
     # Remove this when issue fixed in Framework ~ GG
