@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/codahale/sneaker"
+	"github.com/koding/logging"
 )
 
 const (
@@ -21,14 +22,18 @@ const (
 )
 
 // AddHandlers adds handlers for slack integration
-func AddHandlers(m *mux.Mux, config *config.Config) {
+func AddHandlers(m *mux.Mux, l logging.Logger, config *config.Config) {
 	manager, err := loadManager(config)
 	if err != nil {
 		panic(err)
 	}
+
 	s := &SneakerS3{
-		manager,
+		Manager: manager,
+		log:     l,
 	}
+
+	// s := NewSneaker(manager, l)
 
 	m.AddHandler(
 		handler.Request{
@@ -86,3 +91,12 @@ func loadManager(config *config.Config) (*sneaker.Manager, error) {
 		KeyId:             config.SneakerS3.SneakerMasterKey,
 	}, nil
 }
+
+//
+// func NewSneaker(s *sneaker.Manager, l logging.Logger) *SneakerS3 {
+// 	return &SneakerS3{
+// 		Manager: s,
+// 		log:     l,
+// 	}
+//
+// }
