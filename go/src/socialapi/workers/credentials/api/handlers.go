@@ -33,8 +33,6 @@ func AddHandlers(m *mux.Mux, l logging.Logger, config *config.Config) {
 		log:     l,
 	}
 
-	// s := NewSneaker(manager, l)
-
 	m.AddHandler(
 		handler.Request{
 			Handler:  s.Store,
@@ -91,12 +89,3 @@ func loadManager(config *config.Config) (*sneaker.Manager, error) {
 		KeyId:             config.SneakerS3.SneakerMasterKey,
 	}, nil
 }
-
-//
-// func NewSneaker(s *sneaker.Manager, l logging.Logger) *SneakerS3 {
-// 	return &SneakerS3{
-// 		Manager: s,
-// 		log:     l,
-// 	}
-//
-// }
