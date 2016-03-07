@@ -147,7 +147,9 @@ do ->
   nodejsProfiler = new NodejsProfiler 'socialWorker'
   nodejsProfiler.startMonitoring()
 
-  memoryLeakWatcher.setup()
+  memoryLeakWatcher.setup
+    AWS_KEY    : KONFIG.awsKeys.worker_terraformer.accessKeyId
+    AWS_SECRET : KONFIG.awsKeys.worker_terraformer.secretAccessKey
 
   compression = require 'compression'
   bodyParser = require 'body-parser'
