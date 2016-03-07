@@ -6,33 +6,24 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"strconv"
-	"time"
-
 	"github.com/fatih/color"
-	_ "github.com/mattes/migrate/driver/bash"
-	_ "github.com/mattes/migrate/driver/cassandra"
-	_ "github.com/mattes/migrate/driver/mysql"
-	_ "github.com/mattes/migrate/driver/postgres"
-	_ "github.com/mattes/migrate/driver/sqlite3"
 	"github.com/mattes/migrate/file"
 	"github.com/mattes/migrate/migrate"
 	"github.com/mattes/migrate/migrate/direction"
 	pipep "github.com/mattes/migrate/pipe"
+	"os"
+	"strconv"
+	"time"
 )
 
-var url = flag.String("url", os.Getenv("MIGRATE_URL"), "")
+var url = flag.String("url", "", "")
 var migrationsPath = flag.String("path", "", "")
 var version = flag.Bool("version", false, "Show migrate version")
 
 func main() {
-	flag.Usage = func() {
-		helpCmd()
-	}
-
 	flag.Parse()
 	command := flag.Arg(0)
+
 	if *version {
 		fmt.Println(Version)
 		os.Exit(0)

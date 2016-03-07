@@ -2,20 +2,16 @@ package postgres
 
 import (
 	"database/sql"
-	"os"
-	"testing"
-
 	"github.com/mattes/migrate/file"
 	"github.com/mattes/migrate/migrate/direction"
 	pipep "github.com/mattes/migrate/pipe"
+	"testing"
 )
 
 // TestMigrate runs some additional tests on Migrate().
 // Basic testing is already done in migrate/migrate_test.go
 func TestMigrate(t *testing.T) {
-	host := os.Getenv("POSTGRES_PORT_5432_TCP_ADDR")
-	port := os.Getenv("POSTGRES_PORT_5432_TCP_PORT")
-	driverUrl := "postgres://postgres@" + host + ":" + port + "/template1?sslmode=disable"
+	driverUrl := "postgres://localhost/migratetest?sslmode=disable"
 
 	// prepare clean database
 	connection, err := sql.Open("postgres", driverUrl)

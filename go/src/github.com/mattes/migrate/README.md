@@ -78,9 +78,6 @@ See GoDoc here: http://godoc.org/github.com/mattes/migrate/migrate
 ```go
 import "github.com/mattes/migrate/migrate"
 
-// Import any required drivers so that they are registered and available
-import _ "github.com/mattes/migrate/driver/mysql"
-
 // use synchronous versions of migration functions ...
 allErrors, ok := migrate.UpSync("driver://url", "./path")
 if !ok {

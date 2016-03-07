@@ -1,6 +1,8 @@
 package bash
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestMigrate(t *testing.T) {
 
