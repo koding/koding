@@ -1,5 +1,6 @@
 kd                    = require 'kd'
 remote                = require('app/remote').getInstance()
+checkFlag             = require 'app/util/checkFlag'
 InvitedItemView       = require './inviteditemview'
 KDCustomHTMLView      = kd.CustomHTMLView
 TeamMembersCommonView = require '../members/teammemberscommonview'
@@ -36,10 +37,15 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
     options        = { @skip, sort: @getSortOptions() }
     method         = 'some'
     selector       = status: statusType
+    isSuperAdmin   = checkFlag 'super-admin'
 
     if query
       method = 'search'
       selector.query = query
+
+    groupSlug = @getData().slug
+    if isSuperAdmin and groupSlug isnt 'koding'
+      selector.groupSlug = groupSlug
 
     remote.api.JInvitation[method] selector, options, (err, invitations) =>
 
