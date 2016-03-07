@@ -24,7 +24,7 @@ fetchStorage = (callback) ->
 
 track = (machine) ->
 
-  track_ Tracker.BUTTON_CLICKED
+  track_ Tracker.TURN_ON_VM
 
   kd.singletons.computeController.once 'MachineBuilt', (event) ->
 
