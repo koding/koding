@@ -298,65 +298,108 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
   describe 'shareWith', ->
 
-    testShareWith = (method, done) ->
-      client         = {}
-      account        = {}
-      credential     = {}
-      anotherAccount = {}
+    it 'should fail to share if target does not exist', (done) ->
 
-      queue = [
+      withConvertedUserAndCredential ({ client, credential }) ->
+        options = { user: yes, owner: yes, target: 'nonExistent' }
+        credential.shareWith client, options, (err) ->
+          expect(err?.message).to.be.equal 'Target not found.'
+          done()
 
-        (next) ->
-          withConvertedUserAndCredential (data) ->
-            { client, account, credential } = data
-            next()
+    describe 'should be able to share the credential with the target', ->
 
-        (next) ->
-          withConvertedUser (data) ->
-            { account : anotherAccount } = data
-            next()
+      group        = {}
+      client       = {}
+      credential   = {}
+      adminClient  = {}
+      adminAccount = {}
 
-        (next) ->
-          options =
-            user   : true
-            owner  : true
-            target : anotherAccount.profile.nickname
+      before (done) ->
 
-          credential[method] client, options, (err) ->
+        async.series [
+          # Create a group, account and a credential belongs to that user
+          (next) ->
+            options = { createGroup: yes }
+            withConvertedUserAndCredential options, (data) ->
+              { client, credential, group } = data
+              next()
+
+          # Create another account add to the group as admin
+          (next) ->
+            withConvertedUser { groupSlug: group.slug, role: 'admin' }, (data) ->
+              { account: adminAccount, client: adminClient } = data
+              next()
+        ], done
+
+
+      it 'should not list not shared credentials from admins perspective', (done) ->
+        JCredential.some$ adminClient, {}, (err, creds) ->
+          expect(err).to.not.exist
+          expect(creds).to.have.length 0
+          done()
+
+      it 'should be able to share a regular users credential with group with read accessLevel', (done) ->
+        options       =
+          user        : true
+          accessLevel : JCredential.ACCESSLEVEL.READ
+          target      : group.slug
+
+        credential.shareWith client, options, (err) ->
+          expect(err).to.not.exist
+          done()
+
+      it 'should be able to list shared credentials from admins perspective', (done) ->
+        JCredential.some$ adminClient, {}, (err, creds) ->
+          expect(err).to.not.exist
+          expect(creds).to.have.length 1
+          done()
+
+      it 'shoul fail to list credential for regular members of same group', (done) ->
+        withConvertedUser { groupSlug: group.slug, role: 'member' }, (data) ->
+          JCredential.some$ data.client, {}, (err, creds) ->
             expect(err).to.not.exist
-            next()
+            expect(creds).to.have.length 0
+            done()
 
-        (next) ->
+      it 'should be able to fetch shared credential content from admins perspective', (done) ->
+        credential.fetchData$ adminClient, (err, data) ->
+          expect(err).to.not.exist
+          expect(data).to.exist
+          done()
+
+      it 'should allow owner to re-set accessLevel', (done) ->
+        options       =
+          user        : true
+          accessLevel : JCredential.ACCESSLEVEL.PRIVATE
+          target      : group.slug
+
+        credential.shareWith client, options, (err) ->
+          expect(err).to.not.exist
+          done()
+
+      it 'should fail to fetch shared credential content from admins perspective if accessLevel is not right', (done) ->
+        credential.fetchData$ adminClient, (err, data) ->
+          expectAccessDenied credential, 'fetchData$', {}, done
+
+      it 'should allow one to one share between users', (done) ->
+        options  =
+          user   : true
+          owner  : true
+          target : adminAccount.profile.nickname
+
+        credential.shareWith$ client, options, (err) ->
+          expect(err).to.not.exist
+
           options =
             as         : 'owner'
             targetId   : credential._id
-            sourceId   : anotherAccount._id
+            sourceId   : adminAccount._id
             targetName : 'JCredential'
             sourceName : 'JAccount'
 
           expectRelation.toExist options, (relationship) ->
-            expect(relationship.sourceId).to.be.deep.equal anotherAccount._id
-            next()
-
-      ]
-
-      async.series queue, done
-
-
-    describe 'shareWith()', ->
-
-      it 'should fail to share if target does not exist', (done) ->
-
-        withConvertedUserAndCredential ({ client, credential }) ->
-          options = { user : true, owner : true, target : 'nonExistent' }
-          credential.shareWith client, options, (err) ->
-            expect(err?.message).to.be.equal 'Target not found.'
+            expect(relationship.sourceId).to.be.deep.equal adminAccount._id
             done()
-
-
-      it 'should be able to share the credential with the target', (done) ->
-
-        testShareWith 'shareWith', done
 
 
     describe 'shareWith$()', ->
@@ -365,11 +408,6 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
         withConvertedUserAndCredential ({ credential }) ->
           expectAccessDenied credential, 'shareWith$', {}, done
-
-
-      it 'should be able to share the credential with the target', (done) ->
-
-        testShareWith 'shareWith$', done
 
 
   describe 'delete()', ->
