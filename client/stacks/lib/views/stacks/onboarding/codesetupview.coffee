@@ -1,6 +1,7 @@
 kd                         = require 'kd'
 JView                      = require 'app/jview'
 ApplicationTabHandleHolder = require 'app/commonviews/applicationview/applicationtabhandleholder'
+Tracker                    = require 'app/util/tracker'
 
 
 module.exports = class CodeSetupView extends JView
@@ -58,6 +59,9 @@ module.exports = class CodeSetupView extends JView
           <div class="label">#{label}</div>
         """
         click: =>
+
+          Tracker.track Tracker["SERVICE_#{service.toUpperCase()}"]
+
           serviceView.setClass  'selected'
           servicesView.selected?.unsetClass 'selected'
           servicesView.selected = if servicesView.selected is serviceView then null else serviceView

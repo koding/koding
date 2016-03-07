@@ -40,6 +40,12 @@ module.exports = {
   PROVIDER_GOOGLECLOUD  : 'selected googlecloud provider'
   PROVIDER_RACKSPACE    : 'selected rackspace provider'
 
+  # SERVICES
+  SERVICE_GITHUB        : 'selected github service'
+  SERVICE_BITBUCKET     : 'selected bitbucket service'
+  SERVICE_GITLAB        : 'selected gitlab service'
+  SERVICE_YOURGITSERVER : 'selected yourgitserver service'
+
   # TEAM
   INVITED_TEAMMEMBERS  : 'invited team members'
   SENT_INVITATION      : 'sent invitation'
