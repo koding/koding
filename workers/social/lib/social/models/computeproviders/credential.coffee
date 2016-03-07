@@ -315,6 +315,16 @@ module.exports = class JCredential extends jraphical.Module
           selector    ?= {}
           selector._id = { $in: (t.targetId for t in rels) }
 
+          # exclude all private credentials from the list ~ GG
+          selector.$and ?= []
+          selector.$and  = [] unless Array.isArray selector.$and
+          selector.$and.push {
+            $or: [
+              { originId    : delegate.getId() }
+              { accessLevel : { $ne: ACCESSLEVEL.PRIVATE } }
+            ]
+          }
+
           @some selector, options, (err, items) ->
             return callback err  if err?
 
