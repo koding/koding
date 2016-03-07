@@ -70,7 +70,8 @@ describe 'MachinesStore', ->
 
       expect(store).toExist()
 
-      newMachine = _.extend label : 'new-machine', machine
+      newMachine = mock.getMockMachine()
+      newMachine.label = 'new-machine'
 
       @reactor.dispatch actionTypes.MACHINE_UPDATED, { id, machine : newMachine }
 
