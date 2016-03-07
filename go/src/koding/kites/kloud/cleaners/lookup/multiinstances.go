@@ -173,7 +173,7 @@ func (m *MultiInstances) TerminateAll() {
 	wg.Wait()
 }
 
-// TerminateAll terminates all instances
+// StopAll stops all instances.
 func (m *MultiInstances) StopAll() {
 	if len(m.m) == 0 {
 		return

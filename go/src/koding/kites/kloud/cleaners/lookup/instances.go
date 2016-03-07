@@ -1,12 +1,18 @@
 package lookup
 
 import (
+	"errors"
 	"fmt"
-	"koding/kites/kloud/api/amazon"
+	"strings"
 	"time"
+
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/api/amazon"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/go-multierror"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Instances represents a list of ec2.Instances
@@ -80,6 +86,32 @@ func (i Instances) Ids() []string {
 	return ids
 }
 
+func deleteDocument(i *ec2.Instance) error {
+	if i == nil {
+		return errors.New("nil instance")
+	}
+
+	var id bson.ObjectId
+
+	for _, tag := range i.Tags {
+		key := strings.ToLower(aws.StringValue(tag.Key))
+		value := strings.ToLower(aws.StringValue(tag.Value))
+
+		if key != "koding-machineid" || value == "" {
+			continue
+		}
+
+		id = bson.ObjectIdHex(value)
+		break
+	}
+
+	if !id.Valid() {
+		return errors.New("unable to find valid jMachine.ObjectId")
+	}
+
+	return modelhelper.DeleteMachine(id)
+}
+
 // Terminate terminates all instances
 func (i Instances) TerminateAll(client *amazon.Client) {
 	if len(i) == 0 {
@@ -90,6 +122,19 @@ func (i Instances) TerminateAll(client *amazon.Client) {
 		_, err := client.TerminateInstances(split...)
 		if err != nil {
 			fmt.Printf("[%s] terminate error: %s\n", client.Region, err)
+			continue
+		}
+
+		merr := new(multierror.Error)
+
+		for _, id := range split {
+			if err := deleteDocument(i[id]); err != nil {
+				merr = multierror.Append(merr, fmt.Errorf("instance %q error: %s", id, err))
+			}
+		}
+
+		if err := merr.ErrorOrNil(); err != nil {
+			fmt.Printf("[%s] deleting documents error: %s\n", client.Region, err)
 		}
 	}
 }
@@ -103,6 +148,10 @@ func (i Instances) Terminate(client *amazon.Client, id string) {
 	_, err := client.TerminateInstance(id)
 	if err != nil {
 		fmt.Printf("[%s] terminate error: %s\n", client.Region, err)
+	} else {
+		if err := deleteDocument(i[id]); err != nil {
+			fmt.Printf("[%s] deleting document for %q error: %s\n", client.Region, id, err)
+		}
 	}
 }
 
