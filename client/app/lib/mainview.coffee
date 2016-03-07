@@ -16,6 +16,7 @@ isTeamReactSide         = require 'app/util/isTeamReactSide'
 getGroup                = require 'app/util/getGroup'
 isSoloProductLite       = require 'app/util/issoloproductlite'
 kookies                 = require 'kookies'
+TeamName                = require './activity/sidebar/teamname'
 
 module.exports = class MainView extends kd.View
 
@@ -149,10 +150,7 @@ module.exports = class MainView extends kd.View
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else
-      @logoWrapper.addSubView new kd.CustomHTMLView
-        tagName    : 'span'
-        partial    : getGroup().title
-        cssClass   : 'team-name'
+      @logoWrapper.addSubView new TeamName
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : "sidebar-close-handle"
