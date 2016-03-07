@@ -15,11 +15,12 @@ module.exports = class JCredential extends jraphical.Module
   { permit }           = require '../group/permissionset'
   Validators           = require '../group/validators'
 
-  ACCESSLEVEL =
-    WRITE     : 'write'
-    READ      : 'read'
-    LIST      : 'list'
-    PRIVATE   : 'private'
+  @ACCESSLEVEL = ACCESSLEVEL = {
+    WRITE      : 'write'
+    READ       : 'read'
+    LIST       : 'list'
+    PRIVATE    : 'private'
+  }
 
   @trait __dirname, '../../traits/protected'
 
