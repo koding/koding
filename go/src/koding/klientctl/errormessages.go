@@ -189,9 +189,8 @@ remote machine is running & accessible and try again.`,
 	// UnmountFailedRemoveMountPath is used when we _(for some unknown reason)_ are
 	// unable to remove the mount path. It could be due to permissions, the path
 	// not being empty, or other unknown reasons.
-	//
-	// TODO: What can we tell the user to do here?
 	UnmountFailedRemoveMountPath = fmt.Sprintf(
-		`Warning: The mount path was unable to be cleaned up after unmount.`,
+		`Warning: The mount path was unable to be cleaned up after unmount.
+Please remove this path before trying to mount again to this path. `,
 	)
 )
