@@ -16,7 +16,6 @@ AdminInvitationsView       = require './views/invitations/admininvitationsview'
 GroupPermissionsView       = require './views/permissions/grouppermissionsview'
 GroupPlanBillingView       = require './views/plan-billing/groupplanbillingview'
 GroupsBlockedUserView      = require './views/members/groupsblockeduserview'
-AdminIntegrationsView      = require './views/integrations/adminintegrationsview'
 GroupGeneralSettingsView   = require './views/general/groupgeneralsettingsview'
 AdminIntegrationParentView = require './views/integrations/adminintegrationparentview'
 
@@ -38,15 +37,7 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
       # { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
-        {
-          slug      : 'Integrations'
-          title     : 'Integrations'
-          viewClass : AdminIntegrationsView,
-          subTabs   : [
-            { title : 'Add',        action: 'Add',              viewClass : AdminIntegrationParentView }
-            { title : 'Configure',  action: 'Configure',        viewClass : AdminIntegrationParentView }
-          ]
-        }
+
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
         { slug : 'Resources',      title : 'Resources',         viewClass : AdminResourcesView       , beta: yes }
         { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 , beta: yes }

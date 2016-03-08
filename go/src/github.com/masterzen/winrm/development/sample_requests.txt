@@ -15,7 +15,7 @@
       <w:ResourceURI mustUnderstand="true">http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI>
       <w:OptionSet>
          <w:Option Name="WINRS_NOPROFILE">FALSE</w:Option>
-         <w:Option Name="WINRS_CODEPAGE">437</w:Option>
+         <w:Option Name="WINRS_CODEPAGE">65001</w:Option>
       </w:OptionSet>
    </env:Header>
    <env:Body>
@@ -140,5 +140,3 @@
       </rsp:Signal>
    </env:Body>
 </env:Envelope>
-
-

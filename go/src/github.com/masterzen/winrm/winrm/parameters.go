@@ -1,10 +1,14 @@
 package winrm
 
+import (
+	"net/http"
+)
+
 type Parameters struct {
-	url          string
-	Timeout      string
-	Locale       string
-	EnvelopeSize int
+	Timeout            string
+	Locale             string
+	EnvelopeSize       int
+	TransportDecorator func(*http.Transport) http.RoundTripper
 }
 
 func DefaultParameters() *Parameters {
