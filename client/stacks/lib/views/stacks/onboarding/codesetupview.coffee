@@ -60,7 +60,7 @@ module.exports = class CodeSetupView extends JView
         """
         click: =>
 
-          Tracker.track Tracker["SERVICE_#{service.toUpperCase()}"]
+          Tracker.track Tracker["STACKS_WIZARD_SELECTED_#{service.toUpperCase()}"]
 
           serviceView.setClass  'selected'
           servicesView.selected?.unsetClass 'selected'

@@ -53,7 +53,7 @@ module.exports = class SlackInviteView extends kd.CustomScrollView
       title    : 'Import from  <cite></cite>'
       callback : ->
         location.assign OAUTH_URL
-        Tracker.track Tracker.CONNECTED_SLACK
+        Tracker.track Tracker.TEAMS_CONNECTED_SLACK
 
 
   reset: ->

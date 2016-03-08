@@ -56,7 +56,7 @@ module.exports = class PopupNotifications extends AvatarPopup
       click    : (event) =>
           if event.target.tagName is 'A' then @hide()
           if event.target.parentElement.className is 'logout'
-          then Tracker.track Tracker.LOGOUT
+          then Tracker.track Tracker.USER_LOGGED_OUT
       partial  : """
         <li class='account'><a href='/Account'>Account</a></li>
         <li class='admin hidden'><a href='/Admin'>Team Settings</a></li>

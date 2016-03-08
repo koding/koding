@@ -17,40 +17,40 @@ module.exports = {
   LABEL_MODAL_SUCCESS : 'ModalSuccess'
 
   # USER ACTIONS
-  LOGOUT          : 'logged out'
-  LEAVE_TEAM      : 'leave team'
+  USER_LOGGED_OUT : 'logged out'
+  USER_LEFT_TEAM  : 'leave team'
 
   # VM ACTIONS
-  TERMINATE_VM    : 'terminated vm'
-  TURN_ON_VM      : 'turn on vm'
+  VM_TERMINATED   : 'terminated vm'
+  VM_TURNED_ON    : 'turn on vm'
 
   # KD
-  INSTALLED_KD    : 'installed kd'
+  KD_INSTALLED    : 'installed kd'
 
   # STACKS
-  ADDED_AWS_KEYS  : 'added aws keys'
-  SETUP_STACK     : 'setup stack'
-  EDIT_STACK      : 'edit stack'
+  STACKS_ADDED_AWS_KEYS : 'added aws keys'
+  STACKS_SETUP          : 'setup stack'
+  STACKS_EDIT           : 'edit stack'
 
   # PROVIDERS
-  PROVIDER_AWS          : 'selected aws provider'
-  PROVIDER_VAGRANT      : 'selected vagrant provider'
-  PROVIDER_AZURE        : 'selected azure provider'
-  PROVIDER_DIGITALOCEAN : 'selected digitalocean provider'
-  PROVIDER_GOOGLECLOUD  : 'selected googlecloud provider'
-  PROVIDER_RACKSPACE    : 'selected rackspace provider'
+  STACKS_WIZARD_SELECTED_AWS          : 'selected aws provider'
+  STACKS_WIZARD_SELECTED_VAGRANT      : 'selected vagrant provider'
+  STACKS_WIZARD_SELECTED_AZURE        : 'selected azure provider'
+  STACKS_WIZARD_SELECTED_DIGITALOCEAN : 'selected digitalocean provider'
+  STACKS_WIZARD_SELECTED_GOOGLECLOUD  : 'selected googlecloud provider'
+  STACKS_WIZARD_SELECTED_RACKSPACE    : 'selected rackspace provider'
 
   # SERVICES
-  SERVICE_GITHUB        : 'selected github service'
-  SERVICE_BITBUCKET     : 'selected bitbucket service'
-  SERVICE_GITLAB        : 'selected gitlab service'
-  SERVICE_YOURGITSERVER : 'selected yourgitserver service'
+  STACKS_WIZARD_SELECTED_GITHUB        : 'selected github service'
+  STACKS_WIZARD_SELECTED_BITBUCKET     : 'selected bitbucket service'
+  STACKS_WIZARD_SELECTED_GITLAB        : 'selected gitlab service'
+  STACKS_WIZARD_SELECTED_YOURGITSERVER : 'selected yourgitserver service'
 
   # TEAM
-  INVITED_TEAMMEMBERS  : 'invited team members'
-  SENT_INVITATION      : 'sent invitation'
-  CONNECTED_SLACK      : 'connected slack'
+  TEAMS_INVITED_TEAMMEMBERS  : 'invited team members'
+  TEAMS_SENT_INVITATION      : 'sent invitation'
+  TEAMS_CONNECTED_SLACK      : 'connected slack'
 
   # COLLABORATION
-  USED_COLLABORATION   : 'used collaboration'
+  COLLABORATION_STARTED : 'used collaboration'
 }

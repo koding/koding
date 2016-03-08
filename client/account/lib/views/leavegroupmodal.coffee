@@ -34,6 +34,6 @@ module.exports = class LeaveGroupModal extends DeleteModalView
         new kd.NotificationView title : 'You need to transfer ownership of team before leaving team'
         return @modalTabs.forms.dangerForm.buttons.confirmButton.hideLoader()
 
-      Tracker.track Tracker.LEAVE_TEAM
+      Tracker.track Tracker.USER_LEFT_TEAM
       kookies.expire 'clientId'
       global.location.replace '/'
