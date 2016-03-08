@@ -21,8 +21,7 @@ module.exports = class StackCatalogModalView extends AdminAppView
 
     return @destroy()  if activePane.name is 'Your Stacks'
 
-    { mainView }    = activePane
-    { editorView }  = mainView?.defineStackView?.stackTemplateView
+    { mainView } = activePane
 
-    unless editorView?.getAce().isContentChanged()
+    unless mainView?.defineStackView?.isStackChanged()
       @destroy()

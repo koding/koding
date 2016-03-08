@@ -169,6 +169,15 @@ module.exports = class DefineStackView extends KDView
     @tabView.on 'PaneDidShow', (pane) ->
       pane.mainView?.editorView?.resize()
 
+  isStackChanged: ->
+
+    isChanged = no
+
+    _.each @changedContents, (value) ->
+      isChanged = yes  if value
+
+    return isChanged
+
 
   createFooter: ->
 
