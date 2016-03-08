@@ -52,4 +52,78 @@ func TestGenerateShortName(t *testing.T) {
 	if result != "BAM" {
 		t.Fatalf("unexpected: %s", result)
 	}
+
+	// Test dotfile
+	result, err = generateShortName(".big", []string{})
+	if err != nil {
+		t.Fatalf("err should be nil: %s", err)
+	}
+
+	if result != ".BIG" {
+		t.Fatalf("unexpected: %s", result)
+	}
+}
+
+func TestShortNameEntryValue(t *testing.T) {
+	// Test dot entry
+	entryValue := shortNameEntryValue(".")
+	expected := string([]byte{0x2E, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20})
+	if entryValue != expected {
+		t.Fatalf("expected %s, got %s", expected, entryValue)
+	}
+
+	// Test dotdot entry
+	entryValue = shortNameEntryValue("..")
+	expected = string([]byte{0x2E, 0x2E, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20})
+	if entryValue != expected {
+		t.Fatalf("expected %s, got %s", expected, entryValue)
+	}
+
+	// Test dotfile entry
+	shortName, err := generateShortName(".big", []string{})
+	if err != nil {
+		t.Fatalf("err should be nil: %s", err)
+	}
+
+	entryValue = shortNameEntryValue(shortName)
+	expected = "        BIG"
+	if entryValue != expected {
+		t.Fatalf("expected %s, got %s", expected, entryValue)
+	}
+
+	// Test entry value for a short filename without a period and file extension
+	shortName, err = generateShortName("foo", []string{})
+	if err != nil {
+		t.Fatalf("err should be nil: %s", err)
+	}
+
+	entryValue = shortNameEntryValue(shortName)
+	expected = "FOO        "
+	if entryValue != expected {
+		t.Fatalf("expected %s, got %s", expected, entryValue)
+	}
+
+	// Test entry value for a short filename with a period, but no file extension
+	shortName, err = generateShortName("foo.", []string{})
+	if err != nil {
+		t.Fatalf("err should be nil: %s", err)
+	}
+
+	entryValue = shortNameEntryValue(shortName)
+	expected = "FOO        "
+	if entryValue != expected {
+		t.Fatalf("expected %s, got %s", expected, entryValue)
+	}
+
+	// Test entry value for a short filename with a period and file extension
+	shortName, err = generateShortName("foo.bar", []string{})
+	if err != nil {
+		t.Fatalf("err should be nil: %s", err)
+	}
+
+	entryValue = shortNameEntryValue(shortName)
+	expected = "FOO     BAR"
+	if entryValue != expected {
+		t.Fatalf("expected %s, got %s", expected, entryValue)
+	}
 }
