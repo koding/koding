@@ -257,6 +257,16 @@ acceptInvitation = (machine) ->
         reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
 
 
+dispatchCollaborationInvitationRejected = (id) ->
+
+  kd.singletons.reactor.dispatch actions.COLLABORATION_INVITATION_REJECTED, id
+
+
+dispatchSharedVMInvitationRejected = (id) ->
+
+  kd.singletons.reactor.dispatch actions.SHARED_VM_INVITATION_REJECTED, id
+
+
 _getInvitationChannelId = ({ uid, invitation }, callback) ->
 
   environmentDataProvider.fetchMachineByUId uid, (machine, workspaces) ->
@@ -429,4 +439,6 @@ module.exports = {
   setActiveLeavingSharedMachineId
   reinitStackFromWidget
   setActiveStackId
+  dispatchCollaborationInvitationRejected
+  dispatchSharedVMInvitationRejected
 }
