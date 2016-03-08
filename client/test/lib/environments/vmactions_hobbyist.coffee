@@ -60,10 +60,10 @@ module.exports =
     browser
       .waitForElementVisible  diskUsageSelector, 20000
       .click                  resizeDiskLink
+      .waitForElementVisible  sliderSelector, 20000
       .element 'css selector', disabledResizeVmButton, (result) ->
         if result.status is -1
           browser
-            .waitForElementVisible  sliderSelector, 20000
             .click                  '.kdmodal-content .storage-container .sliderbar-container [style="left: 47.0588%;"]'
             .waitForElementVisible  disabledResizeVmButton, 20000
             .click                  '.kdmodal-content .storage-container .sliderbar-container [style="left: 41.1765%;"]'

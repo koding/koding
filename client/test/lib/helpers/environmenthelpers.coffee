@@ -407,23 +407,11 @@ module.exports =
   setAlwaysOnVm: (browser, secondVM = no) ->
 
     sidebarSelector  = '.kdview.sidebar-machine-box .vm'
-    alwaysOnSelector = '.kdinput.koding-on-off.statustoggle.small'
-    settingsSelector = '.kdview.sidebar-machine-box.koding-vm-1 .vm .settings-icon'
     vmSelector       = '.activity-sidebar .machines-wrapper .vms.my-machines .koding-vm-'
     vmSelector1      = "#{vmSelector}1"
     closeModalButton = '.kdmodal-inner .close-icon'
 
-    browser
-      .waitForElementVisible  sidebarSelector, 20000
-      .moveToElement          sidebarSelector, 10, 10
-      .waitForElementVisible  "#{sidebarSelector} span.settings-icon", 20000
-      .click                  "#{sidebarSelector} span.settings-icon"
-      .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
-        if result.status is 0
-          browser
-            .waitForElementVisible  "#{alwaysOnSelector}.off", 20000
-            .click                  "#{alwaysOnSelector}.off"
-            .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
+    @checkAlwaysOnVM(browser)
 
     browser
       .click                  closeModalButton
@@ -431,17 +419,7 @@ module.exports =
 
     if secondVM
       @addNewVM(browser, vmSelector1)
-      browser
-        .moveToElement          vmSelector1, 10, 10
-        .pause                  2500 # for the selector to load
-        .waitForElementVisible  settingsSelector, 20000
-        .click                  settingsSelector
-        .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
-          if result.status is 0
-            browser
-              .waitForElementVisible  "#{alwaysOnSelector}.off", 20000
-              .click                  "#{alwaysOnSelector}.off"
-              .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
+      @checkAlwaysOnVM(browser, yes)
 
 
   simplifiedSubmitForm: (browser) ->
@@ -453,17 +431,32 @@ module.exports =
       .waitForElementVisible   '[testpath=main-sidebar]', 20000
 
 
-  checkAlwaysOnVM: (browser) ->
+  checkAlwaysOnVM: (browser, secondVM = no) ->
 
-    sidebarSelector  = '.kdview.sidebar-machine-box .vm'
     alwaysOnSelector = '.kdinput.koding-on-off.statustoggle.small'
+    sidebarSelector  = '.kdview.sidebar-machine-box .vm'
+    settingsSelector = '.kdview.sidebar-machine-box.koding-vm-1 .vm .settings-icon'
+    vmSelector       = '.activity-sidebar .machines-wrapper .vms.my-machines .koding-vm-'
+    vmSelector1      = "#{vmSelector}1"
+
+    if secondVM
+      browser
+        .waitForElementVisible  vmSelector1, 20000
+        .moveToElement          vmSelector1, 10, 10
+        .pause                  2500 # for the selector to load
+        .waitForElementVisible  settingsSelector, 20000
+        .click                  settingsSelector
+
+    else
+      browser
+        .pause                  2500 # for the page to load
+        .waitForElementVisible  sidebarSelector, 20000
+        .moveToElement          sidebarSelector, 10, 10
+        .waitForElementVisible  "#{sidebarSelector} span.settings-icon", 20000
+        .click                  "#{sidebarSelector} span.settings-icon"
 
     browser
-      .waitForElementVisible  sidebarSelector, 20000
-      .moveToElement          sidebarSelector, 10, 10
-      .waitForElementVisible  "#{sidebarSelector} span.settings-icon", 20000
-      .click                  "#{sidebarSelector} span.settings-icon"
-      .pause                  1000
+      .waitForElementVisible  "#{alwaysOnSelector}.off", 20000
       .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
         if result.status is 0
           browser
