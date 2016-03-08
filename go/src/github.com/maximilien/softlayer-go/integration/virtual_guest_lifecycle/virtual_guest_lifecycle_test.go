@@ -194,4 +194,39 @@ var _ = Describe("SoftLayer Virtual Guest Lifecycle", func() {
 			fmt.Printf("----> successfully set the tags and verified tags were set in virtual guest `%d`\n", virtualGuest.Id)
 		})
 	})
+
+	Context("SoftLayer_VirtualGuest#CreateObject, SoftLayer_VirtualGuest#UpgradeObject and SoftLayer_VirtualGuest#DeleteObject", func() {
+		It("creates the virtual guest instance, waits for active, waits for RUNNING, upgrades cpu, ram and network speed, waits for upgrade to complete, verify that upgrade worked, then delete it", func() {
+			virtualGuest := testhelpers.CreateVirtualGuestAndMarkItTest([]datatypes.SoftLayer_Security_Ssh_Key{})
+			defer testhelpers.CleanUpVirtualGuest(virtualGuest.Id)
+
+			testhelpers.WaitForVirtualGuestToBeRunning(virtualGuest.Id)
+			testhelpers.WaitForVirtualGuestToHaveNoActiveTransactions(virtualGuest.Id)
+
+			virtualGuestService, err := testhelpers.CreateVirtualGuestService()
+			Expect(err).ToNot(HaveOccurred())
+
+			fmt.Printf("----> will attempt to upgrade virtual guest `%d`: [CPUs --> 2; RAM --> 2Gb; Network speed --> 1000]\n", virtualGuest.Id)
+			_, err = virtualGuestService.UpgradeObject(virtualGuest.Id, &softlayer.UpgradeOptions{
+				Cpus:       2,
+				MemoryInGB: 2,
+				NicSpeed:   1000,
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			fmt.Printf("----> verifying that upgrade successfully completed for virtual guest `%d`\n", virtualGuest.Id)
+			testhelpers.WaitForVirtualGuestTransactionWithStatus(virtualGuest.Id, "UPGRADE")
+			testhelpers.WaitForVirtualGuestToHaveNoActiveTransactions(virtualGuest.Id)
+
+			fmt.Printf("----> verify that cpu, ram and memory of virtual guest `%d` are upgraded\n", virtualGuest.Id)
+			upgradedVirtualGuest, err := virtualGuestService.GetObject(virtualGuest.Id)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(upgradedVirtualGuest.MaxMemory).To(Equal(2048))
+			Expect(upgradedVirtualGuest.NetworkComponents[0].MaxSpeed).To(Equal(1000))
+			Expect(upgradedVirtualGuest.StartCpus).To(Equal(2))
+
+			fmt.Printf("----> successfully upgraded virtual guest `%d`\n", virtualGuest.Id)
+		})
+	})
 })

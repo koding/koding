@@ -18,6 +18,8 @@ type Client interface {
 	GetSoftLayer_Billing_Item_Cancellation_Request_Service() (SoftLayer_Billing_Item_Cancellation_Request_Service, error)
 	GetSoftLayer_Virtual_Guest_Block_Device_Template_Group_Service() (SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service, error)
 	GetSoftLayer_Hardware_Service() (SoftLayer_Hardware_Service, error)
+	GetSoftLayer_Dns_Domain_Service() (SoftLayer_Dns_Domain_Service, error)
+	GetSoftLayer_Dns_Domain_ResourceRecord_Service() (SoftLayer_Dns_Domain_ResourceRecord_Service, error)
 
 	DoRawHttpRequest(path string, requestType string, requestBody *bytes.Buffer) ([]byte, error)
 	DoRawHttpRequestWithObjectMask(path string, masks []string, requestType string, requestBody *bytes.Buffer) ([]byte, error)
