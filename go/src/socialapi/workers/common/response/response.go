@@ -147,7 +147,7 @@ func NewBadRequestWithDetailedLogger(l logging.Logger, err error) (int, http.Hea
 	}
 
 	// make sure errors are outputted
-	l.Error("ERROR")
+	l.Error("status code: %d", http.StatusBadRequest)
 
 	// do not expose errors to the client
 	env := config.MustGet().Environment

@@ -31,7 +31,7 @@ type SneakerS3 struct {
 func (s *SneakerS3) Store(u *url.URL, h http.Header, kv KeyValue, context *models.Context) (int, http.Header, interface{}, error) {
 	pathName := u.Query().Get("pathName")
 
-	logger := s.createLogger(context, "POST", pathName, http.StatusBadRequest)
+	logger := s.createLogger(context, "Store/POST", pathName)
 
 	if pathName == "" {
 		return response.NewBadRequestWithDetailedLogger(logger, ErrPathNotFound)
@@ -62,8 +62,8 @@ func (s *SneakerS3) Store(u *url.URL, h http.Header, kv KeyValue, context *model
 		return response.NewBadRequestWithDetailedLogger(logger, err)
 	}
 
-	logger = s.createLogger(context, "POST", pathName, http.StatusOK)
-	logger.Info("Info")
+	logger = s.createLogger(context, "Store/POST", pathName)
+	logger.Info("status code: %d", http.StatusOK)
 
 	return response.NewOK(nil)
 }
@@ -71,7 +71,7 @@ func (s *SneakerS3) Store(u *url.URL, h http.Header, kv KeyValue, context *model
 func (s *SneakerS3) Get(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	pathName := u.Query().Get("pathName")
 
-	logger := s.createLogger(context, "GET", pathName, http.StatusBadRequest)
+	logger := s.createLogger(context, "Get/GET", pathName)
 	if pathName == "" {
 		return response.NewBadRequestWithDetailedLogger(logger, ErrPathNotFound)
 	}
@@ -97,8 +97,8 @@ func (s *SneakerS3) Get(u *url.URL, h http.Header, _ interface{}, context *model
 		return response.NewBadRequestWithDetailedLogger(logger, err)
 	}
 
-	logger = s.createLogger(context, "GET", pathName, http.StatusOK)
-	logger.Info("Info")
+	logger = s.createLogger(context, "Get/GET", pathName)
+	logger.Info("status code: %d", http.StatusOK)
 
 	return response.NewOK(kv)
 }
@@ -106,7 +106,7 @@ func (s *SneakerS3) Get(u *url.URL, h http.Header, _ interface{}, context *model
 func (s *SneakerS3) Delete(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	pathName := u.Query().Get("pathName")
 
-	logger := s.createLogger(context, "GET", pathName, http.StatusBadRequest)
+	logger := s.createLogger(context, "Delete/DELETE", pathName)
 
 	if pathName == "" {
 		return response.NewBadRequestWithDetailedLogger(logger, ErrPathNotFound)
@@ -121,15 +121,23 @@ func (s *SneakerS3) Delete(u *url.URL, h http.Header, _ interface{}, context *mo
 		return response.NewBadRequestWithDetailedLogger(logger, err)
 	}
 
-	logger = s.createLogger(context, "DELETE", pathName, http.StatusOK)
-	logger.Info("Info")
+	logger = s.createLogger(context, "Delete/DELETE", pathName)
+	logger.Info("status code: %d", http.StatusAccepted)
+
 	return response.NewDeleted()
 }
 
 // createLogger creates the log system for sneaker S3 storage
-func (s *SneakerS3) createLogger(context *models.Context, reqType, keyPath string, code int) logging.Logger {
+func (s *SneakerS3) createLogger(context *models.Context, reqType, keyPath string) logging.Logger {
 	ctx := s.log.New("Sneaker S3")
-	logger := ctx.New("IP", context.Client.IP, "requester", context.Client.Account.Nick, "operation", reqType, "key path", keyPath, "response code", code)
+
+	var logger logging.Logger
+
+	if context.IsLoggedIn() {
+		logger = ctx.New("IP", context.Client.IP, "requester", context.Client.Account.Nick)
+	}
+
+	logger = logger.New("handler/type", reqType, "key path", keyPath)
 
 	return logger
 }
