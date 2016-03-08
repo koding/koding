@@ -31,17 +31,18 @@ module.exports = class Tracker extends bongo.Base
   EVENT_TYPE = 'api.mail_send'
 
   @types =
-    START_REGISTER       : 'started to register'
-    FINISH_REGISTER      : 'finished register'
-    LOGGED_IN            : 'logged in'
-    CONFIRM_USING_TOKEN  : 'confirmed & logged in using token'
-    REQUEST_NEW_PASSWORD : 'requested a new password'
-    CHANGED_PASSWORD     : 'changed their password'
-    REQUEST_EMAIL_CHANGE : 'requested pin to change email'
-    CHANGED_EMAIL        : 'changed their email'
-    INVITED_GROUP        : 'was invited to a group'
-    INVITED_CREATE_TEAM  : 'was invited to create a team'
-    SENT_FEEDBACK        : 'sent feedback'
+    START_REGISTER            : 'started to register'
+    FINISH_REGISTER           : 'finished register'
+    LOGGED_IN                 : 'logged in'
+    CONFIRM_USING_TOKEN       : 'confirmed & logged in using token'
+    REQUEST_NEW_PASSWORD      : 'requested a new password'
+    CHANGED_PASSWORD          : 'changed their password'
+    REQUEST_EMAIL_CHANGE      : 'requested pin to change email'
+    CHANGED_EMAIL             : 'changed their email'
+    INVITED_GROUP             : 'was invited to a group'
+    INVITED_CREATE_TEAM       : 'was invited to create a team'
+    SENT_FEEDBACK             : 'sent feedback'
+    TEAMS_ACCEPTED_INVITATION : 'accepted invitation'
 
   @properties = {}
 

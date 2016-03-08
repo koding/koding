@@ -102,7 +102,7 @@ module.exports = class WelcomeAppView extends kd.View
 
       hintEl.innerHTML = "Hit #{key} to copy!"
 
-    Tracker.track Tracker.INSTALLED_KD
+    Tracker.track Tracker.KD_INSTALLED
 
     kd.singletons.mainView.mainTabView.scrollToBottom 200
 

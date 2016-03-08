@@ -2,6 +2,7 @@ kd                    = require 'kd'
 KDView                = kd.View
 KDCustomHTMLView      = kd.CustomHTMLView
 FindManagedNodesModal = require './managed/findnodesmodal'
+Tracker               = require 'app/util/tracker'
 
 
 module.exports = class MachineSettingsAdvancedView extends KDView
@@ -50,7 +51,9 @@ module.exports = class MachineSettingsAdvancedView extends KDView
     if tagName is 'FIGURE' or parentTagName is 'FIGURE' or tagName is 'P'
 
       switch buttonType
-        when 'terminate' then computeController.destroy @machine
+        when 'terminate'
+          Tracker.tracker Tracker.VM_TERMINATED
+          computeController.destroy @machine
         when 'reassign'  then new FindManagedNodesModal reassign: yes, @machine
         when 'reinit'
           if @machine.provider is 'aws'
