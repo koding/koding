@@ -93,6 +93,14 @@ module.exports = class SidebarMachinesListItem extends React.Component
     else @props.machine.getIn key
 
 
+  isOwner: ->
+
+    users   = (@machine 'users').toJS()
+    isOwner = yes for user in users when user.owner
+
+    return !!isOwner
+
+
   handleMachineClick: (event) ->
 
     kd.utils.defer =>
@@ -179,7 +187,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    if @machine('type') is 'own'
+    if @isOwner()
       kd.singletons.router.handleRoute "/Machines/#{@machine 'uid'}"
     else
       sidebarListItem = ReactDOM.findDOMNode @refs.sidebarMachinesListItem
@@ -264,11 +272,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     { computeController } = kd.singletons
 
-    status  = @machine ['status', 'state']
-    users   = (@machine 'users').toJS()
-    isOwner = yes for user in users when user.owner
+    return  unless @isOwner()
 
-    return  unless isOwner
+    status = @machine ['status', 'state']
     return  unless status is Machine.State.Running
 
     workspaces = []
