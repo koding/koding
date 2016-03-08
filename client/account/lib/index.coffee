@@ -36,6 +36,7 @@ module.exports = class AccountAppController extends AppController
         { slug : 'TwoFactorAuth', title : '2-Factor Auth',       listType: 'twofactorauth', listHeader: 'Two-Factor Authentication' }
         { slug : 'Email',         title : 'Email notifications', listType: 'emailNotifications' }
         { slug : 'Externals',     title : 'Linked accounts',     listType: 'linkedAccounts' }
+        { slug : 'Sessions',      title : 'Active Sessions',     listType: 'sessions' }
       ]
     billing :
       title : 'Billing'
