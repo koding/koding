@@ -680,11 +680,6 @@ module.exports = class DefineStackView extends KDView
       generatePreview()
 
 
-  createPreviewModal: ({ errors, warnings, template }) ->
-
-
-
-
   handleReinit: ->
     kd.singletons.computeController.reinitStack()
 
