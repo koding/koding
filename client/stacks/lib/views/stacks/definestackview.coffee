@@ -1,4 +1,3 @@
-_                    = require 'lodash'
 kd                   = require 'kd'
 jspath               = require 'jspath'
 Encoder              = require 'htmlencode'
@@ -187,7 +186,7 @@ module.exports = class DefineStackView extends KDView
       isStackNameChanged  = event.target.value isnt defaultValue
       @isStackChanged     = isStackNameChanged or isContentChanged
 
-    _.each @editorViews, (view, key) =>
+    @editorViews.forEach (view) =>
       { editorView } = view
       { ace }        = editorView.aceView
 
@@ -386,7 +385,7 @@ module.exports = class DefineStackView extends KDView
 
       @saveButton.hideLoader()
 
-      _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
+      @editorViews.forEach (view) -> view.editorView.getAce().saveFinished()
       @isStackChanged = no
 
       @emit 'Reload'
