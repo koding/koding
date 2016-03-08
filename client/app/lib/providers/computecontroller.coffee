@@ -71,6 +71,10 @@ module.exports = class ComputeController extends KDController
 
         @checkGroupStackRevisions()
 
+        if groupsController.canEditGroup()
+          @on 'RenderMachines', @bound 'checkMachinePermissions'
+          @checkMachinePermissions()
+
         @info machine for machine in @machines
 
 
@@ -1089,6 +1093,28 @@ module.exports = class ComputeController extends KDController
           new kd.NotificationView title: 'Permissions fixed'
         .catch (err) ->
           showError err, 'Failed to fix permissions'
+
+
+  checkMachinePermissions: (machine) ->
+
+    { groupsController } = kd.singletons
+
+    # This is for admins only
+    return  unless groupsController.canEditGroup()
+
+    @machines.forEach (machine) =>
+
+      { oldOwner, permissionUpdated } = machine.jMachine.meta
+
+      return  unless oldOwner
+      return  if not machine.isRunning()
+
+      @storage.fetchValue 'ignoredMachines', (ignoredMachines) =>
+        ignoredMachines ?= {}
+        return  if ignoredMachines[machine.uid]
+
+        @fixMachinePermissions machine, dontAskAgain = yes
+
 
   verifyStackRequirements: (stack) ->
 
