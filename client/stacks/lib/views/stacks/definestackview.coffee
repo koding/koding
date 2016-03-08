@@ -1,3 +1,4 @@
+_                    = require 'lodash'
 kd                   = require 'kd'
 jspath               = require 'jspath'
 Encoder              = require 'htmlencode'
@@ -70,12 +71,14 @@ module.exports = class DefineStackView extends KDView
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @stackTemplateView                 = new StackTemplateView options, data
+    @editorViews = {}
+
+    @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView options, data
     @tabView.addPane stackTemplatePane = new KDTabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
 
-    @variablesView                     = new VariablesView {
+    @editorViews.variables     = @variablesView     = new VariablesView {
       delegate: this
       stackTemplate
     }
@@ -83,7 +86,7 @@ module.exports = class DefineStackView extends KDView
       name : 'Private Variables'
       view : @variablesView
 
-    @readmeView                        = new ReadmeView { stackTemplate }
+    @editorViews.readme        = @readmeView         = new ReadmeView { stackTemplate }
     @tabView.addPane readmePane        = new KDTabPaneView
       name : 'Readme'
       view : @readmeView
@@ -168,6 +171,27 @@ module.exports = class DefineStackView extends KDView
 
     @tabView.on 'PaneDidShow', (pane) ->
       pane.mainView?.editorView?.resize()
+
+    @listenContentChanges()
+
+
+  listenContentChanges: ->
+
+    @changedContents = {}
+
+    @inputTitle.inputs.title.on 'input', (event) =>
+      { defaultValue } = @inputTitle.inputs.title.getOptions()
+      @changedContents.stackName = event.target.value isnt defaultValue
+
+    _.each @editorViews, (view, key) =>
+
+      { editorView } = view
+      { ace }        = editorView.aceView
+
+      editorView.on 'EditorReady', =>
+        ace.on 'FileContentChanged', =>
+          @changedContents[key] = ace.isContentChanged()
+
 
   isStackChanged: ->
 
