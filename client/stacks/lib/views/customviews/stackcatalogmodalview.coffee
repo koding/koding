@@ -23,5 +23,5 @@ module.exports = class StackCatalogModalView extends AdminAppView
 
     { mainView } = activePane
 
-    unless mainView?.defineStackView?.isStackChanged()
+    unless mainView?.defineStackView?.isStackChanged
       @destroy()

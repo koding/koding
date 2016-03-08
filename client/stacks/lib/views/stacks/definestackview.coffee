@@ -71,27 +71,27 @@ module.exports = class DefineStackView extends KDView
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @editorViews = {}
+    @editorViews = []
 
-    @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView options, data
-    @tabView.addPane stackTemplatePane = new KDTabPaneView
+    @editorViews.push @stackTemplateView  = new StackTemplateView options, data
+    @tabView.addPane stackTemplatePane    = new KDTabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
 
-    @editorViews.variables     = @variablesView     = new VariablesView {
+    @editorViews.push @variablesView      = new VariablesView {
       delegate: this
       stackTemplate
     }
-    @tabView.addPane variablesPane     = new KDTabPaneView
+    @tabView.addPane variablesPane        = new KDTabPaneView
       name : 'Private Variables'
       view : @variablesView
 
-    @editorViews.readme        = @readmeView         = new ReadmeView { stackTemplate }
-    @tabView.addPane readmePane        = new KDTabPaneView
+    @editorViews.push @readmeView         = new ReadmeView { stackTemplate }
+    @tabView.addPane readmePane           = new KDTabPaneView
       name : 'Readme'
       view : @readmeView
 
-    @providersView                     = new ProvidersView {
+    @providersView                        = new ProvidersView {
       selectedCredentials : @credentials
       provider            : selectedProvider
       stackTemplate
@@ -177,30 +177,24 @@ module.exports = class DefineStackView extends KDView
 
   listenContentChanges: ->
 
-    @changedContents = {}
+    @isStackChanged     = no
+
+    isContentChanged    = no
+    isStackNameChanged  = no
 
     @inputTitle.inputs.title.on 'input', (event) =>
-      { defaultValue } = @inputTitle.inputs.title.getOptions()
-      @changedContents.stackName = event.target.value isnt defaultValue
+      { defaultValue }    = @inputTitle.inputs.title.getOptions()
+      isStackNameChanged  = event.target.value isnt defaultValue
+      @isStackChanged     = isStackNameChanged or isContentChanged
 
     _.each @editorViews, (view, key) =>
-
       { editorView } = view
       { ace }        = editorView.aceView
 
       editorView.on 'EditorReady', =>
         ace.on 'FileContentChanged', =>
-          @changedContents[key] = ace.isContentChanged()
-
-
-  isStackChanged: ->
-
-    isChanged = no
-
-    _.each @changedContents, (value) ->
-      isChanged = yes  if value
-
-    return isChanged
+          isContentChanged  = ace.isContentChanged()
+          @isStackChanged   = isStackNameChanged or isContentChanged
 
 
   createFooter: ->
@@ -393,7 +387,7 @@ module.exports = class DefineStackView extends KDView
       @saveButton.hideLoader()
 
       _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
-      @changedContents = {} # Reset
+      @isStackChanged = no
 
       @emit 'Reload'
 
