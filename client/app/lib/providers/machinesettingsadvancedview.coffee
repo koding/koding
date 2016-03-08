@@ -52,7 +52,7 @@ module.exports = class MachineSettingsAdvancedView extends KDView
 
       switch buttonType
         when 'terminate'
-          Tracker.tracker Tracker.VM_TERMINATED
+          Tracker.track Tracker.VM_TERMINATED
           computeController.destroy @machine
         when 'reassign'  then new FindManagedNodesModal reassign: yes, @machine
         when 'reinit'
