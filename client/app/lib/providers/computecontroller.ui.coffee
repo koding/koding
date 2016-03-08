@@ -373,27 +373,43 @@ module.exports = class ComputeController_UI
 
     throw message: "Failed to find action #{action}"  unless task
 
-    {title, message, button} = task
+    { title, message, button, buttonColor, dontAskAgain } = task
 
-    modal = KDModalView.confirm
-      title       : title   ? "Remove?"
-      description : message ? "Do you want to remove ?"
-      ok          :
-        title     : button  ? "Yes, remove"
-        style     : 'solid red medium'
-        callback  : ->
-          modal.destroy()
-          callback { confirmed : yes }
-      cancel      :
-        style     : "solid light-gray medium"
-        type      : "button"
-        callback  : ->
-          modal.destroy()
-          callback { confirmed : no }
+    buttonColor ?= 'red'
+    dontAskAgain = 'hidden'  if not dontAskAgain
 
-    modal.setClass 'has-markdown'
-    modal.once 'ModalCancelled', -> callback { confirmed : no }
-    modal.overlay.on 'click',    -> callback { confirmed : no }
+    modal = new kd.ModalView
+      title          : title ? "Remove?"
+      cssClass       : 'has-markdown'
+      content        : """
+        <div class='modalformline'>
+          <p>#{message ? "Do you want to remove ?"}</p>
+        </div>
+      """
+      overlay        : yes
+      buttons        :
+        ok           :
+          title      : button ? "Yes, remove"
+          style      : "solid #{buttonColor} medium"
+          callback   : ->
+            modal.destroy()
+            callback { confirmed: yes }
+        cancel       :
+          style      : 'solid light-gray medium'
+          type       : 'button'
+          callback   : ->
+            modal.destroy()
+            callback { confirmed: no }
+        dontAskAgain :
+          title      : "Don't ask this again"
+          style      : "solid medium #{dontAskAgain}"
+          type       : 'button'
+          callback   : ->
+            modal.destroy()
+            callback { dontAskAgain: yes }
+
+    modal.once 'ModalCancelled', -> callback { confirmed: no }
+    modal.overlay.on 'click',    -> callback { confirmed: no }
 
     return modal
 
