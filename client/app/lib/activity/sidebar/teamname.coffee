@@ -12,5 +12,10 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
     super options, data
 
+    { groupsController } = kd.singletons
+
+    groupsController.ready =>
+      @setData groupsController.getCurrentGroup()
+
 
   pistachio: -> '{{ #(title)}}'
