@@ -42,5 +42,3 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
         ace.descriptionView = descriptionView
         ace.prepend descriptionView
         @resize()
-
-      ace.contentChanged = no
