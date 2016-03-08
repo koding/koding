@@ -250,8 +250,11 @@ module.exports = class ComputeController_UI
 
   @askFor: (action, options, callback) ->
 
-    {force, machine, resizeTo} = options
-    machine ?= {}
+    { force, machine, resizeTo, dontAskAgain } = options
+
+    machine               ?= {}
+    { provider, jMachine } = machine
+    machineName            = machine.getName?() ? 'a machine'
 
     if resizeTo?
       resizeFrom = machine.jMachine.meta?.storage_size or 3
@@ -261,13 +264,9 @@ module.exports = class ComputeController_UI
       resizeDetails = if resizeTo is resizeFrom then "to #{resizeTo}GB" \
                       else "from #{resizeFrom}GB to #{resizeTo}GB"
 
-
     return callback()  if force
 
-    {provider}    = machine
-
     tasks         =
-
       default     :
         resize    :
           title   : "Resize VM?"
@@ -303,6 +302,22 @@ module.exports = class ComputeController_UI
             workspaces, VMs and anything provided by this stack.</p>
           "
           button  : "Proceed"
+        permissionFix  :
+          title        : "Permission fix required for #{machineName}"
+          message      : "
+            <p>Machine <strong>#{machineName}</strong> which belongs to
+            <strong>@#{jMachine?.meta?.oldOwner}</strong> before,
+            currently does not have required permissions for you to access it.
+            </p>
+
+            <p>This option is only valid for you since you removed this user
+            from this team before.</p>
+
+            <p>Do you want to fix permissions now?</p>
+          "
+          button       : 'Fix Permissions'
+          buttonColor  : 'green'
+          dontAskAgain : dontAskAgain ? yes
         forceDeleteStack :
           title   : "Delete Stack data?"
           message : "
