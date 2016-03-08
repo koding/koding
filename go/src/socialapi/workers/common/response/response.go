@@ -140,13 +140,14 @@ func NewDefaultOK() (int, http.Header, interface{}, error) {
 	return NewOK(res)
 }
 
-func NewBadRequestWithDetailedLogger(l logging.Logger, detailedLog interface{}, err error) (int, http.Header, interface{}, error) {
+// NewBadRequestWithDetailedLogger gets logger interface and response bad request
+func NewBadRequestWithDetailedLogger(l logging.Logger, err error) (int, http.Header, interface{}, error) {
 	if err == nil {
 		err = errors.New("request is not valid")
 	}
 
 	// make sure errors are outputted
-	l.Error("Bad Request: %s", detailedLog)
+	l.Error("ERROR")
 
 	// do not expose errors to the client
 	env := config.MustGet().Environment
