@@ -150,7 +150,8 @@ module.exports = class MainView extends kd.View
         partial    : '<figure></figure>'
         click      : (event) -> kd.utils.stopDOMEvent event
     else
-      @logoWrapper.addSubView new TeamName
+      kd.singletons.groupsController.ready =>
+        @logoWrapper.addSubView new TeamName {}, getGroup()
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : "sidebar-close-handle"
