@@ -19,12 +19,13 @@ import (
 )
 
 type Cleaner struct {
-	AWS      *lookup.Lookup
-	MongoDB  *lookup.MongoDB
-	Postgres *lookup.Postgres
-	DNS      *dnsclient.Route53
-	DNSDev   *dnsclient.Route53
-	Domains  dnsstorage.Storage
+	AWS            *lookup.Lookup
+	MongoDB        *lookup.MongoDB
+	SandboxMongoDB *lookup.MongoDB
+	Postgres       *lookup.Postgres
+	DNS            *dnsclient.Route53
+	DNSDev         *dnsclient.Route53
+	Domains        dnsstorage.Storage
 
 	Hook   Hook
 	Log    logging.Logger
@@ -65,7 +66,7 @@ func NewCleaner(conf *Config) *Cleaner {
 
 	m := lookup.NewMongoDB(conf.MongoURL)
 
-	l, err := lookup.NewAWS(opts, m.DB)
+	l, err := lookup.NewAWS(opts)
 	if err != nil {
 		panic(err)
 	}
@@ -106,15 +107,16 @@ func NewCleaner(conf *Config) *Cleaner {
 	}
 
 	return &Cleaner{
-		AWS:      l,
-		MongoDB:  m,
-		Postgres: p,
-		DNS:      dns,
-		DNSDev:   dnsdev,
-		Domains:  domains,
-		Hook:     hook,
-		Log:      common.NewLogger("cleaner", conf.Debug),
-		Config:   conf,
+		AWS:            l,
+		MongoDB:        m,
+		SandboxMongoDB: lookup.NewMongoDB(conf.SandboxMongoURL),
+		Postgres:       p,
+		DNS:            dns,
+		DNSDev:         dnsdev,
+		Domains:        domains,
+		Hook:           hook,
+		Log:            common.NewLogger("cleaner", conf.Debug),
+		Config:         conf,
 	}
 }
 

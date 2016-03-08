@@ -15,12 +15,11 @@ import (
 
 // MultiInstances represents EC2 instance list per region.
 type MultiInstances struct {
-	m  map[*amazon.Client]Instances // read-only, mutated only by NewMultiInstance
-	db *mongodb.MongoDB
+	m map[*amazon.Client]Instances // read-only, mutated only by NewMultiInstance
 }
 
 // NewMultiInstances fetches EC2 instance list from each region.
-func NewMultiInstances(clients *amazon.Clients, db *mongodb.MongoDB, log logging.Logger) *MultiInstances {
+func NewMultiInstances(clients *amazon.Clients, log logging.Logger) *MultiInstances {
 	if log == nil {
 		log = defaultLogger
 	}
@@ -168,8 +167,24 @@ func (m *MultiInstances) TerminateAll() {
 
 		go func(client *amazon.Client, instances Instances) {
 			defer wg.Done()
-			instances.TerminateAll(client, m.db)
+			instances.TerminateAll(client)
 		}(client, instances)
+	}
+
+	wg.Wait()
+}
+
+// Delete deletes a jMachine documents for all the instances.
+func (m *MultiInstances) DeleteDocs(db *mongodb.MongoDB) {
+	var wg sync.WaitGroup
+
+	for _, instances := range m.m {
+		wg.Add(1)
+
+		go func(instances Instances) {
+			defer wg.Done()
+			instances.DeleteDocs(db)
+		}(instances)
 	}
 
 	wg.Wait()

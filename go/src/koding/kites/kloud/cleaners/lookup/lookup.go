@@ -1,7 +1,6 @@
 package lookup
 
 import (
-	"koding/db/mongodb"
 	"koding/kites/kloud/api/amazon"
 
 	"github.com/koding/logging"
@@ -15,13 +14,12 @@ type Lookup struct {
 	values  []string
 	clients *amazon.Clients
 	log     logging.Logger
-	db      *mongodb.MongoDB
 }
 
 // NewAWS gives new Lookup client.
 //
 // When opts.Log is nil, defaultLogger is used instead.
-func NewAWS(opts *amazon.ClientOptions, db *mongodb.MongoDB) (*Lookup, error) {
+func NewAWS(opts *amazon.ClientOptions) (*Lookup, error) {
 	optsCopy := *opts
 	if optsCopy.Log == nil {
 		optsCopy.Log = defaultLogger
@@ -33,7 +31,6 @@ func NewAWS(opts *amazon.ClientOptions, db *mongodb.MongoDB) (*Lookup, error) {
 	return &Lookup{
 		clients: clients,
 		log:     optsCopy.Log,
-		db:      db,
 	}, nil
 }
 
@@ -44,7 +41,7 @@ func (l *Lookup) FetchIpAddresses() *Addresses {
 
 // FetchInstances fetches all instances from all regions
 func (l *Lookup) FetchInstances() *MultiInstances {
-	return NewMultiInstances(l.clients, l.db, l.log)
+	return NewMultiInstances(l.clients, l.log)
 }
 
 // FetchVolumes fetches all instances from all regions

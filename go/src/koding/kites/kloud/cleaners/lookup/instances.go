@@ -115,7 +115,7 @@ func deleteDocument(i *ec2.Instance, db *mongodb.MongoDB) error {
 }
 
 // Terminate terminates all instances
-func (i Instances) TerminateAll(client *amazon.Client, db *mongodb.MongoDB) {
+func (i Instances) TerminateAll(client *amazon.Client) {
 	if len(i) == 0 {
 		return
 	}
@@ -126,18 +126,20 @@ func (i Instances) TerminateAll(client *amazon.Client, db *mongodb.MongoDB) {
 			fmt.Printf("[%s] terminate error: %s\n", client.Region, err)
 			continue
 		}
+	}
+}
 
-		merr := new(multierror.Error)
+func (i Instances) DeleteDocs(db *mongodb.MongoDB) {
+	merr := new(multierror.Error)
 
-		for _, id := range split {
-			if err := deleteDocument(i[id], db); err != nil {
-				merr = multierror.Append(merr, fmt.Errorf("instance %q error: %s", id, err))
-			}
+	for id, instance := range i {
+		if err := deleteDocument(instance, db); err != nil {
+			merr = multierror.Append(merr, fmt.Errorf("instance %q error: %s", id, err))
 		}
+	}
 
-		if err := merr.ErrorOrNil(); err != nil {
-			fmt.Printf("[%s] deleting documents error: %s\n", client.Region, err)
-		}
+	if err := merr.ErrorOrNil(); err != nil {
+		fmt.Printf("deleting documents error: %s\n", err)
 	}
 }
 

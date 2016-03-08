@@ -23,7 +23,8 @@ type Config struct {
 	}
 
 	// MongoDB
-	MongoURL string `required:"true"`
+	MongoURL        string `required:"true"`
+	SandboxMongoURL string `required:"true"`
 
 	// Postgres
 	Postgres struct {
@@ -223,6 +224,7 @@ func (c *Cleaner) collectAndProcess() error {
 		//},
 		&TestVMS{
 			Instances: artifacts.Instances,
+			MongoDB:   c.SandboxMongoDB.DB,
 		},
 		&TestDomains{
 			DNS: c.DNSDev,
