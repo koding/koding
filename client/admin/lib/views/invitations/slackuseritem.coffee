@@ -9,12 +9,19 @@ module.exports = class SlackUserItem extends kd.ListItemView
     super options, data
 
 
+  emitItemValueChanged: ->
+
+    list = @getDelegate()
+    list.emit 'ItemValueChanged'
+
+
   viewAppended: ->
 
     { real_name, name, profile } = @getData()
 
     @addSubView @checkBox = new kd.CustomCheckBox
       defaultValue : on
+      click        : => @emitItemValueChanged()
 
     @addSubView new kd.CustomHTMLView
       tagName  : 'a'
@@ -23,5 +30,4 @@ module.exports = class SlackUserItem extends kd.ListItemView
       partial  : "<img src='#{profile.image_24}'/> @#{name} <cite>#{real_name}</cite>"
       click    : =>
         @checkBox.setValue not @checkBox.getValue()
-        list = @getDelegate()
-        list.emit 'ItemValueChanged'
+        @emitItemValueChanged()
