@@ -416,8 +416,8 @@ module.exports =
     browser
       .waitForElementVisible  sidebarSelector, 20000
       .moveToElement          sidebarSelector, 10, 10
-      .waitForElementVisible  "#{sidebarSelector} span", 20000
-      .click                  "#{sidebarSelector} span"
+      .waitForElementVisible  "#{sidebarSelector} span.settings-icon", 20000
+      .click                  "#{sidebarSelector} span.settings-icon"
       .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
         if result.status is 0
           browser
@@ -461,8 +461,8 @@ module.exports =
     browser
       .waitForElementVisible  sidebarSelector, 20000
       .moveToElement          sidebarSelector, 10, 10
-      .waitForElementVisible  "#{sidebarSelector} span", 20000
-      .click                  "#{sidebarSelector} span"
+      .waitForElementVisible  "#{sidebarSelector} span.settings-icon", 20000
+      .click                  "#{sidebarSelector} span.settings-icon"
       .pause                  1000
       .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
         if result.status is 0
