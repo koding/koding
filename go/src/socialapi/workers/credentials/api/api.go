@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -28,40 +27,28 @@ type SneakerS3 struct {
 	log logging.Logger
 }
 
-func createLog(context *models.Context, operation, path string, code int) string {
-
-	log := fmt.Sprintf("Logged with IP: %v, requester: %s, operation: %s, key path: %s, response code: %d",
-		context.Client.IP,
-		context.Client.Account.OldId,
-		operation,
-		path,
-		code,
-	)
-	return log
-}
-
 // Store stores the given credentials on s3
 func (s *SneakerS3) Store(u *url.URL, h http.Header, kv KeyValue, context *models.Context) (int, http.Header, interface{}, error) {
 	pathName := u.Query().Get("pathName")
 
-	detailedLog := createLog(context, "POST", pathName, http.StatusBadRequest)
+	logger := s.createLogger(context, "POST", pathName, http.StatusBadRequest)
 
 	if pathName == "" {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, ErrPathNotFound)
+		return response.NewBadRequestWithDetailedLogger(logger, ErrPathNotFound)
 	}
 
 	if !context.IsLoggedIn() {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, models.ErrNotLoggedIn)
+		return response.NewBadRequestWithDetailedLogger(logger, models.ErrNotLoggedIn)
 	}
 
 	if kv == nil {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, ErrRequiredValuesNotFound)
+		return response.NewBadRequestWithDetailedLogger(logger, ErrRequiredValuesNotFound)
 	}
 
 	// convert credentials to bytes
 	byt, err := json.Marshal(kv)
 	if err != nil {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, err)
+		return response.NewBadRequestWithDetailedLogger(logger, err)
 	}
 
 	// bytes need to imlement io.Reader interface
@@ -72,64 +59,77 @@ func (s *SneakerS3) Store(u *url.URL, h http.Header, kv KeyValue, context *model
 	// and new incoming data is gonna override the old data
 	err = s.Manager.Upload(pathName, aa)
 	if err != nil {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, err)
+		return response.NewBadRequestWithDetailedLogger(logger, err)
 	}
 
-	detailedLog = createLog(context, "POST", pathName, http.StatusOK)
+	logger = s.createLogger(context, "POST", pathName, http.StatusOK)
+	logger.Info("Info")
 
-	s.log.Info(detailedLog)
 	return response.NewOK(nil)
 }
 
 func (s *SneakerS3) Get(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	pathName := u.Query().Get("pathName")
-	detailedLog := createLog(context, "GET", pathName, http.StatusBadRequest)
+
+	logger := s.createLogger(context, "GET", pathName, http.StatusBadRequest)
 	if pathName == "" {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, ErrPathNotFound)
+		return response.NewBadRequestWithDetailedLogger(logger, ErrPathNotFound)
 	}
 
 	if !context.IsLoggedIn() {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, models.ErrNotLoggedIn)
+		return response.NewBadRequestWithDetailedLogger(logger, models.ErrNotLoggedIn)
 	}
 
 	downArray := []string{pathName}
 	down, err := s.Manager.Download(downArray)
 	if err != nil {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, err)
+		return response.NewBadRequestWithDetailedLogger(logger, err)
 	}
 
 	if down[pathName] == nil {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, ErrPathContentNotFound)
+		return response.NewBadRequestWithDetailedLogger(logger, ErrPathContentNotFound)
 	}
 
 	var kv KeyValue
 
 	downX := bytes.NewReader(down[pathName])
 	if err := json.NewDecoder(downX).Decode(&kv); err != nil {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, err)
+		return response.NewBadRequestWithDetailedLogger(logger, err)
 	}
 
-	detailedLog = createLog(context, "GET", pathName, http.StatusOK)
+	logger = s.createLogger(context, "GET", pathName, http.StatusOK)
+	logger.Info("Info")
+
 	return response.NewOK(kv)
 }
 
 func (s *SneakerS3) Delete(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	pathName := u.Query().Get("pathName")
-	detailedLog := createLog(context, "DELETE", pathName, http.StatusBadRequest)
+
+	logger := s.createLogger(context, "GET", pathName, http.StatusBadRequest)
 
 	if pathName == "" {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, ErrPathNotFound)
+		return response.NewBadRequestWithDetailedLogger(logger, ErrPathNotFound)
 	}
 
 	if !context.IsLoggedIn() {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, models.ErrNotLoggedIn)
+		return response.NewBadRequestWithDetailedLogger(logger, models.ErrNotLoggedIn)
 	}
 
 	err := s.Manager.Rm(pathName)
 	if err != nil {
-		return response.NewBadRequestWithDetailedLogger(s.log, detailedLog, err)
+		return response.NewBadRequestWithDetailedLogger(logger, err)
 	}
 
-	detailedLog = createLog(context, "DELETE", pathName, http.StatusOK)
+	logger = s.createLogger(context, "DELETE", pathName, http.StatusOK)
+	logger.Info("Info")
 	return response.NewDeleted()
+}
+
+// createLogger creates the log system for sneaker S3 storage
+func (s *SneakerS3) createLogger(context *models.Context, reqType, keyPath string, code int) logging.Logger {
+	ctx := s.log.New("Sneaker S3")
+	logger := ctx.New("IP", context.Client.IP, "requester", context.Client.Account.Nick, "operation", reqType, "key path", keyPath, "response code", code)
+
+	return logger
 }
