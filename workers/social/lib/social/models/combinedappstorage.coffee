@@ -12,7 +12,7 @@ module.exports = class JCombinedAppStorage extends JStorage
       accountId     : 'unique'
     sharedEvents    :
       static        : []
-      instance      : []
+      instance      : ['Update']
     sharedMethods   :
       static        : {}
       instance      :
@@ -31,7 +31,8 @@ module.exports = class JCombinedAppStorage extends JStorage
       return callback new KodingError 'appId is not set!'
 
     options.accountId = @getAt 'accountId'
-    JCombinedAppStorage.upsert appId, options, (err, storage) ->
+    JCombinedAppStorage.upsert appId, options, (err, storage) =>
+      @emit 'Update', options  if options.notify
       return callback err, storage
 
 
