@@ -177,6 +177,7 @@ func (s *Stack) InjectAWSData(ctx context.Context, username string, expandUserDa
 		// will be replaced with the kitekeys we create below
 		userCfg.KiteKey = fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName)
 
+		// TODO(rjeczalik): do not compute userdata for destroy operations, it's a nop
 		userdata, err := sess.Userdata.Create(userCfg)
 		if err != nil {
 			return nil, err
