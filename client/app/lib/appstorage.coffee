@@ -33,6 +33,7 @@ class AppStorage extends kd.Object
         whoami().fetchAppStorage { appId, version }, (error, storage) =>
 
           if not error and storage
+            @reset()
             @_storage = storage
             callback? @_storage
             @_setReady()
