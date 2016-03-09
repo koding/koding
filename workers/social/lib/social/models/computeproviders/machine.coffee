@@ -688,7 +688,7 @@ module.exports = class JMachine extends Module
         Payment = require '../payment'
         Payment.subscriptions client, {}, (err, subscription) =>
 
-          if err? or not subscription? or subscription.planTitle is 'free'
+          if err? or not subscription?
             return callback \
               new KodingError "You don't have a paid subscription!"
 

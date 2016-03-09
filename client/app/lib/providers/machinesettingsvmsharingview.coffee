@@ -76,7 +76,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     { profile: { nickname } } = user
 
     remote.api.SharedMachine[task] @machine.uid, [nickname], (err) =>
-
+      console.log 'errrr ', err
       return @showNotification err  if err
 
       kite   = @machine.getBaseKite()
@@ -144,14 +144,6 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     kd.singletons.computeController.fetchUserPlan (plan) =>
 
       @headerAddNewButton.hideLoader()
-
-      if plan is 'free'
-
-        new ComputeErrorUsageModal
-          plan    : 'free'
-          message : 'VM share feature is only available for paid accounts.'
-
-        return @emit 'ModalDestroyRequested'
 
       super
 
