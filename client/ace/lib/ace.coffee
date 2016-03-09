@@ -173,7 +173,6 @@ class Ace extends KDView
       @setTabSize             @appStorage.getValue('tabSize')             ? 4         , no
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
-      @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
       @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes       , no
       @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
       @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
@@ -422,10 +421,6 @@ class Ace extends KDView
     @appStorage.getValue('scrollPastEnd') ? yes
 
 
-  getOpenRecentFiles: ->
-    @appStorage.getValue('openRecentFiles') ? yes
-
-
   getEnableAutocomplete: ->
     @appStorage.getValue('enableAutocomplete') ? yes
 
@@ -455,7 +450,6 @@ class Ace extends KDView
     tabSize             : @getTabSize()
     keyboardHandler     : @getKeyboardHandler()
     scrollPastEnd       : @getScrollPastEnd()
-    openRecentFiles     : @getOpenRecentFiles()
     enableAutocomplete  : @getEnableAutocomplete()
     enableSnippets      : @getEnableSnippets()
     enableEmmet         : @getEnableEmmet()
@@ -581,9 +575,6 @@ class Ace extends KDView
     @appStorage.setValue 'useWordWrap', value
 
 
-
-  setOpenRecentFiles: (value, save = yes) ->
-    @appStorage.setValue 'openRecentFiles', value
   setReadOnly: (value) -> @editor.setReadOnly value
 
 

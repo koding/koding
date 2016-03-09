@@ -53,8 +53,6 @@ module.exports = class NFinderController extends KDViewController
 
       @appStorage.ready =>
 
-        @treeController.on "file.opened", @bound 'setRecentFile'
-
         @treeController.on "folder.expanded", (folder)=>
           @setRecentFolder folder.path
 
@@ -189,20 +187,6 @@ module.exports = class NFinderController extends KDViewController
     computeController.fetchMachine uid, (err, machine)=>
       return showError err  if err
       @mountMachine machine    if machine?
-
-
-  setRecentFile:({path})->
-
-    recentFiles = @appStorage.getValue('recentFiles')
-    recentFiles = []  unless Array.isArray recentFiles
-
-    unless path in recentFiles
-      if recentFiles.length is @treeController.getOptions().maxRecentFiles
-        recentFiles.pop()
-      recentFiles.unshift path
-
-    @appStorage.setValue 'recentFiles', recentFiles.slice(0,10), =>
-      @emit 'recentfiles.updated', recentFiles
 
 
   hideDotFiles:(uid)->
