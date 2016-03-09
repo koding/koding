@@ -682,7 +682,7 @@ module.exports = class JMachine extends Module
       # Permanent option is only valid for paid accounts
       # if its passed then we need to check payment
       #
-      if permanent # and @provider is 'koding'
+      if permanent and @provider in ['managed', 'koding'] and options.group is 'koding'
                    # TODO: we can limit this for koding provider only ~ GG
 
         Payment = require '../payment'
