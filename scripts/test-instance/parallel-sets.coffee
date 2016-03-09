@@ -22,84 +22,38 @@
 module.exports = [
 
   [
-    { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
-    { name: 'environments vmactions_professional' }
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'pricing payment' }
-    { name: 'collaboration collaborationsingle'}
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'account accountsettings' }
-    { name: 'environments vmactions_hobbyist' }
-
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'unittests' }
-    { name: 'environments vmactions_developer' }
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
-
-  [
-    { name: 'ide file' }
-    { name: 'ide folder' }
-  ]
-
-  [
-    { name: 'ide search' }
-    { name: 'ide workspace' }
-  ]
-
-  [
-    { name: 'ide terminal' }
-    { name: 'pricing invalidcarddetails' }
-  ]
-
-  [
-    { name: 'ide general' }
-    { name: 'ide layout' }
-    { name: 'teams inviteteams' }
-  ]
-
-  [
-    { name: 'environments snapshot' }
-  ]
-
-  # [
-  #   { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
-
-  # [
-  #   { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
-
-  # [
-  #   { name: 'collaboration collaborationfile', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
 
   [
     { name: 'vmsharing vmsharing', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'environments vm' }
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'environments paidaccount' }
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'environments domain' }
-    { name: 'teams teams' }
+    { name: 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    # { name: 'environments vm-advanced' }
-    { name: 'environments paidaccountvm' }
+    { name: 'collaboration collaborationsession', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 ]
