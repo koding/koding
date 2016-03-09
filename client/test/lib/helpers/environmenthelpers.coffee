@@ -343,7 +343,7 @@ module.exports =
 
     createVMbutton    = '.content-container .kdbutton'
     addKodingVmButton = '.environments-modal .kdbutton.add-vm-button'
-    vmSelector        = '.sidebar-machine-box .notinitialized'
+    vmSelector        = '.sidebar-machine-box'
     vmStateModal      = '.env-machine-state .kdmodal-content'
 
     browser
@@ -356,3 +356,117 @@ module.exports =
       .pause                   2500 # wait for correct pop-up to appear
       .waitForElementVisible  vmStateModal + ' .turn-on', 50000
       .assert.containsText    vmStateModal + ' .turn-on', 'TURN IT ON'
+
+
+  createNewVmForHobbyistPlan: (browser) ->
+
+    vmSelector    = '.machines-wrapper .buy-vm'
+    createVmModal = '.kdmodal-inner .kdmodal-content .message'
+    addVmSelector = '.footer .button-container .add-vm-button'
+
+    browser
+      .moveToElement           '.sidebar-machine-box', 10, 10
+      .waitForElementVisible   vmSelector, 20000
+      .click                   vmSelector
+      .waitForElementVisible   addVmSelector, 20000
+      .click                   addVmSelector
+      .waitForElementVisible   createVmModal, 20000
+      .assert.containsText     createVmModal, 'Hobbyist plan is restricted to only one VM.'
+      .assert.containsText     '.kdmodal-inner .kdmodal-content .custom-link-view span', 'Upgrade your account for more VMs RAM and Storage'
+
+
+  addNewVM: (browser, vmAssert, addNewVmNotAllowed = no, remainingSlots, usedStorage) ->
+
+    sidebarSelector        = '.kdview.sidebar-machine-box .vm'
+    addVmSelector          = '.sidebar-title .custom-link-view.add-icon.buy-vm'
+    addVmButton            = '.button-container .add-vm-button'
+    disabledCreateVmButton = '.computeplan-modal .kdbutton.solid'
+
+    browser
+      .pause                  2000 #wait for the new vm to be displayed
+      .waitForElementVisible  sidebarSelector, 20000
+      .moveToElement          sidebarSelector, 10, 10
+      .waitForElementVisible  addVmSelector, 20000
+      .click                  addVmSelector
+      .waitForElementVisible  addVmButton, 20000
+      .click                  addVmButton
+
+      if addNewVmNotAllowed
+        browser
+          .waitForElementVisible  '.computeplan-modal [disabled="disabled"]', 20000
+          .assert.containsText    '.kdmodal-content .kdview.modal-title.warn', remainingSlots
+          .assert.containsText    vmAssert, usedStorage
+      else
+        browser
+          .waitForElementVisible  disabledCreateVmButton, 20000
+          .click                  disabledCreateVmButton
+          .pause                  2000 #for page to finish loading
+          .waitForElementVisible  vmAssert, 20000
+
+
+  setAlwaysOnVm: (browser, secondVM = no) ->
+
+    sidebarSelector  = '.kdview.sidebar-machine-box .vm'
+    alwaysOnSelector = '.kdinput.koding-on-off.statustoggle.small'
+    settingsSelector = '.kdview.sidebar-machine-box.koding-vm-1 .vm .settings-icon'
+    vmSelector       = '.activity-sidebar .machines-wrapper .vms.my-machines .koding-vm-'
+    vmSelector1      = "#{vmSelector}1"
+    closeModalButton = '.kdmodal-inner .close-icon'
+
+    browser
+      .waitForElementVisible  sidebarSelector, 20000
+      .moveToElement          sidebarSelector, 10, 10
+      .waitForElementVisible  "#{sidebarSelector} span", 20000
+      .click                  "#{sidebarSelector} span"
+      .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
+        if result.status is 0
+          browser
+            .waitForElementVisible  "#{alwaysOnSelector}.off", 20000
+            .click                  "#{alwaysOnSelector}.off"
+            .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
+
+    browser
+      .click                  closeModalButton
+      .waitForElementVisible  sidebarSelector, 20000
+
+    if secondVM
+      @addNewVM(browser, vmSelector1)
+      browser
+        .moveToElement          vmSelector1, 10, 10
+        .pause                  2500 # for the selector to load
+        .waitForElementVisible  settingsSelector, 20000
+        .click                  settingsSelector
+        .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
+          if result.status is 0
+            browser
+              .waitForElementVisible  "#{alwaysOnSelector}.off", 20000
+              .click                  "#{alwaysOnSelector}.off"
+              .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
+
+
+  simplifiedSubmitForm: (browser) ->
+    browser
+      .waitForElementVisible   'button.submit-btn', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '.kdmodal-content .success-msg', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '[testpath=main-sidebar]', 20000
+
+
+  checkAlwaysOnVM: (browser) ->
+
+    sidebarSelector  = '.kdview.sidebar-machine-box .vm'
+    alwaysOnSelector = '.kdinput.koding-on-off.statustoggle.small'
+
+    browser
+      .waitForElementVisible  sidebarSelector, 20000
+      .moveToElement          sidebarSelector, 10, 10
+      .waitForElementVisible  "#{sidebarSelector} span", 20000
+      .click                  "#{sidebarSelector} span"
+      .pause                  1000
+      .element 'css selector', "#{alwaysOnSelector}.off", (result) ->
+        if result.status is 0
+          browser
+            .click                  "#{alwaysOnSelector}.off"
+            .waitForElementVisible  "#{alwaysOnSelector}.on", 20000
+
