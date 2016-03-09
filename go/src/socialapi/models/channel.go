@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"socialapi/models"
 	"socialapi/request"
 
 	"github.com/hashicorp/go-multierror"
@@ -704,6 +705,26 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 
 	if channels == nil {
 		return make([]Channel, 0), nil
+	}
+
+	return channels, nil
+}
+
+func (c *Channel) FetchAllChannelsOfGroup(q *request.Query) ([]Channel, error) {
+	q := &request.Query{
+		Selector: map[string]interface{}{
+			"group_name": c.GroupName,
+		},
+		Exclude: map[string]interface{}{
+			"type_constant": Channel_TYPE_GROUP,
+		},
+	}
+	query.AddScope(models.ExcludeFields(q.Exclude))
+
+	var channels []Channel
+	err := i.Some(&channels, query)
+	if err != nil {
+		return nil, err
 	}
 
 	return channels, nil
