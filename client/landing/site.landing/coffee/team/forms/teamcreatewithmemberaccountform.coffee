@@ -9,6 +9,8 @@ module.exports = class TeamCreateWithMemberAccountForm extends TeamJoinWithInvit
 
     super options, data
 
+    @username.input.setValue utils.getTeamData().profile?.nickname
+
     @backLink = new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link back'
