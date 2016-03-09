@@ -162,7 +162,7 @@ class Ace extends KDView
     @setShortcuts yes
 
     @appStorage.fetchStorage (storage) =>
-      @setTheme()
+      @setTheme null, no
       @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes       , no
       @setShowGutter          @appStorage.getValue('showGutter')          ? yes       , no
       @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no        , no
@@ -171,8 +171,8 @@ class Ace extends KDView
       @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no        , no
       @setFontSize            @appStorage.getValue('fontSize')            ? 12        , no
       @setTabSize             @appStorage.getValue('tabSize')             ? 4         , no
-      @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
-      @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
+      @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default' , no
+      @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes       , no
       @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes       , no
       @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
       @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
@@ -528,17 +528,17 @@ class Ace extends KDView
     @appStorage.setValue 'showInvisibles', value
 
 
-  setKeyboardHandler: (name = 'default') ->
+  setKeyboardHandler: (name = 'default', save = yes) ->
 
-    @appStorage.setValue 'keyboardHandler', name
     handler = if name isnt 'default' then "ace/keyboard/#{name}" else null
     @editor.setKeyboardHandler handler
+    @appStorage.setValue 'keyboardHandler', name  if save
 
 
-  setScrollPastEnd: (value = yes) ->
+  setScrollPastEnd: (value = yes, save = yes) ->
 
     @editor.setOption 'scrollPastEnd', value
-    @appStorage.setValue 'scrollPastEnd', value
+    @appStorage.setValue 'scrollPastEnd', value  if save
 
 
   setFontSize: (value, save = yes) ->
