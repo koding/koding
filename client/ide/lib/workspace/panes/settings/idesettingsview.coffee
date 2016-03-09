@@ -16,14 +16,17 @@ module.exports = class IDESettingsView extends JView
     controller      = kd.getSingleton 'appStorageController'
     @appStorage     = controller.storage name, version
 
+    @appStorage.ready =>
+      @appStorage._storage.on 'Update', =>
+        @getSettings yes, no
+
     @createElements()
     @getSettings()
 
-    @on 'SettingsFetched', @bound 'setSettings'
     @on 'SettingsChanged', @bound 'handleSettingsChanged'
 
 
-  getSettings: ->
+  getSettings: (forceFetch, writeStorage) ->
 
     settingKeys = @getSettingKeys()
 
@@ -34,18 +37,23 @@ module.exports = class IDESettingsView extends JView
         value = @appStorage.getValue key
         @settings[key] = value ? @defaults[key]
 
+      @setSettings writeStorage
       @emit 'SettingsFetched'
 
+    , forceFetch
 
-  setSettings: ->
 
-    @[key].setDefaultValue value  for own key, value of @settings
+  setSettings: (writeStorage) ->
+
+    for own key, value of @settings
+
+      @[key].setDefaultValue value
+
+      { componentId } = @getOptions()
+      appManager      = kd.getSingleton 'appManager'
+      appManager.tell 'IDE', 'updateSettings', componentId, key, value, writeStorage
 
 
   handleSettingsChanged: (key, value) ->
 
-    @appStorage.setValue key, value
-
-    { componentId } = @getOptions()
-    appManager      = kd.getSingleton 'appManager'
-    appManager.tell 'IDE', 'updateSettings', componentId, key, value
+    @appStorage.setValue key, value, null, null, yes
