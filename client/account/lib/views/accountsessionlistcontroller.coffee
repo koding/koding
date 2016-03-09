@@ -50,7 +50,6 @@ module.exports = class AccountSessionListController extends AccountListViewContr
   fetch: (options = {}, callback) ->
 
     options.limit or= @getOption 'limit'
-    options.sort  or= { 'sessionBegan' : -1 }
 
     whoami().fetchMySessions options, (err, sessions) =>
 
