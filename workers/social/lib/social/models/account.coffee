@@ -46,15 +46,12 @@ module.exports = class JAccount extends jraphical.Module
       isExempt           : 'ascending'
       type               : 'ascending'
     sharedEvents    :
-      static        : [
-        { name : 'RemovedFromCollection' }
-      ]
+      static        : []
       instance      : [
         # this is commented-out intentionally
         # when a user sends a status update, we are sending 7 events
         # when a user logs-in we are sending 10 events
         # { name: 'updateInstance' }
-        { name : 'RemovedFromCollection' }
         { name : 'NewWorkspaceCreated' }
       ]
     sharedMethods :

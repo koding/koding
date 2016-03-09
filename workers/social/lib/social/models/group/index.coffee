@@ -102,7 +102,6 @@ module.exports = class JGroup extends Module
         { name: 'GroupDestroyed' }
         { name: 'broadcast' }
         { name: 'updateInstance' }
-        { name: 'RemovedFromCollection' }
 
       ]
       instance      : [
@@ -111,7 +110,6 @@ module.exports = class JGroup extends Module
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
-        { name: 'RemovedFromCollection' }
       ]
     sharedMethods   :
       static        :
