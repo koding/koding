@@ -117,7 +117,11 @@ module.exports = class JPermissionSet extends Module
     # if one of them passes, breaks the loop and returns true
     kallback = (current, main) ->
 
+      hasPermission = no
+
       queue = advanced.map ({ permission, validateWith, superadmin }) -> (next) ->
+
+        return next()  if hasPermission
 
         if superadmin
 
@@ -138,14 +142,12 @@ module.exports = class JPermissionSet extends Module
         validateWith ?= anyValidator
 
         validateWith.call target, client, group, permission, permissionSet, args,
-          (err, hasPermission) ->
-            if hasPermission
-            then callback null, yes
-            else next err
+          (err, _hasPermission) ->
+            hasPermission = _hasPermission  if _hasPermission
+            next err
 
       async.series queue, (err) ->
-        return callback err  if err
-        callback null, no
+        callback err, hasPermission
 
     # set groupName from given target or client
     client.groupName = getGroupnameFrom target, client
