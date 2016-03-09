@@ -61,14 +61,15 @@ module.exports = class AccountCredentialList extends KDListView
 
       unless credential.owner
         description = applyMarkdown "
-          You don't have required privileges to delete **#{credential.title}**
-          credential, but you can remove your relation with this credential.
+          You don't have permission to delete **#{credential.title}**
+          credential, however you can still remove this credential 
+          from your account.
           \n\n
-          **WARNING!** removing this credential from your account can cause
-          your stacks or instances to stop working properly if you are
-          currently depending on this credential in any of your stacks.
+          **WARNING!** Removing this credential from your account can cause
+          your stacks or instances stop working properly if they
+          depend on this credential.
           \n\n
-          Do you want to remove your access ?
+          Do you want to remove it from your account?
         "
         bootstrapped = no
         removeButtonTitle = 'Remove Access'
