@@ -210,7 +210,7 @@ func (s *MySuite) TestDecodingToNonPointer(c *C) {
 
 	var recordInterface interface{}
 	err := reader.Lookup(net.ParseIP("::1.1.1.0"), recordInterface)
-	c.Assert(err.Error(), Equals, "result param for Lookup must be a pointer")
+	c.Assert(err.Error(), Equals, "result param must be a pointer")
 	reader.Close()
 }
 
