@@ -47,7 +47,6 @@ module.exports = class JAccount extends jraphical.Module
       type               : 'ascending'
     sharedEvents    :
       static        : [
-        { name : 'AccountAuthenticated' } # TODO: we need to handle this event differently.
         { name : 'RemovedFromCollection' }
       ]
       instance      : [
