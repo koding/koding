@@ -85,9 +85,11 @@ module.exports = (req, res, next) ->
 
 generateJoinTeamKallback = (res, body) ->
 
+  { Tracker } = koding.models
+
   # returning a callback function
   return (err, result) ->
-    { redirect } = body
+    { redirect, slug, username } = body
 
     # return if we got error from join/register
     return res.status(400).send getErrorMessage err  if err?
@@ -96,6 +98,9 @@ generateJoinTeamKallback = (res, body) ->
     clientId = result.replacementToken or result.newToken
     # set clientId
     setSessionCookie res, clientId
+
+    # add user to Segment group
+    Tracker.group slug, username
 
     # handle the request with an HTTP redirect:
     return res.redirect 301, redirect if redirect
