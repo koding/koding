@@ -113,7 +113,7 @@ func (p *Provider) AttachSession(ctx context.Context, m *Machine) error {
 
 	m.Session = &session.Session{
 		DB:         p.DB,
-		Kite:       newKite(p.Kite), // TODO(rjeczalik): remove after TMS-2245 and use p.Kite directly
+		Kite:       p.Kite,
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,

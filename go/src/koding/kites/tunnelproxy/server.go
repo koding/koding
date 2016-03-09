@@ -66,8 +66,8 @@ func customPort(addr string, port int, ignore ...int) string {
 		}
 	}
 
-	_, _, err := net.SplitHostPort(addr)
-	if err != nil {
+	_, sport, err := net.SplitHostPort(addr)
+	if err != nil || sport == "" || sport == "0" {
 		return net.JoinHostPort(addr, strconv.Itoa(port))
 	}
 
@@ -100,6 +100,12 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		optsCopy.Log = common.NewLogger("tunnelserver", optsCopy.Debug)
 	}
 
+	optsCopy.Log.Debug("Initial server options: %# v", &optsCopy)
+
+	if optsCopy.BaseVirtualHost == "" {
+		optsCopy.BaseVirtualHost = optsCopy.HostedZone
+	}
+
 	optsCopy.BaseVirtualHost = customPort(optsCopy.BaseVirtualHost, opts.Port, 80, 443)
 	optsCopy.ServerAddr = customPort(optsCopy.ServerAddr, opts.Port)
 
@@ -121,10 +127,6 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 	dns, err := dnsclient.NewRoute53Client(dnsOpts)
 	if err != nil {
 		return nil, err
-	}
-
-	if optsCopy.BaseVirtualHost == "" {
-		optsCopy.BaseVirtualHost = optsCopy.HostedZone
 	}
 
 	optsCopy.Log.Debug("Server options: %# v", &optsCopy)
