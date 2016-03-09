@@ -240,6 +240,8 @@ class IDEAppController extends AppController
   setActiveTabView: (tabView) ->
 
     return  if tabView is @activeTabView
+    return  if tabView.isDestroyed
+
     @setActivePaneFocus off
     @activeTabView = tabView
     @setActivePaneFocus on
