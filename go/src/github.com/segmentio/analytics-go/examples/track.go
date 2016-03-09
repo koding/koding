@@ -6,8 +6,8 @@ import "time"
 func main() {
 	client := analytics.New("h97jamjwbh")
 	client.Interval = 30 * time.Second
-	client.Verbose = true
 	client.Size = 100
+	client.Verbose = true
 
 	done := time.After(3 * time.Second)
 	tick := time.Tick(50 * time.Millisecond)

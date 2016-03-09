@@ -19,6 +19,7 @@ type Timer interface {
 	RateMean() float64
 	Snapshot() Timer
 	StdDev() float64
+	Sum() int64
 	Time(func())
 	Update(time.Duration)
 	UpdateSince(time.Time)
@@ -111,6 +112,9 @@ func (NilTimer) Snapshot() Timer { return NilTimer{} }
 // StdDev is a no-op.
 func (NilTimer) StdDev() float64 { return 0.0 }
 
+// Sum is a no-op.
+func (NilTimer) Sum() int64 { return 0 }
+
 // Time is a no-op.
 func (NilTimer) Time(func()) {}
 
@@ -197,6 +201,11 @@ func (t *StandardTimer) StdDev() float64 {
 	return t.histogram.StdDev()
 }
 
+// Sum returns the sum in the sample.
+func (t *StandardTimer) Sum() int64 {
+	return t.histogram.Sum()
+}
+
 // Record the duration of the execution of the given function.
 func (t *StandardTimer) Time(f func()) {
 	ts := time.Now()
@@ -278,6 +287,9 @@ func (t *TimerSnapshot) Snapshot() Timer { return t }
 // StdDev returns the standard deviation of the values at the time the snapshot
 // was taken.
 func (t *TimerSnapshot) StdDev() float64 { return t.histogram.StdDev() }
+
+// Sum returns the sum at the time the snapshot was taken.
+func (t *TimerSnapshot) Sum() int64 { return t.histogram.Sum() }
 
 // Time panics.
 func (*TimerSnapshot) Time(func()) {
