@@ -240,6 +240,8 @@ class IDEAppController extends AppController
   setActiveTabView: (tabView) ->
 
     return  if tabView is @activeTabView
+    return  if tabView.isDestroyed
+
     @setActivePaneFocus off
     @activeTabView = tabView
     @setActivePaneFocus on
@@ -372,7 +374,6 @@ class IDEAppController extends AppController
 
     parent.attach targetView  # Attach again.
 
-    @setActiveTabView targetIdeView.tabView
     @updateLayoutMap_ splitView, targetView
 
     # I'm not sure about the usage of private method. I had to...
