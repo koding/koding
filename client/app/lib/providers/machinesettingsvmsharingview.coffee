@@ -76,7 +76,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     { profile: { nickname } } = user
 
     remote.api.SharedMachine[task] @machine.uid, [nickname], (err) =>
-      console.log 'errrr ', err
+
       return @showNotification err  if err
 
       kite   = @machine.getBaseKite()
