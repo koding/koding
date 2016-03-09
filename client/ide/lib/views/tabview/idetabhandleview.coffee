@@ -120,6 +120,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     @icon = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'options'
+      partial  : '<span></span>'
       click    : => @createMenu @icon
 
     @addSubView @icon, null, yes
