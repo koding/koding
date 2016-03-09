@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/masterzen/winrm/winrm"
 	"github.com/mitchellh/packer/common/uuid"
@@ -135,12 +136,20 @@ func restoreContent(client *winrm.Client, fromPath, toPath string) error {
 	if err != nil {
 		return err
 	}
+	defer cmd.Close()
 
-	go io.Copy(os.Stdout, cmd.Stdout)
-	go io.Copy(os.Stderr, cmd.Stderr)
+	var wg sync.WaitGroup
+	copyFunc := func(w io.Writer, r io.Reader) {
+		defer wg.Done()
+		io.Copy(w, r)
+	}
+
+	wg.Add(2)
+	go copyFunc(os.Stdout, cmd.Stdout)
+	go copyFunc(os.Stderr, cmd.Stderr)
 
 	cmd.Wait()
-	cmd.Close()
+	wg.Wait()
 
 	if cmd.ExitCode() != 0 {
 		return errors.New(fmt.Sprintf("restore operation returned code=%d", cmd.ExitCode()))
@@ -170,9 +179,18 @@ func appendContent(shell *winrm.Shell, filePath, content string) error {
 	}
 
 	defer cmd.Close()
-	go io.Copy(os.Stdout, cmd.Stdout)
-	go io.Copy(os.Stderr, cmd.Stderr)
+	var wg sync.WaitGroup
+	copyFunc := func(w io.Writer, r io.Reader) {
+		defer wg.Done()
+		io.Copy(w, r)
+	}
+
+	wg.Add(2)
+	go copyFunc(os.Stdout, cmd.Stdout)
+	go copyFunc(os.Stderr, cmd.Stderr)
+
 	cmd.Wait()
+	wg.Wait()
 
 	if cmd.ExitCode() != 0 {
 		return errors.New(fmt.Sprintf("upload operation returned code=%d", cmd.ExitCode()))

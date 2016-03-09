@@ -122,6 +122,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchMyPermissionsAndRoles:
           (signature Function)
+        fetchMySessions:
+          (signature Object, Function)
         blockUser: [
           (signature String, Number, Function)
           (signature ObjectId, Number, Function)
@@ -1407,3 +1409,29 @@ module.exports = class JAccount extends jraphical.Module
 
       user.update { $set: { twofactorkey: key } }, (err) ->
         callback err
+
+
+  fetchMySessions: secure (client, options, callback) ->
+
+    # check if requester is the owner of the account
+    unless @equals client.connection.delegate
+      return callback new KodingError 'Access denied.'
+
+    { sessionToken } = client
+    return callback new KodingError 'Invalid session.'  unless sessionToken
+
+    { skip, limit, sort } = options
+    sort  ?= { 'sessionBegan' : -1 }
+    skip  ?= 0
+    limit ?= 10
+
+    JSession = require './session'
+    JSession.one { clientId : sessionToken }, (err, session) ->
+      return callback err  if err
+      return callback new KodingError 'Invalid session.'  unless session
+
+      selector = { username : session.username }
+      options  = { limit, skip, sort }
+      JSession.some selector, options, callback
+
+
