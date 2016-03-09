@@ -1,6 +1,7 @@
-gulp  = require 'gulp'
-shell = require 'gulp-shell'
-argv  = require('minimist') process.argv
+gulp   = require 'gulp'
+shell  = require 'gulp-shell'
+argv   = require('minimist') process.argv
+notify = require 'gulp-notify'
 
 { log }        = require './helper.logger'
 { BUILD_PATH } = require './helper.constants'
@@ -21,3 +22,4 @@ module.exports = ->
 
   gulp.src ''
     .pipe shell cmds
+    .pipe notify "files exported!"
