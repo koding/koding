@@ -195,13 +195,17 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 		// TODO(arslan): add custom type with custom methods for type
 		// []*Machineuser
 		for _, user := range machine.Users {
-			// we only going to select users that are allowed
-			if user.Sudo && user.Owner {
+			// we only going to select users that are allowed:
+			//
+			//   - team member that owns vm (sudo + owner)
+			//   - team admin that owns all vms (owner + !permanent)
+			//
+			// A shared user is (owner + permanent).
+			if (user.Sudo || !user.Permanent) && user.Owner {
 				validUsers[user.Id.Hex()] = user
 			} else {
 				// return early, we don't tolerate nonvalid inputs to apply
-				return fmt.Errorf("machine '%s' is not valid. Aborting apply",
-					machine.ObjectId.Hex())
+				return fmt.Errorf("machine '%s' is not valid. Aborting apply", machine.ObjectId.Hex())
 			}
 		}
 	}
