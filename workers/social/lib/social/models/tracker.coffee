@@ -138,6 +138,17 @@ module.exports = class Tracker extends bongo.Base
     analytics.alias options
 
 
+  @group = (groupId, userId) ->
+
+    return  unless KONFIG.sendEventsToSegment
+
+    userId = KONFIG.forcedRecipientEmail or userId
+
+    options = { groupId, userId }
+    @addDefaults options
+    analytics.group options
+
+
   @addDefaults = (opts) ->
     opts['env']      = KONFIG.environment
     opts['hostname'] = KONFIG.hostname
