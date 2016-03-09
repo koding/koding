@@ -3,6 +3,7 @@ nick                             = require 'app/util/nick'
 remote                           = require('app/remote').getInstance()
 KDView                           = kd.View
 Machine                          = require 'app/providers/machine'
+isKoding                         = require 'app/util/isKoding'
 UserItem                         = require 'app/useritem'
 KDCustomHTMLView                 = kd.CustomHTMLView
 ComputeErrorUsageModal           = require './computeerrorusagemodal'
@@ -139,11 +140,21 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
   showAddView: ->
 
+    return super  unless isKoding()
+
     @headerAddNewButton.showLoader()
 
     kd.singletons.computeController.fetchUserPlan (plan) =>
 
       @headerAddNewButton.hideLoader()
+
+      if plan is 'free'
+
+        new ComputeErrorUsageModal
+          plan    : 'free'
+          message : 'VM share feature is only available for paid accounts.'
+
+        return @emit 'ModalDestroyRequested'
 
       super
 
