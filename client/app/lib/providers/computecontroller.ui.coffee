@@ -305,15 +305,11 @@ module.exports = class ComputeController_UI
         permissionFix  :
           title        : "Permission fix required for #{machineName}"
           message      : "
-            <p>Machine <strong>#{machineName}</strong> which belongs to
-            <strong>@#{jMachine?.meta?.oldOwner}</strong> before,
-            currently does not have required permissions for you to access it.
-            </p>
+            <p>You don't have access to this Machine (<strong>#{machineName}</strong>).
+            It belonged to <strong>@#{jMachine?.meta?.oldOwner}</strong></p>
 
-            <p>This option is only valid for you since you removed this user
-            from this team before.</p>
-
-            <p>Do you want to fix permissions now?</p>
+            <p>This is because you removed this user from your team.
+            You need to fix permissions to proceed.</p>
           "
           button       : 'Fix Permissions'
           buttonColor  : 'green'
