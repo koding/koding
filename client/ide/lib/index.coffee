@@ -50,6 +50,8 @@ class IDEAppController extends AppController
 
   {noop, warn} = kd
 
+  INITIAL_BUILD_LOGS_TAIL_OFFSET = 15
+
   @options = require './ideappcontrolleroptions'
 
   constructor: (options = {}, data) ->
@@ -437,14 +439,14 @@ class IDEAppController extends AppController
   ###
   tailFile: (options, callback = kd.noop) ->
 
-    { file, contents, targetTabView, description, emitChange } = options
+    { file, contents, targetTabView, description, emitChange, tailOffset } = options
 
     targetTabView = @ideViews.first.tabView  unless targetTabView
 
     @setActiveTabView targetTabView
 
     @activeTabView.emit 'FileNeedsToBeTailed', {
-      file, contents, description, callback, emitChange
+      file, contents, description, callback, emitChange, tailOffset
     }
 
 
@@ -1255,7 +1257,7 @@ class IDEAppController extends AppController
       else
         mainView.activitySidebar.selectWorkspace data
 
-      computeController.showBuildLogs machine  if initial
+      computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET  if initial
 
       @emit 'IDEReady'
 

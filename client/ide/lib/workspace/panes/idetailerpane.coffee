@@ -31,7 +31,7 @@ module.exports = class IDETailerPane extends IDEPane
 
   createEditor: ->
 
-    { file, description, descriptionView } = @getOptions()
+    { file, description, descriptionView, tailOffset } = @getOptions()
 
     unless file instanceof FSFile
       throw new TypeError 'File must be an instance of FSFile'
@@ -73,8 +73,9 @@ module.exports = class IDETailerPane extends IDEPane
 
       kite = @file.machine.getBaseKite()
       kite.tail
-        path  : @file.getPath()
-        watch : @bound 'handleFileUpdate'
+        path       : @file.getPath()
+        watch      : @bound 'handleFileUpdate'
+        lineOffset : tailOffset
 
       ace.editor.renderer.setScrollMargin 0, 15, 0, 0
 
