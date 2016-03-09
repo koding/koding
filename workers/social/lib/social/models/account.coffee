@@ -1420,8 +1420,7 @@ module.exports = class JAccount extends jraphical.Module
     { sessionToken } = client
     return callback new KodingError 'Invalid session.'  unless sessionToken
 
-    { skip, limit, sort } = options
-    sort  ?= { 'sessionBegan' : -1 }
+    { skip, limit } = options
     skip  ?= 0
     limit ?= 10
 
@@ -1431,7 +1430,7 @@ module.exports = class JAccount extends jraphical.Module
       return callback new KodingError 'Invalid session.'  unless session
 
       selector = { username : session.username }
-      options  = { limit, skip, sort }
+      options  = { limit, skip }
       JSession.some selector, options, callback
 
 
