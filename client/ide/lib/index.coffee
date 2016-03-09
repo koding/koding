@@ -372,7 +372,6 @@ class IDEAppController extends AppController
 
     parent.attach targetView  # Attach again.
 
-    @setActiveTabView targetIdeView.tabView
     @updateLayoutMap_ splitView, targetView
 
     # I'm not sure about the usage of private method. I had to...
