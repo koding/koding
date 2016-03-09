@@ -81,10 +81,10 @@ withConvertedUser = (opts, callback) ->
 
   [opts, callback] = [callback, opts]  unless callback
   opts ?= {}
-  { context, userFormData, createGroup } = opts
+  { context, userFormData, createGroup, groupSlug } = opts
 
   # if createGroup parameter is truthy generate random group slug
-  groupSlug = if createGroup
+  groupSlug ?= if createGroup
   then generateRandomString()
   else 'koding'
 
