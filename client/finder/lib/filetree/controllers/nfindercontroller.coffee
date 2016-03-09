@@ -107,6 +107,11 @@ module.exports = class NFinderController extends KDViewController
 
 
   mountMachine: (machine, options = {}) ->
+
+    { frontApp } = kd.singletons['appManager']
+    machineToMount = frontApp.mountedMachine
+    return  unless machine.uid is machineToMount.uid
+
     options.fetchContent ?= yes
 
     unless machine.status.state is Machine.State.Running
