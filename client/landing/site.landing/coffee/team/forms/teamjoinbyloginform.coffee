@@ -1,3 +1,5 @@
+kd              = require 'kd.js'
+utils           = require './../../core/utils'
 TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'
 
@@ -17,7 +19,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
           messages    : { required: 'Please enter a username.' }
 
 
-    teamData                = utils.getTeamData()
+    teamData = utils.getTeamData()
     if teamData.profile
       { firstName, nickname } = teamData.profile
       name     = "#{firstName or '@'+nickname}"

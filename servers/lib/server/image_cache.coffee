@@ -48,7 +48,7 @@ module.exports = (req, res) ->
 
   md5 = crypto.createHash('md5')
   for i in [noExt, width, height]
-    md5.update(i)
+    md5.update(i)  if typeof i is 'string'
 
   digest   = md5.digest('hex')
   filename = "#{imagePath}/#{digest}.#{ext}"

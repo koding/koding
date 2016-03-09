@@ -18,7 +18,7 @@ type Client struct {
 	useHTTPS  bool
 	url       string
 	http      HttpPost
-	transport *http.Transport
+	transport http.RoundTripper
 }
 
 // NewClient will create a new remote client on url, connecting with user and password
@@ -42,6 +42,10 @@ func NewClientWithParameters(endpoint *Endpoint, user, password string, params *
 		http:       Http_post,
 		useHTTPS:   endpoint.HTTPS,
 		transport:  transport,
+	}
+
+	if params.TransportDecorator != nil {
+		client.transport = params.TransportDecorator(transport)
 	}
 	return
 }
@@ -90,6 +94,11 @@ func (client *Client) CreateShell() (shell *Shell, err error) {
 		}
 	}
 	return
+}
+
+// NewShell will create a new WinRM Shell for the given shellID
+func (client *Client) NewShell(shellID string) *Shell {
+	return &Shell{client: client, ShellId: shellID}
 }
 
 func (client *Client) sendRequest(request *soap.SoapMessage) (response string, err error) {

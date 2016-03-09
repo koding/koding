@@ -997,6 +997,8 @@ module.exports = class JUser extends jraphical.Module
         group.approveMember account, roles, (err) ->
           return callback err  if err
 
+          Tracker.identifyAndTrack email, { subject: Tracker.types.TEAMS_ACCEPTED_INVITATION }
+
           # do not forget to redeem invitation
           redeemInvitation {
             account, invitation, slug, email

@@ -29,11 +29,16 @@ type SoftLayer_Virtual_Guest struct {
 	StartCpus                    int        `json:"startCpus,omitempty"`
 	StatusId                     int        `json:"statusId,omitempty"`
 	Uuid                         string     `json:"uuid,omitempty"`
+	LocalDiskFlag                bool       `json:"localDiskFlag,omitempty"`
+	HourlyBillingFlag            bool       `json:"hourlyBillingFlag,omitempty"`
 
 	GlobalIdentifier        string `json:"globalIdentifier,omitempty"`
 	ManagedResourceFlag     bool   `json:"managedResourceFlag,omitempty"`
 	PrimaryBackendIpAddress string `json:"primaryBackendIpAddress,omitempty"`
 	PrimaryIpAddress        string `json:"primaryIpAddress,omitempty"`
+
+	PrimaryNetworkComponent        *PrimaryNetworkComponent        `json:"primaryNetworkComponent,omitempty"`
+	PrimaryBackendNetworkComponent *PrimaryBackendNetworkComponent `json:"primaryBackendNetworkComponent,omitempty"`
 
 	Location          *SoftLayer_Location `json:"location"`
 	Datacenter        *SoftLayer_Location `json:"datacenter"`
@@ -41,6 +46,8 @@ type SoftLayer_Virtual_Guest struct {
 	UserData          []UserData          `json:"userData,omitempty"`
 
 	OperatingSystem *SoftLayer_Operating_System `json:"operatingSystem"`
+
+	BlockDeviceTemplateGroup *BlockDeviceTemplateGroup `json:"blockDeviceTemplateGroup,omitempty"`
 }
 
 type SoftLayer_Operating_System struct {
@@ -76,12 +83,11 @@ type SoftLayer_Virtual_Guest_Template struct {
 	PrivateNetworkOnlyFlag         bool                            `json:"privateNetworkOnlyFlag,omitempty"`
 	PrimaryNetworkComponent        *PrimaryNetworkComponent        `json:"primaryNetworkComponent,omitempty"`
 	PrimaryBackendNetworkComponent *PrimaryBackendNetworkComponent `json:"primaryBackendNetworkComponent,omitempty"`
+	PostInstallScriptUri           string                          `json:"postInstallScriptUri,omitempty"`
 
 	BlockDevices []BlockDevice `json:"blockDevices,omitempty"`
 	UserData     []UserData    `json:"userData,omitempty"`
 	SshKeys      []SshKey      `json:"sshKeys,omitempty"`
-
-	PostInstallScriptUri string `json:"postInstallScriptUri,omitempty"`
 }
 
 type Datacenter struct {

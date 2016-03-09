@@ -29,7 +29,7 @@ var unmarshalAttrsTests = []struct {
 	{marshal(nil, struct {
 		Flags                 uint32
 		Size                  uint64
-		Uid, Gid, Permissions uint32
+		UID, GID, Permissions uint32
 	}{ssh_FILEXFER_ATTR_SIZE | ssh_FILEXFER_ATTR_UIDGID | ssh_FILEXFER_ATTR_UIDGID | ssh_FILEXFER_ATTR_PERMISSIONS, 20, 1000, 1000, 0644}), &fileInfo{size: 20, mode: os.FileMode(0644), mtime: time.Unix(int64(0), 0)}, nil},
 }
 

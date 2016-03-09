@@ -1,8 +1,9 @@
-kd                 = require 'kd'
-FSFile             = require 'app/util/fs/fsfile'
-IDEPane            = require './idepane'
-AceView            = require 'ace/aceview'
-IDEAce             = require '../../views/ace/ideace'
+kd                      = require 'kd'
+FSFile                  = require 'app/util/fs/fsfile'
+IDEPane                 = require './idepane'
+AceView                 = require 'ace/aceview'
+IDEAce                  = require '../../views/ace/ideace'
+IDETailerPaneLineParser = require './idetailerpanelineparser'
 
 
 module.exports = class IDETailerPane extends IDEPane
@@ -25,11 +26,12 @@ module.exports = class IDETailerPane extends IDEPane
 
     @scrollToBottom()
     @getEditor().insert "\n#{newLine}"
+    IDETailerPaneLineParser.process newLine
 
 
   createEditor: ->
 
-    { file, description, descriptionView } = @getOptions()
+    { file, description, descriptionView, tailOffset } = @getOptions()
 
     unless file instanceof FSFile
       throw new TypeError 'File must be an instance of FSFile'
@@ -71,8 +73,9 @@ module.exports = class IDETailerPane extends IDEPane
 
       kite = @file.machine.getBaseKite()
       kite.tail
-        path  : @file.getPath()
-        watch : @bound 'handleFileUpdate'
+        path       : @file.getPath()
+        watch      : @bound 'handleFileUpdate'
+        lineOffset : tailOffset
 
       ace.editor.renderer.setScrollMargin 0, 15, 0, 0
 

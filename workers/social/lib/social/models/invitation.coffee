@@ -21,6 +21,10 @@ module.exports = class JInvitation extends jraphical.Module
 
   { permit } = require './group/permissionset'
 
+  ADMIN_PERMISSIONS = [
+    { permission: 'send invitations', superadmin: yes }
+  ]
+
   @share()
 
   @set
@@ -116,19 +120,27 @@ module.exports = class JInvitation extends jraphical.Module
   # some selects result set for invitations, it adds group name automatically
   @some$: permit 'send invitations',
     success: (client, selector, options, callback) ->
-      groupName = client.context.group or 'koding'
+      { groupSlug } = selector
+      groupName     = client.context.group or 'koding'
+      @canFetchInvitationsAsSuperAdmin client, (err, isSuperAdmin) ->
+        selector           or= {}
+        selector.groupName   = groupName # override group name in any case
+        selector.status    or= 'pending'
 
-      selector or= {}
-      selector.groupName = groupName # override group name in any case
-      selector.status  or= 'pending'
+        # allow only koding super admin to update groupName in query
+        if isSuperAdmin and groupSlug and client.context.group is 'koding'
+          selector.groupName = groupSlug
 
-      { limit }       = options
-      options.sort  or= { createdAt : -1 }
-      options.limit or= 25
-      options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
-      options.skip   ?= 0
+        # delete groupSlug to prevent suspicious queries
+        delete selector.groupSlug
 
-      JInvitation.some selector, options, callback
+        { limit }       = options
+        options.sort  or= { createdAt : -1 }
+        options.limit or= 25
+        options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
+        options.skip   ?= 0
+
+        JInvitation.some selector, options, callback
 
   # search searches database with given query string, adds `starting
   # with regex` around query param
@@ -173,6 +185,11 @@ module.exports = class JInvitation extends jraphical.Module
           return callback err  if err
           return callback()  unless returnCodes
           return callback null, codes
+
+
+  @canFetchInvitationsAsSuperAdmin: permit
+    advanced: ADMIN_PERMISSIONS
+
 
   createSingleInvite = (client, group, invitationData, end) ->
     { email, role, forceInvite, noEmail } = invitationData

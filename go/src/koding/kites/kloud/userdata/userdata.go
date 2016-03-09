@@ -116,11 +116,13 @@ write_files:
     content: |
       {{.KiteKey}}
 
+{{if .UserData}}
   # Create user script.
   - path: /root/user-data.sh
     encoding: b64
     content: |
       {{.UserData}}
+{{end}}
 
 {{if .KodingSetup}}
   # Apache configuration (/etc/apache2/sites-available/000-default.conf)
@@ -202,9 +204,11 @@ runcmd:
   - [service, apache2, restart]
 {{end}}
 
+{{if .UserData}}
   # Run user data script.
   - [chmod, +x, /root/user-data.sh]
   - [/root/user-data.sh]
+{{end}}
 
 final_message: "All done!"
 `

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/hashicorp/go-cleanhttp"
 )
 
 // Client provides a client to the CloudflAre API
@@ -43,7 +45,7 @@ func NewClient(email string, token string) (*Client, error) {
 		Token: token,
 		Email: email,
 		URL:   "https://www.cloudflare.com/api_json.html",
-		Http:  http.DefaultClient,
+		Http:  cleanhttp.DefaultClient(),
 	}
 	return &client, nil
 }
