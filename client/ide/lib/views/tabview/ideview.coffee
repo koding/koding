@@ -127,15 +127,18 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
 
-      @handleCloseSplitView pane.tabHandle
+      unless @tabView.askForSaveModal
+        @handleCloseSplitView pane
 
 
-  handleCloseSplitView: (handle) ->
+  handleCloseSplitView: (pane) ->
+
+    { tabHandle } = pane
 
     appStorage = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
-    paneLength = handle.getDelegate().panes.length
+    paneLength = tabHandle.getDelegate().panes.length
 
-    return if paneLength > 1 # remove pane when there is only one pane left
+    return  if paneLength > 1 # remove pane when there is only one pane left
 
     appStorage.ready =>
 
