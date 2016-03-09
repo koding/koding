@@ -200,10 +200,10 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 			return err
 		}
 
-		// cast into RemoteTransport for NewRemoteOrCacheTransport
+		// cast into RemoteTransport for NewDualTransport
 		rt := t.(*transport.RemoteTransport)
 
-		t = transport.NewRemoteOrCacheTransport(rt, dt)
+		t = transport.NewDualTransport(rt, dt)
 	}
 
 	cf := &fuseklient.Config{
