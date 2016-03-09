@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 
 	"koding/klient/storage"
@@ -32,7 +33,7 @@ func TestUnmountFolder(t *testing.T) {
 	Convey("Given a Remote with no mounts", t, func() {
 		r := Remote{
 			log:    logging.NewLogger("testing"),
-			mounts: Mounts{},
+			mounts: mount.Mounts{},
 		}
 
 		Convey("When requesting a mount name and no path", func() {
@@ -64,14 +65,14 @@ func TestUnmountFolder(t *testing.T) {
 		r := Remote{
 			log:     logging.NewLogger("testing"),
 			storage: storage.NewMemoryStorage(),
-			mounts: Mounts{
-				&Mount{
+			mounts: mount.Mounts{
+				&mount.Mount{
 					MountName: goodUnmountMocker.Name,
-					unmounter: goodUnmountMocker,
+					Unmounter: goodUnmountMocker,
 				},
-				&Mount{
+				&mount.Mount{
 					MountName: badUnmountMocker.Name,
-					unmounter: badUnmountMocker,
+					Unmounter: badUnmountMocker,
 				},
 			},
 		}
