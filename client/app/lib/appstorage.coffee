@@ -76,7 +76,7 @@ class AppStorage extends kd.Object
     return if @_storage[group]?[appId]?['data']?[key]?     then @_storage[group][appId]['data'][key]
 
 
-  setValue: (key, value, callback, group = AppStorage.DEFAULT_GROUP_NAME) ->
+  setValue: (key, value, callback, group = AppStorage.DEFAULT_GROUP_NAME, notify = no) ->
 
     appId                                    = @_applicationID
     @_storageData[group]                   or= {}
@@ -88,7 +88,7 @@ class AppStorage extends kd.Object
 
     @fetchStorage (storage) ->
       query = { $set : pack }
-      storage?.upsert appId, { query }, ->
+      storage?.upsert appId, { query, notify }, ->
         callback?()
 
 
