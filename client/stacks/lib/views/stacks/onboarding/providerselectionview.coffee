@@ -1,6 +1,7 @@
 kd      = require 'kd'
 JView   = require 'app/jview'
 globals = require 'globals'
+Tracker = require 'app/util/tracker'
 
 
 module.exports = class ProviderSelectionView extends JView
@@ -41,6 +42,8 @@ module.exports = class ProviderSelectionView extends JView
         """
         click: =>
           return if extraClass is 'coming-soon'
+
+          Tracker.track Tracker["STACKS_WIZARD_SELECTED_#{provider.toUpperCase()}"]
 
           providerView.setClass 'selected'
           @selected?.unsetClass 'selected'

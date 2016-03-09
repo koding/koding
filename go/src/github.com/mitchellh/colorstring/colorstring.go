@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strings"
 )
 
 // Color colorizes your strings using the default settings.
@@ -25,6 +26,15 @@ import (
 // If you want to customize any of this behavior, use the Colorize struct.
 func Color(v string) string {
 	return def.Color(v)
+}
+
+// ColorPrefix returns the color sequence that prefixes the given text.
+//
+// This is useful when wrapping text if you want to inherit the color
+// of the wrapped text. For example, "[green]foo" will return "[green]".
+// If there is no color sequence, then this will return "".
+func ColorPrefix(v string) string {
+	return def.ColorPrefix(v)
 }
 
 // Colorize colorizes your strings, giving you the ability to customize
@@ -88,6 +98,15 @@ func (c *Colorize) Color(v string) string {
 	}
 
 	return result.String()
+}
+
+// ColorPrefix returns the first color sequence that exists in this string.
+//
+// For example: "[green]foo" would return "[green]". If no color sequence
+// exists, then "" is returned. This is especially useful when wrapping
+// colored texts to inherit the color of the wrapped text.
+func (c *Colorize) ColorPrefix(v string) string {
+	return prefixRe.FindString(strings.TrimSpace(v))
 }
 
 // DefaultColors are the default colors used when colorizing.
@@ -159,7 +178,9 @@ func init() {
 }
 
 var def Colorize
-var parseRe = regexp.MustCompile(`(?i)\[[a-z0-9_-]+\]`)
+var parseReRaw = `\[[a-z0-9_-]+\]`
+var parseRe = regexp.MustCompile(`(?i)` + parseReRaw)
+var prefixRe = regexp.MustCompile(`^(?i)(` + parseReRaw + `)+`)
 
 // Print is a convenience wrapper for fmt.Print with support for color codes.
 //

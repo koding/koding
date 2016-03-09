@@ -1,5 +1,4 @@
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
-ruby "2.0.0"
-
-gem 'middleman-hashicorp', github: 'hashicorp/middleman-hashicorp'
+gem "middleman-hashicorp", github: "hashicorp/middleman-hashicorp"
+gem "htmlbeautifier"

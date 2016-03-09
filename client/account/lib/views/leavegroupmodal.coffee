@@ -2,6 +2,7 @@ kd              = require 'kd'
 nick            = require 'app/util/nick'
 kookies         = require 'kookies'
 DeleteModalView = require '../deletemodalview'
+Tracker         = require 'app/util/tracker'
 
 
 module.exports = class LeaveGroupModal extends DeleteModalView
@@ -33,5 +34,6 @@ module.exports = class LeaveGroupModal extends DeleteModalView
         new kd.NotificationView title : 'You need to transfer ownership of team before leaving team'
         return @modalTabs.forms.dangerForm.buttons.confirmButton.hideLoader()
 
+      Tracker.track Tracker.USER_LEFT_TEAM
       kookies.expire 'clientId'
       global.location.replace '/'

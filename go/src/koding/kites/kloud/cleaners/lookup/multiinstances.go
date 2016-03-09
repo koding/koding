@@ -3,6 +3,7 @@ package lookup
 import (
 	"bytes"
 	"fmt"
+	"koding/db/mongodb"
 	"koding/kites/kloud/api/amazon"
 	"sync"
 	"text/tabwriter"
@@ -173,7 +174,23 @@ func (m *MultiInstances) TerminateAll() {
 	wg.Wait()
 }
 
-// TerminateAll terminates all instances
+// Delete deletes a jMachine documents for all the instances.
+func (m *MultiInstances) DeleteDocs(db *mongodb.MongoDB) {
+	var wg sync.WaitGroup
+
+	for _, instances := range m.m {
+		wg.Add(1)
+
+		go func(instances Instances) {
+			defer wg.Done()
+			instances.DeleteDocs(db)
+		}(instances)
+	}
+
+	wg.Wait()
+}
+
+// StopAll stops all instances.
 func (m *MultiInstances) StopAll() {
 	if len(m.m) == 0 {
 		return

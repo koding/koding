@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # Get the parent directory of where this script is.
@@ -12,46 +12,42 @@ cd $DIR
 # Get the version from the command line
 VERSION=$1
 if [ -z $VERSION ]; then
-    echo "Please specify a version."
+    echo "Please specify version"
     exit 1
 fi
 
-# Make sure we have a bintray API key
-if [ -z $BINTRAY_API_KEY ]; then
-    echo "Please set your bintray API key in the BINTRAY_API_KEY env var."
-    exit 1
+# Tag, unless told not to
+if [ -z $NOTAG ]; then
+  echo "==> Tagging..."
+  git commit --allow-empty -a --gpg-sign=348FFC4C -m "Cut version $VERSION"
+  git tag -a -m "Version $VERSION" -s -u 348FFC4C "v${VERSION}" $RELBRANCH
 fi
 
-# Zip and copy to the dist dir
-echo "==> Packaging..."
+# Zip all the files
 rm -rf ./pkg/dist
 mkdir -p ./pkg/dist
-for PLATFORM in $(find ./pkg -mindepth 1 -maxdepth 1 -type d); do
-    OSARCH=$(basename ${PLATFORM})
-
-    if [ $OSARCH = "dist" ]; then
-        continue
-    fi
-
-    echo "--> ${OSARCH}"
-    pushd $PLATFORM >/dev/null 2>&1
-    zip ../dist/packer_${VERSION}_${OSARCH}.zip ./*
-    popd >/dev/null 2>&1
+for FILENAME in $(find ./pkg -mindepth 1 -maxdepth 1 -type f); do
+  FILENAME=$(basename $FILENAME)
+  cp ./pkg/${FILENAME} ./pkg/dist/packer_${VERSION}_${FILENAME}
 done
 
-# Make the checksums
-echo "==> Checksumming..."
-pushd ./pkg/dist >/dev/null 2>&1
-shasum -a256 * > ./packer_${VERSION}_SHA256SUMS
-popd >/dev/null 2>&1
+if [ -z $NOSIGN ]; then
+  echo "==> Signing..."
+  pushd ./pkg/dist
+  rm -f ./packer_${VERSION}_SHA256SUMS*
+  shasum -a256 * > ./packer_${VERSION}_SHA256SUMS
+  gpg --default-key 348FFC4C --detach-sig ./packer_${VERSION}_SHA256SUMS
+  popd
+fi
 
-echo "==> Uploading..."
-for ARCHIVE in ./pkg/dist/*; do
-    ARCHIVE_NAME=$(basename ${ARCHIVE})
+# Upload
+if [ ! -z $HC_RELEASE ]; then
+  hc-releases -upload $DIR/pkg/dist --publish --purge
 
-    echo Uploading: $ARCHIVE_NAME
-    curl \
-        -T ${ARCHIVE} \
-        -umitchellh:${BINTRAY_API_KEY} \
-        "https://api.bintray.com/content/mitchellh/packer/packer/${VERSION}/${ARCHIVE_NAME}"
-done
+  for FILENAME in $(find $DIR/pkg/dist -type f); do
+    FILENAME=$(basename $FILENAME)
+    curl -X PURGE https://releases.hashicorp.com/packer/${VERSION}/${FILENAME}
+  done
+fi
+
+exit 0

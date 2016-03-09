@@ -13,21 +13,46 @@ module.exports = {
   CATEGORY_TURN_ON_VM : 'TurnOnVM'
 
   # LABELS
-  LABEL_CLICK     : 'click'
-
+  LABEL_CLICK         : 'click'
   LABEL_MODAL_SUCCESS : 'ModalSuccess'
 
+  # USER ACTIONS
+  USER_LOGGED_OUT : 'logged out'
+  USER_LEFT_TEAM  : 'leave team'
+
+  # VM ACTIONS
+  VM_TERMINATED   : 'terminated vm'
+  VM_TURNED_ON    : 'turn on vm'
+
   # KD
-  INSTALLED_KD    : 'installed kd'
+  KD_INSTALLED    : 'installed kd'
 
   # STACKS
-  ADDED_AWS_KEYS  : 'added aws keys'
-  SETUP_STACK     : 'setup stack'
+  STACKS_ADDED_AWS_KEYS : 'added aws keys'
+  STACKS_SETUP          : 'setup stack'
+  STACKS_EDIT           : 'edit stack'
+  STACKS_REINIT         : 'reinitialized stack'
+  STACKS_DELETE         : 'deleted stack'
+
+  # PROVIDERS
+  STACKS_WIZARD_SELECTED_AWS          : 'selected aws provider'
+  STACKS_WIZARD_SELECTED_VAGRANT      : 'selected vagrant provider'
+  STACKS_WIZARD_SELECTED_AZURE        : 'selected azure provider'
+  STACKS_WIZARD_SELECTED_DIGITALOCEAN : 'selected digitalocean provider'
+  STACKS_WIZARD_SELECTED_GOOGLECLOUD  : 'selected googlecloud provider'
+  STACKS_WIZARD_SELECTED_RACKSPACE    : 'selected rackspace provider'
+
+  # SERVICES
+  STACKS_WIZARD_SELECTED_GITHUB        : 'selected github service'
+  STACKS_WIZARD_SELECTED_BITBUCKET     : 'selected bitbucket service'
+  STACKS_WIZARD_SELECTED_GITLAB        : 'selected gitlab service'
+  STACKS_WIZARD_SELECTED_YOURGITSERVER : 'selected yourgitserver service'
 
   # TEAM
-  INVITED_TEAMMEMBERS  : 'invited team members'
-  CONNECTED_SLACK      : 'connected slack'
+  TEAMS_INVITED_TEAMMEMBERS  : 'invited team members'
+  TEAMS_SENT_INVITATION      : 'sent invitation'
+  TEAMS_CONNECTED_SLACK      : 'connected slack'
 
   # COLLABORATION
-  USED_COLLABORATION   : 'used collaboration'
+  COLLABORATION_STARTED : 'used collaboration'
 }

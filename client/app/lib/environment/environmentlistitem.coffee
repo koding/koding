@@ -6,6 +6,7 @@ checkFlag                 = require 'app/util/checkFlag'
 showNotification          = require 'app/util/showNotification'
 isManagedVMStack          = require 'app/util/isManagedVMStack'
 hasManagedVMStack         = require 'app/util/hasManagedVMStack'
+Tracker                   = require 'app/util/tracker'
 
 remote                    = require('app/remote').getInstance()
 
@@ -112,6 +113,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     @getDelegate().emit 'StackReinitRequested', stack
 
+    Tracker.track Tracker.STACKS_REINIT
+
     kd.singletons.computeController.reinitStack stack, => @reinitButton.hideLoader()
 
 
@@ -122,6 +125,9 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     { computeController } = kd.singletons
     computeController.ui.askFor 'deleteStack', {}, (status) =>
       return  unless status.confirmed
+
+      Tracker.track Tracker.STACKS_DELETE
+
       @getDelegate().emit 'StackDeleteRequested', @getData()
 
 
