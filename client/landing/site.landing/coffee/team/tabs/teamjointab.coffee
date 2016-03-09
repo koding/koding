@@ -18,13 +18,31 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = kd.utils.curry 'username', options.cssClass
+    options.cssClass           = kd.utils.curry 'username', options.cssClass
+    options.loginForm        or= TeamJoinByLoginForm
+    options.loginFormInvited or= TeamJoinWithInvitedAccountForm
+    options.signupForm       or= TeamJoinBySignupForm
+    options.email            or= utils.getTeamData().invitation.email
 
     super options, data
 
+
+  show: ->
+    super
+    @setOption 'email', utils.getTeamData().invitation?.email
+    @createSubViews()
+    @wrapper.setClass 'join'
+
+
+  hide: ->
+    super
+    @destroySubViews()
+
+
+  createSubViews: ->
+
     teamData       = utils.getTeamData()
     @alreadyMember = teamData.signup?.alreadyMember
-    domains        = kd.config.group.allowedDomains
 
     @addSubView new MainHeaderView { cssClass: 'team', navItems: [] }
 
@@ -32,33 +50,39 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     wrapperCssClass = kd.utils.curry wrapperCssClass, 'alreadyMember'  if @alreadyMember
     @addSubView @wrapper = new kd.CustomHTMLView { cssClass: wrapperCssClass }
 
-    teamTitle  = kd.config.group.title
-    modalTitle = "Join #{utils.createTeamTitlePhrase teamTitle}"
-
-    @putAvatar()  if @alreadyMember
+    @putAvatar @getOption 'email'  if @alreadyMember
 
     @wrapper.addSubView @intro = new kd.CustomHTMLView { tagName: 'p', cssClass: 'intro', partial: '' }
-    @wrapper.addSubView new kd.CustomHTMLView { tagName: 'h4', partial: modalTitle }
-    @wrapper.addSubView new kd.CustomHTMLView { tagName: 'h5', partial: @getDescription() }
+    @wrapper.addSubView @title = new kd.CustomHTMLView { tagName: 'h4', partial: @getModalTitle() }
+    @wrapper.addSubView @desc  = new kd.CustomHTMLView { tagName: 'h5', cssClass: 'full', partial: @getDescription() }
     @addForm()
 
     @addForgotPasswordLink()
+
+
+  getModalTitle: ->
+
+    teamTitle  = kd.config.group.title
+    return "Join #{utils.createTeamTitlePhrase teamTitle}"
 
 
   addForm: ->
 
     TeamJoinTabFormClass = if @alreadyMember and @wantsToUseDifferentAccount
       @hideAvatar()
-      TeamJoinByLoginForm
+      @forgotPassword?.show()
+      @getOption 'loginForm'
     else if @alreadyMember
       @showAvatar()
-      TeamJoinWithInvitedAccountForm
+      @forgotPassword?.show()
+      @getOption 'loginFormInvited'
     else
+      @forgotPassword?.hide()
       @hideAvatar()
-      TeamJoinBySignupForm
+      @getOption 'signupForm'
 
     @form?.destroy()
-    @form = new TeamJoinTabFormClass { callback: @bound 'joinTeam' }
+    @form = new TeamJoinTabFormClass { callback: @bound 'submit' }
     @wrapper.addSubView @form
 
     @form.once 'FormNeedsToBeChanged', (isMember, needsDifferentAccount) =>
@@ -66,6 +90,13 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
       @wantsToUseDifferentAccount = needsDifferentAccount
       @clearValidations()
       @addForm()
+      @updatePartials()
+
+
+  updatePartials: ->
+
+    @title.updatePartial @getModalTitle()
+    @desc.updatePartial @getDescription()
 
 
   clearValidations: ->
@@ -88,15 +119,18 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     @intro.show()
 
 
-  putAvatar: ->
+  putAvatar: (email) ->
+
+    return  unless email
 
     @wrapper.addSubView @avatar = new kd.CustomHTMLView { tagName: 'figure' }
 
     { getProfile, getGravatarUrl, getTeamData } = utils
-    { invitation: { email } }                   = getTeamData()
 
     getProfile email,
       error   : ->
+        @intro.updatePartial ''
+        utils.storeNewTeamData 'profile', null
       success : (profile) =>
         { hash, firstName, nickname } = profile
         utils.storeNewTeamData 'profile', profile
@@ -107,7 +141,11 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
 
 
   getDescription: ->
-    desc = if @alreadyMember
+
+    domains = kd.config.group.allowedDomains
+    if @alreadyMember and @wantsToUseDifferentAccount
+      "Please enter your <i>koding.com</i> username & password."
+    else if @alreadyMember
       "Please enter your <i>koding.com</i> password."
     else if domains?.length > 1
       domainsPartial = utils.getAllowedDomainsPartial domains
@@ -115,23 +153,19 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     else if domains?.length is 1
       "You must have #{articlize domains.first} <i>#{domains.first}</i> email address to join"
     else
-      "Please choose a username and password for your new Koding account."
+      "Pick a username and password for your new <i>Koding.com</i> account."
 
 
   addForgotPasswordLink: ->
 
     return  unless @alreadyMember
 
-    @addSubView new kd.CustomHTMLView {
+    @addSubView @forgotPassword = new kd.CustomHTMLView
       tagName: 'section'
-      partial: '''
-        <p>
-          Forgot your password? <a href="/Team/Recover?mode=join">Click here</a> to reset.
-        </p>'''
-    }
+      partial: '<p>Forgot your password? <a href="/Team/Recover?mode=join">Click here</a> to reset.</p>'
 
 
-  joinTeam: (formData) ->
+  submit: (formData) ->
 
     { username } = formData
     success      = =>
