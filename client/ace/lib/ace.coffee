@@ -581,12 +581,10 @@ class Ace extends KDView
     @appStorage.setValue 'useWordWrap', value
 
 
-  setReadOnly: (value) ->
-    @editor.setReadOnly value
-
 
   setOpenRecentFiles: (value, save = yes) ->
     @appStorage.setValue 'openRecentFiles', value
+  setReadOnly: (value) -> @editor.setReadOnly value
 
 
   loadEmmet: (cb) ->
@@ -630,8 +628,7 @@ class Ace extends KDView
     @appStorage.setValue 'enableAutocomplete', value  if save
 
 
-  gotoLine: (lineNumber) ->
-    @editor.gotoLine lineNumber
+  gotoLine: (lineNumber) -> @editor.gotoLine lineNumber
 
 
   focus: -> @editor?.focus()
