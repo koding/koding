@@ -187,7 +187,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    if @isOwner()
+    if @machine('type') is 'own' or @machine 'hasOldOwner'
       kd.singletons.router.handleRoute "/Machines/#{@machine 'uid'}"
     else
       sidebarListItem = ReactDOM.findDOMNode @refs.sidebarMachinesListItem
