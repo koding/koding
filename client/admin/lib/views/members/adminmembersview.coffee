@@ -26,7 +26,7 @@ module.exports = class AdminMembersView extends kd.View
     tabView.addPane all     = new kd.TabPaneView name: 'All Members'
     tabView.addPane admins  = new kd.TabPaneView name: 'Admins'
     tabView.addPane mods    = new kd.TabPaneView name: 'Moderators'
-    tabView.addPane blocked = new kd.TabPaneView name: 'Blocked'
+    tabView.addPane blocked = new kd.TabPaneView name: 'Disabled'
 
     all.addSubView @allView = new TeamMembersCommonView
       fetcherMethod          : 'fetchMembersWithEmail'

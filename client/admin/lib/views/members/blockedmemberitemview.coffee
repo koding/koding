@@ -20,7 +20,7 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
 
     @roleLabel = new kd.CustomHTMLView
       cssClass : 'role'
-      partial  : "Blocked <span class='settings-icon'></span>"
+      partial  : "Disabled <span class='settings-icon'></span>"
       click    : @bound 'toggleSettings'
 
     @createSettingsView()
@@ -34,7 +34,7 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
 
     @settings.addSubView @unblockButton = new kd.ButtonView
       cssClass : kd.utils.curry 'solid compact outline blocked'
-      title    : 'Unblock'
+      title    : 'Enable User'
       loader   : color: "#444444"
       callback : @bound 'unblockUser'
 
