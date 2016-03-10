@@ -48,7 +48,7 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `sshAuthSock`.")
 	}
 
-	remoteMachines, err := r.GetKites()
+	remoteMachines, err := r.GetMachines()
 	if err != nil {
 		return nil, err
 	}

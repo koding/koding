@@ -80,7 +80,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	remoteMachines, err := r.GetKitesOrCache()
+	remoteMachines, err := r.GetCacheOrMachines()
 	if err != nil {
 		return nil, err
 	}

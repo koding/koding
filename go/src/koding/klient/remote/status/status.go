@@ -25,7 +25,7 @@ var (
 
 // Used to check the status of a remote machine / kite.
 type MachineGetter interface {
-	GetMachinesWithoutCache() (machine.Machines, error)
+	GetMachinesWithoutCache() (*machine.Machines, error)
 	GetMachine(string) (*machine.Machine, error)
 }
 

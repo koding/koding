@@ -57,15 +57,17 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 		}
 	}
 
-	if params.UseCache {
-		machines, err = r.GetKitesOrCache()
-	} else {
-		machines, err = r.GetKites()
-	}
+	//	if params.UseCache {
+	//		machines, err = r.GetOrCache()
+	//	} else {
+	// Temporary syntax to use existing vars.
+	machineStruct, err := r.GetMachines()
+	machines = machineStruct.Machines()
+	//	}
 
 	if err != nil {
 		r.log.Error(
-			"Failed logging kites. useCache:%t, err:%s",
+			"Failed getting kites. useCache:%t, err:%s",
 			params.UseCache, err,
 		)
 		return nil, err

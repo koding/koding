@@ -36,7 +36,7 @@ func (r *Remote) SSHKeyAddHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `key`.")
 	}
 
-	remoteMachines, err := r.GetKites()
+	remoteMachines, err := r.GetMachines()
 	if err != nil {
 		return nil, err
 	}

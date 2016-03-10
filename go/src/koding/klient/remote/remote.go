@@ -2,7 +2,6 @@ package remote
 
 import (
 	"encoding/json"
-	"fmt"
 	"net"
 	"net/url"
 	"time"
@@ -58,7 +57,7 @@ type Remote struct {
 	storage storage.Interface
 
 	// The remote machines that we have cached, along with their expirations.
-	machines machine.Machines
+	machines *machine.Machines
 
 	// The time when the clients were cached at
 	machinesCachedAt time.Time
@@ -72,10 +71,10 @@ type Remote struct {
 	// we simply return the kites to help the user UX.
 	machinesErrCacheMax time.Duration
 
-	// clientNamesCache is stored as map[machineIp]machineName
+	// machineNamesCache is stored as map[machineIp]machineName
 	//
-	// TODO: Store names by kite id? Need to stop referencing by IP, for machines
-	// on a single network.
+	// TODO: Deprecate, and move this logic to *machine.Machine. It's left
+	// here currently for backwards compatibility names that need to be loaded.
 	machineNamesCache map[string]string
 
 	// A slice of local mounts (to list and unmount from, mainly).
@@ -117,6 +116,7 @@ func NewRemote(k *kite.Kite, log kite.Logger, s storage.Interface) *Remote {
 		machinesCacheMax:    10 * time.Second,
 		machineNamesCache:   map[string]string{},
 		unmountPath:         fuseklient.Unmount,
+		machines:            machine.NewMachines(kodingLog, s),
 	}
 
 	return r
@@ -171,109 +171,159 @@ func (r *Remote) hostFromClient(k *kite.Client) (string, error) {
 // If we are unable to get the kites from kontrol, but the cached
 // results are not too old, we return the cached results rather than giving
 // the user a bad UX.
-//
-// TODO: Convert to the name GetMachines
-func (r *Remote) GetKites() (machine.Machines, error) {
+func (r *Remote) GetMachines() (*machine.Machines, error) {
 	// If the machinesCachedAt value is within machinesCachedMax duration,
 	// return them immediately.
-	if len(r.machines) > 0 && r.machinesCachedAt.After(time.Now().Add(-r.machinesCacheMax)) {
+	if r.machines.Count() > 0 && r.machinesCachedAt.After(time.Now().Add(-r.machinesCacheMax)) {
 		return r.machines, nil
 	}
 
 	return r.GetMachinesWithoutCache()
 }
 
-// GetMachinesWithoutCache gets the remote kites and returns machines without
-// using the cache. Use this with caution!
-func (r *Remote) GetMachinesWithoutCache() (machine.Machines, error) {
-	kites, err := r.kitesGetter.GetKodingKites(&kiteprotocol.KontrolQuery{
+func (r *Remote) getKodingKites() ([]*KodingClient, error) {
+	return r.kitesGetter.GetKodingKites(&kiteprotocol.KontrolQuery{
 		Name:     "klient",
 		Username: r.localKite.Config.Username,
 	})
-
-	// If there is an error retreiving kites, check if our cache is too old.
-	// We base this "too old" decision off of the machinesErrCacheMax value,
-	// relative to the machinesCachedAt value.
-	if err != nil {
-		r.log.Error("Failed to getKites from Kontrol. Error: %s", err.Error())
-
-		if r.machinesCachedAt.After(time.Now().Add(-r.machinesErrCacheMax)) {
-			r.log.Warning(
-				"Using machinesCache after failing to getKites. Cached %s ago",
-				time.Now().Sub(r.machinesCachedAt),
-			)
-			return r.machines, err
-		}
-
-		return nil, err
-	}
-
-	// If any names are not yet created, we need to create missing names.
-	var missingNames bool
-
-	var clients machine.Machines
-
-	for _, k := range kites {
-		// If the Id is the same, don't add it to the map
-		if k.ID == r.localKite.Id {
-			continue
-		}
-
-		host, err := r.hostFromClient(k.Client)
-		if err != nil {
-			return nil, err
-		}
-
-		// It's okay if we assign an empty string, no need to check for
-		// the bool value. Note that it's important that we use two return
-		// args, otherwise this would panic if the host doesn't exist.
-		name, _ := r.machineNamesCache[host]
-
-		if name == "" {
-			missingNames = true
-		}
-
-		// configure the kite Client with any common kite Client settings.
-		if err := configureKiteClient(k.Client); err != nil {
-			r.log.Error(
-				"Unable to configure kite Client. name:%s, ip:%s",
-				name, host,
-			)
-			continue
-		}
-
-		machineMeta := machine.MachineMeta{
-			MachineLabel: k.MachineLabel,
-			IP:           host,
-			Name:         name,
-			Teams:        k.Teams,
-		}
-
-		m := machine.NewMachine(
-			machineMeta, r.log, k.Client, kitepinger.NewKitePinger(k.Client),
-		)
-		clients = append(clients, m)
-	}
-
-	r.machinesCachedAt = time.Now()
-	r.machines = clients
-
-	// Because our machine names are saved in the db, new IPs need to be
-	// assigned a new unique name. We use createMissingNames to do that.
-	if missingNames {
-		r.createMissingNames()
-	}
-
-	return clients, nil
 }
 
-// GetKitesOrCache fetches kites from the kite cache no matter how old they are. If
-// there is no cache, the kites are fetched from Kontrol like normal.
-//
-// TODO: Convert to the name GetMachinesOrCache
-func (r *Remote) GetKitesOrCache() (machine.Machines, error) {
-	if len(r.machines) == 0 {
-		return r.GetKites()
+// GetMachinesWithoutCache gets the remote kites and returns machines without
+// using the cache. Use this with caution!
+func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
+	log := r.log.New("GetMachines")
+
+	kites, err := r.getKodingKites()
+	if err != nil {
+		log.Warning(
+			"Unable to get new machines from Koding. Using existing machines. err:%s", err,
+		)
+		return r.machines, nil
+	}
+
+	// If this ends up true, call Machines.Save() after the loop.
+	var saveMachines bool
+
+	// Loop through each of the kites, creating machines for any missing
+	// kites or updating existing machines with the new kite info.
+	// TODO: Use host-kiteId to locate machine.
+	for _, k := range kites {
+		var host string
+		host, err = r.hostFromClient(k.Client)
+		if err != nil {
+			log.Error("Unable to extract host from *kite.Client. err:%s", err)
+			break
+		}
+
+		var existingMachine *machine.Machine
+		existingMachine, err = r.machines.GetByIP(host)
+
+		// If the machine is not found, create a new one.
+		if err == machine.ErrMachineNotFound {
+			// For backwards compatibility, check if the host already has a name
+			// in the cache.
+			//
+			// If the name does not exist in the host the string will be empty, and
+			// Machines.Add() will create a new unique name.
+			//
+			// If the string *does* exist then we use that, remove it from the map,
+			// and save the map to avoid dealing with this next time.
+			name, ok := r.machineNamesCache[host]
+			if ok {
+				log.Info("Using legacy name, and removing it from database.")
+				delete(r.machineNamesCache, host)
+				// Should't bother exiting here, not a terrible error.. but not good, either.
+				// Log it for knowledge, and move on.
+				if err := r.saveMachinesNames(); err != nil {
+					log.Error("Failed to save machine names. err:%s", err)
+				}
+			}
+
+			// Name can be empty here, since Machines.Add() will handle creation
+			// of the name.
+			machineMeta := machine.MachineMeta{
+				Name:         name,
+				MachineLabel: k.MachineLabel,
+				IP:           host,
+				Teams:        k.Teams,
+			}
+
+			err = r.machines.Add(machine.NewMachine(
+				machineMeta, r.log, k.Client, kitepinger.NewKitePinger(k.Client),
+			))
+			if err != nil {
+				log.Error("Unable to Add new machine to *machine.Machines. err:%s", err)
+				break
+			}
+
+			// Set this so we know to save after the loop
+			saveMachines = true
+
+			// We've added our machine. Move onto the next.
+			continue
+		}
+
+		// Unknown error, return it.
+		if err != nil {
+			break
+		}
+
+		// Update the label. If they're the same, the update has no affect.
+		if existingMachine.MachineLabel != k.MachineLabel {
+			log.Debug(
+				"existing MachineLabel %q doesn't match remote kite's MachineLabel %q. Updating.",
+				existingMachine.MachineLabel, k.MachineLabel,
+			)
+			existingMachine.MachineLabel = k.MachineLabel
+
+			// Set this so we know to save after the loop
+			saveMachines = true
+		}
+
+		// In the event that this machine was previously offline, or if klient was
+		// restarted, the machine will be lacking many instance fields. If we have
+		// a kite for the machine, populate those fields so the machine is
+		// usable again.
+		if existingMachine.Client == nil {
+			log.Debug("existingMachine missing *kite.Client, adding..")
+			existingMachine.Client = k.Client
+		}
+
+		if existingMachine.Transport == nil {
+			log.Debug("existingMachine missing machine.Transport, adding..")
+			existingMachine.Transport = k.Client
+		}
+
+		if existingMachine.Log == nil {
+			log.Debug("existingMachine missing logging.Logger, adding..")
+			existingMachine.Log = machine.MachineLogger(existingMachine.MachineMeta, log)
+		}
+
+		if existingMachine.KitePinger == nil {
+			log.Debug("existingMachine missing kitepinger.KitePinger, adding..")
+			existingMachine.KitePinger = kitepinger.NewKitePinger(k.Client)
+		}
+	}
+
+	// Set our cached at values.
+	r.machinesCachedAt = time.Now()
+
+	// If any of the machines changed, save it
+	if saveMachines {
+		if err := r.machines.Save(); err != nil {
+			log.Error("Unable to save machines. err:%s", err)
+		}
+	}
+
+	return r.machines, nil
+}
+
+// GetCacheOrMachines returns the existing machines without querying from
+// kontrol if they exist. If there are no machines to return, kontrol is
+// queried.
+func (r *Remote) GetCacheOrMachines() (*machine.Machines, error) {
+	if r.machines.Count() == 0 {
+		return r.GetMachines()
 	}
 
 	return r.machines, nil
@@ -285,7 +335,7 @@ func (r *Remote) GetKitesOrCache() (machine.Machines, error) {
 //
 // If the given machine is not found, machine.MachineNotFound is returned.
 func (r *Remote) GetMachine(name string) (*machine.Machine, error) {
-	machines, err := r.GetKites()
+	machines, err := r.GetMachines()
 	if err != nil {
 		return nil, err
 	}
@@ -322,62 +372,6 @@ func (r *Remote) saveMachinesNames() error {
 	err = r.storage.Set(machineNamesStorageKey, sData)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-// createMissingNames sets names to the machines as needed.
-func (r *Remote) createMissingNames() error {
-	// For ease of looking up, new ip names, we need to map existing
-	// names to their respective ips, since they are stored in the
-	// reverse.
-	namesToIP := map[string]string{}
-	for ip, name := range r.machineNamesCache {
-		namesToIP[name] = ip
-	}
-
-	var cacheChanged bool
-	for _, machine := range r.machines {
-		// If the machine has a name, there's nothing needed.
-		if machine.Name != "" {
-			continue
-		}
-
-		// The name does not exist, so we need to find one for it. To do
-		// that, loop through our available names, until one of them is
-		// not already used.
-		//
-		// If we don't find it after len(machineNames) times, then we increment
-		// the mod and try again.
-		for mod := 0; machine.Name == ""; mod++ {
-			for _, name := range machineNames {
-				// Don't append an integer if it's mod zero
-				if mod != 0 {
-					name = fmt.Sprintf("%s%d", name, mod)
-				}
-				if _, ok := namesToIP[name]; !ok {
-					machine.Name = name
-					// Store the newly assigned name to this Ip
-					namesToIP[name] = machine.IP
-					// Break out of the inner machineNames loop, which will cause
-					// the mod loop to not continue either, since machineName is
-					// no longer empty.
-					break
-				}
-			}
-		}
-
-		// Make sure to mark the cache as changed, so we can save it
-		// after we're done.
-		cacheChanged = true
-		r.machineNamesCache[machine.IP] = machine.Name
-	}
-
-	// After we're done looping through our machines, check of machineName was written
-	// to. if machineName was written to
-	if cacheChanged {
-		return r.saveMachinesNames()
 	}
 
 	return nil

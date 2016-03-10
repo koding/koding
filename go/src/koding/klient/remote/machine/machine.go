@@ -2,7 +2,7 @@ package machine
 
 import (
 	"errors"
-	"fmt"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -22,21 +22,28 @@ var (
 	)
 )
 
+// Transport is a Kite compatible interface for Machines.
+type Transport interface {
+	Dial() error
+	Tell(string, ...interface{}) (*dnode.Partial, error)
+	TellWithTimeout(string, time.Duration, ...interface{}) (*dnode.Partial, error)
+}
+
 // MachineMeta is used to separate the static data from the Machine constructor
 // fields. Easing creation.
 type MachineMeta struct {
 	// The machine label, as seen on the Koding UI
-	MachineLabel string
+	MachineLabel string `json:"machineLabel"`
 
 	// The team name that the machine belongs to, if any.
-	Teams []string
+	Teams []string `json:"teams"`
 
 	// The ip/host, as extracted from the client's URL field.
-	IP string
+	IP string `json:"ip"`
 
 	// The human friendly name that is mainly used to locate the
 	// given client.
-	Name string
+	Name string `json:"name"`
 }
 
 // Machine represents a remote machine, with accompanying kite client and
@@ -49,97 +56,56 @@ type Machine struct {
 	// A remote client, as returned by `kontrolclient.GetKites()`
 	//
 	// TODO: Deprecated. Remove when able.
-	Client *kite.Client
+	Client *kite.Client `json:"-"`
 
 	// The kitePinger which can be used to handle network interruptions
 	// on the given machine.
-	KitePinger kitepinger.KitePinger
+	KitePinger kitepinger.KitePinger `json:"-"`
 
 	// The intervaler for this machine.
 	//
 	// TODO: In the future this needs to be a manager which associates folders to the
 	// given intervaler. For now however, we only support a single mount per-machine,
 	// so it's unneeded.
-	Intervaler rsync.SyncIntervaler
+	Intervaler rsync.SyncIntervaler `json:"-"`
 
 	// The Logger for this Machine instance.
-	Log logging.Logger
+	Log logging.Logger `json:"-"`
 
-	// The interfaces below this are mainly used for Mocking.
-
-	// Dialer is the interface that Machine.Dial() uses to dial. Normally
-	// kite.Client is used to satisfy this interface.
-	Dialer interface {
-		Dial() error
-	}
-
-	// Teller is an interface that Machine.Dial, Machine.Tell, and any method that
+	// Transport is an interface that Machine.Dial, Machine.Tell, and any method that
 	// communicates with the remote kite uses.
-	Teller interface {
-		Tell(string, ...interface{}) (*dnode.Partial, error)
-	}
+	Transport Transport `json:"-"`
+}
+
+func MachineLogger(meta MachineMeta, l logging.Logger) logging.Logger {
+	return l.New("machine").New(
+		"name", meta.Name,
+		"ip", meta.IP,
+	)
 }
 
 // NewMachine initializes a new Machine struct with any internal vars created.
 func NewMachine(meta MachineMeta, log logging.Logger, client *kite.Client,
 	pinger kitepinger.KitePinger) *Machine {
-	log = log.New(
-		"machine",
-		fmt.Sprintf("name=%s", meta.Name),
-		fmt.Sprintf("ip=%s", meta.IP),
-	)
-
 	return &Machine{
 		// Client is mainly a legacy field. See field docs.
 		Client: client,
 
 		MachineMeta: meta,
-		Log:         log,
+		Log:         MachineLogger(meta, log),
 		KitePinger:  pinger,
-		Dialer:      client,
-		Teller:      client,
+		Transport:   client,
 	}
-}
-
-// Machines is responsible for storing the *Machine(s) and providing
-// them in query-able forms.
-//
-// For now this is just a slice of *Machine, but in time it will likely
-// become a struct with more features, performant querying, etc.
-type Machines []*Machine
-
-// GetByIP iterates through the Machines, returning the first one with a
-// matching IP.
-func (machines Machines) GetByIP(i string) (*Machine, error) {
-	for _, m := range machines {
-		if m.IP == i {
-			return m, nil
-		}
-	}
-
-	return nil, ErrMachineNotFound
-}
-
-// GetByName iterates through the Machine names and returns the first matching
-// machine.
-func (machines Machines) GetByName(n string) (*Machine, error) {
-	for _, m := range machines {
-		if m.Name == n {
-			return m, nil
-		}
-	}
-
-	return nil, ErrMachineNotFound
 }
 
 // Dial dials the internal dialer.
 func (m *Machine) Dial() error {
-	if m.Dialer == nil {
-		m.Log.Error("Unable to dial. Nil Dialer")
-		return errors.New("Unable to dial, Machine Dialer is nil")
+	if m.Transport == nil {
+		m.Log.Error("Unable to dial. Nil Transport")
+		return errors.New("Unable to dial, Machine Transport is nil")
 	}
 
-	err := m.Dialer.Dial()
+	err := m.Transport.Dial()
 
 	// Log the failure here, because this logger has machine context.
 	if err != nil {
@@ -152,7 +118,7 @@ func (m *Machine) Dial() error {
 // Tell uses the Kite protocol (with a dnode response) to communicate with this
 // machine.
 func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, error) {
-	return m.Teller.Tell(method, args...)
+	return m.Transport.Tell(method, args...)
 }
 
 // Ping is a convenience method for pinging the given machine. An easy way to
