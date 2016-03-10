@@ -309,7 +309,8 @@ module.exports = class JCredential extends jraphical.Module
             rels    = rels.filter (rel) -> not groupId.equals rel.sourceId
 
           map = rels.reduce (memo, doc) ->
-            memo[doc.targetId] = doc.as
+            memo[doc.targetId] ?= doc.as
+            memo[doc.targetId]  = 'owner'  if doc.as is 'owner'
             memo
           , {}
 
