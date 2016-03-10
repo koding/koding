@@ -96,7 +96,6 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'MemberRolesChanged' }
         { name: 'GroupDestroyed' }
         { name: 'broadcast' }
         { name: 'updateInstance' }
@@ -386,9 +385,6 @@ module.exports = class JGroup extends Module
           member     : ObjectRef(member).data
         @broadcast 'MemberLeftGroup',
           member : ObjectRef(member).data
-
-    @on 'MemberRolesChanged', (member) ->
-      @constructor.emit 'MemberRolesChanged', { group: this, member }
 
   @render        :
     loggedIn     :
