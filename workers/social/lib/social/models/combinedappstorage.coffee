@@ -1,9 +1,10 @@
 JStorage    = require './storage'
 KodingError = require '../error'
+{ notifyByUsernames } = require './notify'
 
 module.exports = class JCombinedAppStorage extends JStorage
 
-  { signature, ObjectId } = require 'bongo'
+  { signature, ObjectId, secure } = require 'bongo'
 
   @share()
 
@@ -12,7 +13,7 @@ module.exports = class JCombinedAppStorage extends JStorage
       accountId     : 'unique'
     sharedEvents    :
       static        : []
-      instance      : ['Update']
+      instance      : []
     sharedMethods   :
       static        : {}
       instance      :
@@ -25,14 +26,21 @@ module.exports = class JCombinedAppStorage extends JStorage
         default     : -> {}
 
 
-  upsert: (appId, options, callback) ->
+  upsert: secure (client, appId, options, callback) ->
 
     unless appId
       return callback new KodingError 'appId is not set!'
 
     options.accountId = @getAt 'accountId'
-    JCombinedAppStorage.upsert appId, options, (err, storage) =>
-      @emit 'Update', options  if options.notify
+
+    { connection: { delegate }, context: { group } } = client
+    { nickname } = delegate.profile
+
+    JCombinedAppStorage.upsert appId, options, (err, storage) ->
+      if options.notify and not err
+        storage.group = group
+        notifyByUsernames [ nickname ], 'StorageUpdated', storage
+
       return callback err, storage
 
 
