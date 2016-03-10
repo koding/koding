@@ -48,7 +48,7 @@ reviveGroupPlan = (group, callback) ->
     return callback err  if err
     return callback new KodingError 'Plan not found'  unless plan
 
-    group._activePlan = plan
+    group._activePlan = plan.planTitle
 
     callback null, group
 
