@@ -82,7 +82,7 @@ module.exports = class DefineStackView extends KDView
       stackTemplate
     }
     @tabView.addPane variablesPane        = new KDTabPaneView
-      name : 'Private Variables'
+      name : 'Custom Variables'
       view : @variablesView
 
     @editorViews.push @readmeView         = new ReadmeView { stackTemplate }
@@ -128,7 +128,7 @@ module.exports = class DefineStackView extends KDView
 
       credential = credentialItem.getData()
 
-      credential.shareWith { target: slug, role: 'admin' }, (err) =>
+      credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
         @credentialStatusView.setCredential credential
 

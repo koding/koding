@@ -108,6 +108,8 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
   checkVariableChanges: ->
 
+    return  if @_pinnedWarning
+
     content   = @getAce().getContents()
     converted = yamlToJson content, silent = yes
 
@@ -149,7 +151,10 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       return  unless credential
 
       credential.fetchData (err, data) =>
-        return kd.warn err  if err
+
+        if err
+          @pinWarning "You don't have access for custom variables"
+          return kd.warn err
 
         @_activeCredential = credential
 
@@ -160,3 +165,13 @@ module.exports = class VariablesView extends StackBaseEditorTabView
           else (jsonToYaml meta).content
 
           @getAce().setContent _.unescape content
+
+
+  pinWarning: (warning) ->
+
+    @_pinnedWarning = yes
+    @indicator.setClass 'red'
+    @indicator.updatePartial '!'
+    @indicator.setTooltip title: warning
+    @indicator.setClass 'in'
+    @parent.tabHandle.setClass 'notification'

@@ -50,6 +50,8 @@ class IDEAppController extends AppController
 
   {noop, warn} = kd
 
+  INITIAL_BUILD_LOGS_TAIL_OFFSET = 15
+
   @options = require './ideappcontrolleroptions'
 
   constructor: (options = {}, data) ->
@@ -238,6 +240,8 @@ class IDEAppController extends AppController
   setActiveTabView: (tabView) ->
 
     return  if tabView is @activeTabView
+    return  if tabView.isDestroyed
+
     @setActivePaneFocus off
     @activeTabView = tabView
     @setActivePaneFocus on
@@ -370,7 +374,6 @@ class IDEAppController extends AppController
 
     parent.attach targetView  # Attach again.
 
-    @setActiveTabView targetIdeView.tabView
     @updateLayoutMap_ splitView, targetView
 
     # I'm not sure about the usage of private method. I had to...
@@ -437,14 +440,14 @@ class IDEAppController extends AppController
   ###
   tailFile: (options, callback = kd.noop) ->
 
-    { file, contents, targetTabView, description, emitChange } = options
+    { file, contents, targetTabView, description, emitChange, tailOffset } = options
 
     targetTabView = @ideViews.first.tabView  unless targetTabView
 
     @setActiveTabView targetTabView
 
     @activeTabView.emit 'FileNeedsToBeTailed', {
-      file, contents, description, callback, emitChange
+      file, contents, description, callback, emitChange, tailOffset
     }
 
 
@@ -1255,7 +1258,7 @@ class IDEAppController extends AppController
       else
         mainView.activitySidebar.selectWorkspace data
 
-      computeController.showBuildLogs machine  if initial
+      computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET  if initial
 
       @emit 'IDEReady'
 

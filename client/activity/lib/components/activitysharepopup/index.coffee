@@ -69,7 +69,7 @@ module.exports = class ActivitySharePopup extends React.Component
 
     if tags
       hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
-      hashTags  = _.unique(hashTags).join " "
+      hashTags  = _.uniq(hashTags).join " "
       hashTags += " "
 
     itemText  = shortenText title or body, maxLength: 100, minLength: 100

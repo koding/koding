@@ -6,8 +6,7 @@ const ( // equality
 	shouldHaveBeenEqualTypeMismatch = "Expected: '%v' (%T)\nActual:   '%v' (%T)\n(Should be equal, type mismatch)"
 	shouldHaveBeenAlmostEqual       = "Expected '%v' to almost equal '%v' (but it didn't)!"
 	shouldHaveNotBeenAlmostEqual    = "Expected '%v' to NOT almost equal '%v' (but it did)!"
-	shouldHaveResembled             = "Expected: '%#v'\nActual:   '%#v'\n(Should resemble)!"
-	shouldHaveResembledTypeMismatch = "Expected: '%#v' (%T)\nActual:   '%#v' (%T)\n(Should resemble, type mismatch)"
+	shouldHaveResembled             = "Expected: '%s'\nActual:   '%s'\n(Should resemble)!"
 	shouldNotHaveResembled          = "Expected        '%#v'\nto NOT resemble '%#v'\n(but it did)!"
 	shouldBePointers                = "Both arguments should be pointers "
 	shouldHaveBeenNonNilPointer     = shouldBePointers + "(the %s was %s)!"
@@ -45,7 +44,7 @@ const ( // collections
 	shouldNotHaveBeenEmpty         = "Expected %+v to NOT be empty (but it was)!"
 	shouldHaveBeenAValidInteger    = "You must provide a valid integer (was %v)!"
 	shouldHaveBeenAValidLength     = "You must provide a valid positive integer (was %v)!"
-	shouldHaveHadLength            = "Expected %+v to have length equal to '%v', but it wasn't!"
+	shouldHaveHadLength            = "Expected %+v (length: %v) to have length equal to '%v', but it wasn't!"
 )
 
 const ( // strings

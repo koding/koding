@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssa
 
 // This file defines utilities for working with source positions
@@ -13,8 +15,7 @@ package ssa
 import (
 	"go/ast"
 	"go/token"
-
-	"golang.org/x/tools/go/types"
+	"go/types"
 )
 
 // EnclosingFunction returns the function that contains the syntax

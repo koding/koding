@@ -84,7 +84,7 @@ module.exports =
       .clearValue             'input[name=username]'
       .setValue               'input[name=username]', user.username
       .setValue               'input[name=password]', user.password
-      .click                  '[testpath=register-button]'
+      .click                  'button.TeamsModal-button--green'
       .pause                  2000 # wait for modal change
 
     @loginAssertion(browser)

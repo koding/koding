@@ -302,6 +302,9 @@ module.exports = class ComputeController extends KDController
       for machine in stack.machines
         return stack  if machine._id is machineId
 
+  findStackFromTemplateId: (baseStackId) ->
+    return stack  for stack in @stacks when stack.baseStackId is baseStackId
+
   findMachineFromQueryString: (queryString) ->
 
     return  unless queryString
@@ -1105,7 +1108,7 @@ module.exports = class ComputeController extends KDController
       return callback null, template
 
 
-  showBuildLogs: (machine) ->
+  showBuildLogs: (machine, tailOffset) ->
 
     # Not supported for Koding Group
     return  if isKoding()
@@ -1122,6 +1125,7 @@ module.exports = class ComputeController extends KDController
         Your Koding Stack has successfully been initialized. The log here
         describes each executed step of the Stack creation process.
       "
+      tailOffset
     }
 
 

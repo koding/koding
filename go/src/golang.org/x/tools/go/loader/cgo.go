@@ -1,3 +1,9 @@
+// Copyright 2013 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// +build go1.5
+
 package loader
 
 // This file handles cgo preprocessing of files containing `import "C"`.
@@ -87,9 +93,9 @@ func processCgoFiles(bp *build.Package, fset *token.FileSet, DisplayPath func(pa
 		if err != nil {
 			return nil, err
 		}
-		defer rd.Close()
 		display := filepath.Join(bp.Dir, cgoDisplayFiles[i])
 		f, err := parser.ParseFile(fset, display, rd, mode)
+		rd.Close()
 		if err != nil {
 			return nil, err
 		}

@@ -68,7 +68,11 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
           content  : 'We\'ve sent you a password recovery code.'
           duration : 4500
 
-        route = if mode is 'join' then '/Join' else '/'
+        route = switch mode
+          when 'join'   then '/Join'
+          when 'create' then '/Team/Username'
+          else ''
+
         kd.singletons.router.handleRoute route
 
 

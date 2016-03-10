@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 )
 
 var (
-	testNamePattern = regexp.MustCompile("^=== RUN:? (.+)$")
+	testNamePattern = regexp.MustCompile("^=== RUN:? +(.+)$")
 )
 
 func ParsePackageResults(result *contract.PackageResult, rawOutput string) {
@@ -100,10 +101,12 @@ func (self *outputParser) registerTestFunction() {
 }
 func (self *outputParser) recordTestMetadata() {
 	testName := strings.Split(self.line, " ")[2]
-	self.test = self.testMap[testName]
-	self.test.Passed = !strings.HasPrefix(self.line, "--- FAIL: ")
-	self.test.Skipped = strings.HasPrefix(self.line, "--- SKIP: ")
-	self.test.Elapsed = parseTestFunctionDuration(self.line)
+	if test, ok := self.testMap[testName]; ok {
+		self.test = test
+		self.test.Passed = !strings.HasPrefix(self.line, "--- FAIL: ")
+		self.test.Skipped = strings.HasPrefix(self.line, "--- SKIP: ")
+		self.test.Elapsed = parseTestFunctionDuration(self.line)
+	}
 }
 func (self *outputParser) recordPackageMetadata() {
 	if packageFailed(self.line) {
@@ -142,6 +145,22 @@ func (self *outputParser) saveLineForParsingLater() {
 	self.test.RawLines = append(self.test.RawLines, self.line)
 }
 
+// TestResults is a collection of TestResults that implements sort.Interface.
+type TestResults []contract.TestResult
+
+func (r TestResults) Len() int {
+	return len(r)
+}
+
+// Less compares TestResults on TestName
+func (r TestResults) Less(i, j int) bool {
+	return r[i].TestName < r[j].TestName
+}
+
+func (r TestResults) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
 func (self *outputParser) parseEachTestFunction() {
 	for _, self.test = range self.tests {
 		self.test = parseTestOutput(self.test)
@@ -151,4 +170,5 @@ func (self *outputParser) parseEachTestFunction() {
 		self.test.RawLines = []string{}
 		self.result.TestResults = append(self.result.TestResults, *self.test)
 	}
+	sort.Sort(TestResults(self.result.TestResults))
 }

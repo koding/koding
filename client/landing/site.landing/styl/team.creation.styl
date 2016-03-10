@@ -22,7 +22,9 @@ team.group.creation.styl
 
   .kdtabpaneview .TeamsModal.TeamsModal--groupCreation
     min-width               550px
-    margin-bottom           100px
+
+    > h5 i
+      color               #00B057
 
     > figure
       bg                    color #ddd
@@ -73,6 +75,16 @@ team.group.creation.styl
       margin-top            20px
 
   // LOGIN/CREATE TAB STYLE CUSTOMIZATIONS
+  .TeamsModal--groupCreation.create
+
+    .TeamsModal-button-link
+      float                 none
+      margin-top            0
+
+    .TeamsModal-button-link.back
+      margin-top            36px
+      fl()
+
 
   .TeamsModal--create
   .TeamsModal--groupCreation
@@ -186,8 +198,6 @@ team.group.creation.styl
   .kdtabpaneview.join
 
     .TeamsModal
-      > h5 i
-        color               #00B057
 
       &.alreadyMember
         margin-bottom       0px

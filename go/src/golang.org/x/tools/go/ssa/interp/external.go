@@ -2,21 +2,24 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package interp
 
 // Emulated functions that we cannot interpret because they are
 // external or because they use "unsafe" or "reflect" operations.
 
 import (
+	"go/types"
 	"math"
 	"os"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 	"unsafe"
 
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/types"
 )
 
 type externalFn func(fr *frame, args []value) value
@@ -59,8 +62,10 @@ func init() {
 		"(reflect.rtype).Bits":             ext۰reflect۰rtype۰Bits,
 		"(reflect.rtype).Elem":             ext۰reflect۰rtype۰Elem,
 		"(reflect.rtype).Field":            ext۰reflect۰rtype۰Field,
+		"(reflect.rtype).In":               ext۰reflect۰rtype۰In,
 		"(reflect.rtype).Kind":             ext۰reflect۰rtype۰Kind,
 		"(reflect.rtype).NumField":         ext۰reflect۰rtype۰NumField,
+		"(reflect.rtype).NumIn":            ext۰reflect۰rtype۰NumIn,
 		"(reflect.rtype).NumMethod":        ext۰reflect۰rtype۰NumMethod,
 		"(reflect.rtype).NumOut":           ext۰reflect۰rtype۰NumOut,
 		"(reflect.rtype).Out":              ext۰reflect۰rtype۰Out,
@@ -78,12 +83,15 @@ func init() {
 		"math.Ldexp":                       ext۰math۰Ldexp,
 		"math.Log":                         ext۰math۰Log,
 		"math.Min":                         ext۰math۰Min,
+		"math.hasSSE4":                     ext۰math۰hasSSE4,
+		"os.Pipe":                          ext۰os۰Pipe,
 		"os.runtime_args":                  ext۰os۰runtime_args,
 		"os.runtime_beforeExit":            ext۰os۰runtime_beforeExit,
 		"reflect.New":                      ext۰reflect۰New,
 		"reflect.SliceOf":                  ext۰reflect۰SliceOf,
 		"reflect.TypeOf":                   ext۰reflect۰TypeOf,
 		"reflect.ValueOf":                  ext۰reflect۰ValueOf,
+		"reflect.Zero":                     ext۰reflect۰Zero,
 		"reflect.init":                     ext۰reflect۰Init,
 		"reflect.valueInterface":           ext۰reflect۰valueInterface,
 		"runtime.Breakpoint":               ext۰runtime۰Breakpoint,
@@ -103,6 +111,7 @@ func init() {
 		"(*runtime.Func).Name":             ext۰runtime۰Func۰Name,
 		"runtime.environ":                  ext۰runtime۰environ,
 		"runtime.getgoroot":                ext۰runtime۰getgoroot,
+		"strings.Index":                    ext۰strings۰Index,
 		"strings.IndexByte":                ext۰strings۰IndexByte,
 		"sync.runtime_Semacquire":          ext۰sync۰runtime_Semacquire,
 		"sync.runtime_Semrelease":          ext۰sync۰runtime_Semrelease,
@@ -131,6 +140,7 @@ func init() {
 		"syscall.Stat":                     ext۰syscall۰Stat,
 		"syscall.Write":                    ext۰syscall۰Write,
 		"syscall.runtime_envs":             ext۰runtime۰environ,
+		"testing.runExample":               ext۰testing۰runExample,
 		"time.Sleep":                       ext۰time۰Sleep,
 		"time.now":                         ext۰time۰now,
 	}
@@ -217,6 +227,10 @@ func ext۰math۰Min(fr *frame, args []value) value {
 	return math.Min(args[0].(float64), args[1].(float64))
 }
 
+func ext۰math۰hasSSE4(fr *frame, args []value) value {
+	return false
+}
+
 func ext۰math۰Ldexp(fr *frame, args []value) value {
 	return math.Ldexp(args[0].(float64), args[1].(int))
 }
@@ -253,6 +267,7 @@ func ext۰runtime۰Caller(fr *frame, args []value) value {
 	if fr != nil {
 		fn := fr.fn
 		// TODO(adonovan): use pc/posn of current instruction, not start of fn.
+		// (Required to interpret the log package's tests.)
 		pc = uintptr(unsafe.Pointer(fn))
 		posn := fn.Prog.Fset.Position(fn.Pos())
 		file = posn.Filename
@@ -311,6 +326,11 @@ func ext۰strings۰IndexByte(fr *frame, args []value) value {
 		}
 	}
 	return -1
+}
+
+func ext۰strings۰Index(fr *frame, args []value) value {
+	// Call compiled version to avoid tricky asm dependency.
+	return strings.Index(args[0].(string), args[1].(string))
 }
 
 func ext۰sync۰runtime_Syncsemcheck(fr *frame, args []value) value {
@@ -455,6 +475,22 @@ func ext۰runtime۰Func۰Entry(fr *frame, args []value) value {
 	// func (*runtime.Func) Entry() uintptr
 	f, _ := (*args[0].(*value)).(structure)[0].(*ssa.Function)
 	return uintptr(unsafe.Pointer(f))
+}
+
+// This is a workaround for a bug in go/ssa/testmain.go: it creates
+// InternalExamples even for Example functions with no Output comment.
+// TODO(adonovan): fix (and redesign) testmain.go after Go 1.6.
+func ext۰testing۰runExample(fr *frame, args []value) value {
+	// This is a stripped down runExample that simply calls the function.
+	// It does not capture and compare output nor recover from panic.
+	//
+	// func runExample(eg testing.InternalExample) bool {
+	//     eg.F()
+	//     return true
+	// }
+	F := args[0].(structure)[1]
+	call(fr.i, fr, 0, F, nil)
+	return true
 }
 
 func ext۰time۰now(fr *frame, args []value) value {

@@ -22,7 +22,7 @@ module.exports = class ActivitySharePopup extends SharePopup
 
     if tags
       hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
-      hashTags  = _.unique(hashTags).join " "
+      hashTags  = _.uniq(hashTags).join " "
       hashTags += " "
     else
       hashTags = ''

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssa
 
 // This file defines the lifting pass which tries to "lift" Alloc
@@ -44,10 +46,9 @@ package ssa
 import (
 	"fmt"
 	"go/token"
+	"go/types"
 	"math/big"
 	"os"
-
-	"golang.org/x/tools/go/types"
 )
 
 // If true, perform sanity checking and show diagnostic information at
