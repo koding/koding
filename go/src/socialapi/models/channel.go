@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"socialapi/models"
 	"socialapi/request"
 
 	"github.com/hashicorp/go-multierror"
@@ -710,19 +709,20 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
-func (c *Channel) FetchAllChannelsOfGroup(q *request.Query) ([]Channel, error) {
-	q := &request.Query{
+func (c *Channel) FetchAllChannelsOfGroup() ([]Channel, error) {
+	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"group_name": c.GroupName,
 		},
-		Exclude: map[string]interface{}{
-			"type_constant": Channel_TYPE_GROUP,
-		},
 	}
-	query.AddScope(models.ExcludeFields(q.Exclude))
+
+	pairs := make(map[string]interface{}, 0)
+	pairs["type_constant"] = Channel_TYPE_GROUP
+
+	query.AddScope(ExcludeFields(pairs))
 
 	var channels []Channel
-	err := i.Some(&channels, query)
+	err := c.Some(&channels, query)
 	if err != nil {
 		return nil, err
 	}
@@ -1058,6 +1058,10 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 			return err
 		}
 
+		if isCrossIndexed {
+			continue
+		}
+
 		interactions, err := NewInteraction().FetchInteractionsWithMessage(message.Id)
 		if err != nil {
 			return err
@@ -1069,10 +1073,6 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 			if err := interaction.Delete(); err != nil {
 				errs = multierror.Append(errs, err)
 			}
-		}
-
-		if isCrossIndexed {
-			continue
 		}
 
 		if err = message.Delete(); err != nil {
