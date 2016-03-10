@@ -101,7 +101,6 @@ module.exports = class JGroup extends Module
 
       ]
       instance      : [
-        { name: 'GroupCreated' }
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'updateInstance' }
       ]
@@ -485,7 +484,6 @@ module.exports = class JGroup extends Module
 
     async.series queue, (err) =>
       return callback err  if err
-      @emit 'GroupCreated', { group, creator: owner }
       callback null, group
 
 
