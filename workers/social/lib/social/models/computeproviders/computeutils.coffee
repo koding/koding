@@ -67,9 +67,12 @@ reviveCredential = (client, credential, callback) ->
     JCredential.fetchByIdentifier client, credential, callback
 
 
-reviveClient = (client, callback, revive = yes) ->
+reviveClient = (client, callback, options) ->
 
-  return callback null  unless revive
+  { shouldReviveClient, shouldFetchGroupPlan } = options ? {}
+  shouldReviveClient ?= yes
+
+  return callback null  unless shouldReviveClient
 
   { connection: { delegate:account }, context: { group } } = client
 
@@ -91,7 +94,16 @@ reviveClient = (client, callback, revive = yes) ->
 
       res.user = user
 
-      callback null, res
+      if shouldFetchGroupPlan
+
+        reviveGroupPlan res.group, (err, group) ->
+          return callback err  if err
+          res.group = group
+          callback null, res
+
+      else
+
+        callback null, res
 
 
 reviveOauth = (client, oauthProvider, callback) ->
@@ -132,6 +144,7 @@ revive = do -> (
     shouldPassCredential
     shouldReviveProvider
     shouldReviveProvisioners
+    shouldFetchGroupPlan
     shouldLockProcess
     shouldHaveOauth
     hasOptions
@@ -193,7 +206,6 @@ revive = do -> (
 
         return
 
-
       # This is Koding only which doesn't need a valid credential
       # since the user session is enough for koding provider for now.
 
@@ -223,7 +235,7 @@ revive = do -> (
 
         , shouldReviveProvisioners
 
-    , shouldReviveClient
+    , { shouldReviveClient, shouldFetchGroupPlan }
 
 
 checkTemplateUsage = (template, account, callback) ->
@@ -281,6 +293,8 @@ fetchGroupStackTemplate = (client, callback) ->
 
         res.template = template
         callback null, res
+
+  , { shouldFetchGroupPlan: yes }
 
 
 guessNextLabel = (options, callback) ->
