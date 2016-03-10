@@ -149,7 +149,7 @@ module.exports =
         .waitForElementVisible     filetree, 50000
         .waitForTextToContain      filetree, firstUserName
         .waitForElementVisible     shareButtonSelector, 50000
-        .assert.containsText       shareButtonSelector, 'LEAVE SESSION' # Assertion
+        # .assert.containsText       shareButtonSelector, 'LEAVE SESSION' # Assertion
 
       callback?()
 
