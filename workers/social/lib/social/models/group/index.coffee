@@ -101,7 +101,6 @@ module.exports = class JGroup extends Module
 
       ]
       instance      : [
-        { name: 'MemberRemoved',    filter: -> null }
         { name: 'updateInstance' }
       ]
     sharedMethods   :
