@@ -67,6 +67,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @tabView.on 'TabNeedsToBeClosed',       @bound 'closeTabByFile'
     @tabView.on 'GoToLineRequested',        @bound 'goToLine'
 
+    @tabView.on 'CloseRequested', (pane) =>
+      askforsave = no
+      @tabView.removePane pane.parent, null , no, askforsave
+
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback, emitChange, isActivePane) =>
       @closeUntitledFileIfNotChanged()
       file.initialContents = contents
