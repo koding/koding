@@ -106,7 +106,6 @@ module.exports = class JGroup extends Module
       ]
       instance      : [
         { name: 'GroupCreated' }
-        { name: 'MemberAdded',      filter: -> null }
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
