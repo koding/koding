@@ -76,8 +76,9 @@ module.exports = class Payment extends Base
     get url, {}, (err, subscription) ->
       return callback err  if err
 
-      unless isSubscriptionOk group, subscription
-        return callback new KodingError 'Trial period exceeded'
+      # Comment out this one once plans enabled ~ GG
+      # unless isSubscriptionOk group, subscription
+      #   return callback new KodingError 'Trial period exceeded'
 
       subscription = sanitizeSubscription subscription
 
