@@ -128,7 +128,10 @@ module.exports = class AceView extends JView
         file.emit 'file.requests.save', contents
 
     @ace.on 'FileContentChanged', =>
-      @ace.contentChanged = yes
+      @ace.contentChanged = @ace.isCurrentContentChanged()
+
+      return  unless @ace.contentChanged
+
       @setActiveTabHandleClass 'modified'
       @getDelegate().quitOptions =
         message : 'You have unsaved changes. You will lose them if you close this tab.'

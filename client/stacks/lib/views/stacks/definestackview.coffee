@@ -1,3 +1,4 @@
+_                    = require 'lodash'
 kd                   = require 'kd'
 jspath               = require 'jspath'
 Encoder              = require 'htmlencode'
@@ -70,33 +71,33 @@ module.exports = class DefineStackView extends KDView
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @editorViews = []
+    @editorViews = {}
 
-    @editorViews.push @stackTemplateView  = new StackTemplateView options, data
-    @tabView.addPane stackTemplatePane    = new KDTabPaneView
+    @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView options, data
+    @tabView.addPane stackTemplatePane              = new KDTabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
 
-    @editorViews.push @variablesView      = new VariablesView {
+    @editorViews.variables = @variablesView         = new VariablesView {
       delegate: this
       stackTemplate
     }
-    @tabView.addPane variablesPane        = new KDTabPaneView
+    @tabView.addPane variablesPane                  = new KDTabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.push @readmeView         = new ReadmeView { stackTemplate }
-    @tabView.addPane readmePane           = new KDTabPaneView
+    @editorViews.readme = @readmeView               = new ReadmeView { stackTemplate }
+    @tabView.addPane readmePane                     = new KDTabPaneView
       name : 'Readme'
       view : @readmeView
 
-    @providersView                        = new ProvidersView {
+    @providersView                                  = new ProvidersView {
       selectedCredentials : @credentials
       provider            : selectedProvider
       stackTemplate
     }
 
-    @tabView.addPane @providersPane    = new KDTabPaneView
+    @tabView.addPane @providersPane                 = new KDTabPaneView
       name : 'Credentials'
       view : @providersView
 
@@ -176,24 +177,29 @@ module.exports = class DefineStackView extends KDView
 
   listenContentChanges: ->
 
-    @isStackChanged     = no
-
-    isContentChanged    = no
-    isStackNameChanged  = no
+    @changedContents = {}
 
     @inputTitle.inputs.title.on 'input', (event) =>
       { defaultValue }    = @inputTitle.inputs.title.getOptions()
-      isStackNameChanged  = event.target.value isnt defaultValue
-      @isStackChanged     = isStackNameChanged or isContentChanged
+      @changedContents.stackName = event.target.value isnt defaultValue
 
-    @editorViews.forEach (view) =>
+    _.each @editorViews, (view, key) =>
       { editorView } = view
       { ace }        = editorView.aceView
 
       editorView.on 'EditorReady', =>
         ace.on 'FileContentChanged', =>
-          isContentChanged  = ace.isContentChanged()
-          @isStackChanged   = isStackNameChanged or isContentChanged
+          @changedContents[key] = ace.isContentChanged()
+
+
+  isStackChanged: ->
+
+    isChanged = no
+
+    _.each @changedContents, (value) ->
+      isChanged = yes  if value
+
+    return isChanged
 
 
   createFooter: ->
@@ -385,8 +391,8 @@ module.exports = class DefineStackView extends KDView
 
       @saveButton.hideLoader()
 
-      @editorViews.forEach (view) -> view.editorView.getAce().saveFinished()
-      @isStackChanged = no
+      _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
+      @changedContents = {}
 
       @emit 'Reload'
 
