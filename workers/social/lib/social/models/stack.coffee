@@ -402,7 +402,9 @@ module.exports = class JComputeStack extends jraphical.Module
         @machines?.forEach (_id) -> queue.push (next) ->
           JMachine.update { _id }, { $set: { users: [] } }, next
 
-        async.series queue, callback
+        async.series queue, (err) =>
+          return callback err  if err
+          @update { $set: { status: { state: 'Initialized' } } }, callback
 
       else if options.prepareForMount and machineId = options.machineId
 
