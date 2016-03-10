@@ -54,13 +54,10 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
       if targetContentType is 'json'
         ace.setContent JSON.stringify(JSON.parse(content), null, '\t'), no
 
-      @initialContent = ace.getContents()
+      ace.lastSavedContents = ace.getContents()
 
       kd.utils.defer =>
         @getEditorSession().setScrollTop 0
-
-      ace.on 'FileContentChanged', =>
-        ace.contentChanged = ace.getContents() isnt @initialContent
 
       @emit 'EditorReady'
 
