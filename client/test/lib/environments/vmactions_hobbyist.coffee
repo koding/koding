@@ -64,18 +64,18 @@ module.exports =
       .element 'css selector', disabledResizeVmButton, (result) ->
         if result.status is -1
           browser
-            .click                  '.kdmodal-content .storage-container .sliderbar-container [style="left: 47.0588%;"]'
+            .click                  "#{sliderSelector} div:nth-of-type(10)"
             .waitForElementVisible  disabledResizeVmButton, 20000
-            .click                  '.kdmodal-content .storage-container .sliderbar-container [style="left: 41.1765%;"]'
+            .click                  "#{sliderSelector} div:nth-of-type(9)"
             .waitForElementVisible  resizeVmButton, 20000
             .click                  resizeVmButton
             .waitForElementVisible  confirmResizeButton, 20000
             .click                  confirmResizeButton
-            .waitForElementVisible  "#{contentVmSelector}pending", 650000
-            .waitForElementVisible  "#{contentVmSelector}stopping", 650000
-            .waitForElementVisible  "#{contentVmSelector}pending", 650000
-            .waitForElementVisible  "#{contentVmSelector}starting", 650000
-            .waitForElementVisible  vmSidebarSelector, 650000
+            .waitForElementVisible  "#{contentVmSelector}pending", 400000
+            .waitForElementVisible  "#{contentVmSelector}stopping", 400000
+            .waitForElementVisible  "#{contentVmSelector}pending", 400000
+            .waitForElementVisible  "#{contentVmSelector}starting", 400000
+            .waitForElementVisible  vmSidebarSelector, 400000
 
           environmentHelpers.openVmSettingsModal(browser)
           environmentHelpers.openDiskUsageSettings(browser)
