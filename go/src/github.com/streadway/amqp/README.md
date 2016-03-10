@@ -14,7 +14,7 @@ enhancements.
 
 # Goals
 
-Provide an functional interface that closely represents the AMQP 0.9.1 model
+Provide a functional interface that closely represents the AMQP 0.9.1 model
 targeted to RabbitMQ as a server.  This includes the minimum necessary to
 interact the semantics of the protocol.
 
@@ -35,7 +35,7 @@ Things not intended to be supported.
   * AMQP Protocol negotiation for forward or backward compatibility.
     * 0.9.1 is stable and widely deployed.  Versions 0.10 and 1.0 are divergent
       specifications that change the semantics and wire format of the protocol.
-      We will accpet patches for other protocol support but have no plans for
+      We will accept patches for other protocol support but have no plans for
       implementation ourselves.
   * Anything other than PLAIN and EXTERNAL authentication mechanisms.
     * Keeping the mechanisms interface modular makes it possible to extend
@@ -68,6 +68,11 @@ export the environment variable `AMQP_URL=amqp://host/` and run `go test -tags
 integration`.  TravisCI will also run the integration tests.
 
 Thanks to the [community of contributors](https://github.com/streadway/amqp/graphs/contributors).
+
+# External packages
+
+  * Google App Engine Dialer support: [https://github.com/soundtrackyourbrand/gaeamqp](https://github.com/soundtrackyourbrand/gaeamqp)
+  * RabbitMQ examples in Go: [https://github.com/rabbitmq/rabbitmq-tutorials/tree/master/go](https://github.com/rabbitmq/rabbitmq-tutorials/tree/master/go)
 
 # License
 

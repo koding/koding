@@ -120,10 +120,16 @@ func TestParsePackage_NestedTests_ReturnsPackageResult(t *testing.T) {
 	assertEqual(t, expectedNestedTests, *actual)
 }
 
-func TestParsePacakge_WithExampleFunctions_ReturnsPackageResult(t *testing.T) {
+func TestParsePackage_WithExampleFunctions_ReturnsPackageResult(t *testing.T) {
 	actual := &contract.PackageResult{PackageName: expectedExampleFunctions.PackageName}
 	ParsePackageResults(actual, inputExampleFunctions)
 	assertEqual(t, expectedExampleFunctions, *actual)
+}
+
+func TestParsePackage_Golang15Output_ShouldNotPanic(t *testing.T) {
+	actual := &contract.PackageResult{PackageName: expectedGolang15.PackageName}
+	ParsePackageResults(actual, inputGolang15)
+	assertEqual(t, expectedGolang15, *actual)
 }
 
 func assertEqual(t *testing.T, expected, actual interface{}) {
@@ -262,6 +268,15 @@ var expectedOldSchool_Passes = contract.PackageResult{
 			Stories:  []reporting.ScopeResult{},
 		},
 		contract.TestResult{
+			TestName: "TestOldSchool_PassesWithMessage",
+			Elapsed:  0.05,
+			Passed:   true,
+			File:     "old_school_test.go",
+			Line:     10,
+			Message:  "old_school_test.go:10: I am a passing test.\nWith a newline.",
+			Stories:  []reporting.ScopeResult{},
+		},
+		contract.TestResult{
 			TestName: "TestSkippingTests",
 			Elapsed:  0,
 			Passed:   true,
@@ -269,15 +284,6 @@ var expectedOldSchool_Passes = contract.PackageResult{
 			File:     "old_school_test.go",
 			Line:     8,
 			Message:  "old_school_test.go:8: blah",
-			Stories:  []reporting.ScopeResult{},
-		},
-		contract.TestResult{
-			TestName: "TestOldSchool_PassesWithMessage",
-			Elapsed:  0.05,
-			Passed:   true,
-			File:     "old_school_test.go",
-			Line:     10,
-			Message:  "old_school_test.go:10: I am a passing test.\nWith a newline.",
 			Stories:  []reporting.ScopeResult{},
 		},
 	},
@@ -306,24 +312,6 @@ var expectedOldSchool_Fails = contract.PackageResult{
 	Elapsed:     0.017,
 	TestResults: []contract.TestResult{
 		contract.TestResult{
-			TestName: "TestOldSchool_Passes",
-			Elapsed:  0.01,
-			Passed:   true,
-			File:     "",
-			Line:     0,
-			Message:  "",
-			Stories:  []reporting.ScopeResult{},
-		},
-		contract.TestResult{
-			TestName: "TestOldSchool_PassesWithMessage",
-			Elapsed:  0.03,
-			Passed:   true,
-			File:     "old_school_test.go",
-			Line:     10,
-			Message:  "old_school_test.go:10: I am a passing test.\nWith a newline.",
-			Stories:  []reporting.ScopeResult{},
-		},
-		contract.TestResult{
 			TestName: "TestOldSchool_Failure",
 			Elapsed:  0.06,
 			Passed:   false,
@@ -339,6 +327,24 @@ var expectedOldSchool_Fails = contract.PackageResult{
 			File:     "old_school_test.go",
 			Line:     18,
 			Message:  "old_school_test.go:18: I am a failing test.",
+			Stories:  []reporting.ScopeResult{},
+		},
+		contract.TestResult{
+			TestName: "TestOldSchool_Passes",
+			Elapsed:  0.01,
+			Passed:   true,
+			File:     "",
+			Line:     0,
+			Message:  "",
+			Stories:  []reporting.ScopeResult{},
+		},
+		contract.TestResult{
+			TestName: "TestOldSchool_PassesWithMessage",
+			Elapsed:  0.03,
+			Passed:   true,
+			File:     "old_school_test.go",
+			Line:     10,
+			Message:  "old_school_test.go:10: I am a passing test.\nWith a newline.",
 			Stories:  []reporting.ScopeResult{},
 		},
 	},
@@ -673,15 +679,6 @@ var expectedNestedTests = contract.PackageResult{
 			Stories:  []reporting.ScopeResult{},
 		},
 		contract.TestResult{
-			TestName: "TestNestedTests_Passes",
-			Elapsed:  0.02,
-			Passed:   true,
-			File:     "",
-			Line:     0,
-			Message:  "",
-			Stories:  []reporting.ScopeResult{},
-		},
-		contract.TestResult{
 			TestName: "TestNestedTests_Failure",
 			Elapsed:  0.06,
 			Passed:   false,
@@ -700,13 +697,12 @@ var expectedNestedTests = contract.PackageResult{
 			Stories:  []reporting.ScopeResult{},
 		},
 		contract.TestResult{
-			TestName: "TestNestedTests_Skipping",
-			Elapsed:  0.00,
+			TestName: "TestNestedTests_Passes",
+			Elapsed:  0.02,
 			Passed:   true,
-			Skipped:  true,
-			File:     "nested_test.go",
-			Line:     8,
-			Message:  "nested_test.go:8: blah",
+			File:     "",
+			Line:     0,
+			Message:  "",
 			Stories:  []reporting.ScopeResult{},
 		},
 		contract.TestResult{
@@ -716,6 +712,16 @@ var expectedNestedTests = contract.PackageResult{
 			File:     "nested_test.go",
 			Line:     10,
 			Message:  "nested_test.go:10: I am a passing test.\nWith a newline.",
+			Stories:  []reporting.ScopeResult{},
+		},
+		contract.TestResult{
+			TestName: "TestNestedTests_Skipping",
+			Elapsed:  0.00,
+			Passed:   true,
+			Skipped:  true,
+			File:     "nested_test.go",
+			Line:     8,
+			Message:  "nested_test.go:8: blah",
 			Stories:  []reporting.ScopeResult{},
 		},
 	},
@@ -752,6 +758,30 @@ var expectedExampleFunctions = contract.PackageResult{
 		contract.TestResult{
 			TestName: "Example_Pass",
 			Elapsed:  0.06,
+			Passed:   true,
+			File:     "",
+			Line:     0,
+			Message:  "",
+			Stories:  []reporting.ScopeResult{},
+		},
+	},
+}
+
+const inputGolang15 = `
+=== RUN   Golang15
+--- PASS: Golang15 (0.00s)
+PASS
+ok  	github.com/smartystreets/goconvey/webserver/examples	0.008s
+`
+
+var expectedGolang15 = contract.PackageResult{
+	PackageName: "github.com/smartystreets/goconvey/webserver/examples",
+	Elapsed:     0.008,
+	Outcome:     contract.Passed,
+	TestResults: []contract.TestResult{
+		contract.TestResult{
+			TestName: "Golang15",
+			Elapsed:  0.00,
 			Passed:   true,
 			File:     "",
 			Line:     0,
