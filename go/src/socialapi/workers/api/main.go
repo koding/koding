@@ -85,7 +85,7 @@ func main() {
 	notificationsetting.AddHandlers(m)
 	realtimeapi.AddHandlers(m)
 	slackapi.AddHandlers(m, c)
-	credential.AddHandlers(m, c)
+	credential.AddHandlers(m, r.Log, c)
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)

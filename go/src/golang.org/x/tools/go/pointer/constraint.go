@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package pointer
 
-import (
-	"golang.org/x/tools/go/types"
-)
+import "go/types"
 
 type constraint interface {
 	// For a complex constraint, returns the nodeid of the pointer

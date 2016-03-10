@@ -2,6 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
+// No testdata on Android.
+
+// +build !android
+
 package cha_test
 
 import (
@@ -10,6 +16,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"io/ioutil"
 	"sort"
 	"strings"
@@ -19,7 +26,6 @@ import (
 	"golang.org/x/tools/go/callgraph/cha"
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/ssa/ssautil"
-	"golang.org/x/tools/go/types"
 )
 
 var inputs = []string{
@@ -74,11 +80,11 @@ func TestCHA(t *testing.T) {
 
 		prog := ssautil.CreateProgram(iprog, 0)
 		mainPkg := prog.Package(iprog.Created[0].Pkg)
-		prog.BuildAll()
+		prog.Build()
 
 		cg := cha.CallGraph(prog)
 
-		if got := printGraph(cg, mainPkg.Object); got != want {
+		if got := printGraph(cg, mainPkg.Pkg); got != want {
 			t.Errorf("%s: got:\n%s\nwant:\n%s",
 				prog.Fset.Position(pos), got, want)
 		}

@@ -45,6 +45,12 @@ type Object interface {
 
 	// sameId reports whether obj.Id() and Id(pkg, name) are the same.
 	sameId(pkg *Package, name string) bool
+
+	// scopePos returns the start position of the scope of this Object
+	scopePos() token.Pos
+
+	// setScopePos sets the start position of the scope for this Object.
+	setScopePos(pos token.Pos)
 }
 
 // Id returns name if it is exported, otherwise it
@@ -74,26 +80,29 @@ func Id(pkg *Package, name string) string {
 
 // An object implements the common parts of an Object.
 type object struct {
-	parent *Scope
-	pos    token.Pos
-	pkg    *Package
-	name   string
-	typ    Type
-	order_ uint32
+	parent    *Scope
+	pos       token.Pos
+	pkg       *Package
+	name      string
+	typ       Type
+	order_    uint32
+	scopePos_ token.Pos
 }
 
-func (obj *object) Parent() *Scope { return obj.parent }
-func (obj *object) Pos() token.Pos { return obj.pos }
-func (obj *object) Pkg() *Package  { return obj.pkg }
-func (obj *object) Name() string   { return obj.name }
-func (obj *object) Type() Type     { return obj.typ }
-func (obj *object) Exported() bool { return ast.IsExported(obj.name) }
-func (obj *object) Id() string     { return Id(obj.pkg, obj.name) }
-func (obj *object) String() string { panic("abstract") }
-func (obj *object) order() uint32  { return obj.order_ }
+func (obj *object) Parent() *Scope      { return obj.parent }
+func (obj *object) Pos() token.Pos      { return obj.pos }
+func (obj *object) Pkg() *Package       { return obj.pkg }
+func (obj *object) Name() string        { return obj.name }
+func (obj *object) Type() Type          { return obj.typ }
+func (obj *object) Exported() bool      { return ast.IsExported(obj.name) }
+func (obj *object) Id() string          { return Id(obj.pkg, obj.name) }
+func (obj *object) String() string      { panic("abstract") }
+func (obj *object) order() uint32       { return obj.order_ }
+func (obj *object) scopePos() token.Pos { return obj.scopePos_ }
 
-func (obj *object) setOrder(order uint32)   { assert(order > 0); obj.order_ = order }
-func (obj *object) setParent(parent *Scope) { obj.parent = parent }
+func (obj *object) setParent(parent *Scope)   { obj.parent = parent }
+func (obj *object) setOrder(order uint32)     { assert(order > 0); obj.order_ = order }
+func (obj *object) setScopePos(pos token.Pos) { obj.scopePos_ = pos }
 
 func (obj *object) sameId(pkg *Package, name string) bool {
 	// spec:
@@ -125,7 +134,7 @@ type PkgName struct {
 }
 
 func NewPkgName(pos token.Pos, pkg *Package, name string, imported *Package) *PkgName {
-	return &PkgName{object{nil, pos, pkg, name, Typ[Invalid], 0}, imported, false}
+	return &PkgName{object{nil, pos, pkg, name, Typ[Invalid], 0, token.NoPos}, imported, false}
 }
 
 // Imported returns the package that was imported.
@@ -140,7 +149,7 @@ type Const struct {
 }
 
 func NewConst(pos token.Pos, pkg *Package, name string, typ Type, val exact.Value) *Const {
-	return &Const{object{nil, pos, pkg, name, typ, 0}, val, false}
+	return &Const{object{nil, pos, pkg, name, typ, 0, token.NoPos}, val, false}
 }
 
 func (obj *Const) Val() exact.Value { return obj.val }
@@ -151,7 +160,7 @@ type TypeName struct {
 }
 
 func NewTypeName(pos token.Pos, pkg *Package, name string, typ Type) *TypeName {
-	return &TypeName{object{nil, pos, pkg, name, typ, 0}}
+	return &TypeName{object{nil, pos, pkg, name, typ, 0, token.NoPos}}
 }
 
 // A Variable represents a declared variable (including function parameters and results, and struct fields).
@@ -164,15 +173,15 @@ type Var struct {
 }
 
 func NewVar(pos token.Pos, pkg *Package, name string, typ Type) *Var {
-	return &Var{object: object{nil, pos, pkg, name, typ, 0}}
+	return &Var{object: object{nil, pos, pkg, name, typ, 0, token.NoPos}}
 }
 
 func NewParam(pos token.Pos, pkg *Package, name string, typ Type) *Var {
-	return &Var{object: object{nil, pos, pkg, name, typ, 0}, used: true} // parameters are always 'used'
+	return &Var{object: object{nil, pos, pkg, name, typ, 0, token.NoPos}, used: true} // parameters are always 'used'
 }
 
 func NewField(pos token.Pos, pkg *Package, name string, typ Type, anonymous bool) *Var {
-	return &Var{object: object{nil, pos, pkg, name, typ, 0}, anonymous: anonymous, isField: true}
+	return &Var{object: object{nil, pos, pkg, name, typ, 0, token.NoPos}, anonymous: anonymous, isField: true}
 }
 
 func (obj *Var) Anonymous() bool { return obj.anonymous }
@@ -192,14 +201,14 @@ func NewFunc(pos token.Pos, pkg *Package, name string, sig *Signature) *Func {
 	if sig != nil {
 		typ = sig
 	}
-	return &Func{object{nil, pos, pkg, name, typ, 0}}
+	return &Func{object{nil, pos, pkg, name, typ, 0, token.NoPos}}
 }
 
 // FullName returns the package- or receiver-type-qualified name of
 // function or method obj.
 func (obj *Func) FullName() string {
 	var buf bytes.Buffer
-	writeFuncName(&buf, nil, obj)
+	writeFuncName(&buf, obj, nil)
 	return buf.String()
 }
 
@@ -233,7 +242,7 @@ type Nil struct {
 	object
 }
 
-func writeObject(buf *bytes.Buffer, this *Package, obj Object) {
+func writeObject(buf *bytes.Buffer, obj Object, qf Qualifier) {
 	typ := obj.Type()
 	switch obj := obj.(type) {
 	case *PkgName:
@@ -259,9 +268,9 @@ func writeObject(buf *bytes.Buffer, this *Package, obj Object) {
 
 	case *Func:
 		buf.WriteString("func ")
-		writeFuncName(buf, this, obj)
+		writeFuncName(buf, obj, qf)
 		if typ != nil {
-			WriteSignature(buf, this, typ.(*Signature))
+			WriteSignature(buf, typ.(*Signature), qf)
 		}
 		return
 
@@ -283,39 +292,52 @@ func writeObject(buf *bytes.Buffer, this *Package, obj Object) {
 
 	buf.WriteByte(' ')
 
-	// For package-level objects, package-qualify the name,
-	// except for intra-package references (this != nil).
-	if pkg := obj.Pkg(); pkg != nil && this != pkg && pkg.scope.Lookup(obj.Name()) == obj {
-		buf.WriteString(pkg.path)
-		buf.WriteByte('.')
+	// For package-level objects, qualify the name.
+	if obj.Pkg() != nil && obj.Pkg().scope.Lookup(obj.Name()) == obj {
+		writePackage(buf, obj.Pkg(), qf)
 	}
 	buf.WriteString(obj.Name())
 	if typ != nil {
 		buf.WriteByte(' ')
-		WriteType(buf, this, typ)
+		WriteType(buf, typ, qf)
+	}
+}
+
+func writePackage(buf *bytes.Buffer, pkg *Package, qf Qualifier) {
+	if pkg == nil {
+		return
+	}
+	var s string
+	if qf != nil {
+		s = qf(pkg)
+	} else {
+		s = pkg.Path()
+	}
+	if s != "" {
+		buf.WriteString(s)
+		buf.WriteByte('.')
 	}
 }
 
 // ObjectString returns the string form of obj.
-// Object and type names are printed package-qualified
-// only if they do not belong to this package.
-//
-func ObjectString(this *Package, obj Object) string {
+// The Qualifier controls the printing of
+// package-level objects, and may be nil.
+func ObjectString(obj Object, qf Qualifier) string {
 	var buf bytes.Buffer
-	writeObject(&buf, this, obj)
+	writeObject(&buf, obj, qf)
 	return buf.String()
 }
 
-func (obj *PkgName) String() string  { return ObjectString(nil, obj) }
-func (obj *Const) String() string    { return ObjectString(nil, obj) }
-func (obj *TypeName) String() string { return ObjectString(nil, obj) }
-func (obj *Var) String() string      { return ObjectString(nil, obj) }
-func (obj *Func) String() string     { return ObjectString(nil, obj) }
-func (obj *Label) String() string    { return ObjectString(nil, obj) }
-func (obj *Builtin) String() string  { return ObjectString(nil, obj) }
-func (obj *Nil) String() string      { return ObjectString(nil, obj) }
+func (obj *PkgName) String() string  { return ObjectString(obj, nil) }
+func (obj *Const) String() string    { return ObjectString(obj, nil) }
+func (obj *TypeName) String() string { return ObjectString(obj, nil) }
+func (obj *Var) String() string      { return ObjectString(obj, nil) }
+func (obj *Func) String() string     { return ObjectString(obj, nil) }
+func (obj *Label) String() string    { return ObjectString(obj, nil) }
+func (obj *Builtin) String() string  { return ObjectString(obj, nil) }
+func (obj *Nil) String() string      { return ObjectString(obj, nil) }
 
-func writeFuncName(buf *bytes.Buffer, this *Package, f *Func) {
+func writeFuncName(buf *bytes.Buffer, f *Func, qf Qualifier) {
 	if f.typ != nil {
 		sig := f.typ.(*Signature)
 		if recv := sig.Recv(); recv != nil {
@@ -327,13 +349,12 @@ func writeFuncName(buf *bytes.Buffer, this *Package, f *Func) {
 				// Don't print it in full.
 				buf.WriteString("interface")
 			} else {
-				WriteType(buf, this, recv.Type())
+				WriteType(buf, recv.Type(), qf)
 			}
 			buf.WriteByte(')')
 			buf.WriteByte('.')
-		} else if f.pkg != nil && f.pkg != this {
-			buf.WriteString(f.pkg.path)
-			buf.WriteByte('.')
+		} else if f.pkg != nil {
+			writePackage(buf, f.pkg, qf)
 		}
 	}
 	buf.WriteString(f.name)

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssautil
 
 // This file implements discovery of switch and type-switch constructs
@@ -22,9 +24,9 @@ import (
 	"bytes"
 	"fmt"
 	"go/token"
+	"go/types"
 
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/types"
 )
 
 // A ConstCase represents a single constant comparison.

@@ -518,7 +518,7 @@ func (p *UpdateStoragePoolParams) toURLValues() url.Values {
 		u.Set("id", v.(string))
 	}
 	if v, found := p.p["tags"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("tags", vv)
 	}
 	return u

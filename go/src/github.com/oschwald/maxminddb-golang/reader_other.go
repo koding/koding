@@ -14,7 +14,11 @@ func Open(file string) (*Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer mapFile.Close()
+	defer func() {
+		if rerr := mapFile.Close(); rerr != nil {
+			err = rerr
+		}
+	}()
 
 	stats, err := mapFile.Stat()
 	if err != nil {
@@ -29,20 +33,24 @@ func Open(file string) (*Reader, error) {
 
 	reader, err := FromBytes(mmap)
 	if err != nil {
-		munmap(mmap)
+		if err2 := munmap(mmap); err2 != nil {
+			// failing to unmap the file is probably the more severe error
+			return nil, err2
+		}
 		return nil, err
 	}
 
 	reader.hasMappedFile = true
-	return reader, nil
+	return reader, err
 }
 
 // Close unmaps the database file from virtual memory and returns the
 // resources to the system. If called on a Reader opened using FromBytes
 // or Open on Google App Engine, this method does nothing.
-func (r *Reader) Close() {
+func (r *Reader) Close() (err error) {
 	if r.hasMappedFile {
-		munmap(r.buffer)
+		err = munmap(r.buffer)
 		r.hasMappedFile = false
 	}
+	return err
 }

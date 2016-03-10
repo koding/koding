@@ -19,7 +19,7 @@ import (
 
 // We use a counting semaphore to limit
 // the number of parallel I/O calls per process.
-var sema = make(chan bool, 10)
+var ioLimit = make(chan bool, 10)
 
 // parseFiles parses the Go source files within directory dir and
 // returns the ASTs of the ones that could be at least partially parsed,
@@ -42,10 +42,10 @@ func parseFiles(fset *token.FileSet, ctxt *build.Context, displayPath func(strin
 		}
 		wg.Add(1)
 		go func(i int, file string) {
-			sema <- true // wait
+			ioLimit <- true // wait
 			defer func() {
 				wg.Done()
-				<-sema // signal
+				<-ioLimit // signal
 			}()
 			var rd io.ReadCloser
 			var err error
@@ -88,7 +88,7 @@ func parseFiles(fset *token.FileSet, ctxt *build.Context, displayPath func(strin
 	return parsed, errors
 }
 
-// scanImports returns the set of all package import paths from all
+// scanImports returns the set of all import paths from all
 // import specs in the specified files.
 func scanImports(files []*ast.File) map[string]bool {
 	imports := make(map[string]bool)
@@ -103,8 +103,8 @@ func scanImports(files []*ast.File) map[string]bool {
 					if err != nil {
 						continue // quietly ignore the error
 					}
-					if path == "C" || path == "unsafe" {
-						continue // skip pseudo packages
+					if path == "C" {
+						continue // skip pseudopackage
 					}
 					imports[path] = true
 				}

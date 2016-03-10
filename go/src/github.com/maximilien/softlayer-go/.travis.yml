@@ -1,14 +1,14 @@
 sudo: false
 language: go
 go:
-  - 1.3.3
+  - 1.4.2
 before_install:
 - export SL_USERNAME=fake-username
 - export SL_API_KEY=fake-api-key
 - go get golang.org/x/tools/cmd/vet
 - go get github.com/tools/godep
 - go get github.com/onsi/ginkgo/ginkgo
-- go get code.google.com/p/go.crypto/ssh
+- go get golang.org/x/crypto/ssh
 install: true
 script: bin/ci
 branches:

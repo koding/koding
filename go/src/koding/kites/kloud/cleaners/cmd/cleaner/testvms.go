@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/mongodb"
 	"koding/kites/kloud/cleaners/lookup"
 	"strings"
 	"time"
@@ -9,6 +10,7 @@ import (
 
 type TestVMS struct {
 	Instances *lookup.MultiInstances
+	MongoDB   *mongodb.MongoDB
 
 	testInstances *lookup.MultiInstances
 }
@@ -26,6 +28,7 @@ func (t *TestVMS) Run() {
 	}
 
 	t.testInstances.TerminateAll()
+	t.testInstances.DeleteDocs(t.MongoDB)
 }
 
 func (t *TestVMS) Result() string {

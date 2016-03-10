@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package loader_test
 
 // This file enumerates all packages beneath $GOROOT, loads them, plus
 // their external tests if any, runs the type checker on them, and
 // prints some summary information.
-//
-// Run test with GOMAXPROCS=8.
 
 import (
 	"bytes"
@@ -16,6 +16,7 @@ import (
 	"go/ast"
 	"go/build"
 	"go/token"
+	"go/types"
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
@@ -25,10 +26,16 @@ import (
 
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
-	"golang.org/x/tools/go/types"
 )
 
 func TestStdlib(t *testing.T) {
+	if runtime.GOOS == "android" {
+		t.Skipf("incomplete std lib on %s", runtime.GOOS)
+	}
+	if testing.Short() {
+		t.Skip("skipping in short mode; uses tons of memory (golang.org/issue/14113)")
+	}
+
 	runtime.GC()
 	t0 := time.Now()
 	var memstats runtime.MemStats
@@ -62,9 +69,10 @@ func TestStdlib(t *testing.T) {
 		for pkg := range prog.AllPackages {
 			fmt.Printf("Package %s:\n", pkg.Path())
 			scope := pkg.Scope()
+			qualifier := types.RelativeTo(pkg)
 			for _, name := range scope.Names() {
 				if ast.IsExported(name) {
-					fmt.Printf("\t%s\n", types.ObjectString(pkg, scope.Lookup(name)))
+					fmt.Printf("\t%s\n", types.ObjectString(scope.Lookup(name), qualifier))
 				}
 			}
 			fmt.Println()
@@ -113,10 +121,14 @@ func TestStdlib(t *testing.T) {
 }
 
 func TestCgoOption(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode; uses tons of memory (golang.org/issue/14113)")
+	}
 	switch runtime.GOOS {
-	// On these systems, the net and os/user packages don't use cgo.
-	case "plan9", "solaris", "windows":
-		return
+	// On these systems, the net and os/user packages don't use cgo
+	// or the std library is incomplete (Android).
+	case "android", "plan9", "solaris", "windows":
+		t.Skipf("no cgo or incomplete std lib on %s", runtime.GOOS)
 	}
 	// In nocgo builds (e.g. linux-amd64-nocgo),
 	// there is no "runtime/cgo" package,

@@ -1,4 +1,5 @@
-kd = require 'kd.js'
+kd                  = require 'kd.js'
+utils               = require './../core/utils'
 LoginViewInlineForm = require './loginviewinlineform'
 LoginInputView      = require './logininputview'
 
@@ -7,11 +8,16 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
   constructor:->
 
     super
+
+    { invitation, signup } = utils.getTeamData()
+    email = signup?.email or invitation?.email
+
     @usernameOrEmail = new LoginInputView
       inputOptions    :
         name          : "email"
         placeholder   : "Email address"
         testPath      : "recover-password-input"
+        defaultValue  : email
         validate      :
           container   : this
           rules       :

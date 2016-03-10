@@ -167,7 +167,7 @@ rejectInvitation = (machine) ->
       if denyMachine
         remote.revive(machine.toJS()).deny (err) ->
           showError err  if err
-          callback()
+          callback err
       else
         callback()
 
@@ -177,11 +177,19 @@ rejectInvitation = (machine) ->
 
       { channel } = kd.singletons.socialapi
       workspace   = machine.get('workspaces').first()
-      method      = if isApproved then 'leave' else 'rejectInvite'
+      channelId   = workspace.get 'channelId'
 
-      channel[method] { channelId: workspace.get 'channelId' }, (err) ->
-        showError err  if err
-        callback()
+      channel.byId { id: channelId }, (err, socialChannel) ->
+        if err
+          showErr err
+          return callback err
+
+        isApproved = socialChannel.isParticipant
+        method     = if isApproved then 'leave' else 'rejectInvite'
+
+        channel[method] { channelId }, (err) ->
+          showError err  if err
+          callback()
 
     (callback) ->
 
@@ -247,6 +255,16 @@ acceptInvitation = (machine) ->
     else
       kallback "/IDE/#{machine.get 'uid'}", ->
         reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+
+
+dispatchCollaborationInvitationRejected = (id) ->
+
+  kd.singletons.reactor.dispatch actions.COLLABORATION_INVITATION_REJECTED, id
+
+
+dispatchSharedVMInvitationRejected = (id) ->
+
+  kd.singletons.reactor.dispatch actions.SHARED_VM_INVITATION_REJECTED, id
 
 
 _getInvitationChannelId = ({ uid, invitation }, callback) ->
@@ -421,4 +439,6 @@ module.exports = {
   setActiveLeavingSharedMachineId
   reinitStackFromWidget
   setActiveStackId
+  dispatchCollaborationInvitationRejected
+  dispatchSharedVMInvitationRejected
 }

@@ -8,8 +8,9 @@
 package slug
 
 import (
-	"code.google.com/p/go.text/unicode/norm"
 	"unicode"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 var (

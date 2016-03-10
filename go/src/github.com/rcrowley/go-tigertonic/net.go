@@ -9,8 +9,8 @@ import (
 // stopped gracefully.
 type Conn struct {
 	net.Conn
-	once      sync.Once
-	wg *sync.WaitGroup
+	once sync.Once
+	wg   *sync.WaitGroup
 }
 
 // Close closes the connection and notifies the listener that accepted it.
@@ -36,8 +36,8 @@ func (l *Listener) Accept() (c net.Conn, err error) {
 	}
 	l.wg.Add(1)
 	c = &Conn{
-		Conn:      c,
-		wg: l.wg,
+		Conn: c,
+		wg:   l.wg,
 	}
 	return
 }

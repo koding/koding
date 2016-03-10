@@ -76,7 +76,8 @@ module.exports = class MemberItemView extends kd.ListItemView
       @settings  = new kd.CustomHTMLView
         cssClass : 'settings hidden'
 
-    buttons = buttonSet[@loggedInUserRole.slug][@memberRole.slug]
+    set     = buttonSet[@loggedInUserRole.slug]
+    buttons = if set then (set[@memberRole.slug] ? []) else []
 
     buttons.forEach (button) =>
 

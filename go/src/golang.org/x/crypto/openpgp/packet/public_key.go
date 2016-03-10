@@ -16,13 +16,14 @@ import (
 	_ "crypto/sha512"
 	"encoding/binary"
 	"fmt"
-	"golang.org/x/crypto/openpgp/elgamal"
-	"golang.org/x/crypto/openpgp/errors"
 	"hash"
 	"io"
 	"math/big"
 	"strconv"
 	"time"
+
+	"golang.org/x/crypto/openpgp/elgamal"
+	"golang.org/x/crypto/openpgp/errors"
 )
 
 var (
@@ -192,7 +193,7 @@ func NewRSAPublicKey(creationTime time.Time, pub *rsa.PublicKey) *PublicKey {
 	return pk
 }
 
-// NewDSAPublicKey returns a PublicKey that wraps the given rsa.PublicKey.
+// NewDSAPublicKey returns a PublicKey that wraps the given dsa.PublicKey.
 func NewDSAPublicKey(creationTime time.Time, pub *dsa.PublicKey) *PublicKey {
 	pk := &PublicKey{
 		CreationTime: creationTime,
@@ -200,6 +201,21 @@ func NewDSAPublicKey(creationTime time.Time, pub *dsa.PublicKey) *PublicKey {
 		PublicKey:    pub,
 		p:            fromBig(pub.P),
 		q:            fromBig(pub.Q),
+		g:            fromBig(pub.G),
+		y:            fromBig(pub.Y),
+	}
+
+	pk.setFingerPrintAndKeyId()
+	return pk
+}
+
+// NewElGamalPublicKey returns a PublicKey that wraps the given elgamal.PublicKey.
+func NewElGamalPublicKey(creationTime time.Time, pub *elgamal.PublicKey) *PublicKey {
+	pk := &PublicKey{
+		CreationTime: creationTime,
+		PubKeyAlgo:   PubKeyAlgoElGamal,
+		PublicKey:    pub,
+		p:            fromBig(pub.P),
 		g:            fromBig(pub.G),
 		y:            fromBig(pub.Y),
 	}
@@ -564,12 +580,33 @@ func keySignatureHash(pk, signed signingKey, hashFunc crypto.Hash) (h hash.Hash,
 
 // VerifyKeySignature returns nil iff sig is a valid signature, made by this
 // public key, of signed.
-func (pk *PublicKey) VerifyKeySignature(signed *PublicKey, sig *Signature) (err error) {
+func (pk *PublicKey) VerifyKeySignature(signed *PublicKey, sig *Signature) error {
 	h, err := keySignatureHash(pk, signed, sig.Hash)
 	if err != nil {
 		return err
 	}
-	return pk.VerifySignature(h, sig)
+	if err = pk.VerifySignature(h, sig); err != nil {
+		return err
+	}
+
+	if sig.FlagSign {
+		// Signing subkeys must be cross-signed. See
+		// https://www.gnupg.org/faq/subkey-cross-certify.html.
+		if sig.EmbeddedSignature == nil {
+			return errors.StructuralError("signing subkey is missing cross-signature")
+		}
+		// Verify the cross-signature. This is calculated over the same
+		// data as the main signature, so we cannot just recursively
+		// call signed.VerifyKeySignature(...)
+		if h, err = keySignatureHash(pk, signed, sig.EmbeddedSignature.Hash); err != nil {
+			return errors.StructuralError("error while hashing for cross-signature: " + err.Error())
+		}
+		if err := signed.VerifySignature(h, sig.EmbeddedSignature); err != nil {
+			return errors.StructuralError("error while verifying cross-signature: " + err.Error())
+		}
+	}
+
+	return nil
 }
 
 func keyRevocationHash(pk signingKey, hashFunc crypto.Hash) (h hash.Hash, err error) {

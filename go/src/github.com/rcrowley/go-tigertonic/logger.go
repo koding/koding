@@ -214,7 +214,7 @@ type multilineLoggerReadCloser struct {
 
 func (r *multilineLoggerReadCloser) Read(p []byte) (int, error) {
 	n, err := r.ReadCloser.Read(p)
-	if 0 < n && nil == err {
+	if 0 < n {
 		r.Println(r.requestID, ">", string(p[:n]))
 	}
 	return n, err
@@ -239,7 +239,9 @@ func (w *multilineLoggerResponseWriter) Write(p []byte) (int, error) {
 	if !w.wroteHeader {
 		w.WriteHeader(http.StatusOK)
 	}
-	if len(p) > 0 && '\n' == p[len(p)-1] {
+	if ct := w.Header().Get("Content-Type"); "" != ct && "application/json" != ct && "text/plain" != ct {
+		w.Println(w.requestID, "<", "** response body redacted **")
+	} else if len(p) > 0 && '\n' == p[len(p)-1] {
 		w.Println(w.requestID, "<", string(p[:len(p)-1]))
 	} else {
 		w.Println(w.requestID, "<", string(p))

@@ -1,8 +1,11 @@
-{ Model } = require 'bongo'
+KodingError = require '../error'
+{ Model, secure, signature } = require 'bongo'
 
 module.exports = class JSession extends Model
 
   { v4: createId } = require 'node-uuid'
+
+  @share()
 
   @set
     indexes             :
@@ -26,7 +29,7 @@ module.exports = class JSession extends Model
       guestSessionBegan : Date
       lastAccess        :
         type            : Date
-        get             : -> new Date
+        default         : -> new Date
       foreignAuth       :
         github          : Object
         odesk           : Object
@@ -38,6 +41,9 @@ module.exports = class JSession extends Model
     sharedEvents        :
       instance          : []
       static            : []
+    sharedMethods       :
+      instance          :
+        remove: (signature Function)
 
   do ->
     JAccount  = require './account'
@@ -129,3 +135,14 @@ module.exports = class JSession extends Model
 
     JSession.update { clientId: clientId }, { $set: { clientIP: ipAddress } }, (err) ->
       callback err
+
+
+  remove$: secure (client, callback) ->
+
+    username = client.connection?.delegate?.profile?.nickname
+
+    # check if requester is the owner of the current session
+    unless @username is username
+      return callback new KodingError 'Access denied.'
+
+    @remove callback

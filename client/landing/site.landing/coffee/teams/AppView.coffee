@@ -39,13 +39,15 @@ module.exports = class TeamsView extends JView
           utils.storeNewTeamData 'signup', formData
           kd.singletons.router.handleRoute '/Team/Domain'
 
-          return  unless email
+          unless email
+            utils.storeNewTeamData 'profile', null
+            return
 
           utils.getProfile email,
             error   : ->
+              utils.storeNewTeamData 'profile', null
             success : (profile) ->
-              formData.profile = profile  if profile
-              utils.storeNewTeamData 'signup', formData
+              utils.storeNewTeamData 'profile', profile
 
         { email } = formData
         utils.validateEmail { email },

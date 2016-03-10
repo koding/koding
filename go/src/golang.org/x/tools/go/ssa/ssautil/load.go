@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssautil
 
 // This file defines utility functions for constructing programs in SSA form.
@@ -9,10 +11,10 @@ package ssautil
 import (
 	"go/ast"
 	"go/token"
+	"go/types"
 
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/types"
 )
 
 // CreateProgram returns a new program in SSA form, given a program

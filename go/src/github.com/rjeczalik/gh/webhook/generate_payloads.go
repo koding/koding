@@ -249,7 +249,7 @@ var hardcodedTypes = map[string]string{
 	"homepage":         "string",
 	"language":         "string",
 	"mirror_url":       "string",
-	"milestone":        "string",
+	"milestone":        "Milestone",
 	"message":          "string",
 	"mergeable":        "bool",
 	"merged_by":        "User",

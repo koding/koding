@@ -14,6 +14,7 @@ import (
 var (
 	// Errors that this library could return/emit from a channel or connection
 	ErrClosed          = &Error{Code: ChannelError, Reason: "channel/connection is not open"}
+	ErrChannelMax      = &Error{Code: ChannelError, Reason: "channel id space exhausted"}
 	ErrSASL            = &Error{Code: AccessRefused, Reason: "SASL could not negotiate a shared mechanism"}
 	ErrCredentials     = &Error{Code: AccessRefused, Reason: "username or password not allowed"}
 	ErrVhost           = &Error{Code: AccessRefused, Reason: "no access to this vhost"}
@@ -108,7 +109,7 @@ type Queue struct {
 
 // Publishing captures the client message sent to the server.  The fields
 // outside of the Headers table included in this struct mirror the underlying
-// fields in the content frame.  They use native types for convienence and
+// fields in the content frame.  They use native types for convenience and
 // efficiency.
 type Publishing struct {
 	// Application or exchange specific fields,
@@ -140,6 +141,14 @@ type Publishing struct {
 type Blocking struct {
 	Active bool   // TCP pushback active/inactive on server
 	Reason string // Server reason for activation
+}
+
+// Confirmation notifies the acknowledgment or negative acknowledgement of a
+// publishing identified by its delivery tag.  Use NotifyPublish on the Channel
+// to consume these events.
+type Confirmation struct {
+	DeliveryTag uint64 // A 1 based counter of publishings from when the channel was put in Confirm mode
+	Ack         bool   // True when the server succesfully received the publishing
 }
 
 // Decimal matches the AMQP decimal type.  Scale is the number of decimal

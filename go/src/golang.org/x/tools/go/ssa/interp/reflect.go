@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package interp
 
 // Emulated "reflect" package.
@@ -13,11 +15,11 @@ package interp
 import (
 	"fmt"
 	"go/token"
+	"go/types"
 	"reflect"
 	"unsafe"
 
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/types"
 )
 
 type opaqueType struct {
@@ -106,6 +108,12 @@ func ext۰reflect۰rtype۰Field(fr *frame, args []value) value {
 	}
 }
 
+func ext۰reflect۰rtype۰In(fr *frame, args []value) value {
+	// Signature: func (t reflect.rtype, i int) int
+	i := args[1].(int)
+	return makeReflectType(rtype{args[0].(rtype).t.(*types.Signature).Params().At(i).Type()})
+}
+
 func ext۰reflect۰rtype۰Kind(fr *frame, args []value) value {
 	// Signature: func (t reflect.rtype) uint
 	return uint(reflectKind(args[0].(rtype).t))
@@ -114,6 +122,11 @@ func ext۰reflect۰rtype۰Kind(fr *frame, args []value) value {
 func ext۰reflect۰rtype۰NumField(fr *frame, args []value) value {
 	// Signature: func (t reflect.rtype) int
 	return args[0].(rtype).t.Underlying().(*types.Struct).NumFields()
+}
+
+func ext۰reflect۰rtype۰NumIn(fr *frame, args []value) value {
+	// Signature: func (t reflect.rtype) int
+	return args[0].(rtype).t.(*types.Signature).Params().Len()
 }
 
 func ext۰reflect۰rtype۰NumMethod(fr *frame, args []value) value {
@@ -163,6 +176,12 @@ func ext۰reflect۰ValueOf(fr *frame, args []value) value {
 	// Signature: func (interface{}) reflect.Value
 	itf := args[0].(iface)
 	return makeReflectValue(itf.t, itf.v)
+}
+
+func ext۰reflect۰Zero(fr *frame, args []value) value {
+	// Signature: func (t reflect.Type) reflect.Value
+	t := args[0].(iface).v.(rtype).t
+	return makeReflectValue(t, zero(t))
 }
 
 func reflectKind(t types.Type) reflect.Kind {
@@ -494,7 +513,7 @@ func newMethod(pkg *ssa.Package, recvType types.Type, name string) *ssa.Function
 	// that is needed is the "pointerness" of Recv.Type, and for
 	// now, we'll set it to always be false since we're only
 	// concerned with rtype.  Encapsulate this better.
-	sig := types.NewSignature(nil, types.NewVar(token.NoPos, nil, "recv", recvType), nil, nil, false)
+	sig := types.NewSignature(types.NewVar(token.NoPos, nil, "recv", recvType), nil, nil, false)
 	fn := pkg.Prog.NewFunction(name, sig, "fake reflect method")
 	fn.Pkg = pkg
 	return fn
@@ -503,7 +522,7 @@ func newMethod(pkg *ssa.Package, recvType types.Type, name string) *ssa.Function
 func initReflect(i *interpreter) {
 	i.reflectPackage = &ssa.Package{
 		Prog:    i.prog,
-		Object:  reflectTypesPackage,
+		Pkg:     reflectTypesPackage,
 		Members: make(map[string]ssa.Member),
 	}
 
@@ -522,11 +541,18 @@ func initReflect(i *interpreter) {
 	// provide fake source files.  This would guarantee that no bad
 	// information leaks into other packages.
 	if r := i.prog.ImportedPackage("reflect"); r != nil {
-		rV := r.Object.Scope().Lookup("Value").Type().(*types.Named)
+		rV := r.Pkg.Scope().Lookup("Value").Type().(*types.Named)
+
+		// delete bodies of the old methods
+		mset := i.prog.MethodSets.MethodSet(rV)
+		for j := 0; j < mset.Len(); j++ {
+			i.prog.MethodValue(mset.At(j)).Blocks = nil
+		}
+
 		tEface := types.NewInterface(nil, nil).Complete()
 		rV.SetUnderlying(types.NewStruct([]*types.Var{
-			types.NewField(token.NoPos, r.Object, "t", tEface, false), // a lie
-			types.NewField(token.NoPos, r.Object, "v", tEface, false),
+			types.NewField(token.NoPos, r.Pkg, "t", tEface, false), // a lie
+			types.NewField(token.NoPos, r.Pkg, "v", tEface, false),
 		}, nil))
 	}
 
@@ -534,8 +560,10 @@ func initReflect(i *interpreter) {
 		"Bits":      newMethod(i.reflectPackage, rtypeType, "Bits"),
 		"Elem":      newMethod(i.reflectPackage, rtypeType, "Elem"),
 		"Field":     newMethod(i.reflectPackage, rtypeType, "Field"),
+		"In":        newMethod(i.reflectPackage, rtypeType, "In"),
 		"Kind":      newMethod(i.reflectPackage, rtypeType, "Kind"),
 		"NumField":  newMethod(i.reflectPackage, rtypeType, "NumField"),
+		"NumIn":     newMethod(i.reflectPackage, rtypeType, "NumIn"),
 		"NumMethod": newMethod(i.reflectPackage, rtypeType, "NumMethod"),
 		"NumOut":    newMethod(i.reflectPackage, rtypeType, "NumOut"),
 		"Out":       newMethod(i.reflectPackage, rtypeType, "Out"),

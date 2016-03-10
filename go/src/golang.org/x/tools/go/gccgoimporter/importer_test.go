@@ -34,7 +34,7 @@ func runImporterTest(t *testing.T, imp types.Importer, initmap map[*types.Packag
 			return
 		}
 
-		got := types.ObjectString(pkg, obj)
+		got := types.ObjectString(obj, types.RelativeTo(pkg))
 		if got != test.want {
 			t.Errorf("%s: got %q; want %q", test.name, got, test.want)
 		}
@@ -100,6 +100,9 @@ var importerTests = [...]importerTest{
 }
 
 func TestGoxImporter(t *testing.T) {
+	if runtime.GOOS == "android" {
+		t.Skipf("no testdata directory on %s", runtime.GOOS)
+	}
 	initmap := make(map[*types.Package]InitData)
 	imp := GetImporter([]string{"testdata"}, initmap)
 

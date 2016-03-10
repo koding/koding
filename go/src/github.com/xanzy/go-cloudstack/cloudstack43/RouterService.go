@@ -70,14 +70,12 @@ func (s *RouterService) StartRouter(p *StartRouterParams) (*StartRouterResponse,
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -118,22 +116,25 @@ type StartRouterResponse struct {
 	Name                string `json:"name,omitempty"`
 	Networkdomain       string `json:"networkdomain,omitempty"`
 	Nic                 []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Podid               string `json:"podid,omitempty"`
 	Project             string `json:"project,omitempty"`
@@ -202,14 +203,12 @@ func (s *RouterService) RebootRouter(p *RebootRouterParams) (*RebootRouterRespon
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -250,22 +249,25 @@ type RebootRouterResponse struct {
 	Name                string `json:"name,omitempty"`
 	Networkdomain       string `json:"networkdomain,omitempty"`
 	Nic                 []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Podid               string `json:"podid,omitempty"`
 	Project             string `json:"project,omitempty"`
@@ -346,14 +348,12 @@ func (s *RouterService) StopRouter(p *StopRouterParams) (*StopRouterResponse, er
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -394,22 +394,25 @@ type StopRouterResponse struct {
 	Name                string `json:"name,omitempty"`
 	Networkdomain       string `json:"networkdomain,omitempty"`
 	Nic                 []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Podid               string `json:"podid,omitempty"`
 	Project             string `json:"project,omitempty"`
@@ -478,14 +481,12 @@ func (s *RouterService) DestroyRouter(p *DestroyRouterParams) (*DestroyRouterRes
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -526,22 +527,25 @@ type DestroyRouterResponse struct {
 	Name                string `json:"name,omitempty"`
 	Networkdomain       string `json:"networkdomain,omitempty"`
 	Nic                 []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Podid               string `json:"podid,omitempty"`
 	Project             string `json:"project,omitempty"`
@@ -647,22 +651,25 @@ type ChangeServiceForRouterResponse struct {
 	Name                string `json:"name,omitempty"`
 	Networkdomain       string `json:"networkdomain,omitempty"`
 	Nic                 []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Podid               string `json:"podid,omitempty"`
 	Project             string `json:"project,omitempty"`
@@ -932,6 +939,16 @@ func (s *RouterService) GetRouterID(name string) (string, error) {
 	}
 
 	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListRouters(p)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if l.Count == 0 {
 		return "", fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
@@ -978,6 +995,21 @@ func (s *RouterService) GetRouterByID(id string) (*Router, int, error) {
 			return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
 		}
 		return nil, -1, err
+	}
+
+	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListRouters(p)
+		if err != nil {
+			if strings.Contains(err.Error(), fmt.Sprintf(
+				"Invalid parameter id value=%s due to incorrect long value format, "+
+					"or entity does not exist", id)) {
+				return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
+			}
+			return nil, -1, err
+		}
 	}
 
 	if l.Count == 0 {
@@ -1034,22 +1066,25 @@ type Router struct {
 	Name                string `json:"name,omitempty"`
 	Networkdomain       string `json:"networkdomain,omitempty"`
 	Nic                 []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Podid               string `json:"podid,omitempty"`
 	Project             string `json:"project,omitempty"`
@@ -1277,14 +1312,12 @@ func (s *RouterService) ConfigureVirtualRouterElement(p *ConfigureVirtualRouterE
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -1368,14 +1401,12 @@ func (s *RouterService) CreateVirtualRouterElement(p *CreateVirtualRouterElement
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)

@@ -268,22 +268,10 @@ func getAnySlackTokenWithGroup(context *models.Context) (string, error) {
 // getSlackTokenWithContext fecthes the token of user,
 // if it doesn't exists, then checks the anyone's token from user's group
 func getSlackTokenWithContext(context *models.Context) (string, error) {
-	var token string
-	var groupToken string
-
-	userToken, err := getSlackToken(context)
+	token, err := getSlackToken(context)
 	if err != nil || token == "" {
-		groupToken, err = getAnySlackTokenWithGroup(context)
-		if err != nil {
-			return "", err
-		}
+		token, err = getAnySlackTokenWithGroup(context)
 	}
 
-	if userToken != "" {
-		token = userToken
-	} else {
-		token = groupToken
-	}
-
-	return token, nil
+	return token, err
 }

@@ -17,10 +17,16 @@ module.exports = class StackTemplateList extends KDListView
     super options, data
 
 
-  # TODO Check if the template is in use and warn user about that! ~ GG
   deleteItem: (item) ->
 
-    stack = item.getData()
+    template = item.getData()
+
+    currentGroup = kd.singletons.groupsController.getCurrentGroup()
+    if template._id in (currentGroup.stackTemplates ? [])
+      return showError 'This template currently in use by the Team'
+
+    if kd.singletons.computeController.findStackFromTemplateId template._id
+      return showError 'You currently have a stack generated from this template'
 
     # Since KDModalView.confirm not passing overlay options
     # to the base class (KDModalView) I had to do this hack
@@ -28,11 +34,11 @@ module.exports = class StackTemplateList extends KDListView
     overlay = new KDOverlayView cssClass: 'second-overlay'
 
     modal   = KDModalView.confirm
-      title       : 'Remove stack'
-      description : 'Do you want to remove ?'
+      title       : 'Remove stack template ?'
+      description : 'Do you want to remove this stack template ?'
       ok          :
         title     : 'Yes'
-        callback  :  => stack.delete (err) =>
+        callback  :  => template.delete (err) =>
           modal.destroy()
           @emit 'ItemDeleted', item  unless showError err
 

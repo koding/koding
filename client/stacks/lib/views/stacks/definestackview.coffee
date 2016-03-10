@@ -70,25 +70,27 @@ module.exports = class DefineStackView extends KDView
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @stackTemplateView                 = new StackTemplateView options, data
-    @tabView.addPane stackTemplatePane = new KDTabPaneView
+    @editorViews = []
+
+    @editorViews.push @stackTemplateView  = new StackTemplateView options, data
+    @tabView.addPane stackTemplatePane    = new KDTabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
 
-    @variablesView                     = new VariablesView {
+    @editorViews.push @variablesView      = new VariablesView {
       delegate: this
       stackTemplate
     }
-    @tabView.addPane variablesPane     = new KDTabPaneView
-      name : 'Private Variables'
+    @tabView.addPane variablesPane        = new KDTabPaneView
+      name : 'Custom Variables'
       view : @variablesView
 
-    @readmeView                        = new ReadmeView { stackTemplate }
-    @tabView.addPane readmePane        = new KDTabPaneView
+    @editorViews.push @readmeView         = new ReadmeView { stackTemplate }
+    @tabView.addPane readmePane           = new KDTabPaneView
       name : 'Readme'
       view : @readmeView
 
-    @providersView                     = new ProvidersView {
+    @providersView                        = new ProvidersView {
       selectedCredentials : @credentials
       provider            : selectedProvider
       stackTemplate
@@ -126,7 +128,7 @@ module.exports = class DefineStackView extends KDView
 
       credential = credentialItem.getData()
 
-      credential.shareWith { target: slug, role: 'admin' }, (err) =>
+      credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
         @credentialStatusView.setCredential credential
 
@@ -168,6 +170,30 @@ module.exports = class DefineStackView extends KDView
 
     @tabView.on 'PaneDidShow', (pane) ->
       pane.mainView?.editorView?.resize()
+
+    @listenContentChanges()
+
+
+  listenContentChanges: ->
+
+    @isStackChanged     = no
+
+    isContentChanged    = no
+    isStackNameChanged  = no
+
+    @inputTitle.inputs.title.on 'input', (event) =>
+      { defaultValue }    = @inputTitle.inputs.title.getOptions()
+      isStackNameChanged  = event.target.value isnt defaultValue
+      @isStackChanged     = isStackNameChanged or isContentChanged
+
+    @editorViews.forEach (view) =>
+      { editorView } = view
+      { ace }        = editorView.aceView
+
+      editorView.on 'EditorReady', =>
+        ace.on 'FileContentChanged', =>
+          isContentChanged  = ace.isContentChanged()
+          @isStackChanged   = isStackNameChanged or isContentChanged
 
 
   createFooter: ->
@@ -358,7 +384,9 @@ module.exports = class DefineStackView extends KDView
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
-      @stackTemplateView.editorView.getAce().saveFinished()
+
+      @editorViews.forEach (view) -> view.editorView.getAce().saveFinished()
+      @isStackChanged = no
 
       @emit 'Reload'
 

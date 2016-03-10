@@ -47,6 +47,7 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
       ace.setShowPrintMargin no, no
       ace.setUseSoftTabs yes, no
       ace.setScrollPastEnd yes, no
+      ace.contentChanged = no
 
       { content, targetContentType } = @getOptions()
 

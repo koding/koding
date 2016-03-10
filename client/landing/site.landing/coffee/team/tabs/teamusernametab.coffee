@@ -1,8 +1,10 @@
-kd                        = require 'kd.js'
-utils                     = require './../../core/utils'
-MainHeaderView            = require './../../core/mainheaderview'
-TeamUsernameTabForm       = require './../forms/teamusernametabform'
-TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
+kd                               = require 'kd.js'
+utils                            = require './../../core/utils'
+MainHeaderView                   = require './../../core/mainheaderview'
+TeamJoinTab                      = require './teamjointab'
+TeamUsernameTabForm              = require './../forms/teamusernametabform'
+TeamLoginAndCreateTabForm        = require './../forms/teamloginandcreatetabform'
+TeamCreateWithMemberAccountForm  = require './../forms/teamcreatewithmemberaccountform'
 
 
 track = (action) ->
@@ -12,72 +14,62 @@ track = (action) ->
   utils.analytics.track action, { category, label }
 
 
-module.exports = class TeamUsernameTab extends kd.TabPaneView
+module.exports = class TeamUsernameTab extends TeamJoinTab
 
   constructor:(options = {}, data)->
 
+    options.loginForm        or= TeamLoginAndCreateTabForm
+    options.loginFormInvited or= TeamCreateWithMemberAccountForm
+    options.signupForm       or= TeamUsernameTabForm
+    options.email            or= utils.getTeamData().signup.email
+
     super options, data
-
-    @createSubViews()
-
-
-  createSubViews: ->
-
-    teamData = utils.getTeamData()
-    { @alreadyMember, profile } = teamData.signup
-
-    @addSubView new MainHeaderView
-      cssClass : 'team'
-      navItems : []
-
-    @addSubView wrapper = new kd.CustomHTMLView
-      cssClass : 'TeamsModal TeamsModal--groupCreation'
-
-    if @alreadyMember
-
-      wrapper.addSubView new kd.CustomHTMLView
-        tagName : 'h4'
-        partial : "Sign in"
-
-      wrapper.addSubView new kd.CustomHTMLView
-        tagName  : 'h5'
-        cssClass : 'full'
-        partial  : 'Almost there! Sign in with your Koding account.'
-
-      wrapper.addSubView @form = new TeamLoginAndCreateTabForm
-        callback : (formData) =>
-          track 'submitted login form'
-          @createTeam formData, no
-
-    else
-
-      wrapper.addSubView new kd.CustomHTMLView
-        tagName : 'h4'
-        partial : 'Make an account'
-
-      wrapper.addSubView new kd.CustomHTMLView
-        tagName : 'h5'
-        partial : 'Pick a username and a password to log in with. Or use your existing Koding login.'
-
-      wrapper.addSubView @form = new TeamUsernameTabForm
-        callback : (formData) =>
-          track 'submitted register form'
-          @createTeam formData
 
 
   show: ->
-
-    teamData = utils.getTeamData()
-    { alreadyMember } = teamData.signup
-    if alreadyMember isnt @alreadyMember
-      @form = null
-      @destroySubViews()
-      @createSubViews()
-
-    super
+    kd.TabPaneView::show.call this
+    @setOption 'email', utils.getTeamData().signup?.email
+    @createSubViews()
+    @wrapper.setClass 'create'
 
 
-  createTeam: (formData, checkUsername = yes) ->
+  getModalTitle: ->
+    if @alreadyMember and @wantsToUseDifferentAccount
+      "Sign in"
+    else if @alreadyMember
+      ""
+    else
+      "Create your account"
+
+
+  getDescription: ->
+
+    if @alreadyMember and @wantsToUseDifferentAccount
+      "Please enter your <i>koding.com</i> username & password."
+    else if @alreadyMember
+      "<br>It seems that you're already a <i>Koding.com</i> user, please type your password to proceed."
+    else
+      "Pick a username and a password to log in with."
+
+
+  addForgotPasswordLink: ->
+
+    return  unless @alreadyMember
+
+    @addSubView @forgotPassword = new kd.CustomHTMLView
+      tagName: 'section'
+      partial: '<p>Forgot your password? <a href="/Team/Recover?mode=create">Click here</a> to reset.</p>'
+
+
+  submit: (formData) ->
+
+    if @alreadyMember
+      track 'submitted login form'
+      checkUsername = no
+    else
+      track 'submitted register form'
+      checkUsername = yes
+
 
     { username } = formData
 

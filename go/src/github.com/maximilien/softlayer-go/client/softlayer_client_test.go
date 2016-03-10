@@ -26,6 +26,8 @@ var _ = Describe("SoftLayerClient", func() {
 		username = os.Getenv("SL_USERNAME")
 		apiKey = os.Getenv("SL_API_KEY")
 
+		os.Setenv("SL_GO_NON_VERBOSE", "TRUE")
+
 		client = slclient.NewSoftLayerClient(username, apiKey)
 	})
 

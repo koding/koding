@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssa
 
 // This file implements the Function and BasicBlock types.
@@ -11,11 +13,10 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"io"
 	"os"
 	"strings"
-
-	"golang.org/x/tools/go/types"
 )
 
 // addEdge adds a control-flow graph edge from from to to.
@@ -501,7 +502,7 @@ func (f *Function) RelString(from *types.Package) string {
 
 	// Package-level function?
 	// Prefix with package name for cross-package references only.
-	if p := f.pkgobj(); p != nil && p != from {
+	if p := f.pkg(); p != nil && p != from {
 		return fmt.Sprintf("%s.%s", p.Path(), f.name)
 	}
 
@@ -522,16 +523,16 @@ func writeSignature(buf *bytes.Buffer, from *types.Package, name string, sig *ty
 			buf.WriteString(n)
 			buf.WriteString(" ")
 		}
-		types.WriteType(buf, from, params[0].Type())
+		types.WriteType(buf, params[0].Type(), types.RelativeTo(from))
 		buf.WriteString(") ")
 	}
 	buf.WriteString(name)
-	types.WriteSignature(buf, from, sig)
+	types.WriteSignature(buf, sig, types.RelativeTo(from))
 }
 
-func (f *Function) pkgobj() *types.Package {
+func (f *Function) pkg() *types.Package {
 	if f.Pkg != nil {
-		return f.Pkg.Object
+		return f.Pkg.Pkg
 	}
 	return nil
 }
@@ -549,7 +550,7 @@ func (f *Function) WriteTo(w io.Writer) (int64, error) {
 func WriteFunction(buf *bytes.Buffer, f *Function) {
 	fmt.Fprintf(buf, "# Name: %s\n", f.String())
 	if f.Pkg != nil {
-		fmt.Fprintf(buf, "# Package: %s\n", f.Pkg.Object.Path())
+		fmt.Fprintf(buf, "# Package: %s\n", f.Pkg.Pkg.Path())
 	}
 	if syn := f.Synthetic; syn != "" {
 		fmt.Fprintln(buf, "# Synthetic:", syn)
@@ -566,7 +567,7 @@ func WriteFunction(buf *bytes.Buffer, f *Function) {
 		fmt.Fprintf(buf, "# Recover: %s\n", f.Recover)
 	}
 
-	from := f.pkgobj()
+	from := f.pkg()
 
 	if f.FreeVars != nil {
 		buf.WriteString("# Free variables:\n")
