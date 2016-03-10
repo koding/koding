@@ -71,6 +71,10 @@ module.exports = class ComputeController extends KDController
 
         @checkGroupStackRevisions()
 
+        if groupsController.canEditGroup()
+          @on 'RenderMachines', @bound 'checkMachinePermissions'
+          @checkMachinePermissions()
+
         @info machine for machine in @machines
 
 
@@ -1052,6 +1056,67 @@ module.exports = class ComputeController extends KDController
     if existents isnt stackTemplates.length
     then @emit 'GroupStacksInconsistent'
     else @emit 'GroupStacksConsistent'
+
+
+  fixMachinePermissions: (machine, dontAskAgain = no) ->
+
+    { groupsController } = kd.singletons
+
+    # This is for admins only
+    return  unless groupsController.canEditGroup()
+
+    @ui.askFor 'permissionFix', { machine, dontAskAgain }, (state) =>
+
+      if state.dontAskAgain is yes
+
+        ignoredMachines = @storage.getValue('ignoredMachines') ? {}
+        ignoredMachines[machine.uid] = yes
+
+        @storage.setValue 'ignoredMachines', ignoredMachines
+
+        new kd.NotificationView
+          title    : "We won't bother you again for this machine"
+          duration : 5000
+          content  : "You can fix permissions anytime you want from
+                      settings panel of this machine."
+
+        return
+
+      return  if not state.confirmed
+
+      notification = new kd.NotificationView
+        title    : "Fixing permissions..."
+        duration : 15000
+
+      kloud = @getKloud()
+      kloud.addAdmin machineId: machine._id
+        .finally ->
+          notification.destroy()
+        .then (shared) ->
+          new kd.NotificationView title: 'Permissions fixed'
+        .catch (err) ->
+          showError err, 'Failed to fix permissions'
+
+
+  checkMachinePermissions: (machine) ->
+
+    { groupsController } = kd.singletons
+
+    # This is for admins only
+    return  unless groupsController.canEditGroup()
+
+    @machines.forEach (machine) =>
+
+      { oldOwner, permissionUpdated } = machine.jMachine.meta
+
+      return  unless oldOwner
+      return  if not machine.isRunning()
+
+      @storage.fetchValue 'ignoredMachines', (ignoredMachines) =>
+        ignoredMachines ?= {}
+        return  if ignoredMachines[machine.uid]
+
+        @fixMachinePermissions machine, dontAskAgain = yes
 
 
   verifyStackRequirements: (stack) ->

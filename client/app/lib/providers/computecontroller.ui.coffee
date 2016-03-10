@@ -250,8 +250,11 @@ module.exports = class ComputeController_UI
 
   @askFor: (action, options, callback) ->
 
-    {force, machine, resizeTo} = options
-    machine ?= {}
+    { force, machine, resizeTo, dontAskAgain } = options
+
+    machine               ?= {}
+    { provider, jMachine } = machine
+    machineName            = machine.getName?() ? 'a machine'
 
     if resizeTo?
       resizeFrom = machine.jMachine.meta?.storage_size or 3
@@ -261,13 +264,9 @@ module.exports = class ComputeController_UI
       resizeDetails = if resizeTo is resizeFrom then "to #{resizeTo}GB" \
                       else "from #{resizeFrom}GB to #{resizeTo}GB"
 
-
     return callback()  if force
 
-    {provider}    = machine
-
     tasks         =
-
       default     :
         resize    :
           title   : "Resize VM?"
@@ -303,6 +302,18 @@ module.exports = class ComputeController_UI
             workspaces, VMs and anything provided by this stack.</p>
           "
           button  : "Proceed"
+        permissionFix  :
+          title        : "Permission fix required for #{machineName}"
+          message      : "
+            <p>You don't have access to this Machine (<strong>#{machineName}</strong>).
+            It belonged to <strong>@#{jMachine?.meta?.oldOwner}</strong></p>
+
+            <p>This is because you removed this user from your team.
+            You need to fix permissions to proceed.</p>
+          "
+          button       : 'Fix Permissions'
+          buttonColor  : 'green'
+          dontAskAgain : dontAskAgain ? yes
         forceDeleteStack :
           title   : "Delete Stack data?"
           message : "
@@ -373,27 +384,43 @@ module.exports = class ComputeController_UI
 
     throw message: "Failed to find action #{action}"  unless task
 
-    {title, message, button} = task
+    { title, message, button, buttonColor, dontAskAgain } = task
 
-    modal = KDModalView.confirm
-      title       : title   ? "Remove?"
-      description : message ? "Do you want to remove ?"
-      ok          :
-        title     : button  ? "Yes, remove"
-        style     : 'solid red medium'
-        callback  : ->
-          modal.destroy()
-          callback { confirmed : yes }
-      cancel      :
-        style     : "solid light-gray medium"
-        type      : "button"
-        callback  : ->
-          modal.destroy()
-          callback { confirmed : no }
+    buttonColor ?= 'red'
+    dontAskAgain = 'hidden'  if not dontAskAgain
 
-    modal.setClass 'has-markdown'
-    modal.once 'ModalCancelled', -> callback { confirmed : no }
-    modal.overlay.on 'click',    -> callback { confirmed : no }
+    modal = new kd.ModalView
+      title          : title ? "Remove?"
+      cssClass       : 'has-markdown'
+      content        : """
+        <div class='modalformline'>
+          <p>#{message ? "Do you want to remove ?"}</p>
+        </div>
+      """
+      overlay        : yes
+      buttons        :
+        ok           :
+          title      : button ? "Yes, remove"
+          style      : "solid #{buttonColor} medium"
+          callback   : ->
+            modal.destroy()
+            callback { confirmed: yes }
+        cancel       :
+          style      : 'solid light-gray medium'
+          type       : 'button'
+          callback   : ->
+            modal.destroy()
+            callback { confirmed: no }
+        dontAskAgain :
+          title      : "Don't ask this again"
+          style      : "solid medium #{dontAskAgain}"
+          type       : 'button'
+          callback   : ->
+            modal.destroy()
+            callback { dontAskAgain: yes }
+
+    modal.once 'ModalCancelled', -> callback { confirmed: no }
+    modal.overlay.on 'click',    -> callback { confirmed: no }
 
     return modal
 

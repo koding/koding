@@ -22,6 +22,7 @@ module.exports = class MachinesStore extends KodingFluxStore
 
     machines.withMutations (machines) ->
       envData.forEach ({ machine, workspaces }) ->
+        machine.hasOldOwner = machine.meta?.oldOwner?
         machines.set machine._id, toImmutable machine
 
 
