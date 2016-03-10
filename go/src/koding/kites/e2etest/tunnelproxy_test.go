@@ -3,6 +3,7 @@ package e2etest
 import (
 	"net/http"
 	"net/url"
+	"sync"
 	"testing"
 	"time"
 
@@ -67,15 +68,21 @@ func TestE2E_Tunnelproxy(t *testing.T) {
 
 	// Create and start Tunnel Client. It takes care of forwarding requests
 	// from the internet to the loceal server.
+	var virtualHost string
+	var wg sync.WaitGroup
+	wg.Add(1)
 	clientCfg, _ := Test.GenKiteConfig()
 	clientOpts := &tunnelproxy.ClientOptions{
-		ServerAddr: serverURL.Host,
-		LocalAddr:  host(localServer.URL),
-		Config:     clientCfg,
-		Log:        Test.Log.New("tunnelclient"),
-		Debug:      true,
-		NoTLS:      true,
-		Timeout:    1 * time.Minute,
+		LastVirtualHost: serverURL.Host,
+		LocalAddr:       host(localServer.URL),
+		Config:          clientCfg,
+		OnRegister: func(req *tunnelproxy.RegisterResult) {
+			virtualHost = req.VirtualHost
+			wg.Done()
+		},
+		Log:     Test.Log.New("tunnelclient"),
+		Debug:   true,
+		Timeout: 1 * time.Minute,
 	}
 
 	client, err := tunnelproxy.NewClient(clientOpts)
@@ -83,10 +90,13 @@ func TestE2E_Tunnelproxy(t *testing.T) {
 		t.Fatalf("error creating tunnelproxy client: %s", err)
 	}
 
-	if err := client.Start(); err != nil {
-		t.Fatalf("error starting tunnelproxy client: %s", err)
-	}
+	client.Start()
 	defer client.Close()
+	wg.Wait()
+
+	if virtualHost == "" {
+		t.Fatal("expected virtualHost to be non-empty")
+	}
 
 	cases := []struct {
 		Method string
@@ -95,35 +105,35 @@ func TestE2E_Tunnelproxy(t *testing.T) {
 		Method: "GET",
 		URL: &url.URL{
 			Scheme: "http",
-			Host:   client.VirtualHost,
+			Host:   serverURL.Host,
 			Path:   "/",
 		},
 	}, { // i=1
 		Method: "GET",
 		URL: &url.URL{
 			Scheme: "http",
-			Host:   client.VirtualHost,
+			Host:   serverURL.Host,
 			Path:   "/foo",
 		},
 	}, { // i=2
 		Method: "DELETE",
 		URL: &url.URL{
 			Scheme: "http",
-			Host:   client.VirtualHost,
+			Host:   serverURL.Host,
 			Path:   "/foo/bar",
 		},
 	}, { // i=3
 		Method: "POST",
 		URL: &url.URL{
 			Scheme: "http",
-			Host:   client.VirtualHost,
+			Host:   serverURL.Host,
 			Path:   "/" + utils.RandString(32),
 		},
 	}, { // i=4
 		Method: "PUT",
 		URL: &url.URL{
 			Scheme: "http",
-			Host:   client.VirtualHost,
+			Host:   serverURL.Host,
 			Path:   "/" + utils.RandString(32),
 		},
 	}}
@@ -134,6 +144,7 @@ func TestE2E_Tunnelproxy(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%d: error creating request to %s: %s", i, cas.URL, err)
 		}
+		req.Host = virtualHost
 		_, err = http.DefaultClient.Do(req)
 		if err != nil {
 			t.Fatalf("%d: error sending request to %s: %s", i, cas.URL, err)

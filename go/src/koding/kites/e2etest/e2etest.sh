@@ -5,11 +5,11 @@
 # plugged somewhere to fix this
 
 # ngrok v1 authtoken, see ./ngrokProxy
-export TEST_NGROKTOKEN=${TEST_NGROKTOKEN:-}
+export E2ETEST_NGROKTOKEN=${E2ETEST_NGROKTOKEN:-}
 
 # aws creds with access to dev.koding.io Route53 hosted zone
-export TEST_ACCESSKEY=${TEST_ACCESSKEY:-}
-export TEST_SECRETKEY=${TEST_SECRETKEY:-}
+export E2ETEST_ACCESSKEY=${E2ETEST_ACCESSKEY:-}
+export E2ETEST_SECRETKEY=${E2ETEST_SECRETKEY:-}
 
 # NOTE(rjeczalik): -noclean is used to keep DNS records, sometimes
 # handy for deelopment when AWS is utterly slow.
@@ -17,5 +17,5 @@ go test -v koding/kites/e2etest -- -debug -ngrokdebug -noclean
 
 # For more options see
 #
-#   use go test -v koding/kites/e2etest -- -help
+#   go test -v koding/kites/e2etest -- -help
 #
