@@ -3,40 +3,33 @@
 package tunnel
 
 import (
-	"encoding/json"
 	"errors"
+	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	"koding/kites/tunnelproxy"
+	"koding/klient/info/publicip"
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 )
 
 var (
-	// dbBucket is the bucket name used to retrieve and store the resolved
-	// address
-	dbBucket  = []byte("klienttunnel")
-	dbOptions = []byte("options")
-)
-
-var (
+	// ErrKeyNotFound
 	ErrKeyNotFound = errors.New("key not found")
-	ErrNoDatabase  = errors.New("local database is not available")
+
+	// ErrNoDatabase
+	ErrNoDatabase = errors.New("local database is not available")
 )
 
-type TunnelOptions struct {
-	TunnelName    string `json:"tunnelName"`
-	TunnelKiteURL string `json:"tunnelKiteURL,omitempty"`
-	VirtualHost   string `json:"VirtualHost,omitempty"`
-}
-
-type TunnelClient struct {
-	db     *bolt.DB
+// Tunnel
+type Tunnel struct {
+	db     Storage
+	opts   *Options
 	client *tunnelproxy.Client
-	opts   *TunnelOptions
-	log    kite.Logger
 
 	// Used to wait for first successful
 	// tunnel server registration.
@@ -44,76 +37,165 @@ type TunnelClient struct {
 	once     sync.Once
 }
 
-// NewClient returns a new tunnel client instance.
-func NewClient(db *bolt.DB, log kite.Logger) *TunnelClient {
-	t := &TunnelClient{
-		db:   db,
-		log:  log,
-		opts: &TunnelOptions{},
+// Options
+type Options struct {
+	TunnelName    string        `json:"tunnelName,omitempty"`
+	TunnelKiteURL string        `json:"tunnelKiteURL,omitempty"`
+	LocalAddr     string        `json:"localAddr,omitempty"`
+	VirtualHost   string        `json:"virtualHost,omitempty"`
+	Timeout       time.Duration `json:"timeout,omitempty"`
+
+	// IP reachability test cache
+	LastAddr      string `json:"lastAddr,omitempty"`
+	LastReachable bool   `json:"lastReachable,omitempty"`
+
+	DB     *bolt.DB       `json:"-"`
+	Log    kite.Logger    `json:"-"`
+	Config *config.Config `json:"-"`
+	Debug  bool           `json:"-"`
+}
+
+// updateEmpty overwrites each zero-value field of opts with defaults (merge-in).
+func (opts *Options) updateEmpty(defaults *Options) {
+	if opts.TunnelName == "" {
+		opts.TunnelName = defaults.TunnelName
+	}
+
+	if opts.TunnelKiteURL == "" {
+		opts.TunnelKiteURL = defaults.TunnelKiteURL
+	}
+
+	if opts.LocalAddr == "" {
+		opts.LocalAddr = defaults.LocalAddr
+	}
+
+	if opts.VirtualHost == "" {
+		opts.VirtualHost = defaults.VirtualHost
+	}
+
+	if opts.Timeout == 0 {
+		opts.Timeout = defaults.Timeout
+	}
+
+	if opts.LastAddr == "" {
+		opts.LastAddr = defaults.LastAddr
+	}
+
+	if !opts.LastReachable {
+		opts.LastReachable = defaults.LastReachable
+	}
+
+	// set defaults
+	if opts.Timeout == 0 {
+		opts.Timeout = 5 * time.Minute
+	}
+}
+
+func (opts *Options) copy() *Options {
+	optsCopy := *opts
+
+	if opts.Config != nil {
+		optsCopy.Config = opts.Config.Copy()
+	}
+
+	return &optsCopy
+}
+
+// New
+func New(opts *Options) *Tunnel {
+	optsCopy := *opts
+
+	t := &Tunnel{
+		db:   newStorage(&optsCopy),
+		opts: &optsCopy,
 	}
 
 	t.register.Add(1)
 
-	if err := t.loadOptions(); err != nil {
-		t.log.Warning("unable to load tunnel defaults: %s", err)
-	}
-
 	return t
 }
 
-func (t *TunnelClient) loadOptions() error {
-	if t.db == nil {
-		return ErrNoDatabase
+func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
+	return &tunnelproxy.ClientOptions{
+		TunnelName:      t.opts.TunnelName,
+		TunnelKiteURL:   t.opts.TunnelKiteURL,
+		LastVirtualHost: t.opts.VirtualHost,
+		Config:          t.opts.Config,
+		Timeout:         t.opts.Timeout,
+		OnRegister:      t.updateOptions,
+		Debug:           t.opts.Debug,
 	}
-
-	var p []byte
-
-	err := t.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(dbBucket)
-		if b == nil {
-			return ErrKeyNotFound
-		}
-
-		p = b.Get(dbOptions)
-
-		if len(p) == 0 {
-			return ErrKeyNotFound
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	var opts TunnelOptions
-	if err = json.Unmarshal(p, &opts); err != nil {
-		return err
-	}
-
-	t.opts = &opts
-	return nil
 }
 
-func (t *TunnelClient) saveOptions() error {
-	if t.db == nil {
-		return ErrNoDatabase
+func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
+	t.opts.VirtualHost = reg.VirtualHost
+	t.opts.TunnelName = guessTunnelName(reg.VirtualHost)
+
+	if err := t.db.UpdateOptions(t.opts); err != nil {
+		t.opts.Log.Warning("tunnel: unable to update options: %s", err)
 	}
 
-	p, err := json.Marshal(t.opts)
+	t.once.Do(t.register.Done)
+}
+
+// buildOptions finalizes build of tunnel options; the contructed options
+func (t *Tunnel) buildOptions(final *Options) {
+	t.opts.updateEmpty(final)
+
+	storageOpts, err := t.db.Options()
 	if err != nil {
-		return err
+		t.opts.Log.Warning("tunnel: unable to read options: %s", err)
+	} else {
+		t.opts.updateEmpty(storageOpts)
 	}
 
-	return t.db.Update(func(tx *bolt.Tx) error {
-		b, err := t.bucket(tx)
+	if err = t.db.UpdateOptions(t.opts); err != nil {
+		t.opts.Log.Warning("tunnel: unable to update options: %s", err)
+	}
+}
+
+// Start setups the client and connects to a tunnel server based on the given
+// configuration. It's non blocking and should be called only once.
+func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
+	t.buildOptions(opts)
+
+	if t.opts.LastAddr != registerURL.Host {
+		ok, err := publicip.IsReachableRetry(registerURL.Host, 10, 5*time.Second, t.opts.Log)
 		if err != nil {
-			return err
+			t.opts.Log.Warning("tunnel: unable to test %q: %s", registerURL.Host, err)
+			return registerURL, nil
 		}
 
-		return b.Put(dbOptions, p)
-	})
+		t.opts.LastAddr = registerURL.Host
+		t.opts.LastReachable = ok
+
+		if err := t.db.UpdateOptions(t.opts); err != nil {
+			t.opts.Log.Warning("tunnel: unable to update options: %s", err)
+		}
+	}
+
+	if t.opts.LastReachable {
+		return registerURL, nil
+	}
+
+	t.opts.Log.Debug("starting tunnel client: %# v", opts)
+
+	client, err := tunnelproxy.NewClient(t.clientOptions())
+	if err != nil {
+		return nil, err
+	}
+
+	t.client = client
+	t.client.Start()
+	t.register.Wait()
+
+	u := *registerURL
+	u.Host = t.opts.VirtualHost
+	u.Path = "/klient/kite"
+
+	t.opts.Log.Info("tunnel: connected as %q", u.Host)
+
+	return &u, nil
 }
 
 func guessTunnelName(vhost string) string {
@@ -138,70 +220,4 @@ func guessTunnelName(vhost string) string {
 	}
 
 	return ""
-}
-
-func (t *TunnelClient) updateOptions(reg *tunnelproxy.RegisterResult) {
-	t.opts.VirtualHost = reg.VirtualHost
-	t.opts.TunnelName = guessTunnelName(reg.VirtualHost)
-	t.once.Do(t.register.Done)
-
-	if err := t.saveOptions(); err != nil {
-		t.log.Warning("unable to update tunnel defaults: %s", err)
-	}
-}
-
-func (t *TunnelClient) bucket(tx *bolt.Tx) (b *bolt.Bucket, err error) {
-	b = tx.Bucket(dbBucket)
-
-	if b == nil {
-		b, err = tx.CreateBucketIfNotExists(dbBucket)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return b, nil
-}
-
-func (t *TunnelClient) setDefaults(opts *tunnelproxy.ClientOptions) {
-	opts.OnRegister = t.updateOptions
-
-	if opts.TunnelName == "" {
-		opts.TunnelName = t.opts.TunnelName
-	}
-
-	if opts.TunnelKiteURL == "" {
-		opts.TunnelKiteURL = t.opts.TunnelKiteURL
-	}
-
-	if opts.LastVirtualHost == "" {
-		opts.LastVirtualHost = t.opts.VirtualHost
-	}
-
-	if t.opts.TunnelName == "" {
-		t.opts.TunnelName = opts.TunnelName
-	}
-
-	if t.opts.TunnelKiteURL == "" {
-		t.opts.TunnelKiteURL = opts.TunnelKiteURL
-	}
-}
-
-// Start setups the client and connects to a tunnel server based on the given
-// configuration. It's non blocking and should be called only once.
-func (t *TunnelClient) Start(opts *tunnelproxy.ClientOptions) (string, error) {
-	t.setDefaults(opts)
-
-	t.log.Debug("starting tunnel client: %# v", opts)
-
-	client, err := tunnelproxy.NewClient(opts)
-	if err != nil {
-		return "", err
-	}
-
-	t.client = client
-	t.client.Start()
-	t.register.Wait()
-
-	return t.opts.VirtualHost, nil
 }
