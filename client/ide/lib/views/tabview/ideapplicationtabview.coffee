@@ -85,17 +85,15 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
           cssClass  : "solid green medium"
           title     : "Save and Close"
           callback  : =>
-            if file.path.indexOf("localfile:") is 0
-              file.once "fs.saveAs.finished", =>
-                @removePane_ pane
-                @parent.handleCloseSplitView pane
+            if file.isDummyFile()
               @willClose = yes
               ace.requestSaveAs()
             else
               ace.requestSave()
-              file.once "fs.save.finished", =>
-                @removePane_ pane
-                @parent.handleCloseSplitView pane
+
+            file.once [ 'fs.saveAs.finished', 'fs.save.finished' ], =>
+              @removePane_ pane
+              @parent.handleCloseSplitView pane
 
             @askForSaveModal.destroy()
         "DontSave"  :
