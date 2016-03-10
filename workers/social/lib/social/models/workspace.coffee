@@ -81,7 +81,6 @@ module.exports = class JWorkspace extends Module
               callback err  if err
           return
 
-        delegate.emit 'NewWorkspaceCreated', workspace
         message =
           accountId: delegate.socialApiId
           name: name
@@ -118,8 +117,7 @@ module.exports = class JWorkspace extends Module
       return callback err  if err
       return callback new KodingError 'Machine not found.'  unless machine
 
-      users = machine.users.filter (user) -> user.username isnt nickname
-      users = users.map (user) -> user.username
+      users = machine.users.map (user) -> user.username
 
       if users.length
         { notifyByUsernames } = require './notify'
