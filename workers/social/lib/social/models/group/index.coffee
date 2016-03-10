@@ -1111,34 +1111,16 @@ module.exports = class JGroup extends Module
     advanced : [{ permission: 'edit groups', superadmin: yes }]
     success  : (client, data, callback) ->
 
-      TEAMPLANS = require '../computeproviders/teamplans'
-
       if (@getAt 'slug') is 'koding'
         return callback new KodingError \
           'Setting a plan on koding is not allowed'
 
-      { plan, overrides } = data
+      dataToUpdate = { 'config.planOverrides' : data.overrides }
 
-      if plan not in (plans = Object.keys(TEAMPLANS).concat 'noplan')
-        return callback new KodingError "Plan can be #{plans.join ','}"
-
-      if plan is 'noplan'
-        _plan      = ''
-        overrides  = ''
-      else
-        _plan      = plan
-        overrides ?= {}
-
-      dataToUpdate = {
-        'config.plan'          : _plan
-        'config.planOverrides' : overrides
-      }
-
-      if plan is 'noplan'
+      unless data.overrides
         @update { $unset: dataToUpdate }, callback
       else
         @update { $set: dataToUpdate }, callback
-
 
 
   modifyMembershipPolicy: permit
