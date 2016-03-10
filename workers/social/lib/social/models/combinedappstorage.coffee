@@ -38,8 +38,8 @@ module.exports = class JCombinedAppStorage extends JStorage
 
     JCombinedAppStorage.upsert appId, options, (err, storage) ->
       if options.notify and not err
-        storage.group = group
-        notifyByUsernames [ nickname ], 'StorageUpdated', storage
+        options = { group, appId }
+        notifyByUsernames [ nickname ], 'StorageUpdated', options
 
       return callback err, storage
 
