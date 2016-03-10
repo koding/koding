@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/koding/kite"
@@ -109,8 +108,8 @@ func publicIPRetry(hosts []string, maxRetries int, retryPause time.Duration, log
 	return nil, err
 }
 
-func isReachable(addr, service string) (bool, error) {
-	resp, err := defaultClient.Get(service + "/" + url.QueryEscape(addr))
+func isReachable(port, service string) (bool, error) {
+	resp, err := defaultClient.Get(service + "/" + port)
 	if err != nil {
 		return false, err
 	}
@@ -196,7 +195,7 @@ func IsReachableRetry(addr string, maxRetries int, retryPause time.Duration, log
 	for i := 0; i < maxRetries; i++ {
 		service := testSites[i%len(testSites)]
 
-		ok, err = isReachable(addr, service)
+		ok, err = isReachable(port, service)
 		if err == nil {
 			return ok, nil
 		}
