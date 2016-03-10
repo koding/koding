@@ -47,13 +47,7 @@ module.exports = class JAccount extends jraphical.Module
       type               : 'ascending'
     sharedEvents    :
       static        : []
-      instance      : [
-        # this is commented-out intentionally
-        # when a user sends a status update, we are sending 7 events
-        # when a user logs-in we are sending 10 events
-        # { name: 'updateInstance' }
-        { name : 'NewWorkspaceCreated' }
-      ]
+      instance      : []
     sharedMethods :
       static:
         one: [
