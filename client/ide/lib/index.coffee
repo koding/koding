@@ -1002,7 +1002,7 @@ class IDEAppController extends AppController
         else callback view
 
 
-  updateSettings: (component, key, value) ->
+  updateSettings: (component, key, value, silent) ->
 
     # TODO: Refactor this method by passing component type to helper method.
     Class  = if component is 'editor' then IDEEditorPane else IDETerminalPane
@@ -1014,7 +1014,7 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (view) ->
       if view instanceof Class
         if component is 'editor'
-          view.getAce()[method]? value
+          view.getAce()[method]? value, silent
         else
           view.webtermView.updateSettings()
 
