@@ -645,9 +645,7 @@ module.exports = class JUser extends jraphical.Module
         return callback null  if isMember # if user is already member, we can continue
 
         # addGroup will check all prerequistes about joining to a group
-        JUser.addToGroup account, groupName, user.email, invitation, (err) ->
-          return callback err  if err
-          return callback null
+        JUser.addToGroup account, groupName, user.email, invitation, callback
 
 
   redeemInvitation = (options, callback) ->
@@ -1297,9 +1295,7 @@ module.exports = class JUser extends jraphical.Module
 
     ]
 
-    async.series queue, (err) ->
-      return callback err  if err
-      callback null
+    async.series queue, callback
 
 
   createUser = (options, callback) ->
@@ -1401,9 +1397,7 @@ module.exports = class JUser extends jraphical.Module
 
     ]
 
-    async.series queue, (err) ->
-      return callback err  if err
-      callback null
+    async.series queue, callback
 
 
   createDefaultStackForKodingGroup = (options, callback) ->

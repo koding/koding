@@ -139,7 +139,7 @@ module.exports =
     exts = (@syntaxAssociations[key][1].split "|" for key in Object.keys @syntaxAssociations)
     exts = [].concat exts...
     exts = (v.toLowerCase() for v in exts)
-    exts = _.unique exts
+    exts = _.uniq exts
 
   getSyntaxOptions : ->
 

@@ -682,7 +682,7 @@ module.exports = class JMachine extends Module
       # Permanent option is only valid for paid accounts
       # if its passed then we need to check payment
       #
-      if permanent # and @provider is 'koding'
+      if permanent and @provider in ['managed', 'koding'] and options.group is 'koding'
                    # TODO: we can limit this for koding provider only ~ GG
 
         Payment = require '../payment'
@@ -737,7 +737,7 @@ module.exports = class JMachine extends Module
 
   , (client, callback) ->
 
-    { r: { user } } = client
+    { r: { user, group } } = client
 
     # An owner cannot approve their own machine
     if isOwner user, this
@@ -748,7 +748,7 @@ module.exports = class JMachine extends Module
       'users.id' : user._id
     }, { $set : { 'users.$.approved' : yes } }
     , (err) =>
-      options = { action: 'approve', @uid }
+      options = { action: 'approve', @uid, group: group.slug, machineId: @getId() }
       client.connection.delegate.sendNotification 'MachineShareActionTaken', options
       callback err
 
@@ -762,7 +762,7 @@ module.exports = class JMachine extends Module
 
   , (client, callback) ->
 
-    { r: { user } } = client
+    { r: { user, group } } = client
 
     # An owner cannot deny their own machine
     if isOwner user, this
@@ -775,7 +775,7 @@ module.exports = class JMachine extends Module
       permanent : yes
 
     @shareWith options, (err) =>
-      options               = { action: 'deny', @uid, group: client?.context?.group }
+      options               = { action: 'deny', @uid, group: group.slug, machineId: @getId() }
       [ owner ]             = @users.filter (user) -> return user.owner
       { notifyByUsernames } = require '../notify'
 

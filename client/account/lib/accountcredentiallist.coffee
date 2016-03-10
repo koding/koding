@@ -59,6 +59,21 @@ module.exports = class AccountCredentialList extends KDListView
         Do you want to remove **#{credential.title}** ?
       "
 
+      unless credential.owner
+        description = applyMarkdown "
+          You don't have permission to delete **#{credential.title}**
+          credential, however you can still remove this credential 
+          from your account.
+          \n\n
+          **WARNING!** Removing this credential from your account can cause
+          your stacks or instances stop working properly if they
+          depend on this credential.
+          \n\n
+          Do you want to remove it from your account?
+        "
+        bootstrapped = no
+        removeButtonTitle = 'Remove Access'
+
       removeCredential = =>
         credential.delete (err) =>
           @emit 'ItemDeleted', item  unless showError err
@@ -74,7 +89,7 @@ module.exports = class AccountCredentialList extends KDListView
           overlayClick : yes
         buttons        :
           Remove       :
-            title      : 'Remove Credential'
+            title      : removeButtonTitle ? 'Remove Credential'
             style      : 'solid red medium'
             loader     : yes
             callback   : =>

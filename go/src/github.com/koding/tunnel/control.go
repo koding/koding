@@ -7,9 +7,7 @@ import (
 	"sync"
 )
 
-var (
-	errControlClosed = errors.New("control connection is closed")
-)
+var errControlClosed = errors.New("control connection is closed")
 
 type control struct {
 	// enc and dec are responsible for encoding and decoding json values forth

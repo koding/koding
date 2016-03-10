@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssa
 
 // Helpers for emitting SSA instructions.
@@ -10,8 +12,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
-
-	"golang.org/x/tools/go/types"
+	"go/types"
 )
 
 // emitNew emits to f a new (heap Alloc) instruction allocating an

@@ -164,7 +164,7 @@ func (s *Stack) destroy(ctx context.Context, username, groupname, stackID string
 	}
 	defer tfKite.Close()
 
-	contentID := username + "-" + stackID
+	contentID := groupname + "-" + stackID
 	s.Log.Debug("Building template %s", contentID)
 
 	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template, contentID); err != nil {
@@ -277,7 +277,7 @@ func (s *Stack) apply(ctx context.Context, username, groupname, stackID string) 
 	}
 	defer tfKite.Close()
 
-	contentID := username + "-" + stackID
+	contentID := groupname + "-" + stackID
 	s.Log.Debug("Building template: %s", contentID)
 
 	if err := s.Builder.BuildTemplate(s.Builder.Stack.Template, contentID); err != nil {

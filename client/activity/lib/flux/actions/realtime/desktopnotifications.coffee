@@ -57,8 +57,8 @@ postNotificationForReceivedMessage = (channel, messages, accounts) ->
   else "/Channels/#{channel.name}"
 
   if messages.length and messages.length > 1
-    channels      = _.unique channels, 'id'
-    accounts      = _.unique accounts, 'id'
+    channels      = _.uniq channels, 'id'
+    accounts      = _.uniq accounts, 'id'
     unreadCount  += channel.unreadCount  for channel in channels
     title         = "You have #{unreadCount} messages"
     notification  =  { title, message: '', route }

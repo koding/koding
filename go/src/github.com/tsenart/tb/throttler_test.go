@@ -80,7 +80,7 @@ func BenchmarkThrottler_Bucket(b *testing.B) {
 	}
 }
 
-func ExampleThrottle(t *testing.T) {
+func ExampleThrottler() {
 	ln, err := net.Listen("tcp", ":6789")
 	if err != nil {
 		log.Fatal(err)

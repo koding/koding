@@ -60,6 +60,15 @@ module.exports = class Sidebar extends React.Component
       .on 'SharedMachineInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
       .on 'CollaborationInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
       .on 'MemberWarning',           EnvironmentFlux.actions.handleMemberWarning
+      .on 'MachineShareActionTaken', (options) ->
+        if options.action is 'approve'
+          EnvironmentFlux.actions.setActiveInvitationMachineId { machine: null }
+        else
+          EnvironmentFlux.actions.setActiveLeavingSharedMachineId { id: null }
+          EnvironmentFlux.actions.dispatchCollaborationInvitationRejected options.machineId
+          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected options.machineId
+
+        EnvironmentFlux.actions.loadMachines()
 
 
   setActiveInvitationMachineId: ->

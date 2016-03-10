@@ -55,6 +55,7 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
     input.setValue teamName
     input.emit 'input'
     input.emit 'ValidationFeedbackCleared'
+    input.focus()
 
 
   showError: (error) ->

@@ -340,6 +340,64 @@ import (
 )
 `,
 	},
+	// Issue 10337: Preserve comment position
+	{
+		name: "issue 10337",
+		pkg:  "fmt",
+		in: `package main
+
+import (
+	"bytes" // a
+	"log" // c
+)
+`,
+		out: `package main
+
+import (
+	"bytes" // a
+	"fmt"
+	"log" // c
+)
+`,
+	},
+	{
+		name: "issue 10337 new import at the start",
+		pkg:  "bytes",
+		in: `package main
+
+import (
+	"fmt" // b
+	"log" // c
+)
+`,
+		out: `package main
+
+import (
+	"bytes"
+	"fmt" // b
+	"log" // c
+)
+`,
+	},
+	{
+		name: "issue 10337 new import at the end",
+		pkg:  "log",
+		in: `package main
+
+import (
+	"bytes" // a
+	"fmt" // b
+)
+`,
+		out: `package main
+
+import (
+	"bytes" // a
+	"fmt"   // b
+	"log"
+)
+`,
+	},
 }
 
 func TestAddImport(t *testing.T) {
@@ -374,6 +432,22 @@ import (
 )
 `
 	if got := print(t, "doubleimport", file); got != want {
+		t.Errorf("got: %s\nwant: %s", got, want)
+	}
+}
+
+func TestDoubleAddNamedImport(t *testing.T) {
+	file := parse(t, "doublenamedimport", "package main\n")
+	AddNamedImport(fset, file, "o", "os")
+	AddNamedImport(fset, file, "i", "io")
+	want := `package main
+
+import (
+	i "io"
+	o "os"
+)
+`
+	if got := print(t, "doublenamedimport", file); got != want {
 		t.Errorf("got: %s\nwant: %s", got, want)
 	}
 }
@@ -689,12 +763,42 @@ import (
 		out: `package main
 `,
 	},
+	{
+		name:       "import.18",
+		renamedPkg: "x",
+		pkg:        "fmt",
+		in: `package main
+
+import (
+	"fmt"
+	x "fmt"
+)
+`,
+		out: `package main
+
+import "fmt"
+`,
+	},
+	{
+		name:       "import.18",
+		renamedPkg: "x",
+		pkg:        "fmt",
+		in: `package main
+
+import x "fmt"
+import y "fmt"
+`,
+		out: `package main
+
+import y "fmt"
+`,
+	},
 }
 
 func TestDeleteImport(t *testing.T) {
 	for _, test := range deleteTests {
 		file := parse(t, test.name, test.in)
-		DeleteImport(fset, file, test.pkg)
+		DeleteNamedImport(fset, file, test.renamedPkg, test.pkg)
 		if got := print(t, test.name, file); got != test.out {
 			t.Errorf("%s:\ngot: %s\nwant: %s", test.name, got, test.out)
 		}

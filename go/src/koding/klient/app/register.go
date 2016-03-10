@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/koding/kite/config"
-
 	"koding/kites/common"
 	"koding/kites/tunnelproxy"
 )
@@ -25,14 +23,6 @@ func (k *Klient) register(addr string, useTunnel bool) error {
 	}
 
 	if useTunnel {
-		// TODO(rjeczalik): sockjs does not like tunneling, crashes receive
-		// loop with:
-		//
-		//  Receive err: sockjs: session not in open state
-		//
-		// Fix it and remove the following line:
-		k.kite.Config.Transport = config.XHRPolling
-
 		host, err := k.setupTunnel()
 		if err != nil {
 			k.log.Error("Couldn't setup tunnel connection: %s", err)

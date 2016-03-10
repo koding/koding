@@ -1,12 +1,16 @@
+kd              = require 'kd.js'
+utils           = require './../../core/utils'
 TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'
 
 
 module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
 
-  constructor: ->
+  constructor:(options = {}, data)->
 
-    super
+    options.buttonTitle or= "Join #{kd.config.groupName}!"
+
+    super options, data
 
     @username = new LoginInputView
       inputOptions    :
@@ -17,18 +21,13 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
           messages    : { required: 'Please enter a username.' }
 
 
-    teamData                = utils.getTeamData()
+    teamData = utils.getTeamData()
     if teamData.profile
-      { firstName, nickname } = teamData.profile
-      name     = "#{firstName or '@'+nickname}"
-      partial  = "Are you #{name}? <a href='#'>Login here!</a>"
       callback = (event) =>
         kd.utils.stopDOMEvent event
         return  unless event.target.tagName is 'A'
         @emit 'FormNeedsToBeChanged', yes, no
     else
-      name     = "#{firstName or '@'+nickname}"
-      partial  = "Don't have an account? <a href='#'>Sign up!</a>"
       callback = (event) =>
         kd.utils.stopDOMEvent event
         return  unless event.target.tagName is 'A'
@@ -36,10 +35,21 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
 
     @password   = @getPassword()
     @tfcode     = @getTFCode()
-    @button     = @getButton "Join #{kd.config.groupName}!"
-    @buttonLink = @getButtonLink partial, callback
+    @button     = @getButton @getOption 'buttonTitle'
+    @buttonLink = @getButtonLink @createButtonLinkPartial(), callback
 
     @on 'FormSubmitFailed', @button.bound 'hideLoader'
+
+
+  createButtonLinkPartial: ->
+
+    teamData = utils.getTeamData()
+    if teamData.profile
+      { firstName, nickname, hash } = teamData.profile
+      name = "#{firstName or '@'+nickname}"
+      "Are you <img src='#{utils.getGravatarUrl 24, hash}'/> <a href='#'>#{name}</a>?"
+    else
+      "Want to join with a <a href='#'>fresh account</a>?"
 
 
   submit: (formData) ->

@@ -233,6 +233,15 @@ func (r *Remote) GetMachinesWithoutCache() (machine.Machines, error) {
 			missingNames = true
 		}
 
+		// configure the kite Client with any common kite Client settings.
+		if err := configureKiteClient(k.Client); err != nil {
+			r.log.Error(
+				"Unable to configure kite Client. name:%s, ip:%s",
+				name, host,
+			)
+			continue
+		}
+
 		machineMeta := machine.MachineMeta{
 			MachineLabel: k.MachineLabel,
 			IP:           host,
@@ -370,6 +379,15 @@ func (r *Remote) createMissingNames() error {
 	if cacheChanged {
 		return r.saveMachinesNames()
 	}
+
+	return nil
+}
+
+// configureKiteClient
+func configureKiteClient(c *kite.Client) error {
+	// Set reconnect.
+	// https://github.com/koding/kite/blob/master/client.go#L300
+	c.Reconnect = true
 
 	return nil
 }

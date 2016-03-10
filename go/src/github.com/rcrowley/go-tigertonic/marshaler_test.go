@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -11,6 +12,15 @@ import (
 
 func TestMarshaledCalm(t *testing.T) {
 	Marshaled(func(u *url.URL, h http.Header, rq *testRequest) (int, http.Header, *testResponse, error) {
+		return 0, http.Header{}, nil, nil
+	})
+}
+
+func TestMarshaledCalmStreamResponse(t *testing.T) {
+	Marshaled(func(u *url.URL, h http.Header, rq *testRequest) (int, http.Header, io.Reader, error) {
+		return 0, http.Header{}, nil, nil
+	})
+	Marshaled(func(u *url.URL, h http.Header, rq *testRequest) (int, http.Header, io.ReadCloser, error) {
 		return 0, http.Header{}, nil, nil
 	})
 }
@@ -314,6 +324,114 @@ func TestNonPointerSliceBody(t *testing.T) {
 	if "b" != result {
 		t.Fatalf("Body should have been 'b', but instead was '%s'", string(w.Body.Bytes()))
 	}
+}
+
+func TestStreamResponse(t *testing.T) {
+	w := &testResponseWriter{}
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewBufferString("{\"foo\":\"bar\"}"))
+	r.Header.Set("Accept", "image/*") // accept non-JSON response
+	r.Header.Set("Content-Type", "application/json")
+	reader := &testReader{Buffer: bytes.NewBufferString("teststream")}
+	Marshaled(func(u *url.URL, h http.Header, rq *testRequest) (int, http.Header, io.ReadCloser, error) {
+		if "bar" != rq.Foo {
+			t.Fatal(rq.Foo)
+		}
+		headers := make(http.Header)
+		headers.Set("Content-Type", "image/jpeg")
+		return http.StatusOK, headers, reader, nil
+	}).ServeHTTP(w, r)
+	if http.StatusOK != w.StatusCode {
+		t.Fatalf("Server responded %d to a request with a stream response", w.StatusCode)
+	}
+	if "teststream" != w.Body.String() {
+		t.Errorf("Body should have been 'teststream', but instead was '%s'", w.Body.String())
+	}
+	if x := w.Header().Get("Content-Type"); "image/jpeg" != x {
+		t.Errorf("Content type should have been 'image/jpeg', but instead was '%s'", x)
+	}
+	if !reader.WasRead {
+		t.Error("Stream should have been read")
+	}
+	if !reader.WasClosed {
+		t.Error("Stream should have been closed")
+	}
+}
+
+func TestStreamResponseWithNoContentType(t *testing.T) {
+	w := &testResponseWriter{}
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewBufferString("{\"foo\":\"bar\"}"))
+	r.Header.Set("Accept", "image/*")
+	r.Header.Set("Content-Type", "application/json")
+	Marshaled(func(u *url.URL, h http.Header, rq *testRequest) (int, http.Header, io.Reader, error) {
+		return http.StatusOK, nil, bytes.NewBufferString("teststream"), nil
+	}).ServeHTTP(w, r)
+	if http.StatusInternalServerError != w.StatusCode {
+		t.Fatalf("Server responded %d to a request with a stream response but no 'Content-Type' header", w.StatusCode)
+	}
+}
+
+func TestStreamResponseWithNotAcceptableContentType(t *testing.T) {
+	w := &testResponseWriter{}
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewBufferString("{\"foo\":\"bar\"}"))
+	r.Header.Set("Accept", "image/jpeg")
+	r.Header.Set("Content-Type", "application/json")
+	Marshaled(func(u *url.URL, h http.Header, rq *testRequest) (int, http.Header, io.Reader, error) {
+		headers := make(http.Header)
+		headers.Set("Content-Type", "image/png")
+		return http.StatusOK, headers, bytes.NewBufferString("teststream"), nil
+	}).ServeHTTP(w, r)
+	if http.StatusNotAcceptable != w.StatusCode {
+		t.Fatalf("Server responded %d to a request with a stream response but without an acceptable 'Content-Type' header", w.StatusCode)
+	}
+}
+
+// TestStreamResponseReader is trying to test the case where the return type of
+// the Marshaled handler is a non-interface type that happens to implement the
+// io.Reader interface.
+// The expected behavior is that the response should NOT be read from the
+// stream and if it implements io.Closer it should NOT close the stream and
+// instead it should simply marshal the response to JSON.
+func TestStreamResponseReader(t *testing.T) {
+	w := &testResponseWriter{}
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewBufferString("{\"foo\":\"bar\"}"))
+	r.Header.Set("Accept", "application/json")
+	r.Header.Set("Content-Type", "application/json")
+	reader := &testReader{ID: "testreader", Buffer: bytes.NewBufferString("teststream")}
+	Marshaled(func(u *url.URL, h http.Header, rq *testRequest) (int, http.Header, *testReader, error) {
+		return http.StatusOK, nil, reader, nil
+	}).ServeHTTP(w, r)
+	if http.StatusOK != w.StatusCode {
+		t.Fatalf("Server responded %d to a post with a io.Reader implementing type", w.StatusCode)
+	}
+	if reader.WasRead {
+		t.Error("Stream should not have been read")
+	}
+	if reader.WasClosed {
+		t.Error("Stream should not have been closed")
+	}
+	data := new(testReader)
+	if err := json.Unmarshal(w.Body.Bytes(), data); nil != err {
+		t.Errorf("Could not unmarshal body %q: %s", err, w.Body.Bytes())
+	} else if "testreader" != data.ID {
+		t.Errorf("ID of response did not match")
+	}
+}
+
+type testReader struct {
+	ID        string `json:id`
+	Buffer    *bytes.Buffer
+	WasRead   bool
+	WasClosed bool
+}
+
+func (c *testReader) Read(p []byte) (int, error) {
+	c.WasRead = true
+	return c.Buffer.Read(p)
+}
+
+func (c *testReader) Close() error {
+	c.WasClosed = true
+	return nil
 }
 
 func testMarshaledPanic(i interface{}, t *testing.T) {

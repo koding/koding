@@ -19,6 +19,7 @@ type Watcher struct {
 	paused          bool
 	stopped         bool
 	watchSuffixes   []string
+	excludedDirs    []string
 
 	input  chan messaging.WatcherCommand
 	output chan messaging.Folders
@@ -27,7 +28,7 @@ type Watcher struct {
 }
 
 func NewWatcher(rootFolder string, folderDepth int, nap time.Duration,
-	input chan messaging.WatcherCommand, output chan messaging.Folders, watchSuffixes string) *Watcher {
+	input chan messaging.WatcherCommand, output chan messaging.Folders, watchSuffixes string, excludedDirs []string) *Watcher {
 
 	return &Watcher{
 		nap:           nap,
@@ -36,6 +37,7 @@ func NewWatcher(rootFolder string, folderDepth int, nap time.Duration,
 		input:         input,
 		output:        output,
 		watchSuffixes: strings.Split(watchSuffixes, ","),
+		excludedDirs:  excludedDirs,
 
 		ignoredFolders: make(map[string]struct{}),
 	}
@@ -72,12 +74,16 @@ func (this *Watcher) respond(command messaging.WatcherCommand) {
 	case messaging.WatcherIgnore:
 		log.Println("Ignoring specified folders")
 		this.ignore(command.Details)
-		this.execute()
+		// Prevent a filesystem change due to the number of active folders changing
+		_, checksum := this.gather()
+		this.set(checksum)
 
 	case messaging.WatcherReinstate:
 		log.Println("Reinstating specified folders")
 		this.reinstate(command.Details)
-		this.execute()
+		// Prevent a filesystem change due to the number of active folders changing
+		_, checksum := this.gather()
+		this.set(checksum)
 
 	case messaging.WatcherPause:
 		log.Println("Pausing watcher...")
@@ -86,7 +92,6 @@ func (this *Watcher) respond(command messaging.WatcherCommand) {
 	case messaging.WatcherResume:
 		log.Println("Resuming watcher...")
 		this.paused = false
-		this.execute()
 
 	case messaging.WatcherExecute:
 		log.Println("Gathering folders for immediate execution...")
@@ -121,13 +126,13 @@ func (this *Watcher) scan() {
 }
 
 func (this *Watcher) gather() (folders messaging.Folders, checksum int64) {
-	items := YieldFileSystemItems(this.rootFolder)
+	items := YieldFileSystemItems(this.rootFolder, this.excludedDirs)
 	folderItems, profileItems, goFileItems := Categorize(items, this.rootFolder, this.watchSuffixes)
 
 	for _, item := range profileItems {
 		// TODO: don't even bother if the item's size is over a few hundred bytes...
 		contents := ReadContents(item.Path)
-		item.ProfileDisabled, item.ProfileArguments = ParseProfile(contents)
+		item.ProfileDisabled, item.ProfileTags, item.ProfileArguments = ParseProfile(contents)
 	}
 
 	folders = CreateFolders(folderItems)

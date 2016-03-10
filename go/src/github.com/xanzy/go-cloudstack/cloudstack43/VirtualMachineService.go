@@ -37,11 +37,11 @@ func (p *DeployVirtualMachineParams) toURLValues() url.Values {
 		u.Set("account", v.(string))
 	}
 	if v, found := p.p["affinitygroupids"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("affinitygroupids", vv)
 	}
 	if v, found := p.p["affinitygroupnames"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("affinitygroupnames", vv)
 	}
 	if v, found := p.p["details"]; found {
@@ -98,18 +98,18 @@ func (p *DeployVirtualMachineParams) toURLValues() url.Values {
 		u.Set("name", v.(string))
 	}
 	if v, found := p.p["networkids"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("networkids", vv)
 	}
 	if v, found := p.p["projectid"]; found {
 		u.Set("projectid", v.(string))
 	}
 	if v, found := p.p["securitygroupids"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("securitygroupids", vv)
 	}
 	if v, found := p.p["securitygroupnames"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("securitygroupnames", vv)
 	}
 	if v, found := p.p["serviceofferingid"]; found {
@@ -376,14 +376,12 @@ func (s *VirtualMachineService) DeployVirtualMachine(p *DeployVirtualMachinePara
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -444,22 +442,25 @@ type DeployVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -594,14 +595,12 @@ func (s *VirtualMachineService) DestroyVirtualMachine(p *DestroyVirtualMachinePa
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -662,22 +661,25 @@ type DestroyVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -800,14 +802,12 @@ func (s *VirtualMachineService) RebootVirtualMachine(p *RebootVirtualMachinePara
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -868,22 +868,25 @@ type RebootVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -1017,14 +1020,12 @@ func (s *VirtualMachineService) StartVirtualMachine(p *StartVirtualMachineParams
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -1085,22 +1086,25 @@ type StartVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -1235,14 +1239,12 @@ func (s *VirtualMachineService) StopVirtualMachine(p *StopVirtualMachineParams) 
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -1303,22 +1305,25 @@ type StopVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -1441,14 +1446,12 @@ func (s *VirtualMachineService) ResetPasswordForVirtualMachine(p *ResetPasswordF
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -1509,22 +1512,25 @@ type ResetPasswordForVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -1772,22 +1778,25 @@ type UpdateVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -1880,7 +1889,7 @@ func (p *ListVirtualMachinesParams) toURLValues() url.Values {
 		u.Set("affinitygroupid", v.(string))
 	}
 	if v, found := p.p["details"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("details", vv)
 	}
 	if v, found := p.p["domainid"]; found {
@@ -2183,6 +2192,16 @@ func (s *VirtualMachineService) GetVirtualMachineID(name string) (string, error)
 	}
 
 	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListVirtualMachines(p)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if l.Count == 0 {
 		return "", fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
@@ -2229,6 +2248,21 @@ func (s *VirtualMachineService) GetVirtualMachineByID(id string) (*VirtualMachin
 			return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
 		}
 		return nil, -1, err
+	}
+
+	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListVirtualMachines(p)
+		if err != nil {
+			if strings.Contains(err.Error(), fmt.Sprintf(
+				"Invalid parameter id value=%s due to incorrect long value format, "+
+					"or entity does not exist", id)) {
+				return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
+			}
+			return nil, -1, err
+		}
 	}
 
 	if l.Count == 0 {
@@ -2305,22 +2339,25 @@ type VirtualMachine struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -2504,14 +2541,12 @@ func (s *VirtualMachineService) RestoreVirtualMachine(p *RestoreVirtualMachinePa
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -2572,22 +2607,25 @@ type RestoreVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -2783,22 +2821,25 @@ type ChangeServiceForVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -2949,14 +2990,12 @@ func (s *VirtualMachineService) ScaleVirtualMachine(p *ScaleVirtualMachineParams
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -2988,11 +3027,11 @@ func (p *AssignVirtualMachineParams) toURLValues() url.Values {
 		u.Set("domainid", v.(string))
 	}
 	if v, found := p.p["networkids"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("networkids", vv)
 	}
 	if v, found := p.p["securitygroupids"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("securitygroupids", vv)
 	}
 	if v, found := p.p["virtualmachineid"]; found {
@@ -3111,22 +3150,25 @@ type AssignVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -3271,14 +3313,12 @@ func (s *VirtualMachineService) MigrateVirtualMachine(p *MigrateVirtualMachinePa
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -3339,22 +3379,25 @@ type MigrateVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -3505,14 +3548,12 @@ func (s *VirtualMachineService) MigrateVirtualMachineWithVolume(p *MigrateVirtua
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -3573,22 +3614,25 @@ type MigrateVirtualMachineWithVolumeResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -3756,22 +3800,25 @@ type RecoverVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -3894,14 +3941,12 @@ func (s *VirtualMachineService) ExpungeVirtualMachine(p *ExpungeVirtualMachinePa
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -3951,14 +3996,12 @@ func (s *VirtualMachineService) CleanVMReservations(p *CleanVMReservationsParams
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -4043,14 +4086,12 @@ func (s *VirtualMachineService) AddNicToVirtualMachine(p *AddNicToVirtualMachine
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -4111,22 +4152,25 @@ type AddNicToVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -4261,14 +4305,12 @@ func (s *VirtualMachineService) RemoveNicFromVirtualMachine(p *RemoveNicFromVirt
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -4329,22 +4371,25 @@ type RemoveNicFromVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`
@@ -4479,14 +4524,12 @@ func (s *VirtualMachineService) UpdateDefaultNicForVirtualMachine(p *UpdateDefau
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -4547,22 +4590,25 @@ type UpdateDefaultNicForVirtualMachineResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi string   `json:"broadcasturi,omitempty"`
-		Gateway      string   `json:"gateway,omitempty"`
-		Id           string   `json:"id,omitempty"`
-		Ip6address   string   `json:"ip6address,omitempty"`
-		Ip6cidr      string   `json:"ip6cidr,omitempty"`
-		Ip6gateway   string   `json:"ip6gateway,omitempty"`
-		Ipaddress    string   `json:"ipaddress,omitempty"`
-		Isdefault    bool     `json:"isdefault,omitempty"`
-		Isolationuri string   `json:"isolationuri,omitempty"`
-		Macaddress   string   `json:"macaddress,omitempty"`
-		Netmask      string   `json:"netmask,omitempty"`
-		Networkid    string   `json:"networkid,omitempty"`
-		Networkname  string   `json:"networkname,omitempty"`
-		Secondaryip  []string `json:"secondaryip,omitempty"`
-		Traffictype  string   `json:"traffictype,omitempty"`
-		Type         string   `json:"type,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype string `json:"traffictype,omitempty"`
+		Type        string `json:"type,omitempty"`
 	} `json:"nic,omitempty"`
 	Password        string `json:"password,omitempty"`
 	Passwordenabled bool   `json:"passwordenabled,omitempty"`

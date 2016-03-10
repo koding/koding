@@ -2,13 +2,17 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssa_test
 
 import (
 	"bytes"
 	"go/ast"
+	"go/importer"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"reflect"
 	"sort"
 	"strings"
@@ -17,9 +21,6 @@ import (
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
-	"golang.org/x/tools/go/types"
-
-	_ "golang.org/x/tools/go/gcimporter"
 )
 
 func isEmpty(f *ssa.Function) bool { return f.Blocks == nil }
@@ -57,7 +58,7 @@ func main() {
 
 	// Build an SSA program from the parsed file.
 	// Load its dependencies from gc binary export data.
-	mainPkg, _, err := ssautil.BuildPackage(new(types.Config), fset,
+	mainPkg, _, err := ssautil.BuildPackage(&types.Config{Importer: importer.Default()}, fset,
 		types.NewPackage("main", ""), []*ast.File{f}, ssa.SanityCheckFunctions)
 	if err != nil {
 		t.Error(err)
@@ -112,7 +113,7 @@ func main() {
 				}
 				mset := prog.MethodSets.MethodSet(types.NewPointer(mem.Type()))
 				for i, n := 0, mset.Len(); i < n; i++ {
-					m := prog.Method(mset.At(i))
+					m := prog.MethodValue(mset.At(i))
 					// For external types, only synthetic wrappers have code.
 					expExt := !strings.Contains(m.Synthetic, "wrapper")
 					if expExt && !isEmpty(m) {
@@ -225,7 +226,7 @@ func TestRuntimeTypes(t *testing.T) {
 
 		// Create a single-file main package.
 		// Load dependencies from gc binary export data.
-		ssapkg, _, err := ssautil.BuildPackage(new(types.Config), fset,
+		ssapkg, _, err := ssautil.BuildPackage(&types.Config{Importer: importer.Default()}, fset,
 			types.NewPackage("p", ""), []*ast.File{f}, ssa.SanityCheckFunctions)
 		if err != nil {
 			t.Errorf("test %q: %s", test.input[:15], err)
@@ -303,7 +304,7 @@ func init():
 		}
 		prog := ssautil.CreateProgram(lprog, test.mode)
 		mainPkg := prog.Package(lprog.Created[0].Pkg)
-		prog.BuildAll()
+		prog.Build()
 		initFunc := mainPkg.Func("init")
 		if initFunc == nil {
 			t.Errorf("test 'package %s': no init function", f.Name.Name)
@@ -374,7 +375,7 @@ var (
 
 	// Create and build SSA
 	prog := ssautil.CreateProgram(lprog, 0)
-	prog.BuildAll()
+	prog.Build()
 
 	// Enumerate reachable synthetic functions
 	want := map[string]string{

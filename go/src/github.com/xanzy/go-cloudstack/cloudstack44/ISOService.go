@@ -82,14 +82,12 @@ func (s *ISOService) AttachIso(p *AttachIsoParams) (*AttachIsoResponse, error) {
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -152,24 +150,27 @@ type AttachIsoResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi     string   `json:"broadcasturi,omitempty"`
-		Deviceid         string   `json:"deviceid,omitempty"`
-		Gateway          string   `json:"gateway,omitempty"`
-		Id               string   `json:"id,omitempty"`
-		Ip6address       string   `json:"ip6address,omitempty"`
-		Ip6cidr          string   `json:"ip6cidr,omitempty"`
-		Ip6gateway       string   `json:"ip6gateway,omitempty"`
-		Ipaddress        string   `json:"ipaddress,omitempty"`
-		Isdefault        bool     `json:"isdefault,omitempty"`
-		Isolationuri     string   `json:"isolationuri,omitempty"`
-		Macaddress       string   `json:"macaddress,omitempty"`
-		Netmask          string   `json:"netmask,omitempty"`
-		Networkid        string   `json:"networkid,omitempty"`
-		Networkname      string   `json:"networkname,omitempty"`
-		Secondaryip      []string `json:"secondaryip,omitempty"`
-		Traffictype      string   `json:"traffictype,omitempty"`
-		Type             string   `json:"type,omitempty"`
-		Virtualmachineid string   `json:"virtualmachineid,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Deviceid     string `json:"deviceid,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype      string `json:"traffictype,omitempty"`
+		Type             string `json:"type,omitempty"`
+		Virtualmachineid string `json:"virtualmachineid,omitempty"`
 	} `json:"nic,omitempty"`
 	Ostypeid        int64  `json:"ostypeid,omitempty"`
 	Password        string `json:"password,omitempty"`
@@ -318,14 +319,12 @@ func (s *ISOService) DetachIso(p *DetachIsoParams) (*DetachIsoResponse, error) {
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -388,24 +387,27 @@ type DetachIsoResponse struct {
 	Networkkbsread        int64             `json:"networkkbsread,omitempty"`
 	Networkkbswrite       int64             `json:"networkkbswrite,omitempty"`
 	Nic                   []struct {
-		Broadcasturi     string   `json:"broadcasturi,omitempty"`
-		Deviceid         string   `json:"deviceid,omitempty"`
-		Gateway          string   `json:"gateway,omitempty"`
-		Id               string   `json:"id,omitempty"`
-		Ip6address       string   `json:"ip6address,omitempty"`
-		Ip6cidr          string   `json:"ip6cidr,omitempty"`
-		Ip6gateway       string   `json:"ip6gateway,omitempty"`
-		Ipaddress        string   `json:"ipaddress,omitempty"`
-		Isdefault        bool     `json:"isdefault,omitempty"`
-		Isolationuri     string   `json:"isolationuri,omitempty"`
-		Macaddress       string   `json:"macaddress,omitempty"`
-		Netmask          string   `json:"netmask,omitempty"`
-		Networkid        string   `json:"networkid,omitempty"`
-		Networkname      string   `json:"networkname,omitempty"`
-		Secondaryip      []string `json:"secondaryip,omitempty"`
-		Traffictype      string   `json:"traffictype,omitempty"`
-		Type             string   `json:"type,omitempty"`
-		Virtualmachineid string   `json:"virtualmachineid,omitempty"`
+		Broadcasturi string `json:"broadcasturi,omitempty"`
+		Deviceid     string `json:"deviceid,omitempty"`
+		Gateway      string `json:"gateway,omitempty"`
+		Id           string `json:"id,omitempty"`
+		Ip6address   string `json:"ip6address,omitempty"`
+		Ip6cidr      string `json:"ip6cidr,omitempty"`
+		Ip6gateway   string `json:"ip6gateway,omitempty"`
+		Ipaddress    string `json:"ipaddress,omitempty"`
+		Isdefault    bool   `json:"isdefault,omitempty"`
+		Isolationuri string `json:"isolationuri,omitempty"`
+		Macaddress   string `json:"macaddress,omitempty"`
+		Netmask      string `json:"netmask,omitempty"`
+		Networkid    string `json:"networkid,omitempty"`
+		Networkname  string `json:"networkname,omitempty"`
+		Secondaryip  []struct {
+			Id        string `json:"id,omitempty"`
+			Ipaddress string `json:"ipaddress,omitempty"`
+		} `json:"secondaryip,omitempty"`
+		Traffictype      string `json:"traffictype,omitempty"`
+		Type             string `json:"type,omitempty"`
+		Virtualmachineid string `json:"virtualmachineid,omitempty"`
 	} `json:"nic,omitempty"`
 	Ostypeid        int64  `json:"ostypeid,omitempty"`
 	Password        string `json:"password,omitempty"`
@@ -740,15 +742,27 @@ func (s *ISOService) NewListIsosParams() *ListIsosParams {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ISOService) GetIsoID(name string) (string, error) {
+func (s *ISOService) GetIsoID(name string, isofilter string, zoneid string) (string, error) {
 	p := &ListIsosParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["name"] = name
+	p.p["isofilter"] = isofilter
+	p.p["zoneid"] = zoneid
 
 	l, err := s.ListIsos(p)
 	if err != nil {
 		return "", err
+	}
+
+	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListIsos(p)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if l.Count == 0 {
@@ -770,8 +784,8 @@ func (s *ISOService) GetIsoID(name string) (string, error) {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ISOService) GetIsoByName(name string) (*Iso, int, error) {
-	id, err := s.GetIsoID(name)
+func (s *ISOService) GetIsoByName(name string, isofilter string, zoneid string) (*Iso, int, error) {
+	id, err := s.GetIsoID(name, isofilter, zoneid)
 	if err != nil {
 		return nil, -1, err
 	}
@@ -798,6 +812,21 @@ func (s *ISOService) GetIsoByID(id string) (*Iso, int, error) {
 			return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
 		}
 		return nil, -1, err
+	}
+
+	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListIsos(p)
+		if err != nil {
+			if strings.Contains(err.Error(), fmt.Sprintf(
+				"Invalid parameter id value=%s due to incorrect long value format, "+
+					"or entity does not exist", id)) {
+				return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
+			}
+			return nil, -1, err
+		}
 	}
 
 	if l.Count == 0 {
@@ -1410,14 +1439,12 @@ func (s *ISOService) DeleteIso(p *DeleteIsoParams) (*DeleteIsoResponse, error) {
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -1502,14 +1529,12 @@ func (s *ISOService) CopyIso(p *CopyIsoParams) (*CopyIsoResponse, error) {
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -1585,7 +1610,7 @@ func (p *UpdateIsoPermissionsParams) toURLValues() url.Values {
 		return u
 	}
 	if v, found := p.p["accounts"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("accounts", vv)
 	}
 	if v, found := p.p["id"]; found {
@@ -1607,7 +1632,7 @@ func (p *UpdateIsoPermissionsParams) toURLValues() url.Values {
 		u.Set("op", v.(string))
 	}
 	if v, found := p.p["projectids"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("projectids", vv)
 	}
 	return u
@@ -1864,14 +1889,12 @@ func (s *ISOService) ExtractIso(p *ExtractIsoParams) (*ExtractIsoResponse, error
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)

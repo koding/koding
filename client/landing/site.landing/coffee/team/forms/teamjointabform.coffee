@@ -57,5 +57,6 @@ module.exports = class TeamJoinTabForm extends kd.FormView
 
   showTwoFactor: ->
 
+    @button.hideLoader()
     @$('.two-factor').removeClass 'hidden'
     @tfcode.setFocus()

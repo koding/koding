@@ -2,6 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
+// No testdata on Android.
+
+// +build !android
+
 package pointer_test
 
 // This test uses 'expectation' comments embedded within testdata/*.go
@@ -12,8 +18,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"go/parser"
 	"go/token"
+	"go/types"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -26,7 +32,6 @@ import (
 	"golang.org/x/tools/go/pointer"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
-	"golang.org/x/tools/go/types"
 	"golang.org/x/tools/go/types/typeutil"
 )
 
@@ -173,7 +178,7 @@ func doOneInput(input, filename string) bool {
 
 	// SSA creation + building.
 	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
-	prog.BuildAll()
+	prog.Build()
 
 	mainpkg := prog.Package(mainPkgInfo)
 	ptrmain := mainpkg // main package for the pointer analysis
@@ -240,15 +245,7 @@ func doOneInput(input, filename string) bool {
 				for _, typstr := range split(rest, "|") {
 					var t types.Type = types.Typ[types.Invalid] // means "..."
 					if typstr != "..." {
-						texpr, err := parser.ParseExpr(typstr)
-						if err != nil {
-							ok = false
-							// Don't print err since its location is bad.
-							e.errorf("'%s' is not a valid type", typstr)
-							continue
-						}
-						mainFileScope := mainpkg.Object.Scope().Child(0)
-						tv, err := types.EvalNode(prog.Fset, texpr, mainpkg.Object, mainFileScope)
+						tv, err := types.Eval(prog.Fset, mainpkg.Pkg, f.Pos(), typstr)
 						if err != nil {
 							ok = false
 							// Don't print err since its location is bad.
@@ -525,6 +522,9 @@ func checkWarningExpectation(prog *ssa.Program, e *expectation, warnings []point
 }
 
 func TestInput(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode; this test requires tons of memory; golang.org/issue/14113")
+	}
 	ok := true
 
 	wd, err := os.Getwd()

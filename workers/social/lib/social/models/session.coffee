@@ -139,14 +139,10 @@ module.exports = class JSession extends Model
 
   remove$: secure (client, callback) ->
 
-    { sessionToken } = client
+    username = client.connection?.delegate?.profile?.nickname
 
-    JSession.one { clientId : sessionToken }, (err, session) =>
-      return callback err  if err
-      return callback new KodingError 'Invalid session.'  unless session
+    # check if requester is the owner of the current session
+    unless @username is username
+      return callback new KodingError 'Access denied.'
 
-      # check if requester is the owner of the session
-      unless @username is session.username
-        return callback new KodingError 'Access denied.'
-
-      @remove callback
+    @remove callback
