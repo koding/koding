@@ -116,6 +116,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
 
 
   defaults:
+    theme                   : 'base16'
     tabSize                 : 4
     fontSize                : 12
     showGutter              : yes
