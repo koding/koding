@@ -5,7 +5,6 @@ import (
 	"socialapi/request"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/koding/bongo"
 )
 
@@ -55,13 +54,6 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Delete() error {
-
-	if c.TypeConstant == Channel_TYPE_GROUP {
-		if err := c.deleteAllChannelsOfGroup(); err != nil {
-			return err
-		}
-	}
-
 	// first delete channel list relations
 	messageMap, err := c.deleteChannelLists()
 	if err != nil {
@@ -126,21 +118,4 @@ func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 
 func (c *Channel) CountWithQuery(q *bongo.Query) (int, error) {
 	return bongo.B.CountWithQuery(c, q)
-}
-
-func (c *Channel) deleteAllChannelsOfGroup() error {
-	var errs *multierror.Error
-	chans, err := c.FetchAllChannelsOfGroup()
-	if err != nil {
-		return err
-	}
-
-	for _, channel := range chans {
-		if err := channel.Delete(); err != nil {
-			errs = multierror.Append(errs, err)
-		}
-	}
-	if errs.ErrorOrNil() != nil {
-		return errs
-	}
 }
