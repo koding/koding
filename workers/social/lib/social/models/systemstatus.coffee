@@ -17,8 +17,6 @@ module.exports = class JSystemStatus extends Model
           (signature Object, Function)
         stopCurrentSystemStatus:
           (signature Function)
-        forceReload:
-          (do signature)
         healthCheck  :
           (signature Function)
         checkRealtimeUpdates:
@@ -30,7 +28,7 @@ module.exports = class JSystemStatus extends Model
           (signature Function)
 
     sharedEvents     :
-      static         : ['forceReload', 'restartScheduled']
+      static         : ['restartScheduled']
       instance       : ['restartCanceled']
 
     schema           :
@@ -59,13 +57,6 @@ module.exports = class JSystemStatus extends Model
     kodingErr
 
   { log } = console
-
-  @forceReload = secure (client) ->
-    { connection:{ delegate } } = client
-    unless delegate.checkFlag('super-admin')
-      log 'status: not authorized to stop a system status'
-      return
-    @emit 'forceReload'
 
   @stopCurrentSystemStatus = secure (client, callback = -> ) ->
     { connection:{ delegate } } = client
