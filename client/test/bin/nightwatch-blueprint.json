@@ -25,6 +25,7 @@
         "path" : "../logs"
       },
       "desiredCapabilities": {
+        "browserName": "chrome",
         "javascriptEnabled": true,
         "acceptSslCerts": true
       }
@@ -33,6 +34,7 @@
     "host": {
       "selenium_port": 42420,
       "desiredCapabilities": {
+        "browserName": "chrome",
         "javascriptEnabled": true,
         "acceptSslCerts": true
       }
@@ -41,6 +43,7 @@
     "participant": {
       "selenium_port": 42421,
       "desiredCapabilities": {
+        "browserName": "chrome",
         "javascriptEnabled": true,
         "acceptSslCerts": true
       }
