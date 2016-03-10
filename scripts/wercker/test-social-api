@@ -10,5 +10,3 @@ tail -n 100 /var/log/koding/social-webhookmiddleware.log
 
 cd $WERCKER_ROOT/go/src/socialapi
 EXTRAS="-story=true" make testapi config=config/test.toml
-
-exit 0
