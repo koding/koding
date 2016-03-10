@@ -652,7 +652,7 @@ module.exports = class JMachine extends Module
 
     , (client, options, callback) ->
 
-      { r: { user } } = client
+      { r: { user, group } } = client
 
       # set group data for future notification operations, wont be used in
       # machine sharing
@@ -679,11 +679,12 @@ module.exports = class JMachine extends Module
 
         return
 
+      isKoding = group.slug is 'koding'
+
       # Permanent option is only valid for paid accounts
       # if its passed then we need to check payment
       #
-      if permanent and @provider in ['managed', 'koding'] and options.group is 'koding'
-                   # TODO: we can limit this for koding provider only ~ GG
+      if permanent and @provider in ['managed', 'koding'] and isKoding
 
         Payment = require '../payment'
         Payment.subscriptions client, {}, (err, subscription) =>
