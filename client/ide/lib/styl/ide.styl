@@ -134,7 +134,7 @@ body.ide .dark
     color                   dark-tab-color
 
     &:hover .options
-      display               inline-block
+      opacity               1
 
     &.active
       bg                    color, dark-panel-bg
@@ -142,15 +142,24 @@ body.ide .dark
 
     &.menu-visible
       .options
-        display             inline-block
+        opacity             1
 
     .options
-      r-sprite              'finder', 'expanded'
       position              absolute
-      top                   9px
-      right                 20px
-      display               none
+      top                   8px
+      right                 23px
       size                  20px 20px
+      z-index               1
+      dBlock()
+      opacity               0
+
+      &:before
+        content             ''
+        r-sprite            'finder', 'expanded'
+        dBlock()
+        rel()
+        top                 1px
+        left                2px
 
     &.plus
       border-left-color     transparent
