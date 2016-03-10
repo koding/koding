@@ -40,6 +40,19 @@ reviveProvisioners = (client, provisioners, callback, revive = no) ->
       callback null, [ provision.slug ]
 
 
+reviveGroupPlan = (group, callback) ->
+
+  Payment = require '../payment'
+  Payment.fetchGroupPlan group, (err, plan) ->
+
+    return callback err  if err
+    return callback new KodingError 'Plan not found'  unless plan
+
+    group._activePlan = plan
+
+    callback null, group
+
+
 reviveCredential = (client, credential, callback) ->
 
   [credential, callback] = [callback, credential]  unless callback?
@@ -389,6 +402,6 @@ fetchUsage = (client, options, callback) ->
 module.exports = {
   fetchUserPlan, fetchGroupStackTemplate, fetchUsage
   PLANS, PROVIDERS, guessNextLabel, checkUsage
-  revive, reviveClient, reviveCredential
+  revive, reviveClient, reviveCredential, reviveGroupPlan
   checkTemplateUsage
 }
