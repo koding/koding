@@ -96,7 +96,6 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'GroupDestroyed' }
         { name: 'broadcast' }
         { name: 'updateInstance' }
 
