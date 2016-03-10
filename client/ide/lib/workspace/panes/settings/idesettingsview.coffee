@@ -16,9 +16,8 @@ module.exports = class IDESettingsView extends JView
     controller      = kd.getSingleton 'appStorageController'
     @appStorage     = controller.storage name, version
 
-    @appStorage.ready =>
-      @appStorage._storage.on 'Update', =>
-        @getSettings yes, no
+    kd.singletons.notificationController.on 'StorageUpdated', =>
+      @getSettings yes, no
 
     @createElements()
     @getSettings()
