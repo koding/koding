@@ -108,8 +108,17 @@ func publicIPRetry(hosts []string, maxRetries int, retryPause time.Duration, log
 	return nil, err
 }
 
-func isReachable(port, service string) (bool, error) {
-	resp, err := defaultClient.Get(service + "/" + port)
+func isReachable(addr, service string) (bool, error) {
+	ip, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return false, err
+	}
+	req, err := http.NewRequest("GET", service+"/"+port, nil)
+	if err != nil {
+		return false, err
+	}
+	req.Header.Set("X-Real-IP", ip)
+	resp, err := defaultClient.Do(req)
 	if err != nil {
 		return false, err
 	}
@@ -195,7 +204,7 @@ func IsReachableRetry(addr string, maxRetries int, retryPause time.Duration, log
 	for i := 0; i < maxRetries; i++ {
 		service := testSites[i%len(testSites)]
 
-		ok, err = isReachable(port, service)
+		ok, err = isReachable(addr, service)
 		if err == nil {
 			return ok, nil
 		}
