@@ -48,6 +48,7 @@ module.exports = class BlockedMemberItemView extends kd.ListItemView
         customErr = new Error 'Failed to unblock user. Please try again.'
         return @handleError @unblockButton, customErr
 
+      @emit 'UserUnblocked'
       @destroy()
 
 

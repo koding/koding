@@ -64,6 +64,9 @@ module.exports = class AdminMembersView extends kd.View
           cssClass        : 'no-item-view'
       , data
 
+      @blockedView.listController.getListView().on 'ItemWasAdded', (item) =>
+        item.on 'UserUnblocked', @bound 'refreshAllTabs'
+
     tabView.showPaneByIndex 0
     @addSubView tabView
 
