@@ -123,9 +123,13 @@ module.exports = class IDELayoutManager extends KDObject
         @getSubLevel pane
 
     else if target instanceof KDTabPaneView
+
       return  unless target.view.serialize
+      return  unless target.parent
 
       pane = context : target.view.serialize()
+      pane.context.isActivePane = target.parent.getActivePane() is target
+
       last = @findLastSplitView @subViews
 
       if last                     ## If there is last view
@@ -203,7 +207,8 @@ module.exports = class IDELayoutManager extends KDObject
   resurrectPanes_: (items, tabView, silent) ->
 
     ## The `ideApp` is an `IDEAppController`s instane
-    ideApp = @getDelegate()
+    ideApp        = @getDelegate()
+    hasActivePane = no
 
     for own index, item of items
 
@@ -231,6 +236,13 @@ module.exports = class IDELayoutManager extends KDObject
         # Don't use `active tab view` logic for new pane creation.
         # Because `The Editors` (saved editors) are loading async.
         item.targetTabView = tabView  if item.context.paneType in [ 'editor', 'tailer' ]
+        hasActivePane      = yes      if item.context.isActivePane
+
+        # If resurrection data does not contain any isActivePane flag for each IDEView, set it to last item automatically.
+        if (parseInt(index, 10) is items.length - 1) and not hasActivePane
+          hasActivePane             = yes
+          item.context.isActivePane = yes
+
         ideApp.createPaneFromChange item, yes
 
 
