@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package interp
 
 // Values
@@ -36,6 +38,7 @@ package interp
 import (
 	"bytes"
 	"fmt"
+	"go/types"
 	"io"
 	"reflect"
 	"strings"
@@ -43,7 +46,6 @@ import (
 	"unsafe"
 
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/types"
 	"golang.org/x/tools/go/types/typeutil"
 )
 

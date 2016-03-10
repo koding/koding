@@ -115,7 +115,7 @@ func (s *S) TestURLParsing(c *C) {
 		if session != nil {
 			session.Close()
 		}
-		c.Assert(err, ErrorMatches, "Unsupported connection URL option: (foo=1|bar=2)")
+		c.Assert(err, ErrorMatches, "unsupported connection URL option: (foo=1|bar=2)")
 	}
 }
 
@@ -454,7 +454,11 @@ func (s *S) TestUpsert(c *C) {
 	info, err = coll.Upsert(M{"k": 48}, M{"k": 48, "n": 48, "_id": 48})
 	c.Assert(err, IsNil)
 	c.Assert(info.Updated, Equals, 0)
-	c.Assert(info.UpsertedId, IsNil) // Unfortunate, but that's what Mongo gives us.
+	if s.versionAtLeast(2, 6) {
+		c.Assert(info.UpsertedId, Equals, 48)
+	} else {
+		c.Assert(info.UpsertedId, IsNil) // Unfortunate, but that's what Mongo gave us.
+	}
 
 	err = coll.Find(M{"k": 48}).One(result)
 	c.Assert(err, IsNil)
@@ -487,7 +491,11 @@ func (s *S) TestUpsertId(c *C) {
 	info, err = coll.UpsertId(47, M{"_id": 47, "n": 47})
 	c.Assert(err, IsNil)
 	c.Assert(info.Updated, Equals, 0)
-	c.Assert(info.UpsertedId, IsNil)
+	if s.versionAtLeast(2, 6) {
+		c.Assert(info.UpsertedId, Equals, 47)
+	} else {
+		c.Assert(info.UpsertedId, IsNil)
+	}
 
 	err = coll.FindId(47).One(result)
 	c.Assert(err, IsNil)
@@ -524,9 +532,12 @@ func (s *S) TestUpdateAll(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(result["n"], Equals, 45)
 
-	info, err = coll.UpdateAll(M{"k": 47}, M{"k": 47, "n": 47})
-	c.Assert(err, Equals, nil)
-	c.Assert(info.Updated, Equals, 0)
+	if !s.versionAtLeast(2, 6) {
+		// 2.6 made this invalid.
+		info, err = coll.UpdateAll(M{"k": 47}, M{"k": 47, "n": 47})
+		c.Assert(err, Equals, nil)
+		c.Assert(info.Updated, Equals, 0)
+	}
 }
 
 func (s *S) TestRemove(c *C) {
@@ -741,6 +752,8 @@ func (s *S) TestIsDupValues(c *C) {
 	c.Assert(mgo.IsDup(&mgo.QueryError{Code: 11001}), Equals, true)
 	c.Assert(mgo.IsDup(&mgo.LastError{Code: 12582}), Equals, true)
 	c.Assert(mgo.IsDup(&mgo.QueryError{Code: 12582}), Equals, true)
+	lerr := &mgo.LastError{Code: 16460, Err:"error inserting 1 documents to shard ... caused by :: E11000 duplicate key error index: ..."}
+	c.Assert(mgo.IsDup(lerr), Equals, true)
 }
 
 func (s *S) TestIsDupPrimary(c *C) {
@@ -797,8 +810,8 @@ func (s *S) TestIsDupCapped(c *C) {
 	err = coll.Insert(M{"_id": 1})
 	c.Assert(err, IsNil)
 	err = coll.Insert(M{"_id": 1})
-	// Quite unfortunate that the error is different for capped collections.
-	c.Assert(err, ErrorMatches, "duplicate key.*capped collection")
+	// The error was different for capped collections before 2.6.
+	c.Assert(err, ErrorMatches, ".*duplicate key.*")
 	// The issue is reduced by using IsDup.
 	c.Assert(mgo.IsDup(err), Equals, true)
 }
@@ -892,11 +905,16 @@ func (s *S) TestFindAndModifyBug997828(c *C) {
 
 	result := make(M)
 	_, err = coll.Find(M{"n": "not-a-number"}).Apply(mgo.Change{Update: M{"$inc": M{"n": 1}}}, result)
-	c.Assert(err, ErrorMatches, `(exception: )?Cannot apply \$inc modifier to non-number`)
+	c.Assert(err, ErrorMatches, `(exception: )?Cannot apply \$inc .*`)
 	if s.versionAtLeast(2, 1) {
 		qerr, _ := err.(*mgo.QueryError)
 		c.Assert(qerr, NotNil, Commentf("err: %#v", err))
-		c.Assert(qerr.Code, Equals, 10140)
+		if s.versionAtLeast(2, 6) {
+			// Oh, the dance of error codes. :-(
+			c.Assert(qerr.Code, Equals, 16837)
+		} else {
+			c.Assert(qerr.Code, Equals, 10140)
+		}
 	} else {
 		lerr, _ := err.(*mgo.LastError)
 		c.Assert(lerr, NotNil, Commentf("err: %#v", err))
@@ -2222,7 +2240,7 @@ func (s *S) TestSafeInsert(c *C) {
 
 	// Session should be safe by default, so inserting it again must fail.
 	err = coll.Insert(M{"_id": 1})
-	c.Assert(err, ErrorMatches, "E11000 duplicate.*")
+	c.Assert(err, ErrorMatches, ".*E11000 duplicate.*")
 	c.Assert(err.(*mgo.LastError).Code, Equals, 11000)
 
 	// It must have sent two operations (INSERT_OP + getLastError QUERY_OP)
@@ -2251,8 +2269,11 @@ func (s *S) TestSafeParameters(c *C) {
 	// Tweak the safety parameters to something unachievable.
 	session.SetSafe(&mgo.Safe{W: 4, WTimeout: 100})
 	err = coll.Insert(M{"_id": 1})
-	c.Assert(err, ErrorMatches, "timeout")
-	c.Assert(err.(*mgo.LastError).WTimeout, Equals, true)
+	c.Assert(err, ErrorMatches, "timeout|timed out waiting for slaves")
+	if !s.versionAtLeast(2, 6) {
+		// 2.6 turned it into a query error.
+		c.Assert(err.(*mgo.LastError).WTimeout, Equals, true)
+	}
 }
 
 func (s *S) TestQueryErrorOne(c *C) {
@@ -2267,12 +2288,17 @@ func (s *S) TestQueryErrorOne(c *C) {
 	}{}
 
 	err = coll.Find(M{"a": 1}).Select(M{"a": M{"b": 1}}).One(&result)
-	c.Assert(err, ErrorMatches, "Unsupported projection option: b")
-	c.Assert(err.(*mgo.QueryError).Message, Matches, "Unsupported projection option: b")
-	c.Assert(err.(*mgo.QueryError).Code, Equals, 13097)
+	c.Assert(err, ErrorMatches, ".*Unsupported projection option:.*")
+	c.Assert(err.(*mgo.QueryError).Message, Matches, ".*Unsupported projection option:.*")
+	if s.versionAtLeast(2, 6) {
+		// Oh, the dance of error codes. :-(
+		c.Assert(err.(*mgo.QueryError).Code, Equals, 17287)
+	} else {
+		c.Assert(err.(*mgo.QueryError).Code, Equals, 13097)
+	}
 
 	// The result should be properly unmarshalled with QueryError
-	c.Assert(result.Err, Matches, "Unsupported projection option: b")
+	c.Assert(result.Err, Matches, ".*Unsupported projection option:.*")
 }
 
 func (s *S) TestQueryErrorNext(c *C) {
@@ -2292,13 +2318,18 @@ func (s *S) TestQueryErrorNext(c *C) {
 	c.Assert(ok, Equals, false)
 
 	err = iter.Close()
-	c.Assert(err, ErrorMatches, "Unsupported projection option: b")
-	c.Assert(err.(*mgo.QueryError).Message, Matches, "Unsupported projection option: b")
-	c.Assert(err.(*mgo.QueryError).Code, Equals, 13097)
+	c.Assert(err, ErrorMatches, ".*Unsupported projection option:.*")
+	c.Assert(err.(*mgo.QueryError).Message, Matches, ".*Unsupported projection option:.*")
+	if s.versionAtLeast(2, 6) {
+		// Oh, the dance of error codes. :-(
+		c.Assert(err.(*mgo.QueryError).Code, Equals, 17287)
+	} else {
+		c.Assert(err.(*mgo.QueryError).Code, Equals, 13097)
+	}
 	c.Assert(iter.Err(), Equals, err)
 
 	// The result should be properly unmarshalled with QueryError
-	c.Assert(result.Err, Matches, "Unsupported projection option: b")
+	c.Assert(result.Err, Matches, ".*Unsupported projection option:.*")
 }
 
 func (s *S) TestEnsureIndex(c *C) {
@@ -2414,10 +2445,10 @@ func (s *S) TestEnsureIndexWithBadInfo(c *C) {
 	coll := session.DB("mydb").C("mycoll")
 
 	err = coll.EnsureIndex(mgo.Index{})
-	c.Assert(err, ErrorMatches, "Invalid index key:.*")
+	c.Assert(err, ErrorMatches, "invalid index key:.*")
 
 	err = coll.EnsureIndex(mgo.Index{Key: []string{""}})
-	c.Assert(err, ErrorMatches, "Invalid index key:.*")
+	c.Assert(err, ErrorMatches, "invalid index key:.*")
 }
 
 func (s *S) TestEnsureIndexWithUnsafeSession(c *C) {
@@ -2517,7 +2548,7 @@ func (s *S) TestEnsureIndexDropIndex(c *C) {
 	c.Assert(err, Equals, mgo.ErrNotFound)
 
 	err = coll.DropIndex("a")
-	c.Assert(err, ErrorMatches, "index not found")
+	c.Assert(err, ErrorMatches, "index not found.*")
 }
 
 func (s *S) TestEnsureIndexCaching(c *C) {
@@ -2901,7 +2932,10 @@ func (s *S) TestMapReduceVerbose(c *C) {
 
 	coll := session.DB("mydb").C("mycoll")
 
-	coll.Insert(M{"n": 1})
+	for i := 0; i < 100; i++ {
+		err = coll.Insert(M{"n": i})
+		c.Assert(err, IsNil)
+	}
 
 	job := &mgo.MapReduce{
 		Map:     "function() { emit(this.n, 1); }",
@@ -3189,8 +3223,13 @@ func (s *S) TestLogReplay(c *C) {
 	}
 
 	iter := coll.Find(nil).LogReplay().Iter()
-	c.Assert(iter.Next(bson.M{}), Equals, false)
-	c.Assert(iter.Err(), ErrorMatches, "no ts field in query")
+	if s.versionAtLeast(2, 6) {
+		// This used to fail in 2.4. Now it's just a smoke test.
+		c.Assert(iter.Err(), IsNil)
+	} else {
+		c.Assert(iter.Next(bson.M{}), Equals, false)
+		c.Assert(iter.Err(), ErrorMatches, "no ts field in query")
+	}
 }
 
 func (s *S) TestSetCursorTimeout(c *C) {

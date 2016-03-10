@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 type QueryAsyncJobResultParams struct {
@@ -56,7 +57,17 @@ func (s *AsyncjobService) NewQueryAsyncJobResultParams(jobid string) *QueryAsync
 
 // Retrieves the current status of asynchronous job.
 func (s *AsyncjobService) QueryAsyncJobResult(p *QueryAsyncJobResultParams) (*QueryAsyncJobResultResponse, error) {
-	resp, err := s.cs.newRequest("queryAsyncJobResult", p.toURLValues())
+	var resp json.RawMessage
+	var err error
+
+	// We should be able to retry on failure as this call is idempotent
+	for i := 0; i < 3; i++ {
+		resp, err = s.cs.newRequest("queryAsyncJobResult", p.toURLValues())
+		if err == nil {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +221,7 @@ func (s *AsyncjobService) ListAsyncJobs(p *ListAsyncJobsParams) (*ListAsyncJobsR
 
 type ListAsyncJobsResponse struct {
 	Count     int         `json:"count"`
-	AsyncJobs []*AsyncJob `json:"asyncjob"`
+	AsyncJobs []*AsyncJob `json:"asyncjobs"`
 }
 
 type AsyncJob struct {

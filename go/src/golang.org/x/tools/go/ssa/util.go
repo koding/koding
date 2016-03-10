@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 package ssa
 
 // This file defines a number of miscellaneous utility functions.
@@ -10,11 +12,11 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"io"
 	"os"
 
 	"golang.org/x/tools/go/ast/astutil"
-	"golang.org/x/tools/go/types"
 )
 
 //// AST utilities
@@ -114,6 +116,6 @@ func makeLen(T types.Type) *Builtin {
 	lenParams := types.NewTuple(anonVar(T))
 	return &Builtin{
 		name: "len",
-		sig:  types.NewSignature(nil, nil, lenParams, lenResults, false),
+		sig:  types.NewSignature(nil, lenParams, lenResults, false),
 	}
 }

@@ -17,15 +17,18 @@
 package cloudstack44
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 )
@@ -41,12 +44,14 @@ func (e *CSError) Error() error {
 }
 
 type CloudStackClient struct {
+	HTTPGETOnly bool // If `true` only use HTTP GET calls
+
 	client  *http.Client // The http client for communicating
 	baseURL string       // The base URL of the API
 	apiKey  string       // Api key
 	secret  string       // Secret key
 	async   bool         // Wait for async calls to finish
-	timeout int64        // Max waiting timeout in seconds for async jobs to finish; defaults to 60 seconds
+	timeout int64        // Max waiting timeout in seconds for async jobs to finish; defaults to 300 seconds
 
 	APIDiscovery     *APIDiscoveryService
 	Account          *AccountService
@@ -74,8 +79,6 @@ type CloudStackClient struct {
 	LDAP             *LDAPService
 	Limit            *LimitService
 	LoadBalancer     *LoadBalancerService
-	Login            *LoginService
-	Logout           *LogoutService
 	NAT              *NATService
 	NetworkACL       *NetworkACLService
 	NetworkDevice    *NetworkDeviceService
@@ -123,12 +126,13 @@ func newClient(apiurl string, apikey string, secret string, async bool, verifyss
 				Proxy:           http.ProxyFromEnvironment,
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: !verifyssl}, // If verifyssl is true, skipping the verify should be false and vice versa
 			},
+			Timeout: time.Duration(60 * time.Second),
 		},
 		baseURL: apiurl,
 		apiKey:  apikey,
 		secret:  secret,
 		async:   async,
-		timeout: 60,
+		timeout: 300,
 	}
 	cs.APIDiscovery = NewAPIDiscoveryService(cs)
 	cs.Account = NewAccountService(cs)
@@ -156,8 +160,6 @@ func newClient(apiurl string, apikey string, secret string, async bool, verifyss
 	cs.LDAP = NewLDAPService(cs)
 	cs.Limit = NewLimitService(cs)
 	cs.LoadBalancer = NewLoadBalancerService(cs)
-	cs.Login = NewLoginService(cs)
-	cs.Logout = NewLogoutService(cs)
 	cs.NAT = NewNATService(cs)
 	cs.NetworkACL = NewNetworkACLService(cs)
 	cs.NetworkDevice = NewNetworkDeviceService(cs)
@@ -215,41 +217,52 @@ func NewAsyncClient(apiurl string, apikey string, secret string, verifyssl bool)
 	return cs
 }
 
-// When using the async client an api call will wait for the async call to finish before returning. The default is to poll for 60
+// When using the async client an api call will wait for the async call to finish before returning. The default is to poll for 300 seconds
 // seconds, to check if the async job is finished.
 func (cs *CloudStackClient) AsyncTimeout(timeoutInSeconds int64) {
 	cs.timeout = timeoutInSeconds
 }
 
+var AsyncTimeoutErr = errors.New("Timeout while waiting for async job to finish")
+
 // A helper function that you can use to get the result of a running async job. If the job is not finished within the configured
-// timeout, the async job return a warning saying the timer has expired.
-func (cs *CloudStackClient) GetAsyncJobResult(jobid string, timeout int64) (b json.RawMessage, warn error, err error) {
+// timeout, the async job returns a AsyncTimeoutErr.
+func (cs *CloudStackClient) GetAsyncJobResult(jobid string, timeout int64) (json.RawMessage, error) {
+	var timer time.Duration
 	currentTime := time.Now().Unix()
+
 	for {
 		p := cs.Asyncjob.NewQueryAsyncJobResultParams(jobid)
 		r, err := cs.Asyncjob.QueryAsyncJobResult(p)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		// Status 1 means the job is finished successfully
 		if r.Jobstatus == 1 {
-			return r.Jobresult, nil, nil
+			return r.Jobresult, nil
 		}
 
 		// When the status is 2, the job has failed
 		if r.Jobstatus == 2 {
 			if r.Jobresulttype == "text" {
-				return nil, nil, fmt.Errorf(string(r.Jobresult))
+				return nil, fmt.Errorf(string(r.Jobresult))
 			} else {
-				return nil, nil, fmt.Errorf("Undefined error: %s", string(r.Jobresult))
+				return nil, fmt.Errorf("Undefined error: %s", string(r.Jobresult))
 			}
 		}
 
 		if time.Now().Unix()-currentTime > timeout {
-			return nil, fmt.Errorf("Timeout while waiting for async job to finish"), nil
+			return nil, AsyncTimeoutErr
 		}
-		time.Sleep(3 * time.Second)
+
+		// Add an (extremely simple) exponential backoff like feature to prevent
+		// flooding the CloudStack API
+		if timer < 15 {
+			timer++
+		}
+
+		time.Sleep(timer * time.Second)
 	}
 }
 
@@ -257,17 +270,17 @@ func (cs *CloudStackClient) GetAsyncJobResult(jobid string, timeout int64) (b js
 // no error occured. If the API returns an error the result will be nil and the HTTP error code and CS
 // error details. If a processing (code) error occurs the result will be nil and the generated error
 func (cs *CloudStackClient) newRequest(api string, params url.Values) (json.RawMessage, error) {
-	params.Set("apikey", cs.apiKey)
+	params.Set("apiKey", cs.apiKey)
 	params.Set("command", api)
 	params.Set("response", "json")
 
 	// Generate signature for API call
-	// * Serialize parameters and sort them by key, done by Encode
+	// * Serialize parameters, URL encoding only values and sort them by key, done by encodeValues
 	// * Convert the entire argument string to lowercase
 	// * Replace all instances of '+' to '%20'
 	// * Calculate HMAC SHA1 of argument string with CloudStack secret
 	// * URL encode the string and convert to base64
-	s := params.Encode()
+	s := encodeValues(params)
 	s2 := strings.ToLower(s)
 	s3 := strings.Replace(s2, "+", "%20", -1)
 	mac := hmac.New(sha1.New, []byte(cs.secret))
@@ -276,7 +289,7 @@ func (cs *CloudStackClient) newRequest(api string, params url.Values) (json.RawM
 
 	var err error
 	var resp *http.Response
-	if api == "deployVirtualMachine" {
+	if !cs.HTTPGETOnly && (api == "deployVirtualMachine" || api == "updateVirtualMachine") {
 		// The deployVirtualMachine API should be called using a POST call
 		// so we don't have to worry about the userdata size
 
@@ -295,9 +308,9 @@ func (cs *CloudStackClient) newRequest(api string, params url.Values) (json.RawM
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	b, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -316,6 +329,32 @@ func (cs *CloudStackClient) newRequest(api string, params url.Values) (json.RawM
 		return nil, e.Error()
 	}
 	return b, nil
+}
+
+// Custom version of net/url Encode that only URL escapes values
+// Unmodified portions here remain under BSD license of The Go Authors: https://go.googlesource.com/go/+/master/LICENSE
+func encodeValues(v url.Values) string {
+	if v == nil {
+		return ""
+	}
+	var buf bytes.Buffer
+	keys := make([]string, 0, len(v))
+	for k := range v {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		vs := v[k]
+		prefix := k + "="
+		for _, v := range vs {
+			if buf.Len() > 0 {
+				buf.WriteByte('&')
+			}
+			buf.WriteString(prefix)
+			buf.WriteString(url.QueryEscape(v))
+		}
+	}
+	return buf.String()
 }
 
 // Generic function to get the first raw value from a response as json.RawMessage
@@ -536,22 +575,6 @@ type LoadBalancerService struct {
 
 func NewLoadBalancerService(cs *CloudStackClient) *LoadBalancerService {
 	return &LoadBalancerService{cs: cs}
-}
-
-type LoginService struct {
-	cs *CloudStackClient
-}
-
-func NewLoginService(cs *CloudStackClient) *LoginService {
-	return &LoginService{cs: cs}
-}
-
-type LogoutService struct {
-	cs *CloudStackClient
-}
-
-func NewLogoutService(cs *CloudStackClient) *LogoutService {
-	return &LogoutService{cs: cs}
 }
 
 type NATService struct {

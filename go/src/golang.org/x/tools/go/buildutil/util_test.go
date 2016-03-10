@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Incomplete source tree on Android.
+
+// +build !android
+
 package buildutil_test
 
 import (
@@ -19,13 +23,14 @@ func TestContainingPackage(t *testing.T) {
 	goroot := runtime.GOROOT()
 	gopath := filepath.SplitList(os.Getenv("GOPATH"))[0]
 
-	for _, test := range [][2]string{
+	tests := [][2]string{
 		{goroot + "/src/fmt/print.go", "fmt"},
 		{goroot + "/src/encoding/json/foo.go", "encoding/json"},
 		{goroot + "/src/encoding/missing/foo.go", "(not found)"},
 		{gopath + "/src/golang.org/x/tools/go/buildutil/util_test.go",
 			"golang.org/x/tools/go/buildutil"},
-	} {
+	}
+	for _, test := range tests {
 		file, want := test[0], test[1]
 		bp, err := buildutil.ContainingPackage(&build.Default, ".", file)
 		got := bp.ImportPath

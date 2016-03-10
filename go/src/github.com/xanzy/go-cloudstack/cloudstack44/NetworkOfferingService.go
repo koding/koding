@@ -91,8 +91,8 @@ func (p *CreateNetworkOfferingParams) toURLValues() url.Values {
 	if v, found := p.p["serviceproviderlist"]; found {
 		i := 0
 		for k, vv := range v.(map[string]string) {
-			u.Set(fmt.Sprintf("serviceproviderlist[%d].key", i), k)
-			u.Set(fmt.Sprintf("serviceproviderlist[%d].value", i), vv)
+			u.Set(fmt.Sprintf("serviceproviderlist[%d].service", i), k)
+			u.Set(fmt.Sprintf("serviceproviderlist[%d].provider", i), vv)
 			i++
 		}
 	}
@@ -105,7 +105,7 @@ func (p *CreateNetworkOfferingParams) toURLValues() url.Values {
 		u.Set("specifyvlan", vv)
 	}
 	if v, found := p.p["supportedservices"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("supportedservices", vv)
 	}
 	if v, found := p.p["tags"]; found {
@@ -286,6 +286,10 @@ func (s *NetworkOfferingService) NewCreateNetworkOfferingParams(displaytext stri
 func (s *NetworkOfferingService) CreateNetworkOffering(p *CreateNetworkOfferingParams) (*CreateNetworkOfferingResponse, error) {
 	resp, err := s.cs.newRequest("createNetworkOffering", p.toURLValues())
 	if err != nil {
+		return nil, err
+	}
+
+	if resp, err = getRawValue(resp); err != nil {
 		return nil, err
 	}
 
@@ -620,7 +624,7 @@ func (p *ListNetworkOfferingsParams) toURLValues() url.Values {
 		u.Set("state", v.(string))
 	}
 	if v, found := p.p["supportedservices"]; found {
-		vv := strings.Join(v.([]string), ", ")
+		vv := strings.Join(v.([]string), ",")
 		u.Set("supportedservices", vv)
 	}
 	if v, found := p.p["tags"]; found {

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.5
+
 // This package provides Rapid Type Analysis (RTA) for Go, a fast
 // algorithm for call graph construction and discovery of reachable code
 // (and hence dead code) and runtime types.  The algorithm was first
@@ -48,10 +50,10 @@ package rta // import "golang.org/x/tools/go/callgraph/rta"
 
 import (
 	"fmt"
+	"go/types"
 
 	"golang.org/x/tools/go/callgraph"
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/types"
 	"golang.org/x/tools/go/types/typeutil"
 )
 
@@ -197,7 +199,7 @@ func (r *rta) visitDynCall(site ssa.CallInstruction) {
 func (r *rta) addInvokeEdge(site ssa.CallInstruction, C types.Type) {
 	// Ascertain the concrete method of C to be called.
 	imethod := site.Common().Method
-	cmethod := r.prog.Method(r.prog.MethodSets.MethodSet(C).Lookup(imethod.Pkg(), imethod.Name()))
+	cmethod := r.prog.MethodValue(r.prog.MethodSets.MethodSet(C).Lookup(imethod.Pkg(), imethod.Name()))
 	r.addEdge(site, cmethod, true)
 }
 
@@ -361,7 +363,7 @@ func (r *rta) addRuntimeType(T types.Type, skip bool) {
 
 			if m.Exported() {
 				// Exported methods are always potentially callable via reflection.
-				r.addReachable(r.prog.Method(sel), true)
+				r.addReachable(r.prog.MethodValue(sel), true)
 			}
 		}
 
