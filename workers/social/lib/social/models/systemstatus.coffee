@@ -28,8 +28,8 @@ module.exports = class JSystemStatus extends Model
           (signature Function)
 
     sharedEvents     :
-      static         : ['restartScheduled']
-      instance       : ['restartCanceled']
+      static         : []
+      instance       : []
 
     schema           :
       title          : String
@@ -70,11 +70,7 @@ module.exports = class JSystemStatus extends Model
         # log 'no status to stop'
         callback err, status
       else
-        status.update {
-          $set: { status: 'stopped' }
-        }, (err) ->
-          status.emit 'restartCanceled', {}
-          callback err
+        status.update { $set: { status: 'stopped' } }, callback
 
   @getCurrentSystemStatuses = (callback = -> ) ->
     JSystemStatus.some {
@@ -95,7 +91,6 @@ module.exports = class JSystemStatus extends Model
 
     status = new JSystemStatus data
     status.save (err) ->
-      JSystemStatus.emit 'restartScheduled', status  unless err
       callback err, status
 
   cancel: secure (client, callback) ->
@@ -103,9 +98,8 @@ module.exports = class JSystemStatus extends Model
     unless delegate.checkFlag('super-admin')
       return callback new KodingError 'Not authorized to cancel a system status'
 
-    @update { $set : { status : 'stopped' } }, (err) =>
+    @update { $set : { status : 'stopped' } }, (err) ->
       unless err
-        @emit 'restartCanceled'
         callback()
       else
         callback callback new KodingError 'Could not cancel the system status'
