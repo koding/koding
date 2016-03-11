@@ -42,6 +42,16 @@ reviveProvisioners = (client, provisioners, callback, revive = no) ->
 
 reviveGroupPlan = (group, callback) ->
 
+  # Support for test plan data to cover test cases that we need
+  # to be able to run tests for different plans but we don't
+  # need to update plan data on payment endpoint ~ GG
+  if testPlan = group?.getAt 'config.testplan'
+
+    group._activePlan = testPlan
+    callback null, group
+
+    return
+
   Payment = require '../payment'
   Payment.fetchGroupPlan group, (err, plan) ->
 
