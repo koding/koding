@@ -235,39 +235,43 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           ], done
 
 
-    # describe 'when team plan limit has been reached', ->
+    describe 'when team plan limit has been reached', ->
 
-    #   it 'should fail to generate a stack from the template', (done) ->
+      it 'should fail to generate a stack from the template', (done) ->
 
-    #     options       =
-    #       machines    : generateStackMachineData 2
-    #       createGroup : yes
+        options       =
+          machines    : generateStackMachineData 2
+          createGroup : yes
 
-    #     withConvertedUserAndStackTemplate options, ({ client, group, stackTemplate }) ->
+        withConvertedUserAndStackTemplate options, ({ client, group, stackTemplate }) ->
 
-    #       async.series [
+          async.series [
 
-    #         (next) ->
-    #           ComputeProvider   = require './computeprovider'
-    #           group._activePlan = 'default'
-    #           ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
-    #             expect(err).to.not.exist
-    #             next()
+            (next) ->
+              group.update { $set: { 'config.testplan': 'default' } }, (err) ->
+                expect(err).to.not.exist
+                next()
 
-    #         (next) ->
-    #           config = { verified: yes }
-    #           stackTemplate.update$ client, { config }, (err) ->
-    #             expect(err).to.not.exist
-    #             next()
+            (next) ->
+              ComputeProvider   = require './computeprovider'
+              ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
+                expect(err).to.not.exist
+                next()
 
-    #         (next) ->
-    #           stackTemplate.generateStack client, (err, res) ->
-    #             expect(err).to.exist
-    #             expect(err.message).to.be.equal 'Provided limit has been reached'
-    #             expect(res).to.not.exist
-    #             next()
+            (next) ->
+              config = { verified: yes }
+              stackTemplate.update$ client, { config }, (err) ->
+                expect(err).to.not.exist
+                next()
 
-    #       ], done
+            (next) ->
+              stackTemplate.generateStack client, (err, res) ->
+                expect(err).to.exist
+                expect(err.message).to.be.equal 'Provided limit has been reached'
+                expect(res).to.not.exist
+                next()
+
+          ], done
 
 
   describe 'update$()', ->
