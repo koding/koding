@@ -1648,18 +1648,24 @@ class IDEAppController extends AppController
 
   makeReadOnly: ->
 
+    appView = @getView()
+
     ideView.isReadOnly = yes  for ideView in @ideViews
     @forEachSubViewInIDEViews_ (pane) -> pane.makeReadOnly()
     @finderPane.makeReadOnly()
-    @getView().setClass 'read-only'
+
+    appView.setClass 'read-only'
 
 
   makeEditable: ->
 
+    appView = @getView()
+
     ideView.isReadOnly = no  for ideView in @ideViews
     @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
     @finderPane.makeEditable()
-    @getView().unsetClass 'read-only'
+
+    appView.unsetClass 'read-only'
 
 
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
