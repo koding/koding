@@ -113,11 +113,16 @@ func TestMain(m *testing.M) {
 		fmt.Printf("e2etest.Test = %s\n", &Test)
 	}
 
+	ktrl := NewKontrol()
+	ktrl.Start()
+
 	exit := m.Run()
 
 	if !Test.NoClean {
 		Test.cleanupRoute53()
 	}
+
+	ktrl.Close()
 
 	os.Exit(exit)
 }

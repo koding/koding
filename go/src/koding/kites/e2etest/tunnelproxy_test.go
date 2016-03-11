@@ -12,53 +12,11 @@ import (
 )
 
 func TestE2E_Tunnelproxy(t *testing.T) {
-	ktrl := NewKontrol()
-	ktrl.Start()
-	defer ktrl.Close()
+	testWithTunnelserver(t, testTunnelserverHTTP)
+	testWithTunnelserver(t, testTunnelserverTCP)
+}
 
-	// Create and start Tunnel Server.
-	serverCfg, serverURL := Test.GenKiteConfig()
-	if Test.NoPublic {
-		// We start tunnel in a tunnel, so we can have more tunnels.
-		n, err := NewNgrok()
-		if err != nil {
-			t.Fatalf("error creating ngrok tunnel: %s", err)
-		}
-		serverURL.Host, err = n.StartTCP(serverURL.Host)
-		if err != nil {
-			t.Fatalf("error starting ngrok tunnel: %s", err)
-		}
-		defer n.Stop()
-	}
-
-	baseHost := Test.HostedZone + ":" + port(serverURL.Host)
-	Test.CleanRoute53 = append(Test.CleanRoute53, baseHost)
-
-	serverOpts := &tunnelproxy.ServerOptions{
-		BaseVirtualHost: baseHost,
-		HostedZone:      Test.HostedZone,
-		AccessKey:       Test.AccessKey,
-		SecretKey:       Test.SecretKey,
-		Config:          serverCfg,
-		ServerAddr:      serverURL.Host,
-		RegisterURL:     serverURL,
-		Log:             Test.Log.New("tunnelserver"),
-		Debug:           true,
-	}
-
-	server, err := tunnelproxy.NewServer(serverOpts)
-	if err != nil {
-		t.Fatalf("error creating tunnelproxy server: %s", err)
-	}
-	serverKite, err := tunnelproxy.NewServerKite(server, "tunnelkite", "0.0.1")
-	if err != nil {
-		t.Fatalf("error creating tunnelproxy server kite: %s", err)
-	}
-	defer serverKite.Close()
-
-	go serverKite.Run()
-	<-serverKite.ServerReadyNotify()
-
+func testTunnelserverHTTP(t *testing.T, serverURL *url.URL) {
 	// Create and start local server. All requests to this server are tunneled.
 	received := make(chan *http.Request, 32)
 	localServer := Test.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -167,4 +125,54 @@ func TestE2E_Tunnelproxy(t *testing.T) {
 			t.Fatalf("receiving requests from %s timed out", localServer.URL)
 		}
 	}
+}
+
+func testTunnelserverTCP(t *testing.T, serverURL *url.URL) {
+}
+
+func testWithTunnelserver(t *testing.T, test func(*testing.T, *url.URL)) {
+	// Create and start Tunnel Server.
+	serverCfg, serverURL := Test.GenKiteConfig()
+	if Test.NoPublic {
+		// We start tunnel in a tunnel, so we can have more tunnels.
+		n, err := NewNgrok()
+		if err != nil {
+			t.Fatalf("error creating ngrok tunnel: %s", err)
+		}
+		serverURL.Host, err = n.StartTCP(serverURL.Host)
+		if err != nil {
+			t.Fatalf("error starting ngrok tunnel: %s", err)
+		}
+		defer n.Stop()
+	}
+
+	baseHost := Test.HostedZone + ":" + port(serverURL.Host)
+	Test.CleanRoute53 = append(Test.CleanRoute53, baseHost)
+
+	serverOpts := &tunnelproxy.ServerOptions{
+		BaseVirtualHost: baseHost,
+		HostedZone:      Test.HostedZone,
+		AccessKey:       Test.AccessKey,
+		SecretKey:       Test.SecretKey,
+		Config:          serverCfg,
+		ServerAddr:      serverURL.Host,
+		RegisterURL:     serverURL,
+		Log:             Test.Log.New("tunnelserver"),
+		Debug:           true,
+	}
+
+	server, err := tunnelproxy.NewServer(serverOpts)
+	if err != nil {
+		t.Fatalf("error creating tunnelproxy server: %s", err)
+	}
+	serverKite, err := tunnelproxy.NewServerKite(server, "tunnelkite", "0.0.1")
+	if err != nil {
+		t.Fatalf("error creating tunnelproxy server kite: %s", err)
+	}
+	defer serverKite.Close()
+
+	go serverKite.Run()
+	<-serverKite.ServerReadyNotify()
+
+	test(t, serverURL)
 }
