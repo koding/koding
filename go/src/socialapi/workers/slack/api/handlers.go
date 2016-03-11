@@ -51,11 +51,7 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 				// usergroups.list
 				// usergroups.users.list
 				"usergroups:read",
-
-				// allows teams to install slash commands bundled in your Slack
-				// app.
-				"commands",
-
+				
 				// includes bot user functionality. Unlike incoming-webhook and
 				// commands, the bot scope grants your bot user access to a
 				// subset of Web API methods.
