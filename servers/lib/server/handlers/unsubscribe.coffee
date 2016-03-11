@@ -15,7 +15,7 @@ module.exports = (req, res, next) ->
     return res.status(404).send 'token not right '  if token isnt String(user._id)
 
     current = user.getAt('emailFrequency') or {}
-    current[global] = false
+    current['global'] = false
 
     user.update { $set: { emailFrequency: current } }, (err) ->
       return res.status(500).send 'an error occured'  if err
