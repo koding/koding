@@ -1,5 +1,4 @@
 module.exports = [
-  "KITE_v2_/koding/production/kloud/0.0.1///"
   "ajs_group_properties"
   "connectiondata"
   "debug"
