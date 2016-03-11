@@ -445,7 +445,7 @@ module.exports = class IDEEditorPane extends IDEPane
     @applyChange change
 
 
-  removeCollaborativeString: -> @rtm.delete 'string', @getFile().path
+  removeCollaborativeString: -> @rtm?.delete 'string', @getFile().path
 
 
   isChangedByMe: (change) -> return change.isLocal
