@@ -288,6 +288,7 @@ func (k *Klient) RegisterMethods() {
 	ps := client.NewPubSub(k.log)
 	k.kite.HandleFunc("client.Publish", ps.Publish)
 	k.kite.HandleFunc("client.Subscribe", ps.Subscribe)
+	k.kite.HandleFunc("client.Unsubscribe", ps.Unsubscribe)
 
 	k.kite.OnFirstRequest(func(c *kite.Client) {
 		// Koding (kloud) connects to much, don't display it.
