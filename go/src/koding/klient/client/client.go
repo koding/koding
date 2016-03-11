@@ -7,6 +7,15 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"koding/klient/kiteerrortypes"
+	"koding/klient/util"
+)
+
+var (
+	// ErrSubNotFound is returned from Unsubscribe if the given sub id cannot be found.
+	ErrSubNotFound = util.KiteErrorf(
+		kiteerrortypes.SubNotFound, "The given subscription id cannot be found.",
+	)
 )
 
 func NewPubSub(log kite.Logger) *PubSub {
@@ -170,5 +179,26 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 
 	r.Client.OnDisconnect(removeSubscription)
 
-	return nil, nil
+	res := struct {
+		ID int `json:"id"`
+	}{
+		ID: subIndex,
+	}
+
+	return res, nil
+}
+
+// Unubscribe method removes the given subscription.
+//
+// Example:
+//
+// 		{
+// 			"eventName": "openFiles",
+// 			"id": 7,
+// 		}
+//
+// The only response is an error, if any are encountered. If the sub cannot be
+// found, ErrSubNotFound is returned.
+func (c *PubSub) Unsubscribe(r *kite.Request) (interface{}, error) {
+	return nil, errors.New("Not implemented")
 }

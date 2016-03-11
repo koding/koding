@@ -35,4 +35,7 @@ const (
 	// SystemUnmountFailed is the Kite Error Type used when either the unmounter
 	// fails, or generic (non-instanced) unmount fails.
 	SystemUnmountFailed = "system-unmount-failed"
+
+	// Used in klient/client.ErrSubNotFound
+	SubNotFound = "SubNotFound"
 )

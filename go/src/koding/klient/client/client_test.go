@@ -79,7 +79,7 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Should subscribe to any given event name
-	_, err = c1.Tell("client.Subscribe", struct {
+	pRes, err := c1.Tell("client.Subscribe", struct {
 		EventName string
 		OnPublish dnode.Function
 	}{
@@ -99,9 +99,25 @@ func TestSubscribe(t *testing.T) {
 		t.Fatal("client.Subscribe should store a single onPublish callback")
 	}
 
+	// Should return the subIndex
+	var res struct {
+		ID int `json:"id"`
+	}
+
+	if err = pRes.Unmarshal(&res); err != nil {
+		t.Errorf("client.Subscribe should return a valid response struct. err:%s", err)
+	}
+
+	if expected := 0; res.ID != expected {
+		t.Errorf(
+			"client.Subscribe should return the response id. Wanted:%d, Got:%d",
+			expected, res.ID,
+		)
+	}
+
 	// Should store the proper callback
 	success := make(chan bool)
-	_, err = c1.Tell("client.Subscribe", struct {
+	pRes, err = c1.Tell("client.Subscribe", struct {
 		EventName string
 		OnPublish dnode.Function
 	}{
@@ -125,8 +141,19 @@ func TestSubscribe(t *testing.T) {
 			"Attempt timed out.")
 	}
 
+	if err = pRes.Unmarshal(&res); err != nil {
+		t.Errorf("client.Subscribe should return a valid response struct. err:%s", err)
+	}
+
+	if expected := 1; res.ID != expected {
+		t.Errorf(
+			"client.Subscribe should return the response id. Wanted:%d, Got:%d",
+			expected, res.ID,
+		)
+	}
+
 	// Should allow multiple clients to subscribe
-	_, err = c2.Tell("client.Subscribe", struct {
+	pRes, err = c2.Tell("client.Subscribe", struct {
 		EventName string
 		OnPublish dnode.Function
 	}{
@@ -144,6 +171,17 @@ func TestSubscribe(t *testing.T) {
 
 	if len(ps.Subscriptions["test"]) != 3 {
 		t.Fatal("client.Subscribe should allow multiple clients to Sub")
+	}
+
+	if err = pRes.Unmarshal(&res); err != nil {
+		t.Errorf("client.Subscribe should return a valid response struct. err:%s", err)
+	}
+
+	if expected := 2; res.ID != expected {
+		t.Errorf(
+			"client.Subscribe should return the response id. Wanted:%d, Got:%d",
+			expected, res.ID,
+		)
 	}
 
 	// Should remove onPublish func after the client disconnects
@@ -168,7 +206,6 @@ func TestSubscribe(t *testing.T) {
 		t.Error("client.Subscribe",
 			"should remove the event map when all clients disconnect")
 	}
-
 }
 
 func TestPublish(t *testing.T) {
@@ -268,5 +305,25 @@ func TestPublish(t *testing.T) {
 	expected := `{"EventName":"other","CountData":42,"ListData":["life","universe","everything"]}`
 	if string(b) != expected {
 		t.Error("client.Publish should publish arbitrary")
+	}
+}
+
+func TestUnsubscribe(t *testing.T) {
+	ps := NewPubSub(logging.NewLogger("testing"))
+	s := kite.New("s", "0.0.0")
+	s.Config.DisableAuthentication = true
+	s.HandleFunc("client.Subscribe", ps.Subscribe)
+	ts := httptest.NewServer(s)
+
+	c1 := kite.New("c1", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
+	c2 := kite.New("c2", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
+
+	err := c1.Dial()
+	if err != nil {
+		t.Fatal("Failed to connect to testing Kite", err)
+	}
+	err = c2.Dial()
+	if err != nil {
+		t.Fatal("Failed to connect to testing Kite", err)
 	}
 }
