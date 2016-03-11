@@ -1,8 +1,6 @@
 module.exports = [
   "KITE_v2_/koding/production/kloud/0.0.1///"
-  "Outbound.LocalStorage"
   "ajs_group_properties"
-  "ajs_user_traits"
   "connectiondata"
   "debug"
   "demouuid"
@@ -13,6 +11,4 @@ module.exports = [
   "firebase:previous_websocket_failure"
   "koding-realtime-1.0-ForbiddenChannels"
   "connectiondata"
-  "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"
-  "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4fuuid"
 ]
