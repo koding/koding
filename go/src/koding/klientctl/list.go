@@ -55,7 +55,7 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tMOUNTED PATHS\n")
+	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tSTATUS\tMOUNTED PATHS\n")
 	for i, info := range infos {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
@@ -79,8 +79,13 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 			)
 		}
 
-		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\n",
-			i+1, team, info.MachineLabel, info.IP, info.VMName, formattedMount,
+		status := "Disconnected"
+		if info.Connected {
+			status = "Connected"
+		}
+
+		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
+			i+1, team, info.MachineLabel, info.IP, info.VMName, status, formattedMount,
 		)
 	}
 	w.Flush()

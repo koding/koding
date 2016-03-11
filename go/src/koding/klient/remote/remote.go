@@ -128,23 +128,29 @@ func (r *Remote) Initialize() error {
 	r.log.Debug("Initializing Remote...")
 
 	// Load the mounts from our storage
-	err := r.loadMounts()
-	if err != nil {
+	if err := r.loadMounts(); err != nil {
 		return err
 	}
 
 	// Load machine names from our storage
-	err = r.loadMachineNames()
-	if err != nil {
+	if err := r.loadMachineNames(); err != nil {
 		return err
 	}
 
-	err = r.restoreMounts()
-	if err != nil {
+	// Load machines from storage
+	if err := r.loadMachines(); err != nil {
+		return err
+	}
+
+	if err := r.restoreMounts(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (r *Remote) loadMachines() error {
+	return r.machines.Load()
 }
 
 func (r *Remote) hostFromClient(k *kite.Client) (string, error) {
@@ -190,6 +196,10 @@ func (r *Remote) getKodingKites() ([]*KodingClient, error) {
 
 // GetMachinesWithoutCache gets the remote kites and returns machines without
 // using the cache. Use this with caution!
+//
+// TODO: Discuss & decide what to do about errors during GetMachines. Chances
+// are pretty good that we have machines, so we fail if we don't have to? Can we
+// fail only if we have to? When do we have to fail? etc. ~LO
 func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 	log := r.log.New("GetMachines")
 
@@ -208,6 +218,11 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 	// kites or updating existing machines with the new kite info.
 	// TODO: Use host-kiteId to locate machine.
 	for _, k := range kites {
+		// If the kite is our local kite, skip it.
+		if k.ID == r.localKite.Id {
+			continue
+		}
+
 		var host string
 		host, err = r.hostFromClient(k.Client)
 		if err != nil {
@@ -230,7 +245,10 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 			// and save the map to avoid dealing with this next time.
 			name, ok := r.machineNamesCache[host]
 			if ok {
-				log.Info("Using legacy name, and removing it from database.")
+				log.Info(
+					"Using legacy name, and removing it from database. name:%s, host:%s",
+					name, host,
+				)
 				delete(r.machineNamesCache, host)
 				// Should't bother exiting here, not a terrible error.. but not good, either.
 				// Log it for knowledge, and move on.
@@ -267,6 +285,10 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 		if err != nil {
 			break
 		}
+
+		log := log.New(
+			"name", existingMachine.Name,
+		)
 
 		// Update the label. If they're the same, the update has no affect.
 		if existingMachine.MachineLabel != k.MachineLabel {

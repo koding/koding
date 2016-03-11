@@ -118,6 +118,10 @@ func (m *Machine) Dial() error {
 // Tell uses the Kite protocol (with a dnode response) to communicate with this
 // machine.
 func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, error) {
+	if m.Transport == nil {
+		return nil, errors.New("Transport is nil")
+	}
+
 	return m.Transport.Tell(method, args...)
 }
 
@@ -126,4 +130,24 @@ func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, erro
 func (m *Machine) Ping() error {
 	_, err := m.Tell("kite.ping")
 	return err
+}
+
+// IsConnected returns the kitepinger's IsConnected result
+func (m *Machine) IsConnected() bool {
+	// If it's nil, this is a not a valid / connected machine.
+	if m.KitePinger == nil {
+		return false
+	}
+
+	return m.KitePinger.IsConnected()
+}
+
+// IsConnectedAgo returns the kitepinger's IsConnectedAgo result
+func (m *Machine) IsConnectedAgo() (bool, time.Duration) {
+	// If it's nil, this is a not a valid / connected machine.
+	if m.KitePinger == nil {
+		return false, 0
+	}
+
+	return m.KitePinger.IsConnectedAgo()
 }

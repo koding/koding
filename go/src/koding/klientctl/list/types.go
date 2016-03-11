@@ -3,6 +3,7 @@ package list
 import "koding/klientctl/util"
 
 type KiteInfo struct {
+	Connected    bool        `json:"connected"`
 	IP           string      `json:"ip"`
 	VMName       string      `json:"vmName"`
 	Hostname     string      `json:"hostname"`

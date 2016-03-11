@@ -47,6 +47,13 @@ type KitePinger interface {
 
 	// Get the CurrentSummary of the previous pings.
 	GetSummary() CurrentSummary
+
+	// IsConnected returns if we are actively pinging and the last ping was success.
+	IsConnected() bool
+
+	// IsConnectedAgo returns the IsConnected bool, along with how long we've been
+	// at that status.
+	IsConnectedAgo() (bool, time.Duration)
 }
 
 // PingKite implements the KitePinger interface.
@@ -270,4 +277,19 @@ func (p *PingKite) Unsubscribe(ch chan<- ChangeSummary) {
 		delete(p.subscribers, ch)
 		close(ch)
 	}
+}
+
+// IsConnected returns if we are actively pinging and the last ping was success.
+func (p *PingKite) IsConnected() bool {
+	if !p.pinging {
+		return false
+	}
+
+	return p.lastStatus == Success
+}
+
+// IsConnectedAgo returns the IsConnected bool, along with how long we've been
+// at that status. The returned status may be a zero value, if it has never been run.
+func (p *PingKite) IsConnectedAgo() (bool, time.Duration) {
+	return p.IsConnected(), time.Since(p.statusTime)
 }
