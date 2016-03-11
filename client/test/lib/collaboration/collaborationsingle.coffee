@@ -1,7 +1,6 @@
 helpers              = require '../helpers/helpers.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
 ideHelpers           = require '../helpers/idehelpers.js'
-assert               = require 'assert'
 
 
 module.exports =
