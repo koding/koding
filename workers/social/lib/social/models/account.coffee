@@ -295,8 +295,6 @@ module.exports = class JAccount extends jraphical.Module
 
   constructor: ->
     super
-    @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
-    @notifyGroupWhen 'FollowHappened'
 
   @sendUpdateInstanceEvent = (obj, op) ->
     JAccount.bongos.forEach (bongo) ->
