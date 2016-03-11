@@ -567,7 +567,7 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	return k
 }
 
-func newCachedTransport() (*transport.RemoteOrCacheTransport, error) {
+func newCachedTransport() (*transport.DualTransport, error) {
 	rt, err := newRemoteTransport()
 	if err != nil {
 		return nil, err
@@ -578,7 +578,7 @@ func newCachedTransport() (*transport.RemoteOrCacheTransport, error) {
 		return nil, err
 	}
 
-	return transport.NewRemoteOrCacheTransport(rt, dt), nil
+	return transport.NewDualTransport(rt, dt), nil
 }
 
 func newRemoteTransport() (*transport.RemoteTransport, error) {
