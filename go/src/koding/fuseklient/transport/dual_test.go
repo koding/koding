@@ -6,18 +6,18 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestRemoteOrCacheTransport(t *testing.T) {
-	var _ Transport = (*RemoteOrCacheTransport)(nil)
+func TestDualTransport(t *testing.T) {
+	var _ Transport = (*DualTransport)(nil)
 }
 
-func TestNewRemoteOrCacheTransport(t *testing.T) {
+func TestNewDualTransport(t *testing.T) {
 	Convey("It should set ignore dirs for RemoteTransport", t, func() {
 		rt := &RemoteTransport{
 			IgnoreDirs: defaultDirIgnoreList,
 		}
 		dt := &DiskTransport{}
 
-		NewRemoteOrCacheTransport(rt, dt)
+		NewDualTransport(rt, dt)
 		So(len(rt.IgnoreDirs), ShouldEqual, 0)
 	})
 }
