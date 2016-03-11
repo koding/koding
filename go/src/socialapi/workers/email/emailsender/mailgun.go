@@ -81,7 +81,7 @@ func (m *MailgunSender) SendMailgunEmail(mail *Mail) error {
 		email = userMap["email"].(string)
 		subject = subjectStartRegister
 		userObj.UserID = nickname
-		userObj.Pin = mail.Properties.Options["pin"].(string)
+		userObj.Pin = pinGenerateAndSave(nickname, m.Conf)
 		tpl = m.TemplateSignup
 		tplText = m.TemplateSignupText
 	} else if mail.Properties.Options["subject"] == keyInvitedCreateTeam {
@@ -108,7 +108,7 @@ func (m *MailgunSender) SendMailgunEmail(mail *Mail) error {
 			return err
 		}
 	} else if user.EmailFrequency != nil && !user.EmailFrequency.Global {
-	    return errors.New("User is unsubscribed from all emails")
+		return errors.New("User is unsubscribed from all emails")
 	}
 
 	userObj.LinkUnsubscribe = fmt.Sprintf("%s/Unsubscribe/%s/%s", m.VmHostname, user.ObjectId.Hex(), email)
