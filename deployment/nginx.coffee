@@ -302,7 +302,6 @@ module.exports.create = (KONFIG, environment)->
       # // kd/klient installers
       location ~^/d/(.*)$ {
         proxy_pass            "https://s3.amazonaws.com/koding-dl/$1";
-        proxy_set_header      Host            $host;
         proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
