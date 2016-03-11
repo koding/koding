@@ -47,7 +47,6 @@ module.exports =
 
   cancelEditingComment: (browser) ->
 
-    comment         = helpers.postComment(browser)
     commentSelector = activitySelector + ' .comment-container button.comment-menu'
     editSelector    = activitySelector + ' .comment-contents [testpath=CommentInputView]:first-child'
 
