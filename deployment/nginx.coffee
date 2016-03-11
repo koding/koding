@@ -324,6 +324,10 @@ module.exports.create = (KONFIG, environment)->
         proxy_pass http://webserver;
       }
 
+      location ~ /(blog|docs)(.*) {
+        return 301 https://www.koding.com/$1$2$is_args$args;
+      }
+
       # mac and windows are case insensitive, redirect lowercased hackathon to
       # Uppercase Hackathon
       location ~ "(?-i)/hackathon" {
