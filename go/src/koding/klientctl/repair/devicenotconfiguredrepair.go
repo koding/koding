@@ -10,7 +10,7 @@ import (
 	"github.com/koding/logging"
 )
 
-// dncSuffix is the suffix of the error mesage returned by Golang when trying to
+// dncSuffix is the suffix of the error mesage returned by the OS when trying to
 // open a not-configured device directory.
 const dncSuffix = "device not configured"
 
