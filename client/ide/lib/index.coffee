@@ -1655,6 +1655,12 @@ class IDEAppController extends AppController
     @finderPane.makeReadOnly()
 
     appView.setClass 'read-only'
+    appView.on 'click', @bound 'readOnlyNotifierCallback_'
+
+
+  readOnlyNotifierCallback_: ->
+
+    @requestEditPermission()
 
 
   makeEditable: ->
@@ -1666,6 +1672,8 @@ class IDEAppController extends AppController
     @finderPane.makeEditable()
 
     appView.unsetClass 'read-only'
+    appView.off 'click', @bound 'readOnlyNotifierCallback_'
+    @requestEditPermissionView?.destroy()
 
 
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
