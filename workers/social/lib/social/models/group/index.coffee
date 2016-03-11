@@ -471,7 +471,7 @@ module.exports = class JGroup extends Module
       queue.push (next) ->
         group.createMembershipPolicy groupData.requestType, -> next()
 
-    async.series queue, (err) =>
+    async.series queue, (err) ->
       return callback err  if err
       callback null, group
 
