@@ -1,5 +1,4 @@
 helpers       = require '../helpers/helpers.js'
-assert        = require 'assert'
 layoutHelpers = require '../helpers/layouthelpers.js'
 
 
