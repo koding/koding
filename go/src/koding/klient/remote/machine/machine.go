@@ -108,10 +108,6 @@ func NewMachine(meta MachineMeta, log logging.Logger, client *kite.Client,
 //
 // This is a common check, and should be performed before using a machine.
 func (m *Machine) CheckValid() error {
-	if m.Log == nil {
-		return util.KiteErrorf(kiteerrortypes.MachineNotValidYet, "Machine.Log is nil.")
-	}
-
 	if m.Client == nil {
 		return util.KiteErrorf(kiteerrortypes.MachineNotValidYet, "Machine.Client is nil")
 	}
@@ -126,6 +122,10 @@ func (m *Machine) CheckValid() error {
 		return util.KiteErrorf(
 			kiteerrortypes.MachineNotValidYet, "Machine.Transport is nil",
 		)
+	}
+
+	if m.Log == nil {
+		return util.KiteErrorf(kiteerrortypes.MachineNotValidYet, "Machine.Log is nil.")
 	}
 
 	return nil
