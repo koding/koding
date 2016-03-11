@@ -1,6 +1,8 @@
-jspath = require 'jspath'
-kd = require 'kd'
+jspath     = require 'jspath'
+kd         = require 'kd'
 AppStorage = require './appstorage'
+blacklist  = require './util/blacklistforlocalstorage'
+globals    = require 'globals'
 
 
 module.exports = class LocalStorage extends AppStorage
@@ -97,3 +99,11 @@ module.exports = class LocalStorage extends AppStorage
 
 
   @getStorage = -> storage
+
+  @cleanLocalStorage = ->
+
+    storage = global.localStorage
+
+    for k, v of storage
+      if k in blacklist
+        storage.removeItem k
