@@ -522,19 +522,6 @@ module.exports = class JGroup extends Module
       else callback null, "group.secret.#{secretName}",
         if oldSecretName then "group.secret.#{oldSecretName}"
 
-  @cycleChannel = do ->
-    cycleChannel = (groupSlug, callback = -> ) ->
-      JName = require '../name'
-      JName.cycleSecretName groupSlug, (err, oldSecretName, newSecretName) =>
-        if err then callback err
-        else
-          routingKey = "group.secret.#{oldSecretName}.cycleChannel"
-          @emit 'broadcast', routingKey, null
-          callback null
-    return throttle cycleChannel, 5000
-
-  cycleChannel:(callback) -> @constructor.cycleChannel @slug, callback
-
 
   sendNotification: (event, contents, callback) ->
 
@@ -1247,7 +1234,6 @@ module.exports = class JGroup extends Module
 
       kallback = (err) =>
         @updateCounts()
-        @cycleChannel()
 
         { profile: { nickname } } = client.connection.delegate
 
@@ -1307,7 +1293,6 @@ module.exports = class JGroup extends Module
             @removeMember account, role, (err) =>
               return fin err  if err
               @updateCounts()
-              @cycleChannel()
               fin()
 
           # add current user into blocked accounts
@@ -1365,7 +1350,6 @@ module.exports = class JGroup extends Module
             return callback err if err
 
             kallback = (err) =>
-              @cycleChannel()
               @updateCounts()
               callback err
 
