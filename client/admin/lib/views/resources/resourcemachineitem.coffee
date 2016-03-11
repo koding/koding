@@ -2,7 +2,7 @@ kd               = require 'kd'
 
 showError        = require 'app/util/showError'
 MachinesListItem = require 'app/environment/machineslistitem'
-Machine          = require 'app/providers/machine'
+{ State }        = require 'app/providers/machine'
 
 
 module.exports   = class ResourceMachineItem extends MachinesListItem
@@ -25,13 +25,7 @@ module.exports   = class ResourceMachineItem extends MachinesListItem
 
     @labelLink.addSubView new kd.CustomHTMLView labelOptions
 
-    { State } = Machine
-    return  if machine.status.state in [
-      State.NotInitialized
-      State.Building
-      State.Terminating
-      State.Terminated
-    ]
+    return  unless machine.status.state is State.Running
 
     @labelLink.addSubView new kd.ButtonView
       title    : if mounted then 'Mounted' else 'Mount'
