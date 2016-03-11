@@ -91,9 +91,7 @@ module.exports = class SocialChannel extends Base
       createdAt        : Date
       updatedAt        : Date
     sharedEvents    :
-      static        : [
-        { name: 'broadcast' }
-      ]
+      static        : []
 
   JAccount     = require '../account'
 
