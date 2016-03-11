@@ -159,7 +159,7 @@ createGroupKallback = (client, req, res, body) ->
 
 afterGroupCreateKallback = (res, params) ->
 
-  { JUser, JTeamInvitation } = koding.models
+  { JUser, JTeamInvitation, Tracker } = koding.models
   { body : { slug, invitees }, client,  username } = params
 
   return (err, group) ->
@@ -186,6 +186,9 @@ afterGroupCreateKallback = (res, params) ->
 
       data =
         token : JUser.createJWT opt
+
+      # add user to Segment group
+      Tracker.group slug, username
 
       return res.status(200).send data
 

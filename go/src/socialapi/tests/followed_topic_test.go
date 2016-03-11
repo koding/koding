@@ -15,17 +15,7 @@ func TestFollowedTopics(t *testing.T) {
 
 		Convey("While testing followed topics", t, func() {
 			Convey("First Create User", func() {
-				groupName := models.RandomGroupName()
-
-				account, err := models.CreateAccountInBothDbs()
-				So(err, ShouldBeNil)
-				So(account, ShouldNotBeNil)
-
-				models.CreateTypedGroupedChannelWithTest(
-					account.Id,
-					models.Channel_TYPE_GROUP,
-					groupName,
-				)
+				account, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)

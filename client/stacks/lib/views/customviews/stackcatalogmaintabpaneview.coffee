@@ -17,12 +17,6 @@ module.exports = class StackCatalogMainTabPaneView extends kd.TabView
     super options, data
 
 
-    @on 'ReloadStackTemplatesList', =>
-
-      @panes.forEach (pane) ->
-        pane.mainView?.initialView.reload()  unless pane.name is 'My Stacks'
-
-
   handleClicked: (event, handle) ->
 
     if @getOption 'useRouter'

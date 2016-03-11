@@ -31,6 +31,7 @@ module.exports = class BaseInitialView extends kd.View
 
       .on 'ItemDeleted', =>
         @_stackTemplatesLength = @stackTemplateList.listView.items.length - 1
+        kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
       .on 'ItemCloned', @bound 'reload'
 
@@ -68,6 +69,7 @@ module.exports = class BaseInitialView extends kd.View
         console.warn err
       else
         @reload()
+        kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
 
   showWarning: (content) ->

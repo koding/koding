@@ -582,6 +582,7 @@ Configuration = (options={}) ->
           {
             location    : "~* ^/api/social/slack/(.*)"
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
+            extraParams : [ "proxy_buffering off;" ] # appearently slack sends a big header
           }
           {
             location    : "~ /api/social/(.*)"

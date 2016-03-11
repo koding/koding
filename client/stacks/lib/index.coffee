@@ -69,3 +69,11 @@ module.exports = class StacksAppController extends AdminAppController
     { view } = @getOptions()
 
     view.setClass className
+
+
+  reloadStackTemplatesList: ->
+
+    { view } = @getOptions()
+
+    view.tabs.panes.forEach (pane) ->
+      pane.mainView?.initialView?.reload()  unless pane.name is 'My Stacks'
