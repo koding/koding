@@ -878,7 +878,6 @@ module.exports = CollaborationController =
 
           @stateMachine.transition 'Active'
           @updateSessionStartingProgress 90
-          @makeReadOnly()  if @getMyPermission() isnt 'edit'
 
           kd.utils.wait 2000, =>
             @updateSessionStartingProgress 100
@@ -1402,3 +1401,21 @@ module.exports = CollaborationController =
 
     openFolders = @finderPane.getOpenFolders()
     @rtm.getFromModel('commonStore').set 'openFolders', openFolders
+
+
+  requestEditPermission: ->
+
+    return  if @requestEditPermissionView
+
+    @requestEditPermissionView = new kd.CustomHTMLView
+      cssClass : 'ide-warning-view system-notification in'
+      partial  : "REQUEST ACCESS: You don't have permissions to make changes. <a href='#'>Ask for permission.</a> <a href='#' class='close'></a>"
+      click    : (e) =>
+        kd.utils.stopDOMEvent e
+        if e.target.classList.contains 'close'
+          @requestEditPermissionView.destroy()
+
+    @getView().addSubView @requestEditPermissionView
+
+    @requestEditPermissionView.once 'KDObjectWillBeDestroyed', =>
+      @requestEditPermissionView = null
