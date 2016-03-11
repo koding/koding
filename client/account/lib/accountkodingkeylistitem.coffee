@@ -13,7 +13,7 @@ module.exports = class AccountKodingKeyListItem extends KDListItemView
     options   = defaults extends options
     super options, data
 
-    @addSubView deleteKey = new KDCustomHTMLView
+    @addSubView new KDCustomHTMLView
       tagName      : "a"
       partial      : "Revoke Access"
       cssClass     : "action-link"
@@ -52,7 +52,7 @@ module.exports = class AccountKodingKeyListItem extends KDListItemView
               callback : (event)->
                 modal.destroy()
 
-    @addSubView viewKey = new KDCustomHTMLView
+    @addSubView new KDCustomHTMLView
       tagName     : "a"
       partial     : "View access key"
       click       : ->
