@@ -1,4 +1,5 @@
 assert   = require 'assert'
+helpers  = require '../helpers/helpers.js'
 
 environmentHelpers = require '../helpers/environmenthelpers.js'
 helpers            = require '../helpers/helpers.js'
@@ -94,9 +95,17 @@ module.exports =
             callback()
 
 
-  handleInvitation: (browser, host, participant, accept) ->
+  handleInvitation: (browser, host, participant, accept, endSessionAfterAcceptingInvite = yes) ->
 
-    sharedMachineSelector  = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
+    sharedMachineSelector = '.activity-sidebar .shared-machines .sidebar-machine-box .vm.running'
+    newTerminalButton     = '.kdsplitview-horizontal .panel-1 .kdtabhandlecontainer .kdtabhandle-tabs .visible-tab-handle'
+    newTerminalLink       = '.kdcontextmenu .context-list-wrapper .new-terminal'
+    sessionLink           = '.kdlistview-contextmenu ul:nth-of-type(1) .has-sub-items'
+    openNewTerminal       = '.kdlistview-contextmenu.default .open'
+    sharedVmSelector      = '.activity-sidebar .machines-wrapper section:nth-of-type(2) .vm.koding'
+    sharedVMSettings      = '.activity-sidebar .machines-wrapper section:nth-of-type(2) .vm.koding .settings-icon'
+    leaveSharedVM         = '.kdmodal-content button'
+
 
     helpers.beginTest(browser, participant)
 
@@ -113,7 +122,24 @@ module.exports =
         @acceptOrRejectInvitation(browser, host, participant, accept)
 
         browser.pause 5000
-        browser.end()
+
+        if endSessionAfterAcceptingInvite
+          browser.end()
+        else
+          browser
+            .waitForElementVisible   newTerminalButton, 20000
+            .click                   newTerminalButton
+            .waitForElementVisible   newTerminalLink, 20000
+            .moveToElement           newTerminalLink, 5, 5
+            .waitForElementVisible   sessionLink, 20000
+            .moveToElement           sessionLink, 5, 5
+            .waitForElementVisible   openNewTerminal, 20000
+            .click                   openNewTerminal
+            .pause                   2500 #wait for terminal to be displayed
+            .execute                 "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('ls')"
+            .execute                 "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
+            .pause                   5000
+            .end()
 
 
   handleInvite: (browser, host, participant, callback) ->

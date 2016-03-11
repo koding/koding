@@ -60,3 +60,26 @@ module.exports =
       else
         vmHelpers.handleInvitation(browser, host, participant, no)
 
+
+  shareVMAcceptInvitaionAndRunOnTerminal: (browser) ->
+
+    host                  = utils.getUser no, 0
+    hostBrowser           = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant           = utils.getUser no, 1
+    vmSharingListSelector = '.vm-sharing.active'
+
+    browser.pause 2500, -> # wait for user.json creation
+      if hostBrowser
+
+        callback = ->
+          browser
+            .waitForElementVisible  vmSharingListSelector, 20000
+            .assert.containsText    "#{vmSharingListSelector} .listview-wrapper", participant.username
+            .pause   7500 # wait for participant accept
+            .waitForTextToContain       '.kdtabview.application-tabview .terminal-pane .webterm .kdview.console', 'Applications  Backup  Documents  README.md  Web'
+          vmHelpers.removeAllInvitations(browser)
+          browser.end()
+
+        vmHelpers.handleInvite(browser, host, participant, callback)
+      else
+        vmHelpers.handleInvitation(browser, host, participant, yes, no)
