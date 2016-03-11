@@ -70,15 +70,15 @@ module.exports = class Payment extends Base
 
   @fetchGroupPlan = (group, callback) ->
 
-    return callback new KodingError 'No such group'  unless group
+    return callback new KodingError 'No such group'   unless group
+    return callback null, { planTitle: 'unlimited' }  if group.slug is 'koding'
 
     url = "#{socialProxyUrl}/payments/group/subscriptions?group_id=#{group._id}"
     get url, {}, (err, subscription) ->
       return callback err  if err
 
-      # Comment out this one once plans enabled ~ GG
-      # unless isSubscriptionOk group, subscription
-      #   return callback new KodingError 'Trial period exceeded'
+      unless isSubscriptionOk group, subscription
+        return callback new KodingError 'Trial period exceeded'
 
       subscription = sanitizeSubscription subscription
 
