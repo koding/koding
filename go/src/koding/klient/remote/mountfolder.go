@@ -48,12 +48,13 @@ var (
 // MountFolderHandler implements klient's remote.mountFolder method. Mounting
 // the given remote folder onto the given local folder.
 func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
-	var params req.MountFolder
+	log := r.log.New("remote.mountFolder")
 
 	if kreq.Args == nil {
 		return nil, errors.New("Required arguments were not passed.")
 	}
 
+	var params req.MountFolder
 	if err := kreq.Args.One().Unmarshal(&params); err != nil {
 		err = fmt.Errorf(
 			"remote.mountFolder: Error '%s' while unmarshalling request '%s'\n",
@@ -71,7 +72,7 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `localPath`.")
 	}
 
-	log := r.log.New(
+	log = log.New(
 		"mountName", params.Name,
 		"localPath", params.LocalPath,
 	)
@@ -87,6 +88,11 @@ func (r *Remote) MountFolderHandler(kreq *kite.Request) (interface{}, error) {
 
 	remoteMachine, err := remoteMachines.GetByName(params.Name)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := remoteMachine.CheckValid(); err != nil {
+		log.Error("Unable to mount, Machine.CheckValid returned not valid. err:%s", err)
 		return nil, err
 	}
 

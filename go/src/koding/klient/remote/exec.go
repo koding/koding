@@ -11,6 +11,8 @@ import (
 
 // ExecHandler runs the given command on the given remote klient.
 func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
+	log := r.log.New("remote.exec")
+
 	var params req.Exec
 
 	if kreq.Args == nil {
@@ -23,7 +25,7 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 			err, kreq.Args.One(),
 		)
 
-		r.log.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -34,6 +36,10 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `command`.")
 	}
 
+	log = log.New(
+		"machineName", params.Machine,
+	)
+
 	remoteMachines, err := r.GetMachines()
 	if err != nil {
 		return nil, err
@@ -41,6 +47,11 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 
 	remoteMachine, err := remoteMachines.GetByName(params.Machine)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := remoteMachine.CheckValid(); err != nil {
+		log.Error("Machine.CheckValid returned not valid. err:%s", err)
 		return nil, err
 	}
 

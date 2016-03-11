@@ -43,6 +43,11 @@ func (r *Remote) RemountHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if err := remoteMachine.CheckValid(); err != nil {
+		log.Error("Unable to mount, Machine.CheckValid returned not valid. err:%s", err)
+		return nil, err
+	}
+
 	existingMount, ok := r.mounts.FindByName(params.MountName)
 	if !ok {
 		log.Error("Unable to locate mount by name. name:%s", params.MountName, err)

@@ -15,6 +15,8 @@ import (
 // CacheFolderHandler implements a prefetching / caching mechanism, currently
 // implemented
 func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
+	log := r.log.New("remote.cacheFolder")
+
 	var params struct {
 		req.Cache
 
@@ -48,6 +50,11 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `sshAuthSock`.")
 	}
 
+	log = log.New(
+		"mountName", params.Name,
+		"localPath", params.LocalPath,
+	)
+
 	remoteMachines, err := r.GetMachines()
 	if err != nil {
 		return nil, err
@@ -55,6 +62,11 @@ func (r *Remote) CacheFolderHandler(kreq *kite.Request) (interface{}, error) {
 
 	remoteMachine, err := remoteMachines.GetByName(params.Name)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := remoteMachine.CheckValid(); err != nil {
+		log.Error("Machine.CheckValid returned not valid. err:%s", err)
 		return nil, err
 	}
 

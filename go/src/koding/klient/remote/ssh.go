@@ -12,6 +12,8 @@ import (
 // SSHKeyAddHandler adds the specified public SSH key to remote machine via the klient
 // on the remote machine.
 func (r *Remote) SSHKeyAddHandler(kreq *kite.Request) (interface{}, error) {
+	log := r.log.New("remote.sshKeyAdd")
+
 	var params req.SSHKeyAdd
 
 	if kreq.Args == nil {
@@ -36,6 +38,12 @@ func (r *Remote) SSHKeyAddHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, errors.New("Missing required argument `key`.")
 	}
 
+	log = log.New(
+		"mountName", params.Name,
+		// Using len to avoid printing the whole key.
+		"keyLength", len(params.Key),
+	)
+
 	remoteMachines, err := r.GetMachines()
 	if err != nil {
 		return nil, err
@@ -43,6 +51,11 @@ func (r *Remote) SSHKeyAddHandler(kreq *kite.Request) (interface{}, error) {
 
 	remoteMachine, err := remoteMachines.GetByName(params.Name)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := remoteMachine.CheckValid(); err != nil {
+		log.Error("Machine.CheckValid returned not valid. err:%s", err)
 		return nil, err
 	}
 

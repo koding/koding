@@ -1,7 +1,6 @@
 package machine
 
 import (
-	"errors"
 	"time"
 
 	"github.com/koding/kite"
@@ -77,6 +76,7 @@ type Machine struct {
 	Transport Transport `json:"-"`
 }
 
+// MachineLogger returns a new logger with the context of the given MachineMeta
 func MachineLogger(meta MachineMeta, l logging.Logger) logging.Logger {
 	return l.New("machine").New(
 		"name", meta.Name,
@@ -98,11 +98,46 @@ func NewMachine(meta MachineMeta, log logging.Logger, client *kite.Client,
 	}
 }
 
+// CheckValid checks if this Machine is missing any required fields. Fields can be
+// missing because we store all machines, online or offline, but Kontrol doesn't
+// return any information about offline machines. We don't have Kites, for offline
+// machines. Because of this, a Machine may exist, but not be usable.
+//
+// Eg, you could attempt to mount an offline machine - if it hasn't connected
+// to kontrol since klient restarted, it won't be valid.
+//
+// This is a common check, and should be performed before using a machine.
+func (m *Machine) CheckValid() error {
+	if m.Log == nil {
+		return util.KiteErrorf(kiteerrortypes.MachineNotValidYet, "Machine.Log is nil.")
+	}
+
+	if m.Client == nil {
+		return util.KiteErrorf(kiteerrortypes.MachineNotValidYet, "Machine.Client is nil")
+	}
+
+	if m.Client == nil {
+		return util.KiteErrorf(
+			kiteerrortypes.MachineNotValidYet, "Machine.KitePinger is nil",
+		)
+	}
+
+	if m.Transport == nil {
+		return util.KiteErrorf(
+			kiteerrortypes.MachineNotValidYet, "Machine.Transport is nil",
+		)
+	}
+
+	return nil
+}
+
 // Dial dials the internal dialer.
 func (m *Machine) Dial() error {
 	if m.Transport == nil {
-		m.Log.Error("Unable to dial. Nil Transport")
-		return errors.New("Unable to dial, Machine Transport is nil")
+		m.Log.Error("Dial was attempted with a nil Transport")
+		return util.KiteErrorf(
+			kiteerrortypes.MachineNotValidYet, "Machine.Transport is nil",
+		)
 	}
 
 	err := m.Transport.Dial()
@@ -119,7 +154,10 @@ func (m *Machine) Dial() error {
 // machine.
 func (m *Machine) Tell(method string, args ...interface{}) (*dnode.Partial, error) {
 	if m.Transport == nil {
-		return nil, errors.New("Transport is nil")
+		m.Log.Error("Tell was attempted with a nil Transport")
+		return nil, util.KiteErrorf(
+			kiteerrortypes.MachineNotValidYet, "Machine.Transport is nil",
+		)
 	}
 
 	return m.Transport.Tell(method, args...)

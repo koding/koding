@@ -24,6 +24,12 @@ const (
 	AuthErrTokenIsNotValidYet = "AuthErrTokenIsNotValidYet"
 	MissingArgument           = "MissingArgument"
 
+	// Returned from a machine's CheckValid() method when the machine is missing a
+	// critical field. Ie, the machine was loaded from the database but has
+	// not yet been populated via GetKites. For more information, see
+	// Machine.CheckValid method docstring.
+	MachineNotValidYet = "MachineNotValidYet"
+
 	// DialingFailed is the kite.Error.Type used for errors encountered when
 	// dialing the remote.
 	DialingFailed = "dialing failed"
