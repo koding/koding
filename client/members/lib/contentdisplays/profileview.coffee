@@ -7,7 +7,6 @@ ExternalProfileView        = require './externalprofileview'
 ProfileContentEditableView = require './profilecontenteditableview'
 remote                     = require('app/remote').getInstance()
 globals                    = require 'globals'
-proxifyUrl                 = require 'app/util/proxifyUrl'
 checkFlag                  = require 'app/util/checkFlag'
 isMine                     = require 'app/util/isMine'
 whoami                     = require 'app/util/whoami'
