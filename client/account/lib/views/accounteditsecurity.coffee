@@ -38,7 +38,7 @@ module.exports = class AccountEditSecurity extends KDView
           required  : "Password can't be empty..."
 
 
-    passwordInputs.addSubView passwordConfirm = new KDInputView
+    passwordInputs.addSubView new KDInputView
       type          : "password"
       placeholder   : "re-type new password"
       name          : "passwordConfirm"
@@ -50,12 +50,12 @@ module.exports = class AccountEditSecurity extends KDView
           match     : "Passwords do not match."
 
     passwordInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
-    inputActions.addSubView passwordSave = new KDButtonView
+    inputActions.addSubView new KDButtonView
       title         : "Save"
       type          : 'submit'
 
 
-    inputActions.addSubView passwordCancel = new KDCustomHTMLView
+    inputActions.addSubView new KDCustomHTMLView
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
@@ -63,11 +63,11 @@ module.exports = class AccountEditSecurity extends KDView
 
     # password STATIC PART
     nonPasswordInputs = new KDView cssClass : "initialval clearfix"
-    nonPasswordInputs.addSubView passwordSpan = new KDCustomHTMLView
+    nonPasswordInputs.addSubView new KDCustomHTMLView
       tagName      : "span"
       partial      : "<i>your super secret password</i>"
       cssClass     : "static-text"
-    nonPasswordInputs.addSubView passwordEdit = new KDCustomHTMLView
+    nonPasswordInputs.addSubView new KDCustomHTMLView
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
