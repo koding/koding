@@ -70,12 +70,13 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
       track 'submitted register form'
       checkUsername = yes
 
-
     { username } = formData
 
     teamData = utils.getTeamData()
     { slug } = teamData.domain
+
     if username is slug
+      @form.emit 'FormSubmitFailed'
       return new kd.NotificationView title : "Sorry, your group domain and your username can not be the same!"
 
     success = =>
@@ -87,7 +88,7 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
         error : ({responseText}) =>
-          @form.emit 'FailedToCreateATeam'
+          @form.emit 'FormSubmitFailed'
 
           if /TwoFactor/.test responseText
             track 'requires two-factor authentication'
@@ -106,6 +107,8 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
           success()
         error   : ({responseJSON}) =>
           track 'entered an invalid username'
+
+          @form.emit 'FormSubmitFailed'
 
           unless responseJSON
             return new kd.NotificationView

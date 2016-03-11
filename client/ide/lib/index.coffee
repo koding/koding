@@ -397,7 +397,7 @@ class IDEAppController extends AppController
   ###
   openFile: (options, callback = kd.noop) ->
 
-    { file, contents, emitChange, targetTabView, switchIfOpen } = options
+    { file, contents, emitChange, targetTabView, switchIfOpen, isActivePane } = options
 
     if switchIfOpen
       wasOpen = no
@@ -412,7 +412,7 @@ class IDEAppController extends AppController
 
     @setActiveTabView targetTabView  if targetTabView
 
-    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback, emitChange
+    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback, emitChange, isActivePane
 
 
   ###*
@@ -440,14 +440,14 @@ class IDEAppController extends AppController
   ###
   tailFile: (options, callback = kd.noop) ->
 
-    { file, contents, targetTabView, description, emitChange, tailOffset } = options
+    { file, contents, targetTabView, description, emitChange, isActivePane, tailOffset } = options
 
     targetTabView = @ideViews.first.tabView  unless targetTabView
 
     @setActiveTabView targetTabView
 
     @activeTabView.emit 'FileNeedsToBeTailed', {
-      file, contents, description, callback, emitChange, tailOffset
+      file, contents, description, callback, emitChange, isActivePane, tailOffset
     }
 
 
@@ -1002,7 +1002,7 @@ class IDEAppController extends AppController
         else callback view
 
 
-  updateSettings: (component, key, value) ->
+  updateSettings: (component, key, value, silent) ->
 
     # TODO: Refactor this method by passing component type to helper method.
     Class  = if component is 'editor' then IDEEditorPane else IDETerminalPane
@@ -1014,7 +1014,7 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (view) ->
       if view instanceof Class
         if component is 'editor'
-          view.getAce()[method]? value
+          view.getAce()[method]? value, silent
         else
           view.webtermView.updateSettings()
 
@@ -1557,27 +1557,31 @@ class IDEAppController extends AppController
 
   createTerminalPaneFromChange: (change, hash) ->
 
+    { context } = change
+
     @createNewTerminal
       machine       : @mountedMachine
-      session       : change.context.session
+      session       : context.session
       hash          : hash
       joinUser      : @collaborationHost or nick()
       fitToWindow   : not @isInSession
+      isActivePane  : context.isActivePane
 
 
   createEditorPaneFromChange: (change, hash, inTailMode) ->
 
-    { context, targetTabView }  = change
-    { file, paneType }          = context
-    { path }                    = file
-    options                     = { path, machine : @mountedMachine }
-    file                        = FSHelper.createFileInstance options
-    file.paneHash               = hash
-    method                      = if inTailMode then 'tailFile' else 'openFile'
+    { context, targetTabView }        = change
+    { file, paneType, isActivePane }  = context
+
+    { path }       = file
+    options        = { path, machine : @mountedMachine }
+    file           = FSHelper.createFileInstance options
+    file.paneHash  = hash
+    method         = if inTailMode then 'tailFile' else 'openFile'
 
     if @rtm?.realtimeDoc
       contents = @rtm.getFromModel(path)?.getText() or ''
-      @[method] { file, contents, emitChange: no }
+      @[method] { file, contents, emitChange: no, targetTabView, isActivePane }
 
     else if file.isDummyFile()
       @[method] { file, contents: context.file.content, emitChange: no }
@@ -1585,7 +1589,7 @@ class IDEAppController extends AppController
     else
       file.fetchContents (err, contents = '') =>
         return showError err  if err
-        @[method] { file, contents, emitChange: no, targetTabView }
+        @[method] { file, contents, emitChange: no, targetTabView, isActivePane }
 
 
   createDrawingPaneFromChange: (change, hash) ->

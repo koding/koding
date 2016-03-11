@@ -97,6 +97,8 @@ Address    = "http://localhost:5500/kite"
 
 [paymentwebhook]
 port = "6600"
+debug = false
+secretKey = "paymentwebhooksecretkey-dev"
 
 [googleapiServiceAccount]
 clientId = "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0.apps.googleusercontent.com"
@@ -111,8 +113,24 @@ clientId = "f8e440b796d953ea01e5"
 clientSecret = "b72e2576926a5d67119d5b440107639c6499ed42"
 redirectUri = "http://dev.koding.com:8090/-/oauth/github/callback"
 
+[slack]
+clientId = "2155583316.22363498641"
+clientSecret = "fc61c7db5a3acd2dfbe808ba73b1002a"
+redirectUri = "http://dev.koding.com:8090/api/social/slack/oauth/callback"
+verificationToken = "jldPRk6HmOL2FjeXZYwUdW6B"
+
+[sneakerS3]
+awsSecretAccessKey = "qHayRGSWOHqbIvjl/bLOuszKYry5dUaWBzXvSqff"
+awsAccessKeyId = "AKIAJV2BZT3DBCEUOIXQ"
+sneakerS3Path = "s3://kodingdev-credential/"
+sneakerMasterKey = "fecea2c8-e569-4d87-9179-8e7c93253072"
+awsRegion = "us-east-1"
+
 [disabledFeatures]
 moderation = false
 teams = false
 botchannel = false
 
+[janitor]
+port = "6700"
+secretKey = "janitorsecretkey-dev"

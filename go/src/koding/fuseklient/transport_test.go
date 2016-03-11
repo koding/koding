@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"os"
+	"syscall"
 	"testing"
 
 	"koding/fuseklient/transport"
@@ -16,12 +17,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-// fakeTransport implements Transport; is used in testing Transport requests
-// and mocking responses.
-type fakeTransport struct {
-	TripResponses map[string]interface{}
-}
 
 // newKlient creates a kite, populates it with Klient methods, and returns
 // a dialed kite Client. Mocking an actively running Klient, but still using the real
@@ -53,6 +48,12 @@ func newKlientClient() (*kite.Client, error) {
 	}
 
 	return kiteClient, nil
+}
+
+// fakeTransport implements Transport; is used in testing Transport requests
+// and mocking responses.
+type fakeTransport struct {
+	TripResponses map[string]interface{}
 }
 
 func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}) error {
@@ -136,16 +137,52 @@ type errorTransport struct {
 	ErrorResponses map[string]error
 }
 
+func newErrorTransport(m string, e error) *errorTransport {
+	f := newFakeTransport()
+
+	return &errorTransport{
+		fakeTransport: f,
+		ErrorResponses: map[string]error{
+			m: e,
+		},
+	}
+}
+
+func newWriteErrTransport() *errorTransport {
+	return newErrorTransport("fs.writeFile", fuse.EIO)
+}
+
 func (e *errorTransport) Trip(methodName string, req interface{}, res interface{}) error {
 	if err, ok := e.ErrorResponses[methodName]; ok {
+		if transport.IsKiteConnectionErr(err) {
+			return syscall.ECONNREFUSED
+		}
+
 		return err
 	}
 
 	return e.fakeTransport.Trip(methodName, req, res)
 }
 
-func (e *errorTransport) WriteFile(path string, content []byte) error {
+func (e *errorTransport) WriteFile(_ string, content []byte) error {
 	return e.Trip("fs.writeFile", nil, nil)
+}
+
+func (e *errorTransport) GetDiskInfo(_ string) (*transport.GetDiskInfoRes, error) {
+	var res *transport.GetDiskInfoRes
+	return res, e.Trip("fs.getDiskInfo", nil, nil)
+}
+
+func (e *errorTransport) CreateDir(_ string, _ os.FileMode) error {
+	return e.Trip("fs.createDirectory", nil, nil)
+}
+
+func (e *errorTransport) Rename(_, _ string) error {
+	return e.Trip("fs.rename", nil, nil)
+}
+
+func (e *errorTransport) Remove(_ string) error {
+	return e.Trip("fs.remove", nil, nil)
 }
 
 func TestErrorTransport(t *testing.T) {

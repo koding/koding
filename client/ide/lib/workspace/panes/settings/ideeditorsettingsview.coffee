@@ -60,10 +60,6 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'enableAutocomplete', state
 
-    @openRecentFiles     = new KodingSwitch
-      cssClass           : 'tiny settings-on-off'
-      callback           : (state) => @emit 'SettingsChanged', 'openRecentFiles', state
-
     @keyboardHandler     = new KDSelectBox
       cssClass           : 'dark'
       selectOptions      : editorSettings.keyboardHandlers
@@ -114,12 +110,13 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     return [
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize', 'enableBraceCompletion'
-      'keyboardHandler', 'scrollPastEnd', 'trimTrailingWhitespaces', 'openRecentFiles', 'useAutosave'
+      'keyboardHandler', 'scrollPastEnd', 'trimTrailingWhitespaces', 'useAutosave'
       'enableAutocomplete', 'enableSnippets', 'enableEmmet', 'enableAutoRemovePane'
     ]
 
 
   defaults:
+    theme                   : 'base16'
     tabSize                 : 4
     fontSize                : 12
     showGutter              : yes
@@ -132,7 +129,6 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     showInvisibles          : no
     showPrintMargin         : no
     keyboardHandler         : 'default'
-    openRecentFiles         : yes
     enableAutocomplete      : yes
     highlightActiveLine     : yes
     enableAutoRemovePane    : no

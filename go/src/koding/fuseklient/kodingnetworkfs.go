@@ -507,6 +507,10 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 		if *op.Size == 0 {
 			if file, ok := entry.(*File); ok {
 				file.WriteAt([]byte{}, 0)
+
+				if err := file.Flush(); err != nil {
+					return err
+				}
 			}
 		}
 	}

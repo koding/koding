@@ -178,7 +178,7 @@ func (c *MountCommand) Run() (int, error) {
 		return 1, fmt.Errorf("Error locking. err:%s", err)
 	}
 
-	c.printfln("Mount success.")
+	c.printfln("Mount complete.")
 
 	return 0, nil
 }

@@ -46,8 +46,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   bindListeners: ->
 
-    { frontApp } = kd.singletons.appManager
-
     @on 'PlusHandleClicked',        @bound 'createPlusContextMenu'
     @on 'CloseHandleClicked',       @bound 'closeSplitView'
     @on 'FullscreenHandleClicked',  @bound 'toggleFullscreen'
@@ -55,16 +53,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'NewSplitViewCreated',      @bound 'handleSplitViewCreated'
     @on 'SplitViewMerged',          @bound 'handleSplitViewMerged'
     @on 'CloseFullScreen',          @bound 'handleCloseFullScreen'
-
-    @on 'VerticalSplitHandleClicked', =>
-      frontApp.setActiveTabView @tabView
-      frontApp.splitVertically()
-      @ensureSplitHandlers()
-
-    @on 'HorizontalSplitHandleClicked', =>
-      frontApp.setActiveTabView @tabView
-      frontApp.splitHorizontally()
-      @ensureSplitHandlers()
 
     @on 'RemoveSplitRegions', => @tabView.removeSplitRegions()
 
@@ -78,15 +66,17 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @tabView.on 'TabNeedsToBeClosed',       @bound 'closeTabByFile'
     @tabView.on 'GoToLineRequested',        @bound 'goToLine'
 
-    @tabView.on 'FileNeedsToBeOpened', (file, contents, callback, emitChange) =>
+    @tabView.on 'FileNeedsToBeOpened', (file, contents, callback, emitChange, isActivePane) =>
       @closeUntitledFileIfNotChanged()
       file.initialContents = contents
-      @openFile file, contents, callback, emitChange
+      @openFile file, contents, callback, emitChange, isActivePane
 
     @tabView.on 'FileNeedsToBeTailed', @bound 'tailFile'
 
     @tabView.on 'PaneDidShow', =>
+      { frontApp } = kd.singletons.appManager
       @updateStatusBar()
+      frontApp.writeSnapshot()
       @focusTab()  unless frontApp.isChatInputFocused()
 
     @tabView.on 'PaneAdded', (pane) =>
@@ -127,15 +117,18 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
 
-      @handleCloseSplitView pane.tabHandle
+      unless @tabView.askForSaveModal
+        @handleCloseSplitView pane
 
 
-  handleCloseSplitView: (handle) ->
+  handleCloseSplitView: (pane) ->
+
+    { tabHandle } = pane
 
     appStorage = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
-    paneLength = handle.getDelegate().panes.length
+    paneLength = tabHandle.getDelegate().panes.length
 
-    return if paneLength > 1 # remove pane when there is only one pane left
+    return  if paneLength > 1 # remove pane when there is only one pane left
 
     appStorage.ready =>
 
@@ -213,7 +206,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     pane = new KDTabPaneView paneOptions, paneData
     pane.addSubView view
     pane.view = view
-    @tabView.addPane pane
+
+    @tabView.addPane pane, paneOptions.isActivePane
 
     pane.once 'KDObjectWillBeDestroyed', => @handlePaneRemoved pane
 
@@ -233,7 +227,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     return  if matchedPattern then matchedPattern.first else name
 
 
-  createEditor: (file, content, callback = kd.noop, emitChange = yes) ->
+  createEditor: (file, content, callback = kd.noop, emitChange = yes, isActivePane) ->
 
     unless file # create dummy file and pass machine to that file
       path    = @getDummyFilePath()
@@ -246,7 +240,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     notifyIfNoPermissions = emitChange
 
     if file.isDummyFile()
-      return @createEditorAfterFileCheck file, content, callback, emitChange, no
+      return @createEditorAfterFileCheck file, content, callback, emitChange, no, isActivePane
 
     file.fetchPermissions (err, result) =>
 
@@ -257,19 +251,20 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         IDEHelpers.showFileAccessDeniedError()
         return callback()
 
-      @createEditorAfterFileCheck file, content, callback, emitChange, not writable
+      @createEditorAfterFileCheck file, content, callback, emitChange, not writable, isActivePane
 
 
-  createEditorAfterFileCheck: (file, content, callback, emitChange, isReadOnly) ->
+  createEditorAfterFileCheck: (file, content, callback, emitChange, isReadOnly, isActivePane) ->
 
     content     = content or ''
     ideViewHash = @hash
     editorPane  = new IDEEditorPane { ideViewHash, file, content, delegate: this }
 
     paneOptions =
-      name      : file.name
-      editor    : editorPane
-      aceView   : editorPane.aceView
+      name          : file.name
+      editor        : editorPane
+      aceView       : editorPane.aceView
+      isActivePane  : isActivePane
 
     editorPane.on 'ShowMeAsActive', => @switchToEditorTabByFile file
 
@@ -319,7 +314,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   tailFile: (options) ->
 
-    { file, content, callback, emitChange, description, tailOffset } = options
+    { file, content, callback, emitChange, description, isActivePane, tailOffset } = options
 
     callback   ?= kd.noop
     emitChange ?= yes
@@ -338,10 +333,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         file, content, description, delegate: this, ideViewHash: @hash, tailOffset
       }
 
-      paneOptions =
-        name      : file.name
+      paneOptions = {
+        name: file.name
+        isActivePane
+      }
 
-      tailerPane.once 'EditorIsReady', =>
+      tailerPane.once 'EditorIsReady', ->
         callback tailerPane
 
       @createPane_ tailerPane, paneOptions, file
@@ -374,9 +371,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         options.path = frontApp.workspaceData.rootPath
 
     terminalPane = new IDETerminalPane options
+    { isActivePane } = options
+
     terminalPane.ready -> frontApp.setRealtimeManager terminalPane
 
-    @createPane_ terminalPane, { name: 'Terminal' }
+    @createPane_ terminalPane, { name: 'Terminal', isActivePane }
 
 
   emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
@@ -507,7 +506,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @openFile file, content
 
 
-  openFile: (file, content, callback = kd.noop, emitChange) ->
+  openFile: (file, content, callback = kd.noop, emitChange, isActivePane) ->
 
     if @openFiles.indexOf(file) > -1
       editorPane = @switchToEditorTabByFile file
@@ -517,7 +516,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         @openFiles.push file  if pane
         callback pane
 
-      @createEditor file, content, kallback, emitChange
+      @createEditor file, content, kallback, emitChange, isActivePane
 
 
   switchToEditorTabByFile: (file) ->
