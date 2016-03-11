@@ -81,7 +81,7 @@ body .wysiwyg-font-size-smaller {
         <tbody>
         <tr>
             <td>
-                <span style="color:#565656;font-size:28px;display:block;margin-top:10px;font-weight:600;">{{ .Pin }}, </span>
+                <span style="color:#565656;font-size:28px;display:block;margin-top:10px;font-weight:600;">{{ .Pin }}</span>
 </td>
 </tr>
 </tbody>
