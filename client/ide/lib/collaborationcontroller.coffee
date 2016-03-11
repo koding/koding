@@ -253,16 +253,11 @@ module.exports = CollaborationController =
 
   setWatchMap: ->
 
-    if @myWatchMap.values().length
-      @emit 'WatchMapIsReady'
-      return
+    return @emit 'WatchMapIsReady'  if @amIHost
 
-    @listChatParticipants (accounts) =>
-      accounts.forEach (account) =>
-        { nickname } = account.profile
-        @myWatchMap.set nickname, nickname
-
-      @emit 'WatchMapIsReady'
+    host = @collaborationHost
+    @myWatchMap.set host, host
+    @emit 'WatchMapIsReady'
 
 
   activateRealtimeManagerForHost: ->
@@ -411,7 +406,6 @@ module.exports = CollaborationController =
       return  if nickname is nick()
 
       @statusBar.createParticipantAvatar nickname, no
-      @watchParticipant nickname
 
       if @amIHost
         @setParticipantPermission nickname
