@@ -94,6 +94,7 @@ module.exports = class ComputeProvider extends Base
 
     shouldReviveClient       : yes
     shouldReviveProvisioners : yes
+    shouldFetchGroupPlan     : yes
 
   , (client, options, callback) ->
 
@@ -134,6 +135,7 @@ module.exports = class ComputeProvider extends Base
     shouldPassCredential : yes
     shouldReviveProvider : no
     shouldLockProcess    : yes
+    shouldFetchGroupPlan : yes
 
   , (client, options, callback) ->
 
@@ -406,7 +408,7 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  if group.slug is 'koding'
 
-    planConfig = helpers.getPlanConfig group
+    planConfig   = helpers.getPlanConfig group
 
     maxAllowed   = MAX_INT
     if planConfig.plan

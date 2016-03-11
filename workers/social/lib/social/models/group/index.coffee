@@ -1087,54 +1087,42 @@ module.exports = class JGroup extends Module
     success  : (client, data, callback) ->
 
       # it's not allowed to change followings
-      blacklist  = ['slug', 'slug_', 'config']
+      blacklist  = ['slug', 'slug_', 'config', '_activePlan']
       data[item] = null  for item in blacklist when data[item]?
 
-      # we need to make sure if given stack template is
-      # valid for the current group plan ~ GG
-      templates = data.stackTemplates
-      if templates?.length > 0 and @getAt 'config.plan'
-        ComputeProvider = require '../computeproviders/computeprovider'
-        ComputeProvider.validateTemplates client, templates, this, (err) =>
-          return callback err  if err
-          @update { $set: data }, callback
+      { reviveGroupPlan } = require '../computeproviders/computeutils'
 
-      else
-        @update { $set: data }, callback
+      reviveGroupPlan this, (err, group) =>
+
+        # we need to make sure if given stack template is
+        # valid for the current group plan ~ GG
+        templates = data.stackTemplates
+        if templates?.length > 0 and group._activePlan
+          ComputeProvider = require '../computeproviders/computeprovider'
+          ComputeProvider.validateTemplates client, templates, group, (err) =>
+            return callback err  if err
+            @update { $set: data }, callback
+
+        else
+          @update { $set: data }, callback
 
 
   setPlan    : permit
     advanced : [{ permission: 'edit groups', superadmin: yes }]
     success  : (client, data, callback) ->
 
-      TEAMPLANS = require '../computeproviders/teamplans'
-
       if (@getAt 'slug') is 'koding'
         return callback new KodingError \
           'Setting a plan on koding is not allowed'
 
-      { plan, overrides } = data
+      dataToUpdate = { 'config.planOverrides' : data.overrides }
 
-      if plan not in (plans = Object.keys(TEAMPLANS).concat 'noplan')
-        return callback new KodingError "Plan can be #{plans.join ','}"
-
-      if plan is 'noplan'
-        _plan      = ''
-        overrides  = ''
-      else
-        _plan      = plan
-        overrides ?= {}
-
-      dataToUpdate = {
-        'config.plan'          : _plan
-        'config.planOverrides' : overrides
-      }
-
-      if plan is 'noplan'
+      unless data.overrides
+        # unset old plan definition as well
+        dataToUpdate['config.plan'] = {}
         @update { $unset: dataToUpdate }, callback
       else
         @update { $set: dataToUpdate }, callback
-
 
 
   modifyMembershipPolicy: permit
