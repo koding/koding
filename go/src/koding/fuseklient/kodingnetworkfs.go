@@ -2,6 +2,7 @@ package fuseklient
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -418,7 +419,7 @@ func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) 
 	}
 
 	bytes, err := file.ReadAt(op.Offset)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return err
 	}
 
