@@ -69,7 +69,7 @@ func (r *DeviceNotConfiguredRepair) Status() error {
 	// If it's another error, log it. In this case there's nothing to do,
 	// we don't know what's wrong.
 	if err != nil {
-		r.Log.Warning("Encountered ignored error. err:%s", err)
+		r.Log.Warning("Encountered error not in scope of this repair. err:%s", err)
 		return nil
 	}
 
