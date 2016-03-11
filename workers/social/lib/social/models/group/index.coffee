@@ -1118,6 +1118,8 @@ module.exports = class JGroup extends Module
       dataToUpdate = { 'config.planOverrides' : data.overrides }
 
       unless data.overrides
+        # unset old plan definition as well
+        dataToUpdate['config.plan'] = {}
         @update { $unset: dataToUpdate }, callback
       else
         @update { $set: dataToUpdate }, callback
