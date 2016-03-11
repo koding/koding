@@ -95,13 +95,8 @@ module.exports = class JGroup extends Module
     indexes         :
       slug          : 'unique'
     sharedEvents    :
-      static        : [
-        { name: 'updateInstance' }
-
-      ]
-      instance      : [
-        { name: 'updateInstance' }
-      ]
+      static        : []
+      instance      : []
     sharedMethods   :
       static        :
         one:

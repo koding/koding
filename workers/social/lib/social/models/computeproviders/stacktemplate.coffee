@@ -57,10 +57,8 @@ module.exports = class JStackTemplate extends Module
           (signature Function)
 
     sharedEvents      :
-      static          : [ ]
-      instance        : [
-        { name : 'updateInstance' }
-      ]
+      static          : []
+      instance        : []
 
     schema            :
 
