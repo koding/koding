@@ -7,14 +7,15 @@ AdminAppView               = require './views/customviews/adminappview'
 TeamInviteView             = require './views/koding-admin/teaminviteview'
 TeamManageView             = require './views/koding-admin/teammanageview'
 AdminMembersView           = require './views/members/adminmembersview'
+AdminResourcesView         = require './views/resources/adminresourcesview'
 AdministrationView         = require './views/koding-admin/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
 TopicModerationView        = require './views/moderation/topicmoderationview'
 OnboardingAdminView        = require './views/onboarding/onboardingadminview'
 AdminInvitationsView       = require './views/invitations/admininvitationsview'
 GroupPermissionsView       = require './views/permissions/grouppermissionsview'
+GroupPlanBillingView       = require './views/plan-billing/groupplanbillingview'
 GroupsBlockedUserView      = require './views/members/groupsblockeduserview'
-AdminIntegrationsView      = require './views/integrations/adminintegrationsview'
 GroupGeneralSettingsView   = require './views/general/groupgeneralsettingsview'
 AdminIntegrationParentView = require './views/integrations/adminintegrationparentview'
 
@@ -36,17 +37,11 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
       # { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
-        {
-          slug      : 'Integrations'
-          title     : 'Integrations'
-          viewClass : AdminIntegrationsView,
-          subTabs   : [
-            { title : 'Add',        action: 'Add',              viewClass : AdminIntegrationParentView }
-            { title : 'Configure',  action: 'Configure',        viewClass : AdminIntegrationParentView }
-          ]
-        }
+
         { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }
-        { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 }
+        { slug : 'Resources',      title : 'Resources',         viewClass : AdminResourcesView       , beta: yes }
+        { slug : 'Logs',           title : 'Team Logs',         viewClass : LogsView                 , beta: yes }
+        # { slug : 'Plan-Billing',   title : 'Plan & Billing',    viewClass : GroupPlanBillingView     }
       ]
     koding     :
       title    : 'Koding Administration'

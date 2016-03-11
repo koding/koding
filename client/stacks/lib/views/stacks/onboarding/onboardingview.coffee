@@ -4,7 +4,6 @@ hljs                  = require 'highlight.js'
 JView                 = require 'app/jview'
 CodeSetupView         = require './codesetupview'
 { jsonToYaml }        = require '../yamlutils'
-applyMarkdown         = require 'app/util/applyMarkdown'
 GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
@@ -280,7 +279,10 @@ module.exports = class OnboardingView extends JView
 
     elements.block = elements.line
 
-    el = elements[type]?() or elements[type]
+    el = if typeof elements[type] is 'function' then elements[type]() else elements[type]
+
+    return  unless el
+
     el.setTooltip
       title    : messages[type]?() or messages[type]
       cssClass : 'stack-tooltip'

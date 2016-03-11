@@ -43,6 +43,32 @@ func ExampleAPIGateway_CreateApiKey() {
 	fmt.Println(resp)
 }
 
+func ExampleAPIGateway_CreateAuthorizer() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.CreateAuthorizerInput{
+		AuthorizerUri:  aws.String("String"),         // Required
+		IdentitySource: aws.String("String"),         // Required
+		Name:           aws.String("String"),         // Required
+		RestApiId:      aws.String("String"),         // Required
+		Type:           aws.String("AuthorizerType"), // Required
+		AuthorizerCredentials:        aws.String("String"),
+		AuthorizerResultTtlInSeconds: aws.Int64(1),
+		IdentityValidationExpression: aws.String("String"),
+	}
+	resp, err := svc.CreateAuthorizer(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleAPIGateway_CreateBasePathMapping() {
 	svc := apigateway.New(session.New())
 
@@ -216,6 +242,26 @@ func ExampleAPIGateway_DeleteApiKey() {
 		ApiKey: aws.String("String"), // Required
 	}
 	resp, err := svc.DeleteApiKey(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_DeleteAuthorizer() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.DeleteAuthorizerInput{
+		AuthorizerId: aws.String("String"), // Required
+		RestApiId:    aws.String("String"), // Required
+	}
+	resp, err := svc.DeleteAuthorizer(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -471,6 +517,26 @@ func ExampleAPIGateway_DeleteStage() {
 	fmt.Println(resp)
 }
 
+func ExampleAPIGateway_FlushStageAuthorizersCache() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.FlushStageAuthorizersCacheInput{
+		RestApiId: aws.String("String"), // Required
+		StageName: aws.String("String"), // Required
+	}
+	resp, err := svc.FlushStageAuthorizersCache(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleAPIGateway_FlushStageCache() {
 	svc := apigateway.New(session.New())
 
@@ -554,6 +620,47 @@ func ExampleAPIGateway_GetApiKeys() {
 		Position: aws.String("String"),
 	}
 	resp, err := svc.GetApiKeys(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_GetAuthorizer() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.GetAuthorizerInput{
+		AuthorizerId: aws.String("String"), // Required
+		RestApiId:    aws.String("String"), // Required
+	}
+	resp, err := svc.GetAuthorizer(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_GetAuthorizers() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.GetAuthorizersInput{
+		RestApiId: aws.String("String"), // Required
+		Limit:     aws.Int64(1),
+		Position:  aws.String("String"),
+	}
+	resp, err := svc.GetAuthorizers(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -714,6 +821,32 @@ func ExampleAPIGateway_GetDomainNames() {
 		Position: aws.String("String"),
 	}
 	resp, err := svc.GetDomainNames(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_GetExport() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.GetExportInput{
+		ExportType: aws.String("String"), // Required
+		RestApiId:  aws.String("String"), // Required
+		StageName:  aws.String("String"), // Required
+		Accepts:    aws.String("String"),
+		Parameters: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.GetExport(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -1097,6 +1230,7 @@ func ExampleAPIGateway_PutMethod() {
 		ResourceId:        aws.String("String"), // Required
 		RestApiId:         aws.String("String"), // Required
 		ApiKeyRequired:    aws.Bool(true),
+		AuthorizerId:      aws.String("String"),
 		RequestModels: map[string]*string{
 			"Key": aws.String("String"), // Required
 			// More values...
@@ -1137,6 +1271,40 @@ func ExampleAPIGateway_PutMethodResponse() {
 		},
 	}
 	resp, err := svc.PutMethodResponse(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_TestInvokeAuthorizer() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.TestInvokeAuthorizerInput{
+		AuthorizerId: aws.String("String"), // Required
+		RestApiId:    aws.String("String"), // Required
+		AdditionalContext: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+		Body: aws.String("String"),
+		Headers: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+		PathWithQueryString: aws.String("String"),
+		StageVariables: map[string]*string{
+			"Key": aws.String("String"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.TestInvokeAuthorizer(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -1224,6 +1392,35 @@ func ExampleAPIGateway_UpdateApiKey() {
 		},
 	}
 	resp, err := svc.UpdateApiKey(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleAPIGateway_UpdateAuthorizer() {
+	svc := apigateway.New(session.New())
+
+	params := &apigateway.UpdateAuthorizerInput{
+		AuthorizerId: aws.String("String"), // Required
+		RestApiId:    aws.String("String"), // Required
+		PatchOperations: []*apigateway.PatchOperation{
+			{ // Required
+				From:  aws.String("String"),
+				Op:    aws.String("op"),
+				Path:  aws.String("String"),
+				Value: aws.String("String"),
+			},
+			// More values...
+		},
+	}
+	resp, err := svc.UpdateAuthorizer(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and

@@ -1,11 +1,8 @@
 kd                              = require 'kd'
-nick                            = require '../../util/nick'
 whoami                          = require '../../util/whoami'
 remote                          = require('../../remote').getInstance()
 globals                         = require 'globals'
-Promise                         = require 'bluebird'
 Machine                         = require 'app/providers/machine'
-FSHelper                        = require '../../util/fs/fshelper'
 isKoding                        = require 'app/util/isKoding'
 showError                       = require '../../util/showError'
 groupifyLink                    = require '../../util/groupifyLink'
@@ -17,12 +14,8 @@ KDCustomHTMLView                = kd.CustomHTMLView
 SidebarTopicItem                = require './sidebartopicitem'
 isFeatureEnabled                = require 'app/util/isFeatureEnabled'
 fetchChatChannels               = require 'activity/util/fetchChatChannels'
-SidebarPinnedItem               = require './sidebarpinneditem'
-KDNotificationView              = kd.NotificationView
 isSoloProductLite               = require 'app/util/issoloproductlite'
 SidebarMessageItem              = require './sidebarmessageitem'
-JTreeViewController             = kd.JTreeViewController
-MoreWorkspacesModal             = require './moreworkspacesmodal'
 fetchChatChannelCount           = require 'activity/util/fetchChatChannelCount'
 sortEnvironmentStacks           = require 'app/util/sortEnvironmentStacks'
 isChannelCollaborative          = require '../../util/isChannelCollaborative'
@@ -126,16 +119,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   messageAddedToChannel: (update) ->
 
-    { channel, channelMessage, unreadCount } = update
-
-    if isChannelCollaborative(channel) and channelMessage.payload
-      { systemType } = channelMessage.payload
-      systemType or= channelMessage.payload['system-message']
-
-      if systemType in ['start', 'stop']
-        @fetchEnvironmentData =>
-          @setWorkspaceUnreadCount channel, unreadCount
-
     @handleFollowedFeedUpdate update
 
 
@@ -153,11 +136,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     return  unless item = @itemsById[channel.id]
 
     item.setUnreadCount? update.unreadCount
-
-
-  glanceChannelWorkspace: (channel) ->
-
-    @setWorkspaceUnreadCount channel, 0
 
 
   setUnreadCount: (item, data, unreadCount) ->
@@ -182,18 +160,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         pane.putNewMessageIndicator()
 
     item.setUnreadCount? unreadCount
-
-
-  setWorkspaceUnreadCount: (data, count) ->
-
-    channelId = data._id
-    provider  = environmentDataProvider
-
-    provider.fetchMachineAndWorkspaceByChannelId channelId, (machine, workspace) =>
-
-      return  unless machine and workspace
-      return  unless box = @getMachineBoxByMachineUId machine.uid
-      box.setUnreadCount channelId, count
 
 
   handleFollowedFeedUpdate: (update) ->
@@ -222,9 +188,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       if isFeatureEnabled('botchannel') and data.typeConstant is 'privatemessage'
         index = 1
 
-      if isChannelCollaborative data
-        @setWorkspaceUnreadCount data, unreadCount
-      else
+      unless isChannelCollaborative data
         item = @addItem data, index
         @setUnreadCount item, data, unreadCount
 
@@ -275,11 +239,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
       index = 0  if isPrivateMessage
 
-      if isChannelCollaborative channel
-        @fetchEnvironmentData (data) =>
-          # @sharedMachinesList.updateList data.shared.concat data.collaboration
-          @setWorkspaceUnreadCount channel, unreadCount
-      else
+      unless isChannelCollaborative channel
         item = @addItem channel, index
         @setUnreadCount item, channel, unreadCount
 
@@ -821,22 +781,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       countSource: (callback) ->
         fetchChatChannelCount {}, callback
 
-    @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
-
 
   handleReloadMessages: ->
 
     environmentDataProvider.fetch => @sections.messages.reload()
-
-
-  handleWorkspaceUnreadCounts: (chatData) ->
-
-    cb = =>
-      chatData.forEach (data) =>
-        @setWorkspaceUnreadCount data, data.unreadCount
-
-    if @isMachinesListed then cb()
-    else @once 'MachinesListed', cb
 
 
   updateMachines: (callback = kd.noop) ->

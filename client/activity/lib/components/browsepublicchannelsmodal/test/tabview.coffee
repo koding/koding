@@ -1,5 +1,4 @@
 React     = require 'kd-react'
-ReactDOM  = require 'react-dom'
 expect    = require 'expect'
 TabView   = require '../tabview'
 TestUtils = require 'react-addons-test-utils'

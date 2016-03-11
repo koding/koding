@@ -1,6 +1,5 @@
 kd                             = require 'kd'
 React                          = require 'kd-react'
-ReactDOM                       = require 'react-dom'
 ActivityFlux                   = require 'activity/flux'
 EnvironmentFlux                = require 'app/flux/environment'
 Scroller                       = require 'app/components/scroller'
@@ -61,6 +60,15 @@ module.exports = class Sidebar extends React.Component
       .on 'SharedMachineInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
       .on 'CollaborationInvitation', EnvironmentFlux.actions.handleSharedMachineInvitation
       .on 'MemberWarning',           EnvironmentFlux.actions.handleMemberWarning
+      .on 'MachineShareActionTaken', (options) ->
+        if options.action is 'approve'
+          EnvironmentFlux.actions.setActiveInvitationMachineId { machine: null }
+        else
+          EnvironmentFlux.actions.setActiveLeavingSharedMachineId { id: null }
+          EnvironmentFlux.actions.dispatchCollaborationInvitationRejected options.machineId
+          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected options.machineId
+
+        EnvironmentFlux.actions.loadMachines()
 
 
   setActiveInvitationMachineId: ->
@@ -122,17 +130,12 @@ module.exports = class Sidebar extends React.Component
 
   renderStacks: ->
 
-    <SidebarStackHeaderSection>
-      {@divideStacks()}
-    </SidebarStackHeaderSection>
-
-
-  renderNoStacks: ->
-
-    return null  if @state.stacks.size
-    return null  unless @state.showNoStacksWidget
-
-    <SidebarNoStacks />
+    if @state.stacks.size
+      <SidebarStackHeaderSection>
+        {@divideStacks()}
+      </SidebarStackHeaderSection>
+    else if @state.showNoStacksWidget
+      <SidebarNoStacks />
 
 
   renderDifferentStackResources: ->
@@ -174,10 +177,7 @@ module.exports = class Sidebar extends React.Component
       <div className='Sidebar-section-wrapper'>
         {@renderDifferentStackResources()}
         {@renderStacks()}
-        {@renderNoStacks()}
         {@renderSharedMachines()}
-        {@renderChannels()}
-        {@renderMessages()}
         {@renderInvitationWidget()}
       </div>
       <div className='Sidebar-logo-wrapper'>

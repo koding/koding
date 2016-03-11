@@ -44,21 +44,37 @@ type Client struct {
 // ClientConfig defines the configuration for the Client
 type ClientConfig struct {
 	// Identifier is the secret token that needs to be passed to the server.
-	// Required if FetchIdentifier is not set
+	// Required if FetchIdentifier is not set.
 	Identifier string
 
 	// FetchIdentifier can be used to fetch identifier. Required if Identifier
 	// is not set.
 	FetchIdentifier func() (string, error)
 
-	// ServerAddr defines the TCP address of the tunnel server to be connected. This is required.
+	// ServerAddr defines the TCP address of the tunnel server to be connected.
+	// Required if FetchServerAddr is not set.
 	ServerAddr string
+
+	// FetchServerAddr can be used to fetch tunnel server address.
+	// Required if ServerAddress is not set.
+	FetchServerAddr func() (string, error)
 
 	// LocalAddr defines the TCP address of the local server. This is optional
 	// if you want to specify a single TCP address. Otherwise the client will
 	// always proxy to 127.0.0.1:incomingPort, where incomingPort is the
 	// tunnelserver's public exposed Port.
 	LocalAddr string
+
+	// FetchLocalAddr is used for looking up TCP address of the server,
+	// which an incoming connection should be proxied to.
+	//
+	// If port-based routing is used, this field is required for tunneling to
+	// function properly. Otherwise you'll be forwarding traffic to random
+	// ports and this is usually not desired.
+	//
+	// If IP-based routing is used this field may be nil, in that case
+	// "127.0.0.1:port" will be used instead.
+	FetchLocalAddr func(port int) (string, error)
 
 	// Debug enables debug mode, enable only if you want to debug the server.
 	Debug bool
@@ -73,12 +89,12 @@ type ClientConfig struct {
 
 // verify is used to verify the ClientConfig
 func (c *ClientConfig) verify() error {
-	if c.ServerAddr == "" {
-		return errors.New("config.ServerAddr must be set")
+	if c.ServerAddr == "" && c.FetchServerAddr == nil {
+		return errors.New("neither ServerAddr nor FetchServerAddr is set")
 	}
 
 	if c.Identifier == "" && c.FetchIdentifier == nil {
-		return errors.New("neither config.Identifier nor config.FetchIdentifier is set")
+		return errors.New("neither Identifier nor FetchIdentifier is set")
 	}
 
 	if c.YamuxConfig != nil {
@@ -129,7 +145,7 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 // server disconnects. Call client.Close() to shutdown the client completely. A
 // successfull connection will cause StartNotify() to receive a value.
 func (c *Client) Start() {
-	id := func() (string, error) {
+	fetchIdent := func() (string, error) {
 		if c.config.FetchIdentifier != nil {
 			return c.config.FetchIdentifier()
 		}
@@ -137,12 +153,26 @@ func (c *Client) Start() {
 		return c.config.Identifier, nil
 	}
 
+	fetchServerAddr := func() (string, error) {
+		if c.config.FetchServerAddr != nil {
+			return c.config.FetchServerAddr()
+		}
+
+		return c.config.ServerAddr, nil
+	}
+
 	c.redialBackoff.Reset()
 	for {
 		time.Sleep(c.redialBackoff.NextBackOff())
-		identifier, err := id()
+		identifier, err := fetchIdent()
 		if err != nil {
-			c.log.Critical("client fetch identifier err: %s", err.Error())
+			c.log.Critical("client fetch identifier error: %s", err)
+			continue
+		}
+
+		serverAddr, err := fetchServerAddr()
+		if err != nil {
+			c.log.Critical("client fetch server address error: %s", err)
 			continue
 		}
 
@@ -158,7 +188,7 @@ func (c *Client) Start() {
 		}
 		c.mu.Unlock()
 
-		if err := c.connect(identifier); err != nil {
+		if err := c.connect(identifier, serverAddr); err != nil {
 			c.log.Debug("client connect err: %s", err.Error())
 		}
 
@@ -200,9 +230,9 @@ func (c *Client) Close() error {
 	return nil
 }
 
-func (c *Client) connect(identifier string) error {
-	c.log.Debug("Trying to connect to '%s' with identifier '%s'", c.config.ServerAddr, identifier)
-	conn, err := net.Dial("tcp", c.config.ServerAddr)
+func (c *Client) connect(identifier, serverAddr string) error {
+	c.log.Debug("Trying to connect to '%s' with identifier '%s'", serverAddr, identifier)
+	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
 		return err
 	}
@@ -312,17 +342,60 @@ func (c *Client) listenControl(ct *control) error {
 
 		switch msg.Action {
 		case requestClientSession:
-			c.log.Debug("Received request to open a session to server")
-			go func() {
-				if err := c.proxy(msg.LocalPort); err != nil {
-					c.log.Error("Proxy err between remote and local: '%s'", err)
-				}
-			}()
+			switch msg.Protocol {
+			case tcpTransport:
+				c.log.Debug("Received request to open a TCP session to server")
+
+				go func() {
+					if err := c.proxyTCP(msg.LocalPort); err != nil {
+						c.log.Error("proxying between remote and local failed: %s", err)
+					}
+				}()
+
+			case wsTransport, httpTransport:
+				c.log.Debug("Received request to open a HTTP session to server")
+
+				go func() {
+					if err := c.proxyHTTP(msg.LocalPort); err != nil {
+						c.log.Error("Proxy err between remote and local: '%s'", err)
+					}
+				}()
+			}
 		}
 	}
 }
 
-func (c *Client) proxy(port int) error {
+func (c *Client) proxyTCP(port int) error {
+	c.log.Debug("Opening a new stream from server session")
+
+	remote, err := c.session.Open()
+	if err != nil {
+		return err
+	}
+	defer remote.Close()
+
+	localAddr := fmt.Sprintf("127.0.0.1:%d", port)
+	if c.config.FetchLocalAddr != nil {
+		localAddr, err = c.config.FetchLocalAddr(port)
+		if err != nil {
+			return fmt.Errorf("failed to fetch LocalAddr for port %d: %s", port, err)
+		}
+	}
+
+	c.log.Debug("Dialing local server: %s", localAddr)
+
+	local, err := net.DialTimeout("tcp", localAddr, defaultTimeout)
+	if err != nil {
+		c.log.Error("dialing local server %s failed: %s", localAddr, err)
+		return err
+	}
+
+	c.join(local, remote)
+
+	return nil
+}
+
+func (c *Client) proxyHTTP(port int) error {
 	c.log.Debug("Opening a new stream from server session")
 	remote, err := c.session.Open()
 	if err != nil {
@@ -333,16 +406,15 @@ func (c *Client) proxy(port int) error {
 	if port == 0 {
 		port = 80
 	}
-
 	localAddr := "127.0.0.1:" + strconv.Itoa(port)
 	if c.config.LocalAddr != "" {
 		localAddr = c.config.LocalAddr
 	}
 
-	c.log.Debug("Dialing local server %s", localAddr)
-	local, err := net.Dial("tcp", localAddr)
+	c.log.Debug("Dialing local server: %s", localAddr)
+	local, err := net.DialTimeout("tcp", localAddr, defaultTimeout)
 	if err != nil {
-		c.log.Debug("Dialing local server(%s) failed: %s", localAddr, err)
+		c.log.Error("dialing local server %s failed: %s", localAddr, err)
 
 		// send a response instead of canceling it on the server side. at least
 		// the public connection will know what's happening or not
@@ -360,47 +432,47 @@ func (c *Client) proxy(port int) error {
 		buf := new(bytes.Buffer)
 		resp.Write(buf)
 		if _, err := io.Copy(remote, buf); err != nil {
-			c.log.Debug("copy in-mem response error: %s\n", err.Error())
+			c.log.Debug("copy in-mem response error: %s", err)
 		}
 		return nil
 	}
 
-	c.log.Debug("Starting to proxy between remote and local server")
 	c.reqWg.Add(1)
 	c.join(local, remote)
 	c.reqWg.Done()
 
-	c.log.Debug("Proxing between remote and local server finished")
 	return nil
 }
 
-func (c *Client) join(local, remote io.ReadWriteCloser) {
+func (c *Client) join(local, remote net.Conn) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	transfer := func(side string, dst, src io.ReadWriteCloser) {
-		_, err := io.Copy(dst, src)
+	transfer := func(side string, dst, src net.Conn) {
+		c.log.Debug("proxing %s -> %s", src.RemoteAddr(), dst.RemoteAddr())
+
+		n, err := io.Copy(dst, src)
 		if err != nil {
-			c.log.Debug("copy error: %s\n", err.Error())
+			c.log.Error("%s: copy error: %s", side, err)
 		}
 
 		if err := src.Close(); err != nil {
-			c.log.Debug("%s: close error: %s\n", side, err.Error())
+			c.log.Debug("%s: close error: %s", side, err)
 		}
 
 		// not for yamux streams, but for client to local server connections
 		if d, ok := dst.(*net.TCPConn); ok {
 			if err := d.CloseWrite(); err != nil {
-				c.log.Debug("%s: closeWrite error: %s\n", side, err.Error())
+				c.log.Debug("%s: closeWrite error: %s", side, err)
 			}
 		}
 
 		wg.Done()
+		c.log.Debug("done proxing %s -> %s: %d bytes", src.RemoteAddr(), dst.RemoteAddr(), n)
 	}
 
 	go transfer("remote to local", local, remote)
 	go transfer("local to remote", remote, local)
 
 	wg.Wait()
-	return
 }

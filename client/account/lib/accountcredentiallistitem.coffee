@@ -1,5 +1,4 @@
 kd                        = require 'kd'
-KDButtonView              = kd.ButtonView
 KDCustomHTMLView          = kd.CustomHTMLView
 globals                   = require 'globals'
 BaseStackTemplateListItem = require 'app/stacks/basestacktemplatelistitem'

@@ -13,15 +13,35 @@ func InitCheckers() error {
 	return err
 }
 
-func Subscribe(u *url.URL, h http.Header, req *payment.SubscribeRequest) (int, http.Header, interface{}, error) {
+//----------------------------------------------------------
+// Subscribe
+//----------------------------------------------------------
+
+func AccountSubscribe(u *url.URL, h http.Header, req *payment.AccountSubscribeRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndClientError(
 		req.Do(),
 	)
 }
 
-func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func GroupSubscribe(u *url.URL, h http.Header, req *payment.GroupSubscribeRequest) (int, http.Header, interface{}, error) {
+	return response.HandleResultAndClientError(
+		req.Do(),
+	)
+}
+
+func AccountSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	subscriptionRequest := &payment.AccountRequest{
 		AccountId: u.Query().Get("account_id"),
+	}
+
+	return response.HandleResultAndClientError(
+		subscriptionRequest.Subscriptions(),
+	)
+}
+
+func GroupSubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	subscriptionRequest := &payment.GroupRequest{
+		GroupId: u.Query().Get("group_id"),
 	}
 
 	return response.HandleResultAndClientError(
@@ -71,11 +91,17 @@ func CreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Head
 	}
 
 	return response.HandleResultAndClientError(
-		req.CreditCard(),
+		req.GetCreditCard(),
 	)
 }
 
-func UpdateCreditCardRequest(u *url.URL, h http.Header, req *payment.UpdateCreditCardRequest) (int, http.Header, interface{}, error) {
+func AccountUpdateCreditCardRequest(u *url.URL, h http.Header, req *payment.AccountUpdateCreditCardRequest) (int, http.Header, interface{}, error) {
+	return response.HandleResultAndClientError(
+		req.Do(),
+	)
+}
+
+func GroupUpdateCreditCardRequest(u *url.URL, h http.Header, req *payment.GroupUpdateCreditCardRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndClientError(
 		req.Do(),
 	)

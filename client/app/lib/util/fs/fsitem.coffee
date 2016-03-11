@@ -105,7 +105,9 @@ module.exports = class FSItem extends KDObject
 
         kite.exec({command})
 
-        .then(handleStdErr())
+        .then (result) ->
+          cb = handleStdErr()
+          cb result, 'cp'
 
     .nodeify(callback)
 
@@ -135,13 +137,15 @@ module.exports = class FSItem extends KDObject
 
       command =
         if type is "tar.gz"
-          "tar -pczf #{escapeFilePath actualPath} #{escapeFilePath @getPath()}"
+          "cd #{escapeFilePath @parentPath};tar -pczf #{escapeFilePath actualPath} #{escapeFilePath @name}"
         else
-          "zip -r #{escapeFilePath actualPath} #{escapeFilePath @getPath()}"
+          "cd #{escapeFilePath @parentPath};zip -r #{escapeFilePath actualPath} #{escapeFilePath @name}"
 
       kite.exec { command }
 
-    .then(handleStdErr())
+    .then (result) ->
+      cb = handleStdErr()
+      cb result, type
 
     .nodeify(callback)
 
@@ -168,6 +172,8 @@ module.exports = class FSItem extends KDObject
       when zipPattern .test @name
         [no, path.replace zipPattern, '']
 
+    type = if isTarGz then 'tar' else 'zip'
+
     kite.init()
 
     .then ->
@@ -183,7 +189,9 @@ module.exports = class FSItem extends KDObject
 
       kite.exec({command})
 
-    .then(handleStdErr())
+    .then (result) ->
+      cb = handleStdErr()
+      cb result, type
 
     .nodeify(callback)
 

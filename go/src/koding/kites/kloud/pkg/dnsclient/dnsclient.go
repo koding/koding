@@ -100,22 +100,33 @@ func (r *Route53) Upsert(domain, newIP string) error {
 
 // UpsertRecord creates or updates a DNS record.
 func (r *Route53) UpsertRecord(rec *Record) error {
-	r.opts.Log.Debug("upserting record: %# v", rec)
+	return r.UpsertRecords(rec)
+}
+
+func (r *Route53) UpsertRecords(recs ...*Record) error {
+	changes := make([]*route53.Change, len(recs))
+
+	for i := range changes {
+		r.opts.Log.Debug("upserting record: %# v", recs[i])
+
+		changes[i] = &route53.Change{
+			Action: aws.String("UPSERT"),
+			ResourceRecordSet: &route53.ResourceRecordSet{
+				Name: aws.String(recs[i].Name),
+				Type: aws.String(recs[i].Type),
+				TTL:  aws.Int64(int64(recs[i].TTL)),
+				ResourceRecords: []*route53.ResourceRecord{{
+					Value: aws.String(recs[i].IP),
+				}},
+			},
+		}
+	}
+
 	params := &route53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(r.ZoneId),
 		ChangeBatch: &route53.ChangeBatch{
-			Comment: aws.String("Upserting domain"),
-			Changes: []*route53.Change{{
-				Action: aws.String("UPSERT"),
-				ResourceRecordSet: &route53.ResourceRecordSet{
-					Name: aws.String(rec.Name),
-					Type: aws.String(rec.Type),
-					TTL:  aws.Int64(int64(rec.TTL)),
-					ResourceRecords: []*route53.ResourceRecord{{
-						Value: aws.String(rec.IP),
-					}},
-				},
-			}},
+			Comment: aws.String("Upserting domains"),
+			Changes: changes,
 		},
 	}
 	return r.change(params)

@@ -18,5 +18,4 @@ module.exports = class IDEWebTermView extends WebTermView
 
     # Call the "triggerFitToWindow" when terminal is connected.
     if @getOption('mode') is 'shared'
-      @on 'WebTermConnected', =>
-        @triggerFitToWindow()
+      @on 'WebTermConnected', @bound 'triggerFitToWindow'

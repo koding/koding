@@ -1,0 +1,2 @@
+# This derives from the main Ubuntu userns config
+lxc.include = @LXCTEMPLATECONFIG@/ubuntu.userns.conf

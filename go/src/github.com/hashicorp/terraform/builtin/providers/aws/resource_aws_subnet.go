@@ -22,9 +22,8 @@ func resourceAwsSubnet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"vpc_id": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
-				Computed: true,
 			},
 
 			"cidr_block": &schema.Schema{
@@ -76,7 +75,7 @@ func resourceAwsSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Waiting for subnet (%s) to become available", *subnet.SubnetId)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"pending"},
-		Target:  "available",
+		Target:  []string{"available"},
 		Refresh: SubnetStateRefreshFunc(conn, *subnet.SubnetId),
 		Timeout: 10 * time.Minute,
 	}
@@ -167,13 +166,19 @@ func resourceAwsSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	wait := resource.StateChangeConf{
 		Pending:    []string{"pending"},
-		Target:     "destroyed",
+		Target:     []string{"destroyed"},
 		Timeout:    5 * time.Minute,
 		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			_, err := conn.DeleteSubnet(req)
 			if err != nil {
 				if apiErr, ok := err.(awserr.Error); ok {
+					if apiErr.Code() == "DependencyViolation" {
+						// There is some pending operation, so just retry
+						// in a bit.
+						return 42, "pending", nil
+					}
+
 					if apiErr.Code() == "InvalidSubnetID.NotFound" {
 						return 42, "destroyed", nil
 					}

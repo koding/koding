@@ -1,5 +1,4 @@
 kd                       = require 'kd'
-$                        = require 'jquery'
 React                    = require 'kd-react'
 ReactDOM                 = require 'react-dom'
 isScrollThresholdReached = require 'app/util/isScrollThresholdReached'

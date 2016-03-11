@@ -367,6 +367,7 @@ func TestRepositoriesService_ListBranches(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/branches", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeProtectedBranchesPreview)
 		testFormValues(t, r, values{"page": "2"})
 		fmt.Fprint(w, `[{"name":"master", "commit" : {"sha" : "a57781", "url" : "https://api.github.com/repos/o/r/commits/a57781"}}]`)
 	})
@@ -389,7 +390,8 @@ func TestRepositoriesService_GetBranch(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/branches/b", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, `{"name":"n", "commit":{"sha":"s"}}`)
+		testHeader(t, r, "Accept", mediaTypeProtectedBranchesPreview)
+		fmt.Fprint(w, `{"name":"n", "commit":{"sha":"s"}, "protection": {"enabled": true, "required_status_checks": {"enforcement_level": "everyone","contexts": []}}}`)
 	})
 
 	branch, _, err := client.Repositories.GetBranch("o", "r", "b")
@@ -397,9 +399,56 @@ func TestRepositoriesService_GetBranch(t *testing.T) {
 		t.Errorf("Repositories.GetBranch returned error: %v", err)
 	}
 
-	want := &Branch{Name: String("n"), Commit: &Commit{SHA: String("s")}}
+	want := &Branch{
+		Name:   String("n"),
+		Commit: &Commit{SHA: String("s")},
+		Protection: &Protection{
+			Enabled: Bool(true),
+			RequiredStatusChecks: &RequiredStatusChecks{
+				EnforcementLevel: String("everyone"),
+				Contexts:         &[]string{},
+			},
+		},
+	}
+
 	if !reflect.DeepEqual(branch, want) {
 		t.Errorf("Repositories.GetBranch returned %+v, want %+v", branch, want)
+	}
+}
+
+func TestRepositoriesService_EditBranch(t *testing.T) {
+	setup()
+	defer teardown()
+
+	input := &Branch{
+		Protection: &Protection{
+			Enabled: Bool(true),
+			RequiredStatusChecks: &RequiredStatusChecks{
+				EnforcementLevel: String("everyone"),
+				Contexts:         &[]string{"continous-integration"},
+			},
+		},
+	}
+
+	mux.HandleFunc("/repos/o/r/branches/b", func(w http.ResponseWriter, r *http.Request) {
+		v := new(Branch)
+		json.NewDecoder(r.Body).Decode(v)
+
+		testMethod(t, r, "PATCH")
+		if !reflect.DeepEqual(v, input) {
+			t.Errorf("Request body = %+v, want %+v", v, input)
+		}
+		testHeader(t, r, "Accept", mediaTypeProtectedBranchesPreview)
+		fmt.Fprint(w, `{"protection": {"enabled": true, "required_status_checks": {"enforcement_level": "everyone", "contexts": ["continous-integration"]}}}`)
+	})
+
+	branch, _, err := client.Repositories.EditBranch("o", "r", "b", input)
+	if err != nil {
+		t.Errorf("Repositories.EditBranch returned error: %v", err)
+	}
+
+	if !reflect.DeepEqual(branch, input) {
+		t.Errorf("Repositories.EditBranch returned %+v, want %+v", branch, input)
 	}
 }
 

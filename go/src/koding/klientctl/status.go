@@ -6,8 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/codegangsta/cli"
+	"koding/klientctl/config"
+	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
+
+	"github.com/codegangsta/cli"
+	kodinglogging "github.com/koding/logging"
 )
 
 const kiteHTTPResponse = "Welcome to SockJS!\n"
@@ -19,7 +23,7 @@ func init() {
 		HTTPClient: &http.Client{
 			Timeout: 4 * time.Second,
 		},
-		LocalKiteAddress:  KlientAddress,
+		LocalKiteAddress:  config.KlientAddress,
 		RemoteKiteAddress: KontrolURL,
 		RemoteHTTPAddress: S3UpdateLocation,
 	}
@@ -90,7 +94,7 @@ func (e ErrHealthNoKontrolHTTPResponse) Error() string { return e.Message }
 // is not an error because outgoing klient communication will still work,
 // but incoming klient functionality will obviously be limited. So by
 // checking, we can inform the user.
-func StatusCommand(c *cli.Context) int {
+func StatusCommand(c *cli.Context, _ kodinglogging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "status")
 		return 1
@@ -133,7 +137,7 @@ func (c *HealthChecker) CheckLocal() error {
 
 	// The only error CreateKlientClient returns (currently) is kite read
 	// error, so we can handle that.
-	k, err := CreateKlientClient(NewKlientOptions())
+	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
 		return ErrHealthUnreadableKiteKey{Message: fmt.Sprintf(
 			"The klient kite key is unable to be read. Reason: '%s'", err.Error(),
@@ -221,7 +225,7 @@ the following command to start it:
 
     sudo kd start
 `,
-				KlientName)
+				config.KlientName)
 
 		case ErrHealthUnexpectedResponse:
 			res = fmt.Sprintf(`Error: The %s is not running properly. Please run the
@@ -229,7 +233,7 @@ following command to restart it:
 
     sudo kd restart
 `,
-				KlientName)
+				config.KlientName)
 
 		case ErrHealthUnreadableKiteKey:
 			res = fmt.Sprintf(`Error: The authorization file for the %s is malformed
@@ -237,7 +241,7 @@ or missing. Please run the following command:
 
     sudo kd install
 `,
-				KlientName)
+				config.KlientName)
 
 		// TODO: What are some good steps for the user to take if dial fails?
 		case ErrHealthDialFailed:
@@ -246,7 +250,7 @@ Please run the following command:
 
     sudo kd restart
 `,
-				KlientName)
+				config.KlientName)
 
 		default:
 			res = fmt.Sprintf("Unknown local healthcheck error: %s", err.Error())
@@ -271,7 +275,7 @@ Please run the following command:
 	}
 
 	res = fmt.Sprintf(
-		"The %s appears to be running and is healthy.", KlientName,
+		"The %s appears to be running and is healthy.", config.KlientName,
 	)
 
 	return res, true
@@ -286,14 +290,14 @@ Please run the following command:
 // here is the syntax that this method provides:
 //
 //     fmt.Println(defaultHealthChecker.FailureResponseOrMessagef(
-//       "Error connecting to %s: '%s'\n", KlientName, err,
+//       "Error connecting to %s: '%s'\n", config.KlientName, err,
 //     ))
 //
 // And here is the syntax we're avoiding:
 //
 //     s, ok := defaultHealthChecker.CheckAllWithResponse()
 //     if ok {
-//       fmt.Printf("Error connecting to %s: '%s'\n", KlientName, err)
+//       fmt.Printf("Error connecting to %s: '%s'\n", config.KlientName, err)
 //     } else {
 //       fmt.Println(s)
 //     }

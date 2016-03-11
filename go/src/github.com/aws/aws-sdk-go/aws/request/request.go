@@ -22,20 +22,22 @@ type Request struct {
 	Handlers   Handlers
 
 	Retryer
-	Time         time.Time
-	ExpireTime   time.Duration
-	Operation    *Operation
-	HTTPRequest  *http.Request
-	HTTPResponse *http.Response
-	Body         io.ReadSeeker
-	BodyStart    int64 // offset from beginning of Body that the request body starts
-	Params       interface{}
-	Error        error
-	Data         interface{}
-	RequestID    string
-	RetryCount   int
-	Retryable    *bool
-	RetryDelay   time.Duration
+	Time             time.Time
+	ExpireTime       time.Duration
+	Operation        *Operation
+	HTTPRequest      *http.Request
+	HTTPResponse     *http.Response
+	Body             io.ReadSeeker
+	BodyStart        int64 // offset from beginning of Body that the request body starts
+	Params           interface{}
+	Error            error
+	Data             interface{}
+	RequestID        string
+	RetryCount       int
+	Retryable        *bool
+	RetryDelay       time.Duration
+	NotHoist         bool
+	SignedHeaderVals http.Header
 
 	built bool
 }
@@ -137,11 +139,24 @@ func (r *Request) SetReaderBody(reader io.ReadSeeker) {
 // if the signing fails.
 func (r *Request) Presign(expireTime time.Duration) (string, error) {
 	r.ExpireTime = expireTime
+	r.NotHoist = false
 	r.Sign()
 	if r.Error != nil {
 		return "", r.Error
 	}
 	return r.HTTPRequest.URL.String(), nil
+}
+
+// PresignRequest behaves just like presign, but hoists all headers and signs them.
+// Also returns the signed hash back to the user
+func (r *Request) PresignRequest(expireTime time.Duration) (string, http.Header, error) {
+	r.ExpireTime = expireTime
+	r.NotHoist = true
+	r.Sign()
+	if r.Error != nil {
+		return "", nil, r.Error
+	}
+	return r.HTTPRequest.URL.String(), r.SignedHeaderVals, nil
 }
 
 func debugLogReqError(r *Request, stage string, retrying bool, err error) {
@@ -177,6 +192,10 @@ func (r *Request) Build() error {
 			return r.Error
 		}
 		r.Handlers.Build.Run(r)
+		if r.Error != nil {
+			debugLogReqError(r, "Build Request", false, r.Error)
+			return r.Error
+		}
 		r.built = true
 	}
 
@@ -214,6 +233,10 @@ func (r *Request) Send() error {
 				r.Config.Logger.Log(fmt.Sprintf("DEBUG: Retrying Request %s/%s, attempt %d",
 					r.ClientInfo.ServiceName, r.Operation.Name, r.RetryCount))
 			}
+
+			// Closing response body. Since we are setting a new request to send off, this
+			// response will get squashed and leaked.
+			r.HTTPResponse.Body.Close()
 
 			// Re-seek the body back to the original point in for a retry so that
 			// send will send the body's contents again in the upcoming request.

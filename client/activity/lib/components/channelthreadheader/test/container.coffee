@@ -1,7 +1,6 @@
 kd           = require 'kd'
 expect       = require 'expect'
 React        = require 'kd-react'
-ReactDOM     = require 'react-dom'
 Container    = require '../container'
 TestUtils    = require 'react-addons-test-utils'
 toImmutable  = require 'app/util/toImmutable'

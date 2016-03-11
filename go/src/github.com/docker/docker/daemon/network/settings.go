@@ -1,18 +1,22 @@
 package network
 
-import "github.com/docker/docker/nat"
+import (
+	networktypes "github.com/docker/engine-api/types/network"
+	"github.com/docker/go-connections/nat"
+)
 
+// Settings stores configuration details about the daemon network config
+// TODO Windows. Many of these fields can be factored out.,
 type Settings struct {
-	IPAddress              string
-	IPPrefixLen            int
-	MacAddress             string
+	Bridge                 string
+	SandboxID              string
+	HairpinMode            bool
 	LinkLocalIPv6Address   string
 	LinkLocalIPv6PrefixLen int
-	GlobalIPv6Address      string
-	GlobalIPv6PrefixLen    int
-	Gateway                string
-	IPv6Gateway            string
-	Bridge                 string
-	PortMapping            map[string]map[string]string // Deprecated
+	Networks               map[string]*networktypes.EndpointSettings
 	Ports                  nat.PortMap
+	SandboxKey             string
+	SecondaryIPAddresses   []networktypes.Address
+	SecondaryIPv6Addresses []networktypes.Address
+	IsAnonymousEndpoint    bool
 }

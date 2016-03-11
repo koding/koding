@@ -6,7 +6,6 @@ remote                         = require('app/remote').getInstance()
 actions                        = require 'app/flux/environment/actions'
 Machine                        = require 'app/providers/machine'
 isKoding                       = require 'app/util/isKoding'
-UnreadCount                    = require './unreadcount'
 getMachineLink                 = require 'app/util/getMachineLink'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
 EnvironmentFlux                = require 'app/flux/environment'
@@ -18,7 +17,6 @@ LeaveSharedMachineWidget       = require './leavesharedmachinewidget'
 SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
-SharingMachineInvitationWidget = require './sharingmachineinvitationwidget'
 
 
 module.exports = class SidebarMachinesListItem extends React.Component
@@ -93,6 +91,14 @@ module.exports = class SidebarMachinesListItem extends React.Component
     if typeof key is 'string'
     then @props.machine.get key
     else @props.machine.getIn key
+
+
+  isOwner: ->
+
+    users   = (@machine 'users').toJS()
+    isOwner = yes for user in users when user.owner
+
+    return !!isOwner
 
 
   handleMachineClick: (event) ->
@@ -181,7 +187,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    if @machine('type') is 'own'
+    if @machine('type') is 'own' or @machine 'hasOldOwner'
       kd.singletons.router.handleRoute "/Machines/#{@machine 'uid'}"
     else
       sidebarListItem = ReactDOM.findDOMNode @refs.sidebarMachinesListItem
@@ -227,23 +233,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
       />
 
 
-  getTotalUnreadCount: ->
-
-    totalCount = 0
-
-    @machine('workspaces').toList().map (workspace) ->
-      totalCount += (workspace.getIn(['channel', 'unreadCount'])) or 0
-
-    return totalCount
-
-
-  renderUnreadCount: ->
-
-    return null  unless @state.collapsed
-
-    <UnreadCount count={@getTotalUnreadCount()} />
-
-
   render: ->
 
     return null  unless @props.showInSidebar
@@ -255,11 +244,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
       activeClass = 'active'
       actions.setActiveStackId @props.stack.get('_id')  if @props.stack
 
-    unread = if @getTotalUnreadCount() and @state.collapsed
-    then 'unread'
-    else ''
-
-    <div className="SidebarMachinesListItem #{status} #{activeClass} #{unread}">
+    <div className="SidebarMachinesListItem #{status} #{activeClass}">
       <Link
         className="SidebarMachinesListItem--MainLink"
         href='#'
@@ -268,7 +253,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
         >
         <cite className={"SidebarListItem-icon"} title={"Machine status: #{status}"}/>
         <span className='SidebarListItem-title'>{@getMachineLabel()}</span>
-        {@renderUnreadCount()}
         {@renderProgressbar()}
         {@renderMachineSettingsIcon()}
       </Link>
@@ -288,11 +272,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     { computeController } = kd.singletons
 
-    status  = @machine ['status', 'state']
-    users   = (@machine 'users').toJS()
-    isOwner = yes for user in users when user.owner
+    return  unless @isOwner()
 
-    return  unless isOwner
+    status = @machine ['status', 'state']
     return  unless status is Machine.State.Running
 
     workspaces = []

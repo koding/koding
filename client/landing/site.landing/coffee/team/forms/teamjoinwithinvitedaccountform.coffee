@@ -1,15 +1,19 @@
 kd              = require 'kd.js'
 utils           = require './../../core/utils'
-JView           = require './../../core/jview'
 LoginInputView  = require './../../login/logininputview'
 TeamJoinTabForm = require './../forms/teamjointabform'
 
 
 module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
-  constructor: ->
+  constructor: (options = {}, data) ->
 
-    super
+    teamData = utils.getTeamData()
+
+    options.buttonTitle or= 'Sign up & join'
+    options.email       or= teamData.signup.username
+
+    super options, data
 
     teamData = utils.getTeamData()
 
@@ -18,12 +22,12 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
       inputOptions    :
         placeholder   : 'pick a username'
         name          : 'username'
-        defaultValue  : teamData.signup.username
+        defaultValue  : @getOption 'email'
 
     @password   = @getPassword()
     @tfcode     = @getTFCode()
     @button     = @getButton 'Done!'
-    @buttonLink = @getButtonLink "Not you? <a href='#'>Create an account!</a>", (event) =>
+    @buttonLink = @getButtonLink @createButtonLinkPartial(), (event) =>
       kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
 
@@ -32,6 +36,8 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     @on 'FormValidationFailed', @button.bound 'hideLoader'
     @on 'FormSubmitFailed', @button.bound 'hideLoader'
 
+
+  createButtonLinkPartial: -> "Not you? <a href='#'>Join with a fresh account!</a>"
 
   submit: (formData) ->
 
@@ -43,16 +49,11 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
   pistachio: ->
 
-      """
-      {{> @username}}
-      {{> @password}}
-      {{> @tfcode}}
-      <p class='dim'>
-        Your email address indicates that you're already a Koding user,
-        please type your password to proceed.<br>
-        <a href='//#{utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
-      </p>
-      <div class='TeamsModal-button-separator'></div>
-      {{> @button}}
-      {{> @buttonLink}}
-      """
+    """
+    {{> @username}}
+    {{> @password}}
+    {{> @tfcode}}
+    <div class='TeamsModal-button-separator'></div>
+    {{> @button}}
+    {{> @buttonLink}}
+    """

@@ -1,11 +1,10 @@
-kd = require 'kd'
+kd                   = require 'kd'
 KDFormViewWithFields = kd.FormViewWithFields
-KDSelectBox = kd.SelectBox
-globals = require 'globals'
-KodingSwitch = require 'app/commonviews/kodingswitch'
+KDSelectBox          = kd.SelectBox
 CustomPartialHelpers = require 'dashboard/custompartialhelpers'
-OnboardingEvent = require 'app/onboarding/onboardingevent'
-OnboardingEventName = require './onboardingeventname'
+OnboardingEvent      = require 'app/onboarding/onboardingevent'
+OnboardingEventName  = require './onboardingeventname'
+
 
 module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 

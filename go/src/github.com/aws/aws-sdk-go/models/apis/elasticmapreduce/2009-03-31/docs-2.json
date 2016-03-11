@@ -1,5 +1,6 @@
 {
   "version": "2.0",
+  "service": "<p>Amazon Elastic MapReduce (Amazon EMR) is a web service that makes it easy to process large amounts of data efficiently. Amazon EMR uses Hadoop processing combined with several AWS products to do tasks such as web indexing, data mining, log file analysis, machine learning, scientific simulation, and data warehousing.</p>",
   "operations": {
     "AddInstanceGroups": "<p>AddInstanceGroups adds an instance group to a running cluster.</p>",
     "AddJobFlowSteps": "<p> AddJobFlowSteps adds new steps to a running job flow. A maximum of 256 steps are allowed in each job flow. </p> <p>If your job flow is long-running (such as a Hive data warehouse) or complex, you may require more than 256 steps to process your data. You can bypass the 256-step limitation in various ways, including using the SSH shell to connect to the master node and submitting queries directly to the software running on the master node, such as Hive and Hadoop. For more information on how to do this, go to <a href=\"http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/AddMoreThan256Steps.html\">Add More than 256 Steps to a Job Flow</a> in the <i>Amazon Elastic MapReduce Developer's Guide</i>.</p> <p> A step specifies the location of a JAR file stored either on the master node of the job flow or in Amazon S3. Each step is performed by the main function of the main class of the JAR file. The main class can be specified either in the manifest of the JAR or by using the MainFunction parameter of the step. </p> <p> Elastic MapReduce executes each step in the order listed. For a step to be considered complete, the main function must exit with a zero exit code and all Hadoop jobs started while the step was running must have completed and run successfully. </p> <p> You can only add steps to a job flow that is in one of the following states: STARTING, BOOTSTRAPPING, RUNNING, or WAITING.</p>",
@@ -19,7 +20,6 @@
     "SetVisibleToAllUsers": "<p>Sets whether all AWS Identity and Access Management (IAM) users under your account can access the specified job flows. This action works on running job flows. You can also set the visibility of a job flow when you launch it using the <code>VisibleToAllUsers</code> parameter of <a>RunJobFlow</a>. The SetVisibleToAllUsers action can be called only by an IAM user who created the job flow or the AWS account that owns the job flow.</p>",
     "TerminateJobFlows": "<p> TerminateJobFlows shuts a list of job flows down. When a job flow is shut down, any step not yet completed is canceled and the EC2 instances on which the job flow is running are stopped. Any log files not already saved are uploaded to Amazon S3 if a LogUri was specified when the job flow was created. </p> <p> The maximum number of JobFlows allowed is 10. The call to TerminateJobFlows is asynchronous. Depending on the configuration of the job flow, it may take up to 5-20 minutes for the job flow to completely terminate and release allocated resources, such as Amazon EC2 instances. </p>"
   },
-  "service": "<p>Amazon Elastic MapReduce (Amazon EMR) is a web service that makes it easy to process large amounts of data efficiently. Amazon EMR uses Hadoop processing combined with several AWS products to do tasks such as web indexing, data mining, log file analysis, machine learning, scientific simulation, and data warehousing.</p>",
   "shapes": {
     "ActionOnFailure": {
       "base": null,
@@ -86,6 +86,13 @@
         "RunJobFlowInput$VisibleToAllUsers": "<p>Whether the job flow is visible to all IAM users of the AWS account associated with the job flow. If this value is set to <code>true</code>, all IAM users of that AWS account can view and (if they have the proper policy permissions set) manage the job flow. If it is set to <code>false</code>, only the IAM user that created the job flow can view and manage it.</p>",
         "SetTerminationProtectionInput$TerminationProtected": "<p> A Boolean that indicates whether to protect the job flow and prevent the Amazon EC2 instances in the cluster from shutting down due to API calls, user intervention, or job-flow error. </p>",
         "SetVisibleToAllUsersInput$VisibleToAllUsers": "<p>Whether the specified job flows are visible to all IAM users of the AWS account associated with the job flow. If this value is set to True, all IAM users of that AWS account can view and, if they have the proper IAM policy permissions set, manage the job flows. If it is set to False, only the IAM user that created a job flow can view and manage it.</p>"
+      }
+    },
+    "BooleanObject": {
+      "base": null,
+      "refs": {
+        "EbsConfiguration$EbsOptimized": null,
+        "InstanceGroup$EbsOptimized": "<p>If the instance group is EBS-optimized. An Amazon EBS–optimized instance uses an optimized configuration stack and provides additional, dedicated capacity for Amazon EBS I/O. </p>"
       }
     },
     "BootstrapActionConfig": {
@@ -276,6 +283,48 @@
       "base": null,
       "refs": {
         "InstanceGroupModifyConfig$EC2InstanceIdsToTerminate": "<p>The EC2 InstanceIds to terminate. For advanced users only. Once you terminate the instances, the instance group will not return to its original requested size.</p>"
+      }
+    },
+    "EbsBlockDevice": {
+      "base": "<p>Configuration of requested EBS block device associated with the instance group.</p>",
+      "refs": {
+        "EbsBlockDeviceList$member": null
+      }
+    },
+    "EbsBlockDeviceConfig": {
+      "base": "<p>Configuration of requested EBS block device associated with the instance group with count of volumes that will be associated to every instance.</p>",
+      "refs": {
+        "EbsBlockDeviceConfigList$member": null
+      }
+    },
+    "EbsBlockDeviceConfigList": {
+      "base": null,
+      "refs": {
+        "EbsConfiguration$EbsBlockDeviceConfigs": null
+      }
+    },
+    "EbsBlockDeviceList": {
+      "base": null,
+      "refs": {
+        "InstanceGroup$EbsBlockDevices": "<p>The EBS block devices that are mapped to this instance group.</p>"
+      }
+    },
+    "EbsConfiguration": {
+      "base": null,
+      "refs": {
+        "InstanceGroupConfig$EbsConfiguration": "<p>EBS configurations that will be attached to each Amazon EC2 instance in the instance group. </p>"
+      }
+    },
+    "EbsVolume": {
+      "base": "<p>EBS block device that's attached to an EC2 instance.</p>",
+      "refs": {
+        "EbsVolumeList$member": null
+      }
+    },
+    "EbsVolumeList": {
+      "base": null,
+      "refs": {
+        "Instance$EbsVolumes": "<p>The list of EBS volumes that are attached to this instance.</p>"
       }
     },
     "Ec2InstanceAttributes": {
@@ -490,6 +539,7 @@
       "refs": {
         "Cluster$NormalizedInstanceHours": "<p>An approximation of the cost of the job flow, represented in m1.small/hours. This value is incremented one time for every hour an m1.small instance runs. Larger instances are weighted more, so an EC2 instance that is roughly four times more expensive would result in the normalized instance hours being incremented by four. This result is only an approximation and does not reflect the actual billing rate.</p>",
         "ClusterSummary$NormalizedInstanceHours": "<p>An approximation of the cost of the job flow, represented in m1.small/hours. This value is incremented one time for every hour an m1.small instance runs. Larger instances are weighted more, so an EC2 instance that is roughly four times more expensive would result in the normalized instance hours being incremented by four. This result is only an approximation and does not reflect the actual billing rate.</p>",
+        "EbsBlockDeviceConfig$VolumesPerInstance": "<p>Number of EBS volumes with specific volume configuration, that will be associated with every instance in the instance group </p>",
         "InstanceGroup$RequestedInstanceCount": "<p>The target number of instances for the instance group. </p>",
         "InstanceGroup$RunningInstanceCount": "<p>The number of instances currently running in this instance group.</p>",
         "InstanceGroupConfig$InstanceCount": "<p>Target number of instances for the instance group. </p>",
@@ -498,7 +548,9 @@
         "InstanceGroupModifyConfig$InstanceCount": "<p>Target size for the instance group.</p>",
         "JobFlowInstancesConfig$InstanceCount": "<p>The number of Amazon EC2 instances used to execute the job flow.</p>",
         "JobFlowInstancesDetail$InstanceCount": "<p>The number of Amazon EC2 instances in the cluster. If the value is 1, the same instance serves as both the master and slave node. If the value is greater than 1, one instance is the master node and all others are slave nodes.</p>",
-        "JobFlowInstancesDetail$NormalizedInstanceHours": "<p>An approximation of the cost of the job flow, represented in m1.small/hours. This value is incremented once for every hour an m1.small runs. Larger instances are weighted more, so an Amazon EC2 instance that is roughly four times more expensive would result in the normalized instance hours being incremented by four. This result is only an approximation and does not reflect the actual billing rate.</p>"
+        "JobFlowInstancesDetail$NormalizedInstanceHours": "<p>An approximation of the cost of the job flow, represented in m1.small/hours. This value is incremented once for every hour an m1.small runs. Larger instances are weighted more, so an Amazon EC2 instance that is roughly four times more expensive would result in the normalized instance hours being incremented by four. This result is only an approximation and does not reflect the actual billing rate.</p>",
+        "VolumeSpecification$Iops": "<p>The number of I/O operations per second (IOPS) that the volume supports. </p>",
+        "VolumeSpecification$SizeInGB": "<p>The volume size, in gibibytes (GiB). This can be a number from 1 – 1024. If the volume type is EBS-optimized, the minimum value is 10. </p>"
       }
     },
     "InternalServerError": {
@@ -837,18 +889,23 @@
         "Command$Name": "<p>The name of the command.</p>",
         "Command$ScriptPath": "<p>The Amazon S3 location of the command script.</p>",
         "Configuration$Classification": "<p>The classification of a configuration. For more information see, <a href=\"http://docs.aws.amazon.com/ElasticMapReduce/latest/API/EmrConfigurations.html\">Amazon EMR Configurations</a>. </p>",
+        "EbsBlockDevice$Device": "<p>The device name that is exposed to the instance, such as /dev/sdh.</p>",
+        "EbsVolume$Device": "<p>The device name that is exposed to the instance, such as /dev/sdh.</p>",
+        "EbsVolume$VolumeId": "<p>The volume identifier of the EBS volume.</p>",
         "Ec2InstanceAttributes$Ec2KeyName": "<p>The name of the Amazon EC2 key pair to use when connecting with SSH into the master node as a user named \"hadoop\".</p>",
         "Ec2InstanceAttributes$Ec2SubnetId": "<p> To launch the job flow in Amazon VPC, set this parameter to the identifier of the Amazon VPC subnet where you want the job flow to launch. If you do not specify this value, the job flow is launched in the normal AWS cloud, outside of a VPC. </p> <p> Amazon VPC currently does not support cluster compute quadruple extra large (cc1.4xlarge) instances. Thus, you cannot specify the cc1.4xlarge instance type for nodes of a job flow launched in a VPC. </p>",
         "Ec2InstanceAttributes$Ec2AvailabilityZone": "<p>The Availability Zone in which the cluster will run.</p>",
         "Ec2InstanceAttributes$IamInstanceProfile": "<p>The IAM role that was specified when the job flow was launched. The EC2 instances of the job flow assume this role.</p>",
-        "Ec2InstanceAttributes$EmrManagedMasterSecurityGroup": "<p>The identifier of the Amazon EC2 security group (managed by Amazon Elastic MapReduce) for the master node.</p>",
-        "Ec2InstanceAttributes$EmrManagedSlaveSecurityGroup": "<p>The identifier of the Amazon EC2 security group (managed by Amazon Elastic MapReduce) for the slave nodes.</p>",
+        "Ec2InstanceAttributes$EmrManagedMasterSecurityGroup": "<p>The identifier of the Amazon EC2 security group for the master node.</p>",
+        "Ec2InstanceAttributes$EmrManagedSlaveSecurityGroup": "<p>The identifier of the Amazon EC2 security group for the slave nodes.</p>",
+        "Ec2InstanceAttributes$ServiceAccessSecurityGroup": "<p>The identifier of the Amazon EC2 security group for the Amazon EMR service to access clusters in VPC private subnets.</p>",
         "HadoopStepConfig$Jar": "<p>The path to the JAR file that runs during the step.</p>",
         "HadoopStepConfig$MainClass": "<p>The name of the main class in the specified Java file. If not specified, the JAR file should specify a main class in its manifest file.</p>",
         "Instance$PublicDnsName": "<p>The public DNS name of the instance.</p>",
         "Instance$PublicIpAddress": "<p>The public IP address of the instance.</p>",
         "Instance$PrivateDnsName": "<p>The private DNS name of the instance.</p>",
         "Instance$PrivateIpAddress": "<p>The private IP address of the instance.</p>",
+        "Instance$InstanceGroupId": "<p>The identifier of the instance group to which this instance belongs.</p>",
         "InstanceGroup$Name": "<p>The name of the instance group.</p>",
         "InstanceGroup$BidPrice": "<p>The bid price for each EC2 instance in the instance group when launching nodes as Spot Instances, expressed in USD.</p>",
         "InstanceGroupStateChangeReason$Message": "<p>The status change reason description.</p>",
@@ -860,7 +917,8 @@
         "StringMap$key": null,
         "StringMap$value": null,
         "Tag$Key": "<p>A user-defined key, which is the minimum required information for a valid tag. For more information, see <a href=\"http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-plan-tags.html\">Tagging Amazon EMR Resources</a>. </p>",
-        "Tag$Value": "<p>A user-defined value, which is optional in a tag. For more information, see <a href=\"http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-plan-tags.html\">Tagging Amazon EMR Resources</a>. </p>"
+        "Tag$Value": "<p>A user-defined value, which is optional in a tag. For more information, see <a href=\"http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-plan-tags.html\">Tagging Amazon EMR Resources</a>. </p>",
+        "VolumeSpecification$VolumeType": "<p>The volume type. Volume types supported are gp2, io1, standard. </p>"
       }
     },
     "StringList": {
@@ -914,6 +972,13 @@
       "refs": {
       }
     },
+    "VolumeSpecification": {
+      "base": "<p>EBS volume specifications such as volume type, IOPS, and size(GiB) that will be requested for the EBS volume attached to an EC2 instance in the cluster. </p>",
+      "refs": {
+        "EbsBlockDevice$VolumeSpecification": "<p>EBS volume specifications such as volume type, IOPS, and size(GiB) that will be requested for the EBS volume attached to an EC2 instance in the cluster.</p>",
+        "EbsBlockDeviceConfig$VolumeSpecification": "<p>EBS volume specifications such as volume type, IOPS, and size(GiB) that will be requested for the EBS volume attached to an EC2 instance in the cluster.</p>"
+      }
+    },
     "XmlString": {
       "base": null,
       "refs": {
@@ -931,7 +996,7 @@
         "PlacementType$AvailabilityZone": "<p>The Amazon EC2 Availability Zone for the job flow.</p>",
         "RunJobFlowInput$LogUri": "<p>The location in Amazon S3 to write the log files of the job flow. If a value is not provided, logs are not created.</p>",
         "RunJobFlowInput$AdditionalInfo": "<p>A JSON string for selecting additional features.</p>",
-        "RunJobFlowInput$JobFlowRole": "<p>An IAM role for the job flow. The EC2 instances of the job flow assume this role. The default role is <code>EMRJobflowDefault</code>. In order to use the default role, you must have already created it using the CLI.</p>",
+        "RunJobFlowInput$JobFlowRole": "<p>Also called instance profile and EC2 role. An IAM role for an EMR cluster. The EC2 instances of the cluster assume this role. The default role is <code>EMR_EC2_DefaultRole</code>. In order to use the default role, you must have already created it using the CLI or console.</p>",
         "RunJobFlowInput$ServiceRole": "<p>The IAM role that will be assumed by the Amazon EMR service to access AWS resources on your behalf.</p>",
         "ScriptBootstrapActionConfig$Path": "<p>Location of the script to run during a bootstrap action. Can be either a location in Amazon S3 or on a local file system.</p>",
         "StepExecutionStatusDetail$LastStateChangeReason": "<p>A description of the step's current state.</p>",
@@ -971,8 +1036,9 @@
         "JobFlowInstancesConfig$Ec2KeyName": "<p>The name of the Amazon EC2 key pair that can be used to ssh to the master node as the user called \"hadoop.\"</p>",
         "JobFlowInstancesConfig$HadoopVersion": "<p>The Hadoop version for the job flow. Valid inputs are \"0.18\" (deprecated), \"0.20\" (deprecated), \"0.20.205\" (deprecated), \"1.0.3\", \"2.2.0\", or \"2.4.0\". If you do not set this value, the default of 0.18 is used, unless the AmiVersion parameter is set in the RunJobFlow call, in which case the default version of Hadoop for that AMI version is used.</p>",
         "JobFlowInstancesConfig$Ec2SubnetId": "<p> To launch the job flow in Amazon Virtual Private Cloud (Amazon VPC), set this parameter to the identifier of the Amazon VPC subnet where you want the job flow to launch. If you do not specify this value, the job flow is launched in the normal Amazon Web Services cloud, outside of an Amazon VPC. </p> <p> Amazon VPC currently does not support cluster compute quadruple extra large (cc1.4xlarge) instances. Thus you cannot specify the cc1.4xlarge instance type for nodes of a job flow launched in a Amazon VPC. </p>",
-        "JobFlowInstancesConfig$EmrManagedMasterSecurityGroup": "<p>The identifier of the Amazon EC2 security group (managed by Amazon ElasticMapReduce) for the master node.</p>",
-        "JobFlowInstancesConfig$EmrManagedSlaveSecurityGroup": "<p>The identifier of the Amazon EC2 security group (managed by Amazon ElasticMapReduce) for the slave nodes.</p>",
+        "JobFlowInstancesConfig$EmrManagedMasterSecurityGroup": "<p>The identifier of the Amazon EC2 security group for the master node.</p>",
+        "JobFlowInstancesConfig$EmrManagedSlaveSecurityGroup": "<p>The identifier of the Amazon EC2 security group for the slave nodes.</p>",
+        "JobFlowInstancesConfig$ServiceAccessSecurityGroup": "<p>The identifier of the Amazon EC2 security group for the Amazon EMR service to access clusters in VPC private subnets.</p>",
         "JobFlowInstancesDetail$Ec2KeyName": "<p>The name of an Amazon EC2 key pair that can be used to ssh to the master node of job flow.</p>",
         "JobFlowInstancesDetail$Ec2SubnetId": "<p>For job flows launched within Amazon Virtual Private Cloud, this value specifies the identifier of the subnet where the job flow was launched.</p>",
         "JobFlowInstancesDetail$HadoopVersion": "<p>The Hadoop version for the job flow.</p>",

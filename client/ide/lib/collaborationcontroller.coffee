@@ -6,6 +6,7 @@ globals                       = require 'globals'
 kd                            = require 'kd'
 KDNotificationView            = kd.NotificationView
 KDModalView                   = kd.ModalView
+FSFile                        = require 'app/util/fs/fsfile'
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
@@ -24,6 +25,9 @@ IDELayoutManager              = require './workspace/idelayoutmanager'
 IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
+generateCollaborationLink     = require 'app/util/generateCollaborationLink'
+isKoding                      = require 'app/util/isKoding'
+Tracker                       = require 'app/util/tracker'
 
 {warn} = kd
 
@@ -150,13 +154,17 @@ module.exports = CollaborationController =
     @removeParticipant username
     @removeWorkspaceSnapshot username
 
+    @unwatchParticipant username
+    @removeParticipantPermissions username
+
     options = {
       username
       machineUId : @mountedMachineUId
     }
 
     # Check collaboration sessions of participant.
-    # If participant has 2 or more active collaboration sessions,  don't remove access from machine
+    # If participant has 2 or more active collaboration sessions, don't remove
+    # access from machine
     envHelpers.isUserStillParticipantOnMachine options, (status) =>
       @removeParticipantFromMachine username  unless status
 
@@ -189,6 +197,8 @@ module.exports = CollaborationController =
 
     @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
+
+    Tracker.track Tracker.COLLABORATION_STARTED
 
     if @amIHost and targetUser isnt nick()
       @ensureMachineShare [targetUser], (err) =>
@@ -267,7 +277,9 @@ module.exports = CollaborationController =
     @resurrectParticipantSnapshot()
 
     if @permissions.get(nick()) is 'read'
-      @makeReadOnly()
+      return @makeReadOnly()  if @layoutManager.isRestored
+
+      @layoutManager.once 'LayoutResurrected', @bound 'makeReadOnly'
 
 
   setCollaborativeReferences: ->
@@ -349,18 +361,19 @@ module.exports = CollaborationController =
     @getHostSnapshot (snapshot) =>
 
       remainingPanes = @layoutManager.clearLayout yes # Recover opened panes
-      @layoutManager.resurrectSnapshot snapshot, yes
+      @layoutManager.resurrectSnapshot snapshot, yes, =>
 
-      return  unless remainingPanes.length
+        return  unless remainingPanes.length
 
-      kd.utils.defer =>
+        snapshotPanes = IDELayoutManager.getPaneHashMap snapshot
+
         for pane in remainingPanes
-          isAdded = no
+          if pane.data instanceof FSFile # editor, tailer
+            paneIdentifier = pane.data.path
+          else if pane.options.type is 'terminal'
+            paneIdentifier = pane.view.session
 
-          @forEachSubViewInIDEViews_ (p) ->
-            isAdded = yes  if p.hash is pane.view.hash
-
-          @activeTabView.addPane pane  unless isAdded
+          @activeTabView.addPane pane  unless snapshotPanes[paneIdentifier]
 
         @doResize()
 
@@ -384,8 +397,6 @@ module.exports = CollaborationController =
       { nickname } = account.profile
 
       @statusBar.removeParticipantAvatar nickname
-      @unwatchParticipant nickname
-      @removeParticipantPermissions nickname
 
 
   participantAdded: (participant) ->
@@ -402,7 +413,9 @@ module.exports = CollaborationController =
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
 
-      @setParticipantPermission nickname  if @amIHost
+      if @amIHost
+        @setParticipantPermission nickname
+        @setMachineUser [nickname]
 
 
   channelMessageAdded: (message) ->
@@ -650,7 +663,7 @@ module.exports = CollaborationController =
 
     @ready =>
       @statusBar.handleCollaborationLoading()
-      @statusBar.share.show()
+      @statusBar.share?.show()
 
 
   collectButtonShownMetric: ->
@@ -744,7 +757,7 @@ module.exports = CollaborationController =
     approved = @mountedMachine.isApproved()
 
     if (not owned) and approved
-      @statusBar.share.hide()
+      @statusBar.share?.hide()
 
     @collectButtonShownMetric()
 
@@ -903,16 +916,13 @@ module.exports = CollaborationController =
 
   onCollaborationActive: ->
 
-    @showChatPane()
+    @hideChatPane()
+
+    @bindAutoInviteHandlers()
 
     @transitionViewsToActive()
     @collectButtonShownMetric()
     @bindRealtimeEvents()
-
-    # this method comes from VideoCollaborationController.
-    # It's mixed into IDEAppController after CollaborationController.
-    # This is probably an anti pattern, we need to look into this again. ~Umut
-    @prepareVideoCollaboration()
 
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
@@ -930,6 +940,27 @@ module.exports = CollaborationController =
         @finderPane.finderController.expandFolder path
 
 
+  bindAutoInviteHandlers: ->
+
+    {actions} = require 'activity/flux'
+    {notificationController, mainController, socialapi} = kd.singletons
+
+    channel = @socialChannel
+
+    mainController.ready ->
+      notificationController.on 'notificationFromOtherAccount', (notification) ->
+        switch notification.action
+          when 'COLLABORATION_REQUEST'
+
+            return if notification.channelId isnt channel.id
+
+            {channelId, senderUserId, senderAccountId, sender} = notification
+            accountIds = [senderAccountId]
+
+            socialapi.channel.addParticipants { channelId, accountIds }, (err) ->
+              return throwError err  if err
+
+
   transitionViewsToActive: ->
 
     @listChatParticipants (accounts) =>
@@ -939,12 +970,11 @@ module.exports = CollaborationController =
     settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
 
     @chat.emit 'CollaborationStarted'
-    @statusBar.emit 'CollaborationStarted'
 
-    { onboarding } = kd.singletons
-    onboarding.run 'CollaborationStarted'
-    @chat.on ['ViewBecameHidden', 'ViewBecameVisible'], ->
-      onboarding.refresh 'CollaborationStarted'
+    generateCollaborationLink nick(), @socialChannel.id, {}, (url) =>
+      @statusBar.emit 'CollaborationStarted',
+        channelId: @socialChannel.id
+        collaborationLink: url
 
 
   onCollaborationEnding: ->
@@ -1077,7 +1107,7 @@ module.exports = CollaborationController =
     return showError 'Please wait a few seconds.'  unless @stateMachine
 
     switch @stateMachine.state
-      when 'Active'     then @showChatPane()
+      when 'Active'     then @hideChatPane()
       when 'Prepared'   then @chat.show()
       when 'NotStarted' then @stateMachine.transition 'Preparing'
 
@@ -1092,10 +1122,7 @@ module.exports = CollaborationController =
       when 'Active' then @stateMachine.transition 'Ending'
 
 
-  showChatPane: ->
-
-    @chat.showChatPane()
-    @chat.start()
+  hideChatPane: -> @chat.end()
 
 
   createChatPaneView: (channel) ->
@@ -1215,6 +1242,7 @@ module.exports = CollaborationController =
     options        =
       title        : 'Your session has been closed'
       content      : "You have been removed from the session by @#{@collaborationHost}."
+      cssClass     : 'kicked-modal'
       blocking     : yes
       buttons      :
         ok         :

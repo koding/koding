@@ -50,7 +50,6 @@ func initHostPidId() {
 		_, err2 := io.ReadFull(rand.Reader, hostB)
 		if err2 != nil {
 			panic(fmt.Errorf("cannot get hostname: %v; %v", err, err2))
-			return
 		}
 	} else {
 		hw := md5.New()

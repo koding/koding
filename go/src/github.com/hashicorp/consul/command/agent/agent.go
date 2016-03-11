@@ -4,17 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
 	"sync"
+	"time"
 
 	"github.com/hashicorp/consul/consul"
+	"github.com/hashicorp/consul/consul/state"
 	"github.com/hashicorp/consul/consul/structs"
+	"github.com/hashicorp/consul/lib"
+	"github.com/hashicorp/serf/coordinate"
 	"github.com/hashicorp/serf/serf"
 )
 
@@ -23,7 +28,8 @@ const (
 	servicesDir = "services"
 
 	// Path to save local agent checks
-	checksDir = "checks"
+	checksDir     = "checks"
+	checkStateDir = "checks/state"
 
 	// The ID of the faux health checks for maintenance mode
 	serviceMaintCheckPrefix = "_service_maintenance"
@@ -73,8 +79,14 @@ type Agent struct {
 	// checkHTTPs maps the check ID to an associated HTTP check
 	checkHTTPs map[string]*CheckHTTP
 
+	// checkTCPs maps the check ID to an associated TCP check
+	checkTCPs map[string]*CheckTCP
+
 	// checkTTLs maps the check ID to an associated check TTL
 	checkTTLs map[string]*CheckTTL
+
+	// checkDockers maps the check ID to an associated Docker Exec based check
+	checkDockers map[string]*CheckDocker
 
 	// checkLock protects updates to the check* maps
 	checkLock sync.Mutex
@@ -89,11 +101,24 @@ type Agent struct {
 	eventBuf    []*UserEvent
 	eventIndex  int
 	eventLock   sync.RWMutex
-	eventNotify consul.NotifyGroup
+	eventNotify state.NotifyGroup
 
 	shutdown     bool
 	shutdownCh   chan struct{}
 	shutdownLock sync.Mutex
+
+	// endpoints lets you override RPC endpoints for testing. Not all
+	// agent methods use this, so use with care and never override
+	// outside of a unit test.
+	endpoints map[string]string
+
+	// reapLock is used to prevent child process reaping from interfering
+	// with normal waiting for subprocesses to complete. Any time you exec
+	// and wait, you should take a read lock on this mutex. Only the reaper
+	// takes the write lock. This setup prevents us from serializing all the
+	// child process management with each other, it just serializes them
+	// with the child process reaper.
+	reapLock sync.RWMutex
 }
 
 // Create is used to create a new Agent. Returns
@@ -108,7 +133,7 @@ func Create(config *Config, logOutput io.Writer) (*Agent, error) {
 	if config.Datacenter == "" {
 		return nil, fmt.Errorf("Must configure a Datacenter")
 	}
-	if config.DataDir == "" {
+	if config.DataDir == "" && !config.DevMode {
 		return nil, fmt.Errorf("Must configure a DataDir")
 	}
 
@@ -127,6 +152,20 @@ func Create(config *Config, logOutput io.Writer) (*Agent, error) {
 		config.AdvertiseAddr = ip.String()
 	}
 
+	// Try to get an advertise address for the wan
+	if config.AdvertiseAddrWan != "" {
+		if ip := net.ParseIP(config.AdvertiseAddrWan); ip == nil {
+			return nil, fmt.Errorf("Failed to parse advertise address for wan: %v", config.AdvertiseAddrWan)
+		}
+	} else {
+		config.AdvertiseAddrWan = config.AdvertiseAddr
+	}
+
+	// Create the default set of tagged addresses.
+	config.TaggedAddresses = map[string]string{
+		"wan": config.AdvertiseAddrWan,
+	}
+
 	agent := &Agent{
 		config:        config,
 		logger:        log.New(logOutput, "", log.LstdFlags),
@@ -134,9 +173,12 @@ func Create(config *Config, logOutput io.Writer) (*Agent, error) {
 		checkMonitors: make(map[string]*CheckMonitor),
 		checkTTLs:     make(map[string]*CheckTTL),
 		checkHTTPs:    make(map[string]*CheckHTTP),
+		checkTCPs:     make(map[string]*CheckTCP),
+		checkDockers:  make(map[string]*CheckDocker),
 		eventCh:       make(chan serf.UserEvent, 1024),
 		eventBuf:      make([]*UserEvent, 256),
 		shutdownCh:    make(chan struct{}),
+		endpoints:     make(map[string]string),
 	}
 
 	// Initialize the local state
@@ -155,7 +197,7 @@ func Create(config *Config, logOutput io.Writer) (*Agent, error) {
 			Port:    agent.config.Ports.Server,
 			Tags:    []string{},
 		}
-		agent.state.AddService(&consulService)
+		agent.state.AddService(&consulService, "")
 	} else {
 		err = agent.setupClient()
 		agent.state.SetIface(agent.client)
@@ -175,6 +217,11 @@ func Create(config *Config, logOutput io.Writer) (*Agent, error) {
 	// Start handling events
 	go agent.handleEvents()
 
+	// Start sending network coordinate to the server.
+	if !config.DisableCoordinates {
+		go agent.sendCoordinate()
+	}
+
 	// Write out the PID file if necessary
 	err = agent.storePid()
 	if err != nil {
@@ -193,6 +240,9 @@ func (a *Agent) consulConfig() *consul.Config {
 	} else {
 		base = consul.DefaultConfig()
 	}
+
+	// Apply dev mode
+	base.DevMode = a.config.DevMode
 
 	// Override with our config
 	if a.config.Datacenter != "" {
@@ -225,11 +275,26 @@ func (a *Agent) consulConfig() *consul.Config {
 	}
 	if a.config.AdvertiseAddr != "" {
 		base.SerfLANConfig.MemberlistConfig.AdvertiseAddr = a.config.AdvertiseAddr
-		base.SerfWANConfig.MemberlistConfig.AdvertiseAddr = a.config.AdvertiseAddr
+		if a.config.AdvertiseAddrWan != "" {
+			base.SerfWANConfig.MemberlistConfig.AdvertiseAddr = a.config.AdvertiseAddrWan
+		} else {
+			base.SerfWANConfig.MemberlistConfig.AdvertiseAddr = a.config.AdvertiseAddr
+		}
 		base.RPCAdvertise = &net.TCPAddr{
 			IP:   net.ParseIP(a.config.AdvertiseAddr),
 			Port: a.config.Ports.Server,
 		}
+	}
+	if a.config.AdvertiseAddrs.SerfLan != nil {
+		base.SerfLANConfig.MemberlistConfig.AdvertiseAddr = a.config.AdvertiseAddrs.SerfLan.IP.String()
+		base.SerfLANConfig.MemberlistConfig.AdvertisePort = a.config.AdvertiseAddrs.SerfLan.Port
+	}
+	if a.config.AdvertiseAddrs.SerfWan != nil {
+		base.SerfWANConfig.MemberlistConfig.AdvertiseAddr = a.config.AdvertiseAddrs.SerfWan.IP.String()
+		base.SerfWANConfig.MemberlistConfig.AdvertisePort = a.config.AdvertiseAddrs.SerfWan.Port
+	}
+	if a.config.AdvertiseAddrs.RPC != nil {
+		base.RPCAdvertise = a.config.AdvertiseAddrs.RPC
 	}
 	if a.config.Bootstrap {
 		base.Bootstrap = true
@@ -276,10 +341,12 @@ func (a *Agent) consulConfig() *consul.Config {
 	// Copy the TLS configuration
 	base.VerifyIncoming = a.config.VerifyIncoming
 	base.VerifyOutgoing = a.config.VerifyOutgoing
+	base.VerifyServerHostname = a.config.VerifyServerHostname
 	base.CAFile = a.config.CAFile
 	base.CertFile = a.config.CertFile
 	base.KeyFile = a.config.KeyFile
 	base.ServerName = a.config.ServerName
+	base.Domain = a.config.Domain
 
 	// Setup the ServerUp callback
 	base.ServerUp = a.state.ConsulServerUp
@@ -412,6 +479,10 @@ func (a *Agent) Shutdown() error {
 		chk.Stop()
 	}
 
+	for _, chk := range a.checkTCPs {
+		chk.Stop()
+	}
+
 	a.logger.Println("[INFO] agent: requesting shutdown")
 	var err error
 	if a.server != nil {
@@ -519,25 +590,85 @@ func (a *Agent) ResumeSync() {
 	a.state.Resume()
 }
 
+// Returns the coordinate of this node in the local pool (assumes coordinates
+// are enabled, so check that before calling).
+func (a *Agent) GetCoordinate() (*coordinate.Coordinate, error) {
+	if a.config.Server {
+		return a.server.GetLANCoordinate()
+	} else {
+		return a.client.GetCoordinate()
+	}
+}
+
+// sendCoordinate is a long-running loop that periodically sends our coordinate
+// to the server. Closing the agent's shutdownChannel will cause this to exit.
+func (a *Agent) sendCoordinate() {
+	for {
+		rate := a.config.SyncCoordinateRateTarget
+		min := a.config.SyncCoordinateIntervalMin
+		intv := lib.RateScaledInterval(rate, min, len(a.LANMembers()))
+		intv = intv + lib.RandomStagger(intv)
+
+		select {
+		case <-time.After(intv):
+			members := a.LANMembers()
+			grok, err := consul.CanServersUnderstandProtocol(members, 3)
+			if err != nil {
+				a.logger.Printf("[ERR] agent: failed to check servers: %s", err)
+				continue
+			}
+			if !grok {
+				a.logger.Printf("[DEBUG] agent: skipping coordinate updates until servers are upgraded")
+				continue
+			}
+
+			c, err := a.GetCoordinate()
+			if err != nil {
+				a.logger.Printf("[ERR] agent: failed to get coordinate: %s", err)
+				continue
+			}
+
+			// TODO - Consider adding a distance check so we don't send
+			// an update if the position hasn't changed by more than a
+			// threshold.
+			req := structs.CoordinateUpdateRequest{
+				Datacenter:   a.config.Datacenter,
+				Node:         a.config.NodeName,
+				Coord:        c,
+				WriteRequest: structs.WriteRequest{Token: a.config.ACLToken},
+			}
+			var reply struct{}
+			if err := a.RPC("Coordinate.Update", &req, &reply); err != nil {
+				a.logger.Printf("[ERR] agent: coordinate update error: %s", err)
+				continue
+			}
+		case <-a.shutdownCh:
+			return
+		}
+	}
+}
+
 // persistService saves a service definition to a JSON file in the data dir
 func (a *Agent) persistService(service *structs.NodeService) error {
 	svcPath := filepath.Join(a.config.DataDir, servicesDir, stringHash(service.ID))
-	if _, err := os.Stat(svcPath); os.IsNotExist(err) {
-		encoded, err := json.Marshal(service)
-		if err != nil {
-			return nil
-		}
-		if err := os.MkdirAll(filepath.Dir(svcPath), 0700); err != nil {
-			return err
-		}
-		fh, err := os.OpenFile(svcPath, os.O_CREATE|os.O_WRONLY, 0600)
-		if err != nil {
-			return err
-		}
-		defer fh.Close()
-		if _, err := fh.Write(encoded); err != nil {
-			return err
-		}
+	wrapped := persistedService{
+		Token:   a.state.ServiceToken(service.ID),
+		Service: service,
+	}
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(svcPath), 0700); err != nil {
+		return err
+	}
+	fh, err := os.OpenFile(svcPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	defer fh.Close()
+	if _, err := fh.Write(encoded); err != nil {
+		return err
 	}
 	return nil
 }
@@ -554,21 +685,22 @@ func (a *Agent) purgeService(serviceID string) error {
 // persistCheck saves a check definition to the local agent's state directory
 func (a *Agent) persistCheck(check *structs.HealthCheck, chkType *CheckType) error {
 	checkPath := filepath.Join(a.config.DataDir, checksDir, stringHash(check.CheckID))
-	if _, err := os.Stat(checkPath); !os.IsNotExist(err) {
-		return err
-	}
 
 	// Create the persisted check
-	p := persistedCheck{check, chkType}
+	wrapped := persistedCheck{
+		Check:   check,
+		ChkType: chkType,
+		Token:   a.state.CheckToken(check.CheckID),
+	}
 
-	encoded, err := json.Marshal(p)
+	encoded, err := json.Marshal(wrapped)
 	if err != nil {
 		return nil
 	}
 	if err := os.MkdirAll(filepath.Dir(checkPath), 0700); err != nil {
 		return err
 	}
-	fh, err := os.OpenFile(checkPath, os.O_CREATE|os.O_WRONLY, 0600)
+	fh, err := os.OpenFile(checkPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
@@ -591,7 +723,7 @@ func (a *Agent) purgeCheck(checkID string) error {
 // AddService is used to add a service entry.
 // This entry is persistent and the agent will make a best effort to
 // ensure it is registered
-func (a *Agent) AddService(service *structs.NodeService, chkTypes CheckTypes, persist bool) error {
+func (a *Agent) AddService(service *structs.NodeService, chkTypes CheckTypes, persist bool, token string) error {
 	if service.Service == "" {
 		return fmt.Errorf("Service name missing")
 	}
@@ -620,11 +752,20 @@ func (a *Agent) AddService(service *structs.NodeService, chkTypes CheckTypes, pe
 		}
 	}
 
+	// Pause the service syncs during modification
+	a.PauseSync()
+	defer a.ResumeSync()
+
+	// Take a snapshot of the current state of checks (if any), and
+	// restore them before resuming anti-entropy.
+	snap := a.snapshotCheckState()
+	defer a.restoreCheckState(snap)
+
 	// Add the service
-	a.state.AddService(service)
+	a.state.AddService(service, token)
 
 	// Persist the service to a file
-	if persist {
+	if persist && !a.config.DevMode {
 		if err := a.persistService(service); err != nil {
 			return err
 		}
@@ -645,7 +786,10 @@ func (a *Agent) AddService(service *structs.NodeService, chkTypes CheckTypes, pe
 			ServiceID:   service.ID,
 			ServiceName: service.Service,
 		}
-		if err := a.AddCheck(check, chkType, persist); err != nil {
+		if chkType.Status != "" {
+			check.Status = chkType.Status
+		}
+		if err := a.AddCheck(check, chkType, persist, token); err != nil {
 			return err
 		}
 	}
@@ -667,7 +811,7 @@ func (a *Agent) RemoveService(serviceID string, persist bool) error {
 		return fmt.Errorf("ServiceID missing")
 	}
 
-	// Remove service immeidately
+	// Remove service immediately
 	a.state.RemoveService(serviceID)
 
 	// Remove the service from the data dir
@@ -678,9 +822,8 @@ func (a *Agent) RemoveService(serviceID string, persist bool) error {
 	}
 
 	// Deregister any associated health checks
-	for checkID, _ := range a.state.Checks() {
-		prefix := "service:" + serviceID
-		if checkID != prefix && !strings.HasPrefix(checkID, prefix+":") {
+	for checkID, health := range a.state.Checks() {
+		if health.ServiceID != serviceID {
 			continue
 		}
 		if err := a.RemoveCheck(checkID, persist); err != nil {
@@ -696,7 +839,7 @@ func (a *Agent) RemoveService(serviceID string, persist bool) error {
 // This entry is persistent and the agent will make a best effort to
 // ensure it is registered. The Check may include a CheckType which
 // is used to automatically update the check status
-func (a *Agent) AddCheck(check *structs.HealthCheck, chkType *CheckType, persist bool) error {
+func (a *Agent) AddCheck(check *structs.HealthCheck, chkType *CheckType, persist bool, token string) error {
 	if check.CheckID == "" {
 		return fmt.Errorf("CheckID missing")
 	}
@@ -728,6 +871,13 @@ func (a *Agent) AddCheck(check *structs.HealthCheck, chkType *CheckType, persist
 				TTL:     chkType.TTL,
 				Logger:  a.logger,
 			}
+
+			// Restore persisted state, if any
+			if err := a.loadCheckState(check); err != nil {
+				a.logger.Printf("[WARN] agent: failed restoring state for check %q: %s",
+					check.CheckID, err)
+			}
+
 			ttl.Start()
 			a.checkTTLs[check.CheckID] = ttl
 
@@ -752,7 +902,52 @@ func (a *Agent) AddCheck(check *structs.HealthCheck, chkType *CheckType, persist
 			http.Start()
 			a.checkHTTPs[check.CheckID] = http
 
-		} else {
+		} else if chkType.IsTCP() {
+			if existing, ok := a.checkTCPs[check.CheckID]; ok {
+				existing.Stop()
+			}
+			if chkType.Interval < MinInterval {
+				a.logger.Println(fmt.Sprintf("[WARN] agent: check '%s' has interval below minimum of %v",
+					check.CheckID, MinInterval))
+				chkType.Interval = MinInterval
+			}
+
+			tcp := &CheckTCP{
+				Notify:   &a.state,
+				CheckID:  check.CheckID,
+				TCP:      chkType.TCP,
+				Interval: chkType.Interval,
+				Timeout:  chkType.Timeout,
+				Logger:   a.logger,
+			}
+			tcp.Start()
+			a.checkTCPs[check.CheckID] = tcp
+
+		} else if chkType.IsDocker() {
+			if existing, ok := a.checkDockers[check.CheckID]; ok {
+				existing.Stop()
+			}
+			if chkType.Interval < MinInterval {
+				a.logger.Println(fmt.Sprintf("[WARN] agent: check '%s' has interval below minimum of %v",
+					check.CheckID, MinInterval))
+				chkType.Interval = MinInterval
+			}
+
+			dockerCheck := &CheckDocker{
+				Notify:            &a.state,
+				CheckID:           check.CheckID,
+				DockerContainerID: chkType.DockerContainerID,
+				Shell:             chkType.Shell,
+				Script:            chkType.Script,
+				Interval:          chkType.Interval,
+				Logger:            a.logger,
+			}
+			if err := dockerCheck.Init(); err != nil {
+				return err
+			}
+			dockerCheck.Start()
+			a.checkDockers[check.CheckID] = dockerCheck
+		} else if chkType.IsMonitor() {
 			if existing, ok := a.checkMonitors[check.CheckID]; ok {
 				existing.Stop()
 			}
@@ -768,17 +963,20 @@ func (a *Agent) AddCheck(check *structs.HealthCheck, chkType *CheckType, persist
 				Script:   chkType.Script,
 				Interval: chkType.Interval,
 				Logger:   a.logger,
+				ReapLock: &a.reapLock,
 			}
 			monitor.Start()
 			a.checkMonitors[check.CheckID] = monitor
+		} else {
+			return fmt.Errorf("Check type is not valid")
 		}
 	}
 
 	// Add to the local state for anti-entropy
-	a.state.AddCheck(check)
+	a.state.AddCheck(check, token)
 
 	// Persist the check
-	if persist {
+	if persist && !a.config.DevMode {
 		return a.persistCheck(check, chkType)
 	}
 
@@ -808,12 +1006,21 @@ func (a *Agent) RemoveCheck(checkID string, persist bool) error {
 		check.Stop()
 		delete(a.checkHTTPs, checkID)
 	}
+	if check, ok := a.checkTCPs[checkID]; ok {
+		check.Stop()
+		delete(a.checkTCPs, checkID)
+	}
 	if check, ok := a.checkTTLs[checkID]; ok {
 		check.Stop()
 		delete(a.checkTTLs, checkID)
 	}
 	if persist {
-		return a.purgeCheck(checkID)
+		if err := a.purgeCheck(checkID); err != nil {
+			return err
+		}
+		if err := a.purgeCheckState(checkID); err != nil {
+			return err
+		}
 	}
 	log.Printf("[DEBUG] agent: removed check %q", checkID)
 	return nil
@@ -832,7 +1039,90 @@ func (a *Agent) UpdateCheck(checkID, status, output string) error {
 
 	// Set the status through CheckTTL to reset the TTL
 	check.SetStatus(status, output)
+
+	if a.config.DevMode {
+		return nil
+	}
+
+	// Always persist the state for TTL checks
+	if err := a.persistCheckState(check, status, output); err != nil {
+		return fmt.Errorf("failed persisting state for check %q: %s", checkID, err)
+	}
+
 	return nil
+}
+
+// persistCheckState is used to record the check status into the data dir.
+// This allows the state to be restored on a later agent start. Currently
+// only useful for TTL based checks.
+func (a *Agent) persistCheckState(check *CheckTTL, status, output string) error {
+	// Create the persisted state
+	state := persistedCheckState{
+		CheckID: check.CheckID,
+		Status:  status,
+		Output:  output,
+		Expires: time.Now().Add(check.TTL).Unix(),
+	}
+
+	// Encode the state
+	buf, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+
+	// Create the state dir if it doesn't exist
+	dir := filepath.Join(a.config.DataDir, checkStateDir)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return fmt.Errorf("failed creating check state dir %q: %s", dir, err)
+	}
+
+	// Write the state to the file
+	file := filepath.Join(dir, stringHash(check.CheckID))
+	if err := ioutil.WriteFile(file, buf, 0600); err != nil {
+		return fmt.Errorf("failed writing file %q: %s", file, err)
+	}
+
+	return nil
+}
+
+// loadCheckState is used to restore the persisted state of a check.
+func (a *Agent) loadCheckState(check *structs.HealthCheck) error {
+	// Try to read the persisted state for this check
+	file := filepath.Join(a.config.DataDir, checkStateDir, stringHash(check.CheckID))
+	buf, err := ioutil.ReadFile(file)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("failed reading file %q: %s", file, err)
+	}
+
+	// Decode the state data
+	var p persistedCheckState
+	if err := json.Unmarshal(buf, &p); err != nil {
+		return fmt.Errorf("failed decoding check state: %s", err)
+	}
+
+	// Check if the state has expired
+	if time.Now().Unix() >= p.Expires {
+		a.logger.Printf("[DEBUG] agent: check state expired for %q, not restoring", check.CheckID)
+		return a.purgeCheckState(check.CheckID)
+	}
+
+	// Restore the fields from the state
+	check.Output = p.Output
+	check.Status = p.Status
+	return nil
+}
+
+// purgeCheckState is used to purge the state of a check from the data dir
+func (a *Agent) purgeCheckState(checkID string) error {
+	file := filepath.Join(a.config.DataDir, checkStateDir, stringHash(checkID))
+	err := os.Remove(file)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
 }
 
 // Stats is used to get various debugging state from the sub-systems
@@ -920,53 +1210,68 @@ func (a *Agent) loadServices(conf *Config) error {
 	for _, service := range conf.Services {
 		ns := service.NodeService()
 		chkTypes := service.CheckTypes()
-		if err := a.AddService(ns, chkTypes, false); err != nil {
+		if err := a.AddService(ns, chkTypes, false, service.Token); err != nil {
 			return fmt.Errorf("Failed to register service '%s': %v", service.ID, err)
 		}
 	}
 
 	// Load any persisted services
 	svcDir := filepath.Join(a.config.DataDir, servicesDir)
-	if _, err := os.Stat(svcDir); os.IsNotExist(err) {
-		return nil
-	}
-
-	err := filepath.Walk(svcDir, func(path string, fi os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if fi.Name() == servicesDir {
+	files, err := ioutil.ReadDir(svcDir)
+	if err != nil {
+		if os.IsNotExist(err) {
 			return nil
 		}
-		filePath := filepath.Join(svcDir, fi.Name())
-		fh, err := os.Open(filePath)
+		return fmt.Errorf("Failed reading services dir %q: %s", svcDir, err)
+	}
+	for _, fi := range files {
+		// Skip all dirs
+		if fi.IsDir() {
+			continue
+		}
+
+		// Open the file for reading
+		file := filepath.Join(svcDir, fi.Name())
+		fh, err := os.Open(file)
 		if err != nil {
-			return err
-		}
-		content := make([]byte, fi.Size())
-		if _, err := fh.Read(content); err != nil {
-			return err
+			return fmt.Errorf("failed opening service file %q: %s", file, err)
 		}
 
-		var svc *structs.NodeService
-		if err := json.Unmarshal(content, &svc); err != nil {
-			return err
+		// Read the contents into a buffer
+		buf, err := ioutil.ReadAll(fh)
+		fh.Close()
+		if err != nil {
+			return fmt.Errorf("failed reading service file %q: %s", file, err)
 		}
 
-		if _, ok := a.state.services[svc.ID]; ok {
+		// Try decoding the service definition
+		var p persistedService
+		if err := json.Unmarshal(buf, &p); err != nil {
+			// Backwards-compatibility for pre-0.5.1 persisted services
+			if err := json.Unmarshal(buf, &p.Service); err != nil {
+				return fmt.Errorf("failed decoding service file %q: %s", file, err)
+			}
+		}
+		serviceID := p.Service.ID
+
+		if _, ok := a.state.services[serviceID]; ok {
 			// Purge previously persisted service. This allows config to be
 			// preferred over services persisted from the API.
 			a.logger.Printf("[DEBUG] agent: service %q exists, not restoring from %q",
-				svc.ID, filePath)
-			return a.purgeService(svc.ID)
+				serviceID, file)
+			if err := a.purgeService(serviceID); err != nil {
+				return fmt.Errorf("failed purging service %q: %s", serviceID, err)
+			}
 		} else {
 			a.logger.Printf("[DEBUG] agent: restored service definition %q from %q",
-				svc.ID, filePath)
-			return a.AddService(svc, nil, false)
+				serviceID, file)
+			if err := a.AddService(p.Service, nil, false, p.Token); err != nil {
+				return fmt.Errorf("failed adding service %q: %s", serviceID, err)
+			}
 		}
-	})
+	}
 
-	return err
+	return nil
 }
 
 // unloadServices will deregister all services other than the 'consul' service
@@ -991,64 +1296,74 @@ func (a *Agent) loadChecks(conf *Config) error {
 	for _, check := range conf.Checks {
 		health := check.HealthCheck(conf.NodeName)
 		chkType := &check.CheckType
-		if err := a.AddCheck(health, chkType, false); err != nil {
+		if err := a.AddCheck(health, chkType, false, check.Token); err != nil {
 			return fmt.Errorf("Failed to register check '%s': %v %v", check.Name, err, check)
 		}
 	}
 
 	// Load any persisted checks
 	checkDir := filepath.Join(a.config.DataDir, checksDir)
-	if _, err := os.Stat(checkDir); os.IsNotExist(err) {
-		return nil
-	}
-
-	err := filepath.Walk(checkDir, func(path string, fi os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if fi.Name() == checksDir {
+	files, err := ioutil.ReadDir(checkDir)
+	if err != nil {
+		if os.IsNotExist(err) {
 			return nil
 		}
-		filePath := filepath.Join(checkDir, fi.Name())
-		fh, err := os.Open(filePath)
+		return fmt.Errorf("Failed reading checks dir %q: %s", checkDir, err)
+	}
+	for _, fi := range files {
+		// Ignore dirs - we only care about the check definition files
+		if fi.IsDir() {
+			continue
+		}
+
+		// Open the file for reading
+		file := filepath.Join(checkDir, fi.Name())
+		fh, err := os.Open(file)
 		if err != nil {
-			return err
-		}
-		content := make([]byte, fi.Size())
-		if _, err := fh.Read(content); err != nil {
-			return err
+			return fmt.Errorf("Failed opening check file %q: %s", file, err)
 		}
 
+		// Read the contents into a buffer
+		buf, err := ioutil.ReadAll(fh)
+		fh.Close()
+		if err != nil {
+			return fmt.Errorf("failed reading check file %q: %s", file, err)
+		}
+
+		// Decode the check
 		var p persistedCheck
-		if err := json.Unmarshal(content, &p); err != nil {
-			return err
+		if err := json.Unmarshal(buf, &p); err != nil {
+			return fmt.Errorf("Failed decoding check file %q: %s", file, err)
 		}
+		checkID := p.Check.CheckID
 
-		if _, ok := a.state.checks[p.Check.CheckID]; ok {
+		if _, ok := a.state.checks[checkID]; ok {
 			// Purge previously persisted check. This allows config to be
 			// preferred over persisted checks from the API.
 			a.logger.Printf("[DEBUG] agent: check %q exists, not restoring from %q",
-				p.Check.CheckID, filePath)
-			return a.purgeCheck(p.Check.CheckID)
+				checkID, file)
+			if err := a.purgeCheck(checkID); err != nil {
+				return fmt.Errorf("Failed purging check %q: %s", checkID, err)
+			}
 		} else {
 			// Default check to critical to avoid placing potentially unhealthy
 			// services into the active pool
 			p.Check.Status = structs.HealthCritical
 
-			if err := a.AddCheck(p.Check, p.ChkType, false); err != nil {
+			if err := a.AddCheck(p.Check, p.ChkType, false, p.Token); err != nil {
 				// Purge the check if it is unable to be restored.
 				a.logger.Printf("[WARN] agent: Failed to restore check %q: %s",
-					p.Check.CheckID, err)
-				return a.purgeCheck(p.Check.CheckID)
+					checkID, err)
+				if err := a.purgeCheck(checkID); err != nil {
+					return fmt.Errorf("Failed purging check %q: %s", checkID, err)
+				}
 			}
-
 			a.logger.Printf("[DEBUG] agent: restored health check %q from %q",
-				p.Check.CheckID, filePath)
-			return nil
+				p.Check.CheckID, file)
 		}
-	})
+	}
 
-	return err
+	return nil
 }
 
 // unloadChecks will deregister all checks known to the local agent.
@@ -1085,7 +1400,7 @@ func serviceMaintCheckID(serviceID string) string {
 
 // EnableServiceMaintenance will register a false health check against the given
 // service ID with critical status. This will exclude the service from queries.
-func (a *Agent) EnableServiceMaintenance(serviceID, reason string) error {
+func (a *Agent) EnableServiceMaintenance(serviceID, reason, token string) error {
 	service, ok := a.state.Services()[serviceID]
 	if !ok {
 		return fmt.Errorf("No service registered with ID %q", serviceID)
@@ -1112,7 +1427,7 @@ func (a *Agent) EnableServiceMaintenance(serviceID, reason string) error {
 		ServiceName: service.Service,
 		Status:      structs.HealthCritical,
 	}
-	a.AddCheck(check, nil, true)
+	a.AddCheck(check, nil, true, token)
 	a.logger.Printf("[INFO] agent: Service %q entered maintenance mode", serviceID)
 
 	return nil
@@ -1139,7 +1454,7 @@ func (a *Agent) DisableServiceMaintenance(serviceID string) error {
 }
 
 // EnableNodeMaintenance places a node into maintenance mode.
-func (a *Agent) EnableNodeMaintenance(reason string) {
+func (a *Agent) EnableNodeMaintenance(reason, token string) {
 	// Ensure node maintenance is not already enabled
 	if _, ok := a.state.Checks()[nodeMaintCheckID]; ok {
 		return
@@ -1158,7 +1473,7 @@ func (a *Agent) EnableNodeMaintenance(reason string) {
 		Notes:   reason,
 		Status:  structs.HealthCritical,
 	}
-	a.AddCheck(check, nil, true)
+	a.AddCheck(check, nil, true, token)
 	a.logger.Printf("[INFO] agent: Node entered maintenance mode")
 }
 
@@ -1169,4 +1484,31 @@ func (a *Agent) DisableNodeMaintenance() {
 	}
 	a.RemoveCheck(nodeMaintCheckID, true)
 	a.logger.Printf("[INFO] agent: Node left maintenance mode")
+}
+
+// InjectEndpoint overrides the given endpoint with a substitute one. Note
+// that not all agent methods use this mechanism, and that is should only
+// be used for testing.
+func (a *Agent) InjectEndpoint(endpoint string, handler interface{}) error {
+	if a.server == nil {
+		return fmt.Errorf("agent must be a server")
+	}
+
+	if err := a.server.InjectEndpoint(handler); err != nil {
+		return err
+	}
+	name := reflect.Indirect(reflect.ValueOf(handler)).Type().Name()
+	a.endpoints[endpoint] = name
+
+	a.logger.Printf("[WARN] agent: endpoint injected; this should only be used for testing")
+	return nil
+}
+
+// getEndpoint returns the endpoint name to use for the given endpoint,
+// which may be overridden.
+func (a *Agent) getEndpoint(endpoint string) string {
+	if override, ok := a.endpoints[endpoint]; ok {
+		return override
+	}
+	return endpoint
 }

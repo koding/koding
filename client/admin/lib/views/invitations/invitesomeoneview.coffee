@@ -1,15 +1,16 @@
-_                   = require 'lodash'
 kd                  = require 'kd'
+async               = require 'async'
+Promise             = require 'bluebird'
 remote              = require('app/remote').getInstance()
 KDView              = kd.View
 KDButtonView        = kd.ButtonView
 KDCustomScrollView  = kd.CustomScrollView
 KDCustomHTMLView    = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
-InvitationInputView = require './invitationinputview'
 showError           = require 'app/util/showError'
-Promise             = require 'bluebird'
-async               = require 'async'
+InvitationInputView = require './invitationinputview'
+whoami              = require 'app/util/whoami'
+Tracker             = require 'app/util/tracker'
 
 module.exports = class InviteSomeoneView extends KDView
 
@@ -68,10 +69,12 @@ module.exports = class InviteSomeoneView extends KDView
     @addSubView new KDButtonView
       title    : 'INVITE MEMBERS'
       cssClass : 'solid medium green invite-members'
-      callback : @bound 'inviteMembers'
+      callback :  =>
+        whoami().fetchEmail (err, email) =>
+          @inviteMembers email
 
 
-  inviteMembers: ->
+  inviteMembers: (ownEmail) ->
 
     invites = []
     admins  = []
@@ -83,12 +86,21 @@ module.exports = class InviteSomeoneView extends KDView
 
       result = if not value then no else view.email.validate()
 
+      if value.toLowerCase() is ownEmail
+        showError 'You can not invite yourself!'
+        return view.email.setClass 'validation-error'
+
       if value and not result
         showError 'That doesn\'t seem like a valid email address.'
         return view.email.setClass 'validation-error'
 
       invites.push invite = view.serialize()
       admins.push invite.email  if invite.role is 'admin'
+
+    Tracker.track Tracker.TEAMS_INVITED_TEAMMEMBERS, {
+      invitesCount : invites.length
+      adminsCount  : admins.length
+    }
 
     if admins.length
       @notifyAdminInvites invites, admins
@@ -255,6 +267,8 @@ module.exports = class InviteSomeoneView extends KDView
       new KDNotificationView
         title    : title
         duration : 5000
+
+      Tracker.track Tracker.TEAMS_SENT_INVITATION for invite in invites
 
       @closeConfirmModals()
       @emit 'NewInvitationsAdded'

@@ -63,6 +63,9 @@ type (
 		Github Github
 
 		Slack Slack
+
+		// SneakerS3 encrypts the credentials and stores these values in S3 storage system
+		SneakerS3 SneakerS3
 	}
 
 	// Email holds Email Workers' config
@@ -184,8 +187,22 @@ type (
 	}
 
 	Slack struct {
-		ClientId     string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTID"`
-		ClientSecret string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTSECRET"`
-		RedirectUri  string `env:"key=KONFIG_SOCIALAPI_SLACK_REDIRECTURI"`
+		ClientId          string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTID"`
+		ClientSecret      string `env:"key=KONFIG_SOCIALAPI_SLACK_CLIENTSECRET"`
+		RedirectUri       string `env:"key=KONFIG_SOCIALAPI_SLACK_REDIRECTURI"`
+		VerificationToken string `env:"key=KONFIG_SOCIALAPI_SLACK_VERIFICATIONTOKEN"`
+	}
+
+	SneakerS3 struct {
+		//AWS_SECRET_ACCESS_KEY
+		AwsSecretAccessKey string `env:"key=KONFIG_SOCIALAPI_AWS_SECRET_ACCESS_KEY"`
+		// AWS_ACCESS_KEY_ID
+		AwsAccesskeyId string `env:"key=KONFIG_SOCIALAPI_AWS_ACCESS_KEY_ID"`
+		// SNEAKER_S3_PATH
+		SneakerS3Path string `env:"key=KONFIG_SOCIALAPI_SNEAKER_S3_PATH"`
+		// SNEAKER_MASTER_KEY
+		SneakerMasterKey string `env:"key=KONFIG_SOCIALAPI_SNEAKER_MASTER_KEY"`
+		// AWS_REGION
+		AwsRegion string `env:"key=KONFIG_SOCIALAPI_AWS_REGION"`
 	}
 )

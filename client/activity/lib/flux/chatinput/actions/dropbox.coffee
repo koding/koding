@@ -1,6 +1,5 @@
 kd          = require 'kd'
 actionTypes = require './actiontypes'
-getters     = require 'activity/flux/chatinput/getters'
 
 ###*
  * Runs token checks on chat input value to extract dropbox query.

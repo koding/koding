@@ -32,8 +32,9 @@ import (
 
 func NewBackupCommand() cli.Command {
 	return cli.Command{
-		Name:  "backup",
-		Usage: "backup an etcd directory",
+		Name:      "backup",
+		Usage:     "backup an etcd directory",
+		ArgsUsage: " ",
 		Flags: []cli.Flag{
 			cli.StringFlag{Name: "data-dir", Value: "", Usage: "Path to the etcd data dir"},
 			cli.StringFlag{Name: "backup-dir", Value: "", Usage: "Path to the backup dir"},
@@ -61,7 +62,7 @@ func handleBackup(c *cli.Context) {
 	if snapshot != nil {
 		walsnap.Index, walsnap.Term = snapshot.Metadata.Index, snapshot.Metadata.Term
 		newss := snap.New(destSnap)
-		if err := newss.SaveSnap(*snapshot); err != nil {
+		if err = newss.SaveSnap(*snapshot); err != nil {
 			log.Fatal(err)
 		}
 	}

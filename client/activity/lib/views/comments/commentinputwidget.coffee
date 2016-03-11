@@ -7,8 +7,8 @@ CommentInputView        = require './commentinputview'
 EmbedBoxWidget          = require '../embedboxwidget'
 showError               = require 'app/util/showError'
 whoami                  = require 'app/util/whoami'
-generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
 AvatarStaticView        = require 'app/commonviews/avatarviews/avatarstaticview'
+isSoloProductLite       = require 'app/util/issoloproductlite'
 
 
 module.exports = class CommentInputWidget extends ActivityInputWidget
@@ -154,17 +154,18 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
 
   viewAppended: ->
 
-    if @getOption 'showAvatar'
-      @addSubView new AvatarStaticView
-        size    :
-          width : 30
-          height: 30
-      , whoami()
+    unless isSoloProductLite()
+      if @getOption 'showAvatar'
+        @addSubView new AvatarStaticView
+          size    :
+            width : 30
+            height: 30
+        , whoami()
 
-    inputWrapper = new KDCustomHTMLView
-      cssClass : 'comment-input-wrapper'
+      inputWrapper = new KDCustomHTMLView
+        cssClass : 'comment-input-wrapper'
 
-    inputWrapper.addSubView @input
-    @addSubView inputWrapper
-    @addSubView @embedBox
-    inputWrapper.addSubView @submitButton
+      inputWrapper.addSubView @input
+      @addSubView inputWrapper
+      @addSubView @embedBox
+      inputWrapper.addSubView @submitButton

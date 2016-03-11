@@ -1,6 +1,5 @@
 gutil      = require 'gulp-util'
 log        = (color, message) -> gutil.log gutil.colors[color] message
-livereload = require 'gulp-livereload'
 argv       = require('minimist') process.argv
 devMode    = argv.devMode?
 

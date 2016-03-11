@@ -1,8 +1,6 @@
 Nuclear              = require 'nuclear-js'
-whoami               = require 'app/util/whoami'
 toImmutable          = require 'app/util/toImmutable'
 actions              = require '../actions/actiontypes'
-generateDummyMessage = require 'app/util/generateDummyMessage'
 createChannelActions = require 'activity/flux/createchannel/actions/actiontypes'
 
 ###*

@@ -1,6 +1,5 @@
 kd                 = require 'kd'
 KDViewController   = kd.ViewController
-getAppOptions      = require './util/getAppOptions'
 globals            = require 'globals'
 
 module.exports =

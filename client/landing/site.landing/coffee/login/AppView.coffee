@@ -10,16 +10,12 @@ RedeemInlineForm                      = require './redeemform'
 RecoverInlineForm                     = require './recoverform'
 ResetInlineForm                       = require './resetform'
 ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
-LoginOptions                          = require './loginoptions'
-RegisterOptions                       = require './registeroptions'
-MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
 { getGroupNameFromLocation }          = utils
 
 
 module.exports = class LoginView extends JView
 
   RECAPTCHA_JS         = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
-  stop                 = kd.utils.stopDOMEvent
   ENTER                = 13
   USERNAME_VALID       = no
   pendingSignupRequest = no
@@ -49,19 +45,11 @@ module.exports = class LoginView extends JView
       testPath    : 'landing-recover-password'
       href        : '/Recover'
 
-    @goToRegisterLink = new CustomLinkView
-      title       : 'Sign up'
-      href        : '/Register'
-
     @formHeader = new kd.CustomHTMLView
       tagName     : "h4"
       cssClass    : "form-header"
       click       : (event)->
         return  unless $(event.target).is 'a.register'
-
-    @signupLink = new kd.CustomHTMLView
-      cssClass  : 'signup-link'
-      partial   : @generateFormHeaderPartial()
 
     @loginForm = new LoginInlineForm
       cssClass : 'login-form'
@@ -176,9 +164,7 @@ module.exports = class LoginView extends JView
           {{> @twitterIcon}}
         </div>
       </div>
-      <div class="login-footer">
-        {{> @signupLink}} <b>&middot;</b> {{> @goToRecoverLink}}
-      </div>
+      <div class="login-footer">{{> @goToRecoverLink}}</div>
     </div>
     <footer>
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
@@ -563,22 +549,12 @@ module.exports = class LoginView extends JView
       @loginForm.tfcode.show()
       @loginForm.tfcode.setFocus()
 
-    formData.redirectTo = utils.getLoginRedirectPath '/Login'
+    formData.redirectTo = utils.getLoginRedirectPath('/Login') ? 'IDE'
     mainController.login formData
-
 
 
   doRedeem: -> new kd.NotificationView title: "This feature is disabled."
 
-  # doRedeem:({inviteCode})->
-    # return  unless kd.config.entryPoint?.slug or kd.isLoggedIn()
-
-    # kd.remote.cacheable kd.config.entryPoint.slug, (err, [group])=>
-    #   group.redeemInvitation inviteCode, (err)=>
-    #     @redeemForm.button.hideLoader()
-    #     return kd.notify_ err.message or err  if err
-    #     kd.notify_ 'Success!'
-    #     kd.getSingleton('mainController').accountChanged kd.whoami()
 
   hide: (callback) ->
 
@@ -594,34 +570,16 @@ module.exports = class LoginView extends JView
     @emit "LoginViewShown"
     callback?()
 
-  # click:(event)->
-  #   if $(event.target).is('.login-screen')
-  #     @hide ->
-  #       router = kd.getSingleton('router')
-  #       routed = no
-  #       for route in router.visitedRoutes by -1
-  #         {entryPoint} = kd.config
-  #         routeWithoutEntryPoint =
-  #           if entryPoint?.type is 'group' and entryPoint.slug
-  #           then route.replace "/#{entryPoint.slug}", ''
-  #           else route
-  #         unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover', '/ResendToken']
-  #           router.handleRoute route
-  #           routed = yes
-  #           break
-  #       router.clear()  unless routed
 
   setCustomDataToForm: (type, data)->
     formName = "#{type}Form"
     @[formName].addCustomData data
-    # @resetForm.addCustomData {recoveryToken}
+
 
   setCustomData: (data) ->
 
     @setCustomDataToForm 'login', data
     @setCustomDataToForm 'register', data
-
-    @setFormHeaderPartial data
 
 
   getRegisterLink: (data = {}) ->
@@ -672,14 +630,6 @@ module.exports = class LoginView extends JView
         @goToRecoverLink.hide()
         @$('.inline-footer').hide()
         @$('.login-footer').hide()
-
-
-  generateFormHeaderPartial: (data = {}) ->
-    "Don't have an account yet? <a class='register' href='#{@getRegisterLink data}'>Sign up</a>"
-
-
-  setFormHeaderPartial: (data) ->
-    @formHeader.updatePartial @generateFormHeaderPartial data
 
 
   getRouteWithEntryPoint:(route)->

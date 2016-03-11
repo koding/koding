@@ -95,6 +95,8 @@ module.exports = class AdminMembersView extends kd.View
 
     if parentView is @allView
       views.shift() # don't update view on all members tab, it will update itself.
+    else
+      parentView.refresh()
 
     for view in views
       for memberItem in view.listController.getItemsOrdered()

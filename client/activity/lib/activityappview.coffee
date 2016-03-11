@@ -19,7 +19,6 @@ isGroup                = require 'app/util/isGroup'
 ChatSearchModal        = require 'app/activity/sidebar/chatsearchmodal'
 isSuggestionEnabled    = require 'activity/util/isSuggestionEnabled'
 
-PublicChatPaneView = require './components/publicchatpane/view'
 
 
 module.exports = class ActivityAppView extends KDView

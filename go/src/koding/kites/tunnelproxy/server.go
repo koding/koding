@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"koding/artifact"
@@ -48,6 +49,31 @@ type ServerOptions struct {
 	Metrics *metrics.DogStatsD `json:"-"`
 }
 
+// customPort adds a port part to the given address. If port is a zero-value,
+// or the addr parameter already has a port set - this function is a nop.
+func customPort(addr string, port int, ignore ...int) string {
+	if addr == "" {
+		return ""
+	}
+
+	if port == 0 {
+		return addr
+	}
+
+	for _, n := range ignore {
+		if port == n {
+			return addr
+		}
+	}
+
+	_, sport, err := net.SplitHostPort(addr)
+	if err != nil || sport == "" || sport == "0" {
+		return net.JoinHostPort(addr, strconv.Itoa(port))
+	}
+
+	return addr
+}
+
 // Server represents tunneling server that handles managing authorization
 // of the tunneling sessions for the clients.
 type Server struct {
@@ -74,6 +100,15 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		optsCopy.Log = common.NewLogger("tunnelserver", optsCopy.Debug)
 	}
 
+	optsCopy.Log.Debug("Initial server options: %# v", &optsCopy)
+
+	if optsCopy.BaseVirtualHost == "" {
+		optsCopy.BaseVirtualHost = optsCopy.HostedZone
+	}
+
+	optsCopy.BaseVirtualHost = customPort(optsCopy.BaseVirtualHost, opts.Port, 80, 443)
+	optsCopy.ServerAddr = customPort(optsCopy.ServerAddr, opts.Port)
+
 	tunnelCfg := &tunnel.ServerConfig{
 		Debug: optsCopy.Debug,
 		Log:   optsCopy.Log,
@@ -94,10 +129,6 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		return nil, err
 	}
 
-	if optsCopy.BaseVirtualHost == "" {
-		optsCopy.BaseVirtualHost = optsCopy.HostedZone
-	}
-
 	optsCopy.Log.Debug("Server options: %# v", &optsCopy)
 
 	s := &Server{
@@ -107,99 +138,33 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		record: dnsclient.ParseRecord("", optsCopy.ServerAddr),
 	}
 
-	// perform the initial healthcheck during startup
-	if err := s.checkDNS(); err != nil {
-		s.opts.Log.Critical("%s", err)
-	}
-
 	return s, nil
 }
 
 // RegisterRequest represents request value for register method.
 type RegisterRequest struct {
-	// VirtualHost is a URL host requested by a client under which
-	// new tunnel should be registered. The URL must be rooted
-	// at <username>.<basehost> otherwise request will
-	// be rejected.
-	VirtualHost string `json:"virtualHost,omitempty"`
+	// TunnelName requests name of the tunnel to be a part of assigned
+	// virtual host.
+	//
+	// The upserted vhost has the following format:
+	//
+	//   <tunnelName>.<username>.<basevirtualhost>
+	//
+	TunnelName string `json:"tunnelName,omitempty"`
+
+	// Username on behalf which handle the registration request.
+	Username string
 }
 
 // RegisterResult represents response value for register method.
 type RegisterResult struct {
 	VirtualHost string `json:"virtualHost"`
-	Secret      string `json:"identifier"`
-	Domain      string `json:"domain"`
+	Ident       string `json:"identifier"`
+	ServerAddr  string `json:"serverAddr"`
 }
 
-func (s *Server) checkDNS() error {
-	domain := s.opts.BaseVirtualHost
-	if host, _, err := net.SplitHostPort(domain); err == nil {
-		domain = host
-	}
-
-	// check Route53 is setup correctly
-	r, err := s.DNS.GetAll(domain)
-	if err != nil {
-		return fmt.Errorf("unable to list records for %q: %s", domain, err)
-	}
-
-	records := dnsclient.Records(r)
-
-	serverFilter := &dnsclient.Record{
-		Name: domain + ".",
-	}
-
-	rec := records.Filter(serverFilter)
-	if len(rec) == 0 {
-		return fmt.Errorf("no records found for %+v", serverFilter)
-	}
-
-	// Check if the tunnelserver has a wildcard domain. E.g. if base host for
-	// the tunnelserver is devtunnel.koding.com, then we expect a CNAME
-	// \052.devntunnel.koding.com is set to devtunnel.koding.com.
-	clientsFilter := &dnsclient.Record{
-		Name: "\\052." + domain + ".",
-		Type: "CNAME",
-	}
-
-	rec = records.Filter(clientsFilter)
-	if len(rec) == 0 {
-		return fmt.Errorf("no records found for %+v", clientsFilter)
-	}
-
-	return nil
-}
-
-func (s *Server) HealthCheck(name string) http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		if err := s.checkDNS(); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprintf(w, "%s is running with version: %s", name, artifact.VERSION)
-	}
-}
-
-func (s *Server) virtualHost(user, virtualHost string) (string, error) {
-	vhost := user + "." + s.opts.BaseVirtualHost
-
-	if virtualHost != "" {
-		if !strings.HasSuffix(virtualHost, vhost) {
-			return "", fmt.Errorf("virtual host %q must be rooted at %q for user %s", virtualHost, vhost, user)
-		}
-
-		vhost = virtualHost
-	}
-
-	return vhost, nil
-}
-
-func (s *Server) domain(vhost string) string {
-	if host, _, err := net.SplitHostPort(vhost); err == nil {
-		return host
-	}
-	return vhost
+func (s *Server) vhost(req *RegisterRequest) string {
+	return fmt.Sprintf("%s.%s.%s", req.TunnelName, req.Username, s.opts.BaseVirtualHost)
 }
 
 // Register creates a virtual host and DNS record for the user.
@@ -213,28 +178,62 @@ func (s *Server) Register(r *kite.Request) (interface{}, error) {
 		}
 	}
 
-	vhost, err := s.virtualHost(r.Username, req.VirtualHost)
-	if err != nil {
+	// register requests issued by managed kites always have Username
+	// empty
+	if req.Username == "" {
+		req.Username = r.Username
+	}
+
+	// try to always have distinct name for the tunnel, a single user
+	// can have more than one tunnel; for tunnels created by kloud
+	// the TunnelName is always distinct (= jMachine.Uid), for
+	// managed kites we need to generate the name here
+	if req.TunnelName == "" {
+		req.TunnelName = utils.RandString(12)
+	}
+
+	s.opts.Log.Debug("received register request: %# v", &req)
+
+	vhost := s.vhost(&req)
+
+	if err := s.upsert(vhost); err != nil {
 		return nil, err
 	}
 
 	res := &RegisterResult{
 		VirtualHost: vhost,
-		Domain:      s.domain(vhost),
-		Secret:      utils.RandString(32),
+		ServerAddr:  s.opts.ServerAddr,
+		Ident:       utils.RandString(32),
 	}
 
-	s.opts.Log.Debug("adding vhost=%s with secret=%s", res.VirtualHost, res.Secret)
+	s.opts.Log.Debug("adding vhost=%s with secret=%s", res.VirtualHost, res.Ident)
+	s.Server.AddHost(res.VirtualHost, res.Ident)
 
-	s.Server.AddHost(res.VirtualHost, res.Secret)
-
-	s.Server.OnDisconnect(res.Secret, func() error {
-		s.opts.Log.Debug("deleting vhost=%s and domain=%s", res.VirtualHost, res.Domain)
+	s.Server.OnDisconnect(res.Ident, func() error {
+		s.opts.Log.Debug("deleting vhost=%s", res.VirtualHost)
 		s.Server.DeleteHost(res.VirtualHost)
 		return nil
 	})
 
 	return res, nil
+}
+
+func (s *Server) upsert(vhost string) error {
+	rec := *s.record
+	rec.Name = vhost
+
+	// Trim port part from s.opts.BaseVirtualHost.
+	if host, _, err := net.SplitHostPort(rec.Name); err == nil {
+		rec.Name = host
+	}
+
+	s.opts.Log.Debug("upserting %# v", rec)
+
+	if host, _, err := net.SplitHostPort(vhost); err == nil {
+		rec.Name = host
+	}
+
+	return s.DNS.UpsertRecord(&rec)
 }
 
 func (s *Server) metricsFunc() kite.HandlerFunc {

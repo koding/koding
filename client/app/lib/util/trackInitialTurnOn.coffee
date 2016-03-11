@@ -1,6 +1,4 @@
-kd   = require 'kd'
-
-nick    = require 'app/util/nick'
+kd      = require 'kd'
 Tracker = require 'app/util/tracker'
 
 
@@ -26,7 +24,7 @@ fetchStorage = (callback) ->
 
 track = (machine) ->
 
-  track_ Tracker.BUTTON_CLICKED
+  track_ Tracker.VM_TURNED_ON
 
   kd.singletons.computeController.once 'MachineBuilt', (event) ->
 

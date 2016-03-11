@@ -21,7 +21,7 @@ _cgo_export.*
 
 _testmain.go
 
-/dist
+/pkg
 *.exe
 *.test
 bin/
@@ -38,3 +38,9 @@ ui/static/application.min.js
 ui/dist/
 
 *.swp
+
+website/.bundle
+website/vendor
+
+ui/.bundle
+ui/vendor

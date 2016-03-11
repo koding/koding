@@ -199,7 +199,7 @@ func powBigInt(bi *big.Int, pow uint) *big.Int {
 func validateDecoding(t *testing.T, tests map[string]interface{}) {
 	for inputStr, expected := range tests {
 		inputBytes, _ := hex.DecodeString(inputStr)
-		d := decoder{inputBytes, 0}
+		d := decoder{inputBytes}
 
 		var result interface{}
 		_, err := d.decode(0, reflect.ValueOf(&result))
@@ -218,7 +218,7 @@ func TestPointers(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	d := decoder{bytes, 0}
+	d := decoder{bytes}
 
 	expected := map[uint]map[string]string{
 		0:  {"long_key": "long_value1"},

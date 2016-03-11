@@ -49,13 +49,15 @@ module.exports = class BaseStackTemplatesView extends kd.View
   createOnboardingView: (options = {}) ->
 
     @initialView.hide()
-    @scrollView.addSubView onboardingView = new OnboardingView options
+    @onboardingView?.destroy()
 
-    onboardingView.on 'StackOnboardingCompleted', (template) =>
-      onboardingView.destroy()
+    @scrollView.addSubView @onboardingView = new OnboardingView options
+
+    @onboardingView.on 'StackOnboardingCompleted', (template) =>
+      @onboardingView.destroy()
       @showEditor { inEditMode: no, showHelpContent: yes }, template
 
-    onboardingView.on 'ScrollTo', (direction = 'top') =>
+    @onboardingView.on 'ScrollTo', (direction = 'top') =>
       duration = 500
       top      = if direction is 'top' then 0 else @scrollView.getScrollHeight()
 
@@ -119,8 +121,8 @@ module.exports = class BaseStackTemplatesView extends kd.View
     @defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
     @scrollView.addSubView @defineStackView
 
-    @defineStackView.on 'Reload', =>
-      @getDelegate().emit 'ReloadStackTemplatesList'
+    @defineStackView.on 'Reload', ->
+      kd.singletons.appManager.tell 'Stacks', 'reloadStackTemplatesList'
 
     @defineStackView.on [ 'Cancel', 'Completed' ], =>
       @defineStackView.destroy()

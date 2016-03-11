@@ -73,7 +73,8 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     { ace } = aceView
     file    = ace.getData()
 
-    modal = new KDModalView
+    @askForSaveModal?.destroy()
+    @askForSaveModal = new KDModalView
       width         : 620
       cssClass      : "modal-with-text"
       title         : "Do you want to save your changes?"
@@ -84,31 +85,29 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
           cssClass  : "solid green medium"
           title     : "Save and Close"
           callback  : =>
-            if file.path.indexOf("localfile:") is 0
-              file.once "fs.saveAs.finished", => @removePane_ pane
+            if file.isDummyFile()
               @willClose = yes
               ace.requestSaveAs()
-              modal.destroy()
             else
               ace.requestSave()
-              file.once "fs.save.finished", => @removePane_ pane
-              modal.destroy()
+
+            file.once [ 'fs.saveAs.finished', 'fs.save.finished' ], =>
+              @removePane_ pane
+              @parent.handleCloseSplitView pane
+
+            @askForSaveModal.destroy()
         "DontSave"  :
           cssClass  : "solid red medium"
           title     : "Don't Save"
           callback  : =>
-            @closePaneAndModal pane, modal
+            @removePane_ pane
+            @parent.handleCloseSplitView pane
+            @askForSaveModal.destroy()
         "Cancel"    :
           cssClass  : "solid light-gray medium"
           title     : "Cancel"
           callback  : =>
-            modal.destroy()
-
-
-  closePaneAndModal: (pane, modal) ->
-
-    @removePane_ pane
-    modal.destroy()
+            @askForSaveModal.destroy()
 
 
   dragEnter: (event) ->
@@ -118,7 +117,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
     return  if @splitRegions
 
-    # Return if there isn't any dragging tab.
+    # Return if there is no dragging tab.
     return  unless frontApp.targetTabView
 
     @addSubView @splitRegions = new SplitRegionView
@@ -133,8 +132,8 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     @splitRegions = null
 
 
-  handleCloseAction: (pane) ->
-
-    @emit 'PaneRemovedByUserAction', pane
+  handleCloseAction: (pane, emit = yes) ->
 
     super pane
+
+    @emit 'PaneRemovedByUserAction', pane  if emit

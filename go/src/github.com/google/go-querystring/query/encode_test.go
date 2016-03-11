@@ -5,11 +5,22 @@
 package query
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
 	"testing"
 	"time"
 )
+
+type Nested struct {
+	A   SubNested  `url:"a"`
+	B   *SubNested `url:"b"`
+	Ptr *SubNested `url:"ptr,omitempty"`
+}
+
+type SubNested struct {
+	Value string `url:"value"`
+}
 
 func TestValues_types(t *testing.T) {
 	str := "string"
@@ -60,6 +71,7 @@ func TestValues_types(t *testing.T) {
 				F [2]string `url:",space"`
 				G []*string `url:",space"`
 				H []bool    `url:",int,space"`
+				I []string  `url:",brackets"`
 			}{
 				A: []string{"a", "b"},
 				B: []string{"a", "b"},
@@ -69,16 +81,18 @@ func TestValues_types(t *testing.T) {
 				F: [2]string{"a", "b"},
 				G: []*string{&str, &str},
 				H: []bool{true, false},
+				I: []string{"a", "b"},
 			},
 			url.Values{
-				"A": {"a", "b"},
-				"B": {"a,b"},
-				"C": {"a b"},
-				"D": {"a", "b"},
-				"E": {"a,b"},
-				"F": {"a b"},
-				"G": {"string string"},
-				"H": {"1 0"},
+				"A":   {"a", "b"},
+				"B":   {"a,b"},
+				"C":   {"a b"},
+				"D":   {"a", "b"},
+				"E":   {"a,b"},
+				"F":   {"a b"},
+				"G":   {"string string"},
+				"H":   {"1 0"},
+				"I[]": {"a", "b"},
 			},
 		},
 		{
@@ -100,6 +114,41 @@ func TestValues_types(t *testing.T) {
 				"C": {"1"},
 				"D": {"0"},
 			},
+		},
+		{
+			struct {
+				Nest Nested `url:"nest"`
+			}{
+				Nested{
+					A: SubNested{
+						Value: "that",
+					},
+				},
+			},
+			url.Values{
+				"nest[a][value]": {"that"},
+				"nest[b]":        {""},
+			},
+		},
+		{
+			struct {
+				Nest Nested `url:"nest"`
+			}{
+				Nested{
+					Ptr: &SubNested{
+						Value: "that",
+					},
+				},
+			},
+			url.Values{
+				"nest[a][value]":   {""},
+				"nest[b]":          {""},
+				"nest[ptr][value]": {"that"},
+			},
+		},
+		{
+			nil,
+			url.Values{},
 		},
 	}
 
@@ -154,6 +203,15 @@ type D struct {
 	C string
 }
 
+type e struct {
+	B
+	C string
+}
+
+type F struct {
+	e
+}
+
 func TestValues_embeddedStructs(t *testing.T) {
 	tests := []struct {
 		in   interface{}
@@ -165,6 +223,10 @@ func TestValues_embeddedStructs(t *testing.T) {
 		},
 		{
 			D{B: B{C: "bar"}, C: "foo"},
+			url.Values{"C": {"foo", "bar"}},
+		},
+		{
+			F{e{B: B{C: "bar"}, C: "foo"}}, // With unexported embed
 			url.Values{"C": {"foo", "bar"}},
 		},
 	}
@@ -185,6 +247,49 @@ func TestValues_invalidInput(t *testing.T) {
 	_, err := Values("")
 	if err == nil {
 		t.Errorf("expected Values() to return an error on invalid input")
+	}
+}
+
+type EncodedArgs []string
+
+func (m EncodedArgs) EncodeValues(key string, v *url.Values) error {
+	for i, arg := range m {
+		v.Set(fmt.Sprintf("%s.%d", key, i), arg)
+	}
+	return nil
+}
+
+func TestValues_Marshaler(t *testing.T) {
+	s := struct {
+		Args EncodedArgs `url:"arg"`
+	}{[]string{"a", "b", "c"}}
+	v, err := Values(s)
+	if err != nil {
+		t.Errorf("Values(%q) returned error: %v", s, err)
+	}
+
+	want := url.Values{
+		"arg.0": {"a"},
+		"arg.1": {"b"},
+		"arg.2": {"c"},
+	}
+	if !reflect.DeepEqual(want, v) {
+		t.Errorf("Values(%q) returned %v, want %v", s, v, want)
+	}
+}
+
+func TestValues_MarshalerWithNilPointer(t *testing.T) {
+	s := struct {
+		Args *EncodedArgs `url:"arg"`
+	}{}
+	v, err := Values(s)
+	if err != nil {
+		t.Errorf("Values(%q) returned error: %v", s, err)
+	}
+
+	want := url.Values{}
+	if !reflect.DeepEqual(want, v) {
+		t.Errorf("Values(%q) returned %v, want %v", s, v, want)
 	}
 }
 

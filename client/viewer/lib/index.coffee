@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDViewController = kd.ViewController
-PreviewerView = require './previewerview'
+PreviewerView    = require './previewerview'
 
 
 module.exports = class ViewerAppController extends KDViewController

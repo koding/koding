@@ -39,7 +39,7 @@ func (c *MarketplaceCommerceAnalytics) GenerateDataSetRequest(input *GenerateDat
 // exists (e.g. if the same data set is requested twice), the original file
 // will be overwritten by the new file. Requires a Role with an attached permissions
 // policy providing Allow permissions for the following actions: s3:PutObject,
-// s3:getBucketLocation, sns:SetRegion, sns:ListTopics, sns:Publish, iam:GetRolePolicy.
+// s3:GetBucketLocation, sns:GetTopicAttributes, sns:Publish, iam:GetRolePolicy.
 func (c *MarketplaceCommerceAnalytics) GenerateDataSet(input *GenerateDataSetInput) (*GenerateDataSetOutput, error) {
 	req, out := c.GenerateDataSetRequest(input)
 	err := req.Send()
@@ -48,6 +48,14 @@ func (c *MarketplaceCommerceAnalytics) GenerateDataSet(input *GenerateDataSetInp
 
 // Container for the parameters to the GenerateDataSet operation.
 type GenerateDataSetInput struct {
+	_ struct{} `type:"structure"`
+
+	// (Optional) Key-value pairs which will be returned, unmodified, in the Amazon
+	// SNS notification message and the data set metadata file. These key-value
+	// pairs can be used to correlated responses with tracking information from
+	// other systems.
+	CustomerDefinedValues map[string]*string `locationName:"customerDefinedValues" min:"1" type:"map"`
+
 	// The date a data set was published. For daily data sets, provide a date with
 	// day-level granularity for the desired day. For weekly data sets, provide
 	// a date with day-level granularity within the desired week (the day value
@@ -55,7 +63,31 @@ type GenerateDataSetInput struct {
 	// granularity for the desired month (the day value will be ignored).
 	DataSetPublicationDate *time.Time `locationName:"dataSetPublicationDate" type:"timestamp" timestampFormat:"unix" required:"true"`
 
-	// The type of the data set to publish.
+	// The desired data set type.
+	//
+	//   customer_subscriber_hourly_monthly_subscriptions - Available daily by
+	// 5:00 PM Pacific Time since 2014-07-21. customer_subscriber_annual_subscriptions
+	// - Available daily by 5:00 PM Pacific Time since 2014-07-21. daily_business_usage_by_instance_type
+	// - Available daily by 5:00 PM Pacific Time since 2015-01-26. daily_business_fees
+	// - Available daily by 5:00 PM Pacific Time since 2015-01-26. daily_business_free_trial_conversions
+	// - Available daily by 5:00 PM Pacific Time since 2015-01-26. daily_business_new_instances
+	// - Available daily by 5:00 PM Pacific Time since 2015-01-26. daily_business_new_product_subscribers
+	// - Available daily by 5:00 PM Pacific Time since 2015-01-26. daily_business_canceled_product_subscribers
+	// - Available daily by 5:00 PM Pacific Time since 2015-01-26. monthly_revenue_billing_and_revenue_data
+	// - Available monthly on the 4th day of the month by 5:00 PM Pacific Time since
+	// 2015-02. monthly_revenue_annual_subscriptions - Available monthly on the
+	// 4th day of the month by 5:00 PM Pacific Time since 2015-02. disbursed_amount_by_product
+	// - Available every 30 days by 5:00 PM Pacific Time since 2015-01-26. disbursed_amount_by_product_with_uncollected_funds
+	// -This data set is only available from 2012-04-19 until 2015-01-25. After
+	// 2015-01-25, this data set was split into three data sets: disbursed_amount_by_product,
+	// disbursed_amount_by_age_of_uncollected_funds, and disbursed_amount_by_age_of_disbursed_funds.
+	//  disbursed_amount_by_customer_geo - Available every 30 days by 5:00 PM Pacific
+	// Time since 2012-04-19. disbursed_amount_by_age_of_uncollected_funds - Available
+	// every 30 days by 5:00 PM Pacific Time since 2015-01-26. disbursed_amount_by_age_of_disbursed_funds
+	// - Available every 30 days by 5:00 PM Pacific Time since 2015-01-26. customer_profile_by_industry
+	// - Available daily by 5:00 PM Pacific Time since 2015-10-01. customer_profile_by_revenue
+	// - Available daily by 5:00 PM Pacific Time since 2015-10-01. customer_profile_by_geography
+	// - Available daily by 5:00 PM Pacific Time since 2015-10-01.
 	DataSetType *string `locationName:"dataSetType" min:"1" type:"string" required:"true" enum:"DataSetType"`
 
 	// The name (friendly name, not ARN) of the destination S3 bucket.
@@ -76,12 +108,6 @@ type GenerateDataSetInput struct {
 	// Amazon Resource Name (ARN) for the SNS Topic that will be notified when the
 	// data set has been published or if an error has occurred.
 	SnsTopicArn *string `locationName:"snsTopicArn" min:"1" type:"string" required:"true"`
-
-	metadataGenerateDataSetInput `json:"-" xml:"-"`
-}
-
-type metadataGenerateDataSetInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -96,16 +122,12 @@ func (s GenerateDataSetInput) GoString() string {
 
 // Container for the result of the GenerateDataSet operation.
 type GenerateDataSetOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A unique identifier representing a specific request to the GenerateDataSet
 	// operation. This identifier can be used to correlate a request with notifications
 	// from the SNS topic.
 	DataSetRequestId *string `locationName:"dataSetRequestId" type:"string"`
-
-	metadataGenerateDataSetOutput `json:"-" xml:"-"`
-}
-
-type metadataGenerateDataSetOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -118,7 +140,6 @@ func (s GenerateDataSetOutput) GoString() string {
 	return s.String()
 }
 
-// The type of the data set to publish.
 const (
 	// @enum DataSetType
 	DataSetTypeCustomerSubscriberHourlyMonthlySubscriptions = "customer_subscriber_hourly_monthly_subscriptions"
@@ -143,6 +164,8 @@ const (
 	// @enum DataSetType
 	DataSetTypeDisbursedAmountByProduct = "disbursed_amount_by_product"
 	// @enum DataSetType
+	DataSetTypeDisbursedAmountByProductWithUncollectedFunds = "disbursed_amount_by_product_with_uncollected_funds"
+	// @enum DataSetType
 	DataSetTypeDisbursedAmountByCustomerGeo = "disbursed_amount_by_customer_geo"
 	// @enum DataSetType
 	DataSetTypeDisbursedAmountByAgeOfUncollectedFunds = "disbursed_amount_by_age_of_uncollected_funds"
@@ -152,4 +175,6 @@ const (
 	DataSetTypeCustomerProfileByIndustry = "customer_profile_by_industry"
 	// @enum DataSetType
 	DataSetTypeCustomerProfileByRevenue = "customer_profile_by_revenue"
+	// @enum DataSetType
+	DataSetTypeCustomerProfileByGeography = "customer_profile_by_geography"
 )

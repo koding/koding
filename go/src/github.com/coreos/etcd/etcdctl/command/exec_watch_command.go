@@ -17,7 +17,6 @@ package command
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -30,8 +29,9 @@ import (
 // NewExecWatchCommand returns the CLI command for "exec-watch".
 func NewExecWatchCommand() cli.Command {
 	return cli.Command{
-		Name:  "exec-watch",
-		Usage: "watch a key for changes and exec an executable",
+		Name:      "exec-watch",
+		Usage:     "watch a key for changes and exec an executable",
+		ArgsUsage: "<key> <command> [args...]",
 		Flags: []cli.Flag{
 			cli.IntFlag{Name: "after-index", Value: 0, Usage: "watch after the given index"},
 			cli.BoolFlag{Name: "recursive", Usage: "watch all values for key and child keys"},
@@ -104,16 +104,8 @@ func execWatchCommandFunc(c *cli.Context, ki client.KeysAPI) {
 		cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 		cmd.Env = environResponse(resp, os.Environ())
 
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, err.Error())
-			os.Exit(1)
-		}
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, err.Error())
-			os.Exit(1)
-		}
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
 		go func() {
 			err := cmd.Start()
@@ -121,8 +113,6 @@ func execWatchCommandFunc(c *cli.Context, ki client.KeysAPI) {
 				fmt.Fprintf(os.Stderr, err.Error())
 				os.Exit(1)
 			}
-			go io.Copy(os.Stdout, stdout)
-			go io.Copy(os.Stderr, stderr)
 			cmd.Wait()
 		}()
 	}

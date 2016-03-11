@@ -15,7 +15,6 @@ ReferrerModal         = require './views/referrermodal'
 KDCustomHTMLView      = kd.CustomHTMLView
 AccountListWrapper    = require './accountlistwrapper'
 KDNotificationView    = kd.NotificationView
-KDBlockingModalView   = kd.BlockingModalView
 KDListViewController  = kd.ListViewController
 AccountNavigationItem = require './accountnavigationitem'
 require('./routehandler')()
@@ -37,6 +36,7 @@ module.exports = class AccountAppController extends AppController
         { slug : 'TwoFactorAuth', title : '2-Factor Auth',       listType: 'twofactorauth', listHeader: 'Two-Factor Authentication' }
         { slug : 'Email',         title : 'Email notifications', listType: 'emailNotifications' }
         { slug : 'Externals',     title : 'Linked accounts',     listType: 'linkedAccounts' }
+        { slug : 'Sessions',      title : 'Active Sessions',     listType: 'sessions' }
       ]
     billing :
       title : 'Billing'

@@ -1,8 +1,6 @@
 kd                             = require 'kd'
 KDController                   = kd.Controller
 KDNotificationView             = kd.NotificationView
-emojify                        = require 'emojify.js'
-Promise                        = require 'bluebird'
 kookies                        = require 'kookies'
 globals                        = require 'globals'
 remote                         = require('./remote').getInstance()
@@ -13,7 +11,6 @@ logToExternalWithTime          = require './util/logToExternalWithTime'
 isLoggedIn                     = require './util/isLoggedIn'
 whoami                         = require './util/whoami'
 checkFlag                      = require './util/checkFlag'
-setVersionCookie               = require './util/setVersionCookie'
 expireClientId                 = require './util/expireClientId'
 ActivityController             = require './activitycontroller'
 AppStorageController           = require './appstoragecontroller'
@@ -51,7 +48,7 @@ DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
 
 
-module.exports           = class MainController extends KDController
+module.exports = class MainController extends KDController
 
   ###
 
@@ -69,7 +66,7 @@ module.exports           = class MainController extends KDController
 
   constructor:(options = {}, data)->
 
-    options.failWait  = 10000            # duration in miliseconds to show a connection failed modal
+    options.failWait = 10000            # duration in miliseconds to show a connection failed modal
 
     super options, data
 
@@ -80,23 +77,13 @@ module.exports           = class MainController extends KDController
     @attachListeners()
 
     @detectIdleUser()
-    @startCachingAssets()  unless globals.isLoggedInOnLoad
-
-    emojify?.setConfig
-      img_dir      : 'https://s3.amazonaws.com/koding-cdn/emojis'
-      ignored_tags :
-        'TEXTAREA' : 1,
-        'A'        : 1,
-        'PRE'      : 1,
-        'CODE'     : 1
+    @setTeamCookie()
 
 
   createSingletons:->
 
     kd.registerSingleton 'mainController',            this
-
     kd.registerSingleton 'kontrol',                   new KodingKontrol
-
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
     kd.registerSingleton 'notificationController',    new NotificationController
     kd.registerSingleton 'desktopNotifications',      new DesktopNotificationsController
@@ -166,7 +153,6 @@ module.exports           = class MainController extends KDController
     return no
 
 
-
   accountChanged: (account, firstLoad = no)->
 
     unless account instanceof remote.api.JAccount
@@ -213,6 +199,7 @@ module.exports           = class MainController extends KDController
       eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
       eventSuffix = if isLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
+
 
   doLogout: ->
 
@@ -272,6 +259,7 @@ module.exports           = class MainController extends KDController
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
     kd.utils.wait 1000, cookieChangeHandler
 
+
   swapAccount: (options, callback) ->
     return { message: 'Login failed!' } unless options
 
@@ -288,18 +276,6 @@ module.exports           = class MainController extends KDController
       if callback
         @once 'AccountChanged', (account) -> callback null, options
 
-  handleLogin: (credentials, callback) ->
-    { JUser } = remote.api
-
-    @isLoggingIn on
-
-    credentials.username = credentials.username.toLowerCase().trim()
-
-    JUser.login credentials, (err, result) =>
-      return callback err  if err
-      setVersionCookie result.account
-      @swapAccount result, callback
-
 
   handleOauthAuth : (formData, callback)->
     { JUser } = remote.api
@@ -315,6 +291,7 @@ module.exports           = class MainController extends KDController
 
       @swapAccount result, callback
 
+
   isLoggingIn: (isLoggingIn) ->
 
     storage = new LocalStorage 'Koding'
@@ -325,6 +302,7 @@ module.exports           = class MainController extends KDController
       @_isLoggingIn = isLoggingIn
     else
       @_isLoggingIn ? no
+
 
   setFailTimer: do->
     notification = null
@@ -362,9 +340,11 @@ module.exports           = class MainController extends KDController
       kd.utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", -> notification.destroy()  if notification
 
+
   detectIdleUser: (threshold = globals.config.userIdleMs) ->
     idleDetector = new IdleUserDetector { threshold }
     @forwardEvents idleDetector, ['userIdle', 'userBack']
+
 
   prepareSupportShortcuts: ->
 
@@ -373,27 +353,6 @@ module.exports           = class MainController extends KDController
     kd.impersonate = require './util/impersonate'
     kd.remote      = remote
     kd.whoami      = whoami
-
-  startCachingAssets:->
-
-    kd.singletons.appManager.require 'Login', ->
-
-      images = [
-        '/a/images/city.jpg'
-        '/a/images/home-pat.png'
-        '/a/images/edu-pat.png'
-        '/a/images/biz-pat.png'
-        '/a/images/pricing-pat.png'
-        '/a/images/ss-activity.jpg'
-        '/a/images/ss-terminal.jpg'
-        '/a/images/ss-teamwork.jpg'
-        '/a/images/ss-environments.jpg'
-        "/a/images/unsplash/#{LoginView.backgroundImageNr}.jpg"
-      ]
-
-      for src in images
-        image     = new Image
-        image.src = src
 
 
   registerFluxModules: ->
@@ -406,6 +365,32 @@ module.exports           = class MainController extends KDController
 
     fluxModules.forEach (fluxModule) ->
       fluxModule.register kd.singletons.reactor
+
+
+  # this cookie is set when someone logs into a team
+  # then on /Teams at team selector page
+  # we check the cookies and show shortcuts to
+  # users' teams when they want to login to their teams
+  setTeamCookie: ->
+
+    { groupsController } = kd.singletons
+    groupsController.ready ->
+      group = groupsController.getCurrentGroup()
+
+      try
+        teams = JSON.parse kookies.get 'koding-teams'
+
+      teams ?= {}
+
+      domain = location.hostname.replace ///#{group.slug}\.///, ''
+      path   = '/'
+      # domain         = ".#{parentHostname}"
+      { maxAge }     = globals.config.sessionCookie
+
+      teams[group.slug] = group.title
+      teams.latest      = group.slug
+
+      kookies.set 'koding-teams', JSON.stringify(teams), { domain, maxAge, path }
 
 
 # This function compares type of given account with global user

@@ -4,7 +4,6 @@ Encoder              = require 'htmlencode'
 
 kd                   = require 'kd'
 KDController         = kd.Controller
-KDNotificationView   = kd.NotificationView
 
 nick                 = require 'app/util/nick'
 isKoding             = require 'app/util/isKoding'
@@ -21,6 +20,7 @@ ComputeEventListener = require './computeeventlistener'
 ComputeController_UI = require './computecontroller.ui'
 ManagedKiteChecker   = require './managed/managedkitechecker'
 envDataProvider      = require 'app/userenvironmentdataprovider'
+Tracker              = require 'app/util/tracker'
 
 require './config'
 
@@ -70,6 +70,10 @@ module.exports = class ComputeController extends KDController
         @emit 'ready'
 
         @checkGroupStackRevisions()
+
+        if groupsController.canEditGroup()
+          @on 'RenderMachines', @bound 'checkMachinePermissions'
+          @checkMachinePermissions()
 
         @info machine for machine in @machines
 
@@ -301,6 +305,9 @@ module.exports = class ComputeController extends KDController
     for stack in @stacks
       for machine in stack.machines
         return stack  if machine._id is machineId
+
+  findStackFromTemplateId: (baseStackId) ->
+    return stack  for stack in @stacks when stack.baseStackId is baseStackId
 
   findMachineFromQueryString: (queryString) ->
 
@@ -678,6 +685,7 @@ module.exports = class ComputeController extends KDController
     unless state is 'NotInitialized'
       if state is 'Building'
         @eventListener.addListener 'apply', stack._id
+        Tracker.track Tracker.STACKS_SETUP
       else
         kd.warn 'Stack already initialized, skipping.', stack
       return
@@ -731,12 +739,14 @@ module.exports = class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @getKloud().buildStack { stackId: stack._id, destroy: yes }
+    stackId = stack._id
+    call    = @getKloud().buildStack { stackId, destroy: yes }
 
     .then (res) =>
 
       stack.destroy callback
       actions.reinitStack stack._id
+      @eventListener.addListener 'apply', stackId
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
@@ -1048,6 +1058,67 @@ module.exports = class ComputeController extends KDController
     else @emit 'GroupStacksConsistent'
 
 
+  fixMachinePermissions: (machine, dontAskAgain = no) ->
+
+    { groupsController } = kd.singletons
+
+    # This is for admins only
+    return  unless groupsController.canEditGroup()
+
+    @ui.askFor 'permissionFix', { machine, dontAskAgain }, (state) =>
+
+      if state.dontAskAgain is yes
+
+        ignoredMachines = @storage.getValue('ignoredMachines') ? {}
+        ignoredMachines[machine.uid] = yes
+
+        @storage.setValue 'ignoredMachines', ignoredMachines
+
+        new kd.NotificationView
+          title    : "We won't bother you again for this machine"
+          duration : 5000
+          content  : "You can fix permissions anytime you want from
+                      settings panel of this machine."
+
+        return
+
+      return  if not state.confirmed
+
+      notification = new kd.NotificationView
+        title    : "Fixing permissions..."
+        duration : 15000
+
+      kloud = @getKloud()
+      kloud.addAdmin machineId: machine._id
+        .finally ->
+          notification.destroy()
+        .then (shared) ->
+          new kd.NotificationView title: 'Permissions fixed'
+        .catch (err) ->
+          showError err, 'Failed to fix permissions'
+
+
+  checkMachinePermissions: (machine) ->
+
+    { groupsController } = kd.singletons
+
+    # This is for admins only
+    return  unless groupsController.canEditGroup()
+
+    @machines.forEach (machine) =>
+
+      { oldOwner, permissionUpdated } = machine.jMachine.meta
+
+      return  unless oldOwner
+      return  if not machine.isRunning()
+
+      @storage.fetchValue 'ignoredMachines', (ignoredMachines) =>
+        ignoredMachines ?= {}
+        return  if ignoredMachines[machine.uid]
+
+        @fixMachinePermissions machine, dontAskAgain = yes
+
+
   verifyStackRequirements: (stack) ->
 
     unless stack
@@ -1102,7 +1173,7 @@ module.exports = class ComputeController extends KDController
       return callback null, template
 
 
-  showBuildLogs: (machine) ->
+  showBuildLogs: (machine, tailOffset) ->
 
     # Not supported for Koding Group
     return  if isKoding()
@@ -1111,11 +1182,15 @@ module.exports = class ComputeController extends KDController
     path = '/var/log/cloud-init-output.log'
     file = FSHelper.createFileInstance { path, machine }
 
-    kd.singletons.appManager.tell 'IDE', 'tailFile', {
+    return  unless ideApp = envDataProvider.getIDEFromUId machine.uid
+
+    ideApp.tailFile {
       file
-      description:
-        "Your Koding Stack has successfully been initialized. The log here
-         describes each executed step of the Stack creation process."
+      description : "
+        Your Koding Stack has successfully been initialized. The log here
+        describes each executed step of the Stack creation process.
+      "
+      tailOffset
     }
 
 

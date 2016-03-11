@@ -53,7 +53,7 @@ module.exports =
 
     user = utils.getUser()
     url  = helpers.getUrl()
-    url  = "#{url}/Register"
+    url  = "#{url}/RegisterForTests"
 
     browser
       .url(url)

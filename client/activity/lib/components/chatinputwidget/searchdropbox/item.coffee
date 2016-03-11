@@ -1,7 +1,6 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
-classnames           = require 'classnames'
 formatPlural         = kd.utils.formatPlural
 formatContent        = require 'app/util/formatReactivityContent'
 DropboxItem          = require 'activity/components/dropboxitem'

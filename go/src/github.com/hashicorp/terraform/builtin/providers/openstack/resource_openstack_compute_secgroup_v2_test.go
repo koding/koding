@@ -97,9 +97,27 @@ func TestAccComputeV2SecGroup_self(t *testing.T) {
 					testAccCheckComputeV2SecGroupExists(t, "openstack_compute_secgroup_v2.test_group_1", &secgroup),
 					testAccCheckComputeV2SecGroupGroupIDMatch(t, &secgroup, &secgroup),
 					resource.TestCheckResourceAttr(
-						"openstack_compute_secgroup_v2.test_group_1", "rule.1118853483.self", "true"),
+						"openstack_compute_secgroup_v2.test_group_1", "rule.3170486100.self", "true"),
 					resource.TestCheckResourceAttr(
-						"openstack_compute_secgroup_v2.test_group_1", "rule.1118853483.from_group_id", ""),
+						"openstack_compute_secgroup_v2.test_group_1", "rule.3170486100.from_group_id", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccComputeV2SecGroup_icmpZero(t *testing.T) {
+	var secgroup secgroups.SecurityGroup
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckComputeV2SecGroupDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccComputeV2SecGroup_icmpZero,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckComputeV2SecGroupExists(t, "openstack_compute_secgroup_v2.test_group_1", &secgroup),
 				),
 			},
 		},
@@ -302,5 +320,17 @@ var testAccComputeV2SecGroup_self = fmt.Sprintf(`
 			to_port = 22
 			ip_protocol = "tcp"
 			self = true
+		}
+	}`)
+
+var testAccComputeV2SecGroup_icmpZero = fmt.Sprintf(`
+	resource "openstack_compute_secgroup_v2" "test_group_1" {
+		name = "test_group_1"
+		description = "first test security group"
+		rule {
+			from_port = 0
+			to_port = 0
+			ip_protocol = "icmp"
+			cidr = "0.0.0.0/0"
 		}
 	}`)

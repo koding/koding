@@ -22,6 +22,7 @@ func CreateCustomer(accId string) (*paymentmodels.Customer, error) {
 		ProviderCustomerId: accId,
 		Provider:           ProviderName,
 		Username:           username,
+		TypeConstant:       paymentmodels.AccountCustomer,
 	}
 
 	err = customerModel.Create()

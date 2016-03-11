@@ -1,7 +1,7 @@
 kd                         = require 'kd'
+_                          = require 'lodash'
 remote                     = require('app/remote').getInstance()
 KDView                     = kd.View
-KDCustomHTMLView           = kd.CustomHTMLView
 StackBaseEditorTabView     = require './stackbaseeditortabview'
 requirementsParser         = require './requirementsparser'
 VariablesEditorView        = require './editors/variableseditorview'
@@ -108,6 +108,8 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
   checkVariableChanges: ->
 
+    return  if @_pinnedWarning
+
     content   = @getAce().getContents()
     converted = yamlToJson content, silent = yes
 
@@ -115,7 +117,10 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       @_providedData = {}
       @setState 'INVALID'
     else
-      @_providedData = converted.contentObject
+      { contentObject } = converted
+      @_providedData = if Object.keys(contentObject).length
+      then _.extend contentObject, { __rawContent : content }
+      else {}
       @handleDataChange()
 
 
@@ -146,9 +151,27 @@ module.exports = class VariablesView extends StackBaseEditorTabView
       return  unless credential
 
       credential.fetchData (err, data) =>
-        return kd.warn err  if err
+
+        if err
+          @pinWarning "You don't have access for custom variables"
+          return kd.warn err
 
         @_activeCredential = credential
 
-        if (Object.keys data.meta).length
-          @getAce().setContent (jsonToYaml data.meta).content
+        { meta } = data
+        if (Object.keys meta).length
+          content = if rawContent = meta.__rawContent
+          then rawContent
+          else (jsonToYaml meta).content
+
+          @getAce().setContent _.unescape content
+
+
+  pinWarning: (warning) ->
+
+    @_pinnedWarning = yes
+    @indicator.setClass 'red'
+    @indicator.updatePartial '!'
+    @indicator.setTooltip title: warning
+    @indicator.setClass 'in'
+    @parent.tabHandle.setClass 'notification'

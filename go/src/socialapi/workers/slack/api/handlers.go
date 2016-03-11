@@ -12,8 +12,9 @@ import (
 // AddHandlers adds handlers for slack integration
 func AddHandlers(m *mux.Mux, config *config.Config) {
 	s := &Slack{
-		Hostname: config.Hostname,
-		Protocol: config.Protocol,
+		Hostname:          config.Hostname,
+		Protocol:          config.Protocol,
+		VerificationToken: config.Slack.VerificationToken,
 		OAuthConf: &oauth2.Config{
 			ClientID:     config.Slack.ClientId,
 			ClientSecret: config.Slack.ClientSecret,
@@ -43,17 +44,13 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 				// team.info
 				"team:read",
 
-				// usergroups.list
-				// usergroups.users.list
-				"usergroups:read",
-
 				// users.getPresence
 				// users.info
 				"users:read",
 
-				// allows teams to easily install an incoming webhook that can
-				// post from your app to a single Slack channel.
-				"incoming-webhook",
+				// usergroups.list
+				// usergroups.users.list
+				"usergroups:read",
 
 				// allows teams to install slash commands bundled in your Slack
 				// app.
@@ -129,6 +126,15 @@ func AddHandlers(m *mux.Mux, config *config.Config) {
 			Name:     models.SlackPostMessage,
 			Type:     handler.PostRequest,
 			Endpoint: "/slack/message",
+		},
+	)
+
+	m.AddUnscopedHandler(
+		handler.Request{
+			Handler:  s.SlashCommand,
+			Name:     models.SlackSlashCommand,
+			Type:     handler.PostRequest,
+			Endpoint: "/slack/slash",
 		},
 	)
 }

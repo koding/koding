@@ -1,13 +1,11 @@
 package client
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/url"
 	"strings"
 	"text/tabwriter"
 
-	"github.com/docker/docker/api/types"
+	Cli "github.com/docker/docker/cli"
 	flag "github.com/docker/docker/pkg/mflag"
 )
 
@@ -15,23 +13,17 @@ import (
 //
 // Usage: docker top CONTAINER
 func (cli *DockerCli) CmdTop(args ...string) error {
-	cmd := cli.Subcmd("top", "CONTAINER [ps OPTIONS]", "Display the running processes of a container", true)
+	cmd := Cli.Subcmd("top", []string{"CONTAINER [ps OPTIONS]"}, Cli.DockerCommands["top"].Description, true)
 	cmd.Require(flag.Min, 1)
 
 	cmd.ParseFlags(args, true)
 
-	val := url.Values{}
+	var arguments []string
 	if cmd.NArg() > 1 {
-		val.Set("ps_args", strings.Join(cmd.Args()[1:], " "))
+		arguments = cmd.Args()[1:]
 	}
 
-	stream, _, err := cli.call("GET", "/containers/"+cmd.Arg(0)+"/top?"+val.Encode(), nil, nil)
-	if err != nil {
-		return err
-	}
-
-	procList := types.ContainerProcessList{}
-	err = json.NewDecoder(stream).Decode(&procList)
+	procList, err := cli.client.ContainerTop(cmd.Arg(0), arguments)
 	if err != nil {
 		return err
 	}

@@ -58,6 +58,43 @@ func TestColor(t *testing.T) {
 	}
 }
 
+func TestColorPrefix(t *testing.T) {
+	cases := []struct {
+		Input, Output string
+	}{
+		{
+			Input:  "foo",
+			Output: "",
+		},
+
+		{
+			Input:  "[blue]foo",
+			Output: "[blue]",
+		},
+
+		{
+			Input:  "[bold][blue]foo",
+			Output: "[bold][blue]",
+		},
+
+		{
+			Input:  "   [bold][blue]foo",
+			Output: "[bold][blue]",
+		},
+	}
+
+	for _, tc := range cases {
+		actual := ColorPrefix(tc.Input)
+		if actual != tc.Output {
+			t.Errorf(
+				"Input: %#v\n\nOutput: %#v\n\nExpected: %#v",
+				tc.Input,
+				actual,
+				tc.Output)
+		}
+	}
+}
+
 func TestColorizeColor_disable(t *testing.T) {
 	c := def
 	c.Disable = true

@@ -133,9 +133,13 @@ func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 
 	prefix := "custom"
 	data := stackplan.CustomMeta{
-		"foo": "1",
-		"bar": "example@example.com",
-		"qaz": "hello",
+		"foo":           "1",
+		"bar":           "example@example.com",
+		"qaz":           "hello",
+		"_notHidden":    "notHidden",
+		"__hidden":      "${var.value}",
+		"__rawContent":  "${var.custom___otherHidden}",
+		"__otherHidden": "${var.value}",
 	}
 
 	if err := template.InjectVariables(prefix, data); err != nil {
@@ -155,6 +159,18 @@ func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 		Username struct {
 			Default string
 		} `hcl:"username"`
+		NotHidden struct {
+			Default string
+		} `hcl:"custom__notHidden"`
+		Hidden struct {
+			Default string
+		} `hcl:"custom___hidden"`
+		RawContent struct {
+			Default string
+		} `hcl:"custom___rawContent"`
+		OtherHidden struct {
+			Default string
+		} `hcl:"custom___otherHidden"`
 	}
 
 	if err := template.DecodeVariable(&variable); err != nil {
@@ -165,6 +181,10 @@ func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 	equals(t, "1", variable.CustomFoo.Default)
 	equals(t, "hello", variable.CustomQaz.Default)
 	equals(t, "fatih", variable.Username.Default)
+	equals(t, "notHidden", variable.NotHidden.Default)
+	equals(t, "", variable.Hidden.Default)
+	equals(t, "", variable.RawContent.Default)
+	equals(t, "", variable.OtherHidden.Default)
 }
 
 func TestTerraformTemplate_DecodeProvider(t *testing.T) {

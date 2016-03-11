@@ -200,9 +200,7 @@ func TestNormalize(t *testing.T) {
 			})
 
 			Convey("@admins should return all the admins of the team", func() {
-
-				// create the group
-				group, err := createGroup(groupChannel.GroupName)
+				group, err := modelhelper.GetGroup(groupChannel.GroupName)
 				So(err, ShouldBeNil)
 
 				err = makeAdmin(bson.ObjectIdHex(account1.OldId), group.Id)
@@ -338,18 +336,6 @@ func TestNormalize(t *testing.T) {
 
 		})
 	})
-}
-
-func createGroup(groupName string) (*mongomodels.Group, error) {
-	g := &mongomodels.Group{
-		Id:         bson.NewObjectId(),
-		Body:       bson.NewObjectId().Hex(),
-		Title:      bson.NewObjectId().Hex(),
-		Slug:       groupName,
-		Privacy:    "private",
-		Visibility: "hidden",
-	}
-	return g, modelhelper.CreateGroup(g)
 }
 
 func makeAdmin(accountId, groupId bson.ObjectId) error {

@@ -1,9 +1,8 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-immutable             = require 'immutable'
-formatEmojiName       = require 'activity/util/formatEmojiName'
-DropboxItem           = require 'activity/components/dropboxitem'
-EmojiIcon             = require 'activity/components/emojiicon'
+kd              = require 'kd'
+React           = require 'kd-react'
+formatEmojiName = require 'activity/util/formatEmojiName'
+DropboxItem     = require 'activity/components/dropboxitem'
+EmojiIcon       = require 'activity/components/emojiicon'
 
 
 module.exports = class EmojiDropboxItem extends React.Component

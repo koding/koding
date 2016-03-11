@@ -1,5 +1,4 @@
 kd             = require 'kd'
-actionTypes    = require './actiontypes'
 Getters        = require 'activity/flux/getters'
 MessageActions = require 'activity/flux/actions/message'
 whoami         = require 'app/util/whoami'

@@ -2,9 +2,9 @@
 JCounter = require './counter'
 
 # Helpers
-{ daisy,
-  expect,
-  generateRandomString,
+{ async
+  expect
+  generateRandomString
   checkBongoConnectivity } = require '../../../testhelper'
 
 NAMESPACES              = []
@@ -211,20 +211,18 @@ runTests = ->
       COUNT = 5
 
       for i in [1..COUNT]
-        queue.push ->
+        queue.push (next) ->
           JCounter.increment options, (err) ->
             expect(err).to.not.exist
-            queue.next()
+            next()
 
-      queue.push ->
+      queue.push (next) ->
         JCounter.count options, (err, count) ->
           expect(err).to.not.exist
           expect(count).to.equal COUNT
-          done()
+          next()
 
-      queue.push -> done()
-
-      daisy queue
+      async.series queue, done
 
 
   describe 'workers.social.counter.reset', ->
@@ -236,37 +234,37 @@ runTests = ->
     it 'should only reset the counter of given type', (done) ->
 
       queue = [
-        ->
+
+        (next) ->
           JCounter.increment options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 1
-            queue.next()
-        ->
+            next()
+        (next) ->
           options.type = generateRandomString()
           JCounter.increment options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 1
-            queue.next()
-        ->
+            next()
+        (next) ->
           JCounter.reset options, (err) ->
             expect(err).to.not.exist
-            queue.next()
-        ->
+            next()
+        (next) ->
           JCounter.count options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 0
-            queue.next()
-        ->
+            next()
+        (next) ->
           options = { namespace: options.namespace }
           JCounter.count options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 1
-            queue.next()
+            next()
+
       ]
 
-      queue.push -> done()
-
-      daisy queue
+      async.series queue, done
 
 
   describe 'workers.social.counter.setCount', ->
@@ -278,37 +276,37 @@ runTests = ->
     it 'should set the provided count for given namespace and type', (done) ->
 
       queue = [
-        ->
+
+        (next) ->
           JCounter.setCount options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 10
-            queue.next()
-        ->
+            next()
+        (next) ->
           options.type = generateRandomString()
           JCounter.setCount options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 10
-            queue.next()
-        ->
+            next()
+        (next) ->
           JCounter.decrement options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 9
-            queue.next()
-        ->
+            next()
+        (next) ->
           JCounter.setCount options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 10
-            queue.next()
-        ->
+            next()
+        (next) ->
           JCounter.count options, (err, count) ->
             expect(err).to.not.exist
             expect(count).to.equal 10
-            queue.next()
+            next()
+
       ]
 
-      queue.push -> done()
-
-      daisy queue
+      async.series queue, done
 
 
 afterTests = ->
@@ -317,14 +315,12 @@ afterTests = ->
 
     queue = [ ]
 
-    NAMESPACES.forEach (namespace) -> queue.push ->
+    NAMESPACES.forEach (namespace) -> queue.push (next) ->
       JCounter.reset { namespace }, (err) ->
         expect(err).to.not.exist
-        queue.next()
+        next()
 
-    queue.push -> done()
-
-    daisy queue
+    async.series queue, done
 
 
 beforeTests()

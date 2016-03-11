@@ -1,7 +1,6 @@
 kd              = require 'kd.js'
 utils           = require './../../core/utils'
 JView           = require './../../core/jview'
-CustomLinkView  = require './../../core/customlinkview'
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
 
@@ -82,6 +81,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
     <section>
       {{> @inviteDesc}}
       <p>Trying to create a team? <a href="//#{utils.getMainDomain()}/Teams" target="_self">Sign up on the home page</a> to get started.</p>
+      <p>Forgot your password? <a href='/Team/Recover'>Click here</a> to reset.</p>
     </section>
     <footer>
       <a href="https://www.koding.com/Legal" target="_blank">Acceptable user policy</a><a href="https://www.koding.com/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://www.koding.com/Legal/Terms" target="_blank">Terms of service</a><a href="https://www.koding.com/Legal/Privacy" target="_blank">Privacy policy</a>

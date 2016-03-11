@@ -115,21 +115,23 @@ func TestMap_Tag(t *testing.T) {
 
 func TestMap_CustomTag(t *testing.T) {
 	var T = struct {
-		A string `dd:"x"`
-		B int    `dd:"y"`
-		C bool   `dd:"z"`
+		A string `json:"x"`
+		B int    `json:"y"`
+		C bool   `json:"z"`
+		D struct {
+			E string `json:"jkl"`
+		} `json:"nested"`
 	}{
 		A: "a-value",
 		B: 2,
 		C: true,
 	}
+	T.D.E = "e-value"
 
-	defaultName := DefaultTagName
-	DefaultTagName = "dd"
-	defer func() {
-		DefaultTagName = defaultName
-	}()
-	a := Map(T)
+	s := New(T)
+	s.TagName = "json"
+
+	a := s.Map()
 
 	inMap := func(key interface{}) bool {
 		for k := range a {
@@ -146,6 +148,45 @@ func TestMap_CustomTag(t *testing.T) {
 		}
 	}
 
+	nested, ok := a["nested"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Map should contain the D field that is tagged as 'nested'")
+	}
+
+	e, ok := nested["jkl"].(string)
+	if !ok {
+		t.Fatalf("Map should contain the D.E field that is tagged as 'jkl'")
+	}
+
+	if e != "e-value" {
+		t.Errorf("D.E field should be equal to 'e-value', got: '%v'", e)
+	}
+
+}
+
+func TestMap_MultipleCustomTag(t *testing.T) {
+	var A = struct {
+		X string `aa:"ax"`
+	}{"a_value"}
+
+	aStruct := New(A)
+	aStruct.TagName = "aa"
+
+	var B = struct {
+		X string `bb:"bx"`
+	}{"b_value"}
+
+	bStruct := New(B)
+	bStruct.TagName = "bb"
+
+	a, b := aStruct.Map(), bStruct.Map()
+	if !reflect.DeepEqual(a, map[string]interface{}{"ax": "a_value"}) {
+		t.Error("Map should have field ax with value a_value")
+	}
+
+	if !reflect.DeepEqual(b, map[string]interface{}{"bx": "b_value"}) {
+		t.Error("Map should have field bx with value b_value")
+	}
 }
 
 func TestMap_OmitEmpty(t *testing.T) {
@@ -252,6 +293,20 @@ func TestMap_Anonymous(t *testing.T) {
 
 	if name := in["Name"].(string); name != "example" {
 		t.Errorf("Embedded A struct's Name field should give example, got: %s", name)
+	}
+}
+
+func TestMap_TimeField(t *testing.T) {
+	type A struct {
+		CreatedAt time.Time
+	}
+
+	a := &A{CreatedAt: time.Now().UTC()}
+	m := Map(a)
+
+	_, ok := m["CreatedAt"].(time.Time)
+	if !ok {
+		t.Error("Time field must be final")
 	}
 }
 
@@ -415,6 +470,39 @@ func TestValues_Anonymous(t *testing.T) {
 	for _, val := range []interface{}{"example", 123} {
 		if !inSlice(val) {
 			t.Errorf("Values should have the value %v", val)
+		}
+	}
+}
+
+func TestNames(t *testing.T) {
+	var T = struct {
+		A string
+		B int
+		C bool
+	}{
+		A: "a-value",
+		B: 2,
+		C: true,
+	}
+
+	s := Names(T)
+
+	if len(s) != 3 {
+		t.Errorf("Names should return a slice of len 3, got: %d", len(s))
+	}
+
+	inSlice := func(val string) bool {
+		for _, v := range s {
+			if reflect.DeepEqual(v, val) {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, val := range []string{"A", "B", "C"} {
+		if !inSlice(val) {
+			t.Errorf("Names should have the value %v", val)
 		}
 	}
 }
@@ -821,4 +909,90 @@ func TestNestedNilPointer(t *testing.T) {
 	_ = Map(person)                  // Panics
 	_ = Map(personWithDog)           // Panics
 	_ = Map(personWithDogWithCollar) // Doesn't panic
+}
+
+type Person struct {
+	Name string
+	Age  int
+}
+
+func (p *Person) String() string {
+	return fmt.Sprintf("%s(%d)", p.Name, p.Age)
+}
+
+func TestTagWithStringOption(t *testing.T) {
+
+	type Address struct {
+		Country string  `json:"country"`
+		Person  *Person `json:"person,string"`
+	}
+
+	person := &Person{
+		Name: "John",
+		Age:  23,
+	}
+
+	address := &Address{
+		Country: "EU",
+		Person:  person,
+	}
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("err %+v\n", err)
+			t.Error("Internal nil pointer should not panic")
+		}
+	}()
+
+	s := New(address)
+
+	s.TagName = "json"
+	m := s.Map()
+
+	if m["person"] != person.String() {
+		t.Errorf("Value for field person should be %s, got: %s", person.String(), m["person"])
+	}
+
+	vs := s.Values()
+	if vs[1] != person.String() {
+		t.Errorf("Value for 2nd field (person) should be %t, got: %t", person.String(), vs[1])
+	}
+}
+
+type Animal struct {
+	Name string
+	Age  int
+}
+
+type Dog struct {
+	Animal *Animal `json:"animal,string"`
+}
+
+func TestNonStringerTagWithStringOption(t *testing.T) {
+	a := &Animal{
+		Name: "Fluff",
+		Age:  4,
+	}
+
+	d := &Dog{
+		Animal: a,
+	}
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("err %+v\n", err)
+			t.Error("Internal nil pointer should not panic")
+		}
+	}()
+
+	s := New(d)
+
+	s.TagName = "json"
+	m := s.Map()
+
+	if _, exists := m["animal"]; exists {
+		t.Errorf("Value for field Animal should not exist")
+	}
 }

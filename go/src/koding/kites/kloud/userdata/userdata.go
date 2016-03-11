@@ -54,11 +54,12 @@ type CloudInitConfig struct {
 	// can't be accessed from the instance
 	DisableEC2MetaData bool
 
-	// CustomCMD is appended to the user_data if given to be executed. It
-	// will be passed as a plain string to the `runcmd` directive, so what this
-	// means it the whole content wil be saves to a file by cloud-init and then
-	// executed with `sh`
-	CustomCMD string
+	// UserData is written to /root/user-data.sh file and executed
+	// by the `runcmd` durective.
+	//
+	// The value of UserData is expected to be base64-encoded. If UserData
+	// is empty, the execution is going to be a nop.
+	UserData string
 
 	// KodingSetup setups koding specific changes, such as Apache config,
 	// custom bashrc, custom directories... These files are only available in
@@ -84,20 +85,6 @@ var (
 			return c
 		},
 		"join": strings.Join,
-		"custom_cmd": func(cmd string) string {
-			if cmd == "" {
-				return ""
-			}
-
-			lines := strings.Split(cmd, "\n")
-			c := "  - |\n"
-			c += fmt.Sprintf("    %s\n", `echo "==== SCRIPT_STARTED ===="`)
-			for _, line := range lines {
-				c += fmt.Sprintf("    %s\n", line)
-			}
-			c += fmt.Sprintf("    %s\n", `echo "==== SCRIPT_FINISHED ====="`)
-			return c
-		},
 	}
 
 	cloudInitTemplate = template.Must(template.New("cloudinit").Funcs(funcMap).Parse(cloudInit))
@@ -117,7 +104,7 @@ users:
   - name: '{{.Username}}'
     lock_passwd: True
     gecos: Koding
-    groups: {{join .Groups ","}} 
+    groups: {{join .Groups ","}}
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     shell: /bin/bash
 
@@ -125,9 +112,17 @@ users:
 
 write_files:
   # Create kite.key
-  - content: |
+  - path: /etc/kite/kite.key
+    content: |
       {{.KiteKey}}
-    path: /etc/kite/kite.key
+
+{{if .UserData}}
+  # Create user script.
+  - path: /root/user-data.sh
+    encoding: b64
+    content: |
+      {{.UserData}}
+{{end}}
 
 {{if .KodingSetup}}
   # Apache configuration (/etc/apache2/sites-available/000-default.conf)
@@ -205,11 +200,15 @@ runcmd:
   # Configure Apache to serve user's web content
   - [rm, -rf, /var/www]
   - [ln, -s, /home/{{.Username}}/Web, /var/www]
-  - a2enmod cgi
-  - service apache2 restart
+  - [a2enmod, cgi]
+  - [service, apache2, restart]
 {{end}}
 
-{{ custom_cmd .CustomCMD }}
+{{if .UserData}}
+  # Run user data script.
+  - [chmod, +x, /root/user-data.sh]
+  - [/root/user-data.sh]
+{{end}}
 
 final_message: "All done!"
 `

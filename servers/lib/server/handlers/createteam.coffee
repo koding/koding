@@ -40,14 +40,6 @@ module.exports = (req, res, next) ->
   queue = [
 
     (next) ->
-      { teamAccessCode } = body
-      # if we dont have teamaccesscode just continue
-
-      validateTeamInvitation teamAccessCode, (err) ->
-        return next { status: 400, message: err }  if err
-        next()
-
-    (next) ->
       koding.fetchClient clientId, context, (client_) ->
 
         client = client_
@@ -105,16 +97,6 @@ module.exports = (req, res, next) ->
     else JUser.convert client, body, createGroup
 
 
-validateTeamInvitation = (teamAccessCode, callback) ->
-
-  { JTeamInvitation } = koding.models
-  JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
-    return callback err.message                     if err
-    return callback 'Team Invitation is not found'  if not invitation
-    return callback 'Team Invitation is not valid'  if not invitation.isValid()
-    return callback null
-
-
 createGroupKallback = (client, req, res, body) ->
 
   # returning a callback function
@@ -133,8 +115,6 @@ createGroupKallback = (client, req, res, body) ->
       domains
       # username or email of the user, can be already registered or a new one for creation
       username
-      # access code for admin to create a team
-      teamAccessCode
     } = body
 
     token = result.newToken or result.replacementToken
@@ -168,7 +148,7 @@ createGroupKallback = (client, req, res, body) ->
     JGroup.create client,
       slug            : slug
       title           : companyName
-      config          : { plan: 'trial' }
+    # config          : { plan: 'trial' } # default team plan
       visibility      : 'hidden'
       initialData     : body
       allowedDomains  : convertToArray domains # clear & convert domains into array
@@ -179,8 +159,8 @@ createGroupKallback = (client, req, res, body) ->
 
 afterGroupCreateKallback = (res, params) ->
 
-  { JUser, JTeamInvitation } = koding.models
-  { body : { slug, teamAccessCode, invitees }, client,  username } = params
+  { JUser, JTeamInvitation, Tracker } = koding.models
+  { body : { slug, invitees }, client,  username } = params
 
   return (err, group) ->
     if err or not group
@@ -194,12 +174,6 @@ afterGroupCreateKallback = (res, params) ->
           console.error 'Err while creating invitations', err  if err
           fin()
 
-      (fin) ->
-        JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
-          return fin()  if err or not invitation
-          invitation.markAsUsed (err) ->
-            console.error err  if err
-            fin()
     ]
 
     async.parallel queue, (err) ->
@@ -212,6 +186,9 @@ afterGroupCreateKallback = (res, params) ->
 
       data =
         token : JUser.createJWT opt
+
+      # add user to Segment group
+      Tracker.group slug, username
 
       return res.status(200).send data
 

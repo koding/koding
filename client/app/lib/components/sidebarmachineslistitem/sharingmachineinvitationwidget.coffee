@@ -46,7 +46,7 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
     return null  if not coordinates.top and not coordinates.left
 
     type = if @props.machine.get('type') is 'collaboration'
-    then 'collaboration'
+    then 'collaborate'
     else 'share'
     text = "wants to #{type} their VM with you."
 

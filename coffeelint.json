@@ -81,7 +81,7 @@
   "no_interpolation_in_single_quotes": {
     "level": "ignore"
   },
-  "no_nested_string_interpolation": { 
+  "no_nested_string_interpolation": {
     "level": "ignore"
   },
   "no_plusplus": {

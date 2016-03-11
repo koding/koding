@@ -19,52 +19,75 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coreos/etcd/lease"
+	"github.com/coreos/etcd/storage/backend"
 	"github.com/coreos/etcd/storage/storagepb"
 )
+
+const (
+	// chanBufLen is the length of the buffered chan
+	// for sending out watched events.
+	// TODO: find a good buf value. 1024 is just a random one that
+	// seems to be reasonable.
+	chanBufLen = 1024
+)
+
+type watchable interface {
+	watch(key, end []byte, startRev int64, id WatchID, ch chan<- WatchResponse) (*watcher, cancelFunc)
+	rev() int64
+}
 
 type watchableStore struct {
 	mu sync.Mutex
 
 	*store
 
-	// contains all unsynced watchers that needs to sync events that have happened
-	unsynced map[*watcher]struct{}
+	// contains all unsynced watchers that needs to sync with events that have happened
+	unsynced watcherGroup
 
-	// contains all synced watchers that are tracking the events that will happen
-	// The key of the map is the key that the watcher is watching on.
-	synced map[string][]*watcher
-	tx     *ongoingTx
+	// contains all synced watchers that are in sync with the progress of the store.
+	// The key of the map is the key that the watcher watches on.
+	synced watcherGroup
 
 	stopc chan struct{}
 	wg    sync.WaitGroup
 }
 
-func newWatchableStore(path string) *watchableStore {
+// cancelFunc updates unsynced and synced maps when running
+// cancel operations.
+type cancelFunc func()
+
+func newWatchableStore(b backend.Backend, le lease.Lessor) *watchableStore {
 	s := &watchableStore{
-		store:    newStore(path),
-		unsynced: make(map[*watcher]struct{}),
-		synced:   make(map[string][]*watcher),
+		store:    NewStore(b, le),
+		unsynced: newWatcherGroup(),
+		synced:   newWatcherGroup(),
 		stopc:    make(chan struct{}),
+	}
+	if s.le != nil {
+		// use this store as the deleter so revokes trigger watch events
+		s.le.SetRangeDeleter(s)
 	}
 	s.wg.Add(1)
 	go s.syncWatchersLoop()
 	return s
 }
 
-func (s *watchableStore) Put(key, value []byte) (rev int64) {
+func (s *watchableStore) Put(key, value []byte, lease lease.LeaseID) (rev int64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	rev = s.store.Put(key, value)
-	// TODO: avoid this range
-	kvs, _, err := s.store.Range(key, nil, 0, rev)
-	if err != nil {
-		log.Panicf("unexpected range error (%v)", err)
+	rev = s.store.Put(key, value, lease)
+	changes := s.store.getChanges()
+	if len(changes) != 1 {
+		log.Panicf("unexpected len(changes) != 1 after put")
 	}
-	s.handle(rev, storagepb.Event{
+
+	ev := storagepb.Event{
 		Type: storagepb.PUT,
-		Kv:   &kvs[0],
-	})
+		Kv:   &changes[0],
+	}
+	s.notify(rev, []storagepb.Event{ev})
 	return rev
 }
 
@@ -72,49 +95,31 @@ func (s *watchableStore) DeleteRange(key, end []byte) (n, rev int64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// TODO: avoid this range
-	kvs, _, err := s.store.Range(key, end, 0, 0)
-	if err != nil {
-		log.Panicf("unexpected range error (%v)", err)
-	}
 	n, rev = s.store.DeleteRange(key, end)
-	for _, kv := range kvs {
-		s.handle(rev, storagepb.Event{
-			Type: storagepb.DELETE,
-			Kv: &storagepb.KeyValue{
-				Key: kv.Key,
-			},
-		})
+	changes := s.store.getChanges()
+
+	if len(changes) != int(n) {
+		log.Panicf("unexpected len(changes) != n after deleteRange")
 	}
+
+	if n == 0 {
+		return n, rev
+	}
+
+	evs := make([]storagepb.Event, n)
+	for i, change := range changes {
+		evs[i] = storagepb.Event{
+			Type: storagepb.DELETE,
+			Kv:   &change}
+		evs[i].Kv.ModRevision = rev
+	}
+	s.notify(rev, evs)
 	return n, rev
 }
 
 func (s *watchableStore) TxnBegin() int64 {
 	s.mu.Lock()
-	s.tx = newOngoingTx()
 	return s.store.TxnBegin()
-}
-
-func (s *watchableStore) TxnPut(txnID int64, key, value []byte) (rev int64, err error) {
-	rev, err = s.store.TxnPut(txnID, key, value)
-	if err == nil {
-		s.tx.put(string(key))
-	}
-	return rev, err
-}
-
-func (s *watchableStore) TxnDeleteRange(txnID int64, key, end []byte) (n, rev int64, err error) {
-	kvs, _, err := s.store.TxnRange(txnID, key, end, 0, 0)
-	if err != nil {
-		log.Panicf("unexpected range error (%v)", err)
-	}
-	n, rev, err = s.store.TxnDeleteRange(txnID, key, end)
-	if err == nil {
-		for _, kv := range kvs {
-			s.tx.del(string(kv.Key))
-		}
-	}
-	return n, rev, err
 }
 
 func (s *watchableStore) TxnEnd(txnID int64) error {
@@ -123,26 +128,31 @@ func (s *watchableStore) TxnEnd(txnID int64) error {
 		return err
 	}
 
-	_, rev, _ := s.store.Range(nil, nil, 0, 0)
-	for k := range s.tx.putm {
-		kvs, _, err := s.store.Range([]byte(k), nil, 0, 0)
-		if err != nil {
-			log.Panicf("unexpected range error (%v)", err)
+	changes := s.getChanges()
+	if len(changes) == 0 {
+		s.mu.Unlock()
+		return nil
+	}
+
+	rev := s.store.Rev()
+	evs := make([]storagepb.Event, len(changes))
+	for i, change := range changes {
+		switch change.Value {
+		case nil:
+			evs[i] = storagepb.Event{
+				Type: storagepb.DELETE,
+				Kv:   &changes[i]}
+			evs[i].Kv.ModRevision = rev
+		default:
+			evs[i] = storagepb.Event{
+				Type: storagepb.PUT,
+				Kv:   &changes[i]}
 		}
-		s.handle(rev, storagepb.Event{
-			Type: storagepb.PUT,
-			Kv:   &kvs[0],
-		})
 	}
-	for k := range s.tx.delm {
-		s.handle(rev, storagepb.Event{
-			Type: storagepb.DELETE,
-			Kv: &storagepb.KeyValue{
-				Key: []byte(k),
-			},
-		})
-	}
+
+	s.notify(rev, evs)
 	s.mu.Unlock()
+
 	return nil
 }
 
@@ -152,38 +162,56 @@ func (s *watchableStore) Close() error {
 	return s.store.Close()
 }
 
-func (s *watchableStore) Watcher(key []byte, prefix bool, startRev int64) (Watcher, CancelFunc) {
+func (s *watchableStore) NewWatchStream() WatchStream {
+	watchStreamGauge.Inc()
+	return &watchStream{
+		watchable: s,
+		ch:        make(chan WatchResponse, chanBufLen),
+		cancels:   make(map[WatchID]cancelFunc),
+	}
+}
+
+func (s *watchableStore) watch(key, end []byte, startRev int64, id WatchID, ch chan<- WatchResponse) (*watcher, cancelFunc) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	wa := newWatcher(key, prefix, startRev)
-	k := string(key)
-	if startRev == 0 {
-		s.synced[k] = append(s.synced[k], wa)
-	} else {
-		slowWatchersGauge.Inc()
-		s.unsynced[wa] = struct{}{}
+	wa := &watcher{
+		key: key,
+		end: end,
+		cur: startRev,
+		id:  id,
+		ch:  ch,
 	}
-	watchersGauge.Inc()
 
-	cancel := CancelFunc(func() {
+	s.store.mu.Lock()
+	synced := startRev > s.store.currentRev.main || startRev == 0
+	if synced {
+		wa.cur = s.store.currentRev.main + 1
+	}
+	s.store.mu.Unlock()
+	if synced {
+		if startRev > wa.cur {
+			panic("can't watch past sync revision")
+		}
+		s.synced.add(wa)
+	} else {
+		slowWatcherGauge.Inc()
+		s.unsynced.add(wa)
+	}
+	watcherGauge.Inc()
+
+	cancel := cancelFunc(func() {
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		wa.stopWithError(ErrCanceled)
-
-		// remove global references of the watcher
-		if _, ok := s.unsynced[wa]; ok {
-			delete(s.unsynced, wa)
-			slowWatchersGauge.Dec()
-			watchersGauge.Dec()
+		// remove references of the watcher
+		if s.unsynced.delete(wa) {
+			slowWatcherGauge.Dec()
+			watcherGauge.Dec()
 			return
 		}
 
-		for i, w := range s.synced[k] {
-			if w == wa {
-				s.synced[k] = append(s.synced[k][:i], s.synced[k][i+1:]...)
-				watchersGauge.Dec()
-			}
+		if s.synced.delete(wa) {
+			watcherGauge.Dec()
 		}
 		// If we cannot find it, it should have finished watch.
 	})
@@ -191,7 +219,7 @@ func (s *watchableStore) Watcher(key []byte, prefix bool, startRev int64) (Watch
 	return wa, cancel
 }
 
-// keepSyncWatchers syncs the watchers in the unsyncd map every 100ms.
+// syncWatchersLoop syncs the watcher in the unsynced map every 100ms.
 func (s *watchableStore) syncWatchersLoop() {
 	defer s.wg.Done()
 
@@ -208,96 +236,118 @@ func (s *watchableStore) syncWatchersLoop() {
 	}
 }
 
-// syncWatchers syncs the watchers in the unsyncd map.
+// syncWatchers periodically syncs unsynced watchers by: Iterate all unsynced
+// watchers to get the minimum revision within its range, skipping the
+// watcher if its current revision is behind the compact revision of the
+// store. And use this minimum revision to get all key-value pairs. Then send
+// those events to watchers.
 func (s *watchableStore) syncWatchers() {
-	_, curRev, _ := s.store.Range(nil, nil, 0, 0)
-	for w := range s.unsynced {
-		var end []byte
-		if w.prefix {
-			end = make([]byte, len(w.key))
-			copy(end, w.key)
-			end[len(w.key)-1]++
-		}
-		limit := cap(w.ch) - len(w.ch)
-		// the channel is full, try it in the next round
-		if limit == 0 {
-			continue
-		}
-		evs, nextRev, err := s.store.RangeEvents(w.key, end, int64(limit), w.cur)
-		if err != nil {
-			w.stopWithError(err)
-			delete(s.unsynced, w)
-			continue
-		}
+	s.store.mu.Lock()
+	defer s.store.mu.Unlock()
 
-		// push events to the channel
-		for _, ev := range evs {
-			w.ch <- ev
-			pendingEventsGauge.Inc()
-		}
-		// switch to tracking future events if needed
-		if nextRev > curRev {
-			s.synced[string(w.key)] = append(s.synced[string(w.key)], w)
-			delete(s.unsynced, w)
+	if s.unsynced.size() == 0 {
+		return
+	}
+
+	// in order to find key-value pairs from unsynced watchers, we need to
+	// find min revision index, and these revisions can be used to
+	// query the backend store of key-value pairs
+	curRev := s.store.currentRev.main
+	compactionRev := s.store.compactMainRev
+	minRev := s.unsynced.scanMinRev(curRev, compactionRev)
+	minBytes, maxBytes := newRevBytes(), newRevBytes()
+	revToBytes(revision{main: minRev}, minBytes)
+	revToBytes(revision{main: curRev + 1}, maxBytes)
+
+	// UnsafeRange returns keys and values. And in boltdb, keys are revisions.
+	// values are actual key-value pairs in backend.
+	tx := s.store.b.BatchTx()
+	tx.Lock()
+	revs, vs := tx.UnsafeRange(keyBucketName, minBytes, maxBytes, 0)
+	evs := kvsToEvents(&s.unsynced, revs, vs)
+	tx.Unlock()
+
+	for w, eb := range newWatcherBatch(&s.unsynced, evs) {
+		select {
+		// s.store.Rev also uses Lock, so just return directly
+		case w.ch <- WatchResponse{WatchID: w.id, Events: eb.evs, Revision: s.store.currentRev.main}:
+			pendingEventsGauge.Add(float64(len(eb.evs)))
+		default:
+			// TODO: handle the full unsynced watchers.
+			// continue to process other watchers for now, the full ones
+			// will be processed next time and hopefully it will not be full.
 			continue
 		}
-		// put it back to try it in the next round
-		w.cur = nextRev
+		if eb.moreRev != 0 {
+			w.cur = eb.moreRev
+			continue
+		}
+		w.cur = curRev
+		s.synced.add(w)
+		s.unsynced.delete(w)
 	}
-	slowWatchersGauge.Set(float64(len(s.unsynced)))
+
+	slowWatcherGauge.Set(float64(s.unsynced.size()))
 }
 
-// handle handles the change of the happening event on all watchers.
-func (s *watchableStore) handle(rev int64, ev storagepb.Event) {
-	s.notify(rev, ev)
+// kvsToEvents gets all events for the watchers from all key-value pairs
+func kvsToEvents(wg *watcherGroup, revs, vals [][]byte) (evs []storagepb.Event) {
+	for i, v := range vals {
+		var kv storagepb.KeyValue
+		if err := kv.Unmarshal(v); err != nil {
+			log.Panicf("storage: cannot unmarshal event: %v", err)
+		}
+
+		if !wg.contains(string(kv.Key)) {
+			continue
+		}
+
+		ty := storagepb.PUT
+		if isTombstone(revs[i]) {
+			ty = storagepb.DELETE
+			// patch in mod revision so watchers won't skip
+			kv.ModRevision = bytesToRev(revs[i]).main
+		}
+		evs = append(evs, storagepb.Event{Kv: &kv, Type: ty})
+	}
+	return evs
 }
 
 // notify notifies the fact that given event at the given rev just happened to
 // watchers that watch on the key of the event.
-func (s *watchableStore) notify(rev int64, ev storagepb.Event) {
-	// check all prefixes of the key to notify all corresponded watchers
-	for i := 0; i <= len(ev.Kv.Key); i++ {
-		ws := s.synced[string(ev.Kv.Key[:i])]
-		nws := ws[:0]
-		for _, w := range ws {
-			// the watcher needs to be notified when either it watches prefix or
-			// the key is exactly matched.
-			if !w.prefix && i != len(ev.Kv.Key) {
-				continue
-			}
-			select {
-			case w.ch <- ev:
-				pendingEventsGauge.Inc()
-				nws = append(nws, w)
-			default:
-				w.cur = rev
-				s.unsynced[w] = struct{}{}
-				slowWatchersGauge.Inc()
-			}
+func (s *watchableStore) notify(rev int64, evs []storagepb.Event) {
+	for w, eb := range newWatcherBatch(&s.synced, evs) {
+		if eb.revs != 1 {
+			panic("unexpected multiple revisions in notification")
 		}
-		s.synced[string(ev.Kv.Key[:i])] = nws
+		select {
+		case w.ch <- WatchResponse{WatchID: w.id, Events: eb.evs, Revision: s.Rev()}:
+			pendingEventsGauge.Add(float64(len(eb.evs)))
+		default:
+			// move slow watcher to unsynced
+			w.cur = rev
+			s.unsynced.add(w)
+			s.synced.delete(w)
+			slowWatcherGauge.Inc()
+		}
 	}
 }
 
-type ongoingTx struct {
-	// keys put/deleted in the ongoing txn
-	putm map[string]bool
-	delm map[string]bool
-}
+func (s *watchableStore) rev() int64 { return s.store.Rev() }
 
-func newOngoingTx() *ongoingTx {
-	return &ongoingTx{
-		putm: make(map[string]bool),
-		delm: make(map[string]bool),
-	}
-}
+type watcher struct {
+	// the watcher key
+	key []byte
+	// end indicates the end of the range to watch.
+	// If end is set, the watcher is on a range.
+	end []byte
+	// cur is the current watcher revision.
+	// If cur is behind the current revision of the KV,
+	// watcher is unsynced and needs to catch up.
+	cur int64
+	id  WatchID
 
-func (tx *ongoingTx) put(k string) {
-	tx.putm[k] = true
-	tx.delm[k] = false
-}
-
-func (tx *ongoingTx) del(k string) {
-	tx.delm[k] = true
-	tx.putm[k] = false
+	// a chan to send out the watch response.
+	// The chan might be shared with other watchers.
+	ch chan<- WatchResponse
 }

@@ -5,93 +5,223 @@ welcome.styl
 */
 }
 
+$welcomeTitleColor          = #727272
+$titleGreen                 = #01B05A
+$linkColor                  = #769ECC
+
 body.welcome
-  bg                        color #f6f6f6
+  bg                        color #f0f0f0
 
   #main-panel-wrapper
     bg                      color, transparent !important
 
 .content-page.welcome
-  margin-top                -1px
-  padding-top               1px
-  max-width                 1000px
+  padding                   100px 0
   height                    auto
   min-height                100%
-  bg                        color #f0f0f0
 
 
   > section
-    width                   451px
+    width                   90%
+    max-width               958px
     text-align              center
-    margin                  50px auto 0
+    margin                  0 auto
     padding-bottom          15px
 
     .artboard
-      r-sprite              'welcome' 'congrats'
-      margin                23px auto 0
+      border                1px dashed rgba(98, 98, 98, .31)
+      height                180px
+      hidden()
+      margin                40px auto
+      rel()
+      &:after
+        content             'ILLUSTRATION'
+        font-size           14px
+        color               $welcomeTitleColor
+        top                 80px
+        rel()
 
     h2
-      font-size             24px
+      font-size             28px
       font-weight           bold
-      line-height           36px
-      color                 #00B057
-      margin                21px 0
+      color                 $welcomeTitleColor
+      margin                0 0 15px 0
+
+    b
+    strong
+      font-weight           bold
 
     p
-      margin                0 auto 45px
-      font-size             18px
-      line-height           26px
-      color                 #aaa
-      width                 330px
+      margin                0 auto 40px
 
-    ul
+    p
+    li
+      font-size             14px
+      line-height           20px
+      font-weight           300
+      color                 $welcomeTitleColor
+
+    ul.boxes
       text-align            left
       margin                0 auto
+      display               flex
+      flex-direction        row
+      justify-content       center
+      flex-wrap             wrap
 
-      li
-        height              80px
+      > li
         bg                  color white
-        rounded             3px
-        margin              0 0 10px 0
+        borderBox()
+        flex                0 1 auto
+        margin              0 30px 30px 0
+        padding             40px 40px 30px
         rel()
-        &:after
-          content           ''
-          r-sprite          'welcome' 'app-arrow'
-          abs               33px 20px 0 0
+        rounded             6px
+        shadow              0 2px 10px rgba(0, 0, 0, .09)
+        size                298px 392px
+        min-width           298px
+        vendor              transition, opacity .177s ease
+        &:last-child
+          margin-right      0
+
+        &.dim
+          opacity           .4
+          pointer-events    none
+        p
+          margin            0 0 20px
+          a
+            text-decoration underline
+          strong
+            display         block
+            margin-bottom   20px
+
+        p.slack
+          text-align        center
+
+        a.slack-logo
+          r-sprite          welcome slack
+          display           block
+          margin            10px auto 0
+
+        ul
+          li
+            list-style      disc inside
+
+        ul + p
+          margin-top        20px
+
+        p + p
+          margin-top        20px
+
       & + ul
         margin-top          45px
 
+    h3
+      color                 $titleGreen
+      font-size             28px
+      font-weight           300
+      margin-bottom         40px
+      text-align            center
+      figure
+        display             inline-block
+        r-sprite            welcome complete-tick
+        margin              -2px 13px 0 0
+        vertical-align      top
+
+
+    .button-bar
+      text-align            center
+      height                40px
+      line-height           40px
+      abs                   0 40px 30px
+      kalc                  width, (100% \- 80px)
+
+      a
+        fl()
+
+      a.button
+        fr()
+        &.mid
+          float             none
+          display           inline-block
+
+    ul.boxes li:last-child .button-bar
+      a:first-child
+        display             none
+      a:last-child
+        float               none
+        display             inline-block
+
+
+    a.button
+      padding               0 20px
+      font-size             14px
+      width                 auto
+      bg                    color $titleGreen
+      color                 $white
+      font-weight           400
+      rounded               4px
+
     a
-      display               block
-      size                  100% 100%
-      borderBox()
+      color                 $linkColor
+      font-weight           400
+      font-size             14px
+      vendor                transition, opacity .177s ease
       noTextDeco()
+      &.dim
+        opacity             .4
 
-      cite
-        size                60px 80px
-        line-height         80px
-        font-size           18px
-        font-weight         bold
-        color               $color-link
-        text-align          center
-        display             block
-        float               left
+    cite.code
+      bg                    color #F7F7F7
+      border                1px solid #EAEAEA
+      borderBox()
+      color                 #8958BA
+      // font-family           $source-sans-family
+      font-size             12px
+      font-weight           400
+      line-height           18px
+      padding               0 6px
+      rounded               2px
 
+    .copy-tooltip
+      abs                   0 0 -116px -46px
+      color                 #8F8F8F
+      font-style            italic
+      font-weight           300
+      size                  390px 90px
+      text-align            center
+      z-index               1
 
       > div
-        line-height         30px
-        overflow            hidden
-        width               auto
-        padding             10px 0
+      > div cite
+        bg                  color, white
+        border              1px solid #DADADA
+        rel()
+
+      > div
         borderBox()
+        margin-top          20px
+        padding             9px 40px 8px
+        rounded             4px
 
-        span
-          display           block
+      > div span
+        bg                  color, rgba(223, 240, 149, .1)
+        color               $welcomeTitleColor
+        display             inline-block
+        font-family         $source-sans-family
+        font-size           14px
+        font-weight         400
+        line-height         21px
+        padding             6px 10px
+        word-break          break-all
 
-        span:first-child
-          color             #595959
-          font-size         18px
 
-        span:last-child
-          font-size         14px
-          color             #aaa
+      > div cite
+        abs                 -8px 0 0 50%
+        margin-left         -7px
+        border-right-width  0
+        border-bottom-width 0
+        display             block
+        font-style          normal
+        size                13px 13px
+        vendor              transform, rotate(45deg)

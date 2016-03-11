@@ -15,35 +15,41 @@
 package storage
 
 import (
+	"github.com/coreos/etcd/lease"
 	"github.com/coreos/etcd/storage/backend"
 	"github.com/coreos/etcd/storage/storagepb"
 )
-
-// CancelFunc tells an operation to abandon its work. A CancelFunc does not
-// wait for the work to stop.
-type CancelFunc func()
-
-type Snapshot backend.Snapshot
 
 type KV interface {
 	// Rev returns the current revision of the KV.
 	Rev() int64
 
+	// FirstRev returns the first revision of the KV.
+	// After a compaction, the first revision increases to the compaction
+	// revision.
+	FirstRev() int64
+
 	// Range gets the keys in the range at rangeRev.
+	// The returned rev is the current revision of the KV when the operation is executed.
 	// If rangeRev <=0, range gets the keys at currentRev.
 	// If `end` is nil, the request returns the key.
-	// If `end` is not nil, it gets the keys in range [key, range_end).
+	// If `end` is not nil and not empty, it gets the keys in range [key, range_end).
+	// If `end` is not nil and empty, it gets the keys greater than or equal to key.
 	// Limit limits the number of keys returned.
 	// If the required rev is compacted, ErrCompacted will be returned.
 	Range(key, end []byte, limit, rangeRev int64) (kvs []storagepb.KeyValue, rev int64, err error)
 
-	// Put puts the given key,value into the store.
+	// Put puts the given key, value into the store. Put also takes additional argument lease to
+	// attach a lease to a key-value pair as meta-data. KV implementation does not validate the lease
+	// id.
 	// A put also increases the rev of the store, and generates one event in the event history.
-	Put(key, value []byte) (rev int64)
+	// The returned rev is the current revision of the KV when the operation is executed.
+	Put(key, value []byte, lease lease.LeaseID) (rev int64)
 
 	// DeleteRange deletes the given range from the store.
 	// A deleteRange increases the rev of the store if any key in the range exists.
 	// The number of key deleted will be returned.
+	// The returned rev is the current revision of the KV when the operation is executed.
 	// It also generates one event for each key delete in the event history.
 	// if the `end` is nil, deleteRange deletes the key.
 	// if the `end` is not nil, deleteRange deletes the keys in range [key, range_end).
@@ -56,50 +62,43 @@ type KV interface {
 	TxnBegin() int64
 	// TxnEnd ends the on-going txn with txn ID. If the on-going txn ID is not matched, error is returned.
 	TxnEnd(txnID int64) error
+	// TxnRange returns the current revision of the KV when the operation is executed.
 	TxnRange(txnID int64, key, end []byte, limit, rangeRev int64) (kvs []storagepb.KeyValue, rev int64, err error)
-	TxnPut(txnID int64, key, value []byte) (rev int64, err error)
+	TxnPut(txnID int64, key, value []byte, lease lease.LeaseID) (rev int64, err error)
 	TxnDeleteRange(txnID int64, key, end []byte) (n, rev int64, err error)
 
 	Compact(rev int64) error
 
-	// Get the hash of KV state.
+	// Hash retrieves the hash of KV state.
 	// This method is designed for consistency checking purpose.
 	Hash() (uint32, error)
 
-	// Snapshot snapshots the full KV store.
-	Snapshot() Snapshot
+	// Commit commits txns into the underlying backend.
+	Commit()
 
-	Restore() error
+	// Restore restores the KV store from a backend.
+	Restore(b backend.Backend) error
 	Close() error
-}
-
-// Watcher watches on the KV. It will be notified if there is an event
-// happened on the watched key or prefix.
-type Watcher interface {
-	// Event returns a channel that receives observed event that matches the
-	// context of watcher. When watch finishes or is canceled or aborted, the
-	// channel is closed and returns empty event.
-	// Successive calls to Event return the same value.
-	Event() <-chan storagepb.Event
-
-	// Err returns a non-nil error value after Event is closed. Err returns
-	// Compacted if the history was compacted, Canceled if watch is canceled,
-	// or EOF if watch reaches the end revision. No other values for Err are defined.
-	// After Event is closed, successive calls to Err return the same value.
-	Err() error
 }
 
 // WatchableKV is a KV that can be watched.
 type WatchableKV interface {
 	KV
+	Watchable
+}
 
-	// Watcher watches the events happening or happened on the given key
-	// or key prefix from the given startRev.
-	// The whole event history can be watched unless compacted.
-	// If `prefix` is true, watch observes all events whose key prefix could be the given `key`.
-	// If `startRev` <=0, watch observes events after currentRev.
-	//
-	// Canceling the watcher releases resources associated with it, so code
-	// should always call cancel as soon as watch is done.
-	Watcher(key []byte, prefix bool, startRev int64) (Watcher, CancelFunc)
+// Watchable is the interface that wraps the NewWatchStream function.
+type Watchable interface {
+	// NewWatchStream returns a WatchStream that can be used to
+	// watch events happened or happening on the KV.
+	NewWatchStream() WatchStream
+}
+
+// ConsistentWatchableKV is a WatchableKV that understands the consistency
+// algorithm and consistent index.
+// If the consistent index of executing entry is not larger than the
+// consistent index of ConsistentWatchableKV, all operations in
+// this entry are skipped and return empty response.
+type ConsistentWatchableKV interface {
+	WatchableKV
 }

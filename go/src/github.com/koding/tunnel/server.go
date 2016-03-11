@@ -23,6 +23,7 @@ import (
 
 var (
 	errNoClientSession = errors.New("no client session established")
+	defaultTimeout     = 10 * time.Second
 )
 
 // Server is responsible for proxying public connections to the client over a
@@ -43,9 +44,18 @@ type Server struct {
 	// virtualHosts is used to map public hosts to remote clients
 	virtualHosts vhostStorage
 
+	// virtualAddrs
+	virtualAddrs *vaddrStorage
+
+	// connCh is used to publish accepted connections for tcp tunnels.
+	connCh chan net.Conn
+
+	// onConnect contains client callbacks called when control
+	// session is established for a client with given identifier
+	onConnect *callbacks
+
 	// onDisconnect contains the onDisconnect for each map
-	onDisconnect   map[string]func() error
-	onDisconnectMu sync.Mutex // protects onDisconnects
+	onDisconnect *callbacks
 
 	// yamuxConfig is passed to new yamux.Session's
 	yamuxConfig *yamux.Config
@@ -82,15 +92,29 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 		log = cfg.Log
 	}
 
-	return &Server{
+	connCh := make(chan net.Conn)
+
+	opts := &vaddrOptions{
+		connCh: connCh,
+		log:    log,
+	}
+
+	s := &Server{
 		pending:      make(map[string]chan net.Conn),
 		sessions:     make(map[string]*yamux.Session),
-		onDisconnect: make(map[string]func() error),
+		onConnect:    newCallbacks("OnConnect"),
+		onDisconnect: newCallbacks("OnDisconnect"),
 		virtualHosts: newVirtualHosts(),
+		virtualAddrs: newVirtualAddrs(opts),
 		controls:     newControls(),
 		yamuxConfig:  yamuxConfig,
+		connCh:       connCh,
 		log:          log,
-	}, nil
+	}
+
+	go s.serveTCP()
+
+	return s, nil
 }
 
 // ServeHTTP is a tunnel that creates an http/websocket tunnel between a
@@ -106,7 +130,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.handleHTTP(w, r); err != nil {
 		http.Error(w, err.Error(), 502)
-		return
 	}
 }
 
@@ -126,70 +149,30 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("no virtual host available for %s", host)
 	}
 
-	// then grab the control connection that is associated with this identifier
-	control, ok := s.getControl(identifier)
-	if !ok {
-		return errNoClientSession
-	}
-
-	session, err := s.getSession(identifier)
-	if err != nil {
-		return err
-	}
-
 	// if someoone hits foo.example.com:8080, this should be proxied to
 	// localhost:8080, so send the port to the client so it knows how to proxy
 	// correctly. If no port is available, it's up to client how to intepret it
-	_, netPort, _ := net.SplitHostPort(r.Host)
-	port, err := strconv.Atoi(netPort)
+	_, port, err := parseHostPort(r.Host)
 	if err != nil {
 		// no need to return, just continue lazily, port will be 0, which in
 		// our case will be proxied to client's localservers port 80
 		s.log.Debug("No port available for '%s', sending port 80 to client", r.Host)
 	}
 
-	msg := controlMsg{
-		Action:    requestClientSession,
-		Protocol:  httpTransport,
-		LocalPort: port,
+	if isWebsocketConn(r) {
+		s.log.Debug("handling websocket connection")
+
+		return s.handleWSConn(w, r, identifier, port)
 	}
 
-	s.log.Debug("Sending control msg %+v", msg)
-
-	// ask client to open a session to us, so we can accept it
-	if err := control.send(msg); err != nil {
-		// we might have several issues here, either the stream is closed, or
-		// the session is going be shut down, the underlying connection might
-		// be broken. In all cases, it's not reliable anymore having a client
-		// session.
-		control.Close()
-		s.deleteControl(identifier)
-		return errNoClientSession
-	}
-
-	var stream net.Conn
-	defer func() {
-		if stream != nil {
-			s.log.Debug("Closing stream")
-			stream.Close()
-		}
-	}()
-
-	acceptStream := func() error {
-		stream, err = session.Accept()
+	stream, err := s.dial(identifier, httpTransport, port)
+	if err != nil {
 		return err
 	}
-
-	// if we don't receive anything from the client, we'll timeout
-	s.log.Debug("Waiting for session accept")
-	select {
-	case err := <-async(acceptStream):
-		if err != nil {
-			return err
-		}
-	case <-time.After(time.Second * 10):
-		return errors.New("timeout getting session")
-	}
+	defer func() {
+		s.log.Debug("Closing stream")
+		stream.Close()
+	}()
 
 	if err := r.Write(stream); err != nil {
 		return err
@@ -209,8 +192,7 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 		}
 	}()
 
-	s.log.Debug("Response received, writing back to public connection")
-	s.log.Debug("%+v", resp)
+	s.log.Debug("Response received, writing back to public connection: %+v", resp)
 
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
@@ -223,8 +205,146 @@ func (s *Server) handleHTTP(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	s.log.Debug("Response copy is finished")
 	return nil
+}
+
+func (s *Server) serveTCP() {
+	for conn := range s.connCh {
+		go s.serveTCPConn(conn)
+	}
+}
+
+func (s *Server) serveTCPConn(conn net.Conn) {
+	err := s.handleTCPConn(conn)
+	if err != nil {
+		s.log.Warning("failed to serve %q: %s", conn.RemoteAddr(), err)
+		conn.Close()
+	}
+}
+
+func (s *Server) handleWSConn(w http.ResponseWriter, r *http.Request, ident string, port int) error {
+	hj, ok := w.(http.Hijacker)
+	if !ok {
+		return errors.New("webserver doesn't support hijacking")
+	}
+
+	conn, _, err := hj.Hijack()
+	if err != nil {
+		return fmt.Errorf("hijack not possible: %s", err)
+	}
+
+	stream, err := s.dial(ident, wsTransport, port)
+	if err != nil {
+		return err
+	}
+
+	if err := r.Write(stream); err != nil {
+		err = errors.New("unable to write upgrade request: " + err.Error())
+		return nonil(err, stream.Close())
+	}
+
+	resp, err := http.ReadResponse(bufio.NewReader(stream), r)
+	if err != nil {
+		err = errors.New("unable to read upgrade response: " + err.Error())
+		return nonil(err, stream.Close())
+	}
+
+	if err := resp.Write(conn); err != nil {
+		err = errors.New("unable to write upgrade response: " + err.Error())
+		return nonil(err, stream.Close())
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go s.proxy(&wg, conn, stream)
+	go s.proxy(&wg, stream, conn)
+
+	wg.Wait()
+
+	return nonil(stream.Close(), conn.Close())
+}
+
+func (s *Server) handleTCPConn(conn net.Conn) error {
+	ident, ok := s.virtualAddrs.getIdent(conn)
+	if !ok {
+		return fmt.Errorf("no virtual address available for %s", conn.LocalAddr())
+	}
+
+	_, port, err := parseHostPort(conn.LocalAddr().String())
+	if err != nil {
+		return err
+	}
+
+	stream, err := s.dial(ident, tcpTransport, port)
+	if err != nil {
+		return err
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go s.proxy(&wg, conn, stream)
+	go s.proxy(&wg, stream, conn)
+
+	wg.Wait()
+
+	return nonil(stream.Close(), conn.Close())
+}
+
+func (s *Server) proxy(wg *sync.WaitGroup, dst, src net.Conn) {
+	defer wg.Done()
+
+	s.log.Debug("tunneling %s -> %s", src.RemoteAddr(), dst.RemoteAddr())
+	n, err := io.Copy(dst, src)
+	s.log.Debug("tunneled %d bytes %s -> %s: %v", n, src.RemoteAddr(), dst.RemoteAddr(), err)
+}
+
+func (s *Server) dial(ident string, proto transportProtocol, port int) (net.Conn, error) {
+	control, ok := s.getControl(ident)
+	if !ok {
+		return nil, errNoClientSession
+	}
+
+	session, err := s.getSession(ident)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := controlMsg{
+		Action:    requestClientSession,
+		Protocol:  proto,
+		LocalPort: port,
+	}
+
+	s.log.Debug("Sending control msg %+v", msg)
+
+	// ask client to open a session to us, so we can accept it
+	if err := control.send(msg); err != nil {
+		// we might have several issues here, either the stream is closed, or
+		// the session is going be shut down, the underlying connection might
+		// be broken. In all cases, it's not reliable anymore having a client
+		// session.
+		control.Close()
+		s.deleteControl(ident)
+		return nil, errNoClientSession
+	}
+
+	var stream net.Conn
+	acceptStream := func() error {
+		stream, err = session.Accept()
+		return err
+	}
+
+	// if we don't receive anything from the client, we'll timeout
+	s.log.Debug("Waiting for session accept")
+
+	select {
+	case err := <-async(acceptStream):
+		return stream, err
+	case <-time.After(defaultTimeout):
+		return nil, errors.New("timeout getting session")
+	}
 }
 
 // controlHandler is used to capture incoming tunnel connect requests into raw
@@ -253,10 +373,12 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 
 	conn, _, err := hj.Hijack()
 	if err != nil {
-		return fmt.Errorf("hijack not possible %s", err)
+		return fmt.Errorf("hijack not possible: %s", err)
 	}
 
-	io.WriteString(conn, "HTTP/1.1 "+connected+"\n\n")
+	if _, err := io.WriteString(conn, "HTTP/1.1 "+connected+"\n\n"); err != nil {
+		return fmt.Errorf("error writing response: %s", err)
+	}
 
 	conn.SetDeadline(time.Time{})
 
@@ -319,6 +441,10 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 
 // listenControl listens to messages coming from the client.
 func (s *Server) listenControl(ct *control) {
+	if err := s.onConnect.call(ct.identifier); err != nil {
+		s.log.Error("OnConnect: error calling callback for %q: %s", ct.identifier, err)
+	}
+
 	for {
 		var msg map[string]interface{}
 		err := ct.dec.Decode(&msg)
@@ -332,8 +458,8 @@ func (s *Server) listenControl(ct *control) {
 			// don't forget to cleanup anything
 			s.deleteControl(ct.identifier)
 			s.deleteSession(ct.identifier)
-			if err := s.callOnDisconect(ct.identifier); err != nil {
-				s.log.Error("onDisconnect (%s) err: %s", ct.identifier, err)
+			if err := s.onDisconnect.call(ct.identifier); err != nil {
+				s.log.Error("OnDisconnect: error calling callback for %q: %s", ct.identifier, err)
 			}
 
 			if err != io.EOF {
@@ -349,33 +475,18 @@ func (s *Server) listenControl(ct *control) {
 	}
 }
 
+// OnConnect invokes a callback for client with given identifier,
+// when it establishes a control sessin.
+func (s *Server) OnConnect(identifier string, fn func() error) {
+	s.onConnect.add(identifier, fn)
+}
+
 // OnDisconnect calls the function when the client connected with the
 // associated identifier disconnects from the server. After a client is
 // disconnected, the associated function is alro removed and needs to be
 // readded again.
 func (s *Server) OnDisconnect(identifier string, fn func() error) {
-	s.onDisconnectMu.Lock()
-	s.onDisconnect[identifier] = fn
-	s.onDisconnectMu.Unlock()
-}
-
-func (s *Server) callOnDisconect(identifier string) error {
-	s.onDisconnectMu.Lock()
-	defer s.onDisconnectMu.Unlock()
-
-	fn, ok := s.onDisconnect[identifier]
-	if !ok {
-		return nil
-	}
-
-	// delete after we are finished with it
-	delete(s.onDisconnect, identifier)
-
-	if fn == nil {
-		return errors.New("onDisconnect function for '%s' is set to nil")
-	}
-
-	return fn()
+	s.onDisconnect.add(identifier, fn)
 }
 
 // AddHost adds the given virtual host and maps it to the identifier.
@@ -387,6 +498,29 @@ func (s *Server) AddHost(host, identifier string) {
 // host is denied.
 func (s *Server) DeleteHost(host string) {
 	s.virtualHosts.DeleteHost(host)
+}
+
+// AddAddr starts accepting connections on listener l, routing every connection
+// to a tunnel client given by the identifier.
+//
+// When ip parameter is nil, all connections accepted from the listener are
+// routed to the tunnel client specified by the identifier (port-based routing).
+//
+// When ip parameter is non-nil, only those connections are routed whose local
+// address matches the specified ip (ip-based routing).
+//
+// If l listens on multiple interfaces it's desirable to call AddAddr multiple
+// times with the same l value but different ip one.
+func (s *Server) AddAddr(l net.Listener, ip net.IP, identifier string) {
+	s.virtualAddrs.Add(l, ip, identifier)
+}
+
+// DeleteAddr stops listening for connections on the given listener.
+//
+// Upon return no more connections will be tunneled, but as the method does not
+// close the listener, so any ongoing connection won't get interrupted.
+func (s *Server) DeleteAddr(l net.Listener, ip net.IP) {
+	s.virtualAddrs.Delete(l, ip)
 }
 
 func (s *Server) getIdentifier(host string) (string, bool) {
@@ -448,10 +582,10 @@ func (s *Server) deleteSession(identifier string) {
 }
 
 func copyHeader(dst, src http.Header) {
-	for k, vv := range src {
-		for _, v := range vv {
-			dst.Add(k, v)
-		}
+	for k, v := range src {
+		vv := make([]string, len(v))
+		copy(vv, v)
+		dst[k] = vv
 	}
 }
 
@@ -471,6 +605,48 @@ func (s *Server) checkConnect(fn func(w http.ResponseWriter, r *http.Request) er
 			http.Error(w, err.Error(), 502)
 		}
 	})
+}
+
+func parseHostPort(addr string) (string, int, error) {
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return "", 0, err
+	}
+
+	n, err := strconv.ParseUint(port, 10, 16)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return host, int(n), nil
+}
+
+func isWebsocketConn(r *http.Request) bool {
+	return r.Method == "GET" && headerContains(r.Header["Connection"], "upgrade") &&
+		headerContains(r.Header["Upgrade"], "websocket")
+}
+
+// headerContains is a copy of tokenListContainsValue from gorilla/websocket/util.go
+func headerContains(header []string, value string) bool {
+	for _, h := range header {
+		for _, v := range strings.Split(h, ",") {
+			if strings.EqualFold(strings.TrimSpace(v), value) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+
+	return nil
 }
 
 func newLogger(name string, debug bool) logging.Logger {

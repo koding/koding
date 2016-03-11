@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"koding/kites/kloud/api/vagrantapi"
-	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stackplan"
@@ -87,16 +86,10 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		return nil, err
 	}
 
-	// BUG(rjeczalik): sockjs when tunnelled gives transport error
-	// on closed connection - that's why we use long polling here.
-	// When tunnelclient is fixed get rid of it.
-	k := kite.New("vagrantapi", "0.0.1")
-	k.Config = bs.Session.Kite.Config.Copy()
-	k.Config.Transport = config.XHRPolling
-
 	api := &vagrantapi.Klient{
-		Kite: k,
-		Log:  bs.Log.New("vagrantapi"),
+		Kite:  bs.Session.Kite,
+		Log:   bs.Log.New("vagrantapi"),
+		Debug: p.Debug || bs.TraceID != "",
 	}
 
 	return &Stack{
@@ -106,28 +99,14 @@ func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
 		p: &stackplan.Planner{
 			Provider:     "vagrant",
 			ResourceType: "instance",
-			SessionFunc:  sessionFromContext,
 		},
 	}, nil
 }
 
-func (s *Stack) tunnelUniqueURL(username string) string {
-	urlCopy := *s.TunnelURL
-	urlCopy.Host = utils.RandString(12) + "." + username + "." + urlCopy.Host
-	return urlCopy.String()
-}
-
-func sessionFromContext(ctx context.Context) (*session.Session, error) {
-	sess, ok := session.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("session context is not passed")
-	}
-
-	// TODO(rjeczalik): remove after TMS-2245 and use sess.Kite directly
-	cfg := sess.Kite.Config
+func newKite(k *kite.Kite) *kite.Kite {
+	cfg := k.Config.Copy()
 	cfg.Transport = config.XHRPolling
-	sess.Kite = kite.New(kloud.NAME, kloud.VERSION)
-	sess.Kite.Config = cfg
-
-	return sess, nil
+	kCopy := kite.New(kloud.NAME, kloud.VERSION)
+	kCopy.Config = cfg
+	return kCopy
 }

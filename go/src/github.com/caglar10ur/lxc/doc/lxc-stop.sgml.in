@@ -1,0 +1,245 @@
+<!--
+
+lxc: linux Container library
+
+(C) Copyright IBM Corp. 2007, 2008
+
+Authors:
+Daniel Lezcano <daniel.lezcano at free.fr>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+-->
+
+<!DOCTYPE refentry PUBLIC @docdtd@ [
+
+<!ENTITY commonoptions SYSTEM "@builddir@/common_options.sgml">
+<!ENTITY seealso SYSTEM "@builddir@/see_also.sgml">
+]>
+
+<refentry>
+
+  <docinfo><date>@LXC_GENERATE_DATE@</date></docinfo>
+
+  <refmeta>
+    <refentrytitle>lxc-stop</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lxc-stop</refname>
+
+    <refpurpose>
+      stop the application running inside a container
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>lxc-stop</command>
+      <arg choice="req">-n <replaceable>name</replaceable></arg>
+      <arg choice="opt">-W</arg>
+      <arg choice="opt">-r</arg>
+      <arg choice="opt">-t <replaceable>timeout</replaceable></arg>
+      <arg choice="opt">-k</arg>
+      <arg choice="opt">--nokill</arg>
+      <arg choice="opt">--nolock</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>
+      <command>lxc-stop</command> reboots, cleanly shuts down, or kills
+      all the processes inside the container.  By default, it will
+      request a clean shutdown of the container by sending
+      <command>lxc.haltsignal</command> (defaults to SIGPWR) to
+      the container's init process, waiting up to 60 seconds for the container
+      to exit, and then returning. If the container fails to cleanly exit in
+      60 seconds, it will be sent the <command>lxc.stopsignal</command>
+      (defaults to SIGKILL) to force it to shut down. A request to reboot will
+      send the <command>lxc.rebootsignal</command> (defaults to SIGINT) to the
+      container's init process.
+    </para>
+	<para>
+	The <optional>-W</optional>, <optional>-r</optional>,
+	<optional>-k</optional> and <optional>--nokill</optional>
+	options specify the action to perform.
+	<optional>-W</optional> indicates that after performing the specified
+	action, <command>lxc-stop</command> should immediately exit, while
+	<optional>-t TIMEOUT</optional> specifies the maximum amount of time
+	to wait for the container to complete the shutdown or reboot.
+	</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+    <variablelist>
+
+    <varlistentry>
+	<term>
+	  <option>-r,--reboot </option>
+	</term>
+	<listitem>
+	  <para>
+	    Request a reboot of the container.
+	  </para>
+	</listitem>
+	</varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>-k,--kill </option>
+	</term>
+	<listitem>
+	  <para>
+        Rather than requesting a clean shutdown of the container, explicitly
+        kill all tasks in the container.  This is the legacy
+        <command>lxc-stop</command> behavior.
+	  </para>
+	</listitem>
+	</varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>--nokill</option>
+	</term>
+	<listitem>
+	  <para>
+	    Only request a clean shutdown, do not kill the container tasks if the
+		clean shutdown fails.
+	  </para>
+	</listitem>
+	</varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>--nolock </option>
+	</term>
+	<listitem>
+	  <para>
+	This option avoids the use of any of the API lxc locking, and should
+	only be used if <command>lxc-stop</command> is hanging due to a bad
+	system state.
+	  </para>
+	</listitem>
+	</varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>-W,--nowait </option>
+	</term>
+	<listitem>
+	  <para>
+	    Simply perform the requestion action (reboot, shutdown, or hard
+		kill) and exit.
+	  </para>
+	</listitem>
+	</varlistentry>
+
+    <varlistentry>
+	<term>
+	  <option>-t,--timeout <replaceable>TIMEOUT</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+	    Wait TIMEOUT seconds before hard-stopping the container.
+	  </para>
+	</listitem>
+	</varlistentry>
+
+  </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>Exit value</title>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>0</term>
+        <listitem>
+          <para>
+	    The container was successfully stopped.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>1</term>
+        <listitem>
+          <para>
+	    An error occurred while stopping the container.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>2</term>
+        <listitem>
+          <para>
+	    The specified container exists but was not running.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+  <refsect1>
+    <title>Diagnostic</title>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>The container was not found</term>
+        <listitem>
+          <para>
+	    The specified container was not created before with
+	    the <command>lxc-create</command> command.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  &seealso;
+
+  <refsect1>
+    <title>Author</title>
+    <para>Daniel Lezcano <email>daniel.lezcano@free.fr</email></para>
+  </refsect1>
+
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

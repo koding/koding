@@ -21,11 +21,12 @@ import (
 	"github.com/coreos/etcd/client"
 )
 
-// NewRemoveCommand returns the CLI command for "rmdir".
+// NewRemoveDirCommand returns the CLI command for "rmdir".
 func NewRemoveDirCommand() cli.Command {
 	return cli.Command{
-		Name:  "rmdir",
-		Usage: "removes the key if it is an empty directory or a key-value pair",
+		Name:      "rmdir",
+		Usage:     "removes the key if it is an empty directory or a key-value pair",
+		ArgsUsage: "<key>",
 		Action: func(c *cli.Context) {
 			rmdirCommandFunc(c, mustNewKeyAPI(c))
 		},

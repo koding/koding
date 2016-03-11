@@ -39,6 +39,12 @@ func (now *Now) BeginningOfMonth() time.Time {
 	return t.Add(d)
 }
 
+func (now *Now) BeginningOfQuarter() time.Time {
+	month := now.BeginningOfMonth()
+	offset := (int(month.Month()) - 1) % 3
+	return month.AddDate(0, -offset, 0)
+}
+
 func (now *Now) BeginningOfYear() time.Time {
 	t := now.BeginningOfDay()
 	d := time.Duration(-int(t.YearDay())+1) * 24 * time.Hour
@@ -63,6 +69,10 @@ func (now *Now) EndOfWeek() time.Time {
 
 func (now *Now) EndOfMonth() time.Time {
 	return now.BeginningOfMonth().AddDate(0, 1, 0).Add(-time.Nanosecond)
+}
+
+func (now *Now) EndOfQuarter() time.Time {
+	return now.BeginningOfQuarter().AddDate(0, 3, 0).Add(-time.Nanosecond)
 }
 
 func (now *Now) EndOfYear() time.Time {
@@ -125,6 +135,11 @@ func (now *Now) Parse(strs ...string) (t time.Time, err error) {
 			onlyTime = onlyTime && (parseTime[3] == 1) && (parseTime[4] == 1)
 
 			for i, v := range parseTime {
+				// Don't reset hour, minute, second if it is a time only string
+				if onlyTime && i <= 2 {
+					continue
+				}
+
 				// Fill up missed information with current time
 				if v == 0 {
 					if setCurrentTime {
@@ -135,8 +150,11 @@ func (now *Now) Parse(strs ...string) (t time.Time, err error) {
 				}
 
 				// Default day and month is 1, fill up it if missing it
-				if (i == 3 || i == 4) && onlyTime {
-					parseTime[i] = currentTime[i]
+				if onlyTime {
+					if i == 3 || i == 4 {
+						parseTime[i] = currentTime[i]
+						continue
+					}
 				}
 			}
 		}
@@ -155,4 +173,10 @@ func (now *Now) MustParse(strs ...string) (t time.Time) {
 		panic(err)
 	}
 	return t
+}
+
+func (now *Now) Between(time1, time2 string) bool {
+	restime := now.MustParse(time1)
+	restime2 := now.MustParse(time2)
+	return now.After(restime) && now.Before(restime2)
 }

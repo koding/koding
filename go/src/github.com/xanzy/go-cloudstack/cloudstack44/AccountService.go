@@ -333,14 +333,12 @@ func (s *AccountService) DeleteAccount(p *DeleteAccountParams) (*DeleteAccountRe
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -616,14 +614,12 @@ func (s *AccountService) DisableAccount(p *DisableAccountParams) (*DisableAccoun
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -1367,14 +1363,12 @@ func (s *AccountService) MarkDefaultZoneForAccount(p *MarkDefaultZoneForAccountP
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -1532,14 +1526,12 @@ func (s *AccountService) AddAccountToProject(p *AddAccountToProjectParams) (*Add
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -1613,14 +1605,12 @@ func (s *AccountService) DeleteAccountFromProject(p *DeleteAccountFromProjectPar
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -1736,6 +1726,16 @@ func (s *AccountService) GetProjectAccountID(keyword string, projectid string) (
 	l, err := s.ListProjectAccounts(p)
 	if err != nil {
 		return "", err
+	}
+
+	if l.Count == 0 {
+		// If no matches, search all projects
+		p.p["projectid"] = "-1"
+
+		l, err = s.ListProjectAccounts(p)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if l.Count == 0 {

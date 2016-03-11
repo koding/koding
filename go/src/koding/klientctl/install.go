@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"koding/klientctl/config"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/koding/logging"
+
 	"github.com/codegangsta/cli"
-	"koding/klientctl/logging"
 	"github.com/leeola/service"
 )
 
@@ -45,7 +47,7 @@ func (p *serviceProgram) Stop(s service.Service) error {
 }
 
 // InstallCommandFactory is the factory method for InstallCommand.
-func InstallCommandFactory(c *cli.Context) int {
+func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "install")
 		return 1
@@ -58,7 +60,7 @@ func InstallCommandFactory(c *cli.Context) int {
 		fmt.Println(`Error: Unable to open log files.`)
 	} else {
 		log.SetHandler(logging.NewWriterHandler(f))
-		log.Infof("Installation created log file at %q", LogFilePath)
+		log.Info("Installation created log file at %q", LogFilePath)
 	}
 
 	authToken := c.Args().Get(0)
@@ -82,7 +84,7 @@ func InstallCommandFactory(c *cli.Context) int {
 	// Create the installation dir, if needed.
 	err = os.MkdirAll(KlientDirectory, 0755)
 	if err != nil {
-		log.Errorf(
+		log.Error(
 			"Error creating klient binary directory(s). path:%s, err:%s",
 			KlientDirectory, err,
 		)
@@ -96,13 +98,13 @@ func InstallCommandFactory(c *cli.Context) int {
 	// environ checking.
 	klientSh := klientSh{
 		User:          sudoUserFromEnviron(os.Environ()),
-		KiteHome:      KiteHome,
+		KiteHome:      config.KiteHome,
 		KlientBinPath: klientBinPath,
 		KontrolURL:    kontrolURL,
 	}
 
 	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
-		log.Errorf("Error writing klient.sh file. err:%s", err)
+		log.Error("Error writing klient.sh file. err:%s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
@@ -110,7 +112,7 @@ func InstallCommandFactory(c *cli.Context) int {
 	fmt.Println("Downloading...")
 
 	if err = downloadRemoteToLocal(S3KlientPath, klientBinPath); err != nil {
-		log.Errorf("Error downloading klient binary. err:%s", err)
+		log.Error("Error downloading klient binary. err:%s", err)
 		fmt.Printf(FailedDownloadingKlient)
 		return 1
 	}
@@ -118,12 +120,12 @@ func InstallCommandFactory(c *cli.Context) int {
 	fmt.Printf("Created %s\n", klientBinPath)
 	fmt.Printf(`Authenticating you to the %s
 
-`, KlientName)
+`, config.KlientName)
 
 	cmd := exec.Command(klientBinPath, "-register",
 		"-token", authToken,
 		"--kontrol-url", kontrolURL,
-		"--kite-home", KiteHome,
+		"--kite-home", config.KiteHome,
 	)
 	// Note that we are *only* printing to Stdout. This is done because
 	// Klient logs error messages to Stderr, and we want to control the UX for
@@ -134,29 +136,29 @@ func InstallCommandFactory(c *cli.Context) int {
 	cmd.Stdin = os.Stdin
 
 	if err := cmd.Run(); err != nil {
-		log.Errorf("Error registering klient. err:%s", err)
+		log.Error("Error registering klient. err:%s", err)
 		fmt.Println(FailedRegisteringKlient)
 		return 1
 	}
 
-	fmt.Printf("Created %s\n", filepath.Join(KiteHome, "kite.key"))
+	fmt.Printf("Created %s\n", filepath.Join(config.KiteHome, "kite.key"))
 
 	// Klient is setting the wrong file permissions when installed by ctl,
 	// so since this is just ctl problem, we'll just fix the permission
 	// here for now.
-	if err = os.Chmod(KiteHome, 0755); err != nil {
-		log.Errorf(
+	if err = os.Chmod(config.KiteHome, 0755); err != nil {
+		log.Error(
 			"Error chmodding KiteHome directory. dir:%s, err:%s",
-			KiteHome, err,
+			config.KiteHome, err,
 		)
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
 
-	if err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644); err != nil {
-		log.Errorf(
+	if err = os.Chmod(filepath.Join(config.KiteHome, "kite.key"), 0644); err != nil {
+		log.Error(
 			"Error chmodding kite.key. path:%s, err:%s",
-			filepath.Join(KiteHome, "kite.key"), err,
+			filepath.Join(config.KiteHome, "kite.key"), err,
 		)
 		fmt.Println(FailedInstallingKlient)
 		return 1
@@ -165,14 +167,14 @@ func InstallCommandFactory(c *cli.Context) int {
 	// Create our interface to the OS specific service
 	s, err := newService()
 	if err != nil {
-		log.Errorf("Error creating Service. err:%s", err)
+		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
 	// Install the klient binary as a OS service
 	if err = s.Install(); err != nil {
-		log.Errorf("Error installing Service. err:%s", err)
+		log.Error("Error installing Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
@@ -187,17 +189,17 @@ func InstallCommandFactory(c *cli.Context) int {
 	s.Start()
 
 	fmt.Println("Verifying installation...")
-	err = WaitUntilStarted(KlientAddress, 5, 1*time.Second)
+	err = WaitUntilStarted(config.KlientAddress, 5, 1*time.Second)
 
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
 	if err != nil {
-		log.Errorf("Error verifying the installation of klient. %s", err)
+		log.Error("Error verifying the installation of klient. %s", err)
 		fmt.Println(FailedInstallingKlient)
 		return 1
 	}
 
-	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", KlientName)
+	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 
 	return 0
 }
@@ -251,6 +253,7 @@ func (k klientSh) Format() string {
 
 	return fmt.Sprintf(
 		`#!/bin/sh
+ulimit -n 5000
 %sKITE_HOME=%s %s --kontrol-url=%s
 `,
 		sudoCmd, k.KiteHome, k.KlientBinPath, k.KontrolURL,

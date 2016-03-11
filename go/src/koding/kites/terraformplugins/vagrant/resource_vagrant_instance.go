@@ -2,32 +2,10 @@ package vagrant
 
 import (
 	"errors"
-	"koding/kites/kloud/klient"
-	"log"
-	"time"
+	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/koding/kite"
-	"github.com/koding/kite/dnode"
 )
-
-// this signals the end of a watch command when we listen from Klient
-const magicEnd = "guCnvNVedAQT8DiNpcP3pVqzseJvLY"
-
-type vagrantCreateReq struct {
-	FilePath      string
-	ProvisionData string
-	Hostname      string
-	Box           string
-	Memory        int
-	Cpus          int
-	CustomScript  string
-}
-
-type vagrantCommandReq struct {
-	FilePath string
-	Watch    dnode.Function
-}
 
 func resourceVagrantBuild() *schema.Resource {
 	return &schema.Resource{
@@ -98,159 +76,76 @@ func resourceVagrantBuild() *schema.Resource {
 				Computed:    true,
 				Description: "URL of the Klient inside the host machine where the Vagrant box residues",
 			},
-			"klientGuestURL": &schema.Schema{
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "URL of the Klient inside the guest machine where the Vagrant box residues",
-			},
 		},
 	}
 }
 
 // resourceMachineCreate creates a new vagrant machine in remote klient host
 func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
-	// TODO(arslan): cache the client, it reads from kite.key every single time
-	// it tries to populate the config
 	c, err := NewClient()
 	if err != nil {
 		return err
 	}
 	defer c.Close()
 
-	queryString := d.Get("queryString").(string)
-
-	c.Log.Debug("Connecting to %q", queryString)
-
-	klientRef, err := klient.ConnectTimeout(c.Kite, queryString, time.Second*10)
-	if err != nil {
-		if err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable {
-			c.Log.Error(
-				"[%s] Klient is not registered to Kontrol. Err: %s",
-				queryString,
-				err.Error(),
-			)
-
-			return nil // if the machine is not open, we cant do anything
-		}
-
-		return err
-	}
-	defer klientRef.Close()
-
-	args := &vagrantCreateReq{
-		FilePath:      d.Get("filePath").(string),
-		ProvisionData: d.Get("provisionData").(string),
-		Box:           d.Get("box").(string),
-		Hostname:      d.Get("hostname").(string),
-		Memory:        d.Get("memory").(int),
-		Cpus:          d.Get("cpus").(int),
-		CustomScript:  d.Get("user_data").(string),
+	queryString, ok := d.Get("queryString").(string)
+	if !ok {
+		return errors.New("invalid request: queryString filed is missing")
 	}
 
-	c.Log.Debug(`Calling "vagrant.create" on %q with %+v`, queryString, args)
-
-	resp, err := klientRef.Client.TellWithTimeout("vagrant.create", 1*time.Minute, args)
+	createReq, err := newCreateReq(d)
 	if err != nil {
 		return err
 	}
+
+	c.Log.Debug(`Calling "vagrant.create" on %q with %+v`, queryString, createReq)
 
 	// the "vagrant.create" method returns the same paramaters back. However if
 	// we previously passed empty options, such as hostname, it returns the
-	// final result
-	var result vagrantCreateReq
-	if err := resp.Unmarshal(&result); err != nil {
+	// final response.
+	resp, err := c.Vagrant.Create(queryString, createReq)
+	if err != nil {
 		return err
 	}
 
-	done := make(chan bool)
-
-	watch := dnode.Callback(func(r *dnode.Partial) {
-		msg := r.One().MustString()
-		log.Println("[DEBUG] Vagrant up msg:", msg)
-		if msg == magicEnd {
-			close(done)
-		}
-	})
-
-	upArgs := &vagrantCommandReq{
-		FilePath: d.Get("filePath").(string),
-		Watch:    watch,
-	}
-
-	if _, err = klientRef.Client.TellWithTimeout("vagrant.up", 1*time.Minute, upArgs); err != nil {
-		return err
-	}
-
-	select {
-	case <-done:
-	case <-time.After(time.Minute * 10):
-		return errors.New("Vagrant build took to much time(10 minutes). Please try again")
+	err = c.Vagrant.Up(queryString, resp.FilePath)
+	if err != nil {
+		// ensure the machine is deleted on failure
+		c.Vagrant.Destroy(queryString, resp.FilePath)
+		return fmt.Errorf("vagrant provisioning has failed: " + err.Error())
 	}
 
 	d.SetId(queryString)
-	d.Set("filePath", result.FilePath)
-	d.Set("klientHostURL", klientRef.URL())
-	d.Set("klientGuestURL", d.Get("registerURL").(string))
-	d.Set("hostname", result.Hostname)
-	d.Set("box", result.Box)
-	d.Set("cpus", result.Cpus)
-	d.Set("memory", result.Memory)
+	d.Set("filePath", resp.FilePath)
+	d.Set("klientHostURL", resp.HostURL)
+	d.Set("hostname", resp.Hostname)
+	d.Set("box", resp.Box)
+	d.Set("cpus", resp.Cpus)
+	d.Set("memory", resp.Memory)
+
 	return nil
 }
 
 func resourceMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	// TODO(arslan): cache the client, it reads from kite.key every single time
-	// it tries to populate the config
 	c, err := NewClient()
 	if err != nil {
 		return err
 	}
 	defer c.Close()
 
-	queryString := d.Get("queryString").(string)
-
-	klientRef, err := klient.ConnectTimeout(c.Kite, queryString, time.Second*10)
-	if err != nil {
-		if err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable {
-			c.Log.Error(
-				"[%s] Klient is not registered to Kontrol. Err: %s",
-				queryString,
-				err.Error(),
-			)
-
-			return nil // if the machine is not open, we cant do anything
-		}
-
-		return err
-	}
-	defer klientRef.Close()
-
-	done := make(chan bool)
-
-	watch := dnode.Callback(func(r *dnode.Partial) {
-		msg := r.One().MustString()
-		log.Println("[DEBUG] Vagrant destroy msg:", msg)
-		if msg == magicEnd {
-			close(done)
-		}
-	})
-
-	destroyArgs := &vagrantCommandReq{
-		FilePath: d.Get("filePath").(string),
-		Watch:    watch,
+	queryString, ok := d.Get("queryString").(string)
+	if !ok {
+		return errors.New("invalid request: queryString field is missing")
 	}
 
-	if _, err = klientRef.Client.TellWithTimeout("vagrant.destroy", 1*time.Minute, destroyArgs); err != nil {
-		return err
+	filePath, ok := d.Get("filePath").(string)
+	if !ok {
+		return errors.New("invalid request: filePath field is missing")
 	}
 
-	select {
-	case <-done:
-	case <-time.After(time.Minute * 10):
-		return errors.New("Vagrant destroy took to much time(10 minutes). Please try again")
-	}
+	c.Log.Debug(`Calling "vagrant.destroy" on %q with %q`, queryString, filePath)
 
-	return nil
+	return c.Vagrant.Destroy(queryString, filePath)
 }
 
 func resourceMachineNoop(d *schema.ResourceData, meta interface{}) error { return nil }

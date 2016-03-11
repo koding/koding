@@ -1,4 +1,3 @@
-kd = require 'kd'
 Promise = require 'bluebird'
 Machine = require 'app/providers/machine'
 

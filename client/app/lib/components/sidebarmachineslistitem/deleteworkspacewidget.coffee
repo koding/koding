@@ -1,6 +1,5 @@
 kd              = require 'kd'
 React           = require 'kd-react'
-Popover         = require 'app/components/common/popover'
 actions         = require 'app/flux/environment/actions'
 SidebarWidget   = require '../sidebarmachineslistitem/sidebarwidget'
 KDReactorMixin  = require 'app/flux/base/reactormixin'

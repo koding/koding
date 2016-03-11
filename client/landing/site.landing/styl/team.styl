@@ -39,6 +39,9 @@ team.styl
   overflow                  auto
   z-index                   2
   color                     white
+  height                    100%
+  min-height                670px
+
 
   section
     width                   60%
@@ -50,6 +53,23 @@ team.styl
     line-height             20px
     text-align              center
     borderBox()
+
+    &.previous-teams
+      li
+        display             inline-block
+        padding             5px
+        height              31px
+
+    a.previous-team
+      padding               5px 15px
+      bg                    color transparent
+      color                 #fafafa
+      rounded               3px
+      border                1px solid #e8e2de
+      display               block
+      &:hover
+        color               #27ae60
+        bg                  color white
 
     p
       margin-bottom         10px
@@ -65,7 +85,7 @@ team.styl
     bottom                  22px
     left                    9px
     z-index                 2
-    fix()
+    position                absolute
     a
       color                 rgba(255, 255, 255, .5)
       margin-left           13px
@@ -116,14 +136,18 @@ team.styl
     color                   #ADADAD
     font-size               16px
     font-weight             300
-    line-height             50px
-    margin-top              21px
+    line-height             1
+    margin-top              36px
     letter-spacing          .01em
     a
       color                 #00b153
       text-decoration       none
       &:hover
         text-decoration     underline
+    img
+      rounded               2px
+      vertical-align        bottom
+      size                  24px 24px
 
     &.back
       i
@@ -165,6 +189,9 @@ team.styl
     color                   #909090
     &.full
       width                 100%
+    b
+      color                 #3e4f55
+      font-weight           600
 
   p
     width                   361px
@@ -185,7 +212,6 @@ team.styl
 
   &.TeamsModal--login
   &.TeamsModal--create
-  &.TeamsModal--select
   &.TeamsModal--groupCreation
     width                   425px
 
@@ -225,6 +251,14 @@ team.styl
     > p
       color                 dimmedGray
       font-style            italic
+
+  &.TeamsModal--select
+
+    .submit
+      text-align            center
+    .TeamsModal-button
+      display               inline-block !important
+      float                 none !important
 
 .TeamsModal-button
   border                    none
@@ -322,3 +356,5 @@ team.styl
     size                    0% 100%
     vendor                  transition, all .177s ease
 
+.recoverConfirmation
+  text-align                center

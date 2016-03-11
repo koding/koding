@@ -14,6 +14,12 @@ now.BeginningOfDay()
 * Star it in github [https://github.com/jinzhu/now](https://github.com/jinzhu/now)
 * Search it with [http://godoc.org](http://godoc.org)
 
+## Install
+
+```
+go get -u github.com/jinzhu/now
+```
+
 ### Usage
 
 ```go
@@ -28,6 +34,7 @@ now.BeginningOfWeek()     // 2013-11-17 00:00:00 Sun
 now.FirstDayMonday = true // Set Monday as first day, default is Sunday
 now.BeginningOfWeek()     // 2013-11-18 00:00:00 Mon
 now.BeginningOfMonth()    // 2013-11-01 00:00:00 Fri
+now.BeginningOfQuarter()  // 2013-10-01 00:00:00 Tue
 now.BeginningOfYear()     // 2013-01-01 00:00:00 Tue
 
 now.EndOfMinute()         // 2013-11-18 17:51:59.999999999 Mon
@@ -37,6 +44,7 @@ now.EndOfWeek()           // 2013-11-23 23:59:59.999999999 Sat
 now.FirstDayMonday = true // Set Monday as first day, default is Sunday
 now.EndOfWeek()           // 2013-11-24 23:59:59.999999999 Sun
 now.EndOfMonth()          // 2013-11-30 23:59:59.999999999 Sat
+now.EndOfQuarter()        // 2013-12-31 23:59:59.999999999 Tue
 now.EndOfYear()           // 2013-12-31 23:59:59.999999999 Tue
 
 

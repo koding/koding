@@ -1,4 +1,3 @@
-kd                          = require 'kd'
 AdminAppView                = require 'admin/views/customviews/adminappview'
 StackCatalogMainTabPaneView = require './stackcatalogmaintabpaneview'
 
@@ -13,7 +12,7 @@ module.exports = class StackCatalogModalView extends AdminAppView
 
     super options, data
 
-    @overlay.once 'click', @bound 'handleOverlayClick'
+    @overlay.on 'click', @bound 'handleOverlayClick'
 
 
   handleOverlayClick: ->
@@ -22,8 +21,7 @@ module.exports = class StackCatalogModalView extends AdminAppView
 
     return @destroy()  if activePane.name is 'Your Stacks'
 
-    { mainView }    = activePane
-    { editorView }  = mainView?.defineStackView?.stackTemplateView
+    { mainView } = activePane
 
-    unless editorView?.getAce().isContentChanged()
+    unless mainView?.defineStackView?.isStackChanged()
       @destroy()

@@ -1,9 +1,6 @@
 package command
 
-import (
-	"github.com/koding/kite"
-	"github.com/mitchellh/cli"
-)
+import "github.com/mitchellh/cli"
 
 func NewPing() cli.CommandFactory {
 	return func() (cli.Command, error) {
@@ -14,8 +11,12 @@ func NewPing() cli.CommandFactory {
 	}
 }
 
-func PingAction(args []string, kloud *kite.Client) error {
-	resp, err := kloud.Tell("kite.ping")
+func PingAction(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
+	resp, err := k.Tell("kite.ping")
 	if err != nil {
 		return err
 	}

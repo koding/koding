@@ -17,9 +17,10 @@ package oglematchers_test
 
 import (
 	"fmt"
+	"testing"
+
 	. "github.com/jacobsa/oglematchers"
 	. "github.com/jacobsa/ogletest"
-	"testing"
 )
 
 func TestFailingTest(t *testing.T) { RunTests(t) }
@@ -31,10 +32,17 @@ func TestFailingTest(t *testing.T) { RunTests(t) }
 type FailingTest struct {
 }
 
+var _ TearDownInterface = &FailingTest{}
+var _ TearDownTestSuiteInterface = &FailingTest{}
+
 func init() { RegisterTestSuite(&FailingTest{}) }
 
 func (t *FailingTest) TearDown() {
 	fmt.Println("TearDown running.")
+}
+
+func (t *FailingTest) TearDownTestSuite() {
+	fmt.Println("TearDownTestSuite running.")
 }
 
 func (t *FailingTest) PassingMethod() {
@@ -69,11 +77,6 @@ func (t *FailingTest) ExpectWithUserErrorMessages() {
 
 func (t *FailingTest) AssertWithUserErrorMessages() {
 	AssertThat(17, Equals(19), "foo bar: %d", 112)
-}
-
-func (t *FailingTest) ModifiedExpectation() {
-	ExpectThat(17, HasSubstr("ac")).SetCaller("foo.go", 112)
-	ExpectEq(17, 19).SetCaller("bar.go", 117)
 }
 
 func (t *FailingTest) ExpectationAliases() {
@@ -141,6 +144,27 @@ func (t *FailingTest) AssertTrueFailure() {
 func (t *FailingTest) AssertFalseFailure() {
 	AssertFalse("taco")
 	panic("Shouldn't get here.")
+}
+
+func (t *FailingTest) AddFailureRecord() {
+	r := FailureRecord{
+		FileName:   "foo.go",
+		LineNumber: 17,
+		Error:      "taco\nburrito",
+	}
+
+	AddFailureRecord(r)
+}
+
+func (t *FailingTest) AddFailure() {
+	AddFailure("taco")
+	AddFailure("burrito: %d", 17)
+}
+
+func (t *FailingTest) AddFailureThenAbortTest() {
+	AddFailure("enchilada")
+	AbortTest()
+	fmt.Println("Shouldn't get here.")
 }
 
 ////////////////////////////////////////////////////////////////////////

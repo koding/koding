@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
+	"koding/klientctl/config"
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
 
 // RestartCommand stops and starts klient. If Klient is not running to begin
 // with, it *just* starts klient.
-func RestartCommand(c *cli.Context) int {
+func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "restart")
 		return 1
@@ -17,19 +19,19 @@ func RestartCommand(c *cli.Context) int {
 
 	s, err := newService()
 	if err != nil {
-		log.Errorf("Error creating Service. err:%s", err)
+		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalNewCodeError)
 		return 1
 	}
 
-	fmt.Printf("Restarting the %s, this may take a moment...\n", KlientName)
+	fmt.Printf("Restarting the %s, this may take a moment...\n", config.KlientName)
 
-	klientWasRunning := IsKlientRunning(KlientAddress)
+	klientWasRunning := IsKlientRunning(config.KlientAddress)
 
 	if klientWasRunning {
 		// If klient is running, stop it, and tell the user if we fail
 		if err := s.Stop(); err != nil {
-			log.Errorf("Error stopping Service. err:%s", err)
+			log.Error("Error stopping Service. err:%s", err)
 			fmt.Println(FailedStopKlient)
 			return 1
 		}
@@ -39,8 +41,8 @@ func RestartCommand(c *cli.Context) int {
 		s.Stop()
 	}
 
-	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
-		log.Errorf(
+	if err := WaitUntilStopped(config.KlientAddress, 5, 1*time.Second); err != nil {
+		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
 		)
@@ -53,14 +55,14 @@ func RestartCommand(c *cli.Context) int {
 	}
 
 	if err := s.Start(); err != nil {
-		log.Errorf("Error starting Service. err:%s", err)
+		log.Error("Error starting Service. err:%s", err)
 		fmt.Println(FailedStartKlient)
 		return 1
 	}
 
 	fmt.Println("Waiting until started...")
-	if err := WaitUntilStarted(KlientAddress, 5, 1*time.Second); err != nil {
-		log.Errorf(
+	if err := WaitUntilStarted(config.KlientAddress, 5, 1*time.Second); err != nil {
+		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
 		)
@@ -68,6 +70,6 @@ func RestartCommand(c *cli.Context) int {
 		return 1
 	}
 
-	fmt.Printf("Successfully restarted %s\n", KlientName)
+	fmt.Printf("Successfully restarted %s\n", config.KlientName)
 	return 0
 }

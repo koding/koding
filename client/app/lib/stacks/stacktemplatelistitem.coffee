@@ -1,6 +1,7 @@
 kd                        = require 'kd'
 timeago                   = require 'timeago'
 showError                 = require 'app/util/showError'
+Tracker                   = require 'app/util/tracker'
 
 BaseStackTemplateListItem = require './basestacktemplatelistitem'
 
@@ -62,6 +63,8 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
   editStackTemplate: ->
 
     stackTemplate = @getData()
+
+    Tracker.track Tracker.STACKS_EDIT
 
     if stackTemplate.isDefault
 

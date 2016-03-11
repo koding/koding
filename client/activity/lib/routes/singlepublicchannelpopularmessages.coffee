@@ -1,4 +1,3 @@
-kd                  = require 'kd'
 ActivityFlux        = require 'activity/flux'
 ResultStates        = require 'activity/constants/resultStates'
 ChannelThreadPane   = require 'activity/components/channelthreadpane'

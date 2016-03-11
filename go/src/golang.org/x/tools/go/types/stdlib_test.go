@@ -122,7 +122,7 @@ func TestStdTest(t *testing.T) {
 
 	// test/recover4.go is only built for Linux and Darwin.
 	// TODO(gri) Remove once tests consider +build tags (issue 10370).
-	if runtime.GOOS != "linux" || runtime.GOOS != "darwin" {
+	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
 		return
 	}
 
@@ -137,9 +137,14 @@ func TestStdFixed(t *testing.T) {
 
 	testTestDir(t, filepath.Join(runtime.GOROOT(), "test", "fixedbugs"),
 		"bug248.go", "bug302.go", "bug369.go", // complex test instructions - ignore
-		"bug459.go",    // possibly incorrect test - see issue 6703 (pending spec clarification)
-		"issue3924.go", // possibly incorrect test - see issue 6671 (pending spec clarification)
-		"issue6889.go", // gc-specific test
+		"bug459.go",      // possibly incorrect test - see issue 6703 (pending spec clarification)
+		"issue3924.go",   // possibly incorrect test - see issue 6671 (pending spec clarification)
+		"issue6889.go",   // gc-specific test
+		"issue7746.go",   // large constants - consumes too much memory
+		"issue11326.go",  // large constants
+		"issue11326b.go", // large constants
+		"issue11362.go",  // canonical import path check is implementation-defined behavior
+		"issue13471.go",  // large constants
 	)
 }
 
@@ -182,6 +187,13 @@ func typecheck(t *testing.T, path string, filenames []string) {
 		}
 
 		files = append(files, file)
+	}
+
+	// gcimporter doesn't support vendored imports.
+	// TODO(gri): fix.
+	if strings.HasSuffix(path, "src/cmd/internal/objfile") ||
+		strings.HasSuffix(path, "src/net/http") {
+		return
 	}
 
 	// typecheck package files

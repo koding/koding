@@ -2,52 +2,42 @@ package openstack
 
 import (
 	"errors"
-	"fmt"
-	"github.com/mitchellh/packer/packer"
-	"time"
+
+	"github.com/mitchellh/packer/helper/communicator"
+	"github.com/mitchellh/packer/template/interpolate"
 )
 
 // RunConfig contains configuration for running an instance from a source
 // image and details on how to access that launched image.
 type RunConfig struct {
-	SourceImage       string   `mapstructure:"source_image"`
-	Flavor            string   `mapstructure:"flavor"`
-	RawSSHTimeout     string   `mapstructure:"ssh_timeout"`
-	SSHUsername       string   `mapstructure:"ssh_username"`
-	SSHPort           int      `mapstructure:"ssh_port"`
-	SSHInterface      string   `mapstructure:"ssh_interface"`
-	OpenstackProvider string   `mapstructure:"openstack_provider"`
-	UseFloatingIp     bool     `mapstructure:"use_floating_ip"`
-	RackconnectWait   bool     `mapstructure:"rackconnect_wait"`
-	FloatingIpPool    string   `mapstructure:"floating_ip_pool"`
-	FloatingIp        string   `mapstructure:"floating_ip"`
-	SecurityGroups    []string `mapstructure:"security_groups"`
-	Networks          []string `mapstructure:"networks"`
+	Comm           communicator.Config `mapstructure:",squash"`
+	SSHKeyPairName string              `mapstructure:"ssh_keypair_name"`
+	SSHInterface   string              `mapstructure:"ssh_interface"`
+	SSHIPVersion   string              `mapstructure:"ssh_ip_version"`
 
-	// Unexported fields that are calculated from others
-	sshTimeout time.Duration
+	SourceImage      string   `mapstructure:"source_image"`
+	SourceImageName  string   `mapstructure:"source_image_name"`
+	Flavor           string   `mapstructure:"flavor"`
+	AvailabilityZone string   `mapstructure:"availability_zone"`
+	RackconnectWait  bool     `mapstructure:"rackconnect_wait"`
+	FloatingIpPool   string   `mapstructure:"floating_ip_pool"`
+	FloatingIp       string   `mapstructure:"floating_ip"`
+	SecurityGroups   []string `mapstructure:"security_groups"`
+	Networks         []string `mapstructure:"networks"`
+	UserData         string   `mapstructure:"user_data"`
+	UserDataFile     string   `mapstructure:"user_data_file"`
+
+	ConfigDrive bool `mapstructure:"config_drive"`
+
+	// Not really used, but here for BC
+	OpenstackProvider string `mapstructure:"openstack_provider"`
+	UseFloatingIp     bool   `mapstructure:"use_floating_ip"`
 }
 
-func (c *RunConfig) Prepare(t *packer.ConfigTemplate) []error {
-	if t == nil {
-		var err error
-		t, err = packer.NewConfigTemplate()
-		if err != nil {
-			return []error{err}
-		}
-	}
-
+func (c *RunConfig) Prepare(ctx *interpolate.Context) []error {
 	// Defaults
-	if c.SSHUsername == "" {
-		c.SSHUsername = "root"
-	}
-
-	if c.SSHPort == 0 {
-		c.SSHPort = 22
-	}
-
-	if c.RawSSHTimeout == "" {
-		c.RawSSHTimeout = "5m"
+	if c.Comm.SSHUsername == "" {
+		c.Comm.SSHUsername = "root"
 	}
 
 	if c.UseFloatingIp && c.FloatingIpPool == "" {
@@ -55,47 +45,20 @@ func (c *RunConfig) Prepare(t *packer.ConfigTemplate) []error {
 	}
 
 	// Validation
-	var err error
-	errs := make([]error, 0)
-	if c.SourceImage == "" {
-		errs = append(errs, errors.New("A source_image must be specified"))
+	errs := c.Comm.Prepare(ctx)
+	if c.SourceImage == "" && c.SourceImageName == "" {
+		errs = append(errs, errors.New("Either a source_image or a source_image_name must be specified"))
+	} else if len(c.SourceImage) > 0 && len(c.SourceImageName) > 0 {
+		errs = append(errs, errors.New("Only a source_image or a source_image_name can be specified, not both."))
 	}
 
 	if c.Flavor == "" {
 		errs = append(errs, errors.New("A flavor must be specified"))
 	}
 
-	if c.SSHUsername == "" {
-		errs = append(errs, errors.New("An ssh_username must be specified"))
-	}
-
-	templates := map[string]*string{
-		"flavor":             &c.Flavor,
-		"ssh_timeout":        &c.RawSSHTimeout,
-		"ssh_username":       &c.SSHUsername,
-		"ssh_interface":      &c.SSHInterface,
-		"source_image":       &c.SourceImage,
-		"openstack_provider": &c.OpenstackProvider,
-		"floating_ip_pool":   &c.FloatingIpPool,
-		"floating_ip":        &c.FloatingIp,
-	}
-
-	for n, ptr := range templates {
-		var err error
-		*ptr, err = t.Process(*ptr, nil)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("Error processing %s: %s", n, err))
-		}
-	}
-
-	c.sshTimeout, err = time.ParseDuration(c.RawSSHTimeout)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("Failed parsing ssh_timeout: %s", err))
+	if c.SSHIPVersion != "" && c.SSHIPVersion != "4" && c.SSHIPVersion != "6" {
+		errs = append(errs, errors.New("SSH IP version must be either 4 or 6"))
 	}
 
 	return errs
-}
-
-func (c *RunConfig) SSHTimeout() time.Duration {
-	return c.sshTimeout
 }

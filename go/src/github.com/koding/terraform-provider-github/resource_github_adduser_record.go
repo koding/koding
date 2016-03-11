@@ -1,11 +1,17 @@
 package githubprovider
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/terraform/helper/schema"
+)
+
+var (
+	admin  string = "admin"
+	member string = "member"
 )
 
 // required field are here for adding a user to the organization
@@ -117,10 +123,28 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
+	if len(teamNames) == 0 {
+		return errors.New("team name is not defined")
+	}
+
+	member, _, err := client.Organizations.GetOrgMembership("", org)
+	if err != nil {
+		return err
+	}
+
+	// override member role here if user is admin of organization
+	if member.Role == &admin {
+		role = admin
+	}
+
 	teamIDs, err := GetTeamIDs(clientOrg, org, teamNames)
 
 	optAddOrgMembership := &github.OrganizationAddTeamMembershipOptions{
 		Role: role,
+	}
+
+	if len(teamNames) != len(teamIDs) {
+		return errors.New("team name is not found")
 	}
 
 	for _, teamID := range teamIDs {
@@ -197,6 +221,10 @@ func resourceGithubAddUserRead(d *schema.ResourceData, meta interface{}) error {
 
 // resourceGithubAddUserCreate removes the user from the organization & the teams
 func resourceGithubAddUserDelete(d *schema.ResourceData, meta interface{}) error {
+	// We'r not gonna use removemember for now.
+	// And then we can simply return here
+	return nil
+
 	client := meta.(*Clients).OrgClient
 
 	user := d.Get("username").(string)

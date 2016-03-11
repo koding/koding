@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
+	"time"
 )
 
 const (
@@ -38,6 +41,7 @@ LogColor         = map[int]string{FATAL: "\033[0m\033[37m",
 
 var (
 	LogLevel    int = ERROR
+	EMPTY       struct{}
 	ErrLogLevel int = ERROR
 	logger      *log.Logger
 	loggerErr   *log.Logger
@@ -53,8 +57,11 @@ var (
 		INFO:  "[INFO] ",
 		DEBUG: "[DEBUG] ",
 	}
-	postFix                      = "" //\033[0m
-	LogLevelWords map[string]int = map[string]int{"fatal": 0, "error": 1, "warn": 2, "info": 3, "debug": 4, "none": -1}
+	escapeNewlines bool           = false
+	postFix                       = "" //\033[0m
+	LogLevelWords  map[string]int = map[string]int{"fatal": 0, "error": 1, "warn": 2, "info": 3, "debug": 4, "none": -1}
+	logThrottles                  = make(map[string]*Throttler)
+	throttleMu     sync.Mutex
 )
 
 // Setup default logging to Stderr, equivalent to:
@@ -62,6 +69,13 @@ var (
 //	gou.SetLogger(log.New(os.Stderr, "", log.Ltime|log.Lshortfile), "debug")
 func SetupLogging(lvl string) {
 	SetLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile|log.Lmicroseconds), strings.ToLower(lvl))
+}
+
+// Setup default logging to Stderr, equivalent to:
+//
+//	gou.SetLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile|log.Lmicroseconds), level)
+func SetupLoggingLong(lvl string) {
+	SetLogger(log.New(os.Stderr, "", log.LstdFlags|log.Llongfile|log.Lmicroseconds), strings.ToLower(lvl))
 }
 
 // Setup colorized output if this is a terminal
@@ -77,6 +91,18 @@ func SetColorOutput() {
 		LogPrefix[lvl] = color
 	}
 	postFix = "\033[0m"
+}
+
+//Set whether to escape newline characters in log messages
+func SetEscapeNewlines(en bool) {
+	escapeNewlines = en
+}
+
+// Setup default log output to go to a dev/null
+//
+//	log.SetOutput(new(DevNull))
+func DiscardStandardLogger() {
+	log.SetOutput(new(DevNull))
 }
 
 // you can set a logger, and log level,most common usage is:
@@ -173,11 +199,146 @@ func Errorf(format string, v ...interface{}) {
 	}
 }
 
+// Log this error, and return error object
+func LogErrorf(format string, v ...interface{}) error {
+	err := fmt.Errorf(format, v...)
+	if LogLevel >= 1 {
+		DoLog(3, ERROR, err.Error())
+	}
+	return err
+}
+
 // Log to logger if setup
 //    Log(ERROR, "message")
 func Log(logLvl int, v ...interface{}) {
 	if LogLevel >= logLvl {
 		DoLog(3, logLvl, fmt.Sprint(v...))
+	}
+}
+
+// Log to logger if setup, grab a stack trace and add that as well
+//
+//    u.LogTracef(u.ERROR, "message %s", varx)
+//
+func LogTracef(logLvl int, format string, v ...interface{}) {
+	if LogLevel >= logLvl {
+		// grab a stack trace
+		stackBuf := make([]byte, 6000)
+		stackBufLen := runtime.Stack(stackBuf, false)
+		stackTraceStr := string(stackBuf[0:stackBufLen])
+		parts := strings.Split(stackTraceStr, "\n")
+		if len(parts) > 1 {
+			v = append(v, strings.Join(parts[3:], "\n"))
+		}
+		DoLog(3, logLvl, fmt.Sprintf(format+"\n%v", v...))
+	}
+}
+
+// Log to logger if setup, grab a stack trace and add that as well
+//
+//    u.LogTracef(u.ERROR, "message %s", varx)
+//
+func LogTraceDf(logLvl, lineCt int, format string, v ...interface{}) {
+	if LogLevel >= logLvl {
+		// grab a stack trace
+		stackBuf := make([]byte, 6000)
+		stackBufLen := runtime.Stack(stackBuf, false)
+		stackTraceStr := string(stackBuf[0:stackBufLen])
+		parts := strings.Split(stackTraceStr, "\n")
+		if len(parts) > 1 {
+			if (len(parts) - 3) > lineCt {
+				parts = parts[3 : 3+lineCt]
+				parts2 := make([]string, 0, len(parts)/2)
+				for i := 1; i < len(parts); i = i + 2 {
+					parts2 = append(parts2, parts[i])
+				}
+				v = append(v, strings.Join(parts2, "\n"))
+				//v = append(v, strings.Join(parts[3:3+lineCt], "\n"))
+			} else {
+				v = append(v, strings.Join(parts[3:], "\n"))
+			}
+		}
+		DoLog(3, logLvl, fmt.Sprintf(format+"\n%v", v...))
+	}
+}
+
+// Throttle logging based on key, such that key would never occur more than
+//   @limit times per hour
+//
+//    LogThrottleKey(u.ERROR, 1,"error_that_happens_a_lot" "message %s", varx)
+//
+func LogThrottleKey(logLvl, limit int, key, format string, v ...interface{}) {
+	if LogLevel >= logLvl {
+		throttleMu.Lock()
+		th, ok := logThrottles[key]
+		if !ok {
+			th = NewThrottler(limit, 3600*time.Second)
+			logThrottles[key] = th
+		}
+		skip, throttleCount := th.Throttle()
+		if skip {
+			throttleMu.Unlock()
+			return
+		}
+		throttleMu.Unlock()
+
+		if throttleCount > 0 {
+			format = fmt.Sprintf("%s LogsThrottled[%d]", format, throttleCount)
+		}
+		DoLog(3, logLvl, fmt.Sprintf(format, v...))
+	}
+}
+
+// Throttle logging based on @format as a key, such that key would never occur more than
+//   @limit times per hour
+//
+//    LogThrottle(u.ERROR, 1, "message %s", varx)
+//
+func LogThrottle(logLvl, limit int, format string, v ...interface{}) {
+	if LogLevel >= logLvl {
+		throttleMu.Lock()
+		th, ok := logThrottles[format]
+		if !ok {
+			th = NewThrottler(limit, 3600*time.Second)
+			logThrottles[format] = th
+		}
+		var throttleCount int32
+		skip, throttleCount := th.Throttle()
+		if skip {
+			throttleMu.Unlock()
+			return
+		}
+		throttleMu.Unlock()
+
+		if throttleCount > 0 {
+			format = fmt.Sprintf("%s LogsThrottled[%d]", format, throttleCount)
+		}
+		DoLog(3, logLvl, fmt.Sprintf(format, v...))
+	}
+}
+
+// Throttle logging based on @format as a key, such that key would never occur more than
+//   @limit times per hour
+//
+//    LogThrottleD(5, u.ERROR, 1, "message %s", varx)
+//
+func LogThrottleD(depth, logLvl, limit int, format string, v ...interface{}) {
+	if LogLevel >= logLvl {
+		throttleMu.Lock()
+		th, ok := logThrottles[format]
+		if !ok {
+			th = NewThrottler(limit, 3600*time.Second)
+			logThrottles[format] = th
+		}
+		skip, throttleCount := th.Throttle()
+		if skip {
+			throttleMu.Unlock()
+			return
+		}
+		throttleMu.Unlock()
+
+		format = fmt.Sprintf("Log Throttled[%d] %s", throttleCount, format)
+		DoLog(depth, logLvl, fmt.Sprintf(format, v...))
 	}
 }
 
@@ -199,7 +360,7 @@ func LogP(logLvl int, prefix string, v ...interface{}) {
 	}
 }
 
-// Log to logger if setup
+// Log to logger if setup with a prefix
 //    LogPf(ERROR, "prefix", "formatString %s %v", anyItems, youWant)
 func LogPf(logLvl int, prefix string, format string, v ...interface{}) {
 	if ErrLogLevel >= logLvl && loggerErr != nil {
@@ -210,12 +371,17 @@ func LogPf(logLvl int, prefix string, format string, v ...interface{}) {
 }
 
 // When you want to use the log short filename flag, and want to use
-// the lower level logginf functions (say from an *Assert* type function
+// the lower level logging functions (say from an *Assert* type function)
 // you need to modify the stack depth:
 //
-// 	   SetLogger(log.New(os.Stderr, "", log.Ltime|log.Lshortfile|log.Lmicroseconds), lvl)
+//     func init() {}
+// 	       SetLogger(log.New(os.Stderr, "", log.Ltime|log.Lshortfile|log.Lmicroseconds), lvl)
+//     }
 //
-//     LogD(5, DEBUG, v...)
+//     func assert(t *testing.T, myData) {
+//         // we want log line to show line that called this assert, not this line
+//         LogD(5, DEBUG, v...)
+//     }
 func LogD(depth int, logLvl int, v ...interface{}) {
 	if LogLevel >= logLvl {
 		DoLog(depth, logLvl, fmt.Sprint(v...))
@@ -224,6 +390,9 @@ func LogD(depth int, logLvl int, v ...interface{}) {
 
 // Low level log with depth , level, message and logger
 func DoLog(depth, logLvl int, msg string) {
+	if escapeNewlines {
+		msg = EscapeNewlines(msg)
+	}
 	if ErrLogLevel >= logLvl && loggerErr != nil {
 		loggerErr.Output(depth, LogPrefix[logLvl]+msg+postFix)
 	} else if LogLevel >= logLvl && logger != nil {
@@ -241,3 +410,17 @@ type winsize struct {
 const (
 	_TIOCGWINSZ = 0x5413 // OSX 1074295912
 )
+
+//http://play.golang.org/p/5LIA41Iqfp
+// Dummy discard, satisfies io.Writer without importing io or os.
+type DevNull struct{}
+
+func (DevNull) Write(p []byte) (int, error) {
+	return len(p), nil
+}
+
+//Replace standard newline characters with escaped newlines so long msgs will
+//remain one line.
+func EscapeNewlines(str string) string {
+	return strings.Replace(str, "\n", "\\n", -1)
+}

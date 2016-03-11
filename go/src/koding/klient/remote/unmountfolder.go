@@ -32,7 +32,7 @@ func (r *Remote) UnmountFolderHandler(kreq *kite.Request) (interface{}, error) {
 			"Error '%s' while unmarshalling request '%s'.\n", err, kreq.Args.One(),
 		)
 
-		r.log.Info(err.Error())
+		r.log.Error(err.Error())
 
 		return nil, err
 	}
@@ -79,13 +79,13 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 		return nil
 	}
 
-	if m.intervaler != nil {
+	if m.Intervaler != nil {
 		r.log.Info(
 			"remote.unmountFolder: Unsubscribing from Sync Intervaler. Ip:%s, localPath:%s",
 			m.IP, m.LocalPath,
 		)
 
-		m.intervaler.Stop()
+		m.Intervaler.Stop()
 	} else {
 		r.log.Warning(
 			"remote.unmountFolder: Unable to locate Sync Intervaler. remotePath:%s, name:%s",
@@ -93,13 +93,13 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 		)
 	}
 
-	if m.kitePinger != nil {
+	if m.KitePinger != nil {
 		r.log.Info(
 			"remote.unmountFolder: Unsubscribing from kitePinger. Ip:%s, localPath:%s",
 			m.IP, m.LocalPath,
 		)
 
-		m.kitePinger.Unsubscribe(m.pingerSub)
+		m.KitePinger.Unsubscribe(m.PingerSub)
 	} else {
 		r.log.Warning(
 			"remote.unmountFolder: Unable to locate kitePinger. remotePath:%s, name:%s",
@@ -109,7 +109,7 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 
 	// If removeMount encounters an error, we don't want to bail immediately.
 	// Rather, we want to still try to unmount the folder.
-	removeMountErr := r.removeMount(m)
+	removeMountErr := r.RemoveMount(m)
 	if removeMountErr != nil {
 		r.log.Error(
 			"remote.unmountFolder: removeMount failed. name:%s, localPath:%s, err:%s",
@@ -117,8 +117,8 @@ func (r *Remote) UnmountFolder(params req.UnmountFolder) error {
 		)
 	}
 
-	if m.unmounter != nil {
-		if err := m.unmounter.Unmount(); err != nil {
+	if m.Unmounter != nil {
+		if err := m.Unmounter.Unmount(); err != nil {
 			r.log.Error(
 				"remote.unmountFolder: Unmount failed. name:%s, localPath:%s, err:%s",
 				params.Name, params.LocalPath, err,

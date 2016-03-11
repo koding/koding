@@ -1,7 +1,9 @@
 package corehandlers_test
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
@@ -50,7 +52,7 @@ type mockCredsProvider struct {
 
 func (m *mockCredsProvider) Retrieve() (credentials.Value, error) {
 	m.retrieveCalled = true
-	return credentials.Value{}, nil
+	return credentials.Value{ProviderName: "mockCredsProvider"}, nil
 }
 
 func (m *mockCredsProvider) IsExpired() bool {
@@ -69,7 +71,7 @@ func TestAfterRetryRefreshCreds(t *testing.T) {
 	svc.Handlers.Clear()
 	svc.Handlers.ValidateResponse.PushBack(func(r *request.Request) {
 		r.Error = awserr.New("UnknownError", "", nil)
-		r.HTTPResponse = &http.Response{StatusCode: 400}
+		r.HTTPResponse = &http.Response{StatusCode: 400, Body: ioutil.NopCloser(bytes.NewBuffer([]byte{}))}
 	})
 	svc.Handlers.UnmarshalError.PushBack(func(r *request.Request) {
 		r.Error = awserr.New("ExpiredTokenException", "", nil)

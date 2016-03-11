@@ -101,11 +101,6 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
       cssClass : 'solid red hidden'
       callback : => if @isInSession then @leaveSession() else @stopSession()
 
-    @back = new CustomLinkView
-      title    : 'Chat'
-      cssClass : 'chat-link'
-      click    : => @getDelegate().showChatPane()
-
     @everyone  = new KDCustomHTMLView
       tagName  : 'ul'
       cssClass : 'settings everyone loading'
@@ -130,7 +125,6 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
 
     @createReadOnlySettingElements()
     @createUnwatchSettingElements()
-    @createMuteHostSettingElements()
 
 
   WATCH_MODE_GUIDE_LINK = 'https://koding.com/docs/collaboration/#watch_mode'
@@ -206,34 +200,6 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
 
 
   MUTE_HOST_GUIDE_LINK = 'https://koding.com/docs/collaboration/#mute_host'
-
-  createMuteHostSettingElements: ->
-
-    @muteHostWrapper = new KDCustomHTMLView cssClass: 'wrapper mute-host'
-
-    @muteHostWrapper.addSubView toggle = new KodingSwitch
-      size         : 'tiny'
-      defaultValue : off
-      callback     : @bound 'setMuteHost'
-
-    guideLink    = new KDCustomHTMLView
-      tagName    : 'a'
-      cssClass   : 'guide-link'
-      attributes :
-        href     : MUTE_HOST_GUIDE_LINK
-        target   : '_blank'
-
-    guideLink.addSubView new KDCustomHTMLView cssClass: 'icon'
-
-    @muteHostWrapper.addSubView new KDLabelView
-      title      : 'Participants can mute host'
-      mousedown  : toggle.bound 'mouseDown'
-
-    @muteHostWrapper.addSubView guideLink
-
-    @settings.addSubView @muteHostWrapper
-
-    @setMuteHost off  # set default value
 
 
   setMuteHost: (state) ->
@@ -370,9 +336,6 @@ module.exports              = class IDEChatSettingsPane extends KDTabPaneView
   pistachio: ->
 
     return """
-      <header class='chat-settings'>
-        {{> @back}}
-      </header>
       {{> @everyone}}
       <div class="warning">
         <div class="key-icon"></div>

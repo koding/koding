@@ -395,6 +395,7 @@ func TestDir(t *testing.T) {
 
 			f := NewFile(NewEntry(o, "file"))
 			f.Content = []byte("Hello World!")
+			f.Attrs.Size = uint64(len(f.Content))
 
 			o.EntriesList = map[string]Node{"file": f}
 
@@ -712,6 +713,7 @@ func newFakeTransport() *fakeTransport {
 			"fs.createDirectory": true,
 			"fs.remove":          true,
 			"fs.readFile":        map[string]interface{}{"content": c},
+			"fs.getDiskInfo":     transport.GetDiskInfoRes{},
 			"fs.getInfo": transport.GetInfoRes{
 				Exists:   true,
 				IsDir:    true,
@@ -741,21 +743,6 @@ func newFakeTransport() *fakeTransport {
 			},
 		},
 	}
-}
-
-func newErrorTransport(m string, e error) *errorTransport {
-	f := newFakeTransport()
-
-	return &errorTransport{
-		fakeTransport: f,
-		ErrorResponses: map[string]error{
-			m: e,
-		},
-	}
-}
-
-func newWriteErrTransport() *errorTransport {
-	return newErrorTransport("fs.writeFile", fuse.EIO)
 }
 
 func newDir() *Dir {

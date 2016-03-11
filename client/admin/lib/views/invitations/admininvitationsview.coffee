@@ -1,9 +1,9 @@
 kd                      = require 'kd'
 KDView                  = kd.View
 KDTabView               = kd.TabView
-KDButtonView            = kd.ButtonView
 KDTabPaneView           = kd.TabPaneView
 InviteSomeoneView       = require './invitesomeoneview'
+SlackInviteView         = require './slackinviteview'
 AdminSubTabHandleView   = require './../customviews/adminsubtabhandleview'
 PendingInvitationsView  = require './pendinginvitationsview'
 AcceptedInvitationsView = require './acceptedinvitationsview'
@@ -12,6 +12,7 @@ module.exports = class AdminInvitationsView extends KDView
 
   PANE_NAMES_BY_ROUTE =
     'Invite'   : 'Invite Teammates'
+    'Slack'    : 'Invite with <cite class="slack"></cite>'
     'Pending'  : 'Pending Invitations'
     'Accepted' : 'Accepted Invitations'
 
@@ -38,6 +39,9 @@ module.exports = class AdminInvitationsView extends KDView
     tabView.addPane invite   = new KDTabPaneView
       name         : PANE_NAMES_BY_ROUTE.Invite
       route        : '/Admin/Invitations/Invite'
+    tabView.addPane slack   = new KDTabPaneView
+      name         : PANE_NAMES_BY_ROUTE.Slack
+      route        : '/Admin/Invitations/Slack'
     tabView.addPane pending  = new KDTabPaneView
       name         : PANE_NAMES_BY_ROUTE.Pending
       route        : '/Admin/Invitations/Pending'
@@ -48,6 +52,7 @@ module.exports = class AdminInvitationsView extends KDView
     pending.addSubView  @pendingView  = new PendingInvitationsView  {}, data
     accepted.addSubView @acceptedView = new AcceptedInvitationsView {}, data
     invite.addSubView   inviteView    = new InviteSomeoneView       {}, data
+    slack.addSubView    slackView     = new SlackInviteView         {}, data
 
     tabView.showPaneByIndex 0
 

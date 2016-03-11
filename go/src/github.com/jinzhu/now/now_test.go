@@ -22,6 +22,12 @@ func TestBeginningOf(t *testing.T) {
 		t.Errorf("BeginningOfDay")
 	}
 
+	location, _ := time.LoadLocation("Japan")
+	beginningOfDay := time.Date(2015, 05, 01, 0, 0, 0, 0, location)
+	if New(beginningOfDay).BeginningOfDay().Format(format) != "2015-05-01 00:00:00" {
+		t.Errorf("BeginningOfDay")
+	}
+
 	if New(n).BeginningOfWeek().Format(format) != "2013-11-17 00:00:00" {
 		t.Errorf("BeginningOfWeek")
 	}
@@ -34,6 +40,18 @@ func TestBeginningOf(t *testing.T) {
 
 	if New(n).BeginningOfMonth().Format(format) != "2013-11-01 00:00:00" {
 		t.Errorf("BeginningOfMonth")
+	}
+
+	if New(n).BeginningOfQuarter().Format(format) != "2013-10-01 00:00:00" {
+		t.Error("BeginningOfQuarter")
+	}
+
+	if New(n.AddDate(0, -1, 0)).BeginningOfQuarter().Format(format) != "2013-10-01 00:00:00" {
+		t.Error("BeginningOfQuarter")
+	}
+
+	if New(n.AddDate(0, 1, 0)).BeginningOfQuarter().Format(format) != "2013-10-01 00:00:00" {
+		t.Error("BeginningOfQuarter")
 	}
 
 	if New(n).BeginningOfYear().Format(format) != "2013-01-01 00:00:00" {
@@ -68,6 +86,18 @@ func TestEndOf(t *testing.T) {
 
 	if New(n).EndOfMonth().Format(format) != "2013-11-30 23:59:59.999999999" {
 		t.Errorf("EndOfMonth")
+	}
+
+	if New(n).EndOfQuarter().Format(format) != "2013-12-31 23:59:59.999999999" {
+		t.Errorf("EndOfQuarter")
+	}
+
+	if New(n.AddDate(0, -1, 0)).EndOfQuarter().Format(format) != "2013-12-31 23:59:59.999999999" {
+		t.Errorf("EndOfQuarter")
+	}
+
+	if New(n.AddDate(0, 1, 0)).EndOfQuarter().Format(format) != "2013-12-31 23:59:59.999999999" {
+		t.Errorf("EndOfQuarter")
 	}
 
 	if New(n).EndOfYear().Format(format) != "2013-12-31 23:59:59.999999999" {
@@ -153,6 +183,10 @@ func TestParse(t *testing.T) {
 		t.Errorf("Parse 18:20")
 	}
 
+	if New(n).MustParse("00:01").Format(format) != "2013-11-18 00:01:00" {
+		t.Errorf("Parse 00:01")
+	}
+
 	if New(n).MustParse("18:20:39").Format(format) != "2013-11-18 18:20:39" {
 		t.Errorf("Parse 18:20:39")
 	}
@@ -188,6 +222,17 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TestBetween(t *testing.T) {
+	tm := time.Date(2015, 06, 30, 17, 51, 49, 123456789, time.Now().Location())
+	if !New(tm).Between("23:28:9 Dec 19, 2013 PST", "23:28:9 Dec 19, 2015 PST") {
+		t.Errorf("Between")
+	}
+
+	if !New(tm).Between("2015-05-12 12:20", "2015-06-30 17:51:50") {
+		t.Errorf("Between")
+	}
+}
+
 func Example() {
 	time.Now() // 2013-11-18 17:51:49.123456789 Mon
 
@@ -199,6 +244,7 @@ func Example() {
 	FirstDayMonday = true // Set Monday as first day
 	BeginningOfWeek()     // 2013-11-18 00:00:00 Mon
 	BeginningOfMonth()    // 2013-11-01 00:00:00 Fri
+	BeginningOfQuarter()  // 2013-10-01 00:00:00 Tue
 	BeginningOfYear()     // 2013-01-01 00:00:00 Tue
 
 	EndOfMinute() // 2013-11-18 17:51:59.999999999 Mon
@@ -209,6 +255,7 @@ func Example() {
 	FirstDayMonday = true // Set Monday as first day
 	EndOfWeek()           // 2013-11-24 23:59:59.999999999 Sun
 	EndOfMonth()          // 2013-11-30 23:59:59.999999999 Sat
+	EndOfQuarter()        // 2013-12-31 23:59:59.999999999 Tue
 	EndOfYear()           // 2013-12-31 23:59:59.999999999 Tue
 
 	// Use another time

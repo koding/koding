@@ -1,6 +1,8 @@
-kd = require 'kd'
+kd                   = require 'kd'
 KDListViewController = kd.ListViewController
-KDView = kd.View
+KDView               = kd.View
+
+
 module.exports = class AccountListViewController extends KDListViewController
 
   constructor: (options, data)->

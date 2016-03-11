@@ -3,13 +3,15 @@ package main
 import (
 	"errors"
 	"fmt"
+	"koding/klientctl/config"
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
 
 // StopCommand stop local klient. Requires sudo.
-func StopCommand(c *cli.Context) int {
+func StopCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "stop")
 		return 1
@@ -17,19 +19,20 @@ func StopCommand(c *cli.Context) int {
 
 	s, err := newService()
 	if err != nil {
-		log.Errorf("Error creating Service. err:%s", err)
+		log.Error("Error creating Service. err:%s", err)
 		fmt.Println(GenericInternalError)
 		return 1
 	}
 
 	if err := s.Stop(); err != nil {
-		log.Errorf("Error stopping Service. err:%s", err)
+		log.Error("Error stopping Service. err:%s", err)
 		fmt.Println(FailedStopKlient)
 		return 1
 	}
 
-	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
-		log.Errorf(
+	err = WaitUntilStopped(config.KlientAddress, 5, 1*time.Second)
+	if err != nil {
+		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",
 			5, err,
 		)
@@ -37,7 +40,7 @@ func StopCommand(c *cli.Context) int {
 		return 1
 	}
 
-	fmt.Printf("Successfully stopped %s\n", KlientName)
+	fmt.Printf("Successfully stopped %s\n", config.KlientName)
 	return 0
 }
 

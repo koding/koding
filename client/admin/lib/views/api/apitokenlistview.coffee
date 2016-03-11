@@ -1,9 +1,6 @@
 kd                = require 'kd'
 KDView            = kd.View
-remote            = require('app/remote').getInstance()
 APITokenList      = require './apitokenlist'
-APITokenItemView  = require './apitokenitemview'
-KDCustomHTMLView  = kd.CustomHTMLView
 APIListController = require './apilistcontroller'
 
 

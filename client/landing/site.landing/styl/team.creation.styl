@@ -22,7 +22,9 @@ team.group.creation.styl
 
   .kdtabpaneview .TeamsModal.TeamsModal--groupCreation
     min-width               550px
-    margin-bottom           100px
+
+    > h5 i
+      color               #00B057
 
     > figure
       bg                    color #ddd
@@ -73,11 +75,22 @@ team.group.creation.styl
       margin-top            20px
 
   // LOGIN/CREATE TAB STYLE CUSTOMIZATIONS
+  .TeamsModal--groupCreation.create
+
+    .TeamsModal-button-link
+      float                 none
+      margin-top            0
+
+    .TeamsModal-button-link.back
+      margin-top            36px
+      fl()
+
 
   .TeamsModal--create
-  .TeamsModal--select
   .TeamsModal--groupCreation
   .kdtabpaneview.login .TeamsModal
+  .kdtabpaneview.recover .TeamsModal
+  .kdtabpaneview.reset .TeamsModal
     margin-bottom           0
 
     > form
@@ -96,7 +109,7 @@ team.group.creation.styl
 
   // DOMAIN TAB STYLE CUSTOMIZATIONS
 
-  .kdtabpaneview.domain .TeamsModal
+  .TeamsModal.TeamsModal--domain
 
     .login-input-view
       overflow              hidden
@@ -182,10 +195,12 @@ team.group.creation.styl
 
   // JOIN TAB STYLE CUSTOMIZATIONS
 
-  .kdtabpaneview.join .TeamsModal
+  .kdtabpaneview.join
 
-    > h5 i
-      color                 #00B057
+    .TeamsModal
+
+      &.alreadyMember
+        margin-bottom       0px
 
   // USERNAME TAB STYLE CUSTOMIZATIONS
 

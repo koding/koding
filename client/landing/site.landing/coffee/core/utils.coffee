@@ -1,6 +1,6 @@
-$ = require 'jquery'
-kd = require 'kd.js'
-
+$       = require 'jquery'
+kd      = require 'kd.js'
+kookies = require 'kookies'
 
 createFormData = (teamData) ->
 
@@ -167,6 +167,15 @@ module.exports = utils = {
     return {}
 
 
+  getPreviousTeams: ->
+
+    try
+      teams = JSON.parse kookies.get 'koding-teams'
+
+    return teams  if teams and Object.keys(teams).length
+    return null
+
+
   slugifyCompanyName: (team) ->
 
     if name = team.signup?.companyName
@@ -315,15 +324,19 @@ module.exports = utils = {
     { group } = kd.config
     logo      = new kd.CustomHTMLView tagName : 'figure'
 
+    unless group
+      logo.hide()
+      return logo
+
     if group.customize?.logo
       logo.setCss 'background-image', "url(#{group.customize.logo})"
       logo.setCss 'background-size', 'cover'
     else
-      geoPattern = require 'geopattern'
-      pattern    = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
-      logo.setCss 'background-image', pattern
-      logo.setCss 'background-size', 'inherit'
-      logo.setClass 'hidden'
+      # geoPattern = require 'geopattern'
+      # pattern    = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
+      # logo.setCss 'background-image', pattern
+      # logo.setCss 'background-size', 'inherit'
+      logo.hide()
 
     return logo
 
@@ -365,5 +378,18 @@ module.exports = utils = {
     { pathname } = location
     if pathname and pathname.indexOf(loginRoute) is -1
       return pathname.substring 1
+
+
+  repositionSuffix: (input, fakeView) ->
+
+    input.getElement().removeAttribute 'size'
+
+    element           = fakeView.getElement()
+    element.innerHTML = input.getValue()
+
+    { width }         = element.getBoundingClientRect()
+    width             = if width then width + 3 else 100
+
+    input.setWidth width
 
 }

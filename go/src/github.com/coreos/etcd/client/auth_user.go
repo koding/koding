@@ -78,9 +78,9 @@ func (s *httpAuthAPI) enableDisable(ctx context.Context, req httpAction) error {
 	if err != nil {
 		return err
 	}
-	if err := assertStatusCode(resp.StatusCode, http.StatusOK, http.StatusCreated); err != nil {
+	if err = assertStatusCode(resp.StatusCode, http.StatusOK, http.StatusCreated); err != nil {
 		var sec authError
-		err := json.Unmarshal(body, &sec)
+		err = json.Unmarshal(body, &sec)
 		if err != nil {
 			return err
 		}
@@ -117,25 +117,25 @@ func NewAuthUserAPI(c Client) AuthUserAPI {
 }
 
 type AuthUserAPI interface {
-	// Add a user.
+	// AddUser adds a user.
 	AddUser(ctx context.Context, username string, password string) error
 
-	// Remove a user.
+	// RemoveUser removes a user.
 	RemoveUser(ctx context.Context, username string) error
 
-	// Get user details.
+	// GetUser retrieves user details.
 	GetUser(ctx context.Context, username string) (*User, error)
 
-	// Grant a user some permission roles.
+	// GrantUser grants a user some permission roles.
 	GrantUser(ctx context.Context, username string, roles []string) (*User, error)
 
-	// Revoke some permission roles from a user.
+	// RevokeUser revokes some permission roles from a user.
 	RevokeUser(ctx context.Context, username string, roles []string) (*User, error)
 
-	// Change the user's password.
+	// ChangePassword changes the user's password.
 	ChangePassword(ctx context.Context, username string, password string) (*User, error)
 
-	// List users.
+	// ListUsers lists the users.
 	ListUsers(ctx context.Context) ([]string, error)
 }
 
@@ -179,9 +179,9 @@ func (u *httpAuthUserAPI) ListUsers(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := assertStatusCode(resp.StatusCode, http.StatusOK); err != nil {
+	if err = assertStatusCode(resp.StatusCode, http.StatusOK); err != nil {
 		var sec authError
-		err := json.Unmarshal(body, &sec)
+		err = json.Unmarshal(body, &sec)
 		if err != nil {
 			return nil, err
 		}
@@ -190,8 +190,7 @@ func (u *httpAuthUserAPI) ListUsers(ctx context.Context) ([]string, error) {
 	var userList struct {
 		Users []string `json:"users"`
 	}
-	err = json.Unmarshal(body, &userList)
-	if err != nil {
+	if err = json.Unmarshal(body, &userList); err != nil {
 		return nil, err
 	}
 	return userList.Users, nil
@@ -221,9 +220,9 @@ func (u *httpAuthUserAPI) addRemoveUser(ctx context.Context, req *authUserAPIAct
 	if err != nil {
 		return err
 	}
-	if err := assertStatusCode(resp.StatusCode, http.StatusOK, http.StatusCreated); err != nil {
+	if err = assertStatusCode(resp.StatusCode, http.StatusOK, http.StatusCreated); err != nil {
 		var sec authError
-		err := json.Unmarshal(body, &sec)
+		err = json.Unmarshal(body, &sec)
 		if err != nil {
 			return err
 		}
@@ -280,17 +279,16 @@ func (u *httpAuthUserAPI) modUser(ctx context.Context, req *authUserAPIAction) (
 	if err != nil {
 		return nil, err
 	}
-	if err := assertStatusCode(resp.StatusCode, http.StatusOK); err != nil {
+	if err = assertStatusCode(resp.StatusCode, http.StatusOK); err != nil {
 		var sec authError
-		err := json.Unmarshal(body, &sec)
+		err = json.Unmarshal(body, &sec)
 		if err != nil {
 			return nil, err
 		}
 		return nil, sec
 	}
 	var user User
-	err = json.Unmarshal(body, &user)
-	if err != nil {
+	if err = json.Unmarshal(body, &user); err != nil {
 		return nil, err
 	}
 	return &user, nil

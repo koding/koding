@@ -16,9 +16,10 @@
 package oglematchers_test
 
 import (
+	"math"
+
 	. "github.com/jacobsa/oglematchers"
 	. "github.com/jacobsa/ogletest"
-	"math"
 )
 
 ////////////////////////////////////////////////////////////////////////
@@ -78,7 +79,6 @@ func (t *LessThanTest) IntegerCandidateBadTypes() {
 
 	cases := []ltTestCase{
 		ltTestCase{true, false, true, "which is not comparable"},
-		ltTestCase{uintptr(17), false, true, "which is not comparable"},
 		ltTestCase{complex64(-151), false, true, "which is not comparable"},
 		ltTestCase{complex128(-151), false, true, "which is not comparable"},
 		ltTestCase{[...]int{-151}, false, true, "which is not comparable"},
@@ -99,7 +99,6 @@ func (t *LessThanTest) FloatCandidateBadTypes() {
 
 	cases := []ltTestCase{
 		ltTestCase{true, false, true, "which is not comparable"},
-		ltTestCase{uintptr(17), false, true, "which is not comparable"},
 		ltTestCase{complex64(-151), false, true, "which is not comparable"},
 		ltTestCase{complex128(-151), false, true, "which is not comparable"},
 		ltTestCase{[...]int{-151}, false, true, "which is not comparable"},
@@ -130,7 +129,6 @@ func (t *LessThanTest) StringCandidateBadTypes() {
 		ltTestCase{uint16(0), false, true, "which is not comparable"},
 		ltTestCase{uint32(0), false, true, "which is not comparable"},
 		ltTestCase{uint64(0), false, true, "which is not comparable"},
-		ltTestCase{uintptr(17), false, true, "which is not comparable"},
 		ltTestCase{float32(0), false, true, "which is not comparable"},
 		ltTestCase{float64(0), false, true, "which is not comparable"},
 		ltTestCase{complex64(-151), false, true, "which is not comparable"},

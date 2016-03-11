@@ -2,13 +2,11 @@ package tigertonic
 
 import (
 	"net/http"
-	"sync"
 	"testing"
 )
 
 func TestContext(t *testing.T) {
 	ch := make(chan bool)
-	wg := &sync.WaitGroup{}
 	mux := NewTrieServeMux()
 	mux.HandleFunc("GET", "/1", func(w http.ResponseWriter, r *http.Request) {
 		if 1 != len(contexts) {
@@ -25,20 +23,14 @@ func TestContext(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 	handler := WithContext(mux, testContext{})
-	wg.Add(2)
 	go func() {
 		w := &testResponseWriter{}
 		r, _ := http.NewRequest("GET", "http://example.com/1", nil)
 		handler.ServeHTTP(w, r)
-		wg.Done()
+		w2 := &testResponseWriter{}
+		r2, _ := http.NewRequest("GET", "http://example.com/2", nil)
+		handler.ServeHTTP(w2, r2)
 	}()
-	go func() {
-		w := &testResponseWriter{}
-		r, _ := http.NewRequest("GET", "http://example.com/2", nil)
-		handler.ServeHTTP(w, r)
-		wg.Done()
-	}()
-	wg.Wait()
 }
 
 type testContext struct {

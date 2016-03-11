@@ -1,8 +1,9 @@
 package goquery
 
 import (
-	"code.google.com/p/go.net/html"
 	"testing"
+
+	"golang.org/x/net/html"
 )
 
 func TestEach(t *testing.T) {
@@ -16,7 +17,7 @@ func TestEach(t *testing.T) {
 	if cnt != 4 {
 		t.Errorf("Expected Each() to call function 4 times, got %v times.", cnt)
 	}
-	AssertLength(t, sel.Nodes, 6)
+	assertLength(t, sel.Nodes, 6)
 }
 
 func TestEachWithBreak(t *testing.T) {
@@ -31,7 +32,7 @@ func TestEachWithBreak(t *testing.T) {
 	if cnt != 1 {
 		t.Errorf("Expected Each() to call function 1 time, got %v times.", cnt)
 	}
-	AssertLength(t, sel.Nodes, 6)
+	assertLength(t, sel.Nodes, 6)
 }
 
 func TestEachEmptySelection(t *testing.T) {
@@ -45,7 +46,7 @@ func TestEachEmptySelection(t *testing.T) {
 		t.Error("Expected Each() to not be called on empty Selection.")
 	}
 	sel2 := sel.Find("div")
-	AssertLength(t, sel2.Nodes, 0)
+	assertLength(t, sel2.Nodes, 0)
 }
 
 func TestMap(t *testing.T) {
@@ -64,5 +65,24 @@ func TestMap(t *testing.T) {
 	}
 	if len(vals) != 3 {
 		t.Errorf("Expected Map array result to have a length of 3, found %v.", len(vals))
+	}
+}
+
+func TestForRange(t *testing.T) {
+	sel := Doc().Find(".pvk-content")
+	initLen := sel.Length()
+	for i := range sel.Nodes {
+		single := sel.Eq(i)
+		//h, err := single.Html()
+		//if err != nil {
+		//	t.Fatal(err)
+		//}
+		//fmt.Println(i, h)
+		if single.Length() != 1 {
+			t.Errorf("%d: expected length of 1, got %d", i, single.Length())
+		}
+	}
+	if sel.Length() != initLen {
+		t.Errorf("expected initial selection to still have length %d, got %d", initLen, sel.Length())
 	}
 }

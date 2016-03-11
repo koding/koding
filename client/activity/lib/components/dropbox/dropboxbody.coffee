@@ -2,7 +2,6 @@ kd           = require 'kd'
 React        = require 'kd-react'
 ReactDOM     = require 'react-dom'
 classnames   = require 'classnames'
-ActivityFlux = require 'activity/flux'
 Header       = require './dropboxheader'
 
 module.exports = class DropboxBody extends React.Component

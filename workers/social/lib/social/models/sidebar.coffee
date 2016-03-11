@@ -1,5 +1,6 @@
+async = require 'async'
 bongo = require 'bongo'
-{ dash, secure, signature } = bongo
+{ secure, signature } = bongo
 
 JMachine   = require './computeproviders/machine'
 JWorkspace = require './workspace'
@@ -100,55 +101,59 @@ module.exports = class Sidebar extends bongo.Base
 
       nodeValue = { machine, workspace }
 
-      return ->
+      return (workspaceQueueFin) ->
 
-        failureFn = ->
+        makeFailureFn = (callback) ->
 
-          filterQueue.fin()
+          return callback
 
-        makeSuccessFn = (fn) ->
+        makeSuccessFn = (fn, callback) ->
 
           return ->
 
             fn.call null, nodeValue
-            filterQueue.fin()
+            callback()
 
         filterQueue = [
-          ->
 
-            successFn = makeSuccessFn addOwnFn
+          (fin) ->
+
+            successFn = makeSuccessFn addOwnFn, fin
+            failureFn = makeFailureFn fin
 
             if isMachineOwner user, machine
             then successFn()
             else failureFn()
 
-          ->
+          (fin) ->
 
-            successFn = makeSuccessFn addSharedFn
+            successFn = makeSuccessFn addSharedFn, fin
+            failureFn = makeFailureFn fin
 
             if isMachineShared user, machine
             then successFn()
             else failureFn()
 
-          ->
+          (fin) ->
 
-            return filterQueue.fin()  unless workspace.channelId
+            return fin()  unless workspace.channelId
 
             isOwner  = isMachineOwner  user, machine
             isShared = isMachineShared user, machine
             skip     = workspace.channelId and (isOwner or isShared)
 
-            return filterQueue.fin()  if skip
+            return fin()  if skip
 
-            successFn = makeSuccessFn addCollaborationFn
+            successFn = makeSuccessFn addCollaborationFn, fin
+            failureFn = makeFailureFn fin
 
             options = { client, user, workspace, successFn, failureFn }
             filterCollaborationWorkspace options
         ]
 
-        dash filterQueue, -> workspaceQueue.fin()
+        async.parallel filterQueue, workspaceQueueFin
 
-    dash workspaceQueue, callback
+    async.parallel workspaceQueue, callback
 
 
   isMachineOwner = (user, machine) ->

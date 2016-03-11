@@ -5,7 +5,6 @@ KDContextMenu               = kd.ContextMenu
 KDCustomScrollView          = kd.CustomScrollView
 KDNotificationView          = kd.NotificationView
 KDFormViewWithFields        = kd.FormViewWithFields
-KDAutoCompleteController    = kd.AutoCompleteController
 
 KodingSwitch                = require 'app/commonviews/kodingswitch'
 AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
@@ -15,6 +14,7 @@ MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemvi
 remote                      = require('app/remote').getInstance()
 globals                     = require 'globals'
 showError                   = require 'app/util/showError'
+Tracker                     = require 'app/util/tracker'
 
 
 module.exports = class AccountCredentialListController extends AccountListViewController
@@ -60,8 +60,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     { query, provider, requiredFields } = @getOptions()
 
-    @filterStates.query.provider ?= provider        if provider
-    @filterStates.query.fields   ?= requiredFields  if requiredFields
+    @filterStates.query.provider ?= provider  if provider
+    if requiredFields
+      @filterStates.query.fields ?= requiredFields.map (field) -> field.name ? field
 
     @fetch @filterStates.query, (err, credentials) =>
 
@@ -210,6 +211,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       credential.owner = yes
       view.form.destroy()
       @addItem credential
+
+      if provider is 'aws'
+        Tracker.track Tracker.STACKS_ADDED_AWS_KEYS
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.

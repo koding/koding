@@ -1,4 +1,3 @@
-immutable    = require 'immutable'
 dummyChannel = require './generateDummyChannel'
 dummyMessage = require './generateDummyMessage'
 

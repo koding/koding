@@ -79,14 +79,12 @@ func (s *NicService) AddIpToNic(p *AddIpToNicParams) (*AddIpToNicResponse, error
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		b, err = getRawValue(b)
@@ -156,14 +154,12 @@ func (s *NicService) RemoveIpFromNic(p *RemoveIpFromNicParams) (*RemoveIpFromNic
 
 	// If we have a async client, we need to wait for the async result
 	if s.cs.async {
-		b, warn, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
+		b, err := s.cs.GetAsyncJobResult(r.JobID, s.cs.timeout)
 		if err != nil {
+			if err == AsyncTimeoutErr {
+				return &r, err
+			}
 			return nil, err
-		}
-		// If 'warn' has a value it means the job is running longer than the configured
-		// timeout, the resonse will contain the jobid of the running async job
-		if warn != nil {
-			return &r, warn
 		}
 
 		if err := json.Unmarshal(b, &r); err != nil {
@@ -277,20 +273,23 @@ type ListNicsResponse struct {
 }
 
 type Nic struct {
-	Broadcasturi string   `json:"broadcasturi,omitempty"`
-	Gateway      string   `json:"gateway,omitempty"`
-	Id           string   `json:"id,omitempty"`
-	Ip6address   string   `json:"ip6address,omitempty"`
-	Ip6cidr      string   `json:"ip6cidr,omitempty"`
-	Ip6gateway   string   `json:"ip6gateway,omitempty"`
-	Ipaddress    string   `json:"ipaddress,omitempty"`
-	Isdefault    bool     `json:"isdefault,omitempty"`
-	Isolationuri string   `json:"isolationuri,omitempty"`
-	Macaddress   string   `json:"macaddress,omitempty"`
-	Netmask      string   `json:"netmask,omitempty"`
-	Networkid    string   `json:"networkid,omitempty"`
-	Networkname  string   `json:"networkname,omitempty"`
-	Secondaryip  []string `json:"secondaryip,omitempty"`
-	Traffictype  string   `json:"traffictype,omitempty"`
-	Type         string   `json:"type,omitempty"`
+	Broadcasturi string `json:"broadcasturi,omitempty"`
+	Gateway      string `json:"gateway,omitempty"`
+	Id           string `json:"id,omitempty"`
+	Ip6address   string `json:"ip6address,omitempty"`
+	Ip6cidr      string `json:"ip6cidr,omitempty"`
+	Ip6gateway   string `json:"ip6gateway,omitempty"`
+	Ipaddress    string `json:"ipaddress,omitempty"`
+	Isdefault    bool   `json:"isdefault,omitempty"`
+	Isolationuri string `json:"isolationuri,omitempty"`
+	Macaddress   string `json:"macaddress,omitempty"`
+	Netmask      string `json:"netmask,omitempty"`
+	Networkid    string `json:"networkid,omitempty"`
+	Networkname  string `json:"networkname,omitempty"`
+	Secondaryip  []struct {
+		Id        string `json:"id,omitempty"`
+		Ipaddress string `json:"ipaddress,omitempty"`
+	} `json:"secondaryip,omitempty"`
+	Traffictype string `json:"traffictype,omitempty"`
+	Type        string `json:"type,omitempty"`
 }

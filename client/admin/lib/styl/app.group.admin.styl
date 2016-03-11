@@ -556,7 +556,7 @@ Admin main styles
     kalc                    height, (100% \- 62px)
 
   .listview-wrapper
-    kalc                    height, (100% \- 151px)
+    kalc                    height, (100% \- 90px)
 
   .members-commonview
 
@@ -668,7 +668,7 @@ Admin main styles
 
   .invite-view
     .kdcustomscrollview
-      kalc                  height, (100% \- 70px)
+      kalc                  height, (100% \- 20px)
       margin-bottom         20px
 
 .AppModal--admin .team-management
@@ -678,6 +678,37 @@ Admin main styles
 
   .team-item
     overflow                hidden
+    kalc                    width, (100% \- 20px)
+
+
+.AppModal--admin .resource-management
+
+  .listview-wrapper
+    kalc                    height, (100% \- 100px)
+
+  .resource-item
+    overflow                hidden
+    padding                 10px
+    borderBox()
+
+    .role
+      right                 10px
+    .avatarview
+      background            none
+      top                   5px
+
+    .status
+      font-size             12px
+      font-style            italic
+      left                  48px
+      abs                   28px
+
+    .machines-list
+      border-bottom         1px solid #ccc
+      margin                10px 0 10px
+
+    &.in-detail
+      background            #eee
 
 
 .AppModal--admin .general-settings-view
@@ -949,7 +980,53 @@ Admin main styles
     .kdloader canvas
       margin-top            5px
 
+.AppModal--admin-tabs
+.AppModal--admin-tabs .kdtabpaneview
+  borderBox()
+
 .AppModal--admin .invitations
+
+  .listview-wrapper
+    kalc                    height, (100% \- 51px)
+
+  .kdtabhandle
+    cite.slack
+      r-sprite              welcome slack-small
+      display               inline-block
+      vertical-align        text-bottom
+
+  .kdbutton.slack-oauth
+    .button-title
+      cite
+        r-sprite            admin slack_monochrome_white
+        display             inline-block
+        vertical-align      sub
+
+  .slack-user-list
+    .kdbutton.invite-members
+      abs                   0px 0px 0 0
+
+  .slack-user-item
+    line-height             40px
+    height                  40px
+
+    .kdcustomcheckbox
+      display               inline-block
+      height                20px
+      margin-right          10px
+      margin-top            6px
+
+    .name
+      display               inline-block
+      vertical-align        top
+      img
+        vertical-align      middle
+        size                24px 24px
+        rounded             2px
+
+      cite
+        font-style          italic
+        color               #7B7B7B
 
   .invite-view
   .members-commonview
@@ -970,6 +1047,33 @@ Admin main styles
     &.invite-members
       margin-right          25px
       fr()
+      &[disabled=disabled]
+        bg                  color #7B7B7B
+
+  .kdcustomscrollview.slack-invite-view
+    font-size               14px
+    color                   #3E3E3E
+
+    h3
+      color                 #7B7B7B
+      font-size             15px
+      line-height           3em
+      margin                0 0 25px
+      text-rendering        geometricPrecision
+      shadow                inset 0 -3px 0 #f2f2f2
+      margin-top            15px
+      rel()
+      &:not(:first-of-type)
+        margin-top          25px
+
+    .information
+      color                 #7b7b7b
+      .kdbutton.slack-oauth
+        margin              25px 0
+        display             block
+
+    .use-different-team
+      padding-bottom        50px
 
   .information
     font-size               14px
@@ -984,7 +1088,7 @@ Admin main styles
       max-width             550px
       text-rendering        geometricPrecision
 
-    label
+    > label
       color                 #929292
       display               inline-block
       font-size             11px
@@ -1410,6 +1514,7 @@ Admin main styles
     &.members
     &.invitations
     &.integrations
+    &.plan-billing
       padding-top           40px
 
   .breadcrumb
@@ -1418,3 +1523,106 @@ Admin main styles
 
     .active
       font-weight           regular
+
+
+.AppModal--admin
+  .plan-billing
+    .kdtabhandle
+      a
+        noTextDeco()
+
+    .billing-info
+      > .kdview
+        padding-top         20px
+
+      section
+        margin-bottom       40px
+
+        .kdheaderview
+          font-size         14px
+          color             #787878
+          line-height       30px
+          padding           0 0 17px
+
+          span
+            margin          0
+
+          .kdbutton
+            fr()
+
+        .subscription
+          color             #434343
+          font-size         14px
+          line-height       20px
+          margin-top        15px
+
+        .listview-wrapper
+          margin-top        20px
+          font-size         14px
+
+        .payment-method
+          .billing-link
+            padding-left    0
+            float           none
+            height          30px
+            cf()
+
+          .credit-card-title
+            line-height     23px
+            height          23px
+            fl()
+
+          .icon
+            display         block
+            margin-right    5px
+            fl()
+
+            &.visa
+              r-sprite              'pricing', 'visa'
+            &.american-express
+              r-sprite              'pricing', 'american-express'
+            &.mastercard
+              r-sprite              'pricing', 'mastercard'
+            &.discover
+              r-sprite              'pricing', 'discover'
+
+    .teams-plan
+      .kdlistitemview
+        display             table
+        height              95px
+        border-bottom       2px solid #ECECEC
+
+        > *
+          display           table-cell
+          vertical-align    middle
+
+        .plan-name
+          width             120px
+          color             #7B7B7B
+          rel()
+          top               -10px
+
+        .plan-info
+          strong
+            color           #595959
+            font-weight     bold
+
+          i
+            color           #A59999
+            dBlock()
+            font-style      italic
+            font-size       14px
+
+        .button
+          width             120px
+          text-align        center
+
+          .kdview
+            color           #9F9F9F
+            text-transform  uppercase
+            margin-top      70px
+            font-size       14px
+
+            &.upgrade
+              color         #749DCE
+              cursor        pointer

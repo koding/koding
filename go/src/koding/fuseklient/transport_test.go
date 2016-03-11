@@ -3,15 +3,52 @@ package fuseklient
 import (
 	"encoding/json"
 	"fmt"
+	"net/http/httptest"
 	"os"
+	"syscall"
 	"testing"
 
 	"koding/fuseklient/transport"
+	klientfs "koding/klient/fs"
+
+	"github.com/koding/kite"
 
 	"github.com/jacobsa/fuse"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+// newKlient creates a kite, populates it with Klient methods, and returns
+// a dialed kite Client. Mocking an actively running Klient, but still using the real
+// klient methods.
+func newKlientClient() (*kite.Client, error) {
+	k := kite.New("kiteServ", "0.0.0")
+	k.Config.DisableAuthentication = true
+
+	k.HandleFunc("fs.readDirectory", klientfs.ReadDirectory)
+	k.HandleFunc("fs.glob", klientfs.Glob)
+	k.HandleFunc("fs.readFile", klientfs.ReadFile)
+	k.HandleFunc("fs.writeFile", klientfs.WriteFile)
+	k.HandleFunc("fs.uniquePath", klientfs.UniquePath)
+	k.HandleFunc("fs.getInfo", klientfs.GetInfo)
+	k.HandleFunc("fs.setPermissions", klientfs.SetPermissions)
+	k.HandleFunc("fs.remove", klientfs.Remove)
+	k.HandleFunc("fs.rename", klientfs.Rename)
+	k.HandleFunc("fs.createDirectory", klientfs.CreateDirectory)
+	k.HandleFunc("fs.move", klientfs.Move)
+	k.HandleFunc("fs.copy", klientfs.Copy)
+	k.HandleFunc("fs.getDiskInfo", klientfs.GetDiskInfo)
+
+	testServ := httptest.NewServer(k)
+	kiteClient := kite.New("testClient", "0.0.0").NewClient(fmt.Sprintf("%s/kite", testServ.URL))
+
+	err := kiteClient.Dial()
+	if err != nil {
+		return nil, err
+	}
+
+	return kiteClient, nil
+}
 
 // fakeTransport implements Transport; is used in testing Transport requests
 // and mocking responses.
@@ -100,16 +137,52 @@ type errorTransport struct {
 	ErrorResponses map[string]error
 }
 
+func newErrorTransport(m string, e error) *errorTransport {
+	f := newFakeTransport()
+
+	return &errorTransport{
+		fakeTransport: f,
+		ErrorResponses: map[string]error{
+			m: e,
+		},
+	}
+}
+
+func newWriteErrTransport() *errorTransport {
+	return newErrorTransport("fs.writeFile", fuse.EIO)
+}
+
 func (e *errorTransport) Trip(methodName string, req interface{}, res interface{}) error {
 	if err, ok := e.ErrorResponses[methodName]; ok {
+		if transport.IsKiteConnectionErr(err) {
+			return syscall.ECONNREFUSED
+		}
+
 		return err
 	}
 
 	return e.fakeTransport.Trip(methodName, req, res)
 }
 
-func (e *errorTransport) WriteFile(path string, content []byte) error {
+func (e *errorTransport) WriteFile(_ string, content []byte) error {
 	return e.Trip("fs.writeFile", nil, nil)
+}
+
+func (e *errorTransport) GetDiskInfo(_ string) (*transport.GetDiskInfoRes, error) {
+	var res *transport.GetDiskInfoRes
+	return res, e.Trip("fs.getDiskInfo", nil, nil)
+}
+
+func (e *errorTransport) CreateDir(_ string, _ os.FileMode) error {
+	return e.Trip("fs.createDirectory", nil, nil)
+}
+
+func (e *errorTransport) Rename(_, _ string) error {
+	return e.Trip("fs.rename", nil, nil)
+}
+
+func (e *errorTransport) Remove(_ string) error {
+	return e.Trip("fs.remove", nil, nil)
 }
 
 func TestErrorTransport(t *testing.T) {

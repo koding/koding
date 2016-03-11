@@ -258,7 +258,7 @@ module.exports = class NFinderContextMenuController extends KDController
       path  = nodes.splice(1,x).join '/'
       parents.push "/#{path}"
 
-    parents  = _.unique parents.reverse()
+    parents  = _.uniq parents.reverse()
     items    = {}
     root     = "/home/#{nick()}/"
     fileData = fileView.getData()

@@ -167,6 +167,7 @@ func ExampleRDS_CopyDBSnapshot() {
 		SourceDBSnapshotIdentifier: aws.String("String"), // Required
 		TargetDBSnapshotIdentifier: aws.String("String"), // Required
 		CopyTags:                   aws.Bool(true),
+		KmsKeyId:                   aws.String("String"),
 		Tags: []*rds.Tag{
 			{ // Required
 				Key:   aws.String("String"),
@@ -234,10 +235,12 @@ func ExampleRDS_CreateDBCluster() {
 		DBSubnetGroupName:           aws.String("String"),
 		DatabaseName:                aws.String("String"),
 		EngineVersion:               aws.String("String"),
+		KmsKeyId:                    aws.String("String"),
 		OptionGroupName:             aws.String("String"),
 		Port:                        aws.Int64(1),
 		PreferredBackupWindow:      aws.String("String"),
 		PreferredMaintenanceWindow: aws.String("String"),
+		StorageEncrypted:           aws.Bool(true),
 		Tags: []*rds.Tag{
 			{ // Required
 				Key:   aws.String("String"),
@@ -345,6 +348,8 @@ func ExampleRDS_CreateDBInstance() {
 		LicenseModel:       aws.String("String"),
 		MasterUserPassword: aws.String("String"),
 		MasterUsername:     aws.String("String"),
+		MonitoringInterval: aws.Int64(1),
+		MonitoringRoleArn:  aws.String("String"),
 		MultiAZ:            aws.Bool(true),
 		OptionGroupName:    aws.String("String"),
 		Port:               aws.Int64(1),
@@ -392,6 +397,8 @@ func ExampleRDS_CreateDBInstanceReadReplica() {
 		DBInstanceClass:            aws.String("String"),
 		DBSubnetGroupName:          aws.String("String"),
 		Iops:                       aws.Int64(1),
+		MonitoringInterval:         aws.Int64(1),
+		MonitoringRoleArn:          aws.String("String"),
 		OptionGroupName:            aws.String("String"),
 		Port:                       aws.Int64(1),
 		PubliclyAccessible:         aws.Bool(true),
@@ -1759,6 +1766,7 @@ func ExampleRDS_ModifyDBInstance() {
 		CopyTagsToSnapshot:       aws.Bool(true),
 		DBInstanceClass:          aws.String("String"),
 		DBParameterGroupName:     aws.String("String"),
+		DBPortNumber:             aws.Int64(1),
 		DBSecurityGroups: []*string{
 			aws.String("String"), // Required
 			// More values...
@@ -1766,6 +1774,8 @@ func ExampleRDS_ModifyDBInstance() {
 		EngineVersion:              aws.String("String"),
 		Iops:                       aws.Int64(1),
 		MasterUserPassword:         aws.String("String"),
+		MonitoringInterval:         aws.Int64(1),
+		MonitoringRoleArn:          aws.String("String"),
 		MultiAZ:                    aws.Bool(true),
 		NewDBInstanceIdentifier:    aws.String("String"),
 		OptionGroupName:            aws.String("String"),
@@ -2154,6 +2164,7 @@ func ExampleRDS_RestoreDBClusterFromSnapshot() {
 		DBSubnetGroupName: aws.String("String"),
 		DatabaseName:      aws.String("String"),
 		EngineVersion:     aws.String("String"),
+		KmsKeyId:          aws.String("String"),
 		OptionGroupName:   aws.String("String"),
 		Port:              aws.Int64(1),
 		Tags: []*rds.Tag{
@@ -2188,6 +2199,7 @@ func ExampleRDS_RestoreDBClusterToPointInTime() {
 		DBClusterIdentifier:       aws.String("String"), // Required
 		SourceDBClusterIdentifier: aws.String("String"), // Required
 		DBSubnetGroupName:         aws.String("String"),
+		KmsKeyId:                  aws.String("String"),
 		OptionGroupName:           aws.String("String"),
 		Port:                      aws.Int64(1),
 		RestoreToTime:             aws.Time(time.Now()),

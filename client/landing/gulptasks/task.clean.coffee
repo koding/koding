@@ -1,4 +1,3 @@
-gulp    = require 'gulp'
 Promise = require 'bluebird'
 del     = Promise.promisify require 'del'
 

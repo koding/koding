@@ -1,11 +1,9 @@
 kd                          = require 'kd'
 hljs                        = require 'highlight.js'
-Promise                     = require 'bluebird'
+_                           = require 'lodash'
 
 KDListView                  = kd.ListView
 KDModalView                 = kd.ModalView
-KDOverlayView               = kd.OverlayView
-KDNotificationView          = kd.NotificationView
 
 showError                   = require 'app/util/showError'
 applyMarkdown               = require 'app/util/applyMarkdown'
@@ -61,6 +59,21 @@ module.exports = class AccountCredentialList extends KDListView
         Do you want to remove **#{credential.title}** ?
       "
 
+      unless credential.owner
+        description = applyMarkdown "
+          You don't have permission to delete **#{credential.title}**
+          credential, however you can still remove this credential 
+          from your account.
+          \n\n
+          **WARNING!** Removing this credential from your account can cause
+          your stacks or instances stop working properly if they
+          depend on this credential.
+          \n\n
+          Do you want to remove it from your account?
+        "
+        bootstrapped = no
+        removeButtonTitle = 'Remove Access'
+
       removeCredential = =>
         credential.delete (err) =>
           @emit 'ItemDeleted', item  unless showError err
@@ -76,7 +89,7 @@ module.exports = class AccountCredentialList extends KDListView
           overlayClick : yes
         buttons        :
           Remove       :
-            title      : 'Remove Credential'
+            title      : removeButtonTitle ? 'Remove Credential'
             style      : 'solid red medium'
             loader     : yes
             callback   : =>
@@ -123,9 +136,12 @@ module.exports = class AccountCredentialList extends KDListView
     credential.fetchData (err, data) ->
       return if showError err
 
-      data.meta.identifier = credential.identifier
+      { meta } = data
 
-      cred = JSON.stringify data.meta, null, 2
+      meta            = helper.prepareCredentialMeta meta
+      meta.identifier = credential.identifier
+
+      cred = JSON.stringify meta, null, 2
       cred = hljs.highlight('json', cred).value
 
       new KDModalView
@@ -149,6 +165,7 @@ module.exports = class AccountCredentialList extends KDListView
     credential.fetchData (err, data) ->
       return if showError err
 
+      data.meta  = helper.prepareCredentialMeta data.meta
       data.title = credential.title
 
       new AccountCredentialEditModal { provider, credential }, data
@@ -199,3 +216,11 @@ module.exports = class AccountCredentialList extends KDListView
 
         console.warn "Verify failed:", err
         err
+
+
+  helper =
+
+    prepareCredentialMeta: (meta) ->
+
+      delete meta.__rawContent
+      return _.mapValues meta, (val) -> _.unescape val

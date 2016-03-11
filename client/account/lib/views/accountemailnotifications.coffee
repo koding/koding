@@ -38,57 +38,9 @@ module.exports = class AccountEmailNotifications extends KDView
     @on 'EmailPrefSwitched', (flag, state) => @["handle#{flag.capitalize()}State"]? state
 
 
-  privateMessageFieldAdded: (state) ->
-
-    {privateMessage} = @fields
-
-    @list.addSubView privateMessage.subSettings = new KDCustomHTMLView
-      tagName  : 'li'
-      cssClass : "sub#{unless state then ' hidden' else ''}"
-
-    privateMessage.formView.setClass 'has-sub'  if state
-
-    {subSettings} = privateMessage
-
-    @notificationDelay =  new KDSelectBox
-      defaultValue  : 5
-      selectOptions : [
-        { title : '1 minute',     value : 1   }
-        { title : '5 minutes',    value : 5   }
-        { title : '10 minutes',   value : 10  }
-        { title : 'half an hour', value : 30  }
-        { title : '1 hour',       value : 60  }
-      ]
-      callback      : (value) ->
-      	prefs = {pmNotificationDelay: value}
-
-      	whoami().setEmailPreferences prefs, (err) ->
-          kd.warn "Could not update notification delay", err if err
-
-    subSettings.addSubView @notificationDelay
-
-    subSettings.addSubView new KDCustomHTMLView
-      partial  : 'Send me an email after'
-      cssClass : 'title'
-
-  pmNotificationDelayFieldAdded: (value) -> @notificationDelay.setValue value or 5
-
-
   handleGlobalState: (state) ->
 
-    @handleDependency ['daily', 'privateMessage', 'comment', 'likeActivities', 'mention', 'marketing'], state
-
-
-  handlePrivateMessageState: (state) ->
-
-    {privateMessage} = @fields
-
-    if state
-      privateMessage.formView.setClass 'has-sub'
-      privateMessage.subSettings.show()
-    else
-      privateMessage.formView.unsetClass 'has-sub'
-      privateMessage.subSettings.hide()
+    @handleDependency ['marketing'], state
 
 
   putContents: (frequency) ->
@@ -96,20 +48,8 @@ module.exports = class AccountEmailNotifications extends KDView
     @fields = fields =
       global              :
         title             : 'Send me email notifications'
-      daily               :
-        title             : 'Send me a daily digest of activity on my posts'
-      privateMessage      :
-        title             : 'When someone sends me a private message'
-      comment             :
-        title             : 'When my post gets a new comment'
-      likeActivities      :
-        title             : 'When someone likes my content'
-      mention             :
-        title             : 'When someone mentions me'
       marketing           :
         title             : 'When Koding has member updates <small>Like VM security updates, privacy updates, inactive account notices, offers and campaigns.</small>'
-      pmNotificationDelay :
-        title             : ''
 
     view = this
 

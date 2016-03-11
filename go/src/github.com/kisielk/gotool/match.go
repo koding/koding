@@ -40,7 +40,13 @@ import (
 	"strings"
 )
 
-var buildContext = build.Default
+var DefaultContext = Context{
+	BuildContext: build.Default,
+}
+
+type Context struct {
+	BuildContext build.Context
+}
 
 // matchPattern(pattern)(name) reports whether
 // name matches pattern.  Pattern is a limited glob
@@ -59,7 +65,7 @@ func matchPattern(pattern string) func(name string) bool {
 	}
 }
 
-func matchPackages(pattern string) []string {
+func (c Context) matchPackages(pattern string) []string {
 	match := func(string) bool { return true }
 	if pattern != "all" && pattern != "std" {
 		match = matchPattern(pattern)
@@ -68,12 +74,12 @@ func matchPackages(pattern string) []string {
 	have := map[string]bool{
 		"builtin": true, // ignore pseudo-package that exists only for documentation
 	}
-	if !buildContext.CgoEnabled {
+	if !c.BuildContext.CgoEnabled {
 		have["runtime/cgo"] = true // ignore during walk
 	}
 	var pkgs []string
 
-	for _, src := range buildContext.SrcDirs() {
+	for _, src := range c.BuildContext.SrcDirs() {
 		if pattern == "std" && src != gorootSrcPkg {
 			continue
 		}
@@ -100,7 +106,7 @@ func matchPackages(pattern string) []string {
 			if !match(name) {
 				return nil
 			}
-			_, err = buildContext.ImportDir(path, 0)
+			_, err = c.BuildContext.ImportDir(path, 0)
 			if err != nil {
 				if _, noGo := err.(*build.NoGoError); noGo {
 					return nil
@@ -115,7 +121,7 @@ func matchPackages(pattern string) []string {
 
 // importPathsNoDotExpansion returns the import paths to use for the given
 // command line, but it does no ... expansion.
-func importPathsNoDotExpansion(args []string) []string {
+func (c Context) importPathsNoDotExpansion(args []string) []string {
 	if len(args) == 0 {
 		return []string{"."}
 	}
@@ -138,7 +144,7 @@ func importPathsNoDotExpansion(args []string) []string {
 			a = path.Clean(a)
 		}
 		if a == "all" || a == "std" {
-			out = append(out, allPackages(a)...)
+			out = append(out, c.allPackages(a)...)
 			continue
 		}
 		out = append(out, a)
@@ -146,16 +152,21 @@ func importPathsNoDotExpansion(args []string) []string {
 	return out
 }
 
-// importPaths returns the import paths to use for the given command line.
-func importPaths(args []string) []string {
-	args = importPathsNoDotExpansion(args)
+// ImportPaths returns the import paths to use for the given arguments.
+//
+// The path "all" is expanded to all packages in $GOPATH and $GOROOT.
+// The path "std" is expanded to all packages in the Go standard library.
+// The string "..." is treated as a wildcard within a path.
+// Relative import paths are not converted to full import paths.
+func (c Context) ImportPaths(args []string) []string {
+	args = c.importPathsNoDotExpansion(args)
 	var out []string
 	for _, a := range args {
 		if strings.Contains(a, "...") {
 			if build.IsLocalImport(a) {
 				out = append(out, allPackagesInFS(a)...)
 			} else {
-				out = append(out, allPackages(a)...)
+				out = append(out, c.allPackages(a)...)
 			}
 			continue
 		}
@@ -168,8 +179,8 @@ func importPaths(args []string) []string {
 // under the $GOPATH directories and $GOROOT matching pattern.
 // The pattern is either "all" (all packages), "std" (standard packages)
 // or a path including "...".
-func allPackages(pattern string) []string {
-	pkgs := matchPackages(pattern)
+func (c Context) allPackages(pattern string) []string {
+	pkgs := c.matchPackages(pattern)
 	if len(pkgs) == 0 {
 		fmt.Fprintf(os.Stderr, "warning: %q matched no packages\n", pattern)
 	}

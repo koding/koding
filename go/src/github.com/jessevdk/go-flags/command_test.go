@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -94,7 +95,135 @@ func TestCommandFlagOrder2(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, ErrUnknownFlag, "unknown flag `v'", &opts, "cmd", "-v", "-g")
+	assertParseSuccess(t, &opts, "cmd", "-v", "-g")
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if !opts.Command.G {
+		t.Errorf("Expected Command.G to be true")
+	}
+}
+
+func TestCommandFlagOrderSub(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command struct {
+			G bool `short:"g"`
+
+			SubCommand struct {
+				B bool `short:"b"`
+			} `command:"sub"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cmd", "sub", "-v", "-g", "-b")
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if !opts.Command.G {
+		t.Errorf("Expected Command.G to be true")
+	}
+
+	if !opts.Command.SubCommand.B {
+		t.Errorf("Expected Command.SubCommand.B to be true")
+	}
+}
+
+func TestCommandFlagOverride1(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command struct {
+			Value bool `short:"v"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "-v", "cmd")
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if opts.Command.Value {
+		t.Errorf("Expected Command.Value to be false")
+	}
+}
+
+func TestCommandFlagOverride2(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command struct {
+			Value bool `short:"v"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cmd", "-v")
+
+	if opts.Value {
+		t.Errorf("Expected Value to be false")
+	}
+
+	if !opts.Command.Value {
+		t.Errorf("Expected Command.Value to be true")
+	}
+}
+
+func TestCommandFlagOverrideSub(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command struct {
+			Value bool `short:"v"`
+
+			SubCommand struct {
+				Value bool `short:"v"`
+			} `command:"sub"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
+
+	if opts.Value {
+		t.Errorf("Expected Value to be false")
+	}
+
+	if opts.Command.Value {
+		t.Errorf("Expected Command.Value to be false")
+	}
+
+	if !opts.Command.SubCommand.Value {
+		t.Errorf("Expected Command.Value to be true")
+	}
+}
+
+func TestCommandFlagOverrideSub2(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command struct {
+			Value bool `short:"v"`
+
+			SubCommand struct {
+				G bool `short:"g"`
+			} `command:"sub"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
+
+	if opts.Value {
+		t.Errorf("Expected Value to be false")
+	}
+
+	if !opts.Command.Value {
+		t.Errorf("Expected Command.Value to be true")
+	}
 }
 
 func TestCommandEstimate(t *testing.T) {
@@ -112,6 +241,23 @@ func TestCommandEstimate(t *testing.T) {
 	_, err := p.ParseArgs([]string{})
 
 	assertError(t, err, ErrCommandRequired, "Please specify one command of: add or remove")
+}
+
+func TestCommandEstimate2(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Cmd1 struct {
+		} `command:"remove"`
+
+		Cmd2 struct {
+		} `command:"add"`
+	}{}
+
+	p := NewParser(&opts, None)
+	_, err := p.ParseArgs([]string{"rmive"})
+
+	assertError(t, err, ErrUnknownCommand, "Unknown command `rmive', did you mean `remove'?")
 }
 
 type testCommand struct {
@@ -265,7 +411,7 @@ func TestRequiredOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, ErrRequired, "the required flag `-v' was not specified", &opts, "cmd")
+	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts, "cmd")
 }
 
 func TestRequiredAllOnCommand(t *testing.T) {
@@ -278,20 +424,20 @@ func TestRequiredAllOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, ErrRequired, "the required flags `-v' and `--missing' were not specified", &opts, "cmd")
+	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", defaultLongOptDelimiter, defaultShortOptDelimiter), &opts, "cmd")
 }
 
 func TestDefaultOnCommand(t *testing.T) {
 	var opts = struct {
 		Command struct {
-			G bool `short:"g" default:"true"`
+			G string `short:"g" default:"value"`
 		} `command:"cmd"`
 	}{}
 
 	assertParseSuccess(t, &opts, "cmd")
 
-	if !opts.Command.G {
-		t.Errorf("Expected G to be true")
+	if opts.Command.G != "value" {
+		t.Errorf("Expected G to be \"value\"")
 	}
 }
 
@@ -318,5 +464,81 @@ func TestSubcommandsOptional(t *testing.T) {
 
 	if !opts.Value {
 		t.Errorf("Expected Value to be true")
+	}
+}
+
+func TestCommandAlias(t *testing.T) {
+	var opts = struct {
+		Command struct {
+			G string `short:"g" default:"value"`
+		} `command:"cmd" alias:"cm"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cm")
+
+	if opts.Command.G != "value" {
+		t.Errorf("Expected G to be \"value\"")
+	}
+}
+
+func TestSubCommandFindOptionByLongFlag(t *testing.T) {
+	var opts struct {
+		Testing bool `long:"testing" description:"Testing"`
+	}
+
+	var cmd struct {
+		Other bool `long:"other" description:"Other"`
+	}
+
+	p := NewParser(&opts, Default)
+	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
+
+	opt := c.FindOptionByLongName("other")
+
+	if opt == nil {
+		t.Errorf("Expected option, but found none")
+	}
+
+	assertString(t, opt.LongName, "other")
+
+	opt = c.FindOptionByLongName("testing")
+
+	if opt == nil {
+		t.Errorf("Expected option, but found none")
+	}
+
+	assertString(t, opt.LongName, "testing")
+}
+
+func TestSubCommandFindOptionByShortFlag(t *testing.T) {
+	var opts struct {
+		Testing bool `short:"t" description:"Testing"`
+	}
+
+	var cmd struct {
+		Other bool `short:"o" description:"Other"`
+	}
+
+	p := NewParser(&opts, Default)
+	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
+
+	opt := c.FindOptionByShortName('o')
+
+	if opt == nil {
+		t.Errorf("Expected option, but found none")
+	}
+
+	if opt.ShortName != 'o' {
+		t.Errorf("Expected 'o', but got %v", opt.ShortName)
+	}
+
+	opt = c.FindOptionByShortName('t')
+
+	if opt == nil {
+		t.Errorf("Expected option, but found none")
+	}
+
+	if opt.ShortName != 't' {
+		t.Errorf("Expected 'o', but got %v", opt.ShortName)
 	}
 }

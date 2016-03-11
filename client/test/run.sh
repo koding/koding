@@ -8,6 +8,9 @@ fi
 
 cd $(dirname $0)
 
+LOG_DIR=$(pwd)/../../.logs
+mkdir -p $LOG_DIR
+
 NIGHTWATCH_BIN="../node_modules/.bin/nightwatch"
 NIGHTWATCH_CMD="$NIGHTWATCH_BIN --config ../.nightwatch.json $NIGHTWATCH_OPTIONS"
 
@@ -17,6 +20,40 @@ REVISION=$(node -e "process.stdout.write(require('../.config.json').rev)")
 export REVISION=${REVISION:0:7}
 
 make --quiet compile
+
+function start_selenium_server() {
+  RUN_SELENIUM_OUTPUT_HOST="$LOG_DIR/selenium-host.log"
+  RUN_SELENIUM_OUTPUT_PARTICIPANT="$LOG_DIR/selenium-participant.log"
+
+  java -jar vendor/selenium-server-standalone.jar \
+       -host 0.0.0.0 \
+       -port 42420 \
+       > $RUN_SELENIUM_OUTPUT_HOST 2>&1 &
+
+  RUN_SELENIUM_SERVER_PID_HOST=$!
+
+  echo "selenium-server (host): pid: $RUN_SELENIUM_SERVER_PID_HOST out: $RUN_SELENIUM_OUTPUT_HOST"
+
+  java -jar vendor/selenium-server-standalone.jar \
+       -host 0.0.0.0 \
+       -port 42421 \
+       > $RUN_SELENIUM_OUTPUT_PARTICIPANT 2>&1 &
+
+  RUN_SELENIUM_SERVER_PID_PARTICIPANT=$!
+
+  echo "selenium-server (participant) pid: $RUN_SELENIUM_SERVER_PID_PARTICIPANT out: $RUN_SELENIUM_OUTPUT_PARTICIPANT"
+
+  echo
+
+  sleep 5
+}
+
+function stop_selenium_server() {
+  PID_HOST=$RUN_SELENIUM_SERVER_PID_HOST
+  PID_PARTICIPANT=$RUN_SELENIUM_SERVER_PID_PARTICIPANT
+  ps --pid $PID_HOST &> /dev/null && kill $PID_HOST
+  ps --pid $PID_PARTICIPANT &> /dev/null && kill $PID_PARTICIPANT
+}
 
 function get_test_group_path() {
   echo $BUILD_DIR/$TEST_GROUP
@@ -74,6 +111,21 @@ function cleanup() {
   fi
 }
 
+if [ "$1" == "--names" ]; then
+  export RUN_MODE_NAMES="true"
+  shift
+fi
+
+if [ -z "$RUN_MODE_NAMES" ]; then
+ if [ $(hostname) != "wercker-test-instance" ]; then
+   if [ -z "$RUN_SELENIUM_SERVER_STARTED" ]; then
+     trap stop_selenium_server INT
+     start_selenium_server
+     export RUN_SELENIUM_SERVER_STARTED=1
+   fi
+ fi
+fi
+
 RESERVED_TEST_CASE_NAMES="
 before beforeEach \
 after afterEach \
@@ -92,6 +144,12 @@ if [ -n "$TEST_CASE" ]; then
   for NAME in $RESERVED_TEST_CASE_NAMES; do
     [[ "$TEST_CASE" = "$NAME" ]] && exit 0
   done
+
+  if [ -n "$RUN_MODE_NAMES" ]; then
+    echo $TEST_GROUP/$TEST_SUITE/$TEST_CASE
+    exit 0
+  fi
+
   if [ -n "$IGNORED_TEST_CASES" ]; then
     if echo -e "$IGNORED_TEST_CASES" | grep --quiet $TEST_GROUP/$TEST_SUITE/$TEST_CASE; then
       exit 0
@@ -108,3 +166,13 @@ elif [ -n "$TEST_GROUP" ]; then
 else
   run_all_test_groups
 fi
+
+EXIT_CODE=$?
+
+if [ $(hostname) != "wercker-test-instance" ]; then
+  if [ -n "$RUN_SELENIUM_SERVER_STARTED" ]; then
+    stop_selenium_server
+  fi
+fi
+
+exit $EXIT_CODE

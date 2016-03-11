@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"koding/klient/fs"
 	"koding/klient/gatherrun"
 	"koding/klient/info"
+	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
 	"koding/klient/protocol"
 	"koding/klient/remote"
@@ -103,9 +105,8 @@ type KlientConfig struct {
 
 	VagrantHome string
 
-	TunnelServerAddr string
-	TunnelLocalAddr  string
-	NoTunnel         bool
+	TunnelName    string
+	TunnelKiteURL string
 }
 
 // NewKlient returns a new Klient instance
@@ -158,12 +159,18 @@ func NewKlient(conf *KlientConfig) *Klient {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
+	vagrantOpts := &vagrant.Options{
+		Home: conf.VagrantHome,
+		DB:   db, // nil is ok, fallbacks to in-memory storage
+		Log:  k.Log,
+	}
+
 	kl := &Klient{
 		kite:         k,
 		collab:       collaboration.New(db), // nil is ok, fallbacks to in memory storage
 		storage:      storage.New(db),       // nil is ok, fallbacks to in memory storage
-		tunnelclient: klienttunnel.NewClient(db),
-		vagrant:      vagrant.NewHandlers(conf.VagrantHome),
+		tunnelclient: klienttunnel.NewClient(db, k.Log),
+		vagrant:      vagrant.NewHandlers(vagrantOpts),
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,
@@ -218,14 +225,8 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.unshare", k.collab.Unshare)
 	k.kite.HandleFunc("klient.shared", k.collab.Shared)
 
-	// Remote handles interaction specific to remote Klient machines.
-	k.kite.HandleFunc("remote.cacheFolder", k.remote.CacheFolderHandler)
-	k.kite.HandleFunc("remote.list", k.remote.ListHandler)
-	k.kite.HandleFunc("remote.mounts", k.remote.MountsHandler)
-	k.kite.HandleFunc("remote.mountFolder", k.remote.MountFolderHandler)
-	k.kite.HandleFunc("remote.unmountFolder", k.remote.UnmountFolderHandler)
-	k.kite.HandleFunc("remote.sshKeysAdd", k.remote.SSHKeyAddHandler)
-	k.kite.HandleFunc("remote.exec", k.remote.ExecHandler)
+	// Adds the remote.* methods, depending on OS.
+	k.addRemoteHandlers()
 
 	// SSH keys
 	k.kite.HandleFunc("sshkeys.list", sshkeys.List)
@@ -376,13 +377,34 @@ func (k *Klient) Run() {
 		panic(errors.New("This binary of Klient cannot run on a Koding provided VM"))
 	}
 
-	// TODO(rjeczalik): enable it after TMS-2203
-	// useTunnel := !isKoding && !k.config.NoTunnel
-	useTunnel := false
+	// Attempt to get the IP, and retry up to 10 times with 5 second pauses between
+	// retries.
+	ip, err := publicip.PublicIPRetry(10, 5*time.Second, k.log)
+	if err != nil {
+		panic(err)
+	}
 
-	// TODO(rjeczalik): check if k.kite.Config.Port is accessible from outside,
-	// don't start tunnel for managed hosts with public IP.
-	if err := k.register(useTunnel); err != nil {
+	addr := ip.String() + ":" + strconv.Itoa(k.config.Port)
+
+	// If tunnel name is set explicitely, use tunnel by default.
+	useTunnel := k.config.TunnelName != ""
+
+	// Check if public IP is not reachable and use tunnel when we're not
+	// on a Koding machine.
+	if !isKoding && !useTunnel {
+		k.log.Debug("testing reachability of %q", addr)
+
+		ok, err := publicip.IsReachableRetry(addr, 10, 5*time.Second, k.log)
+		if err != nil {
+			k.log.Warning("unable to test public IP: %s", err)
+		} else {
+			useTunnel = !ok
+		}
+
+		k.log.Debug("address %q is reachable: %t", addr, ok)
+	}
+
+	if err := k.register(addr, useTunnel); err != nil {
 		panic(err)
 	}
 
@@ -398,12 +420,7 @@ func (k *Klient) Run() {
 	// Initializing the remote re-establishes any previously-running remote
 	// connections, such as mounted folders. This needs to be run *after*
 	// Klient is setup and running, to get a valid connection to Kontrol.
-	go func() {
-		err := k.remote.Initialize()
-		if err != nil {
-			k.log.Error("Failed to initialize Remote. Error: %s", err.Error())
-		}
-	}()
+	go k.initRemote()
 
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 

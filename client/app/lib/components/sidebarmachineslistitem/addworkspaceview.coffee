@@ -1,7 +1,6 @@
 kd                = require 'kd'
 React             = require 'kd-react'
 ReactDOM          = require 'react-dom'
-Link              = require 'app/components/common/link'
 KeyboardKeys      = require 'app/constants/keyboardKeys'
 IDEHelpers        = require 'ide/idehelpers'
 EnvironmentFlux   = require 'app/flux/environment'

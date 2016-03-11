@@ -1,8 +1,8 @@
 package perigee
 
 import (
-  "fmt"
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -121,15 +121,15 @@ func TestCustomHeaders(t *testing.T) {
 	}
 
 	if contentType != "x-application/vb" {
-		t.Fatalf("I expected x-application/vb; got ", contentType)
+		t.Fatalf("I expected x-application/vb; got %v", contentType)
 	}
 
 	if contentLength != "5" {
-		t.Fatalf("I expected 5 byte content length; got ", contentLength)
+		t.Fatalf("I expected 5 byte content length; got %v", contentLength)
 	}
 
 	if accept != "x-application/c" {
-		t.Fatalf("I expected x-application/c; got ", accept)
+		t.Fatalf("I expected x-application/c; got %v", accept)
 	}
 }
 
@@ -166,7 +166,7 @@ func TestJson(t *testing.T) {
 }
 
 func TestSetHeaders(t *testing.T) {
-  var wasCalled bool
+	var wasCalled bool
 	handler := http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Hi"))
@@ -174,31 +174,98 @@ func TestSetHeaders(t *testing.T) {
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-  _, err := Request("GET", ts.URL, Options{
-    SetHeaders: func(r *http.Request) error {
-      wasCalled = true
-      return nil
-    },
-  })
+	_, err := Request("GET", ts.URL, Options{
+		SetHeaders: func(r *http.Request) error {
+			wasCalled = true
+			return nil
+		},
+	})
 
-  if err != nil {
-    t.Fatal(err)
-  }
+	if err != nil {
+		t.Fatal(err)
+	}
 
-  if !wasCalled {
-    t.Fatal("I expected header setter callback to be called, but it wasn't")
-  }
+	if !wasCalled {
+		t.Fatal("I expected header setter callback to be called, but it wasn't")
+	}
 
-  myError := fmt.Errorf("boo")
+	myError := fmt.Errorf("boo")
 
-  _, err = Request("GET", ts.URL, Options{
-    SetHeaders: func(r *http.Request) error {
-      return myError
-    },
-  })
+	_, err = Request("GET", ts.URL, Options{
+		SetHeaders: func(r *http.Request) error {
+			return myError
+		},
+	})
 
-  if err != myError {
-    t.Fatal("I expected errors to propegate back to the caller.")
-  }
+	if err != myError {
+		t.Fatal("I expected errors to propegate back to the caller.")
+	}
 }
 
+func TestBodilessMethodsAreSentWithoutContentHeaders(t *testing.T) {
+	var h map[string][]string
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h = r.Header
+	})
+	ts := httptest.NewServer(handler)
+	defer ts.Close()
+
+	_, err := Request("GET", ts.URL, Options{})
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if len(h["Content-Type"]) != 0 {
+		t.Fatalf("I expected nothing for Content-Type but got %v", h["Content-Type"])
+	}
+
+	if len(h["Content-Length"]) != 0 {
+		t.Fatalf("I expected nothing for Content-Length but got %v", h["Content-Length"])
+	}
+}
+
+func TestInferContentType(t *testing.T) {
+	var h http.Header
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h = r.Header
+	})
+	ts := httptest.NewServer(handler)
+	defer ts.Close()
+
+	// By default, the content-type defaults to application/json when a ReqBody is provided.
+	_, err := Request("GET", ts.URL, Options{
+		ReqBody: map[string]string{"key": "value"},
+	})
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	if contentType := h.Get("Content-Type"); contentType != "application/json" {
+		t.Errorf("Expected application/json, but was [%s]", contentType)
+	}
+
+	// If a content type is specified explicitly by ContentType, that should be used instead.
+	_, err = Request("GET", ts.URL, Options{
+		ReqBody:     strings.NewReader("wat"),
+		ContentType: "text/plain",
+	})
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	if contentType := h.Get("Content-Type"); contentType != "text/plain" {
+		t.Errorf("Expected text/plain, but was [%s]", contentType)
+	}
+
+	// If explicitly told to do so, leave content-type blank
+	_, err = Request("GET", ts.URL, Options{
+		ReqBody:         strings.NewReader("wat"),
+		OmitContentType: true,
+	})
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	if contentType := h.Get("Content-Type"); contentType != "" {
+		t.Errorf("Expected blank content type, but was [%s]", contentType)
+	}
+}

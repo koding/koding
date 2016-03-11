@@ -15,6 +15,13 @@ module.exports = class JCredential extends jraphical.Module
   { permit }           = require '../group/permissionset'
   Validators           = require '../group/validators'
 
+  @ACCESSLEVEL = ACCESSLEVEL = {
+    WRITE      : 'write'
+    READ       : 'read'
+    LIST       : 'list'
+    PRIVATE    : 'private'
+  }
+
   @trait __dirname, '../../traits/protected'
 
   @share()
@@ -65,6 +72,7 @@ module.exports = class JCredential extends jraphical.Module
     indexes           :
       identifier      : 'unique'
       fields          : 'sparse'
+      accessLevel     : 'sparse'
 
     schema            :
 
@@ -94,6 +102,32 @@ module.exports = class JCredential extends jraphical.Module
         type          : Boolean
         default       : -> no
 
+      # accessLevel is defined for admins if a credential shared with
+      # a group. scopes can be;
+      #
+      #  write   : allows admins to update this credential
+      #  read    : allows admins to read credential data
+      #  list    : allows admins to list this credential (some)
+      #  private : even admins can not interact with this credential
+      #            only owners of the credential can access/interact
+      #
+      #  write > read > list > private
+      #
+      #  if read used, admins can read but not update
+      #  if write used, admins can read and update and so on.
+      #
+      accessLevel     :
+        type          : String
+        enum          : ['Wrong access level specified!',
+          [
+            ACCESSLEVEL.WRITE
+            ACCESSLEVEL.READ
+            ACCESSLEVEL.LIST
+            ACCESSLEVEL.PRIVATE
+          ]
+        ]
+        default       : -> ACCESSLEVEL.PRIVATE
+
     relationships     :
 
       data            :
@@ -110,6 +144,40 @@ module.exports = class JCredential extends jraphical.Module
 
     callback err
     return true
+
+
+  accessValidator = (accessLevel) -> (client, group, rest..., callback) ->
+
+    # using any validator to check permission based on the role in the group
+    Validators.any client, group, rest..., (err, allowed) =>
+
+      # you first need to have access on the active group
+      # if you are not allowed we stop here
+      if err or not allowed
+        return callback err, allowed
+
+      deny = -> callback new KodingError 'Access denied'
+
+      # if this is an old credential which doesn't have any accessLevel
+      # defined on it, we are denying all requests to it
+      return deny()  unless currentLevel = @getAt 'accessLevel'
+
+      # if you have access then we need to check
+      # if document allows provided accessLevel
+
+      { WRITE, READ, LIST, PRIVATE } = ACCESSLEVEL
+
+      return deny()  if currentLevel is PRIVATE
+
+      switch accessLevel
+        when WRITE
+          return deny()  unless currentLevel is  WRITE
+        when READ
+          return deny()  unless currentLevel in [WRITE, READ]
+        when LIST
+          return deny()  unless currentLevel in [WRITE, READ, LIST]
+
+      return callback null, yes
 
 
   @create = permit 'create credential',
@@ -176,10 +244,9 @@ module.exports = class JCredential extends jraphical.Module
       @fetchByIdentifier client, identifier, callback
 
 
-  fetchRelationships = (options, callback) ->
+  fetchRolesAndGroup = (client, callback) ->
 
     try
-      { relSelector, client } = options
       { context: { group: slug }, connection: { delegate } } = client
     catch e
       return callback new KodingError 'Insufficient arguments provided', e
@@ -193,18 +260,26 @@ module.exports = class JCredential extends jraphical.Module
       group.fetchRolesByAccount delegate, (err, roles = []) ->
         return callback err  if err
 
-        if 'admin' in roles
-          relSelector['$or'] = [
-            { sourceId    : delegate.getId() }
-            {
-              'data.role' : 'admin'
-              sourceId    : group.getId()
-            }
-          ]
-        else
-          relSelector.sourceId = delegate.getId()
+        callback err, { group, roles }
 
-        Relationship.someData relSelector, { targetId: 1, as: 1 }, callback
+
+  fetchRelationships = ({ selector, group, delegate }, callback) ->
+
+    relSelector = { targetName: 'JCredential' }
+    relOptions  = { targetId: 1, sourceId: 1, as: 1 }
+
+    if selector.as? and selector.as in ['owner', 'user']
+      relSelector.as = selector.as
+      delete selector.as
+
+    # Find all the documents shared with the delegate or group ~ GG
+    relSelector.sourceId = {
+      $in: [ delegate.getId(), group.getId() ]
+    }
+
+    Relationship.someData relSelector, relOptions, (err, cursor) ->
+      return callback err  if err?
+      cursor.toArray callback
 
 
   @some$ = permit 'list credentials',
@@ -217,24 +292,40 @@ module.exports = class JCredential extends jraphical.Module
       { delegate } = client.connection
       items        = []
 
-      relSelector = { targetName: 'JCredential' }
+      fetchRolesAndGroup client, (err, res) =>
+        return callback err  if err
 
-      if selector.as? and selector.as in ['owner', 'user']
-        relSelector.as = selector.as
-        delete selector.as
+        { group, roles } = res
 
-      fetchRelationships { client, relSelector }, (err, cursor) =>
-        return callback err  if err?
+        fetchRelationships { selector, group, delegate }, (err, rels) =>
 
-        cursor.toArray (err, arr) =>
+          if err or not rels
+            return callback err ? new KodingError 'Failed to fetch credentials'
 
-          map = arr.reduce (memo, doc) ->
-            memo[doc.targetId] = doc.as
+          # if user doesn't have admin roles exclude all the items shared with
+          # the group because regular users do not have rights to list those
+          unless 'admin' in roles
+            groupId = group.getId()
+            rels    = rels.filter (rel) -> not groupId.equals rel.sourceId
+
+          map = rels.reduce (memo, doc) ->
+            memo[doc.targetId] ?= doc.as
+            memo[doc.targetId]  = 'owner'  if doc.as is 'owner'
             memo
           , {}
 
           selector    ?= {}
-          selector._id = { $in: (t.targetId for t in arr) }
+          selector._id = { $in: (t.targetId for t in rels) }
+
+          # exclude all private credentials from the list ~ GG
+          selector.$and ?= []
+          selector.$and  = [] unless Array.isArray selector.$and
+          selector.$and.push {
+            $or: [
+              { originId    : delegate.getId() }
+              { accessLevel : { $ne: ACCESSLEVEL.PRIVATE } }
+            ]
+          }
 
           @some selector, options, (err, items) ->
             return callback err  if err?
@@ -248,8 +339,12 @@ module.exports = class JCredential extends jraphical.Module
   fetchUsers: permit
 
     advanced: [
-      { permission: 'modify credential', superadmin: yes }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'modify credential'
+        validateWith : accessValidator ACCESSLEVEL.READ
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: (client, callback) ->
@@ -273,7 +368,7 @@ module.exports = class JCredential extends jraphical.Module
             callback null, []
 
 
-  setPermissionFor: (target, { user, owner, role }, callback) ->
+  setPermissionFor: (target, { user, owner, accessLevel }, callback) ->
 
     Relationship.remove
       targetId : @getId()
@@ -281,9 +376,13 @@ module.exports = class JCredential extends jraphical.Module
     , (err) =>
 
       if user
-        options      = { as: if owner then 'owner' else 'user' }
-        options.data = { role }  if role
-        target.addCredential this, options, (err) -> callback err
+        options = { as: if owner then 'owner' else 'user' }
+        if accessLevel
+          @update { $set: { accessLevel } }, (err) =>
+            return callback err  if err?
+            target.addCredential this, options, callback
+        else
+          target.addCredential this, options, callback
       else
         callback err
 
@@ -291,7 +390,7 @@ module.exports = class JCredential extends jraphical.Module
   shareWith: (client, options, callback) ->
 
     { delegate } = client.connection
-    { target, user, owner, role } = options
+    { target, user, owner, accessLevel } = options
     user ?= yes
 
     # Owners cannot unassign them from a credential
@@ -314,7 +413,7 @@ module.exports = class JCredential extends jraphical.Module
           @setPermissionFor account, { user, owner }, callback
 
       else if target instanceof JGroup
-        @setPermissionFor target, { user, owner, role }, callback
+        @setPermissionFor target, { user, owner, accessLevel }, callback
 
       else
         callback new KodingError 'Target does not support credentials.'
@@ -328,8 +427,12 @@ module.exports = class JCredential extends jraphical.Module
   shareWith$: permit
 
     advanced: [
-      { permission: 'modify credential', superadmin: yes }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'modify credential'
+        validateWith : accessValidator ACCESSLEVEL.WRITE
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: JCredential::shareWith
@@ -365,8 +468,12 @@ module.exports = class JCredential extends jraphical.Module
   clone: permit
 
     advanced: [
-      # { permission: 'modify credential' }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'modify credential'
+        validateWith : accessValidator ACCESSLEVEL.READ
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: (client, callback) ->
@@ -417,8 +524,12 @@ module.exports = class JCredential extends jraphical.Module
   fetchData$: permit
 
     advanced: [
-      { permission: 'modify credential', superadmin: yes }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'modify credential'
+        validateWith : accessValidator ACCESSLEVEL.READ
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: (client, callback) ->
@@ -429,8 +540,12 @@ module.exports = class JCredential extends jraphical.Module
   update$: permit
 
     advanced: [
-      { permission: 'modify credential', superadmin: yes }
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'modify credential'
+        validateWith : accessValidator ACCESSLEVEL.WRITE
+      }
+      { permission   : 'modify credential', superadmin: yes }
     ]
 
     success: (client, options, callback) ->
@@ -442,7 +557,10 @@ module.exports = class JCredential extends jraphical.Module
 
       title ?= @title
 
-      @update { $set : { title } }, (err) =>
+      if @provider in ['custom', 'userInput']
+        fields = if meta then (Object.keys meta) else []
+
+      @update { $set : { title, fields } }, (err) =>
         return callback err  if err?
 
         if meta?

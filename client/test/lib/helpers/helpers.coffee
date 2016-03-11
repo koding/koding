@@ -10,10 +10,10 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 
 module.exports =
 
-  beginTest: (browser, user) ->
+  beginTest: (browser, user, url) ->
 
-    url = @getUrl()
-    user ?= utils.getUser()
+    url  or= @getUrl()
+    user  ?= utils.getUser()
 
     browser.url url
     browser.resizeWindow 1440, 900
@@ -51,6 +51,8 @@ module.exports =
         .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
 
     browser
+      .waitForElementVisible  '[testpath=koding-solo-login]', 50000
+      .click                  '[testpath=koding-solo-login]'
       .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
@@ -80,33 +82,17 @@ module.exports =
       if HUBSPOT
         browser.waitForElementVisible  '.hero.block .container', 20000
       else
-        browser.waitForElementVisible  '.login-screen', 30000 # Assertion
+        browser.waitForElementVisible  '.TeamsModal--select', 30000 # Assertion
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
 
-    url = @getUrl()
-    browser.url url
-
-    homePageSelector = '.hero.block .container'
-
-    if HUBSPOT
-      browser
-        .waitForElementVisible  homePageSelector, 20000
-        .waitForElementVisible  "#{homePageSelector} a[href='/Register']", 20000
-        .click                  "#{homePageSelector} a[href='/Register']"
-        .pause                  3000
-        .waitForElementVisible  '.form-area .main-part', 20000
-        .setValue               '.login-form .email input[name=email]', user.email
-        .setValue               '.login-form .password input[name=password]', user.password
-    else
-      browser
-        .url                    "#{url}/Register"
-        .pause                  3000
-        .setValue               'input[testpath=register-form-email]', user.email
-        .setValue               'input[testpath=register-password]', user.password
-
-    browser.click       '[testpath=signup-button]'
+    browser
+      .url                    "#{@getUrl()}/RegisterForTests"
+      .waitForElementVisible  '.login-screen.register', 30000 # Assertion
+      .setValue               'input[testpath=register-form-email]', user.email
+      .setValue               'input[testpath=register-password]', user.password
+      .click                  '[testpath=signup-button]'
 
 
   attemptEnterUsernameOnRegister: (browser, user) ->
@@ -289,30 +275,25 @@ module.exports =
       .waitForElementPresent   '.context-list-wrapper', 50000
 
 
-  createFile: (browser, user, selector, folderName) ->
+  createFile: (browser, user, selector, folderName, fileName) ->
 
-    if not selector
-      selector = 'li.new-file'
-
-    if not folderName
-      folderName = 'Web'
+    selector   or= 'li.new-file'
+    folderName or= 'Web'
+    fileName   or= "#{@getFakeText().split(' ')[0]}.txt"
+    folderPath = "/home/#{user.username}/#{folderName}"
 
     @openFolderContextMenu(browser, user, folderName)
-
-    folderPath = "/home/#{user.username}/#{folderName}"
-    paragraph  = @getFakeText()
-    filename   = paragraph.split(' ')[0] + '.txt'
 
     browser
       .waitForElementVisible    selector, 50000
       .click                    selector
       .waitForElementVisible    'li.selected .rename-container .hitenterview', 50000
       .clearValue               'li.selected .rename-container .hitenterview'
-      .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
+      .setValue                 'li.selected .rename-container .hitenterview', fileName + '\n'
       .pause                    3000 # required
-      .waitForElementPresent    "span[title='" + folderPath + '/' + filename + "']", 50000 # Assertion
+      .waitForElementPresent    "span[title='" + folderPath + '/' + fileName + "']", 50000 # Assertion
 
-    return filename
+    return fileName
 
 
   createFileFromMachineHeader: (browser, user, fileName, shouldAssert = yes) ->
@@ -525,13 +506,14 @@ module.exports =
 
   selectPlan: (browser, planType = 'developer') ->
 
-    pricingPage = '.content-page.pricing'
+    pricingPage          = '.content-page.pricing'
+    selectButtonSelector = pricingPage + ' .plans .' + planType + ' .plan-buy-button .button-title'
 
     browser
       .waitForElementVisible   pricingPage, 25000
       .waitForElementVisible   pricingPage + ' .plans .' + planType, 25000
       .pause                   5000
-      .click                   pricingPage + ' .plans .' + planType + ' .plan-buy-button'
+      .click                   selectButtonSelector
       .pause                   5000
 
 

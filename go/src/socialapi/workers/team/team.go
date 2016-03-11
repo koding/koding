@@ -11,6 +11,7 @@ import (
 
 	"gopkg.in/mgo.v2"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
@@ -36,6 +37,32 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	c.log.Error("an error occurred putting message back to queue", err)
 	delivery.Nack(false, true)
 	return false
+}
+
+// HandleChannel handles channel operations
+func (c *Controller) HandleChannel(channel *models.Channel) error {
+	if channel.TypeConstant != models.Channel_TYPE_GROUP {
+		return nil
+	}
+
+	chans, err := channel.FetchAllChannelsOfGroup()
+	if err != nil {
+		return err
+	}
+
+	var errs *multierror.Error
+
+	for _, ch := range chans {
+		if err := ch.Delete(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}
+
+	if errs.ErrorOrNil() != nil {
+		return errs
+	}
+
+	return nil
 }
 
 // HandleParticipant handles participant operations

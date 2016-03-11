@@ -1,70 +1,25 @@
-kd                      = require 'kd'
-React                   = require 'kd-react'
-Link                    = require 'app/components/common/link'
-ReactDOM                = require 'react-dom'
-classnames              = require 'classnames'
-ActivityFlux            = require 'activity/flux'
-SidebarSection          = require 'app/components/sidebarsection'
-isUserGroupAdmin        = require 'app/util/isusergroupadmin'
-showErrorNotification   = require 'app/util/showErrorNotification'
+kd    = require 'kd'
+React = require 'kd-react'
+Link  = require 'app/components/common/link'
 
 
 module.exports = class SidebarNoStacks extends React.Component
 
-  @defaultProps =
-    className   : 'SidebarStackWidgets'
-
-
-  constructor: ->
-
-    @state =
-      isGroupAdmin : no
-      isReady      : no
-
-
-  componentDidMount: ->
-
-    isUserGroupAdmin (err, isAdmin) =>
-      return showErrorNotification err  if err
-      @setState
-        isGroupAdmin : isAdmin
-        isReady      : yes
-
-
-  handleOnClick: (event) ->
-    kd.utils.stopDOMEvent event
-    ActivityFlux.actions.thread.switchToDefaultChannelForStackRequest()
-
-
-  renderContent: ->
-
-    if @state.isGroupAdmin
-      <div>
-        <label>No stacks</label>
-        <Link href='/Stacks/Group-Stack-Templates'>
-          Create a stack
-        </Link>
-      </div>
-    else
-      <div>
-        <p>
-          Your stacks has not been
-          fully configured yet, please
-          contact your team admin.
-        </p>
-        <Link href='/Messages/New' onClick={@bound 'handleOnClick'}>
-          Message admin
-        </Link>
-      </div>
-
 
   render: ->
 
-    return null  unless @state.isReady
-
-    <section className={classnames 'SidebarSection', @props.className}>
-      <div className='SidebarSection-body'>
-        {@renderContent()}
-      </div>
-    </section>
-
+    <div className='SidebarTeamSection'>
+      <Link className='SidebarSection-headerTitle' href='/Welcome'>
+        STACKS
+      </Link>
+      <section className='SidebarSection SidebarStackSection SidebarStackWidgets'>
+        <div className='SidebarSection-body'>
+          <p>
+            Your stacks has not been
+            fully configured yet, please
+            finalize onboarding steps.
+          </p>
+          <Link href='/Welcome'>Finalize steps</Link>
+        </div>
+      </section>
+    </div>

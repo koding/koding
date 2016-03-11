@@ -43,6 +43,7 @@ createWebLocation = ({name, locationConf}) ->
         proxy_pass            #{proxyPass};
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      Host            $host;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
@@ -66,6 +67,7 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
         proxy_set_header      Connection      $connection_upgrade;
 
         proxy_set_header      Host            $host;
+        proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_redirect        off;
@@ -142,11 +144,16 @@ createRootLocation = (KONFIG) ->
 
   return """
       location ~*(^(\/(Pricing|About|Legal|Features|Blog|Docs))) {
+          proxy_set_header      Host            $host;
+          proxy_set_header      X-Host          $host; # for customisation
           proxy_set_header      X-Real-IP       $remote_addr;
           proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
           proxy_next_upstream   error timeout   invalid_header http_500;
           proxy_connect_timeout 30;
 
+          if ($host !~* ^(dev|sandbox|latest|www)) {
+             return 301 /;
+          }
 
           proxy_pass #{proxy};
       }
@@ -190,6 +197,10 @@ module.exports.create = (KONFIG, environment)->
     # log how long requests take
     log_format timed_combined 'RA: $remote_addr H: $host R: "$request" S: $status RS: $body_bytes_sent R: "$http_referer" UA: "$http_user_agent" RT: $request_time URT: $upstream_response_time';
     #{if environment is 'dev' then '' else 'access_log /var/log/nginx/access.log timed_combined;'}
+
+    proxy_buffer_size  128k; # default 8k;
+    proxy_buffers   4 256k; # default 8 8k;
+    proxy_busy_buffers_size   256k; # default 16k;
 
     # batch response body
     client_body_in_single_buffer on;
@@ -279,6 +290,8 @@ module.exports.create = (KONFIG, environment)->
       # special case for ELB here, for now
       location /-/healthCheck {
         proxy_pass            http://webserver;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
@@ -289,6 +302,8 @@ module.exports.create = (KONFIG, environment)->
       # // kd/klient installers
       location ~^/d/(.*)$ {
         proxy_pass            "https://s3.amazonaws.com/koding-dl/$1";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_connect_timeout 1;
@@ -299,6 +314,8 @@ module.exports.create = (KONFIG, environment)->
       # Hackathon2014 is the old hackathon page and served via webserver
       # todo(cihangir) remove after hubspot integration
       location = /Hackathon2014 {
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
 

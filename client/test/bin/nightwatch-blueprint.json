@@ -3,6 +3,7 @@
   "src_folders" : [],
   "output_folder" : "../output",
   "live_output": true,
+  "custom_commands_path": "build/lib/custom-commands",
 
   "selenium" : {
     "start_process" : false,

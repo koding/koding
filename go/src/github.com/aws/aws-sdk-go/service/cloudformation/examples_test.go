@@ -34,6 +34,25 @@ func ExampleCloudFormation_CancelUpdateStack() {
 	fmt.Println(resp)
 }
 
+func ExampleCloudFormation_ContinueUpdateRollback() {
+	svc := cloudformation.New(session.New())
+
+	params := &cloudformation.ContinueUpdateRollbackInput{
+		StackName: aws.String("StackNameOrId"), // Required
+	}
+	resp, err := svc.ContinueUpdateRollback(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleCloudFormation_CreateStack() {
 	svc := cloudformation.New(session.New())
 
@@ -92,6 +111,10 @@ func ExampleCloudFormation_DeleteStack() {
 
 	params := &cloudformation.DeleteStackInput{
 		StackName: aws.String("StackName"), // Required
+		RetainResources: []*string{
+			aws.String("LogicalResourceId"), // Required
+			// More values...
+		},
 	}
 	resp, err := svc.DeleteStack(params)
 
@@ -408,9 +431,16 @@ func ExampleCloudFormation_UpdateStack() {
 		StackPolicyDuringUpdateBody: aws.String("StackPolicyDuringUpdateBody"),
 		StackPolicyDuringUpdateURL:  aws.String("StackPolicyDuringUpdateURL"),
 		StackPolicyURL:              aws.String("StackPolicyURL"),
-		TemplateBody:                aws.String("TemplateBody"),
-		TemplateURL:                 aws.String("TemplateURL"),
-		UsePreviousTemplate:         aws.Bool(true),
+		Tags: []*cloudformation.Tag{
+			{ // Required
+				Key:   aws.String("TagKey"),
+				Value: aws.String("TagValue"),
+			},
+			// More values...
+		},
+		TemplateBody:        aws.String("TemplateBody"),
+		TemplateURL:         aws.String("TemplateURL"),
+		UsePreviousTemplate: aws.Bool(true),
 	}
 	resp, err := svc.UpdateStack(params)
 

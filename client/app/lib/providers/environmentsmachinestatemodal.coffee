@@ -17,7 +17,6 @@ ComputeController       = require './computecontroller'
 BaseModalView           = require './views/basemodalview'
 HelpSupportModal        = require '../commonviews/helpsupportmodal'
 
-MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
 MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 
 whoami                  = require 'app/util/whoami'
@@ -523,7 +522,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         </span>
       "
       NoTemplate     : "
-        <h1>Compute Stacks not configured yet!</h1>
+        <h1>Stacks not configured yet!</h1>
         <span>
           Your team currently is not providing any compute resources.
           Please contact with your team admins for more information.

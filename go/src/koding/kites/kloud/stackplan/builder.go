@@ -128,6 +128,25 @@ func (b *Builder) BuildStack(stackID string) error {
 	return nil
 }
 
+// FindMachine looks for a jMachine document in b.Machines which meta.assignedLabel
+// matches the given paramter.
+//
+// If assignedLabel is empty, FindMachine returns nil.
+// If no machine was found, FindMachine returns nil.
+func (b *Builder) FindMachine(assignedLabel string) *models.Machine {
+	if assignedLabel == "" {
+		return nil
+	}
+
+	for _, m := range b.Machines {
+		if label, ok := m.Meta["assignedLabel"].(string); ok && label == assignedLabel {
+			return m
+		}
+	}
+
+	return nil
+}
+
 // BuildMachines fetches machines that belongs to existing b.Stack.
 //
 // It validates whether user is allowed to perform apply operation.
@@ -176,13 +195,17 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 		// TODO(arslan): add custom type with custom methods for type
 		// []*Machineuser
 		for _, user := range machine.Users {
-			// we only going to select users that are allowed
-			if user.Sudo && user.Owner {
+			// we only going to select users that are allowed:
+			//
+			//   - team member that owns vm (sudo + owner)
+			//   - team admin that owns all vms (owner + !permanent)
+			//
+			// A shared user is (owner + permanent).
+			if (user.Sudo || !user.Permanent) && user.Owner {
 				validUsers[user.Id.Hex()] = user
 			} else {
 				// return early, we don't tolerate nonvalid inputs to apply
-				return fmt.Errorf("machine '%s' is not valid. Aborting apply",
-					machine.ObjectId.Hex())
+				return fmt.Errorf("machine '%s' is not valid. Aborting apply", machine.ObjectId.Hex())
 			}
 		}
 	}
@@ -233,18 +256,19 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 	return nil
 }
 
-// MachineLabels gives mapping from jMachine.meta.assignedLabel to jMachine.label
+// MachineUIDs gives mapping from jMachine.meta.assignedLabel to jMachine.uid
 // for each built machine.
-func (b *Builder) MachineLabels() map[string]string {
-	m := make(map[string]string)
+func (b *Builder) MachineUIDs() map[string]string {
+	uids := make(map[string]string)
+
 	for _, machine := range b.Machines {
 		label, ok := machine.Meta["assignedLabel"].(string)
 		if !ok {
 			continue
 		}
-		m[label] = machine.Label
+		uids[label] = machine.Uid
 	}
-	return m
+	return uids
 }
 
 // BuildCredentials fetches credential details for current b.Stack from MongoDB.
@@ -287,6 +311,11 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 	credentials, err := modelhelper.GetCredentialsFromIdentifiers(identifiers...)
 	if err != nil {
 		return fmt.Errorf("fetching credentials %v: %s", identifiers, err)
+	}
+
+	credentialTitles := make(map[string]string, len(credentials))
+	for _, cred := range credentials {
+		credentialTitles[cred.Identifier] = cred.Title
 	}
 
 	// 3- count relationship with credential id and jaccount id as user or
@@ -353,6 +382,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		fn := metaFunc(provider)
 
 		cred := &Credential{
+			Title:      credentialTitles[c.Identifier],
 			Provider:   provider,
 			Identifier: c.Identifier,
 			Meta:       fn(),

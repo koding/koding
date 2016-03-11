@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"koding/klientctl/config"
+)
 
 const (
 	waitRetry    = "Please wait a moment and try again."
@@ -25,35 +28,35 @@ var (
 
 	// FailedInstallingKlient is generic for when a klient install fails.
 	FailedInstallingKlient = fmt.Sprintf(
-		"Error: Unable to install the %s.\n%s", KlientName, retryNewCode,
+		"Error: Unable to install the %s.\n%s", config.KlientName, retryNewCode,
 	)
 
 	// FailedDownloadingKlient is used when downloading klient fails.
 	FailedDownloadingKlient = fmt.Sprintf(
 		"Error: Unable to download the %s binary.\n%s",
-		KlientName, retryNewCode,
+		config.KlientName, retryNewCode,
 	)
 
 	// FailedRegisteringKlient is used when registering klient to kontrol fails.
 	FailedRegisteringKlient = fmt.Sprintf(
 		"Error: Unable to authenticate %s to koding.com.\n%s",
-		Name, retryNewCode,
+		config.Name, retryNewCode,
 	)
 
 	// FailedVerifyingInstall is used when verifying the install fails.
 	FailedVerifyingInstall = fmt.Sprintf(
 		"Error: Unable to verify the installation of %s.\n%s",
-		Name, retryNewCode,
+		config.Name, retryNewCode,
 	)
 
 	// FailedStartKlient is used when starting klient fails.
 	FailedStartKlient = fmt.Sprintf(
-		"Error: Failed to start the %s within the expected time.\n%s", KlientName,
+		"Error: Failed to start the %s within the expected time.\n", config.KlientName,
 	)
 
 	// FailedStopKlient is used when stopping klient fails.
 	FailedStopKlient = fmt.Sprintf(
-		"Error: Failed to stop the %s within the expected time.\n%s", KlientName,
+		"Error: Failed to stop the %s within the expected time.\n", config.KlientName,
 	)
 
 	// FailedGetSSHKey is used when we fail to get the ssh key
@@ -79,12 +82,24 @@ var (
 	ReconnectingToKontrol = fmt.Sprintf(
 		`%s has been disconnected from Koding, and is in the process of reconnecting.
 Please wait a few minutes and try again.`,
-		Name,
+		config.Name,
 	)
 
 	// CannotMountDirNotExist is used when the user chooses not to make the dir on
 	// mount. Can't mount to something that doesn't exist.
 	CannotMountDirNotExist = "Error: Cannot mount a directory that does not exist, exiting..."
+
+	// CannotMountPathExists is used when the user provides a path that already
+	// exists.
+	CannotMountPathExists = "Error: given path already exists. Please remove and try again."
+
+	// given path. A possible example might be that the user asked to mount to
+	// /root/foo and kd doesn't have permission to even look in that directory.
+	//
+	// /root/foo might not exist, but kd can't even read it.
+	//
+	// TODO: Write meaningful message.
+	CannotMountUnableToOpenPath = "Error: Unable to open the given path"
 
 	// FailedToCreateMountDir is used when the user chose to create the dir, but it
 	// failed for some reason.
@@ -115,12 +130,12 @@ Please unmount and try again`
 	// FailedUninstallingKlientWarn is when the service fails
 	// (connecting or uninstalling)
 	FailedUninstallingKlientWarn = fmt.Sprintf(
-		"Warning: Unable to uninstall %s service.", Name,
+		"Warning: Unable to uninstall %s service.", config.Name,
 	)
 
 	// FailedToRemoveFiles is a generic failed to remove warning.
 	FailedToRemoveFilesWarn = fmt.Sprintf(
-		"Warning: Failed to remove %s files. This is not a critical issue.", Name,
+		"Warning: Failed to remove %s files. This is not a critical issue.", config.Name,
 	)
 
 	// FailedToRemoveAuthFile for when we can't remove the kite key.
@@ -128,7 +143,7 @@ Please unmount and try again`
 
 	// FailedToRemoveKlient for when we can't remove the klient binary.
 	FailedToRemoveKlientWarn = fmt.Sprintf(
-		"Warning: Failed to remove %s binary. This is not a critical issue.", Name,
+		"Warning: Failed to remove %s binary. This is not a critical issue.", config.Name,
 	)
 
 	// FailedCheckingUpdateAvailable is used when checking if an update failed.
@@ -163,5 +178,19 @@ Please try again with just the --prefetchall flag.`
 	FailedDialingRemote = fmt.Sprintf(
 		`Error: Unable to communicate with the remote machine. Please ensure that the
 remote machine is running & accessible and try again.`,
+	)
+
+	// AttemptedRemoveRestrictedPath is when the user unmounts a path, but
+	// the path cannot be removed because it is an important path.
+	AttemptedRemoveRestrictedPath = fmt.Sprintf(
+		`Warning: Unable to remove the mounted path, due to it being a protected path.`,
+	)
+
+	// UnmountFailedRemoveMountPath is used when we _(for some unknown reason)_ are
+	// unable to remove the mount path. It could be due to permissions, the path
+	// not being empty, or other unknown reasons.
+	UnmountFailedRemoveMountPath = fmt.Sprintf(
+		`Warning: The mount path was unable to be cleaned up after unmount.
+Please remove this path before trying to mount again to this path. `,
 	)
 )

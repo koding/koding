@@ -9,7 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"koding/klientctl/config"
+	"koding/klientctl/ctlcli"
+
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
 
 func init() {
@@ -18,15 +22,23 @@ func init() {
 
 // CheckUpdateFirst can be prepended to any existing cli command to have it
 // check if there's an update available before running the command.
-func CheckUpdateFirst(f ExitingCommand) ExitingCommand {
-	return func(c *cli.Context) int {
+//
+// TODO: Remove once we have fully deprecated the old ExitCommands
+func CheckUpdateFirst(f ctlcli.ExitingCommand, log logging.Logger, cmd string) (ctlcli.ExitingCommand, logging.Logger, string) {
+
+	exitCmd := func(c *cli.Context, log logging.Logger, cmd string) int {
 		u := NewCheckUpdate()
 		if y, err := u.IsUpdateAvailable(); y && err == nil {
-			fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", Name, Name)
+			// TODO: Fix the abstraction leak here.. this is wrong. This likely
+			// needs to be added as a type, and the actual commands (inside Run()) will
+			// run this check.
+			fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", config.Name, config.Name)
 		}
 
-		return f(c)
+		return f(c, log, cmd)
 	}
+
+	return exitCmd, log, cmd
 }
 
 // CheckUpdate checks if there an update available.
@@ -51,7 +63,7 @@ type CheckUpdate struct {
 // NewCheckUpdate is the required initializer for CheckUpdate.
 func NewCheckUpdate() *CheckUpdate {
 	return &CheckUpdate{
-		LocalVersion:       Version,
+		LocalVersion:       config.Version,
 		Location:           S3UpdateLocation,
 		RandomSeededNumber: rand.Intn(3),
 		ForceCheck:         false,

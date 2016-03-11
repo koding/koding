@@ -1,3 +1,23 @@
+# DEPRECATED
+
+Shadow catching is now part of `go tool vet`
+
+```
+go tool vet -shadow=true ./
+```
+Does what you want now. Make sure to run it separately from the standard `go vet` So you probably want:
+
+```
+go tool vet ./
+go tool vet -shadow ./
+```
+
+In your relevant configuration.
+
+Note that it does not ignore error types. But this is more strict anyway.
+
+---
+
 # go-nyet
 More aggressive `go vet`
 

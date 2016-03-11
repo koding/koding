@@ -42,14 +42,15 @@ module.exports = class IDETerminalPane extends IDEPane
     @addSubView @webtermView
 
     @webtermView.on 'WebTermConnected', (remote) =>
-      @remote = remote
+      @remote  = remote
+      @session = remote.session  unless @session
       @emit 'WebtermCreated'
       @emit 'ready'
 
       kd.utils.wait 166, =>
-        {path} = @getOptions()
-        return  unless path
-        @runCommand "cd #{FSHelper.escapeFilePath path}"
+        { path, command } = @getOptions()
+        return @runCommand "cd #{FSHelper.escapeFilePath path}"  if path
+        return @runCommand command  if command
 
     @webtermView.connectToTerminal()
 
@@ -129,10 +130,10 @@ module.exports = class IDETerminalPane extends IDEPane
       cursor.stopBlink()
 
 
-  makeEditable: -> @setEditMode yes
+  makeEditable: -> @ready => @setEditMode yes
 
 
-  makeReadOnly: -> @setEditMode no
+  makeReadOnly: -> @ready => @setEditMode no
 
 
   setSession: (session) ->

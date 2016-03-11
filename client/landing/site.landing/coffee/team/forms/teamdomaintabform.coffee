@@ -1,7 +1,7 @@
 kd             = require 'kd.js'
 utils          = require './../../core/utils'
 JView          = require './../../core/jview'
-MainHeaderView = require './../../core/mainheaderview'
+
 
 module.exports = class TeamDomainTab extends kd.FormView
 
@@ -9,7 +9,7 @@ module.exports = class TeamDomainTab extends kd.FormView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = 'clearfix'
+    options.cssClass = 'clearfix login-form'
 
     super options, data
 
@@ -28,13 +28,7 @@ module.exports = class TeamDomainTab extends kd.FormView
       @inputView.unsetClass 'validation-error validation-passed'
 
     # Listen text change event in real time
-    @input.on 'input', =>
-      @input.getElement().removeAttribute 'size'
-
-      element           = @fakeView.getElement()
-      element.innerHTML = @input.getValue()
-      { width }         = element.getBoundingClientRect()
-      @input.setWidth width or 100
+    @input.on [ 'input', 'viewAppended' ], => utils.repositionSuffix @input, @fakeView
 
     @inputView.addSubView @suffix = new kd.View
       tagName      : 'span'
@@ -47,7 +41,7 @@ module.exports = class TeamDomainTab extends kd.FormView
     @backLink = new kd.CustomHTMLView
       tagName      : 'span'
       cssClass     : 'TeamsModal-button-link back'
-      partial      : "<i></i> <a href=\"/Teams/#{team.invitation.teamAccessCode}\">Back</a>"
+      partial      : "<i></i> <a href=\"/Teams/Create\">Back</a>"
 
     @button = new kd.ButtonView
       title        : 'NEXT'

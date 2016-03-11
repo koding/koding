@@ -21,7 +21,6 @@ import (
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/utils/res"
 
-	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/mitchellh/cli"
 	"github.com/satori/go.uuid"
@@ -35,7 +34,6 @@ var (
 	defaultUsername    string
 	defaultPrivateKey  string
 	defaultPublicKey   string
-	defaultKontrolURL  string
 	defaultRegisterURL string // tunnel for 127.0.0.1:56790
 	defaultKlientURL   string
 )
@@ -48,7 +46,6 @@ func init() {
 	}
 
 	defaultUsername = u.Username
-	defaultKontrolURL = fmt.Sprintf("http://koding-%s.ngrok.com/kontrol/kite", u.Username)
 	defaultRegisterURL = fmt.Sprintf("http://guest-klient-%s.ngrok.com/kite", u.Username)
 
 	p, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
@@ -125,10 +122,15 @@ func NewVagrant() cli.CommandFactory {
 }
 
 // Action is an entry point for "vagrant" subcommand.
-func (v *Vagrant) Action(args []string, k *kite.Client) error {
+func (v *Vagrant) Action(args []string) error {
+	k, err := kloudClient()
+	if err != nil {
+		return err
+	}
 	vapi := &vagrantapi.Klient{
-		Kite: k.LocalKite,
-		Log:  common.NewLogger("vagrant", flagDebug),
+		Kite:  k.LocalKite,
+		Log:   common.NewLogger("vagrant", flagDebug),
+		Debug: true,
 	}
 
 	ctx := context.Background()
@@ -201,7 +203,7 @@ func (cmd *VagrantCreate) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&cmd.Username, "username", defaultUsername, "Username for the guest vm.")
 	f.StringVar(&cmd.KitePrivateKey, "kite-pem", "", "Private key for generating kite keys.")
 	f.StringVar(&cmd.KitePublicKey, "kite-pub", "", "Public key for generating kite keys.")
-	f.StringVar(&cmd.KontrolURL, "kontrol-url", defaultKontrolURL, "Kontrol URL.")
+	f.StringVar(&cmd.KontrolURL, "kontrol-url", defaultKontrolURL(), "Kontrol URL.")
 	f.StringVar(&cmd.RegisterURL, "register-url", defaultRegisterURL, "Register URL for the guest klient.")
 	f.StringVar(&cmd.KlientURL, "klient-url", defaultKlientURL, "Latest Klient deb package URL.")
 

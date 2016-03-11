@@ -1,6 +1,5 @@
 kd            = require 'kd'
 React         = require 'kd-react'
-Portal        = require 'react-portal'
 AppFlux       = require 'app/flux'
 ActivityModal = require 'app/components/activitymodal'
 

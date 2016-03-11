@@ -1,30 +1,32 @@
 kd              = require 'kd.js'
 utils           = require './../../core/utils'
-JView           = require './../../core/jview'
 TeamJoinTabForm = require './../forms/teamjointabform'
 LoginInputView  = require './../../login/logininputview'
 
 
 module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
 
-  constructor: ->
-
-    super
+  constructor: (options = {}, data) ->
 
     teamData = utils.getTeamData()
+
+    options.buttonTitle or= 'Sign up & join'
+    options.email       or= teamData.invitation?.email
+
+    super options, data
 
     @email = new LoginInputView
       inputOptions      :
         name            : 'email'
         placeholder     : 'your email address'
-        defaultValue    : teamData.invitation?.email
+        defaultValue    : @getOption 'email'
         validate        :
           rules         : { email: yes }
           messages      : { email: 'Please type a valid email address.' }
           events        :
             regExp      : 'keyup'
 
-    @email.inputReceivedKeyup()  if teamData.invitation?.email
+    @email.inputReceivedKeyup()  if @getOption 'email'
 
     @username = new LoginInputView
       inputOptions       :
@@ -80,8 +82,8 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
             ps.unsetClass strength.join ' '
             ps.setClass strength[report.score]
 
-    @button     = @getButton 'Sign up & join'
-    @buttonLink = @getButtonLink "Have an account? <a href='#'>Log in now</a>", (event) =>
+    @button     = @getButton @getOption 'buttonTitle'
+    @buttonLink = @getButtonLink "<a href='#'>Already have an account?</a>", (event) =>
       kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
       @emit 'FormNeedsToBeChanged', yes, yes

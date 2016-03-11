@@ -1,3 +1,4 @@
+async     = require 'async'
 jraphical = require 'jraphical'
 
 
@@ -5,7 +6,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
   KodingError        = require '../error'
 
-  { secure, ObjectId, signature, daisy } = require 'bongo'
+  { secure, ObjectId, signature } = require 'bongo'
   { Relationship }   = jraphical
   { uniq }           = require 'underscore'
   { permit }         = require './group/permissionset'
@@ -44,6 +45,8 @@ module.exports = class JComputeStack extends jraphical.Module
       instance           :
         delete           :
           (signature Function)
+        maintenance      :
+          (signature Object, Function)
         destroy          :
           (signature Function)
         modify           :
@@ -251,47 +254,40 @@ module.exports = class JComputeStack extends jraphical.Module
 
           callback null, _stacks
 
-          # stacks = []
-
-          # queue = _stacks.map (stack) -> ->
-          #   stack.revive (err, revivedStack)->
-          #     stacks.push revivedStack
-          #     queue.next()
-
-          # queue.push ->
-          #   callback null, stacks
-
-          # daisy queue
-
-
 
   revive: (callback) ->
 
+    JMachine        = require './computeproviders/machine'
+    JAccount        = require './account'
     JProposedDomain = require './domain'
-    JMachine = require './computeproviders/machine'
 
     queue    = []
     domains  = []
     machines = []
 
     (@machines ? []).forEach (machineId) ->
-      queue.push -> JMachine.one { _id: machineId }, (err, machine) ->
+      queue.push (next) -> JMachine.one { _id: machineId }, (err, machine) ->
         if not err? and machine
           machines.push machine
-        queue.next()
+        next()
 
     (@domains ? []).forEach (domainId) ->
-      queue.push -> JProposedDomain.one { _id: domainId }, (err, domain) ->
+      queue.push (next) -> JProposedDomain.one { _id: domainId }, (err, domain) ->
         if not err? and domain
           domains.push domain
-        queue.next()
+        next()
 
-    queue.push =>
-      this.machines = machines
-      this.domains = domains
-      callback null, this
+    async.series queue, =>
 
-    daisy queue
+      JAccount.one { _id: @getAt 'originId' }, (err, owner) =>
+
+        return callback err  if err
+
+        this.owner    = owner ? { error: 'Owner not exists' }
+        this.machines = machines
+        this.domains  = domains
+
+        callback null, this
 
 
   unuseStackTemplate: (callback) ->
@@ -352,36 +348,91 @@ module.exports = class JComputeStack extends jraphical.Module
             @unuseStackTemplate callback
 
 
-  delete: (callback) ->
+  delete: (callback, force = no) ->
 
-    if @baseStackId
+    if @baseStackId and not force
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
-    @fetchGroup (err, group) =>
+    @update { $set: { status: { state: 'Destroying' } } }
 
-      return callback err  if err
+    JProposedDomain  = require './domain'
+    JMachine = require './computeproviders/machine'
 
-      @update { $set: { status: { state: 'Destroying' } } }
+    @domains?.forEach (_id) ->
+      JProposedDomain.one { _id }, (err, domain) ->
+        if not err? and domain?
+          domain.remove (err) ->
+            if err then console.error \
+              "Failed to remove domain: #{domain.domain}", err
 
-      JProposedDomain  = require './domain'
-      JMachine = require './computeproviders/machine'
+    @machines?.forEach (_id) ->
+      JMachine.one { _id }, (err, machine) ->
+        if not err? and machine?
+          machine.remove (err) ->
+            if err then console.error \
+              "Failed to remove machine: #{machine.title}", err
 
-      @domains?.forEach (_id) ->
-        JProposedDomain.one { _id }, (err, domain) ->
-          if not err? and domain?
-            domain.remove (err) ->
-              if err then console.error \
-                "Failed to remove domain: #{domain.domain}", err
+    @destroy => @remove callback
 
-      @machines?.forEach (_id) ->
-        JMachine.one { _id }, (err, machine) ->
-          if not err? and machine?
-            machine.remove (err) ->
-              if err then console.error \
-                "Failed to remove machine: #{machine.title}", err
 
-      @destroy => @remove callback
+  maintenance: permit
+
+    advanced: [
+      { permission: 'delete stack' }
+      { permission: 'delete stack', superadmin: yes }
+    ]
+
+    success: (client, options, callback) ->
+
+      if client.context.group isnt @getAt 'group'
+        return callback new KodingError 'Access denied'
+
+      if options.destroyStack
+
+        @unuseStackTemplate (err) =>
+          return callback err  if err
+          @delete callback, force = yes
+
+      else if options.prepareForDestroy
+
+        JMachine = require './computeproviders/machine'
+
+        queue = []
+        @machines?.forEach (_id) -> queue.push (next) ->
+          JMachine.update { _id }, { $set: { users: [] } }, next
+
+        async.series queue, (err) =>
+          return callback err  if err
+          @update { $set: { status: { state: 'Initialized' } } }, callback
+
+      else if options.prepareForMount and machineId = options.machineId
+
+        if machineId not in ("#{m}" for m in @getAt 'machines')
+          return callback new KodingError 'Machine not in this stack'
+
+        { connection: { delegate } } = client
+        { profile: { nickname } }    = delegate
+
+        group = @getAt 'group'
+
+        JMachine = require './computeproviders/machine'
+        JMachine.one { _id: machineId }, (err, machine) ->
+
+          if err or not machine
+            return callback err ? new KodingError 'Machine not found'
+
+          shareOptions = {
+            target     : [ nickname ]
+            permanent  : yes
+            group
+          }
+
+          machine.shareWith shareOptions, callback
+
+      else
+
+        callback new KodingError 'Please provide a vaild maintenance mode'
 
 
   delete$: permit
@@ -401,6 +452,7 @@ module.exports = class JComputeStack extends jraphical.Module
   destroy$: permit
 
     advanced: [
+      { permission: 'delete stack' }
       { permission: 'delete own stack', validateWith: Validators.own }
     ]
 

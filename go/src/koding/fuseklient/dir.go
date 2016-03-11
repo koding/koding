@@ -113,7 +113,7 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 	// write to remote before saving to local or else this'll become divergent
 	// when there's network disruptions.
 	path := filepath.Join(d.Path, name)
-	if err := d.Transport.CreateDir(path, 0755); err != nil {
+	if err := d.Transport.CreateDir(path, mode); err != nil {
 		return nil, err
 	}
 
@@ -209,11 +209,6 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
-	removedEntry, err := d.removeChild(oldName)
-	if err != nil {
-		return nil, err
-	}
-
 	oldPath := d.GetPathForEntry(oldName)
 	newPath := newDir.GetPathForEntry(newName)
 
@@ -232,6 +227,11 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
+	removedEntry, err := d.removeChild(oldName)
+	if err != nil {
+		return nil, err
+	}
+
 	switch child.GetType() {
 	case fuseutil.DT_Directory:
 		dir1 := removedEntry.(*Dir)
@@ -241,11 +241,21 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		dir2.EntriesList = dir1.EntriesList
 		dir2.Entry.Parent = newDir
 	case fuseutil.DT_File:
+		file1 := removedEntry.(*File)
+
 		file2 := newEntry.(*File)
 		file2.Entry.Parent = newDir
 
 		if err := file2.updateContentFromRemote(); err != nil {
 			return nil, err
+		}
+
+		if len(file1.Content) >= len(file2.Content) {
+			n := make([]byte, len(file1.Content))
+			copy(n, file1.Content)
+
+			file2.Content = n
+			file2.Attrs.Size = file1.Attrs.Size
 		}
 	}
 
@@ -275,6 +285,14 @@ func (d *Dir) Expire() error {
 	defer d.Unlock()
 
 	return d.updateEntriesFromRemote()
+}
+
+func (d *Dir) ToString() string {
+	d.RLock()
+	defer d.RUnlock()
+
+	eToS := d.Entry.ToString()
+	return fmt.Sprintf("%s\ndir: entriesCount=%d", eToS, len(d.EntriesList))
 }
 
 ///// Helpers

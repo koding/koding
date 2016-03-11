@@ -1,4 +1,3 @@
-React             = require 'kd-react'
 expect            = require 'expect'
 InputWidget       = require '../container'
 immutable         = require 'immutable'

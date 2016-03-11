@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Every change should be reflected on help.go as well.
+
 package etcdmain
 
 import (
@@ -82,6 +84,7 @@ type config struct {
 	maxWalFiles    uint
 	name           string
 	snapCount      uint64
+	// TickMs is the number of milliseconds between heartbeat ticks.
 	// TODO: decouple tickMs and heartbeat tick (current heartbeat tick = 1).
 	// make ticks a cluster wide configuration.
 	TickMs     uint
@@ -118,8 +121,11 @@ type config struct {
 
 	printVersion bool
 
-	v3demo   bool
-	gRPCAddr string
+	v3demo                  bool
+	gRPCAddr                string
+	autoCompactionRetention int
+
+	enablePprof bool
 
 	ignored []string
 }
@@ -151,36 +157,36 @@ func NewConfig() *config {
 
 	// member
 	fs.Var(cfg.corsInfo, "cors", "Comma-separated white list of origins for CORS (cross-origin resource sharing).")
-	fs.StringVar(&cfg.dir, "data-dir", "", "Path to the data directory")
-	fs.StringVar(&cfg.walDir, "wal-dir", "", "Path to the dedicated wal directory")
-	fs.Var(flags.NewURLsValue("http://localhost:2380,http://localhost:7001"), "listen-peer-urls", "List of URLs to listen on for peer traffic")
-	fs.Var(flags.NewURLsValue("http://localhost:2379,http://localhost:4001"), "listen-client-urls", "List of URLs to listen on for client traffic")
-	fs.UintVar(&cfg.maxSnapFiles, "max-snapshots", defaultMaxSnapshots, "Maximum number of snapshot files to retain (0 is unlimited)")
-	fs.UintVar(&cfg.maxWalFiles, "max-wals", defaultMaxWALs, "Maximum number of wal files to retain (0 is unlimited)")
-	fs.StringVar(&cfg.name, "name", defaultName, "Unique human-readable name for this node")
-	fs.Uint64Var(&cfg.snapCount, "snapshot-count", etcdserver.DefaultSnapCount, "Number of committed transactions to trigger a snapshot")
+	fs.StringVar(&cfg.dir, "data-dir", "", "Path to the data directory.")
+	fs.StringVar(&cfg.walDir, "wal-dir", "", "Path to the dedicated wal directory.")
+	fs.Var(flags.NewURLsValue("http://localhost:2380,http://localhost:7001"), "listen-peer-urls", "List of URLs to listen on for peer traffic.")
+	fs.Var(flags.NewURLsValue("http://localhost:2379,http://localhost:4001"), "listen-client-urls", "List of URLs to listen on for client traffic.")
+	fs.UintVar(&cfg.maxSnapFiles, "max-snapshots", defaultMaxSnapshots, "Maximum number of snapshot files to retain (0 is unlimited).")
+	fs.UintVar(&cfg.maxWalFiles, "max-wals", defaultMaxWALs, "Maximum number of wal files to retain (0 is unlimited).")
+	fs.StringVar(&cfg.name, "name", defaultName, "Human-readable name for this member.")
+	fs.Uint64Var(&cfg.snapCount, "snapshot-count", etcdserver.DefaultSnapCount, "Number of committed transactions to trigger a snapshot to disk.")
 	fs.UintVar(&cfg.TickMs, "heartbeat-interval", 100, "Time (in milliseconds) of a heartbeat interval.")
 	fs.UintVar(&cfg.ElectionMs, "election-timeout", 1000, "Time (in milliseconds) for an election to timeout.")
 
 	// clustering
-	fs.Var(flags.NewURLsValue(defaultInitialAdvertisePeerURLs), "initial-advertise-peer-urls", "List of this member's peer URLs to advertise to the rest of the cluster")
-	fs.Var(flags.NewURLsValue("http://localhost:2379,http://localhost:4001"), "advertise-client-urls", "List of this member's client URLs to advertise to the rest of the cluster")
-	fs.StringVar(&cfg.durl, "discovery", "", "Discovery service used to bootstrap the initial cluster")
+	fs.Var(flags.NewURLsValue(defaultInitialAdvertisePeerURLs), "initial-advertise-peer-urls", "List of this member's peer URLs to advertise to the rest of the cluster.")
+	fs.Var(flags.NewURLsValue("http://localhost:2379,http://localhost:4001"), "advertise-client-urls", "List of this member's client URLs to advertise to the public.")
+	fs.StringVar(&cfg.durl, "discovery", "", "Discovery URL used to bootstrap the cluster.")
 	fs.Var(cfg.fallback, "discovery-fallback", fmt.Sprintf("Valid values include %s", strings.Join(cfg.fallback.Values, ", ")))
 	if err := cfg.fallback.Set(fallbackFlagProxy); err != nil {
 		// Should never happen.
 		plog.Panicf("unexpected error setting up discovery-fallback flag: %v", err)
 	}
-	fs.StringVar(&cfg.dproxy, "discovery-proxy", "", "HTTP proxy to use for traffic to discovery service")
-	fs.StringVar(&cfg.dnsCluster, "discovery-srv", "", "DNS domain used to bootstrap initial cluster")
-	fs.StringVar(&cfg.initialCluster, "initial-cluster", initialClusterFromName(defaultName), "Initial cluster configuration for bootstrapping")
-	fs.StringVar(&cfg.initialClusterToken, "initial-cluster-token", "etcd-cluster", "Initial cluster token for the etcd cluster during bootstrap")
-	fs.Var(cfg.clusterState, "initial-cluster-state", "Initial cluster configuration for bootstrapping")
+	fs.StringVar(&cfg.dproxy, "discovery-proxy", "", "HTTP proxy to use for traffic to discovery service.")
+	fs.StringVar(&cfg.dnsCluster, "discovery-srv", "", "DNS domain used to bootstrap initial cluster.")
+	fs.StringVar(&cfg.initialCluster, "initial-cluster", initialClusterFromName(defaultName), "Initial cluster configuration for bootstrapping.")
+	fs.StringVar(&cfg.initialClusterToken, "initial-cluster-token", "etcd-cluster", "Initial cluster token for the etcd cluster during bootstrap.")
+	fs.Var(cfg.clusterState, "initial-cluster-state", "Initial cluster state ('new' or 'existing').")
 	if err := cfg.clusterState.Set(clusterStateFlagNew); err != nil {
 		// Should never happen.
 		plog.Panicf("unexpected error setting up clusterStateFlag: %v", err)
 	}
-	fs.BoolVar(&cfg.strictReconfigCheck, "strict-reconfig-check", false, "Reject reconfiguration that might cause quorum loss")
+	fs.BoolVar(&cfg.strictReconfigCheck, "strict-reconfig-check", false, "Reject reconfiguration requests that would cause quorum loss.")
 
 	// proxy
 	fs.Var(cfg.proxy, "proxy", fmt.Sprintf("Valid values include %s", strings.Join(cfg.proxy.Values, ", ")))
@@ -207,26 +213,30 @@ func NewConfig() *config {
 	fs.StringVar(&cfg.peerTLSInfo.TrustedCAFile, "peer-trusted-ca-file", "", "Path to the peer server TLS trusted CA file.")
 
 	// logging
-	fs.BoolVar(&cfg.debug, "debug", false, "Enable debug output to the logs.")
-	fs.StringVar(&cfg.logPkgLevels, "log-package-levels", "", "Specify a particular log level for each etcd package.")
+	fs.BoolVar(&cfg.debug, "debug", false, "Enable debug-level logging for etcd.")
+	fs.StringVar(&cfg.logPkgLevels, "log-package-levels", "", "Specify a particular log level for each etcd package (eg: 'etcdmain=CRITICAL,etcdserver=DEBUG').")
 
 	// unsafe
-	fs.BoolVar(&cfg.forceNewCluster, "force-new-cluster", false, "Force to create a new one member cluster")
+	fs.BoolVar(&cfg.forceNewCluster, "force-new-cluster", false, "Force to create a new one member cluster.")
 
 	// version
-	fs.BoolVar(&cfg.printVersion, "version", false, "Print the version and exit")
+	fs.BoolVar(&cfg.printVersion, "version", false, "Print the version and exit.")
 
 	// demo flag
-	fs.BoolVar(&cfg.v3demo, "experimental-v3demo", false, "Enable experimental v3 demo API")
-	fs.StringVar(&cfg.gRPCAddr, "experimental-gRPC-addr", "127.0.0.1:2378", "gRPC address for experimental v3 demo API")
+	fs.BoolVar(&cfg.v3demo, "experimental-v3demo", false, "Enable experimental v3 demo API.")
+	fs.StringVar(&cfg.gRPCAddr, "experimental-gRPC-addr", "127.0.0.1:2378", "gRPC address for experimental v3 demo API.")
+	fs.IntVar(&cfg.autoCompactionRetention, "experimental-auto-compaction-retention", 0, "Auto compaction retention in hour. 0 means disable auto compaction.")
 
 	// backwards-compatibility with v0.4.6
 	fs.Var(&flags.IPAddressPort{}, "addr", "DEPRECATED: Use -advertise-client-urls instead.")
 	fs.Var(&flags.IPAddressPort{}, "bind-addr", "DEPRECATED: Use -listen-client-urls instead.")
 	fs.Var(&flags.IPAddressPort{}, "peer-addr", "DEPRECATED: Use -initial-advertise-peer-urls instead.")
 	fs.Var(&flags.IPAddressPort{}, "peer-bind-addr", "DEPRECATED: Use -listen-peer-urls instead.")
-	fs.Var(&flags.DeprecatedFlag{Name: "peers"}, "peers", "DEPRECATED: Use -initial-cluster instead")
-	fs.Var(&flags.DeprecatedFlag{Name: "peers-file"}, "peers-file", "DEPRECATED: Use -initial-cluster instead")
+	fs.Var(&flags.DeprecatedFlag{Name: "peers"}, "peers", "DEPRECATED: Use -initial-cluster instead.")
+	fs.Var(&flags.DeprecatedFlag{Name: "peers-file"}, "peers-file", "DEPRECATED: Use -initial-cluster instead.")
+
+	// pprof profiler via HTTP
+	fs.BoolVar(&cfg.enablePprof, "enable-pprof", false, "Enable runtime profiling data via HTTP server. Address is at client URL + \"/debug/pprof\"")
 
 	// ignored
 	for _, f := range cfg.ignored {

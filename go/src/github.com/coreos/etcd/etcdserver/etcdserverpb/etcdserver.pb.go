@@ -13,38 +13,107 @@
 	It has these top-level messages:
 		Request
 		Metadata
+		InternalRaftRequest
+		EmptyResponse
+		ResponseHeader
+		RangeRequest
+		RangeResponse
+		PutRequest
+		PutResponse
+		DeleteRangeRequest
+		DeleteRangeResponse
+		RequestUnion
+		ResponseUnion
+		Compare
+		TxnRequest
+		TxnResponse
+		CompactionRequest
+		CompactionResponse
+		HashRequest
+		HashResponse
+		WatchRequest
+		WatchCreateRequest
+		WatchCancelRequest
+		WatchResponse
+		LeaseCreateRequest
+		LeaseCreateResponse
+		LeaseRevokeRequest
+		LeaseRevokeResponse
+		LeaseKeepAliveRequest
+		LeaseKeepAliveResponse
+		Member
+		MemberAddRequest
+		MemberAddResponse
+		MemberRemoveRequest
+		MemberRemoveResponse
+		MemberUpdateRequest
+		MemberUpdateResponse
+		MemberListRequest
+		MemberListResponse
+		AuthEnableRequest
+		AuthDisableRequest
+		AuthenticateRequest
+		UserAddRequest
+		UserGetRequest
+		UserDeleteRequest
+		UserChangePasswordRequest
+		UserGrantRequest
+		UserRevokeRequest
+		RoleAddRequest
+		RoleGetRequest
+		RoleDeleteRequest
+		RoleGrantRequest
+		RoleRevokeRequest
+		AuthEnableResponse
+		AuthDisableResponse
+		AuthenticateResponse
+		UserAddResponse
+		UserGetResponse
+		UserDeleteResponse
+		UserChangePasswordResponse
+		UserGrantResponse
+		UserRevokeResponse
+		RoleAddResponse
+		RoleGetResponse
+		RoleDeleteResponse
+		RoleGrantResponse
+		RoleRevokeResponse
 */
 package etcdserverpb
 
-import proto "github.com/coreos/etcd/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+import (
+	"fmt"
+
+	proto "github.com/coreos/etcd/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+)
+
 import math "math"
 
-// discarding unused import gogoproto "github.com/coreos/etcd/Godeps/_workspace/src/gogoproto"
-
 import io "io"
-import fmt "fmt"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
+var _ = fmt.Errorf
 var _ = math.Inf
 
 type Request struct {
-	ID               uint64 `protobuf:"varint,1,opt" json:"ID"`
-	Method           string `protobuf:"bytes,2,opt" json:"Method"`
-	Path             string `protobuf:"bytes,3,opt" json:"Path"`
-	Val              string `protobuf:"bytes,4,opt" json:"Val"`
-	Dir              bool   `protobuf:"varint,5,opt" json:"Dir"`
-	PrevValue        string `protobuf:"bytes,6,opt" json:"PrevValue"`
-	PrevIndex        uint64 `protobuf:"varint,7,opt" json:"PrevIndex"`
-	PrevExist        *bool  `protobuf:"varint,8,opt" json:"PrevExist,omitempty"`
-	Expiration       int64  `protobuf:"varint,9,opt" json:"Expiration"`
-	Wait             bool   `protobuf:"varint,10,opt" json:"Wait"`
-	Since            uint64 `protobuf:"varint,11,opt" json:"Since"`
-	Recursive        bool   `protobuf:"varint,12,opt" json:"Recursive"`
-	Sorted           bool   `protobuf:"varint,13,opt" json:"Sorted"`
-	Quorum           bool   `protobuf:"varint,14,opt" json:"Quorum"`
-	Time             int64  `protobuf:"varint,15,opt" json:"Time"`
-	Stream           bool   `protobuf:"varint,16,opt" json:"Stream"`
+	ID               uint64 `protobuf:"varint,1,opt,name=ID" json:"ID"`
+	Method           string `protobuf:"bytes,2,opt,name=Method" json:"Method"`
+	Path             string `protobuf:"bytes,3,opt,name=Path" json:"Path"`
+	Val              string `protobuf:"bytes,4,opt,name=Val" json:"Val"`
+	Dir              bool   `protobuf:"varint,5,opt,name=Dir" json:"Dir"`
+	PrevValue        string `protobuf:"bytes,6,opt,name=PrevValue" json:"PrevValue"`
+	PrevIndex        uint64 `protobuf:"varint,7,opt,name=PrevIndex" json:"PrevIndex"`
+	PrevExist        *bool  `protobuf:"varint,8,opt,name=PrevExist" json:"PrevExist,omitempty"`
+	Expiration       int64  `protobuf:"varint,9,opt,name=Expiration" json:"Expiration"`
+	Wait             bool   `protobuf:"varint,10,opt,name=Wait" json:"Wait"`
+	Since            uint64 `protobuf:"varint,11,opt,name=Since" json:"Since"`
+	Recursive        bool   `protobuf:"varint,12,opt,name=Recursive" json:"Recursive"`
+	Sorted           bool   `protobuf:"varint,13,opt,name=Sorted" json:"Sorted"`
+	Quorum           bool   `protobuf:"varint,14,opt,name=Quorum" json:"Quorum"`
+	Time             int64  `protobuf:"varint,15,opt,name=Time" json:"Time"`
+	Stream           bool   `protobuf:"varint,16,opt,name=Stream" json:"Stream"`
+	Refresh          *bool  `protobuf:"varint,17,opt,name=Refresh" json:"Refresh,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
@@ -53,8 +122,8 @@ func (m *Request) String() string { return proto.CompactTextString(m) }
 func (*Request) ProtoMessage()    {}
 
 type Metadata struct {
-	NodeID           uint64 `protobuf:"varint,1,opt" json:"NodeID"`
-	ClusterID        uint64 `protobuf:"varint,2,opt" json:"ClusterID"`
+	NodeID           uint64 `protobuf:"varint,1,opt,name=NodeID" json:"NodeID"`
+	ClusterID        uint64 `protobuf:"varint,2,opt,name=ClusterID" json:"ClusterID"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
@@ -62,6 +131,10 @@ func (m *Metadata) Reset()         { *m = Metadata{} }
 func (m *Metadata) String() string { return proto.CompactTextString(m) }
 func (*Metadata) ProtoMessage()    {}
 
+func init() {
+	proto.RegisterType((*Request)(nil), "etcdserverpb.Request")
+	proto.RegisterType((*Metadata)(nil), "etcdserverpb.Metadata")
+}
 func (m *Request) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
@@ -168,6 +241,18 @@ func (m *Request) MarshalTo(data []byte) (int, error) {
 		data[i] = 0
 	}
 	i++
+	if m.Refresh != nil {
+		data[i] = 0x88
+		i++
+		data[i] = 0x1
+		i++
+		if *m.Refresh {
+			data[i] = 1
+		} else {
+			data[i] = 0
+		}
+		i++
+	}
 	if m.XXX_unrecognized != nil {
 		i += copy(data[i:], m.XXX_unrecognized)
 	}
@@ -253,6 +338,9 @@ func (m *Request) Size() (n int) {
 	n += 2
 	n += 1 + sovEtcdserver(uint64(m.Time))
 	n += 3
+	if m.Refresh != nil {
+		n += 3
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -287,8 +375,12 @@ func (m *Request) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEtcdserver
+			}
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -301,6 +393,12 @@ func (m *Request) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Request: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Request: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
@@ -308,6 +406,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			m.ID = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -324,6 +425,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -350,6 +454,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -376,6 +483,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -402,6 +512,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -419,6 +532,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -445,6 +561,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			m.PrevIndex = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -461,6 +580,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -479,6 +601,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			m.Expiration = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -495,6 +620,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -512,6 +640,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			m.Since = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -528,6 +659,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -545,6 +679,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -562,6 +699,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -579,6 +719,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			m.Time = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -595,6 +738,9 @@ func (m *Request) Unmarshal(data []byte) error {
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -606,16 +752,29 @@ func (m *Request) Unmarshal(data []byte) error {
 				}
 			}
 			m.Stream = bool(v != 0)
-		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
+		case 17:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Refresh", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
 					break
 				}
 			}
-			iNdEx -= sizeOfWire
+			b := bool(v != 0)
+			m.Refresh = &b
+		default:
+			iNdEx = preIndex
 			skippy, err := skipEtcdserver(data[iNdEx:])
 			if err != nil {
 				return err
@@ -631,14 +790,21 @@ func (m *Request) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func (m *Metadata) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEtcdserver
+			}
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -651,6 +817,12 @@ func (m *Metadata) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Metadata: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Metadata: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
@@ -658,6 +830,9 @@ func (m *Metadata) Unmarshal(data []byte) error {
 			}
 			m.NodeID = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -674,6 +849,9 @@ func (m *Metadata) Unmarshal(data []byte) error {
 			}
 			m.ClusterID = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -685,15 +863,7 @@ func (m *Metadata) Unmarshal(data []byte) error {
 				}
 			}
 		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
+			iNdEx = preIndex
 			skippy, err := skipEtcdserver(data[iNdEx:])
 			if err != nil {
 				return err
@@ -709,6 +879,9 @@ func (m *Metadata) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func skipEtcdserver(data []byte) (n int, err error) {
@@ -717,6 +890,9 @@ func skipEtcdserver(data []byte) (n int, err error) {
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return 0, ErrIntOverflowEtcdserver
+			}
 			if iNdEx >= l {
 				return 0, io.ErrUnexpectedEOF
 			}
@@ -730,7 +906,10 @@ func skipEtcdserver(data []byte) (n int, err error) {
 		wireType := int(wire & 0x7)
 		switch wireType {
 		case 0:
-			for {
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return 0, io.ErrUnexpectedEOF
 				}
@@ -746,6 +925,9 @@ func skipEtcdserver(data []byte) (n int, err error) {
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowEtcdserver
+				}
 				if iNdEx >= l {
 					return 0, io.ErrUnexpectedEOF
 				}
@@ -766,6 +948,9 @@ func skipEtcdserver(data []byte) (n int, err error) {
 				var innerWire uint64
 				var start int = iNdEx
 				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return 0, ErrIntOverflowEtcdserver
+					}
 					if iNdEx >= l {
 						return 0, io.ErrUnexpectedEOF
 					}
@@ -801,4 +986,5 @@ func skipEtcdserver(data []byte) (n int, err error) {
 
 var (
 	ErrInvalidLengthEtcdserver = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowEtcdserver   = fmt.Errorf("proto: integer overflow")
 )

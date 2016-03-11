@@ -1,6 +1,7 @@
 package stackplan
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strings"
@@ -9,10 +10,10 @@ import (
 
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/utils"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/koding/kite/protocol"
 	"golang.org/x/net/context"
 )
 
@@ -32,6 +33,7 @@ type Machine struct {
 	Label           string            `json:"label"`
 	Region          string            `json:"region"`
 	QueryString     string            `json:"queryString,omitempty"`
+	RegisterURL     string            `json:"registerURL,omitempty"`
 	HostQueryString string            `json:"hostQueryString,omitempty"`
 	Attributes      map[string]string `json:"attributes"`
 }
@@ -60,6 +62,7 @@ type Machines struct {
 // Credential represents jCredential{Datas} value. Meta is of a provider-specific
 // type, defined by a ctor func in MetaFuncs map.
 type Credential struct {
+	Title      string
 	Provider   string
 	Identifier string
 	Meta       interface{}
@@ -83,15 +86,31 @@ func (m *Machines) AppendRegion(region string) {
 
 func (m *Machines) AppendQueryString(queryStrings map[string]string) {
 	for i, machine := range m.Machines {
-		queryString := queryStrings[machine.Label]
-		machine.QueryString = protocol.Kite{ID: queryString}.String()
+		queryString, ok := queryStrings[machine.Label]
+		if !ok {
+			continue
+		}
+
+		machine.QueryString = utils.QueryString(queryString)
+		m.Machines[i] = machine
+	}
+}
+
+func (m *Machines) AppendRegisterURL(urls map[string]string) {
+	for i, machine := range m.Machines {
+		registerURL, ok := urls[machine.QueryString]
+		if !ok {
+			continue
+		}
+
+		machine.RegisterURL = registerURL
 		m.Machines[i] = machine
 	}
 }
 
 func (m *Machines) AppendHostQueryString(s string) {
 	for i, machine := range m.Machines {
-		machine.HostQueryString = protocol.Kite{ID: s}.String()
+		machine.HostQueryString = utils.QueryString(s)
 		m.Machines[i] = machine
 	}
 }
@@ -105,6 +124,23 @@ func (m *Machines) WithLabel(label string) (Machine, error) {
 	}
 
 	return Machine{}, fmt.Errorf("couldn't find machine with label '%s", label)
+}
+
+// UserData injects header/footer into custom script and ensures it has
+// a shebang line.
+func UserData(content string) string {
+	var buf bytes.Buffer
+
+	// If there's no shebang, execute the script with bash.
+	if !strings.HasPrefix(content, "#!") {
+		fmt.Fprintln(&buf, "#!/bin/bash")
+	}
+
+	fmt.Fprintln(&buf, `echo "==== SCRIPT_STARTED ===="`)
+	fmt.Fprintln(&buf, content)
+	fmt.Fprintln(&buf, `echo "==== SCRIPT_FINISHED ====="`)
+
+	return buf.String()
 }
 
 // DefaultKlientTimeout specifies the maximum time we're going to try to
@@ -222,46 +258,59 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 
 // CheckKlients checks connectivity to all klient kites given by the kiteIDs
 // parameter.
-func (p *Planner) CheckKlients(ctx context.Context, kiteIDs KiteMap) error {
+//
+// It returns RegisterURLs mapped to each kite's query string.
+func (p *Planner) CheckKlients(ctx context.Context, kiteIDs KiteMap) (map[string]string, error) {
 	sess, err := p.session(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex // protects multierror and outputs
-	var multiErrors error
+	var merr error
+	var urls = make(map[string]string, len(kiteIDs))
 
-	check := func(label, kiteId string) error {
-		queryString := protocol.Kite{ID: kiteId}.String()
+	check := func(label, kiteID string) (string, error) {
+		queryString := utils.QueryString(kiteID)
 
-		sess.Log.Debug("[%s] Checking connectivity to %q", label, kiteId)
+		sess.Log.Debug("[%s] Checking connectivity to %q", label, kiteID)
 
 		klientRef, err := klient.NewWithTimeout(sess.Kite, queryString, p.klientTimeout())
 		if err != nil {
-			return err
+			return "", err
 		}
 		defer klientRef.Close()
 
-		return klientRef.Ping()
+		if err := klientRef.Ping(); err != nil {
+			return "", err
+		}
+
+		return klientRef.Client.URL, nil
 	}
 
 	for l, k := range kiteIDs {
 		wg.Add(1)
-		go func(label, kiteId string) {
-			if err := check(label, kiteId); err != nil {
-				mu.Lock()
-				multiErrors = multierror.Append(multiErrors,
-					fmt.Errorf("Couldn't check '%s:%s'", label, kiteId))
-				mu.Unlock()
+
+		go func(label, kiteID string) {
+			defer wg.Done()
+			url, err := check(label, kiteID)
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			if err != nil {
+				merr = multierror.Append(merr, fmt.Errorf("Couldn't check '%s:%s': %s", label, kiteID, err))
+				return
 			}
-			wg.Done()
+
+			urls[utils.QueryString(kiteID)] = url
 		}(l, k)
 	}
 
 	wg.Wait()
 
-	return multiErrors
+	return urls, merr
 }
 
 func (p *Planner) klientTimeout() time.Duration {

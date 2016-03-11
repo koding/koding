@@ -9,7 +9,6 @@ KodingSwitch              = require '../commonviews/kodingswitch'
 KDLoaderView              = kd.LoaderView
 CustomLinkView            = require '../customlinkview'
 CopyTooltipView           = require 'app/components/common/copytooltipview'
-KDCustomHTMLView          = kd.CustomHTMLView
 KDHitEnterInputView       = kd.HitEnterInputView
 KDFormViewWithFields      = kd.FormViewWithFields
 ComputeErrorUsageModal    = require './computeerrorusagemodal'
@@ -118,6 +117,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
   bindViewEvents: ->
 
     { hasClass } = kd.dom
+    { computeController } = kd.singletons
     { nickname, nickEdit, buildlogs, publicIp, stackInfo } = @form.inputs
 
     nickname.on 'click', (e) =>
@@ -142,7 +142,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
       return  unless e.target.tagName is 'SPAN'
 
       buildlogs.updatePartial 'loading...'
-      kd.singletons.computeController.showBuildLogs @machine
+      computeController.showBuildLogs @machine
       kd.utils.wait 1000, @lazyBound 'emit', 'ModalDestroyRequested'
 
 
@@ -158,6 +158,9 @@ module.exports = class MachineSettingsGeneralView extends KDView
       return  if stackInfoProcess
 
       { target } = event
+
+      if hasClass target, 'permission'
+        return computeController.fixMachinePermissions @machine
 
       @getStackTemplate (err, template) =>
 
@@ -191,6 +194,9 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
     publicIpView = new KDView
       partial   : @machine.ipAddress or 'N/A'
+
+    fixPermissionLink = if running and @machine.getOldOwner()
+    then "<span class='link-view permission'>fix permissions</span>" else ''
 
     @addSubView @form = new KDFormViewWithFields
       cssClass          : 'AppModal-form'
@@ -255,4 +261,5 @@ module.exports = class MachineSettingsGeneralView extends KDView
           partial       : """
             <span class="link-view template">show template</span>
             <span class="link-view readme">show readme</span>
+            #{fixPermissionLink}
           """

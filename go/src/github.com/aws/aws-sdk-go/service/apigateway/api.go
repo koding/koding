@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
 const opCreateApiKey = "CreateApiKey"
@@ -32,6 +34,32 @@ func (c *APIGateway) CreateApiKeyRequest(input *CreateApiKeyInput) (req *request
 
 func (c *APIGateway) CreateApiKey(input *CreateApiKeyInput) (*ApiKey, error) {
 	req, out := c.CreateApiKeyRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opCreateAuthorizer = "CreateAuthorizer"
+
+// CreateAuthorizerRequest generates a request for the CreateAuthorizer operation.
+func (c *APIGateway) CreateAuthorizerRequest(input *CreateAuthorizerInput) (req *request.Request, output *Authorizer) {
+	op := &request.Operation{
+		Name:       opCreateAuthorizer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/restapis/{restapi_id}/authorizers",
+	}
+
+	if input == nil {
+		input = &CreateAuthorizerInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &Authorizer{}
+	req.Data = output
+	return
+}
+
+func (c *APIGateway) CreateAuthorizer(input *CreateAuthorizerInput) (*Authorizer, error) {
+	req, out := c.CreateAuthorizerRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -219,7 +247,8 @@ func (c *APIGateway) CreateStageRequest(input *CreateStageInput) (req *request.R
 	return
 }
 
-// Creates a Stage resource.
+// Creates a new Stage resource that references a pre-existing Deployment for
+// the API.
 func (c *APIGateway) CreateStage(input *CreateStageInput) (*Stage, error) {
 	req, out := c.CreateStageRequest(input)
 	err := req.Send()
@@ -241,6 +270,8 @@ func (c *APIGateway) DeleteApiKeyRequest(input *DeleteApiKeyInput) (req *request
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteApiKeyOutput{}
 	req.Data = output
 	return
@@ -249,6 +280,35 @@ func (c *APIGateway) DeleteApiKeyRequest(input *DeleteApiKeyInput) (req *request
 // Deletes the ApiKey resource.
 func (c *APIGateway) DeleteApiKey(input *DeleteApiKeyInput) (*DeleteApiKeyOutput, error) {
 	req, out := c.DeleteApiKeyRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDeleteAuthorizer = "DeleteAuthorizer"
+
+// DeleteAuthorizerRequest generates a request for the DeleteAuthorizer operation.
+func (c *APIGateway) DeleteAuthorizerRequest(input *DeleteAuthorizerInput) (req *request.Request, output *DeleteAuthorizerOutput) {
+	op := &request.Operation{
+		Name:       opDeleteAuthorizer,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/restapis/{restapi_id}/authorizers/{authorizer_id}",
+	}
+
+	if input == nil {
+		input = &DeleteAuthorizerInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	output = &DeleteAuthorizerOutput{}
+	req.Data = output
+	return
+}
+
+// Deletes an existing Authorizer resource.
+func (c *APIGateway) DeleteAuthorizer(input *DeleteAuthorizerInput) (*DeleteAuthorizerOutput, error) {
+	req, out := c.DeleteAuthorizerRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -268,6 +328,8 @@ func (c *APIGateway) DeleteBasePathMappingRequest(input *DeleteBasePathMappingIn
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteBasePathMappingOutput{}
 	req.Data = output
 	return
@@ -295,6 +357,8 @@ func (c *APIGateway) DeleteClientCertificateRequest(input *DeleteClientCertifica
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteClientCertificateOutput{}
 	req.Data = output
 	return
@@ -321,6 +385,8 @@ func (c *APIGateway) DeleteDeploymentRequest(input *DeleteDeploymentInput) (req 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteDeploymentOutput{}
 	req.Data = output
 	return
@@ -349,6 +415,8 @@ func (c *APIGateway) DeleteDomainNameRequest(input *DeleteDomainNameInput) (req 
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteDomainNameOutput{}
 	req.Data = output
 	return
@@ -376,6 +444,8 @@ func (c *APIGateway) DeleteIntegrationRequest(input *DeleteIntegrationInput) (re
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteIntegrationOutput{}
 	req.Data = output
 	return
@@ -403,6 +473,8 @@ func (c *APIGateway) DeleteIntegrationResponseRequest(input *DeleteIntegrationRe
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteIntegrationResponseOutput{}
 	req.Data = output
 	return
@@ -430,6 +502,8 @@ func (c *APIGateway) DeleteMethodRequest(input *DeleteMethodInput) (req *request
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteMethodOutput{}
 	req.Data = output
 	return
@@ -457,6 +531,8 @@ func (c *APIGateway) DeleteMethodResponseRequest(input *DeleteMethodResponseInpu
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteMethodResponseOutput{}
 	req.Data = output
 	return
@@ -484,6 +560,8 @@ func (c *APIGateway) DeleteModelRequest(input *DeleteModelInput) (req *request.R
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteModelOutput{}
 	req.Data = output
 	return
@@ -511,6 +589,8 @@ func (c *APIGateway) DeleteResourceRequest(input *DeleteResourceInput) (req *req
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteResourceOutput{}
 	req.Data = output
 	return
@@ -538,6 +618,8 @@ func (c *APIGateway) DeleteRestApiRequest(input *DeleteRestApiInput) (req *reque
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteRestApiOutput{}
 	req.Data = output
 	return
@@ -565,6 +647,8 @@ func (c *APIGateway) DeleteStageRequest(input *DeleteStageInput) (req *request.R
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &DeleteStageOutput{}
 	req.Data = output
 	return
@@ -573,6 +657,35 @@ func (c *APIGateway) DeleteStageRequest(input *DeleteStageInput) (req *request.R
 // Deletes a Stage resource.
 func (c *APIGateway) DeleteStage(input *DeleteStageInput) (*DeleteStageOutput, error) {
 	req, out := c.DeleteStageRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opFlushStageAuthorizersCache = "FlushStageAuthorizersCache"
+
+// FlushStageAuthorizersCacheRequest generates a request for the FlushStageAuthorizersCache operation.
+func (c *APIGateway) FlushStageAuthorizersCacheRequest(input *FlushStageAuthorizersCacheInput) (req *request.Request, output *FlushStageAuthorizersCacheOutput) {
+	op := &request.Operation{
+		Name:       opFlushStageAuthorizersCache,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/restapis/{restapi_id}/stages/{stage_name}/cache/authorizers",
+	}
+
+	if input == nil {
+		input = &FlushStageAuthorizersCacheInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	output = &FlushStageAuthorizersCacheOutput{}
+	req.Data = output
+	return
+}
+
+// Flushes all authorizer cache entries on a stage.
+func (c *APIGateway) FlushStageAuthorizersCache(input *FlushStageAuthorizersCacheInput) (*FlushStageAuthorizersCacheOutput, error) {
+	req, out := c.FlushStageAuthorizersCacheRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -592,6 +705,8 @@ func (c *APIGateway) FlushStageCacheRequest(input *FlushStageCacheInput) (req *r
 	}
 
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	output = &FlushStageCacheOutput{}
 	req.Data = output
 	return
@@ -723,6 +838,60 @@ func (c *APIGateway) GetApiKeysPages(input *GetApiKeysInput, fn func(p *GetApiKe
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetApiKeysOutput), lastPage)
 	})
+}
+
+const opGetAuthorizer = "GetAuthorizer"
+
+// GetAuthorizerRequest generates a request for the GetAuthorizer operation.
+func (c *APIGateway) GetAuthorizerRequest(input *GetAuthorizerInput) (req *request.Request, output *Authorizer) {
+	op := &request.Operation{
+		Name:       opGetAuthorizer,
+		HTTPMethod: "GET",
+		HTTPPath:   "/restapis/{restapi_id}/authorizers/{authorizer_id}",
+	}
+
+	if input == nil {
+		input = &GetAuthorizerInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &Authorizer{}
+	req.Data = output
+	return
+}
+
+// Describe an existing Authorizer resource.
+func (c *APIGateway) GetAuthorizer(input *GetAuthorizerInput) (*Authorizer, error) {
+	req, out := c.GetAuthorizerRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opGetAuthorizers = "GetAuthorizers"
+
+// GetAuthorizersRequest generates a request for the GetAuthorizers operation.
+func (c *APIGateway) GetAuthorizersRequest(input *GetAuthorizersInput) (req *request.Request, output *GetAuthorizersOutput) {
+	op := &request.Operation{
+		Name:       opGetAuthorizers,
+		HTTPMethod: "GET",
+		HTTPPath:   "/restapis/{restapi_id}/authorizers",
+	}
+
+	if input == nil {
+		input = &GetAuthorizersInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &GetAuthorizersOutput{}
+	req.Data = output
+	return
+}
+
+// Describe an existing Authorizers resource.
+func (c *APIGateway) GetAuthorizers(input *GetAuthorizersInput) (*GetAuthorizersOutput, error) {
+	req, out := c.GetAuthorizersRequest(input)
+	err := req.Send()
+	return out, err
 }
 
 const opGetBasePathMapping = "GetBasePathMapping"
@@ -994,6 +1163,32 @@ func (c *APIGateway) GetDomainNamesPages(input *GetDomainNamesInput, fn func(p *
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetDomainNamesOutput), lastPage)
 	})
+}
+
+const opGetExport = "GetExport"
+
+// GetExportRequest generates a request for the GetExport operation.
+func (c *APIGateway) GetExportRequest(input *GetExportInput) (req *request.Request, output *GetExportOutput) {
+	op := &request.Operation{
+		Name:       opGetExport,
+		HTTPMethod: "GET",
+		HTTPPath:   "/restapis/{restapi_id}/stages/{stage_name}/exports/{export_type}",
+	}
+
+	if input == nil {
+		input = &GetExportInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &GetExportOutput{}
+	req.Data = output
+	return
+}
+
+func (c *APIGateway) GetExport(input *GetExportInput) (*GetExportOutput, error) {
+	req, out := c.GetExportRequest(input)
+	err := req.Send()
+	return out, err
 }
 
 const opGetIntegration = "GetIntegration"
@@ -1524,6 +1719,32 @@ func (c *APIGateway) PutMethodResponse(input *PutMethodResponseInput) (*MethodRe
 	return out, err
 }
 
+const opTestInvokeAuthorizer = "TestInvokeAuthorizer"
+
+// TestInvokeAuthorizerRequest generates a request for the TestInvokeAuthorizer operation.
+func (c *APIGateway) TestInvokeAuthorizerRequest(input *TestInvokeAuthorizerInput) (req *request.Request, output *TestInvokeAuthorizerOutput) {
+	op := &request.Operation{
+		Name:       opTestInvokeAuthorizer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/restapis/{restapi_id}/authorizers/{authorizer_id}",
+	}
+
+	if input == nil {
+		input = &TestInvokeAuthorizerInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &TestInvokeAuthorizerOutput{}
+	req.Data = output
+	return
+}
+
+func (c *APIGateway) TestInvokeAuthorizer(input *TestInvokeAuthorizerInput) (*TestInvokeAuthorizerOutput, error) {
+	req, out := c.TestInvokeAuthorizerRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opTestInvokeMethod = "TestInvokeMethod"
 
 // TestInvokeMethodRequest generates a request for the TestInvokeMethod operation.
@@ -1600,6 +1821,33 @@ func (c *APIGateway) UpdateApiKeyRequest(input *UpdateApiKeyInput) (req *request
 // Changes information about an ApiKey resource.
 func (c *APIGateway) UpdateApiKey(input *UpdateApiKeyInput) (*ApiKey, error) {
 	req, out := c.UpdateApiKeyRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opUpdateAuthorizer = "UpdateAuthorizer"
+
+// UpdateAuthorizerRequest generates a request for the UpdateAuthorizer operation.
+func (c *APIGateway) UpdateAuthorizerRequest(input *UpdateAuthorizerInput) (req *request.Request, output *Authorizer) {
+	op := &request.Operation{
+		Name:       opUpdateAuthorizer,
+		HTTPMethod: "PATCH",
+		HTTPPath:   "/restapis/{restapi_id}/authorizers/{authorizer_id}",
+	}
+
+	if input == nil {
+		input = &UpdateAuthorizerInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &Authorizer{}
+	req.Data = output
+	return
+}
+
+// Updates an existing Authorizer resource.
+func (c *APIGateway) UpdateAuthorizer(input *UpdateAuthorizerInput) (*Authorizer, error) {
+	req, out := c.UpdateAuthorizerRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -1929,6 +2177,8 @@ func (c *APIGateway) UpdateStage(input *UpdateStageInput) (*Stage, error) {
 
 // Represents an AWS account that is associated with Amazon API Gateway.
 type Account struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the Amazon resource name (ARN) of an Amazon CloudWatch role for
 	// the current Account resource.
 	CloudwatchRoleArn *string `locationName:"cloudwatchRoleArn" type:"string"`
@@ -1936,12 +2186,6 @@ type Account struct {
 	// Specifies the application programming interface (API) throttle settings for
 	// the current Account resource.
 	ThrottleSettings *ThrottleSettings `locationName:"throttleSettings" type:"structure"`
-
-	metadataAccount `json:"-" xml:"-"`
-}
-
-type metadataAccount struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1959,7 +2203,10 @@ func (s Account) GoString() string {
 // which indicates that the callers with the API key can make requests to that
 // stage.
 type ApiKey struct {
-	// The date when the API Key was created, in ISO 8601 format.
+	_ struct{} `type:"structure"`
+
+	// The date when the API Key was created, in ISO 8601 format (http://www.iso.org/iso/home/standards/iso8601.htm"
+	// target="_blank).
 	CreatedDate *time.Time `locationName:"createdDate" type:"timestamp" timestampFormat:"unix"`
 
 	// The description of the API Key.
@@ -1979,12 +2226,6 @@ type ApiKey struct {
 
 	// A list of Stage resources that are associated with the ApiKey resource.
 	StageKeys []*string `locationName:"stageKeys" type:"list"`
-
-	metadataApiKey `json:"-" xml:"-"`
-}
-
-type metadataApiKey struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1997,9 +2238,70 @@ func (s ApiKey) GoString() string {
 	return s.String()
 }
 
+// Represents an authorization layer for methods. If enabled on a method, API
+// Gateway will activate the authorizer when a client calls the method.
+type Authorizer struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the credentials required for the authorizer, if any. Two options
+	// are available. To specify an IAM Role for Amazon API Gateway to assume, use
+	// the role's Amazon Resource Name (ARN). To use resource-based permissions
+	// on the Lambda function, specify null.
+	AuthorizerCredentials *string `locationName:"authorizerCredentials" type:"string"`
+
+	// The TTL in seconds of cached authorizer results. If greater than 0, API Gateway
+	// will cache authorizer responses. If this field is not set, the default value
+	// is 300. The maximum value is 3600, or 1 hour.
+	AuthorizerResultTtlInSeconds *int64 `locationName:"authorizerResultTtlInSeconds" type:"integer"`
+
+	// [Required] Specifies the authorizer's Uniform Resource Identifier (URI).
+	// For TOKEN authorizers, this must be a well-formed Lambda function URI. The
+	// URI should be of the form arn:aws:apigateway:{region}:lambda:path/{service_api}.
+	// Region is used to determine the right endpoint. In this case, path is used
+	// to indicate that the remaining substring in the URI should be treated as
+	// the path to the resource, including the initial /. For Lambda functions,
+	// this is usually of the form /2015-03-31/functions/[FunctionARN]/invocations
+	AuthorizerUri *string `locationName:"authorizerUri" type:"string"`
+
+	// The identifier for the authorizer resource.
+	Id *string `locationName:"id" type:"string"`
+
+	// [Required] The source of the identity in an incoming request. For TOKEN authorizers,
+	// this value is a mapping expression with the same syntax as integration parameter
+	// mappings. The only valid source for tokens is 'header', so the expression
+	// should match 'method.request.header.[headerName]'. The value of the header
+	// '[headerName]' will be interpreted as the incoming token.
+	IdentitySource *string `locationName:"identitySource" type:"string"`
+
+	// A validation expression for the incoming identity. For TOKEN authorizers,
+	// this value should be a regular expression. The incoming token from the client
+	// is matched against this expression, and will proceed if the token matches.
+	// If the token doesn't match, the client receives a 401 Unauthorized response.
+	IdentityValidationExpression *string `locationName:"identityValidationExpression" type:"string"`
+
+	// [Required] The name of the authorizer.
+	Name *string `locationName:"name" type:"string"`
+
+	// [Required] The type of the authorizer. Currently, the only valid type is
+	// TOKEN.
+	Type *string `locationName:"type" type:"string" enum:"AuthorizerType"`
+}
+
+// String returns the string representation
+func (s Authorizer) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Authorizer) GoString() string {
+	return s.String()
+}
+
 // Represents the base path that callers of the API that must provide as part
 // of the URL after the domain name.
 type BasePathMapping struct {
+	_ struct{} `type:"structure"`
+
 	// The base path name that callers of the API must provide as part of the URL
 	// after the domain name.
 	BasePath *string `locationName:"basePath" type:"string"`
@@ -2009,12 +2311,6 @@ type BasePathMapping struct {
 
 	// The name of the API's stage.
 	Stage *string `locationName:"stage" type:"string"`
-
-	metadataBasePathMapping `json:"-" xml:"-"`
-}
-
-type metadataBasePathMapping struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2028,6 +2324,8 @@ func (s BasePathMapping) GoString() string {
 }
 
 type ClientCertificate struct {
+	_ struct{} `type:"structure"`
+
 	ClientCertificateId *string `locationName:"clientCertificateId" type:"string"`
 
 	CreatedDate *time.Time `locationName:"createdDate" type:"timestamp" timestampFormat:"unix"`
@@ -2037,12 +2335,6 @@ type ClientCertificate struct {
 	ExpirationDate *time.Time `locationName:"expirationDate" type:"timestamp" timestampFormat:"unix"`
 
 	PemEncodedCertificate *string `locationName:"pemEncodedCertificate" type:"string"`
-
-	metadataClientCertificate `json:"-" xml:"-"`
-}
-
-type metadataClientCertificate struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2056,6 +2348,8 @@ func (s ClientCertificate) GoString() string {
 }
 
 type CreateApiKeyInput struct {
+	_ struct{} `type:"structure"`
+
 	// The description of the ApiKey.
 	Description *string `locationName:"description" type:"string"`
 
@@ -2067,12 +2361,6 @@ type CreateApiKeyInput struct {
 
 	// Specifies whether the ApiKey can be used by callers.
 	StageKeys []*StageKey `locationName:"stageKeys" type:"list"`
-
-	metadataCreateApiKeyInput `json:"-" xml:"-"`
-}
-
-type metadataCreateApiKeyInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2085,8 +2373,47 @@ func (s CreateApiKeyInput) GoString() string {
 	return s.String()
 }
 
+type CreateAuthorizerInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the credentials required for the authorizer, if any.
+	AuthorizerCredentials *string `locationName:"authorizerCredentials" type:"string"`
+
+	// The TTL of cached authorizer results.
+	AuthorizerResultTtlInSeconds *int64 `locationName:"authorizerResultTtlInSeconds" type:"integer"`
+
+	// [Required] Specifies the authorizer's Uniform Resource Identifier (URI).
+	AuthorizerUri *string `locationName:"authorizerUri" type:"string" required:"true"`
+
+	// [Required] The source of the identity in an incoming request.
+	IdentitySource *string `locationName:"identitySource" type:"string" required:"true"`
+
+	// A validation expression for the incoming identity.
+	IdentityValidationExpression *string `locationName:"identityValidationExpression" type:"string"`
+
+	// [Required] The name of the authorizer.
+	Name *string `locationName:"name" type:"string" required:"true"`
+
+	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+
+	// [Required] The type of the authorizer.
+	Type *string `locationName:"type" type:"string" required:"true" enum:"AuthorizerType"`
+}
+
+// String returns the string representation
+func (s CreateAuthorizerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateAuthorizerInput) GoString() string {
+	return s.String()
+}
+
 // Requests Amazon API Gateway to create a new BasePathMapping resource.
 type CreateBasePathMappingInput struct {
+	_ struct{} `type:"structure"`
+
 	// The base path name that callers of the API must provide as part of the URL
 	// after the domain name. This value must be unique for all of the mappings
 	// across a single API. Leave this blank if you do not want callers to specify
@@ -2103,12 +2430,6 @@ type CreateBasePathMappingInput struct {
 	// this blank if you do not want callers to explicitly specify the stage name
 	// after any base path name.
 	Stage *string `locationName:"stage" type:"string"`
-
-	metadataCreateBasePathMappingInput `json:"-" xml:"-"`
-}
-
-type metadataCreateBasePathMappingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2123,6 +2444,8 @@ func (s CreateBasePathMappingInput) GoString() string {
 
 // Requests Amazon API Gateway to create a Deployment resource.
 type CreateDeploymentInput struct {
+	_ struct{} `type:"structure"`
+
 	// Enables a cache cluster for the Stage resource specified in the input.
 	CacheClusterEnabled *bool `locationName:"cacheClusterEnabled" type:"boolean"`
 
@@ -2143,15 +2466,9 @@ type CreateDeploymentInput struct {
 	StageName *string `locationName:"stageName" type:"string" required:"true"`
 
 	// A map that defines the stage variables for the Stage resource that is associated
-	// with the new deployment. Variable names can have alphabetic characters, and
-	// the values must match [A-Za-z0-9-._~:/?#&=,]+
+	// with the new deployment. Variable names can have alphanumeric characters,
+	// and the values must match [A-Za-z0-9-._~:/?#&=,]+.
 	Variables map[string]*string `locationName:"variables" type:"map"`
-
-	metadataCreateDeploymentInput `json:"-" xml:"-"`
-}
-
-type metadataCreateDeploymentInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2166,6 +2483,8 @@ func (s CreateDeploymentInput) GoString() string {
 
 // A request to create a new domain name.
 type CreateDomainNameInput struct {
+	_ struct{} `type:"structure"`
+
 	// The body of the server certificate provided by your certificate authority.
 	CertificateBody *string `locationName:"certificateBody" type:"string" required:"true"`
 
@@ -2185,12 +2504,6 @@ type CreateDomainNameInput struct {
 
 	// The name of the DomainName resource.
 	DomainName *string `locationName:"domainName" type:"string" required:"true"`
-
-	metadataCreateDomainNameInput `json:"-" xml:"-"`
-}
-
-type metadataCreateDomainNameInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2205,6 +2518,8 @@ func (s CreateDomainNameInput) GoString() string {
 
 // Request to add a new Model to an existing RestApi resource.
 type CreateModelInput struct {
+	_ struct{} `type:"structure"`
+
 	// The content-type for the model.
 	ContentType *string `locationName:"contentType" type:"string" required:"true"`
 
@@ -2218,14 +2533,8 @@ type CreateModelInput struct {
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
 
 	// The schema for the model. For application/json models, this should be JSON-schema
-	// draft v4 model.
+	// draft v4 (http://json-schema.org/documentation.html" target="_blank) model.
 	Schema *string `locationName:"schema" type:"string"`
-
-	metadataCreateModelInput `json:"-" xml:"-"`
-}
-
-type metadataCreateModelInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2240,6 +2549,8 @@ func (s CreateModelInput) GoString() string {
 
 // Requests Amazon API Gateway to create a Resource resource.
 type CreateResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The parent resource's identifier.
 	ParentId *string `location:"uri" locationName:"parent_id" type:"string" required:"true"`
 
@@ -2248,12 +2559,6 @@ type CreateResourceInput struct {
 
 	// The identifier of the RestApi for the resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataCreateResourceInput `json:"-" xml:"-"`
-}
-
-type metadataCreateResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2268,7 +2573,9 @@ func (s CreateResourceInput) GoString() string {
 
 // Request to add a new RestApi resource to your collection.
 type CreateRestApiInput struct {
-	// The name of the RestApi that you want to clone from.
+	_ struct{} `type:"structure"`
+
+	// The Id of the RestApi that you want to clone from.
 	CloneFrom *string `locationName:"cloneFrom" type:"string"`
 
 	// The description of the RestApi.
@@ -2276,12 +2583,6 @@ type CreateRestApiInput struct {
 
 	// The name of the RestApi.
 	Name *string `locationName:"name" type:"string" required:"true"`
-
-	metadataCreateRestApiInput `json:"-" xml:"-"`
-}
-
-type metadataCreateRestApiInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2296,6 +2597,8 @@ func (s CreateRestApiInput) GoString() string {
 
 // Requests Amazon API Gateway to create a Stage resource.
 type CreateStageInput struct {
+	_ struct{} `type:"structure"`
+
 	// Whether cache clustering is enabled for the stage.
 	CacheClusterEnabled *bool `locationName:"cacheClusterEnabled" type:"boolean"`
 
@@ -2315,14 +2618,8 @@ type CreateStageInput struct {
 	StageName *string `locationName:"stageName" type:"string" required:"true"`
 
 	// A map that defines the stage variables for the new Stage resource. Variable
-	// names can have alphabetic characters, and the values must match [A-Za-z0-9-._~:/?#&=,]+
+	// names can have alphanumeric characters, and the values must match [A-Za-z0-9-._~:/?#&=,]+.
 	Variables map[string]*string `locationName:"variables" type:"map"`
-
-	metadataCreateStageInput `json:"-" xml:"-"`
-}
-
-type metadataCreateStageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2337,14 +2634,10 @@ func (s CreateStageInput) GoString() string {
 
 // A request to delete the ApiKey resource.
 type DeleteApiKeyInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the ApiKey resource to be deleted.
 	ApiKey *string `location:"uri" locationName:"api_Key" type:"string" required:"true"`
-
-	metadataDeleteApiKeyInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteApiKeyInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2358,11 +2651,7 @@ func (s DeleteApiKeyInput) GoString() string {
 }
 
 type DeleteApiKeyOutput struct {
-	metadataDeleteApiKeyOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteApiKeyOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2375,19 +2664,50 @@ func (s DeleteApiKeyOutput) GoString() string {
 	return s.String()
 }
 
+// Request to delete an existing Authorizer resource.
+type DeleteAuthorizerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the Authorizer resource.
+	AuthorizerId *string `location:"uri" locationName:"authorizer_id" type:"string" required:"true"`
+
+	// The RestApi identifier for the Authorizer resource.
+	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteAuthorizerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAuthorizerInput) GoString() string {
+	return s.String()
+}
+
+type DeleteAuthorizerOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteAuthorizerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAuthorizerOutput) GoString() string {
+	return s.String()
+}
+
 // A request to delete the BasePathMapping resource.
 type DeleteBasePathMappingInput struct {
+	_ struct{} `type:"structure"`
+
 	// The base path name of the BasePathMapping resource to delete.
 	BasePath *string `location:"uri" locationName:"base_path" type:"string" required:"true"`
 
 	// The domain name of the BasePathMapping resource to delete.
 	DomainName *string `location:"uri" locationName:"domain_name" type:"string" required:"true"`
-
-	metadataDeleteBasePathMappingInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteBasePathMappingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2401,11 +2721,7 @@ func (s DeleteBasePathMappingInput) GoString() string {
 }
 
 type DeleteBasePathMappingOutput struct {
-	metadataDeleteBasePathMappingOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteBasePathMappingOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2419,13 +2735,9 @@ func (s DeleteBasePathMappingOutput) GoString() string {
 }
 
 type DeleteClientCertificateInput struct {
+	_ struct{} `type:"structure"`
+
 	ClientCertificateId *string `location:"uri" locationName:"clientcertificate_id" type:"string" required:"true"`
-
-	metadataDeleteClientCertificateInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteClientCertificateInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2439,11 +2751,7 @@ func (s DeleteClientCertificateInput) GoString() string {
 }
 
 type DeleteClientCertificateOutput struct {
-	metadataDeleteClientCertificateOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteClientCertificateOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2458,17 +2766,13 @@ func (s DeleteClientCertificateOutput) GoString() string {
 
 // Requests Amazon API Gateway to delete a Deployment resource.
 type DeleteDeploymentInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the Deployment resource to delete.
 	DeploymentId *string `location:"uri" locationName:"deployment_id" type:"string" required:"true"`
 
 	// The identifier of the RestApi resource for the Deployment resource to delete.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataDeleteDeploymentInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteDeploymentInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2482,11 +2786,7 @@ func (s DeleteDeploymentInput) GoString() string {
 }
 
 type DeleteDeploymentOutput struct {
-	metadataDeleteDeploymentOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteDeploymentOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2501,14 +2801,10 @@ func (s DeleteDeploymentOutput) GoString() string {
 
 // A request to delete the DomainName resource.
 type DeleteDomainNameInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the DomainName resource to be deleted.
 	DomainName *string `location:"uri" locationName:"domain_name" type:"string" required:"true"`
-
-	metadataDeleteDomainNameInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteDomainNameInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2522,11 +2818,7 @@ func (s DeleteDomainNameInput) GoString() string {
 }
 
 type DeleteDomainNameOutput struct {
-	metadataDeleteDomainNameOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteDomainNameOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2541,6 +2833,8 @@ func (s DeleteDomainNameOutput) GoString() string {
 
 // Represents a delete integration request.
 type DeleteIntegrationInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies a delete integration request's HTTP method.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -2549,12 +2843,6 @@ type DeleteIntegrationInput struct {
 
 	// Specifies a delete integration request's API identifier.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataDeleteIntegrationInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteIntegrationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2568,11 +2856,7 @@ func (s DeleteIntegrationInput) GoString() string {
 }
 
 type DeleteIntegrationOutput struct {
-	metadataDeleteIntegrationOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteIntegrationOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2587,6 +2871,8 @@ func (s DeleteIntegrationOutput) GoString() string {
 
 // Represents a delete integration response request.
 type DeleteIntegrationResponseInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies a delete integration response request's HTTP method.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -2598,12 +2884,6 @@ type DeleteIntegrationResponseInput struct {
 
 	// Specifies a delete integration response request's status code.
 	StatusCode *string `location:"uri" locationName:"status_code" type:"string" required:"true"`
-
-	metadataDeleteIntegrationResponseInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteIntegrationResponseInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2617,11 +2897,7 @@ func (s DeleteIntegrationResponseInput) GoString() string {
 }
 
 type DeleteIntegrationResponseOutput struct {
-	metadataDeleteIntegrationResponseOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteIntegrationResponseOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2636,6 +2912,8 @@ func (s DeleteIntegrationResponseOutput) GoString() string {
 
 // Request to delete an existing Method resource.
 type DeleteMethodInput struct {
+	_ struct{} `type:"structure"`
+
 	// The HTTP verb that identifies the Method resource.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -2644,12 +2922,6 @@ type DeleteMethodInput struct {
 
 	// The RestApi identifier for the Method resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataDeleteMethodInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteMethodInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2663,11 +2935,7 @@ func (s DeleteMethodInput) GoString() string {
 }
 
 type DeleteMethodOutput struct {
-	metadataDeleteMethodOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteMethodOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2682,6 +2950,8 @@ func (s DeleteMethodOutput) GoString() string {
 
 // A request to delete an existing MethodResponse resource.
 type DeleteMethodResponseInput struct {
+	_ struct{} `type:"structure"`
+
 	// The HTTP verb identifier for the parent Method resource.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -2693,12 +2963,6 @@ type DeleteMethodResponseInput struct {
 
 	// The status code identifier for the MethodResponse resource.
 	StatusCode *string `location:"uri" locationName:"status_code" type:"string" required:"true"`
-
-	metadataDeleteMethodResponseInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteMethodResponseInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2712,11 +2976,7 @@ func (s DeleteMethodResponseInput) GoString() string {
 }
 
 type DeleteMethodResponseOutput struct {
-	metadataDeleteMethodResponseOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteMethodResponseOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2731,17 +2991,13 @@ func (s DeleteMethodResponseOutput) GoString() string {
 
 // Request to delete an existing model in an existing RestApi resource.
 type DeleteModelInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the model to delete.
 	ModelName *string `location:"uri" locationName:"model_name" type:"string" required:"true"`
 
 	// The RestApi under which the model will be deleted.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataDeleteModelInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteModelInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2755,11 +3011,7 @@ func (s DeleteModelInput) GoString() string {
 }
 
 type DeleteModelOutput struct {
-	metadataDeleteModelOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteModelOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2774,17 +3026,13 @@ func (s DeleteModelOutput) GoString() string {
 
 // Request to delete a Resource.
 type DeleteResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the Resource resource.
 	ResourceId *string `location:"uri" locationName:"resource_id" type:"string" required:"true"`
 
 	// The RestApi identifier for the Resource resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataDeleteResourceInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2798,11 +3046,7 @@ func (s DeleteResourceInput) GoString() string {
 }
 
 type DeleteResourceOutput struct {
-	metadataDeleteResourceOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteResourceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2817,14 +3061,10 @@ func (s DeleteResourceOutput) GoString() string {
 
 // Request to delete the specified API from your collection.
 type DeleteRestApiInput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the RestApi you want to delete.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataDeleteRestApiInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteRestApiInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2838,11 +3078,7 @@ func (s DeleteRestApiInput) GoString() string {
 }
 
 type DeleteRestApiOutput struct {
-	metadataDeleteRestApiOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteRestApiOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2857,17 +3093,13 @@ func (s DeleteRestApiOutput) GoString() string {
 
 // Requests Amazon API Gateway to delete a Stage resource.
 type DeleteStageInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the RestApi resource for the Stage resource to delete.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
 
 	// The name of the Stage resource to delete.
 	StageName *string `location:"uri" locationName:"stage_name" type:"string" required:"true"`
-
-	metadataDeleteStageInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteStageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2881,11 +3113,7 @@ func (s DeleteStageInput) GoString() string {
 }
 
 type DeleteStageOutput struct {
-	metadataDeleteStageOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteStageOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2902,6 +3130,8 @@ func (s DeleteStageOutput) GoString() string {
 // using Stages. A deployment must be associated with a Stage for it to be callable
 // over the Internet.
 type Deployment struct {
+	_ struct{} `type:"structure"`
+
 	// Gets a summary of the RestApi at the date and time that the deployment resource
 	// was created.
 	ApiSummary map[string]map[string]*MethodSnapshot `locationName:"apiSummary" type:"map"`
@@ -2914,12 +3144,6 @@ type Deployment struct {
 
 	// The identifier for the deployment resource.
 	Id *string `locationName:"id" type:"string"`
-
-	metadataDeployment `json:"-" xml:"-"`
-}
-
-type metadataDeployment struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2935,24 +3159,22 @@ func (s Deployment) GoString() string {
 // Represents a domain name that is contained in a simpler, more intuitive URL
 // that can be called.
 type DomainName struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the certificate.
 	CertificateName *string `locationName:"certificateName" type:"string"`
 
-	// The date when the certificate was uploaded, in ISO 8601 format.
+	// The date when the certificate was uploaded, in ISO 8601 format (http://www.iso.org/iso/home/standards/iso8601.htm"
+	// target="_blank).
 	CertificateUploadDate *time.Time `locationName:"certificateUploadDate" type:"timestamp" timestampFormat:"unix"`
 
 	// The domain name of the Amazon CloudFront distribution. For more information,
-	// see the Amazon CloudFront documentation.
+	// see the Amazon CloudFront documentation (http://aws.amazon.com/documentation/cloudfront/"
+	// target="_blank).
 	DistributionDomainName *string `locationName:"distributionDomainName" type:"string"`
 
 	// The name of the DomainName resource.
 	DomainName *string `locationName:"domainName" type:"string"`
-
-	metadataDomainName `json:"-" xml:"-"`
-}
-
-type metadataDomainName struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2965,19 +3187,50 @@ func (s DomainName) GoString() string {
 	return s.String()
 }
 
+// Request to flush authorizer cache entries on a specified stage.
+type FlushStageAuthorizersCacheInput struct {
+	_ struct{} `type:"structure"`
+
+	// The API identifier of the stage to flush.
+	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+
+	// The name of the stage to flush.
+	StageName *string `location:"uri" locationName:"stage_name" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s FlushStageAuthorizersCacheInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FlushStageAuthorizersCacheInput) GoString() string {
+	return s.String()
+}
+
+type FlushStageAuthorizersCacheOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s FlushStageAuthorizersCacheOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FlushStageAuthorizersCacheOutput) GoString() string {
+	return s.String()
+}
+
 // Requests Amazon API Gateway to flush a stage's cache.
 type FlushStageCacheInput struct {
+	_ struct{} `type:"structure"`
+
 	// The API identifier of the stage to flush its cache.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
 
 	// The name of the stage to flush its cache.
 	StageName *string `location:"uri" locationName:"stage_name" type:"string" required:"true"`
-
-	metadataFlushStageCacheInput `json:"-" xml:"-"`
-}
-
-type metadataFlushStageCacheInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2991,11 +3244,7 @@ func (s FlushStageCacheInput) GoString() string {
 }
 
 type FlushStageCacheOutput struct {
-	metadataFlushStageCacheOutput `json:"-" xml:"-"`
-}
-
-type metadataFlushStageCacheOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -3009,13 +3258,9 @@ func (s FlushStageCacheOutput) GoString() string {
 }
 
 type GenerateClientCertificateInput struct {
+	_ struct{} `type:"structure"`
+
 	Description *string `locationName:"description" type:"string"`
-
-	metadataGenerateClientCertificateInput `json:"-" xml:"-"`
-}
-
-type metadataGenerateClientCertificateInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3031,11 +3276,7 @@ func (s GenerateClientCertificateInput) GoString() string {
 // Requests Amazon API Gateway to get information about the current Account
 // resource.
 type GetAccountInput struct {
-	metadataGetAccountInput `json:"-" xml:"-"`
-}
-
-type metadataGetAccountInput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -3050,14 +3291,10 @@ func (s GetAccountInput) GoString() string {
 
 // A request to get information about the current ApiKey resource.
 type GetApiKeyInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the ApiKey resource.
 	ApiKey *string `location:"uri" locationName:"api_Key" type:"string" required:"true"`
-
-	metadataGetApiKeyInput `json:"-" xml:"-"`
-}
-
-type metadataGetApiKeyInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3072,17 +3309,13 @@ func (s GetApiKeyInput) GoString() string {
 
 // A request to get information about the current ApiKeys resource.
 type GetApiKeysInput struct {
+	_ struct{} `type:"structure"`
+
 	// The maximum number of ApiKeys to get information about.
 	Limit *int64 `location:"querystring" locationName:"limit" type:"integer"`
 
 	// The position of the current ApiKeys resource to get information about.
 	Position *string `location:"querystring" locationName:"position" type:"string"`
-
-	metadataGetApiKeysInput `json:"-" xml:"-"`
-}
-
-type metadataGetApiKeysInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3097,16 +3330,12 @@ func (s GetApiKeysInput) GoString() string {
 
 // Represents a collection of ApiKey resources.
 type GetApiKeysOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The current page of any ApiKey resources in the collection of ApiKey resources.
 	Items []*ApiKey `locationName:"item" type:"list"`
 
 	Position *string `locationName:"position" type:"string"`
-
-	metadataGetApiKeysOutput `json:"-" xml:"-"`
-}
-
-type metadataGetApiKeysOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3119,8 +3348,73 @@ func (s GetApiKeysOutput) GoString() string {
 	return s.String()
 }
 
+// Request to describe an existing Authorizer resource.
+type GetAuthorizerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the Authorizer resource.
+	AuthorizerId *string `location:"uri" locationName:"authorizer_id" type:"string" required:"true"`
+
+	// The RestApi identifier for the Authorizer resource.
+	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetAuthorizerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetAuthorizerInput) GoString() string {
+	return s.String()
+}
+
+// Request to describe an existing Authorizers resource.
+type GetAuthorizersInput struct {
+	_ struct{} `type:"structure"`
+
+	Limit *int64 `location:"querystring" locationName:"limit" type:"integer"`
+
+	Position *string `location:"querystring" locationName:"position" type:"string"`
+
+	// The RestApi identifier for the Authorizers resource.
+	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetAuthorizersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetAuthorizersInput) GoString() string {
+	return s.String()
+}
+
+// Represents a collection of Authorizer resources.
+type GetAuthorizersOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Gets the current list of Authorizer resources in the collection.
+	Items []*Authorizer `locationName:"item" type:"list"`
+
+	Position *string `locationName:"position" type:"string"`
+}
+
+// String returns the string representation
+func (s GetAuthorizersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetAuthorizersOutput) GoString() string {
+	return s.String()
+}
+
 // Request to describe a BasePathMapping resource.
 type GetBasePathMappingInput struct {
+	_ struct{} `type:"structure"`
+
 	// The base path name that callers of the API must provide as part of the URL
 	// after the domain name. This value must be unique for all of the mappings
 	// across a single API. Leave this blank if you do not want callers to specify
@@ -3129,12 +3423,6 @@ type GetBasePathMappingInput struct {
 
 	// The domain name of the BasePathMapping resource to be described.
 	DomainName *string `location:"uri" locationName:"domain_name" type:"string" required:"true"`
-
-	metadataGetBasePathMappingInput `json:"-" xml:"-"`
-}
-
-type metadataGetBasePathMappingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3149,6 +3437,8 @@ func (s GetBasePathMappingInput) GoString() string {
 
 // A request to get information about a collection of BasePathMapping resources.
 type GetBasePathMappingsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The domain name of a BasePathMapping resource.
 	DomainName *string `location:"uri" locationName:"domain_name" type:"string" required:"true"`
 
@@ -3160,12 +3450,6 @@ type GetBasePathMappingsInput struct {
 	// The position of the current BasePathMapping resource in the collection to
 	// get information about.
 	Position *string `location:"querystring" locationName:"position" type:"string"`
-
-	metadataGetBasePathMappingsInput `json:"-" xml:"-"`
-}
-
-type metadataGetBasePathMappingsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3180,17 +3464,13 @@ func (s GetBasePathMappingsInput) GoString() string {
 
 // Represents a collection of BasePathMapping resources.
 type GetBasePathMappingsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The current page of any BasePathMapping resources in the collection of base
 	// path mapping resources.
 	Items []*BasePathMapping `locationName:"item" type:"list"`
 
 	Position *string `locationName:"position" type:"string"`
-
-	metadataGetBasePathMappingsOutput `json:"-" xml:"-"`
-}
-
-type metadataGetBasePathMappingsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3204,13 +3484,9 @@ func (s GetBasePathMappingsOutput) GoString() string {
 }
 
 type GetClientCertificateInput struct {
+	_ struct{} `type:"structure"`
+
 	ClientCertificateId *string `location:"uri" locationName:"clientcertificate_id" type:"string" required:"true"`
-
-	metadataGetClientCertificateInput `json:"-" xml:"-"`
-}
-
-type metadataGetClientCertificateInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3224,15 +3500,11 @@ func (s GetClientCertificateInput) GoString() string {
 }
 
 type GetClientCertificatesInput struct {
+	_ struct{} `type:"structure"`
+
 	Limit *int64 `location:"querystring" locationName:"limit" type:"integer"`
 
 	Position *string `location:"querystring" locationName:"position" type:"string"`
-
-	metadataGetClientCertificatesInput `json:"-" xml:"-"`
-}
-
-type metadataGetClientCertificatesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3246,15 +3518,11 @@ func (s GetClientCertificatesInput) GoString() string {
 }
 
 type GetClientCertificatesOutput struct {
+	_ struct{} `type:"structure"`
+
 	Items []*ClientCertificate `locationName:"item" type:"list"`
 
 	Position *string `locationName:"position" type:"string"`
-
-	metadataGetClientCertificatesOutput `json:"-" xml:"-"`
-}
-
-type metadataGetClientCertificatesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3269,18 +3537,14 @@ func (s GetClientCertificatesOutput) GoString() string {
 
 // Requests Amazon API Gateway to get information about a Deployment resource.
 type GetDeploymentInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the Deployment resource to get information about.
 	DeploymentId *string `location:"uri" locationName:"deployment_id" type:"string" required:"true"`
 
 	// The identifier of the RestApi resource for the Deployment resource to get
 	// information about.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetDeploymentInput `json:"-" xml:"-"`
-}
-
-type metadataGetDeploymentInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3295,6 +3559,8 @@ func (s GetDeploymentInput) GoString() string {
 
 // Requests Amazon API Gateway to get information about a Deployments collection.
 type GetDeploymentsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The maximum number of Deployment resources in the collection to get information
 	// about. The default limit is 25. It should be an integer between 1 - 500.
 	Limit *int64 `location:"querystring" locationName:"limit" type:"integer"`
@@ -3306,12 +3572,6 @@ type GetDeploymentsInput struct {
 	// The identifier of the RestApi resource for the collection of Deployment resources
 	// to get information about.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetDeploymentsInput `json:"-" xml:"-"`
-}
-
-type metadataGetDeploymentsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3329,17 +3589,13 @@ func (s GetDeploymentsInput) GoString() string {
 // your collection. The collection offers a paginated view of the contained
 // deployments.
 type GetDeploymentsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The current page of any Deployment resources in the collection of deployment
 	// resources.
 	Items []*Deployment `locationName:"item" type:"list"`
 
 	Position *string `locationName:"position" type:"string"`
-
-	metadataGetDeploymentsOutput `json:"-" xml:"-"`
-}
-
-type metadataGetDeploymentsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3354,14 +3610,10 @@ func (s GetDeploymentsOutput) GoString() string {
 
 // Request to get the name of a DomainName resource.
 type GetDomainNameInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the DomainName resource.
 	DomainName *string `location:"uri" locationName:"domain_name" type:"string" required:"true"`
-
-	metadataGetDomainNameInput `json:"-" xml:"-"`
-}
-
-type metadataGetDomainNameInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3376,18 +3628,14 @@ func (s GetDomainNameInput) GoString() string {
 
 // Request to describe a collection of DomainName resources.
 type GetDomainNamesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The maximum number of DomainName resources in the collection to get information
 	// about. The default limit is 25. It should be an integer between 1 - 500.
 	Limit *int64 `location:"querystring" locationName:"limit" type:"integer"`
 
 	// The position of the current domain names to get information about.
 	Position *string `location:"querystring" locationName:"position" type:"string"`
-
-	metadataGetDomainNamesInput `json:"-" xml:"-"`
-}
-
-type metadataGetDomainNamesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3402,17 +3650,13 @@ func (s GetDomainNamesInput) GoString() string {
 
 // Represents a collection of DomainName resources.
 type GetDomainNamesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The current page of any DomainName resources in the collection of DomainName
 	// resources.
 	Items []*DomainName `locationName:"item" type:"list"`
 
 	Position *string `locationName:"position" type:"string"`
-
-	metadataGetDomainNamesOutput `json:"-" xml:"-"`
-}
-
-type metadataGetDomainNamesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3425,8 +3669,54 @@ func (s GetDomainNamesOutput) GoString() string {
 	return s.String()
 }
 
+type GetExportInput struct {
+	_ struct{} `type:"structure"`
+
+	Accepts *string `location:"header" locationName:"Accept" type:"string"`
+
+	ExportType *string `location:"uri" locationName:"export_type" type:"string" required:"true"`
+
+	Parameters map[string]*string `location:"querystring" locationName:"parameters" type:"map"`
+
+	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+
+	StageName *string `location:"uri" locationName:"stage_name" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetExportInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetExportInput) GoString() string {
+	return s.String()
+}
+
+type GetExportOutput struct {
+	_ struct{} `type:"structure" payload:"Body"`
+
+	Body []byte `locationName:"body" type:"blob"`
+
+	ContentDisposition *string `location:"header" locationName:"Content-Disposition" type:"string"`
+
+	ContentType *string `location:"header" locationName:"Content-Type" type:"string"`
+}
+
+// String returns the string representation
+func (s GetExportOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetExportOutput) GoString() string {
+	return s.String()
+}
+
 // Represents a get integration request.
 type GetIntegrationInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies a get integration request's HTTP method.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -3435,12 +3725,6 @@ type GetIntegrationInput struct {
 
 	// Specifies a get integration request's API identifier.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetIntegrationInput `json:"-" xml:"-"`
-}
-
-type metadataGetIntegrationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3455,6 +3739,8 @@ func (s GetIntegrationInput) GoString() string {
 
 // Represents a get integration response request.
 type GetIntegrationResponseInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies a get integration response request's HTTP method.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -3466,12 +3752,6 @@ type GetIntegrationResponseInput struct {
 
 	// Specifies a get integration response request's status code.
 	StatusCode *string `location:"uri" locationName:"status_code" type:"string" required:"true"`
-
-	metadataGetIntegrationResponseInput `json:"-" xml:"-"`
-}
-
-type metadataGetIntegrationResponseInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3486,6 +3766,8 @@ func (s GetIntegrationResponseInput) GoString() string {
 
 // Request to describe an existing Method resource.
 type GetMethodInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the put method request's HTTP method type.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -3494,12 +3776,6 @@ type GetMethodInput struct {
 
 	// The RestApi identifier for the Method resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetMethodInput `json:"-" xml:"-"`
-}
-
-type metadataGetMethodInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3514,6 +3790,8 @@ func (s GetMethodInput) GoString() string {
 
 // Request to describe a MethodResponse resource.
 type GetMethodResponseInput struct {
+	_ struct{} `type:"structure"`
+
 	// The HTTP verb identifier for the parent Method resource.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -3525,12 +3803,6 @@ type GetMethodResponseInput struct {
 
 	// The status code identifier for the MethodResponse resource.
 	StatusCode *string `location:"uri" locationName:"status_code" type:"string" required:"true"`
-
-	metadataGetMethodResponseInput `json:"-" xml:"-"`
-}
-
-type metadataGetMethodResponseInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3545,6 +3817,8 @@ func (s GetMethodResponseInput) GoString() string {
 
 // Request to list information about a model in an existing RestApi resource.
 type GetModelInput struct {
+	_ struct{} `type:"structure"`
+
 	// Resolves all external model references and returns a flattened model schema.
 	Flatten *bool `location:"querystring" locationName:"flatten" type:"boolean"`
 
@@ -3553,12 +3827,6 @@ type GetModelInput struct {
 
 	// The RestApi identifier under which the Model exists.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetModelInput `json:"-" xml:"-"`
-}
-
-type metadataGetModelInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3573,17 +3841,13 @@ func (s GetModelInput) GoString() string {
 
 // Request to generate a sample mapping template used to transform the payload.
 type GetModelTemplateInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the model for which to generate a template.
 	ModelName *string `location:"uri" locationName:"model_name" type:"string" required:"true"`
 
 	// The ID of the RestApi under which the model exists.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetModelTemplateInput `json:"-" xml:"-"`
-}
-
-type metadataGetModelTemplateInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3598,15 +3862,11 @@ func (s GetModelTemplateInput) GoString() string {
 
 // Represents a mapping template used to transform a payload.
 type GetModelTemplateOutput struct {
-	// The Apache Velocity Template Language (VTL) template content used for the
-	// template resource.
+	_ struct{} `type:"structure"`
+
+	// The Apache Velocity Template Language (VTL) (http://velocity.apache.org/engine/devel/vtl-reference-guide.html"
+	// target="_blank) template content used for the template resource.
 	Value *string `locationName:"value" type:"string"`
-
-	metadataGetModelTemplateOutput `json:"-" xml:"-"`
-}
-
-type metadataGetModelTemplateOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3621,6 +3881,8 @@ func (s GetModelTemplateOutput) GoString() string {
 
 // Request to list existing Models defined for a RestApi resource.
 type GetModelsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The maximum number of models in the collection to get information about.
 	// The default limit is 25. It should be an integer between 1 - 500.
 	Limit *int64 `location:"querystring" locationName:"limit" type:"integer"`
@@ -3631,12 +3893,6 @@ type GetModelsInput struct {
 
 	// The RestApi identifier.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetModelsInput `json:"-" xml:"-"`
-}
-
-type metadataGetModelsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3651,16 +3907,12 @@ func (s GetModelsInput) GoString() string {
 
 // Represents a collection of Model resources.
 type GetModelsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Gets the current Model resource in the collection.
 	Items []*Model `locationName:"item" type:"list"`
 
 	Position *string `locationName:"position" type:"string"`
-
-	metadataGetModelsOutput `json:"-" xml:"-"`
-}
-
-type metadataGetModelsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3675,17 +3927,13 @@ func (s GetModelsOutput) GoString() string {
 
 // Request to list information about a resource.
 type GetResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier for the Resource resource.
 	ResourceId *string `location:"uri" locationName:"resource_id" type:"string" required:"true"`
 
 	// The RestApi identifier for the resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetResourceInput `json:"-" xml:"-"`
-}
-
-type metadataGetResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3700,6 +3948,8 @@ func (s GetResourceInput) GoString() string {
 
 // Request to list information about a collection of resources.
 type GetResourcesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The maximum number of Resource resources in the collection to get information
 	// about. The default limit is 25. It should be an integer between 1 - 500.
 	Limit *int64 `location:"querystring" locationName:"limit" type:"integer"`
@@ -3710,12 +3960,6 @@ type GetResourcesInput struct {
 
 	// The RestApi identifier for the Resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetResourcesInput `json:"-" xml:"-"`
-}
-
-type metadataGetResourcesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3730,16 +3974,12 @@ func (s GetResourcesInput) GoString() string {
 
 // Represents a collection of Resource resources.
 type GetResourcesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Gets the current Resource resource in the collection.
 	Items []*Resource `locationName:"item" type:"list"`
 
 	Position *string `locationName:"position" type:"string"`
-
-	metadataGetResourcesOutput `json:"-" xml:"-"`
-}
-
-type metadataGetResourcesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3754,14 +3994,10 @@ func (s GetResourcesOutput) GoString() string {
 
 // Request to list an existing RestApi defined for your collection.
 type GetRestApiInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the RestApi resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetRestApiInput `json:"-" xml:"-"`
-}
-
-type metadataGetRestApiInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3776,6 +4012,8 @@ func (s GetRestApiInput) GoString() string {
 
 // Request to list existing RestApis defined for your collection.
 type GetRestApisInput struct {
+	_ struct{} `type:"structure"`
+
 	// The maximum number of RestApi resources in the collection to get information
 	// about. The default limit is 25. It should be an integer between 1 - 500.
 	Limit *int64 `location:"querystring" locationName:"limit" type:"integer"`
@@ -3783,12 +4021,6 @@ type GetRestApisInput struct {
 	// The position of the current RestApis resource in the collection to get information
 	// about.
 	Position *string `location:"querystring" locationName:"position" type:"string"`
-
-	metadataGetRestApisInput `json:"-" xml:"-"`
-}
-
-type metadataGetRestApisInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3804,16 +4036,12 @@ func (s GetRestApisInput) GoString() string {
 // Contains references to your APIs and links that guide you in ways to interact
 // with your collection. A collection offers a paginated view of your APIs.
 type GetRestApisOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An array of links to the current page of RestApi resources.
 	Items []*RestApi `locationName:"item" type:"list"`
 
 	Position *string `locationName:"position" type:"string"`
-
-	metadataGetRestApisOutput `json:"-" xml:"-"`
-}
-
-type metadataGetRestApisOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3827,6 +4055,8 @@ func (s GetRestApisOutput) GoString() string {
 }
 
 type GetSdkInput struct {
+	_ struct{} `type:"structure"`
+
 	Parameters map[string]*string `location:"querystring" locationName:"parameters" type:"map"`
 
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
@@ -3834,12 +4064,6 @@ type GetSdkInput struct {
 	SdkType *string `location:"uri" locationName:"sdk_type" type:"string" required:"true"`
 
 	StageName *string `location:"uri" locationName:"stage_name" type:"string" required:"true"`
-
-	metadataGetSdkInput `json:"-" xml:"-"`
-}
-
-type metadataGetSdkInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3853,17 +4077,13 @@ func (s GetSdkInput) GoString() string {
 }
 
 type GetSdkOutput struct {
+	_ struct{} `type:"structure" payload:"Body"`
+
 	Body []byte `locationName:"body" type:"blob"`
 
 	ContentDisposition *string `location:"header" locationName:"Content-Disposition" type:"string"`
 
 	ContentType *string `location:"header" locationName:"Content-Type" type:"string"`
-
-	metadataGetSdkOutput `json:"-" xml:"-"`
-}
-
-type metadataGetSdkOutput struct {
-	SDKShapeTraits bool `type:"structure" payload:"Body"`
 }
 
 // String returns the string representation
@@ -3878,18 +4098,14 @@ func (s GetSdkOutput) GoString() string {
 
 // Requests Amazon API Gateway to get information about a Stage resource.
 type GetStageInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the RestApi resource for the Stage resource to get information
 	// about.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
 
 	// The name of the Stage resource to get information about.
 	StageName *string `location:"uri" locationName:"stage_name" type:"string" required:"true"`
-
-	metadataGetStageInput `json:"-" xml:"-"`
-}
-
-type metadataGetStageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3904,17 +4120,13 @@ func (s GetStageInput) GoString() string {
 
 // Requests Amazon API Gateway to get information about one or more Stage resources.
 type GetStagesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The stages' deployment identifiers.
 	DeploymentId *string `location:"querystring" locationName:"deploymentId" type:"string"`
 
 	// The stages' API identifiers.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataGetStagesInput `json:"-" xml:"-"`
-}
-
-type metadataGetStagesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3929,14 +4141,10 @@ func (s GetStagesInput) GoString() string {
 
 // A list of Stage resource that are associated with the ApiKey resource.
 type GetStagesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An individual Stage resource.
 	Item []*Stage `locationName:"item" type:"list"`
-
-	metadataGetStagesOutput `json:"-" xml:"-"`
-}
-
-type metadataGetStagesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3951,6 +4159,8 @@ func (s GetStagesOutput) GoString() string {
 
 // Represents a HTTP, AWS, or Mock integration.
 type Integration struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the integration's cache key parameters.
 	CacheKeyParameters []*string `locationName:"cacheKeyParameters" type:"list"`
 
@@ -3989,19 +4199,14 @@ type Integration struct {
 
 	// Specifies the integration's Uniform Resource Identifier (URI). For HTTP integrations,
 	// the URI must be a fully formed, encoded HTTP(S) URL according to the RFC-3986
-	// specification. For AWS integrations, the URI should be of the form arn:aws:apigateway:{region}:{service}:{path|action}/{service_api}.
-	// Region and service are used to determine the right endpoint. For AWS services
-	// that use the Action= query string parameter, service_api should be a valid
-	// action for the desired service. For RESTful AWS service APIs, path is used
-	// to indicate that the remaining substring in the URI should be treated as
-	// the path to the resource, including the initial /.
+	// specification (https://www.ietf.org/rfc/rfc3986.txt" target="_blank). For
+	// AWS integrations, the URI should be of the form arn:aws:apigateway:{region}:{subdomain.service|service}:{path|action}/{service_api}.
+	// Region, subdomain and service are used to determine the right endpoint. For
+	// AWS services that use the Action= query string parameter, service_api should
+	// be a valid action for the desired service. For RESTful AWS service APIs,
+	// path is used to indicate that the remaining substring in the URI should be
+	// treated as the path to the resource, including the initial /.
 	Uri *string `locationName:"uri" type:"string"`
-
-	metadataIntegration `json:"-" xml:"-"`
-}
-
-type metadataIntegration struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4018,13 +4223,15 @@ func (s Integration) GoString() string {
 // MethodResponse, and parameters and templates can be used to transform the
 // backend response.
 type IntegrationResponse struct {
+	_ struct{} `type:"structure"`
+
 	// Represents response parameters that can be read from the backend response.
 	// Response parameters are represented as a key/value map, with a destination
 	// as the key and a source as the value. A destination must match an existing
-	// response parameter in the Method. The source can be a header from the backend
-	// response, or a static value. Static values are specified using enclosing
-	// single quotes, and backend response headers can be read using the pattern
-	// integration.response.header.{name}.
+	// response parameter in the MethodResponse. The source can be a header from
+	// the backend response, or a static value. Static values are specified using
+	// enclosing single quotes, and backend response headers can be read using the
+	// pattern integration.response.header.{name}.
 	ResponseParameters map[string]*string `locationName:"responseParameters" type:"map"`
 
 	// Specifies the templates used to transform the integration response body.
@@ -4041,12 +4248,6 @@ type IntegrationResponse struct {
 	// Specifies the status code that is used to map the integration response to
 	// an existing MethodResponse.
 	StatusCode *string `locationName:"statusCode" type:"string"`
-
-	metadataIntegrationResponse `json:"-" xml:"-"`
-}
-
-type metadataIntegrationResponse struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4061,11 +4262,17 @@ func (s IntegrationResponse) GoString() string {
 
 // Represents a method.
 type Method struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether the method requires a valid ApiKey.
 	ApiKeyRequired *bool `locationName:"apiKeyRequired" type:"boolean"`
 
 	// The method's authorization type.
 	AuthorizationType *string `locationName:"authorizationType" type:"string"`
+
+	// Specifies the identifier of an Authorizer to use on this Method. The authorizationType
+	// must be CUSTOM.
+	AuthorizerId *string `locationName:"authorizerId" type:"string"`
 
 	// The HTTP method.
 	HttpMethod *string `locationName:"httpMethod" type:"string"`
@@ -4092,12 +4299,6 @@ type Method struct {
 	// parameter name. Sources specified here are available to the integration for
 	// mapping to integration request parameters or templates.
 	RequestParameters map[string]*bool `locationName:"requestParameters" type:"map"`
-
-	metadataMethod `json:"-" xml:"-"`
-}
-
-type metadataMethod struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4114,6 +4315,8 @@ func (s Method) GoString() string {
 // to the caller as the HTTP status code. Parameters and models can be used
 // to transform the response from the method's integration.
 type MethodResponse struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies the Model resources used for the response's content-type. Response
 	// models are represented as a key/value map, with a content-type as the key
 	// and a Model name as the value.
@@ -4130,12 +4333,6 @@ type MethodResponse struct {
 
 	// The method response's status code.
 	StatusCode *string `locationName:"statusCode" type:"string"`
-
-	metadataMethodResponse `json:"-" xml:"-"`
-}
-
-type metadataMethodResponse struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4150,6 +4347,8 @@ func (s MethodResponse) GoString() string {
 
 // Specifies the method setting properties.
 type MethodSetting struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether the cached responses are encrypted. The PATCH path for
 	// this setting is /{method_setting_key}/caching/dataEncrypted, and the value
 	// is a Boolean.
@@ -4183,6 +4382,11 @@ type MethodSetting struct {
 	// and the value is a Boolean.
 	MetricsEnabled *bool `locationName:"metricsEnabled" type:"boolean"`
 
+	// Specifies whether authorization is required for a cache invalidation request.
+	// The PATCH path for this setting is /{method_setting_key}/caching/requireAuthorizationForCacheControl,
+	// and the value is a Boolean.
+	RequireAuthorizationForCacheControl *bool `locationName:"requireAuthorizationForCacheControl" type:"boolean"`
+
 	// Specifies the throttling burst limit. The PATCH path for this setting is
 	// /{method_setting_key}/throttling/burstLimit, and the value is an integer.
 	ThrottlingBurstLimit *int64 `locationName:"throttlingBurstLimit" type:"integer"`
@@ -4191,11 +4395,11 @@ type MethodSetting struct {
 	// and the value is a double.
 	ThrottlingRateLimit *float64 `locationName:"throttlingRateLimit" type:"double"`
 
-	metadataMethodSetting `json:"-" xml:"-"`
-}
-
-type metadataMethodSetting struct {
-	SDKShapeTraits bool `type:"structure"`
+	// Specifies the strategy on how to handle the unauthorized requests for cache
+	// invalidation. The PATCH path for this setting is /{method_setting_key}/caching/unauthorizedCacheControlHeaderStrategy,
+	// and the available values are FAIL_WITH_403, SUCCEED_WITH_RESPONSE_HEADER,
+	// SUCCEED_WITHOUT_RESPONSE_HEADER.
+	UnauthorizedCacheControlHeaderStrategy *string `locationName:"unauthorizedCacheControlHeaderStrategy" type:"string" enum:"UnauthorizedCacheControlHeaderStrategy"`
 }
 
 // String returns the string representation
@@ -4210,17 +4414,13 @@ func (s MethodSetting) GoString() string {
 
 // Represents a summary of a Method resource, given a particular date and time.
 type MethodSnapshot struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether the method requires a valid ApiKey.
 	ApiKeyRequired *bool `locationName:"apiKeyRequired" type:"boolean"`
 
 	// Specifies the type of authorization used for the method.
 	AuthorizationType *string `locationName:"authorizationType" type:"string"`
-
-	metadataMethodSnapshot `json:"-" xml:"-"`
-}
-
-type metadataMethodSnapshot struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4235,6 +4435,8 @@ func (s MethodSnapshot) GoString() string {
 
 // Represents the structure of a request or response payload for a method.
 type Model struct {
+	_ struct{} `type:"structure"`
+
 	// The content-type for the model.
 	ContentType *string `locationName:"contentType" type:"string"`
 
@@ -4248,14 +4450,8 @@ type Model struct {
 	Name *string `locationName:"name" type:"string"`
 
 	// The schema for the model. For application/json models, this should be JSON-schema
-	// draft v4 model.
+	// draft v4 (http://json-schema.org/documentation.html" target="_blank) model.
 	Schema *string `locationName:"schema" type:"string"`
-
-	metadataModel `json:"-" xml:"-"`
-}
-
-type metadataModel struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4272,6 +4468,8 @@ func (s Model) GoString() string {
 // to http://tools.ietf.org/html/rfc6902#section-4 for an explanation of how
 // each operation is used.
 type PatchOperation struct {
+	_ struct{} `type:"structure"`
+
 	// The "move" and "copy" operation object MUST contain a "from" member, which
 	// is a string containing a JSON Pointer value that references the location
 	// in the target document to move the value from.
@@ -4290,12 +4488,6 @@ type PatchOperation struct {
 
 	// The actual value content.
 	Value *string `locationName:"value" type:"string"`
-
-	metadataPatchOperation `json:"-" xml:"-"`
-}
-
-type metadataPatchOperation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4310,6 +4502,8 @@ func (s PatchOperation) GoString() string {
 
 // Represents a put integration request.
 type PutIntegrationInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies a put integration input's cache key parameters.
 	CacheKeyParameters []*string `locationName:"cacheKeyParameters" type:"list"`
 
@@ -4322,7 +4516,8 @@ type PutIntegrationInput struct {
 	// Specifies a put integration request's HTTP method.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
-	// Specifies a put integration HTTP method.
+	// Specifies a put integration HTTP method. When the integration type is HTTP
+	// or AWS, this field is required.
 	IntegrationHttpMethod *string `locationName:"httpMethod" type:"string"`
 
 	// Represents request parameters that are sent with the backend request. Request
@@ -4349,14 +4544,9 @@ type PutIntegrationInput struct {
 	// Specifies a put integration input's type.
 	Type *string `locationName:"type" type:"string" required:"true" enum:"IntegrationType"`
 
-	// Specifies a put integration input's Uniform Resource Identifier (URI).
+	// Specifies a put integration input's Uniform Resource Identifier (URI). When
+	// the integration type is HTTP or AWS, this field is required.
 	Uri *string `locationName:"uri" type:"string"`
-
-	metadataPutIntegrationInput `json:"-" xml:"-"`
-}
-
-type metadataPutIntegrationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4371,6 +4561,8 @@ func (s PutIntegrationInput) GoString() string {
 
 // Represents a put integration response request.
 type PutIntegrationResponseInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies a put integration response request's HTTP method.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -4398,12 +4590,6 @@ type PutIntegrationResponseInput struct {
 	// Specifies the status code that is used to map the integration response to
 	// an existing MethodResponse.
 	StatusCode *string `location:"uri" locationName:"status_code" type:"string" required:"true"`
-
-	metadataPutIntegrationResponseInput `json:"-" xml:"-"`
-}
-
-type metadataPutIntegrationResponseInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4418,11 +4604,17 @@ func (s PutIntegrationResponseInput) GoString() string {
 
 // Request to add a method to an existing Resource resource.
 type PutMethodInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether the method required a valid ApiKey.
 	ApiKeyRequired *bool `locationName:"apiKeyRequired" type:"boolean"`
 
 	// Specifies the type of authorization used for the method.
 	AuthorizationType *string `locationName:"authorizationType" type:"string" required:"true"`
+
+	// Specifies the identifier of an Authorizer to use on this Method, if the type
+	// is CUSTOM.
+	AuthorizerId *string `locationName:"authorizerId" type:"string"`
 
 	// Specifies the put method request's HTTP method type.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
@@ -4447,12 +4639,6 @@ type PutMethodInput struct {
 
 	// The RestApi identifier for the new Method resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataPutMethodInput `json:"-" xml:"-"`
-}
-
-type metadataPutMethodInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4467,6 +4653,8 @@ func (s PutMethodInput) GoString() string {
 
 // Request to add a MethodResponse to an existing Method resource.
 type PutMethodResponseInput struct {
+	_ struct{} `type:"structure"`
+
 	// The HTTP verb that identifies the Method resource.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -4492,12 +4680,6 @@ type PutMethodResponseInput struct {
 
 	// The method response's status code.
 	StatusCode *string `location:"uri" locationName:"status_code" type:"string" required:"true"`
-
-	metadataPutMethodResponseInput `json:"-" xml:"-"`
-}
-
-type metadataPutMethodResponseInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4512,6 +4694,8 @@ func (s PutMethodResponseInput) GoString() string {
 
 // Represents a resource.
 type Resource struct {
+	_ struct{} `type:"structure"`
+
 	// The resource's identifier.
 	Id *string `locationName:"id" type:"string"`
 
@@ -4527,12 +4711,6 @@ type Resource struct {
 	// Map of methods for this resource, which is included only if requested using
 	// the embed option.
 	ResourceMethods map[string]*Method `locationName:"resourceMethods" type:"map"`
-
-	metadataResource `json:"-" xml:"-"`
-}
-
-type metadataResource struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4547,7 +4725,10 @@ func (s Resource) GoString() string {
 
 // Represents a REST API.
 type RestApi struct {
-	// The date when the API was created, in ISO 8601 format.
+	_ struct{} `type:"structure"`
+
+	// The date when the API was created, in ISO 8601 format (http://www.iso.org/iso/home/standards/iso8601.htm"
+	// target="_blank).
 	CreatedDate *time.Time `locationName:"createdDate" type:"timestamp" timestampFormat:"unix"`
 
 	// The API's description.
@@ -4559,12 +4740,6 @@ type RestApi struct {
 
 	// The API's name.
 	Name *string `locationName:"name" type:"string"`
-
-	metadataRestApi `json:"-" xml:"-"`
-}
-
-type metadataRestApi struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4580,6 +4755,8 @@ func (s RestApi) GoString() string {
 // Represents a unique identifier for a version of a deployed RestApi that is
 // callable by users.
 type Stage struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether a cache cluster is enabled for the stage.
 	CacheClusterEnabled *bool `locationName:"cacheClusterEnabled" type:"boolean"`
 
@@ -4591,7 +4768,8 @@ type Stage struct {
 
 	ClientCertificateId *string `locationName:"clientCertificateId" type:"string"`
 
-	// The date and time that the stage was created, in ISO 8601 format.
+	// The date and time that the stage was created, in ISO 8601 format (http://www.iso.org/iso/home/standards/iso8601.htm"
+	// target="_blank).
 	CreatedDate *time.Time `locationName:"createdDate" type:"timestamp" timestampFormat:"unix"`
 
 	// The identifier of the Deployment that the stage points to.
@@ -4601,7 +4779,7 @@ type Stage struct {
 	Description *string `locationName:"description" type:"string"`
 
 	// The date and time that information about the stage was last updated, in ISO
-	// 8601 format.
+	// 8601 format (http://www.iso.org/iso/home/standards/iso8601.htm" target="_blank).
 	LastUpdatedDate *time.Time `locationName:"lastUpdatedDate" type:"timestamp" timestampFormat:"unix"`
 
 	// A map that defines the method settings for a Stage resource. Keys are defined
@@ -4614,14 +4792,8 @@ type Stage struct {
 	StageName *string `locationName:"stageName" type:"string"`
 
 	// A map that defines the stage variables for a Stage resource. Variable names
-	// can have alphabetic characters, and the values must match [A-Za-z0-9-._~:/?#&=,]+
+	// can have alphanumeric characters, and the values must match [A-Za-z0-9-._~:/?#&=,]+.
 	Variables map[string]*string `locationName:"variables" type:"map"`
-
-	metadataStage `json:"-" xml:"-"`
-}
-
-type metadataStage struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4636,17 +4808,13 @@ func (s Stage) GoString() string {
 
 // A reference to a unique stage identified in the format {restApiId}/{stage}.
 type StageKey struct {
+	_ struct{} `type:"structure"`
+
 	// A list of Stage resources that are associated with the ApiKey resource.
 	RestApiId *string `locationName:"restApiId" type:"string"`
 
 	// The stage name in the RestApi that the stage key references.
 	StageName *string `locationName:"stageName" type:"string"`
-
-	metadataStageKey `json:"-" xml:"-"`
-}
-
-type metadataStageKey struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4659,7 +4827,70 @@ func (s StageKey) GoString() string {
 	return s.String()
 }
 
+type TestInvokeAuthorizerInput struct {
+	_ struct{} `type:"structure"`
+
+	AdditionalContext map[string]*string `locationName:"additionalContext" type:"map"`
+
+	AuthorizerId *string `location:"uri" locationName:"authorizer_id" type:"string" required:"true"`
+
+	Body *string `locationName:"body" type:"string"`
+
+	Headers map[string]*string `locationName:"headers" type:"map"`
+
+	PathWithQueryString *string `locationName:"pathWithQueryString" type:"string"`
+
+	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+
+	StageVariables map[string]*string `locationName:"stageVariables" type:"map"`
+}
+
+// String returns the string representation
+func (s TestInvokeAuthorizerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TestInvokeAuthorizerInput) GoString() string {
+	return s.String()
+}
+
+// Represents the response of the test invoke request in for a custom Authorizer
+type TestInvokeAuthorizerOutput struct {
+	_ struct{} `type:"structure"`
+
+	Authorization map[string][]*string `locationName:"authorization" type:"map"`
+
+	// The HTTP status code that the client would have received. Value is 0 if the
+	// authorizer succeeded.
+	ClientStatus *int64 `locationName:"clientStatus" type:"integer"`
+
+	// The execution latency of the test authorizer request
+	Latency *int64 `locationName:"latency" type:"long"`
+
+	// The Amazon API Gateway execution log for the test authorizer request.
+	Log *string `locationName:"log" type:"string"`
+
+	// The policy JSON document returned by the Authorizer
+	Policy *string `locationName:"policy" type:"string"`
+
+	// The principal identity returned by the Authorizer
+	PrincipalId *string `locationName:"principalId" type:"string"`
+}
+
+// String returns the string representation
+func (s TestInvokeAuthorizerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TestInvokeAuthorizerOutput) GoString() string {
+	return s.String()
+}
+
 type TestInvokeMethodInput struct {
+	_ struct{} `type:"structure"`
+
 	Body *string `locationName:"body" type:"string"`
 
 	ClientCertificateId *string `locationName:"clientCertificateId" type:"string"`
@@ -4675,12 +4906,6 @@ type TestInvokeMethodInput struct {
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
 
 	StageVariables map[string]*string `locationName:"stageVariables" type:"map"`
-
-	metadataTestInvokeMethodInput `json:"-" xml:"-"`
-}
-
-type metadataTestInvokeMethodInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4695,6 +4920,8 @@ func (s TestInvokeMethodInput) GoString() string {
 
 // Represents the response of the test invoke request in HTTP method.
 type TestInvokeMethodOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The body of HTTP response.
 	Body *string `locationName:"body" type:"string"`
 
@@ -4709,12 +4936,6 @@ type TestInvokeMethodOutput struct {
 
 	// The HTTP status code.
 	Status *int64 `locationName:"status" type:"integer"`
-
-	metadataTestInvokeMethodOutput `json:"-" xml:"-"`
-}
-
-type metadataTestInvokeMethodOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4729,17 +4950,13 @@ func (s TestInvokeMethodOutput) GoString() string {
 
 // Returns the throttle settings.
 type ThrottleSettings struct {
+	_ struct{} `type:"structure"`
+
 	// Returns the burstLimit when ThrottleSettings is called.
 	BurstLimit *int64 `locationName:"burstLimit" type:"integer"`
 
 	// Returns the rateLimit when ThrottleSettings is called.
 	RateLimit *float64 `locationName:"rateLimit" type:"double"`
-
-	metadataThrottleSettings `json:"-" xml:"-"`
-}
-
-type metadataThrottleSettings struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4755,15 +4972,11 @@ func (s ThrottleSettings) GoString() string {
 // Requests Amazon API Gateway to change information about the current Account
 // resource.
 type UpdateAccountInput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of operations describing the updates to apply to the specified resource.
 	// The patches are applied in the order specified in the list.
 	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
-
-	metadataUpdateAccountInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateAccountInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4778,18 +4991,14 @@ func (s UpdateAccountInput) GoString() string {
 
 // A request to change information about an ApiKey resource.
 type UpdateApiKeyInput struct {
+	_ struct{} `type:"structure"`
+
 	// The identifier of the ApiKey resource to be updated.
 	ApiKey *string `location:"uri" locationName:"api_Key" type:"string" required:"true"`
 
 	// A list of operations describing the updates to apply to the specified resource.
 	// The patches are applied in the order specified in the list.
 	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
-
-	metadataUpdateApiKeyInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateApiKeyInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4802,8 +5011,35 @@ func (s UpdateApiKeyInput) GoString() string {
 	return s.String()
 }
 
+// Request to update an existing Authorizer resource.
+type UpdateAuthorizerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the Authorizer resource.
+	AuthorizerId *string `location:"uri" locationName:"authorizer_id" type:"string" required:"true"`
+
+	// A list of operations describing the updates to apply to the specified resource.
+	// The patches are applied in the order specified in the list.
+	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
+
+	// The RestApi identifier for the Authorizer resource.
+	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateAuthorizerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateAuthorizerInput) GoString() string {
+	return s.String()
+}
+
 // A request to change information about the BasePathMapping resource.
 type UpdateBasePathMappingInput struct {
+	_ struct{} `type:"structure"`
+
 	// The base path of the BasePathMapping resource to change.
 	BasePath *string `location:"uri" locationName:"base_path" type:"string" required:"true"`
 
@@ -4813,12 +5049,6 @@ type UpdateBasePathMappingInput struct {
 	// A list of operations describing the updates to apply to the specified resource.
 	// The patches are applied in the order specified in the list.
 	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
-
-	metadataUpdateBasePathMappingInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateBasePathMappingInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4832,17 +5062,13 @@ func (s UpdateBasePathMappingInput) GoString() string {
 }
 
 type UpdateClientCertificateInput struct {
+	_ struct{} `type:"structure"`
+
 	ClientCertificateId *string `location:"uri" locationName:"clientcertificate_id" type:"string" required:"true"`
 
 	// A list of operations describing the updates to apply to the specified resource.
 	// The patches are applied in the order specified in the list.
 	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
-
-	metadataUpdateClientCertificateInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateClientCertificateInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4857,6 +5083,8 @@ func (s UpdateClientCertificateInput) GoString() string {
 
 // Requests Amazon API Gateway to change information about a Deployment resource.
 type UpdateDeploymentInput struct {
+	_ struct{} `type:"structure"`
+
 	// The replacment identifier for the Deployment resource to change information
 	// about.
 	DeploymentId *string `location:"uri" locationName:"deployment_id" type:"string" required:"true"`
@@ -4868,12 +5096,6 @@ type UpdateDeploymentInput struct {
 	// The replacement identifier of the RestApi resource for the Deployment resource
 	// to change information about.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataUpdateDeploymentInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateDeploymentInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4888,18 +5110,14 @@ func (s UpdateDeploymentInput) GoString() string {
 
 // A request to change information about the DomainName resource.
 type UpdateDomainNameInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the DomainName resource to be changed.
 	DomainName *string `location:"uri" locationName:"domain_name" type:"string" required:"true"`
 
 	// A list of operations describing the updates to apply to the specified resource.
 	// The patches are applied in the order specified in the list.
 	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
-
-	metadataUpdateDomainNameInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateDomainNameInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4914,6 +5132,8 @@ func (s UpdateDomainNameInput) GoString() string {
 
 // Represents an update integration request.
 type UpdateIntegrationInput struct {
+	_ struct{} `type:"structure"`
+
 	// Represents an update integration request's HTTP method.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -4926,12 +5146,6 @@ type UpdateIntegrationInput struct {
 
 	// Represents an update integration request's API identifier.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataUpdateIntegrationInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateIntegrationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4946,6 +5160,8 @@ func (s UpdateIntegrationInput) GoString() string {
 
 // Represents an update integration response request.
 type UpdateIntegrationResponseInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies an update integration response request's HTTP method.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -4961,12 +5177,6 @@ type UpdateIntegrationResponseInput struct {
 
 	// Specifies an update integration response request's status code.
 	StatusCode *string `location:"uri" locationName:"status_code" type:"string" required:"true"`
-
-	metadataUpdateIntegrationResponseInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateIntegrationResponseInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4981,6 +5191,8 @@ func (s UpdateIntegrationResponseInput) GoString() string {
 
 // Request to update an existing Method resource.
 type UpdateMethodInput struct {
+	_ struct{} `type:"structure"`
+
 	// The HTTP verb that identifies the Method resource.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -4993,12 +5205,6 @@ type UpdateMethodInput struct {
 
 	// The RestApi identifier for the Method resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataUpdateMethodInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateMethodInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5013,6 +5219,8 @@ func (s UpdateMethodInput) GoString() string {
 
 // A request to update an existing MethodResponse resource.
 type UpdateMethodResponseInput struct {
+	_ struct{} `type:"structure"`
+
 	// The HTTP verb identifier for the parent Method resource.
 	HttpMethod *string `location:"uri" locationName:"http_method" type:"string" required:"true"`
 
@@ -5028,12 +5236,6 @@ type UpdateMethodResponseInput struct {
 
 	// The status code identifier for the MethodResponse resource.
 	StatusCode *string `location:"uri" locationName:"status_code" type:"string" required:"true"`
-
-	metadataUpdateMethodResponseInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateMethodResponseInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5048,6 +5250,8 @@ func (s UpdateMethodResponseInput) GoString() string {
 
 // Request to update an existing model in an existing RestApi resource.
 type UpdateModelInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the model to update.
 	ModelName *string `location:"uri" locationName:"model_name" type:"string" required:"true"`
 
@@ -5057,12 +5261,6 @@ type UpdateModelInput struct {
 
 	// The RestApi identifier under which the model exists.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataUpdateModelInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateModelInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5077,6 +5275,8 @@ func (s UpdateModelInput) GoString() string {
 
 // Request to change information about a Resource resource.
 type UpdateResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of operations describing the updates to apply to the specified resource.
 	// The patches are applied in the order specified in the list.
 	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
@@ -5086,12 +5286,6 @@ type UpdateResourceInput struct {
 
 	// The RestApi identifier for the Resource resource.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataUpdateResourceInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5106,18 +5300,14 @@ func (s UpdateResourceInput) GoString() string {
 
 // Request to update an existing RestApi resource in your collection.
 type UpdateRestApiInput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of operations describing the updates to apply to the specified resource.
 	// The patches are applied in the order specified in the list.
 	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
 
 	// The ID of the RestApi you want to update.
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
-
-	metadataUpdateRestApiInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateRestApiInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5132,6 +5322,8 @@ func (s UpdateRestApiInput) GoString() string {
 
 // Requests Amazon API Gateway to change information about a Stage resource.
 type UpdateStageInput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of operations describing the updates to apply to the specified resource.
 	// The patches are applied in the order specified in the list.
 	PatchOperations []*PatchOperation `locationName:"patchOperations" type:"list"`
@@ -5142,12 +5334,6 @@ type UpdateStageInput struct {
 
 	// The name of the Stage resource to change information about.
 	StageName *string `location:"uri" locationName:"stage_name" type:"string" required:"true"`
-
-	metadataUpdateStageInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateStageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5159,6 +5345,11 @@ func (s UpdateStageInput) String() string {
 func (s UpdateStageInput) GoString() string {
 	return s.String()
 }
+
+const (
+	// @enum AuthorizerType
+	AuthorizerTypeToken = "TOKEN"
+)
 
 // Returns the size of the CacheCluster.
 const (
@@ -5202,6 +5393,15 @@ const (
 	IntegrationTypeAws = "AWS"
 	// @enum IntegrationType
 	IntegrationTypeMock = "MOCK"
+)
+
+const (
+	// @enum UnauthorizedCacheControlHeaderStrategy
+	UnauthorizedCacheControlHeaderStrategyFailWith403 = "FAIL_WITH_403"
+	// @enum UnauthorizedCacheControlHeaderStrategy
+	UnauthorizedCacheControlHeaderStrategySucceedWithResponseHeader = "SUCCEED_WITH_RESPONSE_HEADER"
+	// @enum UnauthorizedCacheControlHeaderStrategy
+	UnauthorizedCacheControlHeaderStrategySucceedWithoutResponseHeader = "SUCCEED_WITHOUT_RESPONSE_HEADER"
 )
 
 const (

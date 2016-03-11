@@ -6,6 +6,9 @@ import (
 	"path"
 	"testing"
 
+	"koding/klientctl/klient"
+	"koding/klientctl/ssh"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -14,11 +17,14 @@ func TestSSHCommand(t *testing.T) {
 		tempSSHDir, err := ioutil.TempDir("", "")
 		So(err, ShouldBeNil)
 
-		s := SSHCommand{
-			SSHKey: &SSHKey{
-				KeyPath:   tempSSHDir,
-				KeyName:   "key",
-				Transport: &fakeTransport{},
+		s := ssh.SSHCommand{
+			SSHKey: &ssh.SSHKey{
+				KeyPath: tempSSHDir,
+				KeyName: "key",
+				// Create a klient, with the fake transport to satisfy the Teller interface.
+				Klient: &klient.Klient{
+					Teller: &fakeTransport{},
+				},
 			},
 		}
 

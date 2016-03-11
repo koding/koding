@@ -10,8 +10,8 @@ import (
 )
 
 type EditorOptions struct {
-	Input  string `short:"i" long:"input" description:"Input file" default:"-"`
-	Output string `short:"o" long:"output" description:"Output file" default:"-"`
+	Input  flags.Filename `short:"i" long:"input" description:"Input file" default:"-"`
+	Output flags.Filename `short:"o" long:"output" description:"Output file" default:"-"`
 }
 
 type Point struct {
@@ -22,7 +22,7 @@ func (p *Point) UnmarshalFlag(value string) error {
 	parts := strings.Split(value, ",")
 
 	if len(parts) != 2 {
-		return errors.New("Expected two numbers separated by a ,")
+		return errors.New("expected two numbers separated by a ,")
 	}
 
 	x, err := strconv.ParseInt(parts[0], 10, 32)

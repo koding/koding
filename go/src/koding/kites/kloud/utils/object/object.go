@@ -59,10 +59,11 @@ func (b *Builder) New(prefix string) *Builder {
 	return newB
 }
 
-// Build creates flat object representation of the given value v.
-func (b *Builder) Build(v interface{}) Object {
+// Build creates flat object representation of the given value v ignoring
+// fields that begins with the ignored values.
+func (b *Builder) Build(v interface{}, ignored ...string) Object {
 	obj := make(Object)
-	b.build(v, obj)
+	b.build(v, obj, ignored...)
 	return obj
 }
 
@@ -81,15 +82,21 @@ func (b *Builder) Decode(obj, v interface{}) error {
 	return dec.Decode(obj)
 }
 
-func (b *Builder) build(v interface{}, obj Object) {
+func (b *Builder) build(v interface{}, obj Object, ignored ...string) {
+	for _, prefix := range ignored {
+		if b.Prefix == prefix {
+			return
+		}
+	}
+
 	if isMapObject(v) {
-		b.buildMapObject(v, obj)
+		b.buildMapObject(v, obj, ignored...)
 	} else {
-		b.buildStruct(v, obj)
+		b.buildStruct(v, obj, ignored...)
 	}
 }
 
-func (b *Builder) buildMapObject(v interface{}, obj Object) {
+func (b *Builder) buildMapObject(v interface{}, obj Object, ignored ...string) {
 	m := reflect.ValueOf(v)
 	if m.Type().Kind() == reflect.Ptr {
 		m = m.Elem()
@@ -113,11 +120,11 @@ func (b *Builder) buildMapObject(v interface{}, obj Object) {
 			continue
 		}
 
-		b.New(key).build(child, obj)
+		b.New(key).build(child, obj, ignored...)
 	}
 }
 
-func (b *Builder) buildStruct(v interface{}, obj Object) {
+func (b *Builder) buildStruct(v interface{}, obj Object, ignored ...string) {
 	for _, field := range structs.New(toStruct(v)).Fields() {
 		if !field.IsExported() {
 			continue
@@ -139,7 +146,7 @@ func (b *Builder) buildStruct(v interface{}, obj Object) {
 			continue
 		}
 
-		b.New(key).build(child, obj)
+		b.New(key).build(child, obj, ignored...)
 	}
 }
 

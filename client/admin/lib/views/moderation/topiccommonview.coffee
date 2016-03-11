@@ -1,13 +1,9 @@
 kd                   = require 'kd'
 KDView               = kd.View
-KDSelectBox          = kd.SelectBox
-KDListItemView       = kd.ListItemView
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
-
 TopicItemView        = require './topicitemview'
-TopicLeafItemView    = require './topicleafitemview'
 
 
 module.exports = class TopicCommonView extends KDView
@@ -60,31 +56,31 @@ module.exports = class TopicCommonView extends KDView
 
 
     @listController.on 'LazyLoadThresholdReached', =>
-      
+
       if @skip is 0 and @searchSkip is 0
         @fetchChannels()
-      else if @skip is 0 
+      else if @skip is 0
         @search()
-      else 
+      else
         @fetchChannels()
-  
+
 
   fetchChannels: ->
-    
+
     return if @isFetching
     @isFetching = yes
-    
+
     options  =
       limit                 : @getOptions().itemLimit
       skip                  : @skip
       showModerationNeeded  : true
       type                  : @getOptions().typeConstant or= "topic"
-    
+
     kd.singletons.socialapi.channel.list options, @bound 'listFetchResults'
-    
+
 
   searchChannels: (query = "") ->
-    
+
     return if @isFetching
     @isFetching = yes
 
@@ -96,39 +92,39 @@ module.exports = class TopicCommonView extends KDView
       type                  : @getOptions().typeConstant or= "topic"
 
     kd.singletons.socialapi.channel.searchTopics options, @bound 'listSearchResults'
-      
+
 
   listSearchResults:  (err, channels) ->
     # if we have items from listing. remove them all
     if @searchSkip is 0
       @listController.removeAllItems()
-    
+
     @skip = 0  # revert skip of normal listing
-    
+
     @searchSkip += channels.length
     @listChannels err, channels
 
 
   listFetchResults :  (err, channels) ->
-    
+
     # if we have items from searching remove them all
     if @skip is 0
       @listController.removeAllItems()
-    
+
     @searchSkip = 0
-    
+
     @skip += channels.length
-    
+
     @listChannels err, channels
 
 
   listChannels:  (err, channels) ->
     @isFetching = no
-    
+
     if err
       @listController.lazyLoader?.hide()
       return kd.warn err
-    
+
     unless channels.length
       return @listController.lazyLoader?.hide()
 
@@ -140,13 +136,13 @@ module.exports = class TopicCommonView extends KDView
 
 
   search: ->
-  
+
     query = @searchInput.getValue()
-    
+
     unless @isSameSearch(query)
       @resetListItems()
       @searchSkip = 0
-    
+
     @lastQuery = query
 
     if query is ''
@@ -159,9 +155,9 @@ module.exports = class TopicCommonView extends KDView
 
     @listController.removeAllItems()
     @listController.lazyLoader.show()
-    
-    
+
+
   isSameSearch : (query = "") ->
     @lastQuery or= ''
-    
+
     return query is @lastQuery

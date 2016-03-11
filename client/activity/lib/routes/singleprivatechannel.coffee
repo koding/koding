@@ -1,7 +1,5 @@
 kd                = require 'kd'
 ActivityFlux      = require 'activity/flux'
-getGroup          = require 'app/util/getGroup'
-changeToChannel   = require 'activity/util/changeToChannel'
 ChannelThreadPane = require 'activity/components/channelthreadpane'
 
 {

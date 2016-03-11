@@ -14,7 +14,7 @@ module.exports = (state = yes) ->
     globals.__logs?.push \
       "[#{dateFormat Date.now(), "HH:MM:ss"}][!] Logging disabled manually."
 
-    for method in ['warn','log','error','info']
+    for method in ['warn','log','error','info','debug']
       global.console[method] = global.konsole[method]
 
   globals.logsEnabled = yes

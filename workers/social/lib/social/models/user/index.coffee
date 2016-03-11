@@ -11,9 +11,9 @@ emailsanitize    = require './emailsanitize'
 
 module.exports = class JUser extends jraphical.Module
 
-  { v4: createId }                   = require 'node-uuid'
-  { Relationship }                   = jraphical
-  { secure, signature, daisy, dash } = require 'bongo'
+  { v4: createId }      = require 'node-uuid'
+  { Relationship }      = jraphical
+  { secure, signature } = require 'bongo'
 
   JAccount             = require '../account'
   JSession             = require '../session'
@@ -481,23 +481,36 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      ->
+      (next) ->
         args = { loginId, clientId, password, tfcode }
         validateLogin args, (err, data) ->
-          return callback err  if err
+          return next err  if err
           { username, user, session } = data
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # fetch account of the user, we will use it later
         JAccount.one { 'profile.nickname' : username }, (err, account_) ->
-          return callback new KodingError 'couldn\'t find account!'  if err
+          return next new KodingError 'couldn\'t find account!'  if err
           account = account_
-          queue.next()
+          next()
 
-      ->
+      (next) ->
+        { isSoloAccessible } = require './validators'
+
+        opts =
+          groupName: groupName
+          account: account
+          cutoffDate: new Date 2016, 2, 1 # 1 March 2016
+          env: KONFIG.environment
+
+        return next() if isSoloAccessible opts
+
+        next  new Error 'You can not login to koding team, please use your own team'
+
+      (next) ->
         # if we dont have an invitation code, do not continue
-        return queue.next()  unless invitationToken
+        return next()  unless invitationToken
 
         # check if user can access to group
         #
@@ -506,43 +519,39 @@ module.exports = class JUser extends jraphical.Module
         # # user is not member, and trying to access with invitationToken
         # both should succeed
         fetchInvitationByCode invitationToken, (err, invitation_) ->
-          return callback err  if err
+          return next err  if err
           invitation = invitation_
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # check if user has pending invitation
-        return queue.next()  if invitationToken
+        return next()  if invitationToken
 
         fetchInvitationByData { user, groupName }, (err, invitation_) ->
-          return callback err  if err
+          return next err  if err
           invitation = invitation_
-          queue.next()
+          next()
 
-      =>
-        return queue.next()  if groupIsBeingCreated
+      (next) =>
+        return next()  if groupIsBeingCreated
 
-        @addToGroupByInvitation { groupName, account, user, invitation }, (err) ->
-          return callback err  if err
-          queue.next()
+        @addToGroupByInvitation { groupName, account, user, invitation }, next
 
-      ->
-        return queue.next()  if groupIsBeingCreated
+      (next) ->
+        return next()  if groupIsBeingCreated
         # we are sure that user can access to the group, set group name into
         # cookie while logging in
-        session.update { $set : { groupName } }, (err) ->
-          return callback err  if err
-          queue.next()
-
-      ->
-        # continue login
-        afterLogin user, clientId, session, (err, response) ->
-          callback err, response
-          queue.next()  unless err
+        session.update { $set : { groupName } }, next
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
+
+      # continue login
+      afterLogin user, clientId, session, (err, response) ->
+        return callback err  if err
+        callback err, response
 
 
   @verifyPassword = secure (client, options, callback) ->
@@ -636,9 +645,7 @@ module.exports = class JUser extends jraphical.Module
         return callback null  if isMember # if user is already member, we can continue
 
         # addGroup will check all prerequistes about joining to a group
-        JUser.addToGroup account, groupName, user.email, invitation, (err) ->
-          return callback err  if err
-          return callback null
+        JUser.addToGroup account, groupName, user.email, invitation, callback
 
 
   redeemInvitation = (options, callback) ->
@@ -831,27 +838,25 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      ->
+      (next) ->
         # fetching account, will be used to check login constraints of user
         user.fetchOwnAccount (err, account_) ->
-          return callback err  if err
+          return next err  if err
           account = account_
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # checking login constraints
-        checkBlockedStatus user, (err) ->
-          return callback err  if err
-          queue.next()
+        checkBlockedStatus user, next
 
-      ->
+      (next) ->
         # updating user passwordStatus if necessary
         updateUserPasswordStatus user, (err) ->
-          return callback err  if err
+          return next err  if err
           replacementToken = createId()
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # updating session data after login
         sessionUpdateOptions =
           $set                :
@@ -865,14 +870,14 @@ module.exports = class JUser extends jraphical.Module
         guestUsername = session.username
 
         session.update sessionUpdateOptions, (err) ->
-          return callback err  if err
+          return next err  if err
 
           Tracker.identify username, { lastLoginDate }
           Tracker.alias guestUsername, username
 
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         # updating user data after login
         userUpdateData = { lastLoginDate : new Date }
 
@@ -888,7 +893,7 @@ module.exports = class JUser extends jraphical.Module
             inactive  : 1
 
         user.update userUpdateOptions, (err) ->
-          return callback err  if err
+          return next err  if err
 
           # This should be called after login and this
           # is not correct place to do it, FIXME GG
@@ -903,18 +908,18 @@ module.exports = class JUser extends jraphical.Module
             Tracker.identify user.username, { foreignAuth: providers }
 
           JLog.log { type: 'login', username , success: yes }
-          queue.next()
+          next()
 
-      ->
-        JUser.clearOauthFromSession session, ->
-          callback null, { account, replacementToken, returnUrl: session.returnUrl }
-
-          Tracker.track username, { subject : Tracker.types.LOGGED_IN }
-          queue.next()
+      (next) ->
+        JUser.clearOauthFromSession session, next
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
+      callback null, { account, replacementToken, returnUrl: session.returnUrl }
+
+      Tracker.track username, { subject : Tracker.types.LOGGED_IN }
 
 
   @logout = secure (client, callback) ->
@@ -990,6 +995,8 @@ module.exports = class JUser extends jraphical.Module
         group.approveMember account, roles, (err) ->
           return callback err  if err
 
+          Tracker.identifyAndTrack email, { subject: Tracker.types.TEAMS_ACCEPTED_INVITATION }
+
           # do not forget to redeem invitation
           redeemInvitation {
             account, invitation, slug, email
@@ -1002,12 +1009,10 @@ module.exports = class JUser extends jraphical.Module
 
     slugs.push invitation.groupName if invitation?.groupName
     slugs = uniq slugs # clean up slugs
-    queue = slugs.map (slug) => =>
-      @addToGroup account, slug, email, invitation, options, (err) ->
-        return callback err  if err
-        queue.fin()
+    queue = slugs.map (slug) => (fin) =>
+      @addToGroup account, slug, email, invitation, options, fin
 
-    dash queue, callback
+    async.parallel queue, callback
 
 
   @createGuestUsername = -> "guest-#{rack()}"
@@ -1181,15 +1186,15 @@ module.exports = class JUser extends jraphical.Module
 
     (key for key of validator).forEach (field) =>
 
-      queue.push => validator[field].call this, userFormData, (err) ->
+      queue.push (fin) => validator[field].call this, userFormData, (err) ->
 
         if err?
           errors[field] = err
           isError = yes
 
-        queue.fin()
+        fin()
 
-    dash queue, ->
+    async.parallel queue, ->
 
       callback if isError
         { message: 'Errors were encountered during validation', errors }
@@ -1269,35 +1274,28 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      ->
+      (next) ->
         # verifying recaptcha if enabled
-        return queue.next()  unless KONFIG.recaptcha.enabled
-        return queue.next()  if disableCaptcha
+        return next()  if disableCaptcha or not KONFIG.recaptcha.enabled
 
-        JUser.verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
-          return callback err  if err
-          queue.next()
+        JUser.verifyRecaptcha recaptcha, { foreignAuthType, slug }, next
 
-      ->
-        JUser.validateAll userFormData, (err) ->
-          return callback err  if err
-          queue.next()
+      (next) ->
+        JUser.validateAll userFormData, next
 
-      ->
+      (next) ->
         JUser.emailAvailable email, (err, res) ->
           if err
-            return callback new KodingError 'Something went wrong'
+            return next new KodingError 'Something went wrong'
 
           if res is no
-            return callback new KodingError 'Email is already in use!'
+            return next new KodingError 'Email is already in use!'
 
-          queue.next()
-
-      -> callback null
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, callback
 
 
   createUser = (options, callback) ->
@@ -1323,9 +1321,9 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      ->
+      (next) ->
         # updating user's location related info
-        return queue.next()  unless ip? and country? and region?
+        return next()  unless ip? and country? and region?
 
         locationModifier =
           $set                       :
@@ -1334,15 +1332,13 @@ module.exports = class JUser extends jraphical.Module
             'registeredFrom.country' : country
 
         user.update locationModifier, ->
-          queue.next()
+          next()
 
-      ->
-        JUser.persistOauthInfo username, client.sessionToken, (err) ->
-          return callback err  if err
-          queue.next()
+      (next) ->
+        JUser.persistOauthInfo username, client.sessionToken, next
 
-      ->
-        return queue.next()  unless username?
+      (next) ->
+        return next()  unless username?
 
         _options =
           account        : account
@@ -1352,20 +1348,18 @@ module.exports = class JUser extends jraphical.Module
           isRegistration : yes
 
         JUser.changeUsernameByAccount _options, (err, newToken_) ->
-          return callback err  if err
+          return next err  if err
           newToken = newToken_
-          queue.next()
+          next()
 
-      ->
-        user.setPassword password, (err) ->
-          return callback err  if err
-          queue.next()
-
-      -> callback null, newToken
+      (next) ->
+        user.setPassword password, next
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
+      callback null, newToken
 
 
   updateAccountInfo = (options, callback) ->
@@ -1374,28 +1368,24 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      ->
-        account.update { $set: { type: 'registered' } }, (err) ->
-          return callback err  if err?
-          queue.next()
+      (next) ->
+        account.update { $set: { type: 'registered' } }, next
 
-      ->
-        account.createSocialApiId (err) ->
-          return callback err  if err
-          queue.next()
+      (next) ->
+        account.createSocialApiId next
 
-      ->
+      (next) ->
         # setting referrer
-        return queue.next()  unless referrer
+        return next()  unless referrer
 
         if username is referrer
           console.error "User (#{username}) tried to refer themself."
-          return queue.next()
+          return next()
 
         JUser.count { username: referrer }, (err, count) ->
           if err? or count < 1
             console.error 'Provided referrer not valid:', err
-            return queue.next()
+            return next()
 
           account.update { $set: { referrerUsername: referrer } }, (err) ->
 
@@ -1403,13 +1393,11 @@ module.exports = class JUser extends jraphical.Module
             then console.error err
             else console.log "#{referrer} referred #{username}"
 
-            queue.next()
-
-      -> callback null
+            next()
 
     ]
 
-    daisy queue
+    async.series queue, callback
 
 
   createDefaultStackForKodingGroup = (options, callback) ->
@@ -1465,33 +1453,30 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      ->
+      (next) ->
         params = { slug, email, recaptcha, disableCaptcha, userFormData, foreignAuthType }
-        verifyUser params, (err) ->
-          return callback err  if err
-          queue.next()
+        verifyUser params, next
 
-      ->
+      (next) ->
         params = {
           groupName : client.context.group
           invitationToken, skipAllowedDomainCheck, email
         }
 
         JUser.verifyEnrollmentEligibility params, (err, res) ->
-          return callback err  if err
+          return next err  if err
 
           { isEligible, invitation } = res
 
           if not isEligible
-            return callback new Error "you can not register to #{client.context.group}"
-          queue.next()
-
-
-      -> callback null, { invitation }
+            return next new Error "you can not register to #{client.context.group}"
+          next()
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
+      callback null, { invitation }
 
 
   processConvert = (options, callback) ->
@@ -1509,50 +1494,46 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      ->
+      (next) ->
         userInfo = {
           email, username, password, lastName, firstName, emailFrequency
         }
         createUser { userInfo }, (err, data) ->
-          return callback err  if err
+          return next err  if err
           { user, account } = data
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         params = {
           user, ip, country, region, username
           password, clientId, account, client
         }
         updateUserInfo params, (err, newToken_) ->
-          return callback err  if err
+          return next err  if err
           newToken = newToken_
-          queue.next()
+          next()
 
-      ->
-        updateAccountInfo { account, referrer, username }, (err) ->
-          return callback err  if err
-          queue.next()
+      (next) ->
+        updateAccountInfo { account, referrer, username }, next
 
-      ->
+      (next) ->
         groupNames = [client.context.group, 'koding']
         options    = { skipAllowedDomainCheck }
         JUser.addToGroups account, groupNames, user.email, invitation, options, (err) ->
           error = err
-          queue.next()
+          next()
 
-      ->
-        createDefaultStackForKodingGroup { account }, (err) ->
-          return callback err  if err
-          queue.next()
-
-      # passing "error" variable to be used as an argument in the callback func.
-      # that is being called after registration process is completed.
-      -> callback null, { error, newToken, user, account }
+      (next) ->
+        createDefaultStackForKodingGroup { account }, next
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
 
+      # passing "error" variable to be used as an argument in the callback func.
+      # that is being called after registration process is completed.
+      callback null, { error, newToken, user, account }
 
 
   @convert = secure (client, userFormData, options, callback) ->
@@ -1592,13 +1573,13 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      =>
+      (next) =>
         @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo) ->
           if err
             console.log 'Error while getting oauth data from session', err
-            return queue.next()
+            return next()
 
-          return queue.next()  unless foreignAuthInfo
+          return next()  unless foreignAuthInfo
 
           # Password is not required for GitHub users since they are authorized via GitHub.
           # To prevent having the same password for all GitHub users since it may be
@@ -1607,26 +1588,26 @@ module.exports = class JUser extends jraphical.Module
             password        = userFormData.password        = createId()
             passwordConfirm = userFormData.passwordConfirm = password
 
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         options = { client, userFormData, foreignAuthType, skipAllowedDomainCheck }
         validateConvert options, (err, data) ->
-          return callback err  if err
+          return next err  if err
           { invitation } = data
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         params = {
           ip, country, region, client, invitation
           userFormData, skipAllowedDomainCheck
         }
         processConvert params, (err, data) ->
-          return callback err  if err
+          return next err  if err
           { error, newToken, user, account } = data
-          queue.next()
+          next()
 
-      ->
+      (next) ->
         date = new Date 0
         subscription =
           accountId          : account.getId()
@@ -1639,45 +1620,34 @@ module.exports = class JUser extends jraphical.Module
           currentPeriodStart : date
           currentPeriodEnd   : date
 
-        queue.next()
-
-      ->
         args = { user, account, subscription, pin, oldUsername }
         identifyUserOnRegister disableCaptcha, args
 
-        queue.next()
-
-      ->
         JUser.emit 'UserRegistered', { user, account }
-        queue.next()
 
-      ->
+        next()
+
+      (next) ->
         # Auto confirm accounts for development environment or Teams ~ GG
-        options = { group : client.context.group, user, email, username }
-        confirmAccountIfNeeded options, (err, pin_) ->
-          return callback err  if err
+        args = { group : client.context.group, user, email, username }
+        confirmAccountIfNeeded args, (err, pin_) ->
           pin = pin_
-          queue.next()
-
-      ->
-        # don't block register
-        callback error, { account, newToken, user }
-        queue.next()
-
-      ->
-        group = client.context.group
-        args  = { user, group, pin, firstName, lastName }
-        trackUserOnRegister disableCaptcha, args
-
-        queue.next()
-
-      ->
-        SiftScience = require '../siftscience'
-        SiftScience.createAccount client, referrer, ->
+          next err
 
     ]
 
-    daisy queue
+    async.series queue, (err) ->
+      return callback err  if err
+
+      # don't block register
+      callback error, { account, newToken, user }
+
+      group = client.context.group
+      args  = { user, group, pin, firstName, lastName }
+      trackUserOnRegister disableCaptcha, args
+
+      SiftScience = require '../siftscience'
+      SiftScience.createAccount client, referrer, ->
 
 
   identifyUserOnRegister = (disableCaptcha, args) ->

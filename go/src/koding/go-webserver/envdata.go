@@ -36,7 +36,7 @@ func getEnvData(userInfo *UserInfo) *EnvData {
 
 	return &EnvData{
 		Own:           getOwn(userId, userInfo.Group),
-		Shared:        getShared(userId),
+		Shared:        getShared(userId, userInfo.Group),
 		Collaboration: collab,
 	}
 }
@@ -51,8 +51,8 @@ func getOwn(userId bson.ObjectId, group *models.Group) []*MachineAndWorkspaces {
 	return getWorkspacesForEachMachine(ownMachines)
 }
 
-func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
-	sharedMachines, err := modelhelper.GetSharedMachines(userId)
+func getShared(userId bson.ObjectId, group *models.Group) []*MachineAndWorkspaces {
+	sharedMachines, err := modelhelper.GetSharedGroupMachines(userId, group)
 	if err != nil {
 		Log.Error(fmt.Sprintf(
 			"Error fetching shared machines for: %s %s", userId, err))

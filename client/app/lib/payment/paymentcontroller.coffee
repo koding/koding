@@ -1,9 +1,5 @@
-$         = require 'jquery'
-getGroup  = require '../util/getGroup'
-remote    = require('../remote').getInstance()
-whoami    = require '../util/whoami'
-showError = require '../util/showError'
-kd        = require 'kd'
+remote = require('../remote').getInstance()
+kd     = require 'kd'
 
 
 module.exports = class PaymentController extends kd.Controller
@@ -67,6 +63,11 @@ module.exports = class PaymentController extends kd.Controller
   logOrder: (params, callback) ->
 
     @api().logOrder params, callback
+
+
+  fetchGroupPlan: (callback) ->
+
+    @api().fetchGroupPlan callback
 
 
   paypalReturn: (err) -> @emit 'PaypalRequestFinished', err

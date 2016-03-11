@@ -1,5 +1,4 @@
 kd                               = require 'kd'
-KDButtonView                     = kd.ButtonView
 KDCustomHTMLView                 = kd.CustomHTMLView
 KDFormViewWithFields             = kd.FormViewWithFields
 KDView                           = kd.View
@@ -12,13 +11,12 @@ PrivateMessageSettingsView       = require './privatemessagesettingsview'
 ReplyInputWidget                 = require './replyinputwidget'
 ReplyPreviousLink                = require './replypreviouslink'
 showError                        = require 'app/util/showError'
-AvatarView                       = require 'app/commonviews/avatarviews/avatarview'
 dateFormat                       = require 'dateformat'
 isMyPost                         = require 'app/util/isMyPost'
 fetchAccount                     = require 'app/util/fetchAccount'
 ParticipantHeads                 = require './participantheads'
 ChannelParticipantsModel         = require 'activity/models/channelparticipants'
-
+isSoloProductLite                = require 'app/util/issoloproductlite'
 
 module.exports = class PrivateMessagePane extends MessagePane
 
@@ -333,9 +331,13 @@ module.exports = class PrivateMessagePane extends MessagePane
   createInputWidget: ->
 
     channel = @getData()
-    @input  = new ReplyInputWidget {channel, cssClass : 'private'}
+    unless isSoloProductLite()
+      @input  = new ReplyInputWidget {channel, cssClass : 'private'}
+      @input.on 'EditModeRequested', @bound 'editLastMessage'
+    else
+      @input = new ReplyInputWidget { cssClass : 'hidden' }
 
-    @input.on 'EditModeRequested', @bound 'editLastMessage'
+
 
 
   removeParticipant: (participant) ->

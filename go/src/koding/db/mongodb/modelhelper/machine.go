@@ -58,11 +58,34 @@ func GetMachineBySlug(userID bson.ObjectId, slug string) (*models.Machine, error
 	if err != nil {
 		return nil, err
 	}
+	if len(m) == 0 {
+		return nil, mgo.ErrNotFound
+	}
 	if len(m) != 1 {
 		return nil, fmt.Errorf("GetMachinyBySlug: want 1 result, got %d", len(m))
 	}
 
 	return m[0], nil
+}
+
+// NOTE(rjeczalik): see comment for GetMachineBySlug
+func GetMachinesByProvider(userID bson.ObjectId, provider string) ([]*models.Machine, error) {
+	query := bson.M{
+		"provider": provider,
+		"users": bson.M{
+			"$elemMatch": bson.M{"id": userID, "owner": true},
+		},
+	}
+
+	m, err := findMachine(query)
+	if err != nil {
+		return nil, err
+	}
+	if len(m) == 0 {
+		return nil, mgo.ErrNotFound
+	}
+
+	return m, nil
 }
 
 func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
@@ -178,9 +201,34 @@ func GetOwnGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineC
 }
 
 func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
-	query := bson.M{"users": bson.M{
-		"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": true},
-	}}
+	query := bson.M{
+		"users": bson.M{
+			"$elemMatch": bson.M{
+				"id":        userId,
+				"owner":     false,
+				"permanent": true,
+			},
+		},
+	}
+
+	return findMachineContainers(query)
+}
+
+func GetSharedGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
+	query := bson.M{
+		"users": bson.M{
+			"$elemMatch": bson.M{
+				"id":        userId,
+				"owner":     false,
+				"permanent": true,
+			},
+		},
+		"groups": bson.M{
+			"$elemMatch": bson.M{
+				"id": group.Id,
+			},
+		},
+	}
 
 	return findMachineContainers(query)
 }

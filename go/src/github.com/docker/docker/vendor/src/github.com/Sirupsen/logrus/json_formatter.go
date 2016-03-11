@@ -3,10 +3,12 @@ package logrus
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 )
 
-type JSONFormatter struct{}
+type JSONFormatter struct {
+	// TimestampFormat sets the format used for marshaling timestamps.
+	TimestampFormat string
+}
 
 func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 	data := make(Fields, len(entry.Data)+3)
@@ -21,7 +23,13 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 		}
 	}
 	prefixFieldClashes(data)
-	data["time"] = entry.Time.Format(time.RFC3339)
+
+	timestampFormat := f.TimestampFormat
+	if timestampFormat == "" {
+		timestampFormat = DefaultTimestampFormat
+	}
+
+	data["time"] = entry.Time.Format(timestampFormat)
 	data["msg"] = entry.Message
 	data["level"] = entry.Level.String()
 

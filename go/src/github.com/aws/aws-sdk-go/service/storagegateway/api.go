@@ -412,6 +412,37 @@ func (c *StorageGateway) CreateStorediSCSIVolume(input *CreateStorediSCSIVolumeI
 	return out, err
 }
 
+const opCreateTapeWithBarcode = "CreateTapeWithBarcode"
+
+// CreateTapeWithBarcodeRequest generates a request for the CreateTapeWithBarcode operation.
+func (c *StorageGateway) CreateTapeWithBarcodeRequest(input *CreateTapeWithBarcodeInput) (req *request.Request, output *CreateTapeWithBarcodeOutput) {
+	op := &request.Operation{
+		Name:       opCreateTapeWithBarcode,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateTapeWithBarcodeInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &CreateTapeWithBarcodeOutput{}
+	req.Data = output
+	return
+}
+
+// Creates a virtual tape by using your own barcode. You write data to the virtual
+// tape and then archive the tape.
+//
+// Cache storage must be allocated to the gateway before you can create a virtual
+// tape. Use the AddCache operation to add cache storage to a gateway.
+func (c *StorageGateway) CreateTapeWithBarcode(input *CreateTapeWithBarcodeInput) (*CreateTapeWithBarcodeOutput, error) {
+	req, out := c.CreateTapeWithBarcodeRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opCreateTapes = "CreateTapes"
 
 // CreateTapesRequest generates a request for the CreateTapes operation.
@@ -1728,6 +1759,10 @@ func (c *StorageGateway) UpdateGatewayInformationRequest(input *UpdateGatewayInf
 // This operation updates a gateway's metadata, which includes the gateway's
 // name and time zone. To specify which gateway to update, use the Amazon Resource
 // Name (ARN) of the gateway in your request.
+//
+// For Gateways activated after September 02, 2015, the gateway's ARN contains
+// the gateway id rather than the gateway name. However changing the name of
+// the gateway has no effect on the gateway's ARN.
 func (c *StorageGateway) UpdateGatewayInformation(input *UpdateGatewayInformationInput) (*UpdateGatewayInformationOutput, error) {
 	req, out := c.UpdateGatewayInformationRequest(input)
 	err := req.Send()
@@ -1869,10 +1904,13 @@ func (c *StorageGateway) UpdateVTLDeviceType(input *UpdateVTLDeviceTypeInput) (*
 
 // A JSON object containing one or more of the following fields:
 //
-//   ActivateGatewayInput$ActivationKey   GatewayName   ActivateGatewayInput$GatewayRegion
-//   ActivateGatewayInput$GatewayTimezone   ActivateGatewayInput$GatewayType
-//   ActivateGatewayInput$TapeDriveType   ActivateGatewayInput$MediumChangerType
+//   ActivateGatewayInput$ActivationKey   ActivateGatewayInput$GatewayName
+//   ActivateGatewayInput$GatewayRegion   ActivateGatewayInput$GatewayTimezone
+//   ActivateGatewayInput$GatewayType   ActivateGatewayInput$TapeDriveType
+//  ActivateGatewayInput$MediumChangerType
 type ActivateGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// Your gateway activation key. You can obtain the activation key by sending
 	// an HTTP GET request with redirects enabled to the gateway IP address (port
 	// 80). The redirect URL returned in the response provides you the activation
@@ -1882,29 +1920,27 @@ type ActivateGatewayInput struct {
 	// the actual configuration of your gateway.
 	ActivationKey *string `min:"1" type:"string" required:"true"`
 
-	// A unique identifier for your gateway. This name becomes part of the gateway
-	// Amazon Resources Name (ARN) which is what you use as an input to other operations.
+	// The name you configured for your gateway.
 	GatewayName *string `min:"2" type:"string" required:"true"`
 
-	// One of the values that indicates the region where you want to store the snapshot
-	// backups. The gateway region specified must be the same region as the region
-	// in your Host header in the request. For more information about available
-	// regions and endpoints for AWS Storage Gateway, see Regions and Endpoints
-	// (http://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region) in the
-	// Amazon Web Services Glossary.
+	// A value that indicates the region where you want to store the snapshot backups.
+	// The gateway region specified must be the same region as the region in your
+	// Host header in the request. For more information about available regions
+	// and endpoints for AWS Storage Gateway, see Regions and Endpoints (http://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region)
+	// in the Amazon Web Services Glossary.
 	//
 	// Valid Values: "us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1",
 	// "ap-northeast-1", "ap-southeast-1", "ap-southeast-2", "sa-east-1"
 	GatewayRegion *string `min:"1" type:"string" required:"true"`
 
-	// One of the values that indicates the time zone you want to set for the gateway.
-	// The time zone is used, for example, for scheduling snapshots and your gateway's
+	// A value that indicates the time zone you want to set for the gateway. The
+	// time zone is used, for example, for scheduling snapshots and your gateway's
 	// maintenance schedule.
 	GatewayTimezone *string `min:"3" type:"string" required:"true"`
 
-	// One of the values that defines the type of gateway to activate. The type
-	// specified is critical to all later functions of the gateway and cannot be
-	// changed after activation. The default value is STORED.
+	// A value that defines the type of gateway to activate. The type specified
+	// is critical to all later functions of the gateway and cannot be changed after
+	// activation. The default value is STORED.
 	GatewayType *string `min:"2" type:"string"`
 
 	// The value that indicates the type of medium changer to use for gateway-VTL.
@@ -1918,12 +1954,6 @@ type ActivateGatewayInput struct {
 	//
 	// Valid Values: "IBM-ULT3580-TD5"
 	TapeDriveType *string `min:"2" type:"string"`
-
-	metadataActivateGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataActivateGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1940,16 +1970,16 @@ func (s ActivateGatewayInput) GoString() string {
 // gateway. It is a string made of information such as your account, gateway
 // name, and region. This ARN is used to reference the gateway in other API
 // operations as well as resource-based authorization.
+//
+// For Gateways activated prior to September 02, 2015 the gateway ARN contains
+// the gateway name rather than the gateway id. Changing the name of the gateway
+// has no effect on the gateway ARN.
 type ActivateGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataActivateGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataActivateGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1963,17 +1993,13 @@ func (s ActivateGatewayOutput) GoString() string {
 }
 
 type AddCacheInput struct {
+	_ struct{} `type:"structure"`
+
 	DiskIds []*string `type:"list" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataAddCacheInput `json:"-" xml:"-"`
-}
-
-type metadataAddCacheInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1987,15 +2013,11 @@ func (s AddCacheInput) GoString() string {
 }
 
 type AddCacheOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataAddCacheOutput `json:"-" xml:"-"`
-}
-
-type metadataAddCacheOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2010,6 +2032,8 @@ func (s AddCacheOutput) GoString() string {
 
 // AddTagsToResourceInput
 type AddTagsToResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the resource you want to add tags to.
 	ResourceARN *string `min:"50" type:"string" required:"true"`
 
@@ -2019,12 +2043,6 @@ type AddTagsToResourceInput struct {
 	// Valid characters for key and value are letters, spaces, and numbers representable
 	// in UTF-8 format, and the following special characters: + - = . _ : / @.
 	Tags []*Tag `type:"list" required:"true"`
-
-	metadataAddTagsToResourceInput `json:"-" xml:"-"`
-}
-
-type metadataAddTagsToResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2039,14 +2057,10 @@ func (s AddTagsToResourceInput) GoString() string {
 
 // AddTagsToResourceOutput
 type AddTagsToResourceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the resource you want to add tags to.
 	ResourceARN *string `min:"50" type:"string"`
-
-	metadataAddTagsToResourceOutput `json:"-" xml:"-"`
-}
-
-type metadataAddTagsToResourceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2060,17 +2074,13 @@ func (s AddTagsToResourceOutput) GoString() string {
 }
 
 type AddUploadBufferInput struct {
+	_ struct{} `type:"structure"`
+
 	DiskIds []*string `type:"list" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataAddUploadBufferInput `json:"-" xml:"-"`
-}
-
-type metadataAddUploadBufferInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2084,15 +2094,11 @@ func (s AddUploadBufferInput) GoString() string {
 }
 
 type AddUploadBufferOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataAddUploadBufferOutput `json:"-" xml:"-"`
-}
-
-type metadataAddUploadBufferOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2109,6 +2115,8 @@ func (s AddUploadBufferOutput) GoString() string {
 //
 //   AddWorkingStorageInput$DiskIds
 type AddWorkingStorageInput struct {
+	_ struct{} `type:"structure"`
+
 	// An array of strings that identify disks that are to be configured as working
 	// storage. Each string have a minimum length of 1 and maximum length of 300.
 	// You can get the disk IDs from the ListLocalDisks API.
@@ -2117,12 +2125,6 @@ type AddWorkingStorageInput struct {
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataAddWorkingStorageInput `json:"-" xml:"-"`
-}
-
-type metadataAddWorkingStorageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2138,15 +2140,11 @@ func (s AddWorkingStorageInput) GoString() string {
 // A JSON object containing the of the gateway for which working storage was
 // configured.
 type AddWorkingStorageOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataAddWorkingStorageOutput `json:"-" xml:"-"`
-}
-
-type metadataAddWorkingStorageOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2160,6 +2158,8 @@ func (s AddWorkingStorageOutput) GoString() string {
 }
 
 type CachediSCSIVolume struct {
+	_ struct{} `type:"structure"`
+
 	SourceSnapshotId *string `type:"string"`
 
 	VolumeARN *string `min:"50" type:"string"`
@@ -2176,12 +2176,6 @@ type CachediSCSIVolume struct {
 
 	// Lists iSCSI information about a volume.
 	VolumeiSCSIAttributes *VolumeiSCSIAttributes `type:"structure"`
-
-	metadataCachediSCSIVolume `json:"-" xml:"-"`
-}
-
-type metadataCachediSCSIVolume struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2196,6 +2190,8 @@ func (s CachediSCSIVolume) GoString() string {
 
 // CancelArchivalInput
 type CancelArchivalInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
@@ -2203,12 +2199,6 @@ type CancelArchivalInput struct {
 	// The Amazon Resource Name (ARN) of the virtual tape you want to cancel archiving
 	// for.
 	TapeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataCancelArchivalInput `json:"-" xml:"-"`
-}
-
-type metadataCancelArchivalInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2223,15 +2213,11 @@ func (s CancelArchivalInput) GoString() string {
 
 // CancelArchivalOutput
 type CancelArchivalOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the virtual tape for which archiving was
 	// canceled.
 	TapeARN *string `min:"50" type:"string"`
-
-	metadataCancelArchivalOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelArchivalOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2246,6 +2232,8 @@ func (s CancelArchivalOutput) GoString() string {
 
 // CancelRetrievalInput
 type CancelRetrievalInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
@@ -2253,12 +2241,6 @@ type CancelRetrievalInput struct {
 	// The Amazon Resource Name (ARN) of the virtual tape you want to cancel retrieval
 	// for.
 	TapeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataCancelRetrievalInput `json:"-" xml:"-"`
-}
-
-type metadataCancelRetrievalInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2273,15 +2255,11 @@ func (s CancelRetrievalInput) GoString() string {
 
 // CancelRetrievalOutput
 type CancelRetrievalOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the virtual tape for which retrieval was
 	// canceled.
 	TapeARN *string `min:"50" type:"string"`
-
-	metadataCancelRetrievalOutput `json:"-" xml:"-"`
-}
-
-type metadataCancelRetrievalOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2297,6 +2275,8 @@ func (s CancelRetrievalOutput) GoString() string {
 // Describes Challenge-Handshake Authentication Protocol (CHAP) information
 // that supports authentication between your gateway and iSCSI initiators.
 type ChapInfo struct {
+	_ struct{} `type:"structure"`
+
 	// The iSCSI initiator that connects to the target.
 	InitiatorName *string `min:"1" type:"string"`
 
@@ -2313,12 +2293,6 @@ type ChapInfo struct {
 	// Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
 	// (-).
 	TargetARN *string `min:"50" type:"string"`
-
-	metadataChapInfo `json:"-" xml:"-"`
-}
-
-type metadataChapInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2332,6 +2306,8 @@ func (s ChapInfo) GoString() string {
 }
 
 type CreateCachediSCSIVolumeInput struct {
+	_ struct{} `type:"structure"`
+
 	ClientToken *string `min:"5" type:"string" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
@@ -2345,12 +2321,6 @@ type CreateCachediSCSIVolumeInput struct {
 	TargetName *string `min:"1" type:"string" required:"true"`
 
 	VolumeSizeInBytes *int64 `type:"long" required:"true"`
-
-	metadataCreateCachediSCSIVolumeInput `json:"-" xml:"-"`
-}
-
-type metadataCreateCachediSCSIVolumeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2364,15 +2334,11 @@ func (s CreateCachediSCSIVolumeInput) GoString() string {
 }
 
 type CreateCachediSCSIVolumeOutput struct {
+	_ struct{} `type:"structure"`
+
 	TargetARN *string `min:"50" type:"string"`
 
 	VolumeARN *string `min:"50" type:"string"`
-
-	metadataCreateCachediSCSIVolumeOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateCachediSCSIVolumeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2386,15 +2352,11 @@ func (s CreateCachediSCSIVolumeOutput) GoString() string {
 }
 
 type CreateSnapshotFromVolumeRecoveryPointInput struct {
+	_ struct{} `type:"structure"`
+
 	SnapshotDescription *string `min:"1" type:"string" required:"true"`
 
 	VolumeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataCreateSnapshotFromVolumeRecoveryPointInput `json:"-" xml:"-"`
-}
-
-type metadataCreateSnapshotFromVolumeRecoveryPointInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2408,17 +2370,13 @@ func (s CreateSnapshotFromVolumeRecoveryPointInput) GoString() string {
 }
 
 type CreateSnapshotFromVolumeRecoveryPointOutput struct {
+	_ struct{} `type:"structure"`
+
 	SnapshotId *string `type:"string"`
 
 	VolumeARN *string `min:"50" type:"string"`
 
 	VolumeRecoveryPointTime *string `type:"string"`
-
-	metadataCreateSnapshotFromVolumeRecoveryPointOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateSnapshotFromVolumeRecoveryPointOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2435,6 +2393,8 @@ func (s CreateSnapshotFromVolumeRecoveryPointOutput) GoString() string {
 //
 //   CreateSnapshotInput$SnapshotDescription   CreateSnapshotInput$VolumeARN
 type CreateSnapshotInput struct {
+	_ struct{} `type:"structure"`
+
 	// Textual description of the snapshot that appears in the Amazon EC2 console,
 	// Elastic Block Store snapshots panel in the Description field, and in the
 	// AWS Storage Gateway snapshot Details pane, Description field
@@ -2443,12 +2403,6 @@ type CreateSnapshotInput struct {
 	// The Amazon Resource Name (ARN) of the volume. Use the ListVolumes operation
 	// to return a list of gateway volumes.
 	VolumeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataCreateSnapshotInput `json:"-" xml:"-"`
-}
-
-type metadataCreateSnapshotInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2463,6 +2417,8 @@ func (s CreateSnapshotInput) GoString() string {
 
 // A JSON object containing the following fields:
 type CreateSnapshotOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The snapshot ID that is used to refer to the snapshot in future operations
 	// such as describing snapshots (Amazon Elastic Compute Cloud API DescribeSnapshots)
 	// or creating a volume from a snapshot (CreateStorediSCSIVolume).
@@ -2470,12 +2426,6 @@ type CreateSnapshotOutput struct {
 
 	// The Amazon Resource Name (ARN) of the volume of which the snapshot was taken.
 	VolumeARN *string `min:"50" type:"string"`
-
-	metadataCreateSnapshotOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateSnapshotOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2494,6 +2444,8 @@ func (s CreateSnapshotOutput) GoString() string {
 //   CreateStorediSCSIVolumeInput$PreserveExistingData   CreateStorediSCSIVolumeInput$SnapshotId
 //   CreateStorediSCSIVolumeInput$TargetName
 type CreateStorediSCSIVolumeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The unique identifier for the gateway local disk that is configured as a
 	// stored volume. Use ListLocalDisks (http://docs.aws.amazon.com/storagegateway/latest/userguide/API_ListLocalDisks.html)
 	// to list disk IDs for a gateway.
@@ -2525,15 +2477,9 @@ type CreateStorediSCSIVolumeInput struct {
 
 	// The name of the iSCSI target used by initiators to connect to the target
 	// and as a suffix for the target ARN. For example, specifying TargetName as
-	// myvolume results in the target ARN of arn:aws:storagegateway:us-east-1:111122223333:gateway/mygateway/target/iqn.1997-05.com.amazon:myvolume.
+	// myvolume results in the target ARN of arn:aws:storagegateway:us-east-1:111122223333:gateway/sgw-12A3456B/target/iqn.1997-05.com.amazon:myvolume.
 	// The target name must be unique across all volumes of a gateway.
 	TargetName *string `min:"1" type:"string" required:"true"`
-
-	metadataCreateStorediSCSIVolumeInput `json:"-" xml:"-"`
-}
-
-type metadataCreateStorediSCSIVolumeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2548,6 +2494,8 @@ func (s CreateStorediSCSIVolumeInput) GoString() string {
 
 // A JSON object containing the following fields:
 type CreateStorediSCSIVolumeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// he Amazon Resource Name (ARN) of the volume target that includes the iSCSI
 	// name that initiators can use to connect to the target.
 	TargetARN *string `min:"50" type:"string"`
@@ -2557,12 +2505,6 @@ type CreateStorediSCSIVolumeOutput struct {
 
 	// The size of the volume in bytes.
 	VolumeSizeInBytes *int64 `type:"long"`
-
-	metadataCreateStorediSCSIVolumeOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateStorediSCSIVolumeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2575,39 +2517,82 @@ func (s CreateStorediSCSIVolumeOutput) GoString() string {
 	return s.String()
 }
 
+// CreateTapeWithBarcodeInput
+type CreateTapeWithBarcodeInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique Amazon Resource Name (ARN) that represents the gateway to associate
+	// the virtual tape with. Use the ListGateways operation to return a list of
+	// gateways for your account and region.
+	GatewayARN *string `min:"50" type:"string" required:"true"`
+
+	// The barcode that you want to assign to the tape.
+	TapeBarcode *string `min:"7" type:"string" required:"true"`
+
+	// The size, in bytes, of the virtual tape that you want to create.
+	//
+	// The size must be aligned by gigabyte (1024*1024*1024 byte).
+	TapeSizeInBytes *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateTapeWithBarcodeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateTapeWithBarcodeInput) GoString() string {
+	return s.String()
+}
+
+// CreateTapeOutput
+type CreateTapeWithBarcodeOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique Amazon Resource Name (ARN) that represents the virtual tape that
+	// was created.
+	TapeARN *string `min:"50" type:"string"`
+}
+
+// String returns the string representation
+func (s CreateTapeWithBarcodeOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateTapeWithBarcodeOutput) GoString() string {
+	return s.String()
+}
+
 // CreateTapesInput
 type CreateTapesInput struct {
+	_ struct{} `type:"structure"`
+
 	// A unique identifier that you use to retry a request. If you retry a request,
 	// use the same ClientToken you specified in the initial request.
 	//
 	// Using the same ClientToken prevents creating the tape multiple times.
 	ClientToken *string `min:"5" type:"string" required:"true"`
 
-	// The unique Amazon Resource Name(ARN) that represents the gateway to associate
+	// The unique Amazon Resource Name (ARN) that represents the gateway to associate
 	// the virtual tapes with. Use the ListGateways operation to return a list of
 	// gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
 
-	// The number of virtual tapes you want to create.
+	// The number of virtual tapes that you want to create.
 	NumTapesToCreate *int64 `min:"1" type:"integer" required:"true"`
 
-	// A prefix you append to the barcode of the virtual tape you are creating.
-	// This makes a barcode unique.
+	// A prefix that you append to the barcode of the virtual tape you are creating.
+	// This prefix makes the barcode unique.
 	//
-	// The prefix must be 1 to 4 characters in length and must be upper-case letters
-	// A-Z.
+	// The prefix must be 1 to 4 characters in length and must be one of the uppercase
+	// letters from A to Z.
 	TapeBarcodePrefix *string `min:"1" type:"string" required:"true"`
 
-	// The size, in bytes, of the virtual tapes you want to create.
+	// The size, in bytes, of the virtual tapes that you want to create.
 	//
-	// The size must be gigabyte (1024*1024*1024 byte) aligned.
+	// The size must be aligned by gigabyte (1024*1024*1024 byte).
 	TapeSizeInBytes *int64 `type:"long" required:"true"`
-
-	metadataCreateTapesInput `json:"-" xml:"-"`
-}
-
-type metadataCreateTapesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2622,15 +2607,11 @@ func (s CreateTapesInput) GoString() string {
 
 // CreateTapeOutput
 type CreateTapesOutput struct {
-	// A list of unique Amazon Resource Named (ARN) that represents the virtual
+	_ struct{} `type:"structure"`
+
+	// A list of unique Amazon Resource Names (ARNs) that represents the virtual
 	// tapes that were created.
 	TapeARNs []*string `type:"list"`
-
-	metadataCreateTapesOutput `json:"-" xml:"-"`
-}
-
-type metadataCreateTapesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2644,17 +2625,13 @@ func (s CreateTapesOutput) GoString() string {
 }
 
 type DeleteBandwidthRateLimitInput struct {
+	_ struct{} `type:"structure"`
+
 	BandwidthType *string `min:"3" type:"string" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDeleteBandwidthRateLimitInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteBandwidthRateLimitInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2670,15 +2647,11 @@ func (s DeleteBandwidthRateLimitInput) GoString() string {
 // A JSON object containing the of the gateway whose bandwidth rate information
 // was deleted.
 type DeleteBandwidthRateLimitOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataDeleteBandwidthRateLimitOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteBandwidthRateLimitOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2695,18 +2668,14 @@ func (s DeleteBandwidthRateLimitOutput) GoString() string {
 //
 //   DeleteChapCredentialsInput$InitiatorName   DeleteChapCredentialsInput$TargetARN
 type DeleteChapCredentialsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The iSCSI initiator that connects to the target.
 	InitiatorName *string `min:"1" type:"string" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the iSCSI volume target. Use the DescribeStorediSCSIVolumes
 	// operation to return to retrieve the TargetARN for specified VolumeARN.
 	TargetARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDeleteChapCredentialsInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteChapCredentialsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2721,17 +2690,13 @@ func (s DeleteChapCredentialsInput) GoString() string {
 
 // A JSON object containing the following fields:
 type DeleteChapCredentialsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The iSCSI initiator that connects to the target.
 	InitiatorName *string `min:"1" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the target.
 	TargetARN *string `min:"50" type:"string"`
-
-	metadataDeleteChapCredentialsOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteChapCredentialsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2746,15 +2711,11 @@ func (s DeleteChapCredentialsOutput) GoString() string {
 
 // A JSON object containing the id of the gateway to delete.
 type DeleteGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDeleteGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2769,15 +2730,11 @@ func (s DeleteGatewayInput) GoString() string {
 
 // A JSON object containing the id of the deleted gateway.
 type DeleteGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataDeleteGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2791,13 +2748,9 @@ func (s DeleteGatewayOutput) GoString() string {
 }
 
 type DeleteSnapshotScheduleInput struct {
+	_ struct{} `type:"structure"`
+
 	VolumeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDeleteSnapshotScheduleInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSnapshotScheduleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2811,13 +2764,9 @@ func (s DeleteSnapshotScheduleInput) GoString() string {
 }
 
 type DeleteSnapshotScheduleOutput struct {
+	_ struct{} `type:"structure"`
+
 	VolumeARN *string `min:"50" type:"string"`
-
-	metadataDeleteSnapshotScheduleOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteSnapshotScheduleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2832,15 +2781,11 @@ func (s DeleteSnapshotScheduleOutput) GoString() string {
 
 // DeleteTapeArchiveInput
 type DeleteTapeArchiveInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the virtual tape to delete from the virtual
 	// tape shelf (VTS).
 	TapeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDeleteTapeArchiveInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteTapeArchiveInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2855,15 +2800,11 @@ func (s DeleteTapeArchiveInput) GoString() string {
 
 // DeleteTapeArchiveOutput
 type DeleteTapeArchiveOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the virtual tape that was deleted from
 	// the virtual tape shelf (VTS).
 	TapeARN *string `min:"50" type:"string"`
-
-	metadataDeleteTapeArchiveOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteTapeArchiveOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2878,6 +2819,8 @@ func (s DeleteTapeArchiveOutput) GoString() string {
 
 // DeleteTapeInput
 type DeleteTapeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The unique Amazon Resource Name (ARN) of the gateway that the virtual tape
 	// to delete is associated with. Use the ListGateways operation to return a
 	// list of gateways for your account and region.
@@ -2885,12 +2828,6 @@ type DeleteTapeInput struct {
 
 	// The Amazon Resource Name (ARN) of the virtual tape to delete.
 	TapeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDeleteTapeInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteTapeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2905,14 +2842,10 @@ func (s DeleteTapeInput) GoString() string {
 
 // DeleteTapeOutput
 type DeleteTapeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the deleted virtual tape.
 	TapeARN *string `min:"50" type:"string"`
-
-	metadataDeleteTapeOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteTapeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2927,15 +2860,11 @@ func (s DeleteTapeOutput) GoString() string {
 
 // A JSON object containing the DeleteVolumeInput$VolumeARN to delete.
 type DeleteVolumeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the volume. Use the ListVolumes operation
 	// to return a list of gateway volumes.
 	VolumeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDeleteVolumeInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVolumeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2950,15 +2879,11 @@ func (s DeleteVolumeInput) GoString() string {
 
 // A JSON object containing the of the storage volume that was deleted
 type DeleteVolumeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the storage volume that was deleted. It
 	// is the same ARN you provided in the request.
 	VolumeARN *string `min:"50" type:"string"`
-
-	metadataDeleteVolumeOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteVolumeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2973,15 +2898,11 @@ func (s DeleteVolumeOutput) GoString() string {
 
 // A JSON object containing the of the gateway.
 type DescribeBandwidthRateLimitInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDescribeBandwidthRateLimitInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeBandwidthRateLimitInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2996,6 +2917,8 @@ func (s DescribeBandwidthRateLimitInput) GoString() string {
 
 // A JSON object containing the following fields:
 type DescribeBandwidthRateLimitOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The average download bandwidth rate limit in bits per second. This field
 	// does not appear in the response if the download rate limit is not set.
 	AverageDownloadRateLimitInBitsPerSec *int64 `min:"102400" type:"long"`
@@ -3007,12 +2930,6 @@ type DescribeBandwidthRateLimitOutput struct {
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataDescribeBandwidthRateLimitOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeBandwidthRateLimitOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3026,15 +2943,11 @@ func (s DescribeBandwidthRateLimitOutput) GoString() string {
 }
 
 type DescribeCacheInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDescribeCacheInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeCacheInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3048,6 +2961,8 @@ func (s DescribeCacheInput) GoString() string {
 }
 
 type DescribeCacheOutput struct {
+	_ struct{} `type:"structure"`
+
 	CacheAllocatedInBytes *int64 `type:"long"`
 
 	CacheDirtyPercentage *float64 `type:"double"`
@@ -3063,12 +2978,6 @@ type DescribeCacheOutput struct {
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataDescribeCacheOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeCacheOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3082,13 +2991,9 @@ func (s DescribeCacheOutput) GoString() string {
 }
 
 type DescribeCachediSCSIVolumesInput struct {
+	_ struct{} `type:"structure"`
+
 	VolumeARNs []*string `type:"list" required:"true"`
-
-	metadataDescribeCachediSCSIVolumesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeCachediSCSIVolumesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3103,15 +3008,11 @@ func (s DescribeCachediSCSIVolumesInput) GoString() string {
 
 // A JSON object containing the following fields:
 type DescribeCachediSCSIVolumesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An array of objects where each object contains metadata about one cached
 	// volume.
 	CachediSCSIVolumes []*CachediSCSIVolume `type:"list"`
-
-	metadataDescribeCachediSCSIVolumesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeCachediSCSIVolumesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3127,15 +3028,11 @@ func (s DescribeCachediSCSIVolumesOutput) GoString() string {
 // A JSON object containing the Amazon Resource Name (ARN) of the iSCSI volume
 // target.
 type DescribeChapCredentialsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the iSCSI volume target. Use the DescribeStorediSCSIVolumes
 	// operation to return to retrieve the TargetARN for specified VolumeARN.
 	TargetARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDescribeChapCredentialsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeChapCredentialsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3150,6 +3047,8 @@ func (s DescribeChapCredentialsInput) GoString() string {
 
 // A JSON object containing a .
 type DescribeChapCredentialsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An array of ChapInfo objects that represent CHAP credentials. Each object
 	// in the array contains CHAP credential information for one target-initiator
 	// pair. If no CHAP credentials are set, an empty array is returned. CHAP credential
@@ -3166,12 +3065,6 @@ type DescribeChapCredentialsOutput struct {
 	//
 	//   TargetARN: The Amazon Resource Name (ARN) of the storage volume.
 	ChapCredentials []*ChapInfo `type:"list"`
-
-	metadataDescribeChapCredentialsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeChapCredentialsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3186,15 +3079,11 @@ func (s DescribeChapCredentialsOutput) GoString() string {
 
 // A JSON object containing the id of the gateway.
 type DescribeGatewayInformationInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDescribeGatewayInformationInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeGatewayInformationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3209,24 +3098,28 @@ func (s DescribeGatewayInformationInput) GoString() string {
 
 // A JSON object containing the following fields:
 type DescribeGatewayInformationOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
 
-	// The gateway ID.
+	// The unique identifier assigned to your gateway during activation. This id
+	// becomes part of the gateway Amazon Resources Name (ARN) which you use as
+	// input for other operations.
 	GatewayId *string `min:"12" type:"string"`
 
-	// The gateway name.
+	// The name you configured for your gateway.
 	GatewayName *string `type:"string"`
 
 	// A NetworkInterface array that contains descriptions of the gateway network
 	// interfaces.
 	GatewayNetworkInterfaces []*NetworkInterface `type:"list"`
 
-	// One of the values that indicates the operating state of the gateway.
+	// A value that indicates the operating state of the gateway.
 	GatewayState *string `min:"2" type:"string"`
 
-	// One of the values that indicates the time zone configured for the gateway.
+	// A value that indicates the time zone configured for the gateway.
 	GatewayTimezone *string `min:"3" type:"string"`
 
 	// The type of the gateway.
@@ -3241,12 +3134,6 @@ type DescribeGatewayInformationOutput struct {
 	// the time zone of the gateway. If the gateway is not available for an update
 	// this field is not returned in the response.
 	NextUpdateAvailabilityDate *string `min:"1" type:"string"`
-
-	metadataDescribeGatewayInformationOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeGatewayInformationOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3261,15 +3148,11 @@ func (s DescribeGatewayInformationOutput) GoString() string {
 
 // A JSON object containing the of the gateway.
 type DescribeMaintenanceStartTimeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDescribeMaintenanceStartTimeInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeMaintenanceStartTimeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3283,6 +3166,8 @@ func (s DescribeMaintenanceStartTimeInput) GoString() string {
 }
 
 type DescribeMaintenanceStartTimeOutput struct {
+	_ struct{} `type:"structure"`
+
 	DayOfWeek *int64 `type:"integer"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
@@ -3294,12 +3179,6 @@ type DescribeMaintenanceStartTimeOutput struct {
 	MinuteOfHour *int64 `type:"integer"`
 
 	Timezone *string `min:"3" type:"string"`
-
-	metadataDescribeMaintenanceStartTimeOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeMaintenanceStartTimeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3315,15 +3194,11 @@ func (s DescribeMaintenanceStartTimeOutput) GoString() string {
 // A JSON object containing the DescribeSnapshotScheduleInput$VolumeARN of the
 // volume.
 type DescribeSnapshotScheduleInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the volume. Use the ListVolumes operation
 	// to return a list of gateway volumes.
 	VolumeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDescribeSnapshotScheduleInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSnapshotScheduleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3337,6 +3212,8 @@ func (s DescribeSnapshotScheduleInput) GoString() string {
 }
 
 type DescribeSnapshotScheduleOutput struct {
+	_ struct{} `type:"structure"`
+
 	Description *string `min:"1" type:"string"`
 
 	RecurrenceInHours *int64 `min:"1" type:"integer"`
@@ -3346,12 +3223,6 @@ type DescribeSnapshotScheduleOutput struct {
 	Timezone *string `min:"3" type:"string"`
 
 	VolumeARN *string `min:"50" type:"string"`
-
-	metadataDescribeSnapshotScheduleOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeSnapshotScheduleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3366,16 +3237,12 @@ func (s DescribeSnapshotScheduleOutput) GoString() string {
 
 // A JSON Object containing a list of DescribeStorediSCSIVolumesInput$VolumeARNs.
 type DescribeStorediSCSIVolumesInput struct {
+	_ struct{} `type:"structure"`
+
 	// An array of strings where each string represents the Amazon Resource Name
 	// (ARN) of a stored volume. All of the specified stored volumes must from the
 	// same gateway. Use ListVolumes to get volume ARNs for a gateway.
 	VolumeARNs []*string `type:"list" required:"true"`
-
-	metadataDescribeStorediSCSIVolumesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeStorediSCSIVolumesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3389,13 +3256,9 @@ func (s DescribeStorediSCSIVolumesInput) GoString() string {
 }
 
 type DescribeStorediSCSIVolumesOutput struct {
+	_ struct{} `type:"structure"`
+
 	StorediSCSIVolumes []*StorediSCSIVolume `type:"list"`
-
-	metadataDescribeStorediSCSIVolumesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeStorediSCSIVolumesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3410,6 +3273,8 @@ func (s DescribeStorediSCSIVolumesOutput) GoString() string {
 
 // DescribeTapeArchivesInput
 type DescribeTapeArchivesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies that the number of virtual tapes descried be limited to the specified
 	// number.
 	Limit *int64 `min:"1" type:"integer"`
@@ -3421,12 +3286,6 @@ type DescribeTapeArchivesInput struct {
 	// Specifies one or more unique Amazon Resource Names (ARNs) that represent
 	// the virtual tapes you want to describe.
 	TapeARNs []*string `type:"list"`
-
-	metadataDescribeTapeArchivesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTapeArchivesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3441,6 +3300,8 @@ func (s DescribeTapeArchivesInput) GoString() string {
 
 // DescribeTapeArchivesOutput
 type DescribeTapeArchivesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An opaque string that indicates the position at which the virtual tapes that
 	// were fetched for description ended. Use this marker in your next request
 	// to fetch the next set of virtual tapes in the virtual tape shelf (VTS). If
@@ -3453,12 +3314,6 @@ type DescribeTapeArchivesOutput struct {
 	// returned includes the Amazon Resource Names (ARNs) of the tapes, size of
 	// the tapes, status of the tapes, progress of the description and tape barcode.
 	TapeArchives []*TapeArchive `type:"list"`
-
-	metadataDescribeTapeArchivesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTapeArchivesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3473,6 +3328,8 @@ func (s DescribeTapeArchivesOutput) GoString() string {
 
 // DescribeTapeRecoveryPointsInput
 type DescribeTapeRecoveryPointsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
@@ -3484,12 +3341,6 @@ type DescribeTapeRecoveryPointsInput struct {
 	// An opaque string that indicates the position at which to begin describing
 	// the virtual tape recovery points.
 	Marker *string `min:"1" type:"string"`
-
-	metadataDescribeTapeRecoveryPointsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTapeRecoveryPointsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3504,6 +3355,8 @@ func (s DescribeTapeRecoveryPointsInput) GoString() string {
 
 // DescribeTapeRecoveryPointsOutput
 type DescribeTapeRecoveryPointsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
@@ -3518,12 +3371,6 @@ type DescribeTapeRecoveryPointsOutput struct {
 
 	// An array of TapeRecoveryPointInfos that are available for the specified gateway.
 	TapeRecoveryPointInfos []*TapeRecoveryPointInfo `type:"list"`
-
-	metadataDescribeTapeRecoveryPointsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTapeRecoveryPointsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3538,6 +3385,8 @@ func (s DescribeTapeRecoveryPointsOutput) GoString() string {
 
 // DescribeTapesInput
 type DescribeTapesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
@@ -3559,12 +3408,6 @@ type DescribeTapesInput struct {
 	// AWS Storage Gateway returns a description of all virtual tapes associated
 	// with the specified gateway.
 	TapeARNs []*string `type:"list"`
-
-	metadataDescribeTapesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTapesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3579,6 +3422,8 @@ func (s DescribeTapesInput) GoString() string {
 
 // DescribeTapesOutput
 type DescribeTapesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An opaque string which can be used as part of a subsequent DescribeTapes
 	// call to retrieve the next page of results.
 	//
@@ -3588,12 +3433,6 @@ type DescribeTapesOutput struct {
 
 	// An array of virtual tape descriptions.
 	Tapes []*Tape `type:"list"`
-
-	metadataDescribeTapesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeTapesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3607,15 +3446,11 @@ func (s DescribeTapesOutput) GoString() string {
 }
 
 type DescribeUploadBufferInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDescribeUploadBufferInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeUploadBufferInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3629,6 +3464,8 @@ func (s DescribeUploadBufferInput) GoString() string {
 }
 
 type DescribeUploadBufferOutput struct {
+	_ struct{} `type:"structure"`
+
 	DiskIds []*string `type:"list"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
@@ -3638,12 +3475,6 @@ type DescribeUploadBufferOutput struct {
 	UploadBufferAllocatedInBytes *int64 `type:"long"`
 
 	UploadBufferUsedInBytes *int64 `type:"long"`
-
-	metadataDescribeUploadBufferOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeUploadBufferOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3658,6 +3489,8 @@ func (s DescribeUploadBufferOutput) GoString() string {
 
 // DescribeVTLDevicesInput
 type DescribeVTLDevicesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
@@ -3677,12 +3510,6 @@ type DescribeVTLDevicesInput struct {
 	// devices are specified, the result will contain all devices on the specified
 	// gateway.
 	VTLDeviceARNs []*string `type:"list"`
-
-	metadataDescribeVTLDevicesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVTLDevicesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3697,6 +3524,8 @@ func (s DescribeVTLDevicesInput) GoString() string {
 
 // DescribeVTLDevicesOutput
 type DescribeVTLDevicesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
@@ -3710,12 +3539,6 @@ type DescribeVTLDevicesOutput struct {
 	// An array of VTL device objects composed of the Amazon Resource Name(ARN)
 	// of the VTL devices.
 	VTLDevices []*VTLDevice `type:"list"`
-
-	metadataDescribeVTLDevicesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeVTLDevicesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3730,15 +3553,11 @@ func (s DescribeVTLDevicesOutput) GoString() string {
 
 // A JSON object containing the of the gateway.
 type DescribeWorkingStorageInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDescribeWorkingStorageInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeWorkingStorageInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3753,6 +3572,8 @@ func (s DescribeWorkingStorageInput) GoString() string {
 
 // A JSON object containing the following fields:
 type DescribeWorkingStorageOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An array of the gateway's local disk IDs that are configured as working storage.
 	// Each local disk ID is specified as a string (minimum length of 1 and maximum
 	// length of 300). If no local disks are configured as working storage, then
@@ -3770,12 +3591,6 @@ type DescribeWorkingStorageOutput struct {
 	// The total working storage in bytes in use by the gateway. If no working storage
 	// is configured for the gateway, this field returns 0.
 	WorkingStorageUsedInBytes *int64 `type:"long"`
-
-	metadataDescribeWorkingStorageOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeWorkingStorageOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3790,6 +3605,8 @@ func (s DescribeWorkingStorageOutput) GoString() string {
 
 // Lists iSCSI information about a VTL device.
 type DeviceiSCSIAttributes struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether mutual CHAP is enabled for the iSCSI target.
 	ChapEnabled *bool `type:"boolean"`
 
@@ -3802,12 +3619,6 @@ type DeviceiSCSIAttributes struct {
 	// Specifies the unique Amazon Resource Name(ARN) that encodes the iSCSI qualified
 	// name(iqn) of a tape drive or media changer target.
 	TargetARN *string `min:"50" type:"string"`
-
-	metadataDeviceiSCSIAttributes `json:"-" xml:"-"`
-}
-
-type metadataDeviceiSCSIAttributes struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3822,15 +3633,11 @@ func (s DeviceiSCSIAttributes) GoString() string {
 
 // DisableGatewayInput
 type DisableGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataDisableGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataDisableGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3845,14 +3652,10 @@ func (s DisableGatewayInput) GoString() string {
 
 // DisableGatewayOutput
 type DisableGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The unique Amazon Resource Name of the disabled gateway.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataDisableGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataDisableGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3866,6 +3669,8 @@ func (s DisableGatewayOutput) GoString() string {
 }
 
 type Disk struct {
+	_ struct{} `type:"structure"`
+
 	DiskAllocationResource *string `type:"string"`
 
 	DiskAllocationType *string `min:"3" type:"string"`
@@ -3879,12 +3684,6 @@ type Disk struct {
 	DiskSizeInBytes *int64 `type:"long"`
 
 	DiskStatus *string `type:"string"`
-
-	metadataDisk `json:"-" xml:"-"`
-}
-
-type metadataDisk struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3901,17 +3700,13 @@ func (s Disk) GoString() string {
 // as an or. See the errorCode and errorDetails members for more information
 // about the error.
 type Error struct {
+	_ struct{} `type:"structure"`
+
 	// Additional information about the error.
 	ErrorCode *string `locationName:"errorCode" type:"string" enum:"ErrorCode"`
 
 	// Human-readable text that provides detail about the error that occurred.
 	ErrorDetails map[string]*string `locationName:"errorDetails" type:"map"`
-
-	metadataError `json:"-" xml:"-"`
-}
-
-type metadataError struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3925,6 +3720,8 @@ func (s Error) GoString() string {
 }
 
 type GatewayInfo struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
@@ -3934,12 +3731,6 @@ type GatewayInfo struct {
 	GatewayOperationalState *string `min:"2" type:"string"`
 
 	GatewayType *string `min:"2" type:"string"`
-
-	metadataGatewayInfo `json:"-" xml:"-"`
-}
-
-type metadataGatewayInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3956,6 +3747,8 @@ func (s GatewayInfo) GoString() string {
 //
 //   ListGatewaysInput$Limit   ListGatewaysInput$Marker
 type ListGatewaysInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies that the list of gateways returned be limited to the specified
 	// number of items.
 	Limit *int64 `min:"1" type:"integer"`
@@ -3963,12 +3756,6 @@ type ListGatewaysInput struct {
 	// An opaque string that indicates the position at which to begin the returned
 	// list of gateways.
 	Marker *string `min:"1" type:"string"`
-
-	metadataListGatewaysInput `json:"-" xml:"-"`
-}
-
-type metadataListGatewaysInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -3982,15 +3769,11 @@ func (s ListGatewaysInput) GoString() string {
 }
 
 type ListGatewaysOutput struct {
+	_ struct{} `type:"structure"`
+
 	Gateways []*GatewayInfo `type:"list"`
 
 	Marker *string `min:"1" type:"string"`
-
-	metadataListGatewaysOutput `json:"-" xml:"-"`
-}
-
-type metadataListGatewaysOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4005,15 +3788,11 @@ func (s ListGatewaysOutput) GoString() string {
 
 // A JSON object containing the of the gateway.
 type ListLocalDisksInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataListLocalDisksInput `json:"-" xml:"-"`
-}
-
-type metadataListLocalDisksInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4027,17 +3806,13 @@ func (s ListLocalDisksInput) GoString() string {
 }
 
 type ListLocalDisksOutput struct {
+	_ struct{} `type:"structure"`
+
 	Disks []*Disk `type:"list"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataListLocalDisksOutput `json:"-" xml:"-"`
-}
-
-type metadataListLocalDisksOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4052,6 +3827,8 @@ func (s ListLocalDisksOutput) GoString() string {
 
 // ListTagsForResourceInput
 type ListTagsForResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies that the list of tags returned be limited to the specified number
 	// of items.
 	Limit *int64 `min:"1" type:"integer"`
@@ -4062,13 +3839,7 @@ type ListTagsForResourceInput struct {
 
 	// The Amazon Resource Name (ARN) of the resource for which you want to list
 	// tags.
-	ResourceARN *string `min:"50" type:"string"`
-
-	metadataListTagsForResourceInput `json:"-" xml:"-"`
-}
-
-type metadataListTagsForResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
+	ResourceARN *string `min:"50" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -4083,6 +3854,8 @@ func (s ListTagsForResourceInput) GoString() string {
 
 // ListTagsForResourceOutput
 type ListTagsForResourceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// An opaque string that indicates the position at which to stop returning the
 	// list of tags.
 	Marker *string `min:"1" type:"string"`
@@ -4093,12 +3866,6 @@ type ListTagsForResourceOutput struct {
 
 	// An array that contains the tags for the specified resource.
 	Tags []*Tag `type:"list"`
-
-	metadataListTagsForResourceOutput `json:"-" xml:"-"`
-}
-
-type metadataListTagsForResourceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4113,15 +3880,11 @@ func (s ListTagsForResourceOutput) GoString() string {
 
 // ListVolumeInitiatorsInput
 type ListVolumeInitiatorsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the volume. Use the ListVolumes operation
 	// to return a list of gateway volumes for the gateway.
 	VolumeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataListVolumeInitiatorsInput `json:"-" xml:"-"`
-}
-
-type metadataListVolumeInitiatorsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4136,15 +3899,11 @@ func (s ListVolumeInitiatorsInput) GoString() string {
 
 // ListVolumeInitiatorsOutput
 type ListVolumeInitiatorsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The host names and port numbers of all iSCSI initiators that are connected
 	// to the gateway.
 	Initiators []*string `type:"list"`
-
-	metadataListVolumeInitiatorsOutput `json:"-" xml:"-"`
-}
-
-type metadataListVolumeInitiatorsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4158,15 +3917,11 @@ func (s ListVolumeInitiatorsOutput) GoString() string {
 }
 
 type ListVolumeRecoveryPointsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataListVolumeRecoveryPointsInput `json:"-" xml:"-"`
-}
-
-type metadataListVolumeRecoveryPointsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4180,17 +3935,13 @@ func (s ListVolumeRecoveryPointsInput) GoString() string {
 }
 
 type ListVolumeRecoveryPointsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
 
 	VolumeRecoveryPointInfos []*VolumeRecoveryPointInfo `type:"list"`
-
-	metadataListVolumeRecoveryPointsOutput `json:"-" xml:"-"`
-}
-
-type metadataListVolumeRecoveryPointsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4207,6 +3958,8 @@ func (s ListVolumeRecoveryPointsOutput) GoString() string {
 //
 //   ListVolumesInput$Limit   ListVolumesInput$Marker
 type ListVolumesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
@@ -4219,12 +3972,6 @@ type ListVolumesInput struct {
 	// of volumes. Obtain the marker from the response of a previous List iSCSI
 	// Volumes request.
 	Marker *string `min:"1" type:"string"`
-
-	metadataListVolumesInput `json:"-" xml:"-"`
-}
-
-type metadataListVolumesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4238,6 +3985,8 @@ func (s ListVolumesInput) GoString() string {
 }
 
 type ListVolumesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
@@ -4245,12 +3994,6 @@ type ListVolumesOutput struct {
 	Marker *string `min:"1" type:"string"`
 
 	VolumeInfos []*VolumeInfo `type:"list"`
-
-	metadataListVolumesOutput `json:"-" xml:"-"`
-}
-
-type metadataListVolumesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4265,6 +4008,8 @@ func (s ListVolumesOutput) GoString() string {
 
 // Describes a gateway's network interface.
 type NetworkInterface struct {
+	_ struct{} `type:"structure"`
+
 	// The Internet Protocol version 4 (IPv4) address of the interface.
 	Ipv4Address *string `type:"string"`
 
@@ -4276,12 +4021,6 @@ type NetworkInterface struct {
 	//
 	// This is currently unsupported and will not be returned in output.
 	MacAddress *string `type:"string"`
-
-	metadataNetworkInterface `json:"-" xml:"-"`
-}
-
-type metadataNetworkInterface struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4296,19 +4035,15 @@ func (s NetworkInterface) GoString() string {
 
 // RemoveTagsFromResourceInput
 type RemoveTagsFromResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the resource you want to remove the tags
 	// from.
-	ResourceARN *string `min:"50" type:"string"`
+	ResourceARN *string `min:"50" type:"string" required:"true"`
 
 	// The keys of the tags you want to remove from the specified resource. A tag
 	// is composed of a key/value pair.
-	TagKeys []*string `type:"list"`
-
-	metadataRemoveTagsFromResourceInput `json:"-" xml:"-"`
-}
-
-type metadataRemoveTagsFromResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
+	TagKeys []*string `type:"list" required:"true"`
 }
 
 // String returns the string representation
@@ -4323,15 +4058,11 @@ func (s RemoveTagsFromResourceInput) GoString() string {
 
 // RemoveTagsFromResourceOutput
 type RemoveTagsFromResourceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the resource that the tags were removed
 	// from.
 	ResourceARN *string `min:"50" type:"string"`
-
-	metadataRemoveTagsFromResourceOutput `json:"-" xml:"-"`
-}
-
-type metadataRemoveTagsFromResourceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4345,15 +4076,11 @@ func (s RemoveTagsFromResourceOutput) GoString() string {
 }
 
 type ResetCacheInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataResetCacheInput `json:"-" xml:"-"`
-}
-
-type metadataResetCacheInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4367,15 +4094,11 @@ func (s ResetCacheInput) GoString() string {
 }
 
 type ResetCacheOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataResetCacheOutput `json:"-" xml:"-"`
-}
-
-type metadataResetCacheOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4390,6 +4113,8 @@ func (s ResetCacheOutput) GoString() string {
 
 // RetrieveTapeArchiveInput
 type RetrieveTapeArchiveInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway you want to retrieve the virtual
 	// tape to. Use the ListGateways operation to return a list of gateways for
 	// your account and region.
@@ -4401,12 +4126,6 @@ type RetrieveTapeArchiveInput struct {
 	// The Amazon Resource Name (ARN) of the virtual tape you want to retrieve from
 	// the virtual tape shelf (VTS).
 	TapeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataRetrieveTapeArchiveInput `json:"-" xml:"-"`
-}
-
-type metadataRetrieveTapeArchiveInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4421,14 +4140,10 @@ func (s RetrieveTapeArchiveInput) GoString() string {
 
 // RetrieveTapeArchiveOutput
 type RetrieveTapeArchiveOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the retrieved virtual tape.
 	TapeARN *string `min:"50" type:"string"`
-
-	metadataRetrieveTapeArchiveOutput `json:"-" xml:"-"`
-}
-
-type metadataRetrieveTapeArchiveOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4443,6 +4158,8 @@ func (s RetrieveTapeArchiveOutput) GoString() string {
 
 // RetrieveTapeRecoveryPointInput
 type RetrieveTapeRecoveryPointInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
@@ -4450,12 +4167,6 @@ type RetrieveTapeRecoveryPointInput struct {
 	// The Amazon Resource Name (ARN) of the virtual tape for which you want to
 	// retrieve the recovery point.
 	TapeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataRetrieveTapeRecoveryPointInput `json:"-" xml:"-"`
-}
-
-type metadataRetrieveTapeRecoveryPointInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4470,15 +4181,11 @@ func (s RetrieveTapeRecoveryPointInput) GoString() string {
 
 // RetrieveTapeRecoveryPointOutput
 type RetrieveTapeRecoveryPointOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the virtual tape for which the recovery
 	// point was retrieved.
 	TapeARN *string `min:"50" type:"string"`
-
-	metadataRetrieveTapeRecoveryPointOutput `json:"-" xml:"-"`
-}
-
-type metadataRetrieveTapeRecoveryPointOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4493,15 +4200,11 @@ func (s RetrieveTapeRecoveryPointOutput) GoString() string {
 
 // A JSON object containing the of the gateway to shut down.
 type ShutdownGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataShutdownGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataShutdownGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4516,15 +4219,11 @@ func (s ShutdownGatewayInput) GoString() string {
 
 // A JSON object containing the of the gateway that was shut down.
 type ShutdownGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataShutdownGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataShutdownGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4539,15 +4238,11 @@ func (s ShutdownGatewayOutput) GoString() string {
 
 // A JSON object containing the of the gateway to start.
 type StartGatewayInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataStartGatewayInput `json:"-" xml:"-"`
-}
-
-type metadataStartGatewayInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4562,15 +4257,11 @@ func (s StartGatewayInput) GoString() string {
 
 // A JSON object containing the of the gateway that was restarted.
 type StartGatewayOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataStartGatewayOutput `json:"-" xml:"-"`
-}
-
-type metadataStartGatewayOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4584,6 +4275,8 @@ func (s StartGatewayOutput) GoString() string {
 }
 
 type StorediSCSIVolume struct {
+	_ struct{} `type:"structure"`
+
 	PreservedExistingData *bool `type:"boolean"`
 
 	SourceSnapshotId *string `type:"string"`
@@ -4604,12 +4297,6 @@ type StorediSCSIVolume struct {
 
 	// Lists iSCSI information about a volume.
 	VolumeiSCSIAttributes *VolumeiSCSIAttributes `type:"structure"`
-
-	metadataStorediSCSIVolume `json:"-" xml:"-"`
-}
-
-type metadataStorediSCSIVolume struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4623,15 +4310,11 @@ func (s StorediSCSIVolume) GoString() string {
 }
 
 type Tag struct {
+	_ struct{} `type:"structure"`
+
 	Key *string `min:"1" type:"string" required:"true"`
 
 	Value *string `type:"string" required:"true"`
-
-	metadataTag `json:"-" xml:"-"`
-}
-
-type metadataTag struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4646,6 +4329,8 @@ func (s Tag) GoString() string {
 
 // Describes a virtual tape object.
 type Tape struct {
+	_ struct{} `type:"structure"`
+
 	// For archiving virtual tapes, indicates how much data remains to be uploaded
 	// before archiving is complete.
 	//
@@ -4667,12 +4352,6 @@ type Tape struct {
 	// The virtual tape library (VTL) device that the virtual tape is associated
 	// with.
 	VTLDevice *string `min:"50" type:"string"`
-
-	metadataTape `json:"-" xml:"-"`
-}
-
-type metadataTape struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4687,6 +4366,8 @@ func (s Tape) GoString() string {
 
 // Represents a virtual tape that is archived in the virtual tape shelf (VTS).
 type TapeArchive struct {
+	_ struct{} `type:"structure"`
+
 	// The time that the archiving of the virtual tape was completed.
 	//
 	// The string format of the completion time is in the ISO8601 extended YYYY-MM-DD'T'HH:MM:SS'Z'
@@ -4710,12 +4391,6 @@ type TapeArchive struct {
 
 	// The current state of the archived virtual tape.
 	TapeStatus *string `type:"string"`
-
-	metadataTapeArchive `json:"-" xml:"-"`
-}
-
-type metadataTapeArchive struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4730,6 +4405,8 @@ func (s TapeArchive) GoString() string {
 
 // Describes a recovery point.
 type TapeRecoveryPointInfo struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the virtual tape.
 	TapeARN *string `min:"50" type:"string"`
 
@@ -4744,12 +4421,6 @@ type TapeRecoveryPointInfo struct {
 	TapeSizeInBytes *int64 `type:"long"`
 
 	TapeStatus *string `type:"string"`
-
-	metadataTapeRecoveryPointInfo `json:"-" xml:"-"`
-}
-
-type metadataTapeRecoveryPointInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4766,6 +4437,8 @@ func (s TapeRecoveryPointInfo) GoString() string {
 //
 //   UpdateBandwidthRateLimitInput$AverageDownloadRateLimitInBitsPerSec   UpdateBandwidthRateLimitInput$AverageUploadRateLimitInBitsPerSec
 type UpdateBandwidthRateLimitInput struct {
+	_ struct{} `type:"structure"`
+
 	// The average download bandwidth rate limit in bits per second.
 	AverageDownloadRateLimitInBitsPerSec *int64 `min:"102400" type:"long"`
 
@@ -4775,12 +4448,6 @@ type UpdateBandwidthRateLimitInput struct {
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataUpdateBandwidthRateLimitInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateBandwidthRateLimitInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4796,15 +4463,11 @@ func (s UpdateBandwidthRateLimitInput) GoString() string {
 // A JSON object containing the of the gateway whose throttle information was
 // updated.
 type UpdateBandwidthRateLimitOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataUpdateBandwidthRateLimitOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateBandwidthRateLimitOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4822,6 +4485,8 @@ func (s UpdateBandwidthRateLimitOutput) GoString() string {
 //   UpdateChapCredentialsInput$InitiatorName   UpdateChapCredentialsInput$SecretToAuthenticateInitiator
 //   UpdateChapCredentialsInput$SecretToAuthenticateTarget   UpdateChapCredentialsInput$TargetARN
 type UpdateChapCredentialsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The iSCSI initiator that connects to the target.
 	InitiatorName *string `min:"1" type:"string" required:"true"`
 
@@ -4842,12 +4507,6 @@ type UpdateChapCredentialsInput struct {
 	// The Amazon Resource Name (ARN) of the iSCSI volume target. Use the DescribeStorediSCSIVolumes
 	// operation to return the TargetARN for specified VolumeARN.
 	TargetARN *string `min:"50" type:"string" required:"true"`
-
-	metadataUpdateChapCredentialsInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateChapCredentialsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4862,6 +4521,8 @@ func (s UpdateChapCredentialsInput) GoString() string {
 
 // A JSON object containing the following fields:
 type UpdateChapCredentialsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The iSCSI initiator that connects to the target. This is the same initiator
 	// name specified in the request.
 	InitiatorName *string `min:"1" type:"string"`
@@ -4869,12 +4530,6 @@ type UpdateChapCredentialsOutput struct {
 	// The Amazon Resource Name (ARN) of the target. This is the same target specified
 	// in the request.
 	TargetARN *string `min:"50" type:"string"`
-
-	metadataUpdateChapCredentialsOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateChapCredentialsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4888,21 +4543,16 @@ func (s UpdateChapCredentialsOutput) GoString() string {
 }
 
 type UpdateGatewayInformationInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
 
-	// A unique identifier for your gateway. This name becomes part of the gateway
-	// Amazon Resources Name (ARN) which is what you use as an input to other operations.
+	// The name you configured for your gateway.
 	GatewayName *string `min:"2" type:"string"`
 
 	GatewayTimezone *string `min:"3" type:"string"`
-
-	metadataUpdateGatewayInformationInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateGatewayInformationInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4915,19 +4565,15 @@ func (s UpdateGatewayInformationInput) GoString() string {
 	return s.String()
 }
 
-// A JSON object containing the of the gateway that was updated.
+// A JSON object containing the ARN of the gateway that was updated.
 type UpdateGatewayInformationOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
 
 	GatewayName *string `type:"string"`
-
-	metadataUpdateGatewayInformationOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateGatewayInformationOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4942,15 +4588,11 @@ func (s UpdateGatewayInformationOutput) GoString() string {
 
 // A JSON object containing the of the gateway to update.
 type UpdateGatewaySoftwareNowInput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string" required:"true"`
-
-	metadataUpdateGatewaySoftwareNowInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateGatewaySoftwareNowInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4965,15 +4607,11 @@ func (s UpdateGatewaySoftwareNowInput) GoString() string {
 
 // A JSON object containing the of the gateway that was updated.
 type UpdateGatewaySoftwareNowOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataUpdateGatewaySoftwareNowOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateGatewaySoftwareNowOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -4991,6 +4629,8 @@ func (s UpdateGatewaySoftwareNowOutput) GoString() string {
 //   UpdateMaintenanceStartTimeInput$DayOfWeek   UpdateMaintenanceStartTimeInput$HourOfDay
 //   UpdateMaintenanceStartTimeInput$MinuteOfHour
 type UpdateMaintenanceStartTimeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The maintenance start time day of the week.
 	DayOfWeek *int64 `type:"integer" required:"true"`
 
@@ -5007,12 +4647,6 @@ type UpdateMaintenanceStartTimeInput struct {
 	// mm is the minute (00 to 59). The minute of the hour is in the time zone of
 	// the gateway.
 	MinuteOfHour *int64 `type:"integer" required:"true"`
-
-	metadataUpdateMaintenanceStartTimeInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateMaintenanceStartTimeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5028,15 +4662,11 @@ func (s UpdateMaintenanceStartTimeInput) GoString() string {
 // A JSON object containing the of the gateway whose maintenance start time
 // is updated.
 type UpdateMaintenanceStartTimeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and region.
 	GatewayARN *string `min:"50" type:"string"`
-
-	metadataUpdateMaintenanceStartTimeOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateMaintenanceStartTimeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5054,6 +4684,8 @@ func (s UpdateMaintenanceStartTimeOutput) GoString() string {
 //   UpdateSnapshotScheduleInput$Description   UpdateSnapshotScheduleInput$RecurrenceInHours
 //   UpdateSnapshotScheduleInput$StartAt   UpdateSnapshotScheduleInput$VolumeARN
 type UpdateSnapshotScheduleInput struct {
+	_ struct{} `type:"structure"`
+
 	// Optional description of the snapshot that overwrites the existing description.
 	Description *string `min:"1" type:"string"`
 
@@ -5068,12 +4700,6 @@ type UpdateSnapshotScheduleInput struct {
 	// The Amazon Resource Name (ARN) of the volume. Use the ListVolumes operation
 	// to return a list of gateway volumes.
 	VolumeARN *string `min:"50" type:"string" required:"true"`
-
-	metadataUpdateSnapshotScheduleInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateSnapshotScheduleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5088,13 +4714,9 @@ func (s UpdateSnapshotScheduleInput) GoString() string {
 
 // A JSON object containing the of the updated storage volume.
 type UpdateSnapshotScheduleOutput struct {
+	_ struct{} `type:"structure"`
+
 	VolumeARN *string `min:"50" type:"string"`
-
-	metadataUpdateSnapshotScheduleOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateSnapshotScheduleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5109,6 +4731,8 @@ func (s UpdateSnapshotScheduleOutput) GoString() string {
 
 // UpdateVTLDeviceTypeInput
 type UpdateVTLDeviceTypeInput struct {
+	_ struct{} `type:"structure"`
+
 	// The type of medium changer you want to select.
 	//
 	// Valid Values: "STK-L700", "AWS-Gateway-VTL"
@@ -5116,12 +4740,6 @@ type UpdateVTLDeviceTypeInput struct {
 
 	// The Amazon Resource Name (ARN) of the medium changer you want to select.
 	VTLDeviceARN *string `min:"50" type:"string" required:"true"`
-
-	metadataUpdateVTLDeviceTypeInput `json:"-" xml:"-"`
-}
-
-type metadataUpdateVTLDeviceTypeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5136,14 +4754,10 @@ func (s UpdateVTLDeviceTypeInput) GoString() string {
 
 // UpdateVTLDeviceTypeOutput
 type UpdateVTLDeviceTypeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the medium changer you have selected.
 	VTLDeviceARN *string `min:"50" type:"string"`
-
-	metadataUpdateVTLDeviceTypeOutput `json:"-" xml:"-"`
-}
-
-type metadataUpdateVTLDeviceTypeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5158,6 +4772,8 @@ func (s UpdateVTLDeviceTypeOutput) GoString() string {
 
 // Represents a device object associated with a gateway-VTL.
 type VTLDevice struct {
+	_ struct{} `type:"structure"`
+
 	// A list of iSCSI information about a VTL device.
 	DeviceiSCSIAttributes *DeviceiSCSIAttributes `type:"structure"`
 
@@ -5170,12 +4786,6 @@ type VTLDevice struct {
 	VTLDeviceType *string `type:"string"`
 
 	VTLDeviceVendor *string `type:"string"`
-
-	metadataVTLDevice `json:"-" xml:"-"`
-}
-
-type metadataVTLDevice struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5189,15 +4799,11 @@ func (s VTLDevice) GoString() string {
 }
 
 type VolumeInfo struct {
+	_ struct{} `type:"structure"`
+
 	VolumeARN *string `min:"50" type:"string"`
 
 	VolumeType *string `min:"3" type:"string"`
-
-	metadataVolumeInfo `json:"-" xml:"-"`
-}
-
-type metadataVolumeInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5211,6 +4817,8 @@ func (s VolumeInfo) GoString() string {
 }
 
 type VolumeRecoveryPointInfo struct {
+	_ struct{} `type:"structure"`
+
 	VolumeARN *string `min:"50" type:"string"`
 
 	VolumeRecoveryPointTime *string `type:"string"`
@@ -5218,12 +4826,6 @@ type VolumeRecoveryPointInfo struct {
 	VolumeSizeInBytes *int64 `type:"long"`
 
 	VolumeUsageInBytes *int64 `type:"long"`
-
-	metadataVolumeRecoveryPointInfo `json:"-" xml:"-"`
-}
-
-type metadataVolumeRecoveryPointInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -5238,6 +4840,8 @@ func (s VolumeRecoveryPointInfo) GoString() string {
 
 // Lists iSCSI information about a volume.
 type VolumeiSCSIAttributes struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether mutual CHAP is enabled for the iSCSI target.
 	ChapEnabled *bool `type:"boolean"`
 
@@ -5252,12 +4856,6 @@ type VolumeiSCSIAttributes struct {
 
 	// The Amazon Resource Name (ARN) of the volume target.
 	TargetARN *string `min:"50" type:"string"`
-
-	metadataVolumeiSCSIAttributes `json:"-" xml:"-"`
-}
-
-type metadataVolumeiSCSIAttributes struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation

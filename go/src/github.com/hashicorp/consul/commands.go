@@ -27,6 +27,12 @@ func init() {
 			}, nil
 		},
 
+		"configtest": func() (cli.Command, error) {
+			return &command.ConfigTestCommand{
+				Ui: ui,
+			}, nil
+		},
+
 		"event": func() (cli.Command, error) {
 			return &command.EventCommand{
 				Ui: ui,
@@ -104,6 +110,12 @@ func init() {
 
 		"reload": func() (cli.Command, error) {
 			return &command.ReloadCommand{
+				Ui: ui,
+			}, nil
+		},
+
+		"rtt": func() (cli.Command, error) {
+			return &command.RTTCommand{
 				Ui: ui,
 			}, nil
 		},

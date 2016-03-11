@@ -18,6 +18,9 @@ import (
 	"math/rand"
 	"os"
 	"testing"
+
+	"github.com/coreos/etcd/lease"
+	"github.com/coreos/etcd/storage/backend"
 )
 
 // Benchmarks on cancel function performance for unsynced watchers
@@ -28,27 +31,24 @@ import (
 // TODO: k is an arbitrary constant. We need to figure out what factor
 // we should put to simulate the real-world use cases.
 func BenchmarkWatchableStoreUnsyncedCancel(b *testing.B) {
-	const k int = 2
-	benchSampleSize := b.N
-	watcherSize := k * benchSampleSize
+	be, tmpPath := backend.NewDefaultTmpBackend()
+	s := NewStore(be, &lease.FakeLessor{})
+
 	// manually create watchableStore instead of newWatchableStore
 	// because newWatchableStore periodically calls syncWatchersLoop
 	// method to sync watchers in unsynced map. We want to keep watchers
 	// in unsynced for this benchmark.
-	s := &watchableStore{
-		store:    newStore(tmpPath),
-		unsynced: make(map[*watcher]struct{}),
-
-		// For previous implementation, use:
-		// unsynced: make([]*watcher, 0),
+	ws := &watchableStore{
+		store:    s,
+		unsynced: newWatcherGroup(),
 
 		// to make the test not crash from assigning to nil map.
 		// 'synced' doesn't get populated in this test.
-		synced: make(map[string][]*watcher),
+		synced: newWatcherGroup(),
 	}
 
 	defer func() {
-		s.store.Close()
+		ws.store.Close()
 		os.Remove(tmpPath)
 	}()
 
@@ -58,24 +58,70 @@ func BenchmarkWatchableStoreUnsyncedCancel(b *testing.B) {
 	// and force watchers to be in unsynced.
 	testKey := []byte("foo")
 	testValue := []byte("bar")
-	s.Put(testKey, testValue)
+	s.Put(testKey, testValue, lease.NoLease)
 
-	cancels := make([]CancelFunc, watcherSize)
-	for i := 0; i < watcherSize; i++ {
+	w := ws.NewWatchStream()
+
+	const k int = 2
+	benchSampleN := b.N
+	watcherN := k * benchSampleN
+
+	watchIDs := make([]WatchID, watcherN)
+	for i := 0; i < watcherN; i++ {
 		// non-0 value to keep watchers in unsynced
-		_, cancel := s.Watcher(testKey, true, 1)
-		cancels[i] = cancel
+		watchIDs[i] = w.Watch(testKey, nil, 1)
 	}
 
 	// random-cancel N watchers to make it not biased towards
 	// data structures with an order, such as slice.
-	ix := rand.Perm(watcherSize)
+	ix := rand.Perm(watcherN)
 
 	b.ResetTimer()
 	b.ReportAllocs()
 
 	// cancel N watchers
-	for _, idx := range ix[:benchSampleSize] {
-		cancels[idx]()
+	for _, idx := range ix[:benchSampleN] {
+		if err := w.Cancel(watchIDs[idx]); err != nil {
+			b.Error(err)
+		}
+	}
+}
+
+func BenchmarkWatchableStoreSyncedCancel(b *testing.B) {
+	be, tmpPath := backend.NewDefaultTmpBackend()
+	s := newWatchableStore(be, &lease.FakeLessor{})
+
+	defer func() {
+		s.store.Close()
+		os.Remove(tmpPath)
+	}()
+
+	// Put a key so that we can spawn watchers on that key
+	testKey := []byte("foo")
+	testValue := []byte("bar")
+	s.Put(testKey, testValue, lease.NoLease)
+
+	w := s.NewWatchStream()
+
+	// put 1 million watchers on the same key
+	const watcherN = 1000000
+
+	watchIDs := make([]WatchID, watcherN)
+	for i := 0; i < watcherN; i++ {
+		// 0 for startRev to keep watchers in synced
+		watchIDs[i] = w.Watch(testKey, nil, 0)
+	}
+
+	// randomly cancel watchers to make it not biased towards
+	// data structures with an order, such as slice.
+	ix := rand.Perm(watcherN)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for _, idx := range ix {
+		if err := w.Cancel(watchIDs[idx]); err != nil {
+			b.Error(err)
+		}
 	}
 }

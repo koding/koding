@@ -4,7 +4,6 @@ curryIn                     = require 'app/util/curryIn'
 FSHelper                    = require 'app/util/fs/fshelper'
 { jsonToYaml, yamlToJson }  = require '../yamlutils'
 IDEEditorPane               = require 'ide/workspace/panes/ideeditorpane'
-KDNotificationView          = kd.NotificationView
 
 
 module.exports = class BaseStackEditorView extends IDEEditorPane
@@ -48,11 +47,14 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
       ace.setShowPrintMargin no, no
       ace.setUseSoftTabs yes, no
       ace.setScrollPastEnd yes, no
+      ace.contentChanged = no
 
       { content, targetContentType } = @getOptions()
 
       if targetContentType is 'json'
         ace.setContent JSON.stringify(JSON.parse(content), null, '\t'), no
+
+      ace.lastSavedContents = ace.getContents()
 
       kd.utils.defer =>
         @getEditorSession().setScrollTop 0

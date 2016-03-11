@@ -3,55 +3,41 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"koding/klientctl/klient"
+	"koding/klientctl/list"
 	"os"
 	"strings"
 	"text/tabwriter"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 )
-
-type kiteInfo struct {
-	IP           string      `json:"ip"`
-	VMName       string      `json:"vmName"`
-	Hostname     string      `json:"hostname"`
-	MachineLabel string      `json:"machineLabel"`
-	Mounts       []mountInfo `json:"mounts"`
-	Teams        []string    `json:"teams"`
-
-	// TODO: DEPRECATE
-	MountedPaths []string `json:"mountedPaths"`
-}
-
-type mountInfo struct {
-	RemotePath string `json:"remotePath"`
-	LocalPath  string `json:"localPath"`
-}
 
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
-func ListCommand(c *cli.Context) int {
+func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if len(c.Args()) != 0 {
 		cli.ShowCommandHelp(c, "list")
 		return 1
 	}
 
-	k, err := CreateKlientClient(NewKlientOptions())
+	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
-		log.Errorf("Error creating klient client. err:%s", err)
+		log.Error("Error creating klient client. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		log.Errorf("Error dialing klient client. err:%s", err)
+		log.Error("Error dialing klient client. err:%s", err)
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(GenericInternalError))
 		return 1
 	}
 
 	infos, err := getListOfMachines(k)
 	if err != nil {
-		log.Errorf("Error listing machines. err:%s", err)
+		log.Error("Error listing machines. err:%s", err)
 		fmt.Println(getListErrRes(err, defaultHealthChecker))
 		return 1
 	}
@@ -59,7 +45,7 @@ func ListCommand(c *cli.Context) int {
 	if c.Bool("json") {
 		jsonBytes, err := json.MarshalIndent(infos, "", "  ")
 		if err != nil {
-			log.Errorf("Marshalling infos to json failed. err:%s", err)
+			log.Error("Marshalling infos to json failed. err:%s", err)
 			fmt.Println(GenericInternalError)
 			return 1
 		}
@@ -102,13 +88,13 @@ func ListCommand(c *cli.Context) int {
 	return 0
 }
 
-func getListOfMachines(kite *kite.Client) ([]kiteInfo, error) {
+func getListOfMachines(kite *kite.Client) ([]list.KiteInfo, error) {
 	res, err := kite.Tell("remote.list")
 	if err != nil {
 		return nil, err
 	}
 
-	var infos []kiteInfo
+	var infos []list.KiteInfo
 	if err := res.Unmarshal(&infos); err != nil {
 		return nil, err
 	}

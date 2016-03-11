@@ -227,22 +227,23 @@ describe 'IDEView', ->
 
     it 'should create the IDEEditorPane and call createPane_ method and emit change object', ->
 
-      uid        = mock.getMockMachine().uid
-      file       = createFile()
-      path       = file.path
-      content    = 'foo'
-      callback   = ->
-      eventFlag  = no
-      emitChange = yes
-      isReadOnly = no
-      change     = context: file: { content, path, machine: { uid } }
+      uid           = mock.getMockMachine().uid
+      file          = createFile()
+      path          = file.path
+      content       = 'foo'
+      callback      = ->
+      eventFlag     = no
+      emitChange    = yes
+      isReadOnly    = no
+      isActivePane  = yes
+      change        = context: file: { content, path, machine: { uid } }
 
       createPaneSpy = expect.spyOn ideView, 'createPane_'
       emitChangeSpy = expect.spyOn ideView, 'emitChange'
       expect.spyOn ideView, 'switchToEditorTabByFile'
       ideView.once 'NewEditorPaneCreated', -> eventFlag = yes
 
-      editorPane      = ideView.createEditorAfterFileCheck file, content, callback, emitChange, isReadOnly
+      editorPane      = ideView.createEditorAfterFileCheck file, content, callback, emitChange, isReadOnly, isActivePane
       [ ep, opt, fl ] = createPaneSpy.calls.first.arguments
       [ ed, ch ]      = emitChangeSpy.calls.first.arguments
 
@@ -250,7 +251,12 @@ describe 'IDEView', ->
       expect(ep).toBe editorPane
       expect(ed).toBe editorPane
       expect(fl).toBe file
-      expect(opt).toEqual { name: file.name, editor: editorPane, aceView: editorPane.aceView }
+      expect(opt).toEqual {
+        name          : file.name,
+        editor        : editorPane,
+        aceView       : editorPane.aceView,
+        isActivePane  : isActivePane
+      }
       expect(eventFlag).toBe yes
       expect(ch).toEqual change
       expect(editorPane.options.ideViewHash).toBe ideView.hash

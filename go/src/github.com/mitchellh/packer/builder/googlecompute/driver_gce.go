@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime"
 	"time"
 
-	"code.google.com/p/google-api-go-client/compute/v1"
 	"github.com/mitchellh/packer/packer"
 
-	// oauth2 "github.com/rasa/oauth2-fork-b3f9a68"
-	"github.com/rasa/oauth2-fork-b3f9a68"
-
-	// oauth2 "github.com/rasa/oauth2-fork-b3f9a68/google"
-	"github.com/rasa/oauth2-fork-b3f9a68/google"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/jwt"
+	"google.golang.org/api/compute/v1"
+	"strings"
 )
 
 // driverGCE is a Driver implementation that actually talks to GCE.
@@ -27,8 +27,9 @@ type driverGCE struct {
 var DriverScopes = []string{"https://www.googleapis.com/auth/compute", "https://www.googleapis.com/auth/devstorage.full_control"}
 
 func NewDriverGCE(ui packer.Ui, p string, a *accountFile) (Driver, error) {
-	var f *oauth2.Options
 	var err error
+
+	var client *http.Client
 
 	// Auth with AccountFile first if provided
 	if a.PrivateKey != "" {
@@ -37,22 +38,45 @@ func NewDriverGCE(ui packer.Ui, p string, a *accountFile) (Driver, error) {
 		log.Printf("[INFO]   -- Scopes: %s", DriverScopes)
 		log.Printf("[INFO]   -- Private Key Length: %d", len(a.PrivateKey))
 
-		f, err = oauth2.New(
-			oauth2.JWTClient(a.ClientEmail, []byte(a.PrivateKey)),
-			oauth2.Scope(DriverScopes...),
-			google.JWTEndpoint())
+		conf := jwt.Config{
+			Email:      a.ClientEmail,
+			PrivateKey: []byte(a.PrivateKey),
+			Scopes:     DriverScopes,
+			TokenURL:   "https://accounts.google.com/o/oauth2/token",
+		}
+
+		// Initiate an http.Client. The following GET request will be
+		// authorized and authenticated on the behalf of
+		// your service account.
+		client = conf.Client(oauth2.NoContext)
 	} else {
 		log.Printf("[INFO] Requesting Google token via GCE Service Role...")
-
-		f, err = oauth2.New(google.ComputeEngineAccount(""))
+		client = &http.Client{
+			Transport: &oauth2.Transport{
+				// Fetch from Google Compute Engine's metadata server to retrieve
+				// an access token for the provided account.
+				// If no account is specified, "default" is used.
+				Source: google.ComputeTokenSource(""),
+			},
+		}
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("[INFO] Instantiating GCE client using...")
-	service, err := compute.New(&http.Client{Transport: f.NewTransport()})
+	log.Printf("[INFO] Instantiating GCE client...")
+	service, err := compute.New(client)
+	// Set UserAgent
+	versionString := "0.0.0"
+	// TODO(dcunnin): Use Packer's version code from version.go
+	// versionString := main.Version
+	// if main.VersionPrerelease != "" {
+	//      versionString = fmt.Sprintf("%s-%s", versionString, main.VersionPrerelease)
+	// }
+	service.UserAgent = fmt.Sprintf(
+		"(%s %s) Packer/%s", runtime.GOOS, runtime.GOARCH, versionString)
+
 	if err != nil {
 		return nil, err
 	}
@@ -134,12 +158,27 @@ func (d *driverGCE) GetNatIP(zone, name string) (string, error) {
 		if ni.AccessConfigs == nil {
 			continue
 		}
-
 		for _, ac := range ni.AccessConfigs {
 			if ac.NatIP != "" {
 				return ac.NatIP, nil
 			}
 		}
+	}
+
+	return "", nil
+}
+
+func (d *driverGCE) GetInternalIP(zone, name string) (string, error) {
+	instance, err := d.service.Instances.Get(d.projectId, zone, name).Do()
+	if err != nil {
+		return "", err
+	}
+
+	for _, ni := range instance.NetworkInterfaces {
+		if ni.NetworkIP == "" {
+			continue
+		}
+		return ni.NetworkIP, nil
 	}
 
 	return "", nil
@@ -176,12 +215,49 @@ func (d *driverGCE) RunInstance(c *InstanceConfig) (<-chan error, error) {
 		return nil, err
 	}
 
+	// Subnetwork
+	// Validate Subnetwork config now that we have some info about the network
+	if !network.AutoCreateSubnetworks && len(network.Subnetworks) > 0 {
+		// Network appears to be in "custom" mode, so a subnetwork is required
+		if c.Subnetwork == "" {
+			return nil, fmt.Errorf("a subnetwork must be specified")
+		}
+	}
+	// Get the subnetwork
+	subnetworkSelfLink := ""
+	if c.Subnetwork != "" {
+		d.ui.Message(fmt.Sprintf("Loading subnetwork: %s for region: %s", c.Subnetwork, c.Region))
+		subnetwork, err := d.service.Subnetworks.Get(d.projectId, c.Region, c.Subnetwork).Do()
+		if err != nil {
+			return nil, err
+		}
+		subnetworkSelfLink = subnetwork.SelfLink
+	}
+
+	// If given a regional ip, get it
+	accessconfig := compute.AccessConfig{
+		Name: "AccessConfig created by Packer",
+		Type: "ONE_TO_ONE_NAT",
+	}
+
+	if c.Address != "" {
+		d.ui.Message(fmt.Sprintf("Looking up address: %s", c.Address))
+		region_url := strings.Split(zone.Region, "/")
+		region := region_url[len(region_url)-1]
+		address, err := d.service.Addresses.Get(d.projectId, region, c.Address).Do()
+		if err != nil {
+			return nil, err
+		}
+		accessconfig.NatIP = address.Address
+	}
+
 	// Build up the metadata
 	metadata := make([]*compute.MetadataItems, len(c.Metadata))
 	for k, v := range c.Metadata {
+		vCopy := v
 		metadata = append(metadata, &compute.MetadataItems{
 			Key:   k,
-			Value: v,
+			Value: &vCopy,
 		})
 	}
 
@@ -209,13 +285,14 @@ func (d *driverGCE) RunInstance(c *InstanceConfig) (<-chan error, error) {
 		NetworkInterfaces: []*compute.NetworkInterface{
 			&compute.NetworkInterface{
 				AccessConfigs: []*compute.AccessConfig{
-					&compute.AccessConfig{
-						Name: "AccessConfig created by Packer",
-						Type: "ONE_TO_ONE_NAT",
-					},
+					&accessconfig,
 				},
-				Network: network.SelfLink,
+				Network:    network.SelfLink,
+				Subnetwork: subnetworkSelfLink,
 			},
+		},
+		Scheduling: &compute.Scheduling{
+			Preemptible: c.Preemptible,
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
 			&compute.ServiceAccount{

@@ -123,9 +123,13 @@ module.exports = class IDELayoutManager extends KDObject
         @getSubLevel pane
 
     else if target instanceof KDTabPaneView
+
       return  unless target.view.serialize
+      return  unless target.parent
 
       pane = context : target.view.serialize()
+      pane.context.isActivePane = target.parent.getActivePane() is target
+
       last = @findLastSplitView @subViews
 
       if last                     ## If there is last view
@@ -164,7 +168,7 @@ module.exports = class IDELayoutManager extends KDObject
    * @param {Array} snapshot
    * @param {boolean=} silent  Don't dispatch `SplitViewWasMerged` or `NewSplitViewCreated` event.
   ###
-  resurrectSnapshot: (snapshot, silent = no) ->
+  resurrectSnapshot: (snapshot, silent = no, callback) ->
 
     ## The `ideApp` is an `IDEAppController`s instance
     ideApp = @getDelegate()
@@ -190,6 +194,9 @@ module.exports = class IDELayoutManager extends KDObject
     @applyLayoutSize()
 
     @isRestored = yes
+    @emit 'LayoutResurrected'
+
+    callback?()
 
 
   ###*
@@ -200,7 +207,8 @@ module.exports = class IDELayoutManager extends KDObject
   resurrectPanes_: (items, tabView, silent) ->
 
     ## The `ideApp` is an `IDEAppController`s instane
-    ideApp = @getDelegate()
+    ideApp        = @getDelegate()
+    hasActivePane = no
 
     for own index, item of items
 
@@ -228,6 +236,13 @@ module.exports = class IDELayoutManager extends KDObject
         # Don't use `active tab view` logic for new pane creation.
         # Because `The Editors` (saved editors) are loading async.
         item.targetTabView = tabView  if item.context.paneType in [ 'editor', 'tailer' ]
+        hasActivePane      = yes      if item.context.isActivePane
+
+        # If resurrection data does not contain any isActivePane flag for each IDEView, set it to last item automatically.
+        if (parseInt(index, 10) is items.length - 1) and not hasActivePane
+          hasActivePane             = yes
+          item.context.isActivePane = yes
+
         ideApp.createPaneFromChange item, yes
 
 
@@ -247,6 +262,31 @@ module.exports = class IDELayoutManager extends KDObject
 
     for item in snapshot when item.type is 'split'
       IDELayoutManager.findPanesFromArray panes, item.views
+
+    return panes
+
+  ###*
+   * This method will create a map where keys will be file path or terminal
+   * session key. Values are not important here by design however they will
+   * be file name or session key.
+   *
+   * @param {Object} snapshot
+   * @return {Object} Key value map with pane identifiers.
+  ###
+  @getPaneHashMap: (snapshot) ->
+
+    panes   = {}
+    asArray = IDELayoutManager.convertSnapshotToFlatArray snapshot
+
+    for item in asArray when item.context
+      { paneType } = item.context
+
+      if paneType is 'editor'
+        { path, name } = item.context.file
+        panes[path] = name
+      else if paneType is 'terminal'
+        { session } = item.context
+        panes[session] = session
 
     return panes
 
@@ -304,7 +344,7 @@ module.exports = class IDELayoutManager extends KDObject
     ideView         = new IDEView
     ideApp.ideViews = []  # Reset `ideViews`s array
 
-    splitView.detach()
+    splitView.destroy()
 
     parentView.addSubView ideView
 

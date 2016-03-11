@@ -16,13 +16,28 @@ $script = <<SCRIPT
 
 set -euo pipefail
 
+export DEBIAN_FRONTEND=noninteractive
+export USER_LOG=/var/log/user-script.log
+
+die() {
+	echo "error: $1"
+	exit 2
+}
+
 echo I am provisioning...
 date > /etc/vagrant_provisioned_at
-wget -q --retry-connrefused --tries 5 https://s3.amazonaws.com/kodingdev-provision/provisionklient.gz
-gzip -d -f provisionklient.gz
+wget -q --retry-connrefused --tries 5 https://s3.amazonaws.com/kodingdev-provision/provisionklient.gz || die "downloading provisionklient failed"
+gzip -d -f provisionklient.gz || die "unarchiving provisionklient failed"
 chmod +x provisionklient
 ./provisionklient -data '{{ .ProvisionData }}'
+
+cat >user-script.sh <<EOF
 {{ .CustomScript }}
+EOF
+
+chmod +x user-script.sh
+./user-script.sh 2>&1 | tee -a $USER_LOG || die "$(cat $USER_LOG | perl -pe 's/\n/\\\\n/g')"
+
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -34,7 +49,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vb.customize ["modifyvm", :id, "--memory", "{{ .Memory }}", "--cpus", "{{ .Cpus }}"]
   end
 
-  config.vm.network :forwarded_port, guest: 56789, host: 56790, auto_correct: true
   config.vm.provision "shell", inline: $script
 end
 `

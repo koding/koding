@@ -3,7 +3,6 @@ KDButtonViewWithMenu = kd.ButtonViewWithMenu
 KDCustomHTMLView = kd.CustomHTMLView
 KDModalView = kd.ModalView
 CustomViewsDashboardView = require '../customviews/customviewsdashboardview'
-OnboardingChildItem = require '../../onboardingchilditem'
 OnboardingSectionForm = require './onboardingsectionform'
 OnboardingSettingsMenuItem = require '../../onboardingsettingsmenuitem'
 

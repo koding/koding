@@ -62,6 +62,13 @@ Configuration = (options={}) ->
       accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
       secretAccessKey : "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"
 
+    #Encryption and Storage on S3
+    worker_sneakerS3 :
+      accessKeyId     : "AKIAJV2BZT3DBCEUOIXQ"
+      secretAccessKey : "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"
+
+
+
   publicPort     = options.publicPort          = "80"
   hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
   protocol       = options.protocol            or "https:"
@@ -133,11 +140,18 @@ Configuration = (options={}) ->
     clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"
     redirectUri   : "https://sandbox.koding.com/-/oauth/github/callback"
 
-  slack  = # these are tmp and not working configs, will be replace by the working ones after the feature is completed
-    clientId      : "20619428033.20787518977"
-    clientSecret  : "1987edcacd657367fd1b3b0eb653f14b"
-    redirectUri   : "https://sandbox.koding.com/api/social/slack/oauth/callback"
+  slack  =
+    clientId          : "2155583316.22364273143"
+    clientSecret      : "6ee269042087643b311214d2dc3527e4"
+    redirectUri       : "https://sandbox.koding.com/api/social/slack/oauth/callback"
+    verificationToken : "AAeDdo5fWOcOTux88e939dXN"
 
+  sneakerS3 =
+    awsSecretAccessKey  : "#{awsKeys.worker_sneakerS3.secretAccessKey}"
+    awsAccessKeyId      : "#{awsKeys.worker_sneakerS3.accessKeyId}"
+    sneakerS3Path       : "s3://kodingdev-credential/"
+    sneakerMasterKey    : "fecea2c8-e569-4d87-9179-8e7c93253072"
+    awsRegion           : "us-east-1"
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -173,6 +187,7 @@ Configuration = (options={}) ->
     janitor                 : { port: "6700", secretKey: "janitorsecretkey-sandbox" }
     github                  : github
     slack                   : slack
+    sneakerS3               : sneakerS3
 
 
   userSitesDomain     = "sandbox.koding.io"
@@ -247,6 +262,7 @@ Configuration = (options={}) ->
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : github
     slack                          : slack
+    sneakerS3                      : sneakerS3
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.upwork.com/api/auth/v1/oauth/token/request"                 , access_url: "https://www.upwork.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.upwork.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://sandbox.koding.com/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "650676665033389"                              , clientSecret  : "6771ee1f5aa28e5cd13d3465bacffbdc"           , redirectUri  : "https://sandbox.koding.com/-/oauth/facebook/callback"}
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "https://sandbox.koding.com/-/oauth/google/callback" }
@@ -582,6 +598,7 @@ Configuration = (options={}) ->
           {
             location    : "~* ^/api/social/slack/(.*)"
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
+            extraParams : [ "proxy_buffering off;" ] # appearently slack sends a big header
           }
           {
             location    : "~ /api/social/(.*)"

@@ -46,15 +46,19 @@ type ServerConfig struct {
 	ForceNewCluster     bool
 	PeerTLSInfo         transport.TLSInfo
 
-	TickMs        uint
-	ElectionTicks int
+	TickMs           uint
+	ElectionTicks    int
+	BootstrapTimeout time.Duration
 
-	V3demo bool
+	V3demo                  bool
+	AutoCompactionRetention int
 
 	StrictReconfigCheck bool
+
+	EnablePprof bool
 }
 
-// VerifyBootstrapConfig sanity-checks the initial config for bootstrap case
+// VerifyBootstrap sanity-checks the initial config for bootstrap case
 // and returns an error for things that should never happen.
 func (c *ServerConfig) VerifyBootstrap() error {
 	if err := c.verifyLocalMember(true); err != nil {
@@ -121,8 +125,6 @@ func (c *ServerConfig) WALDir() string {
 
 func (c *ServerConfig) SnapDir() string { return path.Join(c.MemberDir(), "snap") }
 
-func (c *ServerConfig) StorageDir() string { return path.Join(c.MemberDir(), "storage") }
-
 func (c *ServerConfig) ShouldDiscover() bool { return c.DiscoveryURL != "" }
 
 // ReqTimeout returns timeout for request to finish.
@@ -180,4 +182,11 @@ func checkDuplicateURL(urlsmap types.URLsMap) bool {
 		}
 	}
 	return false
+}
+
+func (c *ServerConfig) bootstrapTimeout() time.Duration {
+	if c.BootstrapTimeout != 0 {
+		return c.BootstrapTimeout
+	}
+	return time.Second
 }

@@ -221,7 +221,7 @@ deploy:
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
-    - koding/eb-deploy@0.0.8:
+    - koding/eb-deploy@0.31.0:
         access-key: $S3_KEY_ID
         secret-key: $S3_KEY_SECRET
         app-name: koding
@@ -254,11 +254,11 @@ deploy:
         opts: "--no-mime-magic --guess-mime-type"
 
   s3-klientkite-development:
-      script:
-          name: deploy klient
-          script: ./scripts/deploy-klient.sh
+    - script:
+        name: deploy klient
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh
 
   s3-klientkite-production:
-      script:
-          name: deploy klient
-          script: ./scripts/deploy-klient.sh
+    - script:
+        name: deploy klient
+        code: $WERCKER_ROOT/scripts/deploy-klient.sh

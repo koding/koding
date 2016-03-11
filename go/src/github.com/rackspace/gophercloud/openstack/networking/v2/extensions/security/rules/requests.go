@@ -99,10 +99,13 @@ type CreateOpts struct {
 	// attribute matches the specified IP prefix as the source IP address of the
 	// IP packet.
 	RemoteIPPrefix string
+
+	// Required for admins. Indicates the owner of the VIP.
+	TenantID string
 }
 
-// Create is an operation which provisions a new security group with default
-// security group rules for the IPv4 and IPv6 ether types.
+// Create is an operation which adds a new security group rule and associates it
+// with an existing security group (whose ID is specified in CreateOpts).
 func Create(c *gophercloud.ServiceClient, opts CreateOpts) CreateResult {
 	var res CreateResult
 
@@ -133,6 +136,7 @@ func Create(c *gophercloud.ServiceClient, opts CreateOpts) CreateResult {
 		Protocol       string `json:"protocol,omitempty"`
 		RemoteGroupID  string `json:"remote_group_id,omitempty"`
 		RemoteIPPrefix string `json:"remote_ip_prefix,omitempty"`
+		TenantID       string `json:"tenant_id,omitempty"`
 	}
 
 	type request struct {
@@ -148,20 +152,21 @@ func Create(c *gophercloud.ServiceClient, opts CreateOpts) CreateResult {
 		Protocol:       opts.Protocol,
 		RemoteGroupID:  opts.RemoteGroupID,
 		RemoteIPPrefix: opts.RemoteIPPrefix,
+		TenantID:       opts.TenantID,
 	}}
 
 	_, res.Err = c.Post(rootURL(c), reqBody, &res.Body, nil)
 	return res
 }
 
-// Get retrieves a particular security group based on its unique ID.
+// Get retrieves a particular security group rule based on its unique ID.
 func Get(c *gophercloud.ServiceClient, id string) GetResult {
 	var res GetResult
 	_, res.Err = c.Get(resourceURL(c, id), &res.Body, nil)
 	return res
 }
 
-// Delete will permanently delete a particular security group based on its unique ID.
+// Delete will permanently delete a particular security group rule based on its unique ID.
 func Delete(c *gophercloud.ServiceClient, id string) DeleteResult {
 	var res DeleteResult
 	_, res.Err = c.Delete(resourceURL(c, id), nil)

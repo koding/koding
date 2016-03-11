@@ -128,7 +128,10 @@ module.exports = class AceView extends JView
         file.emit 'file.requests.save', contents
 
     @ace.on 'FileContentChanged', =>
-      @ace.contentChanged = yes
+      @ace.contentChanged = @ace.isCurrentContentChanged()
+
+      return  unless @ace.contentChanged
+
       @setActiveTabHandleClass 'modified'
       @getDelegate().quitOptions =
         message : 'You have unsaved changes. You will lose them if you close this tab.'
@@ -175,8 +178,21 @@ module.exports = class AceView extends JView
             callback    : ->
               modal.destroy()
 
-  setActiveTabHandleClass: (cssClass)->
-    @getDelegate().tabView?.getActivePane().tabHandle.setClass cssClass
+
+  setActiveTabHandleClass: (cssClass) ->
+
+    { tabView } = @getDelegate()
+
+    return  unless tabView
+
+    activePane = tabView.getActivePane()
+
+    IDEEditorPane = require 'ide/workspace/panes/ideeditorpane'
+
+    return  unless activePane.view instanceof IDEEditorPane
+
+    activePane.tabHandle.setClass cssClass
+
 
   toggleFullscreen: ->
     mainView = kd.getSingleton 'mainView'

@@ -1,6 +1,5 @@
 kd             = require 'kd'
 React          = require 'kd-react'
-ReactDOM       = require 'react-dom'
 expect         = require 'expect'
 TestUtils      = require 'react-addons-test-utils'
 PortalDropbox  = require 'activity/components/dropbox/portaldropbox'
@@ -41,7 +40,7 @@ module.exports = helpers =
 
     expect(items[props.selectedIndex].classList.contains 'DropboxItem-selected').toBe yes
 
-  
+
   dropboxSelectedItemCallbackTest: (props, DropboxType) ->
 
     props.onItemSelected = kd.noop

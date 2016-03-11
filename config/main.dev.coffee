@@ -65,6 +65,11 @@ Configuration = (options={}) ->
       accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
       secretAccessKey : "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"
 
+    #Encryption and Storage on S3
+    worker_sneakerS3 :
+      accessKeyId     : "AKIAJV2BZT3DBCEUOIXQ"
+      secretAccessKey : "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"
+
 
 
   publicPort          = options.publicPort     or "8090"
@@ -145,10 +150,17 @@ Configuration = (options={}) ->
     redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
   slack  =
-    clientId      : "20619428033.20787518977"
-    clientSecret  : "1987edcacd657367fd1b3b0eb653f14b"
-    redirectUri   : "http://dev.koding.com:8090/api/social/slack/oauth/callback"
+    clientId          : "2155583316.22363498641"
+    clientSecret      : "fc61c7db5a3acd2dfbe808ba73b1002a"
+    redirectUri       : "http://dev.koding.com:8090/api/social/slack/oauth/callback"
+    verificationToken : "jldPRk6HmOL2FjeXZYwUdW6B"
 
+  sneakerS3 =
+    awsSecretAccessKey  : "#{awsKeys.worker_sneakerS3.secretAccessKey}"
+    awsAccessKeyId      : "#{awsKeys.worker_sneakerS3.accessKeyId}"
+    sneakerS3Path       : "s3://kodingdev-credential/"
+    sneakerMasterKey    : "fecea2c8-e569-4d87-9179-8e7c93253072"
+    awsRegion           : "us-east-1"
 
   # if you want to disable a feature add here with "true" value do not forget to
   # add corresponding go struct properties
@@ -190,6 +202,7 @@ Configuration = (options={}) ->
     googleapiServiceAccount : googleapiServiceAccount
     github                  : github
     slack                   : slack
+    sneakerS3               : sneakerS3
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
     disabledFeatures        : disabledFeatures
@@ -265,6 +278,7 @@ Configuration = (options={}) ->
     odesk                          : {key           : "7872edfe51d905c0d1bde1040dd33c1a"             , secret        : "746e22f34ca4546e"                           , request_url: "https://www.upwork.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.upwork.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.upwork.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "1408510959475637"                             , clientSecret  : "bf837bc719dc63c870ac77f9c76fe26d"           , redirectUri  : "http://dev.koding.com:8090/-/oauth/facebook/callback"}
     slack                          : slack
+    sneakerS3                      : sneakerS3
     google                         : {client_id     : "569190240880-d40t0cmjsu1lkenbqbhn5d16uu9ai49s.apps.googleusercontent.com"                                    , client_secret : "9eqjhOUgnjOOjXxfn6bVzXz-"                                            , redirect_uri : "http://dev.koding.com:8090/-/oauth/google/callback" }
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "http://dev.koding.com:8090/-/oauth/twitter/callback"                  , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "7523x9y261cw0v"                               , client_secret : "VBpMs6tEfs3peYwa"                           , redirect_uri : "http://dev.koding.com:8090/-/oauth/linkedin/callback"}
@@ -568,6 +582,7 @@ Configuration = (options={}) ->
           {
             location    : "~* ^/api/social/slack/(.*)"
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
+            extraParams : [ "proxy_buffering off;" ] # appearently slack sends a big header
           }
           {
             location    : "~ /api/social/(.*)"
@@ -1160,6 +1175,9 @@ Configuration = (options={}) ->
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'bot';"
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_message_type_constant_enum\" ADD VALUE IF NOT EXISTS 'system';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'bootstrap';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'startup';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"payment\".\"plan_title_enum\" ADD VALUE IF NOT EXISTS 'enterprise';"
       }
 
       function run () {
@@ -1190,8 +1208,6 @@ Configuration = (options={}) ->
 
         # Do PG Migration if necessary
         migrate up
-
-        migrations
 
         # Create default workspaces
         node scripts/create-default-workspace
@@ -1257,6 +1273,8 @@ Configuration = (options={}) ->
       }
 
       function migrate () {
+        migrations
+
         params=(create up down version reset redo to goto)
         param=$1
 
@@ -1539,7 +1557,11 @@ Configuration = (options={}) ->
         mongo #{mongo} --eval "db.dropDatabase()"
 
         cd #{projectRoot}/install/docker-mongo
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        if [[ -f #{projectRoot}/install/docker-mongo/custom-db-dump.tar.bz2 ]]; then
+          tar jxvf #{projectRoot}/install/docker-mongo/custom-db-dump.tar.bz2
+        else
+          tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        fi
         mongorestore -h#{boot2dockerbox} -dkoding dump/koding
         rm -rf ./dump
 
@@ -1672,7 +1694,7 @@ Configuration = (options={}) ->
 
         build_services
         importusers
-        migrations
+        migrate up
 
       elif [ "$1" == "help" ]; then
         printHelp
@@ -1760,6 +1782,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "sanitize-email" ]; then
         node #{projectRoot}/scripts/sanitize-email
+
+      elif [ "$1" == "migrations" ]; then
+        migrations
 
       else
         echo "Unknown command: $1"

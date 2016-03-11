@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
 	"time"
 
 	"koding/db/models"
@@ -41,6 +42,24 @@ func (s *Stack) updateCredential(cred *stackplan.Credential) error {
 			"meta.box":    meta.Box,
 		},
 	})
+}
+
+type Tunnel struct {
+	Name    string
+	KiteURL string
+}
+
+func (s *Stack) newTunnel(resourceName string) *Tunnel {
+	t := &Tunnel{
+		Name:    utils.RandString(12),
+		KiteURL: s.TunnelURL.String(),
+	}
+
+	if m := s.Builder.FindMachine(resourceName); m != nil {
+		t.Name = m.Uid
+	}
+
+	return t
 }
 
 // InjectVagrantData sets default properties for vagrant_instance Terraform template.
@@ -90,7 +109,9 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 
 	kiteIDs := make(stackplan.KiteMap)
 
-	labels := s.Builder.MachineLabels()
+	uids := s.Builder.MachineUIDs()
+
+	s.Log.Debug("machine uids (%d): %v", len(uids), uids)
 
 	// queryString is taken from jCredentialData.meta.queryString,
 	// for debugging purposes it can be overwritten in the template,
@@ -112,14 +133,6 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		klientURL, err := sess.Userdata.LookupKlientURL()
 		if err != nil {
 			return "", nil, err
-		}
-
-		// set registerURL if not provided via template
-		registerURL := s.tunnelUniqueURL(username)
-		if r, ok := box["registerURL"].(string); ok {
-			registerURL = r
-		} else {
-			box["registerURL"] = registerURL
 		}
 
 		// set kontrolURL if not provided via template
@@ -144,12 +157,14 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 		// set default filePath to relative <stackdir>/<boxname>; for
 		// default configured klient it resolves to ~/.vagrant.d/<stackdir>/<boxname>
 		if _, ok := box["filePath"]; !ok {
-			label, ok := labels[resourceName]
+			uid, ok := uids[resourceName]
 			if !ok {
-				label = resourceName + "-" + utils.RandString(6)
-				s.Log.Warning("unable to found label for %q in jMachines: generated unique one: %s", resourceName, label)
+				// For Plan call we return random uid as it won't be returned
+				// as a part of meta; the filePath is inserted into meta by
+				// the apply method.
+				uid = resourceName + "-" + utils.RandString(6)
 			}
-			box["filePath"] = "${var.koding_group_slug}/" + label
+			box["filePath"] = "${var.koding_group_slug}/" + uid
 		}
 
 		// set default CPU number
@@ -167,13 +182,16 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			box["box"] = "${var.vagrant_box}"
 		}
 
+		tunnel := s.newTunnel(resourceName)
+
 		data := puser.Value{
 			Username:        username,
 			Groups:          []string{"sudo"},
 			Hostname:        username, // no typo here. hostname = username
 			KiteKey:         kiteKey,
 			LatestKlientURL: klientURL,
-			RegisterURL:     registerURL,
+			TunnelName:      tunnel.Name,
+			TunnelKiteURL:   tunnel.KiteURL,
 			KontrolURL:      kontrolURL,
 		}
 
@@ -197,8 +215,7 @@ func (s *Stack) InjectVagrantData(ctx context.Context, username string) (string,
 			}
 		}
 
-		encoded := base64.StdEncoding.EncodeToString(val)
-		box["provisionData"] = encoded
+		box["provisionData"] = base64.StdEncoding.EncodeToString(val)
 		kiteIDs[resourceName] = kiteID
 		res.Build[resourceName] = box
 	}
@@ -260,16 +277,8 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
-		domain := machine.Domain
-		if u, err := url.Parse(tf.Attributes["klientGuestURL"]); err != nil {
-			u.Path = "" // clear "klient/kite" path
-			if s := u.String(); s != "" {
-				domain = s
-			}
-		}
-
 		if tf.Provider == "vagrant" {
-			if err := updateVagrant(ctx, tf, domain, machine.ObjectId); err != nil {
+			if err := updateVagrant(ctx, tf, machine.ObjectId); err != nil {
 				return err
 			}
 		}
@@ -278,22 +287,34 @@ func (s *Stack) updateMachines(ctx context.Context, data *stackplan.Machines, jM
 	return nil
 }
 
-func updateVagrant(ctx context.Context, tf stackplan.Machine, domain string, machineId bson.ObjectId) error {
-	return modelhelper.UpdateMachine(machineId, bson.M{"$set": bson.M{
+func updateVagrant(ctx context.Context, tf stackplan.Machine, machineId bson.ObjectId) error {
+	machine := bson.M{
 		"provider":             tf.Provider,
 		"meta.hostQueryString": tf.HostQueryString,
 		"queryString":          tf.QueryString,
 		"ipAddress":            tf.Attributes["ipAddress"],
 		"meta.filePath":        tf.Attributes["filePath"],
-		"meta.memory":          tf.Attributes["memory"],
-		"meta.cpus":            tf.Attributes["cpus"],
 		"meta.box":             tf.Attributes["box"],
 		"meta.hostname":        tf.Attributes["hostname"],
 		"meta.klientHostURL":   tf.Attributes["klientHostURL"],
-		"meta.klientGuestURL":  tf.Attributes["klientGuestURL"],
-		"domain":               domain,
 		"status.state":         machinestate.Running.String(),
 		"status.modifiedAt":    time.Now().UTC(),
 		"status.reason":        "Created with kloud.apply",
-	}})
+	}
+
+	if u, err := url.Parse(tf.RegisterURL); tf.RegisterURL != "" && err == nil {
+		u.Path = "/klient/kite"
+		machine["meta.klientGuestURL"] = u.String()
+		machine["domain"] = u.Host
+	}
+
+	if n, err := strconv.Atoi(tf.Attributes["memory"]); err == nil {
+		machine["meta.memory"] = n
+	}
+
+	if n, err := strconv.Atoi(tf.Attributes["cpus"]); err == nil {
+		machine["meta.cpus"] = n
+	}
+
+	return modelhelper.UpdateMachine(machineId, bson.M{"$set": machine})
 }

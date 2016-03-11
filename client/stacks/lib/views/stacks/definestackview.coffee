@@ -1,13 +1,11 @@
+_                    = require 'lodash'
 kd                   = require 'kd'
 jspath               = require 'jspath'
 Encoder              = require 'htmlencode'
 
 KDView               = kd.View
 KDTabView            = kd.TabView
-KDModalView          = kd.ModalView
-KDButtonView         = kd.ButtonView
 KDTabPaneView        = kd.TabPaneView
-KDCustomHTMLView     = kd.CustomHTMLView
 KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
 
@@ -20,7 +18,7 @@ requirementsParser   = require './requirementsparser'
 updateStackTemplate  = require './updatestacktemplate'
 updateCustomVariable = require './updatecustomvariable'
 parseTerraformOutput = require './parseterraformoutput'
-addUserInputTypes    = require './adduserinputtypes'
+addUserInputOptions  = require './adduserinputoptions'
 
 OutputView           = require './outputview'
 ProvidersView        = require './providersview'
@@ -73,31 +71,33 @@ module.exports = class DefineStackView extends KDView
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @stackTemplateView                 = new StackTemplateView options, data
-    @tabView.addPane stackTemplatePane = new KDTabPaneView
+    @editorViews = {}
+
+    @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView options, data
+    @tabView.addPane stackTemplatePane              = new KDTabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
 
-    @variablesView                     = new VariablesView {
+    @editorViews.variables = @variablesView         = new VariablesView {
       delegate: this
       stackTemplate
     }
-    @tabView.addPane variablesPane     = new KDTabPaneView
-      name : 'Private Variables'
+    @tabView.addPane variablesPane                  = new KDTabPaneView
+      name : 'Custom Variables'
       view : @variablesView
 
-    @readmeView                        = new ReadmeView { stackTemplate }
-    @tabView.addPane readmePane        = new KDTabPaneView
+    @editorViews.readme = @readmeView               = new ReadmeView { stackTemplate }
+    @tabView.addPane readmePane                     = new KDTabPaneView
       name : 'Readme'
       view : @readmeView
 
-    @providersView                     = new ProvidersView {
+    @providersView                                  = new ProvidersView {
       selectedCredentials : @credentials
       provider            : selectedProvider
       stackTemplate
     }
 
-    @tabView.addPane @providersPane    = new KDTabPaneView
+    @tabView.addPane @providersPane                 = new KDTabPaneView
       name : 'Credentials'
       view : @providersView
 
@@ -129,7 +129,7 @@ module.exports = class DefineStackView extends KDView
 
       credential = credentialItem.getData()
 
-      credential.shareWith { target: slug, role: 'admin' }, (err) =>
+      credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
         @credentialStatusView.setCredential credential
 
@@ -171,6 +171,35 @@ module.exports = class DefineStackView extends KDView
 
     @tabView.on 'PaneDidShow', (pane) ->
       pane.mainView?.editorView?.resize()
+
+    @listenContentChanges()
+
+
+  listenContentChanges: ->
+
+    @changedContents = {}
+
+    @inputTitle.inputs.title.on 'input', (event) =>
+      { defaultValue }    = @inputTitle.inputs.title.getOptions()
+      @changedContents.stackName = event.target.value isnt defaultValue
+
+    _.each @editorViews, (view, key) =>
+      { editorView } = view
+      { ace }        = editorView.aceView
+
+      editorView.on 'EditorReady', =>
+        ace.on 'FileContentChanged', =>
+          @changedContents[key] = ace.isContentChanged()
+
+
+  isStackChanged: ->
+
+    isChanged = no
+
+    _.each @changedContents, (value) ->
+      isChanged = yes  if value
+
+    return isChanged
 
 
   createFooter: ->
@@ -289,7 +318,7 @@ module.exports = class DefineStackView extends KDView
 
   saveAndTestStackTemplate: ->
 
-    # Show default first pane.
+    # Show default first pane.
     @tabView.showPaneByIndex 0
     @outputView.clear().raise()
 
@@ -361,6 +390,10 @@ module.exports = class DefineStackView extends KDView
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
+
+      _.each @editorViews, (view) -> view.editorView.getAce().saveFinished()
+      @changedContents = {}
+
       @emit 'Reload'
 
       if err
@@ -582,7 +615,7 @@ module.exports = class DefineStackView extends KDView
       if convertedDoc.err
         return callback 'Failed to convert YAML to JSON, fix document and try again.'
 
-      addUserInputTypes convertedDoc.contentObject, requiredData
+      addUserInputOptions convertedDoc.contentObject, requiredData
 
       templateContent = convertedDoc.content
 
@@ -651,11 +684,6 @@ module.exports = class DefineStackView extends KDView
         generatePreview()
     else
       generatePreview()
-
-
-  createPreviewModal: ({ errors, warnings, template }) ->
-
-
 
 
   handleReinit: ->

@@ -9,7 +9,7 @@ module.exports =
   createTeam: (browser) ->
 
     user = utils.getUser(yes)
-    teamsHelpers.getInvitationAndCreateTeam(browser)
+    teamsHelpers.createTeam(browser)
     browser.end()
 
 
@@ -24,14 +24,6 @@ module.exports =
     teamsHelpers.loginTeam(browser)
     teamsHelpers.clickTeamSettings(browser)
 
-    browser.end()
-
-
-  seeTeamNameOnSideBar: (browser) ->
-
-    user = teamsHelpers.loginTeam(browser)
-
-    teamsHelpers.seeTeamNameOnsideBar(browser, user.teamSlug)
     browser.end()
 
 
@@ -94,7 +86,7 @@ module.exports =
       .waitForElementVisible  postgresqlSelector, 20000
       .click                  postgresqlSelector
       .waitForElementVisible  stackPreview, 20000
-      .assert.containsText    codeSelector, 'mysql postgresql'
+      .assert.containsText    codeSelector, 'mysql-server postgresql'
       .waitForElementVisible  nextButtonSelector, 20000
       .pause                  2000 # wait for animation
       .click                  nextButtonSelector

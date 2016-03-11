@@ -1,11 +1,7 @@
-whoami                   = require 'app/util/whoami'
 actions                  = require '../actions/actiontypes'
-chatinputActions         = require '../chatinput/actions/actiontypes'
 toImmutable              = require 'app/util/toImmutable'
 KodingFluxStore          = require 'app/flux/base/store'
 MessageCollectionHelpers = require '../helpers/messagecollection'
-mergeEmbedPayload        = require 'activity/util/mergeEmbedPayload'
-
 
 ###*
  * Immutable version of a social message. see toImmutable util.

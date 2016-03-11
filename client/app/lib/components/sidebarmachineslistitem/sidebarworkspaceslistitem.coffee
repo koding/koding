@@ -3,8 +3,6 @@ Link                    = require 'app/components/common/link'
 nick                    = require 'app/util/nick'
 React                   = require 'kd-react'
 actions                 = require 'app/flux/environment/actions'
-ReactDOM                = require 'react-dom'
-UnreadCount             = require './unreadcount'
 getMachineLink          = require 'app/util/getMachineLink'
 KDReactorMixin          = require 'app/flux/base/reactormixin'
 EnvironmentFlux         = require 'app/flux/environment'
@@ -59,10 +57,6 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
 
     actions.setSelectedWorkspaceId @props.workspace.get '_id'
 
-    if @getUnreadCount()
-      ideInstance = environmentDataProvider.getIDEFromUId @props.machine.get 'uid'
-      ideInstance?.showChat()
-
 
   renderWorkspaceSettingsIcon: ->
 
@@ -75,40 +69,19 @@ module.exports = class SidebarWorkspacesListItem extends React.Component
       />
 
 
-  getUnreadCount: ->
-
-    channel = @props.workspace.get 'channel'
-
-    return 0  unless channel
-
-    return channel.get 'unreadCount'
-
-
-  renderUnreadCount: ->
-
-    return null  unless unreadCount = @getUnreadCount()
-
-    <UnreadCount count={unreadCount} />
-
-
   render: ->
 
     active = if @state.activeWorkspace is @props.workspace.get('_id')
     then 'active'
     else ''
 
-    unread = if @getUnreadCount()
-    then 'unread'
-    else ''
-
     <div
       key={@props.workspace.get '_id'}
       ref='workspaceItem'
-      className="Workspace-item #{active} #{unread}">
+      className="Workspace-item #{active}">
       <cite className='Workspace-icon' />
       <Link className='Workspace-link' href={@getWorkspaceLink()} onClick={@bound 'handleLinkClick'}>
         <span className='Workspace-title'>{@props.workspace.get 'name'}</span>
-        {@renderUnreadCount()}
       </Link>
       {@renderWorkspaceSettingsIcon()}
       {@renderDeleteWorkspaceWidget()}
