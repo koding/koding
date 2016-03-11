@@ -85,6 +85,22 @@ func (opts *Options) updateEmpty(defaults *Options) {
 		opts.LastReachable = defaults.LastReachable
 	}
 
+	if opts.DB == nil {
+		opts.DB = defaults.DB
+	}
+
+	if opts.Log == nil {
+		opts.Log = defaults.Log
+	}
+
+	if opts.Config == nil {
+		opts.Config = defaults.Config
+	}
+
+	if !opts.Debug {
+		opts.Debug = defaults.Debug
+	}
+
 	// set defaults
 	if opts.Timeout == 0 {
 		opts.Timeout = 5 * time.Minute
@@ -120,6 +136,7 @@ func (t *Tunnel) clientOptions() *tunnelproxy.ClientOptions {
 		TunnelName:      t.opts.TunnelName,
 		TunnelKiteURL:   t.opts.TunnelKiteURL,
 		LastVirtualHost: t.opts.VirtualHost,
+		LocalAddr:       t.opts.LocalAddr,
 		Config:          t.opts.Config,
 		Timeout:         t.opts.Timeout,
 		OnRegister:      t.updateOptions,
@@ -142,11 +159,15 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 func (t *Tunnel) buildOptions(final *Options) {
 	t.opts.updateEmpty(final)
 
+	t.opts.Log.Debug("buildOptions: final=%+v", t.opts)
+
 	storageOpts, err := t.db.Options()
 	if err != nil {
 		t.opts.Log.Warning("tunnel: unable to read options: %s", err)
 	} else {
 		t.opts.updateEmpty(storageOpts)
+
+		t.opts.Log.Debug("buildOptions: storage=%+v, built=%+v", storageOpts, t.opts)
 	}
 
 	if err = t.db.UpdateOptions(t.opts); err != nil {
@@ -160,6 +181,8 @@ func (t *Tunnel) Start(opts *Options, registerURL *url.URL) (*url.URL, error) {
 	t.buildOptions(opts)
 
 	if t.opts.LastAddr != registerURL.Host {
+		t.opts.Log.Info("testing whether %q address is reachable...", registerURL.Host)
+
 		ok, err := publicip.IsReachableRetry(registerURL.Host, 10, 5*time.Second, t.opts.Log)
 		if err != nil {
 			t.opts.Log.Warning("tunnel: unable to test %q: %s", registerURL.Host, err)
