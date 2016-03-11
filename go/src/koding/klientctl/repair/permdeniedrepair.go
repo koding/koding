@@ -76,6 +76,7 @@ func (r *PermDeniedRepair) Repair() error {
 	r.Stdout.Printlnf("Mount dir contains the wrong permissions, remounting..")
 
 	if err := r.Klient.RemoteRemount(r.MountName); err != nil {
+		r.Stdout.Printlnf("Unable to remount %s", r.MountName)
 		return err
 	}
 
@@ -83,6 +84,8 @@ func (r *PermDeniedRepair) Repair() error {
 		r.Stdout.Printlnf("Unable to repair permissions issue.")
 		return err
 	}
+
+	r.Stdout.Printlnf("Remounted successfully.")
 
 	return nil
 }
