@@ -40,23 +40,9 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 		"machineName", params.Machine,
 	)
 
-	remoteMachines, err := r.GetMachines()
+	remoteMachine, err := r.GetDialedMachine(params.Machine)
 	if err != nil {
-		return nil, err
-	}
-
-	remoteMachine, err := remoteMachines.GetByName(params.Machine)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := remoteMachine.CheckValid(); err != nil {
-		log.Error("Machine.CheckValid returned not valid. err:%s", err)
-		return nil, err
-	}
-
-	kiteClient := remoteMachine.Client
-	if err := kiteClient.Dial(); err != nil {
+		log.Error("Error getting dialed, valid machine. err:%s", err)
 		return nil, err
 	}
 
@@ -68,5 +54,5 @@ func (r *Remote) ExecHandler(kreq *kite.Request) (interface{}, error) {
 
 	var execReq = struct{ Command string }{cmd}
 
-	return kiteClient.Tell("exec", execReq)
+	return remoteMachine.Tell("exec", execReq)
 }

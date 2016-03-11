@@ -147,7 +147,7 @@ func (m *Machine) Dial() error {
 		m.Log.Error("Dialer returned error. err:%s", err)
 	}
 
-	return err
+	return util.NewKiteError(kiteerrortypes.DialingFailed, err)
 }
 
 // Tell uses the Kite protocol (with a dnode response) to communicate with this

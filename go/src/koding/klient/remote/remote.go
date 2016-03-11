@@ -351,18 +351,90 @@ func (r *Remote) GetCacheOrMachines() (*machine.Machines, error) {
 	return r.machines, nil
 }
 
-// GetMachine gets the machines from r.GetKites(), and then returns the requested
-// machine directly. For information on whether or not this uses a cache, see
-// r.GetKites() docstring.
+// GetMachine gets the machines from r.GetMachines(), and then returns the requested
+// machine directly. If the machine is not found, a kontrol request is performed
+// to possibly find the new machine. Meaning that this avoids requesting to kontrol
+// if possible.
 //
 // If the given machine is not found, machine.MachineNotFound is returned.
 func (r *Remote) GetMachine(name string) (*machine.Machine, error) {
-	machines, err := r.GetMachines()
+	machines, err := r.GetCacheOrMachines()
 	if err != nil {
 		return nil, err
 	}
 
-	return machines.GetByName(name)
+	// If we encountered an error that is *not* machine not found, return the error.
+	// We don't know what went wrong.
+	m, err := machines.GetByName(name)
+	if err != nil && err != machine.ErrMachineNotFound {
+		return nil, err
+	}
+
+	if err == machine.ErrMachineNotFound {
+		// At this point, we could not find the machine. So, do a normal kontrol request,
+		// within our cache limit of course - to see if it is a new machine.
+		machines, err = r.GetMachines()
+		if err != nil {
+			return nil, err
+		}
+
+		// Finally, now that we have as accurate information as possible, return our
+		// machine or err
+		return machines.GetByName(name)
+	}
+
+	return m, nil
+}
+
+// GetValidMachine calls GetMachine, and then checks if the machine is valid,
+// returning it if it is.
+//
+// If the machine is not valid, we do a normal within-cache GetMachines request.
+// If Kontrol returns our kite, this will populate our machine and we're
+// good to go.
+func (r *Remote) GetValidMachine(name string) (*machine.Machine, error) {
+	machine, err := r.GetMachine(name)
+	if err != nil {
+		return nil, err
+	}
+
+	// If there are no problems, return it.
+	if err := machine.CheckValid(); err == nil {
+		return machine, nil
+	}
+
+	// If our machine was not valid, request new kites from kontrol (within cache
+	// limits), and then check again if the machine is valid.
+	//
+	// We don't have to care about the response/error from GetMachines, because
+	// we have our machine instance already, and if GetMachines errors, our Valid
+	// check is still all that matters.
+	r.GetMachines()
+
+	// If Kontrol returned a kite for our machine, GetMachines will have populated it.
+	// Check if it's now valid. Last attempt.
+	if err := machine.CheckValid(); err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}
+
+// GetValidDialedMachine calls GetValidMachine, and then dials it.
+//
+// Note that if you just want a dialed machine, but don't explicitly need a Valid
+// machine, just get the machine and dial it yourself.
+func (r *Remote) GetDialedMachine(name string) (*machine.Machine, error) {
+	machine, err := r.GetValidMachine(name)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := machine.Dial(); err != nil {
+		return nil, err
+	}
+
+	return machine, nil
 }
 
 // loadMachineNames loads the machine name map from database.

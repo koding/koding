@@ -44,28 +44,14 @@ func (r *Remote) SSHKeyAddHandler(kreq *kite.Request) (interface{}, error) {
 		"keyLength", len(params.Key),
 	)
 
-	remoteMachines, err := r.GetMachines()
+	remoteMachine, err := r.GetDialedMachine(params.Name)
 	if err != nil {
-		return nil, err
-	}
-
-	remoteMachine, err := remoteMachines.GetByName(params.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := remoteMachine.CheckValid(); err != nil {
-		log.Error("Machine.CheckValid returned not valid. err:%s", err)
-		return nil, err
-	}
-
-	kiteClient := remoteMachine.Client
-	if err := kiteClient.Dial(); err != nil {
+		log.Error("Error getting dialed, valid machine. err:%s", err)
 		return nil, err
 	}
 
 	var sshReq = struct{ Keys []string }{Keys: []string{string(params.Key)}}
-	if _, err = kiteClient.Tell("sshkeys.add", sshReq); err != nil {
+	if _, err = remoteMachine.Tell("sshkeys.add", sshReq); err != nil {
 		return nil, err
 	}
 

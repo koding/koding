@@ -124,7 +124,16 @@ func (ms *Machines) Load() error {
 		return nil
 	}
 
-	return json.Unmarshal([]byte(data), &ms.machines)
+	if err := json.Unmarshal([]byte(data), &ms.machines); err != nil {
+		return err
+	}
+
+	// Add what instances we can to the loaded machines, such as loggers.
+	for _, m := range ms.machines {
+		m.Log = MachineLogger(m.MachineMeta, ms.Log)
+	}
+
+	return nil
 }
 
 // Save the current machines to the local storage.
