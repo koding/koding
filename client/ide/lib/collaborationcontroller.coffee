@@ -308,11 +308,13 @@ module.exports = CollaborationController =
 
   addParticipant: (account) ->
 
-    {hash, nickname} = account.profile
+    { hash, nickname } = account.profile
 
-    val = {nickname, hash}
+    val   = { nickname, hash }
     index = @participants.indexOf val, (a, b) -> a.nickname is b.nickname
+
     @participants.push val  if index is -1
+    @setMyPermission 'edit' if @amIHost
 
 
   watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
@@ -408,7 +410,7 @@ module.exports = CollaborationController =
       @statusBar.createParticipantAvatar nickname, no
 
       if @amIHost
-        @setParticipantPermission nickname
+        @setParticipantPermission nickname, 'read'
         @setMachineUser [nickname]
 
 
@@ -876,6 +878,7 @@ module.exports = CollaborationController =
 
           @stateMachine.transition 'Active'
           @updateSessionStartingProgress 90
+          @makeReadOnly()  if @getMyPermission() isnt 'edit'
 
           kd.utils.wait 2000, =>
             @updateSessionStartingProgress 100
@@ -1342,17 +1345,21 @@ module.exports = CollaborationController =
 
   setParticipantPermission: (nickname, permission) ->
 
-    return  if (not permission?) and @permissions.get nickname
-
-    permission ?= if @settings.get 'readOnly' then 'read' else 'edit'
     @permissions.set nickname, permission
 
 
   removeParticipantPermissions: (nickname) ->
 
-    return  unless @permissions.get nickname
-
     @permissions.delete nickname
+
+
+  getMyPermission: -> @permissions.get nick()
+
+
+  setMyPermission: (permission) ->
+
+    permission = 'edit'  if @amIHost # override for host
+    @setParticipantPermission nick(), permission
 
 
   getMyWatchers: ->
