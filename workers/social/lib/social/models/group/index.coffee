@@ -96,7 +96,6 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'broadcast' }
         { name: 'updateInstance' }
 
       ]
@@ -368,8 +367,6 @@ module.exports = class JGroup extends Module
           actorType  : 'member'
           subject    : ObjectRef(this).data
           member     : ObjectRef(member).data
-        @broadcast 'MemberJoinedGroup',
-          member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member, requester) ->
       requester ?= member
@@ -380,8 +377,6 @@ module.exports = class JGroup extends Module
           actorType  : 'member'
           subject    : ObjectRef(this).data
           member     : ObjectRef(member).data
-        @broadcast 'MemberLeftGroup',
-          member : ObjectRef(member).data
 
   @render        :
     loggedIn     :
@@ -539,24 +534,6 @@ module.exports = class JGroup extends Module
     return throttle cycleChannel, 5000
 
   cycleChannel:(callback) -> @constructor.cycleChannel @slug, callback
-
-  @broadcast = (groupSlug, event, message) ->
-    if message?
-      event = ".#{event}"
-    else
-      [message, event] = [event, message]
-      event = ''
-    @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName) =>
-      if err? then console.error err
-      else unless secretChannelName? then console.error 'unknown channel'
-      else
-        @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
-        @emit 'broadcast', "#{secretChannelName}#{event}", message
-        @emit 'notification', "#{groupSlug}#{event}", {
-          routingKey  : groupSlug
-          contents    : message
-          event       : 'feed-new'
-        }
 
 
   sendNotification: (event, contents, callback) ->
