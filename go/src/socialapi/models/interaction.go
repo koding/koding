@@ -211,6 +211,25 @@ func (i *Interaction) FetchInteractorIds(query *request.Query) ([]int64, error) 
 	return interactorIds, nil
 }
 
+func (i *Interaction) FetchInteractionsWithMessage(messageId int64) ([]Interaction, error) {
+	var interactions []Interaction
+
+	if messageId == 0 {
+		return interactions, errors.New("message id is not set")
+	}
+
+	selector := map[string]interface{}{
+		"message_id": messageId,
+	}
+
+	err := i.Some(&interactions, bongo.NewQS(selector))
+	if err != nil {
+		return interactions, err
+	}
+
+	return interactions, nil
+}
+
 func (c *Interaction) Count(q *request.Query) (int, error) {
 	if c.MessageId == 0 {
 		return 0, ErrMessageIdIsNotSet

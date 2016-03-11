@@ -31,6 +31,7 @@ func main() {
 	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*team.Controller).HandleParticipant)
 	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*team.Controller).HandleParticipant)
 	r.Register(models.ChannelParticipant{}).OnDelete().Handle((*team.Controller).HandleParticipant)
+	r.Register(models.Channel{}).OnDelete().Handle((*team.Controller).HandleChannel)
 	r.Listen()
 	r.Wait()
 }
