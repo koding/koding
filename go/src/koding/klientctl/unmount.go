@@ -143,7 +143,7 @@ func (c *UnmountCommand) Run() (int, error) {
 
 	// make sure to print success *after* removeMountFolder. Even though we're
 	// ignoring removal errors, we don't want to print success and then a warning.
-	c.printfln("Unmount success.")
+	c.printfln("Unmount complete.")
 
 	return 0, err
 }

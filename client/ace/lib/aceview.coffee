@@ -178,8 +178,21 @@ module.exports = class AceView extends JView
             callback    : ->
               modal.destroy()
 
-  setActiveTabHandleClass: (cssClass)->
-    @getDelegate().tabView?.getActivePane().tabHandle.setClass cssClass
+
+  setActiveTabHandleClass: (cssClass) ->
+
+    { tabView } = @getDelegate()
+
+    return  unless tabView
+
+    activePane = tabView.getActivePane()
+
+    IDEEditorPane = require 'ide/workspace/panes/ideeditorpane'
+
+    return  unless activePane.view instanceof IDEEditorPane
+
+    activePane.tabHandle.setClass cssClass
+
 
   toggleFullscreen: ->
     mainView = kd.getSingleton 'mainView'

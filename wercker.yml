@@ -221,7 +221,7 @@ deploy:
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
-    - koding/eb-deploy@0.0.8:
+    - koding/eb-deploy@0.31.0:
         access-key: $S3_KEY_ID
         secret-key: $S3_KEY_SECRET
         app-name: koding

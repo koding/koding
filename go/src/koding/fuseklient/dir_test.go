@@ -713,6 +713,7 @@ func newFakeTransport() *fakeTransport {
 			"fs.createDirectory": true,
 			"fs.remove":          true,
 			"fs.readFile":        map[string]interface{}{"content": c},
+			"fs.getDiskInfo":     transport.GetDiskInfoRes{},
 			"fs.getInfo": transport.GetInfoRes{
 				Exists:   true,
 				IsDir:    true,
@@ -742,21 +743,6 @@ func newFakeTransport() *fakeTransport {
 			},
 		},
 	}
-}
-
-func newErrorTransport(m string, e error) *errorTransport {
-	f := newFakeTransport()
-
-	return &errorTransport{
-		fakeTransport: f,
-		ErrorResponses: map[string]error{
-			m: e,
-		},
-	}
-}
-
-func newWriteErrTransport() *errorTransport {
-	return newErrorTransport("fs.writeFile", fuse.EIO)
 }
 
 func newDir() *Dir {

@@ -209,11 +209,6 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
-	removedEntry, err := d.removeChild(oldName)
-	if err != nil {
-		return nil, err
-	}
-
 	oldPath := d.GetPathForEntry(oldName)
 	newPath := newDir.GetPathForEntry(newName)
 
@@ -228,6 +223,11 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 	}
 
 	newEntry, err := newDir.initializeChild(e)
+	if err != nil {
+		return nil, err
+	}
+
+	removedEntry, err := d.removeChild(oldName)
 	if err != nil {
 		return nil, err
 	}

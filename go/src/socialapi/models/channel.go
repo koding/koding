@@ -7,6 +7,7 @@ import (
 
 	"socialapi/request"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
@@ -708,6 +709,27 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
+func (c *Channel) FetchAllChannelsOfGroup() ([]Channel, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name": c.GroupName,
+		},
+	}
+
+	pairs := make(map[string]interface{}, 0)
+	pairs["type_constant"] = Channel_TYPE_GROUP
+
+	query.AddScope(ExcludeFields(pairs))
+
+	var channels []Channel
+	err := c.Some(&channels, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}
+
 // FetchLastMessage fetch the last message of the channel from DB
 // sorts the messages, then fetch the message which added last
 //
@@ -1018,6 +1040,7 @@ func isMessageCrossIndexed(messageId int64) (error, bool) {
 }
 
 func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
+	var errs *multierror.Error
 	messageIds := make([]int64, 0)
 
 	for messageId, _ := range messageMap {
@@ -1039,8 +1062,25 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 			continue
 		}
 
+		interactions, err := NewInteraction().FetchInteractionsWithMessage(message.Id)
+		if err != nil {
+			return err
+		}
+
+		// we are gonna try to iterate all over the interactions of the message
+		// if there is and error, we are gonna skip this and will try to remove other interactions
+		for _, interaction := range interactions {
+			if err := interaction.Delete(); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+
 		if err = message.Delete(); err != nil {
 			return err
+		}
+
+		if errs.ErrorOrNil() != nil {
+			return errs
 		}
 	}
 

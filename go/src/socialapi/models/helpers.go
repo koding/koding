@@ -227,7 +227,25 @@ func CreateRandomGroupDataWithChecks() (*Account, *Channel, string) {
 	_, err := groupChannel.AddParticipant(account.Id)
 	So(err, ShouldBeNil)
 
+	_, err = CreateGroupInMongo(groupName, groupChannel.Id)
+	So(err, ShouldBeNil)
+
 	return account, groupChannel, groupName
+}
+
+func CreateGroupInMongo(groupName string, socialapiId int64) (*kodingmodels.Group, error) {
+	g := &kodingmodels.Group{
+		Id:                             bson.NewObjectId(),
+		Body:                           groupName,
+		Title:                          groupName,
+		Slug:                           groupName,
+		Privacy:                        "private",
+		Visibility:                     "hidden",
+		SocialApiChannelId:             strconv.FormatInt(socialapiId, 10),
+		SocialApiAnnouncementChannelId: strconv.FormatInt(socialapiId, 10),
+	}
+
+	return g, modelhelper.CreateGroup(g)
 }
 
 func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {

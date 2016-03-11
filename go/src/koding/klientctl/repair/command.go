@@ -400,6 +400,13 @@ func (c *Command) initDefaultRepairers() error {
 		Klient:    c.Klient,
 	}
 
+	deviceNotConfiguredRepair := &DeviceNotConfiguredRepair{
+		Log:       c.Log.New("DeviceNotConfiguredRepair"),
+		Stdout:    util.NewFprint(c.Stdout),
+		MountName: c.Options.MountName,
+		Klient:    c.Klient,
+	}
+
 	// A collection of Repairers responsible for actually repairing a given mount.
 	// Executed in the order they are defined, the effectiveness of the Repairers
 	// may depend on the order they are run in. An example being TokenNotValidYetRepair
@@ -413,6 +420,7 @@ func (c *Command) initDefaultRepairers() error {
 		mountExistsRepair,
 		permDeniedRepair,
 		mountEmptyRepair,
+		deviceNotConfiguredRepair,
 	}
 
 	return nil

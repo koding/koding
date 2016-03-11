@@ -137,8 +137,6 @@ func (m *Mounter) Mount() (*Mount, error) {
 		MountFolder:      m.Options,
 		MountName:        m.Options.Name,
 		IP:               m.IP,
-		KitePinger:       m.KitePinger,
-		Intervaler:       m.Intervaler,
 		SyncIntervalOpts: syncOpts,
 	}
 
@@ -162,6 +160,14 @@ func (m *Mounter) MountExisting(mount *Mount) error {
 	if err := m.Dialer.Dial(); err != nil {
 		m.Log.Error("Error dialing remote klient. err:%s", err)
 		return util.NewKiteError(kiteerrortypes.DialingFailed, err)
+	}
+
+	if mount.KitePinger == nil {
+		mount.KitePinger = m.KitePinger
+	}
+
+	if mount.Intervaler == nil {
+		mount.Intervaler = m.Intervaler
 	}
 
 	// Create our changes channel, so that fuseMount can be told when we lose and
@@ -200,10 +206,10 @@ func (m *Mounter) fuseMountFolder(mount *Mount) error {
 			return err
 		}
 
-		// cast into RemoteTransport for NewRemoteOrCacheTransport
+		// cast into RemoteTransport for NewDualTransport
 		rt := t.(*transport.RemoteTransport)
 
-		t = transport.NewRemoteOrCacheTransport(rt, dt)
+		t = transport.NewDualTransport(rt, dt)
 	}
 
 	cf := &fuseklient.Config{

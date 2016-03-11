@@ -16,6 +16,7 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
+	"github.com/koding/kite"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -44,6 +45,202 @@ func TestKodingNetworkFSPrefetch(t *testing.T) {
 	defer _unmount(k)
 
 	fusetest.RunAllTests(t, k.MountPath)
+}
+
+func TestRemoteError(t *testing.T) {
+	Convey("Given folder is mounted, but remote return errs", t, func() {
+		var (
+			rNode fuseops.InodeID = 1
+
+			err = &kite.Error{
+				Type:    "timeout",
+				Message: `No response to "method"`,
+			}
+			f = newFakeTransport()
+		)
+
+		Convey("Rename", func() {
+			e := newErrorTransport("fs.rename", err)
+			e.fakeTransport = f
+
+			k := newknfs(e)
+
+			Convey("It should return when trying to rename entry", func() {
+				op := &fuseops.RenameOp{
+					OldParent: rNode,
+					NewParent: rNode,
+					OldName:   "file", // file is returned part of ReadDir() resp.
+					NewName:   "renamed",
+				}
+				So(k.Rename(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+
+				Convey("It should not rename file in memory", func() {
+					So(len(k.liveNodes), ShouldEqual, 1)
+
+					rootDir, _ := k.liveNodes[rNode].(*Dir)
+					_, err := rootDir.FindEntry("renamed")
+					So(err, ShouldEqual, fuse.ENOENT)
+
+					_, err = rootDir.FindEntry("file")
+					So(err, ShouldBeNil)
+				})
+			})
+		})
+
+		Convey("SetInodeAttributes", func() {
+			e := newErrorTransport("fs.writeFile", err)
+			e.fakeTransport = f
+
+			k := newknfs(e)
+
+			// add file to inodes so it can fetched in below op
+			rootDir, _ := k.liveNodes[rNode].(*Dir)
+			file, err := rootDir.FindEntryFile("file")
+			So(err, ShouldBeNil)
+			k.liveNodes[2] = file
+
+			Convey("It should return err when trying to truncate file", func() {
+				var size uint64 = 0
+
+				op := &fuseops.SetInodeAttributesOp{
+					Inode: 2,
+					Size:  &size,
+				}
+				So(k.SetInodeAttributes(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+			})
+		})
+
+		Convey("Unlink", func() {
+			e := newErrorTransport("fs.remove", err)
+			e.fakeTransport = f
+
+			k := newknfs(e)
+
+			Convey("It should return when trying to remove file", func() {
+				op := &fuseops.UnlinkOp{
+					Parent: rNode,
+					Name:   "file", // file is returned part of ReadDir() resp.
+				}
+				So(k.Unlink(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+
+				Convey("It should not remove file from memory", func() {
+					So(len(k.liveNodes), ShouldEqual, 1)
+
+					rootDir, _ := k.liveNodes[rNode].(*Dir)
+					_, err := rootDir.FindEntry("file")
+					So(err, ShouldBeNil)
+				})
+			})
+		})
+
+		Convey("MkDir", func() {
+			e := newErrorTransport("fs.createDirectory", err)
+			e.fakeTransport = f
+
+			k := newknfs(e)
+
+			Convey("It should return when trying to make dir", func() {
+				op := &fuseops.MkDirOp{
+					Parent: rNode,
+					Name:   "newdir",
+				}
+				So(k.MkDir(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+
+				Convey("It should not add dir to memory", func() {
+					So(len(k.liveNodes), ShouldEqual, 1)
+
+					rootDir, _ := k.liveNodes[rNode].(*Dir)
+					_, err := rootDir.FindEntry("newdir")
+					So(err, ShouldEqual, fuse.ENOENT)
+				})
+			})
+		})
+
+		Convey("RmDir", func() {
+			e := newErrorTransport("fs.remove", err)
+			e.fakeTransport = f
+
+			k := newknfs(e)
+
+			Convey("It should return when trying remove dir", func() {
+				op := &fuseops.RmDirOp{
+					Parent: rNode,
+					Name:   "folder", // folder is returned part of ReadDir() resp.
+				}
+				So(k.RmDir(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+
+				Convey("It should not remove file from memory", func() {
+					So(len(k.liveNodes), ShouldEqual, 1)
+
+					rootDir, _ := k.liveNodes[rNode].(*Dir)
+					_, err := rootDir.FindEntry("folder")
+					So(err, ShouldBeNil)
+				})
+			})
+		})
+
+		Convey("CreateFile", func() {
+			e := newErrorTransport("fs.writeFile", err)
+			e.fakeTransport = f
+
+			k := newknfs(e)
+
+			Convey("It should return err when trying to create file", func() {
+				op := &fuseops.CreateFileOp{
+					Parent: rNode,
+					Name:   "newfile",
+				}
+				So(k.CreateFile(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+
+				Convey("It should not add file to memory", func() {
+					So(len(k.liveNodes), ShouldEqual, 1)
+
+					rootDir, _ := k.liveNodes[rNode].(*Dir)
+					_, err := rootDir.FindEntry("newfile")
+					So(err, ShouldEqual, fuse.ENOENT)
+				})
+			})
+		})
+
+		Convey("Write", func() {
+			e := newErrorTransport("fs.writeFile", err)
+			e.fakeTransport = f
+
+			k := newknfs(e)
+
+			// add file to inodes so it can fetched in below op
+			rootDir, _ := k.liveNodes[rNode].(*Dir)
+			file, err := rootDir.FindEntryFile("file")
+			So(err, ShouldBeNil)
+
+			k.liveNodes[2] = file
+
+			op := &fuseops.WriteFileOp{
+				Inode:  2,
+				Offset: 0,
+				Data:   []byte("overwritten"),
+			}
+			So(k.WriteFile(context.TODO(), op), ShouldBeNil)
+
+			Convey("FlushFile", func() {
+				Convey("It should return err when flushing file", func() {
+					op := &fuseops.FlushFileOp{
+						Inode: 2,
+					}
+					So(k.FlushFile(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+				})
+			})
+
+			Convey("SyncFile", func() {
+				Convey("It should return err when syncing file", func() {
+					op := &fuseops.SyncFileOp{
+						Inode: 2,
+					}
+					So(k.SyncFile(context.TODO(), op), ShouldEqual, syscall.ECONNREFUSED)
+				})
+			})
+		})
+	})
 }
 
 func TestKodingNetworkFSAdditional(tt *testing.T) {
@@ -370,7 +567,7 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	return k
 }
 
-func newCachedTransport() (*transport.RemoteOrCacheTransport, error) {
+func newCachedTransport() (*transport.DualTransport, error) {
 	rt, err := newRemoteTransport()
 	if err != nil {
 		return nil, err
@@ -381,7 +578,7 @@ func newCachedTransport() (*transport.RemoteOrCacheTransport, error) {
 		return nil, err
 	}
 
-	return transport.NewRemoteOrCacheTransport(rt, dt), nil
+	return transport.NewDualTransport(rt, dt), nil
 }
 
 func newRemoteTransport() (*transport.RemoteTransport, error) {
