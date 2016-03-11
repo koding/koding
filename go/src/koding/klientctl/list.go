@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"math"
 	"os"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
@@ -55,7 +57,7 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tSTATUS\tMOUNTED PATHS\n")
+	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tLAST SEEN\tMOUNTED PATHS\n")
 	for i, info := range infos {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
@@ -79,9 +81,9 @@ func ListCommand(c *cli.Context, log logging.Logger, _ string) int {
 			)
 		}
 
-		status := "Disconnected"
-		if info.Connected {
-			status = "Connected"
+		status := "unknown"
+		if !info.ConnectedAt.IsZero() {
+			status = timeToAgo(info.ConnectedAt, time.Now())
 		}
 
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
@@ -142,4 +144,25 @@ func shortenPath(p string) string {
 	}
 
 	return strings.Join(l, sep)
+}
+
+func timeToAgo(t, now time.Time) string {
+	dur := now.Sub(t)
+
+	if dur.Seconds() < 60.0 {
+		return fmt.Sprintf("%ds", int64(dur.Seconds()))
+	}
+
+	if dur.Minutes() < 60.0 {
+		secs := math.Mod(dur.Seconds(), 60)
+		return fmt.Sprintf("%dm %ds", int64(dur.Minutes()), int64(secs))
+	}
+
+	if dur.Hours() < 24.0 {
+		mins := math.Mod(dur.Minutes(), 60)
+		return fmt.Sprintf("%dh %dm", int64(dur.Hours()), int64(mins))
+	}
+
+	hours := math.Mod(dur.Hours(), 24)
+	return fmt.Sprintf("%dd %dh", int64(dur.Hours()/24), int64(hours))
 }

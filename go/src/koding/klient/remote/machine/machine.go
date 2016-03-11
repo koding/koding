@@ -142,12 +142,12 @@ func (m *Machine) IsConnected() bool {
 	return m.KitePinger.IsConnected()
 }
 
-// IsConnectedAgo returns the kitepinger's IsConnectedAgo result
-func (m *Machine) IsConnectedAgo() (bool, time.Duration) {
+// ConnectedAt returns the kitepinger's ConnectedAt result
+func (m *Machine) ConnectedAt() time.Time {
 	// If it's nil, this is a not a valid / connected machine.
 	if m.KitePinger == nil {
-		return false, 0
+		return time.Time{} // Zero value time.
 	}
 
-	return m.KitePinger.IsConnectedAgo()
+	return m.KitePinger.ConnectedAt()
 }

@@ -1,9 +1,12 @@
 package list
 
-import "koding/klientctl/util"
+import (
+	"koding/klientctl/util"
+	"time"
+)
 
 type KiteInfo struct {
-	Connected    bool        `json:"connected"`
+	ConnectedAt  time.Time   `json:"connectedAt"`
 	IP           string      `json:"ip"`
 	VMName       string      `json:"vmName"`
 	Hostname     string      `json:"hostname"`

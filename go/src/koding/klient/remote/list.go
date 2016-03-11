@@ -40,7 +40,7 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 	infos := make([]restypes.ListMachineInfo, machines.Count())
 	for i, machine := range machines.Machines() {
 		info := restypes.ListMachineInfo{
-			Connected:    machine.IsConnected(),
+			ConnectedAt:  machine.ConnectedAt(),
 			IP:           machine.IP,
 			VMName:       machine.Name,
 			MountedPaths: []string{},

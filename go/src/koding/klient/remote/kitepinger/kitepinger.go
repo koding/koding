@@ -51,9 +51,8 @@ type KitePinger interface {
 	// IsConnected returns if we are actively pinging and the last ping was success.
 	IsConnected() bool
 
-	// IsConnectedAgo returns the IsConnected bool, along with how long we've been
-	// at that status.
-	IsConnectedAgo() (bool, time.Duration)
+	// ConnectedAt returns the last time status was success, if ever.
+	ConnectedAt() time.Time
 }
 
 // PingKite implements the KitePinger interface.
@@ -102,6 +101,9 @@ type PingKite struct {
 	// status becomes Failure, statusTime == time.Now(). We then use this to measure
 	// the length of time Failure has been the current status.
 	statusTime time.Time
+
+	// The time the last successful status was encountered.
+	successTime time.Time
 }
 
 // NewKitePinger returns a new KitePinger, implemented by PingKite.
@@ -213,7 +215,8 @@ func (p *PingKite) Stop() {
 // Ping manually pings the kite. This will trigger a ChangeSummary broadcast if
 // there ends up being a change.
 func (p *PingKite) Ping() {
-	p.pingedAt = time.Now()
+	now := time.Now()
+	p.pingedAt = now
 
 	// Default to success
 	status := Success
@@ -224,6 +227,8 @@ func (p *PingKite) Ping() {
 	// we set the status to false.
 	if err != nil {
 		status = Failure
+	} else {
+		p.successTime = now
 	}
 
 	// If the "current" summary doesn't match our newly discovered summary,
@@ -231,7 +236,7 @@ func (p *PingKite) Ping() {
 	if p.lastStatus != status {
 		oldStatus := p.lastStatus
 		oldStatusDur := time.Since(p.statusTime)
-		p.statusTime = time.Now()
+		p.statusTime = now
 		p.lastStatus = status
 
 		if oldStatus != Unknown {
@@ -288,8 +293,7 @@ func (p *PingKite) IsConnected() bool {
 	return p.lastStatus == Success
 }
 
-// IsConnectedAgo returns the IsConnected bool, along with how long we've been
-// at that status. The returned status may be a zero value, if it has never been run.
-func (p *PingKite) IsConnectedAgo() (bool, time.Duration) {
-	return p.IsConnected(), time.Since(p.statusTime)
+// ConnectedAt returns when the last successful ping was, if ever.
+func (p *PingKite) ConnectedAt() time.Time {
+	return p.successTime
 }
