@@ -1,6 +1,4 @@
 utils    = require '../utils/utils.js'
-fail     = require '../utils/fail.js'
-register = require '../register/register.js'
 faker    = require 'faker'
 assert   = require 'assert'
 HUBSPOT  = no
