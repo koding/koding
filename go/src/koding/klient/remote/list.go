@@ -48,6 +48,15 @@ func (r *Remote) ListHandler(req *kite.Request) (interface{}, error) {
 			Teams:        machine.Teams,
 		}
 
+		if machine.Client != nil {
+			info.Environment = machine.Client.Environment
+			info.Hostname = machine.Client.Hostname
+			info.ID = machine.Client.ID
+			info.Region = machine.Client.Region
+			info.Username = machine.Client.Username
+			info.Version = machine.Client.Version
+		}
+
 		m, ok := r.mounts.FindByName(machine.Name)
 		if ok {
 			info.Mounts = []restypes.ListMountInfo{restypes.ListMountInfo{
