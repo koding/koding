@@ -13,7 +13,6 @@ showError                     = require 'app/util/showError'
 isTeamReactSide               = require 'app/util/isTeamReactSide'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
-IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
 realtimeHelpers               = require './collaboration/helpers/realtime'
@@ -147,7 +146,6 @@ module.exports = CollaborationController =
 
   handleParticipantKicked: (username) ->
 
-    @chat.emit 'ParticipantLeft', username
     @statusBar.removeParticipantAvatar username
     @removeParticipantCursorWidget username
     # remove participant's all data persisted in realtime appInfo
@@ -195,7 +193,6 @@ module.exports = CollaborationController =
     unless targetUser
       return kd.warn 'Unknown user in collaboration, we should handle this case...'
 
-    @chat.emit 'ParticipantJoined', targetUser
     @statusBar.emit 'ParticipantJoined', targetUser
 
     Tracker.track Tracker.COLLABORATION_STARTED
@@ -217,7 +214,6 @@ module.exports = CollaborationController =
     unless targetUser
       return kd.warn 'Unknown user in collaboration, we should handle this case...'
 
-    @chat?.emit 'ParticipantLeft', targetUser
     @statusBar.emit 'ParticipantLeft', targetUser
     @removeParticipantCursorWidget targetUser
 
@@ -596,8 +592,6 @@ module.exports = CollaborationController =
 
   handlePermissionMapChange: (event) ->
 
-    @chat.settingsPane.emit 'PermissionChanged', event
-
     {property, newValue} = event
 
     return  unless property is nick()
@@ -758,18 +752,17 @@ module.exports = CollaborationController =
     @collectButtonShownMetric()
 
 
-  prepareChatSession: (callbacks) ->
+  prepareSocialChannel: (callbacks) ->
 
     socialHelpers.initChannel (err, channel) =>
       return callbacks.error err  if err
 
       @setSocialChannel channel
-      @createChatPaneView channel
 
       envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
         .then =>
           @workspaceData.channelId = channel.id
-          @chat.ready => callbacks.success()
+          callbacks.success()
         .error (err) => callbacks.error err
 
 
@@ -781,20 +774,25 @@ module.exports = CollaborationController =
 
   onCollaborationPreparing: ->
 
-    @prepareChatSession
+    @prepareSocialChannel
       success : => @stateMachine.transition 'Prepared'
       error   : => @stateMachine.transition 'ErrorPreparing'
 
 
   onCollaborationPrepared: ->
 
-    @chat.emit 'CollaborationNotInitialized'
+    @startCollaborationSession()
 
 
   startCollaborationSession: ->
 
+    # Show this message while "@stateMachine" is preparing when a session is over just now.
+    # It will be ready in a few seconds.
+    return showError 'Please wait a few seconds.'  unless @stateMachine
+
     switch @stateMachine.state
-      when 'Prepared' then @stateMachine.transition 'Creating'
+      when 'Prepared'   then @stateMachine.transition 'Creating'
+      when 'NotStarted' then @stateMachine.transition 'Preparing'
 
 
   onCollaborationCreating: ->
@@ -811,7 +809,7 @@ module.exports = CollaborationController =
 
     @setInitialSettings()
 
-    @chat.settingsPane.startSession.updateProgress 100
+    @statusBar.share.updateProgress 100
 
     kd.utils.wait 500, => @stateMachine.transition 'Active'
 
@@ -873,15 +871,13 @@ module.exports = CollaborationController =
     successCb = (channel, doc) =>
       @whenRealtimeReady =>
         @setSocialChannel channel
-        @createChatPaneView channel
-        @chat.ready =>
 
-          @stateMachine.transition 'Active'
-          @updateSessionStartingProgress 90
+        @stateMachine.transition 'Active'
+        @updateSessionStartingProgress 90
 
-          kd.utils.wait 2000, =>
-            @updateSessionStartingProgress 100
-            kd.utils.wait 500, @bound 'destroySessionStartingModal'
+        kd.utils.wait 2000, =>
+          @updateSessionStartingProgress 100
+          kd.utils.wait 500, @bound 'destroySessionStartingModal'
 
       @activateRealtimeManager doc
 
@@ -911,8 +907,6 @@ module.exports = CollaborationController =
 
 
   onCollaborationActive: ->
-
-    @hideChatPane()
 
     @bindAutoInviteHandlers()
 
@@ -959,14 +953,6 @@ module.exports = CollaborationController =
 
   transitionViewsToActive: ->
 
-    @listChatParticipants (accounts) =>
-      @chat.settingsPane.createParticipantsList accounts
-
-    {settingsPane} = @chat
-    settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
-
-    @chat.emit 'CollaborationStarted'
-
     generateCollaborationLink nick(), @socialChannel.id, {}, (url) =>
       @statusBar.emit 'CollaborationStarted',
         channelId: @socialChannel.id
@@ -974,8 +960,6 @@ module.exports = CollaborationController =
 
 
   onCollaborationEnding: ->
-
-    @chat.settingsPane.endSession.disable()
 
     @off 'SetMachineUser'
 
@@ -1042,9 +1026,6 @@ module.exports = CollaborationController =
     return  unless @stateMachine.state in ['Ending']
 
     @rtm.once 'RealtimeManagerWillDispose', =>
-      @chat.emit 'CollaborationEnded'
-      @chat.destroy()
-      @chat = null
       @statusBar.emit 'CollaborationEnded'
 
     @rtm.once 'RealtimeManagerDidDispose', =>
@@ -1079,9 +1060,6 @@ module.exports = CollaborationController =
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
-      @chat.emit 'CollaborationEnded'
-      @chat.destroy()
-      @chat = null
       @statusBar.emit 'CollaborationEnded'
       @removeParticipant nick()
       @removeMachineNode()  if not @mountedMachine.isPermanent() and not isTeamReactSide()
@@ -1096,18 +1074,6 @@ module.exports = CollaborationController =
     @cleanupCollaboration()
 
 
-  showChat: ->
-
-    # Show this message while "@stateMachine" is preparing when a session is over just now.
-    # It will be ready in a few seconds.
-    return showError 'Please wait a few seconds.'  unless @stateMachine
-
-    switch @stateMachine.state
-      when 'Active'     then @hideChatPane()
-      when 'Prepared'   then @chat.show()
-      when 'NotStarted' then @stateMachine.transition 'Preparing'
-
-
   stopCollaborationSession: (callback = kd.noop) ->
 
     return callback()  unless @stateMachine
@@ -1116,21 +1082,6 @@ module.exports = CollaborationController =
 
     switch @stateMachine.state
       when 'Active' then @stateMachine.transition 'Ending'
-
-
-  hideChatPane: -> @chat.end()
-
-
-  createChatPaneView: (channel) ->
-
-    unless @rtm
-      @destroySessionStartingModal()
-      return throwError 'RealtimeManager is not set'
-
-    chatViewOptions = { @rtm, @isInSession, @mountedMachineUId }
-    @chat           = new IDEChatView chatViewOptions, channel
-
-    @getView().addSubView @chat
 
 
   prepareCollaboration: ->
@@ -1247,7 +1198,6 @@ module.exports = CollaborationController =
           callback : =>
             @modal.destroy()
 
-    @chat?.end()
     @showModal options
 
 
@@ -1266,7 +1216,6 @@ module.exports = CollaborationController =
           callback : =>
             @modal.destroy()
 
-    @chat?.end()
     @showModal options
     @handleCollaborationEndedForParticipant()
 
