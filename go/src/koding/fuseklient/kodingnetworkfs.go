@@ -507,9 +507,7 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 		// if new size is 0 and entry is a file, truncate the file
 		if *op.Size == 0 {
 			if file, ok := entry.(*File); ok {
-				file.WriteAt([]byte{}, 0)
-
-				if err := file.Flush(); err != nil {
+				if err := file.TruncateTo(0); err != nil {
 					return err
 				}
 			}
