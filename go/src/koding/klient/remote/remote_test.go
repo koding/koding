@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"koding/klient/storage"
 
 	"github.com/koding/kite"
@@ -143,4 +145,8 @@ func TestGetKites(t *testing.T) {
 	if err == nil {
 		t.Error("Expected GetKites to return an error when after clientsErrCacheMax. Got nil.")
 	}
+}
+
+func TestUpdateExistingMachines(t *testing.T) {
+	Convey("", t, nil)
 }

@@ -29,17 +29,18 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	err = cmd.Run(c.Args()[0])
-
 	switch err {
 	case nil:
 		return 0
 	case ssh.ErrManagedMachineNotSupported:
-		log.Error(ssh.ErrManagedMachineNotSupported.Error())
 		fmt.Println(CannotSSHManaged)
 	case ssh.ErrFailedToGetSSHKey:
-		log.Error(ssh.ErrFailedToGetSSHKey.Error())
 		fmt.Println(FailedGetSSHKey)
+	case ssh.ErrMachineNotValidYet:
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
 	}
+
+	log.Error("SSHCommand.Run returned err:%s", err)
 
 	return 1
 }
