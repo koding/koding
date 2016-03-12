@@ -27,6 +27,6 @@ module.exports = class HeaderViewSection extends KDHeaderView
         if @searchInput.getValue() is ""
           @parent.emit "searchFilterChanged", ""
 
-    @addSubView icon = new KDCustomHTMLView
+    @addSubView new KDCustomHTMLView
       tagName  : "span"
       cssClass : "header-search-input-icon"
