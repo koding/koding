@@ -211,6 +211,7 @@ module.exports = class IDEStatusBar extends kd.View
       @share.setClass      'loading'
       @share.unsetClass    'active not-started'
       @share.updatePartial 'Loading'
+      @share.show()
     @video.hide()
 
 

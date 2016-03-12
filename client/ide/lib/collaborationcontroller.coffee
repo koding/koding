@@ -651,9 +651,7 @@ module.exports = CollaborationController =
 
   showShareButton: ->
 
-    @ready =>
-      @statusBar.handleCollaborationLoading()
-      @statusBar.share?.show()
+    @ready => @statusBar.handleCollaborationLoading()
 
 
   collectButtonShownMetric: ->
