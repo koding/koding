@@ -128,7 +128,7 @@ module.exports = class AvatarView extends LinkView
     flags = if account.globalFlags
       if Array.isArray account.globalFlags
       then account.globalFlags.join(" ")
-      else (value for own key, value of account.globalFlags).join(" ")
+      else (value for own __, value of account.globalFlags).join(" ")
     else ""
 
     @cite.setClass flags

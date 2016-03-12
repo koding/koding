@@ -10,7 +10,6 @@ module.exports = (text, excludeSelector) ->
 
   replaceFunc = (text, isProfile) ->
     text.replace /\B\@([\w\-]+)/gim, (u) ->
-      username = u.replace "@", ""
       return "<a href='#' class='profile-link'>#{u}</a>"  if isProfile
       return u.link "#"
 

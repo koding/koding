@@ -1,5 +1,4 @@
 workspace = require './defaultshortcuts/workspace'
-activity  = require './defaultshortcuts/activity'
 editor    = require './defaultshortcuts/editor'
 editorHidden = require './defaultshortcuts/editorhidden'
 

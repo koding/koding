@@ -24,7 +24,7 @@ module.exports = class MachineSettingsAdvancedView extends KDView
       terminateTitle = 'Disconnect your VM'
       terminateText  = 'Remove the connection between your Machine and Koding.'
 
-    terminateButton = @createButton 'terminate', terminateTitle, terminateClass, terminateText
+    @createButton 'terminate', terminateTitle, terminateClass, terminateText
 
 
   createButton: (callbackName, title, className, desc) ->

@@ -88,7 +88,6 @@ module.exports = class SidebarMachineBox extends KDView
   getWorkspaceItemByChannelId: (channelId) ->
 
     items  = @listController.getListItems()
-    wsitem = null
 
     for item in items when item.data.channelId is channelId
       wsItem = item
@@ -241,8 +240,7 @@ module.exports = class SidebarMachineBox extends KDView
 
       return  unless ideApp
 
-      wsData        = ideApp.workspaceData
-      isSameMachine = wsData.machineUId is @machine.uid
+      wsData = ideApp.workspaceData
 
       router.handleRoute "/IDE/#{slug}/#{wsData.slug}"
 

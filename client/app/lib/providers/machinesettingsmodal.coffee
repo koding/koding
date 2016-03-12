@@ -122,7 +122,7 @@ module.exports = class MachineSettingsModal extends KDModalView
   # We can consider this method later.
   tweakStyling_: ->
 
-    for key, pane of @panesByTitle
+    for __, pane of @panesByTitle
       handle = pane.getHandle()
       handle.setClass   'AppModal-navItem' # styling
       handle.unsetClass 'kdtabhandle'      # styling

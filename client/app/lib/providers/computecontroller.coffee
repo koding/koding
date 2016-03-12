@@ -158,7 +158,6 @@ module.exports = class ComputeController extends KDController
 
     (err) =>
 
-      retried = no
       @_force = no
       @eventListener.revertToPreviousState machine
 
@@ -174,7 +173,6 @@ module.exports = class ComputeController extends KDController
         when Error.KiteError
 
           if err.code is Error.Pending
-            retried = retryIfNeeded task, machine
             safeToSuspend = yes
           else
             kd.warn "[CC] error:", err
@@ -501,7 +499,7 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
-      baseKite = machine.getBaseKite( createIfNotExists = no )
+      baseKite = machine.getBaseKite( no )
       if machine?.provider is 'managed' and baseKite.klientDisable?
       then baseKite.klientDisable().finally -> baseKite.disconnect()
       else baseKite.disconnect()
@@ -561,7 +559,7 @@ module.exports = class ComputeController extends KDController
 
     startReinit = =>
 
-      machine.getBaseKite( createIfNotExists = no ).disconnect()
+      machine.getBaseKite( no ).disconnect()
 
       call = @getKloud().reinit { machineId: machine._id, snapshotId }
 
@@ -632,7 +630,7 @@ module.exports = class ComputeController extends KDController
           status      : Machine.State.Pending
           percentage  : 0
 
-        machine.getBaseKite( createIfNotExists = no ).disconnect()
+        machine.getBaseKite( no ).disconnect()
 
         call = @getKloud().resize { machineId: machine._id }
 
@@ -659,7 +657,7 @@ module.exports = class ComputeController extends KDController
       status      : Machine.State.Building
       percentage  : 0
 
-    machine.getBaseKite( createIfNotExists = no ).disconnect()
+    machine.getBaseKite( no ).disconnect()
 
     call = @getKloud().build { machineId: machine._id }
 
@@ -697,7 +695,7 @@ module.exports = class ComputeController extends KDController
         status      : Machine.State.Building
         percentage  : 0
 
-      machine.getBaseKite( createIfNotExists = no ).disconnect()
+      machine.getBaseKite( no ).disconnect()
 
     stackId = stack._id
     call    = @getKloud().buildStack { stackId }
@@ -737,7 +735,7 @@ module.exports = class ComputeController extends KDController
         status      : Machine.State.Terminating
         percentage  : 0
 
-      machine.getBaseKite( createIfNotExists = no ).disconnect()
+      machine.getBaseKite( no ).disconnect()
 
     stackId = stack._id
     call    = @getKloud().buildStack { stackId, destroy: yes }
@@ -763,7 +761,7 @@ module.exports = class ComputeController extends KDController
       status      : Machine.State.Starting
       percentage  : 0
 
-    machine.getBaseKite( createIfNotExists = no ).isDisconnected = no
+    machine.getBaseKite( no ).isDisconnected = no
 
     call = @getKloud().start { machineId: machine._id }
 
@@ -789,7 +787,7 @@ module.exports = class ComputeController extends KDController
       percentage  : 0
       silent      : yes
 
-    machine.getBaseKite( createIfNotExists = no ).disconnect()
+    machine.getBaseKite( no ).disconnect()
 
     call = @getKloud().stop { machineId: machine._id }
 

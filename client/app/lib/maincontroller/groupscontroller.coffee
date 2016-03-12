@@ -99,7 +99,6 @@ module.exports = class GroupsController extends kd.Controller
 
     return callback()  if @currentGroupName is groupName
 
-    oldGroupName        = @currentGroupName
     @currentGroupName   = groupName
 
     remote.cacheable groupName, (err, models)=>

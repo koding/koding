@@ -39,7 +39,6 @@ module.exports = class ContentDisplayController extends KDController
     @displays[view.id] = view
 
     {@mainTabView} = kd.singleton "mainView"
-    activePane = @mainTabView.getActivePane()
     @mainTabView.addPane tabPane
 
     model = view.getData()

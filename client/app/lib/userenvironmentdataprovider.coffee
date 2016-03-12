@@ -7,7 +7,7 @@ async   = require 'async'
 KDNotificationView = kd.NotificationView
 
 
-module.exports = UserEnvironmentDataProvider =
+module.exports =
 
 
   fetch: (callback, ensureDefaultWorkspace = no) ->
@@ -53,7 +53,7 @@ module.exports = UserEnvironmentDataProvider =
 
     return no  unless @hasData()
 
-    for key, section of @get()
+    for __, section of @get()
       for obj in section
         obj.machine = remote.revive obj.machine
         for ws, i in obj.workspaces

@@ -222,13 +222,7 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
     planId  = "#{planTitle}-#{planInterval}"
 
     userId = whoami().getId()
-    orderId = "#{userId}-#{planId}"
 
-    {currentPlanInterval, monthPrice, yearPrice} = @state
-    if currentPlanInterval is PaymentConstants.planInterval.MONTH
-      amount = monthPrice
-    else
-      amount = yearPrice
 
 
   failedAttemptLimitReached: (blockUser) ->
