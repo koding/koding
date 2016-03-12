@@ -6,7 +6,6 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/tests"
 	"testing"
-	"time"
 
 	"github.com/koding/bongo"
 	"github.com/koding/runner"
@@ -1215,77 +1214,6 @@ func TestChannelDelete(t *testing.T) {
 				// verify that the second message is not deleted:
 				err = NewChannelMessage().ById(cm1.Id)
 				So(err, ShouldBeNil)
-			})
-		})
-	})
-}
-
-func TestDeleteGroupChannel(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-		Convey("when deleting a group channel", t, func() {
-			account, groupChannel, groupName := CreateRandomGroupDataWithChecks()
-
-			Convey("it should create channel, message and dependencies", func() {
-				channel1 := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_TOPIC, groupName)
-				channel2 := CreateTypedGroupedChannelWithTest(account.Id, Channel_TYPE_TOPIC, groupName)
-
-				message1 := CreateMessage(channel1.Id, account.Id, ChannelMessage_TYPE_POST)
-				message2 := CreateMessage(channel2.Id, account.Id, ChannelMessage_TYPE_POST)
-
-				int1, err := AddInteractionWithTest(Interaction_TYPE_LIKE, message1.Id, account.Id)
-				So(int1, ShouldNotBeNil)
-				So(err, ShouldBeNil)
-
-				int2, err := AddInteractionWithTest(Interaction_TYPE_LIKE, message2.Id, account.Id)
-				So(int2, ShouldNotBeNil)
-				So(err, ShouldBeNil)
-
-				msg1 := CreateMessageWithTest()
-				So(msg1.Create(), ShouldBeNil)
-
-				cm, err := message1.AddReply(msg1)
-				So(err, ShouldBeNil)
-				So(cm.MessageId, ShouldEqual, message1.Id)
-				Convey("it should fetch replies and interactions", func() {
-					cml1, err := channel1.FetchMessageList(message1.Id)
-					So(err, ShouldBeNil)
-					So(cml1, ShouldNotBeNil)
-					So(cml1.MessageId, ShouldEqual, message1.Id)
-
-					query := request.NewQuery()
-					query.AccountId = account.Id
-					query.Type = Interaction_TYPE_LIKE
-					messages, err := NewInteraction().ListLikedMessages(query, channel1.Id)
-					So(err, ShouldBeNil)
-					So(messages, ShouldNotBeNil)
-
-					icm := NewChannelMessage()
-					err = icm.ById(msg1.Id)
-					So(err, ShouldBeNil)
-
-				})
-				Convey("after deleting group channel", func() {
-					err = groupChannel.Delete()
-					So(err, ShouldBeNil)
-					Convey("it should not fetch replies and interactions", func() {
-						time.Sleep(2 * time.Second)
-						_, err := channel1.FetchMessageList(message1.Id)
-						So(err, ShouldNotBeNil)
-						So(err, ShouldEqual, bongo.RecordNotFound)
-
-						query := request.NewQuery()
-						query.AccountId = account.Id
-						query.Type = Interaction_TYPE_LIKE
-						messages, err := NewInteraction().ListLikedMessages(query, channel1.Id)
-						So(err, ShouldBeNil)
-						So(messages, ShouldBeNil)
-
-						icm := NewChannelMessage()
-						err = icm.ById(message1.Id)
-						So(err, ShouldNotBeNil)
-						So(err, ShouldEqual, bongo.RecordNotFound)
-					})
-				})
 			})
 		})
 	})
