@@ -1075,6 +1075,10 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 			}
 		}
 
+		if err := NewMessageReply().DeleteByOrQuery(message.Id); err != nil {
+			return err
+		}
+
 		if err = message.Delete(); err != nil {
 			return err
 		}
