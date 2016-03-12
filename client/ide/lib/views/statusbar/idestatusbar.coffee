@@ -27,14 +27,14 @@ module.exports = class IDEStatusBar extends kd.View
     @participantAvatars = {}
     @avatarTimers       = {}
 
-    @on 'ShowAvatars',                 @bound 'showAvatars'
-    @on 'ParticipantLeft',             @bound 'dimParticipantAvatar'
-    @on 'ParticipantJoined',           @bound 'addParticipantAvatar'
-    @on 'CollaborationLoading',        @bound 'handleCollaborationLoading'
-    @on 'CollaborationEnded',          @bound 'handleCollaborationEnded'
-    @on 'CollaborationStarted',        @bound 'handleCollaborationStarted'
-    @on 'ParticipantWatched',          @bound 'decorateWatchedAvatars'
-    @on 'ParticipantUnwatched',        @bound 'decorateUnwatchedAvatars'
+    @on 'ShowAvatars',          @bound 'showAvatars'
+    @on 'ParticipantLeft',      @bound 'dimParticipantAvatar'
+    @on 'ParticipantJoined',    @bound 'addParticipantAvatar'
+    @on 'CollaborationLoading', @bound 'handleCollaborationLoading'
+    @on 'CollaborationEnded',   @bound 'handleCollaborationEnded'
+    @on 'CollaborationStarted', @bound 'handleCollaborationStarted'
+    @on 'ParticipantWatched',   @bound 'decorateWatchedAvatars'
+    @on 'ParticipantUnwatched', @bound 'decorateUnwatchedAvatars'
 
     { mainController, router, appManager } = kd.singletons
 
