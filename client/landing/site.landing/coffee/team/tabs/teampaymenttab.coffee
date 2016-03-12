@@ -73,7 +73,6 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
           kd.singletons.router.handleRoute '/Team/Username'
 
 
-    team = utils.getTeamData()
 
     @button = new kd.ButtonView
       title: 'NEXT'
