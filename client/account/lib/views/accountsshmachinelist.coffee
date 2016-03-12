@@ -39,7 +39,7 @@ module.exports = class AccountSshMachineList extends KDListView
 
   getSelectedMachines: ->
 
-    machines = item.getData() for item in @items when item.switcher.getValue()
+    item.getData() for item in @items when item.switcher.getValue()
 
 
   addFooter: ->

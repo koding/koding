@@ -1,8 +1,7 @@
-React           = require 'kd-react'
 ReactDOM        = require 'react-dom'
 scrollerActions = require './scrolleractions'
 
-module.exports = ScrollerMixin =
+module.exports =
 
   componentDidMount: ->
 

@@ -1,5 +1,4 @@
 kd          = require 'kd'
-_           = require 'lodash'
 recorder    = require 'record-shortcuts'
 Pane        = require './accounteditshortcutspane'
 facade      = require './accounteditshortcutsfacade'

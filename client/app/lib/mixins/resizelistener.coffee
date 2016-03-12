@@ -1,6 +1,6 @@
 kd = require 'kd'
 
-module.exports = resizeListener =
+module.exports =
 
   componentDidMount: ->
 

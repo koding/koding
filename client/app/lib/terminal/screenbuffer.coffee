@@ -137,7 +137,7 @@ module.exports = class ScreenBuffer
       missing = (endIndex - beginIndex) - length
       if missing > 0
         text = ""
-        text += "\xA0" for i in [0...missing]
+        text += "\xA0" for [0...missing]
         content.push new StyledText(text, StyledText.DEFAULT_STYLE)
 
       content

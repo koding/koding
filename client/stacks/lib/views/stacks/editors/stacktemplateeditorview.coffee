@@ -27,9 +27,10 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
     """
 
     ace = @getAce()
-    ace.editor.session.insert position, content
-    ace.contentChanged = no
 
+    ace.editor.session.insert position, content
+    ace.contentChanged    = no
+    ace.lastSavedContents = ace.getContents()
 
   createEditor: ->
 

@@ -4,7 +4,7 @@ Copyright(c) 2011 Bermi Ferrer <bermi@bermilabs.com>
 MIT Licensed
 ###
 
-letter = /[a-zA-Z]$/
+
 vowel = /[aeiouAEIOU]$/
 consonant = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]$/
 

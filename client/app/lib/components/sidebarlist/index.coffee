@@ -1,4 +1,3 @@
-kd         = require 'kd'
 React      = require 'kd-react'
 immutable  = require 'immutable'
 classnames = require 'classnames'

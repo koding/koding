@@ -14,6 +14,7 @@ import (
 	"koding/klient/remote/req"
 	"koding/klientctl/config"
 	"koding/klientctl/klient"
+	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
 	"koding/klientctl/util"
 
@@ -28,6 +29,8 @@ var (
 	ErrManagedMachineNotSupported = errors.New("Cannot ssh into managed machines.")
 
 	ErrFailedToGetSSHKey = errors.New("Failed to get ssh key.")
+
+	ErrMachineNotValidYet = errors.New("Machine not valid yet")
 )
 
 // SSHCommand is the command that lets users ssh into a remote machine.  It
@@ -91,6 +94,13 @@ func (s *SSHCommand) Run(machine string) error {
 	if err := s.PrepareForSSH(machine); err != nil {
 		if strings.Contains(err.Error(), "user: unknown user") {
 			return ErrManagedMachineNotSupported
+		}
+
+		// TODO: We're unable to log the meaningful error returned from klient, so we're
+		// leaking possibly meaningful data here. This will be resolved once SSH gets
+		// updated to the new (final) format. Fix this.
+		if klientctlerrors.IsMachineNotValidYetErr(err) {
+			return ErrMachineNotValidYet
 		}
 
 		return ErrFailedToGetSSHKey

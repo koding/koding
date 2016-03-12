@@ -1,6 +1,5 @@
 kd                        = require 'kd'
 AccountListViewController = require '../controllers/accountlistviewcontroller'
-KDHeaderView              = kd.HeaderView
 whoami                    = require 'app/util/whoami'
 
 

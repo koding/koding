@@ -1,8 +1,6 @@
-kd                  = require 'kd'
 Link                = require 'app/components/common/link'
 React               = require 'kd-react'
 classnames          = require 'classnames'
-SidebarSection      = require 'app/components/sidebarsection'
 
 
 module.exports = class SidebarDifferentStackResources extends React.Component

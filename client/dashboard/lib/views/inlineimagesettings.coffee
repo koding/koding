@@ -63,13 +63,11 @@ module.exports = class InlineImageSettings extends KDView
   getImageViewAttributes:->
     fieldToCustomize = @getCustomized()
     if fieldToCustomize
-      attributes = {}
       resized    = proxifyUrl fieldToCustomize,
         crop     : yes
         width    : 55
         height   : 55
-      attributes =
-        style : "background-image: url(#{resized}); background-position: 0 0;"
+
     else
       @setClass "default"
 

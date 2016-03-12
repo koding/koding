@@ -45,7 +45,7 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     input.blur()
     input.off 'keydown'
 
-  form.addSubView labelFinder = new KDLabelView
+  form.addSubView new KDLabelView
     title : options.finderLabel or "Select a folder:"
 
   dialog.show()

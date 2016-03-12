@@ -14,7 +14,7 @@ module.exports = class ComputePlansModalFree extends ComputePlansModal
 
   viewAppended:->
 
-    @addSubView content = new KDView
+    @addSubView new KDView
       cssClass     : 'message'
       partial      : {
         'free'     : "Free users are restricted to one VM.<br/>"

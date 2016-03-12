@@ -122,7 +122,7 @@ module.exports = class AccountAppController extends AppController
       tagName   : 'aside'
       cssClass  : 'AppModal-nav'
 
-    aside.addSubView navView = @navController.getView()
+    aside.addSubView @navController.getView()
 
     modal.addSubView appContent = new KDCustomHTMLView
       cssClass            : 'AppModal-content'
@@ -135,7 +135,7 @@ module.exports = class AccountAppController extends AppController
 
     NAV_ITEMS.danger.items = if isKoding() then kodingDangerItems else teamsDangerItems
 
-    for own sectionKey, section of NAV_ITEMS
+    for own __, section of NAV_ITEMS
       mergeables = []
       for item in section.items
         if groupSlug is 'koding'

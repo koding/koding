@@ -17,7 +17,6 @@ module.exports = class MachinesListItem extends kd.ListItemView
     options.cssClass = kd.utils.curry 'machines-item clearfix', options.cssClass
     super options, data
 
-    delegate = @getDelegate()
     { alwaysOn, slug, label } = machine = @getData()
 
     isManaged = machine.isManaged()

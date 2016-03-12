@@ -11,7 +11,7 @@ module.exports = class AnimatedModalView extends KDView
     options.cssClass = kd.utils.curry "animated-modalview", options.cssClass
     super options, data
 
-    @addSubView closeButton = new KDCustomHTMLView
+    @addSubView new KDCustomHTMLView
       partial : \
         "<span class='close-icon closeModal' title='Close [ESC]'></span>"
       click   : @bound 'destroy'

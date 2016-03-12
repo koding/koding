@@ -318,6 +318,11 @@ func (c *MountCommand) prefetchAll() error {
 			return fmt.Errorf("Cannot ssh into managed machines. err:%s", err)
 		}
 
+		if klientctlerrors.IsMachineNotValidYetErr(err) {
+			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
+			return fmt.Errorf("Machine is not valid yet. err:%s", err)
+		}
+
 		c.printfln(FailedGetSSHKey)
 		return fmt.Errorf("Error getting ssh key. err:%s", err)
 	}
@@ -418,6 +423,10 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
 			return fmt.Errorf("Error dialing remote klient. err:%s", err)
 
+		case klientctlerrors.IsMachineNotValidYetErr(err):
+			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
+			return fmt.Errorf("Machine is not valid yet. err:%s", err)
+
 		default:
 			// catch any remaining errors
 			c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))
@@ -425,6 +434,9 @@ func (c *MountCommand) mountFolder(r req.MountFolder) error {
 		}
 	}
 
+	// TODO: Remove this check? The above switch has a default case, this is useless,
+	// right?
+	//
 	// catch errors other than klientctlerrors.IsExistingMountErr
 	if err != nil {
 		c.printfln(defaultHealthChecker.CheckAllFailureOrMessagef(FailedToMount))

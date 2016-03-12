@@ -27,19 +27,9 @@ func (r *Remote) RemountHandler(kreq *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	remoteMachines, err := r.GetKitesOrCache()
+	remoteMachine, err := r.GetValidMachine(params.MountName)
 	if err != nil {
-		log.Error(
-			"Unable to get machines (getKites). name:%s, err:%s", params.MountName, err,
-		)
-		return nil, err
-	}
-
-	remoteMachine, err := remoteMachines.GetByName(params.MountName)
-	if err != nil {
-		log.Error(
-			"Unable to locate machine by name. name:%s, err:%s", params.MountName, err,
-		)
+		log.Error("Error getting valid machine. err:%s", err)
 		return nil, err
 	}
 

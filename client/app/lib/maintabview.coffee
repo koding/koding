@@ -50,7 +50,6 @@ module.exports = class MainTabView extends KDTabView
 
     pane.emit "KDTabPaneDestroy"
 
-    isActivePane = @getActivePane() is pane
     @panes.splice index, 1
     pane.destroy()
 

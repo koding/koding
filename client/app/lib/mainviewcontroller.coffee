@@ -7,7 +7,7 @@ module.exports = class MainViewController extends KDViewController
 
   logViewByElement = (el) ->
 
-    for id, view of kd.instances when view.getElement?
+    for __, view of kd.instances when view.getElement?
       if el is view.getElement()
         kd.log view
         break
@@ -21,9 +21,7 @@ module.exports = class MainViewController extends KDViewController
 
     mainView             = @getView()
     appManager           = kd.singleton 'appManager'
-    windowController     = kd.singleton 'windowController'
     display              = kd.singleton 'display'
-    mainController       = kd.singleton 'mainController'
 
     mainView.on 'MainTabPaneShown', (pane) =>
       @mainTabPaneChanged mainView, pane
@@ -68,7 +66,6 @@ module.exports = class MainViewController extends KDViewController
   mainTabPaneChanged:(mainView, pane)->
 
     appManager      = kd.getSingleton 'appManager'
-    app             = appManager.getFrontApp()
     {mainTabView}   = mainView
 
     # warn 'set active nav item by route change, not by maintabpane change'

@@ -28,7 +28,7 @@ module.exports = class ComputeErrorUsageModal extends ComputeErrorModal
         message ?= "Our free accounts do not allow you to run your VM in an always-on state."
         upgradeMessage ?= "Please upgrade to enable this feature."
 
-    @addSubView content = new KDView
+    @addSubView new KDView
       cssClass : 'message'
       partial  : message
 
