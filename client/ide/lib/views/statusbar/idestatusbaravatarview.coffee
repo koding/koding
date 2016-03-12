@@ -122,7 +122,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
       MENU = new KDContextMenu
         nickname    : @nickname
-        cssClass    : 'dark statusbar-files'
+        cssClass    : 'dark IDE-StatusBarContextMenu'
         menuWidth   : menuWidth
         delegate    : this
         x           : @getX()
