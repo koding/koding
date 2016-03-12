@@ -8,10 +8,8 @@ lazyrouter     = require './lazyrouter'
 isKoding       = require './util/isKoding'
 whoami         = require './util/whoami'
 
-Machine                 = require 'app/providers/machine'
 EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 getAction = (formName) -> switch formName
   when 'login'    then 'log in'
@@ -23,7 +21,6 @@ handleRoot = ->
 
   {router}     = kd.singletons
   {entryPoint} = globals.config
-  replaceState = yes
 
   router.handleRoute router.getDefaultRoute(), {entryPoint}
 

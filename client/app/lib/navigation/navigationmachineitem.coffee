@@ -309,7 +309,7 @@ module.exports = class NavigationMachineItem extends JView
 
   destroy: ->
 
-    popup.destroy()  for key, popup of popups
+    popup.destroy()  for __, popup of popups
 
     super
 

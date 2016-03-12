@@ -15,15 +15,8 @@ module.exports = class LinkController extends KDController
     options = {}
     route   = switch data.constructor
       when JAccount
-        { integration } = link.options
         {slug} = getGroup()
         {profile: {nickname}} = data
-        href = if integration
-          "/Admin/Integrations/Configure/#{integration.id}"
-        else if slug is 'koding'
-          "/#{nickname}"
-        else
-          null
       when JGroup
         "/#{data.slug}"
 

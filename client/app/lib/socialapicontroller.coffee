@@ -563,11 +563,11 @@ module.exports = class SocialApiController extends KDController
     return item  if item = @_cache[type]?[id]
 
     if type is 'topic'
-      for own id_, topic of @_cache.topic when topic.name is id
+      for own __, topic of @_cache.topic when topic.name is id
         return topic
 
     if type is 'activity'
-      for own id_, post of @_cache.post when post.slug is id
+      for own __, post of @_cache.post when post.slug is id
         return post
 
     return null
@@ -575,7 +575,7 @@ module.exports = class SocialApiController extends KDController
 
   retrieveCachedItemById: (id) ->
 
-    for own typeConstant, items of @_cache
+    for own typeConstant, __ of @_cache
       return item  if item = @_cache[typeConstant][id]
 
     return null
