@@ -10,7 +10,6 @@ module.exports = do ->
     maxLength = options.maxLength or 600
     suffix    = options.suffix     ? '...'
 
-    longTextLength  = longText.length
 
     tempText = longText.slice 0, maxLength
     lastClosingTag = tempText.lastIndexOf "]"
