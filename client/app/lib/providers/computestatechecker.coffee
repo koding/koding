@@ -85,7 +85,7 @@ module.exports = class ComputeStateChecker extends KDObject
           # one if it's not exists. ~ GG
           return  unless machine.provider is 'managed'
 
-      call = computeController.getKloud().info { machineId, currentState }
+      computeController.getKloud().info { machineId, currentState }
 
       .then (response) =>
 

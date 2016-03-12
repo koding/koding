@@ -44,7 +44,6 @@ module.exports = class MachineSettingsDiskUsageView extends KDView
     format = kd.utils.formatBytesToHumanReadable
     total  = info.diskTotal * 1024
     usage  = info.diskUsage * 1024
-    free   = total - usage
 
     @addSubView new KDCustomHTMLView
       cssClass : 'usage-info'
