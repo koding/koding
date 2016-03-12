@@ -1,4 +1,3 @@
-kd        = require 'kd'
 React     = require 'kd-react'
 ReactDOM  = require 'react-dom'
 Constants = require './constants'

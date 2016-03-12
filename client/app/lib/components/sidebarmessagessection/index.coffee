@@ -3,7 +3,6 @@ immutable                 = require 'immutable'
 SidebarList               = require 'app/components/sidebarlist'
 SidebarSection            = require 'app/components/sidebarsection'
 SidebarMessagesListItem   = require 'app/components/sidebarmessageslistitem'
-Link                      = require 'app/components/common/link'
 
 
 module.exports = class SidebarMessagesSection extends React.Component

@@ -1,4 +1,3 @@
-kd                      = require 'kd'
 Link                    = require 'app/components/common/link'
 nick                    = require 'app/util/nick'
 React                   = require 'kd-react'
@@ -8,7 +7,6 @@ KDReactorMixin          = require 'app/flux/base/reactormixin'
 EnvironmentFlux         = require 'app/flux/environment'
 DeleteWorkspaceWidget   = require './deleteworkspacewidget'
 getBoundingClientReact  = require 'app/util/getBoundingClientReact'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class SidebarWorkspacesListItem extends React.Component
