@@ -41,6 +41,11 @@ build:
           scripts/wercker/install-node-modules koding
           npm install
     - script:
+        name: check client code quality
+        code: |
+          npm -g coffee-unused
+          scripts/check_client_code_quality.sh
+    - script:
         name: notify cebeci
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
@@ -98,6 +103,9 @@ build:
     - script:
         name: check social api code quality
         code: scripts/wercker/run-command scripts/check_socialapi_code_quality.sh
+    - script:
+        name: check client code quality
+        code: scripts/wercker/run-command scripts/check_client_code_quality.sh
     - script:
         name: testing backend started
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
