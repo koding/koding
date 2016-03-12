@@ -162,6 +162,7 @@ module.exports = class IDEStatusBar extends kd.View
       origin   : nickname
       size     : width: 24, height: 24
       cssClass : if isOnline then 'online' else 'offline'
+      amIHost  : @amIHost_()
 
     @participantAvatars[nickname] = view
     @avatars.addSubView view
@@ -232,6 +233,13 @@ module.exports = class IDEStatusBar extends kd.View
       delete @avatarTimers[nickname]
 
     @avatars.show()
+
+
+  handlePermissionRequest: (from) ->
+
+    return unless avatarView = @participantAvatars[from]
+
+    avatarView.showRequestPermissionView()
 
 
   handleCollaborationLoading: ->

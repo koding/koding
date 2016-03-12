@@ -44,69 +44,73 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
 
   showMenu: ->
 
-    return  if MENU and MENU.getOptions().nickname is @nickname
+    { nickname, amIHost } = @getOptions()
 
-    MENU.destroy()  if MENU
+    return  if MENU and nickname is @nickname
+
+    MENU?.destroy()
 
     { appManager } = kd.singletons
-    { frontApp }   = appManager
-    { rtm }        = frontApp
+    { rtm }        = appManager.frontApp
     menuItems      = {}
+    fullName       = getFullnameFromAccount @getData()
+    disabled       = 'disabled'
+    menuWidth      = 150
 
-    do =>
-      disabled = 'disabled'
-      menuItems[title = getFullnameFromAccount @getData()] = { title, disabled }
+    if @hasRequest
+      menuWidth = 400
+      type      = 'customView'
+      view      = new kd.CustomHTMLView
+        partial : "#{fullName} is asking permission to make changes."
 
-    menuItems.separator = type: 'separator'
+      menuItems[fullName] = { type, disabled, view }
+    else
+      menuItems[fullName] = { title: fullName, disabled }
 
-    appManager.tell 'IDE', 'getCollaborationData', (data) =>
+    if amIHost
+      menuItems.separator = type: 'separator'
 
-      { amIHost, settings, watchMap, permissions } = data
+    if @hasRequest
+      type      = 'customView'
+      view      = new kd.CustomHTMLView
+        partial : """
+          <a href="#" class="deny">DENY</a> -
+          <a href="#" class="grant">GRANT PERMISSION</a>
+        """
 
-      isWatching  = watchMap.indexOf(@nickname) > -1
-      permission  = permissions.get @nickname
+      menuItems.actions = { type, view }
+    else if amIHost
+      menuItems.Kick =
+        title     : 'Kick'
+        callback  : =>
+          MENU?.destroy()
+          kd.singletons.appManager.tell 'IDE', 'kickParticipant', @getData()
 
-      menuWidth   = 150
-
-      # if settings.unwatch or amIHost
-      #   @createWatchToggle menuItems, isWatching
-
-      # if amIHost and settings.readOnly
-      #   @createReadOnlyToggle menuItems, permission
-
-
-      if amIHost
-        menuItems.Kick =
-          title     : 'Kick'
-          callback  : =>
-            MENU?.destroy()
-            kd.singletons.appManager.tell 'IDE', 'kickParticipant', @getData()
-
-      MENU = new KDContextMenu
-        nickname    : @nickname
-        cssClass    : 'dark IDE-StatusBarContextMenu'
-        menuWidth   : menuWidth
-        delegate    : this
-        x           : @getX()
-        y           : @getY()
-        offset      :
-          top       : -5000
-          left      : -82
-        arrow       :
-          placement : 'bottom'
-          margin    : menuWidth / 2
-      , menuItems
+    MENU = new KDContextMenu
+      nickname    : @nickname
+      cssClass    : 'dark IDE-StatusBarContextMenu'
+      menuWidth   : menuWidth
+      delegate    : this
+      x           : @getX()
+      y           : @getY()
+      offset      :
+        top       : -5000
+        left      : -82
+      arrow       :
+        placement : 'bottom'
+        margin    : menuWidth / 2
+    , menuItems
 
 
-      kd.utils.wait 200, =>
-        h = MENU.getHeight()
-        w = MENU.getWidth()
-        top  = -h - 10
-        left = @getWidth()/2 - w/2 - 4 # for an unknown reason - SY
-        MENU.setOption 'offset', {left, top}
-        MENU.positionContextMenu()
+    kd.utils.wait 200, =>
+      h = MENU.getHeight()
+      w = MENU.getWidth()
+      top  = -h - 10
+      left = @getWidth()/2 - w/2 - 4 # for an unknown reason - SY
+      MENU.setOption 'offset', {left, top}
+      MENU.positionContextMenu()
 
-      MENU.once 'KDObjectWillBeDestroyed', => MENU = null
+    MENU.once 'KDObjectWillBeDestroyed', => MENU = null
 
 
   createWatchToggle: (menuItems, isWatching) ->
@@ -157,3 +161,9 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     MENU?.destroy()
 
     super
+
+
+  showRequestPermissionView: ->
+
+    @hasRequest = yes
+    @showMenu()

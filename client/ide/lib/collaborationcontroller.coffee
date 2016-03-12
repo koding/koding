@@ -589,6 +589,10 @@ module.exports = CollaborationController =
 
         @handleSharedMachine()
 
+      when 'PermissionRequest'
+
+        @statusBar.handlePermissionRequest origin  if @amIHost
+
 
   handlePermissionMapChange: (event) ->
 
@@ -1350,19 +1354,29 @@ module.exports = CollaborationController =
     @rtm.getFromModel('commonStore').set 'openFolders', openFolders
 
 
-  requestEditPermission: ->
+  showRequestPermissionView: ->
 
-    return  if @requestEditPermissionView
+    return  if @requestPermissionView
 
-    @requestEditPermissionView = new kd.CustomHTMLView
+    @requestPermissionView = new kd.CustomHTMLView
       cssClass : 'ide-warning-view system-notification in'
-      partial  : "REQUEST ACCESS: You don't have permissions to make changes. <a href='#'>Ask for permission.</a> <a href='#' class='close'></a>"
+      partial  : "
+        REQUEST ACCESS: You don't have permissions to make changes.
+        <a href='#' class='ask-permission'>Ask for permission.</a>
+        <a href='#' class='close'></a>"
       click    : (e) =>
         kd.utils.stopDOMEvent e
-        if e.target.classList.contains 'close'
-          @requestEditPermissionView.destroy()
+        { classList } = e.target
 
-    @getView().addSubView @requestEditPermissionView
+        if classList.contains 'close'
+          @requestPermissionView.destroy()
+        else if classList.contains 'ask-permission'
+          @requestPermission()
 
-    @requestEditPermissionView.once 'KDObjectWillBeDestroyed', =>
-      @requestEditPermissionView = null
+    @getView().addSubView @requestPermissionView
+
+    @requestPermissionView.once 'KDObjectWillBeDestroyed', =>
+      @requestPermissionView = null
+
+
+  requestPermission: -> @broadcastMessage { type: 'PermissionRequest' }

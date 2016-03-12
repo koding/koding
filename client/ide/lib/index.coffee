@@ -1658,9 +1658,7 @@ class IDEAppController extends AppController
     appView.on 'click', @bound 'readOnlyNotifierCallback_'
 
 
-  readOnlyNotifierCallback_: ->
-
-    @requestEditPermission()
+  readOnlyNotifierCallback_: -> @showRequestPermissionView()
 
 
   makeEditable: ->
