@@ -57,7 +57,7 @@ module.exports = class Tracker extends bongo.Base
 
   @identify = (username, traits = {}, callback = -> ) ->
 
-    return  unless KONFIG.sendEventsToSegment
+    return callback null  unless KONFIG.sendEventsToSegment
 
     # use `forcedRecipientEmail` for both username and email
     if forcedRecipientEmail
