@@ -1062,8 +1062,11 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 			continue
 		}
 
+		// While error handling in this process, we'r gonna ignore RecordNotFound errors
+		// Our purpose is deleting all dependencies ,then if there is no any record
+		// then we dont need to return error about RecordNotFound
 		interactions, err := NewInteraction().FetchInteractionsWithMessage(message.Id)
-		if err != nil {
+		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
@@ -1075,7 +1078,8 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 			}
 		}
 
-		if err := NewMessageReply().DeleteByOrQuery(message.Id); err != nil {
+		err = NewMessageReply().DeleteByOrQuery(message.Id)
+		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
@@ -1083,7 +1087,7 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 			return err
 		}
 
-		if errs.ErrorOrNil() != nil {
+		if errs.ErrorOrNil() != nil && err != bongo.RecordNotFound {
 			return errs
 		}
 	}
