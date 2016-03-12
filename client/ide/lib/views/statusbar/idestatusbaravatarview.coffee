@@ -50,53 +50,7 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     { appManager } = kd.singletons
     { frontApp }   = appManager
     { rtm }        = frontApp
-
     menuItems      = {}
-    menuData       =
-      terminals    : []
-      drawings     : []
-      browsers     : []
-      editors      : []
-    menuLabels     =
-      terminal     : 'Terminal'
-      drawing      : 'Drawing Board'
-      browser      : 'Browser'
-      editor       : 'Editor'
-
-    hasChanges = no
-
-    panes = frontApp.getSnapshotFromDrive @nickname, yes
-
-    panes.forEach (pane, i) ->
-
-      return  if not pane.context
-
-      { context: { file, paneType } }             = pane
-      { editors, terminals, drawings, browsers }  = menuData
-
-      hasChanges = yes
-
-      switch paneType
-        when 'editor'   then editors.push   { pane, title : FSHelper.getFileNameFromPath file.path }
-        when 'terminal' then terminals.push { pane }
-        when 'drawing'  then drawings.push  { pane }
-        when 'browser'  then browsers.push  { pane }
-
-    for own section, items of menuData
-
-      items.forEach (item, i) ->
-        { context: { paneType } } = item.pane
-        title = item.title or "#{paneType.capitalize()} #{i+1}"
-        label = menuLabels[paneType]
-        menuItems[label] or= children: {}
-        targetObj = menuItems[label].children
-        targetObj[title] = { title }
-        targetObj[title].change = context: item.pane.context
-        targetObj[title].callback = (it) ->
-          appManager.tell 'IDE', 'createPaneFromChange', it.getData().change
-          @destroy()
-
-    menuItems.separator = type: 'separator'  if hasChanges
 
     appManager.tell 'IDE', 'getCollaborationData', (data) =>
 
