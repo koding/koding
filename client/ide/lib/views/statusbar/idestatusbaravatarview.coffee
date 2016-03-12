@@ -5,6 +5,7 @@ AvatarView                  = require 'app/commonviews/avatarviews/avatarview'
 IDEChatHeadWatchItemView    = require './idechatheadwatchitemview'
 IDEChatHeadReadOnlyItemView = require './idechatheadreadonlyitemview'
 IDELayoutManager            = require '../../workspace/idelayoutmanager'
+getFullnameFromAccount      = require 'app/util/getFullnameFromAccount'
 
 
 module.exports = class IDEStatusBarAvatarView extends AvatarView
@@ -51,6 +52,12 @@ module.exports = class IDEStatusBarAvatarView extends AvatarView
     { frontApp }   = appManager
     { rtm }        = frontApp
     menuItems      = {}
+
+    do =>
+      disabled = 'disabled'
+      menuItems[title = getFullnameFromAccount @getData()] = { title, disabled }
+
+    menuItems.separator = type: 'separator'
 
     appManager.tell 'IDE', 'getCollaborationData', (data) =>
 
