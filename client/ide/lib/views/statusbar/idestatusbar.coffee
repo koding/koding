@@ -133,20 +133,14 @@ module.exports = class IDEStatusBar extends kd.View
 
   startSession: ->
 
-    console.log 'startSession'
-
-    { appManager } = kd.singletons
-
-    appManager.tell 'IDE', 'setInitialSessionSetting', 'readOnly', yes
-    appManager.tell 'IDE', 'setInitialSessionSetting', 'muteHost', no
-
     @share.updateProgress 0 # Make sure initial value is 0
 
     PROGRESS_DELAYS.forEach (item) =>
       kd.utils.killWait item.timer  if item.timer # Kill already defined waits
       item.timer = kd.utils.wait item.delay, => @share.updateProgress item.progress
 
-    appManager.tell 'IDE', 'startCollaborationSession', (err) => @resetProgress()  if err
+    kd.singletons.appManager.tell 'IDE', 'startCollaborationSession', (err) =>
+      @resetProgress()  if err
 
 
   resetProgress: -> @share.resetProgress()
