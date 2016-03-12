@@ -64,12 +64,12 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
     info.addSubView buttons = new KDCustomHTMLView
       cssClass : 'buttons'
 
-    buttons.addSubView editLink = new KDButtonView
+    buttons.addSubView new KDButtonView
       iconOnly : yes
       cssClass : "edit"
       callback : @bound "handleEdit"
 
-    buttons.addSubView deleteLink = new KDButtonView
+    buttons.addSubView new KDButtonView
       iconOnly : yes
       cssClass : "delete"
       callback : @bound "deleteItem"

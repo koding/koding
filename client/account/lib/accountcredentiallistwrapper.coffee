@@ -61,7 +61,7 @@ module.exports = class AccountCredentialListWrapper extends KDView
         value : provider.key
 
 
-    @filterView.addSubView selectBox = new KDSelectBox
+    @filterView.addSubView new KDSelectBox
       selectOptions : selectOptions
       defaultValue  : ''
       callback      : @bound 'doFilter'

@@ -1,7 +1,6 @@
 kd                = require 'kd'
 KDCustomHTMLView  = kd.CustomHTMLView
 KDLoaderView      = kd.LoaderView
-KDSelectBox       = kd.SelectBox
 KDView            = kd.View
 whoami            = require 'app/util/whoami'
 notify_           = require 'app/util/notify_'

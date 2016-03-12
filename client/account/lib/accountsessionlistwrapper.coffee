@@ -1,8 +1,5 @@
 kd             = require 'kd'
 KDView         = kd.View
-globals        = require 'globals'
-KDSelectBox    = kd.SelectBox
-KDLabelView    = kd.LabelView
 KDHeaderView   = kd.HeaderView
 
 AccountSessionList           = require './accountsessionlist'
