@@ -1,6 +1,5 @@
 expect = require 'expect'
 
-Store = require '../store'
 Reactor = require '../reactor'
 
 describe 'KodingFluxReactor', ->
