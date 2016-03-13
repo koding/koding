@@ -185,15 +185,17 @@ module.exports = helpers =
     container or= kd.singletons.appManager.frontApp.mainView
 
     view = new kd.CustomHTMLView
-      cssClass : "ide-warning-view system-notification in #{cssClass}"
+      cssClass : "ide-warning-view system-notification #{cssClass}"
       partial  : partial
       click    : (e) =>
         kd.utils.stopDOMEvent e
         if e.target.classList.contains 'close'
-          view.destroy()
+          view.unsetClass 'in'
+          kd.utils.wait 300, -> view.destroy()
         else
           click e
 
     container.addSubView view
+    kd.utils.defer -> view.setClass 'in'
 
     return view
