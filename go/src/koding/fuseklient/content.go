@@ -63,7 +63,7 @@ func (c *ContentReadWriter) ReadAt(p []byte, offset int64) (int, error) {
 		return copied, nil
 	}
 
-	resp, err := c.remote.ReadFileAt(c.Path, offset, int64(len(p)))
+	resp, err := c.remote.ReadFileAt(c.Path, offset, c.BlockSize)
 	if err != nil {
 		return 0, err
 	}
