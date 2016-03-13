@@ -62,7 +62,7 @@ func TestContentReadWriterSave(t *testing.T) {
 
 		Convey("It should save contents to remote when dirty", func() {
 			So(cr.WriteAt(dftCnt, 0), ShouldBeNil)
-			So(cr.Save(), ShouldBeNil)
+			So(cr.Save(false), ShouldBeNil)
 
 			resp, err := rt.ReadFile(cr.Path)
 			So(err, ShouldBeNil)
@@ -72,7 +72,14 @@ func TestContentReadWriterSave(t *testing.T) {
 
 		Convey("It should not save contents to remote when not dirty", func() {
 			cr.remote = nil // this causes panic if it calls remote
-			So(cr.Save(), ShouldBeNil)
+			So(cr.Save(false), ShouldBeNil)
+		})
+
+		Convey("It should force save when specificed", func() {
+			cr.remote = nil // this causes panic if it calls remote
+
+			So(func() { cr.Save(false) }, ShouldNotPanic)
+			So(func() { cr.Save(true) }, ShouldPanic)
 		})
 	})
 }

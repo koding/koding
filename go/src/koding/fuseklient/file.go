@@ -88,7 +88,7 @@ func (f *File) Flush() error {
 	f.Lock()
 	defer f.Unlock()
 
-	return f.content.Save()
+	return f.content.Save(false)
 }
 
 // Sync saves internal cache to remote.

@@ -140,15 +140,15 @@ func (c *ContentReadWriter) TruncateTo(size uint64) error {
 
 	c.Size = int64(len(c.content))
 
-	return c.Save()
+	return c.Save(true)
 }
 
-func (c *ContentReadWriter) Save() error {
-	if c.needSave() {
-		return c.writeContentToRemote(c.content)
+func (c *ContentReadWriter) Save(force bool) error {
+	if !c.needSave() && !force {
+		return nil
 	}
 
-	return nil
+	return c.writeContentToRemote(c.content)
 }
 
 func (c *ContentReadWriter) Reset() {
